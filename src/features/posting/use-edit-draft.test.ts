@@ -183,6 +183,26 @@ describe("useEditDraft (the seller)", () => {
     expect(editMyListing).toHaveBeenCalledTimes(1);
   });
 
+  it("EW-7 the ad's own caps come from the door's answer (INC-1080); a null answer stays null, never a baseline", async () => {
+    const featured = {
+      plan: "city",
+      maxCities: 1,
+      maxRegions: 1,
+      maxCountries: 1,
+      maxPhotos: 8,
+    };
+    readDraft.mockResolvedValueOnce({ ...ad(), caps: featured });
+    const { result } = renderHook(() => useEditDraft("l-1", { actor: "seller" }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.caps).toEqual(featured);
+    expect(result.current.caps?.maxPhotos).toBe(8);
+
+    readDraft.mockResolvedValueOnce({ ...ad(), caps: null });
+    const unknown = renderHook(() => useEditDraft("l-2", { actor: "seller" }));
+    await waitFor(() => expect(unknown.result.current.loading).toBe(false));
+    expect(unknown.result.current.caps).toBeNull();
+  });
+
   it("EW-4 an ad that is not the caller's is a refusal to load, never an empty form", async () => {
     readDraft.mockResolvedValueOnce(null);
     const { result } = renderHook(() => useEditDraft("l-2", { actor: "seller" }));

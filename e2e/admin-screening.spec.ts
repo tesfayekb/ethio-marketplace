@@ -28,6 +28,7 @@ import { passwordGrant } from "./helpers/session";
 import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
+import { levelNameFor } from "./helpers/level-overrides";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10);
@@ -88,6 +89,10 @@ async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) 
   );
 }
 
+/**
+ * P-2 (c) c2a — a level row's English name, which the console's picks, notices and badge draw
+ * (the row's, never a catalog key); the spec's own read of the row it seeded by key.
+ */
 /** Bundle 11 A1 — the audit rows a reveal wrote for one listing (audit_log is append-only). */
 async function revealRows(id: string) {
   const { data, error } = await adminClient()
@@ -1393,7 +1398,7 @@ test.describe("ADMIN SCREENING", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(corrected);
     await page.getByTestId("post-next").click();
@@ -1454,7 +1459,7 @@ test.describe("ADMIN SCREENING", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(corrected);
     await page.getByTestId("post-next").click();
@@ -1517,15 +1522,15 @@ test.describe("ADMIN SCREENING", () => {
     await expect(
       page
         .getByTestId("admin-screening-filters-panel")
-        .getByRole("group", { name: en["admin.listings.filter.tier"] }),
+        .getByRole("group", { name: en["admin.listings.filter.level"] }),
     ).toHaveAttribute("data-testid", "admin-screening-filter-tier");
-    await expect(tier("premium")).toHaveText(en["tier.premium"]);
-    await expect(tier("regular")).toHaveText(en["admin.listings.tier.regular"]);
+    await expect(tier("premium")).toHaveText(await levelNameFor("premium", "en"));
+    await expect(tier("regular")).toHaveText(await levelNameFor("regular", "en"));
     await tier("premium").click();
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
     await expect(page.getByTestId("admin-screening-chips-chip-tier")).toContainText(
-      en["tier.premium"],
+      await levelNameFor("premium", "en"),
     );
     await expect(
       rowOf(page, regular.id),

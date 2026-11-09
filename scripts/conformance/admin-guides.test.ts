@@ -314,7 +314,7 @@ describe("CF-GUIDE-1 — every admin block explains itself (D313)", () => {
         `[admin-guides] tables: ${census.files.length}, guided: ${census.tables.length}, allowed: ${allowances.size}`,
       );
       expect(report(open)).toBe("");
-      // Turn (a): Monetisation's six guides (two prefixes share the products file); turn (b):
+      // Turn (a): Monetisation's five guides (two prefixes share the products file); turn (b):
       // My listings' table and the ten page Guides (the wizard's two share one draw); turn (c):
       // the sixteen remaining admin tables, and the allowlist holds no line.
       expect(allowances.size).toBe(0);
@@ -327,7 +327,6 @@ describe("CF-GUIDE-1 — every admin block explains itself (D313)", () => {
         "admin.countries",
         "admin.listings",
         "admin.locations",
-        "admin.monetisation.caps",
         "admin.monetisation.level",
         "admin.monetisation.levelOverrides",
         "admin.monetisation.markets",

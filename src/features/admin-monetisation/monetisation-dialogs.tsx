@@ -32,7 +32,7 @@ export function MonetisationErrorLine({
       </p>
       {refusal.raw === null ? null : (
         <p className="text-sm break-words text-muted-foreground" data-testid={`${testid}-reason`}>
-          {t("admin.coverage.error.reason").replace("{reason}", refusal.raw)}
+          {t("admin.monetisation.error.reason").replace("{reason}", refusal.raw)}
         </p>
       )}
     </>
@@ -87,6 +87,7 @@ export function NumberField({
   id,
   labelKey,
   helpKey,
+  placeholderKey,
   value,
   onChange,
   disabled = false,
@@ -94,6 +95,8 @@ export function NumberField({
   id: string;
   labelKey: MessageKey;
   helpKey?: MessageKey;
+  /** The word a blank field stands for (a reach row's cap: "No limit"). */
+  placeholderKey?: MessageKey;
   value: string;
   onChange: (next: string) => void;
   disabled?: boolean;
@@ -110,6 +113,7 @@ export function NumberField({
         data-testid={id}
         inputMode="numeric"
         value={value}
+        placeholder={placeholderKey === undefined ? undefined : t(placeholderKey)}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
       />
@@ -205,8 +209,8 @@ export function BadgeSelect({
         }}
       >
         <option value="" />
-        <option value="yes">{t("admin.coverage.everywhere.yes")}</option>
-        <option value="no">{t("admin.coverage.everywhere.no")}</option>
+        <option value="yes">{t("admin.monetisation.everywhere.yes")}</option>
+        <option value="no">{t("admin.monetisation.everywhere.no")}</option>
       </NativeSelect>
     </FormField>
   );

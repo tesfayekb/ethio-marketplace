@@ -631,7 +631,8 @@ if ! bun "$SCRIPT_DIR/public-surface.ts" --parse "$PUBLIC_SURFACE_ALLOWLIST" > /
 fi
 
 public_surface_offenders() {
-  bun "$SCRIPT_DIR/public-surface.ts" --migration "$PUBLIC_SURFACE_ALLOWLIST" "$1"
+  # $1 = file, $2 = the root whose supabase/migrations name the drops (DEC-357).
+  bun "$SCRIPT_DIR/public-surface.ts" --migration "$PUBLIC_SURFACE_ALLOWLIST" "$1" "${2:-$PWD}"
 }
 
 if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-example.sql")" ]; then
@@ -642,7 +643,29 @@ if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-format-exampl
   echo "Public-surface guard self-test FAILED: the format-grant loop fixture passed."
   exit 1
 fi
+# DEC-357: a grant whose object a later file drops is no offender; without the drop it is.
+PS_DROP_DIR="$(mktemp -d)"
+mkdir -p "$PS_DROP_DIR/supabase/migrations"
+cat > "$PS_DROP_DIR/supabase/migrations/29990101000000_grant.sql" <<'SQL'
+GRANT EXECUTE ON FUNCTION public.e2e_fixture_dropped_fn(uuid) TO authenticated;
+GRANT SELECT ON public.e2e_fixture_dropped_table TO anon;
+SQL
+ps_kept="$(public_surface_offenders "$PS_DROP_DIR/supabase/migrations/29990101000000_grant.sql" "$PS_DROP_DIR")"
+cat > "$PS_DROP_DIR/supabase/migrations/29990101000001_drop.sql" <<'SQL'
+DROP FUNCTION public.e2e_fixture_dropped_fn(uuid);
+DROP TABLE public.e2e_fixture_dropped_table;
+SQL
+ps_dropped="$(public_surface_offenders "$PS_DROP_DIR/supabase/migrations/29990101000000_grant.sql" "$PS_DROP_DIR")"
+rm -rf "$PS_DROP_DIR"
+if ! grep -q 'e2e_fixture_dropped_fn (authenticated)' <<<"$ps_kept" \
+  || ! grep -q 'e2e_fixture_dropped_table (anon)' <<<"$ps_kept" \
+  || [ -n "$ps_dropped" ]; then
+  echo "Public-surface guard self-test FAILED: a grant on a dropped object was judged as live, or the same grant without the drop passed."
+  exit 1
+fi
+echo "Public-surface guard self-test OK (a grant whose object a later file drops is no offender; without the drop it is)."
 
+MIGRATIONS_ROOT="$(cd "$MIGRATIONS_DIR/../.." && pwd)"
 surface_offenders=""
 while IFS= read -r -d '' file; do
   base="$(basename "$file")"
@@ -650,7 +673,7 @@ while IFS= read -r -d '' file; do
   if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$PUBLIC_SURFACE_FLOOR" ]]; then
     continue
   fi
-  surface_offenders+="$(public_surface_offenders "$file")"
+  surface_offenders+="$(public_surface_offenders "$file" "$MIGRATIONS_ROOT")"
 done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
 
 if [ -n "$surface_offenders" ]; then
@@ -678,6 +701,30 @@ real_row_offenders() {
         if ($st =~ /\bSELECT\b.*?\bFROM\s+$t/si
             || $st =~ /\bUPDATE\s+$t.*?\bWHERE\b/si
             || $st =~ /\bDELETE\s+FROM\s+$t.*?\bWHERE\b/si) {
+          (my $head = $st) =~ s/\s+/ /g; $head =~ s/^ //;
+          (my $cut = substr($head, 0, 120)) =~ s/ +$//;
+          print "$ARGV: $cut\n";
+        }
+      }
+    }
+  ' "$1"
+}
+
+# INC-1040 — nor does it pick a real reference row. In a migration at or after
+# REAL_PICK_FLOOR, a statement inside a DO $…$ block that SELECTs FROM
+# countries, languages or currencies with ORDER BY … LIMIT 1 is refused unless
+# the same statement names a scratch key (e2e-mig- / e2e_mig_). Categories and
+# locations stay the rule above's. Same line form, same allowlist.
+REAL_PICK_FLOOR="${REAL_PICK_FLOOR:-20261102000000}"
+
+real_pick_offenders() {
+  # $1 = file. Prints one "<file>: <statement head>" per refused statement.
+  perl -0777 -ne '
+    my $t = q{public\.(?:countries|languages|currencies)\b};
+    while (/\bDO\s+(\$\w*\$)(.*?)\1/sg) {
+      for my $st (split /;/, $2) {
+        next if $st =~ /e2e[-_]mig[-_]/i;
+        if ($st =~ /\bSELECT\b.*?\bFROM\s+$t.*?\bORDER\s+BY\b.*?\bLIMIT\s+1\b/si) {
           (my $head = $st) =~ s/\s+/ /g; $head =~ s/^ //;
           (my $cut = substr($head, 0, 120)) =~ s/ +$//;
           print "$ARGV: $cut\n";
@@ -790,6 +837,27 @@ fi
 rm -rf "$RR_SHA_DIR"
 echo "Real-row proof guard self-test OK (a head containing '||' is refused without its line, skipped by its sha256 line, and a stale sha256 line does not skip it)."
 
+# Self-test (INC-1040): the reference pick is refused in the fixture; the same
+# pick naming a scratch key passes; a pick with no ORDER BY … LIMIT 1 is not this
+# rule's.
+pick_fixture="$(real_pick_offenders "$FIXTURE_DIR/bad-real-pick-proof-example.sql")"
+RP_DIR="$(mktemp -d)"
+cat > "$RP_DIR/29990101000000_pppp1111.sql" <<'SQL'
+DO $proof$
+DECLARE v text;
+BEGIN
+  SELECT code INTO v FROM public.languages WHERE code LIKE 'e2e_mig_%' ORDER BY code LIMIT 1;
+  SELECT code INTO v FROM public.countries WHERE code = 'XZ';
+END $proof$;
+SQL
+pick_scratch="$(real_pick_offenders "$RP_DIR/29990101000000_pppp1111.sql")"
+rm -rf "$RP_DIR"
+if ! grep -q 'FROM public.languages ORDER BY code LIMIT 1' <<<"$pick_fixture" || [ -n "$pick_scratch" ]; then
+  echo "Real-row proof guard self-test FAILED: the reference-pick rule refused the wrong statement."
+  exit 1
+fi
+echo "Real-row proof guard self-test OK (a reference pick is refused; a scratch-keyed pick and a pick without ORDER BY … LIMIT 1 pass)."
+
 real_row_found=""
 while IFS= read -r -d '' file; do
   base="$(basename "$file")"
@@ -798,6 +866,9 @@ while IFS= read -r -d '' file; do
     continue
   fi
   real_row_found+="$(real_row_offenders "$file")"$'\n'
+  if ! [[ "$stamp" < "$REAL_PICK_FLOOR" ]]; then
+    real_row_found+="$(real_pick_offenders "$file")"$'\n'
+  fi
 done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
 
 real_row_skipped="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>&1 >/dev/null)"
@@ -812,5 +883,47 @@ if [ -n "$real_row_found" ]; then
   exit 1
 fi
 echo "Real-row proof guard OK (floor $REAL_ROW_FLOOR)."
+
+# INC-1089 — a proof's verdict never depends on how its file is carried. The
+# paste path turns every line break into CRLF, so a string literal written
+# across a line break holds a chr(13) the stripped live body does not. In a
+# migration at or after SPANNING_LITERAL_FLOOR, no string literal spans a line
+# break (scripts/conformance/migration-reader.ts spanningLiterals).
+SPANNING_LITERAL_FLOOR="${SPANNING_LITERAL_FLOOR:-20261109000000}"
+
+spanning_literals() {
+  bun "$SCRIPT_DIR/conformance/migration-reader.ts" --spanning "$@"
+}
+
+if [ -z "$(spanning_literals "$FIXTURE_DIR/bad-spanning-literal-example.sql")" ]; then
+  echo "Spanning-literal guard self-test FAILED: the bad fixture passed."
+  exit 1
+fi
+if [ -n "$(spanning_literals "$FIXTURE_DIR/good-spanning-literal-example.sql")" ]; then
+  echo "Spanning-literal guard self-test FAILED: the good fixture was refused."
+  exit 1
+fi
+echo "Spanning-literal guard self-test OK (the bad fixture is refused, the good one passes)."
+
+spanning_files=()
+while IFS= read -r -d '' file; do
+  base="$(basename "$file")"
+  stamp="${base%%_*}"
+  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$SPANNING_LITERAL_FLOOR" ]]; then
+    continue
+  fi
+  spanning_files+=("$file")
+done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
+
+spanning_found=""
+if [ "${#spanning_files[@]}" -gt 0 ]; then
+  spanning_found="$(spanning_literals "${spanning_files[@]}")"
+fi
+if [ -n "$spanning_found" ]; then
+  echo "Spanning-literal guard FAILED:"
+  printf '%s\n' "$spanning_found"
+  exit 1
+fi
+echo "Spanning-literal guard OK (floor $SPANNING_LITERAL_FLOOR)."
 
 echo "Migration guard OK."

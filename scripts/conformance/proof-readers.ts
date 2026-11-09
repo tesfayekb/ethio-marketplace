@@ -2,8 +2,7 @@ import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { walkFiles } from "./kit";
-import { sqlCodeOf } from "./perm-vocabulary";
-import { lastDeclarations, type LastDeclaration } from "./plan-seam";
+import { lastDeclarations, sqlCodeOf, type LastDeclaration } from "./migration-reader";
 
 /**
  * P-2 (a) (CF-PROOF-1, INC-1052, DEC-341) — A PROOF READS A STABLE READER INTO
@@ -17,7 +16,7 @@ import { lastDeclarations, type LastDeclaration } from "./plan-seam";
  * (docs/governance/migrations.md 11): read the answer INTO a variable first and
  * compare the variable.
  *
- * The census: every function whose LAST declaration (plan-seam's reading of
+ * The census: every function whose LAST declaration (the migration reader's reading of
  * the migrations in order, minus the dropped) is STABLE and whose body holds
  * `RAISE EXCEPTION`; then every `DO` block of every migration (comments and
  * string literals blanked, so a `regprocedure` literal or a quoted fragment is

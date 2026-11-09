@@ -24,15 +24,23 @@ import { codeOf, walkFiles } from "./kit";
  *    concern and not read). A key of the catalog (`tier.premium`) is not a
  *    quoted word.
  *
- * The P-1 tier consumers (the feed's ranking, the card, the flag, the admin
- * listings' tier verbs, the style page, the bench, the ad-page helper) sit in
- * listing-levels-allowlist.txt (`key | reason | until`) until P-2 folds the
- * ad's tier onto the level rows. The generated client types
+ * DEC-331 (P-2 (c) c2a) — the tier-word fold: the P-1 tier consumers (the
+ * feed's ranking, the card, the flag, the admin listings' tier verbs, the
+ * style page, the bench, the ad-page helper) read the level rows, so the
+ * allowlist (listing-levels-allowlist.txt, `key | reason | until`) holds no
+ * `tier:` line; the column keeps its name `tier`. The generated client types
  * (src/integrations/supabase/**) name every table and are not a consumer.
+ *
+ * The level rows' homes: the console's one reader, and the levels store's
+ * table read (level-table-read.ts, fetched on demand by use-level-rows.ts;
+ * DEC-351 §8, DEC-355), which reads the enabled rows' names, order and base
+ * look for a screen that has no card answer — never an override, never the
+ * resolver.
  */
 
 export const LEVEL_READER_HOMES: readonly string[] = [
   "src/features/admin-monetisation/monetisation-service.ts",
+  "src/features/levels/level-table-read.ts",
 ];
 
 export type LevelFinding = {

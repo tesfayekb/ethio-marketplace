@@ -1,8 +1,8 @@
 import type { MessageKey } from "@/i18n";
 import { linksOf, type PhotoLinks } from "@/features/posting/photo-links";
 import type { ShellLocationNode } from "@/components/shell/location-data";
-
-import type { ListingTier } from "./ranking";
+import { parseCardLevel, PLAIN_LOOK, type LevelLook } from "@/features/levels/level-fields";
+import { exactLevel, parseLevelRows, type LevelRow } from "@/features/levels/levels-store";
 
 /**
  * Bundle 10 E3b — THE ANSWER OF /api/feed AND ITS SECTIONS. Pure functions: no
@@ -49,7 +49,12 @@ export interface FeedListing {
   id: string;
   publicId: string | null;
   title: string;
-  tier: ListingTier;
+  /** The ad's level key (a row of listing_packages, never a word); any key keeps its card (INC-1079). */
+  tier: string;
+  /** P-2 (c) c2a (DEC-352) — the card's own look, resolved by level_perks_for for its category and market. */
+  look: LevelLook;
+  /** The answer's dictionary row for the key (the flag's word), or null when the dictionary has none. */
+  levelRow: LevelRow | null;
   priceAmount: number | null;
   priceCurrency: string | null;
   priceMode: string;
@@ -78,13 +83,13 @@ export interface FeedListing {
 
 export interface FeedPage {
   cards: FeedListing[];
+  /** P-2 (c) c2a — the enabled level rows, once per answer (names, sort, baseline). */
+  levels: LevelRow[];
   ladder: string[];
   next: string | null;
   /** DEC-195 — the covers' signed card/thumb links, when the route answered them. */
   coverLinks?: PhotoLinks;
 }
-
-const TIERS: readonly string[] = ["premium", "featured", "regular"];
 
 type Rec = Record<string, unknown>;
 
@@ -102,15 +107,38 @@ function isNumOrNull(value: unknown): value is number | null {
 }
 
 /**
+ * The card's level: its own `level` object, or — an answer cached from before
+ * the look rode the card — its key with the plain look. Null on a mismatch.
+ */
+function cardLevelOf(v: Rec): { key: string; look: LevelLook } | null {
+  if (!isStr(v.tier) || v.tier === "") return null;
+  if (v.level === undefined) return { key: v.tier, look: PLAIN_LOOK };
+  const level = parseCardLevel(v.level);
+  return level !== null && level.key === v.tier ? level : null;
+}
+
+/** An answer's `levels`; an answer cached from before the dictionary has none. Null when malformed. */
+export function levelsOf(value: unknown): LevelRow[] | null {
+  return value === undefined ? [] : parseLevelRows(value);
+}
+
+/**
  * One card, or null on any mismatch. Exported for the seller's ads page
  * (bundle 19 turn 16), which reads the same card shape through
  * /api/seller; the feed itself keeps using it through parseFeedPage.
+ * P-2 (c) c2a — `levels` is the answer's dictionary; a key it does not
+ * hold keeps its card (INC-1079) and shows no word.
  */
-export function parseCard(value: unknown, ladderLength: number): FeedListing | null {
+export function parseCard(
+  value: unknown,
+  ladderLength: number,
+  levels: readonly LevelRow[] = [],
+): FeedListing | null {
   if (!isObject(value)) return null;
   const v = value;
   if (!isStr(v.id) || !isStr(v.title)) return null;
-  if (!isStr(v.tier) || !TIERS.includes(v.tier)) return null;
+  const level = cardLevelOf(v);
+  if (level === null) return null;
   if (!isNumOrNull(v.priceAmount) || !isStrOrNull(v.priceCurrency)) return null;
   if (!isStr(v.priceMode) || !isNumOrNull(v.priceBp)) return null;
   if (typeof v.priceNegotiable !== "boolean" || !isStr(v.pricePeriod)) return null;
@@ -142,7 +170,9 @@ export function parseCard(value: unknown, ladderLength: number): FeedListing | n
     id: v.id,
     publicId,
     title: v.title,
-    tier: v.tier as ListingTier,
+    tier: level.key,
+    look: level.look,
+    levelRow: exactLevel(levels, level.key),
     priceAmount: v.priceAmount,
     priceCurrency: v.priceCurrency,
     priceMode: v.priceMode,
@@ -172,9 +202,11 @@ export function parseFeedPage(value: unknown): FeedPage | null {
   if (!Array.isArray(cards) || !Array.isArray(steps)) return null;
   if (!Array.isArray(ladder) || ladder.length === 0 || !ladder.every(isStr)) return null;
   if (!isStrOrNull(next)) return null;
+  const levels = levelsOf(value.levels);
+  if (levels === null) return null;
   const parsed: FeedListing[] = [];
   for (const card of cards) {
-    const one = parseCard(card, ladder.length);
+    const one = parseCard(card, ladder.length, levels);
     if (one === null) return null;
     parsed.push(one);
   }
@@ -183,6 +215,7 @@ export function parseFeedPage(value: unknown): FeedPage | null {
   const coverLinks = linksOf({ links: value.coverLinks });
   return {
     cards: parsed,
+    levels,
     ladder: [...ladder],
     next,
     ...(Object.keys(coverLinks).length > 0 ? { coverLinks } : {}),

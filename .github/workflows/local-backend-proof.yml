@@ -661,6 +661,17 @@ jobs:
           doors_query=$(bun scripts/doors/check-doors.ts --live-query)
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$doors_query" > "$RUNNER_TEMP/doors.tsv"
           bun scripts/doors/check-doors.ts --live "$RUNNER_TEMP/doors.tsv"
+      # DEC-359: the seller-name law's live half judges every live body of schema public, the
+      # computed ones the file census cannot read included (INC-1083). The script runs its
+      # self-test first and judges nothing until it passes. Live names stay in RUNNER_TEMP
+      # (DEC-310's form).
+      - name: Seller-name judge, live (DEC-359)
+        id: seller-names-live
+        if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
+        run: |
+          names_query=$(bun scripts/conformance/seller-names.ts --live-query)
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$names_query" > "$RUNNER_TEMP/seller-names.tsv"
+          bun scripts/conformance/seller-names.ts --live "$RUNNER_TEMP/seller-names.tsv"
       # N1b-1 (INC-977/INC-981, S4 + S5): only public.job_call calls net.*, and net is not exposed.
       - name: Outbound-calls guard (INC-981)
         id: outbound-calls-guard

@@ -187,7 +187,7 @@ export function ProductPricesTable({
           guide={{
             prefix: "admin.monetisation.productPrices",
             anchor,
-            next: { section: "monetisation", block: "admin-monetisation-caps" },
+            next: { section: "monetisation", block: "admin-monetisation-markets" },
           }}
           emptyState={
             <p className="text-sm text-muted-foreground" data-testid={`${anchor}-empty`}>

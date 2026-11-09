@@ -1,8 +1,7 @@
 import type { MessageKey } from "@/i18n";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { ownValue } from "@/lib/own-key";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
-import { getSupabase, rpc } from "@/lib/supabase-door";
+import { rpc } from "@/lib/supabase-door";
 
 import {
   readMarket,
@@ -28,40 +27,22 @@ import {
  * rows are shown as data; an ad's price is only ever the SQL resolver
  * `product_price_for`, its perks only ever `level_perks_for`.
  *
- * A second, smaller read for the free plan's posting caps (`coverage_plans`,
- * the plan's own public policy; `coverage:view` opens the block) until P-2
- * folds them into the levels and the reach.
- *
- * Eight WRITES, each a SECURITY DEFINER door that re-checks the permission, the
+ * Seven WRITES, each a SECURITY DEFINER door that re-checks the permission, the
  * second factor and the `staff_config` dial before any side effect:
  * `admin_save_listing_package`, `admin_save_level_override`,
  * `admin_clear_level_override`, `admin_save_package_price`,
- * `admin_edit_package_price`, `admin_end_package_price`,
- * `admin_save_market_settings` and (the caps) `admin_set_coverage_plan`.
+ * `admin_edit_package_price`, `admin_end_package_price` and
+ * `admin_save_market_settings`.
  *
  * Law F4 — no phantom success: every door error is thrown; a failed read is a
  * typed `ReaderError`; `monetisationErrorKey` turns the door's own RAISE
- * message into a translated key. The client arrives through the Supabase door
- * (DEC-261); a failed download of it is reported to the shell's one notice
- * (INC-911) and read as a typed failure, never a blank table.
+ * message into a translated key. Every call goes through the Supabase door
+ * (DEC-261).
  */
 
 export type { MarketRow, OverrideRow, PriceRow, ProductRow } from "./monetisation-rows";
 export { PLACEMENTS, PRODUCT_KINDS } from "./monetisation-rows";
 export type { Placement, ProductKind } from "./monetisation-rows";
-
-/** The one place this file asks the door for the client (INC-915's shape). */
-async function readerClient(): Promise<Awaited<ReturnType<typeof getSupabase>>> {
-  try {
-    return await getSupabase();
-  } catch (error) {
-    reportOnDemandFailure("the monetisation console's code", error);
-    throw new ReaderError({
-      class: "network",
-      message: "the monetisation console's code did not load",
-    });
-  }
-}
 
 /* --------------------------------- reads --------------------------------- */
 
@@ -83,44 +64,6 @@ export async function listMonetisation(): Promise<MonetisationConsole> {
     overrides: readRows(answer, "overrides", readOverride),
     prices: readRows(answer, "prices", readPrice),
   };
-}
-
-export interface CoveragePlanRow {
-  plan: string;
-  maxCities: number;
-  maxRegions: number;
-  maxCountries: number;
-  /** D22 — how many photos a listing on this plan may carry (0..30). */
-  maxPhotos: number;
-  allowEverywhere: boolean;
-  /** P-1 (D279) — an ad's lifetime in days where its category sets none (≥ 1). */
-  defaultDays: number;
-  /** P-1 (D283) — live ads at most per seller; null = unlimited. */
-  maxActiveAds: number | null;
-  updatedAt: string;
-}
-
-/** The free plan's posting caps (the P-1 Plans read, carried until P-2). */
-export async function listCoveragePlans(): Promise<CoveragePlanRow[]> {
-  const client = await readerClient();
-  const { data, error } = await client
-    .from("coverage_plans")
-    .select(
-      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, default_days, max_active_ads, updated_at",
-    )
-    .order("plan");
-  if (error) throw new ReaderError(readerFailure(error));
-  return (data ?? []).map((row) => ({
-    plan: row.plan,
-    maxCities: row.max_cities,
-    maxRegions: row.max_regions,
-    maxCountries: row.max_countries,
-    maxPhotos: row.max_photos,
-    allowEverywhere: row.allow_everywhere,
-    defaultDays: row.default_days,
-    maxActiveAds: row.max_active_ads,
-    updatedAt: row.updated_at,
-  }));
 }
 
 /* --------------------------------- doors --------------------------------- */
@@ -153,8 +96,17 @@ export interface SaveProductInput {
   maxPhotos: number | null;
   placement: string | null;
   badge: boolean | null;
+  /** A reach product's place limits (a null cap = no limit), always set for a reach; null for a level. */
+  caps: ReachCaps | null;
   /** null = the door keeps the stored order (0 for a new product). */
   sort: number | null;
+}
+
+/** A reach row's three place limits, each null for no limit (DEC-356). */
+export interface ReachCaps {
+  maxCities: number | null;
+  maxRegions: number | null;
+  maxCountries: number | null;
 }
 
 export async function saveProduct(input: SaveProductInput): Promise<void> {
@@ -171,6 +123,16 @@ export async function saveProduct(input: SaveProductInput): Promise<void> {
     ...(input.maxPhotos === null ? {} : { p_max_photos: input.maxPhotos }),
     ...(input.placement === null ? {} : { p_placement: input.placement }),
     ...(input.badge === null ? {} : { p_badge: input.badge }),
+    // DEC-356 — a reach row always states its three caps (a JSON null = no limit); a level never.
+    ...(input.kind === "reach" && input.caps !== null
+      ? {
+          p_caps: {
+            max_cities: input.caps.maxCities,
+            max_regions: input.caps.maxRegions,
+            max_countries: input.caps.maxCountries,
+          },
+        }
+      : {}),
     ...(input.sort === null ? {} : { p_sort: input.sort }),
   });
   refused(error);
@@ -279,43 +241,10 @@ export async function saveMarket(input: SaveMarketInput): Promise<void> {
   refused(error);
 }
 
-export interface SetCoveragePlanInput {
-  plan: string;
-  maxCities: number;
-  maxRegions: number;
-  maxCountries: number;
-  maxPhotos: number;
-  allowEverywhere: boolean;
-  defaultDays: number;
-  /** null = unlimited (the door's `p_ads_unlimited`). */
-  maxActiveAds: number | null;
-}
-
-/**
- * The caps door (M1a's body, unchanged). The label key is not shown here and
- * not sent: the door keeps the stored one (`COALESCE(p_label_key, old)`), so
- * the save round-trips every stored field it does not show.
- */
-export async function setCoveragePlan(input: SetCoveragePlanInput): Promise<void> {
-  const { error } = await rpc("admin_set_coverage_plan", {
-    p_plan: input.plan,
-    p_max_cities: input.maxCities,
-    p_max_regions: input.maxRegions,
-    p_max_countries: input.maxCountries,
-    p_max_photos: input.maxPhotos,
-    p_allow_everywhere: input.allowEverywhere,
-    p_default_days: input.defaultDays,
-    ...(input.maxActiveAds === null
-      ? { p_ads_unlimited: true }
-      : { p_max_active_ads: input.maxActiveAds, p_ads_unlimited: false }),
-  });
-  refused(error);
-}
-
 /* ------------------------------- refusals -------------------------------- */
 
 /**
- * Every message the eight doors RAISE, by name, plus the step-up state
+ * Every message the seven doors RAISE, by name, plus the step-up state
  * (SQLSTATE P0009) and the fallback. `monetisation-service.test.ts` reads the
  * migrations and proves no message falls to the fallback but the one named
  * departure (`not found`, the cleared override: no key of its own this turn).
@@ -334,6 +263,8 @@ const DOOR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   "bad photos": "admin.monetisation.error.badPhotos",
   "unknown placement": "admin.monetisation.error.unknownPlacement",
   "perks on reach": "admin.monetisation.error.perksOnReach",
+  "caps on level": "admin.monetisation.error.capsOnLevel",
+  "bad caps": "admin.monetisation.error.badCaps",
   // admin_save_level_override / admin_clear_level_override
   "unknown level": "admin.monetisation.error.unknownLevel",
   "not a main category": "admin.monetisation.error.notMainCategory",
@@ -356,12 +287,6 @@ const DOOR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   "bad free ads": "admin.monetisation.error.badFreeAds",
   "launch bundle required": "admin.monetisation.error.launchRequired",
   "bad launch bundle": "admin.monetisation.error.badLaunch",
-  // admin_set_coverage_plan (the caps; M1a's ids)
-  badPlan: "admin.coverage.error.badPlan",
-  belowMinimum: "admin.coverage.error.belowMinimum",
-  badMaxPhotos: "admin.coverage.error.badMaxPhotos",
-  badDefaultDays: "admin.coverage.error.badDefaultDays",
-  badMaxActiveAds: "admin.coverage.error.badMaxActiveAds",
 };
 
 export interface MonetisationRefusal {

@@ -24,7 +24,7 @@ beforeEach(() => {
   process.env.SUPABASE_URL = "https://example.test";
   process.env.SUPABASE_PUBLISHABLE_KEY = "test-key";
   state.rpc.mockResolvedValue({
-    data: { seller: null, cards: [], next: null },
+    data: { seller: null, cards: [], levels: [], next: null },
     error: null,
     status: 200,
   });
@@ -60,4 +60,21 @@ it("SLR-4 unknownSeller keeps its 404", async () => {
   const response = await get("?key=unknown");
   expect(response.status).toBe(404);
   expect(await response.json()).toEqual({ error: "unknownSeller" });
+});
+it("SLR-5 the answer's level dictionary rides the body as it came; an answer without one is a server error (P-2 (c) c2a)", async () => {
+  const levels = [{ key: "lvl-base", sort: 0, name_en: "Base", name_am: null, is_baseline: true }];
+  state.rpc.mockResolvedValue({
+    data: { seller: null, cards: [], levels, next: null },
+    error: null,
+    status: 200,
+  });
+  const response = await get("?key=seller");
+  expect(response.status).toBe(200);
+  expect(((await response.json()) as Record<string, unknown>).levels).toEqual(levels);
+  state.rpc.mockResolvedValue({
+    data: { seller: null, cards: [], next: null },
+    error: null,
+    status: 200,
+  });
+  expect((await get("?key=seller")).status).toBe(500);
 });

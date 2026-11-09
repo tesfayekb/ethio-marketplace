@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -85,7 +85,11 @@ vi.mock("./posting-service", () => ({
 
 const { StepWhere } = await import("./step-where");
 
-function Harness({ caps }: { caps: { cities: number; regions: number; countries: number } }) {
+function Harness({
+  caps,
+}: {
+  caps: { cities: number | null; regions: number | null; countries: number | null };
+}) {
   const [coverage, setCoverage] = useState<string[]>([]);
   return (
     <>
@@ -93,9 +97,11 @@ function Harness({ caps }: { caps: { cities: number; regions: number; countries:
         coverage={coverage}
         refusals={[]}
         onChange={(next) => setCoverage(next)}
-        maxCities={caps.cities}
-        maxRegions={caps.regions}
-        maxCountries={caps.countries}
+        caps={{
+          maxCities: caps.cities,
+          maxRegions: caps.regions,
+          maxCountries: caps.countries,
+        }}
       />
       <output data-testid="coverage">{coverage.join(",")}</output>
     </>
@@ -110,7 +116,13 @@ beforeEach(() => {
   );
 });
 
-async function mount(caps = { cities: 3, regions: 2, countries: 2 }) {
+async function mount(
+  caps: { cities: number | null; regions: number | null; countries: number | null } = {
+    cities: 3,
+    regions: 2,
+    countries: 2,
+  },
+) {
   render(<Harness caps={caps} />);
   // Let the guess read and the prefill effects settle.
   await act(async () => {
@@ -450,9 +462,7 @@ describe("StepWhere — the refusal still reaches its selects (turn S6-2)", () =
         coverage={[]}
         refusals={[{ field: "coverage", reason: "required" }]}
         onChange={() => {}}
-        maxCities={3}
-        maxRegions={2}
-        maxCountries={2}
+        caps={{ maxCities: 3, maxRegions: 2, maxCountries: 2 }}
       />,
     );
     await act(async () => {
@@ -473,5 +483,51 @@ describe("StepWhere — the refusal still reaches its selects (turn S6-2)", () =
     expectFormLook(region);
     const label = pending.querySelector(`label[for="${region.id}"]`);
     expect(label?.querySelector('[data-testid="post-required-mark"]')).not.toBeNull();
+  });
+});
+
+describe("StepWhere — a null cap is no limit, unknown caps show nothing (INC-1084)", () => {
+  it("SWR-2 a NULL city cap keeps Add a city past the first city and says the no-limit line; caps not known keep no add button and the unknown line", async () => {
+    await mount({ cities: null, regions: 1, countries: 1 });
+    const region = document.querySelector<HTMLElement>(
+      '[data-testid="post-where-region-box"][data-region="r1"]',
+    );
+    if (region === null) throw new Error("no r1 region box");
+    fireEvent.click(within(region).getByTestId("post-where-add-city"));
+    const added = within(region).getAllByTestId("post-where-row")[1];
+    if (added === undefined) throw new Error("no second city row");
+    fireEvent.change(within(added).getByTestId("post-where-row-city"), {
+      target: { value: "c2" },
+    });
+    expect(screen.getByTestId("coverage")).toHaveTextContent("c1,c2");
+    // r1's third city is still free, and no cap stops it.
+    expect(within(region).getByTestId("post-where-add-city")).toBeInTheDocument();
+    // One region and one country: those levels stay full.
+    expect(screen.queryByTestId("post-where-add-region")).toBeNull();
+    expect(screen.queryByTestId("post-where-add-country")).toBeNull();
+    const count = screen.getByTestId("post-where-plan-count");
+    expect(count).toHaveTextContent("post.where.planLineNoLimit");
+    expect(count).toHaveAttribute("data-used", "2");
+    expect(count).not.toHaveAttribute("data-max");
+    fireEvent.click(screen.getByTestId("post-where-plan-toggle"));
+    expect(screen.getByTestId("post-where-plan")).toHaveTextContent(
+      "post.where.reachCaptionNoLimit",
+    );
+
+    // Caps not known: no add button, the unknown line, no count and no reach caption.
+    cleanup();
+    render(<StepWhere coverage={[]} refusals={[]} onChange={() => {}} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(screen.queryByTestId("post-where-add-city")).toBeNull();
+    expect(screen.queryByTestId("post-where-add-region")).toBeNull();
+    expect(screen.queryByTestId("post-where-add-country")).toBeNull();
+    expect(screen.getByTestId("post-where-plan-line")).toHaveTextContent(
+      "post.where.planLineUnknown",
+    );
+    expect(screen.queryByTestId("post-where-plan-count")).toBeNull();
+    fireEvent.click(screen.getByTestId("post-where-plan-toggle"));
+    expect(screen.queryByTestId("post-where-plan")).toBeNull();
   });
 });

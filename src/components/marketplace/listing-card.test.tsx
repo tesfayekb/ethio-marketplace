@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 import { InviteCard } from "./invite-card";
 import { ListingCard } from "./listing-card";
@@ -47,7 +48,9 @@ const BASE: FeedListing = {
   id: "l1",
   publicId: null,
   title: "Toyota Vitz 2015",
-  tier: "regular",
+  tier: "lvl-standard",
+  look: PLAIN_LOOK,
+  levelRow: null,
   priceAmount: 1500000,
   priceCurrency: "ETB",
   priceMode: "fixed",
@@ -69,20 +72,35 @@ const BASE: FeedListing = {
   step: 1,
 };
 
+/** P-2 (c) c2a — a card of a fixture level: its look on the two axes, its dictionary row's name. */
+type Frame = "standard" | "boost" | "top";
+const levelled = (frame: Frame, badge = frame !== "standard"): Partial<FeedListing> => ({
+  tier: `lvl-${frame}`,
+  look: { placement: frame, badge },
+  levelRow: {
+    key: `lvl-${frame}`,
+    sort: 0,
+    nameEn: `Level ${frame}`,
+    nameAm: null,
+    isBaseline: frame === "standard",
+    look: null,
+  },
+});
+
 /**
  * Bundle 11 V2b (the operator, 2026-10-11) — every card on the listings pages
  * is one size: the card fills its cell, its slots sit in the same places, and
  * the invitation fills its cell without growing past a card.
  */
 describe("ListingCard and InviteCard — one card shape", () => {
-  it("LC-1 the card fills its cell; the tier's flag sits on the picture; the place line is kept without a place, holding the tier word alone; the price slot is reserved", () => {
+  it("LC-1 the card fills its cell; the level's flag sits on the picture; the place line is kept without a place, holding the level's word alone; the price slot is reserved", () => {
     const { unmount } = render(
-      <ListingCard listing={{ ...BASE, tier: "premium", locationNameEn: null }} />,
+      <ListingCard listing={{ ...BASE, ...levelled("top"), locationNameEn: null }} />,
     );
     const card = screen.getByTestId("listing-card");
     expect(card.className).toContain("h-full");
     const pill = within(card).getByTestId("listing-card-tier");
-    expect(pill).toHaveAttribute("data-tier", "premium");
+    expect(pill).toHaveAttribute("data-tier", "lvl-top");
     // On the picture's corner, never in the title's line.
     expect(pill.parentElement!.contains(within(card).getByTestId("listing-card-picture"))).toBe(
       true,
@@ -104,24 +122,26 @@ describe("ListingCard and InviteCard — one card shape", () => {
     expect(screen.queryByTestId("listing-card-tier-word")).toBeNull();
   });
 
-  it("LC-8 the tier's look: fill and frame over the card's surface, divider and ink, flag, word and ribbon palette (S4)", () => {
+  it("LC-8 the level's look: fill and frame over the card's surface, divider and ink, flag, word and ribbon palette (S4)", () => {
     const cases = [
-      { tier: "regular", fill: "bg-card", lift: "shadow-card", rule: "border-card-rule" },
+      { frame: "standard", fill: "bg-card", lift: "shadow-card", rule: "border-card-rule" },
       {
-        tier: "premium",
+        frame: "top",
         fill: "bg-tier-premium",
         lift: "shadow-premium",
         rule: "border-tier-premium-rule",
       },
       {
-        tier: "featured",
+        frame: "boost",
         fill: "bg-tier-featured",
         lift: "shadow-featured",
         rule: "border-tier-featured-rule",
       },
     ] as const;
-    for (const { tier, fill, lift, rule } of cases) {
-      const { unmount } = render(<ListingCard listing={{ ...BASE, tier, reserved: true }} />);
+    for (const { frame, fill, lift, rule } of cases) {
+      const { unmount } = render(
+        <ListingCard listing={{ ...BASE, ...levelled(frame), reserved: true }} />,
+      );
       const card = screen.getByTestId("listing-card");
       const classes = card.className.split(" ");
       expect(classes).toContain(fill);
@@ -134,28 +154,48 @@ describe("ListingCard and InviteCard — one card shape", () => {
       expect(screen.getByTestId("listing-card-place").className.split(" ")).toContain(rule);
       expect(screen.getByTestId("listing-ribbon")).toHaveAttribute(
         "data-ribbon",
-        { regular: "pearl", premium: "gold", featured: "sage" }[tier],
+        { standard: "pearl", top: "gold", boost: "sage" }[frame],
       );
-      if (tier === "regular") {
+      if (frame === "standard") {
         expect(screen.queryByTestId("listing-card-tier")).toBeNull();
       } else {
         const flag = screen.getByTestId("listing-card-tier");
         expect(flag).toHaveAttribute("role", "img");
-        expect(flag).toHaveAttribute("aria-label", `tier.${tier}`);
+        expect(flag).toHaveAttribute("aria-label", `Level ${frame}`);
         expect(screen.getByTestId("listing-card-tier-word")).toHaveAttribute("aria-hidden", "true");
+        expect(screen.getByTestId("listing-card-tier-word")).toHaveTextContent(`Level ${frame}`);
       }
       unmount();
     }
   });
 
   it("LC-9 every compact card reserves the place slot's two lines, so grids with and without a paid card match (S4 ruling 3)", () => {
-    for (const tier of ["regular", "premium", "featured"] as const) {
-      const { unmount } = render(<ListingCard listing={{ ...BASE, tier }} />);
+    for (const frame of ["standard", "top", "boost"] as const) {
+      const { unmount } = render(<ListingCard listing={{ ...BASE, ...levelled(frame) }} />);
       const place = screen.getByTestId("listing-card-place").className.split(" ");
       expect(place).toContain("min-h-[2lh]");
       expect(place).toContain("@min-[11rem]:min-h-[1lh]");
       unmount();
     }
+  });
+
+  it("LC-11 the axes are independent: a badge on the plain frame flies the green flag; a badge whose key the dictionary does not hold keeps its frame and draws no flag (P-2 (c) c2a)", () => {
+    const { unmount } = render(
+      <ListingCard listing={{ ...BASE, ...levelled("standard", true) }} />,
+    );
+    const card = screen.getByTestId("listing-card");
+    expect(card.className.split(" ").filter((c) => /^bg-/.test(c))).toEqual(["bg-card"]);
+    expect(screen.getByTestId("listing-card-tier")).toHaveAttribute("aria-label", "Level standard");
+    expect(screen.getByTestId("listing-card-tier-word").className).toContain(
+      "text-tier-featured-ink",
+    );
+    unmount();
+    render(<ListingCard listing={{ ...BASE, ...levelled("top"), levelRow: null }} />);
+    const unnamed = screen.getByTestId("listing-card");
+    expect(unnamed.className.split(" ")).toContain("bg-tier-premium");
+    expect(unnamed).toHaveAttribute("data-tier", "lvl-top");
+    expect(screen.queryByTestId("listing-card-tier")).toBeNull();
+    expect(screen.queryByTestId("listing-card-tier-word")).toBeNull();
   });
 
   it("LC-2 the invitation fills its cell and holds its sentence to a card's height", () => {

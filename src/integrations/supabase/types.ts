@@ -898,48 +898,6 @@ export type Database = {
           },
         ]
       }
-      coverage_plans: {
-        Row: {
-          allow_everywhere: boolean
-          default_days: number
-          label_key: string | null
-          max_active_ads: number | null
-          max_cities: number
-          max_countries: number
-          max_photos: number
-          max_regions: number
-          plan: string
-          updated_at: string
-          updated_by: string | null
-        }
-        Insert: {
-          allow_everywhere?: boolean
-          default_days?: number
-          label_key?: string | null
-          max_active_ads?: number | null
-          max_cities: number
-          max_countries: number
-          max_photos?: number
-          max_regions: number
-          plan: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Update: {
-          allow_everywhere?: boolean
-          default_days?: number
-          label_key?: string | null
-          max_active_ads?: number | null
-          max_cities?: number
-          max_countries?: number
-          max_photos?: number
-          max_regions?: number
-          plan?: string
-          updated_at?: string
-          updated_by?: string | null
-        }
-        Relationships: []
-      }
       currencies: {
         Row: {
           code: string
@@ -1070,23 +1028,29 @@ export type Database = {
       }
       feed_index: {
         Row: {
+          badge: boolean | null
           category_key: string
           listing_id: string
           place_key: string
+          placement: string | null
           published_at: string
           tier_rank: number
         }
         Insert: {
+          badge?: boolean | null
           category_key: string
           listing_id: string
           place_key: string
+          placement?: string | null
           published_at: string
           tier_rank?: number
         }
         Update: {
+          badge?: boolean | null
           category_key?: string
           listing_id?: string
           place_key?: string
+          placement?: string | null
           published_at?: string
           tier_rank?: number
         }
@@ -2068,7 +2032,10 @@ export type Database = {
           is_baseline: boolean
           key: string
           kind: string
+          max_cities: number | null
+          max_countries: number | null
           max_photos: number | null
+          max_regions: number | null
           name_am: string | null
           name_en: string
           placement: string | null
@@ -2087,7 +2054,10 @@ export type Database = {
           is_baseline?: boolean
           key: string
           kind: string
+          max_cities?: number | null
+          max_countries?: number | null
           max_photos?: number | null
+          max_regions?: number | null
           name_am?: string | null
           name_en: string
           placement?: string | null
@@ -2106,7 +2076,10 @@ export type Database = {
           is_baseline?: boolean
           key?: string
           kind?: string
+          max_cities?: number | null
+          max_countries?: number | null
           max_photos?: number | null
+          max_regions?: number | null
           name_am?: string | null
           name_en?: string
           placement?: string | null
@@ -5054,6 +5027,7 @@ export type Database = {
       admin_save_listing_package: {
         Args: {
           p_badge?: boolean
+          p_caps?: Json
           p_days: number
           p_enabled: boolean
           p_extends_lifetime: boolean
@@ -5150,21 +5124,6 @@ export type Database = {
       }
       admin_set_country_root_order: {
         Args: { p_category_ids: string[]; p_code: string }
-        Returns: undefined
-      }
-      admin_set_coverage_plan: {
-        Args: {
-          p_ads_unlimited?: boolean
-          p_allow_everywhere: boolean
-          p_default_days?: number
-          p_label_key?: string
-          p_max_active_ads?: number
-          p_max_cities: number
-          p_max_countries: number
-          p_max_photos?: number
-          p_max_regions: number
-          p_plan: string
-        }
         Returns: undefined
       }
       admin_set_entity_translation_status: {
@@ -6040,10 +5999,19 @@ export type Database = {
         }
         Returns: Json
       }
+      listing_caps: {
+        Args: { p_country?: string; p_listing: string }
+        Returns: Json
+      }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
+      listing_effective_reach: {
+        Args: { p_country?: string; p_listing: string }
+        Returns: string
+      }
       listing_group_of: { Args: { p_status: string }; Returns: string }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
+      listing_photo_cap: { Args: { p_listing: string }; Returns: number }
       listing_photo_review_label: {
         Args: { p_review: Json; p_unscreened: boolean }
         Returns: string
@@ -6203,8 +6171,6 @@ export type Database = {
         Returns: Json
       }
       place_is_shown: { Args: { p_id: string }; Returns: boolean }
-      plan_caps: { Args: { p_plan: string }; Returns: Json }
-      plan_photo_cap: { Args: { p_plan: string }; Returns: number }
       price_basis_conflict: {
         Args: { p_attr_key: string; p_category_id: string; p_links: Json }
         Returns: string
@@ -6349,7 +6315,6 @@ export type Database = {
         Returns: Json
       }
       seller_name_sweep: { Args: never; Returns: number }
-      seller_plan: { Args: { p_user_id: string }; Returns: string }
       seller_public_alias: {
         Args: { p_profile: string; p_subject?: string }
         Returns: string
@@ -6491,6 +6456,7 @@ export type Database = {
           p_contact_pref: Json
           p_coverage: string[]
           p_description: string
+          p_listing_id?: string
           p_poster_expires_at: string
           p_price_amount: number
           p_price_bp?: number

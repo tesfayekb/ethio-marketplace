@@ -18,6 +18,7 @@ import {
   promoteRefusalKey,
   readPromoteOptions,
   setListingLevel,
+  setListingReach,
 } from "./promote-service";
 
 /** promote_options' answer in the shape its jsonb_build_object writes (20261106233808). */
@@ -66,6 +67,33 @@ const ANSWER = {
       availability: "available",
     },
   ],
+  reach: { key: "rch-inc", until: null, source: null, included: "rch-inc" },
+  reaches: [
+    {
+      key: "rch-inc",
+      name_en: "Included reach",
+      name_am: null,
+      sort: 10,
+      current: true,
+      below: false,
+      days: null,
+      amount: null,
+      currency: null,
+      availability: "includedReach",
+    },
+    {
+      key: "rch-wide",
+      name_en: "Wide reach",
+      name_am: "ሰፊ",
+      sort: 20,
+      current: false,
+      below: false,
+      days: 30,
+      amount: 4.5,
+      currency: "XTS",
+      availability: "available",
+    },
+  ],
 };
 
 beforeEach(() => {
@@ -102,12 +130,20 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
     ).toBeNull();
     expect(parsePromoteOptions({ ...ANSWER, levels: [{ ...first, amount: "7" }] })).toBeNull();
     expect(parsePromoteOptions(null)).toBeNull();
+    const { reach, reaches, ...levelsOnly } = ANSWER;
+    expect(parsePromoteOptions(levelsOnly)).toBeNull();
+    expect(parsePromoteOptions({ ...ANSWER, reach: { ...reach, included: null } })).toBeNull();
+    expect(parsePromoteOptions({ ...ANSWER, reaches: {} })).toBeNull();
+    const [firstReach] = reaches;
+    expect(
+      parsePromoteOptions({ ...ANSWER, reaches: [{ ...firstReach, availability: "seasonEnded" }] }),
+    ).toBeNull();
   });
 
   it("PMV-3 a refused or malformed read throws a ReaderError whose code the sheet can name", async () => {
     answer = { data: null, error: { message: "listingNotPlaced", code: "P0D01" } };
     const refused = await readPromoteOptions("ad-1").catch((error: unknown) => error);
-    expect(promoteRefusalKey(readerFailure(refused))).toBe(
+    expect(promoteRefusalKey(readerFailure(refused), "level")).toBe(
       "myListings.promote.error.listingNotPlaced",
     );
     answer = { data: { ok: true }, error: null };
@@ -131,11 +167,24 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
       ["marketNotSet", "myListings.promote.error.marketNotSet"],
       ["creditsNotAvailable", "myListings.promote.error.creditsNotAvailable"],
     ];
-    for (const [code, key] of named) expect(promoteRefusalKey({ message: code })).toBe(key);
-    expect(promoteRefusalKey({ message: "account is deactivated" })).toBe("door.refused");
-    expect(promoteRefusalKey({ message: "notSignedIn" })).toBe("door.refused");
-    expect(promoteRefusalKey({ message: "toString" })).toBe("door.refused");
-    expect(promoteRefusalKey(null)).toBe("door.refused");
+    for (const [code, key] of named)
+      expect(promoteRefusalKey({ message: code }, "level")).toBe(key);
+    expect(promoteRefusalKey({ message: "account is deactivated" }, "level")).toBe("door.refused");
+    expect(promoteRefusalKey({ message: "notSignedIn" }, "level")).toBe("door.refused");
+    expect(promoteRefusalKey({ message: "toString" }, "level")).toBe("door.refused");
+    expect(promoteRefusalKey(null, "level")).toBe("door.refused");
+    const reach: Array<[string, string]> = [
+      ...named.filter(([code]) => code !== "notOffered"),
+      ["notOffered", "myListings.promote.error.reachNotOffered"],
+      ["unknownReach", "myListings.promote.error.unknownReach"],
+      ["sameReach", "myListings.promote.error.sameReach"],
+      ["lowerReach", "myListings.promote.error.lowerReach"],
+      ["includedReach", "myListings.promote.error.includedReach"],
+    ];
+    for (const [code, key] of reach)
+      expect(promoteRefusalKey({ message: code }, "reach")).toBe(key);
+    for (const code of ["unknownReach", "sameReach", "lowerReach", "includedReach"])
+      expect(promoteRefusalKey({ message: code }, "level")).toBe("door.refused");
   });
 
   it("PMV-5 setting a level calls set_listing_level only and reads its answer or its code", async () => {
@@ -163,9 +212,57 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
   });
 
   it("PMV-6 a level the ad cannot take says why, from the door's availability", () => {
-    expect(availabilityKey("available")).toBeNull();
-    expect(availabilityKey("seasonEnded")).toBe("myListings.promote.error.seasonEnded");
-    expect(availabilityKey("notOffered")).toBe("myListings.promote.error.notOffered");
-    expect(availabilityKey("levelNotAvailable")).toBe("myListings.promote.error.levelNotAvailable");
+    expect(availabilityKey("available", "level")).toBeNull();
+    expect(availabilityKey("seasonEnded", "level")).toBe("myListings.promote.error.seasonEnded");
+    expect(availabilityKey("notOffered", "level")).toBe("myListings.promote.error.notOffered");
+    expect(availabilityKey("levelNotAvailable", "level")).toBe(
+      "myListings.promote.error.levelNotAvailable",
+    );
+  });
+
+  it("PMV-7 the reach: the door's reach head and rows pass through untouched, set_listing_reach sets it, its refusals and availability in the reach's words", async () => {
+    answer = { data: ANSWER, error: null };
+    const options = await readPromoteOptions("ad-1");
+    expect(options.reach).toEqual(ANSWER.reach);
+    expect(
+      options.reaches.map((row) => [row.key, row.current, row.days, row.amount, row.availability]),
+    ).toEqual([
+      ["rch-inc", true, null, null, "includedReach"],
+      ["rch-wide", false, 30, 4.5, "available"],
+    ]);
+    expect(options.reaches[1]).toMatchObject({ nameEn: "Wide reach", nameAm: "ሰፊ", sort: 20 });
+
+    calls.length = 0;
+    answer = {
+      data: { ok: true, reach: "rch-wide", until: "2026-12-09T10:00:00+00:00", source: "launch" },
+      error: null,
+    };
+    expect(await setListingReach("ad-1", "rch-wide")).toEqual({
+      ok: true,
+      until: "2026-12-09T10:00:00+00:00",
+    });
+    expect(calls).toEqual([
+      { name: "set_listing_reach", args: { p_listing_id: "ad-1", p_reach_key: "rch-wide" } },
+    ]);
+    answer = { data: null, error: { message: "sameReach", details: "2026-12-09 10:00:00+00" } };
+    expect(await setListingReach("ad-1", "rch-wide")).toEqual({
+      ok: false,
+      key: "myListings.promote.error.sameReach",
+    });
+    answer = { data: null, error: { message: "notOffered", code: "P0001" } };
+    expect(await setListingReach("ad-1", "rch-wide")).toEqual({
+      ok: false,
+      key: "myListings.promote.error.reachNotOffered",
+    });
+    answer = { data: { ok: true }, error: null };
+    expect(await setListingReach("ad-1", "rch-wide")).toEqual({
+      ok: false,
+      key: "myListings.error.failed",
+    });
+
+    expect(availabilityKey("available", "reach")).toBeNull();
+    expect(availabilityKey("notOffered", "reach")).toBe("myListings.promote.error.reachNotOffered");
+    expect(availabilityKey("unknownReach", "reach")).toBe("myListings.promote.error.unknownReach");
+    expect(availabilityKey("lowerReach", "reach")).toBe("myListings.promote.error.lowerReach");
   });
 });

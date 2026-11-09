@@ -56,13 +56,14 @@ export function inspect(
     if (!seen.has(key)) failures.push(`allowlist: ${key} stale (not in the census)`);
 
   const api = /^\[api\]\s*$([\s\S]*?)(?=^\[)/m.exec(`${config}\n[end]`)?.[1] ?? "";
-  const list = (key: string): string[] => {
-    const m = new RegExp(`^\\s*${key}\\s*=\\s*\\[([^\\]]*)\\]`, "m").exec(api);
+  const list = (pattern: RegExp): string[] => {
+    const m = pattern.exec(api);
     return m ? [...(m[1] ?? "").matchAll(/"([^"]*)"/g)].map((x) => x[1] ?? "") : [];
   };
-  for (const s of list("schemas"))
+  for (const s of list(/^\s*schemas\s*=\s*\[([^\]]*)\]/m))
     if (s === "net" || s === "extensions") failures.push(`[api] schemas exposes ${s}`);
-  if (list("extra_search_path").includes("net")) failures.push("[api] extra_search_path holds net");
+  if (list(/^\s*extra_search_path\s*=\s*\[([^\]]*)\]/m).includes("net"))
+    failures.push("[api] extra_search_path holds net");
   return failures;
 }
 

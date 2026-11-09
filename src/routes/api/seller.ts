@@ -68,16 +68,24 @@ async function handler(
   const page = data as {
     seller?: unknown;
     cards?: unknown;
+    levels?: unknown;
     next?: unknown;
   } | null;
   // F4 — an answer without cards and without an error is a failure, never an
   // empty page.
-  if (page === null || typeof page !== "object" || !Array.isArray(page.cards)) {
+  if (
+    page === null ||
+    typeof page !== "object" ||
+    !Array.isArray(page.cards) ||
+    !Array.isArray(page.levels)
+  ) {
     return serverError(PATH, new Error("seller_feed_page returned no page"));
   }
+  // P-2 (c) c2a — the level rows' dictionary rides the answer once (DEC-351 §8).
   const body = {
     seller: page.seller ?? null,
     cards: page.cards,
+    levels: page.levels,
     next: page.next === null || page.next === undefined ? null : encodeCursor(page.next),
   };
   return ok(body, {

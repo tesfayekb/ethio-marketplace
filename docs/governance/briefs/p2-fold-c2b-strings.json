@@ -1,0 +1,48 @@
+{
+  "new": [
+    {
+      "key": "admin.monetisation.error.capsOnLevel",
+      "layer": "admin",
+      "en": "A level carries no place limits.",
+      "am": "ደረጃ የቦታ ገደቦች የሉትም።"
+    },
+    {
+      "key": "admin.monetisation.error.badCaps",
+      "layer": "admin",
+      "en": "A limit is a whole number, 1 or more, or blank for no limit.",
+      "am": "ገደብ 1 ወይም ከዚያ በላይ የሆነ ሙሉ ቁጥር ነው፤ ገደብ እንዳይኖር ባዶ ይተዉት።"
+    },
+    {
+      "key": "admin.monetisation.product.unknown",
+      "layer": "admin",
+      "en": "Product not known",
+      "am": "ምርቱ አይታወቅም"
+    },
+    {
+      "key": "admin.monetisation.category.unknown",
+      "layer": "admin",
+      "en": "Category not known",
+      "am": "ምድቡ አይታወቅም"
+    },
+    {
+      "key": "post.where.planLineNoLimit",
+      "layer": "member",
+      "en": "{used} cities · {regions} region(s) · no city limit",
+      "am": "{used} ከተሞች · {regions} ክልል(ሎች) · የከተማ ገደብ የለም"
+    },
+    {
+      "key": "post.where.reachCaptionNoLimit",
+      "layer": "member",
+      "en": "This ad's reach: no city limit",
+      "am": "የማስታወቂያው ተደራሽነት፦ የከተማ ገደብ የለም"
+    }
+  ],
+  "renamed": [
+    { "from": "admin.coverage.error.reason", "to": "admin.monetisation.error.reason" },
+    { "from": "admin.coverage.everywhere.yes", "to": "admin.monetisation.everywhere.yes" },
+    { "from": "admin.coverage.everywhere.no", "to": "admin.monetisation.everywhere.no" },
+    { "from": "admin.coverage.field.photos", "to": "admin.monetisation.field.photos" },
+    { "from": "admin.coverage.field.photosHint", "to": "admin.monetisation.field.photosHint" }
+  ],
+  "retired": ["admin.roles.perm.resource.coverage"]
+}

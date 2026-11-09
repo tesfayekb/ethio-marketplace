@@ -1,0 +1,1 @@
+# INC-1091 (P-2 (c) c3): a file under e2e/ that presses the bare Control+A instead of ControlOrMeta+A (scripts/conformance/select-all.test.ts SAC-1). <file> | <reason> | <until>

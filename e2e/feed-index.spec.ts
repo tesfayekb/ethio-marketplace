@@ -423,16 +423,17 @@ test.describe("FEED INDEX", () => {
     const { data, error } = await adminClient().rpc("feed_index_check_sweep");
     expect(error).toBeNull();
     const result = data as Record<string, number>;
-    for (const key of [
+    expect(Object.keys(result).sort()).toEqual([
       "active_listings",
       "active_without_published_at",
       "active_without_rows",
-      "rows_for_inactive",
+      "listings_with_wrong_look",
       "listings_with_wrong_rows",
       "queued",
+      "rows_for_inactive",
       "sold_left_feed",
-    ])
-      expect(result).toHaveProperty(key);
+      "sold_shown",
+    ]);
     const { data: runs, error: runsError } = await adminClient()
       .from("feed_index_check_runs")
       .select("id")

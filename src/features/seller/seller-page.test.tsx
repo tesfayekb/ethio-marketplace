@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
 import type { UseSellerFeed } from "./use-seller-feed";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 /**
  * Bundle 19 turn 16 — SL-4: the title from the business name else the alias,
@@ -56,7 +57,9 @@ const card = (id: string): FeedListing => ({
   id,
   publicId: null,
   title: `Ad ${id}`,
-  tier: "regular",
+  tier: "lvl-base",
+  look: PLAIN_LOOK,
+  levelRow: null,
   priceAmount: 1000,
   priceCurrency: "ETB",
   priceMode: "fixed",

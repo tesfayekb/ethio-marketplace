@@ -26,11 +26,16 @@ In the browser, `SellerLine` draws a missing name as `post.seller.neutral` ("Sel
 
 ## The guard
 
+The law lives in `scripts/conformance/seller-names.ts` and has two halves (DEC-359): the file census for the bodies the migrations show, and a live judge for every body, including the ones a migration builds at run time.
+
 `scripts/conformance/seller-names.test.ts`:
 
-- **SPA-10a:** every public function whose latest body reads `profiles.seller_alias` or `alias_history` is one of the two helpers or a line in `seller-names-allowlist.txt` (an owner, staff or internal door, with its reason and until).
+- **SPA-10a:** every public function whose latest body reads `profiles.seller_alias` or `alias_history` is one of the two helpers or a line in `seller-names-allowlist.txt` (an owner, staff or internal door, with its reason and until). The latest bodies are the migration reader's. A body built at run time (a `format()` template or a `COMPUTED_BY_HAND` name, INC-1083) is computed: the census prints it with its reason, and its allowlist line is judged live, never stale here.
 - **SPA-10b:** no file under `src/server` or `src/routes` names either column.
-- **SPA-10c:** the census is shown red on a planted public reader and a planted server read.
+- **SPA-10c:** the census is shown red on a planted public reader and a planted server read. A computed function's line stays; a line that excuses nothing is stale.
+- **SPA-10d:** the live judge proves itself, reads the live bodies with comments stripped, and refuses a malformed row.
+
+The live judge runs on the smoke lane, in the step "Seller-name judge, live" (`local-backend-proof.yml`), after the door guard. `seller-names.ts --live-query` prints the query: every public function's name and its body as UTF-8 hex, one row each. psql writes the answer under `RUNNER_TEMP`, and `seller-names.ts --live <tsv>` judges it against the two helpers and the same allowlist. An unexcused reader fails, and so does a line whose function is no longer a live reader. The self-test on planted rows runs first, and the judge judges nothing until it passes.
 
 ## Tests
 

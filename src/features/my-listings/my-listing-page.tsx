@@ -31,16 +31,16 @@ import {
   readSellerIdentity,
   readSellerLine,
   type AttrDef,
-  type PlanCaps,
 } from "@/features/posting/posting-service";
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
+import { useLevelLook } from "@/features/levels/use-level-rows";
 import { fill } from "@/features/posting/refusal-text";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { CertifyConfirm } from "@/features/legal/certify-confirm";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
-import { useI18n } from "@/i18n";
+import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { authKey } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
@@ -230,6 +230,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     queryFn: () => readDraft(listingId),
     enabled: ad !== null,
   });
+  // P-2 (c) c2a — the preview's level look: the level row's base look, from the store.
+  const previewLook = useLevelLook(content.data?.draft.tier ?? null);
   const categoryId = row?.categoryId ?? null;
   const schema = useQuery({
     queryKey: ["my-listing-schema", categoryId],
@@ -237,8 +239,6 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     queryFn: async (): Promise<{
       definitions: AttrDef[];
       attributeOptions: Record<string, AttrOption[]>;
-      /** Turn R2 — the seller's plan caps: the photos box obeys `maxPhotos`, as the posting form does. */
-      plan: PlanCaps | null;
     }> => {
       const found = await readPostingSchema(categoryId as string);
       const definitions = found?.attributes ?? [];
@@ -256,7 +256,6 @@ export function MyListingPage({ listingId }: { listingId: string }) {
       return {
         definitions,
         attributeOptions: Object.fromEntries(entries),
-        plan: found?.plan ?? null,
       };
     },
   });
@@ -321,10 +320,10 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     }
   };
 
-  /** P-2 (b) — the sheet set a level: its end in the done line, the ad read again. */
-  const promoted = async (until: string) => {
+  /** P-2 (b) — the sheet set a level (c3: or a reach): its end in the sheet's words, the ad read again. */
+  const promoted = async (until: string, doneKey: MessageKey) => {
     setProblem(null);
-    setNotice(fill(t("myListings.promote.done"), { date: day(until) }));
+    setNotice(fill(t(doneKey), { date: day(until) }));
     await reload();
   };
 
@@ -678,6 +677,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               actor="owner"
               soldBadge={sold && soldKey !== undefined ? t(soldKey) : null}
               tier={draft.draft.tier}
+              look={previewLook}
               counts={
                 row.publishedFirstAt === null
                   ? undefined
@@ -850,7 +850,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             listingId={listingId}
             open
             onOpenChange={setPromoting}
-            onDone={(until) => void promoted(until)}
+            onDone={(until, doneKey) => void promoted(until, doneKey)}
           />
         </Suspense>
       ) : null}

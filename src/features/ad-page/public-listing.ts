@@ -5,6 +5,7 @@ import type { ListingDetailView } from "@/features/posting/preview/listing-detai
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
 import { catalogText } from "@/i18n/entity";
 import { tierOf } from "@/components/marketplace/card-tier";
+import { levelNameOf, parseDocumentLevel } from "@/features/levels/level-fields";
 
 type PublicValue =
   | string
@@ -29,6 +30,17 @@ export interface PublicListingDoc {
   expires_at: string | null;
   renewed_at: string | null;
   tier: string;
+  /**
+   * P-2 (c) c2a (DEC-351 §8) — the ad's level look, resolved by `level_perks_for`, and its
+   * level row's names (NULL when the row is gone); absent in an answer cached before them.
+   */
+  level?: {
+    key: string;
+    placement: string | null;
+    badge: boolean | null;
+    name_en?: string | null;
+    name_am?: string | null;
+  };
   photos_soon: boolean;
   video_url: string | null;
   country: string | null;
@@ -101,6 +113,17 @@ export interface PublicListingDoc {
   viewer: { owner: boolean; saved: boolean };
 }
 
+/**
+ * P-2 (c) c2a (ruling 6 §3) — the flag's word on the ad page: the document's own level
+ * names, in the reader's language, through the one name chooser; null (no word, so no
+ * flag) when the document's level is not the ad's or carries no name.
+ */
+export function adPageLevelName(doc: PublicListingDoc, language: string): string | null {
+  const level = parseDocumentLevel(doc.level);
+  if (level === null || level.key !== tierOf(doc.tier)) return null;
+  return levelNameOf(level.names, language);
+}
+
 /** ONE mapping onto the same detail used by seller and staff previews. Ribbon is a key until the caller translates it. */
 export function adPageView(doc: PublicListingDoc, language: string): ListingDetailView {
   const label = doc.price.unit_label;
@@ -108,9 +131,12 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
     doc.price.unit === "other"
       ? doc.price.unit_text
       : catalogText(label?.en, label?.am, language) || null;
+  const tier = tierOf(doc.tier);
+  const level = parseDocumentLevel(doc.level);
   return {
     actor: "buyer",
-    tier: tierOf(doc.tier),
+    tier,
+    look: level !== null && level.key === tier ? level.look : null,
     title: doc.title,
     postedAt: doc.published_at,
     description: doc.description,

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { PageShell } from "@/components/layout/page-shell";
 import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
 import { ListingCard } from "@/components/marketplace/listing-card";
+import { CARD_LOOKS } from "@/components/marketplace/card-tier";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
@@ -144,15 +146,20 @@ const RADII = [
  * both modes show at once whatever the page's mode. Turn SAGE-S4 — the cards are the real
  * ListingCard (its tier's look from card-tier.ts, a ribbon on each) and the real InviteCard,
  * so the operator walks the tiers here without a seeded row (S4 operator decision 1).
+ * P-2 (c) c2a — one card per look a level can take (CARD_LOOKS: each frame, without and with
+ * the badge), each its own fixture level row, so no level is named here.
  */
 /** Fixture card words (a dev page, English only). */
 const FIXTURE_TITLE = "Sample listing";
 const FIXTURE_PLACE = "Bole, Addis Ababa";
+const FIXTURE_LEVEL = "Sample level";
 const FIXTURE_CARD: FeedListing = {
   id: "style-fixture",
   publicId: null,
   title: FIXTURE_TITLE,
-  tier: "regular",
+  tier: "style-fixture",
+  look: PLAIN_LOOK,
+  levelRow: null,
   priceAmount: null,
   priceCurrency: null,
   priceMode: "contact",
@@ -173,11 +180,27 @@ const FIXTURE_CARD: FeedListing = {
   locationNameAm: null,
   step: 1,
 };
-const FIXTURE_CARDS: FeedListing[] = [
-  { ...FIXTURE_CARD, id: "style-regular", tier: "regular", soldWord: "sold" },
-  { ...FIXTURE_CARD, id: "style-premium", tier: "premium", reserved: true },
-  { ...FIXTURE_CARD, id: "style-featured", tier: "featured", soldWord: "rented" },
+/** Each look's card, with a ribbon in turn (Sold, Reserved, Rented). */
+const RIBBONS: Partial<FeedListing>[] = [
+  { soldWord: "sold" },
+  { reserved: true },
+  { soldWord: "rented" },
 ];
+const FIXTURE_CARDS: FeedListing[] = CARD_LOOKS.map(({ id, look }, index) => ({
+  ...FIXTURE_CARD,
+  ...RIBBONS[index % RIBBONS.length],
+  id: `style-${id}`,
+  tier: id,
+  look,
+  levelRow: {
+    key: id,
+    sort: index,
+    nameEn: FIXTURE_LEVEL,
+    nameAm: null,
+    isBaseline: index === 0,
+    look,
+  },
+}));
 const FIXTURE_INVITE: Invite = {
   placeId: null,
   placeName: FIXTURE_PLACE,
@@ -257,21 +280,21 @@ function SageGrid() {
 /**
  * D262 (turn B1, DEC-314) — THE DARK-CARD CHOICE. Three candidate card sets (styles.css,
  * `.dark [data-card-candidate]`) on a dark page, each with a plain card (a photo stand-in), a
- * Premium, a Featured and a no-photo card. The operator picks one; e2e/dark-cards.spec.ts measures
+ * gold-framed and a green-framed badged card (P-2 (c) c2a: named by their look) and a no-photo card. The operator picks one; e2e/dark-cards.spec.ts measures
  * each against its targets. Fixture data, English only; never on a public page.
  */
 const CANDIDATES = ["a", "b", "c"] as const;
 const CHOICE_CARDS = [
-  ["plain", "bg-card shadow-card", "bg-secondary", "text-primary", ""],
+  ["standard", "bg-card shadow-card", "bg-secondary", "text-primary", ""],
   [
-    "premium",
+    "top-badge",
     "bg-tier-premium shadow-premium",
     "bg-photo-empty",
     "text-tier-premium-ink",
     "★★ PREMIUM",
   ],
   [
-    "featured",
+    "boost-badge",
     "bg-tier-featured shadow-featured",
     "bg-photo-empty",
     "text-tier-featured-ink",

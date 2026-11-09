@@ -44,6 +44,11 @@ export const DOOR_CODES = [
   "marketNotSet",
   "creditsNotAvailable",
   "noFreeSlot",
+  // P-2 (c)'s reach (set_listing_reach), added by its screens turn c3 ahead of its shell turn (DEC-349)
+  "unknownReach",
+  "sameReach",
+  "lowerReach",
+  "includedReach",
 ] as const;
 
 export type DoorCode = (typeof DOOR_CODES)[number];

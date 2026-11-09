@@ -1,15 +1,16 @@
 import { useId, type CSSProperties } from "react";
 
-import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import type { PaidLook, PaidTier } from "./card-tier";
+import type { BadgeLook } from "./card-tier";
 
 /**
- * Sage S4 (spec §7; ruling 1) — THE MINI FLAG AND THE TIER WORD, drawn here only, from the
- * tier's look (card-tier.ts). The flag is a small SVG on the picture's top-start corner: a white
- * body with a notched tail framed in the tier colour, its fold just past the card's edge, and
- * its stars filled from three token stops; it carries the tier word as its accessible name. Its
+ * Sage S4 (spec §7; ruling 1) — THE MINI FLAG AND THE LEVEL'S WORD, drawn here only, from the
+ * look's badge (card-tier.ts). P-2 (c) c2a — the word is the level row's name, given by the
+ * caller from the answer's dictionary (levelNameOf), and `data-tier` carries the level's key.
+ * The flag is a small SVG on the picture's top-start corner: a white body with a notched tail
+ * framed in the frame's colour, its fold just past the card's edge, and its stars filled from
+ * three token stops; it carries the level's word as its accessible name. Its
  * drawing is in the picture's 400 × 300 units, a quarter of a cqw each, scaled ×1.6 on a phone
  * card, ×1.25 on a compact tablet card and ×1 on a wider one. This module rides only the pages
  * that draw cards (CF-TIER-3 reads TIER_STAR_PATH in the build).
@@ -34,31 +35,27 @@ const FLAG_CLASS =
 const PHOTO_FLAG_CLASS =
   "pointer-events-none absolute z-10 [--flag-scale:1.15] rtl:-scale-x-100 @min-[32rem]:[--flag-scale:0.72]";
 
-function useTierName(tier: PaidTier): string {
-  const { t } = useI18n();
-  return tier === "premium" ? t("tier.premium") : t("tier.featured");
-}
-
 /**
  * The flag, absolutely placed: its parent is the picture's own box, inside the card's container
  * (`on="card"`), or the ad page's main photo box, its own container (`on="photo"`).
  */
 export function TierFlag({
-  tier,
+  levelKey,
+  name,
   look,
   on = "card",
 }: {
-  tier: PaidTier;
-  look: PaidLook;
+  levelKey: string;
+  name: string;
+  look: BadgeLook;
   on?: "card" | "photo";
 }) {
-  const name = useTierName(tier);
   const fill = `tier-stars-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const { length, frame, fold, stops } = look.flag;
   return (
     <svg
       data-testid={on === "photo" ? "listing-detail-tier" : "listing-card-tier"}
-      data-tier={tier}
+      data-tier={levelKey}
       role="img"
       aria-label={name}
       viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`}
@@ -92,17 +89,16 @@ export function TierFlag({
   );
 }
 
-/** The tier word beside the place, its stars before it; the flag speaks for it. */
+/** The level's word beside the place, its stars before it; the flag speaks for it. */
 export function TierWord({
-  tier,
+  name,
   look,
   className,
 }: {
-  tier: PaidTier;
-  look: PaidLook;
+  name: string;
+  look: BadgeLook;
   className?: string;
 }) {
-  const name = useTierName(tier);
   return (
     <span
       data-testid="listing-card-tier-word"
@@ -120,15 +116,22 @@ export function TierWord({
 }
 
 /**
- * Sage S5 (spec §12) — the ad page's tier tag above the title: the tier word and its stars in a
- * white pill ringed in the tier colour; the photo's flag speaks for it.
+ * Sage S5 (spec §12) — the ad page's level tag above the title: the level's word and its stars
+ * in a white pill ringed in the frame's colour; the photo's flag speaks for it.
  */
-export function TierTag({ tier, look }: { tier: PaidTier; look: PaidLook }) {
-  const name = useTierName(tier);
+export function TierTag({
+  levelKey,
+  name,
+  look,
+}: {
+  levelKey: string;
+  name: string;
+  look: BadgeLook;
+}) {
   return (
     <span
       data-testid="listing-detail-tier-tag"
-      data-tier={tier}
+      data-tier={levelKey}
       aria-hidden="true"
       className={cn(
         "inline-flex items-center gap-1 self-start rounded-full bg-card px-2.5 py-0.5 text-xs leading-5 font-extrabold tracking-[0.6px] uppercase ring-1 ring-inset",
@@ -142,7 +145,7 @@ export function TierTag({ tier, look }: { tier: PaidTier; look: PaidLook }) {
   );
 }
 
-function TierStars({ look }: { look: PaidLook }) {
+function TierStars({ look }: { look: BadgeLook }) {
   return (
     <span className={cn("inline-flex", look.star)}>
       {STAR_X.slice(0, look.stars).map((x) => (

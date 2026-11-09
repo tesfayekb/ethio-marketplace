@@ -3,6 +3,7 @@ import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { callRoute } from "@/lib/route-client";
 import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 
+import { seedLevelRows } from "@/features/levels/levels-store";
 import type { PhotoLinks } from "@/features/posting/photo-links";
 import { feedPath, parseFeedPage, type FeedListing, type FirstFeedPage } from "./feed-page";
 import type { HeldFirstPage } from "./held-first-page";
@@ -35,7 +36,10 @@ async function readPage(
 ): Promise<ReturnType<typeof parseFeedPage>> {
   const answer = await callRoute(feedPath(categoryId, placeId, after), { auth: "none" });
   if (answer.kind !== "answered" || answer.status !== 200) return null;
-  return parseFeedPage(answer.payload);
+  const page = parseFeedPage(answer.payload);
+  // P-2 (c) c2a — the browser's level rows come from the answer that arrived (DEC-351 §8).
+  if (page !== null) seedLevelRows(page.levels);
+  return page;
 }
 
 /** D234 S5 — a server's first page is taken at most once (a later mount reads afresh). */
@@ -56,7 +60,10 @@ async function firstRead(
   }
   takenFirstPages.add(firstPage);
   const held = await firstPage.page;
-  if (held !== null && held.path === feedPath(categoryId, placeId, null)) return held.page;
+  if (held !== null && held.path === feedPath(categoryId, placeId, null)) {
+    seedLevelRows(held.page.levels);
+    return held.page;
+  }
   return readPage(categoryId, placeId, null);
 }
 

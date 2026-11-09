@@ -1,7 +1,7 @@
 import ts from "typescript";
 
 import { codeOf, visitTs } from "./kit";
-import { lastDeclarations, type LastDeclaration } from "./plan-seam";
+import { lastDeclarations, type LastDeclaration } from "./migration-reader";
 
 /**
  * P-2 (a) ruling 14 item 2 (CF-DOOR-1, INC-1062) — A TEST READS AN ENVELOPE
@@ -11,7 +11,7 @@ import { lastDeclarations, type LastDeclaration } from "./plan-seam";
  * fourth publish was refused `noFreeSlot` and the test went on as if live).
  *
  * The doors are DERIVED, never listed: every function whose LAST declaration
- * (plan-seam's reader, the one sql-writes.ts reads; comments blanked) can answer
+ * (the migration reader, the one sql-writes.ts reads; comments blanked) can answer
  * `'ok', false`. The sites are every e2e `.rpc("<door>", …)`, and every door
  * name handed as a literal argument to a plain wrapper function
  * (`rpcResult(page, "<door>", …)`). A site passes when its answer

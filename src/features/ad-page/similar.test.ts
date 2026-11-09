@@ -3,12 +3,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FeedListing } from "@/features/feed/feed-page";
 
 import { similarListings } from "./similar";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 const card = (id: string, publicId: string | null): FeedListing => ({
   id,
   publicId,
   title: `Ad ${id}`,
-  tier: "regular",
+  tier: "lvl-base",
+  look: PLAIN_LOOK,
+  levelRow: null,
   priceAmount: 1000,
   priceCurrency: "ETB",
   priceMode: "fixed",

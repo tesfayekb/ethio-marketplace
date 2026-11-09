@@ -2,8 +2,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { walkFiles } from "../conformance/kit";
-import { declarationsOf, functionCodeOf, type Declaration } from "../conformance/plan-seam";
-import { sqlCodeOf } from "../conformance/perm-vocabulary";
+import {
+  declarationsOf,
+  functionCodeOf,
+  sqlCodeOf,
+  type Declaration,
+} from "../conformance/migration-reader";
 import { identityKey, normaliseType, parseArgument, splitTopLevel } from "./identity";
 
 export { identityKey, normaliseType, parseArgument, splitTopLevel } from "./identity";
@@ -15,7 +19,7 @@ export { identityKey, normaliseType, parseArgument, splitTopLevel } from "./iden
  * after the last statement that touched it.
  *
  * The reader walks every migration in order and replays, by offset:
- * - each `CREATE [OR REPLACE] FUNCTION` (plan-seam's reader: comments and DO
+ * - each `CREATE [OR REPLACE] FUNCTION` (the migration reader: comments and DO
  *   blocks blanked), keeping the LAST declaration of each overload; a plain
  *   CREATE of a new function is born closed (the hosted ACL: no browser role,
  *   no service_role — scripts/ci/prepare-local-backend.sh (4c)); OR REPLACE

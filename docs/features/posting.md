@@ -735,6 +735,10 @@ business name (or the alias) before the channels.
 
 ### The plan document (D22) — both doors exist since M-MAINT-3
 
+> P-2 (c): `plan_caps`, `seller_plan` and `admin_set_coverage_plan` are dropped
+> (M-3c-b part 5); a new ad's plan block is its market's included reach, an
+> edited ad's caps are its own (§An ad's own caps). What follows is the record.
+
 `get_posting_schema` returns `plan` = `{ plan, max_photos, max_cities,
 max_regions, max_countries, allow_everywhere }` for the CALLER
 (`plan_caps(seller_plan(auth.uid()))`; plans are not per-seller yet, so
@@ -1545,3 +1549,22 @@ The review step's certification is the shared AgreeToDocument: "I certify the [p
 - `/api/listings/assist` — on `defineRoute`; see docs/features/routes.md.
 - `/api/listings/photos/$id` — on `defineRoute`; see docs/features/routes.md.
 - `/api/listings/background` — on `defineRoute`; see docs/features/routes.md.
+
+## An ad's own caps (P-2 (c) c2b — INC-1080, INC-1084)
+
+The wizard holds one caps value, `planCaps` (`PlanCaps`: plan, photos, cities,
+regions, countries; each limit a whole number or `null` for no limit). A new ad
+takes it from `get_posting_schema`'s plan block; an ad being edited takes its
+own, `my_listing_private`'s `caps` read by `readDraft` through the same parser
+(`shapePlanCaps`), and never falls back to the posting document's baseline
+(INC-1080) — a missing or malformed answer is `null`, not known. Step 6
+(`step-where.tsx`) takes the three place limits as one `caps` prop: not known
+(`null`) offers no add button and no count against a limit
+(`post.where.planLineUnknown`); a `null` limit is no limit — the add buttons
+stay and the line reads `post.where.planLineNoLimit` with no `data-max`
+(INC-1084); a number caps as before (`post.where.planLine`). The prefill keeps
+one city while the caps are not known. Tests: `step-where.test.tsx` SWR-1,
+SWR-2; `use-edit-draft.test.ts` EW-7; MLA-19 (an ad on a level opens
+its photo box at its own cap); PW-82 (room follows the real cap), PW-90,
+PW-193 (after the types patch and the migration: a nationwide ad's edit shows
+no city limit, EN and AM).

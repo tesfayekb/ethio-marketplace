@@ -63,7 +63,7 @@ export const GROUP_LABEL: Record<FieldGroup, MessageKey> = {
   pin: "admin.listings.history.field.pin",
   contact: "admin.listings.history.field.contact",
   video: "admin.listings.history.field.video",
-  tier: "admin.listings.filter.tier",
+  tier: "admin.listings.filter.level",
   reach: "admin.listings.history.field.reach",
   ends: "admin.listings.col.expires",
   sellerEnd: "admin.listings.detail.sellerEnd",

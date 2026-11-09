@@ -156,7 +156,6 @@ PUBLIC/`anon` and granted to `authenticated`.
 | `admin_upsert_country(code, name, unit_system, currency, order)`                      | countries:update             | `badCountryCode`, `badUnitSystem`, `badCurrency`, `nameRequired`                                                    | `country.upsert`                        |
 | `admin_set_country_active(code, active, force_hide)`                                  | countries:activate (step-up) | `badCountryCode`, `unknownCountry`, `scopedRolesExist`                                                              | `country.open` / `country.close`        |
 | `admin_set_country_root_order(code, category_ids)`                                    | countries:update             | `badCountryCode`, `unknownCountry`, `duplicateCategory`, `notARoot`                                                 | `country.rootOrder`                     |
-| `admin_set_coverage_plan(plan, cities, regions, countries, everywhere)`               | coverage:update (step-up)    | `badPlan`, `belowMinimum`                                                                                           | `coverage.plan.update`                  |
 
 `public.location_slug_candidate(name, parent_id)` derives a slug the same way
 `category_slug_candidate` does (lowercase, non-`[a-z0-9]` runs → `-`, trimmed),
@@ -185,6 +184,11 @@ writes through `admin_set_country_root_order`. An empty array deletes the
 country's rows, which means "use the global order".
 
 ## Coverage plans (DEC-064)
+
+> Retired in P-2 (c): an ad's reach and its caps are its reach row's
+> (`listing_effective_reach`, `listing_caps`; `docs/features/plans.md`). M-3c-b
+> dropped `coverage_plans` and `admin_set_coverage_plan` (part 5) and the
+> `coverage` permission (part 4). What follows is the record.
 
 `public.coverage_plans (plan, max_cities, max_regions, max_countries,
 allow_everywhere, updated_by, updated_at)` — admin-set limits per advertisement

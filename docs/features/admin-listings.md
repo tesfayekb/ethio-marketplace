@@ -169,3 +169,15 @@ Bundle 19 turn 13b — for listings:review, the row shows "Reports: N" (open rep
 - **The level line.** The page's tier fact (`listing-fact-tier`) reads the level, where it came from (`LEVEL_SOURCE_LABEL`: launch offer, staff, money, credits) and "Until {date}" or "No end"; the baseline with no source reads the label alone. The readers carry the tier as a typed absence (`use-admin-listing.ts`, `use-admin-listings.ts`: `tier: string | null`, no "regular" stand-in); a missing tier reads `admin.listings.level.unknown` and draws no badge.
 - **The money formatter.** The product prices table prints its amounts through `moneyText` (src/lib/format.ts, intent `exact`), the one form `priceLine` also prints.
 - Tests: TIR-7, TD-6, TD-7, CLT-5, ALV-1…2, LH-4 (a missing tier stays absent); e2e `my-listings-promote.spec.ts` LVP-3 (seven days on the page: source staff and an end; blank on the roster: open-ended; days on the baseline refused at the field) and LVP-4 (the level line: staff with an end, staff open-ended, the launch offer, the baseline alone).
+
+## P-2 (c) c2a — Set level reads the level rows (INC-1077)
+
+- The dialog (`listings-tier-dialog`, its test ids unchanged), the roster's and Screening's level
+  filters, the badge and the level line read the enabled level rows through the levels store
+  (docs/features/levels-store.md): each pick and label is the row's name (`levelLabel`), the
+  baseline is the row's `is_baseline` (never a word), and the badge shows on a non-baseline level
+  only once the rows are read. While they load the dialog says so (`listings-tier-levels-loading`)
+  and sends nothing; a failed read is its error (`listings-tier-levels-error`).
+- The words are the `admin.listings.level.*` keys (Set level, Level set to {level}., …); the
+  `admin.listings.tier.*`, `filter.tier` and `action.tier` keys are retired.
+- Tests: TIR-1…8, TD-1…8, CLT-3, SF-6; e2e ATR-1…7 and SC-27 read each level's name from its row.

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useLevelLook } from "@/features/levels/use-level-rows";
 import { useI18n } from "@/i18n";
 
 import { ListingDetail, type ListingDetailView } from "./listing-detail";
@@ -21,7 +22,8 @@ export function PreviewSheet({
   footer,
   body,
 }: {
-  view: ListingDetailView;
+  /** P-2 (c) c2a — the look is the store's (the level row's base look), read here. */
+  view: Omit<ListingDetailView, "look">;
   onClose: () => void;
   /** Bundle 11 A2 — actions under the listing (the reviewer's Approve and Reject). */
   footer?: ReactNode;
@@ -33,6 +35,7 @@ export function PreviewSheet({
   body?: ReactNode;
 }) {
   const { t } = useI18n();
+  const look = useLevelLook(view.tier);
   return (
     <Dialog
       open
@@ -50,7 +53,7 @@ export function PreviewSheet({
           <DialogHeader>
             <DialogTitle>{t("post.preview.title")}</DialogTitle>
           </DialogHeader>
-          {body ?? <ListingDetail {...view} />}
+          {body ?? <ListingDetail {...view} look={look} />}
           {footer ? (
             <div data-testid="post-preview-footer" className="flex flex-wrap items-center gap-2">
               {footer}

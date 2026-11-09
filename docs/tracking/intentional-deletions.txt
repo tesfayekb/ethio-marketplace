@@ -112,3 +112,13 @@ supabase/migrations/20261105041444_94668649-35fb-405f-91a2-473d6329690e.sql
 scripts/check-caller-gates.ts
 scripts/caller-gates-allowlist.txt
 scripts/fixtures/caller-gates-bad.tsv
+src/features/feed/ranking.ts
+# P-2 (c) c2b: the posting caps block retired; the reach rows carry the place limits
+src/features/admin-monetisation/caps-editor.tsx
+src/features/admin-monetisation/caps-forms.ts
+src/features/admin-monetisation/caps-section.tsx
+# P-2 (c) c2b: CF-PLAN-1 retired with the plan seam; its reader moved to scripts/conformance/migration-reader.ts
+scripts/conformance/plan-seam.ts
+scripts/conformance/plan-seam.test.ts
+# P-2 (c) c2b M-3c-b part 5: the plan seam dropped (coverage_plans, its four functions); CF-PLAN-1's allowlist goes with it
+scripts/conformance/plan-seam-allowlist.txt

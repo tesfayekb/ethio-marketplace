@@ -598,6 +598,10 @@ in this landing — U7 honours it when the public reads are written.
 
 ## The plan photo cap (D22)
 
+> P-2 (c) replaced this: an ad's photo cap is its own level's, through
+> `listing_photo_cap` (M-3a), and M-3c-b part 5 dropped `coverage_plans`,
+> `seller_plan` and `plan_photo_cap`. What follows is the record.
+
 `coverage_plans.max_photos smallint NOT NULL DEFAULT 10` (CHECK 0..30); the real
 `free` row stays 10. `register_listing_photo` resolves the seller's cap through
 `seller_plan(user_id)` → `plan_photo_cap(plan)` and refuses a photo beyond it

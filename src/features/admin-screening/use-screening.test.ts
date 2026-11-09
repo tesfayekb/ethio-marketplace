@@ -243,7 +243,7 @@ describe("nameCheckSummaryOf", () => {
 
 /** Turn T1 — the preview's tier look reads the ad's tier from the queue's own select. */
 describe("the screening row's tier", () => {
-  it("SF-6 the select names tier; a known tier is read as it is, anything else null", async () => {
+  it("SF-6 the select names tier; any level key is read as it is (P-2 (c) c2a: levels are rows), no key is null", async () => {
     calls.length = 0;
     const row = (id: string, tier: unknown) => ({
       id,
@@ -266,15 +266,10 @@ describe("the screening row's tier", () => {
       category: null,
       place: null,
     });
-    answer.rows = [
-      row("l-1", "premium"),
-      row("l-2", "featured"),
-      row("l-3", "gold"),
-      row("l-4", null),
-    ];
+    answer.rows = [row("l-1", "lvl-a"), row("l-2", "lvl-fourth"), row("l-3", ""), row("l-4", null)];
     try {
       const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
-      expect(rows.map((r) => r.tier)).toEqual(["premium", "featured", null, null]);
+      expect(rows.map((r) => r.tier)).toEqual(["lvl-a", "lvl-fourth", null, null]);
       const select = calls.find(([name]) => name === "select");
       expect(String(select?.[1][0]).split(",")).toContain("tier");
     } finally {

@@ -1,5 +1,6 @@
 import { callRoute } from "@/lib/route-client";
 import { feedPath, parseFeedPage, type FeedListing } from "@/features/feed/feed-page";
+import { seedLevelRows } from "@/features/levels/levels-store";
 import type { PhotoLinks } from "@/features/posting/photo-links";
 
 /** DEC-195 — the cards and the cover links the answer already signed. */
@@ -27,6 +28,7 @@ export async function similarListings(
   if (answer.kind !== "answered" || !answer.ok) return empty;
   const page = parseFeedPage(answer.payload);
   if (page === null) return empty;
+  seedLevelRows(page.levels);
   return {
     cards: page.cards
       .filter((card) => card.id !== excludeId && card.publicId !== excludeId)

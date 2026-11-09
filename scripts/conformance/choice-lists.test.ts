@@ -18,7 +18,12 @@ import { report, walkFiles, TREE_SCAN_MS } from "./kit";
  *  - an option that does not read LIST_ROW, and an owner (the facade's impl, the picker,
  *    the popover) that does not read the constants;
  *  - a native <select> outside NativeSelect (src/components/ui/native-select.tsx, turn S6-2):
- *    the device draws its open list, and the closed control is the one component's.
+ *    the device draws its open list, and the closed control is the one component's;
+ *  - a current row drawn by class alone (INC-1027): a current row is heard as well as seen,
+ *    by one of two states — a radio item's checked state (data-[state=checked], read by
+ *    LIST_ROW), or `aria-current` on the SAME element whose className reads LIST_ROW_CURRENT
+ *    (a literal "true" or an expression; a parent's or a child's does not count). A
+ *    LIST_ROW_CURRENT read outside an element's className is refused: its element is unknown.
  * Exceptions are lines `key | reason | until` in choice-lists-allowlist.txt, key
  * `file#part`; until is a date (expired fails), an INC/DEC/turn id, or `permanent`
  * with its reason; a line naming nothing found fails as stale.
@@ -51,6 +56,26 @@ export const OWNERS: Record<string, RegExp> = {
   "src/components/ui/popover-impl.tsx": /\bLIST_SURFACE\b/,
 };
 
+/** The element whose className reads `id`, or null when `id` is read anywhere else. */
+function classOwner(id: ts.Identifier, source: ts.SourceFile): ts.JsxOpeningLikeElement | null {
+  let up: ts.Node = id.parent;
+  while (!ts.isJsxAttribute(up) && !ts.isSourceFile(up)) up = up.parent;
+  if (!ts.isJsxAttribute(up) || up.name.getText(source) !== "className") return null;
+  const element = up.parent.parent;
+  return ts.isJsxOpeningElement(element) || ts.isJsxSelfClosingElement(element) ? element : null;
+}
+
+/** The second heard state: `aria-current` on the element itself, "true" or an expression. */
+function heardCurrent(element: ts.JsxOpeningLikeElement, source: ts.SourceFile): boolean {
+  for (const prop of element.attributes.properties) {
+    if (!ts.isJsxAttribute(prop) || prop.name.getText(source) !== "aria-current") continue;
+    const value = prop.initializer;
+    if (value === undefined) return false;
+    return ts.isJsxExpression(value) || (ts.isStringLiteral(value) && value.text === "true");
+  }
+  return false;
+}
+
 function attr(node: ts.JsxOpeningLikeElement, name: string, source: ts.SourceFile): string | null {
   for (const prop of node.attributes.properties) {
     if (ts.isJsxAttribute(prop) && prop.name.getText(source) === name) {
@@ -76,6 +101,20 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
     // own size, margin or colour; `inRow` is true under a facade row part.
     let inRow = false;
     const walk = (node: ts.Node) => {
+      if (ts.isImportDeclaration(node)) return;
+      // INC-1027 (turn F2; P-2 (c) c2a ruling 8): the look by class never travels alone.
+      if (ts.isIdentifier(node) && node.text === "LIST_ROW_CURRENT") {
+        const element = classOwner(node, source);
+        if (element === null)
+          push(node, "current", "LIST_ROW_CURRENT read outside an element's className (INC-1027)");
+        else if (!heardCurrent(element, source))
+          push(
+            element,
+            "current",
+            "LIST_ROW_CURRENT by class — use a radio item's checked state or aria-current on the same element (INC-1027)",
+          );
+        return;
+      }
       if (
         ts.isJsxElement(node) &&
         ROW_PARTS.has(node.openingElement.tagName.getText(source).replace(/^.*\./, ""))
@@ -141,19 +180,6 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
       }
       // The owners define the look; their own literals are the mechanism.
       continue;
-    }
-    // INC-1027 (turn F2): a current row comes from the checked state (a radio item's
-    // data-[state=checked], read by LIST_ROW), so it is heard as well as seen; the look by
-    // class lives only in menu-row.ts and the owners above.
-    const current = /\bLIST_ROW_CURRENT\b/.exec(text);
-    if (current !== null) {
-      const line = text.slice(0, current.index).split("\n").length;
-      keys.push(`${name}#current`);
-      findings.push({
-        file: name,
-        line,
-        what: "current: LIST_ROW_CURRENT by class — use a radio item's checked state (INC-1027)",
-      });
     }
     walk(source);
   }
@@ -292,6 +318,36 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
     ]);
     expect(report(findings)).toContain("current: LIST_ROW_CURRENT by class");
     expect(findings.map((f) => f.file)).toEqual(["src/x.tsx"]);
+  });
+
+  it("CL-12: the current look by class needs aria-current on the same element (ruling 8)", () => {
+    const one = (text: string) => listFindings([{ name: "src/x.tsx", text }]);
+    const bare = one(`const a = <li className={cn(CARD, on && LIST_ROW_CURRENT)}>x</li>;`);
+    expect(bare.findings).toHaveLength(1);
+    expect(report(bare.findings)).toContain("or aria-current on the same element");
+    expect(bare.keys).toEqual(["src/x.tsx#current"]);
+    for (const heard of [`aria-current="true"`, `aria-current={on ? "true" : undefined}`]) {
+      const text = `const a = <li ${heard} className={cn(CARD, on && LIST_ROW_CURRENT)}>x</li>;`;
+      expect(one(text).findings, heard).toEqual([]);
+    }
+    const parent = one(
+      `const a = <ul aria-current="true"><li className={cn(on && LIST_ROW_CURRENT)}>x</li></ul>;`,
+    );
+    expect(parent.findings).toHaveLength(1);
+    const child = one(
+      `const a = <li className={cn(on && LIST_ROW_CURRENT)}><span aria-current="true">x</span></li>;`,
+    );
+    expect(child.findings).toHaveLength(1);
+    expect(
+      one(`const a = <li aria-current="false" className={LIST_ROW_CURRENT}>x</li>;`).findings,
+    ).toHaveLength(1);
+    const away = one(
+      `const look = on ? LIST_ROW_CURRENT : "";\nconst a = <li aria-current="true" className={look}>x</li>;`,
+    );
+    expect(report(away.findings)).toContain("outside an element's className");
+    expect(
+      one(`import { LIST_ROW_CURRENT } from "@/components/shell/menu-row";\nconst a = 1;`).findings,
+    ).toEqual([]);
   });
 
   it("an owner that stops reading the constants fails", () => {

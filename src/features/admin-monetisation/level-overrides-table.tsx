@@ -131,7 +131,11 @@ export function LevelOverridesTable({
         <span className="text-sm" data-testid={`${idOf(row)}-badge`}>
           {row.badge === null
             ? ""
-            : t(row.badge ? "admin.coverage.everywhere.yes" : "admin.coverage.everywhere.no")}
+            : t(
+                row.badge
+                  ? "admin.monetisation.everywhere.yes"
+                  : "admin.monetisation.everywhere.no",
+              )}
         </span>
       ),
     },

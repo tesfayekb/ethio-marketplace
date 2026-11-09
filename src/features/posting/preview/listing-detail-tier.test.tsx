@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";
 import { cardLookOf } from "@/components/marketplace/card-tier";
-import type { ListingTier } from "@/features/feed/ranking";
 import { TierFlag, TierTag } from "@/components/marketplace/tier-flag";
 import { shapePostingSchema } from "../posting-service";
 import { ListingDetail, type ListingDetailView } from "./listing-detail";
@@ -49,6 +48,7 @@ const definitions =
 /** A buyer's page with every box the look reaches: photo, facts, description, map, contact. */
 const BUYER_PAGE: ListingDetailView = {
   tier: null,
+  look: null,
   actor: "buyer",
   title: "Scratch ad",
   description: "scratch description",
@@ -84,14 +84,24 @@ const BUYER_PAGE: ListingDetailView = {
   },
 };
 
-function buyerPage(tier: ListingTier | null, extra: Partial<ListingDetailView> = {}) {
-  const paid = tier === null ? null : cardLookOf(tier).paid;
+/** P-2 (c) c2a — a frame's look under a fixture level key (no level by name); a framed ad is badged. */
+type Frame = "standard" | "boost" | "top";
+const lookOf = (frame: Frame) => ({ placement: frame, badge: frame !== "standard" });
+
+function buyerPage(frame: Frame | null, extra: Partial<ListingDetailView> = {}) {
+  const look = frame === null ? null : lookOf(frame);
+  const badge = look === null ? null : cardLookOf(look).badge;
+  const flag =
+    frame === null || badge === null
+      ? null
+      : { levelKey: `lvl-${frame}`, name: `Level ${frame}`, look: badge };
   return (
     <ListingDetail
       {...BUYER_PAGE}
-      tier={tier}
-      tierFlag={paid === null ? null : <TierFlag {...paid} on="photo" />}
-      tierTag={paid === null ? null : <TierTag {...paid} />}
+      tier={frame === null ? null : `lvl-${frame}`}
+      look={look}
+      tierFlag={flag === null ? null : <TierFlag {...flag} on="photo" />}
+      tierTag={flag === null ? null : <TierTag {...flag} />}
       share={<span />}
       {...extra}
     />
@@ -110,13 +120,13 @@ const currentTab = () => {
   return (tab.getAttribute("class") ?? "").split(/\s+/);
 };
 
-describe("the ad page by tier (Sage S5, spec §12)", () => {
+describe("the ad page by its level's look (Sage S5, spec §12; P-2 (c) c2a)", () => {
   it("LD-25 a free ad and an ad of unknown tier draw the free look: white boxes, green accents, no tier mark", () => {
-    for (const tier of ["regular", null] as const) {
-      const { unmount } = render(buyerPage(tier));
+    for (const frame of ["standard", null] as const) {
+      const { unmount } = render(buyerPage(frame));
       const article = screen.getByTestId("listing-detail");
-      if (tier === null) expect(article).not.toHaveAttribute("data-tier");
-      else expect(article).toHaveAttribute("data-tier", "regular");
+      if (frame === null) expect(article).not.toHaveAttribute("data-tier");
+      else expect(article).toHaveAttribute("data-tier", "lvl-standard");
       expect(article.className).toContain("[--card-radius:var(--box-radius)]");
       for (const box of [
         "listing-detail-headline",
@@ -152,8 +162,8 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
   });
 
   it("LD-26 Premium: only the title box tinted, every other box framed, the accents gold, the safety box untouched", () => {
-    render(buyerPage("premium"));
-    expect(screen.getByTestId("listing-detail")).toHaveAttribute("data-tier", "premium");
+    render(buyerPage("top"));
+    expect(screen.getByTestId("listing-detail")).toHaveAttribute("data-tier", "lvl-top");
     expect(classesOf("listing-detail-headline")).toEqual(
       expect.arrayContaining(["bg-tier-premium", "shadow-premium"]),
     );
@@ -208,7 +218,7 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
   });
 
   it("LD-27 Featured: the title box tinted, the other boxes framed, the accents the site green", () => {
-    render(buyerPage("featured"));
+    render(buyerPage("boost"));
     expect(classesOf("listing-detail-headline")).toEqual(
       expect.arrayContaining(["bg-tier-featured", "shadow-featured"]),
     );
@@ -222,7 +232,7 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
   });
 
   it("LD-28 a paid ad's tag sits above the title and its flag on the main photo, the ribbon's caps beside the clip", () => {
-    render(buyerPage("premium"));
+    render(buyerPage("top"));
     const headline = screen.getByTestId("listing-detail-headline");
     const tag = within(headline).getByTestId("listing-detail-tier-tag");
     expect(headline.firstElementChild).toBe(tag);
@@ -236,11 +246,11 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
   });
 
   it("LD-29 with no photo the flag sits on the picture's corner; the map well is pressed in over the map, silent", () => {
-    render(buyerPage("featured", { photos: [] }));
+    render(buyerPage("boost", { photos: [] }));
     const picture = screen.getByTestId("listing-detail-nophoto");
     expect(within(picture).getByTestId("listing-detail-tier")).toHaveAttribute(
       "data-tier",
-      "featured",
+      "lvl-boost",
     );
     const well = screen.getByTestId("listing-map-well");
     expect(well).toHaveAttribute("aria-hidden", "true");
@@ -262,12 +272,24 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
 
   it("LD-31 the seller's and staff's views take the tier look (tint, frames, data-tier) with no flag and no tag (turn T1)", () => {
     for (const actor of ["owner", "staff"] as const)
-      for (const tier of ["premium", "featured"] as const) {
+      for (const [frame, tier] of [
+        ["top", "premium"],
+        ["boost", "featured"],
+      ] as const) {
         const { unmount } = render(
-          <ListingDetail {...BUYER_PAGE} actor={actor} contact={undefined} tier={tier} />,
+          <ListingDetail
+            {...BUYER_PAGE}
+            actor={actor}
+            contact={undefined}
+            tier={`lvl-${frame}`}
+            look={lookOf(frame)}
+          />,
         );
-        const label = `${actor} ${tier}`;
-        expect(screen.getByTestId("listing-detail"), label).toHaveAttribute("data-tier", tier);
+        const label = `${actor} ${frame}`;
+        expect(screen.getByTestId("listing-detail"), label).toHaveAttribute(
+          "data-tier",
+          `lvl-${frame}`,
+        );
         expect(classesOf("listing-detail-headline"), label).toEqual(
           expect.arrayContaining([`bg-tier-${tier}`, `shadow-${tier}`]),
         );

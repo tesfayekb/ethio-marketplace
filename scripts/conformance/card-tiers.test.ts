@@ -14,7 +14,8 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  * listing-picture.tsx and ribbon-geometry.ts, its rules in src/styles.css.
  *
  * CF-TIER-1 reads every source file under src/ (tests aside) for a second copy: a tier look
- * class, the flag's test id, a screen file comparing a tier to a paid tier's name, a ribbon
+ * class, the flag's test id, a screen file comparing a tier to a paid tier's name (P-2 (c) c2a:
+ * or a level's placement to a frame's name — the look is cardLookOf's, by its two axes), a ribbon
  * internal, an SVG gradient or drop shadow, or the flag's own references (--flag-*, the tier
  * frame and fold), outside its mechanism; inside tier-flag.tsx every stop colour is a token
  * reference. A recorded exception is a line in card-tiers-allowlist.txt keyed
@@ -45,7 +46,7 @@ const TIER_CLASS =
 const TIER_MARK = /listing-(?:card|detail)-tier\b/;
 const FLAG_REF = /--flag-|--tier-(?:premium|featured)-(?:frame|fold)\b/;
 const TIER_COMPARE =
-  /\btier\s*[!=]==?\s*["'](?:premium|featured)["']|["'](?:premium|featured)["']\s*[!=]==?\s*[\w.?]*tier\b|\bcase\s+["'](?:premium|featured)["']/i;
+  /\btier\s*[!=]==?\s*["'](?:premium|featured)["']|["'](?:premium|featured)["']\s*[!=]==?\s*[\w.?]*tier\b|\bcase\s+["'](?:premium|featured)["']|\bplacement\s*[!=]==?\s*["'](?:top|boost)["']|["'](?:top|boost)["']\s*[!=]==?\s*[\w.?]*placement\b/i;
 const RIBBON_INTERNAL = /\bribbon-(?:band|ends|cap-end|cap-foot)\b|--rb-|--ribbon-|--satin-/;
 const SVG_PAINT = /<(?:linearGradient|radialGradient)\b|drop-shadow\(/;
 /** A stop colour is a `var(--…)` written in place, or `stop`: card-tier.ts's references (CTR-2). */
@@ -176,6 +177,8 @@ describe("a card's tier and its ribbon have one mechanism each (S4)", () => {
           'export const f = <svg><linearGradient id="g" /></svg>;',
           "// a comment naming bg-tier-premium or --rb-ink paints nothing",
           'export const g = "ring-tier-premium-ring bg-tier-premium-chip shadow-contact-premium";',
+          'export const k = (look: { placement: string | null }) => look.placement === "top";',
+          'export const l = (placement: string) => ("boost" !== placement ? 0 : 1);',
         ].join("\n"),
       );
       mkdirSync(join(dir, "src/features/posting/preview"), { recursive: true });
@@ -210,12 +213,14 @@ describe("a card's tier and its ribbon have one mechanism each (S4)", () => {
           `src/features/posting/preview/bad-page.tsx:2 draws a tier's look outside ${LOOK}; read cardLookOf ${RULE}`,
           `src/features/posting/preview/bad-page.tsx:3 decides a paid tier's look by its name outside ${LOOK}; read cardLookOf ${RULE}`,
           `src/features/x/bad.tsx:1 draws a tier's look outside ${LOOK}; read cardLookOf ${RULE}`,
+          `src/features/x/bad.tsx:10 decides a paid tier's look by its name outside ${LOOK}; read cardLookOf ${RULE}`,
           `src/features/x/bad.tsx:2 draws a tier mark outside ${FLAG}; render TierFlag ${RULE}`,
           `src/features/x/bad.tsx:3 paints with the flag's tokens outside ${FLAG} ${RULE}`,
           `src/features/x/bad.tsx:4 decides a paid tier's look by its name outside ${LOOK}; read cardLookOf ${RULE}`,
           `src/features/x/bad.tsx:5 reaches the ribbon's internals outside ${where}; render ListingRibbon ${RULE}`,
           `src/features/x/bad.tsx:6 paints an SVG gradient or drop shadow outside ${FLAG} ${RULE}`,
           `src/features/x/bad.tsx:8 draws a tier's look outside ${LOOK}; read cardLookOf ${RULE}`,
+          `src/features/x/bad.tsx:9 decides a paid tier's look by its name outside ${LOOK}; read cardLookOf ${RULE}`,
         ].join("\n"),
       );
     } finally {

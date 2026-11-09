@@ -188,6 +188,12 @@ The fill sequence now targets that cold-start window explicitly:
 - submit uses the anchored `getByRole('button', { name: /^sign in$/i })`, which cannot match
   the "create an account" toggle or the disabled OAuth slots.
 
+A test that selects a field's text before typing over it presses `ControlOrMeta+A`, never the
+bare `Control+A` (INC-1091). On macOS the bare chord moves the caret to the line's start instead
+of selecting, so the new text lands beside the old value and the test fails on that machine
+alone. `scripts/conformance/select-all.test.ts` (SAC-1) refuses the bare chord anywhere under
+`e2e/`; its allowlist is `select-all-allowlist.txt`.
+
 ## Pass bar (unchanged from the decision report)
 
 Both viewport projects green in GitHub Actions on push to `main`; under 5 minutes added;
@@ -632,6 +638,8 @@ A test that refuses a chunk's download waits for the app's one reload for a fail
 A route handler that fetches or reads the real answer goes through `whilePageLives` (e2e/helpers/route-guard.ts, INC-934): a request whose page has gone (a reload, a navigation, the test's end) ends there; every other error fails the test. CF-RG-1 (scripts/conformance/route-guard.test.ts) names a fetching handler outside it. Since turn 34c-4 "gone" is read from the page itself, and since Foundations turn C1 (INC-961) from its document (`routeDocumentGone`: the page has closed, or its main frame has navigated since the handler began, waiting up to 2 s for that navigation): the same words on an open page whose document is still the one that asked fail the test, and only `whilePageLives` by name guards a handler — one passed through any other wrapper is named.
 
 The browser's stored session is found by the app's own names for it (turn 34c-4): `storageKey()` and `besideSessionKey(name)` in e2e/helpers/session.ts, built from src/lib/session-key.ts — the rule the app's door reads — and the stored-session helpers there (`waitForStoredSession`, `readStoredSession`, `editStoredSession`, `forgetStoredSession`, `supabaseNamesIn`, and `sessionsIn` — every project's stored session, read by a sign-out's "no session" check, SO-11…13, Foundations turn C2). A test never searches the storage for "any sb-…-auth-token" or builds a clock's name by hand: CF-PROJECT-3 (scripts/conformance/project-reads.test.ts) names an e2e file that does.
+
+A level's word is read through the one helper, `levelNameFor(key, language)` (e2e/helpers/level-overrides.ts; P-2 (c) c2a, ruling 6 §5): the `listing_packages` level row of the key through the service client, named in the language by the app's own rule (`catalogText` from src/i18n/entity.ts), and a throw when the row is missing or names nothing — never a quoted level word, never a spec's own read of the names, never a default language (G37).
 
 **Owed tests after a contract change (INC-996, CI-1).** After a change to a shared contract (the language rule, the session, the shell), the turn's owed-test census greps the specs and helpers for the contract's observable effects (for the language rule: `html lang`, the language records `ethio.lang` / `ethio.lang.star` / `ethio_lang_star`, and `preferred_language`), not only the specs the selector picks by changed files. Every hit is run whole or named with why it is safe.
 

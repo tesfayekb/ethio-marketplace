@@ -40,6 +40,10 @@ export const enGuide = {
   "admin.monetisation.level.guide.col.placement":
     "Where ads at this level appear: standard, boosted or at the top.",
   "admin.monetisation.level.guide.col.badge": "Whether ads at this level wear a badge.",
+  "admin.monetisation.level.guide.col.cities": "A level has no city limit; the reach sets it.",
+  "admin.monetisation.level.guide.col.regions": "A level has no region limit; the reach sets it.",
+  "admin.monetisation.level.guide.col.countries":
+    "A level has no country limit; the reach sets it.",
   "admin.monetisation.level.guide.col.enabled":
     "Whether sellers can still get this level; off hides it everywhere.",
   "admin.monetisation.level.guide.col.selfServe":
@@ -72,6 +76,12 @@ export const enGuide = {
   "admin.monetisation.reach.guide.col.photos": "A reach has no photo limit; the level sets it.",
   "admin.monetisation.reach.guide.col.placement": "A reach has no placement; the level sets it.",
   "admin.monetisation.reach.guide.col.badge": "A reach has no badge; the level sets it.",
+  "admin.monetisation.reach.guide.col.cities":
+    "How many cities an ad with this reach may cover; blank means no limit.",
+  "admin.monetisation.reach.guide.col.regions":
+    "How many regions an ad with this reach may cover; blank means no limit.",
+  "admin.monetisation.reach.guide.col.countries":
+    "How many countries an ad with this reach may cover; blank means no limit.",
   "admin.monetisation.reach.guide.how":
     "Add reach creates a reach with its key, names and days; perks are refused on a reach. Edit changes everything but the key. A reach is switched off, never removed. Open a row to add its prices.",
   "admin.monetisation.reach.guide.next":
@@ -114,24 +124,6 @@ export const enGuide = {
   "admin.monetisation.productPrices.guide.how":
     "Add price picks the market, the category and the window; two prices of one scope never overlap in time. Edit is possible while the price is unused and live. End (red) closes a live price today — the row stays as a record. Nothing here is computed: the most specific valid row is the one a seller pays.",
   "admin.monetisation.productPrices.guide.next": "Check the free plan's posting caps.",
-  "admin.monetisation.caps.guide.what":
-    "The free plan's limits for every seller until the levels take them over: how many places an ad may cover, how many photos it may carry, how long it runs and how many ads a seller may have live.",
-  "admin.monetisation.caps.guide.col.plan": "The plan these limits belong to; today the free plan.",
-  "admin.monetisation.caps.guide.col.cities": "How many cities one ad may cover.",
-  "admin.monetisation.caps.guide.col.regions": "How many regions one ad may cover.",
-  "admin.monetisation.caps.guide.col.countries": "How many countries one ad may cover.",
-  "admin.monetisation.caps.guide.col.photos":
-    "How many photos an ad may carry; the posting form reads this today.",
-  "admin.monetisation.caps.guide.col.days":
-    "How many days an ad runs when its category sets no lifetime.",
-  "admin.monetisation.caps.guide.col.ads":
-    "How many ads a seller may have live at once; Unlimited means no cap.",
-  "admin.monetisation.caps.guide.col.everywhere": "Whether an ad may be shown everywhere at once.",
-  "admin.monetisation.caps.guide.col.updated": "When these limits last changed.",
-  "admin.monetisation.caps.guide.how":
-    "Edit caps changes every limit in one dialog; a limit below its minimum is refused. Plans are neither added nor removed here.",
-  "admin.monetisation.caps.guide.next":
-    "You are done here. Go back to Markets to switch paid levels on for a country.",
   // P-1c turn (b) (D315) — the pages people use, in reading order of the site.
   "adPage.guide.what":
     "This is one ad. The photos, price, details and place are the seller's own words; ethio.com checks ads but cannot see the item for you.",
@@ -322,11 +314,11 @@ export const enGuide = {
   "admin.listings.guide.col.category": "The category it was posted in.",
   "admin.listings.guide.col.price": "The asking price with its unit.",
   "admin.listings.guide.col.status":
-    "Live, Reduced reach, Waiting for review, Held, Expired, Sold, Rejected, Closed or Removed; the ad's tier when it has one; its open reports, when you review ads.",
+    "Live, Reduced reach, Waiting for review, Held, Expired, Sold, Rejected, Closed or Removed; the ad's level when it has one; its open reports, when you review ads.",
   "admin.listings.guide.col.posted": "When it first went live.",
   "admin.listings.guide.col.expires": "When it ends.",
   "admin.listings.guide.how":
-    "The pills switch between All, Live, Waiting, Ended and Removed; search by a title's words or an ad's id; filter by country, category, seller, date and tier. The row's menu offers Open, Send back to review, Restore, Set tier, View as seller and Remove (red); each move asks for a reason, a note for the seller and your second factor, and the seller is told. Tick several ads to remove or restore them together. Editing an ad and removing a photo happen on the ad's page. Settings sets whether sellers may renew an expired ad and for how many days. Your own ads cannot be moved or edited here.",
+    "The pills switch between All, Live, Waiting, Ended and Removed; search by a title's words or an ad's id; filter by country, category, seller, date and level. The row's menu offers Open, Send back to review, Restore, Set level, View as seller and Remove (red); each move asks for a reason, a note for the seller and your second factor, and the seller is told. Tick several ads to remove or restore them together. Editing an ad and removing a photo happen on the ad's page. Settings sets whether sellers may renew an expired ad and for how many days. Your own ads cannot be moved or edited here.",
   "admin.listings.guide.next": "Review the ads waiting for approval.",
   "admin.locations.guide.what":
     "Every place people can post and browse in — regions, cities and sub-cities under their country. A place's path is its fixed address on the site.",

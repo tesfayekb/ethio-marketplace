@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DOOR_CODES, DOOR_REFUSED_KEY, doorCode } from "./door-codes";
 
-/** DRC-1…6 (DEC-333): the one reader of door refusal codes. */
+/** DRC-1…7 (DEC-333): the one reader of door refusal codes. */
 describe("doorCode", () => {
   it("DRC-1 reads a bare code and a code with its detail from a RAISE's message", () => {
     expect(doorCode("notSignedIn")).toEqual({ code: "notSignedIn", detail: null });
@@ -73,6 +73,17 @@ describe("doorCode", () => {
       detail: null,
     });
     expect(doorCode("account is deactivated")).toEqual({ code: null, detail: null });
+  });
+
+  it("DRC-7 the reach's refusal codes are on the list and read from a plain RAISE's message; sameReach's DETAIL is not its detail", () => {
+    for (const code of ["unknownReach", "sameReach", "lowerReach", "includedReach"]) {
+      expect(DOOR_CODES).toContain(code);
+      expect(doorCode({ message: code, code: "P0001" })).toEqual({ code, detail: null });
+    }
+    expect(doorCode({ message: "sameReach", details: "2026-11-20 10:00:00+00" })).toEqual({
+      code: "sameReach",
+      detail: null,
+    });
   });
 
   it("DRC-5 a detail with colons stays whole", () => {

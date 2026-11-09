@@ -40,6 +40,9 @@ const CONSOLE: MonetisationConsole = {
       maxPhotos: 10,
       placement: "boost",
       badge: true,
+      maxCities: null,
+      maxRegions: null,
+      maxCountries: null,
       enabled: true,
       selfServe: true,
       extendsLifetime: false,
@@ -55,6 +58,9 @@ const CONSOLE: MonetisationConsole = {
       maxPhotos: null,
       placement: null,
       badge: false,
+      maxCities: null,
+      maxRegions: null,
+      maxCountries: 1,
       enabled: true,
       selfServe: true,
       extendsLifetime: false,
@@ -81,7 +87,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@/features/admin/admin-context", () => ({
   useAdminShell: () => ({
-    permissions: ["packages:view", "packages:update", "coverage:view", "coverage:update"],
+    permissions: ["packages:view", "packages:update"],
     accessDenied: false,
   }),
 }));
@@ -93,23 +99,6 @@ vi.mock("@/lib/use-settling", () => ({ useSettling: () => false }));
 vi.mock("./use-monetisation", () => ({
   ADMIN_MONETISATION_KEY: ["test", "admin", "monetisation"],
   useMonetisation: () => ({ data: CONSOLE, isLoading: false, error: null }),
-  useCoveragePlans: () => ({
-    data: [
-      {
-        plan: "free",
-        maxCities: 1,
-        maxRegions: 0,
-        maxCountries: 0,
-        maxPhotos: 5,
-        allowEverywhere: false,
-        defaultDays: 30,
-        maxActiveAds: null,
-        updatedAt: "2026-11-03T09:00:00+00:00",
-      },
-    ],
-    isLoading: false,
-    error: null,
-  }),
 }));
 vi.mock("./use-monetisation-names", () => ({
   useMonetisationNames: (products: { key: string; nameEn: string }[]) => ({
@@ -124,7 +113,7 @@ vi.mock("./use-monetisation-names", () => ({
 const { AdminMonetisationPage } = await import("./monetisation-page");
 
 describe("AdminMonetisationPage (D313)", () => {
-  it("MNP-1 one h1; every block an h2; the strip's four steps; a product opens to its own h2 tables", () => {
+  it("MNP-1 one h1; every block an h2; the strip's three steps; a product opens to its own h2 tables", () => {
     render(<AdminMonetisationPage />);
     expect(document.querySelectorAll("h1").length).toBe(1);
     const blocks = [...document.querySelectorAll("h2")].map((heading) => heading.textContent);
@@ -132,11 +121,10 @@ describe("AdminMonetisationPage (D313)", () => {
       "admin.monetisation.markets.title",
       "admin.monetisation.levels.title",
       "admin.monetisation.reach.title",
-      "admin.monetisation.caps.title",
     ]);
     const strip = screen.getByTestId("monetisation-order");
     expect(strip.tagName).toBe("OL");
-    expect(strip.querySelectorAll("a").length).toBe(4);
+    expect(strip.querySelectorAll("a").length).toBe(3);
     expect(screen.getByTestId("monetisation-order-prices-state").textContent).toBe(
       "prim.orderStrip.set",
     );
@@ -145,11 +133,16 @@ describe("AdminMonetisationPage (D313)", () => {
       "admin-monetisation-markets",
       "admin-monetisation-level",
       "admin-monetisation-reach",
-      "admin-monetisation-caps",
     ]) {
       expect(screen.getAllByTestId(`${anchor}-guide`).length).toBeGreaterThan(0);
       expect(document.getElementById(anchor)).not.toBeNull();
     }
+    // A reach row's place limits: a null cap is "No limit"; a level row carries none.
+    expect(screen.getAllByTestId("product-country-cities")[0]).toHaveTextContent(
+      "admin.monetisation.reach.field.unlimited",
+    );
+    expect(screen.getAllByTestId("product-country-countries")[0]).toHaveTextContent("1");
+    expect(screen.queryAllByTestId("product-featured-cities")).toHaveLength(0);
 
     fireEvent.click(screen.getAllByTestId("product-featured-open")[0] as HTMLElement);
     expect(document.querySelectorAll("h1").length).toBe(1);

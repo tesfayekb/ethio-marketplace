@@ -246,6 +246,8 @@ test.describe("FEED ROUTE", () => {
       // INC-606 / INC-611 — the card names its cover photo (an id, or null).
       "coverPhotoId",
       "tier",
+      // P-2 (c) M-3c-a (DEC-352, INC-1086) — the level's look, read from the feed index row.
+      "level",
       "publishedAt",
       "categoryId",
       "locationId",

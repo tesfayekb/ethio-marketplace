@@ -31,6 +31,9 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.level.guide.col.placement":
     "በዚህ ደረጃ ያሉ ማስታወቂያዎች የት እንደሚታዩ፦ መደበኛ፣ የጎላ ወይም በመጀመሪያ።",
   "admin.monetisation.level.guide.col.badge": "በዚህ ደረጃ ያሉ ማስታወቂያዎች ምልክት እንደሚኖራቸው።",
+  "admin.monetisation.level.guide.col.cities": "ደረጃ የከተማ ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
+  "admin.monetisation.level.guide.col.regions": "ደረጃ የክልል ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
+  "admin.monetisation.level.guide.col.countries": "ደረጃ የሀገር ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
   "admin.monetisation.level.guide.col.enabled":
     "ሻጮች ይህን ደረጃ አሁንም ማግኘት ይችሉ እንደሆነ፤ ጠፍቶ ከሆነ በየትም ቦታ አይታይም።",
   "admin.monetisation.level.guide.col.selfServe": "ሻጭ ይህን ደረጃ ያለ ሠራተኞች ብቻውን መግዛት ይችል እንደሆነ።",
@@ -59,6 +62,12 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.reach.guide.col.photos": "ተደራሽነት የፎቶ ገደብ የለውም፤ ደረጃው ያስቀምጠዋል።",
   "admin.monetisation.reach.guide.col.placement": "ተደራሽነት አቀማመጥ የለውም፤ ደረጃው ያስቀምጠዋል።",
   "admin.monetisation.reach.guide.col.badge": "ተደራሽነት ምልክት የለውም፤ ደረጃው ያስቀምጠዋል።",
+  "admin.monetisation.reach.guide.col.cities":
+    "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ከተሞች ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።",
+  "admin.monetisation.reach.guide.col.regions":
+    "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ክልሎች ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።",
+  "admin.monetisation.reach.guide.col.countries":
+    "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ሀገራት ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።",
   "admin.monetisation.reach.guide.how":
     "«ተደራሽነት ጨምር» በመለያው፣ በስሞቹ እና በቀናቱ ተደራሽነት ይፈጥራል፤ በተደራሽነት ላይ ጥቅሞች አይፈቀዱም። «አርትዕ» ከመለያው በስተቀር ሁሉንም ይቀይራል። ተደራሽነት ይጠፋል እንጂ በፍጹም አይወገድም። ዋጋዎቹን ለመጨመር ረድፉን ይክፈቱ።",
   "admin.monetisation.reach.guide.next": "የሚከፈልባቸው ደረጃዎች በበሩበት በእያንዳንዱ ገበያ ለእያንዳንዱ ምርት ዋጋ ይስጡ።",
@@ -97,21 +106,6 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.productPrices.guide.how":
     "«ዋጋ ጨምር» ገበያውን፣ ምድቡን እና ጊዜውን ይመርጣል፤ የአንድ ወሰን ሁለት ዋጋዎች በጊዜ በፍጹም አይደራረቡም። ዋጋው ጥቅም ላይ ሳይውል እና ንቁ እያለ «አርትዕ» ይቻላል። «አብቃ» (ቀይ) ንቁ ዋጋን ዛሬ ይዘጋል — ረድፉ እንደ መዝገብ ይቆያል። እዚህ ምንም አይሰላም፦ ሻጭ የሚከፍለው በጣም የተለየው ትክክለኛ ረድፍ ነው።",
   "admin.monetisation.productPrices.guide.next": "የነጻውን ዕቅድ የመለጠፍ ገደቦች ይመልከቱ።",
-  "admin.monetisation.caps.guide.what":
-    "ደረጃዎቹ እስኪረከቧቸው ድረስ ለእያንዳንዱ ሻጭ የነጻው ዕቅድ ገደቦች፦ ማስታወቂያ ስንት ቦታዎችን ሊሸፍን እንደሚችል፣ ስንት ፎቶ እንደሚይዝ፣ ምን ያህል እንደሚቆይ እና ሻጭ ስንት ማስታወቂያዎችን በአንድ ጊዜ ሊያስተላልፍ እንደሚችል።",
-  "admin.monetisation.caps.guide.col.plan": "እነዚህ ገደቦች የሚመለከቱት ዕቅድ፤ ዛሬ ነጻው ዕቅድ።",
-  "admin.monetisation.caps.guide.col.cities": "አንድ ማስታወቂያ ስንት ከተሞችን ሊሸፍን እንደሚችል።",
-  "admin.monetisation.caps.guide.col.regions": "አንድ ማስታወቂያ ስንት ክልሎችን ሊሸፍን እንደሚችል።",
-  "admin.monetisation.caps.guide.col.countries": "አንድ ማስታወቂያ ስንት ሀገሮችን ሊሸፍን እንደሚችል።",
-  "admin.monetisation.caps.guide.col.photos": "ማስታወቂያ ስንት ፎቶ ሊይዝ እንደሚችል፤ የመለጠፍ ቅጹ ዛሬ ይህን ያነባል።",
-  "admin.monetisation.caps.guide.col.days": "ምድቡ ቆይታ ሳያስቀምጥ ሲቀር ማስታወቂያ ስንት ቀን እንደሚቆይ።",
-  "admin.monetisation.caps.guide.col.ads":
-    "ሻጭ ስንት ማስታወቂያዎችን በአንድ ጊዜ ሊያስተላልፍ እንደሚችል፤ «ያልተገደበ» ማለት ገደብ የለም ማለት ነው።",
-  "admin.monetisation.caps.guide.col.everywhere": "ማስታወቂያ በሁሉም ቦታ በአንድ ጊዜ ሊታይ ይችል እንደሆነ።",
-  "admin.monetisation.caps.guide.col.updated": "እነዚህ ገደቦች በመጨረሻ የተቀየሩበት ጊዜ።",
-  "admin.monetisation.caps.guide.how":
-    "«ገደቦች አርትዕ» እያንዳንዱን ገደብ በአንድ መስኮት ይቀይራል፤ ከዝቅተኛው በታች ያለ ገደብ አይፈቀድም። ዕቅዶች እዚህ አይጨመሩም አይወገዱምም።",
-  "admin.monetisation.caps.guide.next": "እዚህ ጨርሰዋል። ለአንድ ሀገር የሚከፈልባቸውን ደረጃዎች ለማብራት ወደ ገበያዎች ይመለሱ።",
   // P-1c turn (b) (D315) — the pages people use, in reading order of the site.
   "adPage.guide.what":
     "ይህ አንድ ማስታወቂያ ነው። ፎቶዎቹ፣ ዋጋው፣ ዝርዝሮቹ እና ቦታው የሻጩ የራሱ ቃላት ናቸው፤ ethio.com ማስታወቂያዎችን ይፈትሻል ነገር ግን ዕቃውን ለእርስዎ ማየት አይችልም።",

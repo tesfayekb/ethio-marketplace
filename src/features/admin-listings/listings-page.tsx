@@ -46,11 +46,11 @@ import { ListingSettings } from "./listing-settings";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
 import { TierDialog } from "./tier-dialog";
-import { mayTier } from "./tier-reasons";
+import { levelLabel, mayTier } from "./tier-reasons";
+import { useLevelRows } from "@/features/levels/use-level-rows";
 import { changeListingTier } from "./change-listing-tier";
 import {
   ADMIN_LISTINGS_KEY,
-  LISTING_TIERS,
   LISTING_VIEWS,
   moveAdminListing,
   useAdminListings,
@@ -131,6 +131,7 @@ export function AdminListingsPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [tier, setTier] = useState<string | null>(null);
+  const levels = useLevelRows({ looks: false });
   const [selected, setSelected] = useState<string[]>([]);
   const [move, setMove] = useState<Move>(null);
   /** P-1 W4 — the row whose tier the dialog is changing. */
@@ -216,8 +217,9 @@ export function AdminListingsPage() {
       ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
       : id;
   };
+  // P-2 (c) c2a — the levels are the enabled level rows, named by their own names.
   const tierLabel = (value: string) =>
-    value === "regular" ? t("admin.listings.tier.regular") : t(`tier.${value}` as MessageKey);
+    levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
   const viewLabel = (value: ListingView) =>
     value === "all" ? t("prim.table.all") : t(`admin.listings.view.${value}` as MessageKey);
   const sellerName = (row: AdminListingRow) => row.sellerBusinessName ?? row.sellerAlias ?? "—";
@@ -260,7 +262,7 @@ export function AdminListingsPage() {
           ? [
               {
                 key: "tier",
-                label: t("admin.listings.action.tier"),
+                label: t("admin.listings.action.level"),
                 onSelect: () => openTier(row),
               },
             ]
@@ -367,7 +369,7 @@ export function AdminListingsPage() {
     }
     setTiering(null);
     setNotice({
-      text: t("admin.listings.tier.done").replace("{tier}", tierLabel(tier)),
+      text: fill(t("admin.listings.level.done"), { level: tierLabel(tier) }),
       tone: "ok",
     });
     await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
@@ -777,7 +779,7 @@ export function AdminListingsPage() {
                     </div>
                     <FilterChoices
                       testid="listings-filter-tier"
-                      label={t("admin.listings.filter.tier")}
+                      label={t("admin.listings.filter.level")}
                       value={tier ?? ""}
                       onChange={(value) => {
                         setTier(value === "" ? null : value);
@@ -785,7 +787,10 @@ export function AdminListingsPage() {
                       }}
                       options={[
                         { value: "", label: t("prim.table.all") },
-                        ...LISTING_TIERS.map((value) => ({ value, label: tierLabel(value) })),
+                        ...levels.rows.map((row) => ({
+                          value: row.key,
+                          label: tierLabel(row.key),
+                        })),
                       ]}
                     />
                   </FiltersButton>

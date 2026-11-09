@@ -15,6 +15,12 @@ const state = {
   pulls: 0,
   reads: 0,
   storage: 0,
+  screens: 0,
+  /** The caller's listing row; `null` keeps every read refused (UPH-1…5). */
+  listing: null as Record<string, unknown> | null,
+  photos: 0,
+  cap: { data: null as unknown, error: null as { message: string } | null },
+  adminCalls: [] as Array<[string, unknown]>,
 };
 
 vi.mock("@/server/supabase/user-client", () => {
@@ -30,9 +36,20 @@ vi.mock("@/server/supabase/user-client", () => {
       state.signedIn
         ? {
             supabase: {
-              from: () => {
+              from: (table: string) => {
                 state.reads += 1;
-                throw new Error("UPH: no read is expected");
+                const listing = state.listing;
+                if (listing === null) throw new Error("UPH: no read is expected");
+                if (table === "listings") {
+                  const single = { maybeSingle: async () => ({ data: listing, error: null }) };
+                  return { select: () => ({ eq: () => ({ eq: () => single }) }) };
+                }
+                if (table === "listing_photos") {
+                  return {
+                    select: () => ({ eq: async () => ({ count: state.photos, error: null }) }),
+                  };
+                }
+                throw new Error(`UPH: no read of ${table} is expected`);
               },
               rpc: async () => {
                 state.reads += 1;
@@ -73,9 +90,19 @@ vi.mock("@/server/media/storage", () => ({
 }));
 vi.mock("@/server/media/policy", () => ({
   // Turn 17 — the gateway's answer, mapped: a verdict (or the held outcome).
-  screenPhotoPolicy: async () => ({ kind: "verdict", verdict: { ok: true } }),
+  screenPhotoPolicy: async () => {
+    state.screens += 1;
+    return { kind: "verdict", verdict: { ok: true } };
+  },
 }));
-vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: {} }));
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: {
+    rpc: async (name: string, args: unknown) => {
+      state.adminCalls.push([name, args]);
+      return state.cap;
+    },
+  },
+}));
 
 const { Route } = await import("@/routes/api/upload/photo");
 
@@ -128,7 +155,19 @@ beforeEach(() => {
   state.pulls = 0;
   state.reads = 0;
   state.storage = 0;
+  state.screens = 0;
+  state.listing = null;
+  state.photos = 0;
+  state.cap = { data: null, error: null };
+  state.adminCalls = [];
 });
+
+/** A draft of the caller's holding `photos`, its level's cap answering `cap`. */
+function draftWith(photos: number, cap: typeof state.cap) {
+  state.listing = { id: LISTING, status: "draft", title: "t", category_id: null };
+  state.photos = photos;
+  state.cap = cap;
+}
 
 describe("/api/upload/photo on defineRoute (C4)", () => {
   it("UPH-1 a visitor answers 401 and the body's stream is never read", async () => {
@@ -198,6 +237,61 @@ describe("/api/upload/photo on defineRoute (C4)", () => {
     // The form reached the handler: its listingId passed, its `replaces` was judged.
     expect(state.pulls).toBeGreaterThan(0);
     expect(state.reads).toBe(0);
+    expect(state.storage).toBe(0);
+  });
+});
+
+describe("/api/upload/photo — the ad's level cap (P-2 (c), D311)", () => {
+  it("UPH-6 at the ad's cap answers tooManyPhotos before the screen, read by listing_photo_cap(ad)", async () => {
+    draftWith(4, { data: 4, error: null });
+    const response = await POST({
+      request: await countedUpload(formOf({ listingId: LISTING })),
+      params: {},
+    });
+    expect(await response.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "photos", reason: "tooManyPhotos" }],
+    });
+    expect(state.adminCalls).toEqual([["listing_photo_cap", { p_listing: LISTING }]]);
+    expect(state.screens).toBe(0);
+    expect(state.storage).toBe(0);
+  });
+
+  it("UPH-7 under a cap above ten the route keeps no ceiling of its own", async () => {
+    draftWith(10, { data: 12, error: null });
+    const response = await POST({
+      request: await countedUpload(formOf({ listingId: LISTING })),
+      params: {},
+    });
+    const body = (await response.json()) as { refusals?: Array<{ field: string }> };
+    // Past the cap, the cover's own checks answer: the three bytes are no image.
+    expect(body.refusals?.[0]?.field).toBe("cover");
+    expect(state.adminCalls).toEqual([["listing_photo_cap", { p_listing: LISTING }]]);
+    expect(state.storage).toBe(0);
+  });
+
+  it("UPH-8 a level with no cap (null) answers levelNotAvailable before the screen", async () => {
+    draftWith(0, { data: null, error: null });
+    const response = await POST({
+      request: await countedUpload(formOf({ listingId: LISTING })),
+      params: {},
+    });
+    expect(await response.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "photos", reason: "levelNotAvailable" }],
+    });
+    expect(state.screens).toBe(0);
+    expect(state.storage).toBe(0);
+  });
+
+  it("UPH-9 a failed cap read answers 500 and stores nothing", async () => {
+    draftWith(0, { data: null, error: { message: "boom" } });
+    const response = await POST({
+      request: await countedUpload(formOf({ listingId: LISTING })),
+      params: {},
+    });
+    expect(response.status).toBe(500);
+    expect(state.screens).toBe(0);
     expect(state.storage).toBe(0);
   });
 });

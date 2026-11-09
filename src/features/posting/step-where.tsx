@@ -34,6 +34,7 @@ import {
   pinDoorQueue,
   type LastPlaces,
   type PlaceText,
+  type PlanCaps,
   readPlaceFacts,
 } from "./posting-service";
 import { whereSeed, type PlaceFact, type WhereSeed } from "./where-seed";
@@ -131,9 +132,10 @@ function PinMapUnavailable() {
  * inside a country box, "Add a country" below them. A box with no city keeps the
  * soft border; removing a region's last city removes its box.
  *
- * W6 R5 / INC-338 — THE PLAN DECIDES. The limits come from the schema's own plan
- * block (`maxCities`, `maxRegions`, `maxCountries`); an add button shows only
- * while its level has room, and nothing shows when the plan is not known. The
+ * W6 R5 / INC-338, INC-1084 — THE CAPS DECIDE. The limits are the one caps shape
+ * (`caps`: the schema's plan block for a new ad, the ad's own for an edit); an
+ * add button shows only while its level has room. Caps not known (`caps` null):
+ * nothing shows. A null cap inside is NO LIMIT: that level always has room. The
  * door (`coverageExceedsPlan:<level>`) stays the authority (F3).
  *
  * D19 — A CITY WITH SUB-CITIES OFFERS "All of <city>" BESIDE THEM: whole-city
@@ -733,9 +735,7 @@ export function StepWhere({
   pinCarried = false,
   onPinCarried,
   onDirectionsSaved,
-  maxCities = null,
-  maxRegions = null,
-  maxCountries = null,
+  caps = null,
   invitePlaceId = null,
   textMode = "door",
   onTextChange,
@@ -760,10 +760,8 @@ export function StepWhere({
   onPinCarried?: (carried: boolean) => void;
   /** Step 10 — the directions line the door holds, for the buyer preview. */
   onDirectionsSaved?: (directions: string | null) => void;
-  /** INC-338 — the plan's own limits, from the posting schema; null = unknown. */
-  maxCities?: number | null;
-  maxRegions?: number | null;
-  maxCountries?: number | null;
+  /** INC-338, INC-1084 — the limits; null = not known, a null cap inside = no limit. */
+  caps?: Pick<PlanCaps, "maxCities" | "maxRegions" | "maxCountries"> | null;
   /** D119 — the place the invite card named (/post only); null when none. */
   invitePlaceId?: string | null;
   /**
@@ -1119,12 +1117,14 @@ export function StepWhere({
         }
       }
     }
-    // W6b-1 R4 — the last post's places, its item place first and ticked.
+    // W6b-1 R4 — the last post's places, its item place first and ticked: every
+    // one under no city limit, as many as the cap allows, and one alone while
+    // the caps are not known.
     if (last !== null && last.country === country) {
       const found = last.placeIds
         .map((id) => byId.get(id) ?? null)
         .filter((node): node is TreeNode => node !== null)
-        .slice(0, maxCities ?? 1);
+        .slice(0, caps === null ? 1 : (caps.maxCities ?? undefined));
       if (found.length > 0 && found[0]!.id === last.itemId) {
         setRows(
           found.map((node, index) => ({
@@ -1347,9 +1347,13 @@ export function StepWhere({
   // Bundle 2 P5 — several sub-cities of one city count as that one city (the door's
   // count(DISTINCT coalesce(city_id, id)), 13cb1b22:321).
   const citiesUsed = new Set(rows.map((row) => row.city ?? `pending:${row.key}`)).size;
-  const cityRoom = maxCities !== null && citiesUsed < maxCities;
-  const regionRoom = cityRoom && maxRegions !== null && regionsUsed < maxRegions;
-  const countryRoom = regionRoom && maxCountries !== null && countriesUsed < maxCountries;
+  const cityRoom = caps !== null && (caps.maxCities === null || citiesUsed < caps.maxCities);
+  const regionRoom =
+    cityRoom && caps !== null && (caps.maxRegions === null || regionsUsed < caps.maxRegions);
+  const countryRoom =
+    regionRoom &&
+    caps !== null &&
+    (caps.maxCountries === null || countriesUsed < caps.maxCountries);
   const room: Room = { city: cityRoom, region: regionRoom };
 
   const onRegion = (keys: string[], region: string | null) => {
@@ -1697,17 +1701,24 @@ export function StepWhere({
             className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
             data-testid="post-where-plan-line"
           >
-            {maxCities === null ? (
+            {caps === null ? (
               <span>{fill(t("post.where.planLineUnknown"), { regions: regionsNamed })}</span>
+            ) : caps.maxCities === null ? (
+              <span data-testid="post-where-plan-count" data-used={desired.length}>
+                {fill(t("post.where.planLineNoLimit"), {
+                  used: desired.length,
+                  regions: regionsNamed,
+                })}
+              </span>
             ) : (
               <span
                 data-testid="post-where-plan-count"
                 data-used={desired.length}
-                data-max={maxCities}
+                data-max={caps.maxCities}
               >
                 {fill(t("post.where.planLine"), {
                   used: desired.length,
-                  max: maxCities,
+                  max: caps.maxCities,
                   regions: regionsNamed,
                 })}
               </span>
@@ -1724,9 +1735,11 @@ export function StepWhere({
           </p>
           {planOpen && (
             <div className="space-y-1" data-testid="post-where-plan-details">
-              {maxCities !== null && (
+              {caps !== null && (
                 <p className="text-xs text-muted-foreground" data-testid="post-where-plan">
-                  {fill(t("post.where.planCaption"), { cities: maxCities })}
+                  {caps.maxCities === null
+                    ? t("post.where.reachCaptionNoLimit")
+                    : fill(t("post.where.reachCaption"), { cities: caps.maxCities })}
                 </p>
               )}
               <p className="text-xs text-muted-foreground" data-testid="post-where-plan-levels">

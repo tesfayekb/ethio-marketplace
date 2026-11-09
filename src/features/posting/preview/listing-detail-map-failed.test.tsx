@@ -52,6 +52,7 @@ vi.mock("@/lib/on-demand-failure", async (original) => ({
 
 const BASE: ListingDetailView = {
   tier: null,
+  look: null,
   actor: "owner",
   title: "Scratch ad",
   description: "",

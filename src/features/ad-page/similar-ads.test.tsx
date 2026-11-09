@@ -2,6 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 const similarListings =
   vi.fn<() => Promise<{ cards: FeedListing[]; coverLinks: Record<string, never> }>>();
@@ -36,7 +37,9 @@ const card = (id: string): FeedListing => ({
   id,
   publicId: null,
   title: `Ad ${id}`,
-  tier: "regular",
+  tier: "lvl-base",
+  look: PLAIN_LOOK,
+  levelRow: null,
   priceAmount: 1000,
   priceCurrency: "ETB",
   priceMode: "fixed",

@@ -27,6 +27,7 @@ import {
 } from "./helpers/ui";
 import { adminClient, leaseUser, createUser } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
+import { levelNameFor } from "./helpers/level-overrides";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -142,6 +143,10 @@ function token(): string {
 
 type Row = Record<string, unknown>;
 
+/**
+ * P-2 (c) c2a — a level row's English name, which the console's picks, notices and badge draw
+ * (the row's, never a catalog key); the spec's own read of the row it seeded by key.
+ */
 async function auditRows(listingId: string) {
   const { data, error } = await adminClient()
     .from("audit_log")
@@ -1454,7 +1459,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-price-amount").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type("120");
     await page.getByTestId("post-next").click();
@@ -1467,7 +1472,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(title);
     await page.getByTestId("post-next").click();
@@ -1559,7 +1564,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type("Call me on 0911 223 344");
     await page.getByTestId("post-next").click();
@@ -1677,7 +1682,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(title);
     await page.getByTestId("post-next").click();
@@ -2128,7 +2133,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expectStored();
 
     await days.click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type("0");
     await dialog.getByTestId("listings-settings-save").click();
@@ -2330,15 +2335,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
 
     await setTierViaConsole(page, admin.secret, "premium", "promotion");
     await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.tier.done"].replace("{tier}", en["tier.premium"]),
+      en["admin.listings.level.done"].replace("{level}", await levelNameFor("premium", "en")),
       { timeout: 20000 },
     );
     await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
-    await expect(page.getByTestId("listing-tier")).toHaveText(en["tier.premium"]);
+    await expect(page.getByTestId("listing-tier")).toHaveText(await levelNameFor("premium", "en"));
     await expect(page.getByTestId("listing-detail")).toHaveAttribute("data-tier", "premium");
     const first = page.getByTestId("listing-history-entry-0");
     await expect(first.getByTestId("listing-history-what")).toHaveText(
-      en["admin.listings.history.edited"].replace("{fields}", en["admin.listings.filter.tier"]),
+      en["admin.listings.history.edited"].replace("{fields}", en["admin.listings.filter.level"]),
     );
     // The History line's reason comes from the seller notice written at the same moment
     // (admin_listing_detail); this door writes none (ruling 1, answer 5), so the line carries
@@ -2377,7 +2382,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // Back to Regular: the free look, a second audit row, the feed at rank 0.
     await setTierViaConsole(page, admin.secret, "regular", "promotion_ended");
     await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.tier.done"].replace("{tier}", en["admin.listings.tier.regular"]),
+      en["admin.listings.level.done"].replace("{level}", await levelNameFor("regular", "en")),
       { timeout: 20000 },
     );
     await expect(page.getByTestId("listing-tier")).toHaveCount(0);
@@ -2401,7 +2406,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.getByTestId("listings-tier-reason-promotion").click();
     await page.getByTestId("listings-tier-confirm").click();
     await expect(page.getByTestId("listings-tier-problem")).toHaveText(
-      en["admin.listings.tier.error.same"],
+      en["admin.listings.level.error.same"],
     );
     await page.getByTestId("listings-tier-pick-featured").click();
     await page.getByTestId("listings-tier-reason-other").click();
@@ -2543,7 +2548,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.getByTestId("listings-tier-confirm").click();
     await stepUpIfPrompted(page, admin.secret);
     await expect(page.getByTestId("listings-notice")).toHaveText(
-      en["admin.listings.tier.done"].replace("{tier}", en["tier.premium"]),
+      en["admin.listings.level.done"].replace("{level}", await levelNameFor("premium", "en")),
       { timeout: 20000 },
     );
     await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);

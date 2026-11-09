@@ -1,0 +1,40 @@
+{
+  "new": [
+    {
+      "key": "admin.monetisation.reach.guide.col.cities",
+      "layer": "guide",
+      "en": "How many cities an ad with this reach may cover; blank means no limit.",
+      "am": "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ከተሞች ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።"
+    },
+    {
+      "key": "admin.monetisation.reach.guide.col.regions",
+      "layer": "guide",
+      "en": "How many regions an ad with this reach may cover; blank means no limit.",
+      "am": "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ክልሎች ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።"
+    },
+    {
+      "key": "admin.monetisation.reach.guide.col.countries",
+      "layer": "guide",
+      "en": "How many countries an ad with this reach may cover; blank means no limit.",
+      "am": "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ሀገራት ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።"
+    },
+    {
+      "key": "admin.monetisation.level.guide.col.cities",
+      "layer": "guide",
+      "en": "A level has no city limit; the reach sets it.",
+      "am": "ደረጃ የከተማ ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።"
+    },
+    {
+      "key": "admin.monetisation.level.guide.col.regions",
+      "layer": "guide",
+      "en": "A level has no region limit; the reach sets it.",
+      "am": "ደረጃ የክልል ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።"
+    },
+    {
+      "key": "admin.monetisation.level.guide.col.countries",
+      "layer": "guide",
+      "en": "A level has no country limit; the reach sets it.",
+      "am": "ደረጃ የሀገር ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።"
+    }
+  ]
+}

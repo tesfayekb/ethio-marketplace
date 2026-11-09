@@ -70,6 +70,13 @@ Details: `docs/features/security-scanning.md`.
   block reading identity/reference tables without the `e2e-mig-` scratch
   namespace is refused. Self-test fixture:
   `scripts/fixtures/bad-real-row-proof-example.sql`.
+- Its reference picks (INC-1040, floor `REAL_PICK_FLOOR=20261102000000`): a DO
+  block statement that SELECTs FROM `public.countries`, `public.languages` or
+  `public.currencies` with `ORDER BY … LIMIT 1` is refused unless it names an
+  `e2e-mig-` / `e2e_mig_` key (categories and locations stay the rule above's);
+  the same allowlist, where the nine picks that landed before the rule carry
+  `INC-1040`. Self-test fixture: `scripts/fixtures/bad-real-pick-proof-example.sql`
+  (refused), and an inline scratch-keyed pick (passes).
 - Body fingerprints in proofs (INC-968, from M6b on): a proof that fingerprints a
   function body compares `md5(replace(prosrc, E'\r', ''))`, and its expected
   hashes are computed the same way — an `md5(prosrc)` proof is not portable
@@ -83,6 +90,14 @@ Details: `docs/features/security-scanning.md`.
   asserts the ACL, security flag, volatility, search_path and argument defaults
   unchanged. `CREATE OR REPLACE` preserves the live grants; the file carries a
   born-closed allowlist line naming that assert.
+- The file side reads such a body as computed (INC-1083, P-2 (c) c3): the one
+  reader (`scripts/conformance/migration-reader.ts`) marks a function whose last
+  event is a `format()` template (`public.<fn>(` or `public.%I(` with a literal
+  name) `computed`, with an empty body, and `COMPUTED_BY_HAND` names the one it
+  cannot detect (`attr_import_plan`, assembled from stored chunks), each with its
+  reason; a hand-listed name the reader can read again fails MGR-6. A census of
+  bodies skips a computed function by name with its reason; the seller-name law
+  judges it live on the smoke lane (DEC-359, `docs/features/hidden-seller-name.md`).
 - Inline size ceiling (D1 stop-14 ruling): a migration the tool applies inline
   stays at or under about 25 KB; one over that is split by concern before it is
   written, never after a cut-off.

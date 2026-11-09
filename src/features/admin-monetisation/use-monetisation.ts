@@ -7,18 +7,15 @@ import {
   clearOverride,
   editPrice,
   endPrice,
-  listCoveragePlans,
   listMonetisation,
   saveMarket,
   saveOverride,
   savePrice,
   saveProduct,
-  setCoveragePlan,
   type SaveMarketInput,
   type SaveOverrideInput,
   type SavePriceInput,
   type SaveProductInput,
-  type SetCoveragePlanInput,
 } from "./monetisation-service";
 
 /**
@@ -35,16 +32,6 @@ export function useMonetisation() {
     queryKey: [...ADMIN_MONETISATION_KEY, "console"],
     queryFn: listMonetisation,
     staleTime: 15_000,
-  });
-}
-
-/** The free plan's posting caps; read only where `coverage:view` opens the block. */
-export function useCoveragePlans(options?: { enabled?: boolean }) {
-  return useQuery({
-    queryKey: [...ADMIN_MONETISATION_KEY, "caps"],
-    queryFn: listCoveragePlans,
-    staleTime: 15_000,
-    enabled: options?.enabled ?? true,
   });
 }
 
@@ -90,8 +77,4 @@ export function useEndPrice() {
 
 export function useSaveMarket() {
   return useSettledWrite((input: SaveMarketInput) => saveMarket(input));
-}
-
-export function useSetCoveragePlan() {
-  return useSettledWrite((input: SetCoveragePlanInput) => setCoveragePlan(input));
 }

@@ -1,7 +1,7 @@
 import ts from "typescript";
 
 import { visitTs } from "./kit";
-import { lastDeclarations, type LastDeclaration } from "./plan-seam";
+import { lastDeclarations, type LastDeclaration } from "./migration-reader";
 import { blankLiterals, tokensOf, type Token } from "./proof-readers";
 
 /**
@@ -13,7 +13,7 @@ import { blankLiterals, tokensOf, type Token } from "./proof-readers";
  * (`set_listing_level`, `set_listing_reach`), staff's `admin_set_listing_tier`,
  * `transition_listing` (a removal clears them) and the sweep
  * (`designation_sweep_core`, an end's fall back). Every function's LAST
- * declaration (plan-seam's reader, the one sql-writes.ts reads; comments and
+ * declaration (the migration reader, the one sql-writes.ts reads; comments and
  * literals blanked, the DO-block tokenizer reused) is read for an
  * `UPDATE public.listings … SET <column> =` or an `INSERT INTO public.listings
  * (<columns>)` naming one of the five; a body outside the admitted five is the

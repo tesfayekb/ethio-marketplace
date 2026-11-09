@@ -18,8 +18,8 @@ import {
  * P-1b — the monetisation forms' judges: the doors' own rules mirrored so a
  * surface refuses before the round trip (the door remains the authority, F3),
  * every number read through the typed parse (ruling 1 answer 10: a blank or
- * non-numeric field is a refusal, never 0). The price and the caps judges live
- * beside them in price-forms.ts and caps-forms.ts.
+ * non-numeric field is a refusal, never 0). The price judge lives beside them
+ * in price-forms.ts.
  */
 
 /** The placement words, one per stored value (a null placement is a blank cell). */
@@ -44,6 +44,10 @@ export interface ProductFormValues {
   maxPhotos: string;
   placement: string;
   badge: boolean;
+  /** A reach product's place limits; blank = no limit. Ignored for a level. */
+  maxCities: string;
+  maxRegions: string;
+  maxCountries: string;
   enabled: boolean;
   selfServe: boolean;
   extendsLifetime: boolean;
@@ -59,6 +63,9 @@ export const NEW_PRODUCT_FORM: ProductFormValues = {
   maxPhotos: "",
   placement: "standard",
   badge: false,
+  maxCities: "",
+  maxRegions: "",
+  maxCountries: "",
   enabled: true,
   selfServe: true,
   extendsLifetime: true,
@@ -75,6 +82,9 @@ export function productFormOf(row: ProductRow): ProductFormValues {
     maxPhotos: row.maxPhotos === null ? "" : String(row.maxPhotos),
     placement: row.placement ?? "standard",
     badge: row.badge,
+    maxCities: capText(row.maxCities),
+    maxRegions: capText(row.maxRegions),
+    maxCountries: capText(row.maxCountries),
     enabled: row.enabled,
     selfServe: row.selfServe,
     extendsLifetime: row.extendsLifetime,
@@ -85,6 +95,18 @@ export function productFormOf(row: ProductRow): ProductFormValues {
 export type ProductFormOutcome =
   | { ok: true; input: SaveProductInput }
   | { ok: false; key: MessageKey };
+
+/** A stored place limit as its field shows it: blank is no limit. */
+function capText(cap: number | null): string {
+  return cap === null ? "" : String(cap);
+}
+
+/** A place limit's field (DEC-356): blank = no limit (null), else a whole number of 1 or more. */
+export function capOf(text: string): { ok: true; cap: number | null } | { ok: false } {
+  if (text.trim() === "") return { ok: true, cap: null };
+  const cap = wholeNumber(text);
+  return cap === null || cap < 1 ? { ok: false } : { ok: true, cap };
+}
 
 export function productFormInput(kind: ProductKind, values: ProductFormValues): ProductFormOutcome {
   const key = values.key.trim();
@@ -110,6 +132,16 @@ export function productFormInput(kind: ProductKind, values: ProductFormValues): 
     placement = values.placement;
     badge = values.badge;
   }
+  let caps: SaveProductInput["caps"] = null;
+  if (kind === "reach") {
+    const cities = capOf(values.maxCities);
+    const regions = capOf(values.maxRegions);
+    const countries = capOf(values.maxCountries);
+    if (!cities.ok || !regions.ok || !countries.ok) {
+      return { ok: false, key: "admin.monetisation.error.badCaps" };
+    }
+    caps = { maxCities: cities.cap, maxRegions: regions.cap, maxCountries: countries.cap };
+  }
   // The field admits digits only, so a non-blank sort is always a whole number.
   const sort = values.sort.trim() === "" ? null : wholeNumber(values.sort);
   return {
@@ -127,6 +159,7 @@ export function productFormInput(kind: ProductKind, values: ProductFormValues): 
       maxPhotos,
       placement,
       badge,
+      caps,
       sort,
     },
   };

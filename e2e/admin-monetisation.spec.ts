@@ -32,7 +32,7 @@ import { adminClient, leaseUser } from "./helpers/users";
 /**
  * P-1b (D290, D295, D303, D304, D311, D312) — ADMIN › MONETISATION (MON-1..MON-15):
  * the credits model's products and their console — Markets · Levels ·
- * Per-category perks · Reach · Prices · Posting caps.
+ * Per-category perks · Reach · Prices.
  *
  * Identity: the pooled job super admin for consumers (J9); staff of narrower
  * rights through a scratch role. Truth: the service client, never a rendered
@@ -46,14 +46,11 @@ import { adminClient, leaseUser } from "./helpers/users";
  * Every other test seeds its OWN rows under the `e2e_mon_` prefix, namespaced
  * run × worker × project × test, and removes them (overrides and prices first)
  * in `afterEach`; audit rows outlive them, so an audit read is bounded by the
- * test's own start. The free plan (MON-15) is read; the caps WRITE lands on a
- * scratch plan.
+ * test's own start.
  */
 
 const TWIN_BOUNDARY = 1024;
 const SCRATCH_PREFIX = "e2e_mon_";
-/** A plan name holds no digit: the plans' own letters-only prefix. */
-const PLAN_PREFIX = "e_probe_mon_";
 const TAG = "[e2e:mon]";
 
 function isCardTwin(page: Page) {
@@ -169,24 +166,6 @@ function scratchKey(tag: string, project: string): string {
   return `${SCRATCH_PREFIX}${tag}_${run}_${worker}_${twin}`.replace(/_+$/, "").slice(0, 32);
 }
 
-/**
- * A plan's name is LETTERS ONLY (`^[a-z_]{2,32}$`): every axis is spelled out,
- * digits as letters, so each twin and worker keeps its own scratch plan.
- */
-function scratchPlan(tag: string, project: string): string {
-  const letters = (value: string) =>
-    value
-      .toLowerCase()
-      .split("")
-      .map((char) => (/[0-9]/.test(char) ? "abcdefghij"[Number(char)] : char))
-      .filter((char) => /[a-z]/.test(char))
-      .join("");
-  const run = letters(process.env["E2E_SHARD"] ?? "local");
-  const worker = letters(process.env["TEST_WORKER_INDEX"] ?? "0");
-  const twin = letters(project).slice(0, 1) || "x";
-  return `${PLAN_PREFIX}${tag}_${run}_${worker}_${twin}`.slice(0, 32);
-}
-
 function token(): string {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -196,7 +175,7 @@ async function readProduct(key: string) {
   const { data, error } = await adminClient()
     .from("listing_packages")
     .select(
-      "key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by",
+      "key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by, max_cities, max_regions, max_countries",
     )
     .eq("key", key)
     .maybeSingle();
@@ -284,19 +263,6 @@ async function unpricedPairs(
   return pairs;
 }
 
-/** DB truth (J4): a plan row with every stored field, the label key included. */
-async function readPlan(plan: string) {
-  const { data, error } = await adminClient()
-    .from("coverage_plans")
-    .select(
-      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, default_days, max_active_ads, label_key",
-    )
-    .eq("plan", plan)
-    .maybeSingle();
-  if (error) throw new Error(`${TAG} reading the plan ${plan} failed: ${error.message}`);
-  return data;
-}
-
 /** This run's audit rows for an entity (the rows of an earlier run's same key are left out). */
 async function audits(entityType: string, entityId: string, action: string, since: string) {
   const { data, error } = await adminClient()
@@ -341,12 +307,6 @@ async function destroyScoped(column: "country_code" | "category_id", value: stri
     const removed = await supabase.from(table).delete().eq(column, value);
     if (removed.error) throw new Error(`${TAG} ${table} reap failed: ${removed.error.message}`);
   }
-}
-
-async function destroyPlan(plan: string) {
-  if (!plan.startsWith(PLAN_PREFIX)) throw new Error(`${TAG} refusing to delete ${plan}`);
-  const { error } = await adminClient().from("coverage_plans").delete().eq("plan", plan);
-  if (error) throw new Error(`${TAG} plan reap failed: ${error.message}`);
 }
 
 /** The first curated currency: the price dialog's default (orderCurrencies, home unknown). */
@@ -431,7 +391,6 @@ test.describe("P-1b Admin › Monetisation", () => {
   const branches: string[][] = [];
   const categoryIds: string[] = [];
   const countries: string[] = [];
-  const plans: string[] = [];
 
   test.afterEach(async () => {
     const supabase = adminClient();
@@ -442,7 +401,6 @@ test.describe("P-1b Admin › Monetisation", () => {
       await destroyScoped("country_code", code);
       await destroyCountry(code);
     }
-    for (const plan of plans.splice(0)) await destroyPlan(plan);
     for (const roleId of roles.splice(0)) {
       const a = await supabase.from("role_permissions").delete().eq("role_id", roleId);
       if (a.error) throw new Error(`${TAG} role_permissions reap failed: ${a.error.message}`);
@@ -524,26 +482,6 @@ test.describe("P-1b Admin › Monetisation", () => {
     return data.id as string;
   }
 
-  /** A scratch plan with a label key, so MON-15 proves the key survives a save that never shows it. */
-  async function seedPlan(plan: string) {
-    await destroyPlan(plan);
-    const { error } = await adminClient()
-      .from("coverage_plans")
-      .insert({
-        plan,
-        max_cities: 1,
-        max_regions: 1,
-        max_countries: 1,
-        max_photos: 4,
-        allow_everywhere: false,
-        default_days: 30,
-        max_active_ads: 5,
-        label_key: `plan.${plan}`,
-      });
-    if (error) throw new Error(`${TAG} seeding the plan ${plan} failed: ${error.message}`);
-    plans.push(plan);
-  }
-
   /** The joined resource's name on a permissions row, narrowed by shape (no cast). */
   function resourceNameOf(row: unknown): string | null {
     if (typeof row !== "object" || row === null || !("resources" in row)) return null;
@@ -599,7 +537,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expect(section(page)).toBeVisible({ timeout: 20000 });
   }
 
-  test("MON-1 the menu entry, the order strip and the four blocks on both twins, no horizontal overflow; a level opens to its perks and prices; the real rows are read", async ({
+  test("MON-1 the menu entry, the order strip and the three blocks on both twins, no horizontal overflow; a level opens to its perks and prices; the real rows are read", async ({
     page,
   }) => {
     await useJobSuperAdmin(page);
@@ -608,14 +546,15 @@ test.describe("P-1b Admin › Monetisation", () => {
       timeout: 20000,
     });
     await openConsole(page);
-    // P-1c (D313) — the strip first: four numbered steps, each a link into the page.
+    // P-1c (D313) — the strip first: three numbered steps, each a link into the page.
     const strip = page.getByTestId("monetisation-order");
     await expect(strip).toBeVisible();
-    for (const step of ["markets", "products", "prices", "caps"]) {
+    for (const step of ["markets", "products", "prices"]) {
       await expect(strip.getByTestId(`monetisation-order-${step}`)).toBeVisible();
       await expect(strip.getByTestId(`monetisation-order-${step}-state`)).toBeVisible();
     }
-    for (const id of ["markets", "levels", "reach", "caps"]) {
+    await expect(strip.locator("li")).toHaveCount(3);
+    for (const id of ["markets", "levels", "reach"]) {
       await expect(block(page, id), `MON-1 the ${id} block`).toBeVisible();
       await expect(block(page, id).getByTestId(`monetisation-${id}-header`)).toBeVisible();
       await expect(block(page, id).getByTestId(`monetisation-${id}-columns`)).toBeVisible();
@@ -663,7 +602,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expectNoHorizontalOverflow(page);
   });
 
-  test("MON-2 gating: a reviewer has no entry and a deep link is turned away; a packages:view-only staff sees the blocks without a verb and no caps; the doors refuse both by name", async ({
+  test("MON-2 gating: a reviewer has no entry and a deep link is turned away; a packages:view-only staff sees the blocks without a verb; the doors refuse both by name", async ({
     page,
   }, testInfo) => {
     const key = scratchKey("deny", testInfo.project.name);
@@ -703,9 +642,6 @@ test.describe("P-1b Admin › Monetisation", () => {
     for (const id of ["markets", "levels", "reach"]) {
       await expect(block(page, id), `MON-2 the viewer's ${id} block`).toBeVisible();
     }
-    await expect(block(page, "caps"), "MON-2 the viewer saw the caps").toHaveCount(0);
-    // The strip follows the caller's gates too: no caps step without coverage:view.
-    await expect(page.getByTestId("monetisation-order-caps")).toHaveCount(0);
     // A product's open row shows its perks and prices without a verb either.
     const viewed = await firstLevel();
     await openProduct(page, "levels", viewed);
@@ -1521,105 +1457,6 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await readProduct(key)).toMatchObject({ key, kind: "level", days: 3, max_photos: 5 });
   });
 
-  test("MON-15 posting caps: the free plan's editor opens on every stored dial; a scratch plan's save round-trips every field and leaves the label key it never shows", async ({
-    page,
-  }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
-    const plan = scratchPlan("caps", testInfo.project.name);
-    await seedPlan(plan);
-    await openConsole(page);
-    const caps = block(page, "caps");
-    await expect(caps).toBeVisible({ timeout: 20000 });
-    await expect(caps.getByTestId("monetisation-caps-help")).toHaveText(
-      en["admin.monetisation.caps.untilP2"],
-    );
-    // The editor has no label field; the plan's name is shown, never re-typed.
-    await expect(page.locator("[data-testid='monetisation-caps-edit-label']")).toHaveCount(0);
-
-    // The free plan (a REAL row, only read): every dial as stored.
-    const free = await readPlan("free");
-    expect(free, "MON-15 the free plan is missing").not.toBeNull();
-    const freeRow = rowOf(page, blockTable(page, "caps"), "caps-free");
-    await expect(freeRow).toBeVisible({ timeout: 20000 });
-    await expect(freeRow.getByTestId("caps-free-ads")).toHaveText(
-      free?.max_active_ads === null ? en["admin.coverage.unlimited"] : String(free?.max_active_ads),
-    );
-    await actionsOf(page, blockTable(page, "caps"), "caps-free")
-      .getByTestId("caps-actions-free-edit")
-      .click();
-    const freeEditor = page.getByTestId("monetisation-caps-edit");
-    await expect(freeEditor).toBeVisible({ timeout: 20000 });
-    await expect(freeEditor.getByTestId("monetisation-caps-edit-plan")).toHaveText("free");
-    await expect(freeEditor.getByTestId("monetisation-caps-edit-cities")).toHaveValue(
-      String(free?.max_cities),
-    );
-    await expect(freeEditor.getByTestId("monetisation-caps-edit-regions")).toHaveValue(
-      String(free?.max_regions),
-    );
-    await expect(freeEditor.getByTestId("monetisation-caps-edit-countries")).toHaveValue(
-      String(free?.max_countries),
-    );
-    await expect(freeEditor.getByTestId("monetisation-caps-edit-photos")).toHaveValue(
-      String(free?.max_photos),
-    );
-    await expect(freeEditor.getByTestId("monetisation-caps-edit-days")).toHaveValue(
-      String(free?.default_days),
-    );
-    if (free?.allow_everywhere) {
-      await expect(freeEditor.getByTestId("monetisation-caps-edit-everywhere")).toBeChecked();
-    } else {
-      await expect(freeEditor.getByTestId("monetisation-caps-edit-everywhere")).not.toBeChecked();
-    }
-    if (free?.max_active_ads === null) {
-      await expect(freeEditor.getByTestId("monetisation-caps-edit-ads-unlimited")).toBeChecked();
-    } else {
-      await expect(freeEditor.getByTestId("monetisation-caps-edit-ads")).toHaveValue(
-        String(free?.max_active_ads),
-      );
-    }
-    await expect(freeEditor.getByTestId("monetisation-caps-edit-label")).toHaveCount(0);
-    await freeEditor.getByTestId("monetisation-caps-edit-cancel").click();
-    await expect(freeEditor).toHaveCount(0);
-    expect(await readPlan("free")).toEqual(free);
-
-    // The scratch plan: every dial changed through the door; the label key untouched.
-    await actionsOf(page, blockTable(page, "caps"), `caps-${plan}`)
-      .getByTestId(`caps-actions-${plan}-edit`)
-      .click();
-    const editor = page.getByTestId("monetisation-caps-edit");
-    await expect(editor).toBeVisible({ timeout: 20000 });
-    await editor.getByTestId("monetisation-caps-edit-cities").fill("3");
-    await editor.getByTestId("monetisation-caps-edit-regions").fill("2");
-    await editor.getByTestId("monetisation-caps-edit-countries").fill("2");
-    await editor.getByTestId("monetisation-caps-edit-photos").fill("6");
-    await editor.getByTestId("monetisation-caps-edit-everywhere").check();
-    await editor.getByTestId("monetisation-caps-edit-days").fill("45");
-    await editor.getByTestId("monetisation-caps-edit-ads-unlimited").check();
-    await editor.getByTestId("monetisation-caps-edit-save").click();
-    await awaitGuardedOutcome(page, secret, {
-      poll: async () => (await readPlan(plan))?.max_cities === 3,
-      describe: `the plan ${plan} saved`,
-    });
-    await expect(editor).toHaveCount(0);
-    expect(await readPlan(plan)).toEqual({
-      plan,
-      max_cities: 3,
-      max_regions: 2,
-      max_countries: 2,
-      max_photos: 6,
-      allow_everywhere: true,
-      default_days: 45,
-      max_active_ads: null,
-      label_key: `plan.${plan}`,
-    });
-    const planRow = rowOf(page, blockTable(page, "caps"), `caps-${plan}`);
-    await expect(planRow.getByTestId(`caps-${plan}-ads`)).toHaveText(
-      en["admin.coverage.unlimited"],
-      { timeout: 20000 },
-    );
-    await expect(planRow.getByTestId(`caps-${plan}-photos`)).toHaveText("6");
-  });
-
   /** A scratch market with paid levels ON, written as a fixture (MON-12 proves the door). */
   async function seedMarketOn(code: string) {
     const { error } = await adminClient()
@@ -1738,5 +1575,49 @@ test.describe("P-1b Admin › Monetisation", () => {
     // Reloaded, the strip reads the same from the server's rows.
     await openConsole(page);
     await expect(step).toHaveAttribute("data-state", left.length === 0 ? "set" : "needsRow");
+  });
+
+  test("MON-18 a reach row's caps: cities left blank and regions 3 are saved as no limit and 3; the table reads No limit and 3; the editor reopens blank and 3", async ({
+    page,
+  }, testInfo) => {
+    const { secret } = await useJobSuperAdmin(page);
+    const key = scratchKey("caps", testInfo.project.name);
+    await destroyProduct(key);
+    products.push(key);
+    await openConsole(page);
+
+    await page.getByTestId("monetisation-reach-add").click();
+    const create = page.getByTestId("monetisation-reach-create");
+    await expect(create).toBeVisible({ timeout: 20000 });
+    const unlimited = en["admin.monetisation.reach.field.unlimited"];
+    // A blank cap says what it stands for.
+    await expect(create.getByTestId("monetisation-reach-create-cities")).toHaveAttribute(
+      "placeholder",
+      unlimited,
+    );
+    await create.getByTestId("monetisation-reach-create-key").fill(key);
+    await create.getByTestId("monetisation-reach-create-name-en").fill(`Scratch caps ${key}`);
+    await create.getByTestId("monetisation-reach-create-days").fill("30");
+    await create.getByTestId("monetisation-reach-create-regions").fill("3");
+    await create.getByTestId("monetisation-reach-create-save").click();
+    await awaitGuardedOutcome(page, secret, productRow(page, "reach", key));
+    await expect(create).toHaveCount(0);
+    expect(await readProduct(key)).toMatchObject({
+      key,
+      kind: "reach",
+      max_cities: null,
+      max_regions: 3,
+      max_countries: null,
+    });
+
+    const row = productRow(page, "reach", key);
+    await expect(row.getByTestId(`product-${key}-cities`)).toHaveText(unlimited);
+    await expect(row.getByTestId(`product-${key}-regions`)).toHaveText("3");
+    await expect(row.getByTestId(`product-${key}-countries`)).toHaveText(unlimited);
+
+    const editor = await openProductEditor(page, "reach", key);
+    await expect(editor.getByTestId("monetisation-reach-edit-cities")).toHaveValue("");
+    await expect(editor.getByTestId("monetisation-reach-edit-regions")).toHaveValue("3");
+    await expect(editor.getByTestId("monetisation-reach-edit-countries")).toHaveValue("");
   });
 });

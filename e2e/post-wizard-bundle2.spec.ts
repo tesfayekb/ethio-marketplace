@@ -7,6 +7,7 @@ import { adminClient } from "./helpers/users";
 import { updateListingRow } from "./helpers/listing-seed";
 import { en } from "../src/i18n/locales/en";
 import { seedActiveListing } from "./helpers/categories";
+import { expectAliasAccepted, scratchAlias, waitAliasAccepted } from "./helpers/alias-check";
 import {
   leaseSeller,
   activeCityOf,
@@ -500,7 +501,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await expect.poll(() => held, { message: "PW-134: the identity read was never held" }).toBe(1);
 
-    const alias = `e2e_${rand()}`.slice(0, 30).toLowerCase();
+    const alias = scratchAlias();
     const first = page.getByTestId("post-who-first");
     const typeNames = async () => {
       await first.click();
@@ -522,7 +523,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(first).toBeVisible({ timeout: 20_000 });
     await typeNames();
 
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await waitAliasAccepted(page);
     await expect(first, "PW-134: the read wiped the first name").toHaveValue("Almaz");
     await expect(
       page.getByTestId("post-who-last"),
@@ -589,7 +590,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const picked = names[0] ?? "";
     expect(picked, "PW-130: the first suggestion is not built from the names").toContain("abebe");
     await page.locator(`[data-testid="post-who-alias-suggestion"][data-name="${picked}"]`).click();
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await waitAliasAccepted(page);
     expect((await identityOf(user.id)).alias, "PW-130: checking claimed the name").toBe(before);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
@@ -660,7 +661,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     ).toBe(true);
     const picked = names[0] ?? "";
     await page.locator(`[data-testid="post-who-alias-suggestion"][data-name="${picked}"]`).click();
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await waitAliasAccepted(page);
     await expect(page.getByTestId("post-who-alias-suggestions")).toHaveCount(0);
   });
 
@@ -770,8 +771,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(page.getByTestId("post-who-alias-refusal")).toBeVisible();
     // A business needs its business name, not the two names.
     await page.getByTestId("post-who-type-business").check();
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible();
     await expect(page.getByTestId("post-who-business-refusal")).toBeVisible();
@@ -796,8 +796,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const city = await activeCityOf("ET");
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     const before = (await identityOf(user.id)).alias;
-    await page.getByTestId("post-who-alias").fill(`cocacola_${rand()}`.slice(0, 30));
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, `cocacola_${rand()}`.slice(0, 30));
     await page.getByTestId("post-next").click();
     await expect(
       page.getByTestId("post-who-alias-refusal"),
@@ -844,10 +843,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .slice(2, 8)
       .replace(/[^a-z]/g, "q")}`;
     await box.pressSequentially(freeName, { delay: 40 });
-    await expect(
-      page.getByTestId("post-who-alias-ok"),
-      "PW-132: a free Latin name was not confirmed",
-    ).toBeVisible({ timeout: 20_000 });
+    await waitAliasAccepted(page);
     expect(
       aliasCalls.some((body) => body.includes("ፊደል")),
       "PW-132: a door call carried the non-Latin name",
@@ -933,8 +929,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const leaf = await category();
     const city = await activeCityOf("ET");
     const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     // Bundle 3 step 12 — the guessed home country is confirmed on the contact step.
     await expect(page.getByTestId("post-who-country-required")).toBeVisible();
     await page.getByTestId("post-who-country-confirm").click();
@@ -968,8 +963,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const leaf = await category();
     const city = await activeCityOf("ET");
     const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     await expect(page.getByTestId("post-who-country-required")).toBeVisible();
     await page.getByTestId("post-who-country-confirm").click();
     await page.getByTestId("post-who-country-yes").click();
@@ -1694,8 +1688,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     });
     await expect(page.getByTestId("post-who-alias")).toBeVisible({ timeout: 20_000 });
     const alias = `eseller${rand().replace(/[0-9]/g, "q")}`;
-    await page.getByTestId("post-who-alias").fill(alias);
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, alias);
     await typePhone(page, "post-who-value-phone", "0911234567");
     await page.getByTestId("post-who-value-phone").blur();
     await page.getByTestId("post-who-show-phone").check();
@@ -1740,8 +1733,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     });
     await expect(page.getByTestId("post-who-alias")).toBeVisible({ timeout: 20_000 });
     const alias = `eseller${rand().replace(/[0-9]/g, "q")}`;
-    await page.getByTestId("post-who-alias").fill(alias);
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, alias);
     await typePhone(page, "post-who-value-phone", "0911234567");
     await page.getByTestId("post-who-value-phone").blur();
     await page.getByTestId("post-who-show-phone").check();

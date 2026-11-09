@@ -11,7 +11,7 @@ import { HeldFirstPage, heldFirstPageAdapter } from "./held-first-page";
  */
 const PAGE: FirstFeedPage = {
   path: feedPath(null, null, null),
-  page: { cards: [], ladder: ["00000000-0000-0000-0000-000000000000"], next: null },
+  page: { cards: [], levels: [], ladder: ["00000000-0000-0000-0000-000000000000"], next: null },
   covers: [],
   places: [],
 };

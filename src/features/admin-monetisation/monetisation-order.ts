@@ -6,8 +6,8 @@ import type { MarketRow, MonetisationConsole, PriceRow, ProductRow } from "./mon
 
 /**
  * P-1c (D313) — THE MONETISATION ORDER STRIP'S STATES, from the page's ONE read
- * (`admin_list_monetisation`), never a second one. Four steps in the ruled
- * order — Markets · Products · Prices · Posting caps — each a link to its block:
+ * (`admin_list_monetisation`), never a second one. Three steps in the ruled
+ * order — Markets · Products · Prices — each a link to its block:
  *
  *  - Markets is Set; its detail names the markets whose paid levels are on.
  *  - Products is Set once at least one level and one reach are enabled.
@@ -17,13 +17,11 @@ import type { MarketRow, MonetisationConsole, PriceRow, ProductRow } from "./mon
  *    detail names the first such product and market, and the link opens that
  *    product's prices. CF-PRICE-1: this compares dates and names, it never
  *    reads an amount.
- *  - Posting caps is Set (its own read is the block's; the strip asks nothing).
  */
 export const MONETISATION_ANCHORS = {
   markets: "admin-monetisation-markets",
   level: "admin-monetisation-level",
   reach: "admin-monetisation-reach",
-  caps: "admin-monetisation-caps",
 } as const;
 
 /** A product's frame ids inside its expanded row (products-section.tsx). */
@@ -65,7 +63,6 @@ export function monetisationSteps(
   nowIso: string,
   names: OrderNames,
   t: (key: MessageKey) => string,
-  options: { withCaps: boolean },
 ): OrderStep[] {
   const marketsOn = console.markets
     .filter((market) => market.paidLevels)
@@ -73,7 +70,7 @@ export function monetisationSteps(
   const hasLevel = console.products.some((p) => p.kind === "level" && p.enabled);
   const hasReach = console.products.some((p) => p.kind === "reach" && p.enabled);
   const unpriced = firstUnpriced(console, nowIso);
-  const steps: OrderStep[] = [
+  return [
     {
       id: "markets",
       label: t("admin.monetisation.markets.title"),
@@ -108,13 +105,4 @@ export function monetisationSteps(
           hash: productAnchor(unpriced.product.key, "prices"),
         },
   ];
-  if (options.withCaps) {
-    steps.push({
-      id: "caps",
-      label: t("admin.monetisation.caps.title"),
-      state: "set",
-      hash: MONETISATION_ANCHORS.caps,
-    });
-  }
-  return steps;
 }

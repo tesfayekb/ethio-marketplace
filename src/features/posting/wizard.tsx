@@ -458,8 +458,14 @@ function WizardShell({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pinCarried, facts, draft.listingId]);
-  /** D22 — the seller's plan caps, as the posting document reports them. */
-  const [planCaps, setPlanCaps] = useState<PlanCaps | null>(null);
+  /** D22 — a new ad's caps, as the posting document reports them. */
+  const [schemaCaps, setSchemaCaps] = useState<PlanCaps | null>(null);
+  /**
+   * INC-1080 — an ad being edited obeys ITS OWN caps (the edit reader's); a null
+   * answer stays null (not known) and never falls back to the schema's baseline.
+   */
+  const planCaps = edit === null ? schemaCaps : edit.caps;
+  const editing = edit !== null;
   /** DEC-109 — the leaf's definitions, from the same read: the basis in force is judged on them. */
   const [definitions, setDefinitions] = useState<AttrDef[]>([]);
   const [basisOptions, setBasisOptions] = useState<AttrOption[] | null>(null);
@@ -576,15 +582,15 @@ function WizardShell({
           : { state: "ok", categoryId, definitions: schema.attributes },
       );
       setFacts(schema?.category ?? null);
-      // D22 — the plan travels with the same document; the caps the wizard holds
-      // are never read from a second place.
-      setPlanCaps(schema?.plan ?? null);
+      // D22 — a new ad's caps travel with the same document; an ad being edited
+      // takes none from it.
+      setSchemaCaps(editing ? null : (schema?.plan ?? null));
       setDefinitions(schema?.attributes ?? []);
     });
     return () => {
       cancelled = true;
     };
-  }, [categoryId]);
+  }, [categoryId, editing]);
 
   /**
    * Bundle 7 D5 rule 1 (INC-479) — WHAT THE LIST NO LONGER HAS, THE FORM NO
@@ -1647,9 +1653,7 @@ function WizardShell({
                             }
                             pinCarried={pinCarried}
                             onPinCarried={setPinCarried}
-                            maxCities={planCaps?.maxCities ?? null}
-                            maxRegions={planCaps?.maxRegions ?? null}
-                            maxCountries={planCaps?.maxCountries ?? null}
+                            caps={planCaps}
                             invitePlaceId={prefill?.placeId ?? null}
                             textMode={edit === null ? "door" : "form"}
                             onTextChange={edit === null ? undefined : edit.setPlaceText}

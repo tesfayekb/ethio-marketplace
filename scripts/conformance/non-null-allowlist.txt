@@ -42,7 +42,7 @@ e2e/my-listings-ad.spec.ts (7) | non-null assertions written before the platform
 e2e/my-listings-page.spec.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/nightly/auth-resend-exhaustion.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/phone-frame.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
-e2e/photo-pipeline.spec.ts (84) | non-null assertions written before the platform rule was enforced | INC-932
+e2e/photo-pipeline.spec.ts (82) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/post-wizard-bundle2.spec.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/post-wizard-category.spec.ts (15) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/post-wizard-details.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932

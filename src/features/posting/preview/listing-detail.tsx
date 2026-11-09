@@ -50,7 +50,7 @@ import { MapFailedHere } from "../map/map-failed-here";
 import { MapFrame } from "../map/map-frame";
 import { useSteadyPin } from "../map/use-steady-pin";
 import type { Pin, PinPrecision } from "../map/pin";
-import type { ListingTier } from "@/features/feed/ranking";
+import type { LevelLook } from "@/features/levels/level-fields";
 import { adPageLookOf } from "@/components/marketplace/card-tier";
 import { BAND_TAB, BAND_TAB_CURRENT, BAND_TAB_IDLE } from "@/components/shell/band-row";
 import { STILL_MAP_BOX } from "../map/still-map";
@@ -194,8 +194,13 @@ export type ListingActor = "buyer" | "owner" | "staff";
 export interface ListingDetailView {
   /** D201 §5 — who is looking: the buyer's page, the owner's previews (the seller's ad page, the wizard's Review), staff's previews (Admin › Listings, Screening). The component draws the same ad for all three and differs only where this brief says. */
   actor: ListingActor;
-  /** Sage S5 (ruling 1, answer 1); turn T1 — the ad's tier, on every view of an ad (the buyer's page, the seller's own, the Review's and Screening's previews, staff's page); null = not known: the free look and no data-tier. */
-  tier: ListingTier | null;
+  /** Sage S5 (ruling 1, answer 1); turn T1 — the ad's level key, on every view of an ad (the buyer's page, the seller's own, the Review's and Screening's previews, staff's page); null = not known: no data-tier. */
+  tier: string | null;
+  /**
+   * P-2 (c) c2a — the ad's level look: the buyer's page passes its answer's own (`level`), a
+   * preview its row's base look (useLevelLook); null = not known: the free look.
+   */
+  look: LevelLook | null;
   /** Sage S5 (spec §12) — the tier flag for the main photo's top-start corner and the tier tag above the title, passed by the buyer's page only (the flag's code rides card pages only, CF-TIER-3). */
   tierFlag?: ReactNode;
   tierTag?: ReactNode;
@@ -314,7 +319,7 @@ export function ListingDetail(view: ListingDetailView) {
   const scope = useCatalogScope();
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
-  const look = adPageLookOf(view.tier);
+  const look = adPageLookOf(view.look);
 
   // INC-588 / D151 — every stored photo, through links that expire; D161 — each
   // with its card size for the page, its cover for the viewer and its thumb.

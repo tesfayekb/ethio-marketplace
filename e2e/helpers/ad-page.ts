@@ -119,7 +119,6 @@ export function adPageFixtures() {
         price_set_at: days(published),
         contact_pref: options.contactPref ?? { messages: true },
         status,
-        tier: "regular",
         published_at: live ? days(published) : null,
         published_first_at: live ? days(published) : null,
         expires_at: live ? days(options.expiresAt ?? 28) : null,

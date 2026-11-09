@@ -143,9 +143,10 @@ nothing rather than an unreachable object. `POST { action: 'cover' }` calls
 
 ## The dials
 
+Photos per listing are no dial: the ad's level row's `max_photos` (`listing_photo_cap`, D311 — P-2 (c)).
+
 | Dial                        | Env                          | Default |
 | --------------------------- | ---------------------------- | ------- |
-| photos per listing          | `MAX_PHOTOS_PER_LISTING`     | 10      |
 | cover bytes                 | `MAX_COVER_BYTES`            | 1 MB    |
 | card bytes                  | `MAX_CARD_BYTES`             | 150 KB  |
 | thumb bytes                 | `MAX_THUMB_BYTES`            | 30 KB   |
@@ -259,7 +260,7 @@ This section is the later word on the counts of sizes above.
 ## Bundle 16 turn S1 — abuse and cost guards on photos (D184; the operator's review of 2026-10-15)
 
 - **The photo storage is the server's alone.** The client policies on the listing-photos bucket are gone: every photo is stored by the upload route, read through the links the server signs and removed by the removal route, all with the service role.
-- **The plan cap before the paid screen.** The upload route reads the seller's photo cap by plan (`plan_photo_cap(seller_plan(uid))`, as the door does) before it screens, so a photo the door would refuse costs nothing.
+- **The level cap before the paid screen.** The upload route reads the ad's photo cap (`listing_photo_cap(ad)`, its level's `max_photos`, as the door does) before it screens, so a photo the door would refuse costs nothing; a level with no cap is refused `levelNotAvailable`, and the route keeps no ceiling of its own (P-2 (c), D311).
 - **Removals have their own limit** per seller across every ad: 30 an hour and 100 a day (`photo-remove`, `photo-remove:day`; `RATE_LIMIT_PHOTO_REMOVE_PER_HOUR`, `RATE_LIMIT_PHOTO_REMOVE_PER_DAY`), as uploads have theirs (60 an hour, 200 a day). An add-and-remove loop is bounded on both sides.
 - **The site's day cap and the money stop** on photo screening: docs/features/ai-services.md, "Bundle 16 turn S1".
 - **The writing helper** spends a listing's tries only for its owner: a `listingId` that is not the caller's is refused (`notYourListing`).

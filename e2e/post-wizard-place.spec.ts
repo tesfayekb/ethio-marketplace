@@ -5,13 +5,18 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import {
   destroyLocation,
+  scratchSlug,
   seedScratchChain,
   waitForServedTree,
   waitForTreeSlug,
 } from "./helpers/locations";
 import { seedActiveListing } from "./helpers/categories";
+import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
+import { am } from "../src/i18n/locales/am";
+import { en } from "../src/i18n/locales/en";
 import { adminClient } from "./helpers/users";
 import { inOneWindow } from "./helpers/rate-window";
+import { expectAliasAccepted, scratchAlias } from "./helpers/alias-check";
 import {
   leaseSeller,
   activeCityOf,
@@ -436,13 +441,9 @@ test.describe("POSTING WIZARD", () => {
 
     // Bundle 3 step 19 — CHECKING IS NOT CLAIMING: a good name is answered free
     // by the check door and reaches the profile only when the step is saved.
-    const wanted = `e2e_${rand()}`.slice(0, 30).toLowerCase();
+    const wanted = scratchAlias();
     const before = (await identityOf(user.id)).alias;
-    await alias.fill(wanted);
-    await expect(
-      page.getByTestId("post-who-alias-ok"),
-      "PW-12: the alias was never answered by the check door",
-    ).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, wanted);
     expect((await identityOf(user.id)).alias, "PW-12: checking claimed the name").toBe(before);
 
     // U6-C1-R3b-1 STEP 5 (D17) — A PERSON IS NAMED. The names are the profile's,
@@ -557,8 +558,7 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const { listingId, cityName } = await reachStep7(page, user.id, category);
 
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible();
 
@@ -730,13 +730,7 @@ test.describe("POSTING WIZARD", () => {
     });
     mark("place chosen");
     await page.getByTestId("post-next").click();
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(
-      page.getByTestId("post-who-alias-ok"),
-      why("PW-30: the alias never cleared"),
-    ).toBeVisible({
-      timeout: 20_000,
-    });
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(
       page.getByTestId("post-step-8"),
@@ -1141,22 +1135,39 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * PW-82 — R5. The add buttons follow the plan, read from the DB (the 'free'
-   * row is read, never written — G27): each shows only while its level has room.
+   * PW-82 — R5, P-2 (c) (ruling 1 §6). A new ad's step 6 draws the caps of the
+   * DEFAULT market's included reach (the schema's `plan` block). The test reads,
+   * at test time, the row the schema reads — the default market row's
+   * `included_reach`, then that reach row's cells — and compares (INC-437's form:
+   * read, never written, never a literal — G27). Each add button shows only while
+   * its level has room; a NULL cap is NO LIMIT (INC-1084): its level keeps room and
+   * the count carries no `data-max`. The region holds a second scratch city, so
+   * "Add a city" depends on the room alone.
    */
-  test("PW-82 the add buttons follow the plan's own limits", async ({ page }) => {
+  test("PW-82 step 6's caps are the default market's included reach's, as stored", async ({
+    page,
+  }) => {
+    const market = await adminClient()
+      .from("market_settings")
+      .select("included_reach")
+      .is("country_code", null)
+      .single();
+    if (market.error || !market.data)
+      throw new Error(`PW-82: the default market could not be read: ${market.error?.message}`);
     const { data: plan, error } = await adminClient()
-      .from("coverage_plans")
+      .from("listing_packages")
       .select("max_cities, max_regions, max_countries")
-      .eq("plan", "free")
+      .eq("key", market.data.included_reach)
+      .eq("kind", "reach")
       .single();
     if (error || !plan)
-      throw new Error(`PW-82: the free plan could not be read: ${error?.message}`);
+      throw new Error(`PW-82: the included reach could not be read: ${error?.message}`);
     const user = await seller(page);
     const category = await leaf();
     const chain = await seedScratchChain("ET");
     places.push(chain.region.slug);
-    await waitForTreeSlug(page, "ET", chain.city.slug);
+    const second = await secondCityOf(chain.region.id);
+    await waitForTreeSlug(page, "ET", second.slug);
     await reachStep5(page, user.id, category);
     await page.getByTestId("post-price-mode-free").click();
     await page.getByTestId("post-next").click();
@@ -1172,16 +1183,114 @@ test.describe("POSTING WIZARD", () => {
     await region.selectOption(chain.region.id);
     await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(placeBox(page)).toHaveAttribute("data-empty", "0");
-    const cityRoom = plan.max_cities > 1;
-    const regionRoom = cityRoom && plan.max_regions > 1;
-    const countryRoom = regionRoom && plan.max_countries > 1;
+    const roomFor = (cap: number | null) => cap === null || cap > 1;
+    const cityRoom = roomFor(plan.max_cities);
+    const regionRoom = cityRoom && roomFor(plan.max_regions);
+    const countryRoom = regionRoom && roomFor(plan.max_countries);
     await expect(page.getByTestId("post-where-add-city")).toHaveCount(cityRoom ? 1 : 0);
     await expect(page.getByTestId("post-where-add-region")).toHaveCount(regionRoom ? 1 : 0);
     await expect(page.getByTestId("post-where-add-country")).toHaveCount(countryRoom ? 1 : 0);
-    await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute(
-      "data-max",
-      String(plan.max_cities),
+    const count = page.getByTestId("post-where-plan-count");
+    await expect(count).toHaveAttribute("data-used", "1");
+    if (plan.max_cities === null) {
+      await expect(count).not.toHaveAttribute("data-max");
+    } else {
+      await expect(count).toHaveAttribute("data-max", String(plan.max_cities));
+    }
+  });
+
+  /** A second scratch city in a scratch chain's region; `destroyLocation` reaps it child-first. */
+  async function secondCityOf(regionId: string) {
+    const slug = scratchSlug("ls-city2");
+    const { data, error } = await adminClient()
+      .from("locations")
+      .insert({
+        parent_id: regionId,
+        level: "city",
+        country_code: "ET",
+        slug,
+        name_en: slug,
+        is_active: true,
+        source: "admin",
+        center_lat: 9.03,
+        center_lng: 38.74,
+      })
+      .select("id, slug")
+      .single();
+    if (error || !data) throw new Error(`[e2e:pw] a second city: ${error?.message ?? "no row"}`);
+    return data;
+  }
+
+  /**
+   * PW-193 — INC-1084. An ad whose reach is the real `nationwide` row (read, never
+   * written: the scratch ad points at it) opens its Edit's step 6 with the ad's own
+   * caps: no city limit, so "Add a city" stays past the first city, and the plan
+   * line says so, in English and in Amharic.
+   */
+  test("PW-193 an ad at nationwide reach has room for a second city and says no city limit", async ({
+    page,
+  }) => {
+    const reach = await adminClient()
+      .from("listing_packages")
+      .select("max_cities, max_regions")
+      .eq("key", "nationwide")
+      .eq("kind", "reach")
+      .single();
+    if (reach.error || !reach.data)
+      throw new Error(`PW-193: the nationwide row could not be read: ${reach.error?.message}`);
+    expect(reach.data.max_cities, "PW-193: nationwide carries a city cap").toBeNull();
+    const user = await seller(page);
+    const category = await leaf();
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug);
+    const second = await secondCityOf(chain.region.id);
+    await waitForTreeSlug(page, "ET", second.slug);
+    const now = new Date();
+    const ad = await seedListingRow(
+      {
+        category_id: category.id,
+        seller_id: user.id,
+        location_id: chain.city.id,
+        home_country_code: "ET",
+        title: `e2e-pw193-${rand()}`,
+        description: "e2e scratch listing at nationwide reach",
+        attributes: {},
+        price_mode: "fixed",
+        price_amount: 100,
+        price_currency: "ETB",
+        price_period: "once",
+        price_set_at: now.toISOString(),
+        contact_pref: { messages: true },
+        status: "active",
+        published_at: now.toISOString(),
+        published_first_at: now.toISOString(),
+        expires_at: new Date(now.getTime() + 7 * 86_400_000).toISOString(),
+      },
+      { tag: "pw193" },
     );
+    objects.push({ userId: user.id, listingId: ad.id });
+    const located = await adminClient()
+      .from("listing_locations")
+      .insert({ listing_id: ad.id, location_id: chain.city.id, position: 1 });
+    if (located.error) throw new Error(`PW-193: coverage failed: ${located.error.message}`);
+    // A reach carries its source (listings_reach_with_source_check); staff's needs no end.
+    await updateListingRow(ad.id, { reach: "nationwide", reach_source: "staff" }, { tag: "pw193" });
+
+    await gotoReady(page, `/my-listings/${ad.id}/edit`);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20_000 });
+    await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+    await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByTestId("post-where-add-city"),
+      "PW-193: no room for a second city",
+    ).toHaveCount(1, { timeout: 20_000 });
+    const count = page.getByTestId("post-where-plan-count");
+    await expect(count).toHaveAttribute("data-used", "1");
+    await expect(count).not.toHaveAttribute("data-max");
+    const line = (text: string) => text.replace("{used}", "1").replace("{regions}", "1");
+    await expect(count).toHaveText(line(en["post.where.planLineNoLimit"]));
+    await switchLanguage(page, "am");
+    await expect(count).toHaveText(line(am["post.where.planLineNoLimit"]), { timeout: 20_000 });
   });
 
   /* ======================= U6-C1-R3b-4 — THE MAP PIN ======================= */
@@ -1318,8 +1427,7 @@ test.describe("POSTING WIZARD", () => {
     // THE BUYER'S EYE: the still map is the circle, and the exact marker is absent.
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible();
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible();
     await page.getByTestId("post-preview-open").click();

@@ -1,4 +1,5 @@
-import type { FeedListing } from "@/features/feed/feed-page";
+import { levelsOf, parseCard, type FeedListing } from "@/features/feed/feed-page";
+import { seedLevelRows, type LevelRow } from "@/features/levels/levels-store";
 import { rpc } from "@/lib/supabase-door";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -66,6 +67,23 @@ export type SavedCard =
   | (FeedListing & { savedAt: string; available: true })
   | { id: string; publicId: string | null; savedAt: string; available: false };
 
+/**
+ * One saved card, or null on a mismatch: an available one by the feed's own card
+ * parser (its step is 1), an unavailable one by its id, address and save time.
+ */
+function savedCardOf(value: unknown, levels: readonly LevelRow[]): SavedCard | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
+  const { id, publicId, savedAt, available } = value as Record<string, unknown>;
+  if (typeof savedAt !== "string" || typeof available !== "boolean") return null;
+  if (!available) {
+    if (typeof id !== "string") return null;
+    if (publicId !== null && typeof publicId !== "string") return null;
+    return { id, publicId, savedAt, available: false };
+  }
+  const card = parseCard(value, 1, levels);
+  return card === null ? null : { ...card, savedAt, available: true };
+}
+
 export async function mySaved(
   after: unknown | null,
   size: number,
@@ -83,5 +101,15 @@ export async function mySaved(
     data.next === undefined
   )
     throw new Error("my_saved_listings: malformed answer");
-  return { cards: data.cards as unknown as SavedCard[], next: data.next };
+  const levels = levelsOf(data.levels);
+  if (levels === null) throw new Error("my_saved_listings: malformed levels");
+  const cards: SavedCard[] = [];
+  for (const item of data.cards) {
+    const card = savedCardOf(item, levels);
+    if (card === null) throw new Error("my_saved_listings: malformed card");
+    cards.push(card);
+  }
+  // P-2 (c) c2a — the browser's level rows come from the answer that arrived (DEC-351 §8).
+  seedLevelRows(levels);
+  return { cards, next: data.next };
 }

@@ -48,6 +48,9 @@ function product(
     maxPhotos: null,
     placement: null,
     badge: false,
+    maxCities: null,
+    maxRegions: null,
+    maxCountries: null,
     enabled: flags.enabled ?? true,
     selfServe: flags.selfServe ?? true,
     extendsLifetime: false,
@@ -90,7 +93,7 @@ function consoleOf(parts: Partial<MonetisationConsole>): MonetisationConsole {
 }
 
 describe("monetisationSteps (D313)", () => {
-  it("MNO-1 every step Set: markets on named in the detail, prices and caps linked to their frames", () => {
+  it("MNO-1 every step Set: markets on named in the detail, three steps and no caps step", () => {
     const steps = monetisationSteps(
       consoleOf({
         markets: [market(null, false), market("AA", true), market("BB", true)],
@@ -100,27 +103,24 @@ describe("monetisationSteps (D313)", () => {
       NOW,
       NAMES,
       t,
-      { withCaps: true },
     );
     expect(steps.map((step) => [step.id, step.state])).toEqual([
       ["markets", "set"],
       ["products", "set"],
       ["prices", "set"],
-      ["caps", "set"],
     ]);
     expect(steps[0]?.detail).toBe("Paid levels on: Market AA, Market BB");
     expect(steps[0]?.hash).toBe(MONETISATION_ANCHORS.markets);
-    expect(steps[3]?.hash).toBe(MONETISATION_ANCHORS.caps);
+    expect(Object.keys(MONETISATION_ANCHORS).sort()).toEqual(["level", "markets", "reach"]);
   });
 
-  it("MNO-2 Products needs a row until one level AND one reach are enabled; no caps step without coverage:view", () => {
+  it("MNO-2 Products needs a row until one level AND one reach are enabled", () => {
     const base = { markets: [market(null, false)], prices: [] };
     const only_level = monetisationSteps(
       consoleOf({ ...base, products: [product("featured", "level")] }),
       NOW,
       NAMES,
       t,
-      { withCaps: false },
     );
     expect(only_level.map((step) => step.id)).toEqual(["markets", "products", "prices"]);
     expect(only_level[1]?.state).toBe("needsRow");
@@ -133,7 +133,6 @@ describe("monetisationSteps (D313)", () => {
       NOW,
       NAMES,
       t,
-      { withCaps: false },
     );
     expect(reach_off[1]?.state).toBe("needsRow");
   });
@@ -160,7 +159,6 @@ describe("monetisationSteps (D313)", () => {
       NOW,
       NAMES,
       t,
-      { withCaps: true },
     );
     const prices = steps[2];
     expect(prices?.state).toBe("needsRow");

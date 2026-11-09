@@ -39,10 +39,19 @@ export function coversRole(entry: SurfaceEntry, role: BrowserRole): boolean {
   return entry.roles.includes(role) || entry.roles.includes("public");
 }
 
-/** Whole statements plus the existing FOREACH format-grant form (INC-443). */
-export function migrationSurfaceOffenders(sql: string, entries: SurfaceEntry[]): string[] {
+/**
+ * Whole statements plus the existing FOREACH format-grant form (INC-443). A
+ * grant on a name in `dropped` (an object a later migration drops) is no
+ * offender: the live lint's stale-line rule is the authority for it (DEC-357).
+ */
+export function migrationSurfaceOffenders(
+  sql: string,
+  entries: SurfaceEntry[],
+  dropped: ReadonlySet<string> = new Set(),
+): string[] {
   const offenders = new Set<string>();
   const check = (name: string, text: string) => {
+    if (dropped.has(name)) return;
     for (const role of text.toLowerCase().match(/\b(?:anon|authenticated|public)\b/g) ?? []) {
       if (role !== "anon" && role !== "authenticated" && role !== "public") continue;
       if (!entries.some((entry) => entry.name === name && coversRole(entry, role)))
@@ -71,12 +80,24 @@ export function migrationSurfaceOffenders(sql: string, entries: SurfaceEntry[]):
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const [mode, path, sqlPath] = process.argv.slice(2);
+  const [mode, path, sqlPath, root = process.cwd()] = process.argv.slice(2);
   if (!path) throw new Error("public surface: allowlist path required");
   const entries = parseSurface(readFileSync(path, "utf8"));
   if (mode === "--parse") console.log(JSON.stringify(entries));
-  else if (mode === "--migration" && sqlPath)
-    for (const offender of migrationSurfaceOffenders(readFileSync(sqlPath, "utf8"), entries))
-      console.log(`${sqlPath}: ${offender}`);
-  else throw new Error("public surface: use --parse or --migration");
+  else if (mode === "--migration" && sqlPath) {
+    // `--migration <allowlist> <file> [<root>]`: the drops are read from <root>'s
+    // migrations only when the file has an offender (the reader loads on demand,
+    // so the live lint that imports this file never carries it).
+    const sql = readFileSync(sqlPath, "utf8");
+    const offenders = migrationSurfaceOffenders(sql, entries);
+    const judged =
+      offenders.length === 0
+        ? offenders
+        : migrationSurfaceOffenders(
+            sql,
+            entries,
+            (await import("./conformance/migration-reader")).droppedObjects(root),
+          );
+    for (const offender of judged) console.log(`${sqlPath}: ${offender}`);
+  } else throw new Error("public surface: use --parse or --migration");
 }

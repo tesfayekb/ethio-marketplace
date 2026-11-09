@@ -21,7 +21,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { adPageLookOf, cardLookOf } from "@/components/marketplace/card-tier";
 import { TierFlag, TierTag } from "@/components/marketplace/tier-flag";
-import { adPageView } from "@/features/ad-page/public-listing";
+import { adPageLevelName, adPageView } from "@/features/ad-page/public-listing";
 import { ownValue } from "@/lib/own-key";
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { useI18n } from "@/i18n";
@@ -220,8 +220,15 @@ function AdPage() {
   const { t, language } = useI18n();
   // INC-958 — one view (and one pin) per document and language, so the map effects run once.
   const view = useMemo(() => adPageView(doc, language), [doc, language]);
-  // Sage S5 (spec §12) — a paid ad's flag on its main photo and its tag above the title.
-  const paid = view.tier === null || view.tier === undefined ? null : cardLookOf(view.tier).paid;
+  // Sage S5 (spec §12) — a badged ad's flag on its main photo and its tag above the title.
+  // P-2 (c) c2a (DEC-351 §8, ruling 6 §3) — the look and the word are the document's own:
+  // no store and no read, so a direct landing draws its flag from the server's answer.
+  const badgeLook = view.look === null ? null : cardLookOf(view.look).badge;
+  const levelWord = adPageLevelName(doc, language);
+  const badge =
+    badgeLook === null || levelWord === null || view.tier === null
+      ? null
+      : { levelKey: view.tier, name: levelWord, look: badgeLook };
   const sharePrice = sharePriceText(
     {
       mode: doc.price.mode,
@@ -246,15 +253,15 @@ function AdPage() {
       <ListingDetail
         {...view}
         photoLinks={photoLinks}
-        tierFlag={paid === null ? null : <TierFlag {...paid} on="photo" />}
-        tierTag={paid === null ? null : <TierTag {...paid} />}
+        tierFlag={badge === null ? null : <TierFlag {...badge} on="photo" />}
+        tierTag={badge === null ? null : <TierTag {...badge} />}
         share={
           <ShareAd
             publicId={doc.public_id}
             canonicalPath={canonical}
             title={doc.title}
             priceText={sharePrice}
-            ink={adPageLookOf(view.tier ?? null).ink}
+            ink={adPageLookOf(view.look).ink}
           />
         }
         guide={
@@ -264,7 +271,7 @@ function AdPage() {
             parts={GUIDE_PARTS}
             className={cn(
               "h-auto min-h-11 gap-2 px-0 font-semibold hover:bg-transparent",
-              adPageLookOf(view.tier ?? null).ink,
+              adPageLookOf(view.look).ink,
             )}
           />
         }

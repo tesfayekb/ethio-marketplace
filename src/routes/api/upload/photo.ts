@@ -46,7 +46,8 @@ import { errorText } from "@/lib/error-text";
  *   3 ownership            — the listing is read AS THE CALLER, so RLS is the
  *                            authority; a listing that is not the caller's is a
  *                            403 by name, and a wrong status a 409 by name
- *   4 the cap              — 10 photos per listing (dial) → `tooManyPhotos`;
+ *   4 the cap              — the ad's level's (`listing_photo_cap`, D311) →
+ *                            `tooManyPhotos`, or `levelNotAvailable` for none;
  *                            an upload that `replaces` a photo adds none, so
  *                            it is not counted, and the photo it replaces must
  *                            be on this listing, read AS THE CALLER (else
@@ -128,20 +129,17 @@ const CONTENT_TYPE = {
 } as const;
 
 /**
- * Bundle 16 turn S1 — the seller's photo cap by plan, as the door reads it
- * (`plan_photo_cap(seller_plan(uid))`, both service-only), so the route refuses
- * an extra photo before the paid screen rather than after it.
+ * P-2 (c) (D311, DEC-351) — the ad's photo cap, its level's `max_photos`, as the
+ * door reads it (`listing_photo_cap`, service-only), so the route refuses an
+ * extra photo before the paid screen rather than after it. `null` is the
+ * door's typed absence (the level has no perks), refused as `levelNotAvailable`.
  */
-async function planPhotoCap(userId: string): Promise<number> {
+async function listingPhotoCap(listingId: string): Promise<number | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const plan = await supabaseAdmin.rpc("seller_plan", { p_user_id: userId });
-  if (plan.error || typeof plan.data !== "string") {
-    throw new Error(`seller_plan: ${plan.error?.message ?? "no plan"}`);
-  }
-  const cap = await supabaseAdmin.rpc("plan_photo_cap", { p_plan: plan.data });
-  if (cap.error || typeof cap.data !== "number") {
-    throw new Error(`plan_photo_cap: ${cap.error?.message ?? "no cap"}`);
-  }
+  const cap = await supabaseAdmin.rpc("listing_photo_cap", { p_listing: listingId });
+  if (cap.error) throw new Error(`listing_photo_cap: ${cap.error.message}`);
+  if (cap.data === null) return null;
+  if (typeof cap.data !== "number") throw new Error("listing_photo_cap: invalid answer");
   return cap.data;
 }
 
@@ -270,17 +268,16 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
     if (countError) {
       return serverError(PATH, `photo count: ${countError.message}`);
     }
-    // Bundle 16 turn S1 — the seller's plan cap is read here too, before the paid
-    // screen, so a photo the door would refuse (`tooManyPhotos`) costs nothing.
-    let planCap: number;
+    // The ad's level cap is read here too, before the paid screen, so a photo the
+    // door would refuse (`tooManyPhotos`, `levelNotAvailable`) costs nothing.
+    let cap: number | null;
     try {
-      planCap = await planPhotoCap(userId);
+      cap = await listingPhotoCap(listingId);
     } catch (error) {
-      return serverError(PATH, `plan cap: ${errorText(error)}`);
+      return serverError(PATH, `photo cap: ${errorText(error)}`);
     }
-    if ((count ?? 0) >= Math.min(envDial("MAX_PHOTOS_PER_LISTING", 10), planCap)) {
-      return refusal("photos", "tooManyPhotos");
-    }
+    if (cap === null) return refusal("photos", "levelNotAvailable");
+    if ((count ?? 0) >= cap) return refusal("photos", "tooManyPhotos");
   }
 
   // 5 — every variant: size, strip, dimensions.

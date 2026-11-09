@@ -528,6 +528,8 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(page.getByTestId("post-where-plan")).toHaveCount(0);
     await page.getByTestId("post-where-plan-toggle").click();
     await expect(page.getByTestId("post-where-plan-details")).toBeVisible();
+    // INC-1084 — known caps always name the reach, a NULL city cap as "no city limit".
+    await expect(page.getByTestId("post-where-plan"), "PW-90: no reach caption").toBeVisible();
 
     const countryBox = page.locator('[data-testid="post-where-country-box"][data-primary="1"]');
     await expect(countryBox, "PW-90: a chosen country stays red").toHaveAttribute("data-red", "0");

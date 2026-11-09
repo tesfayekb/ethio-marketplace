@@ -69,7 +69,7 @@ describe("changeListingTier (P-1 W4)", () => {
     expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "", null)).toEqual({
       ok: false,
       cancelled: false,
-      refusal: "admin.listings.tier.error.removed",
+      refusal: "admin.listings.level.error.removed",
     });
   });
 
