@@ -72,7 +72,27 @@ after `continue`. Never an empty or placeholder migration.
   under test does, and keeps a margin of one tick: a clock read once at the top of the block and
   compared with a function that reads its own failed one start in a hundred (INC-1028, DEC-316). List RPCs ship
   their index and an EXPLAIN in the proof. A function a route calls is also proven by a route test.
+- THE MARK'S VALUE is chosen at the commit, never earlier: the UTC hour of the commit rounded up to
+  the next hour plus one hour, then +100 for each further part of the same stop (the files re-stamped
+  so that file-name order equals mark order); every mark above the ledger's newest and above the
+  previous part's pre-check. A mark chosen before the commit and overtaken by the clock is a STOP, not
+  a file edit (G39).
 - CLOSERS in-file, last: the REVOKE / GRANT lines, then the mark.
+- THE PRE-STOP SCAN, before `check-migrations.sh`, on every file of the stop — each point is a defect
+  CI's temporary backend has caught once, so it is caught here first:
+  1. every statement runs in the order the schema allows (a seed row is written only after every
+     column it omits may be NULL; a column is dropped only after its last reader — INC-973's class);
+  2. every scratch key a proof writes matches its column's own CHECK pattern (M1a's `coverage_plans.plan`
+     refused `e2e_mig_p_…`);
+  3. every literal passed to a declared parameter has that parameter's type (`2::smallint` into a
+     `smallint`, never a bare `2` — P-1b M-a);
+  4. a proof's expectation is never a real row's value: a real singleton row the proof must read is
+     parked — copied into a scratch row inside the rolled-back block and the scratch row judged
+     (DEC-350, INC-1067);
+  5. two proofs that draw random codes draw ONCE and derive the rest, so no two draws can collide
+     (INC-1082);
+  6. every pre-check reads the live md5 of the body it redeclares and the previous mark (parts chain).
+  The scan's result is one line in the stop report: `pre-stop scan: 6 of 6, <file fragments>`.
 - Run `bash scripts/check-migrations.sh` and paste its guard lines ("Self-marking guard OK" among
   them) before you commit.
 - Before the push, run `bun run db:proof` on the final tree and paste its last line in the stop
