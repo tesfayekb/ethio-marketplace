@@ -16,6 +16,7 @@ import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { adminClient } from "./helpers/users";
 import { inOneWindow } from "./helpers/rate-window";
+import { expectAliasAccepted } from "./helpers/alias-check";
 import {
   leaseSeller,
   activeCityOf,
@@ -442,11 +443,7 @@ test.describe("POSTING WIZARD", () => {
     // by the check door and reaches the profile only when the step is saved.
     const wanted = `e2e_${rand()}`.slice(0, 30).toLowerCase();
     const before = (await identityOf(user.id)).alias;
-    await alias.fill(wanted);
-    await expect(
-      page.getByTestId("post-who-alias-ok"),
-      "PW-12: the alias was never answered by the check door",
-    ).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, wanted);
     expect((await identityOf(user.id)).alias, "PW-12: checking claimed the name").toBe(before);
 
     // U6-C1-R3b-1 STEP 5 (D17) — A PERSON IS NAMED. The names are the profile's,
@@ -561,8 +558,7 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const { listingId, cityName } = await reachStep7(page, user.id, category);
 
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, `e2e_${rand()}`.slice(0, 30).toLowerCase());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible();
 
@@ -734,13 +730,7 @@ test.describe("POSTING WIZARD", () => {
     });
     mark("place chosen");
     await page.getByTestId("post-next").click();
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(
-      page.getByTestId("post-who-alias-ok"),
-      why("PW-30: the alias never cleared"),
-    ).toBeVisible({
-      timeout: 20_000,
-    });
+    await expectAliasAccepted(page, `e2e_${rand()}`.slice(0, 30).toLowerCase());
     await page.getByTestId("post-next").click();
     await expect(
       page.getByTestId("post-step-8"),
@@ -1437,8 +1427,7 @@ test.describe("POSTING WIZARD", () => {
     // THE BUYER'S EYE: the still map is the circle, and the exact marker is absent.
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible();
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, `e2e_${rand()}`.slice(0, 30).toLowerCase());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible();
     await page.getByTestId("post-preview-open").click();

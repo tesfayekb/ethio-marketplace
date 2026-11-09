@@ -122,7 +122,24 @@ export async function expectAliasAccepted(page: Page, alias: string): Promise<vo
   await page.getByTestId("post-who-alias").fill(alias);
   const failure = aliasCheckFailure(sent, await answered);
   if (failure !== null) throw new Error(failure);
-  await page
-    .getByTestId("post-who-alias-ok")
-    .waitFor({ state: "visible", timeout: ALIAS_CHECK_MS });
+  await waitAliasAccepted(page);
+}
+
+/**
+ * Waits for the contact step's tick on a name the test did not fill itself (a
+ * suggestion picked, the name built from the typed names, a name typed key by
+ * key). A failure names which alias state the screen shows.
+ */
+export async function waitAliasAccepted(page: Page): Promise<void> {
+  try {
+    await page
+      .getByTestId("post-who-alias-ok")
+      .waitFor({ state: "visible", timeout: ALIAS_CHECK_MS });
+  } catch (error) {
+    const shown = await shownStates(page);
+    throw new Error(
+      `[e2e:alias] the name was not accepted within ${ALIAS_CHECK_MS} ms (${errorText(error)}); ` +
+        `the screen shows ${shown.length > 0 ? shown.join(", ") : "no alias state"}`,
+    );
+  }
 }
