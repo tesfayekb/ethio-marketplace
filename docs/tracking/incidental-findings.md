@@ -5916,10 +5916,200 @@ Defect: seven spec-local REST sign-in helpers `asPerson` (e2e/legal-doors.spec.t
 
 Defect: eight spec lines press `Control+A` to select a field before typing (e2e/admin-listings.spec.ts :1470 :1483 :1693 :2154, e2e/admin-screening.spec.ts :1396 :1457, e2e/my-listings-ad.spec.ts :1008, e2e/my-listings-page.spec.ts :663 — AL-20, AL-23, AL-30, SC-25, SC-26, MLA-13, MLP-6); on macOS Chromium it moves the caret to the start, so the typed text is prepended and the test fails locally on the operator's computer while CI (Linux) passes. Evidence: docs/governance/reports/p2-level-reach.report.md §5 (14 local reds on both projects). Fix: the housekeeping turn — `ControlOrMeta+A`, the portable form already used at e2e/my-listings-ad.spec.ts:171, with a census of every select-all key in e2e/. Class: concern "a test's keyboard shortcut works on every platform the suite runs on". Mechanism: Playwright's `ControlOrMeta`; a census guard with the fix. Status (2026-11-05): OPEN — the housekeeping turn.
 
+INC-1066 (later word, 2026-11-09; records turn R13): Status: CLOSED — c3 replaced every `Control+A` press in e2e/ with `ControlOrMeta+A` and guards the chord (SAC-1); see INC-1091. F1-1's census additions (ruling 6 §2) are those presses.
+
 ## INC-1067 — a migration proof takes its expectation from a real reference row's value (2026-11-05; P-2 (a) M-1c parts 2 and 3, the ethio-prod apply of file 10)
 
 INC-1067 — a migration proof takes its expectation from a real reference row's value. Defect: 20261105080105_8797b9c8 (P-2 M-1c part 2) built its trim scenario on the seller's plan being 1/1/1 and refused otherwise; 20261105080106_42c3a28d (part 3) proof (c) expected the same three-place trim (:307–:318); `seller_plan()` is the constant 'free', so neither proof could choose its caps. Evidence: ethio-prod applied files 1–9 of the 17 and refused file 10: "P-2 M-1c part 2 proof: the seller's plan free is not the 1/1/1 free plan this proof expects" — production's free coverage plan is 2/2/2 (the operator's setting), CI's and staging's 1/1/1 (seeded by 20260915162131 :318). Fix: ruling 15 and its amendment 1 (cursor/p2-proof-caps-2, replacing PR #25) — proof text only: each proof reads the caps (law 11), raises below 1, builds C + 1 scratch cities in one scratch region with the primary saved last and expects exactly the last other removed; marks, grants and schema statements unchanged; db:proof PASS under a planted 2/2/2 free plan (410/410) and at 1/1/1 (409/409); CI at 1/1/1 (PR #25). Census of the 17 P-2 proofs: none of files 10–17 depends on a value now; applied files 20261104153313 (:316–:318) and 20261104154000 (:246, :320) depend on the real level keys; 20261104153957 (:140, :147) writes the real default market row inside its rolled-back block. Class: a migration proof takes its expectation from a real reference row's value — §7 "real rows in a proof", G27; third occurrence of the class (M5, D62-1/INC-340).
 
 INC-1067 (later word, 2026-11-05; records turn R12): the entry above is the text of docs/governance/reports/p2-proof-caps.report.md §13, imported word for word under its heading. Status (2026-11-05): FIXED in pull request #26 at `866b36414` (merged `7c5c29546`); files 10–17 then applied on ethio-prod and all seventeen P-2 marks read back. The edit of two landed files' proof text with their schema statements byte-identical is DEC-345. The guard this class owes at three occurrences — proofs applied under a second, varied reference profile in db:proof and a CI lane — is a roadmap line.
 
-Numbering: next free INC-1068.
+## INC-1068 — the DROP of a retired browser-callable function cannot satisfy both guards (2026-11-06; F1-1)
+
+- **INC-1068** (F1-1-c): the DROP of a retired browser-callable function cannot satisfy the migration guard (every post-floor GRANT in history needs its public-surface line) and the live surface lint (a line whose function is absent fails) at once; REVOKE now, the guards' retirement grammar in F1-7. Class: two guards reading one surface by different definitions.
+
+INC-1068 (later word, 2026-11-09; records turn R13): Status: RULED — DEC-347: REVOKE now with a RETIRED public-surface line (`| reason | until F1-7`); the DROP comes in F1-7 when the guards read retirements. Class: a retirement the guards' two halves read differently; mechanism: the public-surface guard (register row 102) gains the retirement grammar in F1-7. Open until F1-7.
+
+## INC-1069 — the i18n provider's auth-service import grew every page's first download (2026-11-06; F1-1)
+
+- **INC-1069** (F1-1-d, amended): every page's first download grew 0.3–0.4 KiB because the i18n provider imports the whole auth service for two calls; door-codes rode in with it. Class: a module every page loads imports a feature's service. Fix: the leaf module (ruling 4 §1). Amendment (ruling 5): the first fix (the provider) moved the service from the provider chunk to the entry chunk; the hook's star import (`use-auth.ts:7 import * as authService`) was the second half of the graph (ruling 5 §1) — DEC-348 is the general form; after it 46 pages −1.6…−1.7 KiB and the four pages that import the service +1.1 (ruling 6 §1, DEC-296 lines).
+
+INC-1069 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #28 (`7acae2b4d`): the preferred-language pair on its own leaf (ruling 4 §1), then the sign-out leaf and the auth route's direct imports (ruling 5 §1, DEC-348); every page at or under its CI base. Class rule: no module in the entry closure imports a feature service (DEC-348).
+
+## INC-1070 — LIVE_QUERY joined with "" lost its clause boundaries (2026-11-06; F1-1)
+
+- **INC-1070** (amended): `LIVE_QUERY` joined with "" lost its clause boundaries; the smoke lane's door guard died on the first execution of a query no test had run. Class: SQL assembled from fragments by code — a query is a file read verbatim. Fix: `scripts/doors/live-query.sql`, `--live-query`, DOORS-5 (ruling 4 §8). Sibling: `scripts/security-lints.ts:41 SURFACE_QUERY`, folded in F1-7 with the public-surface side (its own `.sql` file).
+
+INC-1070 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #28 (the query in `scripts/doors/live-query.sql`, read as a file — DEC-310's form). Class: SQL assembled from fragments in code; the one remaining site `scripts/security-lints.ts:41 SURFACE_QUERY` is F1-7's (ruling 5 §3).
+
+## INC-1071 — the pooled super admin's rate_limits rows outlive each borrower (2026-11-06; F1-1)
+
+- **INC-1071**: the pooled super admin's `rate_limits` rows outlive each borrower while every leased pool account's are deleted; the new `account_pref` dial counted the whole lane's borrowers on one key. Class: a shared test identity's per-user state outside the pool reset. Fix: `resetLanguageBaseline` deletes the slot's rows (ruling 4 §9). Class note (ruling 6 §2): DRF-4 asserted an exact delta on `door_refusals`, a per-day aggregate row (door, code, day — no person column) the other project's worker moves too; the proof is now "at least its two" with the per-user dial exact (`586971226`).
+
+INC-1071 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #28 (`a171104ea`: the slot's `rate_limits` rows join its baseline reset; `resetLanguageBaseline` deletes them). Open census note: the fixed test identities not reset by the pool helper (the state file's base test user; `legal-doors.spec.ts`'s slot-0 sign-in) are named in `docs/features/e2e-harness.md`.
+
+## INC-1072 — the live door guard never judged the tree census (2026-11-06; F1-1)
+
+- **INC-1072** (ruling 6 §2): the live door guard never judged the tree census — `liveFindings` passed no `callers`, so `grant-without-caller` never fired live and the kit read every census allowance as stale (`check-doors-allowlist.txt:4 stale allowance`, the smoke lane on 5bec35586). Class: a guard with two modes must judge the same finding kinds in both, or the one allowlist is stale in one of them. Fix: the live judgement reads `treeCallers(root, rows)` on the live rows; DOORS-6 (`8a5662d61`). The other half (ruling 7 §2): the two modes' BODIES differ for a function the migrations hand over in chunks — `attr_import_plan`'s `migration_text_parts` INSERTs, assembled and EXECUTEd at apply — so the live body (`pg_get_functiondef`, whole) showed `attr_option_norm_v2(` called and the static body (one chunk) did not; census line 4 read as stale live on dc3a7162e. Fix: `treeCallers` reads the chunk INSERT texts as bodies of their `fn`; the census line leaves (the function has a caller); DOORS-7 plants a chunk; DOORS-6 walks the tree once (5841 ms over vitest's 5000 ms on the runner with two passes; 966 ms here with one) (`e0bc92dde`).
+
+INC-1072 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #28 (`liveFindings` takes the callers census; `grant-without-caller` fires live; the stale allowance left). Class: a guard's live half must take every input its static half takes (the check-doors pattern that DEC-359's seller-name judge later follows).
+
+## INC-1073 — LGA-21 writes a legal_version_texts row for every enabled_admin language into its own version (2026-11-06; F1-1)
+
+- **INC-1073** (ruling 6 §2, OPEN for the housekeeping turn): `e2e/legal-admin.spec.ts:1106` — LGA-21 writes a `legal_version_texts` row for EVERY `enabled_admin` language into its own version, including the OTHER worker's scratch language (`ensureFenceLanguage` enables it), which that worker's `afterEach` then cannot delete (`legal_version_texts_language_fkey`). Class: a test's writes stay inside its own scratch rows (J3). Seen locally (mobile-360, both projects on 2 workers); CI's lanes pass it by timing.
+
+INC-1073 (later word, 2026-11-09; records turn R13): Status: OPEN — the housekeeping turn (roadmap). Class: a test that writes across its worker's own rows (G27's sibling: a cross-worker write); the fix is the test's own scratch version.
+
+## INC-1074 — my_listing.countryCode falls back to the home country while set_listing_level reads the location's (2026-11-06; P-2 (b))
+
+- **INC-1074** (P2b-b): `my_listing.countryCode` falls back to the home country while
+  `set_listing_level` reads the location's country only, so a client preview by `countryCode` would
+  disagree with the door for an unplaced ad. Fix: `promote_options` answers from the door's rule;
+  the sheet never previews by `countryCode`. Class: a client re-deriving a door's rule from a
+  reader's convenience field.
+
+INC-1074 (later word, 2026-11-09; records turn R13): Status: CLOSED BY DESIGN — DEC-349: `promote_options` applies the door's own country rule (the location's country only), so the preview and `set_listing_level` agree; the client re-derives nothing. Class: a client re-deriving a door's rule (second occurrence INC-1077).
+
+## INC-1075 — a browser test compares a time the staging server stamped with this computer's clock (2026-11-07; P-2 (b))
+
+- **INC-1075**: a browser test compares a time the staging server stamped with this computer's
+  clock — MON-11 (`e2e/admin-monetisation.spec.ts:1303`, `valid_to <= Date.now()`) and MON-17
+  (`:1724`, `unpricedPairs(new Date().toISOString())`), the clock read +0.30 s behind. Class: a
+  test's time comparison reads the server's clock or the row's own stamps, never `Date.now()`. Fix:
+  the housekeeping turn (the census and the fix); neither test changed here.
+
+INC-1075 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #29 (MON-11, MON-17 read against the door's own `now()`; `5e66f3398` the turn's own new spec corrected at the self-review). Class rule: a test never compares a server-stamped time with the runner's clock; it reads the server's clock through a door or asserts an order.
+
+## INC-1076 — rulings 3 and 4 of P-2 (b) saved by hand, one character short (2026-11-07; P-2 (b))
+
+- **INC-1076** (ruling 5 §3, in its words): "docs/governance/briefs/p2-promote-ruling-3.md and -4.md
+  hold the rulings' words exactly (verified by the supervisor) but not their Markdown — the
+  backticks around code names, the numbered-list and bullet marks and the blank lines are gone,
+  because the text was copied from the rendered chat. Class: a ruling that must be saved travels as
+  a FILE the operator attaches, and is copied from the file by script (as briefs are), never from
+  the chat; the supervisor sends them so from now on. Fix: the records turn R13 replaces both files
+  with the supervisor's byte-exact copies (sha256 10d25113… and 90d75eea…). Nothing for you to
+  change in this turn."
+
+INC-1076 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #29 (the two files re-saved from the attachments; sha256 equal). Class rule (standing since 2026-11-07): a ruling travels as an ATTACHED FILE the executor saves by a scripted copy and checks by sha256, never retyped.
+
+## INC-1077 — BASELINE_TIER = "regular" mirrors the database's baseline in client code (2026-11-07; P-2 (b))
+
+- **INC-1077** (ruling 5 §2, in its words): "tier-reasons.ts:51 BASELINE_TIER = "regular" mirrors
+  the door's baseline rule on the client (the level row's is_baseline is the truth: migration
+  20261104124957); INC-1074's class (a client re-deriving a door's rule), second occurrence → the
+  class rule stands: a screen reads the baseline from the rows the door reads (is_baseline), never
+  from a literal. Fix: P-2 turn (c), with DEC-331's tier-word fold (the census of "regular" literals
+  in src — card-tier.ts, feed-page.ts, ranking.ts, tier-reasons.ts TIERS, use-admin-listings.ts
+  LISTING_TIERS, listings-page.tsx:220, listing-page.tsx:467, app-shell.tsx:754 — is that turn's)."
+
+INC-1077 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c2a (`is_baseline` from the `levels` dictionary; the twelve `tier:` consumers folded onto the store — DEC-351 §8, DEC-352). Class: INC-1074's (a client re-deriving a door's rule), second occurrence → the class rule: a client never holds a literal that mirrors a database row's value; it reads the row.
+
+## INC-1078 — the home card at 360: the whole card should open the ad (2026-11-07; the P-2 (b) walk)
+
+INC-1078 — the operator reported after the P-2 (b) publish (2026-11-07 04:50 New York): "on small screen in home page, the whole ad card should be clickable to open the ad detail". `listing-card.tsx:199` wraps the card's content in a `Link` when `publicId` is a string. Evidence: the operator's own region taps at 360 (photo, title, price, place) each opened the ad page (05:09 New York). Status: NOT REPRODUCED; closed 2026-11-07 05:09 New York. Class: a walk report is reproduced by region before a fix is planned.
+
+## INC-1079 — feed-page.ts:113 drops a card silently when its level key is not one of the three words (2026-11-07; P-2 (c) c1)
+
+- **P2c-b — INC-1079** (plan E-9): `feed-page.ts:113` drops a card silently when its level key is not one of the three words. Fixed by the fold (c2).
+
+INC-1079 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c2a (any key kept; an unknown key reads as the baseline; FP-3 reversed). Class: phantom success — a silent drop on an unknown key (§7); mechanism: the levels store (register row, this turn).
+
+## INC-1080 — a live ad's edit shows the baseline's caps, not the ad's (2026-11-07; P-2 (c) c1)
+
+- **P2c-c — INC-1080** (plan E-2): a live ad's edit shows the baseline's caps, not the ad's. Fixed by the edit reader's `caps` (ruling 1 §3, c2).
+
+- INC — INC-1080 gains its second instance (the owner's ad page photo box, fixed in the same turn by
+  the same reader).
+
+INC-1080 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c2b — the owner's door `my_listing_private` answers `caps` through `listing_caps` (DEC-356) and `use-edit-draft.ts` reads them (EW-7, MLA-19). The c2b bullet above ("gains its second instance — the owner's ad page photo box") repeats c2b ruling 1's premise, which the c2b census corrected the same day: the owner's ad page has no photo box; INC-1080 is single-instance. Mechanism: `listing_caps` (register row, this turn).
+
+## INC-1081 — the seed `allow_everywhere` meant nothing (2026-11-07; P-2 (c) c1)
+
+- **P2c-d — INC-1081** (plan E-5): the seed `allow_everywhere` meant nothing. No column (ruling 1 §6); "everywhere as a place kind" is a roadmap line for the operator.
+
+INC-1081 (later word, 2026-11-09; records turn R13): Status: CLOSED — no column (DEC-351); "everywhere as a place kind" is a roadmap line for the operator's decision (this turn adds it).
+
+## INC-1082 — two scratch languages drawn independently inside one proof collided (2026-11-07; P-2 (c) c1)
+
+- **P2c-e — INC-1082**: two scratch languages drawn independently inside one proof (20261106051700 :129–130, 20261106051900 :212–213) collided one time in 256 and stopped Lane 11's start on ffcadd393. Fixed by DEC-345 proof-text edits, schema text byte-identical (4027c48bd). The class rule as ruled: "scratch identifiers inside one proof come from ONE draw and are made distinct by construction (a suffix or a shift), never from independent draws". LDR-7's three reach keys follow it (one draw, suffixes).
+
+INC-1082 (later word, 2026-11-09; records turn R13): Status: FIXED (`4027c48bd`, DEC-345 proof-text edits; schema text byte-identical). Class rule: one random draw per proof, every other scratch key derived from it; rule 30's pre-stop scan names it.
+
+## INC-1083 — the seller-name census takes a computed insertion's format() template for the function's body (2026-11-07; P-2 (c) c1)
+
+- **P2c-f — INC-1083**: `scripts/conformance/seller-names.test.ts` `latestBodies` (:24–33) takes a computed insertion's `format('CREATE … FUNCTION <name>(%s) … $tag$%s$tag$')` template for the function's latest body. It does so for `edit_my_listing` since 20261105080108 and for the eight import doors of 20261029022748 / 024207 / 024340 / 024420 / 024515 / 024619, so a later computed insertion of a name reader would hide from SPA-10a. Housekeeping, c3.
+
+- INC — INC-1083 gains DEC-359. The reader marks template-built functions computed
+  (`COMPUTED_BY_HAND` holds `attr_import_plan`). The seller-name law judges them live.
+
+INC-1083 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c3 — the reader marks template-built functions `computed` (twelve, `attr_import_plan` by hand in `COMPUTED_BY_HAND`), the file census skips them with the reason and treats their allowlist lines as judged live, and the LIVE judge in the smoke lane judges every live body (DEC-359; "seller-names live OK: 17 live readers" on run 42600307499). `validate_listing_draft` was the eleventh template (a plain `CREATE FUNCTION` via `format()`; the census had grepped `CREATE OR REPLACE` only — NCJ-13).
+
+## INC-1084 — step-where.tsx read a NULL cap as "plan not known" (2026-11-08; P-2 (c) c2a)
+
+INC-1084 — the Where step's caps reading had one state for "caps not known" and "no limit": a NULL `max_cities` (no limit, DEC-351) rendered the unknown-plan line and prefilled one city. Status: FIXED in pull request #30, turn c2b — the prop `caps: PlanCaps | null` (outer null = unknown, inner null = no limit), the no-limit line and caption (`post.where.planLineNoLimit`, `post.where.reachCaptionNoLimit`), the prefill of every stored place when no limit (SWR-2, PW-193). Class: typed absence conflated with "no limit" (§7, fake numerics / sentinel defaults).
+
+## INC-1085 — PW-141 in the repeat lane (2026-11-08; P-2 (c) c2a)
+
+- **INC-1085:** PW-141 in the repeat lane.
+  - Ruling 5 §3's wording: OPEN, watched; cause not reproduced (48 of 48 against staging); the dial excluded by reading; the capture of §2 lands, so the next red carries the route's answer; the flake ledger is read at every verification.
+  - Read since: `alias_rule` refuses fewer than three letters, and the old scratch name could carry only two. `scratchAlias()` removes that path (FINDINGS).
+
+INC-1085 (later word, 2026-11-09; records turn R13): Status: CLOSED in pull request #30, turn c3 — not reproduced by repetition (PW-141 alone ×12 and with PW-27/PW-48 ×12 each pass; the dial excluded), the one path that can refuse the old names read as the cause: `alias_rule` refuses a name of fewer than three letters and the old scratch name could carry only two; c3's `scratchAlias()` (`e2e/helpers/alias.ts`, register row 131) removes that path from every spec (the report's FINDINGS). Class: a test fixture that can draw a value a door refuses (G38: a leased or drawn name is not a fresh, valid name).
+
+## INC-1086 — FR-6 asserted the card's exact key list (2026-11-08; P-2 (c) c2a)
+
+- **INC-1086:** FR-6 asserted the card's exact key list; the c2a census and the stop-4 expected-red list missed it. Fixed: the list gains `level`, with the whole-tree census in §4. Class: a door answer's new key makes every exact-list assertion over that answer a consumer.
+
+INC-1086 (later word, 2026-11-09; records turn R13): Status: FIXED (`1004c1b6a`: the list gains `level`, exact; the census found it the only exact list over the four doors' answers; 22/22 both projects). Class rule: a door answer's new key makes every exact-list assertion over that answer a consumer by definition (G0.3); the plan's census includes `toEqual([...])` lists (S546's rule).
+
+## INC-1087 — the names hook showed a product's key and a category's uuid to staff (2026-11-08; P-2 (c) c2b)
+
+- INC — INC-1087 — `use-monetisation-names.ts` showed a product's key and a category's uuid to
+  staff as names; fixed by two admin words.
+
+INC-1087 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c2b (`use-monetisation-names.ts` answers the two words `admin.monetisation.product.unknown` / `category.unknown`; MNN-1…3). Class: a raw key or uuid shown as a name (typed absence rendered raw).
+
+## INC-1088 — promote-sheet.tsx:165 named a level outside the one chooser (2026-11-08; P-2 (c) c2b)
+
+- INC — INC-1088 — `promote-sheet.tsx:165` named a level outside the one chooser; fixed.
+
+INC-1088 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c2b (`levelNameOf` the one chooser; CF-LEVEL-1). Class: unrecorded bypass of a shared mechanism (§7).
+
+## INC-1089 — part (i)'s proof (b) compared a fragment spanning a line break (2026-11-09; P-2 (c) c2b)
+
+- INC — INC-1089 — part (i)'s proof (b) compared a fragment spanning a line break against the
+  chr(13)-stripped body; refused on the operator's paste, passed on the CLI (INC-1056's class,
+  second occurrence; mechanism: the law of ruling 3 §2 and `spanningLiterals` in the migration
+  guard).
+
+INC-1089 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c2b (`49dbb6e89`: every compared literal on one line, joined by `chr(10)`, both sides chr(13)-stripped; `scripts/check-migrations.sh`'s spanning-literal guard, floor 20261109000000, proven on a planted file). Class: THE CARRIER LAW — INC-1056's second occurrence; the guard is its CI promotion (the third occurrence, INC-1093, was a landed file the guard's floor does not reach). Measured: the Supabase SQL editor's paste carries CRLF (`position(chr(13) in $$a⏎b$$) = 2`); the connector carries LF.
+
+## INC-1090 — the public-surface guard's file judge and live lint disagree on a dropped object (2026-11-09; P-2 (c) c2b)
+
+- INC — INC-1090 — the public-surface guard's file judge and live lint disagree on a dropped object
+  (mechanism: `droppedObjects` from the one reader; DEC-357).
+
+INC-1090 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c2b (`72c56c7a2`: `droppedObjects(root)` from the one migration reader; the file judge drop-aware; the two coverage lines gone — DEC-357). Class: a guard's two halves reading one event differently (INC-1072's sibling).
+
+## INC-1091 — Control+A as select-all in e2e/ is not select-all on macOS (2026-11-09; P-2 (c) c3)
+
+- INC — INC-1091 — `Control+A` as select-all in `e2e/` is not select-all on macOS. A local run
+  types in front of the stored value (MLA-13, c2b). The fix: 11 presses in 4 files became
+  `ControlOrMeta+A`; SAC-1 refuses the bare chord under `e2e/`; the harness guide states the law.
+
+INC-1091 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c3 (`ControlOrMeta+A` in every e2e press; the census guard SAC-1 shown red first on a planted `Control+A`; `docs/features/e2e-harness.md`). INC-1066 closes with it (its census additions of F1-1 were these presses). Class: a platform-dependent chord in a test (G38: tests see what a person sees).
+
+## INC-1092 — the included reach is not self-serve, so the sheet had no current reach row (2026-11-09; P-2 (c) c3)
+
+- INC — INC-1092 — the included reach `city` is not self-serve, so the sheet had no current reach
+  to name on every fresh ad (found by the census, before any screen shipped). Fixed by M-3c-c
+  (DEC-358).
+
+INC-1092 (later word, 2026-11-09; records turn R13): Status: FIXED in pull request #30, turn c3 — M-3c-c (`20261109085715_a63f48fe`, mark 20261109110000; DEC-358); applied on ethio-staging 2026-11-09 04:18 New York and on ethio-prod 06:4x New York (DEC-360); LVP-5 names the non-self-serve included reach. Class: a client list filtered by a flag that the current row need not carry (the door lists the current row always).
+
+## INC-1093 — M-3b parts 3 and 4 strip chr(13) on the live side only (2026-11-09; the production apply)
+
+INC-1093 — `20261107125358_704f04ac` (M-3b part 3, :38–45) and `20261107125359_ee072b49` (M-3b part 4, :39–41) normalise the live body (`v_norm := replace(v_src, E'\r', '')`) but compare raw multi-line literals (`v_f1a`, `v_f2a`), so under the Supabase SQL editor's CRLF paste the fragments carry chr(13) and are not found: ethio-prod refused part 3 at 2026-11-09 06:04 New York ("a fragment is not unique in validate_listing_draft"), rolled back whole (the live md5 unchanged, scratch rows 0). The two files passed on ethio-staging on 2026-11-07 because the supervisor's connector carried LF bytes. A tokenizer scan of the chain's twenty-one files found spanning literals in fifteen, every one stripped on BOTH sides (law 13) except these two; parts 5 → 21 are both-sided or one-line. Status: RESOLVED on ethio-prod by the LF carrier — the supervisor's connector applied files 5 → 21 at the operator's instruction (DEC-360); the landed files are not edited (DEC-345 would allow the proof-text edit, but the files are applied on both databases and the correction matters nowhere now). Class: THE CARRIER LAW (INC-1056, INC-1089 — third occurrence; the c2b guard covers new files; a LANDED one-sided file is carried by an LF carrier, never by paste — DEC-323 addendum; rule 30 point 7 in the Cursor rules turn 3).
+
+Numbering: next free INC-1094.
