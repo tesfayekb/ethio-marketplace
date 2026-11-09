@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42570464470
-- Commit: `0f99800a72144d51fc7b2bd1d07d03d6a94171be`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42572874016
+- Commit: `7e65d1fa87e7e1758fb831b6e86f5150431a3264`
 - Attempt: 1
-- Written (UTC): 2026-11-09T06:23:00.535Z
+- Written (UTC): 2026-11-09T06:46:08.972Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -20,6 +20,11 @@ No warning step ran in this run.
 ### Tail (last 60 lines)
 
 ```text
+##[group]Fetching the repository
+[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f6f3ec4019ffc13b6cae73ac54eece0290514f13:refs/remotes/pull/30/merge
+From https://github.com/tesfayekb/ethio-marketplace
+ * [new ref]         f6f3ec4019ffc13b6cae73ac54eece0290514f13 -> pull/30/merge
+##[endgroup]
 ##[group]Determining the checkout info
 ##[endgroup]
 [command]/usr/bin/git sparse-checkout disable
@@ -43,10 +48,10 @@ Or undo this operation with:
 
 Turn off this advice by setting config variable advice.detachedHead to false
 
-HEAD is now at b5eb048 Merge 0f99800a72144d51fc7b2bd1d07d03d6a94171be into f2d55846764b3847f9787388b013e6977f782c2e
+HEAD is now at f6f3ec4 Merge 7e65d1fa87e7e1758fb831b6e86f5150431a3264 into f2d55846764b3847f9787388b013e6977f782c2e
 ##[endgroup]
 [command]/usr/bin/git log -1 --format=%H
-b5eb048425b43cfbccbe49489af38120c6157095
+f6f3ec4019ffc13b6cae73ac54eece0290514f13
 ##[group]Run oven-sh/setup-bun@v2
 with:
   bun-version: latest
@@ -55,84 +60,14 @@ with:
 ##[endgroup]
 Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip
 Unexpected HTTP response: 504
-Waiting 17 seconds before trying again
+Waiting 11 seconds before trying again
 Unexpected HTTP response: 504
-Waiting 17 seconds before trying again
+Waiting 15 seconds before trying again
 ##[error]Error: Unexpected HTTP response: 504
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/3c8db445-9100-4364-9b42-759e81c9c8b0' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## Gitleaks secrets scan — failure
-
-### Evidence lines
-
-```text
-##[warning]curl -sSfL -o /home/runner/work/_temp/gitleaks_8.24.3_linux_x64.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz failed with exit 22 on try 1 of 2; trying again
-##[error]curl -sSfL -o /home/runner/work/_temp/gitleaks_8.24.3_linux_x64.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz failed with exit 22 on try 2 of 2
-##[error]Process completed with exit code 22.
-```
-
-### Tail (last 60 lines)
-
-```text
-
-  git switch -
-
-Turn off this advice by setting config variable advice.detachedHead to false
-
-HEAD is now at b5eb04842 Merge 0f99800a72144d51fc7b2bd1d07d03d6a94171be into f2d55846764b3847f9787388b013e6977f782c2e
-##[endgroup]
-[command]/usr/bin/git log -1 --format=%H
-b5eb048425b43cfbccbe49489af38120c6157095
-##[group]Run tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-[36;1mtarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"[0m
-[36;1mbash scripts/ci/with-deadline.sh 120 2 -- curl -sSfL -o "$RUNNER_TEMP/$tarball" \[0m
-[36;1m  "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$tarball"[0m
-[36;1mecho "$GITLEAKS_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -[0m
-[36;1mtar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" gitleaks[0m
-[36;1mif git rev-parse --verify --quiet origin/main >/dev/null; then[0m
-[36;1m  range="origin/main..HEAD"[0m
-[36;1melse[0m
-[36;1m  range="HEAD"[0m
-[36;1mfi[0m
-[36;1mcommits="$(git rev-list --count "$range")"[0m
-[36;1mecho "Secrets scan: $commits commits in $range"[0m
-[36;1mset +e[0m
-[36;1m"$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code=2 \[0m
-[36;1m  --log-opts="--diff-merges=first-parent $range" . > "$RUNNER_TEMP/gitleaks.log" 2>&1[0m
-[36;1mcode=$?[0m
-[36;1mset -e[0m
-[36;1mgrep -E 'commits scanned|leaks found|no leaks found' "$RUNNER_TEMP/gitleaks.log" | sed -E 's/^.*(INF|WRN|ERR) //'[0m
-[36;1mif [ "$code" -ne 0 ]; then echo "::error::secrets scan exit $code"; exit "$code"; fi[0m
-shell: /usr/bin/bash -e {0}
-env:
-  GITLEAKS_VERSION: 8.24.3
-  GITLEAKS_SHA256: 9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
-##[endgroup]
-curl: (22) The requested URL returned error: 504
-##[warning]curl -sSfL -o /home/runner/work/_temp/gitleaks_8.24.3_linux_x64.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz failed with exit 22 on try 1 of 2; trying again
-curl: (22) The requested URL returned error: 504
-##[error]curl -sSfL -o /home/runner/work/_temp/gitleaks_8.24.3_linux_x64.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz failed with exit 22 on try 2 of 2
-##[error]Process completed with exit code 22.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/b5bca228-a9a5-4a32-882a-65ec35d7b832' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/cb92d932-b16e-4616-b2f1-3163e5ad3060' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -160,6 +95,11 @@ NEAR band failed (DEC-296):
 ### Tail (last 60 lines)
 
 ```text
+    294.2 / 298 KiB  /admin/impersonation_/$sessionId
+    285.1 / 288 KiB  /admin/legal
+    282.4 / 285 KiB  /admin/legal_/$versionId
+    284.1 / 292 KiB  /admin/legal_/edit
+    351.6 / 352 KiB  /admin/listings
     353.1 / 354 KiB  /admin/listings_/$listingId
     413.4 / 414 KiB  /admin/listings_/$listingId_/edit
     273.7 / 276 KiB  /admin/locations
@@ -202,145 +142,7 @@ NEAR band failed (DEC-296):
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/7469ffa8-a1f4-41e6-8bd8-f39ffe210848' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## Build, typecheck, lint — failure
-
-### Evidence lines
-
-```text
-[36;1m  *) echo "::error::promote-needs self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
-[36;1m  *) echo "::error::actionlint self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
-##[error]Process completed with exit code 22.
-```
-
-### Tail (last 60 lines)
-
-```text
-##[group]Run bun scripts/doors/check-doors.ts
-[36;1mbun scripts/doors/check-doors.ts[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-check-doors self-test OK: 7 finding kinds fired on their planted fixtures, the clean pair fired nothing
-check-doors static OK: 265 manifest lines reconcile with the migrations' catalogue
-##[group]Run SELF_TEST=1 bun scripts/check-outbound-calls.ts
-[36;1mSELF_TEST=1 bun scripts/check-outbound-calls.ts[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-Outbound-calls self-test OK: the planted caller and both exposures refused
-##[group]Run tarball="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
-[36;1mtarball="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"[0m
-[36;1mcurl -sSfL --retry 5 --retry-delay 5 --retry-all-errors -o "$RUNNER_TEMP/$tarball" \[0m
-[36;1m  "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/$tarball"[0m
-[36;1mecho "$ACTIONLINT_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -[0m
-[36;1mtar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" actionlint[0m
-[36;1mlint() { "$RUNNER_TEMP/actionlint" -shellcheck= -pyflakes= "$@"; }[0m
-[36;1mif out="$(lint scripts/fixtures/workflow-bad-step.yml 2>&1)"; then[0m
-[36;1m  echo "::error::actionlint self-test: the bad fixture passed"; exit 1[0m
-[36;1mfi[0m
-[36;1mcase "$out" in[0m
-[36;1m  *'also contains "with" key'*) echo "actionlint self-test OK: the bad fixture was refused" ;;[0m
-[36;1m  *) echo "::error::actionlint self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
-[36;1mesac[0m
-[36;1mlint .github/workflows/*.yml[0m
-[36;1mecho "Workflow lint OK (actionlint ${ACTIONLINT_VERSION}; shell and Python checks off, DEC-141)"[0m
-shell: /usr/bin/bash -e {0}
-env:
-  ACTIONLINT_VERSION: 1.7.7
-  ACTIONLINT_SHA256: 023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757
-##[endgroup]
-curl: (22) The requested URL returned error: 504
-curl: (22) The requested URL returned error: 504
-curl: (22) The requested URL returned error: 504
-curl: (22) The requested URL returned error: 504
-curl: (22) The requested URL returned error: 504
-curl: (22) The requested URL returned error: 504
-##[error]Process completed with exit code 22.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/a4ffbca4-7474-47f5-9a73-ea4a9d2a9d7a' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## E2E preflight (migration parity, staging) — failure
-
-### Evidence lines
-
-```text
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-[e2e:preflight] missing migration file(s):
-  - 20261109044933_bddc8991-cde8-4b08-95c4-6cbdc189c52b.sql
-  - 20261109044934_b2f1fad4-455f-48bd-b1ce-15aa1048a75f.sql
-  - 20261109044935_68fda306-552d-48f5-9720-35e6a79ff605.sql
-  - 20261109044936_5c76824a-9cfe-4353-b14f-676443a19c6d.sql
-  - 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql
-STAGING BEHIND: apply 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql to ethio-staging before E2E can pass
-[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 25 of 28)
-STAGING BEHIND: apply 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql to ethio-staging before E2E can pass
-[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
-[e2e:preflight] missing migration file(s):
-  - 20261109044933_bddc8991-cde8-4b08-95c4-6cbdc189c52b.sql
-  - 20261109044934_b2f1fad4-455f-48bd-b1ce-15aa1048a75f.sql
-  - 20261109044935_68fda306-552d-48f5-9720-35e6a79ff605.sql
-  - 20261109044936_5c76824a-9cfe-4353-b14f-676443a19c6d.sql
-  - 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql
-STAGING BEHIND: apply 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql to ethio-staging before E2E can pass
-[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 26 of 28)
-STAGING BEHIND: apply 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql to ethio-staging before E2E can pass
-[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
-[e2e:preflight] missing migration file(s):
-  - 20261109044933_bddc8991-cde8-4b08-95c4-6cbdc189c52b.sql
-  - 20261109044934_b2f1fad4-455f-48bd-b1ce-15aa1048a75f.sql
-  - 20261109044935_68fda306-552d-48f5-9720-35e6a79ff605.sql
-  - 20261109044936_5c76824a-9cfe-4353-b14f-676443a19c6d.sql
-  - 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql
-STAGING BEHIND: apply 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql to ethio-staging before E2E can pass
-[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 27 of 28)
-STAGING BEHIND: apply 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql to ethio-staging before E2E can pass
-[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
-[e2e:preflight] missing migration file(s):
-  - 20261109044933_bddc8991-cde8-4b08-95c4-6cbdc189c52b.sql
-  - 20261109044934_b2f1fad4-455f-48bd-b1ce-15aa1048a75f.sql
-  - 20261109044935_68fda306-552d-48f5-9720-35e6a79ff605.sql
-  - 20261109044936_5c76824a-9cfe-4353-b14f-676443a19c6d.sql
-  - 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql
-STAGING BEHIND: apply 20261109044937_96b91fc3-12b4-458a-9951-4d391f96b9ab.sql to ethio-staging before E2E can pass
-[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 28 of 28)
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/dad7cfd2-00e2-4ec6-8be0-e9686423bf3e' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/dd683cb6-94bb-4dac-a2ab-8dfc8461e2a9' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -372,6 +174,11 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1mif [ "$selftest" -ne 0 ]; then[0m
+[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
+[36;1m  exit "$selftest"[0m
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
 [36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
@@ -383,7 +190,7 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42570464470
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42572874016
   E2E_HEAD_COMMIT_MESSAGE: 
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -414,7 +221,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/849e2a1f-6e10-4836-bd3b-8506ee4f9120' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/42c9d789-c612-4e59-8c4d-544c37ffa234' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
