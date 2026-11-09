@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { capsFormInput, capsFormOf, type CapsFormValues } from "./caps-forms";
 import {
   NEW_OVERRIDE_FORM,
   marketFormInput,
@@ -66,17 +65,6 @@ const GOOD_PRICE: PriceFormValues = {
   creditCost: "4",
   validFrom: "",
   validTo: "",
-};
-
-const GOOD_CAPS: CapsFormValues = {
-  maxCities: "3",
-  maxRegions: "1",
-  maxCountries: "1",
-  maxPhotos: "10",
-  allowEverywhere: false,
-  defaultDays: "60",
-  maxActiveAds: "20",
-  adsUnlimited: false,
 };
 
 describe("the monetisation forms' judges (P-1b)", () => {
@@ -361,57 +349,6 @@ describe("the monetisation forms' judges (P-1b)", () => {
       amount: "150",
       creditCost: "4",
       validTo: "2026-12-10",
-    });
-  });
-
-  it("MNF-10 the caps judge mirrors M1a: every dial a whole number, photos 0..30, days ≥ 1, ads ≥ 1 or unlimited; the stored row opens as it is", () => {
-    expect(capsFormInput(GOOD_CAPS)).toEqual({
-      ok: true,
-      input: {
-        maxCities: 3,
-        maxRegions: 1,
-        maxCountries: 1,
-        maxPhotos: 10,
-        allowEverywhere: false,
-        defaultDays: 60,
-        maxActiveAds: 20,
-      },
-    });
-    expect(capsFormInput({ ...GOOD_CAPS, adsUnlimited: true, maxActiveAds: "" })).toMatchObject({
-      ok: true,
-      input: { maxActiveAds: null },
-    });
-    const refusal = (values: CapsFormValues) => {
-      const outcome = capsFormInput(values);
-      return outcome.ok ? null : outcome.key;
-    };
-    expect(refusal({ ...GOOD_CAPS, maxCities: "" })).toBe("admin.coverage.error.belowMinimum");
-    expect(refusal({ ...GOOD_CAPS, maxPhotos: "31" })).toBe("admin.coverage.error.badMaxPhotos");
-    expect(refusal({ ...GOOD_CAPS, defaultDays: "0" })).toBe("admin.coverage.error.badDefaultDays");
-    expect(refusal({ ...GOOD_CAPS, maxActiveAds: "0" })).toBe(
-      "admin.coverage.error.badMaxActiveAds",
-    );
-    expect(
-      capsFormOf({
-        plan: "free",
-        maxCities: 3,
-        maxRegions: 1,
-        maxCountries: 1,
-        maxPhotos: 10,
-        allowEverywhere: true,
-        defaultDays: 60,
-        maxActiveAds: null,
-        updatedAt: "2026-11-03T09:00:00+00:00",
-      }),
-    ).toEqual({
-      maxCities: "3",
-      maxRegions: "1",
-      maxCountries: "1",
-      maxPhotos: "10",
-      allowEverywhere: true,
-      defaultDays: "60",
-      maxActiveAds: "",
-      adsUnlimited: true,
     });
   });
 });

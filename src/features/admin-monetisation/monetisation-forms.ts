@@ -18,8 +18,8 @@ import {
  * P-1b — the monetisation forms' judges: the doors' own rules mirrored so a
  * surface refuses before the round trip (the door remains the authority, F3),
  * every number read through the typed parse (ruling 1 answer 10: a blank or
- * non-numeric field is a refusal, never 0). The price and the caps judges live
- * beside them in price-forms.ts and caps-forms.ts.
+ * non-numeric field is a refusal, never 0). The price judge lives beside them
+ * in price-forms.ts.
  */
 
 /** The placement words, one per stored value (a null placement is a blank cell). */

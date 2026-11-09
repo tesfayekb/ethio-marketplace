@@ -6,7 +6,6 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
 
-import { CapsSection } from "./caps-section";
 import { MarketsSection } from "./markets-section";
 import { monetisationSteps } from "./monetisation-order";
 import { ProductsSection } from "./products-section";
@@ -16,28 +15,25 @@ import { useMonetisationNames } from "./use-monetisation-names";
 /**
  * P-1b (D290, D295, D303, D304, D311, D312), regrouped by P-1c (D313) — ADMIN ›
  * MONETISATION: the credits model's products and their console, BY PRODUCT.
- * The order strip first (Markets · Products · Prices · Posting caps, each
- * state from the one read), then the blocks — Markets · Levels · Reach ·
- * Posting caps; a level's per-category perks and every product's prices sit
- * inside the product's own row (products-section.tsx), never in a page-wide
- * table. Every block carries its Guide; the page keeps one h1.
+ * The order strip first (Markets · Products · Prices, each state from the one
+ * read), then the blocks — Markets · Levels · Reach; a level's per-category
+ * perks and every product's prices sit inside the product's own row
+ * (products-section.tsx), never in a page-wide table. Every block carries its
+ * Guide; the page keeps one h1.
  *
  * Gate tier: `packages:view` opens the section (the /admin layout owns it);
  * every write re-checks `packages:update` AND step-up inside its door (F3), so
- * the hidden verbs below are convenience, never authority. The caps block
- * keeps its own gate pair (`coverage:view` / `coverage:update`).
+ * the hidden verbs below are convenience, never authority.
  *
- * ONE READ (`admin_list_monetisation`) feeds the strip and the first three
- * blocks; one `StepUpGate` wraps the page; `useSettling` on the one key holds
- * the verbs while a write settles.
+ * ONE READ (`admin_list_monetisation`) feeds the strip and every block; one
+ * `StepUpGate` wraps the page; `useSettling` on the one key holds the verbs
+ * while a write settles.
  */
 export function AdminMonetisationPage() {
   const { t } = useI18n();
   const settling = useSettling(ADMIN_MONETISATION_KEY);
   const { permissions } = useAdminShell();
   const mayUpdate = permissions.includes("packages:update");
-  const maySeeCaps = permissions.includes("coverage:view");
-  const mayUpdateCaps = permissions.includes("coverage:update");
   const query = useMonetisation();
   const products = query.data?.products ?? [];
   const overrides = query.data?.overrides ?? [];
@@ -55,7 +51,6 @@ export function AdminMonetisationPage() {
             productName,
           },
           t,
-          { withCaps: maySeeCaps },
         );
   const shared = {
     products,
@@ -90,9 +85,6 @@ export function AdminMonetisationPage() {
             guard={guard}
             {...shared}
           />
-          {maySeeCaps ? (
-            <CapsSection mayUpdate={mayUpdateCaps} settling={settling} guard={guard} />
-          ) : null}
         </div>
       )}
     </StepUpGate>

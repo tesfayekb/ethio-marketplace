@@ -132,8 +132,8 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-screening.spec.ts", "e2e/name-check-queue.spec.ts"],
   },
   {
-    // P-1b — Admin › Monetisation: the products, their perks and prices, the
-    // markets and the posting caps; the two old addresses redirect here.
+    // P-1b — Admin › Monetisation: the products, their perks and prices and
+    // the markets; the two old addresses redirect here.
     name: "admin-monetisation",
     src: [
       "src/routes/admin.monetisation.tsx",

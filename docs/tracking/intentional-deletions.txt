@@ -113,3 +113,7 @@ scripts/check-caller-gates.ts
 scripts/caller-gates-allowlist.txt
 scripts/fixtures/caller-gates-bad.tsv
 src/features/feed/ranking.ts
+# P-2 (c) c2b: the posting caps block retired; the reach rows carry the place limits
+src/features/admin-monetisation/caps-editor.tsx
+src/features/admin-monetisation/caps-forms.ts
+src/features/admin-monetisation/caps-section.tsx

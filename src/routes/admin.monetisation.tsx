@@ -5,8 +5,8 @@ import { AdminMonetisationPage } from "@/features/admin-monetisation/monetisatio
 
 /**
  * P-1b (D290, D295, D303, D311, D312) — Admin › Monetisation. The /admin layout
- * owns the `packages:view` gate; every write re-checks `packages:update` (the
- * caps `coverage:update`) and step-up inside its door (F3).
+ * owns the `packages:view` gate; every write re-checks `packages:update` and
+ * step-up inside its door (F3).
  */
 export const Route = createFileRoute("/admin/monetisation")({
   head: () => ({

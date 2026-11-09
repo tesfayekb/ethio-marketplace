@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 685,
-  "dynamicCallSites": 441,
+  "scanned": 682,
+  "dynamicCallSites": 439,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2450,36 +2450,6 @@
     "admin.countries.transfer.scope": [
       "/admin/countries"
     ],
-    "admin.coverage.col.ads": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.cities": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.countries": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.days": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.everywhere": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.photos": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.plan": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.regions": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.col.updated": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.empty": [
-      "/admin/monetisation"
-    ],
     "admin.coverage.error.reason": [
       "/admin/monetisation"
     ],
@@ -2487,12 +2457,6 @@
       "/admin/monetisation"
     ],
     "admin.coverage.everywhere.yes": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.noDelete": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.unlimited": [
       "/admin/monetisation"
     ],
     "admin.landing.body": [
@@ -3497,15 +3461,6 @@
     ],
     "admin.locations.transfer.scopeAll": [
       "/admin/places"
-    ],
-    "admin.monetisation.caps.edit": [
-      "/admin/monetisation"
-    ],
-    "admin.monetisation.caps.title": [
-      "/admin/monetisation"
-    ],
-    "admin.monetisation.caps.untilP2": [
-      "/admin/monetisation"
     ],
     "admin.monetisation.col.badge": [
       "/admin/monetisation"
