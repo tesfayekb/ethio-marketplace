@@ -3,9 +3,8 @@
 Base: d5d6796c4 (cursor/p2-fold) · Final commit: 51e0f288c · Brief: docs/governance/briefs/p2-fold.md, with the c2b rulings docs/governance/briefs/p2-fold-c2b-ruling-1.md … -4.md (ruling 3 sha256 c6be9060bb808ed2457aa7f0b5e7d671af067cc65e530c67aa8115620e8ae99d, ruling 4 sha256 fa41dec217c50f0a34e710668884f6e8190415357ddeb42d3cc8080919e4664b, each checked on save)
 Review: READY · 0 BLOCKER · 0 MAJOR · 2 MINOR · on 51e0f28
 
-CI of the last completed run before this report: 7e65d1f FAILURE (run 42572874016); every red of it
-is answered in §11. This report's push starts the run on its own commit; its line follows in a
-later commit of this file once that run completes.
+CI: 0f906f2 SUCCESS (run 42578592846, the report's own push; §11). The run before it, 7e65d1f
+FAILURE (run 42572874016), is answered in §11.
 
 ## 1. Done / not done, by part and step
 
@@ -466,8 +465,22 @@ No red of an earlier turn stood. This pull request's own runs:
   gitleaks and action downloads: `Unexpected HTTP response: 504`, `curl: (22) … 504`). No rerun
   was asked; each next push was the rerun.
 
-This report's push starts the run on its own commit; its first six lines are added here once it
-completes.
+This report's push (0f906f25c) ran whole. Two-step SHA check: the raw ci-status.md names
+0f906f25c, and `gh run view 42578592846 --json headSha` answers the same with `success`.
+`gh pr checks 30`: 41 pass, 1 skipping (promote, as on every pull request).
+
+```
+# CI Status (auto-generated — do not edit by hand)
+
+- Commit: `0f906f25cc652b9234529fda7bf13014621649fc` (short `0f906f2`)
+- Conclusion: **SUCCESS**
+- Completed (UTC): 2026-11-09T07:40:58Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42578592846
+```
+
+Every job green: the sixteen lanes, smoke, email and repeat (MON-5 and MON-18 among their specs),
+the bundle budget, and the staging E2E job. The lanes retry once, and I did not read the flake
+ledger, so whether RP-8 or MLA-13 (§12) passed only on a retry is not stated here.
 
 ## 12. Limits
 
