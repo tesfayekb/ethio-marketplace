@@ -158,13 +158,13 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
       }
       await expectNoHorizontalOverflow(page);
     }
-    // Monetisation: four Guides on the page; a product's open row brings its two inner tables' Guides.
+    // Monetisation: three Guides on the page; a product's open row brings its two inner tables' Guides.
     await openConsole(page);
-    await expect(guideControls(page)).toHaveCount(4);
+    await expect(guideControls(page)).toHaveCount(3);
     const level = productToggle(page, await firstLevel());
     await level.click();
     await expect(level).toHaveAttribute("aria-expanded", "true");
-    await expect(guideControls(page)).toHaveCount(6);
+    await expect(guideControls(page)).toHaveCount(5);
     await expectNoHorizontalOverflow(page);
   });
 
