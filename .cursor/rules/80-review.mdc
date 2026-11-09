@@ -38,8 +38,10 @@ under these headings, each with file:line evidence, or "none" after naming the g
 6. MIGRATIONS — born closed, whole redeclaration from the live definition, closers in-file, self-mark
    above the ledger, proofs on scratch rows that RAISE on failure, `profiles(user_id)` not
    `auth.users`, `home_country_code` on personal tables, the pool-reset-map line.
-7. DOCS AND RECORDS — feature doc, changelog line, register row, allowlist lines with reason and
-   until, deletions declared, both i18n maps regenerated when a key moved.
+7. DOCS AND RECORDS — feature doc updated; the changelog line, the register row and the roadmap
+   tick written into the report's Records section (unnumbered, DEC-346), never into the shared
+   ledgers; allowlist lines with reason and until; deletions declared; both i18n maps regenerated
+   when a key moved; section 13, Findings, written or proven "none".
 8. SECURITY — anything the public repository should not carry before a fix is live; any input not
    validated at the boundary; any provider or Postgres text reaching a client.
 
