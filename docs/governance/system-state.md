@@ -62,7 +62,7 @@
 
 ## Standing reads
 
-Governing instructions: Claude supervisor v1.16 (installed 2026-10-28 — docs/governance/claude-supervisor-instructions-v1.16.md) · Lovable Project Knowledge v3.12 (live 2026-10-29 — docs/governance/lovable-knowledge.md mirrors it). Canonical truth: this file + /docs/spec/spec-ledger.md. Evidence channels: branch ci-evidence (DEC-098) — docs/tracking/ci-status.md (two-step SHA check), e2e-last-failure.md, guards-last-failure.md, nightly-status.md, nightly-last-failure.md, flake-ledger.md (read whole).
+Governing instructions: Claude supervisor v1.17 (installed 2026-11-09 — docs/governance/claude-supervisor-instructions-v1.17.md; v1.16 of 2026-10-28 superseded) · Lovable Project Knowledge v3.12 (live 2026-10-29 — docs/governance/lovable-knowledge.md mirrors it). Canonical truth: this file + /docs/spec/spec-ledger.md. Evidence channels: branch ci-evidence (DEC-098) — docs/tracking/ci-status.md (two-step SHA check), e2e-last-failure.md, guards-last-failure.md, nightly-status.md, nightly-last-failure.md, flake-ledger.md (read whole).
 
 ## Environment
 

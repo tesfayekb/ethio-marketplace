@@ -88,9 +88,13 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
    block (a fence longer than any fence inside the text: four backticks when the task holds code
    blocks). The saved text must contain the line `Base: dev <sha>` as the task gives it; the checks
    read the base from that exact form. When the task states a sha256, compare it (`sha256sum` of
-   the fenced text); a difference is a STOP. Line 3 of `roadmap.md` starts with `The brief in force: docs/governance/briefs/<stem>.md`
-   (the checks read the task's base from the first brief named there); tick or add only the roadmap
-   lines the task dictates; `bunx prettier --check roadmap.md`. Commit: `<stem>: task saved`.
+   the fenced text); a difference is a STOP. Line 3 of `roadmap.md` names the brief in force: a FEATURE
+   lane writes `The brief in force: docs/governance/briefs/<stem>.md` there at this step, and a records
+   turn writes it by its script; a rules or docs-only lane that runs while a feature lane is open LEAVES
+   line 3 as it stands and runs every check with `TURN_BASE=<its Base sha>` and `CHECKS_BASE=<its Base
+   sha>` in the environment (the checks read the base from the first brief named on line 3 otherwise).
+   Tick or add only the roadmap lines the task dictates; `bunx prettier --check roadmap.md`. Commit:
+   `<stem>: task saved`.
 3. **Census first, every part.** Before any edit, read the real tree for the part's concern: every
    consumer by DEFINITION, across `src/`, `supabase/migrations/`, `e2e/` and `scripts/` (never only
    the folder the first instance sits in), and the mechanism that already serves it. A census hit the
@@ -192,22 +196,27 @@ sweeps outside the touched files. Ambiguous → STOP and ask. One task, one subj
 
 Work only on your own `cursor/…` branch. Allowed: `fetch`, `switch -c` from `origin/dev`, `add`,
 `commit`, `push -u origin <your cursor/… branch>` (no force), `status`, `diff`, `log`, `show`,
-`cat-file` (a read), `rev-parse`, `ls-files`, and `stash` for your own uncommitted work only (popped
-before the turn ends; a stash is never pushed and never named in a report as a change). Never: a
-push to `dev` or `main`, `--force` in any form, `rebase`, `checkout`, `restore`, `switch` to any branch
-but your own new one, `commit --amend` after a push, `reset --hard`, `merge`, `pull`, `cherry-pick`,
-tags, deleting branches, rewriting history. To put a file back to a commit's version (a red-first
+`cat-file` (a read), `rev-parse`, `ls-files`, `stash` for your own uncommitted work only (popped
+before the turn ends; a stash is never pushed and never named in a report as a change), and ONE form
+of merge: `merge --ff-only origin/<your cursor/… branch>`, to take your own branch's remote commits
+when the operator has merged `dev` into your pull request on GitHub (it fast-forwards or refuses;
+it never creates a commit). Never: a push to `dev` or `main`, `--force` in any form, `rebase`,
+`checkout`, `restore`, `switch` to any branch but your own new one, `commit --amend` after a push,
+`reset --hard`, any other `merge`, `pull`, `cherry-pick`, tags, deleting branches, rewriting history.
+To put a file back to a commit's version (a red-first
 check, a restore), write it from `git show <sha>:<path>` with a redirect, never `checkout`. A copy
 of the tree you make for a comparison (a base build) lives under `/tmp/ethio-scratch/<stem>/`, is
-named in the report, and is the operator's to remove (your tool refuses `rm`). `main` moves only by CI's promote job on a fully green `dev` (DEC-020);
-`dev` moves only by the operator's merge of a pull request, or by Lovable. When `origin/dev` moves
+named in the report, and is the operator's to remove (your tool refuses `rm`). `main` moves only by
+CI's promote job on a fully green `dev` (DEC-020); `dev` moves only by the operator's merge of a pull
+request, or by Lovable. When `origin/dev` moves
 during your task, you do not merge or rebase: finish, push, and say so in the report; the supervisor
 rules. When the supervisor rules a RE-LAND (your pull request cannot merge because a file it changed
 also changed on `dev`): `git switch -c cursor/<stem>-2 origin/dev`, copy every file of your lane by
 script from your first branch (`git show cursor/<stem>:<path>` into place, each path from the first
 branch's `git diff --name-only <BASE>`), prove the copy (`git diff --stat` over those paths against the
 first branch is empty for every file the ruling keeps), make line 3 of `roadmap.md` name the brief in
-force, commit, push, open the new pull request and say which one replaces which. Never rebase. A deleted file is declared in the same commit: the `[intentional-delete]` marker in the commit
+force, commit, push, open the new pull request and say which one replaces which. Never rebase.
+A deleted file is declared in the same commit: the `[intentional-delete]` marker in the commit
 message AND a line in `docs/tracking/intentional-deletions.txt`. Never commit a secret, `.env`
 values, build output or `node_modules`.
 
