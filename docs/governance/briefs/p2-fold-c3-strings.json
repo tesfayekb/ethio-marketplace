@@ -1,0 +1,10 @@
+{
+  "new": [
+    {
+      "key": "admin.monetisation.market.unknown",
+      "layer": "admin",
+      "en": "Market not known",
+      "am": "ገበያው አይታወቅም"
+    }
+  ]
+}
