@@ -7,8 +7,9 @@ alwaysApply: false
 
 Review the task's work as if you did not write it. Read your task's brief (`roadmap.md` line 3 names
 it when your lane owns line 3 — rule 00 step 2; otherwise your own `docs/governance/briefs/<stem>.md`),
-these rules, and the whole diff `git diff <BASE>..HEAD`, where `<BASE>` is the task's `Base: dev <sha>`. Read each base version with `git show <BASE>:<path>`. Report
-under these headings, each with file:line evidence, or "none" after naming the grep you ran:
+these rules, and the whole diff `git diff <BASE>..HEAD`, where `<BASE>` is the task's `Base: dev <sha>`.
+Read each base version with `git show <BASE>:<path>`. Report under these headings, each with
+file:line evidence, or "none" after naming the grep you ran:
 
 1. SCOPE — every changed file against the task's scope (files, globs or areas) and the standing
    allowance; any file outside; any file the task named that was not changed.
