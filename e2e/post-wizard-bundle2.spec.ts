@@ -7,7 +7,7 @@ import { adminClient } from "./helpers/users";
 import { updateListingRow } from "./helpers/listing-seed";
 import { en } from "../src/i18n/locales/en";
 import { seedActiveListing } from "./helpers/categories";
-import { expectAliasAccepted, waitAliasAccepted } from "./helpers/alias-check";
+import { expectAliasAccepted, scratchAlias, waitAliasAccepted } from "./helpers/alias-check";
 import {
   leaseSeller,
   activeCityOf,
@@ -501,7 +501,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await expect.poll(() => held, { message: "PW-134: the identity read was never held" }).toBe(1);
 
-    const alias = `e2e_${rand()}`.slice(0, 30).toLowerCase();
+    const alias = scratchAlias();
     const first = page.getByTestId("post-who-first");
     const typeNames = async () => {
       await first.click();
@@ -771,7 +771,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(page.getByTestId("post-who-alias-refusal")).toBeVisible();
     // A business needs its business name, not the two names.
     await page.getByTestId("post-who-type-business").check();
-    await expectAliasAccepted(page, `e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible();
     await expect(page.getByTestId("post-who-business-refusal")).toBeVisible();
@@ -929,7 +929,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const leaf = await category();
     const city = await activeCityOf("ET");
     const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
-    await expectAliasAccepted(page, `e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expectAliasAccepted(page, scratchAlias());
     // Bundle 3 step 12 — the guessed home country is confirmed on the contact step.
     await expect(page.getByTestId("post-who-country-required")).toBeVisible();
     await page.getByTestId("post-who-country-confirm").click();
@@ -963,7 +963,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const leaf = await category();
     const city = await activeCityOf("ET");
     const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
-    await expectAliasAccepted(page, `e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expectAliasAccepted(page, scratchAlias());
     await expect(page.getByTestId("post-who-country-required")).toBeVisible();
     await page.getByTestId("post-who-country-confirm").click();
     await page.getByTestId("post-who-country-yes").click();
