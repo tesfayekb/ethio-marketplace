@@ -51,7 +51,6 @@ export const POOL_EXEMPT_TABLES = {
   category_country_exclusions: "created_by is attribution on a catalogue row",
   category_import_revisions: "created_by is attribution on import history",
   country_root_order: "created_by is attribution on a catalogue row",
-  coverage_plans: "updated_by is attribution on a global plan row",
   entity_translations: "updated_by / approved_by are attribution",
   location_import_revisions: "created_by is attribution on import history",
   listing_photo_changes:
