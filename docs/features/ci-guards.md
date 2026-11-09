@@ -70,6 +70,13 @@ Details: `docs/features/security-scanning.md`.
   block reading identity/reference tables without the `e2e-mig-` scratch
   namespace is refused. Self-test fixture:
   `scripts/fixtures/bad-real-row-proof-example.sql`.
+- Its reference picks (INC-1040, floor `REAL_PICK_FLOOR=20261102000000`): a DO
+  block statement that SELECTs FROM `public.countries`, `public.languages` or
+  `public.currencies` with `ORDER BY … LIMIT 1` is refused unless it names an
+  `e2e-mig-` / `e2e_mig_` key (categories and locations stay the rule above's);
+  the same allowlist, where the nine picks that landed before the rule carry
+  `INC-1040`. Self-test fixture: `scripts/fixtures/bad-real-pick-proof-example.sql`
+  (refused), and an inline scratch-keyed pick (passes).
 - Body fingerprints in proofs (INC-968, from M6b on): a proof that fingerprints a
   function body compares `md5(replace(prosrc, E'\r', ''))`, and its expected
   hashes are computed the same way — an `md5(prosrc)` proof is not portable

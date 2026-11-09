@@ -710,6 +710,30 @@ real_row_offenders() {
   ' "$1"
 }
 
+# INC-1040 — nor does it pick a real reference row. In a migration at or after
+# REAL_PICK_FLOOR, a statement inside a DO $…$ block that SELECTs FROM
+# countries, languages or currencies with ORDER BY … LIMIT 1 is refused unless
+# the same statement names a scratch key (e2e-mig- / e2e_mig_). Categories and
+# locations stay the rule above's. Same line form, same allowlist.
+REAL_PICK_FLOOR="${REAL_PICK_FLOOR:-20261102000000}"
+
+real_pick_offenders() {
+  # $1 = file. Prints one "<file>: <statement head>" per refused statement.
+  perl -0777 -ne '
+    my $t = q{public\.(?:countries|languages|currencies)\b};
+    while (/\bDO\s+(\$\w*\$)(.*?)\1/sg) {
+      for my $st (split /;/, $2) {
+        next if $st =~ /e2e[-_]mig[-_]/i;
+        if ($st =~ /\bSELECT\b.*?\bFROM\s+$t.*?\bORDER\s+BY\b.*?\bLIMIT\s+1\b/si) {
+          (my $head = $st) =~ s/\s+/ /g; $head =~ s/^ //;
+          (my $cut = substr($head, 0, 120)) =~ s/ +$//;
+          print "$ARGV: $cut\n";
+        }
+      }
+    }
+  ' "$1"
+}
+
 REAL_ROW_ALLOWLIST_FILE="${REAL_ROW_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-real-row-allowlist.txt}"
 
 real_row_split() {
@@ -813,6 +837,27 @@ fi
 rm -rf "$RR_SHA_DIR"
 echo "Real-row proof guard self-test OK (a head containing '||' is refused without its line, skipped by its sha256 line, and a stale sha256 line does not skip it)."
 
+# Self-test (INC-1040): the reference pick is refused in the fixture; the same
+# pick naming a scratch key passes; a pick with no ORDER BY … LIMIT 1 is not this
+# rule's.
+pick_fixture="$(real_pick_offenders "$FIXTURE_DIR/bad-real-pick-proof-example.sql")"
+RP_DIR="$(mktemp -d)"
+cat > "$RP_DIR/29990101000000_pppp1111.sql" <<'SQL'
+DO $proof$
+DECLARE v text;
+BEGIN
+  SELECT code INTO v FROM public.languages WHERE code LIKE 'e2e_mig_%' ORDER BY code LIMIT 1;
+  SELECT code INTO v FROM public.countries WHERE code = 'XZ';
+END $proof$;
+SQL
+pick_scratch="$(real_pick_offenders "$RP_DIR/29990101000000_pppp1111.sql")"
+rm -rf "$RP_DIR"
+if ! grep -q 'FROM public.languages ORDER BY code LIMIT 1' <<<"$pick_fixture" || [ -n "$pick_scratch" ]; then
+  echo "Real-row proof guard self-test FAILED: the reference-pick rule refused the wrong statement."
+  exit 1
+fi
+echo "Real-row proof guard self-test OK (a reference pick is refused; a scratch-keyed pick and a pick without ORDER BY … LIMIT 1 pass)."
+
 real_row_found=""
 while IFS= read -r -d '' file; do
   base="$(basename "$file")"
@@ -821,6 +866,9 @@ while IFS= read -r -d '' file; do
     continue
   fi
   real_row_found+="$(real_row_offenders "$file")"$'\n'
+  if ! [[ "$stamp" < "$REAL_PICK_FLOOR" ]]; then
+    real_row_found+="$(real_pick_offenders "$file")"$'\n'
+  fi
 done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
 
 real_row_skipped="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>&1 >/dev/null)"
