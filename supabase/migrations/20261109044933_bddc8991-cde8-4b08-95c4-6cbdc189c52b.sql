@@ -118,6 +118,7 @@ DECLARE
   v_src     text;
   v_md5     text;
   v_msg     text;
+  v_frag    text;
 BEGIN
   -- (a)
   IF (SELECT prosecdef OR provolatile <> 's' OR proconfig::text <> '{search_path=public}' OR pronargs <> 2
@@ -136,16 +137,14 @@ BEGIN
     RAISE EXCEPTION 'P-2 (c) M-3c-b part 1 proof (a): my_listing_private''s header or grants differ';
   END IF;
 
-  -- (b) Both sides without chr(13) (INC-1056, law 13).
+  -- (b) Both sides without chr(13), the fragment on one line of this file (INC-1056, INC-1089).
   SELECT replace(p.prosrc, chr(13), '') INTO v_src FROM pg_proc p WHERE p.oid = v_door;
-  v_n := (length(v_src) - length(replace(v_src, ',
-    ''caps'', public.listing_caps(v_row.id)', ''))) / length(',
-    ''caps'', public.listing_caps(v_row.id)');
+  v_frag := replace(',' || chr(10) || '    ''caps'', public.listing_caps(v_row.id)', chr(13), '');
+  v_n := (length(v_src) - length(replace(v_src, v_frag, ''))) / length(v_frag);
   IF v_n <> 1 THEN
     RAISE EXCEPTION 'P-2 (c) M-3c-b part 1 proof (b): the caps key occurs % times in my_listing_private', v_n;
   END IF;
-  v_md5 := md5(replace(v_src, ',
-    ''caps'', public.listing_caps(v_row.id)', ''));
+  v_md5 := md5(replace(v_src, v_frag, ''));
   IF v_md5 IS DISTINCT FROM '4d2baee59c0d512d02c1133a1a031979' THEN
     RAISE EXCEPTION 'P-2 (c) M-3c-b part 1 proof (b): my_listing_private differs from its last declaration beyond the caps key (%)', v_md5;
   END IF;

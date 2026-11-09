@@ -83,6 +83,10 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain(
       'public-surface.ts" --migration',
     );
+    // INC-1089: the migration guard runs the reader's spanning-literal census.
+    expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain(
+      'conformance/migration-reader.ts" --spanning',
+    );
     expect(readFileSync(join(ROOT, "scripts/security-lints.ts"), "utf8")).toContain(
       'from "./public-surface"',
     );

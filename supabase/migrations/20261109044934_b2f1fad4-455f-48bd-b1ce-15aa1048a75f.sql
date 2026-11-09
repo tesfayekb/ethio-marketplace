@@ -210,82 +210,72 @@ BEGIN
     RAISE EXCEPTION 'P-2 (c) M-3c-b part 2 proof (a): the old signature is still declared';
   END IF;
 
-  -- (b) Both sides without chr(13) (INC-1056, law 13): prosrc, and each literal.
+  -- (b) Both sides without chr(13), every fragment on one line of this file (INC-1056, INC-1089).
   SELECT replace(p.prosrc, chr(13), '') INTO v_src FROM pg_proc p WHERE p.oid = v_save;
   IF md5(v_src) IS DISTINCT FROM '61aa36df2245ba685201bb0dc33e28ca' THEN
     RAISE EXCEPTION 'P-2 (c) M-3c-b part 2 proof (b): the live body is not this file''s (%)', md5(v_src);
   END IF;
   v_pairs := ARRAY[
-    ['  v_am     text;
-  v_cities    integer;
-  v_regions   integer;
-  v_countries integer;
-',
-     '  v_am     text;
-'],
-    ['  IF p_kind = ''level'' THEN
-    -- P-2 (c) M-3c-b (DEC-356): a level has no place caps.
-    IF p_caps IS NOT NULL THEN
-      RAISE EXCEPTION ''caps on level'';
-    END IF;
-    v_cities := NULL;
-    v_regions := NULL;
-    v_countries := NULL;
-    -- A level''s perks:',
-     '  IF p_kind = ''level'' THEN
-    -- A level''s perks:'],
-    ['    v_photos := NULL;
-    v_place := NULL;
-    v_badge := false;
-    -- P-2 (c) M-3c-b (DEC-356): a reach row''s caps — a NULL p_caps keeps the stored ones, and a new row
-    -- must state them; given, an object of exactly the three keys, each a JSON null (no limit) or a whole
-    -- number of at least 1, set exactly.
-    IF p_caps IS NULL THEN
-      IF v_old.key IS NULL THEN
-        RAISE EXCEPTION ''bad caps'';
-      END IF;
-      v_cities := v_old.max_cities;
-      v_regions := v_old.max_regions;
-      v_countries := v_old.max_countries;
-    ELSE
-      IF jsonb_typeof(p_caps) IS DISTINCT FROM ''object'' THEN
-        RAISE EXCEPTION ''bad caps'';
-      END IF;
-      IF (SELECT array_agg(k ORDER BY k) FROM jsonb_object_keys(p_caps) k)
-           IS DISTINCT FROM ARRAY[''max_cities'', ''max_countries'', ''max_regions'']
-         OR EXISTS (SELECT 1 FROM jsonb_each(p_caps) e
-                     WHERE jsonb_typeof(e.value) <> ''null''
-                       AND (jsonb_typeof(e.value) <> ''number'' OR e.value::text !~ ''^[1-9][0-9]{0,8}$'')) THEN
-        RAISE EXCEPTION ''bad caps'';
-      END IF;
-      v_cities := (p_caps->>''max_cities'')::integer;
-      v_regions := (p_caps->>''max_regions'')::integer;
-      v_countries := (p_caps->>''max_countries'')::integer;
-    END IF;
-  END IF;
-',
-     '    v_photos := NULL;
-    v_place := NULL;
-    v_badge := false;
-  END IF;
-'],
-    ['    (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by, updated_at,
-     max_cities, max_regions, max_countries)
-',
-     '    (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by, updated_at)
-'],
-    ['          coalesce(p_sort, v_old.sort, 0), v_uid, v_uid, now(),
-          v_cities, v_regions, v_countries)
-',
-     '          coalesce(p_sort, v_old.sort, 0), v_uid, v_uid, now())
-'],
-    ['        sort = EXCLUDED.sort,
-        max_cities = EXCLUDED.max_cities,
-        max_regions = EXCLUDED.max_regions,
-        max_countries = EXCLUDED.max_countries,
-',
-     '        sort = EXCLUDED.sort,
-']];
+    ['  v_am     text;' || chr(10)
+     || '  v_cities    integer;' || chr(10)
+     || '  v_regions   integer;' || chr(10)
+     || '  v_countries integer;' || chr(10),
+     '  v_am     text;' || chr(10)],
+    ['  IF p_kind = ''level'' THEN' || chr(10)
+     || '    -- P-2 (c) M-3c-b (DEC-356): a level has no place caps.' || chr(10)
+     || '    IF p_caps IS NOT NULL THEN' || chr(10)
+     || '      RAISE EXCEPTION ''caps on level'';' || chr(10)
+     || '    END IF;' || chr(10)
+     || '    v_cities := NULL;' || chr(10)
+     || '    v_regions := NULL;' || chr(10)
+     || '    v_countries := NULL;' || chr(10)
+     || '    -- A level''s perks:',
+     '  IF p_kind = ''level'' THEN' || chr(10)
+     || '    -- A level''s perks:'],
+    ['    v_photos := NULL;' || chr(10)
+     || '    v_place := NULL;' || chr(10)
+     || '    v_badge := false;' || chr(10)
+     || '    -- P-2 (c) M-3c-b (DEC-356): a reach row''s caps — a NULL p_caps keeps the stored ones, and a new row' || chr(10)
+     || '    -- must state them; given, an object of exactly the three keys, each a JSON null (no limit) or a whole' || chr(10)
+     || '    -- number of at least 1, set exactly.' || chr(10)
+     || '    IF p_caps IS NULL THEN' || chr(10)
+     || '      IF v_old.key IS NULL THEN' || chr(10)
+     || '        RAISE EXCEPTION ''bad caps'';' || chr(10)
+     || '      END IF;' || chr(10)
+     || '      v_cities := v_old.max_cities;' || chr(10)
+     || '      v_regions := v_old.max_regions;' || chr(10)
+     || '      v_countries := v_old.max_countries;' || chr(10)
+     || '    ELSE' || chr(10)
+     || '      IF jsonb_typeof(p_caps) IS DISTINCT FROM ''object'' THEN' || chr(10)
+     || '        RAISE EXCEPTION ''bad caps'';' || chr(10)
+     || '      END IF;' || chr(10)
+     || '      IF (SELECT array_agg(k ORDER BY k) FROM jsonb_object_keys(p_caps) k)' || chr(10)
+     || '           IS DISTINCT FROM ARRAY[''max_cities'', ''max_countries'', ''max_regions'']' || chr(10)
+     || '         OR EXISTS (SELECT 1 FROM jsonb_each(p_caps) e' || chr(10)
+     || '                     WHERE jsonb_typeof(e.value) <> ''null''' || chr(10)
+     || '                       AND (jsonb_typeof(e.value) <> ''number'' OR e.value::text !~ ''^[1-9][0-9]{0,8}$'')) THEN' || chr(10)
+     || '        RAISE EXCEPTION ''bad caps'';' || chr(10)
+     || '      END IF;' || chr(10)
+     || '      v_cities := (p_caps->>''max_cities'')::integer;' || chr(10)
+     || '      v_regions := (p_caps->>''max_regions'')::integer;' || chr(10)
+     || '      v_countries := (p_caps->>''max_countries'')::integer;' || chr(10)
+     || '    END IF;' || chr(10)
+     || '  END IF;' || chr(10),
+     '    v_photos := NULL;' || chr(10)
+     || '    v_place := NULL;' || chr(10)
+     || '    v_badge := false;' || chr(10)
+     || '  END IF;' || chr(10)],
+    ['    (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by, updated_at,' || chr(10)
+     || '     max_cities, max_regions, max_countries)' || chr(10),
+     '    (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by, updated_at)' || chr(10)],
+    ['          coalesce(p_sort, v_old.sort, 0), v_uid, v_uid, now(),' || chr(10)
+     || '          v_cities, v_regions, v_countries)' || chr(10),
+     '          coalesce(p_sort, v_old.sort, 0), v_uid, v_uid, now())' || chr(10)],
+    ['        sort = EXCLUDED.sort,' || chr(10)
+     || '        max_cities = EXCLUDED.max_cities,' || chr(10)
+     || '        max_regions = EXCLUDED.max_regions,' || chr(10)
+     || '        max_countries = EXCLUDED.max_countries,' || chr(10),
+     '        sort = EXCLUDED.sort,' || chr(10)]];
   FOREACH v_pair SLICE 1 IN ARRAY v_pairs LOOP
     v_n := (length(v_src) - length(replace(v_src, replace(v_pair[1], chr(13), ''), ''))) / length(replace(v_pair[1], chr(13), ''));
     IF v_n <> 1 THEN

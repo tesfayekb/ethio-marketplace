@@ -3,7 +3,13 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { declarationsOf, dropsOf, lastDeclarations, sqlCodeOf } from "./migration-reader";
+import {
+  declarationsOf,
+  dropsOf,
+  lastDeclarations,
+  spanningLiterals,
+  sqlCodeOf,
+} from "./migration-reader";
 
 /**
  * P-2 (c) c2b (ruling 1 Q9) — the migration reader on planted SQL: a function's
@@ -79,5 +85,22 @@ describe("the migration reader keeps each function's last declaration", () => {
     expect(sqlCodeOf(sql)).toContain("'-- not a comment'");
     expect(sqlCodeOf(sql)).not.toContain("ghost");
     expect(sqlCodeOf(sql).length).toBe(sql.length);
+  });
+});
+
+describe("a compared literal never spans a line break (INC-1089)", () => {
+  it("MGR-4 a literal across a line break is found on its lines; a doubled quote, a comment's apostrophe, a backslash pair and a dollar-quoted block are not", () => {
+    const spanning =
+      "DO $proof$\nBEGIN\n  v := replace(v_src, ',\n    ''caps'', x', '');\nEND $proof$;\n";
+    expect(spanningLiterals(spanning)).toEqual([{ line: 3 }, { line: 4 }]);
+    const clean =
+      "-- it's a comment\n" +
+      "/* and it's another */\n" +
+      "DO $proof$\nBEGIN\n" +
+      "  v := 'it''s' || ',' || chr(10) || '    ''caps'', x';\n" +
+      "  w := E',\\n    ''caps''' || '--[^\\n]*';\n" +
+      "END $proof$;\n" +
+      "COMMENT ON TABLE public.t IS $c$over\ntwo lines$c$;\n";
+    expect(spanningLiterals(clean)).toEqual([]);
   });
 });

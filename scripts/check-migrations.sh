@@ -813,4 +813,46 @@ if [ -n "$real_row_found" ]; then
 fi
 echo "Real-row proof guard OK (floor $REAL_ROW_FLOOR)."
 
+# INC-1089 — a proof's verdict never depends on how its file is carried. The
+# paste path turns every line break into CRLF, so a string literal written
+# across a line break holds a chr(13) the stripped live body does not. In a
+# migration at or after SPANNING_LITERAL_FLOOR, no string literal spans a line
+# break (scripts/conformance/migration-reader.ts spanningLiterals).
+SPANNING_LITERAL_FLOOR="${SPANNING_LITERAL_FLOOR:-20261109000000}"
+
+spanning_literals() {
+  bun "$SCRIPT_DIR/conformance/migration-reader.ts" --spanning "$@"
+}
+
+if [ -z "$(spanning_literals "$FIXTURE_DIR/bad-spanning-literal-example.sql")" ]; then
+  echo "Spanning-literal guard self-test FAILED: the bad fixture passed."
+  exit 1
+fi
+if [ -n "$(spanning_literals "$FIXTURE_DIR/good-spanning-literal-example.sql")" ]; then
+  echo "Spanning-literal guard self-test FAILED: the good fixture was refused."
+  exit 1
+fi
+echo "Spanning-literal guard self-test OK (the bad fixture is refused, the good one passes)."
+
+spanning_files=()
+while IFS= read -r -d '' file; do
+  base="$(basename "$file")"
+  stamp="${base%%_*}"
+  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$SPANNING_LITERAL_FLOOR" ]]; then
+    continue
+  fi
+  spanning_files+=("$file")
+done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
+
+spanning_found=""
+if [ "${#spanning_files[@]}" -gt 0 ]; then
+  spanning_found="$(spanning_literals "${spanning_files[@]}")"
+fi
+if [ -n "$spanning_found" ]; then
+  echo "Spanning-literal guard FAILED:"
+  printf '%s\n' "$spanning_found"
+  exit 1
+fi
+echo "Spanning-literal guard OK (floor $SPANNING_LITERAL_FLOOR)."
+
 echo "Migration guard OK."

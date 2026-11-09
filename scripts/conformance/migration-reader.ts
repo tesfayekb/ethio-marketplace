@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { walkFiles } from "./kit";
 
@@ -11,7 +12,9 @@ import { walkFiles } from "./kit";
  * It reads every migration in file order (SQL comments blanked, `DO` blocks —
  * the proofs — removed: they are append-only history, never a function's
  * body) and keeps each function's LAST declaration, forgetting a function a
- * later `DROP FUNCTION` removes without redeclaring.
+ * later `DROP FUNCTION` removes without redeclaring. It also answers every
+ * string literal that spans a line break (`spanningLiterals`, for the
+ * migration guard, INC-1089).
  *
  * What it cannot see (INC-1083): text a statement computes at run time — a
  * `format(…)` or an `EXECUTE` of a built string — is a literal to it, never a
@@ -19,12 +22,37 @@ import { walkFiles } from "./kit";
  * written.
  */
 
+/**
+ * A string literal on one line: a doubled quote is a quote, and a backslash
+ * pair is one character pair (an `E'\n'` escape, or a standard literal's `\`).
+ */
+const ONE_LINE_LITERAL = String.raw`'(?:[^'\\\n]|''|\\[^\n])*'`;
+const COMMENT_OR_LITERAL = new RegExp(
+  String.raw`\/\*[\s\S]*?\*\/|--[^\n]*|` + ONE_LINE_LITERAL,
+  "g",
+);
+
 /** SQL text with every `--` and `/* … *\/` comment blanked (positions kept). */
 export function sqlCodeOf(text: string): string {
   const blank = (s: string) => s.replace(/[^\n]/g, " ");
-  return text.replace(/\/\*[\s\S]*?\*\/|--[^\n]*|'(?:[^'\\\n]|'')*'/g, (match) =>
+  return text.replace(COMMENT_OR_LITERAL, (match) =>
     match.startsWith("'") ? match : blank(match),
   );
+}
+
+/**
+ * Every line holding a quote that opens or closes a string literal spanning a
+ * line break (INC-1089): with comments and one-line literals blanked, any `'`
+ * left is one. Dollar-quoted text is read as code, so a `DO` block's literals
+ * are judged too.
+ */
+export function spanningLiterals(sql: string): Array<{ line: number }> {
+  const blank = (s: string) => s.replace(/[^\n]/g, " ");
+  const code = sqlCodeOf(sql).replace(new RegExp(ONE_LINE_LITERAL, "g"), blank);
+  const lines = new Set<number>();
+  for (const match of code.matchAll(/'/g))
+    lines.add(code.slice(0, match.index ?? 0).split("\n").length);
+  return [...lines].map((line) => ({ line }));
 }
 
 const DO_BLOCK = /\bDO\s+(\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$)[\s\S]*?\1\s*;/gi;
@@ -128,4 +156,16 @@ export function lastDeclarations(root: string): Map<string, LastDeclaration> {
     events.sort((a, b) => a.offset - b.offset).forEach((event) => event.apply());
   }
   return last;
+}
+
+/** `--spanning <file>…`: one line per spanning literal, for scripts/check-migrations.sh. */
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  const [mode, ...files] = process.argv.slice(2);
+  if (mode !== "--spanning" || files.length === 0)
+    throw new Error("migration reader: use --spanning <file>…");
+  for (const file of files)
+    for (const { line } of spanningLiterals(readFileSync(file, "utf8")))
+      console.log(
+        `${file}:${line}: a string literal spans a line break — write chr(10) or E'\\n' (INC-1089)`,
+      );
 }

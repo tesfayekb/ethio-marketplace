@@ -166,18 +166,16 @@ BEGIN
     RAISE EXCEPTION 'P-2 (c) M-3c-b part 3 proof (a): admin_list_listings''s header or grants differ';
   END IF;
 
-  -- (b) Both sides without chr(13) (INC-1056, law 13): prosrc, and each literal.
+  -- (b) Both sides without chr(13), every fragment on one line of this file (INC-1056, INC-1089).
   SELECT replace(p.prosrc, chr(13), '') INTO v_src FROM pg_proc p WHERE p.oid = v_lst;
   IF md5(v_src) IS DISTINCT FROM '05a60d67383ba629298d497c65afe6ab' THEN
     RAISE EXCEPTION 'P-2 (c) M-3c-b part 3 proof (b): the live body is not this file''s (%)', md5(v_src);
   END IF;
   v_pairs := ARRAY[
-    ['  -- P-2 (c) M-3c-b (ruling 1 §3 Q11): a level is a row of the levels dictionary, switched off or not.
-  IF p_tier IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.listing_packages k
-                                         WHERE k.key = p_tier AND k.kind = ''level'') THEN
-',
-     '  IF p_tier IS NOT NULL AND p_tier NOT IN (''premium'',''featured'',''regular'') THEN
-']];
+    ['  -- P-2 (c) M-3c-b (ruling 1 §3 Q11): a level is a row of the levels dictionary, switched off or not.' || chr(10)
+     || '  IF p_tier IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.listing_packages k' || chr(10)
+     || '                                         WHERE k.key = p_tier AND k.kind = ''level'') THEN' || chr(10),
+     '  IF p_tier IS NOT NULL AND p_tier NOT IN (''premium'',''featured'',''regular'') THEN' || chr(10)]];
   FOREACH v_pair SLICE 1 IN ARRAY v_pairs LOOP
     v_n := (length(v_src) - length(replace(v_src, replace(v_pair[1], chr(13), ''), ''))) / length(replace(v_pair[1], chr(13), ''));
     IF v_n <> 1 THEN
