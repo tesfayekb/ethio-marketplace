@@ -1283,7 +1283,8 @@ test.describe("POSTING WIZARD", () => {
       .from("listing_locations")
       .insert({ listing_id: ad.id, location_id: chain.city.id, position: 1 });
     if (located.error) throw new Error(`PW-193: coverage failed: ${located.error.message}`);
-    await updateListingRow(ad.id, { reach: "nationwide" }, { tag: "pw193" });
+    // A reach carries its source (listings_reach_with_source_check); staff's needs no end.
+    await updateListingRow(ad.id, { reach: "nationwide", reach_source: "staff" }, { tag: "pw193" });
 
     await gotoReady(page, `/my-listings/${ad.id}/edit`);
     await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20_000 });
