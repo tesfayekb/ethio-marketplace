@@ -196,7 +196,6 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.roles.perm.resource.audit_logs": "የኦዲት መዝገቦች",
   "admin.roles.perm.resource.categories": "ምድቦች",
   "admin.roles.perm.resource.countries": "አገሮች",
-  "admin.roles.perm.resource.coverage": "የማስታወቂያ ሽፋን",
   "admin.roles.perm.resource.impersonation": "በሌላ ተጠቃሚ ስም መግባት",
   "admin.roles.perm.resource.legal": "ሕጋዊ ሰነዶች",
   "admin.roles.perm.resource.listings": "ማስታወቂያዎች",

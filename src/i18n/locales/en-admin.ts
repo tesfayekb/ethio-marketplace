@@ -200,7 +200,6 @@ export const enAdmin = {
   "admin.roles.perm.resource.audit_logs": "Audit logs",
   "admin.roles.perm.resource.categories": "Categories",
   "admin.roles.perm.resource.countries": "Countries",
-  "admin.roles.perm.resource.coverage": "Advertising coverage",
   "admin.roles.perm.resource.impersonation": "Impersonation",
   "admin.roles.perm.resource.legal": "Legal documents",
   "admin.roles.perm.resource.listings": "Listings",

@@ -8,6 +8,7 @@ import { readAllowlist, TREE_SCAN_MS } from "./kit";
 import {
   findingKey,
   insertStatements,
+  resourceDeletes,
   seededVocabulary,
   snakeLiterals,
   vocabularyFindings,
@@ -51,9 +52,10 @@ describe("the permission matrix's vocabulary (CF-PERM-1)", () => {
       const allowed = readAllowlist(ALLOWLIST, findings.map(findingKey));
       const unexcused = findings.filter((finding) => !allowed.has(findingKey(finding)));
       expect(
-        unexcused.map(
-          (finding) =>
-            `${finding.file}: ${finding.kind} '${finding.name}' has no admin.roles.perm.${finding.kind}.${finding.name} in ${finding.missing.join(", ")}`,
+        unexcused.map((finding) =>
+          finding.lingering === undefined
+            ? `${finding.file}: ${finding.kind} '${finding.name}' has no admin.roles.perm.${finding.kind}.${finding.name} in ${finding.missing.join(", ")}`
+            : `${finding.file}: retired ${finding.kind} '${finding.name}' still has admin.roles.perm.${finding.kind}.${finding.name} in ${finding.lingering.join(", ")}`,
         ),
       ).toEqual([]);
     },
@@ -132,12 +134,67 @@ SELECT r.id, 'view' FROM public.resources r WHERE r.name = 'keyed_res';
 
   it("PV-4 the real tree seeds the resources the matrix knows, packages among them (P-1)", () => {
     const seeded = seededVocabulary(ROOT);
-    for (const name of ["coverage", "listings", "packages", "roles"]) {
+    for (const name of ["listings", "packages", "roles"]) {
       expect(seeded.resources.has(name), `resource ${name}`).toBe(true);
     }
     for (const name of ["view", "update", "enforce", "import"]) {
       expect(seeded.actions.has(name), `action ${name}`).toBe(true);
     }
     expect(seeded.actions.has("packages")).toBe(false);
+  });
+
+  const SEED_GONE = `
+INSERT INTO public.resources (name, display_name) VALUES ('gone_res', 'Gone');
+INSERT INTO public.permissions (resource_id, action)
+SELECT r.id, 'view' FROM public.resources r WHERE r.name = 'gone_res';
+`;
+
+  it("PV-5 a resource a later file deletes, whose key a locale file keeps, is a finding naming that file", () => {
+    const root = tree({
+      "supabase/migrations/1.sql": SEED_GONE,
+      "supabase/migrations/2.sql": "DELETE FROM public.resources WHERE name = 'gone_res';\n",
+      "src/i18n/locales/en-admin.ts": LOCALE([
+        "admin.roles.perm.resource.gone_res",
+        "admin.roles.perm.action.view",
+      ]),
+      "src/i18n/locales/am-admin.ts": LOCALE(["admin.roles.perm.action.view"]),
+    });
+    const findings = vocabularyFindings(root);
+    expect(findings.map((finding) => [findingKey(finding), finding.lingering])).toEqual([
+      ["retired:resource:gone_res", ["src/i18n/locales/en-admin.ts"]],
+    ]);
+    expect(findings[0]?.file).toBe("supabase/migrations/2.sql");
+  });
+
+  it("PV-6 the same deletion with its key gone from both locale files is no finding, and the resource leaves the vocabulary", () => {
+    const root = tree({
+      "supabase/migrations/1.sql": SEED_GONE,
+      "supabase/migrations/2.sql": "DELETE FROM public.resources WHERE name = 'gone_res';\n",
+      "src/i18n/locales/en-admin.ts": LOCALE(["admin.roles.perm.action.view"]),
+      "src/i18n/locales/am-admin.ts": LOCALE(["admin.roles.perm.action.view"]),
+    });
+    expect(vocabularyFindings(root)).toEqual([]);
+    const seeded = seededVocabulary(root);
+    expect(seeded.resources.has("gone_res")).toBe(false);
+    expect([...seeded.retired.keys()]).toEqual(["gone_res"]);
+    expect(seeded.actions.has("gone_res")).toBe(false);
+  });
+
+  it("PV-7 a deletion inside a DO block is read; one in a comment is not", () => {
+    const sql = `
+-- DELETE FROM public.resources WHERE name = 'kept_res';
+DO $retire$
+BEGIN
+  DELETE FROM public.resources WHERE name = 'gone_res';
+END $retire$;
+`;
+    expect(resourceDeletes(sql)).toHaveLength(1);
+    const root = tree({
+      "supabase/migrations/1.sql": `${SEED_GONE}INSERT INTO public.resources (name) VALUES ('kept_res');\n`,
+      "supabase/migrations/2.sql": sql,
+    });
+    const seeded = seededVocabulary(root);
+    expect([...seeded.resources.keys()]).toEqual(["kept_res"]);
+    expect([...seeded.retired.keys()]).toEqual(["gone_res"]);
   });
 });
