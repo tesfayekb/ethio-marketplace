@@ -72,6 +72,7 @@ vi.mock("@/integrations/supabase/client.server", () => {
 
 const { Route } = await import("@/routes/api/public/jobs.$job");
 const { signJob } = await import("@/server/jobs/signature");
+const { jobHandler } = await import("@/server/jobs/route");
 
 // INC-983: the fake secret is made at run time; no secret-shaped literal sits in the tree.
 const SECRET = randomBytes(32).toString("hex");
@@ -170,6 +171,42 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
     state.rpc = [];
     await expectRefused(await post(signed(now(), SECRET, "drop-tables"), "drop-tables"));
     expect(state.rpc).toEqual([]);
+  });
+
+  it("NCJ-13 a signed name the registry does not hold is refused by the handler itself before the claim: the same 401, one typed line, nothing claimed or loaded", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const loads = state.serviceLoads;
+    let serviceAsked = 0;
+    const ts = now();
+    const response = await jobHandler({
+      request: new Request("http://local/api/public/jobs/drop-tables", {
+        method: "POST",
+        headers: signed(ts, SECRET, "drop-tables"),
+      }),
+      path: "/api/public/jobs/$job",
+      params: { job: "drop-tables" },
+      query: undefined,
+      body: undefined,
+      form: null,
+      userId: null,
+      supabase: null,
+      service: async () => {
+        serviceAsked += 1;
+        throw new Error("the service client was asked for");
+      },
+      incident: "ncj-13",
+    });
+    await expectRefused(response);
+    expect(serviceAsked).toBe(0);
+    expect(state.serviceLoads).toBe(loads);
+    expect(state.rpc).toEqual([]);
+    expectNothingTouched();
+    expect(
+      spy.mock.calls
+        .map((call) => String(call[0]))
+        .filter((line) => line.startsWith("[job-refused]")),
+    ).toEqual(["[job-refused] unknown unknown_job"]);
+    spy.mockRestore();
   });
 
   it("NCJ-5 a run asks at most 20 unchecked names, least recently tried first (never tried first), then the oldest since", async () => {
