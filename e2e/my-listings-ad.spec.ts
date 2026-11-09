@@ -18,7 +18,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { seedListingRow } from "./helpers/listing-seed";
+import { baselineLevelKey, seedListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -240,7 +240,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   async function seed(
     seller: Seller,
     status: string,
-    options: { expiresInMs?: number; publishedAgoMs?: number } = {},
+    options: { expiresInMs?: number; publishedAgoMs?: number; tier?: string } = {},
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed", "closed"].includes(status);
     const ago = options.publishedAgoMs ?? 20 * DAY;
@@ -261,7 +261,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         price_set_at: at(-ago),
         contact_pref: { messages: true },
         status,
-        tier: "regular",
+        tier: options.tier ?? "regular",
         published_at: live ? at(-ago) : null,
         published_first_at: live ? at(-ago) : null,
         expires_at: live ? at(options.expiresInMs ?? 10 * DAY - HOUR) : null,
@@ -1395,6 +1395,42 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(tries, "MLA-18: the click's answer was not drawn").toHaveAttribute(
       "data-left",
       "3",
+    );
+  });
+
+  test("MLA-19 INC-1080: an ad on a level opens its Edit's photo box at the ad's own cap, never the schema's baseline", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    // The real `featured` level is only READ (J3): the scratch ad stands on it.
+    const X = await seed(seller, "active", { tier: "featured" });
+    const supabase = adminClient();
+    const own = await supabase.rpc("listing_photo_cap", { p_listing: X });
+    if (own.error || typeof own.data !== "number") {
+      throw new Error(`[e2e:mla] the ad's photo cap: ${own.error?.message ?? "no number"}`);
+    }
+    // The schema's baseline for a new ad here: the baseline level's own photos (a scratch
+    // category carries no override).
+    const base = await supabase
+      .from("listing_packages")
+      .select("max_photos")
+      .eq("key", await baselineLevelKey())
+      .single();
+    if (base.error || !base.data) {
+      throw new Error(`[e2e:mla] the baseline level: ${base.error?.message ?? "no row"}`);
+    }
+    // The premise, measured on the fixture: the two caps differ, so a reader of the baseline fails.
+    expect(base.data.max_photos, "MLA-19: the baseline level has no cap").not.toBeNull();
+    expect(own.data, "MLA-19: the level's cap equals the baseline").not.toBe(base.data.max_photos);
+
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${X}/edit`);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 15000 });
+    await page.locator('[data-testid="post-review-edit"][data-step="2"]').click();
+    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("post-photos-count")).toHaveText(
+      en["post.photos.count"].replace("{count}", "0").replace("{max}", String(own.data)),
+      { timeout: 15000 },
     );
   });
 });

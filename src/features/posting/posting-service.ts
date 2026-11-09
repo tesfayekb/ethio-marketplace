@@ -10,7 +10,7 @@ import { createDoorQueue, type DoorQueue } from "./door-queue";
 import { readPin, type Pin, type PinPrecision } from "./map/pin";
 import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
 import type { VisibleWhen } from "./visible-when";
-import { shapePostingSchema } from "./schema-shape";
+import { shapePlanCaps, shapePostingSchema } from "./schema-shape";
 import type { PlaceFact } from "./where-seed";
 
 // D234 speed turn S1 — the pure shapers live in schema-shape.ts; re-exported for every caller.
@@ -375,10 +375,15 @@ async function readOwnPrivate(listingId: string): Promise<Record<string, unknown
 /**
  * The owner's own draft, read as the owner (RLS). `null` means the row is not
  * this account's — which the surface says in words, never as a blank screen.
+ * `caps` are the AD's own (its level and its reach, `listing_caps` through the
+ * owner's door); `null` when the door does not say them (not known).
  */
-export async function readDraft(
-  listingId: string,
-): Promise<{ draft: DraftRow; photos: DraftPhotoRow[]; coverage: string[] } | null> {
+export async function readDraft(listingId: string): Promise<{
+  draft: DraftRow;
+  photos: DraftPhotoRow[];
+  coverage: string[];
+  caps: PlanCaps | null;
+} | null> {
   const { data, error } = await supabase
     .from("listings")
     .select(
@@ -415,6 +420,7 @@ export async function readDraft(
 
   return {
     coverage: (places ?? []).map((row) => row.location_id),
+    caps: shapePlanCaps(own["caps"] ?? null),
     draft: {
       id: data.id,
       categoryId: data.category_id,
@@ -801,9 +807,13 @@ export interface AttrDef {
 }
 
 /**
- * D22 (M-MAINT-3) — THE SELLER'S PLAN CAPS, as `get_posting_schema` reports them
- * through `seller_plan()`. `maxPhotos` is the ONE dial the photos step obeys; the
- * upload door counts for itself, so this is a mirror (F3).
+ * D22, DEC-356 — THE CAPS, one shape for both sources: a new ad's from
+ * `get_posting_schema`'s `plan` block (the baseline level's photos for the
+ * category, the default market's included reach), an existing ad's from the
+ * owner's door (`my_listing_private`'s
+ * `caps`, its own level and reach). `maxPhotos` is the ONE dial the photos step
+ * obeys; the upload door counts for itself, so this is a mirror (F3). A null
+ * cap is no limit.
  */
 export interface PlanCaps {
   plan: string;

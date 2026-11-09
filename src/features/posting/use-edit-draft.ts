@@ -16,7 +16,13 @@ import {
   type EditActor,
   type EditBaseline,
 } from "./edit-step-changes";
-import { PHOTO_ROW_SELECT, photoRowOf, readDraft, type DraftPhotoRow } from "./posting-service";
+import {
+  PHOTO_ROW_SELECT,
+  photoRowOf,
+  readDraft,
+  type DraftPhotoRow,
+  type PlanCaps,
+} from "./posting-service";
 import { TOTAL_STEPS, type Refusal, type SaveState } from "./types";
 import type { DraftPin, DraftValues, UseDraft } from "./use-draft";
 
@@ -56,6 +62,12 @@ export interface UseEditDraft extends UseDraft {
   setReason: (reason: { reason: string; note: string }) => void;
   /** The ad's status as the door last reported it. */
   status: string | null;
+  /**
+   * INC-1080 — the AD's caps as the seller's door says them (its own level and
+   * reach); `null` = not known, never the schema's baseline. Staff lock the
+   * photos and places steps, so their read carries none.
+   */
+  caps: PlanCaps | null;
   /**
    * Bundle 17 turn 4 (C15) — BACK DISCARDS: a step left by Back drops what was
    * typed on it, so the Review always shows the ad as the door holds it and a step
@@ -186,6 +198,7 @@ export function useEditDraft(
   const [photosSoon, setPhotosSoon] = useState(false);
   const [tier, setTier] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [caps, setCaps] = useState<PlanCaps | null>(null);
   const [reason, setReasonState] = useState({ reason: "", note: "" });
   const reasonRef = useRef(reason);
   const [loading, setLoading] = useState(listingId !== null);
@@ -228,6 +241,7 @@ export function useEditDraft(
           setPhotosSoon(found.draft.photosSoon);
           setTier(found.draft.tier);
           setStatus(found.draft.status);
+          setCaps(found.caps);
           // INC-958 — the saved pin as read, whole or absent; its precision is never guessed.
           setPin(
             found.draft.pin === null
@@ -537,6 +551,7 @@ export function useEditDraft(
       reason,
       setReason,
       status,
+      caps,
       baseline,
       discard,
       setCertification,
@@ -568,6 +583,7 @@ export function useEditDraft(
       reason,
       setReason,
       status,
+      caps,
       baseline,
       discard,
       setCertification,

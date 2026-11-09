@@ -13,6 +13,8 @@ vi.mock("@/lib/route-client", () => ({ callRoute, uploadRoute }));
 const tables = vi.hoisted(() => ({
   rows: {} as Record<string, unknown>,
   selects: [] as Array<[string, string]>,
+  /** The owner's door's answer beyond `contact_pref` (PSV-8's `caps`). */
+  own: {} as Record<string, unknown>,
 }));
 vi.mock("@/integrations/supabase/client", () => {
   const builderFor = (table: string) => {
@@ -32,7 +34,11 @@ vi.mock("@/integrations/supabase/client", () => {
   return {
     supabase: {
       from: builderFor,
-      rpc: () => Promise.resolve({ data: { contact_pref: { messages: true } }, error: null }),
+      rpc: () =>
+        Promise.resolve({
+          data: { contact_pref: { messages: true }, ...tables.own },
+          error: null,
+        }),
     },
   };
 });
@@ -268,6 +274,39 @@ describe("the owner's draft read (turn T1)", () => {
       expect(listingSelect.split(",")).toContain("tier");
     } finally {
       tables.rows = {};
+    }
+  });
+
+  it("PSV-8 readDraft carries the owner's door's caps through the one caps parser; a JSON null cap is no limit, no caps is not known (DEC-356)", async () => {
+    tables.rows = {
+      listings: { id: "psv-8", draft_step: 8, status: "active", attributes: {}, tier: null },
+      listing_photos: [],
+      listing_locations: [],
+    };
+    try {
+      tables.own = {
+        caps: {
+          plan: "nationwide",
+          max_photos: 8,
+          max_cities: null,
+          max_regions: null,
+          max_countries: 1,
+        },
+      };
+      expect((await readDraft("psv-8"))?.caps).toEqual({
+        plan: "nationwide",
+        maxPhotos: 8,
+        maxCities: null,
+        maxRegions: null,
+        maxCountries: 1,
+      });
+      tables.own = {};
+      expect((await readDraft("psv-8"))?.caps).toBeNull();
+      tables.own = { caps: null };
+      expect((await readDraft("psv-8"))?.caps).toBeNull();
+    } finally {
+      tables.rows = {};
+      tables.own = {};
     }
   });
 });

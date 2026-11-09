@@ -31,7 +31,6 @@ import {
   readSellerIdentity,
   readSellerLine,
   type AttrDef,
-  type PlanCaps,
 } from "@/features/posting/posting-service";
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { storedUnitNoun } from "@/features/posting/price-line";
@@ -240,8 +239,6 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     queryFn: async (): Promise<{
       definitions: AttrDef[];
       attributeOptions: Record<string, AttrOption[]>;
-      /** Turn R2 — the seller's plan caps: the photos box obeys `maxPhotos`, as the posting form does. */
-      plan: PlanCaps | null;
     }> => {
       const found = await readPostingSchema(categoryId as string);
       const definitions = found?.attributes ?? [];
@@ -259,7 +256,6 @@ export function MyListingPage({ listingId }: { listingId: string }) {
       return {
         definitions,
         attributeOptions: Object.fromEntries(entries),
-        plan: found?.plan ?? null,
       };
     },
   });

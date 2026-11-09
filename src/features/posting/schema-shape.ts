@@ -1,4 +1,4 @@
-import type { AttrDef, PostingSchema } from "./posting-service";
+import type { AttrDef, PlanCaps, PostingSchema } from "./posting-service";
 import type { CategoryFacts } from "./types";
 import { shapeCondition } from "./visible-when";
 
@@ -71,6 +71,24 @@ export function shapeDeal(raw: unknown): CategoryFacts["deal"] {
 }
 
 /**
+ * DEC-356 — THE ONE PARSER OF THE CAPS SHAPE (`plan, max_photos, max_cities,
+ * max_regions, max_countries`): the schema's `plan` block and the seller's
+ * door's `caps` answer alike. Anything but an object is `null` (not known); a
+ * JSON null inside is `null` (no limit).
+ */
+export function shapePlanCaps(raw: unknown): PlanCaps | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const block = raw as Record<string, unknown>;
+  return {
+    plan: str(block, "plan") ?? "",
+    maxCities: int(block, "max_cities"),
+    maxRegions: int(block, "max_regions"),
+    maxCountries: int(block, "max_countries"),
+    maxPhotos: int(block, "max_photos"),
+  };
+}
+
+/**
  * K5 — a payload without its question list is a FAILED read (`null`), never an
  * empty list: under rule 1 an empty list would drop every answer the draft holds.
  * An empty ARRAY stays an empty list (a category with no questions).
@@ -87,21 +105,11 @@ export function shapePostingSchema(data: unknown): PostingSchema | null {
         (entry): entry is string => typeof entry === "string",
       )
     : [];
-  const planBlock = (payload["plan"] ?? null) as Record<string, unknown> | null;
   return {
     details: attributes.length,
     required: attributes.filter((row) => row.isRequired).length,
     attributes,
-    plan:
-      planBlock === null
-        ? null
-        : {
-            plan: str(planBlock, "plan") ?? "",
-            maxCities: int(planBlock, "max_cities"),
-            maxRegions: int(planBlock, "max_regions"),
-            maxCountries: int(planBlock, "max_countries"),
-            maxPhotos: int(planBlock, "max_photos"),
-          },
+    plan: shapePlanCaps(payload["plan"] ?? null),
     category:
       block === null
         ? null
