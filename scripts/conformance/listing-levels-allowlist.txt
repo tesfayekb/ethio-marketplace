@@ -2,3 +2,4 @@
 # key "reader:<file>" or "tier:<file>" | reason | until (YYYY-MM-DD, INC-n or DEC-n)
 reader:e2e/helpers/listing-seed.ts | the one e2e seeder reads the first enabled level above the baseline (keys only, no perks) for a scratch ad beyond the free slots (D318, register row 114) | DEC-342
 reader:e2e/helpers/level-overrides.ts | the one e2e seeder of a scratch category's override for the baseline level (P-2 (c), D311): reads the baseline row's max_photos only to pick a different scratch cap, writes and removes its own level_overrides row (PP-7, PP-25, PW-29; G27, J3); and the specs' one read of a level's names, `levelNameFor` (P-2 (c) c2a, ruling 6 §5) | DEC-351
+reader:e2e/helpers/reach-rows.ts | the one e2e seeder of scratch reach rows (P-2 (c) c3, LDR-7 and LVP-5): reads the top reach sort to place three scratch rows above every real one, writes and removes only its own e2e_lvl_r rows | DEC-358

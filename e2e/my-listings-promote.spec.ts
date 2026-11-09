@@ -14,12 +14,13 @@ import {
   RUN,
   seedCategoryBranch,
 } from "./helpers/posting";
+import { destroyScratchReaches, seedScratchReaches } from "./helpers/reach-rows";
 import { gotoReady, signInViaSession, stepUpIfPrompted, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
  * P-2 turn (b) (DEC-349) — PROMOTE: THE SELLER'S LEVEL SHEET AND THE STAFF DAYS
- * FIELD, as a person uses them (LVP-1…4).
+ * FIELD, as a person uses them (LVP-1…5).
  *
  * The seller's row menu and ad page open the one Promote sheet, which shows what
  * `promote_options` answers: while the market's paid levels are off a level is set
@@ -30,11 +31,15 @@ import { adminClient } from "./helpers/users";
  * door): days set source staff and an end, blank is open-ended, days on the
  * baseline are refused at the field; the ad page's level line shows the level,
  * its source and its end.
+ * P-2 (c) c3 (DEC-358) — the sheet's Reach section: the market's included reach,
+ * not self-serve as the real catalogue's is, named current on a fresh ad; a wider
+ * reach set free; sameReach and lowerReach refused by name with nothing written.
  *
  * FIXTURES (J1, J3) — every test runs in a scratch market of its own
  * (seedSingleOptionMarket) whose market_settings row it writes (paid levels off)
  * and a scratch price row for the level it promotes to; real level rows are read
- * (keys and order only), never written. Every row is removed in afterEach.
+ * (keys and order only), never written. LVP-5's reach rows are its own scratch
+ * rows (helpers/reach-rows.ts). Every row is removed in afterEach.
  * Truth through the service client (J4); anchors are test ids, words by key (J5).
  */
 
@@ -55,22 +60,22 @@ function token(): string {
 }
 
 /** When the door's write ran, by the server's clock: its audit row's stamp (INC-1075). */
-async function tierWrittenAt(listingId: string): Promise<number> {
+async function tierWrittenAt(listingId: string, action = "listing.admin_tier"): Promise<number> {
   const { data, error } = await adminClient()
     .from("audit_log")
     .select("created_at")
     .eq("entity_type", "listing")
     .eq("entity_id", listingId)
-    .eq("action", "listing.admin_tier")
+    .eq("action", action)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) throw new Error(`${TAG} audit read failed: ${error.message}`);
-  if (!data) throw new Error(`${TAG} no listing.admin_tier audit row for ${listingId}`);
+  if (!data) throw new Error(`${TAG} no ${action} audit row for ${listingId}`);
   return new Date(data.created_at).getTime();
 }
 
-const DESIGNATION = "status,tier,tier_until,tier_source,expires_at";
+const DESIGNATION = "status,tier,tier_until,tier_source,expires_at,reach,reach_until,reach_source";
 
 async function truth(listingId: string): Promise<Row> {
   const { data, error } = await adminClient()
@@ -153,6 +158,8 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
   const prices: string[] = [];
   const markets: string[] = [];
   const branches: string[][] = [];
+  /** P-2 (c) c3 — scratch reach rows (LVP-5), removed after the market that names one. */
+  const reachRows: string[] = [];
 
   test.afterEach(async () => {
     const supabase = adminClient();
@@ -174,6 +181,8 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
       );
       await destroyCountry(code);
     }
+    const reachFailure = await destroyScratchReaches(reachRows.splice(0));
+    if (reachFailure !== null) failures.push(`reach rows: ${reachFailure}`);
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
     if (failures.length > 0) throw new Error(`${TAG} cleanup failed: ${failures.join("; ")}`);
   });
@@ -394,6 +403,119 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
       { timeout: 15000 },
     );
     expect(await trace(ad), "lowerLevel left a trace").toEqual(lowerBefore);
+  });
+
+  // ─────────────── the sheet's Reach section (LVP-5) ───────────────
+
+  test("LVP-5 the Reach section: the included reach (not self-serve) named current on a fresh ad; sameReach and lowerReach refused by name with nothing written; a wider reach set free; then nothing wider", async ({
+    page,
+  }) => {
+    const market = await scratchMarket();
+    const rows = await seedScratchReaches(market.code, reachRows, { includedSelfServe: false });
+    const wide = rows.unpriced.key;
+    await priced(market, wide);
+    const seller = await scratchSeller();
+    const ad = await seed(seller, market);
+    await signInViaSession(page, seller.email, seller.password);
+    const sheet = page.getByTestId("promote-sheet");
+    const fresh = { reach: null, reach_until: null, reach_source: null };
+
+    // A fresh ad: its reach is the market's included one, listed and named though not self-serve.
+    await openAdSheet(page, ad);
+    const included = sheet.getByTestId(`promote-reach-${rows.included.key}`);
+    await expect(included.getByTestId(`promote-reach-current-${rows.included.key}`)).toHaveText(
+      en["myListings.promote.reach.current"],
+      { timeout: 15000 },
+    );
+    await expect(included).toHaveAttribute("aria-current", "true");
+    await expect(sheet.getByTestId(`promote-reach-reason-${rows.low.key}`)).toHaveText(
+      en["myListings.promote.notAvailable"],
+    );
+    await expect(sheet.getByTestId(`promote-reach-choose-${wide}`)).toHaveText(
+      en["myListings.promote.reach.choose"],
+    );
+
+    // The same reach, bought while the sheet was open: sameReach, named with the ad's end.
+    expect(
+      await updateListingRow(
+        ad,
+        { reach: wide, reach_until: at(5 * DAY), reach_source: "launch" },
+        { tag: "lvp" },
+      ),
+      `${TAG} the ad bought ${wide}`,
+    ).not.toBeNull();
+    const sameBefore = await trace(ad);
+    await sheet.getByTestId(`promote-reach-choose-${wide}`).click();
+    await expect(sheet.getByTestId("promote-problem")).toHaveText(
+      en["myListings.promote.error.sameReach"].replace(
+        "{date}",
+        day(sameBefore.row["reach_until"]),
+      ),
+      { timeout: 15000 },
+    );
+    expect(await trace(ad), "sameReach left a trace").toEqual(sameBefore);
+
+    // A wider reach bought while the sheet was open (the test's own low row moved above): lowerReach.
+    expect(await updateListingRow(ad, fresh, { tag: "lvp" })).not.toBeNull();
+    await openAdSheet(page, ad);
+    await expect(sheet.getByTestId(`promote-reach-choose-${wide}`)).toBeVisible({
+      timeout: 15000,
+    });
+    const moved = await adminClient()
+      .from("listing_packages")
+      .update({ sort: rows.unpriced.sort + 1 })
+      .eq("key", rows.low.key);
+    if (moved.error) throw new Error(`${TAG} moving ${rows.low.key}: ${moved.error.message}`);
+    expect(
+      await updateListingRow(
+        ad,
+        { reach: rows.low.key, reach_until: at(5 * DAY), reach_source: "launch" },
+        { tag: "lvp" },
+      ),
+    ).not.toBeNull();
+    const lowerBefore = await trace(ad);
+    await sheet.getByTestId(`promote-reach-choose-${wide}`).click();
+    await expect(sheet.getByTestId("promote-problem")).toHaveText(
+      en["myListings.promote.error.lowerReach"],
+      { timeout: 15000 },
+    );
+    expect(await trace(ad), "lowerReach left a trace").toEqual(lowerBefore);
+
+    // Back to the included reach: the wider one is set free, its end in the reach's words.
+    expect(await updateListingRow(ad, fresh, { tag: "lvp" })).not.toBeNull();
+    const before = await trace(ad);
+    await openAdSheet(page, ad);
+    await sheet.getByTestId(`promote-reach-choose-${wide}`).click();
+    await expect(page.getByTestId("promote-sheet")).toHaveCount(0, { timeout: 15000 });
+    const row = await truth(ad);
+    expect(row).toMatchObject({ reach: wide, reach_source: "launch", tier: before.row["tier"] });
+    expect(
+      new Date(String(row["reach_until"])).getTime() -
+        (await tierWrittenAt(ad, "listing.reach_set")),
+      "the reach's days from the door's write",
+    ).toBe(rows.unpriced.days * DAY);
+    expect(await counted("listing_revisions", ad)).toBe(before.revisions + 1);
+    expect(await counted("audit_log", ad)).toBe(before.audits + 1);
+    await expect(page.getByTestId("my-listing-notice")).toHaveText(
+      en["myListings.promote.reach.done"].replace("{date}", day(row["reach_until"])),
+      { timeout: 15000 },
+    );
+
+    // The sheet again: the wider reach current with its end, the included one marked, nothing wider.
+    await openAdSheet(page, ad);
+    await expect(sheet.getByTestId(`promote-reach-current-${wide}`)).toHaveText(
+      en["myListings.promote.reach.current"],
+      { timeout: 15000 },
+    );
+    await expect(sheet.getByTestId("promote-reach-until")).toHaveText(
+      en["myListings.promote.until"].replace("{date}", day(row["reach_until"])),
+    );
+    await expect(sheet.getByTestId(`promote-reach-reason-${rows.included.key}`)).toHaveText(
+      en["myListings.promote.reach.included"],
+    );
+    await expect(sheet.getByTestId("promote-reach-empty")).toHaveText(
+      en["myListings.promote.reach.empty"],
+    );
   });
 
   // ─────────────── staff: Days and the level line (LVP-3, LVP-4) ───────────────

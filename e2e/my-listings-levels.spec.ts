@@ -27,6 +27,7 @@ import {
   seedPostableCategory,
   statusOf,
 } from "./helpers/posting";
+import { destroyScratchReaches, seedScratchReaches } from "./helpers/reach-rows";
 import { anonRpc } from "./helpers/session";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
@@ -52,7 +53,7 @@ import { adminClient } from "./helpers/users";
  * a level is priced there by a scratch package_prices row. The publish tests run
  * in ET as every posting spec does, the seller's ads beyond the drafts placed in a
  * scratch chain. Real level, reach and market rows are read, never written; LDR-7's
- * reach rows are its own scratch rows (P-2 (c)), named by its market as its included
+ * reach rows are its own scratch rows (P-2 (c), helpers/reach-rows.ts), named by its market as its included
  * reach. Every row is removed in afterEach (prices, listings, markets, reach rows,
  * places, categories).
  * Truth through the service client (J4); anchors are test ids, words by key (J5).
@@ -61,8 +62,6 @@ import { adminClient } from "./helpers/users";
 type Row = Record<string, unknown>;
 
 const TAG = "[e2e:lvl]";
-/** The scratch reach rows' key prefix (letters first, the key check's form). */
-const REACH_PREFIX = "e2e_lvl_r";
 const DAY = 86_400_000;
 const MINUTE = 60_000;
 const at = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
@@ -225,14 +224,8 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
       );
       await destroyCountry(code);
     }
-    const reaches = reachRows.splice(0);
-    if (reaches.some((key) => !key.startsWith(REACH_PREFIX)))
-      failures.push(`reach rows: refusing to delete ${reaches.join(", ")}`);
-    else if (reaches.length > 0)
-      step(
-        "reach rows",
-        (await supabase.from("listing_packages").delete().in("key", reaches)).error,
-      );
+    const reachFailure = await destroyScratchReaches(reachRows.splice(0));
+    if (reachFailure !== null) failures.push(`reach rows: ${reachFailure}`);
     for (const slug of regions.splice(0)) await destroyLocation(slug);
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
@@ -270,54 +263,6 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
   }
 
   type Market = Awaited<ReturnType<typeof scratchMarket>>;
-
-  /**
-   * P-2 (c) — three self-serve scratch reach rows above every real one, their keys
-   * from ONE draw (INC-1082), and the market's included reach set to the middle one:
-   * `low` sorts under it, `unpriced` over it with no price in the market.
-   */
-  async function scratchReaches(market: Market) {
-    const client = adminClient();
-    const top = await client
-      .from("listing_packages")
-      .select("sort")
-      .eq("kind", "reach")
-      .order("sort", { ascending: false })
-      .limit(1)
-      .single();
-    if (top.error || !top.data) throw new Error(`${TAG} reach sort: ${top.error?.message}`);
-    // J1 — run × worker × project × the test's draw, inside the key check's 32 characters.
-    const clean = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const worker = clean(process.env["TEST_WORKER_INDEX"] ?? "0").slice(0, 2);
-    const twin = clean(test.info().project.name).slice(0, 1) || "x";
-    const stem = `${REACH_PREFIX}_${clean(RUN).slice(0, 6)}_${worker}_${twin}_${token().slice(0, 6)}`;
-    const sort = Number(top.data.sort) + 100;
-    const rows = {
-      low: { key: `${stem}_lo`, sort, days: 10 },
-      included: { key: `${stem}_in`, sort: sort + 1, days: 30 },
-      unpriced: { key: `${stem}_up`, sort: sort + 2, days: 40 },
-    };
-    const inserted = await client.from("listing_packages").insert(
-      Object.values(rows).map((row) => ({
-        key: row.key,
-        kind: "reach",
-        name_en: `E2E reach ${row.key}`,
-        days: row.days,
-        enabled: true,
-        self_serve: true,
-        extends_lifetime: false,
-        sort: row.sort,
-      })),
-    );
-    if (inserted.error) throw new Error(`${TAG} reach rows seed: ${inserted.error.message}`);
-    reachRows.push(...Object.values(rows).map((row) => row.key));
-    const included = await client
-      .from("market_settings")
-      .update({ included_reach: rows.included.key })
-      .eq("country_code", market.code);
-    if (included.error) throw new Error(`${TAG} included reach: ${included.error.message}`);
-    return rows;
-  }
 
   /** A scratch seller of this file (a pooled lease, its ads removed in afterEach). */
   async function scratchSeller() {
@@ -611,7 +556,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     page,
   }) => {
     const market = await scratchMarket(1);
-    const rows = await scratchReaches(market);
+    const rows = await seedScratchReaches(market.code, reachRows);
     const seller = await scratchSeller();
     const ad = await seed(seller, market);
     const before = await trace(ad);

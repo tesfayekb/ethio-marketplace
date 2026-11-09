@@ -15,6 +15,11 @@ import { rpc } from "@/lib/supabase-door";
  * reads the answer through a shape guard (the generated `Json` is not a shape).
  * `set_listing_level(listing, level)` sets the level; a refusal is read by
  * `doorCode` and named by `promoteRefusalKey`, never by its text.
+ *
+ * P-2 (c) c3 (DEC-351, DEC-358) — the same answer carries the ad's reach and
+ * the reach rows (the included and the ad's current one always among them);
+ * `set_listing_reach(listing, reach)` sets a wider reach, its refusals named by
+ * the same mapper with the reach's kind.
  */
 
 export const LEVEL_AVAILABILITY = [
@@ -25,19 +30,35 @@ export const LEVEL_AVAILABILITY = [
 ] as const;
 export type LevelAvailability = (typeof LEVEL_AVAILABILITY)[number];
 
-export interface PromoteLevel {
+export const REACH_AVAILABILITY = [
+  "available",
+  "includedReach",
+  "unknownReach",
+  "sameReach",
+  "lowerReach",
+  "notOffered",
+] as const;
+export type ReachAvailability = (typeof REACH_AVAILABILITY)[number];
+
+/** What a Promote row sets: a level or a reach. */
+export type PromoteKind = "level" | "reach";
+
+interface PromoteRow<A> {
   key: string;
   nameEn: string;
   nameAm: string | null;
   sort: number;
   current: boolean;
-  /** At or under the ad's level: set_listing_level would answer lowerLevel. */
+  /** At or under the ad's level (reach): the setter would answer lowerLevel (lowerReach). */
   below: boolean;
   days: number | null;
   amount: number | null;
   currency: string | null;
-  availability: LevelAvailability;
+  availability: A;
 }
+
+export type PromoteLevel = PromoteRow<LevelAvailability>;
+export type PromoteReach = PromoteRow<ReachAvailability>;
 
 export interface PromoteOptions {
   status: string;
@@ -46,6 +67,9 @@ export interface PromoteOptions {
   paidLevels: boolean;
   currency: string | null;
   levels: PromoteLevel[];
+  /** The ad's reach through the one resolver; `included` is the market's included reach. */
+  reach: { key: string; until: string | null; source: string | null; included: string };
+  reaches: PromoteReach[];
 }
 
 type Rec = Record<string, unknown>;
@@ -60,9 +84,9 @@ function isNumOrNull(value: unknown): value is number | null {
   return value === null || (typeof value === "number" && Number.isFinite(value));
 }
 
-function parseLevel(value: unknown): PromoteLevel | null {
+function parseRow<A extends string>(value: unknown, known: readonly A[]): PromoteRow<A> | null {
   if (!isObject(value)) return null;
-  const availability = LEVEL_AVAILABILITY.find((entry) => entry === value.availability);
+  const availability = known.find((entry) => entry === value.availability);
   if (
     availability === undefined ||
     typeof value.key !== "string" ||
@@ -90,6 +114,17 @@ function parseLevel(value: unknown): PromoteLevel | null {
   };
 }
 
+function parseRows<A extends string>(value: unknown, known: readonly A[]): PromoteRow<A>[] | null {
+  if (!Array.isArray(value)) return null;
+  const rows: PromoteRow<A>[] = [];
+  for (const entry of value) {
+    const parsed = parseRow(entry, known);
+    if (parsed === null) return null;
+    rows.push(parsed);
+  }
+  return rows;
+}
+
 /** The door's answer, or null on any mismatch. */
 export function parsePromoteOptions(value: unknown): PromoteOptions | null {
   if (!isObject(value) || value.ok !== true || typeof value.status !== "string") return null;
@@ -101,19 +136,24 @@ export function parsePromoteOptions(value: unknown): PromoteOptions | null {
     !isStrOrNull(level.source)
   )
     return null;
+  const reach = value.reach;
+  if (
+    !isObject(reach) ||
+    typeof reach.key !== "string" ||
+    !isStrOrNull(reach.until) ||
+    !isStrOrNull(reach.source) ||
+    typeof reach.included !== "string"
+  )
+    return null;
   if (
     typeof value.country !== "string" ||
     typeof value.paidLevels !== "boolean" ||
-    !isStrOrNull(value.currency) ||
-    !Array.isArray(value.levels)
+    !isStrOrNull(value.currency)
   )
     return null;
-  const levels: PromoteLevel[] = [];
-  for (const entry of value.levels) {
-    const parsed = parseLevel(entry);
-    if (parsed === null) return null;
-    levels.push(parsed);
-  }
+  const levels = parseRows(value.levels, LEVEL_AVAILABILITY);
+  const reaches = parseRows(value.reaches, REACH_AVAILABILITY);
+  if (levels === null || reaches === null) return null;
   return {
     status: value.status,
     level: { key: level.key, until: level.until, source: level.source },
@@ -121,6 +161,8 @@ export function parsePromoteOptions(value: unknown): PromoteOptions | null {
     paidLevels: value.paidLevels,
     currency: value.currency,
     levels,
+    reach: { key: reach.key, until: reach.until, source: reach.source, included: reach.included },
+    reaches,
   };
 }
 
@@ -150,18 +192,44 @@ const REFUSAL_KEY: Partial<Record<DoorCode, MessageKey>> = {
   creditsNotAvailable: "myListings.promote.error.creditsNotAvailable",
 };
 
-/** A door refusal in the seller's words; a code without words of its own is `door.refused`. */
-export function promoteRefusalKey(error: unknown): MessageKey {
-  const { code } = doorCode(error);
-  return (code === null ? undefined : ownValue(REFUSAL_KEY, code)) ?? DOOR_REFUSED_KEY;
+/** The reach's own words; every other code reads the level's (REFUSAL_KEY). */
+const REACH_REFUSAL_KEY: Partial<Record<DoorCode, MessageKey>> = {
+  unknownReach: "myListings.promote.error.unknownReach",
+  sameReach: "myListings.promote.error.sameReach",
+  lowerReach: "myListings.promote.error.lowerReach",
+  includedReach: "myListings.promote.error.includedReach",
+  notOffered: "myListings.promote.error.reachNotOffered",
+};
+
+function refusalKeyOf(code: string, kind: PromoteKind): MessageKey | undefined {
+  return (
+    (kind === "reach" ? ownValue(REACH_REFUSAL_KEY, code) : undefined) ??
+    ownValue(REFUSAL_KEY, code)
+  );
 }
 
-/** Why a level the ad cannot take is not offered (the door's availability, in words). */
-export function availabilityKey(availability: LevelAvailability): MessageKey | null {
-  return availability === "available" ? null : (ownValue(REFUSAL_KEY, availability) ?? null);
+/** A door refusal in the seller's words; a code without words of its own is `door.refused`. */
+export function promoteRefusalKey(error: unknown, kind: PromoteKind): MessageKey {
+  const { code } = doorCode(error);
+  return (code === null ? undefined : refusalKeyOf(code, kind)) ?? DOOR_REFUSED_KEY;
+}
+
+/** Why a row the ad cannot take is not offered (the door's availability, in words). */
+export function availabilityKey(
+  availability: LevelAvailability | ReachAvailability,
+  kind: PromoteKind,
+): MessageKey | null {
+  return availability === "available" ? null : (refusalKeyOf(availability, kind) ?? null);
 }
 
 export type SetLevelOutcome = { ok: true; until: string } | { ok: false; key: MessageKey };
+
+function setOutcome(data: unknown, error: unknown, kind: PromoteKind): SetLevelOutcome {
+  if (error !== null) return { ok: false, key: promoteRefusalKey(error, kind) };
+  if (!isObject(data) || data.ok !== true || typeof data.until !== "string")
+    return { ok: false, key: "myListings.error.failed" };
+  return { ok: true, until: data.until };
+}
 
 /** Sets the ad's level as its seller. The door writes nothing when it refuses. */
 export async function setListingLevel(
@@ -172,8 +240,17 @@ export async function setListingLevel(
     p_listing_id: listingId,
     p_level_key: levelKey,
   });
-  if (error !== null) return { ok: false, key: promoteRefusalKey(error) };
-  if (!isObject(data) || data.ok !== true || typeof data.until !== "string")
-    return { ok: false, key: "myListings.error.failed" };
-  return { ok: true, until: data.until };
+  return setOutcome(data, error, "level");
+}
+
+/** Sets a wider reach on the ad as its seller. The door writes nothing when it refuses. */
+export async function setListingReach(
+  listingId: string,
+  reachKey: string,
+): Promise<SetLevelOutcome> {
+  const { data, error } = await rpc("set_listing_reach", {
+    p_listing_id: listingId,
+    p_reach_key: reachKey,
+  });
+  return setOutcome(data, error, "reach");
 }

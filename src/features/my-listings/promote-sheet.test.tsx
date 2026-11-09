@@ -38,7 +38,7 @@ const level = (over: Record<string, unknown>) => ({
   availability: "available",
   ...over,
 });
-/** promote_options' answer in the shape its jsonb_build_object writes (20261106233808). */
+/** promote_options' answer in the shape its jsonb_build_object writes (20261107125357, DEC-358). */
 const options = (over: Record<string, unknown> = {}) => ({
   ok: true,
   status: "active",
@@ -52,6 +52,32 @@ const options = (over: Record<string, unknown> = {}) => ({
     level({ key: "lvl-b", name_en: "Level B", sort: 20, days: 20, amount: 7.25 }),
     level({ key: "lvl-c", name_en: "Level C", sort: 30, availability: "seasonEnded", days: null }),
     level({ key: "lvl-d", name_en: "Level D", sort: 40, availability: "notOffered", amount: null }),
+  ],
+  reach: { key: "rch-inc", until: null, source: null, included: "rch-inc" },
+  reaches: [
+    level({
+      key: "rch-low",
+      name_en: "Low reach",
+      sort: 5,
+      below: true,
+      availability: "lowerReach",
+    }),
+    level({
+      key: "rch-inc",
+      name_en: "Included reach",
+      sort: 10,
+      current: true,
+      days: null,
+      availability: "includedReach",
+    }),
+    level({ key: "rch-wide", name_en: "Wide reach", sort: 20, days: 30, amount: 4.5 }),
+    level({
+      key: "rch-none",
+      name_en: "Unpriced reach",
+      sort: 30,
+      availability: "notOffered",
+      amount: null,
+    }),
   ],
   ...over,
 });
@@ -124,7 +150,9 @@ describe("P-2 (b) the promote sheet (DEC-349)", () => {
     ];
     const { onDone, onOpenChange } = mount();
     fireEvent.click(await screen.findByTestId("promote-choose-lvl-b"));
-    await waitFor(() => expect(onDone).toHaveBeenCalledWith("2026-11-27T10:00:00+00:00"));
+    await waitFor(() =>
+      expect(onDone).toHaveBeenCalledWith("2026-11-27T10:00:00+00:00", "myListings.promote.done"),
+    );
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(calls.filter((call) => call.name === "set_listing_level")).toEqual([
       { name: "set_listing_level", args: { p_listing_id: "ad-1", p_level_key: "lvl-b" } },
@@ -188,12 +216,17 @@ describe("P-2 (b) the promote sheet (DEC-349)", () => {
     expect(screen.queryByRole("button", { name: "Choose level" })).toBeNull();
   });
 
-  it("PMS-7 the current level row takes the shell's one selected look and is heard as current; the others keep the card's", async () => {
+  it("PMS-7 exactly one current row per section (the level's and the reach's) takes the shell's one selected look and is heard as current; the others keep the card's", async () => {
     answers.promote_options = [{ data: options(), error: null }];
     mount();
     const current = await screen.findByTestId("promote-level-lvl-a");
     for (const name of LIST_ROW_CURRENT.split(" ")) expect(current).toHaveClass(name);
-    expect([...document.querySelectorAll('[aria-current="true"]')]).toEqual([current]);
+    const currentReach = screen.getByTestId("promote-reach-rch-inc");
+    expect([...document.querySelectorAll('[aria-current="true"]')]).toEqual([
+      current,
+      currentReach,
+    ]);
+    for (const name of LIST_ROW_CURRENT.split(" ")) expect(currentReach).toHaveClass(name);
     for (const key of ["lvl-base", "lvl-b", "lvl-c", "lvl-d"]) {
       const row = screen.getByTestId(`promote-level-${key}`);
       for (const name of LIST_ROW_CURRENT.split(" ")) expect(row).not.toHaveClass(name);
@@ -221,5 +254,133 @@ describe("P-2 (b) the promote sheet (DEC-349)", () => {
     expect(within(nameless).queryByTestId("promote-name-lvl-nameless")).toBeNull();
     expect(nameless).not.toHaveTextContent("lvl-nameless");
     expect(nameless).toHaveTextContent("20 days");
+  });
+
+  it("PMS-9 the Reach section lists the door's reach rows: the included one current, a lower one not available, a wider one choosable, an unpriced one with its reason", async () => {
+    answers.promote_options = [{ data: options(), error: null }];
+    mount();
+    const section = (await screen.findByRole("heading", { name: "Reach" })).closest("section");
+    if (section === null) throw new Error("the Reach section has no section");
+    expect(section).toHaveTextContent("Reach");
+    const current = within(section).getByTestId("promote-reach-rch-inc");
+    expect(within(current).getByTestId("promote-reach-current-rch-inc")).toHaveTextContent(
+      "Current reach",
+    );
+    expect(within(current).queryByTestId("promote-reach-until")).toBeNull();
+    expect(within(current).queryByRole("button")).toBeNull();
+    expect(within(section).getByTestId("promote-reach-reason-rch-low")).toHaveTextContent(
+      "Not available",
+    );
+    const wide = within(section).getByTestId("promote-reach-rch-wide");
+    expect(wide).toHaveTextContent("Wide reach");
+    expect(wide).toHaveTextContent("30 days · Free while the launch runs");
+    expect(within(wide).getByTestId("promote-reach-choose-rch-wide")).toHaveTextContent(
+      "Choose reach",
+    );
+    expect(within(section).getByTestId("promote-reach-reason-rch-none")).toHaveTextContent(
+      "This reach has no price here yet.",
+    );
+    expect(screen.queryByTestId("promote-reach-empty")).toBeNull();
+    expect(within(section).queryByTestId("promote-level-lvl-b")).toBeNull();
+  });
+
+  it("PMS-10 choosing a reach sets it through set_listing_reach and hands back the door's end in the reach's words", async () => {
+    answers.promote_options = [{ data: options(), error: null }];
+    answers.set_listing_reach = [
+      {
+        data: { ok: true, reach: "rch-wide", until: "2026-12-09T10:00:00+00:00", source: "launch" },
+        error: null,
+      },
+    ];
+    const { onDone, onOpenChange } = mount();
+    fireEvent.click(await screen.findByTestId("promote-reach-choose-rch-wide"));
+    await waitFor(() =>
+      expect(onDone).toHaveBeenCalledWith(
+        "2026-12-09T10:00:00+00:00",
+        "myListings.promote.reach.done",
+      ),
+    );
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+    expect(calls.filter((call) => call.name.startsWith("set_listing"))).toEqual([
+      { name: "set_listing_reach", args: { p_listing_id: "ad-1", p_reach_key: "rch-wide" } },
+    ]);
+  });
+
+  it("PMS-11 a bought reach is current with its end and the included one marked Included; sameReach names the fresh end, lowerReach its words; nothing wider is a caption", async () => {
+    const BOUGHT = "2026-12-01T10:00:00+00:00";
+    const LATER = "2026-12-20T10:00:00+00:00";
+    const bought = (until: string) =>
+      options({
+        reach: { key: "rch-wide", until, source: "launch", included: "rch-inc" },
+        reaches: [
+          level({
+            key: "rch-inc",
+            name_en: "Included reach",
+            sort: 10,
+            below: true,
+            availability: "includedReach",
+          }),
+          level({
+            key: "rch-wide",
+            name_en: "Wide reach",
+            sort: 20,
+            current: true,
+            availability: "sameReach",
+          }),
+          level({ key: "rch-top", name_en: "Top reach", sort: 30 }),
+        ],
+      });
+    answers.promote_options = [
+      { data: bought(BOUGHT), error: null },
+      { data: bought(LATER), error: null },
+    ];
+    answers.set_listing_reach = [
+      { data: null, error: { message: "sameReach", code: "P0001", details: BOUGHT } },
+      { data: null, error: { message: "lowerReach", code: "P0001" } },
+    ];
+    const { onDone } = mount();
+    const current = await screen.findByTestId("promote-reach-rch-wide");
+    expect(within(current).getByTestId("promote-reach-current-rch-wide")).toHaveTextContent(
+      "Current reach",
+    );
+    expect(within(current).getByTestId("promote-reach-until")).toHaveTextContent(
+      `Until ${day(BOUGHT)}`,
+    );
+    expect(screen.getByTestId("promote-reach-reason-rch-inc")).toHaveTextContent("Included");
+    fireEvent.click(screen.getByTestId("promote-reach-choose-rch-top"));
+    expect(await screen.findByTestId("promote-problem")).toHaveTextContent(
+      `This ad already has this reach until ${day(LATER)}.`,
+    );
+    fireEvent.click(screen.getByTestId("promote-reach-choose-rch-top"));
+    await waitFor(() =>
+      expect(screen.getByTestId("promote-problem")).toHaveTextContent(
+        "Choose a reach wider than the current one.",
+      ),
+    );
+    expect(onDone).not.toHaveBeenCalled();
+    cleanup();
+
+    answers.promote_options = [
+      {
+        data: options({
+          reaches: [
+            level({
+              key: "rch-inc",
+              name_en: "Included reach",
+              sort: 10,
+              current: true,
+              availability: "includedReach",
+            }),
+          ],
+        }),
+        error: null,
+      },
+    ];
+    mount();
+    expect(await screen.findByTestId("promote-reach-empty")).toHaveTextContent(
+      "No wider reach is offered for this ad.",
+    );
+    expect(screen.queryByTestId("promote-empty")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Choose reach" })).toBeNull();
   });
 });

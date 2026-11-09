@@ -431,9 +431,9 @@ export function MyListingsPage() {
     setBusy(false);
   };
 
-  /** P-2 (b) — the sheet set a level: its end in the notice, the list read again. */
-  const promoted = async (until: string) => {
-    setNotice({ text: fill(t("myListings.promote.done"), { date: day(until) }), tone: "done" });
+  /** P-2 (b) — the sheet set a level (c3: or a reach): its end in the sheet's words, the list read again. */
+  const promoted = async (until: string, doneKey: MessageKey) => {
+    setNotice({ text: fill(t(doneKey), { date: day(until) }), tone: "done" });
     await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
     await refreshAfterWrite(queryClient, { queryKey: authKey("my-listing") });
   };
@@ -946,7 +946,7 @@ export function MyListingsPage() {
             onOpenChange={(next) => {
               if (!next) setPromoting(null);
             }}
-            onDone={(until) => void promoted(until)}
+            onDone={(until, doneKey) => void promoted(until, doneKey)}
           />
         </Suspense>
       ) : null}

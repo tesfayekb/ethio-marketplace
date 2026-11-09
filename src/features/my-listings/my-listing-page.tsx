@@ -40,7 +40,7 @@ import { fill } from "@/features/posting/refusal-text";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { CertifyConfirm } from "@/features/legal/certify-confirm";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
-import { useI18n } from "@/i18n";
+import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { authKey } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
@@ -320,10 +320,10 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     }
   };
 
-  /** P-2 (b) — the sheet set a level: its end in the done line, the ad read again. */
-  const promoted = async (until: string) => {
+  /** P-2 (b) — the sheet set a level (c3: or a reach): its end in the sheet's words, the ad read again. */
+  const promoted = async (until: string, doneKey: MessageKey) => {
     setProblem(null);
-    setNotice(fill(t("myListings.promote.done"), { date: day(until) }));
+    setNotice(fill(t(doneKey), { date: day(until) }));
     await reload();
   };
 
@@ -850,7 +850,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             listingId={listingId}
             open
             onOpenChange={setPromoting}
-            onDone={(until) => void promoted(until)}
+            onDone={(until, doneKey) => void promoted(until, doneKey)}
           />
         </Suspense>
       ) : null}
