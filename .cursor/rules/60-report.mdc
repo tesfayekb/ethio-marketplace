@@ -1,5 +1,5 @@
 ---
-description: The completion report and stop reports for ethio.com — the twelve headings, the rules of evidence, and where the file goes. Use when writing a report at the end of a turn or at a stop.
+description: The completion report and stop reports for ethio.com — the fourteen headings, the rules of evidence, and where the file goes. Use when writing a report at the end of a turn or at a stop.
 alwaysApply: false
 ---
 
@@ -27,6 +27,8 @@ Review: <the self-review's last line, word for word — READY · <n> BLOCKER · 
 ## 10. Departures  (every difference from the brief with its reason; every STOP and ruling in the turn)
 ## 11. CI  (the base's CI: the first six lines of ci-status.md with the two-step SHA check; every red of an earlier turn you fixed; for each red of this pull request's own runs: its class (rule 40), its cause and the commit that fixed it, and any re-run with its reason. The final "every check green" line goes in the pull request's description, not here)
 ## 12. Limits  (what you could not run or prove, and why — logs unavailable, no browser, no secret)
+## 13. Findings  (anything major you met beyond the task — security, structural, performance, multilingual, a rule that misled you — each with file:line; fixed when it is small and inside scope, else raised here so it is planned; "none" after the read that proves it)
+## 14. Records  (every record this turn would have written to the shared ledgers, word for word under plain labels — `DEC — …`, `INC — …`, `register row — …`, `changelog — …`, `roadmap — …`, `slip — …` — with NO numbers: the supervisor assigns them at the records turn, DEC-346)
 ```
 
 Rules of the report:
@@ -50,5 +52,11 @@ Rules of the report:
   supervisor reads each before it ships.
 - The report is honest about its own gaps (section 12). A report that claims a check it did not run
   is a defect of the same class as a test that cannot fail.
+- Section 13 is the operator's standing rule (2026-11-02): a major issue you meet anywhere — a hole,
+  a structural fork, a slow path, a language left out — is fixed when it is small and inside scope,
+  and raised here with file:line when it is not, so it gets documented and planned; never dropped.
+- Section 14 holds every record the shared ledgers would have taken (DEC-346): the lane never edits
+  `docs/tracking/incidental-findings.md`, `docs/governance/mechanisms.md`, `docs/_changelog.md` or any
+  `roadmap.md` line but line 3; it writes the text here, unnumbered, and the records turn lands it.
 - A stop report uses the short form in `00-protocol.mdc` (STOP / QUESTION / MIGRATION, DONE, LEFT,
   CI, FILES, then the question or the pairing line).

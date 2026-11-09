@@ -180,9 +180,10 @@ the project's own adapters over `upstream()` — no vendor SDK. Guard: `vendor-s
 
 ## Documentation
 
-A structural change updates `docs/features/<name>.md` and appends one `docs/_changelog.md` line in
-the same change (never renumber or delete); the register row in `docs/governance/mechanisms.md` and
-the roadmap line are updated in the turn's docs part. No known-error debt: every violation a check
-surfaces, even pre-existing, is reported and fixed as its own tracked item, never deferred as
-"pre-existing". Records (DEC / INC / handoffs) enter the repository only as word-for-word imports the
-supervisor hands you, checked by sha256.
+A structural change updates `docs/features/<name>.md` in the same change. Its changelog line, its
+register row (`docs/governance/mechanisms.md`) and its roadmap tick are written word for word into
+the report's section 14, Records, unnumbered, and land through the records turn (DEC-346; rule 00
+§Scope, THE SHARED LEDGERS) — a feature lane never edits those files. No known-error debt: every
+violation a check surfaces, even pre-existing, is reported and fixed as its own tracked item, never
+deferred as "pre-existing". Records (DEC / INC / handoffs) enter the repository only as word-for-word
+imports the supervisor hands you, checked by sha256.

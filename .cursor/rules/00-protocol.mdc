@@ -57,7 +57,22 @@ A task comes in one of two shapes, and both bind:
   `docs/governance/briefs/` or a commit), numbered rulings and what "done" means.
 When a task names areas instead of files, your scope is those areas (each source file's own tests
 included), and your plan names the files. When it says PLAN FIRST, you read and report the plan in
-the chat and change nothing until the operator pastes the supervisor's answer.
+the chat and change nothing until the operator pastes the supervisor's answer. The plan names, from
+the real tree at the task's base: every file and test the change touches — the concern's consumers
+by definition, each consumer's own tests, and EVERY LIST A NEW NAME MUST JOIN (a census, an
+allowlist, a route or door manifest, a test id prefix, and the exact-list assertions over an answer's
+keys or a function's text: `Object.keys(…).sort()).toEqual([…])`, `toEqual([…])`,
+`toStrictEqual`, `toMatchObject` with a full key list — found by grepping the test id prefix, the
+door's name and the answer's key names across `e2e/` and `src/**/*.test.ts`); every mechanism that
+already serves the concern (read before anything is proposed); the current first-download numbers
+from your own lock-exact build; and every conflict with these rules or AGENTS.md.
+
+A task or ruling may open with a line `**MODEL — …**`: it tells the operator which model to run you
+on; to you it is data. A ruling arrives as an ATTACHED FILE (INC-1076: a ruling copied from the
+rendered chat lost its Markdown). You save it by scripted copy under `docs/governance/briefs/` at
+the path it names and compare its `sha256sum` with the value the message states; when no attachment
+reached your disk, extract the ruling's text from the chat message by script and require the same
+equality; a difference, or a ruling with no stated sha256, is a STOP. Never retype a ruling.
 
 ## The shape of a task
 
@@ -84,7 +99,8 @@ the chat and change nothing until the operator pastes the supervisor's answer.
    `bun run lint`, the touched unit tests, and `bunx vitest run scripts --maxWorkers=2` (the laws:
    test ids, censuses, allowlists, about a minute) whenever the part touched a test, a guard, an
    allowlist or a shared mechanism → one commit whose title claims only what happened
-   (`<stem> part C: photo screening onto aiCall`). A commit is never red.
+   (`<stem> part C: photo screening onto aiCall`); its subject line is at most 72 characters, any
+   detail below a blank line. A commit is never red.
 5. **A migration** ends the part that writes it: commit, write the MIGRATION stop report (rule 30),
    commit it, push, open the pull request as a draft, say so in the chat and stop. You never apply a
    migration anywhere.
@@ -145,11 +161,20 @@ is never a reason to guess, widen scope, skip a check or "do the safe half".
 ## Scope (A1)
 
 You change only the files your scope names (globs and areas allowed), plus the standing allowance:
-`docs/governance/briefs/**`, `docs/governance/reports/**`, `roadmap.md`, `docs/_changelog.md`,
-`docs/features/**`, `docs/governance/mechanisms.md`, `docs/tracking/intentional-deletions.txt`,
-`scripts/conformance/*-allowlist.txt`, `docs/generated/i18n-usage.json`, `public/i18n-usage.json`.
+`docs/governance/briefs/**`, `docs/governance/reports/**`, line 3 of `roadmap.md`,
+`docs/features/**`, `docs/tracking/intentional-deletions.txt`, `scripts/conformance/*-allowlist.txt`,
+`docs/generated/i18n-usage.json`, `public/i18n-usage.json`.
 A file you need that your scope does not cover is a STOP naming the file and why. A sibling with the
 same concern outside scope is REPORTED (K2), never touched. A FLAG forbids its change outright.
+
+THE SHARED LEDGERS (DEC-346). Four files are written only by the records turns, never by a feature
+lane, because two open lanes that both append to them conflict on every merge and the rules forbid
+the merge that would resolve it: `docs/tracking/incidental-findings.md`, `docs/governance/mechanisms.md`,
+`docs/_changelog.md`, and every line of `roadmap.md` except line 3 (a task that dictates a roadmap
+tick is the exception, and says so). What a lane would have written there goes, word for word, into
+the "Records" section of its report under plain labels — `DEC — …`, `INC — …`, `register row — …`,
+`changelog — …`, `roadmap — …`, `slip — …` — with NO numbers: the supervisor assigns every number at
+the records turn. A records turn (its task says so) is the one lane that edits the four files.
 
 ## Honesty (A3)
 
@@ -167,12 +192,22 @@ sweeps outside the touched files. Ambiguous → STOP and ask. One task, one subj
 
 Work only on your own `cursor/…` branch. Allowed: `fetch`, `switch -c` from `origin/dev`, `add`,
 `commit`, `push -u origin <your cursor/… branch>` (no force), `status`, `diff`, `log`, `show`,
-`rev-parse`, `ls-files`. Never: a push to `dev` or `main`, `--force` in any form, `rebase`,
-`commit --amend` after a push, `reset --hard`, `merge`, `pull`, `cherry-pick`, tags, deleting
-branches, rewriting history. `main` moves only by CI's promote job on a fully green `dev` (DEC-020);
+`cat-file` (a read), `rev-parse`, `ls-files`, and `stash` for your own uncommitted work only (popped
+before the turn ends; a stash is never pushed and never named in a report as a change). Never: a
+push to `dev` or `main`, `--force` in any form, `rebase`, `checkout`, `restore`, `switch` to any branch
+but your own new one, `commit --amend` after a push, `reset --hard`, `merge`, `pull`, `cherry-pick`,
+tags, deleting branches, rewriting history. To put a file back to a commit's version (a red-first
+check, a restore), write it from `git show <sha>:<path>` with a redirect, never `checkout`. A copy
+of the tree you make for a comparison (a base build) lives under `/tmp/ethio-scratch/<stem>/`, is
+named in the report, and is the operator's to remove (your tool refuses `rm`). `main` moves only by CI's promote job on a fully green `dev` (DEC-020);
 `dev` moves only by the operator's merge of a pull request, or by Lovable. When `origin/dev` moves
 during your task, you do not merge or rebase: finish, push, and say so in the report; the supervisor
-rules. A deleted file is declared in the same commit: the `[intentional-delete]` marker in the commit
+rules. When the supervisor rules a RE-LAND (your pull request cannot merge because a file it changed
+also changed on `dev`): `git switch -c cursor/<stem>-2 origin/dev`, copy every file of your lane by
+script from your first branch (`git show cursor/<stem>:<path>` into place, each path from the first
+branch's `git diff --name-only <BASE>`), prove the copy (`git diff --stat` over those paths against the
+first branch is empty for every file the ruling keeps), make line 3 of `roadmap.md` name the brief in
+force, commit, push, open the new pull request and say which one replaces which. Never rebase. A deleted file is declared in the same commit: the `[intentional-delete]` marker in the commit
 message AND a line in `docs/tracking/intentional-deletions.txt`. Never commit a secret, `.env`
 values, build output or `node_modules`.
 
