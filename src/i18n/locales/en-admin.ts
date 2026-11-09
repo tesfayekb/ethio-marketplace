@@ -1758,11 +1758,11 @@ export const enAdmin = {
   "admin.countries.error.notARoot": "Only a root category can be ordered on the rail.",
 
   // L2b-C2 — the Coverage section: how far a seller may reach on each plan.
-  "admin.coverage.everywhere.yes": "Yes",
-  "admin.coverage.everywhere.no": "No",
-  "admin.coverage.field.photos": "Photos at most",
-  "admin.coverage.field.photosHint": "0 to 30 photos per listing.",
-  "admin.coverage.error.reason": "Reason: {reason}",
+  "admin.monetisation.everywhere.yes": "Yes",
+  "admin.monetisation.everywhere.no": "No",
+  "admin.monetisation.field.photos": "Photos at most",
+  "admin.monetisation.field.photosHint": "0 to 30 photos per listing.",
+  "admin.monetisation.error.reason": "Reason: {reason}",
   "admin.attributes.link.allowedOptions": "Allowed options",
   "admin.attributes.link.allowedOptionsHint":
     "Leave empty to offer every option. Separate values with |.",
@@ -1915,7 +1915,8 @@ export const enAdmin = {
   "admin.monetisation.error.unknownPlacement": "Unknown placement.",
   "admin.monetisation.error.perksOnReach": "A reach product carries no level perks.",
   "admin.monetisation.error.capsOnLevel": "A level carries no place limits.",
-  "admin.monetisation.error.badCaps": "A limit is a whole number, 1 or more, or blank for no limit.",
+  "admin.monetisation.error.badCaps":
+    "A limit is a whole number, 1 or more, or blank for no limit.",
   "admin.monetisation.error.unknownLevel": "Unknown level.",
   "admin.monetisation.error.notMainCategory": "Pick a main category.",
   "admin.monetisation.error.emptyOverride": "Set at least one value.",

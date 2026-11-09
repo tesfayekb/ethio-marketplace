@@ -32,7 +32,7 @@ export function MonetisationErrorLine({
       </p>
       {refusal.raw === null ? null : (
         <p className="text-sm break-words text-muted-foreground" data-testid={`${testid}-reason`}>
-          {t("admin.coverage.error.reason").replace("{reason}", refusal.raw)}
+          {t("admin.monetisation.error.reason").replace("{reason}", refusal.raw)}
         </p>
       )}
     </>
@@ -205,8 +205,8 @@ export function BadgeSelect({
         }}
       >
         <option value="" />
-        <option value="yes">{t("admin.coverage.everywhere.yes")}</option>
-        <option value="no">{t("admin.coverage.everywhere.no")}</option>
+        <option value="yes">{t("admin.monetisation.everywhere.yes")}</option>
+        <option value="no">{t("admin.monetisation.everywhere.no")}</option>
       </NativeSelect>
     </FormField>
   );

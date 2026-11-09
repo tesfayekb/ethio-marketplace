@@ -1642,11 +1642,11 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.countries.error.notARoot": "በዋና ምድቦች መደዳ ላይ ዋና ምድብ ብቻ ሊደረደር ይችላል።",
 
   // L2b-C2 — \u12e8\u1215\u12f3\u1290\u1275 \u12ad\u1349\u120d
-  "admin.coverage.everywhere.yes": "አዎ",
-  "admin.coverage.everywhere.no": "አይ",
-  "admin.coverage.field.photos": "ፎቶዎች ቢበዛ",
-  "admin.coverage.field.photosHint": "በአንድ ማስታወቂያ ከ0 እስከ 30 ፎቶዎች።",
-  "admin.coverage.error.reason": "ምክንያት፦ {reason}",
+  "admin.monetisation.everywhere.yes": "አዎ",
+  "admin.monetisation.everywhere.no": "አይ",
+  "admin.monetisation.field.photos": "ፎቶዎች ቢበዛ",
+  "admin.monetisation.field.photosHint": "በአንድ ማስታወቂያ ከ0 እስከ 30 ፎቶዎች።",
+  "admin.monetisation.error.reason": "ምክንያት፦ {reason}",
   "admin.attributes.link.allowedOptions": "የተፈቀዱ አማራጮች",
   "admin.attributes.link.allowedOptionsHint": "ሁሉንም አማራጭ ለማቅረብ ባዶ ይተዉ። እሴቶችን በ| ይለያዩ።",
   "admin.attributes.link.defaultValue": "ነባሪ እሴት",

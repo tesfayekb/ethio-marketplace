@@ -134,7 +134,7 @@ export function ProductEditorDialog({
           <NumberField
             id={`${prefix}-photos`}
             labelKey="admin.monetisation.col.photos"
-            helpKey="admin.coverage.field.photosHint"
+            helpKey="admin.monetisation.field.photosHint"
             value={form.maxPhotos}
             onChange={(next) => change({ maxPhotos: next })}
           />

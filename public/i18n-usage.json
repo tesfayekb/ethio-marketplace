@@ -2450,15 +2450,6 @@
     "admin.countries.transfer.scope": [
       "/admin/countries"
     ],
-    "admin.coverage.error.reason": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.everywhere.no": [
-      "/admin/monetisation"
-    ],
-    "admin.coverage.everywhere.yes": [
-      "/admin/monetisation"
-    ],
     "admin.landing.body": [
       "/admin"
     ],
@@ -3541,6 +3532,15 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.error": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.error.reason": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.everywhere.no": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.everywhere.yes": [
       "/admin/monetisation"
     ],
     "admin.monetisation.loading": [
