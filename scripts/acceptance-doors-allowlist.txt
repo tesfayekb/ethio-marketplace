@@ -52,7 +52,6 @@ admin_set_category_window(uuid,timestamp with time zone,timestamp with time zone
 admin_set_country_active(text,boolean,boolean) | staff | Writes countries, locations; rejects callers lacking countries:activate before its mutations
 admin_set_country_exclusions(uuid,text[]) | staff | Writes category_country_exclusions; rejects callers lacking categories:update before its mutations
 admin_set_country_root_order(text,uuid[]) | staff | Writes country_root_order; rejects callers lacking countries:update before its mutations
-admin_set_coverage_plan(text,integer,integer,integer,boolean,smallint,integer,integer,boolean,text) | staff | Writes coverage_plans (P-1: the plan's days, quota and label key too); rejects callers lacking coverage:update before its mutations
 admin_set_entity_translation_status(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:approve before its mutations
 admin_set_fact_attributes(uuid,uuid[]) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
 admin_set_key_context(text,text) | staff | Writes ui_translations; rejects callers lacking translations:manage before its mutations

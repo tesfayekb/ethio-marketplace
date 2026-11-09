@@ -120,3 +120,5 @@ src/features/admin-monetisation/caps-section.tsx
 # P-2 (c) c2b: CF-PLAN-1 retired with the plan seam; its reader moved to scripts/conformance/migration-reader.ts
 scripts/conformance/plan-seam.ts
 scripts/conformance/plan-seam.test.ts
+# P-2 (c) c2b M-3c-b part 5: the plan seam dropped (coverage_plans, its four functions); CF-PLAN-1's allowlist goes with it
+scripts/conformance/plan-seam-allowlist.txt

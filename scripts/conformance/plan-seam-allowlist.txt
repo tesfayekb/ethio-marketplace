@@ -1,4 +1,0 @@
-# CF-PLAN-1 (scripts/conformance/plan-seam.test.ts) — functions whose last declaration reads
-# coverage_plans beside the seam (seller_plan / plan_caps / plan_photo_cap).
-# Grammar: key | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
-reads:admin_set_coverage_plan | the staff config door reads and writes the plan row its p_plan argument names (P-1 M1a); no seller is involved | INC-1034

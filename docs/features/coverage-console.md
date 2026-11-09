@@ -7,7 +7,10 @@
 > `docs/tracking/intentional-deletions.txt`); the editor lost its Label key
 > field (the stored `label_key` is kept by the door, MON-15); the Locations
 > overview lost its Plans tile. The door `admin_set_coverage_plan` is M1a's
-> live body, unchanged. What follows is L2b-C2's and P-1's record.
+> live body, unchanged. P-2 (c) c2b retired the Posting caps block, and M-3c-b
+> dropped the plans table, `admin_set_coverage_plan` and the `coverage`
+> permission; a reach product's caps are set in the Reach block. What follows
+> is L2b-C2's and P-1's record.
 
 How far a seller may reach on each plan: the most cities, regions and countries
 a listing's coverage may name, and whether the plan may reach everywhere at

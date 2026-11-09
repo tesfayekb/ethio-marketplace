@@ -735,6 +735,10 @@ business name (or the alias) before the channels.
 
 ### The plan document (D22) — both doors exist since M-MAINT-3
 
+> P-2 (c): `plan_caps`, `seller_plan` and `admin_set_coverage_plan` are dropped
+> (M-3c-b part 5); a new ad's plan block is its market's included reach, an
+> edited ad's caps are its own (§An ad's own caps). What follows is the record.
+
 `get_posting_schema` returns `plan` = `{ plan, max_photos, max_cities,
 max_regions, max_countries, allow_everywhere }` for the CALLER
 (`plan_caps(seller_plan(auth.uid()))`; plans are not per-seller yet, so
