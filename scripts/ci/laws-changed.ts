@@ -8,10 +8,11 @@
  * names (F4b, TC-E5); with neither the step fails and says so. The diff includes the working tree.
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 
 import { walkFiles } from "../conformance/kit";
+import { CHECKS_CACHE } from "./checks-cache";
 
 const UNIT = /\.test\.tsx?$/;
 
@@ -41,6 +42,15 @@ export function semgrepTargets(files: string[]): string[] {
   return files.filter(
     (f) => /\.(?:[cm]?[jt]sx?)$/.test(f) && !f.startsWith("scripts/fixtures/semgrep"),
   );
+}
+
+/** CI's pinned rules are whole only when both scanned folders hold rule files: a swept cache
+ *  keeps its folders and loses its files (INC-1098). */
+export function semgrepRulesWhole(dir: string): boolean {
+  return ["javascript", "typescript"].every((lang) => {
+    const folder = join(dir, lang);
+    return existsSync(folder) && walkFiles([folder], { ext: ["yaml"] }).length > 0;
+  });
 }
 
 /** The brief in force: the first brief roadmap line 3 names; null when it names none. The one
@@ -112,9 +122,10 @@ export function check(mode: string): number {
     console.log(`[laws] changed files Semgrep judges: ${targets.length}`);
     if (targets.length === 0) return 0;
     const { version, rules } = semgrepPins(readFileSync(".github/workflows/ci.yml", "utf8"));
-    const dir = join("/tmp", `semgrep-rules-${rules}`);
-    if (!existsSync(join(dir, "javascript"))) {
+    const dir = join(CHECKS_CACHE, `semgrep-rules-${rules}`);
+    if (!semgrepRulesWhole(dir)) {
       // The same commit CI checks out, as its archive (no git state touched).
+      rmSync(dir, { recursive: true, force: true });
       if (run("mkdir", ["-p", dir]) !== 0) return 1;
       const url = `https://codeload.github.com/semgrep/semgrep-rules/tar.gz/${rules}`;
       const got = spawnSync(
@@ -133,7 +144,7 @@ export function check(mode: string): number {
         run("rm", ["-f", join(dir, drop)]);
     }
     // CI's pinned version, in its own venv (pip, as CI installs it).
-    const venv = join("/tmp", `semgrep-${version}`);
+    const venv = join(CHECKS_CACHE, `semgrep-${version}`);
     const bin = join(venv, "bin", "semgrep");
     if (!existsSync(bin)) {
       if (run("python3", ["-m", "venv", venv]) !== 0) return 1;

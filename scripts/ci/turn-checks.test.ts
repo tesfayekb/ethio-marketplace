@@ -1,5 +1,11 @@
-import { changedTestFolders, semgrepPins, semgrepTargets, turnBase } from "./laws-changed";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  changedTestFolders,
+  semgrepPins,
+  semgrepRulesWhole,
+  semgrepTargets,
+  turnBase,
+} from "./laws-changed";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -45,7 +51,8 @@ import {
  * line's counts, TCK-5 the NEAR band (DEC-296's one band, a NOTE — DEC-361), TCK-6 the local unit
  * step's worker bound (INC-1001), TCK-7 a pinned binary built for another machine is NOT RUN
  * (INC-1094), TCK-8 `--no-tests` (INC-1064), TCK-9 the budget step's NEAR-only failure is a PASS
- * with its NOTE lines (DEC-361).
+ * with its NOTE lines (DEC-361), TCK-10 the laws' Semgrep rules cache is whole only by its files
+ * (INC-1098).
  */
 const ciText = readFileSync(CI_FILE, "utf8");
 const steps = planFrom(ciText);
@@ -325,6 +332,23 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     expect(check).toContain('"\\nNEAR band failed (DEC-296):"');
     expect(check).toContain('"\\nPer-page budget failed (D234):"');
     expect(readFileSync("scripts/budget-band.mjs", "utf8")).toContain("sits within the NEAR band");
+  });
+
+  it("TCK-10 the laws' Semgrep rules cache is whole only when both scanned folders hold rule files (INC-1098)", () => {
+    // A swept cache: the archive's folders stay, every file is gone.
+    const dir = mkdtempSync(join(tmpdir(), "tck-rules-"));
+    try {
+      for (const lang of ["javascript", "typescript"])
+        mkdirSync(join(dir, lang, "lang", "security"), { recursive: true });
+      expect(semgrepRulesWhole(dir)).toBe(false);
+      writeFileSync(join(dir, "javascript", "lang", "security", "rule.yaml"), "rules: []\n");
+      expect(semgrepRulesWhole(dir)).toBe(false);
+      writeFileSync(join(dir, "typescript", "lang", "security", "rule.yaml"), "rules: []\n");
+      expect(semgrepRulesWhole(dir)).toBe(true);
+      expect(semgrepRulesWhole(join(dir, "absent"))).toBe(false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("TC-E1 the fast steps run first, no step is dropped, each job keeps its order, and no build is fast (DEC-311)", () => {

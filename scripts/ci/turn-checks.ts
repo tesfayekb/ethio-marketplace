@@ -42,7 +42,6 @@ import {
   symlinkSync,
   writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 
@@ -50,11 +49,11 @@ import { errorText } from "../../src/lib/error-text";
 import { ownValue } from "../../src/lib/own-key";
 import { NEAR_KIB, judgedSize } from "../budget-band.mjs";
 import { readAllowlist } from "../conformance/kit";
+import { CHECKS_CACHE as CACHE } from "./checks-cache";
 import { briefInForce } from "./laws-changed";
 
 export const CI_FILE = ".github/workflows/ci.yml";
 export const ALLOWLIST = "scripts/ci/turn-checks-allowlist.txt";
-const CACHE = process.env.ETHIO_CHECKS_CACHE ?? join(homedir(), ".cache", "ethio-checks");
 const HARNESS_LOG = "/tmp/observability/build-errors.log";
 
 export type Verdict = "PASS" | "FAIL" | "NOT RUN";

@@ -110,6 +110,10 @@ until`): the installs, the SARIF upload, the dependency audit, the staging prefl
 - Typecheck is the platform harness's verdict (`/tmp/observability/build-errors.log`): PASS only when
   newer than every change under src/, e2e/ and scripts/ with no error; otherwise NOT RUN.
 - A pinned download or checksum that fails is NOT RUN; no unpinned stand-in.
+- The laws step's Semgrep on changed files (`scripts/ci/laws-changed.ts`) keeps CI's pinned rules
+  and its venv under the same cache root (`scripts/ci/checks-cache.ts`, never /tmp, which the machine
+  sweeps); the rules count as cached only when `javascript/` and `typescript/` each hold a `.yaml`
+  (`semgrepRulesWhole`), otherwise the archive is fetched again (INC-1098).
 - The NEAR band: after the budget check, each page within 0.3 KiB of its line, with its growth
   against the turn's base build (HEAD's tree, built once per base and cached); a NEAR page that grew
   is a FAIL until its line is raised with the cause.
