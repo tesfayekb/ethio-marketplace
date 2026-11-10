@@ -7,8 +7,8 @@ CI: the lane head the turn found, 8aa99c1c0 (stop 2) — run 42837499607, FAILUR
 (the brief law reading this turn's own saved brief); fixed in part B (§11). The base 2b11a9d29 — run
 42733115280, SUCCESS. The turn's first push (head e94b42d9a, code at 09bb36b65) — run 42846505952,
 FAILURE in one job, the first-paint budget (3 pages, §11); every other job, all 18 E2E lanes included,
-green. Fixed in b92e0775d (the final code commit); its run id and verdict are stated in the pull request's
-description (the report commit is not re-judged, rule 60).
+green. Fixed in b92e0775d (the final code commit). No run started for the two later pushes (b92e0775d, 6e3fc365b;
+INC-1099, §14); the judged run is the run this report's push starts (§11).
 
 ## 1. Done / not done, by part and step
 
@@ -30,12 +30,14 @@ Not done: the browser check is partial — see §12 (the i18n specs ran; one spe
 
 ## 2. Files changed
 
-This turn's own diff, `git diff --name-only 1df9c9ed0..HEAD` (the lane's head when the task was saved; the pull request's diff against dev also carries housekeeping turn 1's 137 paths), 25 paths + this report:
+This turn's own diff, `git diff --name-only 1df9c9ed0..HEAD` (the lane's head when the task was saved; the pull request's diff against dev also carries housekeeping turn 1's 137 paths), 27 paths + this report (the two later rulings joined at the report commit):
 
 ```
 docs/features/performance-strategy.md
 docs/generated/i18n-usage.json
 docs/governance/briefs/housekeeping-1b-ruling-1.md
+docs/governance/briefs/housekeeping-1b-ruling-2.md
+docs/governance/briefs/housekeeping-1b-ruling-3.md
 docs/governance/briefs/housekeeping-1b.md
 docs/governance/reports/housekeeping-1b.stop-1.md
 docs/governance/reports/housekeeping-1b.stop-2.md
@@ -161,7 +163,7 @@ e2e:local -- e2e/i18n-bundle.spec.ts e2e/i18n-coverage.spec.ts e2e/i18n-layers.s
 e2e/i18n-sign-in-language.spec.ts e2e/smoke-auth-i18n.spec.ts` (both projects, ethio-staging, after `bunx
 playwright install chromium`): **35 passed, 3 skipped, 2 failed** — the failures are
 `e2e/i18n-coverage.spec.ts:277` "the roles permission matrix renders no raw English vocabulary", both
-projects: the page rendered entirely in English (the language control reads `EN`; 85 raw labels), i.e. the
+projects: the page rendered entirely in English (the language control reads `EN`; 83 raw labels), i.e. the
 account's Amharic did not apply on that load. §13 finding 1 states what I measured about it; it is not a
 chunk that failed to load.
 
@@ -287,6 +289,12 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
    pull request's description (the run is known only after the push).
 9. Local browser runs of §5 used a Chromium I installed with `bunx playwright install chromium` (rule 00
    allows it) into the sandbox's cache.
+10. **Rulings 1 → 3 named.** Ruling 1 (stop 1: the shape rule, client scope, ratchet, lists and guard), ruling 2
+    (stop 3: wait for the run, never re-push for one; three lines for the report) and ruling 3 (stop 4: push this
+    report now, its run is the judged run; INC-1099 and INC-1100 for the records; the warning is nitro's). Rulings 2
+    and 3 are saved byte for byte as `docs/governance/briefs/housekeeping-1b-ruling-2.md` and `-ruling-3.md`
+    (sha256 7dc759ed132b2da3b53e6e0822d02e770a9d3ba4241dc4aef7228d81b0582569 and
+    339dd168f374661e208fdc65aec2c8f1155eba9530dbe2f0ccb68cd13b30e88a, each compared with its carrier's).
 
 ## 11. CI
 
@@ -307,9 +315,12 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
     run read 7.9 and did not ratchet them. Cause fixed at its root in b92e0775d: the three lines go to
     `ceilingForLocal(measured)` (235 → 228, 235 → 228, 256 → 249) with their ratchet comment; `CI=1 node
     scripts/check-bundle-size.mjs` (CI's own measure, run locally) → `Bundle budget OK.`; no re-run of CI was used.
-  - The run of b92e0775d and its verdict: in the pull request's description; any red there will be read per rule 40
-    and fixed at its root in a new commit with this report brought up to date. The DEC-362 judge's last clause (CI's
-    bundle-budget job and every E2E lane green) is that run's.
+  - The judged run is the run this push starts on pull request #34 (the tree holds the last CODE commit b92e0775d);
+    its id and check list are read by the supervisor from branch ci-evidence under this commit's sha, since no run
+    started for the two earlier pushes (INC-1099). `gh run list --branch cursor/housekeeping` after b92e0775d (16:06
+    UTC) and 6e3fc365b (16:17 UTC) listed only the first push's run 42846505952 and earlier ones; I polled until 17:18
+    UTC and pushed nothing (ruling 2). The DEC-362 judge's last clause (CI's bundle-budget job and every E2E lane
+    green) is that run's.
 
 ## 12. Limits
 
@@ -320,6 +331,112 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
 - Repeats were not run locally (AGENTS.md: CI's repeat lane). The few reruns in finding 1 are an investigation of
   one failure, with the counts stated, and prove nothing about repeatability.
 - `bun run checks`' NOT RUN steps, listed in §5, each for a machine or credential reason.
+- **Ruling 2 (a): the two local failures of `e2e/i18n-coverage.spec.ts:277`, verbatim.** Run: `bun run e2e:local --
+  e2e/i18n-bundle.spec.ts e2e/i18n-coverage.spec.ts e2e/i18n-layers.spec.ts e2e/i18n-sign-in-language.spec.ts
+  e2e/smoke-auth-i18n.spec.ts` on the final tree 09bb36b65, ethio-staging. Both projects (`[mobile-360]` and
+  `[desktop-1280]`) failed the same assertion, `i18n-coverage.spec.ts:299:82`:
+  `expect(english, "matrix vocabulary: raw English actions/resources rendered").toEqual([])` →
+  `- Expected  -  1`, `+ Received  + 85`, `- Array []`, `+ Array [` the 83 Latin labels (the diff's 85 added lines are `+ Array [`, the 83 labels and `+ ]`; the two bodies are
+  byte-identical, md5 of the two blocks equal). The 83 labels, in the order the assertion listed them (one per line, as printed):
+
+  ```text
+  Account panel
+  Admin panel
+  Audit logs
+  Categories
+  Countries
+  Impersonation
+  Legal documents
+  Listings
+  Locations
+  Packages
+  Permissions
+  Profiles
+  Roles
+  Services
+  Translations
+  User roles
+  Access
+  Access
+  Export
+  View
+  Assets
+  Create
+  Delete
+  Import
+  Manage
+  Restructure
+  Update
+  View
+  Activate
+  Create
+  Delete
+  Manage
+  Update
+  View
+  Use
+  Edit
+  Export
+  Publish
+  View
+  Create
+  Delete
+  Enforce
+  Manage
+  Review
+  Update
+  View
+  Create
+  Delete
+  Import
+  Manage
+  Restructure
+  Update
+  View
+  Update
+  View
+  Create
+  Delete
+  Manage
+  Update
+  View
+  Create
+  Delete
+  Manage
+  Update
+  View
+  Assign
+  Create
+  Delete
+  Manage
+  Update
+  View
+  Manage
+  View
+  Approve
+  Machine translate
+  Manage
+  Update
+  View
+  Create
+  Delete
+  Manage
+  Update
+  View
+  ```
+
+  What the page showed: the failing mobile run's snapshot (`error-context.md`) has the **whole page in English**: the
+  skip link "Skip to content", the menu "Open menu", the language control reading `EN`, the rail ("Listings",
+  "Users", "Roles & Permissions", "Audit & Security", "Locations", "Catalog"), the breadcrumb ("Home", "Admin",
+  "Roles & Permissions", "Super Admin"). Not only the matrix: the app had not applied `am` on that load. That reads as
+  the account language not applied (the spec's `setAmharicAccount` then `gotoReady`), not as missing
+  `ui_translations` rows of the admin layer — missing rows would leave the chrome and the matrix partly Amharic. I
+  cannot prove it from here: the snapshot is one failure's page, and the staging rows were not read (rule 50: no
+  staging reads beyond the browser tests). The supervisor can settle it from the ledger: CI's eighteen lanes were
+  green on run 42846505952 (code 09bb36b65), whose backends are seeded, not staging. Local counts: lane-head
+  copy 1 failure of 8 executions; final tree 3 of 4; split only 2 of 4; group only 2 of 2 (§13 finding 1). By the
+  supervisor's ledger the flake line count for `i18n-coverage` is one in seven days. Ruling 3 reads it as
+  deterministic on staging and registers it as INC-1100 (§13 finding 1, §14); not fixed here.
 - Logs read: the lane head's CI log (Component tests job) via `gh run view --log-failed`; `ci-status.md` and
   `guards-last-failure.md` at `origin/ci-evidence`. Not read: `e2e-last-failure.md` and `local-backend-proof.md`
   (the lane head's run had every E2E lane green; I did not open them).
@@ -330,8 +447,9 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
 
 ## 13. Findings
 
-1. **`e2e/i18n-coverage.spec.ts:277` (the roles permission matrix, Amharic) is flaky, and its failures were
-   more frequent on my tree.** The spec signs in as English, calls `setAmharicAccount`, then `gotoReady`s
+1. **`e2e/i18n-coverage.spec.ts:277` (the roles permission matrix, Amharic) fails on ethio-staging — registered as
+   INC-1100 (ruling 3: deterministic on staging, green on CI's seeded backends; fixed in housekeeping turn 2, not
+   here; text in §14). My own counts, kept as measured, show it passing more often at the lane head.** The spec signs in as English, calls `setAmharicAccount`, then `gotoReady`s
    `/admin/roles/<id>`; in the failing runs the whole page is English (the language control reads `EN`), so the
    account language did not apply on that load (a race in the account-language reconcile). Counts on
    ethio-staging, one test per project per run: lane-head copy 1 failure in 8 executions (the run of two, then
@@ -377,7 +495,33 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
    `CI=1 node scripts/check-bundle-size.mjs` locally (CI's own measure); the supervisor may want the ratchet to
    judge on the raw size.
 9. **The pull request is a draft carrying housekeeping turn 1** (137 paths against dev); this turn's own diff is
-   the 25 paths of §2.
+   the 27 paths of §2.
+10. **Ruling 2 (b): `[warn] inlineDynamicImports option is ignored because the codeSplitting option is specified`
+    comes from the NITRO environment's build, not the client's, and not from this change.** Where it prints: in
+    every full build log of this turn the line (` WARN  inlineDynamicImports option is ignored because the
+    codeSplitting option is specified.`) appears right after `vite v8.1.6 building nitro environment for
+    production...` and before its `transforming`, never in the client or ssr environment's section. It prints
+    identically on a build of the lane head with no `codeSplitting` in `vite.config.ts` (a `git archive 1df9c9ed0`
+    copy: `rg -c codeSplitting vite.config.ts` → no match; the warning at the same place), so this turn's group
+    neither causes nor changes it. Where the option is set: nitro's own build config —
+    `node_modules/nitro/dist/vite.mjs:28` and `node_modules/nitro/dist/_build/rolldown.mjs:53` pass
+    `inlineDynamicImports: nitro.options.inlineDynamicImports` while `:35` / `:48` give the same `output` a
+    `codeSplitting: { groups: [{ test: NODE_MODULES_RE, name: libChunkName }] }`; the value is `true` from nitro's
+    worker presets (`node_modules/nitro/dist/_presets.mjs:31`, `base-worker`, which `cloudflare-module` — the
+    preset this build prints, `[nitro] ◐ Building [Nitro] (preset: cloudflare-module …)` — extends; I read the
+    base preset, not the cloudflare preset's own table). Nitro deletes it afterwards (`_build/rolldown.mjs:63–66`),
+    but Rolldown has already seen both and warns. The wrapper's own `inlineDynamicImports: true`
+    (`node_modules/@lovable.dev/vite-tanstack-config/dist/index.js:459`, in `lovableFetchBundlePreset`) is used only
+    when `LOVABLE_NITRO_PRESET=lovable-fetch-bundle` (`index.js:1198`); this build's preset is `cloudflare-module`,
+    so it is not the source, and no `inlineDynamicImports` is set in the client environment by the wrapper or by
+    us (`rg -n inlineDynamicImports` over the repository outside node_modules → no match). So: Rolldown's note about
+    a redundant setting in nitro's own environment; nothing in the client changes, and §3's proof (348 of 352
+    `dist/server` files byte-identical; the other four differ only by the client chunk names and the public-assets
+    table) stands as measured. For the records turn: a finding, line "the nitro environment's build prints
+    Rolldown's `inlineDynamicImports … ignored` warning on every build, from nitro's own presets (nitro
+    `_build/rolldown.mjs:48–53`), before and after housekeeping turn 1b; not ours to fix (a package change is its
+    own turn)". Ruling 3 words the records line as: "nitro's build sets `inlineDynamicImports` and `codeSplitting`
+    together; Rolldown warns; harmless"; no action.
 
 ## 14. Records
 
@@ -392,3 +536,7 @@ register row — one row (unnumbered; the records turn numbers it): "the first-p
 changelog — 2026-11-10 — housekeeping turn 1b (pull request #34): the first-paint closure is chunked by a rule — one `shared-shell` group of the repository's own modules in `vite.config.ts` (client environment only; the server and nitro builds are unchanged module for module), the entry's closure 53 → 31 chunks and every page's first download 5.8 to 7.7 KiB lighter; the closure is a law of the budget step (`ENTRY_CLOSURE`, the module census, BC-14, BC-15) and 42 pages' ceilings and the entry's JS ceiling (215 → 207) are lowered; the i18n split lands again (`src/i18n/i18n-context.ts`) and `provider.tsx`'s three INC-1097 lint disables are gone (DEC-362, INC-1097).
 
 roadmap — line 23 (The housekeeping turn): turn 1b done in housekeeping turn 1b — "the chunk rule for the first-paint closure" (INC-1097, DEC-362) and "the i18n split again"; the lint exceptions of turn 1 are gone. Next on the lane: housekeeping turns 2 → 4 as the bundle names them; the records turn moves the budget lines' histories to `docs/features/performance-strategy.md` (§13 finding 4).
+
+INC — INC-1099 — a push to an open pull request started no CI workflow run (2026-11-10; cursor/housekeeping, the pushes of b92e0775d 16:06 UTC and 6e3fc365b 16:17 UTC; CodeQL ran on both and passed). Defect: `.github/workflows/ci.yml`'s `pull_request` trigger (no path filter; concurrency `ci-${{ github.ref }}`, cancel-in-progress false; nothing running at 16:06) started no run for either push; neither commit message carries a skip marker; `gh run list --branch cursor/housekeeping` listed only CodeQL; the supervisor's watcher on ci-evidence found no completed run in 45 minutes. Root cause: not readable from the repository or the evidence branch — GitHub's own view (the executor's `gh run list`) is the only witness. Class: a missing run for a covered push (INC-061's class); the harness cannot tell "no run started" from "a slow run" for a lane. Prevention: rule 40 / G67 — a push with no run listed after fifteen minutes is reported with the listing and the operator re-triggers by closing and reopening the pull request, never by a re-push (rules turn 4; instructions v1.18); the per-branch CI status file (INC-1039 / DEC-321, housekeeping turn 3) makes a lane's run state readable from ci-evidence. Status: OPEN — the re-trigger path is the operator's; the prevention lands in turn 3 and the rules turn.
+
+INC — INC-1100 — a signed-in test's Amharic account language did not apply on the page it then read (2026-11-10; housekeeping-1b's local run on ethio-staging, `e2e/i18n-coverage.spec.ts` :277 "the roles permission matrix renders no raw English vocabulary", both projects). Defect: after `setAmharicAccount` (the spec-local helper, :108 — a `profiles.preferred_language = 'am'` write through the service client plus the device language) and `gotoReady(/admin/roles/<id>)`, the whole chrome rendered in English (the language control `EN`, the rail, the breadcrumb) and the matrix listed 83 Latin labels — byte-identical failure bodies in both projects, so deterministic on staging; CI's seeded backends pass it; the flake ledger holds one same-day line of the same shape ("the admin shell renders no English fallback", shard 12, 2026-11-10). Class: a test asserts an effect it only assumed — the helper writes the row and never proves the page took the language (G38: tests see what a person sees); and D239's session-start language path (`src/i18n/server-shell-language.ts`; the published language at session start) may not re-read a profile written after sign-in on a shared backend. Mechanism: the one language-setting helper for signed-in tests (e2e/helpers — NONE YET: the spec-local helper is the only copy), which sets the account language, re-enters the session or reloads as the product does, and asserts the chrome's language before returning. Fix: housekeeping turn 2 (the e2e tree) — the helper onto e2e/helpers with its proof of effect and a census of every spec that sets an account or device language (i18n-coverage, i18n-sign-in-language, locale-format, page-head, shell); the server path read first (G23). Status: OPEN.
