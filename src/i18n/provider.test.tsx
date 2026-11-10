@@ -47,8 +47,7 @@ vi.mock("./compiled-catalog", async (importOriginal) => {
   };
 });
 
-const { I18nProvider } = await import("./provider");
-const { useI18n } = await import("./i18n-context");
+const { I18nProvider, useI18n } = await import("./provider");
 
 function Probe() {
   const { t, setStar } = useI18n();

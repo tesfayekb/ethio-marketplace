@@ -122,3 +122,5 @@ scripts/conformance/plan-seam.ts
 scripts/conformance/plan-seam.test.ts
 # P-2 (c) c2b M-3c-b part 5: the plan seam dropped (coverage_plans, its four functions); CF-PLAN-1's allowlist goes with it
 scripts/conformance/plan-seam-allowlist.txt
+# housekeeping-1 ruling 4 (INC-1097): the i18n split leaves this turn; the module part B created goes
+src/i18n/i18n-context.ts
