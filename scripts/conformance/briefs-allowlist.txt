@@ -1,3 +1,5 @@
 # The brief laws (scripts/conformance/briefs.test.ts, CF-BRIEF-2 and CF-BRIEF-3, DEC-361): a phrase a
 # brief must state as written — key "<file>:<line> <phrase>" or "<file>:<line> SCOPE names <path>
 # without its test" | reason | until. A line no finding needs is stale and fails. Empty at birth.
+docs/governance/briefs/housekeeping-1b.md:18 SCOPE names scripts/check-bundle-size.mjs without its test | the brief names the budget step; its tests are scripts/bundle-closure.test.ts and scripts/conformance/budget-band.test.ts, which the stem rule cannot see (housekeeping-1b) | 2026-12-10
+docs/governance/briefs/housekeeping-1b.md:18 SCOPE names scripts/route-budgets.mjs without its test | the brief names the budget table; its tests are scripts/bundle-closure.test.ts and scripts/conformance/budget-band.test.ts, which the stem rule cannot see (housekeeping-1b) | 2026-12-10

@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -6,16 +6,21 @@ import { describe, expect, it } from "vitest";
 
 import {
   carriedViolation,
+  chunkBaseName,
+  closureListViolations,
   entryChunks,
   judgeRouteBudgets,
+  moduleCensus,
   mustStayLazyViolation,
   pageRouteIds,
+  parseChunkModules,
   PUBLIC_MUST_STAY_LAZY,
   readRouteManifest,
   routePreloads,
   staticClosure,
   staticImportsOf,
 } from "./bundle-closure.mjs";
+import { ENTRY_CLOSURE, SHARED_SHELL_MODULES } from "./route-budgets.mjs";
 
 /**
  * Bundle 11 turn C8 (INC-556, DEC-176) — the first-paint budget follows the
@@ -203,5 +208,107 @@ describe("every page's first download (D234)", () => {
         carries,
       }).failures,
     ).toEqual(["/l/$slug: dist-b.js carries GoTrueClient on a public page (DEC-261)"]);
+  });
+});
+
+/**
+ * DEC-362 (housekeeping turn 1b) — the entry's closure is a law, and the shared-shell
+ * group's module list is checked against the build both ways. Proven on planted
+ * closures and records; the budget step (scripts/check-bundle-size.mjs) is the caller.
+ */
+describe("the first-paint closure is chunked by a rule (DEC-362)", () => {
+  const listed = {
+    index: ["the client entry"],
+    dist: ["Radix's shared modules", "the variant recipes"],
+    "shared-shell": ["the group"],
+  };
+  const closure = [
+    "index-aaaaaaaa.js",
+    "dist-bbbbbbbb.js",
+    "dist-cccccccc.js",
+    "shared-shell-dddddddd.js",
+  ];
+
+  it("BC-14 the closure equals ENTRY_CLOSURE by name, hashes stripped: a planted extra or missing name fails by name; a repeated name counts", () => {
+    expect(closureListViolations(closure, listed)).toEqual([]);
+    // hashes with hyphens and underscores strip to the same base name
+    expect(
+      [
+        "useMatch-i8-xg83V.js",
+        "root-DLTE-HSj.js",
+        "on-demand-notice-BC3xzsKv.js",
+        "dist-Cg_Z-iXv.js",
+      ].map(chunkBaseName),
+    ).toEqual(["useMatch", "root", "on-demand-notice", "dist"]);
+    // an extra chunk joins the first download
+    expect(closureListViolations([...closure, "provider-eeeeeeee.js"], listed)).toEqual([
+      "provider: 1 in the entry's closure, ENTRY_CLOSURE lists 0 (a chunk joined the first download, DEC-362)",
+    ]);
+    // a listed chunk leaves it
+    expect(
+      closureListViolations(["index-aaaaaaaa.js", "dist-bbbbbbbb.js", "dist-cccccccc.js"], listed),
+    ).toEqual([
+      "shared-shell: ENTRY_CLOSURE lists 1, the entry's closure holds 0 (a chunk left the first download, DEC-362)",
+    ]);
+    // the multiplicity: a third `dist` joins, one `dist` leaves
+    expect(closureListViolations([...closure, "dist-ffffffff.js"], listed)).toEqual([
+      "dist: 3 in the entry's closure, ENTRY_CLOSURE lists 2 (a chunk joined the first download, DEC-362)",
+    ]);
+    expect(
+      closureListViolations(
+        ["index-aaaaaaaa.js", "dist-bbbbbbbb.js", "shared-shell-dddddddd.js"],
+        listed,
+      ),
+    ).toEqual([
+      "dist: ENTRY_CLOSURE lists 2, the entry's closure holds 1 (a chunk left the first download, DEC-362)",
+    ]);
+    // the real list: a reason per occurrence, none empty
+    for (const [name, reasons] of Object.entries(ENTRY_CLOSURE)) {
+      expect(reasons.length, name).toBeGreaterThan(0);
+      for (const reason of reasons) expect(reason.trim().length, name).toBeGreaterThan(0);
+    }
+    expect(Object.keys(ENTRY_CLOSURE)).toContain("shared-shell");
+  });
+
+  const record = {
+    "shared-shell-AAAAAAAA.js": ["src/a.ts", "src/b.ts"],
+    "index-BBBBBBBB.js": ["src/c.ts", "node_modules/react/index.js"],
+  };
+  const exists = (path: string) => path !== "src/gone.ts";
+
+  it("BC-15 the module census: a stale path fails by path, a stray module by name; the real list is in the tree, once each, with a reason", () => {
+    expect(moduleCensus({ record, listed: ["src/a.ts", "src/b.ts"], exists })).toEqual([]);
+    // a listed path the tree no longer has
+    expect(
+      moduleCensus({ record, listed: ["src/a.ts", "src/b.ts", "src/gone.ts"], exists }),
+    ).toEqual(["src/gone.ts: listed in SHARED_SHELL_MODULES but not in the tree"]);
+    // a listed module another chunk holds
+    expect(moduleCensus({ record, listed: ["src/a.ts", "src/b.ts", "src/c.ts"], exists })).toEqual([
+      "src/c.ts: listed in SHARED_SHELL_MODULES but not in shared-shell-AAAAAAAA.js (it is in index-BBBBBBBB.js)",
+    ]);
+    // a module the group's chunk holds that the list does not name
+    expect(moduleCensus({ record, listed: ["src/a.ts"], exists })).toEqual([
+      "src/b.ts: in shared-shell-AAAAAAAA.js but SHARED_SHELL_MODULES does not name it",
+    ]);
+    // a path listed twice; a build with no group chunk
+    expect(moduleCensus({ record, listed: ["src/a.ts", "src/b.ts", "src/a.ts"], exists })).toEqual([
+      "src/a.ts: listed twice in SHARED_SHELL_MODULES",
+    ]);
+    expect(
+      moduleCensus({ record: { "index-BBBBBBBB.js": ["src/c.ts"] }, listed: ["src/c.ts"], exists }),
+    ).toEqual(["shared-shell: the build has 0 chunks of that name, one is expected (DEC-362)"]);
+    // the record is read as its own shape
+    expect(parseChunkModules('{"a-AAAAAAAA.js":["src/a.ts"]}')).toEqual({
+      "a-AAAAAAAA.js": ["src/a.ts"],
+    });
+    expect(() => parseChunkModules('{"a-AAAAAAAA.js":"src/a.ts"}')).toThrow("not an object");
+    expect(() => parseChunkModules("[]")).toThrow("not an object");
+    // the real list, against the tree
+    const paths = SHARED_SHELL_MODULES.map(([path]) => path);
+    expect(new Set(paths).size).toBe(paths.length);
+    for (const [path, reason] of SHARED_SHELL_MODULES) {
+      expect(existsSync(path), path).toBe(true);
+      expect(reason.trim().length, path).toBeGreaterThan(0);
+    }
   });
 });

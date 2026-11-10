@@ -19,8 +19,11 @@ import { basename, dirname, join, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 
 import {
+  closureListViolations,
   entryChunks,
   judgeRouteBudgets,
+  moduleCensus,
+  parseChunkModules,
   carriedViolation,
   mustStayLazyViolation,
   pageRouteIds,
@@ -30,7 +33,13 @@ import {
   staticClosure,
 } from "./bundle-closure.mjs";
 import { judgedSize, exceedsCeiling, nearFindings } from "./budget-band.mjs";
-import { RATCHET_SLACK_KIB, ROUTE_BUDGETS_KIB, tierFlagViolations } from "./route-budgets.mjs";
+import {
+  ENTRY_CLOSURE,
+  RATCHET_SLACK_KIB,
+  ROUTE_BUDGETS_KIB,
+  SHARED_SHELL_MODULES,
+  tierFlagViolations,
+} from "./route-budgets.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
@@ -142,7 +151,36 @@ for (const entry of jsEntries) {
     );
     process.exit(1);
   }
+  // DEC-362: the entry's closure is a law — a chunk that joins or leaves it fails, by name.
+  const listFailures = closureListViolations(closure, ENTRY_CLOSURE);
+  if (listFailures.length > 0) {
+    console.error(
+      `Bundle budget: the first-paint closure of ${basename(entry)} no longer matches ENTRY_CLOSURE (scripts/route-budgets.mjs, DEC-362):`,
+    );
+    for (const line of listFailures) console.error(`  ${line}`);
+    process.exit(1);
+  }
   for (const name of closure) eager.add(join(dirname(entry), name));
+}
+// DEC-362: the shared-shell group's modules are one list; the build's own record of which
+// modules each chunk holds (scripts/chunk-modules-plugin.mjs, beside — never inside — the
+// client output) is checked against it, both ways.
+const chunkModulesFile = join(dirname(buildDir), ".chunk-modules.json");
+if (!existsSync(chunkModulesFile)) {
+  console.error(
+    `Bundle budget: ${chunkModulesFile} is missing — the build's chunk-modules plugin writes it; the module census (DEC-362) cannot run.`,
+  );
+  process.exit(1);
+}
+const censusFailures = moduleCensus({
+  record: parseChunkModules(readFileSync(chunkModulesFile, "utf8")),
+  listed: SHARED_SHELL_MODULES.map(([path]) => path),
+  exists: (path) => existsSync(path),
+});
+if (censusFailures.length > 0) {
+  console.error("Bundle budget: SHARED_SHELL_MODULES and the build disagree (DEC-362):");
+  for (const line of censusFailures) console.error(`  ${line}`);
+  process.exit(1);
 }
 for (const file of files) {
   if (extname(file) === ".css" && isEntry(file)) eager.add(file);

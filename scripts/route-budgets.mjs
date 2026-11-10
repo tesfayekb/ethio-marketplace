@@ -235,3 +235,52 @@ export const SHARED_SHELL_MODULES = [
 export function sharedShellOwns(key) {
   return SHARED_SHELL_MODULES.some(([path]) => path === key);
 }
+
+/**
+ * DEC-362 — THE ENTRY'S CLOSURE, the chunk names every page downloads before it can run
+ * (hashes stripped), compared by the budget step with the build's own closure
+ * (scripts/bundle-closure.mjs `closureListViolations`): a chunk that joins or leaves it
+ * fails the step with its name. One reason per occurrence (G55's form, no expiry: these are
+ * not exceptions); a name the bundler gives to two chunks lists two reasons. A vendor chunk's
+ * name is the bundler's, taken from the first module it holds — a dependency bump that
+ * renames one is a red with a cause, and a package change is its own turn.
+ */
+export const ENTRY_CLOSURE = {
+  ClientOnly: ["TanStack Router's ClientOnly"],
+  "bundle-mjs": ["clsx and tailwind-merge, the class joiner and merger behind src/lib/utils.ts"],
+  "chevron-right": ["the chevron-right icon, drawn by the shell's menus"],
+  createLucideIcon: ["lucide-react's icon factory (Icon, createLucideIcon, the case helpers)"],
+  createServerFn: ["TanStack Start's server-function client and the seroval plugins (21 modules)"],
+  dist: [
+    "Radix's primitive, context, primitive, slot and controllable-state modules, shared by the facades",
+    "class-variance-authority, the button's variant recipes",
+    "Radix's compose-refs and the Slot behind the button's asChild",
+  ],
+  ellipsis: ["the ellipsis icon, drawn by the shell's menus"],
+  index: ["the client entry: the shell, the router tree and every route stub (242 modules)"],
+  "jsx-runtime": ["React's JSX runtime"],
+  lazyRouteComponent: ["TanStack Router's route, file-route and lazy-component modules"],
+  link: ["TanStack Router's Link and the path helpers"],
+  "not-found": ["TanStack Router's notFound"],
+  "preload-helper": ["vite's preload helper, wrapped around every dynamic import"],
+  qss: ["TanStack Router's query-string helper"],
+  react: ["React itself"],
+  "react-dom": ["react-dom's index and production body"],
+  "rolldown-runtime": ["the bundler's runtime helpers"],
+  root: ["TanStack Router's root route"],
+  "shared-shell": [
+    "DEC-362's group: the repository's own modules every page needs and a lazy chunk also imports (SHARED_SHELL_MODULES)",
+  ],
+  useMatch: ["TanStack Router's useMatch and its match context"],
+  useMutation: ["query-core's mutation and react-query's useMutation"],
+  useNavigate: ["TanStack Router's useNavigate"],
+  useQuery: ["query-core's read path and react-query's provider and useQuery (20 modules)"],
+  useRouter: ["TanStack Router's router context and useRouter"],
+  useRouterState: ["TanStack Router's useRouterState"],
+  useSearch: ["TanStack Router's useSearch"],
+  useSelector: [
+    "TanStack Store's useSelector and the use-sync-external-store shims, with the router's utils",
+  ],
+  utils: ["TanStack Router's utils and the redirect helper"],
+  x: ["the close icon, drawn by the notices"],
+};

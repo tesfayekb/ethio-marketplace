@@ -205,3 +205,89 @@ export function judgeRouteBudgets({ routeIds, budgets, measure, slack, publicLaz
   }
   return { rows, failures };
 }
+
+/** A chunk file's name with its content hash stripped: `useMatch-i8-xg83V.js` → `useMatch`. */
+export function chunkBaseName(file) {
+  return file.replace(/-[A-Za-z0-9_-]{8}\.js$/, "");
+}
+
+/**
+ * DEC-362 (housekeeping turn 1b) — THE ENTRY'S CLOSURE IS A LAW. `listed` is ENTRY_CLOSURE
+ * (scripts/route-budgets.mjs): a chunk name (hash stripped) → one reason per occurrence.
+ * The closure's names are compared as a multiset; a chunk that joined the first download, or
+ * one that left it, fails with its name — so a move that re-chunks the closure is a red with
+ * a cause, never a silent kilobyte.
+ */
+export function closureListViolations(closureNames, listed) {
+  const own = new Map(Object.entries(listed));
+  const found = new Map();
+  for (const name of closureNames) {
+    const base = chunkBaseName(name);
+    found.set(base, (found.get(base) ?? 0) + 1);
+  }
+  const failures = [];
+  for (const [base, count] of [...found].sort(([a], [b]) => a.localeCompare(b))) {
+    const reasons = own.get(base)?.length ?? 0;
+    if (count > reasons)
+      failures.push(
+        `${base}: ${count} in the entry's closure, ENTRY_CLOSURE lists ${reasons} (a chunk joined the first download, DEC-362)`,
+      );
+  }
+  for (const [base, reasons] of [...own].sort(([a], [b]) => a.localeCompare(b))) {
+    const count = found.get(base) ?? 0;
+    if (count < reasons.length)
+      failures.push(
+        `${base}: ENTRY_CLOSURE lists ${reasons.length}, the entry's closure holds ${count} (a chunk left the first download, DEC-362)`,
+      );
+  }
+  return failures;
+}
+
+/** The build's chunk → modules record (scripts/chunk-modules-plugin.mjs), read as its own shape or refused. */
+export function parseChunkModules(text) {
+  const record = JSON.parse(text);
+  const shaped =
+    record !== null &&
+    typeof record === "object" &&
+    !Array.isArray(record) &&
+    Object.values(record).every(
+      (modules) => Array.isArray(modules) && modules.every((module) => typeof module === "string"),
+    );
+  if (!shaped) throw new Error("chunk-modules record: not an object of module-key lists");
+  return record;
+}
+
+/**
+ * DEC-362 — THE MODULE CENSUS of the shared-shell group. `listed` is the paths of
+ * SHARED_SHELL_MODULES, `record` the build's chunk → module keys, `exists(path)` whether
+ * the tree has the file. A listed module missing from the tree, or absent from the group's
+ * chunk, fails by its path; a module the group's chunk holds that the list does not name
+ * fails by its name — the two sides of one list.
+ */
+export function moduleCensus({ record, listed, exists, group = "shared-shell" }) {
+  const chunks = Object.entries(record).filter(([file]) => chunkBaseName(file) === group);
+  if (chunks.length !== 1)
+    return [
+      `${group}: the build has ${chunks.length} chunks of that name, one is expected (DEC-362)`,
+    ];
+  const [file, held] = chunks[0];
+  const heldSet = new Set(held);
+  const where = new Map();
+  for (const [chunk, modules] of Object.entries(record))
+    for (const module of modules) where.set(module, chunk);
+  const failures = [];
+  const seen = new Set();
+  for (const path of listed) {
+    if (seen.has(path)) failures.push(`${path}: listed twice in SHARED_SHELL_MODULES`);
+    seen.add(path);
+    if (!exists(path)) failures.push(`${path}: listed in SHARED_SHELL_MODULES but not in the tree`);
+    else if (!heldSet.has(path))
+      failures.push(
+        `${path}: listed in SHARED_SHELL_MODULES but not in ${file} (${where.has(path) ? `it is in ${where.get(path)}` : "no chunk holds it"})`,
+      );
+  }
+  for (const module of held)
+    if (!seen.has(module))
+      failures.push(`${module}: in ${file} but SHARED_SHELL_MODULES does not name it`);
+  return failures;
+}

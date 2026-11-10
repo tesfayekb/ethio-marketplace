@@ -118,6 +118,13 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/check-bundle-size.mjs"), "utf8")).toContain(
       "tierFlagViolations(",
     );
+    // bundle-closure.test.ts BC-14…15 (housekeeping turn 1b, DEC-362) is discovered by test:unit's
+    // scripts/**/*.test.ts; its two judges (ENTRY_CLOSURE and the shared-shell module census) run in
+    // the budget step, check-bundle-size.mjs.
+    expect(readFileSync(join(ROOT, "scripts/bundle-closure.test.ts"), "utf8")).toContain("BC-15");
+    const budgetStep = readFileSync(join(ROOT, "scripts/check-bundle-size.mjs"), "utf8");
+    expect(budgetStep).toContain("closureListViolations(");
+    expect(budgetStep).toContain("moduleCensus(");
     // vendor-seams.test.ts VS-1…3 is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
       "VS-3",
