@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42656430324
-- Commit: `8ae1c5fd3cbcc85bab88a5de0fde9fc902cbf4f8`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42856097069
+- Commit: `2b11a9d2943114859f22ac14cfc9ccf9f589ac54`
 - Attempt: 1
-- Written (UTC): 2026-11-09T22:36:38.980Z
+- Written (UTC): 2026-11-10T22:36:13.438Z
 - Passed: 0 · Skipped: 0 · Failed: 1
 - Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -67,7 +67,7 @@ Results read: nightly · unavailable: full
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-09T16:38:59.852Z | 0.7 min |
+| nightly | 2026-11-10T16:37:02.255Z | 0.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
@@ -77,7 +77,7 @@ Results read: nightly · unavailable: full
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.2 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.1 s |
 
 ## Post-test errors: nightly
 
@@ -86,7 +86,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 42656430324-nightly
+[e2e:teardown] deleted 3 user(s) owned by process 42856097069-nightly
 ```
 
 ## auth-resend-exhaustion.spec.ts › A-3: three resends exhaust the per-visit limit
@@ -129,7 +129,7 @@ Call log:
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/nightly/auth-resend-exhaustion.spec.ts:50:76
 ```
 
-Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 2 context file(s); of the same spec: none
+Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 3 context file(s); of the same spec: none
 
 ## Server errors: nightly
 
@@ -176,19 +176,20 @@ No `[client-error]` lines in the `full` log (or no log was uploaded).
 full: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
---- error lines (2) ---
-  ✘  1271 [mobile-360] › e2e/shell.spec.ts:1227:3 › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category (11.0s)
+--- error lines (3) ---
+  ✘   113 [mobile-360] › e2e/admin-attributes-library.spec.ts:684:3 › C3 attributes console › AT-12 an approved am attribute label renders in am and falls back to EN (19.3s)
+  ✘  1271 [mobile-360] › e2e/shell.spec.ts:1227:3 › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category (10.6s)
   ✘  1794 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.2m)
 --- final 10 lines ---
-✓  2352 [desktop-1280] › e2e/post-wizard-specs.spec.ts:224:3 › POSTING WIZARD › PW-5 the specification form is generated, its options load on the first tap, and an empty required detail is refused under it (9.9s)
-[WebServer] [upstream] ssr language gate 200 80ms
-[WebServer] [upstream] ssr language gate 200 73ms
-  ✓  2353 [desktop-1280] › e2e/post-wizard-specs.spec.ts:303:3 › POSTING WIZARD › PW-191 D193: Next is closed while a required detail is empty; a tap marks it and scrolls; the answer opens it (8.8s)
-[WebServer] [upstream] ssr language gate 200 70ms
-[WebServer] [upstream] ssr language gate 200 66ms
-  ✓  2354 [desktop-1280] › e2e/post-wizard-specs.spec.ts:360:3 › POSTING WIZARD › PW-145 an over-limit options read says so under its control, and a second open loads the list (8.2s)
-[WebServer] [upstream] ssr language gate 200 75ms
-[WebServer] [upstream] ssr language gate 200 63ms
+✓  2135 [desktop-1280] › e2e/my-listings-levels.spec.ts:638:3 › MY LISTINGS — an ad's level and its clocks (P-2 (a)) › SWP-2 an ended level without a free slot pauses with the seller's notice and keeps its clock (10.5s)
+  ✓  2136 [desktop-1280] › e2e/my-listings-levels.spec.ts:674:3 › MY LISTINGS — an ad's level and its clocks (P-2 (a)) › SWP-3 an ended reach goes back to the market's included reach: the three reach columns cleared, listing.reach_ended (10.5s)
+  ✓  2137 [desktop-1280] › e2e/my-listings-levels.spec.ts:715:3 › MY LISTINGS — an ad's level and its clocks (P-2 (a)) › SWP-4 a level ending within three days reminds the seller once; a second sweep adds nothing (10.0s)
+[WebServer] [upstream] ssr language gate 200 98ms
+[WebServer] [upstream] ssr language gate 200 97ms
+  ✓  2138 [desktop-1280] › e2e/my-listings-levels.spec.ts:811:3 › MY LISTINGS — an ad's level and its clocks (P-2 (a)) › FSL-1 with every free slot in use the next baseline publish is refused naming the slots, and the draft stays a draft (11.2s)
+[WebServer] [upstream] ssr language gate 200 134ms
+[WebServer] [upstream] ssr language gate 200 127ms
+  ✓  2139 [desktop-1280] › e2e/my-listings-levels.spec.ts:826:3 › MY LISTINGS — an ad's level and its clocks (P-2 (a)) › FSL-2 an ad marked sold frees its slot: the same publish then goes to screening (11.7s)
 ```
 
 ```text
