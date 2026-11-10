@@ -475,7 +475,9 @@ static assets (every `/assets/*` 404s, nothing hydrates). Local verification the
 front-ends the built server with a static file server for `dist/client`. CI is outside
 the sandbox and gets the real node-server output (DEC-019 unaffected).
 
-## INC-089 ADDENDUM (run 33166409697) + INC-090 — THE SIGNED-IN #185 LOOP AND THE CLAMP LAW
+## INC-090 — THE SIGNED-IN #185 LOOP AND THE CLAMP LAW (with INC-089's addendum, run 33166409697)
+
+(Heading reworded 2026-11-09 at the Cursor rules turn 3, on records turn R13's FINDINGS: it led with INC-089, so the ledger carried that number twice as a heading and INC-090 had no heading of its own; the entry's text below is unchanged.)
 
 CLASS 1 — CLAMP LAW CORRECTED (`src/components/shell/use-footer-inset.ts`).
 Evidence line: `shell.spec.ts › rail scroll regions (U0f) › md+ rail` —
@@ -6056,6 +6058,8 @@ INC-1084 — the Where step's caps reading had one state for "caps not known" an
   - Read since: `alias_rule` refuses fewer than three letters, and the old scratch name could carry only two. `scratchAlias()` removes that path (FINDINGS).
 
 INC-1085 (later word, 2026-11-09; records turn R13): Status: CLOSED in pull request #30, turn c3 — not reproduced by repetition (PW-141 alone ×12 and with PW-27/PW-48 ×12 each pass; the dial excluded), the one path that can refuse the old names read as the cause: `alias_rule` refuses a name of fewer than three letters and the old scratch name could carry only two; c3's `scratchAlias()` (`e2e/helpers/alias.ts`, register row 131) removes that path from every spec (the report's FINDINGS). Class: a test fixture that can draw a value a door refuses (G38: a leased or drawn name is not a fresh, valid name).
+
+INC-1085 (correction, 2026-11-09; the records turn R13's FINDINGS, S567): the alias helpers live in `e2e/helpers/alias-check.ts` (`scratchAlias` :52, `expectAliasAccepted` :100, `waitAliasAccepted` :133), not `e2e/helpers/alias.ts`; the later word above and register row 131 named a path that does not exist.
 
 ## INC-1086 — FR-6 asserted the card's exact key list (2026-11-08; P-2 (c) c2a)
 

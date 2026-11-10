@@ -8,7 +8,9 @@ alwaysApply: false
 After your last code commit, write `docs/governance/reports/<stem>.report.md` with exactly these
 headings, in this order; commit it on its own (`<stem>: report`), push, and open the pull request. The
 supervisor reads it from a fresh clone; it is part of the project record. A fix made while waiting
-for the pull request's CI updates the report in the same commit.
+for the pull request's CI updates the report in the same commit. The report's CI section names the
+completed run of your last CODE commit; the report commit itself is not re-judged, and you never
+push again only to obtain a run for it (rule 40).
 
 ```
 # <brief title> — report

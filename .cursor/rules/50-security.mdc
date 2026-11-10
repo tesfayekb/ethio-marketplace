@@ -86,8 +86,9 @@ never pipe a download into a shell.
 ## What you may never run
 
 - Git: a push to `dev` or `main`; `--force` in any form; `rebase`; `commit --amend` after a push;
-  `reset --hard`; `merge`; `pull`; `cherry-pick`; tag or branch deletion; `git -c` / `git -C`
-  tricks. The only push is your own
+  `reset --hard`; any `merge` but the one form rule 00 §Git allows (`merge --ff-only origin/<your
+  cursor/… branch>`, which fast-forwards or refuses and never creates a commit); `pull`;
+  `cherry-pick`; tag or branch deletion; `git -c` / `git -C` tricks. The only push is your own
   `cursor/…` branch, never with force.
 - GitHub: anything that writes besides opening or updating your own pull request (`gh pr create`,
   `gh pr edit`, `gh pr ready` and `gh pr comment` on it) and re-running an infrastructure red once

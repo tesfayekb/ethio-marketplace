@@ -81,6 +81,8 @@ The pass bar: both viewport projects green at `retries: 0`; no secret in any log
 ## What you may and may not say
 
 - "Every check green on <sha>" only after reading a completed run on that sha.
-- The report's CI section is the pull request's check list on your last commit
-  (`gh pr checks <number>`), plus the first six lines of `ci-status.md` for the base.
+- The report's CI section is the pull request's check list on your last CODE commit
+  (`gh pr checks <number>`), plus the first six lines of `ci-status.md` for the base. The report
+  commit rides without a run of its own: never push a second time to obtain a run for a report, a
+  docs or a rules change (two report-only pushes cost two full runs and two transport reds).
 - Never re-run a red outside (b) and (d); never ask anyone to paste a log.

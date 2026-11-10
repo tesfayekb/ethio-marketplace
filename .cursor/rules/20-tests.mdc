@@ -104,6 +104,8 @@ position; `pickCity` (`e2e/helpers/posting.ts`) for the place step; `switchLangu
   fix: STOP and report the apply line.
 - `bun run e2e:local` also needs a Chromium (`bunx playwright install chromium` once per
   environment, or `E2E_CHROMIUM_PATH`), port 4173 free and fresh i18n maps. When any is missing, say
-  so; never improvise a target.
+  so; never improvise a target. Playwright cannot start inside Cursor's sandbox (the CPU-model read,
+  an empty browser cache — P-2 (c) c3): run the browser check from a terminal OUTSIDE the sandbox and
+  say so in the report; a run that could not start is a Limit, never a green.
 - A partial or killed run is reported as partial and never re-run in the background; CI on the
   pull request and on dev runs every test in its lanes.

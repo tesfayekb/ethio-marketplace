@@ -55,7 +55,9 @@ after `continue`. Never an empty or placeholder migration.
 - MARK: every migration inserts its own mark —
   `INSERT INTO public.migration_marks (version) VALUES ('<MARK>') ON CONFLICT DO NOTHING;` — where
   `<MARK>` is a 14-digit UTC stamp later than the file's own stamp and above every mark in the
-  ledger (the brief gives the floor). A wrong mark is healed by a later migration's UPDATE, never by
+  ledger (the brief gives a floor; THE MARK'S VALUE below gives the commit-hour value; the mark is the
+  greater of the two, and the two lines are read together). A wrong mark is healed by a later
+  migration's UPDATE, never by
   editing a landed file. A `-- e2e-areas:` header line names the spec areas the change selects (no
   line → all).
 - PROOFS: one `DO $$ … $$` block that creates its own scratch rows (`e2e_mig_` tables, `e2e-` rows)
@@ -91,8 +93,14 @@ after `continue`. Never an empty or placeholder migration.
      (DEC-350, INC-1067);
   5. two proofs that draw random codes draw ONCE and derive the rest, so no two draws can collide
      (INC-1082);
-  6. every pre-check reads the live md5 of the body it redeclares and the previous mark (parts chain).
-  The scan's result is one line in the stop report: `pre-stop scan: 6 of 6, <file fragments>`.
+  6. every pre-check reads the live md5 of the body it redeclares and the previous mark (parts chain);
+  7. THE CARRIER LAW — a proof's verdict never depends on how its file is carried: every compared
+     literal AND the live body are both `replace(…, chr(13), '')`-stripped, and no compared literal
+     spans a raw line break (a multi-line fragment is written as one-line literals joined by
+     `chr(10)`); `check-migrations.sh`'s spanning-literal guard refuses a new file that breaks it
+     (INC-1056, INC-1089, INC-1093 — the SQL editor's paste carries CRLF; the connector and psql
+     carry LF; a landed file that strips one side only is carried to a database by an LF carrier).
+  The scan's result is one line in the stop report: `pre-stop scan: 7 of 7, <file fragments>`.
 - Run `bash scripts/check-migrations.sh` and paste its guard lines ("Self-marking guard OK" among
   them) before you commit.
 - Before the push, run `bun run db:proof` on the final tree and paste its last line in the stop
