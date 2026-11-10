@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { shapePostingSchema } from "../posting-service";
 import { ownValue } from "@/lib/own-key";
-import { ListingDetail, currentListingSection, type ListingDetailView } from "./listing-detail";
+import { ListingDetail, type ListingDetailView } from "./listing-detail";
+import { currentListingSection } from "./listing-section";
 import { ShareAd } from "@/features/ad-page/share-ad";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
@@ -987,6 +988,29 @@ it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordi
     });
     if (standalone) Object.defineProperty(navigator, "standalone", standalone);
     else Reflect.deleteProperty(navigator, "standalone");
+  }
+});
+
+it("LD-32 the sign-in return's three-second highlight timer is cleared when the page unmounts (DEC-196)", () => {
+  const contact = {
+    viewer: "signedIn" as const,
+    signInTo: { to: "/auth" as const, search: { return: "/l/scratch#contact" } },
+    state: { kind: "idle" as const },
+    onReveal: vi.fn(),
+    onSignInTap: vi.fn(),
+    whatsappText: "I'm interested in your ethio.com ad: /l/scratch",
+    focusOnReturn: true,
+  };
+  vi.useFakeTimers();
+  try {
+    const { unmount } = render(<ListingDetail {...BASE} actor="buyer" contact={contact} />);
+    expect(screen.getByTestId("listing-detail-seller")).toHaveAttribute("data-highlight", "true");
+    const pending = vi.getTimerCount();
+    expect(pending).toBeGreaterThan(0);
+    unmount();
+    expect(vi.getTimerCount()).toBe(pending - 1);
+  } finally {
+    vi.useRealTimers();
   }
 });
 

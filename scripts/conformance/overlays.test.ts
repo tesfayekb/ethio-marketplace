@@ -21,7 +21,7 @@ type Finding = { file: string; line: number; what: string };
 
 /** The specifiers the census watches. */
 const WATCHED =
-  /^(?:@radix-ui\/react-(?:tooltip|dropdown-menu|popover|dialog|alert-dialog)|(?:@\/components\/ui\/|\.{1,2}\/(?:[\w.-]+\/)*)(?:tooltip-impl|dropdown-menu-impl|popover-impl|dialog-impl|alert-dialog-impl|submenu-impl|overlays-impl))$/;
+  /^(?:@radix-ui\/react-(?:tooltip|dropdown-menu|popover|dialog|alert-dialog)|(?:@\/components\/ui\/|\.{1,2}\/(?:[\w.-]+\/)*)(?:tooltip-impl|dropdown-menu-impl|popover-impl|dialog-impl|alert-dialog-impl|submenu-impl|submenu-levels|overlays-impl))$/;
 
 /** The one file allowed to reach each watched module (an impl file by its base name). */
 export const MAY_REACH: Record<string, string> = {
@@ -37,6 +37,7 @@ export const MAY_REACH: Record<string, string> = {
   "./dialog-impl": "src/components/ui/overlays-impl.ts",
   "./alert-dialog-impl": "src/components/ui/overlays-impl.ts",
   "./submenu-impl": "src/components/ui/overlays-impl.ts",
+  "./submenu-levels": "src/components/ui/overlays-impl.ts",
   "./overlays-impl": "src/components/ui/overlay-loader.ts",
 };
 

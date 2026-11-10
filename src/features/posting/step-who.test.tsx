@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { useCallback, useState } from "react";
 import { expect, it, vi } from "vitest";
 import { StepWho } from "./step-who";
-import { focusFirstRefusal } from "./field";
+import { focusFirstRefusal } from "./field-refusals";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),

@@ -12,7 +12,8 @@ import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
 
-import { AttributeErrorLine, useAttributeError } from "./attribute-dialogs";
+import { AttributeErrorLine } from "./attribute-dialogs";
+import { useAttributeError } from "./attribute-error";
 import { AttributeLinkCells } from "./components/attribute-link-cells";
 import { useAttributeLabel } from "./use-attribute-label";
 import {

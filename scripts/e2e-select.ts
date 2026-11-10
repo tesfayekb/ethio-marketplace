@@ -323,6 +323,7 @@ export const AREAS: Area[] = [
       "src/components/marketplace/negotiable-badge.tsx",
       "src/components/shell/band-row.ts",
       "src/features/posting/preview/listing-detail.tsx",
+      "src/features/posting/preview/listing-section.ts",
       "src/features/posting/preview/photo-gallery.tsx",
       "src/features/posting/preview/safety-box.tsx",
       "src/features/ad-page/**",
@@ -340,6 +341,7 @@ export const AREAS: Area[] = [
       "src/components/shell/menu-row.ts",
       "src/components/shell/band-row.ts",
       "src/components/ui/button.tsx",
+      "src/components/ui/button-variants.ts",
       "src/components/ui/tabs.tsx",
     ],
     specs: ["e2e/press.spec.ts"],
@@ -393,6 +395,8 @@ export const AREAS: Area[] = [
       "src/components/shell/submenu/**",
       "src/components/ui/submenu-*.ts*",
       "src/components/shell/app-rail.tsx",
+      "src/components/shell/favourite-category.ts",
+      "src/components/shell/rail-variant.ts",
       // D248 — the one menu row look, shared by the rail and the panel.
       "src/components/shell/menu-row.ts",
       // D247 — the menu rows' fit-before-scroll rule lives in the stylesheet.

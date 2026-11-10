@@ -13,7 +13,8 @@ import {
   LIST_TICK,
   OPEN_CONTROL,
 } from "@/components/shell/menu-row";
-import { PickerOption, pickerPopClass } from "@/components/searchable-picker";
+import { PickerOption } from "@/components/searchable-picker";
+import { pickerPopClass } from "@/components/picker-popup";
 
 /** D264 (Foundations turn F): the open list's one look, read from menu-row.ts. */
 describe("CL-U — every open list reads menu-row.ts's constants", () => {

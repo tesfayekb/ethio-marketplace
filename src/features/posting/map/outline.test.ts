@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { scaleAmount } from "../step-pricing";
+import { scaleAmount } from "../amount-scale";
 import { sanitizeDetails } from "./location-details";
 import { insideOutline } from "./outline";
 

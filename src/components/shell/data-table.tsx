@@ -10,7 +10,8 @@ import { Toolbar } from "@/components/layout/toolbar";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import { BlockGuide, guideAnchor, type BlockGuideSpec } from "./block-guide";
+import { BlockGuide, type BlockGuideSpec } from "./block-guide";
+import { guideAnchor } from "./guide-spec";
 import { pageWindow } from "./page-window";
 import { RowActions, type RowActionsProps } from "./row-actions";
 import { TableToolbar } from "./table-toolbar";

@@ -37,7 +37,8 @@ type Finding = { file: string; line: number; what: string };
 export const PRIMITIVES: ReadonlyArray<{ file: string; needs: readonly string[] }> = [
   { file: "src/components/shell/menu-row.ts", needs: ["${PRESSED.row}", "${PRESSED.list}"] },
   { file: "src/components/shell/band-row.ts", needs: ["${PRESSED.segment}"] },
-  { file: "src/components/ui/button.tsx", needs: ["${PRESSED.button}", 'data-pressable=""'] },
+  { file: "src/components/ui/button-variants.ts", needs: ["${PRESSED.button}"] },
+  { file: "src/components/ui/button.tsx", needs: ['data-pressable=""'] },
   { file: "src/components/ui/tabs.tsx", needs: ["PRESSED.segment", 'data-pressable=""'] },
   {
     file: "src/components/marketplace/listing-card.tsx",
@@ -197,8 +198,8 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
   it("PRP-1: a Button without its PRESSED look fails", () => {
     const found = pressFindings([
       {
-        name: "src/components/ui/button.tsx",
-        text: `const b = cva("inline-flex"); <Comp data-pressable="" />`,
+        name: "src/components/ui/button-variants.ts",
+        text: `const b = cva("inline-flex");`,
       },
     ]);
     expect(report(found)).toContain("lacks ${PRESSED.button}");

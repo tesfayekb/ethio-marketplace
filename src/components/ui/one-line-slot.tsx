@@ -1,4 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
+import { splitAtSlot } from "@/components/ui/slot-split";
 import { cn } from "@/lib/utils";
 
 /**
@@ -8,13 +9,6 @@ import { cn } from "@/lib/utils";
  * The line never breaks anywhere (`wrap-anywhere` is refused here; CF-ONE-LINE-1).
  */
 export const ONE_LINE_SLOT = "flex min-w-0 max-w-full items-baseline whitespace-nowrap";
-
-/** The sentence's two fixed parts around its one slot; a sentence without the slot is all fixed. */
-export function splitAtSlot(sentence: string, slot: string): [string, string] | null {
-  const at = sentence.indexOf(slot);
-  if (at < 0) return null;
-  return [sentence.slice(0, at), sentence.slice(at + slot.length)];
-}
 
 export function OneLineSlot({
   sentence,

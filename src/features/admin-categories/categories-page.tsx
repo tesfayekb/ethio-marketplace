@@ -61,8 +61,8 @@ import {
   CategoryEditorDialog,
   DeleteCategoryDialog,
   RetireCategoryDialog,
-  useSubmitError,
 } from "./category-dialogs";
+import { useSubmitError } from "./category-submit-error";
 import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
 import {
   ADMIN_CATEGORIES_KEY,

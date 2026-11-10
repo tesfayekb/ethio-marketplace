@@ -5,17 +5,10 @@ import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import {
-  LocationDialogActions,
-  LocationErrorLine,
-  numberOrNull,
-  useLocationError,
-} from "./location-dialogs";
-import {
-  coordinatesRequired,
-  LocationFormFields,
-  type LocationFormValues,
-} from "./location-form-fields";
+import { LocationDialogActions, LocationErrorLine } from "./location-dialogs";
+import { numberOrNull, useLocationError } from "./location-dialog-state";
+import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
+import { coordinatesRequired } from "./location-form-values";
 import type { LocationNode } from "./locations-service";
 import { useUpsertLocation } from "./use-locations";
 

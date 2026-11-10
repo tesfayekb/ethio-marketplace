@@ -9,14 +9,12 @@ import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import type { CategoryNode } from "@/features/admin-categories/categories-service";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
-import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
 import { cn } from "@/lib/utils";
 
 import {
@@ -39,6 +37,7 @@ import {
   useUnlinkAttribute,
   useUpsertAttribute,
 } from "./use-attributes";
+import { useAttributeError } from "./attribute-error";
 import { useAttributeLabel } from "./use-attribute-label";
 import { AttributeOptionRows } from "./components/attribute-option-rows";
 import {
@@ -63,42 +62,6 @@ import {
  * re-checks the permission AND the step-up server-side (F3), so a refusal is a
  * translated line, never a silent no-op (F4). 360-first throughout.
  */
-
-/**
- * F4 — a server refusal raises a TRANSLATION KEY, optionally with a `:count`
- * tail (`admin.attributes.error.deleteHasLinks:7`). Both namespaces the
- * attribute doors can raise are rendered through `t`; anything else falls back
- * to the generic save failure.
- */
-export function useAttributeError() {
-  const { t } = useI18n();
-  const attributeLabel = useAttributeLabel();
-  const [message, setMessage] = useState<string | null>(null);
-  const fail = (error: unknown) => {
-    // FIX-SCAN-1 ISSUE 2 — the gate settling without running the action.
-    const abort = stepUpAbortKey(error);
-    if (abort !== undefined) {
-      setMessage(abort === null ? null : t(abort));
-      return;
-    }
-    const raw =
-      typeof (error as { message?: unknown }).message === "string"
-        ? (error as { message: string }).message
-        : "";
-    const { key, tail } = splitRefusal(raw);
-    if (key.startsWith("admin.attributes.error.") || key.startsWith("admin.categories.error.")) {
-      /**
-       * DEC-050 L3b — an option refusal names its parts with pipes
-       * (`<attribute>|<target>`): the sentence names the TARGET, never a raw
-       * token pasted mid-line. ES4 — the tail is read by the shared helper.
-       */
-      setMessage(fillRefusal(t(key as MessageKey), tail));
-      return;
-    }
-    setMessage(raw === "" ? t("admin.attributes.error.saveFailed") : raw);
-  };
-  return { message, setMessage, fail };
-}
 
 export function AttributeErrorLine({ message }: { message: string | null }) {
   if (!message) return null;

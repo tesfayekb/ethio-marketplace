@@ -4,13 +4,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { chosenFirst } from "@/lib/chosen-first";
 
 import { useRef } from "react";
-import {
-  PickerOption,
-  pickerGeometry,
-  placeList,
-  usePickerKeys,
-  usePickerPlacement,
-} from "./searchable-picker";
+import { PickerOption } from "./searchable-picker";
+import { pickerGeometry, placeList, usePickerKeys, usePickerPlacement } from "./picker-popup";
 
 function Box({
   count,

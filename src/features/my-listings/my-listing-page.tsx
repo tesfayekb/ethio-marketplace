@@ -5,7 +5,8 @@ import { ArrowLeft, Copy, Eye, EyeOff, Pencil, TrendingUp } from "lucide-react";
 import { Suspense, useState, type ReactNode } from "react";
 
 import { canonicalSegment, listingPath } from "@/features/ad-page/address";
-import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
+import { ShareAd } from "@/features/ad-page/share-ad";
+import { sharePriceText } from "@/features/ad-page/share-price-text";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageCard } from "@/components/shell/page-card";

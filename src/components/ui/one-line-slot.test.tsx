@@ -1,6 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { OneLineSlot, splitAtSlot } from "./one-line-slot";
+import { OneLineSlot } from "./one-line-slot";
+import { splitAtSlot } from "./slot-split";
 
 describe("OneLineSlot (§5, turn B2)", () => {
   it("OLS-U1: splits a sentence at its one slot", () => {

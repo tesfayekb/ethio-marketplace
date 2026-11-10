@@ -59,7 +59,8 @@ vi.mock("@/i18n", async (original) => ({
   useI18n: () => ({ t: (key: string) => key, entities: { map: {}, lang: "en" }, lang: "en" }),
 }));
 
-const { CategoryNav, RailVariantContext } = await import("./app-rail");
+const { CategoryNav } = await import("./app-rail");
+const { RailVariantContext } = await import("./rail-variant");
 const { CategoryTreeSeedContext, forgetCategoryTree } =
   await import("@/features/categories/category-tree");
 const { firstRailPayload } = await import("@/server/first-screen");

@@ -17,7 +17,8 @@ vi.mock("./use-categories", async (importOriginal) => ({
 }));
 
 import type { CategoryNode } from "./categories-service";
-import { RetireCategoryDialog, useSubmitError } from "./category-dialogs";
+import { RetireCategoryDialog } from "./category-dialogs";
+import { useSubmitError } from "./category-submit-error";
 
 describe("category screen refusal (turn D1 stop 11, G0.2)", () => {
   it("CDR-1: a save refused by a rate gate shows the shared admin.error.rateLimited", () => {

@@ -14,19 +14,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
-import { doorKeyText } from "@/lib/refusal-tail";
 import { useSettling } from "@/lib/use-settling";
 import { cn } from "@/lib/utils";
 
 import { suggestCategoryIcon } from "./category-images-service";
-import {
-  CategoryFormFields,
-  emptyCategoryForm,
-  type CategoryFormValues,
-} from "./category-form-fields";
+import { CategoryFormFields, type CategoryFormValues } from "./category-form-fields";
+import { emptyCategoryForm } from "./category-form-values";
+import { useSubmitError } from "./category-submit-error";
 
 import {
   activeParentOptions,
@@ -99,42 +95,6 @@ function ErrorLine({ message }: { message: string | null }) {
       {message}
     </p>
   );
-}
-
-// The page's verb bar shares this exact refusal mapping (B1: one utility per
-// concern); the rule only warns about fast-refresh granularity, not correctness.
-// eslint-disable-next-line react-refresh/only-export-components
-export function useSubmitError() {
-  const { t } = useI18n();
-  const [message, setMessage] = useState<string | null>(null);
-  /**
-   * F4 — a server refusal raises a TRANSLATION KEY (e.g. C2g's
-   * `admin.categories.error.catchallParent`); it is rendered through `t`, so
-   * the operator never reads a raw key. Anything else falls back to the
-   * generic save failure.
-   */
-  const fail = (error: unknown) => {
-    const abort = stepUpAbortKey(error);
-    if (abort !== undefined) {
-      setMessage(abort === null ? null : t(abort));
-      return;
-    }
-    // ES4 — a door's refusal is a plain error object, not an Error instance.
-    const raw =
-      typeof (error as { message?: unknown } | null)?.message === "string"
-        ? (error as { message: string }).message
-        : "";
-    // ES4 / T7 — any door's key, of any family (a move can raise the
-    // parent-first refusal, `admin.attributes.error.parentAfterChild`), is read
-    // by the shared helper with its tail ({count}, {detail}).
-    const words = doorKeyText(raw, (key) => t(key as Parameters<typeof t>[0]));
-    if (words !== null) {
-      setMessage(words);
-      return;
-    }
-    setMessage(raw === "" ? t("admin.categories.error.saveFailed") : raw);
-  };
-  return { message, setMessage, fail };
 }
 
 /* ------------------------------- editor ---------------------------------- */

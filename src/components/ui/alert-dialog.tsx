@@ -3,7 +3,7 @@ import * as AlertDialogPrimitive from "./alert-dialog-primitive";
 
 import { cn } from "@/lib/utils";
 import { NoticeOutlet } from "./notice-outlet";
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import {
   DIALOG_FIT,
   DIALOG_FOOTER,

@@ -49,21 +49,6 @@ export interface CategoryFormValues {
   positionBefore: string;
 }
 
-export function emptyCategoryForm(): CategoryFormValues {
-  return {
-    nameEn: "",
-    icon: "",
-    parentId: "",
-    allowListings: true,
-    priceEnabled: true,
-    expiryDays: "",
-    visibleFrom: "",
-    visibleUntil: "",
-    excludedCodes: [],
-    positionBefore: "",
-  };
-}
-
 /** The live glyph a typed (or suggested) icon name resolves to. */
 export function IconPreview({ name, testid }: { name: string; testid: string }) {
   const Glyph = categoryGlyph(name);

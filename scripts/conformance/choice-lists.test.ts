@@ -50,8 +50,8 @@ const OWN_PICKER_GEOMETRY = /(?:^|\s)(?:(?:min-|max-)?w-|start-|end-|left-|right
 export const OWNERS: Record<string, RegExp> = {
   "src/components/ui/dropdown-menu-impl.tsx":
     /\bLIST_PANEL\b[\s\S]*\bLIST_ROW\b|\bLIST_ROW\b[\s\S]*\bLIST_PANEL\b/,
-  "src/components/searchable-picker.tsx":
-    /\bLIST_ROW\b[\s\S]*\bLIST_SURFACE\b|\bLIST_SURFACE\b[\s\S]*\bLIST_ROW\b/,
+  "src/components/searchable-picker.tsx": /\bLIST_ROW\b/,
+  "src/components/picker-popup.ts": /\bLIST_SURFACE\b/,
   // Turn S6-3: the popover's surface moved into its on-demand impl (popover.tsx is its facade).
   "src/components/ui/popover-impl.tsx": /\bLIST_SURFACE\b/,
 };
@@ -90,6 +90,18 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
   const findings: Finding[] = [];
   const keys: string[] = [];
   for (const { name, text } of files) {
+    if (OWNERS[name] !== undefined) {
+      if (!OWNERS[name].test(text)) {
+        keys.push(`${name}#owner`);
+        findings.push({
+          file: name,
+          line: 1,
+          what: "owner: does not read menu-row.ts's list constants",
+        });
+      }
+      // The owners define the look; their own literals are the mechanism.
+      continue;
+    }
     if (!name.endsWith(".tsx")) continue;
     const source = ts.createSourceFile(name, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     const push = (node: ts.Node, part: string, what: string) => {
@@ -169,18 +181,6 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
       }
       ts.forEachChild(node, walk);
     };
-    if (OWNERS[name] !== undefined) {
-      if (!OWNERS[name].test(text)) {
-        keys.push(`${name}#owner`);
-        findings.push({
-          file: name,
-          line: 1,
-          what: "owner: does not read menu-row.ts's list constants",
-        });
-      }
-      // The owners define the look; their own literals are the mechanism.
-      continue;
-    }
     walk(source);
   }
   return { findings, keys };
@@ -221,7 +221,7 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
   it(
     "the tree: no own row or panel classes, no gap, no unread owner",
     () => {
-      const files = walkFiles(["src"], { ext: ["tsx"], skipTests: true }).map((name) => ({
+      const files = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true }).map((name) => ({
         name: name.split("\\").join("/"),
         text: readFileSync(name, "utf8"),
       }));

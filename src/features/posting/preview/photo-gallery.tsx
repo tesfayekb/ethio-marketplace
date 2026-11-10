@@ -11,7 +11,8 @@ import {
 import { PhotoRibbon } from "@/components/marketplace/listing-picture";
 import type { RibbonPalette } from "@/components/marketplace/ribbon-geometry";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { StripArrows, keepInStrip } from "@/components/ui/strip-arrows";
+import { StripArrows } from "@/components/ui/strip-arrows";
+import { keepInStrip } from "@/components/ui/keep-in-strip";
 import { useI18n } from "@/i18n";
 
 import type { GalleryPhoto } from "../photo-links";

@@ -1,0 +1,39 @@
+import { cva } from "class-variance-authority";
+
+import { PRESSED } from "@/components/shell/menu-row";
+
+export const buttonVariants = cva(
+  `${PRESSED.button} inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0`,
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground shadow-button hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-button hover:bg-destructive/90",
+        // Bundle 11 C2 — a destructive act that opens its confirmation or sits in a list: red words and border.
+        destructiveOutline:
+          "border border-destructive/50 bg-card text-destructive shadow-tile hover:bg-destructive/10",
+        outline:
+          "border border-input bg-card shadow-tile hover:bg-accent hover:text-accent-foreground",
+        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+        // C2 law (L6): the 44px touch target is a PRIMITIVE size, never a
+        // per-instance min-h hack. Verb bars and dialog actions use it.
+        touch: "h-11 min-h-11 px-4 py-2",
+        // D274: the ad page's one primary action. 48 px, the full width of its box.
+        cta: "h-12 min-h-12 w-full px-4 py-2",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);

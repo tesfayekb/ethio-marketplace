@@ -4,7 +4,7 @@ import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { useI18n } from "@/i18n";
 import { logOnDemandFailure } from "@/lib/on-demand-failure";
 import { APPROX_RADIUS_M } from "./geocode";
-import { snap } from "./map-preview";
+import { snap } from "./map-snap";
 import { MAP_FAILED_IDS } from "./still-map";
 import {
   addTileLayers,

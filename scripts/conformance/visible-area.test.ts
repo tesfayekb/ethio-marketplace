@@ -23,7 +23,7 @@ type Src = { name: string; text: string };
 export const AREA_MODULE = "src/lib/visible-area.ts";
 export const AREA_READERS = new Set([
   "src/components/ui/dropdown-menu-impl.tsx",
-  "src/components/searchable-picker.tsx",
+  "src/components/picker-popup.ts",
   "src/components/ui/popover-impl.tsx",
 ]);
 /** Readers that fetch the module on demand only (a dynamic import, never `from`). */
@@ -115,7 +115,7 @@ describe("CF-AREA-1 — an open list's room comes from one reader (D267)", () =>
     expect(report(planted.findings)).toContain("outside its on-demand readers");
     const clean = areaFindings([
       {
-        name: "src/components/searchable-picker.tsx",
+        name: "src/components/picker-popup.ts",
         text: `import { visibleArea } from "@/lib/visible-area";`,
       },
       {

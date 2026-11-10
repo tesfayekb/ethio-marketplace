@@ -9,10 +9,9 @@ import {
   CountryDialogActions,
   CountryErrorLine,
   CountryFormFields,
-  numberOrZero,
-  useCountryError,
   type CountryFormValues,
 } from "./country-dialogs";
+import { numberOrZero, useCountryError } from "./country-dialog-state";
 import type { CountryRow } from "./countries-service";
 import { useUpsertCountry } from "./use-countries";
 

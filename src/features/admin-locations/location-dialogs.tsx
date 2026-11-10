@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { errorText } from "@/lib/error-text";
 
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
@@ -7,22 +6,13 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import {
-  childLevelOf,
-  locationErrorKey,
-  type LocationNode,
-  type LocationRefusal,
-} from "./locations-service";
-import {
-  coordinatesRequired,
-  emptyLocationForm,
-  LocationFormFields,
-  type LocationFormValues,
-} from "./location-form-fields";
+import { childLevelOf, type LocationNode, type LocationRefusal } from "./locations-service";
+import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
+import { coordinatesRequired, emptyLocationForm } from "./location-form-values";
+import { numberOrNull, useLocationError } from "./location-dialog-state";
 import { useUpsertLocation } from "./use-locations";
 
 /**
@@ -34,23 +24,6 @@ import { useUpsertLocation } from "./use-locations";
  * Nothing closes on failure. 360-first: full-width controls, ≥44px targets,
  * logical spacing only (C5).
  */
-
-/** F4 — one refusal mapping for every locations surface (B2). */
-export function useLocationError() {
-  const { t } = useI18n();
-  const [refusal, setRefusal] = useState<LocationRefusal | null>(null);
-  const clear = () => setRefusal(null);
-  const fail = (error: unknown) => {
-    const abort = stepUpAbortKey(error);
-    if (abort !== undefined) {
-      setRefusal(abort === null ? null : { key: abort as MessageKey, detailKey: null, raw: null });
-      return;
-    }
-    setRefusal(locationErrorKey(error === null || error === undefined ? "" : errorText(error)));
-  };
-  const render = (message: MessageKey) => setRefusal({ key: message, detailKey: null, raw: null });
-  return { refusal, clear, fail, render, t };
-}
 
 export function LocationErrorLine({ refusal }: { refusal: LocationRefusal | null }) {
   const { t } = useI18n();
@@ -113,13 +86,6 @@ export function LocationDialogActions({
       </Button>
     </DialogFooter>
   );
-}
-
-export function numberOrNull(raw: string): number | null {
-  const value = raw.trim();
-  if (value === "") return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 /* ------------------------------- create ---------------------------------- */

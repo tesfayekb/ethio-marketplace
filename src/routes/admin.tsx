@@ -5,7 +5,7 @@ import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useEffect, useState } from "react";
 
 import { useShell } from "@/components/shell-context";
-import { AdminShellProvider } from "@/features/admin/admin-context";
+import { AdminShellProvider } from "@/features/admin/admin-shell-provider";
 import { sectionForPath } from "@/features/admin/sections";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";

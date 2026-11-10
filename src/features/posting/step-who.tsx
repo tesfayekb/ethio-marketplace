@@ -9,8 +9,10 @@ import { entityName } from "@/i18n/entity";
 import { readerFailure, type ReaderFailure } from "@/lib/reader-failure";
 import type { MessageKey } from "@/i18n";
 
-import { RequiredMark, controlClass } from "./field";
+import { RequiredMark } from "./field";
+import { controlClass } from "./field-refusals";
 import { PhoneNumberField } from "./phone-number-field";
+import { CHANNELS, channelOf, sameChannels, type Channel } from "./same-channels";
 import { loadPhoneLib, type PhoneLib } from "./phone-parse";
 import { ALIAS_RULE_REASON, NON_LATIN_RE, aliasRuleLocal } from "./alias-rules";
 import {
@@ -63,10 +65,6 @@ import { NativeSelect } from "@/components/ui/native-select";
  */
 
 const ALIAS_DEBOUNCE_MS = 350;
-/** Bundle 2 Q2 — `phone2` is the optional second phone, revealed on request. */
-const CHANNELS = ["phone", "phone2", "telegram", "whatsapp"] as const;
-type Channel = (typeof CHANNELS)[number];
-
 const CHANNEL_LABELS: Record<Channel, MessageKey> = {
   phone: "post.who.channel.phone",
   phone2: "post.who.channel.phone2",
@@ -103,34 +101,9 @@ function formatDay(value: string, lang: string): string {
   return Number.isNaN(date.getTime()) ? value : dateFormatter("day", lang).format(date);
 }
 
-function channelOf(
-  pref: Record<string, unknown>,
-  channel: Channel,
-): { show: boolean; value: string } {
-  const entry = pref[channel];
-  if (entry === null || typeof entry !== "object") return { show: false, value: "" };
-  const row = entry as Record<string, unknown>;
-  return {
-    show: row["show"] === true,
-    value: typeof row["value"] === "string" ? row["value"] : "",
-  };
-}
-
 /** Bundle 2 Q3 — whether a draft's contact already holds a channel value. */
 function hasChannelValue(pref: Record<string, unknown>): boolean {
   return CHANNELS.some((channel) => channelOf(pref, channel).value !== "");
-}
-
-/**
- * Bundle 4 step 23 — the channels compared the way the profile keeps them:
- * each channel's value and show switch. Equal channels make no identity call.
- */
-export function sameChannels(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
-  return CHANNELS.every((channel) => {
-    const left = channelOf(a, channel);
-    const right = channelOf(b, channel);
-    return left.value === right.value && left.show === right.show;
-  });
 }
 
 export function StepWho({

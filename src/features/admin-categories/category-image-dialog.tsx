@@ -26,7 +26,7 @@ import { errorText } from "@/lib/error-text";
  * consume category imagery.
  */
 
-export function useImageFailure() {
+function useImageFailure() {
   const { t } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {

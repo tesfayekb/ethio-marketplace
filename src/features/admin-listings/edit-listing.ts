@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import type { PricingValues } from "@/features/posting/step-pricing";
-import { sameChannels } from "@/features/posting/step-who";
+import { sameChannels } from "@/features/posting/same-channels";
 
 import { moveErrorKey, moveProblem } from "./move-reasons";
 import type { AdminListingDetail } from "./use-admin-listing";
