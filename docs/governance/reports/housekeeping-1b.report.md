@@ -1,13 +1,14 @@
 # Housekeeping turn 1b — the first-paint closure is chunked by a rule, the closure becomes a law of the budget, the i18n split lands again — report
 
-Base: 2b11a9d29 (dev; the lane `cursor/housekeeping` began this turn at 1df9c9ed0) · Final commit: 09bb36b65 · Brief: docs/governance/briefs/housekeeping-1b.md (sha256 e0cd093058e3cc5efbe4264be3905a62735f5614c73560262919c8b2f43b1284) · Ruling 1: docs/governance/briefs/housekeeping-1b-ruling-1.md (sha256 030ebf1aeedf1059eff723444e14be99f44672c807ec32f755f5a2fa4494abda; both sha256 values re-checked at this report on the saved fenced text, equal)
-Review: READY · 0 BLOCKER · 0 MAJOR · 3 MINOR · on 09bb36b
+Base: 2b11a9d29 (dev; the lane `cursor/housekeeping` began this turn at 1df9c9ed0) · Final commit: b92e0775d · Brief: docs/governance/briefs/housekeeping-1b.md (sha256 e0cd093058e3cc5efbe4264be3905a62735f5614c73560262919c8b2f43b1284) · Ruling 1: docs/governance/briefs/housekeeping-1b-ruling-1.md (sha256 030ebf1aeedf1059eff723444e14be99f44672c807ec32f755f5a2fa4494abda; both sha256 values re-checked at this report on the saved fenced text, equal)
+Review: READY · 0 BLOCKER · 0 MAJOR · 4 MINOR · on b92e077
 
 CI: the lane head the turn found, 8aa99c1c0 (stop 2) — run 42837499607, FAILURE: one test, CF-BRIEF-2/3
 (the brief law reading this turn's own saved brief); fixed in part B (§11). The base 2b11a9d29 — run
-42733115280, SUCCESS. The final code commit 09bb36b65 — CI not yet run at the time of writing; its run
-id and verdict are stated in the pull request's description (`gh pr edit`), the report commit is not
-re-judged (rule 60).
+42733115280, SUCCESS. The turn's first push (head e94b42d9a, code at 09bb36b65) — run 42846505952,
+FAILURE in one job, the first-paint budget (3 pages, §11); every other job, all 18 E2E lanes included,
+green. Fixed in b92e0775d (the final code commit); its run id and verdict are stated in the pull request's
+description (the report commit is not re-judged, rule 60).
 
 ## 1. Done / not done, by part and step
 
@@ -20,6 +21,7 @@ re-judged (rule 60).
 | Part C — the i18n split re-lands (`i18n-context.ts`), the three disables gone, the two deletion-manifest lines removed, the usage maps | done (committed before B: B's census names `i18n-context.ts`, a commit is never red) | 50fae3cd2 |
 | Part B — `ENTRY_CLOSURE`, the module census, BC-14, BC-15, the wired caller, the two allowlisted SCOPE findings | done | 482b1aa45 |
 | Part D — the ratchet: 39 pages and the entry's JS ceiling lowered; the guide's DEC-362 section | done | 09bb36b65 |
+| Part D, again — three pages CI's table ratcheted (`/`, `/c/$slug`, `/dev/style`), §11 | done | b92e0775d |
 | STEP 5 — typecheck, lint, scripts laws, unit, build + budget, `bun run checks` whole | done (§5) | — |
 | STEP 6 — push, the pull request's CI, the comment | pushed with this report; CI awaited (§11) | — |
 | STEP 7 — this report | done | the report commit |
@@ -149,10 +151,10 @@ hooks from `./i18n-context` (their assertions unchanged; the files are the versi
 **Totals** (final tree 09bb36b65, this turn's runs):
 - `bun run typecheck` — `tsc --noEmit`, clean.
 - `bun run lint` — `eslint . --max-warnings 0`, clean (0 warnings).
-- `bunx vitest run scripts --maxWorkers=2` — 100 files passed, 513 tests passed, 1 skipped.
+- `bunx vitest run scripts --maxWorkers=2` — 100 files passed, 513 tests passed, 1 skipped (re-run on b92e0775d: the same).
 - `bun run test:unit` — 458 files passed, 2872 tests passed, 1 skipped (includes `src/i18n`'s 11 files, 52 tests).
 - `bun run build && node scripts/check-bundle-size.mjs` — `Bundle budget OK.` (JS 206.0 / 207 KiB; 50 pages, none over, none 8 KiB or more under).
-- THE CHECKS, last line: `checks: 34 PASS · 0 FAIL · 24 NOT RUN · 423s`; fast line: `checks (fast): 25 PASS · 0 FAIL · 368s`. The NOTE lines: 0 NEAR (`bundle-budget › the NEAR band (R4)` PASS). NOT RUN, all named with their reason by the runner: actionlint (pinned linux/x64 binary, this machine darwin/arm64), gitleaks (same), the typecheck step of build-and-check (reads Lovable's harness log; I ran `bun run typecheck` myself), every "Install dependencies" step (the tree's dependencies are installed; a package change is its own turn), dependency-audit Install + Audit (the advisory service is not reachable from the sandbox), e2e-preflight (4 steps, needs staging credentials the script never holds), e2e merge steps (6: GitHub artifacts), promote (4: only CI promotes), semgrep SARIF upload and its warn step (GitHub only).
+- THE CHECKS, last line: `checks: 34 PASS · 0 FAIL · 24 NOT RUN · 427s`; fast line: `checks (fast): 25 PASS · 0 FAIL · 369s` (run whole on the final tree b92e0775d; the first whole run on 09bb36b65 read 34 / 0 / 24, 423 s). The NOTE lines: 0 NEAR (`bundle-budget › the NEAR band (R4)` PASS). NOT RUN, all named with their reason by the runner: actionlint (pinned linux/x64 binary, this machine darwin/arm64), gitleaks (same), the typecheck step of build-and-check (reads Lovable's harness log; I ran `bun run typecheck` myself), every "Install dependencies" step (the tree's dependencies are installed; a package change is its own turn), dependency-audit Install + Audit (the advisory service is not reachable from the sandbox), e2e-preflight (4 steps, needs staging credentials the script never holds), e2e merge steps (6: GitHub artifacts), promote (4: only CI promotes), semgrep SARIF upload and its warn step (GitHub only).
 
 **Browser check** (rule 00 step 7; no spec file changed, so the specs of the group the change touches): `bun run
 e2e:local -- e2e/i18n-bundle.spec.ts e2e/i18n-coverage.spec.ts e2e/i18n-layers.spec.ts
@@ -163,11 +165,11 @@ projects: the page rendered entirely in English (the language control reads `EN`
 account's Amharic did not apply on that load. §13 finding 1 states what I measured about it; it is not a
 chunk that failed to load.
 
-**Per-page table** (lane head → final tree; ceilings before → after; 39 lines lowered):
+**Per-page table** (lane head → final tree; ceilings before → after; 42 lines lowered: 39 in 09bb36b65, three more in b92e0775d):
 
 | Page | Before (KiB) | After (KiB) | Change | Ceiling before → after |
 |---|---:|---:|---:|---|
-| `/` | 233.3 | 227.0 | -6.3 | 235 → 235 |
+| `/` | 233.3 | 227.0 | -6.3 | 235 → 228 |
 | `/$name` | 231.3 | 225.0 | -6.3 | 233 → 233 |
 | `/account` | 274.4 | 268.2 | -6.2 | 277 → 269 |
 | `/account_/legal` | 214.5 | 208.6 | -5.9 | 217 → 209 |
@@ -201,9 +203,9 @@ chunk that failed to load.
 | `/auth` | 229.5 | 223.2 | -6.3 | 231 → 231 |
 | `/auth_/callback` | 215.9 | 210.0 | -5.9 | 217 → 217 |
 | `/auth_/reset` | 217.9 | 212.0 | -5.9 | 219 → 219 |
-| `/c/$slug` | 233.3 | 227.0 | -6.3 | 235 → 235 |
+| `/c/$slug` | 233.3 | 227.0 | -6.3 | 235 → 228 |
 | `/dev/primitives` | 233.3 | 227.1 | -6.2 | 236 → 228 |
-| `/dev/style` | 254.3 | 247.9 | -6.4 | 256 → 256 |
+| `/dev/style` | 254.3 | 247.9 | -6.4 | 256 → 249 |
 | `/dev/tall` | 212.1 | 206.3 | -5.8 | 215 → 207 |
 | `/l/$slug` | 263.6 | 257.1 | -6.5 | 265 → 265 |
 | `/legal/$kind` | 216.5 | 210.7 | -5.8 | 219 → 212 |
@@ -247,7 +249,7 @@ reported: the budget lines' long histories in `scripts/route-budgets.mjs` (findi
 - New guard, with its caller: `ENTRY_CLOSURE` (BC-14) and the module census (BC-15), caller named in
   `wired.test.ts`; proven on planted closures and records (§5). Guard self-tests run: BC-1…BC-15,
   `wired.test.ts`, `briefs.test.ts` (CF-BRIEF-1…4), all inside the `scripts` run.
-- `scripts/check-bundle-size.mjs`'s 8-KiB ratchet fires on the lane head's old ceilings (39 pages); after
+- `scripts/check-bundle-size.mjs`'s 8-KiB ratchet fires on the lane head's old ceilings (42 pages, 39 of them locally and three more under CI's measure, §11); after
   Part D it fires on none.
 
 ## 8. Strings
@@ -296,9 +298,18 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
   without its test` (read from `gh run view 42837499607 --log-failed`). Class: a guard of an earlier turn reading
   this turn's saved brief — mine to fix first; fixed at its root in part B 482b1aa45 (the two allowlist lines, §7);
   `bunx vitest run scripts/conformance/briefs.test.ts` → 3 passed.
-- This pull request's own runs on the final commit: see the pull request's description for the run id and the
-  verdict; any red will be read per rule 40, fixed at its root in a new commit with this report brought up to date.
-  The DEC-362 judge's last clause (CI's bundle-budget job and every E2E lane green) is that run's.
+- This pull request's own runs:
+  - Run 42846505952 (head e94b42d9a = code 09bb36b65 + this report): conclusion FAILURE, one job red — First-paint bundle
+    budget — and every other job success (all 18 E2E lanes and Summarize included). The log's failure, verbatim: `/:
+    227.0 KiB, 8 KiB or more under its ceiling of 235 KiB`, `/c/$slug: 227.0 … 235`, `/dev/style: 247.9 … 256`.
+    Class (rule 40): a defect of this change, mine — the build is the local build's (the hashed chunk names equal),
+    but CI's table has no 0.1 KiB local allowance, so three pages sat 8.0 KiB under their ceilings where the local
+    run read 7.9 and did not ratchet them. Cause fixed at its root in b92e0775d: the three lines go to
+    `ceilingForLocal(measured)` (235 → 228, 235 → 228, 256 → 249) with their ratchet comment; `CI=1 node
+    scripts/check-bundle-size.mjs` (CI's own measure, run locally) → `Bundle budget OK.`; no re-run of CI was used.
+  - The run of b92e0775d and its verdict: in the pull request's description; any red there will be read per rule 40
+    and fixed at its root in a new commit with this report brought up to date. The DEC-362 judge's last clause (CI's
+    bundle-budget job and every E2E lane green) is that run's.
 
 ## 12. Limits
 
@@ -329,7 +340,7 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
    reverted (the group only) 2 of 2 (the first attempt aborted on a stale usage map before any browser ran).
    The counts are small and the lane head fails too, so I cannot say the group or the split causes it; they are
    not evidence of repeatability either way. CI's lanes (temporary backend, DEC-283's repeat lane) are the
-   judge, and the DEC-362 judge's last clause reverts the shape whole if an E2E red names a chunk that did not load
+   judge — and in run 42846505952 (code 09bb36b65) every E2E lane, the one that runs this spec included, was green (§11), and the DEC-362 judge's last clause reverts the shape whole if an E2E red names a chunk that did not load
    or loaded out of order. If CI's i18n lane goes red here, read the account-language path in
    `src/i18n/provider.tsx` against the order the chunks now load; the failing page's snapshot says the provider
    had not applied `am` when `/admin/roles/<id>` drew.
@@ -359,12 +370,18 @@ None (`git diff --name-only 1df9c9ed0..HEAD | rg "supabase/"` → none; FLAG `no
 7. **Stop 2's report line 72 says "22 of 52 pages"; the page count is 50.** Correction to my own report: the
    table beside it has 50 rows (`rg -c '^\| `/' docs/governance/reports/housekeeping-1b.stop-2.md` → 50). I did not
    recompute the 22.
-8. **The pull request is a draft carrying housekeeping turn 1** (137 paths against dev); this turn's own diff is
+8. **Raised — the local budget step hides CI's ratchet by 0.1 KiB** (`scripts/budget-band.mjs` `judgedSize`:
+   local adds `LOCAL_ALLOWANCE_KIB`; `scripts/bundle-closure.mjs:187` fires the ratchet on that judged size, so a
+   page 8.0–8.1 KiB under its ceiling in CI reads 7.9–8.0 locally). Part D set the lines from the local measure as
+   ruling 1 orders and CI's table fired on three pages (§11). A ratchet turn should also run
+   `CI=1 node scripts/check-bundle-size.mjs` locally (CI's own measure); the supervisor may want the ratchet to
+   judge on the raw size.
+9. **The pull request is a draft carrying housekeeping turn 1** (137 paths against dev); this turn's own diff is
    the 25 paths of §2.
 
 ## 14. Records
 
-DEC — DEC-362 (the supervisor, 2026-11-10 07:4x New York, under G17 and DEC-296's frame — the first-paint budget's mechanism; INC-1097 at two occurrences; amended at housekeeping-1b ruling 1 after the census measured the shapes) — the first-paint closure's shared modules travel in named chunks by a code-splitting rule in vite.config.ts scoped to the client environment (Rolldown's `output.codeSplitting` groups; the shape chosen by the frozen rule of ruling 1: P2, because P3 failed the cold half — 22 of 50 pages came out 0.6–0.9 KiB above P1 for no gain in the vendor chunks' stability over P2), and the closure is a law of the budget: `scripts/route-budgets.mjs` lists the chunk names every page downloads (ENTRY_CLOSURE, a reason per occurrence) and the modules each group holds (SHARED_SHELL_MODULES), and the budget step fails on a chunk that joins or leaves the closure, on a listed module missing from the tree or from its chunk, and on a stray module in a group's chunk. Frozen judge: adopted when, with the i18n split re-landed, no page's first download is above housekeeping turn 1's final table [every page fell: by 5.8 to 7.7 KiB], the closure's chunk count fell [53 → 31], the server and nitro partitions are byte-identical to the build without the groups [the same modules; only the manifest and the public-assets table differ], the ratcheted ceilings are lowered in the same commit [39 pages and the entry's 215 → 207], the three INC-1097 disables are gone, and CI's bundle-budget job and every E2E lane are green on the pull request [run: stated in the pull request's description]; reverted whole (the groups, the lists, the plugin and the i18n split together) if CI's budget job fails or an E2E lane's red names a chunk that did not load or loaded out of order.
+DEC — DEC-362 (the supervisor, 2026-11-10 07:4x New York, under G17 and DEC-296's frame — the first-paint budget's mechanism; INC-1097 at two occurrences; amended at housekeeping-1b ruling 1 after the census measured the shapes) — the first-paint closure's shared modules travel in named chunks by a code-splitting rule in vite.config.ts scoped to the client environment (Rolldown's `output.codeSplitting` groups; the shape chosen by the frozen rule of ruling 1: P2, because P3 failed the cold half — 22 of 50 pages came out 0.6–0.9 KiB above P1 for no gain in the vendor chunks' stability over P2), and the closure is a law of the budget: `scripts/route-budgets.mjs` lists the chunk names every page downloads (ENTRY_CLOSURE, a reason per occurrence) and the modules each group holds (SHARED_SHELL_MODULES), and the budget step fails on a chunk that joins or leaves the closure, on a listed module missing from the tree or from its chunk, and on a stray module in a group's chunk. Frozen judge: adopted when, with the i18n split re-landed, no page's first download is above housekeeping turn 1's final table [every page fell: by 5.8 to 7.7 KiB], the closure's chunk count fell [53 → 31], the server and nitro partitions are byte-identical to the build without the groups [the same modules; only the manifest and the public-assets table differ], the ratcheted ceilings are lowered in the same commit [42 pages and the entry's 215 → 207], the three INC-1097 disables are gone, and CI's bundle-budget job and every E2E lane are green on the pull request [run: stated in the pull request's description]; reverted whole (the groups, the lists, the plugin and the i18n split together) if CI's budget job fails or an E2E lane's red names a chunk that did not load or loaded out of order.
 
 INC — INC-1097 — status line: FIXED in housekeeping turn 1b — the group shared-shell (vite.config.ts), ENTRY_CLOSURE in route-budgets.mjs with its test, the i18n split landed (i18n-context.ts), provider.tsx's three disables gone; the first occurrence (P-1c b's +0.9 KiB, route-budgets.mjs :45's comment) is explained by the same mechanism.
 
@@ -372,6 +389,6 @@ slip — S573 (the supervisor; housekeeping-1b GO): the GO named the deprecated 
 
 register row — one row (unnumbered; the records turn numbers it): "the first-paint closure is chunked by a rule and is a law of the budget" → `vite.config.ts` (the `shared-shell` group, client environment only), `scripts/route-budgets.mjs` (`SHARED_SHELL_MODULES`, `sharedShellOwns`, `ENTRY_CLOSURE`), `scripts/chunk-modules-plugin.mjs` (`moduleKey`, the build's chunk → modules record, `dist/.chunk-modules.json`), `scripts/bundle-closure.mjs` (`closureListViolations`, `moduleCensus`, `parseChunkModules`), `scripts/check-bundle-size.mjs` (the budget step) → BC-14, BC-15 (caller named in `scripts/conformance/wired.test.ts`) → exceptions: none; and the corrected cell of the i18n row: the hooks and device-star readers live in `src/i18n/i18n-context.ts`, the provider in `src/i18n/provider.tsx` (the `@/i18n` export list unchanged).
 
-changelog — 2026-11-10 — housekeeping turn 1b (pull request #34): the first-paint closure is chunked by a rule — one `shared-shell` group of the repository's own modules in `vite.config.ts` (client environment only; the server and nitro builds are unchanged module for module), the entry's closure 53 → 31 chunks and every page's first download 5.8 to 7.7 KiB lighter; the closure is a law of the budget step (`ENTRY_CLOSURE`, the module census, BC-14, BC-15) and 39 pages' ceilings and the entry's JS ceiling (215 → 207) are lowered; the i18n split lands again (`src/i18n/i18n-context.ts`) and `provider.tsx`'s three INC-1097 lint disables are gone (DEC-362, INC-1097).
+changelog — 2026-11-10 — housekeeping turn 1b (pull request #34): the first-paint closure is chunked by a rule — one `shared-shell` group of the repository's own modules in `vite.config.ts` (client environment only; the server and nitro builds are unchanged module for module), the entry's closure 53 → 31 chunks and every page's first download 5.8 to 7.7 KiB lighter; the closure is a law of the budget step (`ENTRY_CLOSURE`, the module census, BC-14, BC-15) and 42 pages' ceilings and the entry's JS ceiling (215 → 207) are lowered; the i18n split lands again (`src/i18n/i18n-context.ts`) and `provider.tsx`'s three INC-1097 lint disables are gone (DEC-362, INC-1097).
 
 roadmap — line 23 (The housekeeping turn): turn 1b done in housekeeping turn 1b — "the chunk rule for the first-paint closure" (INC-1097, DEC-362) and "the i18n split again"; the lint exceptions of turn 1 are gone. Next on the lane: housekeeping turns 2 → 4 as the bundle names them; the records turn moves the budget lines' histories to `docs/features/performance-strategy.md` (§13 finding 4).
