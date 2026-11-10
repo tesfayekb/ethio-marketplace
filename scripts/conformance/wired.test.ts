@@ -186,6 +186,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(
       readFileSync(join(ROOT, "scripts/conformance/locale-imports.test.ts"), "utf8"),
     ).toContain("CFLI-4");
+    // briefs.test.ts CF-BRIEF-1…4 (housekeeping turn 1, DEC-361) is discovered by test:unit's
+    // scripts/**/*.test.ts; it reads the brief roadmap line 3 names and that brief's rulings.
+    expect(readFileSync(join(ROOT, "scripts/conformance/briefs.test.ts"), "utf8")).toContain(
+      "CF-BRIEF-4",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

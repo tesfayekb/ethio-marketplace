@@ -1,0 +1,3 @@
+# The brief laws (scripts/conformance/briefs.test.ts, CF-BRIEF-2 and CF-BRIEF-3, DEC-361): a phrase a
+# brief must state as written — key "<file>:<line> <phrase>" or "<file>:<line> SCOPE names <path>
+# without its test" | reason | until. A line no finding needs is stale and fails. Empty at birth.
