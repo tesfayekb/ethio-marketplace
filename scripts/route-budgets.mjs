@@ -115,3 +115,123 @@ export function tierFlagViolations(pages, textOf) {
     failures.push("no page carries the tier flag's marker; it no longer matches tier-flag.tsx");
   return failures;
 }
+
+/**
+ * DEC-362 (housekeeping turn 1b, INC-1097) — THE FIRST-PAINT CLOSURE IS CHUNKED BY A
+ * RULE, not by which module happens to reference a shared module.
+ *
+ * One code-splitting group of the client build (vite.config.ts, scoped to the client
+ * environment) gathers the repository's own modules that every page needs and a lazy chunk
+ * also imports: `shared-shell` holds SHARED_SHELL_MODULES. This file is the ONE list:
+ * vite.config.ts reads it for the group's `test`, and scripts/check-bundle-size.mjs reads
+ * it for the module census (scripts/bundle-closure.mjs `moduleCensus`: a listed module
+ * missing from the tree or from the group's chunk fails by path, a module in the chunk
+ * that the list does not name fails by name). Each line carries its reason (G55's form, no
+ * expiry: these are not exceptions). A module joins by its path; a path is a key as
+ * scripts/chunk-modules-plugin.mjs `moduleKey` writes it. No vendor module is named: the
+ * vendor chunks stay the bundler's own, so a deploy that changes only our code leaves
+ * their file names, and a visitor's cached copies, alone (ruling 1's frozen rule).
+ */
+export const SHARED_SHELL_MODULES = [
+  [
+    "src/features/auth/auth-client.ts",
+    "the one place the auth feature asks the door for the client (INC-915)",
+  ],
+  [
+    "src/features/session/session-policy.ts",
+    "the client-side session policy the shell's auth hook enforces on every page",
+  ],
+  [
+    "src/features/auth/auth-error-key.ts",
+    "the provider's error as the mapper reads it; the shell and every auth screen",
+  ],
+  [
+    "src/features/auth/auth-result.ts",
+    "the answers the auth actions share, as a leaf (DEC-348); INC-1097's first name",
+  ],
+  [
+    "src/components/ui/button-variants.ts",
+    "the button's class recipes; the shell and every screen draw a button",
+  ],
+  ["src/components/ui/button.tsx", "the button; the shell and every screen draw one"],
+  [
+    "src/features/categories/category-tree.ts",
+    "the one category-tree reader (B2); the shell's menus and the feed's filters",
+  ],
+  ["src/components/shell/menu-row.ts", "the one menu look (D248); the rail and every panel"],
+  ["src/i18n/entity.ts", "entity name resolution (U4d); INC-1097's second name"],
+  ["src/lib/error-text.ts", "the one rule for what a caught error says in a log line (INC-625)"],
+  ["src/lib/locale.ts", "the locale constants module (K4)"],
+  ["src/lib/format-locale.ts", "the one language rule for dates and numbers (DEC-229)"],
+  [
+    "src/i18n/locales/en-base.ts",
+    "the base catalogue's English; every page draws strings (it rode the provider's chunk before)",
+  ],
+  ["src/i18n/compiled-catalog.ts", "each compiled strings layer fetched once per visit (D234 S3)"],
+  [
+    "src/i18n/i18n-context.ts",
+    "the i18n context and its hooks, one-way from the provider (INC-1097's split)",
+  ],
+  ["src/components/layout/layers.ts", "the layer order, in one place"],
+  [
+    "src/features/legal/legal-kinds.ts",
+    "a legal kind's audience, mirrored from the database (D236)",
+  ],
+  [
+    "src/features/legal/legal-reader.ts",
+    "the ids of the versions in force for the gate's kinds (D230)",
+  ],
+  [
+    "src/lib/load-once.ts",
+    "a module fetched on demand is fetched once per visit (D234 S1); INC-1097's fourth name",
+  ],
+  ["src/lib/geo-distance.ts", "the one client-side distance utility (B2)"],
+  ["src/lib/uuid.ts", "the one UUID shape for the browser and the server"],
+  ["src/components/shell/location-data.ts", "the shell's geography seam (B2)"],
+  ["src/lib/notice-outlets.ts", "a notice is shown where the person is looking (INC-955)"],
+  [
+    "src/lib/on-demand-failure.ts",
+    "a piece fetched on demand that fails to download says so (INC-911); INC-1097's third name",
+  ],
+  [
+    "src/components/shell/notice-dock.ts",
+    "a notice pinned to the bottom of a phone's screen (turn W3)",
+  ],
+  [
+    "src/components/shell/on-demand-notice.tsx",
+    "the shell's one notice for a piece whose code did not download (INC-911)",
+  ],
+  [
+    "src/components/ui/overlay-loader.ts",
+    "the overlay primitives fetched on the first intent (DEC-259); the loader only, never overlays-impl",
+  ],
+  [
+    "src/components/ui/overlay-facade.tsx",
+    "the one way an overlay waits for its primitive (DEC-259)",
+  ],
+  ["src/lib/own-key.ts", "the own-key rule for a lookup by an outside key"],
+  ["src/lib/page-head.ts", "the page head's one builder"],
+  ["src/components/ui/use-label-room.ts", "the row measure for crowded labels (D105)"],
+  ["src/lib/place-order.ts", "place lists from A to Z (INC-401)"],
+  ["src/features/posting/post-prefill.ts", "what the invite card carries to /post (D119)"],
+  ["src/lib/query-keys.ts", "the neutral query-key module (U1g-3)"],
+  ["src/lib/reader-locale.ts", "the reader's locale and its region-name fallback"],
+  ["src/lib/refresh-after-write.ts", "after a write, a new read (INC-579)"],
+  ["src/lib/return-path.ts", "the return path, and why it is so narrow (D20)"],
+  ["src/lib/route-client.ts", "the one envelope reader for both route transports"],
+  ["src/lib/signed-in-route.ts", "the one door-step of a signed-in screen (INC-852)"],
+  ["src/components/brand/spinner.tsx", "the woven-diamond loading spinner"],
+  ["src/lib/session-key.ts", "the session's storage names, one rule (turn 34c-4)"],
+  [
+    "src/lib/supabase-door.ts",
+    "the one door to the Supabase client (DEC-261); the client itself is never in the group",
+  ],
+  ["src/components/layout/surface.ts", "the one card surface (D135)"],
+  ["src/features/legal/use-legal-gate.ts", "the acceptance at sign-in as a hard stop"],
+  ["src/lib/utils.ts", "the class-name joiner every component imports"],
+];
+
+/** True when a module key (scripts/chunk-modules-plugin.mjs `moduleKey`) is a shared-shell module. */
+export function sharedShellOwns(key) {
+  return SHARED_SHELL_MODULES.some(([path]) => path === key);
+}
