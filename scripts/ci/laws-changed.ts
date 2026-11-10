@@ -43,6 +43,13 @@ export function semgrepTargets(files: string[]): string[] {
   );
 }
 
+/** The brief in force: the first brief roadmap line 3 names; null when it names none. The one
+ *  reader of line 3 for scripts/ (turnBase here, turn-checks.ts, conformance/briefs.test.ts). */
+export function briefInForce(roadmap: string): string | null {
+  const line = roadmap.split("\n")[2] ?? "";
+  return /docs\/governance\/briefs\/[\w.-]+\.md/.exec(line)?.[0] ?? null;
+}
+
 /** The turn's base: TURN_BASE, else the brief's `Base: dev <sha>` (roadmap line 3's first
  *  brief); null when neither names one — the caller fails loudly, never the last commit alone. */
 export function turnBase(
@@ -51,9 +58,8 @@ export function turnBase(
   readBrief: (path: string) => string | null,
 ): string | null {
   if (env !== undefined && env.trim() !== "") return env.trim();
-  const line = roadmap.split("\n")[2] ?? "";
-  const brief = /docs\/governance\/briefs\/[\w.-]+\.md/.exec(line)?.[0];
-  if (brief === undefined) return null;
+  const brief = briefInForce(roadmap);
+  if (brief === null) return null;
   const text = readBrief(brief);
   return text === null ? null : (/Base: dev ([0-9a-f]{7,40})\b/.exec(text)?.[1] ?? null);
 }

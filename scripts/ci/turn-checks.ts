@@ -17,14 +17,19 @@
  *     read this tree's uncommitted work as drift).
  *   - the budget job's Build: the same `bun run build` as build-and-check › Build, reused.
  * A step whose pinned download or checksum fails prints NOT RUN (R3): no unpinned stand-in.
- * After the budget check the NEAR band (R4) lists every page within 0.3 KiB of its line with its
- * growth against the turn's base build (HEAD's tree, built once and cached); a NEAR page that
- * grew is a FAIL until its line is raised with the cause.
+ * A step whose pinned binary is built for another machine prints NOT RUN before any download,
+ * the asset's platform read from the step's own text (INC-1094).
+ * After the budget check the NEAR band (R4, DEC-361) prints a NOTE for every page inside DEC-296's
+ * one band (budget-band.mjs) with its growth against the turn's base build (HEAD's tree, built
+ * once and cached); a budget step whose only failure is that band is a PASS — CI's bundle-budget
+ * job judges, and a line moves only with a named cause.
+ * `--no-tests` (INC-1064): every vitest and playwright step is NOT RUN "--no-tests", every other
+ * step runs as before, and the last line says so.
  *
  * Output: one line per step (`PASS|FAIL|NOT RUN  job › step  (Ns)[ — reason]`), then the last
  * line `checks: N PASS · N FAIL · N NOT RUN · Ns`. Scanner output stays in the step's own log
  * (~/.cache/ethio-checks/logs), never printed: counts only (Knowledge: scanner output).
- * Guard: scripts/ci/turn-checks.test.ts (TCK-1…5).
+ * Guard: scripts/ci/turn-checks.test.ts (TCK-1…9).
  */
 import { spawnSync } from "node:child_process";
 import {
@@ -42,11 +47,13 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 
 import { errorText } from "../../src/lib/error-text";
+import { ownValue } from "../../src/lib/own-key";
+import { NEAR_KIB, judgedSize } from "../budget-band.mjs";
 import { readAllowlist } from "../conformance/kit";
+import { briefInForce } from "./laws-changed";
 
 export const CI_FILE = ".github/workflows/ci.yml";
 export const ALLOWLIST = "scripts/ci/turn-checks-allowlist.txt";
-export const NEAR_KIB = 0.3;
 const CACHE = process.env.ETHIO_CHECKS_CACHE ?? join(homedir(), ".cache", "ethio-checks");
 const HARNESS_LOG = "/tmp/observability/build-errors.log";
 
@@ -59,6 +66,8 @@ export type Step = {
   env: Record<string, string>;
   timeoutS: number;
   conditional: boolean;
+  /** A step of the runner's own whose text does not name its test runner (`--no-tests`). */
+  tests?: boolean;
 };
 export type Line = { verdict: Verdict; key: string; seconds: number; reason?: string };
 
@@ -167,6 +176,7 @@ export const LAWS_CHANGED_UNITS: Step = {
   env: {},
   timeoutS: 300,
   conditional: false,
+  tests: true,
 };
 export const LAWS_SEMGREP: Step = {
   job: "laws-first",
@@ -256,34 +266,145 @@ export function fetchFailure(step: Step, output: string): string | undefined {
   return undefined;
 }
 
+/**
+ * INC-1094 (housekeeping turn 1) — a pinned binary runs only on the machine it is built for. A step
+ * that checks a download against a `*_SHA256` names its asset in its own text (`tarball="…"`, or
+ * the last part of a `releases/download/…` address); the asset's name says its platform. A Linux
+ * or Windows executor needs a row in these two tables, nothing else.
+ */
+export type Machine = { platform: string; arch: string };
+const ASSET_OS = new Map([
+  ["linux", "linux"],
+  ["darwin", "darwin"],
+  ["macos", "darwin"],
+  ["apple-darwin", "darwin"],
+  ["windows", "win32"],
+]);
+const ASSET_ARCH = new Map([
+  ["amd64", "x64"],
+  ["x64", "x64"],
+  ["x86_64", "x64"],
+  ["arm64", "arm64"],
+  ["aarch64", "arm64"],
+]);
+
+/** The pinned asset's name with the step's own variables filled in; null for an unpinned step. */
+export function pinnedAsset(step: Step): string | null {
+  if (!Object.keys(step.env).some((k) => /_SHA256$/.test(k))) return null;
+  const named =
+    /\btarball="([^"]+)"/.exec(step.run)?.[1] ??
+    /releases\/download\/[^\s"]*\/([^\s"/$]+)/.exec(step.run)?.[1] ??
+    "";
+  return named.replace(/\$\{(\w+)\}/g, (all, name: string) => ownValue(step.env, name) ?? all);
+}
+
+/** The machine an asset's name says it is built for: `linux_amd64`, `x86_64-unknown-linux-gnu`… */
+export function assetMachine(asset: string): Machine | null {
+  const name = asset.toLowerCase();
+  const osArch =
+    /(?:^|[_.-])(linux|darwin|macos|windows)[_-](amd64|x86_64|x64|arm64|aarch64)(?=[_.-]|$)/.exec(
+      name,
+    );
+  const archOs =
+    /(?:^|[_.-])(x86_64|aarch64|arm64)-(?:unknown-)?(linux|apple-darwin|darwin)(?=[_.-]|$)/.exec(
+      name,
+    );
+  const os = osArch?.[1] ?? archOs?.[2];
+  const arch = osArch?.[2] ?? archOs?.[1];
+  const platform = os === undefined ? undefined : ASSET_OS.get(os);
+  const cpu = arch === undefined ? undefined : ASSET_ARCH.get(arch);
+  return platform === undefined || cpu === undefined ? null : { platform, arch: cpu };
+}
+
+/** Why a pinned step cannot run on this machine; undefined when it can (or pins nothing). */
+export function platformReason(step: Step, here: Machine): string | undefined {
+  const asset = pinnedAsset(step);
+  if (asset === null) return undefined;
+  const built = assetMachine(asset);
+  if (built === null) return `pinned asset platform unknown: ${asset || "(no asset name)"}`;
+  if (built.platform === here.platform && built.arch === here.arch) return undefined;
+  return `pinned binary ${built.platform}/${built.arch} (${asset}); this machine ${here.platform}/${here.arch}`;
+}
+
+/** INC-1064 — `bun run checks --no-tests`: the guards and scanners only. Any other word is refused. */
+export const NO_TESTS = "--no-tests";
+export function parseArgs(argv: string[]): { noTests: boolean } | { error: string } {
+  let noTests = false;
+  for (const arg of argv) {
+    if (arg === NO_TESTS) noTests = true;
+    else return { error: `unknown argument ${arg}` };
+  }
+  return { noTests };
+}
+
+/** A vitest or playwright step, by its text with each `bun run <script>` read through package.json. */
+export function isTestStep(step: Step, scripts: Map<string, string>): boolean {
+  if (step.tests === true) return true;
+  let text = step.run;
+  for (let depth = 0; depth < 3; depth++) {
+    const next = text.replace(
+      /\bbun run ([\w:.-]+)/g,
+      (all, name: string) => `${all} ${scripts.get(name) ?? ""}`,
+    );
+    if (next === text) break;
+    text = next;
+  }
+  return /\b(?:vitest|playwright)\b/.test(text);
+}
+
 /** TCK-4 — the last line: the counts of the lines printed and the whole run's seconds. */
-export function summary(lines: Line[], seconds: number): string {
+export function summary(lines: Line[], seconds: number, noTests = false): string {
   const n = (v: Verdict) => lines.filter((l) => l.verdict === v).length;
-  return `checks: ${n("PASS")} PASS · ${n("FAIL")} FAIL · ${n("NOT RUN")} NOT RUN · ${seconds}s`;
+  const marked = noTests ? ` · ${NO_TESTS} (the laws and the unit tests not run)` : "";
+  return `checks: ${n("PASS")} PASS · ${n("FAIL")} FAIL · ${n("NOT RUN")} NOT RUN · ${seconds}s${marked}`;
 }
 
 export function lineText(l: Line): string {
   return `${l.verdict.padEnd(7)}  ${l.key}  (${l.seconds}s)${l.reason ? ` — ${l.reason}` : ""}`;
 }
 
-/** The per-page lines check-bundle-size.mjs prints: `  329.7 / 330 KiB  /admin/coverage`. */
+/**
+ * The sizes check-bundle-size.mjs prints, under the labels its NEAR section uses: the entry
+ * (`JS: 211.9 KiB / 215 KiB — ok` → "entry JS", `CSS: …` → "stylesheet") and each page
+ * (`  329.7 / 330 KiB  /admin/coverage`).
+ */
 export function pageSizes(output: string): Map<string, { kib: number; ceiling: number }> {
   const out = new Map<string, { kib: number; ceiling: number }>();
-  for (const m of output.matchAll(/^\s+([0-9.]+) \/\s*([0-9]+) KiB\s+(\S+)\s*$/gm))
+  for (const m of output.matchAll(/^(JS|CSS): ([0-9.]+) KiB \/ ([0-9.]+) KiB/gm))
+    out.set(m[1] === "JS" ? "entry JS" : "stylesheet", {
+      kib: Number(m[2]),
+      ceiling: Number(m[3]),
+    });
+  for (const m of output.matchAll(/^\s+([0-9.]+) \/\s*([0-9.]+) KiB\s+(\S+)\s*$/gm))
     out.set(m[3], { kib: Number(m[1]), ceiling: Number(m[2]) });
   return out;
 }
 
+/** The labels the budget step's own NEAR section names (budget-band.mjs nearFindings). */
+export function nearNamed(output: string): Set<string> {
+  const section = output.split("\nNEAR band failed (DEC-296):")[1] ?? "";
+  return new Set(
+    [...section.matchAll(/^\s+(.+?): [0-9.]+ KiB.* sits within the NEAR band/gm)].map((m) => m[1]),
+  );
+}
+
 export type Near = { page: string; kib: number; ceiling: number; growth: number | null };
 
-/** R4 / TCK-5 — every page within NEAR_KIB of its line, with its growth against the base. */
+/**
+ * R4 / TCK-5 — DEC-296's one band: a size judged as the budget step judges it locally
+ * (budget-band.mjs judgedSize, the local allowance) inside NEAR_KIB of its ceiling, or a label the
+ * step's NEAR section named (its unrounded size can sit in the band where the printed one does not).
+ */
 export function nearBand(
   now: Map<string, { kib: number; ceiling: number }>,
   base: Map<string, { kib: number; ceiling: number }> | null,
+  named: Set<string> = new Set(),
 ): Near[] {
   const out: Near[] = [];
   for (const [page, { kib, ceiling }] of now) {
-    if (ceiling - kib > NEAR_KIB + 1e-9) continue;
+    const used = judgedSize(kib, false);
+    const inBand = used <= ceiling && ceiling - used < NEAR_KIB - 1e-9;
+    if (!inBand && !named.has(page)) continue;
     const was = base?.get(page)?.kib;
     out.push({
       page,
@@ -295,9 +416,28 @@ export function nearBand(
   return out.sort((a, b) => a.page.localeCompare(b.page));
 }
 
-/** A NEAR page that grew owes its raise in the same turn (R4). */
-export function nearOwed(near: Near[]): Near[] {
-  return near.filter((n) => n.growth !== null && n.growth > 0);
+/** A NEAR page's NOTE: CI's bundle-budget job judges it; the local run never fails on it (DEC-361). */
+export function noteLine(n: Near, baseSha: string | null): string {
+  const head = `NEAR ${n.page} ${n.kib.toFixed(1)} / ${n.ceiling} KiB`;
+  if (baseSha === null) return `${head}, NOT RUN — NEAR: base not built, CI judges`;
+  const grew =
+    n.growth === null
+      ? `not in the base build ${baseSha}`
+      : `grew ${n.growth >= 0 ? "+" : ""}${n.growth.toFixed(1)} since ${baseSha}`;
+  return `${head}, ${grew} — CI's bundle-budget job judges; raise the line only with a named cause`;
+}
+
+/**
+ * TCK-9 — the budget step's verdict: its own exit, except that a run whose only failure section is
+ * DEC-296's NEAR band is a PASS (its NOTE lines follow). Any other failure the step prints stays a
+ * FAIL, alone or beside the band.
+ */
+export function budgetVerdict(code: number, output: string): Verdict {
+  if (code === 0) return "PASS";
+  if (!output.includes("\nNEAR band failed (DEC-296):")) return "FAIL";
+  const other =
+    /Per-page budget failed|OVER BUDGET|First-paint budget exceeded|Tier flag off card pages failed|^Bundle budget: /m;
+  return other.test(output) ? "FAIL" : "PASS";
 }
 
 // ─── the run ───────────────────────────────────────────────────────────────────────────────────
@@ -343,8 +483,8 @@ export function briefBase(
   roadmap: string,
   readBrief: (path: string) => string | null,
 ): string | null {
-  const path = roadmap.split("\n")[2]?.match(/docs\/governance\/briefs\/[\w.-]+\.md/)?.[0];
-  const text = path ? readBrief(path) : null;
+  const path = briefInForce(roadmap);
+  const text = path === null ? null : readBrief(path);
   return text?.match(/Base: dev ([0-9a-f]{7,40})\b/)?.[1] ?? null;
 }
 
@@ -403,8 +543,25 @@ function baseSizes(): { sizes: Map<string, { kib: number; ceiling: number }>; sh
   return { sizes: pageSizes(readFileSync(cached, "utf8")), sha: sha.slice(0, 8) };
 }
 
+const BUDGET_STEP = "bundle-budget › Check the first-paint budget";
+
 function main(): number {
   const started = Date.now();
+  const args = parseArgs(process.argv.slice(2));
+  if ("error" in args) {
+    console.log(`checks: ${args.error} (usage: bun run checks [${NO_TESTS}])`);
+    return 2;
+  }
+  const { noTests } = args;
+  const pkg: unknown = JSON.parse(readFileSync("package.json", "utf8"));
+  const pkgScripts =
+    typeof pkg === "object" && pkg !== null && "scripts" in pkg ? pkg.scripts : undefined;
+  const scripts = new Map(
+    Object.entries(typeof pkgScripts === "object" && pkgScripts !== null ? pkgScripts : {}).filter(
+      (e): e is [string, string] => typeof e[1] === "string",
+    ),
+  );
+  const here: Machine = { platform: process.platform, arch: process.arch };
   const steps = planFrom(readFileSync(CI_FILE, "utf8"));
   let allow: Map<string, string>;
   try {
@@ -454,6 +611,15 @@ function main(): number {
       continue;
     }
     if (step.conditional) continue; // TCK-1 refuses this shape; never reached on a guarded ci.yml
+    if (noTests && isTestStep(step, scripts)) {
+      print({ verdict: "NOT RUN", key: step.key, seconds: 0, reason: NO_TESTS });
+      continue;
+    }
+    const elsewhere = platformReason(step, here);
+    if (elsewhere !== undefined) {
+      print({ verdict: "NOT RUN", key: step.key, seconds: 0, reason: elsewhere });
+      continue;
+    }
     const earlier = failedJobs.get(step.job);
     if (earlier) {
       print({
@@ -514,13 +680,20 @@ function main(): number {
       step.key.replace(/[^\w]+/g, "-"),
     );
     const notFetched = r.code !== 0 ? fetchFailure(step, r.output) : undefined;
+    const nearOnly =
+      step.key === BUDGET_STEP &&
+      r.code !== 0 &&
+      r.code !== 124 &&
+      budgetVerdict(r.code, r.output) === "PASS";
     const line: Line =
-      r.code === 0
+      r.code === 0 || nearOnly
         ? {
             verdict: "PASS",
             key: step.key,
             seconds: secs(),
-            reason: (LOCAL as Record<string, string>)[step.key],
+            reason: nearOnly
+              ? "its one failure is DEC-296's NEAR band: a NOTE below, CI's bundle-budget job judges"
+              : (LOCAL as Record<string, string>)[step.key],
           }
         : notFetched
           ? { verdict: "NOT RUN", key: step.key, seconds: secs(), reason: notFetched }
@@ -536,35 +709,27 @@ function main(): number {
     print(line);
     if (step.key === "build-and-check › Build") buildResult = line;
     if (line.verdict !== "PASS") failedJobs.set(step.job, step.name);
-    if (step.key === "bundle-budget › Check the first-paint budget") {
+    if (step.key === BUDGET_STEP) {
       const now = pageSizes(r.output);
-      const base = now.size > 0 ? baseSizes() : null;
-      const near = nearBand(now, base?.sizes ?? null);
-      for (const n of near)
-        console.log(
-          `  NEAR   ${n.page}  ${n.kib.toFixed(1)} / ${n.ceiling} KiB  ${
-            n.growth === null
-              ? "growth unknown (no base build)"
-              : `${n.growth >= 0 ? "+" : ""}${n.growth.toFixed(1)} KiB since ${base?.sha}`
-          }`,
-        );
-      const owed = nearOwed(near);
+      const named = nearNamed(r.output);
+      const inBand = nearBand(now, null, named);
+      const base = inBand.length > 0 ? baseSizes() : null;
+      const near = nearBand(now, base?.sizes ?? null, named);
+      for (const n of near) console.log(`  NOTE   ${noteLine(n, base?.sha ?? null)}`);
+      const unbuilt = near.length > 0 && base === null;
       print({
-        verdict: base === null && now.size > 0 ? "NOT RUN" : owed.length > 0 ? "FAIL" : "PASS",
+        verdict: unbuilt ? "NOT RUN" : "PASS",
         key: "bundle-budget › the NEAR band (R4)",
         seconds: 0,
-        reason:
-          base === null && now.size > 0
-            ? "the base build could not be made"
-            : owed.length > 0
-              ? `${owed.length} NEAR page(s) grew: raise each with its cause (${owed.map((n) => n.page).join(", ")})`
-              : `${near.length} NEAR, none grew`,
+        reason: unbuilt
+          ? "NEAR: base not built, CI judges"
+          : `${near.length} NEAR (DEC-296's one band; NOTE lines above)`,
       });
     }
   }
   printFast();
   for (const f of ["semgrep.json", "semgrep.sarif"]) rmSync(f, { force: true });
-  const last = summary(lines, Math.round((Date.now() - started) / 1000));
+  const last = summary(lines, Math.round((Date.now() - started) / 1000), noTests);
   console.log(last);
   return lines.some((l) => l.verdict === "FAIL") ? 1 : 0;
 }
