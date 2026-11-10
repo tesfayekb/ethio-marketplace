@@ -56,7 +56,8 @@ vi.mock("./compiled-catalog", async (importOriginal) => {
   };
 });
 
-const { I18nProvider, useI18n, useStringsLayers } = await import("./provider");
+const { I18nProvider } = await import("./provider");
+const { useI18n, useStringsLayers } = await import("./i18n-context");
 
 function Probe({ ask }: { ask: boolean }) {
   const { t, has } = useI18n();

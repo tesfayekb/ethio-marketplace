@@ -33,13 +33,8 @@ vi.mock("./bundle", () => ({
   fetchEntityBundle: () => Promise.resolve({ bundle: null, reason: "test" }),
 }));
 
-const {
-  I18nProvider,
-  useI18n,
-  LANGUAGE_STAR_COOKIE,
-  LANGUAGE_STAR_STORAGE_KEY,
-  LANGUAGE_STORAGE_KEY,
-} = await import("./provider");
+const { I18nProvider, LANGUAGE_STORAGE_KEY } = await import("./provider");
+const { useI18n, LANGUAGE_STAR_COOKIE, LANGUAGE_STAR_STORAGE_KEY } = await import("./i18n-context");
 
 const GATE = [
   { code: "en", name_en: "English", name_native: "English", rtl: false, sort: 0 },
