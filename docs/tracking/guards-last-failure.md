@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43041366407
-- Commit: `921ec956972996ffb3a75f4ad104c1f03e705971`
-- Attempt: 1
-- Written (UTC): 2026-11-11T15:10:19.920Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43036501908
+- Commit: `a8c84e4964117148658213835f0d0406d61924b9`
+- Attempt: 2
+- Written (UTC): 2026-11-11T17:06:56.211Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -39,7 +39,7 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43041366407
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43036501908
   E2E_HEAD_COMMIT_MESSAGE: 
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -56,7 +56,7 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (0/18 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (2/19 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
 [36;1mecho "lanes=failure"[0m
@@ -73,7 +73,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/935b56c6-ad31-4554-9976-fa9e9a6b10ec' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/47c07e31-83ef-41c4-bbaf-ae5ac82f31ee' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
