@@ -228,6 +228,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/ci/install-browser-deps.test.ts"), "utf8")).toContain(
       "CF-INSTALL-6",
     );
+    // e2e-failure-report.test.ts EFR-1 (housekeeping turn 3 Part B, INC-1101) runs the reporter's
+    // in-file self-test, which ci.yml's verdict job also runs first.
+    expect(readFileSync(join(ROOT, "scripts/e2e-failure-report.test.ts"), "utf8")).toContain(
+      "EFR-1",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

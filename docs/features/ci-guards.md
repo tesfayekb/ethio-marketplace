@@ -339,6 +339,31 @@ are captured from real output, never authored from assumption). The self-test
 adds the **wipeout case** — every source zero-test — asserting the log tails
 are quoted and the header names both sources instead of "none".
 
+### A lane without results is named by the step it died at (INC-1101, housekeeping turn 3)
+
+Run 43036501908's report read "17 sources without results" and quoted nothing more, because a
+lane that dies before "Run proof lane" writes no log: a reader could not tell the runner's mirror
+from a code failure. Each lane's "Write lane evidence" now writes its INC-992 step lines (the
+fragment's `- Step failure:` section, redacted by the same `redact`) to
+`local-backend-step-failure.txt`, and "Upload lane log" carries it in `e2e-log-<lane>` beside
+`local-backend-start-failure.txt`; the reporter reads it and redacts it again. For every silent
+source it prints each failed step (`- Failed step: \`<id>\` (outcome <o>) — <error line>`) and
+quotes the step lines. A source whose every failed step is in `INFRA_STEP_IDS`(the steps before
+any test: checkout, bun, the dependencies, the CLI, the backend images, the certificate, the
+browser's libraries and the browser, its cache;`backend`only with DEC-313's "start failed before
+any migration ran" line) is marked`(INFRA: <step>)`on the "Sources without results" line, the
+head block gains`- Infrastructure: <n> lane(s) died before any test at <step> — <error line>`,
+and its section opens with `- Class: **infrastructure**`. The build, the migration apply and the
+smoke guards stay code findings. A missing step file keeps today's words. The reporter writes
+`e2e-verdict-class.txt` (`INFRA <n> <step>`when every red source died that way and no test
+failed, else`TESTS`); the Verdict step reads it for its `::error` text only (`E2E: <n> lane(s)
+died in infrastructure before any test (<step>) — re-run the failed jobs`), and its exit stays
+the lanes' result (DEC-028). The self-test covers the install death (lane 1 of run 43033934604),
+the proof lane's own death (lane 5 of run 42587592780), a backend start death made by the real
+tools, the class, and that every id in `INFRA_STEP_IDS`is a step id of the lane job;`scripts/e2e-failure-report.test.ts`(EFR-1) runs that self-test inside`bunx vitest run scripts`,
+and `scripts/ci/lane-failure-evidence.test.ts` LFE-3 runs the lane's own evidence program over the
+captured step file.
+
 Caches: the Playwright browser cache is keyed on `runner.os` + the resolved
 `@playwright/test` version; bun's install cache is keyed on `bun.lock`. Both
 jobs echo `cache-hit` so a silently-missing cache is visible in the log rather

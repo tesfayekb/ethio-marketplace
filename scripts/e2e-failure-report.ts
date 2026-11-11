@@ -611,6 +611,8 @@ export type Source = {
   outsideSummary?: number;
   /** INC-973 — the lane's redacted start-failure lines (failing migration + last ERROR/FATAL), when the backend never came up. */
   startFailure?: string[];
+  /** INC-1101 — the lane's redacted step file (INC-992's `Step <id>: outcome <o>` lines and their tails), when a step failed. */
+  stepFailure?: string[];
   /** INC-398 — every `[ssr-error]` line with the tests that finished next in its log. */
   ssrNext?: { line: string; next: string[] }[];
 };
@@ -657,6 +659,141 @@ export function startFailureSection(sources: Source[]): string[] {
     "",
     "```text",
     ...firstLines,
+    "```",
+    "",
+  ];
+}
+
+/**
+ * INC-1101 (housekeeping turn 3) — THE STEPS BEFORE ANY TEST. A lane that died at one of these
+ * produced no results because the runner failed it, not the code: the report names it INFRA and
+ * the verdict says "re-run the failed jobs". The ids are the lane job's step ids in
+ * .github/workflows/local-backend-proof.yml (the self-test reads that file, so a renamed step
+ * cannot drop out of the class silently). `backend` counts only when the step file carries
+ * DEC-313's start line; its migration apply, the build and the smoke guards are code findings.
+ */
+export const INFRA_STEP_IDS = [
+  "checkout",
+  "setup-bun",
+  "cache-bun-install",
+  "install-dependencies",
+  "setup-cli",
+  "restore-backend-images",
+  "load-backend-images",
+  "make-the-temporary-backend-s-certificate",
+  "install-chromium-s-system-libraries",
+  "install-chromium",
+  "cache-playwright-browsers",
+  "backend",
+] as const;
+/** DEC-313 — the backend step's own line when the start failed before any migration ran. */
+export const BACKEND_START_LINE = "start failed before any migration ran";
+
+/** One failed step of a lane's step file (scripts/ci/step-failures.mjs's shape). */
+export type FailedStep = { id: string; outcome: string; tail: string[] };
+
+/** The failed steps a step file names, in order, each with its kept tail. */
+export function failedSteps(lines: string[]): FailedStep[] {
+  const steps: FailedStep[] = [];
+  for (const line of lines) {
+    const named = /^Step (\S+): outcome (\S+)$/.exec(line);
+    if (named) {
+      steps.push({ id: named[1] ?? "", outcome: named[2] ?? "", tail: [] });
+      continue;
+    }
+    const last = steps[steps.length - 1];
+    if (last && line.startsWith("  ")) last.tail.push(line.slice(2));
+  }
+  return steps;
+}
+
+/** The step's error line: the first E:/Error:/::error/fatal line, else apt's Err:, else its last line. */
+export function stepErrorLine(step: FailedStep): string {
+  const lines = step.tail.map((line) => line.trim()).filter((line) => line !== "");
+  const pick =
+    lines.find((line) => /^(?:E:|Error:|error:|::error|FATAL|fatal:)/.test(line)) ??
+    lines.find((line) => line.startsWith("Err:")) ??
+    lines[lines.length - 1] ??
+    `(step ${step.id} kept no output)`;
+  return pick.slice(0, 200);
+}
+
+/** The step a lane died at when every failed step is before any test, else null. */
+export function infraDeath(source: Source): FailedStep | null {
+  const lines = source.stepFailure ?? [];
+  const steps = failedSteps(lines);
+  if (steps.length === 0) return null;
+  const startFailed = lines.some((line) => line.includes(BACKEND_START_LINE));
+  const infra = steps.every(
+    (step) =>
+      (INFRA_STEP_IDS as readonly string[]).includes(step.id) &&
+      (step.id !== "backend" || startFailed),
+  );
+  return infra ? (steps[0] ?? null) : null;
+}
+
+/** A source that recorded no usable results (INC-086's two shapes). */
+function isSilent(source: Source): boolean {
+  return !source.json || countTests(source.json) === 0;
+}
+
+/**
+ * INC-1101 — the verdict's class (DEC-028: the Verdict step reads it for its `::error` text only):
+ * `INFRA <n> <step[,step]>` when every red source died before any test at an INFRA step and no
+ * test failed, else `TESTS`.
+ */
+export function verdictClass(sources: Source[]): string {
+  const silent = sources.filter(isSilent);
+  const testFailed = sources.some(
+    (s) => s.json && !isSilent(s) && collect(s.json).failures.length > 0,
+  );
+  const deaths = silent.map(infraDeath);
+  const steps: string[] = [];
+  for (const death of deaths) {
+    if (death === null) return "TESTS";
+    if (!steps.includes(death.id)) steps.push(death.id);
+  }
+  if (silent.length === 0 || testFailed) return "TESTS";
+  return `INFRA ${silent.length} ${steps.join(",")}`;
+}
+
+/** INC-1101 — a silent source's label in the head block, marked when it died in infrastructure. */
+function silentLabel(source: Source): string {
+  const death = infraDeath(source);
+  return death ? `${source.label} (INFRA: ${death.id})` : source.label;
+}
+
+/** INC-1101 — the head block's line for lanes that died before any test, or nothing. */
+function infraHeadline(silent: Source[]): string[] {
+  const deaths = silent.flatMap((source) => {
+    const death = infraDeath(source);
+    return death ? [death] : [];
+  });
+  const first = deaths[0];
+  if (!first) return [];
+  const steps = [...new Set(deaths.map((d) => d.id))].join(", ");
+  return [
+    `- Infrastructure: ${deaths.length} lane(s) died before any test at ${steps} — ${stepErrorLine(first)}`,
+  ];
+}
+
+/** INC-1101 — a silent source's failed steps, from its step file; nothing when it uploaded none. */
+function stepFailureLines(source: Source): string[] {
+  const steps = failedSteps(source.stepFailure ?? []);
+  if (steps.length === 0) return [];
+  const death = infraDeath(source);
+  return [
+    ...(death
+      ? [
+          `- Class: **infrastructure** (INC-1101) — died before any test at \`${death.id}\`; re-run the failed jobs, never a code finding`,
+        ]
+      : []),
+    ...steps.map(
+      (step) => `- Failed step: \`${step.id}\` (outcome ${step.outcome}) — ${stepErrorLine(step)}`,
+    ),
+    "",
+    "```text",
+    ...(source.stepFailure ?? []),
     "```",
     "",
   ];
@@ -1393,7 +1530,9 @@ export function renderSources(
     `- Flaky (passed on retry, DEC-030, non-gating): ${flaky.length}`,
     // DEC-059 — post-test errors are reported, never counted as failures.
     `- Post-test errors (DEC-059, non-gating): ${postTestSources.length === 0 ? "none" : postTestSources.map((s) => s.label).join(", ")}`,
-    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
+    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => silentLabel(s.source)).join(", ")}`,
+    // INC-1101 — lanes that died before any test, named by the step.
+    ...infraHeadline(silent.map((s) => s.source)),
     outsideHeadline(sources),
     "",
     ...flakeSection,
@@ -1516,6 +1655,8 @@ export function renderSources(
       "",
       sentence,
       "",
+      // INC-1101 — the failed steps from the lane's step file, when it uploaded one.
+      ...stepFailureLines(s),
       "```text",
       s.logTail ?? "(no log tail was uploaded for this source)",
       "```",
@@ -2546,6 +2687,114 @@ async function main() {
             startQuiet.includes("Sources without results: shard 5"),
         ],
       );
+      // INC-1101 — a lane that died before any test is named by its step. REAL step files, as the
+      // lanes published them: lane 1 of run 43033934604 (ci-evidence 612e89e9c — the install step,
+      // INFRA) and lane 5 of run 42587592780 (ci-evidence 44d29e7d8 — the proof lane's own step, a
+      // code finding). No backend start has failed since DEC-313, so that shape is made by the real
+      // tools: the workflow's own DEC-313 line, then step-failures.mjs naming a failed `backend`.
+      const stepFile = async (path: string) =>
+        (await Bun.file(path).text()).split("\n").filter((line) => line !== "");
+      const installDied: Source = {
+        label: "shard 1",
+        json: null,
+        logTail: null,
+        logRead: false,
+        stepFailure: await stepFile("scripts/fixtures/lane-step-failure.install.txt"),
+      };
+      const proofDied: Source = {
+        label: "shard 2",
+        json: null,
+        logTail: null,
+        logRead: false,
+        stepFailure: await stepFile("scripts/fixtures/lane-step-failure.smoke.txt"),
+      };
+      const laneWorkflow = await Bun.file(".github/workflows/local-backend-proof.yml").text();
+      const dec313 =
+        /echo "(start failed before any migration ran[^"]*)" >> local-backend-failure\.txt/.exec(
+          laneWorkflow,
+        )?.[1] ?? "";
+      const stepDir = join(tmpdir(), `inc-1101-${process.pid}`);
+      const failureFile = join(stepDir, "local-backend-failure.txt");
+      await Bun.write(failureFile, `${dec313}\n`);
+      Bun.spawnSync(["node", "scripts/ci/step-failures.mjs"], {
+        env: {
+          ...process.env,
+          STEPS_JSON: JSON.stringify({ backend: { outcome: "failure" } }),
+          RUNNER_TEMP: stepDir,
+          FAILURE_FILE: failureFile,
+        },
+      });
+      const backendLines = await stepFile(failureFile);
+      const startDied: Source = {
+        label: "shard 3",
+        json: null,
+        logTail: null,
+        logRead: false,
+        stepFailure: backendLines,
+      };
+      const applyDied: Source = {
+        ...startDied,
+        label: "shard 4",
+        stepFailure: backendLines.filter((line) => !line.includes(BACKEND_START_LINE)),
+      };
+      const testsFailed: Source = {
+        label: "smoke",
+        json: (await Bun.file(FIXTURE).json()) as PwJson,
+        logTail: null,
+      };
+      const infraRed = renderSources([installDied, noLog], meta, new Map(), []);
+      const proofRed = renderSources([proofDied], meta, new Map(), []);
+      checks.push(
+        [
+          "INC-1101 an install death is INFRA in the head block and its section",
+          infraRed.includes(
+            "- Sources without results: shard 1 (INFRA: install-chromium-s-system-libraries), shard 5",
+          ) &&
+            infraRed.includes(
+              "- Infrastructure: 1 lane(s) died before any test at install-chromium-s-system-libraries — E: Failed to fetch https://security.ubuntu.com/",
+            ) &&
+            infraRed.includes(
+              "- Failed step: `install-chromium-s-system-libraries` (outcome failure) — E: Failed to fetch",
+            ) &&
+            infraRed.includes("- Class: **infrastructure** (INC-1101)"),
+        ],
+        [
+          "INC-1101 a proof-lane death is named by its step and is not INFRA",
+          proofRed.includes("- Sources without results: shard 2\n") &&
+            !proofRed.includes("- Infrastructure:") &&
+            !proofRed.includes("(INFRA:") &&
+            proofRed.includes(
+              "- Failed step: `smoke` (outcome failure) — (step smoke kept no output)",
+            ),
+        ],
+        [
+          "INC-1101 no step file keeps today's words",
+          !startQuiet.includes("- Failed step:") &&
+            !startQuiet.includes("- Infrastructure:") &&
+            verdictClass([noLog]) === "TESTS",
+        ],
+        [
+          "INC-1101 a backend death is INFRA only with DEC-313's start line",
+          dec313 !== "" &&
+            backendLines[1] === "Step backend: outcome failure" &&
+            infraDeath(startDied)?.id === "backend" &&
+            infraDeath(applyDied) === null,
+        ],
+        [
+          "INC-1101 the verdict class: INFRA only when every red source died in infrastructure",
+          verdictClass([installDied]) === "INFRA 1 install-chromium-s-system-libraries" &&
+            verdictClass([installDied, startDied]) ===
+              "INFRA 2 install-chromium-s-system-libraries,backend" &&
+            verdictClass([installDied, proofDied]) === "TESTS" &&
+            verdictClass([installDied, testsFailed]) === "TESTS",
+        ],
+        [
+          "INC-1101 every INFRA step id is a step of the lane job",
+          INFRA_STEP_IDS.every((id) =>
+            laneWorkflow.split("\n").some((line) => line.trim() === `id: ${id}`),
+          ),
+        ],
+      );
       // (b) every expected log read, none carrying either tag: REAL captured
       // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
       const quietLog = redact(await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text());
@@ -2686,6 +2935,10 @@ async function main() {
       const startFailureText = logsDir
         ? await readLog(`${logsDir}/e2e-log-${id}/local-backend-start-failure.txt`)
         : null;
+      // INC-1101: the lane's step file (redacted by the lane), redacted again here.
+      const stepFailureText = logsDir
+        ? await readLog(`${logsDir}/e2e-log-${id}/local-backend-step-failure.txt`)
+        : null;
       // INC-088: error lines from the WHOLE log first, then the final 10 —
       // never a bare tail, which quotes the noise and hides the cause.
       const tail = summarizeLog(log);
@@ -2711,6 +2964,11 @@ async function main() {
         // INC-973 — the redacted start-failure lines, when the lane uploaded them.
         startFailure: startFailureText
           ? startFailureText.split("\n").filter((line) => line.trim() !== "")
+          : undefined,
+        stepFailure: stepFailureText
+          ? redact(stepFailureText)
+              .split("\n")
+              .filter((line) => line !== "")
           : undefined,
       });
     }
@@ -2781,6 +3039,13 @@ async function main() {
     console.log(
       `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
     );
+    // INC-1101 — the class the Verdict step names in its error (DEC-028: never its exit).
+    const classPath = process.env["E2E_VERDICT_CLASS_PATH"];
+    if (classPath) {
+      const verdict = verdictClass(sources);
+      await Bun.write(classPath, `${verdict}\n`);
+      console.log(`Verdict class: ${verdict} (${classPath}).`);
+    }
   }
 
   // DEC-030 — THE FLAKE LEDGER. Every test that failed then passed on retry

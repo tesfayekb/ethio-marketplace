@@ -633,6 +633,8 @@ jobs:
           # commit subject, and the reporter prefixes a PLATFORM-ORIGIN? hint
           # when it sees one. Empty on pull_request events, which is correct.
           E2E_HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          # INC-1101 — the red report's class (INFRA <n> <step> or TESTS), read by the Verdict step's text.
+          E2E_VERDICT_CLASS_PATH: e2e-verdict-class.txt
         run: |
           set -u
           # The self-test runs FIRST: a reporter that only ever prints "no
@@ -678,12 +680,22 @@ jobs:
           exit 0
 
       # Law F4 — the merged job's conclusion IS the E2E verdict. A red lane
-      # reddens this row; bookkeeping never masks it.
+      # reddens this row; bookkeeping never masks it. INC-1101 (DEC-028): the
+      # reporter's class changes the error's words only, never the exit.
       - name: Verdict
         run: |
           echo "lanes=${{ needs.e2e-lanes.result }}"
           if [ "${{ needs.e2e-lanes.result }}" != "success" ]; then
-            echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"
+            class=$(head -n 1 e2e-verdict-class.txt 2>/dev/null || echo TESTS)
+            case "$class" in
+              "INFRA "*)
+                read -r _ lanes steps <<< "$class"
+                echo "::error::E2E: ${lanes} lane(s) died in infrastructure before any test (${steps}) — re-run the failed jobs"
+                ;;
+              *)
+                echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"
+                ;;
+            esac
             exit 1
           fi
           echo "Every temporary-backend lane passed (the email lane included)."
