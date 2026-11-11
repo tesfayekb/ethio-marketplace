@@ -193,11 +193,15 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(
       readFileSync(join(ROOT, "scripts/conformance/locale-imports.test.ts"), "utf8"),
     ).toContain("CFLI-4");
-    // briefs.test.ts CF-BRIEF-1…4 (housekeeping turn 1, DEC-361) is discovered by test:unit's
-    // scripts/**/*.test.ts; it reads the brief roadmap line 3 names and that brief's rulings.
-    expect(readFileSync(join(ROOT, "scripts/conformance/briefs.test.ts"), "utf8")).toContain(
-      "CF-BRIEF-4",
-    );
+    // briefs.test.ts CF-BRIEF-1…4 (housekeeping turn 1, DEC-361) and CF-BRIEF-11…14 (housekeeping
+    // turn 2) is discovered by test:unit's scripts/**/*.test.ts; it reads the brief roadmap line 3
+    // names and that brief's rulings, and its self-test CF-BRIEF-14 runs scripts/brief/go-laws.ts's
+    // every law and spawns scripts/brief/check-go.ts (the supervisor's pre-send run) on planted GOs.
+    const briefLaws = readFileSync(join(ROOT, "scripts/conformance/briefs.test.ts"), "utf8");
+    expect(briefLaws).toContain("CF-BRIEF-4");
+    expect(briefLaws).toContain("CF-BRIEF-14");
+    expect(briefLaws).toContain('"scripts/brief/check-go.ts"');
+    expect(briefLaws).toContain('from "../brief/go-laws"');
     // lockfile-hosts.test.ts CF-LOCK-1…2 (the lockfile turn, DEC-363) is discovered by test:unit's
     // scripts/**/*.test.ts; it reads bun.lock and lockfile-hosts-allowlist.txt.
     expect(
