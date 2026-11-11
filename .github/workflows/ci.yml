@@ -744,10 +744,12 @@ jobs:
       # reddens this row; bookkeeping never masks it. INC-1101 (DEC-028): the
       # reporter's class changes the error's words only, never the exit.
       # DEC-365: a docs-only push's skipped lanes pass, naming the commit whose lanes were green.
+      # DEC-321: the error names this run's own evidence file, through the publisher's one mapping.
       - name: Verdict
         env:
           DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
           LANES_LINE: ${{ needs.scope.outputs.lanes }}
+          EVIDENCE_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           echo "lanes=${{ needs.e2e-lanes.result }}"
           if [ "${{ needs.e2e-lanes.result }}" = "skipped" ] && [ "$DOCS_ONLY" = "true" ]; then
@@ -762,7 +764,9 @@ jobs:
                 echo "::error::E2E: ${lanes} lane(s) died in infrastructure before any test (${steps}) — re-run the failed jobs"
                 ;;
               *)
-                echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"
+                evidence=$(bash scripts/publish-evidence.sh --print-path "$EVIDENCE_REF" docs/tracking/e2e-last-failure.md) ||
+                  evidence="no evidence file (publish-evidence.sh refused the ref)"
+                echo "::error::E2E failed — see ${evidence}"
                 ;;
             esac
             exit 1

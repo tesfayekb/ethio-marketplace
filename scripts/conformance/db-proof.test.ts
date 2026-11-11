@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { report, walkFiles } from "./kit";
 import { readWorkflow } from "./workflow-reader";
 import { checksCacheRoot } from "../ci/checks-cache";
+import { cliPin } from "../ci/cli-pin";
 
 /**
  * DEC-343 (turn db-proof) — CF-DBP: ONE PREPARATION AND ONE SET OF DATABASE STEPS FOR CI AND db:proof.
@@ -127,7 +128,7 @@ export function sharedStepFindings(workflow: Source, others: Source[]): Finding[
 export function dbProofFindings(dbProof: Source, workflow: Source): Finding[] {
   const findings: Finding[] = [];
   const add = (line: number, what: string) => findings.push({ file: dbProof.file, line, what });
-  const version = /^ {2}SUPABASE_CLI_VERSION: (\S+)$/m.exec(workflow.text)?.[1];
+  const version = cliPin(workflow.text);
   if (!version) add(0, `${workflow.file} names no SUPABASE_CLI_VERSION`);
   for (const platform of PLATFORMS)
     if (

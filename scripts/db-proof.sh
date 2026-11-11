@@ -59,8 +59,9 @@ esac
 
 # The pins, read from CI's workflow (one source); the checksums from the release's checksums.txt,
 # matched by GitHub's own asset digests (scripts/conformance/db-proof.test.ts holds the workflow's
-# version to this table).
-version=$(sed -n 's/^  SUPABASE_CLI_VERSION: *//p' "$WORKFLOW")
+# version to this table). The CLI pin through its one reader, scripts/ci/cli-pin.ts (INC-1106).
+version=$(bun -e 'import { readCliPin } from "./scripts/ci/cli-pin.ts"; const pin = readCliPin(); if (pin === null) process.exit(1); console.log(pin);') ||
+  not_run "the CLI pin could not be read (scripts/ci/cli-pin.ts)"
 excludes=$(sed -n 's/^  BACKEND_EXCLUDES: *//p' "$WORKFLOW")
 cli_sha256() {
   case "$1" in

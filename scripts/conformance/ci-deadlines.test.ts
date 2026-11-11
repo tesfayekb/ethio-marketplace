@@ -256,14 +256,20 @@ export function publishRefFindings(files: Array<{ file: string; text: string }>)
 }
 
 describe("every evidence publication names its ref (DEC-321)", () => {
-  it("CF-CID-5 every step that calls publish-evidence.sh sets EVIDENCE_REF; there are six", () => {
+  it("CF-CID-5 every step that calls publish-evidence.sh sets EVIDENCE_REF; six publish, one reads a path", () => {
     const calls = workflows
       .flatMap(({ file, text }) => readWorkflow(file, text))
       .flatMap((job) => job.steps)
       .filter((step) =>
         commandLines(step).some((line) => line.includes("scripts/publish-evidence.sh")),
       );
-    expect(calls).toHaveLength(6);
+    const pathReads = calls.filter((step) =>
+      commandLines(step).some(
+        (line) => line.includes("scripts/publish-evidence.sh") && line.includes("--print-path"),
+      ),
+    );
+    expect(calls).toHaveLength(7);
+    expect(pathReads.map((step) => /- name: (.+)/.exec(step.text)?.[1])).toEqual(["Verdict"]);
     expect(report(publishRefFindings(workflows))).toBe("");
   });
 

@@ -3,6 +3,7 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSy
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { cliPin } from "./cli-pin";
 
 /**
  * INC-984 (Foundations turn N1b-2, C3 i) — a lane's failing guard lines reach the ci-evidence
@@ -93,7 +94,7 @@ describe("a lane's step failure is published (INC-984)", () => {
           GITHUB_RUN_ID: "1",
           PROOF_LANE: "1",
           // The workflow's top-level pin, which the step inherits.
-          SUPABASE_CLI_VERSION: /^ {2}SUPABASE_CLI_VERSION: (\S+)$/m.exec(WORKFLOW)?.[1] ?? "",
+          SUPABASE_CLI_VERSION: cliPin(WORKFLOW) ?? "",
         },
         timeout: 20_000,
       });

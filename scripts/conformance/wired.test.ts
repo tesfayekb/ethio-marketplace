@@ -256,6 +256,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/ci-images.test.ts"), "utf8")).toContain(
       "CF-CI-IMG-5",
     );
+    // ci-images.test.ts CF-CI-IMG-6/7 (housekeeping turn 3, ruling 2, INC-1106): scripts/ci/cli-pin.ts
+    // is the CLI pin's one reader — the outbound-calls guard, db-proof.sh and the tests read it there.
+    expect(readFileSync(join(ROOT, "scripts/conformance/ci-images.test.ts"), "utf8")).toContain(
+      "CF-CI-IMG-7",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

@@ -748,7 +748,12 @@ Four of turn 2's runs (43033934604, 43036501908 and its re-run, 43041366407) los
   reporter's `redact` (scripts/e2e-failure-report.ts) is a second rule set, left for turn 3b.
 - **The CLI version once.** The top-level `SUPABASE_CLI_VERSION` is the only literal: both setup-cli
   steps read `${{ env.SUPABASE_CLI_VERSION }}` and the lane evidence prints the env's value.
-  CF-CI-IMG-5 (`scripts/conformance/ci-images.test.ts`) names any line that restates it.
+  CF-CI-IMG-5 (`scripts/conformance/ci-images.test.ts`) names any line that restates it. The pin
+  has one reader, `scripts/ci/cli-pin.ts` (`cliPin`, `readCliPin`; INC-1106, ruling 2): the
+  outbound-calls guard (`scripts/check-outbound-calls.ts`), `db-proof.sh` (through `bun -e`) and the
+  tests read it there. CF-CI-IMG-6 runs the guard on the real pin; CF-CI-IMG-7 names any file under
+  `scripts/`, `e2e/` or `src/` that reads the pin by a pattern of its own (the workflow's path, the
+  `SUPABASE_CLI_VERSION:` line or a setup-cli `version:` line, in a regex or a sed).
 - **One config derivation.** `scripts/ci/backend-config.py <variant> <out> [source]` derives a
   variant of `scripts/ci/local-backend-config.toml`; `images` (the backend-images job's learning
   start) turns TLS and the before_user_created hook off and fails when either switch is not found
