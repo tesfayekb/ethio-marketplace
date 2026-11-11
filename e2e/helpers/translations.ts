@@ -2,7 +2,7 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { expect, test } from "../fixtures";
 import { fenceLang, processId } from "../global-setup";
-import { isMobile, switchUser, useJobSuperAdmin, waitForHydration } from "./ui";
+import { isMobile, switchUser, signInJobSuperAdmin, waitForHydration } from "./ui";
 import { adminClient } from "./users";
 
 /**
@@ -269,16 +269,4 @@ export function serializeRevisions(rows: RevisionDumpRow[]): string {
         `changed_by=${r.changed_by} changed_at=${r.changed_at}`,
     )
     .join("\n");
-}
-
-/**
- * L4 (DEC-038) — THE JOB POOL. This helper used to mint a fresh super admin and
- * enrol a TOTP factor on every call; it now delegates to the job-scoped pooled
- * identity (`useJobSuperAdmin`), so nothing is minted here and the L1c
- * co-located disposer it owned has no mint left to reap. Call sites, titles,
- * tags and assertions are untouched (J1); the returned shape is unchanged.
- */
-export async function signInAsSuperAdmin(page: Page) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
-  return useJobSuperAdmin(page);
 }

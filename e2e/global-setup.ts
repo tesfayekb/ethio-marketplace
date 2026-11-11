@@ -71,7 +71,7 @@ export function fenceLang(kind: FenceKind, project: string): string {
 /**
  * L4 (DEC-038) — a POOLED super admin: an identity with one enrolled+verified
  * TOTP factor, minted once in setup and borrowed by non-enrolment admin tests
- * through `useJobSuperAdmin` (e2e/helpers/ui.ts). Tests whose SUBJECT is
+ * through `signInJobSuperAdmin` (e2e/helpers/ui.ts). Tests whose SUBJECT is
  * enrolment or unenrolment keep minting their own identity.
  *
  * L5c (DEC-041 amended) — IDENTITY PER WORKER, SESSION PER TEST. One pooled

@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { errorText } from "../src/lib/error-text";
-import { gotoReady, stepUpIfPrompted } from "./helpers/ui";
+import { gotoReady, stepUpIfPrompted, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import {
   sharedPrefix,
@@ -12,7 +12,6 @@ import {
   findRow,
   action,
   openEditor,
-  signInAsSuperAdmin,
   destroyCategory,
   createViaUi,
 } from "./helpers/categories";
@@ -44,7 +43,7 @@ import {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -174,7 +173,7 @@ import {
       // timeout.
       test.setTimeout(120_000);
       bandOnly(page, "desktop");
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       const slugs: string[] = [];
       // INC-153 (second occurrence) — SCOPING LAW:
       // "specs never assume a globally empty table; they scope their emptiness."

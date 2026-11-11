@@ -6,7 +6,7 @@ import {
   gotoReady,
   settled,
   stepUpIfPrompted,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./ui";
 
 import { adminClient } from "./users";
@@ -240,18 +240,6 @@ export async function openEditor(page: Page, slug: string) {
 
 // INC-1049 (P-1c turn d): the one grant lives beside leaseUser; its eleven importers keep this name.
 export { grantRole } from "./users";
-
-/**
- * L4 (DEC-038) — THE JOB POOL. This helper used to mint a fresh super admin and
- * enrol a TOTP factor on every call; it now delegates to the job-scoped pooled
- * identity (`useJobSuperAdmin`), so nothing is minted here and the L1c
- * co-located disposer it owned has no mint left to reap. Call sites, titles,
- * tags and assertions are untouched (J1); the returned shape is unchanged.
- */
-export async function signInAsSuperAdmin(page: Page) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
-  return useJobSuperAdmin(page);
-}
 
 /** DB truth (J4): the scratch category row read through the service client. */
 export async function readCategory(slug: string) {

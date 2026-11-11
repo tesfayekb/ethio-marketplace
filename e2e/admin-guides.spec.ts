@@ -11,7 +11,7 @@ import {
   settled,
   signIn,
   switchLanguage,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -128,7 +128,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
   test("AG-1 every admin section draws; every table's toolbar holds exactly one Guide whose frame carries the anchor; no Guide points at a frame the page has not", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     for (const section of ADMIN_SECTIONS) {
       await gotoReady(page, section.path);
       await expect(
@@ -171,7 +171,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
   test("AG-2 a Guide opens with its four parts in order; the column lines are the shown columns in order; a hidden column loses its line", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await openConsole(page);
     const sheet = await openGuide(page, MARKETS);
     await expect(sheet.getByRole("heading", { level: 2 })).toHaveText(
@@ -216,7 +216,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
   test("AG-3 the next link closes the sheet and lands on the named block: the hash, the frame in view, the focus on it", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await openConsole(page);
     const sheet = await openGuide(page, MARKETS);
     const next = sheet.getByTestId(`${MARKETS}-guide-next`);
@@ -234,7 +234,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
   });
 
   test("AG-4 Escape closes the Guide and hands the focus back to its control", async ({ page }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await openConsole(page);
     const control = page.getByTestId(`${MARKETS}-guide`);
     await expect(control).toHaveAttribute("aria-expanded", "false");
@@ -249,7 +249,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
   test("AG-5 under Amharic the Guide's parts and texts come from the Amharic guide layer", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await openConsole(page);
     await switchLanguage(page, "am");
     await expect(page.getByTestId("monetisation-header")).toContainText(
@@ -308,7 +308,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
     page.on("request", (request) => {
       if (GUIDE_CHUNK.test(request.url())) fetched.push(request.url());
     });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await openConsole(page);
     await settled(page);
     expect(

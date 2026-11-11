@@ -1,16 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 
-import { gotoReady, switchUser } from "./helpers/ui";
+import { gotoReady, switchUser, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 import { inOneWindow, withinPreviewBudget } from "./helpers/rate-window";
-import {
-  rand,
-  bandOnly,
-  destroyCategory,
-  grantRole,
-  signInAsSuperAdmin,
-} from "./helpers/categories";
+import { rand, bandOnly, destroyCategory, grantRole } from "./helpers/categories";
 
 /**
  * IMPORT-GATE PART D — HOSTILE FILES, ONE SPEC, EVERY FAMILY.
@@ -352,7 +346,7 @@ for (const family of FAMILIES) {
     }) => {
       test.setTimeout(240_000);
       bandOnly(page, "any");
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
 
@@ -427,7 +421,7 @@ for (const family of FAMILIES) {
     }) => {
       test.setTimeout(240_000);
       bandOnly(page, "any");
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
 
@@ -808,7 +802,7 @@ for (const family of FAMILIES) {
       // J9 / INC-377 — this test EXHAUSTS an operator's preview budget, which
       // lives in the server's memory and no reaper can clear, so it mints a
       // never-used operator (DEC-097 class i), never a pooled account.
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       const operator = await createUser({ confirmed: true });
       await grantRole(operator.id, "super_admin");
       await switchUser(page, operator.email, operator.password);
@@ -858,7 +852,7 @@ for (const family of FAMILIES) {
       }) => {
         test.setTimeout(240_000);
         bandOnly(page, "any");
-        await signInAsSuperAdmin(page);
+        await signInJobSuperAdmin(page);
         await gotoReady(page, "/admin/categories");
         const token = await bearerOf(page);
 
@@ -922,7 +916,7 @@ test.describe("IMPORT-GATE attributes-links", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
 
@@ -1045,7 +1039,7 @@ test.describe("IMPORT-GATE audit", () => {
     ).toBe(before);
 
     // (b) The super admin's preview through the gate still writes its row.
-    const { user: admin } = await signInAsSuperAdmin(page);
+    const { user: admin } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
     const adminBefore = await importRows(admin.id, "import.preview", "import:attributes");

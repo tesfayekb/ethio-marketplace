@@ -1,17 +1,10 @@
 import { parseCsvGrid } from "../src/server/imports/gate";
 import { expect, test } from "./fixtures";
 import { withinPreviewBudget } from "./helpers/rate-window";
-import { gotoReady, stepUpIfPrompted, switchUser } from "./helpers/ui";
+import { gotoReady, stepUpIfPrompted, switchUser, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
-import {
-  rand,
-  bandOnly,
-  destroyCategory,
-  dialogDump,
-  action,
-  signInAsSuperAdmin,
-} from "./helpers/categories";
+import { rand, bandOnly, destroyCategory, dialogDump, action } from "./helpers/categories";
 import {
   isCardTwin,
   librarySurface,
@@ -206,7 +199,7 @@ test.describe("C3 attributes console", () => {
   test("AT-31 a dependent definition cascades in the editor", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const makeKey = `e2e_attr_${rand()}`;
@@ -282,7 +275,7 @@ test.describe("C3 attributes console", () => {
   test("AT-33 the dependency doors refuse and name what they judged", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const makeKey = `e2e_attr_${rand()}`;
@@ -443,7 +436,7 @@ test.describe("C3 attributes console", () => {
   test("AT-32 an import creates a parent and its dependent in one pass", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
 
@@ -508,7 +501,7 @@ test.describe("C3 attributes console", () => {
   test("AT-35 the options expansion reads as labels", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const makeKey = `e2e_attr_${rand()}`;
@@ -578,7 +571,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     const helpAm = "የእገዛ ጽሑፍ";
     try {
@@ -667,7 +660,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "desktop");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       const { error } = await adminClient()
@@ -753,7 +746,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       const { error } = await adminClient().from("attributes").insert({
@@ -807,7 +800,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       const { error } = await adminClient().from("attributes").insert({
@@ -867,7 +860,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const selectKey = `e2e_attr_${rand()}`;
     const sharedNumberKey = `e2e_attr_${rand()}`;
@@ -987,7 +980,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const targetKey = `e2e_attr_${rand()}`;
@@ -1123,7 +1116,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const ownerKey = `e2e_attr_${rand()}`;
     const targetKey = `e2e_attr_${rand()}`;
@@ -1273,7 +1266,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const key = `e2e_attr_${rand()}`;
     try {
@@ -1319,7 +1312,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const parentKey = `e2e_attr_${rand()}`;
     const dependentKey = `e2e_attr_${rand()}`;
@@ -1423,7 +1416,7 @@ test.describe("C3 attributes console", () => {
   test("AT-56 the constraint pickers offer only co-linked targets", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const ownerKey = `e2e_attr_${rand()}`;
     const numAKey = `e2e_attr_${rand()}`;
@@ -1546,7 +1539,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const parentKey = `e2e_attr_${rand()}`;
     const dependentKey = `e2e_attr_${rand()}`;
@@ -1656,7 +1649,7 @@ test.describe("C3 attributes console", () => {
   test("AT-58 a rank swap within one category imports through the route", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const slug = `e2e-cat-rank58-${rand()}`;
@@ -1879,7 +1872,7 @@ test.describe("C3 attributes console", () => {
         return link.fact_rank === null ? null : Number(link.fact_rank);
       });
     };
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
     const header =

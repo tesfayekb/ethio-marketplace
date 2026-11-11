@@ -17,6 +17,7 @@ import {
   switchLanguage,
   switchUser,
   waitForHydration,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { inBrowserClient } from "./helpers/browser-client";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
@@ -37,7 +38,6 @@ import {
   reapScratchKey,
   dumpRevisions,
   serializeRevisions,
-  signInAsSuperAdmin,
 } from "./helpers/translations";
 /**
  * Phase U4b — Translations console (TR-1..TR-13, TR-23, TR-25, TR-16).
@@ -109,7 +109,7 @@ test.describe("U4b translations console", () => {
     await expect(page).toHaveURL(/\/(admin\/?)?$/);
     await expect(page.getByTestId("admin-section-translations")).toHaveCount(0);
 
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations");
     await expect(page.getByTestId("admin-section-translations")).toBeVisible();
     await expect(langRow(page, "am")).toBeVisible();
@@ -122,7 +122,7 @@ test.describe("U4b translations console", () => {
    * order on one page — and the pages).
    */
   test("TR-38 the roster on the agreed blocks: heading, Columns, the footer", async ({ page }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations");
     await expect(page.getByTestId("lang-header").getByRole("heading", { level: 1 })).toHaveText(
       en["admin.translations.title"],
@@ -145,7 +145,7 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-2 roster shows every language including admin-only ones", async ({ page }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations");
     for (const code of ["en", "am", "om", "ti"]) {
       await expect(langRow(page, code)).toBeVisible();
@@ -165,7 +165,7 @@ test.describe("U4b translations console", () => {
     const key = scratchKey("tr3");
     await seedScratchKey(key, "Scratch source");
     try {
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/translations/am");
       await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
       await expect(page.getByTestId("strings-coverage")).toBeVisible();
@@ -183,7 +183,7 @@ test.describe("U4b translations console", () => {
     const key = scratchKey("tr4");
     await seedScratchKey(key, "Scratch source");
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
@@ -198,7 +198,7 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-5 filters live in the URL and survive a reload", async ({ page }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations/am");
     // Bundle 11 G3e — the status is a pill in the Filters panel; the choice is a chip.
     await chooseFilter(page, "strings-filters", "strings-status-filter-approved");
@@ -217,7 +217,7 @@ test.describe("U4b translations console", () => {
   test("TR-39 a language's page: the breadcrumb names the language and leads back to the roster", async ({
     page,
   }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations/am");
     await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
     const crumb = page.getByTestId("breadcrumbs");
@@ -249,7 +249,7 @@ test.describe("U4b translations console", () => {
   test("TR-6 coverage gate: empty and incomplete catalogs both refuse publication", async ({
     page,
   }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations");
 
     const flipOm = async () =>
@@ -295,7 +295,7 @@ test.describe("U4b translations console", () => {
   });
 
   test("TR-7 sync imports the compiled catalog and reports its counts", async ({ page }) => {
-    const { user, secret } = await signInAsSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     await logTranslatorScope(page, user.id);
     await gotoReady(page, "/admin/translations");
     const syncRoute = watchRoute(page, "admin_sync_ui_keys");
@@ -323,7 +323,7 @@ test.describe("U4b translations console", () => {
     { tag: "@private-identity" },
     async ({ page }) => {
       test.setTimeout(120_000);
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       // The private mint ends ELEVATED (it enrols in-session). Signing the same
       // identity in again yields a fresh aal1 session — the production state
       // where Sync must ask for a code first.
@@ -354,7 +354,7 @@ test.describe("U4b translations console", () => {
     const key = scratchKey("tr8");
     await seedScratchKey(key, "Scratch source");
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
       await page.getByTestId("strings-search").fill(key);
@@ -389,7 +389,7 @@ test.describe("U4b translations console", () => {
     };
 
     await test.step("sign-in", async () => {
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/translations");
     });
 
@@ -435,7 +435,7 @@ test.describe("U4b translations console", () => {
    * saved status + the am checkbox stays checked (the visible assignment).
    */
   test("TR-10 translator card proves both permission states", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const target = await leaseUser();
     const supabase = adminClient();
     const reap: string[] = [];
@@ -500,7 +500,7 @@ test.describe("U4b translations console", () => {
     const key = scratchKey("tr11");
     await seedScratchKey(key, "Scratch source");
     try {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
@@ -570,7 +570,7 @@ test.describe("U4b translations console", () => {
     const keys = [`${base}-b1`, `${base}-b2`, `${base}-b3`];
     for (const key of keys) await seedScratchKey(key, `Bulk source ${key}`, fence);
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, `/admin/translations/${fence}`);
       // The bar's untranslated list can be computed before this spec's seeds
       // land; a reload forces it to recompute from fresh queries (INC-096g).
@@ -687,7 +687,7 @@ test.describe("U4b translations console", () => {
     // mismatches the en source's placeholder set and MUST land flagged.
     await seedScratchKey(key, "E2EBREAK Hello {name}");
     try {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
@@ -745,7 +745,7 @@ test.describe("U4b translations console", () => {
     await seedScratchKey(key, "Plugs used in {country}");
     const supabase = adminClient();
     try {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
@@ -786,7 +786,7 @@ test.describe("U4b translations console", () => {
     await seedScratchKey(brokenKey, "E2EBREAK Hello {name}");
     const supabase = adminClient();
     try {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
 
@@ -959,7 +959,7 @@ test.describe("U4b translations console", () => {
       const code = "sw";
       await supabase.from("languages").delete().eq("code", code);
       try {
-        const { secret } = await signInAsSuperAdmin(page);
+        const { secret } = await signInJobSuperAdmin(page);
         await gotoReady(page, "/admin/translations");
         await expect(page.getByTestId("translations-add-picker")).toBeVisible({ timeout: 20000 });
         await page.getByTestId("translations-add-search").fill("Swahili");
@@ -1007,7 +1007,7 @@ test.describe("U4b translations console", () => {
     await seedScratchKey(key, "History source");
     const supabase = adminClient();
     try {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations/am");
       const id = slug(key);
@@ -1121,7 +1121,7 @@ test.describe("U4b translations console", () => {
   test("TR-33 an empty filter leaves export enabled and downloads the language", async ({
     page,
   }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations/am");
     await expect(page.getByTestId("admin-translations-strings")).toBeVisible();
 
@@ -1167,7 +1167,7 @@ test.describe("U4b translations console", () => {
     if (revision.error)
       throw new Error(`[e2e:tr40] the revision failed: ${revision.error.message}`);
     try {
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/translations");
       const answer = await inBrowserClient(
         page,

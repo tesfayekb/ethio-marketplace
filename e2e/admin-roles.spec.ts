@@ -7,7 +7,7 @@ import { en } from "../src/i18n/locales/en";
 import { authErrorText } from "./global-setup";
 
 import {
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
   expectNoHorizontalOverflow,
   gotoReady,
   isMobile,
@@ -34,12 +34,6 @@ import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
 function rand() {
   return Math.random().toString(36).slice(2, 8);
-}
-
-/** L4 (DEC-038): the job-scoped pooled super admin; enrolment happens once in setup. */
-async function signInAsSuperAdmin(page: Page) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
-  return useJobSuperAdmin(page);
 }
 
 /** Creates a custom role through the UI and returns its key. */
@@ -165,7 +159,7 @@ test.describe("U2 roles console", () => {
   });
 
   test("RP-2 create: a super admin creates a custom role through step-up", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     // The audit row is per-actor; assert it through the same definer read the
     // Users section uses (activity is scoped to the signed-in actor).
@@ -180,7 +174,7 @@ test.describe("U2 roles console", () => {
   test("RP-3 matrix: grant then revoke a benign permission, persisted across reload", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
 
@@ -210,7 +204,7 @@ test.describe("U2 roles console", () => {
   test("RP-4 system lock: super_admin role is read-only in UI and refused by the RPCs", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     expect(secret.length).toBeGreaterThan(0);
     const id = await roleId("super_admin");
     await gotoReady(page, `/admin/roles/${id}`);
@@ -248,7 +242,7 @@ test.describe("U2 roles console", () => {
   });
 
   test("RP-5 delete guards: members block deletion; typed confirm deletes", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
 
@@ -283,7 +277,7 @@ test.describe("U2 roles console", () => {
     "RP-6 revocation path: unenrolling the factor refuses the next change",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { secret, user } = await signInAsSuperAdmin(page);
+      const { secret, user } = await signInJobSuperAdmin(page);
       const name = await createRoleViaUi(page, secret);
       const id = await roleId(name);
 
@@ -329,7 +323,7 @@ test.describe("U2 roles console", () => {
   );
 
   test("RP-7 registration: DEC-016 permissions appear as grantable rows", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await createRoleViaUi(page, secret);
     await expect(page.getByTestId("role-permission-profiles:create")).toBeVisible();
     await expect(page.getByTestId("role-permission-profiles:delete")).toBeVisible();
@@ -342,7 +336,7 @@ test.describe("U2 roles console", () => {
   });
 
   test("RP-8 Amharic + no horizontal overflow", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
 
@@ -370,7 +364,7 @@ test.describe("U2 roles console", () => {
   test("RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
     await gotoReady(page, `/admin/roles/${id}`);
@@ -394,7 +388,7 @@ test.describe("U2 roles console", () => {
   });
 
   test("RP-10 members link preselects the role filter via the URL", async ({ page }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
 
@@ -418,7 +412,7 @@ test.describe("U2 roles console", () => {
   test("RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
     await gotoReady(page, `/admin/roles/${id}`);
@@ -459,7 +453,7 @@ test.describe("U2 roles console", () => {
   test("RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
     await gotoReady(page, `/admin/roles/${id}`);
@@ -497,7 +491,7 @@ test.describe("U2 roles console", () => {
   test("RP-16 the roles list on the agreed blocks: heading, Create role, Columns, Open and View members", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
 
     await gotoReady(page, "/admin/roles");
@@ -557,7 +551,7 @@ test.describe("U2 roles console", () => {
   test("RP-17 P-1: the matrix shows the packages resource with View and Update, Update marked step-up", async ({
     page,
   }) => {
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const name = await createRoleViaUi(page, secret);
     const id = await roleId(name);
     await gotoReady(page, `/admin/roles/${id}`);

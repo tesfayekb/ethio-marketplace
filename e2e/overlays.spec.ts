@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-import { gotoReady, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInJobSuperAdmin } from "./helpers/ui";
 
 /**
  * DEC-259 (Foundations turn 31) and DEC-260 (turn 32) — THE OVERLAY PRIMITIVES
@@ -84,7 +84,7 @@ test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
   test("DLG-E4+OVE-4 a staff page's first download carries no Radix popover or dialog code (the overlay chunk); the first press on Filters opens its panel on the same button", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
     // The first download: every script the page asked for before its load event (as OVE-1);
     // the page's own idle download comes after it.

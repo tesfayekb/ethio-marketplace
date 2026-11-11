@@ -10,7 +10,7 @@ import {
   seedSpecSet,
 } from "./helpers/posting";
 import { asAnonymous, asPerson, pageDoor } from "./helpers/door-callers";
-import { useJobSuperAdmin } from "./helpers/ui";
+import { signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { levelAboveBaseline, seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { doorRefusal } from "./helpers/door-answer";
@@ -650,7 +650,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect((await reserve(me, h.id, true)).error).toBeNull();
     expect((await price(me, h.id, 95)).error).toBeNull();
 
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const note = "The title named the wrong item.";
     const staffEdit = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: h.id,
@@ -740,7 +740,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const enforcer = await asPerson(enforcerAccount);
     expect((await set(enforcer, true, 30)).error).toBe("step-up required: no verified factor");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     for (const [allowed, n] of [
       [true, 0],
       [true, 366],

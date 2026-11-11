@@ -4,7 +4,13 @@ import { withinPreviewBudget } from "./helpers/rate-window";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
-import { gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  gotoReady,
+  stepUpIfPrompted,
+  switchUser,
+  waitForHydration,
+  signInJobSuperAdmin,
+} from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -19,7 +25,6 @@ import {
   actionsOf,
   action,
   openEditor,
-  signInAsSuperAdmin,
   readCategory,
   readPointers,
   destroyCategory,
@@ -53,7 +58,7 @@ import { errorText } from "../src/lib/error-text";
    */
   test("CT-12 lifecycle: a retired category is reactivated through step-up", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     const clientErrors: string[] = [];
     page.on("console", (message) => {
@@ -150,7 +155,7 @@ import { errorText } from "../src/lib/error-text";
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -246,7 +251,7 @@ import { errorText } from "../src/lib/error-text";
     });
     expect(refusal.error?.message ?? "").toContain("admin.categories.error.catchallParent");
 
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/categories");
     // G28 — the roster rendered a real root, found by search; then unscoped.
     await anchorRealRow(page, "vehicles");
@@ -348,7 +353,7 @@ import { errorText } from "../src/lib/error-text";
 
       // J7 — seed BEFORE navigate, and assert the seeded rows rendered before
       // acting on any of them.
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       expect(secret, "the walk owns a proven factor").toBeTruthy();
       await gotoReady(page, "/admin/categories");
       await page.getByTestId("category-search").fill(parentSlug.slice(0, 18));
@@ -471,7 +476,7 @@ import { errorText } from "../src/lib/error-text";
       expect(await orderOf()).toBe("abc");
 
       // J7 — seed before navigating; the seeded row is asserted rendered first.
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
       await page.getByTestId("category-search").fill(parentSlug.slice(0, 18));
       await expect(categoryRow(page, cSlug)).toBeVisible({ timeout: 20000 });
@@ -518,7 +523,7 @@ import { errorText } from "../src/lib/error-text";
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -567,7 +572,7 @@ import { errorText } from "../src/lib/error-text";
     const bSlug = scratchSlug();
     const slug = scratchSlug();
     const supabase = adminClient();
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     // C5l — a window that starts in the future, to the minute.
     const from = new Date(Date.now() + 86_400_000);
     from.setSeconds(0, 0);
@@ -1028,7 +1033,7 @@ test.describe("CAT-IE categories import/export", () => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
     // J6 — this test's actor. Every DB-truth assertion below is scoped to it.
-    const actorId = (await signInAsSuperAdmin(page)).user.id;
+    const actorId = (await signInJobSuperAdmin(page)).user.id;
     await gotoReady(page, "/admin/categories");
 
     const token = await bearerOf(page);
@@ -1099,7 +1104,7 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-19 a create and a rename commit through the doors and undo", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const parentSlug = scratchSlug();
     const childSlug = scratchSlug();
@@ -1176,7 +1181,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const rootSlug = scratchSlug();
     const guestSlug = scratchSlug();
@@ -1267,7 +1272,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(480_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const aSlug = scratchSlug();
     const bSlug = scratchSlug();
@@ -1351,7 +1356,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const rootSlug = scratchSlug();
@@ -1484,7 +1489,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const parentSlug = scratchSlug();
     const slug = scratchSlug();
@@ -1532,7 +1537,7 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-20 action=retire and action=reactivate walk the state machine", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const slug = scratchSlug();
     try {
@@ -1638,7 +1643,7 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-21 unknown parents, cycles, catch-alls and formulas are refused", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const parentSlug = scratchSlug();
     const childSlug = scratchSlug();
@@ -1726,7 +1731,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const parentSlug = scratchSlug();
     const ownSlug = scratchSlug();
     const badSlug = scratchSlug();
@@ -1775,7 +1780,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const parentSlug = scratchSlug();
     const rentedSlug = scratchSlug();
     const filledSlug = scratchSlug();
@@ -1925,7 +1930,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const parentSlug = scratchSlug();
     const childSlug = `${scratchSlug()}-c`;
@@ -2053,7 +2058,7 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-25 an attributes file is refused by identity", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/categories");
 
     const token = await bearerOf(page);
@@ -2108,7 +2113,7 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-26 imported Amharic names land pending, and undo removes them", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/categories");
 
     const rootSlug = scratchSlug();
@@ -2220,7 +2225,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const rootSlug = scratchSlug();
     const slugA = scratchSlug();
@@ -2387,7 +2392,7 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const parentSlug = scratchSlug();
     const childSlug = scratchSlug();
@@ -2481,7 +2486,7 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-28 the import dialog reaches Applied and undoes", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
 
     const parentSlug = scratchSlug();
     const slug = scratchSlug();

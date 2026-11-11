@@ -1,9 +1,8 @@
 import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { listingPath } from "../src/features/ad-page/address";
-import { signInAsSuperAdmin } from "./helpers/categories";
 import { adminClient } from "./helpers/users";
-import { gotoReady, switchLanguage } from "./helpers/ui";
+import { gotoReady, switchLanguage, signInJobSuperAdmin } from "./helpers/ui";
 import en from "../src/i18n/locales/en";
 import am from "../src/i18n/locales/am";
 
@@ -75,7 +74,7 @@ test("PGH-E1 base server heads, applied Amharic and client navigation agree", as
     .click();
   await headText(page, am["head.home.title"], am["head.home.description"]);
 
-  const staff = await signInAsSuperAdmin(page);
+  const staff = await signInJobSuperAdmin(page);
   const before = await adminClient()
     .from("profiles")
     .select("preferred_language")

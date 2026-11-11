@@ -18,7 +18,7 @@ import {
 } from "./helpers/posting";
 import { anonRpc } from "./helpers/session";
 import { asAnonymous, asPerson } from "./helpers/door-callers";
-import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { levelAboveBaseline, updateListingRow } from "./helpers/listing-seed";
 import { doorAnswer } from "./helpers/door-answer";
@@ -654,7 +654,7 @@ test.describe("Legal certification", () => {
     expect(second.payload["status"], JSON.stringify(second.payload)).toBe("screening");
 
     await page.context().clearCookies();
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${certified}`);
     await expect(page.getByTestId("listing-certification")).toHaveCount(1, { timeout: 20_000 });
     const row = page.locator('[data-testid="listing-certification"][data-action="publish"]');

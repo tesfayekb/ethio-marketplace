@@ -35,9 +35,8 @@ import {
   seedPostableCategory,
   stopPageBeforePurge,
 } from "./helpers/posting";
-import { signInAsSuperAdmin } from "./helpers/categories";
 import { destroyLocation, rand, RUN, seedScratchChain } from "./helpers/locations";
-import { gotoReady, isMobile, signInViaSession } from "./helpers/ui";
+import { gotoReady, isMobile, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 import { destroyLevelOverride, seedBaselinePhotoCap } from "./helpers/level-overrides";
@@ -682,7 +681,7 @@ test.describe("PHOTO PIPELINE", () => {
     const staffContext = await browser.newContext();
     try {
       const staff = await staffContext.newPage();
-      await signInAsSuperAdmin(staff);
+      await signInJobSuperAdmin(staff);
       const viewed = await postRoute(
         staff,
         LINKS,

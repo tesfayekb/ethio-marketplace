@@ -15,7 +15,7 @@ import {
   seedCategoryBranch,
 } from "./helpers/posting";
 import { destroyScratchReaches, seedScratchReaches } from "./helpers/reach-rows";
-import { gotoReady, signInViaSession, stepUpIfPrompted, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInViaSession, stepUpIfPrompted, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -546,7 +546,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     const timed = await seed(seller, market);
     const open = await seed(seller, market);
     const { baseline, level } = await levelsAbove();
-    const admin = await useJobSuperAdmin(page);
+    const admin = await signInJobSuperAdmin(page);
 
     await gotoReady(page, `/admin/listings/${timed}`);
     await expect(page.getByTestId("listing-set-tier")).toBeVisible({ timeout: 20000 });
@@ -614,7 +614,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     const seller = await scratchSeller();
     const ad = await seed(seller, market);
     const { baseline, level } = await levelsAbove();
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const line = () => page.getByTestId("listing-fact-tier").locator("dd");
     const show = async (expected: string) => {
       await gotoReady(page, `/admin/listings/${ad}`);

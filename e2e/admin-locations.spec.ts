@@ -9,7 +9,7 @@ import {
   gotoReady,
   stepUpIfPrompted,
   switchUser,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
@@ -168,7 +168,7 @@ test.describe("L2a locations console", () => {
   test("LT-2 roster: the seeded ET tree renders, an alias narrows the search, the level filter scopes, nothing overflows", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const region = await regionUnder("ET");
     const slug = scratchSlug("lt2");
     const alias = `${slug}-alias`;
@@ -246,7 +246,7 @@ test.describe("L2a locations console", () => {
   test("LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const regionSlug = scratchSlug("lt3r");
     const citySlug = scratchSlug("lt3c");
     const subSlug = scratchSlug("lt3s");
@@ -354,7 +354,7 @@ test.describe("L2a locations console", () => {
   }) => {
     // Three cache windows of the public route (15s each) fit inside the budget.
     test.setTimeout(150_000);
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const regionSlug = scratchSlug("lt4r");
     const citySlug = scratchSlug("lt4c");
 
@@ -426,7 +426,7 @@ test.describe("L2a locations console", () => {
   test("LT-5 delete guard: a parent is refused, then the chain deletes deepest-first with the typed address", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const regionSlug = scratchSlug("lt5r");
     const citySlug = scratchSlug("lt5c");
 
@@ -605,7 +605,7 @@ test.describe("L2a locations console", () => {
   test("LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const regionSlug = scratchSlug("lt7r");
     const citySlug = scratchSlug("lt7c");
     const subSlug = scratchSlug("lt7s");
@@ -745,7 +745,7 @@ test.describe("L2a locations console", () => {
   test("LT-15 an imported place name is in the name table after commit and gone after undo", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const slug = scratchSlug("lt15");
     const word = scratchFoldWord();
     try {
@@ -797,7 +797,7 @@ test.describe("L2a locations console", () => {
   });
 
   test("LT-7b the editor round-trips a row without dropping a stored field", async ({ page }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const region = await regionUnder("ET");
     const slug = scratchSlug("lt7b");
 
@@ -845,7 +845,7 @@ test.describe("L2a locations console", () => {
   test("LT-8 verb reachability: every verb and the save button are inside the viewport (CT-8 mirror)", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const region = await regionUnder("ET");
     const slug = scratchSlug("lt8");
 
@@ -902,7 +902,7 @@ test.describe("L2a locations console", () => {
     page,
   }) => {
     test.skip(isCardTwin(page), "the table twin only exists above the card boundary");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
     const regionKey = await regionKeyUnder("ET");
@@ -921,7 +921,7 @@ test.describe("L2a locations console", () => {
     page,
   }) => {
     test.skip(!isCardTwin(page), "the card twin only exists below the card boundary");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
     const regionKey = await regionKeyUnder("ET");
@@ -946,7 +946,7 @@ test.describe("L2a locations console", () => {
   test("LT-10 tones: retired is destructive, active is secondary, a level badge is outline", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const region = await regionUnder("ET");
     const slug = scratchSlug("lt10");
 
@@ -990,7 +990,7 @@ test.describe("L2a locations console", () => {
   test("LT-11 one read per country: filtering costs no request, switching the market costs exactly one", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     let reads = 0;
     await page.route("**/rpc/admin_list_locations*", async (route) => {
       reads += 1;
@@ -1041,7 +1041,7 @@ test.describe("L2a locations console", () => {
   test("LT-12 transfer scope: exports and the import title follow the selected country", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const exportScopes: string[] = [];
     await page.route("**/api/admin/locations/export?*", async (route) => {
       const url = new URL(route.request().url());
@@ -1081,7 +1081,7 @@ test.describe("L2a locations console", () => {
   test("LT-13 all countries: the picker opens on every market, the roster spans them, and the transfer group carries no scope", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const exportScopes: (string | null)[] = [];
     await page.route("**/api/admin/locations/export?*", async (route) => {
       const url = new URL(route.request().url());
@@ -1166,7 +1166,7 @@ test.describe("L2a locations console", () => {
   test("LT-14 market state and whole-country parent follow the selected market", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/places");
 
     await selectMarket(page, "ET");
@@ -1197,7 +1197,7 @@ test.describe("L2a locations console", () => {
   test("LT-16 the row's actions: Edit, a red Delete and the menu's verbs open the editor's own dialogs", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const region = await regionUnder("ET");
     const slug = scratchSlug("lt16");
 
@@ -1254,7 +1254,7 @@ test.describe("L2a locations console", () => {
   });
 
   test("OV-1 overview totals, links and group breadcrumbs", async ({ page }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/locations");
     await expect(page.getByTestId("admin-overview-locations")).toBeVisible({ timeout: 20000 });
     // P-1b (D290): the Plans tile left with Admin › Plans; two tiles remain.

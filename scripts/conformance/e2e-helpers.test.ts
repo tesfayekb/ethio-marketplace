@@ -36,6 +36,7 @@ export const COPIED_NAMES = [
   "grantRole",
   "grantAdmin",
   "scratchHolder",
+  "signInAsSuperAdmin",
 ];
 const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
@@ -121,7 +122,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
     "CF-HELPERS-1 → CF-HELPERS-3 no spec declares a helper's copy, no file disables rules-of-hooks, no file but the language module writes preferred_language",
     () => {
       const files = e2eFiles();
-      const findings = [...copyFindings(specs(), COPIED_NAMES)];
+      const findings = [...copyFindings(specs(), COPIED_NAMES), ...hooksDisableFindings(files)];
       const allowances = readAllowlist(
         ALLOWLIST,
         findings.map((f) => f.key),

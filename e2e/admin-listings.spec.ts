@@ -23,7 +23,7 @@ import {
   signInViaSession,
   staleStepUpOnClient,
   stepUpIfPrompted,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser, createUser, grantScratchRole } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
@@ -239,7 +239,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // An e-mail is not a key for someone who may not read it.
     expect((await viewer.rpc("admin_list_listings", { p_seller: seller.email })).data).toEqual([]);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const full = (await list(page, { p_search: live.id })).data as Row[];
     expect(full[0]?.["seller_email"]).toBe(seller.email);
     const byEmail = (await list(page, { p_seller: seller.email })).data as Row[];
@@ -261,7 +261,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const removed = await seed(seller, "removed");
     await seed(seller, "draft");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const ids = async (args: Record<string, unknown>) => {
       const result = await list(page, { p_seller: seller.alias, ...args });
       expect(result.error).toBeNull();
@@ -367,7 +367,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         ...(note === undefined ? {} : { p_note: note }),
       });
 
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const own = await seed({ ...seller, id: user.id }, "active", { own: true });
     expect((await edit(own.id, { title: "My own" })).error).toBe(
       "your own listing is edited the seller's way",
@@ -392,7 +392,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const target = await seed(seller, "active");
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
     const result = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
@@ -478,7 +478,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const sellerRefusals = (asSeller.data as { ok: boolean; refusals: Row[] }).refusals;
     expect(sellerRefusals).toContainEqual({ field: "title", reason: "contactInText" });
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const asAdmin = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { title },
@@ -517,7 +517,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .eq("id", target.id);
     if (covered.error) throw new Error(`[e2e:al] cover failed: ${covered.error.message}`);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const result = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { remove_photos: [first!.id] },
@@ -552,7 +552,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const target = await seed(seller, "active");
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const move = (to: string, reason: string) =>
       pageDoor(page, "admin_move_listing", {
         p_listing_id: target.id,
@@ -629,7 +629,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       "a listing removed for a severe reason is restored by a super admin only",
     );
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     expect((await restore(severe.id)).data).toMatchObject({ ok: true, status: "screening" });
     expect((await listingTruth(severe.id))?.["status"]).toBe("screening");
     expect((await listingTruth(plainRemoved.id))?.["status"]).toBe("removed");
@@ -643,7 +643,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const live = await seed(seller, "active");
     const sold = await seed(seller, "sold");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const sendBack = (id: string) =>
       pageDoor(page, "admin_move_listing", {
         p_listing_id: id,
@@ -711,7 +711,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     const draft = await seed(seller, "draft");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("listings-header").getByRole("heading", { level: 1 })).toHaveText(
@@ -880,7 +880,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -936,7 +936,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const live = await seed(seller, "active");
     const note = "The price is per day, not per month.";
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -976,7 +976,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const first = await seed(seller, "active");
     const second = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-filters").click();
@@ -1101,7 +1101,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       expect(text, `AL-16 the door showed ${hidden}`).not.toContain(hidden);
     }
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const removed = await pageDoor(page, "admin_move_listing", {
       p_listing_id: live.id,
       p_to: "removed",
@@ -1142,7 +1142,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1273,7 +1273,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .eq("id", soon.id);
     if (ends.error) throw new Error(`[e2e:al] end date failed: ${ends.error.message}`);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
     const first = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: soon.id,
@@ -1333,7 +1333,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .replace("{currency}", "ETB")
       .replace("{basis}", "bag");
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1437,7 +1437,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     // INC-554 (turn L4b) — the breadcrumb names the listing last.
@@ -1508,7 +1508,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await page.getByTestId("listing-edit").click();
@@ -1566,7 +1566,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const control = (key: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
 
@@ -1646,7 +1646,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
     const first = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
@@ -1731,7 +1731,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const undo = (listingId: string, at: string) =>
       pageDoor(page, "admin_undo_listing_edit", { p_listing_id: listingId, p_at: at });
 
@@ -1861,7 +1861,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     }>;
     const note = "A phone number is written across the photo.";
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     // INC-620 — the step whose code the injected session's verification spent.
     const spentStep = totpStep();
     await gotoReady(page, `/admin/listings/${live.id}`);
@@ -1985,7 +1985,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await stored()).toEqual(kept);
 
     // Staff's door.
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     expect(
       await pageDoor(page, "admin_edit_listing", {
         p_listing_id: live.id,
@@ -2207,7 +2207,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const admin = await useJobSuperAdmin(page);
+    const admin = await signInJobSuperAdmin(page);
 
     await gotoReady(page, `/admin/listings/${ad.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(ad.title, { timeout: 20000 });
@@ -2278,7 +2278,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
     const gone = await seed(seller, "removed");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     await gotoReady(page, `/admin/listings/${ad.id}`);
     await expect(page.getByTestId("listing-set-tier")).toBeVisible({ timeout: 20000 });
@@ -2424,7 +2424,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
     const gone = await seed(seller, "removed");
-    const admin = await useJobSuperAdmin(page);
+    const admin = await signInJobSuperAdmin(page);
     const own = await seed({ ...seller, id: admin.user.id }, "active", { own: true });
 
     await gotoReady(page, "/admin/listings");

@@ -7,7 +7,7 @@ import {
   signOutViaUi,
   stepUpIfPrompted,
   switchLanguage,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { destroyListingsOf, leaseSeller } from "./helpers/posting";
@@ -190,7 +190,7 @@ test.describe("D239 — the account's language at sign-in", () => {
     "D239-E6 impersonation leaves the staff member's own language as it was, at start and at end",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { secret, user: staff } = await useJobSuperAdmin(page);
+      const { secret, user: staff } = await signInJobSuperAdmin(page);
       touched.add(staff.id);
       await switchLanguage(page, "am");
       const target = await leaseSeller();

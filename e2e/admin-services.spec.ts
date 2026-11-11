@@ -5,9 +5,8 @@ import { pageDoor } from "./helpers/door-callers";
 
 import { en } from "../src/i18n/locales/en";
 
-import { signInAsSuperAdmin } from "./helpers/categories";
 import { leaseSeller } from "./helpers/posting";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -157,7 +156,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     const feature = scratchFeature();
     await seedScratch(feature, { price: 1000, budget: null });
     try {
-      const admin = await signInAsSuperAdmin(page);
+      const admin = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin");
 
       const list = await pageDoor(page, "admin_ai_features", {});
@@ -280,7 +279,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
   test("SV-4 the page Admin › Services › AI lists the seven features, and photo screening's switch says what off does", async ({
     page,
   }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/ai");
     await expect(page.getByTestId("admin-section-ai")).toBeVisible({ timeout: 20_000 });
     const cards = (page.viewportSize()?.width ?? 1024) < 1024;
@@ -328,7 +327,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
   test("SV-5 the spend by day: the last 30 days of the seven features, newest first; the page shows it under the table", async ({
     page,
   }) => {
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin");
 
     const answer = await pageDoor(page, "admin_ai_spend_days", { p_days: 30 });

@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
-import { gotoReady, stepUpIfPrompted } from "./helpers/ui";
+import { gotoReady, stepUpIfPrompted, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import {
   action,
@@ -14,7 +14,6 @@ import {
   readCategory,
   scratchSlug,
   seedActiveListing,
-  signInAsSuperAdmin,
 } from "./helpers/categories";
 import {
   destroyAttribute,
@@ -158,7 +157,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     try {
       const leaf = await seedLeaf();
@@ -190,7 +189,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     try {
       const leaf = await seedLeaf();
@@ -241,7 +240,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     try {
       const leaf = await seedLeaf();
@@ -282,7 +281,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     try {
       const leaf = await seedLeaf();
@@ -329,7 +328,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     try {
       const leaf = await seedLeaf();
@@ -372,7 +371,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     try {
       const leaf = await seedLeaf();
@@ -424,7 +423,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     const conditionOf = async (linkId: string) => {
       const { data, error } = await adminClient()
@@ -482,7 +481,7 @@ test.describe("Bundle 7 attribute safety", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const fx: Fixture = { slug: "", categoryId: "", listings: [], keys: [] };
     try {
       const leaf = await seedLeaf();

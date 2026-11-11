@@ -3,11 +3,11 @@ import { expect, test } from "./fixtures";
 
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
-import { LANGUAGE_STORAGE_KEY } from "../src/i18n/provider";
 
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
 import { ANY_MENU_ROW, catalogueRows, isScratchSlug, slugOfRow } from "./helpers/category-menu";
 import { adminClient, leaseUser, grantRole } from "./helpers/users";
+import { setDeviceAmharic } from "./helpers/account-language";
 
 /**
  * U0h PART 2 / U0i PART 3 — I18N CHROME COVERAGE GUARD.
@@ -67,20 +67,6 @@ const NAMESPACES = Array.from(
 ).filter(Boolean);
 const RAW_KEY_RE = new RegExp(`^(${NAMESPACES.join("|")})(\\.[A-Za-z0-9_]+)+$`);
 
-/** Amharic before the first paint, so no English frame is ever measured. */
-async function useAmharic(page: Page) {
-  await page.addInitScript(
-    ([storageKey, lang]) => {
-      try {
-        window.localStorage.setItem(storageKey as string, lang as string);
-      } catch {
-        /* private mode: the test's own assertion below will catch it */
-      }
-    },
-    [LANGUAGE_STORAGE_KEY, "am"] as const,
-  );
-}
-
 /**
  * INC-996 — under D239 a signed-in page shows the ACCOUNT's published language at
  * session start, so a signed-in test that needs Amharic sets its own leased account's
@@ -95,8 +81,7 @@ async function setAmharicAccount(page: Page, userId: string) {
     .update({ preferred_language: "am" })
     .eq("user_id", userId);
   if (error) throw new Error(`[e2e:i18n] setting the account language failed: ${error.message}`);
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- a harness helper, not a React hook
-  await useAmharic(page);
+  await setDeviceAmharic(page);
 }
 
 test.afterEach(async () => {
@@ -204,7 +189,7 @@ async function assertAmharicCategories(page: Page, scope: string, where: string)
 
 test.describe("i18n chrome coverage (Amharic)", () => {
   test("the marketplace shell renders no English fallback", async ({ page, viewport }) => {
-    await useAmharic(page);
+    await setDeviceAmharic(page);
     await gotoReady(page, "/");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
@@ -223,7 +208,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
 
   test("the mobile drawer renders no English fallback", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) >= 768, "mobile only");
-    await useAmharic(page);
+    await setDeviceAmharic(page);
     await gotoReady(page, "/");
     // INC-082: the drawer is opened ONLY through openRailScope (locale-agnostic
     // hamburger + the one open contract), never inline.
@@ -299,7 +284,7 @@ test("B21SC-3 SC-3 the phone category level and Main menu are Amharic", async ({
   const hasAmharic = new Map(
     tree.nodes.map((node) => [node.slug, (node.name_am ?? "").trim() !== ""]),
   );
-  await useAmharic(page);
+  await setDeviceAmharic(page);
   await gotoReady(page, "/c/electronics");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   const menu = await openRailScope(page);
@@ -382,7 +367,7 @@ test("PN-AM-1 the different-place notice and place name are Amharic", async ({ p
       url: baseURL,
     },
   ]);
-  await useAmharic(page);
+  await setDeviceAmharic(page);
   await gotoReady(page, "/");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   const notice = page.getByTestId("place-notice");
@@ -401,7 +386,7 @@ test("PN-AM-1 the different-place notice and place name are Amharic", async ({ p
 // Read-only catalogue: electronics is found by slug; no translation row is touched.
 test("FV-AM-1 the ☆'s fine print is Amharic", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-360", "the fine print shows without a mouse");
-  await useAmharic(page);
+  await setDeviceAmharic(page);
   await gotoReady(page, "/c/electronics");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   const hint = page.getByTestId("category-favourite-hint");

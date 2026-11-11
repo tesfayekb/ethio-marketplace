@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
 
-import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 import { passwordGrant } from "./helpers/session";
@@ -633,7 +633,7 @@ test.describe("POSTING ROUTES", () => {
     page,
   }) => {
     test.setTimeout(180_000);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/categories");
     const token = await bearerOf(page);
     const headers = { Authorization: `Bearer ${token}` };

@@ -5,7 +5,7 @@ import { pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 
 import {
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
   expectNoHorizontalOverflow,
   gotoReady,
   isMobile,
@@ -44,11 +44,6 @@ function auditSurface(page: Page) {
   return width < 768 ? page.getByTestId("data-table-cards") : page.getByRole("table");
 }
 
-async function signInAsSuperAdmin(page: Page) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
-  return useJobSuperAdmin(page);
-}
-
 test.describe("U3 audit & security", () => {
   test("AS-1 gating: a plain user is refused, a moderator reads the log", async ({ page }) => {
     const plain = await leaseUser();
@@ -71,7 +66,7 @@ test.describe("U3 audit & security", () => {
   });
 
   test("AS-2 filters: an action filter narrows the list", async ({ page }) => {
-    const { user } = await signInAsSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     // The MFA enrolment above wrote nothing to the audit log; a role grant does.
     await grantRole(user.id, "moderator");
     await gotoReady(page, "/admin/audit");
@@ -198,7 +193,7 @@ test.describe("U3 audit & security", () => {
     "IMP-1 impersonation: super admin opens a read-only session and ends it",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       // G3b — a seller with one scratch listing, so the view's footer has a row
       // to page (J3: scratch rows only, removed in finally).
       const target = await leaseSeller();
@@ -262,7 +257,7 @@ test.describe("U3 audit & security", () => {
     "IMP-2 dual-actor audit: start and end are both recorded",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       const target = await leaseUser();
 
       await gotoReady(page, `/admin/users/${target.id}`);
@@ -291,7 +286,7 @@ test.describe("U3 audit & security", () => {
     "IMP-3 server refusals: self and a super-admin target",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/audit");
       await stepUpIfPrompted(page, secret);
 

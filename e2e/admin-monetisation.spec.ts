@@ -25,7 +25,7 @@ import {
   stepUpIfPrompted,
   switchLanguage,
   switchUser,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
@@ -478,7 +478,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-1 the menu entry, the order strip and the three blocks on both twins, no horizontal overflow; a level opens to its perks and prices; the real rows are read", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-section-link-monetisation")).toBeVisible({
       timeout: 20000,
@@ -622,7 +622,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-3 /admin/packages and /admin/coverage send their reader to the console", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     for (const old of ["/admin/packages", "/admin/coverage"]) {
       await page.goto(old);
       await waitForHydration(page);
@@ -634,7 +634,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-4 a level is created with its perks and both names, shown under the language switch, edited, and attributed to its author and editor by name", async ({
     page,
   }, testInfo) => {
-    const { secret, user } = await useJobSuperAdmin(page);
+    const { secret, user } = await signInJobSuperAdmin(page);
     const key = scratchKey("lvl", testInfo.project.name);
     await destroyProduct(key);
     products.push(key);
@@ -755,7 +755,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-5 a reach row is created without perks, shown in the Reach block, and refused by name when perks are sent to it", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("reach", testInfo.project.name);
     await destroyProduct(key);
     products.push(key);
@@ -807,7 +807,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-6 per-category perks inside the level's row: Add override names the level; a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("perk", testInfo.project.name);
     await seedProduct(key, { days: 7, maxPhotos: 10, placement: "standard" });
     const since = new Date().toISOString();
@@ -938,7 +938,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-7 a season: a root ending in ten days caps the level's days and names season_until; an ended season answers 0", async ({
     page,
   }, testInfo) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = scratchKey("season", testInfo.project.name);
     await seedProduct(key, { days: 60 });
     const { rootId, leafId } = await seedRoot();
@@ -971,7 +971,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-8 Add price inside the product's row names the product; the saved row reads Market · Category with its credit cost; a price for every market and a narrower one; the row's search narrows", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("price", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
@@ -1054,7 +1054,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-9 Edit while unused: the amount, the credit cost and the end change through the door; the start is kept; the row and the audit follow", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("edit", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
@@ -1107,7 +1107,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-10 a used price: the service client marks it used, the door refuses Edit by name and nothing changes; after a refresh the verb is gone while End stays", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("used", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
@@ -1155,7 +1155,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-11 End price sets the end to now; the row stays, says so, offers no verb any more, and the public read no longer lists it", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("end", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
@@ -1205,7 +1205,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-12 a scratch market: paid levels ON without a bundle is refused by name; ON with 10/30 writes the bundle, paid_levels_since and the audit row; OFF clears the mark", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const since = new Date().toISOString();
     const reach = await firstReach();
     const market = await seedSingleOptionMarket();
@@ -1385,7 +1385,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-14 step-up: a staff session without a fresh second factor is asked for one before any write; the write lands once the code is given", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const spentStep = totpStep();
     const key = scratchKey("aal", testInfo.project.name);
     await destroyProduct(key);
@@ -1432,7 +1432,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-16 the order strip: a market switched on with a sellable product that has no price reads Needs a row, names a product and its market, and its link opens that product's prices", async ({
     page,
   }, testInfo) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = scratchKey("strip", testInfo.project.name);
     await seedProduct(key, { sort: 0 });
     const market = await seedSingleOptionMarket();
@@ -1484,7 +1484,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-17 the order strip: a price added for every market clears the product from Needs a row; the strip reads Set once no pair is left", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("set", testInfo.project.name);
     await seedProduct(key, { sort: 0 });
     const currency = await firstCurrency();
@@ -1536,7 +1536,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-18 a reach row's caps: cities left blank and regions 3 are saved as no limit and 3; the table reads No limit and 3; the editor reopens blank and 3", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("caps", testInfo.project.name);
     await destroyProduct(key);
     products.push(key);

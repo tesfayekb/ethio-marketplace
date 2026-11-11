@@ -15,7 +15,7 @@
  * - A lease inside a loop, or inside a callback to an array method, `poll` or
  *   `toPass`, has no fixed count: it is refused.
  * - Both arms of an `if` count (the check reads text, it does not run it).
- * - The job super admin (`useJobSuperAdmin`) is a worker's standing session,
+ * - The job super admin (`signInJobSuperAdmin`) is a worker's standing session,
  *   not a pooled lease, and `createUser` mints a fresh account; neither calls
  *   `leaseUser`, so neither is counted.
  * Run by the unit tests (scripts/e2e-leases.test.ts).

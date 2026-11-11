@@ -5,7 +5,7 @@ import { authErrorText } from "./global-setup";
 import { grantRole } from "./helpers/categories";
 import { bearerClient, passwordGrant } from "./helpers/session";
 import { ensureFenceLanguage } from "./helpers/translations";
-import { gotoReady, openRailScope, useJobSuperAdmin, switchUser } from "./helpers/ui";
+import { gotoReady, openRailScope, signInJobSuperAdmin, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser, grantScratchRole } from "./helpers/users";
 import { PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 import { errorText } from "../src/lib/error-text";
@@ -244,7 +244,7 @@ async function reviewRows(id: string) {
 
 test.describe("Admin Legal", () => {
   test("LGA-1 Legal cards, facts and the permission-gated admin menu", async ({ page }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const truth = await facts();
     await gotoReady(page, "/admin/legal");
     await expect(page.getByTestId("legal-page")).toBeVisible();
@@ -304,7 +304,7 @@ test.describe("Admin Legal", () => {
   }) => {
     const kind = scratch("b");
     try {
-      const job = await useJobSuperAdmin(page);
+      const job = await signInJobSuperAdmin(page);
       const settings = await facts();
       await gotoReady(page, `/admin/legal/edit?kind=${kind}`);
       const en = "## 1. First\n\n- an item\n\n{{legal_email}} {{nope}}";
@@ -374,7 +374,7 @@ test.describe("Admin Legal", () => {
     const kind = scratch("c");
     try {
       await seed(kind);
-      await useJobSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       const settings = await facts();
       await gotoReady(page, "/admin/legal");
       const own = page.getByTestId(`legal-doc-${kind}-global`);
@@ -420,7 +420,7 @@ test.describe("Admin Legal", () => {
   test("LGA-4 invalid facts refuse before any request; Cancel restores values", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const before = await facts();
     await gotoReady(page, "/admin/legal");
     await page.getByTestId("legal-facts-edit").click();
@@ -471,7 +471,7 @@ test.describe("Admin Legal", () => {
         changelog: "Frozen scratch change",
         snapshot: { legal_email: "snapshot@example.invalid" },
       });
-      await useJobSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, `/admin/legal/${id}`);
       await expect(page.getByTestId("legal-view-changelog")).toHaveText("Frozen scratch change");
       await expect(page.getByTestId("legal-text")).toContainText("snapshot@example.invalid");
@@ -486,7 +486,7 @@ test.describe("Admin Legal", () => {
   test("LGA-6 saved draft discard returns to Legal and removes the draft", async ({ page }) => {
     const kind = scratch("f");
     try {
-      await useJobSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, `/admin/legal/edit?kind=${kind}`);
       await fillDraft(page, "discard", "Scratch English", "Scratch Amharic", "Discard change");
       const saved = await version(kind);
@@ -521,7 +521,7 @@ test.describe("Admin Legal", () => {
         p_provider_ref: `${kind}-notice`,
       });
       fail(notice.error, "record notice");
-      await useJobSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, `/admin/users/${person.id}`);
       await expect(page.getByTestId("user-legal-acceptance")).toHaveCount(1);
       await expect(page.getByTestId("user-legal-acceptance")).toContainText(kind);
@@ -544,7 +544,7 @@ test.describe("Admin Legal", () => {
     try {
       const id = await seed(kind);
       await accept(person, id, { consent: true });
-      await useJobSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, `/admin/users/${person.id}`);
       const acceptance = page.getByTestId("user-legal-acceptance");
       await expect(acceptance).toHaveCount(1);
@@ -563,7 +563,7 @@ test.describe("Admin Legal", () => {
     const person = await leaseUser();
     await accept(person, firstId);
     await accept(person, secondId, { adult: false });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/users/${person.id}`);
     const rows = page.getByTestId("user-legal-acceptance");
     await expect(rows).toHaveCount(2);
@@ -581,7 +581,7 @@ test.describe("Admin Legal", () => {
   }) => {
     const kind = scratch("k");
     await seed(kind);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/legal");
     const own = page.getByTestId(`legal-doc-${kind}-global`);
     await expect(own.getByTestId("legal-history-row")).toHaveCount(1);
@@ -605,7 +605,7 @@ test.describe("Admin Legal", () => {
       body_en: "## First\nChanged English",
       body_am: "Same Amharic",
     });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/legal/${secondId}`);
     await page.getByTestId("legal-compare").click();
     await expect(page.getByTestId("legal-diff")).toBeVisible();
@@ -624,7 +624,7 @@ test.describe("Admin Legal", () => {
       body_en: "Write to {{legal_email}}",
       snapshot: { legal_email: "snapshot@example.invalid" },
     });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/legal/${id}`);
     const waited = page.waitForEvent("download");
     await page.getByTestId("legal-download").click();
@@ -644,7 +644,7 @@ test.describe("Admin Legal", () => {
     const second = await leaseUser();
     await accept(first, id);
     await accept(second, id);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/legal/${id}`);
     const waited = page.waitForEvent("download");
     await page.getByTestId("legal-export").click();
@@ -675,7 +675,7 @@ test.describe("Admin Legal", () => {
   });
   test("LGA-14 a draft's text is filled from a file", async ({ page }) => {
     const kind = scratch("o");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/legal/edit?kind=${kind}`);
     await page.getByTestId("legal-import-en").setInputFiles({
       name: "terms.md",
@@ -708,7 +708,7 @@ test.describe("Admin Legal", () => {
       throw new Error("[e2e:legal-admin] missing effective time or last sign-in");
     expect(Date.parse(lastSignIn)).toBeGreaterThanOrEqual(Date.parse(effective));
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/legal");
     const inForce = page.getByTestId(`legal-doc-${kind}-global`).getByTestId("legal-in-force");
     await expect(inForce).toContainText("Accepted by 0");
@@ -745,7 +745,7 @@ test.describe("Admin Legal", () => {
     expect(Date.parse(firstDue) - Date.parse(published)).toBeLessThanOrEqual(
       (31 * months + 1) * day,
     );
-    const { user: staff } = await useJobSuperAdmin(page);
+    const { user: staff } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/legal");
     const block = page.getByTestId(`legal-doc-${kind}-global`).getByTestId("legal-review");
     await expect(block).toHaveAttribute("data-state", "due");
@@ -786,7 +786,7 @@ test.describe("Admin Legal", () => {
   test("LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view reads false", async ({
     page,
   }) => {
-    const { user: staff } = await useJobSuperAdmin(page);
+    const { user: staff } = await signInJobSuperAdmin(page);
     const kind = `e2e-rev-u${staff.id.replace(/-/g, "")}`;
     await destroy(kind);
     kinds.add(kind);
@@ -914,7 +914,7 @@ test.describe("Admin Legal", () => {
     const code = `${kind}-lang`;
     languages.add(code); // Register before the first write: afterEach also runs on timeout.
     await ensureFenceLanguage(code);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/legal/edit?kind=${kind}`);
     await fillDraft(page, "translated", "Scratch English", "Scratch Amharic", "Scratch change");
     await page.getByTestId(`legal-tab-${code}`).click();
@@ -967,7 +967,7 @@ test.describe("Admin Legal", () => {
     languages.add(code);
     await ensureFenceLanguage(code);
     const id = await seed(kind);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/legal/${id}`);
     // Both panels predate the insert: the normal refreshed select excludes existing texts.
     const stale = await context.newPage();
@@ -1031,7 +1031,7 @@ test.describe("Admin Legal", () => {
       roles,
     );
     try {
-      await useJobSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await switchUser(page, publisher.email, publisher.password);
       await gotoReady(page, "/admin/legal");
       const card = page.getByTestId(`legal-doc-${kind}-global`);

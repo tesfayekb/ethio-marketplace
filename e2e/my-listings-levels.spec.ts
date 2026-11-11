@@ -29,7 +29,7 @@ import {
 } from "./helpers/posting";
 import { destroyScratchReaches, seedScratchReaches } from "./helpers/reach-rows";
 import { anonRpc } from "./helpers/session";
-import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -464,7 +464,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     const timed = await seed(seller, market);
     const open = await seed(seller, market);
     const level = await selfServeAbove("level", await baselineLevelKey());
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const days = doorAnswer(
       await pageDoor(page, "admin_set_listing_tier", {

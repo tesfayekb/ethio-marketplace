@@ -181,7 +181,7 @@ requires a currently-owned verified factor. The server remains the authority.
 
 **E2E (DEC-041).** Global setup signs the pooled super admin in and verifies its
 TOTP factor in node, asserts the resulting token claims `aal2`, and writes the
-session beside the pool in the state file. `useJobSuperAdmin` injects that
+session beside the pool in the state file. `signInJobSuperAdmin` injects that
 session before the first navigation, then asserts AAL2 and the signed-in header
 from the client; a session inside 5 minutes of expiry is refreshed once in node
 and the state file rewritten. No UI sign-in and no per-test verification for the
@@ -214,4 +214,4 @@ re-enabled with the hint, DB unchanged).
 ## Bundle 14 turn 2 — the window instrument is E2E only; the stale-client helper (INC-621, INC-620)
 
 - **INC-621.** `stepUpWindowMs()` (src/features/auth/mfa/mfa-service.ts) read `window.__ethioStepUp` in every build. It now reads it only when `isE2E` (DEC-018), so a production build drops it, as it drops the other window instruments. The server's window was never affected (law F3: `public.require_step_up_if_needed` decides). HOOK-1 (src/lib/env-flags.test.ts) is the census of every window instrument the app code names; each file that holds one takes the flag.
-- **INC-620.** The E2E helper `clearStepUpFreshness` wrote the local stamp retired by INC-167 and did nothing; it is removed, with its two calls in MF-2 and MF-7b (their fresh sign-ins are aal1, so their modal never depended on it). A test that needs the modal over an injected session calls `staleStepUpOnClient(page)` (the client window, 1 ms, for the current document; the server's window untouched) and, before typing the code, `afterTotpStep(spentStep)`, with `spentStep = totpStep()` read as `useJobSuperAdmin` returns: a factor accepts each code once, and the injected session's own verification spent the current step's code. Both live in e2e/helpers/ui.ts; `totpStep` in e2e/helpers/totp.ts.
+- **INC-620.** The E2E helper `clearStepUpFreshness` wrote the local stamp retired by INC-167 and did nothing; it is removed, with its two calls in MF-2 and MF-7b (their fresh sign-ins are aal1, so their modal never depended on it). A test that needs the modal over an injected session calls `staleStepUpOnClient(page)` (the client window, 1 ms, for the current document; the server's window untouched) and, before typing the code, `afterTotpStep(spentStep)`, with `spentStep = totpStep()` read as `signInJobSuperAdmin` returns: a factor accepts each code once, and the injected session's own verification spent the current step's code. Both live in e2e/helpers/ui.ts; `totpStep` in e2e/helpers/totp.ts.

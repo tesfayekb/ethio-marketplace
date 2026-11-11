@@ -19,7 +19,7 @@ import {
   settled,
   signIn,
   signInViaSession,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { updateListingRow } from "./helpers/listing-seed";
@@ -348,7 +348,7 @@ test.describe("The tier on every view of an ad (turn T1)", () => {
     await page.getByTestId("post-preview-open").click();
     await expectTierLook(page.getByTestId("post-preview-sheet"), "premium");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(waiting.title);
     const more = page.locator(`[data-testid="admin-screening-actions-${waiting.id}-more"]:visible`);

@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { withinPreviewBudget } from "./helpers/rate-window";
-import { gotoReady, switchUser } from "./helpers/ui";
+import { gotoReady, switchUser, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -10,7 +10,6 @@ import {
   action,
   nameFoldPresent,
   scratchFoldWord,
-  signInAsSuperAdmin,
 } from "./helpers/categories";
 import {
   seedAttribute,
@@ -169,7 +168,7 @@ test.describe("C3 attributes console", () => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
     // J6 — this test's actor. Every DB-truth assertion below is scoped to it.
-    const actorId = (await signInAsSuperAdmin(page)).user.id;
+    const actorId = (await signInJobSuperAdmin(page)).user.id;
     await gotoReady(page, "/admin/attributes");
 
     const token = await bearerOf(page);
@@ -237,7 +236,7 @@ test.describe("C3 attributes console", () => {
   test("AT-26 option key order and an explicit null preview unchanged", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const key = `e2e_attr_${rand()}`;
     try {
@@ -294,7 +293,7 @@ test.describe("C3 attributes console", () => {
   test("AT-63 a swatch-only definitions file previews as one change", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const key = `e2e_attr_${rand()}`;
     try {
@@ -377,7 +376,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const token = rand();
@@ -459,7 +458,7 @@ test.describe("C3 attributes console", () => {
   test("AT-43 a renamed key is refused and names the key to restore", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const oldKey = `e2e_attr_${rand()}`;
     const newKey = `e2e_attr_${rand()}`;
@@ -492,7 +491,7 @@ test.describe("C3 attributes console", () => {
   test("AT-21 a changed link commits and the batch undoes", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -563,7 +562,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_brand_${rand()}`;
@@ -624,7 +623,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -730,7 +729,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -812,7 +811,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -890,7 +889,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const stamp = rand();
@@ -1042,7 +1041,7 @@ test.describe("C3 attributes console", () => {
   test("AT-22 malformed files and dangerous cells are refused", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
 
@@ -1236,7 +1235,7 @@ test.describe("C3 attributes console", () => {
   test("AT-24 a commit whose bytes changed since the preview is refused", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -1266,7 +1265,7 @@ test.describe("C3 attributes console", () => {
   test("AT-25 an invalid option parent is refused", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const base = `e2e_attr_${rand()}`;
@@ -1314,7 +1313,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -1412,7 +1411,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -1495,7 +1494,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const slug = `e2e-cat-clash-${rand()}`;
@@ -1606,7 +1605,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const slug = `e2e-cat-inuse-${rand()}`;
@@ -1728,7 +1727,7 @@ test.describe("C3 attributes console", () => {
   test("AT-28 a categories file is refused by identity", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
 
     const token = await bearerOf(page);

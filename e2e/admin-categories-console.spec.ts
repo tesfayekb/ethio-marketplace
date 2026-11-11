@@ -12,6 +12,7 @@ import {
   stepUpIfPrompted,
   switchUser,
   waitForHydration,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { expectActionsInsideCell } from "./helpers/row-actions";
@@ -32,7 +33,6 @@ import {
   toggleMissingAssets,
   openEditor,
   grantRole,
-  signInAsSuperAdmin,
   readCategory,
   seedActiveListing,
   readListing,
@@ -192,7 +192,7 @@ test.describe("C2 categories console", () => {
         .eq("id", retiredId);
       if (retireError) throw new Error(`[e2e:ct-31] retiring failed: ${retireError.message}`);
 
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
       await findRow(page, parentSlug);
       // G28 (INC-383) — the roster is scoped to this test's own three rows; a
@@ -257,7 +257,7 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -287,7 +287,7 @@ test.describe("C2 categories console", () => {
 
   test("CT-4 visibility window: a future window is stored as DB truth", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -318,7 +318,7 @@ test.describe("C2 categories console", () => {
 
   test("CT-5 exclusions: saving a country set writes the exclusion rows", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -350,7 +350,7 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { user, secret } = await signInAsSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     let slug = "";
     let targetSlug = "";
     let listingId = "";
@@ -469,7 +469,7 @@ test.describe("C2 categories console", () => {
    */
   test("CT-7b browse paths: an unproven factor cannot move a pointer", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -521,7 +521,7 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "desktop");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -669,7 +669,7 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);
@@ -948,7 +948,7 @@ test.describe("C2 categories console", () => {
       if (retireEmpty)
         throw new Error(`[e2e:ct-32] retiring the root failed: ${retireEmpty.message}`);
 
-      await signInAsSuperAdmin(page);
+      await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
       await findRow(page, rootSlug);
       const token = await page.evaluate(async () => {
@@ -1075,7 +1075,7 @@ test.describe("C2 categories console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       slug = await createViaUi(page, secret);

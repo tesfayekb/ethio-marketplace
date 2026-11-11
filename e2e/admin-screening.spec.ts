@@ -26,7 +26,7 @@ import {
   seedCategoryBranch,
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
-import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, stepUpIfPrompted, switchUser, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { levelNameFor } from "./helpers/level-overrides";
@@ -218,7 +218,7 @@ test.describe("ADMIN SCREENING", () => {
 
   test("SC-1 the queue lists an ad waiting for review", async ({ page }) => {
     const ad = await seedWaiting();
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const row = await findRow(page, ad.title, ad.id);
     await expect(row).toContainText(ad.title);
     await expect(row).toContainText(ad.categoryName);
@@ -231,7 +231,7 @@ test.describe("ADMIN SCREENING", () => {
 
   test("SC-2 Approve puts the ad on the site", async ({ page }) => {
     const ad = await seedWaiting();
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "approve");
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
@@ -250,7 +250,7 @@ test.describe("ADMIN SCREENING", () => {
 
   test("SC-3 Reject keeps the ad off", async ({ page }) => {
     const ad = await seedWaiting();
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "reject");
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
@@ -309,7 +309,7 @@ test.describe("ADMIN SCREENING", () => {
   });
 
   test("SC-5 an empty search shows the empty message", async ({ page }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(`e2e-none-${rand()}`);
     await expect(page.getByTestId("admin-screening-empty")).toHaveText(
@@ -322,7 +322,7 @@ test.describe("ADMIN SCREENING", () => {
   test("SC-6 Preview as buyer draws the ad's category picture", async ({ page }) => {
     const picture = "https://example.invalid/e2e-screen-picture.jpg";
     const ad = await seedWaiting({ parentImageUrl: picture });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -348,7 +348,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const { data, error } = await pageDoor(page, "admin_screening_facts", {
       p_listing_id: ad.id,
     });
@@ -422,7 +422,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting({ contactPref: PREF });
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "whatsapp",
@@ -453,7 +453,7 @@ test.describe("ADMIN SCREENING", () => {
 
   test("SC-10 an ad that is not waiting for review answers neither door", async ({ page }) => {
     const ad = await seedWaiting({ contactPref: PREF, status: "active" });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const facts = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(facts.error).toBe("listing not found");
     const shown = await pageDoor(page, "admin_reveal_listing_contact", {
@@ -468,7 +468,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting();
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await expect(rowOf(page, ad.id)).toContainText(ad.cityName);
 
@@ -525,7 +525,7 @@ test.describe("ADMIN SCREENING", () => {
     const stem = `e2e-screen-${RUN}-${rand()}`;
     const first = await seedWaiting({ title: `${stem}-a` });
     const second = await seedWaiting({ title: `${stem}-b` });
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(stem);
     await expect(rowOf(page, first.id)).toBeVisible({ timeout: 20000 });
@@ -563,7 +563,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const { data: profile } = await adminClient()
       .from("profiles")
       .select("seller_alias")
@@ -647,7 +647,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting();
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -808,7 +808,7 @@ test.describe("ADMIN SCREENING", () => {
   }) => {
     const ad = await seedWaiting();
     const photos = await seedHeldPhotos(ad.id);
-    const { user, secret } = await useJobSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -876,7 +876,7 @@ test.describe("ADMIN SCREENING", () => {
     // INC-615 — priced, so the ad meets today's rules and the door removes the photo.
     const ad = await seedWaiting({ priced: true });
     const photos = await seedHeldPhotos(ad.id);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -986,7 +986,7 @@ test.describe("ADMIN SCREENING", () => {
       ["removed", warnedId, null, []],
     ]);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const section = page.getByTestId("admin-photo-changes");
     const mine = section.locator(`[data-testid="admin-photo-change"][data-listing-id="${ad.id}"]`);
@@ -1058,7 +1058,7 @@ test.describe("ADMIN SCREENING", () => {
     if (warning.error)
       throw new Error(`[e2e:sc] seeding the warning failed: ${warning.error.message}`);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const row = await findRow(page, ad.title, ad.id);
     await expect(row.getByTestId(`admin-screening-row-${ad.id}-photo-warning`)).toHaveText(
       en["admin.screening.photoWarning"],
@@ -1116,7 +1116,7 @@ test.describe("ADMIN SCREENING", () => {
     });
     const plain = await register("plain", false);
 
-    const { user, secret } = await useJobSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -1207,7 +1207,7 @@ test.describe("ADMIN SCREENING", () => {
     await updateListingRow(drafted.id, { status: "draft" }, { tag: "sc" });
     await register(drafted.id, "draft-failed", true, failReview);
 
-    const { user, secret } = await useJobSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const section = page.getByTestId("admin-photo-reviews");
     const row = section.locator(`[data-testid="admin-photo-review"][data-photo-id="${failed}"]`);
@@ -1266,7 +1266,7 @@ test.describe("ADMIN SCREENING", () => {
     };
     const ad = await seedWaiting({ priced: true });
     const corrected = `Corrected e2e-screen-${RUN}-${rand()}`;
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     const sheet = page.getByTestId("post-preview-sheet");
@@ -1341,7 +1341,7 @@ test.describe("ADMIN SCREENING", () => {
     };
     const ad = await seedWaiting({ priced: true });
     const corrected = `Corrected e2e-screen-${RUN}-${rand()}`;
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -1410,7 +1410,7 @@ test.describe("ADMIN SCREENING", () => {
     const stem = `e2e-screen-${RUN}-${rand()}`;
     const premium = await seedWaiting({ title: `${stem}-premium`, tier: "premium" });
     const regular = await seedWaiting({ title: `${stem}-regular` });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(stem);
     await expect(rowOf(page, premium.id)).toBeVisible({ timeout: 20000 });

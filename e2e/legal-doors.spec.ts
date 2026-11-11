@@ -5,7 +5,7 @@ import { expect, test } from "./fixtures";
 import { grantRole } from "./helpers/categories";
 import { storageKey } from "./helpers/session";
 import { asAnonymous, asBearer, asPerson } from "./helpers/door-callers";
-import { useJobSuperAdmin } from "./helpers/ui";
+import { signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { errorText } from "../src/lib/error-text";
 
@@ -19,7 +19,7 @@ import { errorText } from "../src/lib/error-text";
  * (LG-8).
  *
  * Identity (J9): the pooled job super admin for the permitted staff path
- * (`useJobSuperAdmin`), a leased user granted the "admin" role for the refused
+ * (`signInJobSuperAdmin`), a leased user granted the "admin" role for the refused
  * staff path — no role holds a legal permission, so an admin by role is the
  * strongest refused caller. Fixtures: scratch documents whose kinds start
  * `e2e-` (D2), inserted by the service client, removed in afterEach (J3)
@@ -34,8 +34,8 @@ import { errorText } from "../src/lib/error-text";
 
 type Row = Record<string, unknown>;
 
-/** The aal2 token `useJobSuperAdmin` just injected, for node-side RPC calls. */
-async function superAdminToken(page: Parameters<typeof useJobSuperAdmin>[0]): Promise<string> {
+/** The aal2 token `signInJobSuperAdmin` just injected, for node-side RPC calls. */
+async function superAdminToken(page: Parameters<typeof signInJobSuperAdmin>[0]): Promise<string> {
   const raw = await page.evaluate((key) => window.localStorage.getItem(key), storageKey());
   if (!raw) throw new Error("[e2e:legal] no injected session in storage.");
   const parsed = JSON.parse(raw) as Row;
@@ -301,8 +301,8 @@ test.describe("Legal doors", () => {
     ).not.toBeNull();
     expect(staleRefused.error).not.toContain("permission denied");
 
-    // The permitted caller: pooled super admin with a fresh second factor (useJobSuperAdmin).
-    await useJobSuperAdmin(page);
+    // The permitted caller: pooled super admin with a fresh second factor (signInJobSuperAdmin).
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
 
     // Content refusals, each named by its code (D5).
@@ -392,7 +392,7 @@ test.describe("Legal doors", () => {
     fixture.countryPublishedId = null;
 
     // The save door updates the one draft; discard removes it and refuses a published row.
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const made = await staff.rpc("admin_save_legal_draft", {
       p_kind: kind,
@@ -692,7 +692,7 @@ test.describe("Legal doors", () => {
     if (before.error || !before.data)
       throw new Error(`[e2e:legal] settings read: ${before.error?.message}`);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const read = await staff.rpc("admin_legal_settings");
     expect(read.error).toBeNull();
@@ -795,7 +795,7 @@ test.describe("Legal doors", () => {
     });
     expect(refused.error, "record_legal_notice is service-only").toContain("permission denied");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const history = await staff.rpc("admin_user_legal_history", { p_user_id: person.id });
     expect(history.error).toBeNull();
@@ -934,7 +934,7 @@ test.describe("Legal doors", () => {
       expect(version.error, `${who}: staff version`).toContain("permission denied");
     }
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const version = await staff.rpc("admin_legal_version", {
       p_version_id: fixture.publishedId,
@@ -960,7 +960,7 @@ test.describe("Legal doors", () => {
     const kind = `${RUN_TAG}-j`;
     const fixture = await seedFixture(kind, null);
     const person = await leaseUser();
-    const job = await useJobSuperAdmin(page);
+    const job = await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const saved = await staff.rpc("admin_save_legal_draft", {
       p_kind: kind,
@@ -1047,7 +1047,7 @@ test.describe("Legal doors", () => {
 
     const own = await caller.rpc("my_legal_history");
     expect(own.error).toBeNull();
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const staffHistory = await staff.rpc("admin_user_legal_history", { p_user_id: person.id });
     expect(staffHistory.error).toBeNull();
@@ -1130,7 +1130,7 @@ test.describe("Legal doors", () => {
       .single();
     if (before.error || !before.data)
       throw new Error(`[e2e:legal] settings read: ${before.error?.message}`);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const cases: [string, unknown][] = [
       ["legal_phone", "abc"],
@@ -1168,7 +1168,7 @@ test.describe("Legal doors", () => {
       );
     const kind = `${RUN_TAG}-n`;
     const fixture = await seedFixture(kind, null);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     const saved = await staff.rpc("admin_save_legal_draft", {
       p_kind: kind,
@@ -1284,7 +1284,7 @@ test.describe("Legal doors", () => {
     const staleAnswer = await stale.rpc("admin_export_legal_acceptances", args);
     expect(staleAnswer.error).not.toBeNull();
     expect(staleAnswer.error).not.toContain("permission denied");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     for (const limit of [0, 5001]) {
       expect(

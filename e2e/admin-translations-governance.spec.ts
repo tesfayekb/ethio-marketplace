@@ -12,6 +12,7 @@ import {
   gotoReady,
   stepUpIfPrompted,
   waitForHydration,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import {
@@ -30,7 +31,6 @@ import {
   reapScratchKey,
   dumpRevisions,
   serializeRevisions,
-  signInAsSuperAdmin,
 } from "./helpers/translations";
 import { fromCsv } from "../src/features/admin/translations/io-formats";
 import { isPseudo, PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
@@ -176,7 +176,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
 
       let secret = "";
       await step("TR-19 sign-in", async () => {
-        const signed = await signInAsSuperAdmin(page);
+        const signed = await signInJobSuperAdmin(page);
         secret = signed.secret;
       });
 
@@ -352,7 +352,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       // stalled in, so the next report reads "sign-in" / "roster" / "move up"
       // instead of one anonymous 120s timeout.
       const secret = await test.step("TR-20 sign-in", async () => {
-        const signed = await signInAsSuperAdmin(page);
+        const signed = await signInJobSuperAdmin(page);
         return signed.secret;
       });
 
@@ -487,7 +487,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       if (error) throw new Error(`[e2e:u4g] TR-20m parking the fence failed: ${error.message}`);
     }
 
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations");
     await expect(langRow(page, fence)).toBeVisible({ timeout: 20000 });
 
@@ -536,7 +536,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       };
 
       try {
-        const { secret } = await signInAsSuperAdmin(page);
+        const { secret } = await signInJobSuperAdmin(page);
         await gotoReady(page, `/admin/translations/${fence}`);
 
         // The compiled catalog never contains a scratch key, so the console's own
@@ -765,7 +765,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
     const companions = [`${key}-b`, `${key}-c`];
     for (const own of companions) await seedScratchKey(own, `Round trip source ${own}`, fence);
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, `/admin/translations/${fence}`);
       // Seed-before-navigate (J7) still needs the list to prove it SEES the row
       // before the export button's bytes mean anything.
@@ -1030,7 +1030,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
     };
 
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       // PRIOR STATE, seeded before navigating (J7): the approval is what an undo
       // has to bring back — a restore that loses the status is not a restore.
       const { error: seedError } = await adminClient()
@@ -1161,7 +1161,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
     for (const key of keys) await seedScratchKey(key, `Delete source ${key}`, code);
 
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/translations");
       // Seed-before-navigate (J7): the roster must SHOW the row before the
       // delete flow's assertions mean anything.
@@ -1277,7 +1277,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
       });
       test.setTimeout(300_000);
 
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       // A key whose EN source exists for certain: the probe is a REAL catalog
       // key, read-only to this spec (J2) — pseudo rows live in zxa alone.
       const probe = "admin.translations.title";
