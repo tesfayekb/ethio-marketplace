@@ -233,6 +233,62 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
 });
 
 /**
+ * DEC-321 (housekeeping turn 3) — EVERY EVIDENCE PUBLICATION NAMES ITS REF. scripts/publish-evidence.sh
+ * files a run's evidence under the ref the run tested and refuses to publish without one, so every
+ * workflow step that calls it sets `EVIDENCE_REF` in its own `env:` (from the event's context, never
+ * typed inline in the script).
+ */
+export function publishRefFindings(files: Array<{ file: string; text: string }>): Finding[] {
+  const findings: Finding[] = [];
+  for (const { file, text } of files)
+    for (const job of readWorkflow(file, text))
+      for (const step of job.steps) {
+        if (!commandLines(step).some((line) => line.includes("scripts/publish-evidence.sh")))
+          continue;
+        if (!/^ {10}EVIDENCE_REF: \$\{\{ .+ \}\}$/m.test(step.text))
+          findings.push({
+            file,
+            line: step.line,
+            what: "a step publishes evidence without EVIDENCE_REF in its env (DEC-321)",
+          });
+      }
+  return findings;
+}
+
+describe("every evidence publication names its ref (DEC-321)", () => {
+  it("CF-CID-5 every step that calls publish-evidence.sh sets EVIDENCE_REF; there are six", () => {
+    const calls = workflows
+      .flatMap(({ file, text }) => readWorkflow(file, text))
+      .flatMap((job) => job.steps)
+      .filter((step) =>
+        commandLines(step).some((line) => line.includes("scripts/publish-evidence.sh")),
+      );
+    expect(calls).toHaveLength(6);
+    expect(report(publishRefFindings(workflows))).toBe("");
+  });
+
+  it("CF-CID-6 a planted publication without its ref is named", () => {
+    const text = [
+      "jobs:",
+      "  kept:",
+      "    steps:",
+      "      - name: Publish",
+      "        env:",
+      "          EVIDENCE_REF: ${{ github.head_ref || github.ref_name }}",
+      "        run: bash scripts/publish-evidence.sh m docs/tracking/a.md",
+      "  bare:",
+      "    steps:",
+      "      - name: Publish",
+      "        run: bash scripts/publish-evidence.sh m docs/tracking/a.md",
+      "",
+    ].join("\n");
+    expect(report(publishRefFindings([{ file: "planted.yml", text }]))).toBe(
+      "planted.yml:10 a step publishes evidence without EVIDENCE_REF in its env (DEC-321)",
+    );
+  });
+});
+
+/**
  * DEC-284 (INC-991) — THE TEMPORARY BACKEND'S PORTS SIT BELOW THE EPHEMERAL RANGE. Lane 3 of run
  * 40854479197 lost its start to a connection the runner opened on 54324 at job start, before the
  * reservation step could run (INC-935's class). Every `port`/`shadow_port` the CI-local config

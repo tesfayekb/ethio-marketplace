@@ -529,14 +529,16 @@ export function collect(json: PwJson): {
 /** DEC-030 — one ledger line per flaky test, appended by the CI ledger step. */
 export function ledgerLines(
   flaky: (Flake & { source?: string })[],
-  meta: { runUrl?: string; runId: string; sha: string },
+  meta: { runUrl?: string; runId: string; sha: string; ref?: string },
   now = new Date(),
 ): string[] {
   const date = now.toISOString().slice(0, 10);
   const run = meta.runUrl || meta.runId;
+  // DEC-321 — the ledger stays one file for every ref, so each line names the ref its run tested.
+  const ref = meta.ref ? ` · ref \`${meta.ref}\`` : "";
   return flaky.map(
     (f) =>
-      `- ${date} · \`${f.project}\` · ${f.title}${f.source ? ` · source \`${f.source}\`` : ""} · run ${run} · commit \`${meta.sha}\` · ${f.message}`,
+      `- ${date} · \`${f.project}\` · ${f.title}${f.source ? ` · source \`${f.source}\`` : ""} · run ${run} · commit \`${meta.sha}\`${ref} · ${f.message}`,
   );
 }
 
@@ -1391,6 +1393,8 @@ export type ReportMeta = {
   sha: string;
   /** INC-088 — the head commit's message, for the PLATFORM-ORIGIN? hint. */
   commitMessage?: string;
+  /** DEC-321 — the ref the run tested (EVIDENCE_REF), written into each new flake-ledger line. */
+  ref?: string;
   /**
    * INC-100 — the GitHub run ATTEMPT this report describes. Re-runs used to be
    * blind: upload-artifact@v4 refused to replace attempt-1 artifacts, the
@@ -1808,6 +1812,7 @@ async function main() {
     sha: process.env["GITHUB_SHA"] ?? "local",
     commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
     attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
+    ref: process.env["EVIDENCE_REF"] ?? "",
   };
 
   if (SELF_TEST) {
@@ -2136,6 +2141,32 @@ async function main() {
         console.error(
           `SELF-TEST FAILED — INC-495: the ledger keeps one line per test, source and run: ${JSON.stringify(fresh)}`,
         );
+        process.exit(1);
+      }
+      // DEC-321 — a line names the ref its run tested after the commit; the key is unchanged.
+      const flake: Flake = {
+        project: "mobile-360",
+        title: "a.spec.ts › R-4 one",
+        message: "Timeout",
+        file: "a.spec.ts",
+        body: "Timeout",
+        specTitle: "R-4 one",
+        titlePath: ["R-4 one"],
+      };
+      const [withRef] = ledgerLines(
+        [{ ...flake, source: "shard 3" }],
+        { runId: "1", runUrl: run, sha: "abc", ref: "cursor/housekeeping" },
+        new Date("2026-10-09T00:00:00Z"),
+      );
+      if (
+        withRef !==
+          `${line("2026-10-09", flake.title, run, "Timeout")}`.replace(
+            "commit `abc` · ",
+            "commit `abc` · ref `cursor/housekeeping` · ",
+          ) ||
+        ledgerKey(withRef) !== ledgerKey(line("2026-10-08", flake.title, run, "Timeout"))
+      ) {
+        console.error(`SELF-TEST FAILED — DEC-321: the ledger line's ref: ${String(withRef)}`);
         process.exit(1);
       }
     }

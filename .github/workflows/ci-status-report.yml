@@ -205,6 +205,9 @@ jobs:
       # three times regenerating on top of the fetched branch, and a failed
       # publish is a warning, never a red job.
       - name: Commit and push
+        env:
+          # DEC-321 — the ref this run tested; the publisher files a non-dev ref's evidence under branches/<ref>/.
+          EVIDENCE_REF: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -u
           mkdir -p docs/tracking

@@ -1161,6 +1161,8 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
+          # DEC-321 — the ref this run tested; the publisher files a non-dev ref's evidence under branches/<ref>/.
+          EVIDENCE_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           # No write credential is persisted by checkout or exposed to tests.
           auth=$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)

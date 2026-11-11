@@ -11,6 +11,7 @@ git config --global user.name selftest
 git config --global user.email selftest@example.invalid
 git config --global init.defaultBranch dev
 export PUBLISH_EVIDENCE_RETRY_SLEEP=0
+export EVIDENCE_REF=dev
 
 fail() {
   echo "FAIL: $*"
@@ -75,6 +76,29 @@ grep -q "rival ledger line" <<<"$ledger" || fail "(e) competing content lost"
 [ "$(show docs/tracking/ci-status.md)" = "run 3 status" ] || fail "(e) retry content missing"
 [ "$(count)" = "$((c2 + 2))" ] || fail "(e) expected rival + one retry commit"
 pass "(e) rejected push succeeded on retry and kept the competing commit"
+
+# (f) DEC-321: a lane's files land under branches/<ref>/, dev's stay, the ledger stays one file
+unset PUBLISH_EVIDENCE_PREPARE RIVAL MARK
+echo "lane status" >docs/tracking/ci-status.md
+echo "lane ledger line" >>docs/tracking/flake-ledger.md
+EVIDENCE_REF=cursor/lane-x bash "$script" "ci: status [skip ci]" \
+  docs/tracking/ci-status.md docs/tracking/flake-ledger.md
+[ "$(show docs/tracking/branches/cursor/lane-x/ci-status.md)" = "lane status" ] || fail "(f) lane file not under branches/"
+[ "$(show docs/tracking/ci-status.md)" = "run 3 status" ] || fail "(f) dev's file changed by a lane"
+grep -q "lane ledger line" <<<"$(show docs/tracking/flake-ledger.md)" || fail "(f) ledger not kept as one file"
+git -C "$tmp/origin.git" cat-file -e ci-evidence:docs/tracking/branches/cursor/lane-x/flake-ledger.md 2>/dev/null &&
+  fail "(f) ledger split per ref"
+pass "(f) a lane's file landed under branches/cursor/lane-x/; dev's file and the one ledger kept"
+
+# (g) DEC-321: a ref with `..` and a missing ref are refused, nothing published
+c3="$(count)"
+echo "escape" >docs/tracking/ci-status.md
+EVIDENCE_REF=../../dev bash "$script" "ci: status [skip ci]" docs/tracking/ci-status.md | tee "$tmp/g.log"
+grep -q "::warning::publish-evidence: refusing ref ../../dev" "$tmp/g.log" || fail "(g) .. ref not refused"
+EVIDENCE_REF= bash "$script" "ci: status [skip ci]" docs/tracking/ci-status.md | tee "$tmp/g2.log"
+grep -q "refusing to publish without EVIDENCE_REF" "$tmp/g2.log" || fail "(g) missing ref not refused"
+[ "$(count)" = "$c3" ] || fail "(g) a refused ref published"
+pass "(g) a .. ref and a missing ref were refused; nothing published"
 
 # (d) dev, main and the current checkout unchanged
 [ "$(git ls-remote origin refs/heads/dev | cut -f1)" = "$dev0" ] || fail "(d) dev moved"

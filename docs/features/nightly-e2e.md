@@ -109,3 +109,7 @@ The verdict is published to branch ci-evidence like the nightly's: `docs/trackin
 ## Turn 30 (2026-10-23, DEC-240) — the lint step before the heartbeat; the verdict includes it
 
 The step "Database security lints (counts only, DEC-148)" now runs BEFORE "Write and push heartbeat", with `id: lints` and `continue-on-error: true`, so the heartbeat always runs and the status carries its outcome: `- Database lints (DEC-148): success|failure` after the "Gating failures" line, and `- Conclusion: SUCCESS` only when the gating failures are 0 AND the lints succeeded (INC-831: from 2026-10-19 to 2026-10-23 the lints were red while the status said SUCCESS — the status was written first). "Report test outcome" exits 1 when the lints failed. The same comparator runs in CI's smoke lane on every commit (docs/features/ci-guards.md, turn 30); the nightly keeps the staging read.
+
+## Housekeeping turn 3 (INC-1101, DEC-321)
+
+The nightly installs Chromium's system libraries through `scripts/ci/install-browser-deps.sh` (both jobs), which drops an apt mirror that does not resolve and runs once more only at apt's fetch stage (docs/features/ci-local-backend.md, DEC-366). Its publish step sets `EVIDENCE_REF` (`github.head_ref || github.ref_name`); the nightly runs on the default branch, dev, so its two files keep their paths on `ci-evidence`, and a dispatch on another ref publishes under `docs/tracking/branches/<ref>/` (DEC-321).

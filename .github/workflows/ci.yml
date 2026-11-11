@@ -635,6 +635,9 @@ jobs:
           E2E_HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
           # INC-1101 — the red report's class (INFRA <n> <step> or TESTS), read by the Verdict step's text.
           E2E_VERDICT_CLASS_PATH: e2e-verdict-class.txt
+          # DEC-321 — the ref this run tested; the publisher files a non-dev ref's evidence under branches/<ref>/.
+          # The reporter writes it into each new flake-ledger line (the ledger stays one file).
+          EVIDENCE_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           set -u
           # The self-test runs FIRST: a reporter that only ever prints "no

@@ -22,6 +22,26 @@ The publisher works in its own worktree, never touches dev or main, retries thre
 times regenerating on top of the fetched branch, and a failed publish is a warning,
 never a red job. The copies on dev are frozen until stage 2.
 
+## Evidence per ref (DEC-321, housekeeping turn 3)
+
+Every caller of `scripts/publish-evidence.sh` sets `EVIDENCE_REF` to the ref its run tested: this
+reporter `github.event.workflow_run.head_branch`; ci.yml's E2E verdict job, the lanes' summary,
+flake-check, the nightly and the feed bench `github.head_ref || github.ref_name`. A `dev` run
+publishes at `docs/tracking/<file>` as before; any other ref at
+`docs/tracking/branches/<ref>/<file>`, the ref sanitised to `[A-Za-z0-9._/-]` and refused when it
+could name a path outside `branches/` (`..`, a `.` segment, a leading or trailing `/`, nothing
+left). A missing or refused ref publishes nothing, with a `::warning::`, like a path outside
+docs/tracking. The flake ledger stays one file for every ref (DEC-030), and each new line names its
+ref after the commit (`· ref \`<ref>\``). A lane's evidence is read at
+`git show origin/ci-evidence:docs/tracking/branches/<ref>/ci-status.md`. Guards: CF-PUBLISH-1…3
+(`scripts/publish-evidence.test.ts`, the mapping through `--print-path <ref> <file>`), the
+self-test's cases (f) and (g) (`scripts/publish-evidence.selftest.sh`, a lane ref and a refused ref
+against a bare repository), and CF-CID-5/6 (every workflow step that calls the publisher sets
+`EVIDENCE_REF`in its own`env:`; six calls). This reporter publishes from dev's code
+(`workflow_run`runs the default branch's workflow and it checks out`ref: dev`), so a lane's
+`ci-status.md`and`guards-last-failure.md` reach its branch folder from the first run after this
+change merges; ci.yml's and the lanes' files move at once, from the pull request's own code.
+
 ## guards-last-failure.md (DEC-066)
 
 So a red build or guard never needs a log paste, the reporter downloads the log of

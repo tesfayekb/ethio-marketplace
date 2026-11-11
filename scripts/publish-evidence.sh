@@ -3,7 +3,7 @@
 #
 # Usage: bash scripts/publish-evidence.sh "<commit message>" <file> [<file>...]
 #   Each <file> is a path under docs/tracking/ in the current checkout and is
-#   published at the same path on ci-evidence.
+#   published on ci-evidence at the path its ref maps it to (DEC-321, below).
 #
 # Law:
 #   - Works in a separate worktree; the current checkout is never changed.
@@ -18,9 +18,21 @@
 # freshly fetched ci-evidence and before the files are copied in. It sees
 # EVIDENCE_DIR (the worktree root). ci.yml uses it to re-run the DEC-030 flake
 # pass against the published ledger, so the ledger stays append-only.
+#
+# DEC-321 (housekeeping turn 3) — evidence per ref. Every caller sets
+# EVIDENCE_REF to the ref its run tested. For `dev` each file publishes at its
+# own path; for any other ref at docs/tracking/branches/<ref>/<basename>, the
+# ref sanitised to [A-Za-z0-9._/-]; a ref with `..`, a `.` segment, a leading
+# or trailing `/`, or nothing left is refused, so no ref names a path outside
+# branches/. The flake ledger (DEC-030, append-only history) stays one file for
+# every ref. A missing or refused ref is refused like a path outside
+# docs/tracking (a ::warning::, exit 0).
+#   bash scripts/publish-evidence.sh --print-path <ref> <file>
+# prints the path a file publishes at (exit 2 when the ref is refused).
 set -u
 
 BRANCH="ci-evidence"
+LEDGER="docs/tracking/flake-ledger.md"
 SEED_FILES=(
   docs/tracking/ci-status.md
   docs/tracking/guards-last-failure.md
@@ -29,6 +41,31 @@ SEED_FILES=(
   docs/tracking/nightly-status.md
   docs/tracking/nightly-last-failure.md
 )
+
+# The path <file> publishes at for <ref>; status 1, and nothing printed, when the ref is refused.
+evidence_path() {
+  local ref=$1 file=$2 clean
+  if [ "$ref" = "dev" ] || [ "$file" = "$LEDGER" ]; then
+    printf '%s\n' "$file"
+    return 0
+  fi
+  clean=$(printf '%s' "$ref" | LC_ALL=C tr -c 'A-Za-z0-9._/-' '-')
+  case "$clean" in '' | /* | */ | *..*) return 1 ;; esac
+  case "/$clean/" in *//* | */./*) return 1 ;; esac
+  printf 'docs/tracking/branches/%s/%s\n' "$clean" "$(basename "$file")"
+}
+
+if [ "${1:-}" = "--print-path" ]; then
+  if [ "$#" -ne 3 ]; then
+    echo "usage: bash scripts/publish-evidence.sh --print-path <ref> <file>" >&2
+    exit 2
+  fi
+  evidence_path "$2" "$3" || {
+    echo "publish-evidence: refusing ref $2" >&2
+    exit 2
+  }
+  exit 0
+fi
 
 if [ "$#" -lt 2 ]; then
   echo "usage: bash scripts/publish-evidence.sh \"<commit message>\" <file> [<file>...]" >&2
@@ -45,6 +82,19 @@ for f in "${files[@]}"; do
       exit 0
       ;;
   esac
+done
+ref="${EVIDENCE_REF:-}"
+if [ -z "$ref" ]; then
+  echo "::warning::publish-evidence: refusing to publish without EVIDENCE_REF (DEC-321)"
+  exit 0
+fi
+targets=()
+for f in "${files[@]}"; do
+  if ! target="$(evidence_path "$ref" "$f")"; then
+    echo "::warning::publish-evidence: refusing ref $ref (DEC-321)"
+    exit 0
+  fi
+  targets+=("$target")
 done
 
 src_root="$(pwd)"
@@ -92,11 +142,13 @@ for attempt in 1 2 3; do
       echo "::warning::publish-evidence: prepare hook failed (attempt ${attempt}/3)"
   fi
 
-  for f in "${files[@]}"; do
+  for i in "${!files[@]}"; do
+    f="${files[$i]}"
+    t="${targets[$i]}"
     if [ -f "$src_root/$f" ]; then
-      mkdir -p "$(dirname "$EVIDENCE_DIR/$f")"
-      cp "$src_root/$f" "$EVIDENCE_DIR/$f"
-      gitw add -- "$f"
+      mkdir -p "$(dirname "$EVIDENCE_DIR/$t")"
+      cp "$src_root/$f" "$EVIDENCE_DIR/$t"
+      gitw add -- "$t"
     fi
   done
 
@@ -112,7 +164,7 @@ for attempt in 1 2 3; do
   fi
 
   if gitw push --quiet origin "HEAD:refs/heads/$BRANCH"; then
-    echo "publish-evidence: published ${files[*]} to $BRANCH."
+    echo "publish-evidence: published ${targets[*]} to $BRANCH."
     pushed=1
     break
   fi

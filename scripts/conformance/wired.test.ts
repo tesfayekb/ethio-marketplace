@@ -233,6 +233,15 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/e2e-failure-report.test.ts"), "utf8")).toContain(
       "EFR-1",
     );
+    // publish-evidence.test.ts CF-PUBLISH-1…3 (housekeeping turn 3 Part C, DEC-321) is discovered
+    // by test:unit's scripts/**/*.test.ts; ci-deadlines.test.ts CF-CID-5/6 holds every publisher
+    // call to its EVIDENCE_REF.
+    expect(readFileSync(join(ROOT, "scripts/publish-evidence.test.ts"), "utf8")).toContain(
+      "CF-PUBLISH-3",
+    );
+    expect(readFileSync(join(ROOT, "scripts/conformance/ci-deadlines.test.ts"), "utf8")).toContain(
+      "CF-CID-6",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {
