@@ -42,6 +42,15 @@ against a bare repository), and CF-CID-5/6 (every workflow step that calls the p
 `ci-status.md`and`guards-last-failure.md` reach its branch folder from the first run after this
 change merges; ci.yml's and the lanes' files move at once, from the pull request's own code.
 
+## A docs-only push (DEC-365, housekeeping turn 3)
+
+The reporter reads the log of the `Scope (docs-only push, DEC-365)` job for its
+`DEC-365 lanes: <line>` and writes `- Lanes: <line>` under the run's URL. When the line says
+`skipped — docs-only push; …` (the commit whose lanes were green and its run), the skipped
+`E2E lanes` and `First-paint bundle budget (gzipped ceiling)` rows read `skipped (docs-only)`. A
+scope log that cannot be read is written as `- Lanes: unknown — …` and the rows stay `skipped`.
+The words show from the first run after the change merges (the reporter runs dev's code).
+
 ## guards-last-failure.md (DEC-066)
 
 So a red build or guard never needs a log paste, the reporter downloads the log of

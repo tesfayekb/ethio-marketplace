@@ -1,8 +1,15 @@
 # DEC-137 self-test fixture: promote omits the `lint` job, so
 # scripts/check-promote-needs.sh must exit non-zero on this file.
+# DEC-365: promote's condition breaks every clause too — it calls success(), holds no
+# !cancelled(), does not need `scope`, does not read `build` by name, reads `e2e-lanes` as a
+# plain success and `bundle-budget` not at all; and the two skippable jobs run under other ifs.
 name: bad
 on: push
 jobs:
+  scope:
+    runs-on: ubuntu-24.04
+    steps:
+      - run: echo scope
   build:
     runs-on: ubuntu-24.04
     steps:
@@ -11,12 +18,20 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - run: echo lint
-  e2e-changed:
+  bundle-budget:
+    needs: [scope]
+    if: ${{ needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     steps:
-      - run: echo fast lane
+      - run: echo budget
+  e2e-lanes:
+    needs: [scope]
+    uses: ./.github/workflows/lanes.yml
   promote:
-    needs: [build]
+    needs: [build, bundle-budget, e2e-lanes]
+    if: >-
+      github.ref == 'refs/heads/dev' && success()
+      && needs.e2e-lanes.result == 'success'
     runs-on: ubuntu-24.04
     steps:
       - run: echo promote

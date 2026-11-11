@@ -40,6 +40,41 @@ permissions:
   contents: read
 
 jobs:
+  # DEC-365 — a push whose every changed file is a record runs no browser lane and no bundle budget
+  # when the code tree it stands on was tested green: scripts/ci/docs-only.ts decides (CF-DOCS-1…6),
+  # walking at most ten first-parent commits back from the push's base through the Actions API.
+  # `e2e-lanes`, `bundle-budget`, the verdict and `promote` read its outputs; a failed `scope` runs
+  # the lanes and blocks promotion (check-promote-needs.sh). Its `DEC-365 lanes:` log line is what
+  # the status reporter reads.
+  scope:
+    name: Scope (docs-only push, DEC-365)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      docs_only: ${{ steps.decide.outputs.docs_only }}
+      lanes: ${{ steps.decide.outputs.lanes }}
+    steps:
+      - uses: actions/checkout@v5
+        timeout-minutes: 5
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
+        with:
+          bun-version: 1.3.14
+      - name: Decide whether the lanes run
+        id: decide
+        timeout-minutes: 5
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # The push's base, or the pull request's previous head on `synchronize`; empty otherwise.
+          DOCS_ONLY_BEFORE: ${{ github.event.before }}
+          DOCS_ONLY_REF: ${{ github.head_ref || github.ref_name }}
+        run: bun scripts/ci/docs-only.ts
+
   build-and-check:
     name: Build, typecheck, lint
     runs-on: ubuntu-24.04
@@ -67,15 +102,28 @@ jobs:
         timeout-minutes: 5
         with:
           bun-version: 1.3.14
+      # DEC-365: the planted fixture breaks every clause of promote's condition; each is named.
       - name: Promote needs every job (with self-test)
         run: |
           if out="$(bash scripts/check-promote-needs.sh scripts/fixtures/ci-promote-needs-bad.yml 2>&1)"; then
             echo "::error::promote-needs self-test: the bad fixture passed"; exit 1
           fi
-          case "$out" in
-            *"does not name job 'lint'"*) echo "promote-needs self-test OK: the bad fixture was refused" ;;
-            *) echo "::error::promote-needs self-test: the bad fixture failed for another reason"; exit 1 ;;
-          esac
+          for needle in \
+            "does not name job 'lint'" \
+            "calls success()" \
+            "does not hold !cancelled()" \
+            "does not name 'scope'" \
+            "does not require needs.build.result == 'success'" \
+            "must read 'bundle-budget' only as" \
+            "must read 'e2e-lanes' only as" \
+            "job 'bundle-budget' must run under" \
+            "job 'e2e-lanes' must run under"; do
+            case "$out" in
+              *"$needle"*) ;;
+              *) echo "::error::promote-needs self-test: the bad fixture was not refused for: $needle"; exit 1 ;;
+            esac
+          done
+          echo "promote-needs self-test OK: the bad fixture was refused for each clause"
           bash scripts/check-promote-needs.sh
       # DEC-215 / D227: prove an unchecked door and stale allowance are refused.
       - name: Acceptance-doors guard self-test (DEC-215)
@@ -335,6 +383,9 @@ jobs:
 
   bundle-budget:
     name: First-paint bundle budget (gzipped ceiling)
+    # DEC-365 — skipped for a docs-only push; a failed `scope` still runs it.
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.docs_only != 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
@@ -521,6 +572,9 @@ jobs:
     # D228 / DEC-211 / DEC-218 / DEC-232 — the gating browser tests: nineteen lanes (eighteen and the repeat lane, DEC-283), each on its own
     # throwaway Supabase built from the repository's migrations; no secrets.
     # contents: write is for the lanes' summary, which publishes its evidence.
+    # DEC-365 — skipped for a docs-only push; a failed `scope` still runs them.
+    needs: [scope]
+    if: ${{ !cancelled() && needs.scope.outputs.docs_only != 'true' }}
     permissions:
       contents: write
     uses: ./.github/workflows/local-backend-proof.yml
@@ -530,7 +584,7 @@ jobs:
     # job, and downstream reads key off this exact string. It is now the MERGED
     # verdict of the nineteen temporary-backend lanes (eighteen and the repeat lane, DEC-283), the email lane included (DEC-211, DEC-218, DEC-232).
     name: E2E (Playwright, ethio-staging)
-    needs: [e2e-lanes]
+    needs: [scope, e2e-lanes]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -638,6 +692,10 @@ jobs:
           # DEC-321 — the ref this run tested; the publisher files a non-dev ref's evidence under branches/<ref>/.
           # The reporter writes it into each new flake-ledger line (the ledger stays one file).
           EVIDENCE_REF: ${{ github.head_ref || github.ref_name }}
+          # DEC-365 — the scope's line (`ran — …` or `skipped — …`) heads the evidence; when the lanes
+          # were skipped for a docs-only push the reporter writes that form and reads no sources.
+          E2E_LANES: ${{ needs.scope.outputs.lanes }}
+          E2E_DOCS_ONLY: ${{ needs.scope.outputs.docs_only == 'true' && needs.e2e-lanes.result == 'skipped' && '1' || '0' }}
         run: |
           set -u
           # The self-test runs FIRST: a reporter that only ever prints "no
@@ -685,9 +743,17 @@ jobs:
       # Law F4 — the merged job's conclusion IS the E2E verdict. A red lane
       # reddens this row; bookkeeping never masks it. INC-1101 (DEC-028): the
       # reporter's class changes the error's words only, never the exit.
+      # DEC-365: a docs-only push's skipped lanes pass, naming the commit whose lanes were green.
       - name: Verdict
+        env:
+          DOCS_ONLY: ${{ needs.scope.outputs.docs_only }}
+          LANES_LINE: ${{ needs.scope.outputs.lanes }}
         run: |
           echo "lanes=${{ needs.e2e-lanes.result }}"
+          if [ "${{ needs.e2e-lanes.result }}" = "skipped" ] && [ "$DOCS_ONLY" = "true" ]; then
+            echo "Lanes: ${LANES_LINE}"
+            exit 0
+          fi
           if [ "${{ needs.e2e-lanes.result }}" != "success" ]; then
             class=$(head -n 1 e2e-verdict-class.txt 2>/dev/null || echo TESTS)
             case "$class" in
@@ -704,15 +770,19 @@ jobs:
           echo "Every temporary-backend lane passed (the email lane included)."
 
   # DEC-020 — main advances ONLY here: a fast-forward from dev, solely on full
-  # green. `needs:` enumerates EVERY job above, and `success()` is true only
-  # when all of them succeeded (the merged `e2e` job has `if: always()`, so it
+  # green. `needs:` enumerates EVERY job above, and the condition reads each
+  # one's result by name (the merged `e2e` job has `if: always()`, so it
   # always reports a verdict; its own red already blocks promotion). Red never
   # lands on main; main is the certified-green record.
-  # scripts/check-promote-needs.sh proves every job is in the list (D228).
+  # DEC-365 — never `success()`: `e2e-lanes` and `bundle-budget` may be
+  # `skipped` only while `scope` said docs-only; `scope` itself must succeed.
+  # scripts/check-promote-needs.sh proves every job is in the list (D228) and
+  # in the condition, in exactly these forms.
   promote:
     name: Promote to main (fast-forward on green)
     needs:
       [
+        scope,
         build-and-check,
         component-tests,
         i18n-usage-map,
@@ -730,7 +800,25 @@ jobs:
         e2e-lanes,
         e2e,
       ]
-    if: github.ref == 'refs/heads/dev' && success()
+    if: >-
+      github.ref == 'refs/heads/dev' && !cancelled()
+      && needs.scope.result == 'success'
+      && needs.build-and-check.result == 'success'
+      && needs.component-tests.result == 'success'
+      && needs.i18n-usage-map.result == 'success'
+      && needs.import-gate.result == 'success'
+      && needs.secrets-scan.result == 'success'
+      && needs.migration-lint.result == 'success'
+      && needs.string-scan.result == 'success'
+      && needs.listing-write-seam.result == 'success'
+      && needs.browse-path-guard.result == 'success'
+      && needs.marketplace-weight.result == 'success'
+      && (needs.bundle-budget.result == 'success' || (needs.bundle-budget.result == 'skipped' && needs.scope.outputs.docs_only == 'true'))
+      && needs.dependency-audit.result == 'success'
+      && needs.semgrep.result == 'success'
+      && needs.e2e-preflight.result == 'success'
+      && (needs.e2e-lanes.result == 'success' || (needs.e2e-lanes.result == 'skipped' && needs.scope.outputs.docs_only == 'true'))
+      && needs.e2e.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

@@ -8,4 +8,5 @@ semgrep › Warn: the SARIF upload failed | answers the GitHub-only upload above
 dependency-audit › * | the advisory service it asks is not reachable from the sandbox; CI's verdict is the judge | 2027-04-30
 e2e-preflight › * | compares migrations with ethio-staging through the staging credentials, which the script never holds | 2027-04-30
 e2e › * | merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers | 2027-04-30
+scope › * | decides from the push's base and the Actions API (DEC-365), which exist only in a GitHub run; CF-DOCS-1…6 are its local proof | 2027-04-30
 promote › * | pushes main with the promote token; only CI promotes (DEC-020) | 2027-04-30

@@ -1395,6 +1395,8 @@ export type ReportMeta = {
   commitMessage?: string;
   /** DEC-321 — the ref the run tested (EVIDENCE_REF), written into each new flake-ledger line. */
   ref?: string;
+  /** DEC-365 — the scope job's line (`ran — …` or `skipped — …`), shown as `- Lanes:` when set. */
+  lanes?: string;
   /**
    * INC-100 — the GitHub run ATTEMPT this report describes. Re-runs used to be
    * blind: upload-artifact@v4 refused to replace attempt-1 artifacts, the
@@ -1408,6 +1410,30 @@ export type ReportMeta = {
 /** INC-100 — the attempt line every rendered report carries. */
 export function attemptLine(meta: ReportMeta): string {
   return `- Attempt: ${meta.attempt && meta.attempt.trim() !== "" ? meta.attempt.trim() : "1"}`;
+}
+
+/** DEC-365 — the scope's decision, after the attempt line; nothing when the run carried none. */
+export function lanesLines(meta: ReportMeta): string[] {
+  return meta.lanes && meta.lanes.trim() !== "" ? [`- Lanes: ${meta.lanes.trim()}`] : [];
+}
+
+/**
+ * DEC-365 — a docs-only push ran no lane: the evidence names the commit whose lanes were green and
+ * reads no sources, so a reader never mistakes the empty run for nineteen dead lanes.
+ */
+export function renderLanesSkipped(meta: ReportMeta): string {
+  return [
+    "# Last E2E failure (auto-generated — do not edit by hand)",
+    "",
+    `last E2E run ${meta.runId} ran no lanes (docs-only push, DEC-365)`,
+    "",
+    `- Run: ${meta.runUrl || meta.runId}`,
+    `- Commit: \`${meta.sha}\``,
+    attemptLine(meta),
+    `- Written (UTC): ${new Date().toISOString()}`,
+    ...lanesLines(meta),
+    "",
+  ].join("\n");
 }
 
 /** DEC-078 — at most this many flaky bodies per run; the rest are listed by title. */
@@ -1526,6 +1552,7 @@ export function renderSources(
         ]
       : []),
     attemptLine(meta),
+    ...lanesLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     // DEC-028 — the verdict line: quarantined failures are excluded from it.
@@ -1703,6 +1730,7 @@ export function renderGreen(
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
     attemptLine(meta),
+    ...lanesLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Post-test warnings: ${postTestWarnings}`,
     // DEC-078 part 2 — a green run names its flaky count and carries the sections.
@@ -1813,6 +1841,7 @@ async function main() {
     commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
     attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
     ref: process.env["EVIDENCE_REF"] ?? "",
+    lanes: process.env["E2E_LANES"] ?? "",
   };
 
   if (SELF_TEST) {
@@ -2167,6 +2196,34 @@ async function main() {
         ledgerKey(withRef) !== ledgerKey(line("2026-10-08", flake.title, run, "Timeout"))
       ) {
         console.error(`SELF-TEST FAILED — DEC-321: the ledger line's ref: ${String(withRef)}`);
+        process.exit(1);
+      }
+    }
+    // DEC-365 — the scope's line heads both forms when the run carried one, and only then; a
+    // docs-only push's form names the commit whose lanes were green and quotes no source.
+    {
+      const plain = { runId: "self-test", runUrl: "", sha: "self-test" };
+      const skippedLine =
+        "skipped — docs-only push; the code tree equals abc, whose lanes were green in run 7";
+      const ranLine = "ran — not docs-only: src/a.ts is not a record (1 of 1 paths)";
+      const skipped = renderLanesSkipped({ ...plain, lanes: skippedLine });
+      const lanesChecks: Array<[string, boolean]> = [
+        ["no line without a decision", !renderGreen(plain).includes("- Lanes:")],
+        [
+          "the green form",
+          renderGreen({ ...plain, lanes: ranLine }).includes(`- Lanes: ${ranLine}`),
+        ],
+        [
+          "the red form",
+          renderSources([], { ...plain, lanes: ranLine }).includes(`- Lanes: ${ranLine}`),
+        ],
+        ["the skipped form", skipped.includes(`- Lanes: ${skippedLine}`)],
+        ["the skipped form's headline", skipped.includes("ran no lanes (docs-only push, DEC-365)")],
+        ["no source in the skipped form", !skipped.includes("Sources without results")],
+      ];
+      const lanesFailed = lanesChecks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (lanesFailed.length > 0) {
+        console.error(`SELF-TEST FAILED — DEC-365 lanes line: ${lanesFailed.join("; ")}`);
         process.exit(1);
       }
     }
@@ -2925,6 +2982,15 @@ async function main() {
   // reporter once more with E2E_FLAKE_ONLY=1: it reads the same sources, appends
   // the flake ledger, and writes neither the evidence file nor the verdict.
   const flakeOnly = process.env["E2E_FLAKE_ONLY"] === "1";
+
+  // DEC-365 — a docs-only push skipped the lanes: no source exists, no ledger line is due.
+  if (process.env["E2E_DOCS_ONLY"] === "1") {
+    if (!flakeOnly) {
+      await Bun.write(OUT, renderLanesSkipped(meta));
+      console.log(`Wrote ${OUT} (run ${meta.runId} ran no lanes: ${meta.lanes ?? ""}).`);
+    }
+    return;
+  }
 
   // SHARDED RUNS: every source (smoke tier + six shards — DEC-029) uploads its own
   // results.json, so the reporter reads them ALL, labels each failure with its

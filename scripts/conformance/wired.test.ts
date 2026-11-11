@@ -242,6 +242,10 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/ci-deadlines.test.ts"), "utf8")).toContain(
       "CF-CID-6",
     );
+    // docs-only.test.ts CF-DOCS-1…6 (housekeeping turn 3 Part D, DEC-365) is discovered by
+    // test:unit's scripts/**/*.test.ts; ci.yml's `scope` job runs scripts/ci/docs-only.ts, and
+    // check-promote-needs.sh's planted fixture proves promote's explicit condition.
+    expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain("CF-DOCS-6");
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {
