@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
-import { inBrowserClient } from "./helpers/browser-client";
+import { pageDoor } from "./helpers/door-callers";
 import { destroyCountry } from "./helpers/countries";
 import {
   OPEN_MARKET_LS11_MS,
@@ -12,6 +12,7 @@ import {
   waitForOpenMarket,
 } from "./helpers/locations";
 import { destroyCategoryBranch, seedCategoryBranch } from "./helpers/posting";
+import { publishableKey, supabaseUrl } from "./helpers/session";
 import { totpStep } from "./helpers/totp";
 import {
   afterTotpStep,
@@ -341,18 +342,6 @@ const firstReach = () => firstProduct("reach");
 /** The first enabled level: the row a read-only test opens (P-1c). */
 const firstLevel = () => firstProduct("level");
 
-/** A door's refusal as the page's own client reads it (the UI entirely bypassed, F3). */
-async function doorError(page: Page, fn: string, args: Record<string, unknown>) {
-  return inBrowserClient(
-    page,
-    async (client, call) => {
-      const result = await client.rpc(call.fn, call.args);
-      return result.error?.message ?? null;
-    },
-    { fn, args },
-  );
-}
-
 /** The resolver's answer as the service client reads it (MON-6, MON-7). */
 async function perksFor(levelKey: string, categoryId: string, countryCode: string | null) {
   const { data, error } = await adminClient().rpc("level_perks_for", {
@@ -374,15 +363,6 @@ async function perksFor(levelKey: string, categoryId: string, countryCode: strin
     badge: read("badge"),
     seasonUntil: read("season_until"),
   };
-}
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error(`${TAG} E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.`);
-  }
-  return { url: url.replace(/\/+$/, ""), key };
 }
 
 test.describe("P-1b Admin › Monetisation", () => {
@@ -621,17 +601,19 @@ test.describe("P-1b Admin › Monetisation", () => {
     await waitForHydration(page);
     await expect(section(page), "MON-2 the reviewer saw the screen").toHaveCount(0);
     expect(
-      await doorError(page, "admin_save_listing_package", {
-        p_key: key,
-        p_kind: "level",
-        p_name_en: "Scratch",
-        p_days: 7,
-        p_enabled: true,
-        p_self_serve: true,
-        p_extends_lifetime: true,
-      }),
+      (
+        await pageDoor(page, "admin_save_listing_package", {
+          p_key: key,
+          p_kind: "level",
+          p_name_en: "Scratch",
+          p_days: 7,
+          p_enabled: true,
+          p_self_serve: true,
+          p_extends_lifetime: true,
+        })
+      ).error,
     ).toBe("permission denied");
-    expect(await doorError(page, "admin_list_monetisation", {})).toBe("denied");
+    expect((await pageDoor(page, "admin_list_monetisation", {})).error).toBe("denied");
 
     const viewer = await scratchHolder([
       ["admin_panel", "access"],
@@ -657,11 +639,13 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expect(section(page).locator("[data-testid$='-edit']")).toHaveCount(0);
     await expect(section(page).locator("[data-testid$='-more']")).toHaveCount(0);
     expect(
-      await doorError(page, "admin_save_market_settings", {
-        p_free_regular_ads: 1,
-        p_included_reach: await firstReach(),
-        p_paid_levels: false,
-      }),
+      (
+        await pageDoor(page, "admin_save_market_settings", {
+          p_free_regular_ads: 1,
+          p_included_reach: await firstReach(),
+          p_paid_levels: false,
+        })
+      ).error,
     ).toBe("permission denied");
     expect(await readProduct(key)).toBeNull();
     expect(await audits("listing_package", key, "package.saved", since)).toHaveLength(0);
@@ -836,16 +820,18 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expect(page.getByTestId(`product-${key}-override-add`)).toHaveCount(0);
     // The door refuses perks on a reach row by name (the UI never offers them).
     expect(
-      await doorError(page, "admin_save_listing_package", {
-        p_key: key,
-        p_kind: "reach",
-        p_name_en: `Scratch reach ${key}`,
-        p_days: 30,
-        p_enabled: true,
-        p_self_serve: true,
-        p_extends_lifetime: true,
-        p_max_photos: 5,
-      }),
+      (
+        await pageDoor(page, "admin_save_listing_package", {
+          p_key: key,
+          p_kind: "reach",
+          p_name_en: `Scratch reach ${key}`,
+          p_days: 30,
+          p_enabled: true,
+          p_self_serve: true,
+          p_extends_lifetime: true,
+          p_max_photos: 5,
+        })
+      ).error,
     ).toBe("perks on reach");
     expect((await readProduct(key))?.max_photos).toBeNull();
   });
@@ -1208,7 +1194,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     const since = new Date().toISOString();
     const priceId = await seedPrice(key, { amount: 4, currency });
 
-    const { url, key: anonKey } = restBase();
+    const [url, anonKey] = [supabaseUrl(), publishableKey()];
     const anon = createClient(url, anonKey, { auth: { persistSession: false } });
     const publicRows = async () => {
       const { data, error } = await anon.from("package_prices").select("id").eq("package_key", key);
@@ -1273,12 +1259,14 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await readMarket(market.code)).toBeNull();
     // The door itself refuses the same by name (the UI bypassed, F3).
     expect(
-      await doorError(page, "admin_save_market_settings", {
-        p_free_regular_ads: 2,
-        p_included_reach: reach,
-        p_paid_levels: true,
-        p_country_code: market.code,
-      }),
+      (
+        await pageDoor(page, "admin_save_market_settings", {
+          p_free_regular_ads: 2,
+          p_included_reach: reach,
+          p_paid_levels: true,
+          p_country_code: market.code,
+        })
+      ).error,
     ).toBe("launch bundle required");
     expect(await readMarket(market.code)).toBeNull();
 
@@ -1339,7 +1327,7 @@ test.describe("P-1b Admin › Monetisation", () => {
 
   test("MON-13 the browser roles read enabled products and valid prices by their own columns, never created_by or updated_by; the console rpc refuses them", async () => {
     const project = test.info().project.name;
-    const { url, key: anonKey } = restBase();
+    const [url, anonKey] = [supabaseUrl(), publishableKey()];
     const currency = await firstCurrency();
     const shown = scratchKey("pubon", project);
     const hidden = scratchKey("puboff", project);

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { type DoorCall, pageDoor } from "./helpers/door-callers";
 
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
@@ -33,38 +34,8 @@ import {
 
 const DRAFT = "/api/listings/draft";
 
-interface RpcAnswer {
-  data: unknown;
-  error: string | null;
-}
-
-/** Calls an RPC as the signed-in page's own user (the browser's seam). */
-async function rpcAsPage(
-  page: import("@playwright/test").Page,
-  fn: string,
-  args: Record<string, unknown>,
-): Promise<RpcAnswer> {
-  return page.evaluate(
-    async ({ fn, args }) => {
-      const client = (
-        window as unknown as {
-          __ethioSupabase: {
-            rpc: (
-              name: string,
-              params: Record<string, unknown>,
-            ) => Promise<{ data: unknown; error: { message: string } | null }>;
-          };
-        }
-      ).__ethioSupabase;
-      const { data, error } = await client.rpc(fn, args);
-      return { data, error: error ? error.message : null };
-    },
-    { fn, args },
-  );
-}
-
 /** The refusal of the `revise` dial: the door's exception names rateLimited. */
-function isRateRefusal(answer: RpcAnswer): boolean {
+function isRateRefusal(answer: DoorCall): boolean {
   return answer.error !== null && answer.error.includes("rateLimited");
 }
 
@@ -127,8 +98,8 @@ test.describe("POSTING DOOR DIALS", () => {
     const listingId = String(args["p_listing_id"]);
     // INC-617 — the revise dial counts in clock-hour windows: both calls in one.
     await inOneWindow(3600, 20_000, fn);
-    const first = await rpcAsPage(page, "set_listing_pin", { p_listing_id: listingId });
-    const second = await rpcAsPage(page, fn, args);
+    const first = await pageDoor(page, "set_listing_pin", { p_listing_id: listingId });
+    const second = await pageDoor(page, fn, args);
     expect(first.error, `first set_listing_pin: ${JSON.stringify(first)}`).toBeNull();
     expect(isRateRefusal(second), `second ${fn}: ${JSON.stringify(second)}`).toBe(true);
   }

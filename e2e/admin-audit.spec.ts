@@ -1,5 +1,6 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { pageDoor } from "./helpers/door-callers";
 
 import { en } from "../src/i18n/locales/en";
 
@@ -32,13 +33,6 @@ import {
  * the signed-in browser client, bypassing every piece of UI.
  */
 
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ error: { message: string } | null }>;
-};
-
 async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
   const { data: role, error: roleError } = await supabase
@@ -64,22 +58,6 @@ async function grantRole(userId: string, roleName: string) {
 function auditSurface(page: Page) {
   const width = page.viewportSize()?.width ?? 1280;
   return width < 768 ? page.getByTestId("data-table-cards") : page.getByRole("table");
-}
-
-async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return result.error?.message ?? null;
-    },
-    [fn, args] as const,
-  );
 }
 
 async function signInAsSuperAdmin(page: Page) {
@@ -333,18 +311,22 @@ test.describe("U3 audit & security", () => {
       await gotoReady(page, "/admin/audit");
       await stepUpIfPrompted(page, secret);
 
-      const self = await rpcFromBrowser(page, "begin_impersonation", {
-        p_target: user.id,
-        p_reason: "e2e self target",
-      });
+      const self = (
+        await pageDoor(page, "begin_impersonation", {
+          p_target: user.id,
+          p_reason: "e2e self target",
+        })
+      ).error;
       expect(self ?? "").toContain("cannot impersonate yourself");
 
       const other = await leaseUser();
       await grantRole(other.id, "super_admin");
-      const superTarget = await rpcFromBrowser(page, "begin_impersonation", {
-        p_target: other.id,
-        p_reason: "e2e super target",
-      });
+      const superTarget = (
+        await pageDoor(page, "begin_impersonation", {
+          p_target: other.id,
+          p_reason: "e2e super target",
+        })
+      ).error;
       expect(superTarget ?? "").toContain("cannot impersonate a super admin");
     },
   );
@@ -364,10 +346,12 @@ test.describe("U3 audit & security", () => {
       await switchUser(page, admin.email, admin.password);
       await waitForHydration(page);
       const victim = await leaseUser();
-      const refused = await rpcFromBrowser(page, "begin_impersonation", {
-        p_target: victim.id,
-        p_reason: "e2e non-super caller",
-      });
+      const refused = (
+        await pageDoor(page, "begin_impersonation", {
+          p_target: victim.id,
+          p_reason: "e2e non-super caller",
+        })
+      ).error;
       expect(refused ?? "").toContain("super-admin only");
     },
   );

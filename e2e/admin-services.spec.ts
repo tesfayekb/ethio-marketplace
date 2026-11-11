@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { pageDoor } from "./helpers/door-callers";
 
 import { en } from "../src/i18n/locales/en";
 
@@ -46,31 +47,6 @@ const SEVEN = [
 interface RpcAnswer {
   data: unknown;
   error: string | null;
-}
-
-/** Calls an RPC as the signed-in page's own user (the browser's seam). */
-async function rpcAsPage(
-  page: Page,
-  fn: string,
-  args: Record<string, unknown>,
-): Promise<RpcAnswer> {
-  return page.evaluate(
-    async ({ fn, args }) => {
-      const client = (
-        window as unknown as {
-          __ethioSupabase: {
-            rpc: (
-              name: string,
-              params: Record<string, unknown>,
-            ) => Promise<{ data: unknown; error: { message: string } | null }>;
-          };
-        }
-      ).__ethioSupabase;
-      const { data, error } = await client.rpc(fn, args);
-      return { data, error: error ? error.message : null };
-    },
-    { fn, args },
-  );
 }
 
 /** Reads a table as the signed-in page's own user. */
@@ -146,13 +122,13 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, "/");
 
-    const list = await rpcAsPage(page, "admin_ai_features", {});
+    const list = await pageDoor(page, "admin_ai_features", {});
     expect(list.error).toBe("permission denied");
     // Bundle 13 turn 14 — nor the spend by day.
-    const days = await rpcAsPage(page, "admin_ai_spend_days", { p_days: 30 });
+    const days = await pageDoor(page, "admin_ai_spend_days", { p_days: 30 });
     expect(days.error).toBe("permission denied");
 
-    const set = await rpcAsPage(page, "admin_set_ai_feature", {
+    const set = await pageDoor(page, "admin_set_ai_feature", {
       p_feature: "writing_helper",
       p_enabled: false,
       p_monthly_budget_cents: null,
@@ -161,9 +137,9 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     expect(set.error).toBe("permission denied");
 
     // The meter's doors are the service role's alone: not executable for a browser role.
-    const gate = await rpcAsPage(page, "ai_feature_gate", { p_feature: "writing_helper" });
+    const gate = await pageDoor(page, "ai_feature_gate", { p_feature: "writing_helper" });
     expect(gate.error ?? "").toContain("permission denied");
-    const spend = await rpcAsPage(page, "ai_record_spend", {
+    const spend = await pageDoor(page, "ai_record_spend", {
       p_feature: "writing_helper",
       p_units: 1,
     });
@@ -184,7 +160,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       const admin = await signInAsSuperAdmin(page);
       await gotoReady(page, "/admin");
 
-      const list = await rpcAsPage(page, "admin_ai_features", {});
+      const list = await pageDoor(page, "admin_ai_features", {});
       expect(list.error).toBeNull();
       const rows = list.data as { feature: string; unit: string; on: boolean }[];
       // The seven features, and never a test's scratch row.
@@ -194,7 +170,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
 
       const refused = async (args: Record<string, unknown>) =>
         (
-          await rpcAsPage(page, "admin_set_ai_feature", {
+          await pageDoor(page, "admin_set_ai_feature", {
             p_feature: feature,
             p_enabled: true,
             p_monthly_budget_cents: null,
@@ -208,7 +184,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       expect(await refused({ p_monthly_budget_cents: -1 })).toBe("badValue:budget");
       expect(await refused({ p_unit_cost_microusd: -1 })).toBe("badValue:unitCost");
 
-      const off = await rpcAsPage(page, "admin_set_ai_feature", {
+      const off = await pageDoor(page, "admin_set_ai_feature", {
         p_feature: feature,
         p_enabled: false,
         p_monthly_budget_cents: 500,
@@ -222,7 +198,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       expect(row.unit_cost_microusd).toBe(1234);
       expect(row.updated_by).toBe(admin.user.id);
 
-      const on = await rpcAsPage(page, "admin_set_ai_feature", {
+      const on = await pageDoor(page, "admin_set_ai_feature", {
         p_feature: feature,
         p_enabled: true,
         p_monthly_budget_cents: null,
@@ -355,7 +331,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     await signInAsSuperAdmin(page);
     await gotoReady(page, "/admin");
 
-    const answer = await rpcAsPage(page, "admin_ai_spend_days", { p_days: 30 });
+    const answer = await pageDoor(page, "admin_ai_spend_days", { p_days: 30 });
     expect(answer.error).toBeNull();
     const rows = answer.data as {
       feature: string;
@@ -378,7 +354,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     const order = rows.map((row) => row.day);
     expect(order, "SV-5: the days are not newest first").toEqual([...order].sort().reverse());
     for (const days of [0, 93]) {
-      const refused = await rpcAsPage(page, "admin_ai_spend_days", { p_days: days });
+      const refused = await pageDoor(page, "admin_ai_spend_days", { p_days: days });
       expect(refused.error, `SV-5: a ${days}-day window`).toBe("badValue:days");
     }
 

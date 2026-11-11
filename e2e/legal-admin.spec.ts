@@ -695,16 +695,8 @@ test.describe("Admin Legal", () => {
     const kind = `e2e-acc-u${person.id.replace(/-/g, "")}`;
     kinds.add(kind);
     const id = await seed(kind);
-    const url = process.env["E2E_SUPABASE_URL"];
-    const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-    if (!url || !key) throw new Error("[e2e:legal-admin] missing staging config");
     // A fresh grant, never passwordGrant's cache: last_sign_in_at must follow the seed.
-    const signedIn = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-      method: "POST",
-      headers: { apikey: key, "Content-Type": "application/json" },
-      body: JSON.stringify({ email: person.email, password: person.password }),
-    });
-    expect(signedIn.ok, "fresh password sign-in succeeds").toBe(true);
+    await passwordGrant(person.email, person.password, { fresh: true });
     const readBack = await adminClient().auth.admin.getUserById(person.id);
     fail(
       readBack.error ? { message: authErrorText(readBack.error) } : null,

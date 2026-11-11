@@ -11,11 +11,10 @@ import {
   seedCategoryBranch,
   seedSpecSet,
 } from "./helpers/posting";
-import { passwordGrant } from "./helpers/session";
+import { asAnonymous, asPerson, pageDoor } from "./helpers/door-callers";
 import { useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { levelAboveBaseline, seedListingRow, updateListingRow } from "./helpers/listing-seed";
-import { errorText } from "../src/lib/error-text";
 import { doorRefusal } from "./helpers/door-answer";
 
 /**
@@ -38,86 +37,7 @@ import { doorRefusal } from "./helpers/door-answer";
  * the service client. No test writes the global listing_policy row.
  */
 
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
-};
-
 type Row = Record<string, unknown>;
-
-async function clientReady(page: Page) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-}
-
-/** A door called as the page's signed-in person: its data and its error. */
-async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) {
-  await clientReady(page);
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return { data: result.data, error: result.error?.message ?? null };
-    },
-    [fn, args] as const,
-  );
-}
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:ml] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-async function answerOf(response: Response) {
-  const text = await response.text();
-  const body: unknown = text === "" ? null : JSON.parse(text);
-  if (!response.ok) {
-    const message =
-      body !== null && typeof body === "object" && "message" in body
-        ? errorText(body)
-        : `HTTP ${response.status}`;
-    return { data: null as unknown, error: message as string | null };
-  }
-  return { data: body, error: null as string | null };
-}
-
-/** A signed-in person from node: the door's data and its error, as the browser client reads them. */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown>) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-    rest: async (path: string, init: { method?: string; body?: unknown } = {}) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/${path}`, {
-          method: init.method ?? "GET",
-          headers,
-          ...(init.body === undefined ? {} : { body: JSON.stringify(init.body) }),
-        }),
-      ),
-  };
-}
 
 /** Letters only: a scratch name the contact-in-text rule never reads as a number. */
 function token(): string {
@@ -776,7 +696,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     const { user } = await useJobSuperAdmin(page);
     const note = "The title named the wrong item.";
-    const staffEdit = await rpcResult(page, "admin_edit_listing", {
+    const staffEdit = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: h.id,
       p_changes: { title: `Corrected listing ${token()}` },
       p_reason: "misleading",
@@ -840,12 +760,9 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     });
     expect(patched.error).not.toBeNull();
 
-    const { url, key } = restBase();
-    const anonymous = await answerOf(
-      await fetch(`${url}/rest/v1/listing_policy?select=renew_allowed,renew_days`, {
-        headers: { apikey: key },
-      }),
-    );
+    const anonymous = await (
+      await asAnonymous()
+    ).rest("listing_policy?select=renew_allowed,renew_days");
     expect(anonymous.error).not.toBeNull();
     expect(anonymous.data).toBeNull();
 
@@ -870,7 +787,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       [true, 366],
       [null, 30],
     ] as const) {
-      const refused = await rpcResult(page, "admin_set_listing_policy", {
+      const refused = await pageDoor(page, "admin_set_listing_policy", {
         p_renew_allowed: allowed,
         p_renew_days: n,
       });

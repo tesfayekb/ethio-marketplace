@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { expect, test } from "./fixtures";
 
 import { grantRole } from "./helpers/categories";
-import { passwordGrant, storageKey } from "./helpers/session";
+import { storageKey } from "./helpers/session";
+import { asAnonymous, asBearer, asPerson } from "./helpers/door-callers";
 import { useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { errorText } from "../src/lib/error-text";
@@ -33,65 +34,6 @@ import { errorText } from "../src/lib/error-text";
 
 type Row = Record<string, unknown>;
 
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:legal] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-async function answerOf(response: Response) {
-  const text = await response.text();
-  const body: unknown = text === "" ? null : JSON.parse(text);
-  if (!response.ok) {
-    const message =
-      body !== null && typeof body === "object" && "message" in body
-        ? errorText(body)
-        : `HTTP ${response.status}`;
-    return { data: null as unknown, error: message as string | null };
-  }
-  return { data: body, error: null as string | null };
-}
-
-/** An RPC caller for one person (the my-listings-page pattern). */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown> = {}) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-    userId: String((session.user as Row)["id"]),
-  };
-}
-
-/** An anonymous RPC caller (the in-force texts are public). */
-async function asAnon() {
-  const { url, key } = restBase();
-  return {
-    rpc: async (fn: string, args: Record<string, unknown> = {}) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers: { apikey: key, "Content-Type": "application/json" },
-          body: JSON.stringify(args),
-        }),
-      ),
-  };
-}
-
 /** The aal2 token `useJobSuperAdmin` just injected, for node-side RPC calls. */
 async function superAdminToken(page: Parameters<typeof useJobSuperAdmin>[0]): Promise<string> {
   const raw = await page.evaluate((key) => window.localStorage.getItem(key), storageKey());
@@ -100,24 +42,6 @@ async function superAdminToken(page: Parameters<typeof useJobSuperAdmin>[0]): Pr
   const token = parsed["access_token"];
   if (typeof token !== "string") throw new Error("[e2e:legal] injected session carries no token.");
   return token;
-}
-
-async function asToken(token: string) {
-  const { url, key } = restBase();
-  return {
-    rpc: async (fn: string, args: Record<string, unknown> = {}) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers: {
-            apikey: key,
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(args),
-        }),
-      ),
-  };
 }
 
 /** The pooled super admin's credentials (its aal1 grant = a stale second factor at the server). */
@@ -309,7 +233,7 @@ test.describe("Legal doors", () => {
       throw new Error(`[e2e:legal] future version seed: ${future.error?.message}`);
     fixture.draftId = future.data.id as string;
 
-    const anon = await asAnon();
+    const anon = await asAnonymous();
     const globalAnswer = await anon.rpc("legal_in_force", { p_kind: kind });
     expect(globalAnswer.error, "global in-force read").toBeNull();
     const body = globalAnswer.data as Row;
@@ -379,7 +303,7 @@ test.describe("Legal doors", () => {
 
     // The permitted caller: pooled super admin with a fresh second factor (useJobSuperAdmin).
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
 
     // Content refusals, each named by its code (D5).
     const noAmharic = await staff.rpc("admin_save_legal_draft", { ...save, p_body_am: null });
@@ -469,7 +393,7 @@ test.describe("Legal doors", () => {
 
     // The save door updates the one draft; discard removes it and refuses a published row.
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const made = await staff.rpc("admin_save_legal_draft", {
       p_kind: kind,
       p_country: null,
@@ -608,27 +532,22 @@ test.describe("Legal doors", () => {
     expect(notApplicable.error).toContain("notApplicable");
 
     // Direct INSERT is refused by RLS — for the caller's own id and for another's.
-    const { url, key } = restBase();
-    const session = await passwordGrant(person.email, person.password);
+    const direct = await asPerson(person);
     for (const target of [person.id, fixture.documentId]) {
-      const insert = await fetch(`${url}/rest/v1/legal_acceptances`, {
+      const insert = await direct.rest("legal_acceptances", {
         method: "POST",
-        headers: {
-          apikey: key,
-          Authorization: `Bearer ${session.access_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           user_id: target,
           version_id: fixture.publishedId,
           language: "en",
           method: "email",
           adult_confirmed: true,
-        }),
+        },
       });
-      expect(insert.ok, `a direct insert as ${target === person.id ? "self" : "another"}`).toBe(
-        false,
-      );
+      expect(
+        insert.error,
+        `a direct insert as ${target === person.id ? "self" : "another"}`,
+      ).not.toBeNull();
     }
   });
 
@@ -774,7 +693,7 @@ test.describe("Legal doors", () => {
       throw new Error(`[e2e:legal] settings read: ${before.error?.message}`);
 
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const read = await staff.rpc("admin_legal_settings");
     expect(read.error).toBeNull();
     expect((read.data as Row)["operator_name"], "the seeded row").toBe("Ethio.com LLC");
@@ -877,7 +796,7 @@ test.describe("Legal doors", () => {
     expect(refused.error, "record_legal_notice is service-only").toContain("permission denied");
 
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const history = await staff.rpc("admin_user_legal_history", { p_user_id: person.id });
     expect(history.error).toBeNull();
     const h = history.data as Row;
@@ -1016,7 +935,7 @@ test.describe("Legal doors", () => {
     }
 
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const version = await staff.rpc("admin_legal_version", {
       p_version_id: fixture.publishedId,
     });
@@ -1042,7 +961,7 @@ test.describe("Legal doors", () => {
     const fixture = await seedFixture(kind, null);
     const person = await leaseUser();
     const job = await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const saved = await staff.rpc("admin_save_legal_draft", {
       p_kind: kind,
       p_country: null,
@@ -1129,7 +1048,7 @@ test.describe("Legal doors", () => {
     const own = await caller.rpc("my_legal_history");
     expect(own.error).toBeNull();
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const staffHistory = await staff.rpc("admin_user_legal_history", { p_user_id: person.id });
     expect(staffHistory.error).toBeNull();
     for (const [who, answer] of [
@@ -1173,7 +1092,7 @@ test.describe("Legal doors", () => {
     if (ahead.error || !ahead.data) throw new Error(`[e2e:legal] v2 seed: ${ahead.error?.message}`);
     fixture.draftId = ahead.data.id as string;
 
-    const anon = await asAnon();
+    const anon = await asAnonymous();
     const inForce = await anon.rpc("legal_in_force", { p_kind: kind });
     expect(inForce.error).toBeNull();
     const now = inForce.data as Row;
@@ -1212,7 +1131,7 @@ test.describe("Legal doors", () => {
     if (before.error || !before.data)
       throw new Error(`[e2e:legal] settings read: ${before.error?.message}`);
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const cases: [string, unknown][] = [
       ["legal_phone", "abc"],
       ["security_email", "nope"],
@@ -1250,7 +1169,7 @@ test.describe("Legal doors", () => {
     const kind = `${RUN_TAG}-n`;
     const fixture = await seedFixture(kind, null);
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     const saved = await staff.rpc("admin_save_legal_draft", {
       p_kind: kind,
       p_country: null,
@@ -1355,7 +1274,7 @@ test.describe("Legal doors", () => {
       expect(accepted.error).toBeNull();
     }
     const args = { p_version_id: fixture.publishedId };
-    const anon = await asAnon();
+    const anon = await asAnonymous();
     for (const caller of [anon, plainCaller, adminCaller]) {
       expect((await caller.rpc("admin_export_legal_acceptances", args)).error).toContain(
         "permission denied",
@@ -1366,7 +1285,7 @@ test.describe("Legal doors", () => {
     expect(staleAnswer.error).not.toBeNull();
     expect(staleAnswer.error).not.toContain("permission denied");
     await useJobSuperAdmin(page);
-    const staff = await asToken(await superAdminToken(page));
+    const staff = asBearer(await superAdminToken(page));
     for (const limit of [0, 5001]) {
       expect(
         (await staff.rpc("admin_export_legal_acceptances", { ...args, p_limit: limit })).error,

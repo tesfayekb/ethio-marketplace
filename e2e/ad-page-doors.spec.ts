@@ -1,11 +1,10 @@
 import { expect, test } from "./fixtures";
 import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
-import { passwordGrant } from "./helpers/session";
+import { asAnonymous, asPerson } from "./helpers/door-callers";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 import { updateListingRow } from "./helpers/listing-seed";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { errorText } from "../src/lib/error-text";
 import { doorAnswer, doorRefusal } from "./helpers/door-answer";
 
 /**
@@ -29,83 +28,6 @@ import { doorAnswer, doorRefusal } from "./helpers/door-answer";
  */
 
 type Row = Record<string, unknown>;
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:ap] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-async function answerOf(response: Response) {
-  const text = await response.text();
-  const body: unknown = text === "" ? null : JSON.parse(text);
-  if (!response.ok) {
-    const message =
-      body !== null && typeof body === "object" && "message" in body
-        ? errorText(body)
-        : `HTTP ${response.status}`;
-    return { data: null as unknown, error: message as string | null };
-  }
-  return { data: body, error: null as string | null };
-}
-
-/** A signed-in person from node: the door's data and its error, as the browser client reads them. */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown>) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-    rest: async (path: string) => answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
-    insert: async (path: string, body: Record<string, unknown>) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/${path}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(body),
-        }),
-      ),
-  };
-}
-
-/** An anonymous caller: the publishable key and no bearer. */
-async function asAnonymous() {
-  const { url, key } = restBase();
-  const headers = { apikey: key, "Content-Type": "application/json" };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown>) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-    rest: async (path: string) => answerOf(await fetch(`${url}/rest/v1/${path}`, { headers })),
-    insert: async (path: string, body: Record<string, unknown>) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/${path}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(body),
-        }),
-      ),
-  };
-}
 
 test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
   const { scratchSeller, seed, publicIdOf, cleanup, listingIds, rateTokens } = adPageFixtures();
@@ -838,14 +760,14 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       .eq("user_id", buyerPerson.id);
     expect(truth.error).toBeNull();
     expect(truth.data!.length).toBeGreaterThan(0);
-    const anonInsert = await anonymous.insert("saved_listings", {
-      user_id: buyerPerson.id,
-      listing_id: adA.id,
+    const anonInsert = await anonymous.rest("saved_listings", {
+      method: "POST",
+      body: { user_id: buyerPerson.id, listing_id: adA.id },
     });
     expect(anonInsert.error).not.toBeNull();
-    const buyerInsert = await buyer.insert("saved_listings", {
-      user_id: buyerPerson.id,
-      listing_id: adB.id,
+    const buyerInsert = await buyer.rest("saved_listings", {
+      method: "POST",
+      body: { user_id: buyerPerson.id, listing_id: adB.id },
     });
     expect(buyerInsert.error).not.toBeNull();
 
@@ -1054,10 +976,9 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       expect(
         anonRows.error !== null || (Array.isArray(anonRows.data) && anonRows.data.length === 0),
       ).toBe(true);
-      const insert = await x.insert("listing_reports", {
-        reporter_id: xPerson.id,
-        listing_id: ad.id,
-        reason: "other",
+      const insert = await x.rest("listing_reports", {
+        method: "POST",
+        body: { reporter_id: xPerson.id, listing_id: ad.id, reason: "other" },
       });
       expect(insert.error).toContain("permission denied");
       expect((await x.rpc("admin_listing_reports", { p_listing_id: ad.id })).error).toContain(

@@ -1,5 +1,4 @@
 import { type Page } from "@playwright/test";
-import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
@@ -14,9 +13,9 @@ import {
   userRow,
   waitForHydration,
 } from "./helpers/ui";
-import { inBrowserClient } from "./helpers/browser-client";
+import { pageDoor } from "./helpers/door-callers";
 import { adminClient, createUser, leaseUser, releaseStaleScratchAlias } from "./helpers/users";
-import { injectSession, passwordGrant } from "./helpers/session";
+import { bearerClient, injectSession, passwordGrant } from "./helpers/session";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -41,27 +40,6 @@ async function grantRole(userId: string, roleName: string) {
     .from("user_roles")
     .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
   if (error) throw new Error(`[e2e:u1] granting ${roleName} failed: ${error.message}`);
-}
-
-/** D189 — a client that speaks with one account's own bearer, no browser session. */
-function bearerClient(token: string) {
-  const url = process.env["E2E_SUPABASE_URL"] ?? "";
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-}
-
-async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
-  return inBrowserClient(
-    page,
-    async (client, [name, payload]) => {
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return result.error?.message ?? null;
-    },
-    [fn, args] as const,
-  );
 }
 
 /**
@@ -384,11 +362,13 @@ test.describe("U1 admin users", () => {
 
     await switchUser(page, base.email, base.password);
     await gotoReady(page, "/");
-    const message = await rpcFromBrowser(page, "admin_set_account_status", {
-      p_user_id: victim.id,
-      p_status: "deactivated",
-      p_reason: "should never work",
-    });
+    const message = (
+      await pageDoor(page, "admin_set_account_status", {
+        p_user_id: victim.id,
+        p_status: "deactivated",
+        p_reason: "should never work",
+      })
+    ).error;
     expect(message ?? "").toContain("permission denied");
   });
   test("AU-9 edit: staff edits display name and alias, activity records it", async ({ page }) => {

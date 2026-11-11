@@ -4,6 +4,7 @@ import { type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
+import { pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
@@ -41,53 +42,6 @@ import { levelNameFor } from "./helpers/level-overrides";
  * (SC-19). Seeded as feed-route seeds; every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
-
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ error: { message: string } | null }>;
-};
-
-async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return result.error?.message ?? null;
-    },
-    [fn, args] as const,
-  );
-}
-
-type RpcDataClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
-};
-
-/** Bundle 11 A1 — a door called as the page's signed-in person: its data and its error. */
-async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcDataClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return { data: result.data, error: result.error?.message ?? null };
-    },
-    [fn, args] as const,
-  );
-}
 
 /**
  * P-2 (c) c2a — a level row's English name, which the console's picks, notices and badge draw
@@ -367,10 +321,12 @@ test.describe("ADMIN SCREENING", () => {
     const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await gotoReady(page, "/");
-    const deniedPlain = await rpcFromBrowser(page, "transition_listing", {
-      p_listing_id: ad.id,
-      p_new_status: "active",
-    });
+    const deniedPlain = (
+      await pageDoor(page, "transition_listing", {
+        p_listing_id: ad.id,
+        p_new_status: "active",
+      })
+    ).error;
     expect(deniedPlain).not.toBeNull();
     expect((await listingTruth(ad.id)).status).toBe("screening");
   });
@@ -406,10 +362,12 @@ test.describe("ADMIN SCREENING", () => {
     if (assigned.error) throw new Error(`SC-16 assignment failed: ${assigned.error.message}`);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
-    const deniedReviewer = await rpcFromBrowser(page, "transition_listing", {
-      p_listing_id: ad.id,
-      p_new_status: "active",
-    });
+    const deniedReviewer = (
+      await pageDoor(page, "transition_listing", {
+        p_listing_id: ad.id,
+        p_new_status: "active",
+      })
+    ).error;
     expect(deniedReviewer).toMatch(/no verified factor|step-up required/i);
     expect((await listingTruth(ad.id)).status).toBe("screening");
   });
@@ -455,7 +413,7 @@ test.describe("ADMIN SCREENING", () => {
   }) => {
     const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
     await useJobSuperAdmin(page);
-    const { data, error } = await rpcResult(page, "admin_screening_facts", {
+    const { data, error } = await pageDoor(page, "admin_screening_facts", {
       p_listing_id: ad.id,
     });
     expect(error, "SC-7: the reviewer was refused").toBeNull();
@@ -491,9 +449,9 @@ test.describe("ADMIN SCREENING", () => {
     const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await gotoReady(page, "/");
-    const facts = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    const facts = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(facts.error).toBe("permission denied");
-    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+    const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
@@ -510,9 +468,9 @@ test.describe("ADMIN SCREENING", () => {
     const reviewer = await scratchHolder([["listings", "review"]]);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
-    const read = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    const read = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(read.error, "SC-17: a reviewer reads the facts without a second factor").toBeNull();
-    const revealed = await rpcResult(page, "admin_reveal_listing_contact", {
+    const revealed = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
@@ -528,7 +486,7 @@ test.describe("ADMIN SCREENING", () => {
   }) => {
     const ad = await seedWaiting({ contactPref: PREF });
     const { user } = await useJobSuperAdmin(page);
-    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+    const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "whatsapp",
     });
@@ -542,13 +500,13 @@ test.describe("ADMIN SCREENING", () => {
       meta: { channel: "whatsapp" },
     });
 
-    const hidden = await rpcResult(page, "admin_reveal_listing_contact", {
+    const hidden = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone2",
     });
     expect(hidden.error).toBeNull();
     expect(hidden.data).toEqual({ ok: false, reason: "notShown" });
-    const handle = await rpcResult(page, "admin_reveal_listing_contact", {
+    const handle = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "telegram",
     });
@@ -559,9 +517,9 @@ test.describe("ADMIN SCREENING", () => {
   test("SC-10 an ad that is not waiting for review answers neither door", async ({ page }) => {
     const ad = await seedWaiting({ contactPref: PREF, status: "active" });
     await useJobSuperAdmin(page);
-    const facts = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    const facts = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(facts.error).toBe("listing not found");
-    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+    const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });

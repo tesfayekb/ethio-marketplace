@@ -16,11 +16,11 @@ import {
   seedPostableCategory,
   statusOf,
 } from "./helpers/posting";
-import { anonRpc, passwordGrant } from "./helpers/session";
+import { anonRpc } from "./helpers/session";
+import { asAnonymous, asPerson } from "./helpers/door-callers";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { levelAboveBaseline, updateListingRow } from "./helpers/listing-seed";
-import { errorText } from "../src/lib/error-text";
 import { doorAnswer } from "./helpers/door-answer";
 
 /**
@@ -36,49 +36,6 @@ import { doorAnswer } from "./helpers/door-answer";
 type Row = Record<string, unknown>;
 const DRAFT = "/api/listings/draft";
 const PUBLISH = "/api/listings/publish";
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:certify] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-async function answerOf(response: Response) {
-  const text = await response.text();
-  const body: unknown = text === "" ? null : JSON.parse(text);
-  if (!response.ok) {
-    const message =
-      body !== null && typeof body === "object" && "message" in body
-        ? errorText(body)
-        : `HTTP ${response.status}`;
-    return { data: null as unknown, error: message as string | null };
-  }
-  return { data: body, error: null as string | null };
-}
-
-/** An RPC caller for one person (the legal-doors pattern). */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown> = {}) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-  };
-}
 
 const hex = (listingId: string) => listingId.replaceAll("-", "");
 
@@ -887,15 +844,8 @@ test.describe("Legal certification", () => {
       throw new Error(`[e2e:certify] sold setting read: ${settings.error?.message}`);
     const days = settings.data.sold_visible_days;
     expect(Number.isInteger(days) && days >= 1 && days <= 365).toBe(true);
-    const { url, key } = restBase();
-    const anonRead = async (fn: string, args: Record<string, unknown> = {}) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers: { apikey: key, "Content-Type": "application/json" },
-          body: JSON.stringify(args),
-        }),
-      );
+    const anonymous = await asAnonymous();
+    const anonRead = (fn: string, args: Record<string, unknown> = {}) => anonymous.rpc(fn, args);
     const settingAnswer = await anonRead("sold_visible_days");
     expect(settingAnswer.error).toBeNull();
     expect(settingAnswer.data).toBe(days);

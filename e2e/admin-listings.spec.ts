@@ -13,7 +13,7 @@ import {
   seedCategoryBranch,
   seedSpecSet,
 } from "./helpers/posting";
-import { passwordGrant } from "./helpers/session";
+import { asPerson, pageDoor } from "./helpers/door-callers";
 import { totpStep } from "./helpers/totp";
 import {
   afterTotpStep,
@@ -28,7 +28,6 @@ import {
 import { adminClient, leaseUser, createUser } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 import { levelNameFor } from "./helpers/level-overrides";
-import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 11, the Listings console, turn L1 (D134, D136, D137) — THE CONSOLE'S DOORS (AL-1..AL-9).
@@ -48,90 +47,6 @@ import { errorText } from "../src/lib/error-text";
  * AL-3 signed four people into the browser, ran past its 60 s budget, and its
  * afterEach reaped the rows the abandoned body was still using.
  */
-
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
-};
-
-async function clientReady(page: Page) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-}
-
-/** A door called as the page's signed-in person: its data and its error. */
-async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) {
-  await clientReady(page);
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return { data: result.data, error: result.error?.message ?? null };
-    },
-    [fn, args] as const,
-  );
-}
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:al] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-/** A signed-in person from node: the door's data and its error, as the browser client reads them. */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  const answer = async (response: Response) => {
-    const text = await response.text();
-    const body: unknown = text === "" ? null : JSON.parse(text);
-    if (!response.ok) {
-      const message =
-        body !== null && typeof body === "object" && "message" in body
-          ? errorText(body)
-          : `HTTP ${response.status}`;
-      return { data: null as unknown, error: message as string | null };
-    }
-    return { data: body, error: null as string | null };
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown>) =>
-      answer(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-    notices: async (listingId: string) =>
-      answer(
-        await fetch(`${url}/rest/v1/seller_notices?select=kind,reason&listing_id=eq.${listingId}`, {
-          headers,
-        }),
-      ),
-    insertNotice: async (row: Record<string, unknown>) =>
-      answer(
-        await fetch(`${url}/rest/v1/seller_notices`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(row),
-        }),
-      ),
-  };
-}
 
 /** Letters only: a scratch name the contact-in-text rule never reads as a number. */
 function token(): string {
@@ -329,7 +244,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }
 
   const list = (page: Page, args: Record<string, unknown>) =>
-    rpcResult(page, "admin_list_listings", args);
+    pageDoor(page, "admin_list_listings", args);
 
   test("AL-1 All listings: listings:view reads every listing but drafts; the e-mail only with profiles:view", async ({
     page,
@@ -479,7 +394,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const draft = await seed(seller, "draft");
     const removed = await seed(seller, "removed");
     const edit = (id: string, changes: Row, reason = "misleading", note?: string) =>
-      rpcResult(page, "admin_edit_listing", {
+      pageDoor(page, "admin_edit_listing", {
         p_listing_id: id,
         p_changes: changes,
         p_reason: reason,
@@ -513,7 +428,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const target = await seed(seller, "active");
     const { user } = await useJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
-    const result = await rpcResult(page, "admin_edit_listing", {
+    const result = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -573,7 +488,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       throw new Error(`[e2e:al-4] notice country read failed: ${noticeCountry.error.message}`);
     expect(noticeCountry.data.home_country_code).toBe(sellerDirectory.data.home_country_code);
     // The same values again change nothing and write nothing.
-    const again = await rpcResult(page, "admin_edit_listing", {
+    const again = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -598,7 +513,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(sellerRefusals).toContainEqual({ field: "title", reason: "contactInText" });
 
     await useJobSuperAdmin(page);
-    const asAdmin = await rpcResult(page, "admin_edit_listing", {
+    const asAdmin = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -637,7 +552,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     if (covered.error) throw new Error(`[e2e:al] cover failed: ${covered.error.message}`);
 
     await useJobSuperAdmin(page);
-    const result = await rpcResult(page, "admin_edit_listing", {
+    const result = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { remove_photos: [first!.id] },
       p_reason: "photo",
@@ -658,7 +573,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       [first!.id, first!.storage_path],
     ]);
     expect(
-      await rpcResult(page, "admin_edit_listing", {
+      await pageDoor(page, "admin_edit_listing", {
         p_listing_id: target.id,
         p_changes: { remove_photos: [first!.id] },
         p_reason: "photo",
@@ -673,7 +588,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const target = await seed(seller, "active");
     const { user } = await useJobSuperAdmin(page);
     const move = (to: string, reason: string) =>
-      rpcResult(page, "admin_move_listing", {
+      pageDoor(page, "admin_move_listing", {
         p_listing_id: target.id,
         p_to: to,
         p_reason: reason,
@@ -718,7 +633,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const plainRemoved = await seed(seller, "removed");
     const severe = await seed(seller, "removed", { screening: { severe: true } });
     const restore = (id: string) =>
-      rpcResult(page, "admin_move_listing", {
+      pageDoor(page, "admin_move_listing", {
         p_listing_id: id,
         p_to: "screening",
         p_reason: "appeal_accepted",
@@ -762,7 +677,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
 
     await useJobSuperAdmin(page);
     const sendBack = (id: string) =>
-      rpcResult(page, "admin_move_listing", {
+      pageDoor(page, "admin_move_listing", {
         p_listing_id: id,
         p_to: "screening",
         p_reason: "wrong_category",
@@ -774,22 +689,26 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     expect((await sendBack(sold.id)).error).toBe("illegal move: sold -> screening");
 
+    const notices = `seller_notices?select=kind,reason&listing_id=eq.${live.id}`;
     const owner = await asPerson(seller);
-    expect(await owner.notices(live.id)).toEqual({
+    expect(await owner.rest(notices)).toEqual({
       data: [{ kind: "admin_send_back", reason: "wrong_category" }],
       error: null,
     });
-    const forged = await owner.insertNotice({
-      seller_id: seller.id,
-      listing_id: live.id,
-      kind: "admin_edit",
-      reason: "other",
-      note: "forged",
+    const forged = await owner.rest("seller_notices", {
+      method: "POST",
+      body: {
+        seller_id: seller.id,
+        listing_id: live.id,
+        kind: "admin_edit",
+        reason: "other",
+        note: "forged",
+      },
     });
     expect(forged.error).not.toBeNull();
 
     const other = await asPerson(await leaseUser());
-    expect(await other.notices(live.id)).toEqual({ data: [], error: null });
+    expect(await other.rest(notices)).toEqual({ data: [], error: null });
     expect(await noticeRows(live.id)).toHaveLength(1);
   });
 
@@ -1208,13 +1127,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     }
 
     await useJobSuperAdmin(page);
-    const removed = await rpcResult(page, "admin_move_listing", {
+    const removed = await pageDoor(page, "admin_move_listing", {
       p_listing_id: live.id,
       p_to: "removed",
       p_reason: "misleading",
     });
     expect(removed.error).toBeNull();
-    const full = (await rpcResult(page, "admin_listing_detail", { p_listing_id: live.id }))
+    const full = (await pageDoor(page, "admin_listing_detail", { p_listing_id: live.id }))
       .data as Row;
     expect((full["seller"] as Row)["email"]).toBe(seller.email);
     const latest = (full["history"] as Row[])[0];
@@ -1376,7 +1295,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
 
     await useJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
-    const first = await rpcResult(page, "admin_edit_listing", {
+    const first = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: soon.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -1390,7 +1309,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .update({ is_active: false })
       .eq("id", seller.cityId);
     if (off.error) throw new Error(`[e2e:al] switching the place off failed: ${off.error.message}`);
-    const second = await rpcResult(page, "admin_edit_listing", {
+    const second = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: placed.id,
       p_changes: { description: "Corrected by the console" },
       p_reason: "rules",
@@ -1399,7 +1318,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(second.data).toEqual({ ok: true, status: "active", fields: ["description"] });
 
     // The seller's content rules still judge what the admin changes.
-    const third = await rpcResult(page, "admin_edit_listing", {
+    const third = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: soon.id,
       p_changes: { title: "Call me on 0911 223 344" },
       p_reason: "misleading",
@@ -1749,13 +1668,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const live = await seed(seller, "active");
     await useJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
-    const first = await rpcResult(page, "admin_edit_listing", {
+    const first = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
       p_changes: { title },
       p_reason: "misleading",
     });
     expect(first.error).toBeNull();
-    const second = await rpcResult(page, "admin_edit_listing", {
+    const second = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
       p_changes: { price_amount: 120 },
       p_reason: "rules",
@@ -1834,11 +1753,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const live = await seed(seller, "active");
     await useJobSuperAdmin(page);
     const undo = (listingId: string, at: string) =>
-      rpcResult(page, "admin_undo_listing_edit", { p_listing_id: listingId, p_at: at });
+      pageDoor(page, "admin_undo_listing_edit", { p_listing_id: listingId, p_at: at });
 
     // Nothing to undo yet; "undo" is not an edit reason; nothing is written.
     expect((await undo(live.id, new Date().toISOString())).error).toBe("nothing to undo");
-    const asReason = await rpcResult(page, "admin_edit_listing", {
+    const asReason = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
       p_changes: { title: `Corrected listing ${token()}` },
       p_reason: "undo",
@@ -1850,7 +1769,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const title = `Corrected listing ${token()}`;
     expect(
       (
-        await rpcResult(page, "admin_edit_listing", {
+        await pageDoor(page, "admin_edit_listing", {
           p_listing_id: live.id,
           p_changes: { title },
           p_reason: "misleading",
@@ -1906,7 +1825,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     if (phone.error) throw new Error(`[e2e:al] title seed failed: ${phone.error.message}`);
     expect(
       (
-        await rpcResult(page, "admin_edit_listing", {
+        await pageDoor(page, "admin_edit_listing", {
           p_listing_id: phoned.id,
           p_changes: { title: `Corrected listing ${token()}` },
           p_reason: "contact_in_text",
@@ -2088,7 +2007,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // Staff's door.
     await useJobSuperAdmin(page);
     expect(
-      await rpcResult(page, "admin_edit_listing", {
+      await pageDoor(page, "admin_edit_listing", {
         p_listing_id: live.id,
         p_changes: { category_id: other.leaf.id },
         p_reason: "misleading",
@@ -2418,7 +2337,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
 
     // The door's own refusal for a removed ad, as the same signed-in super admin.
-    const refused = await rpcResult(page, "admin_set_listing_tier", {
+    const refused = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: gone.id,
       p_tier: "premium",
       p_reason: "promotion",
@@ -2445,7 +2364,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ["listings", "review"],
     ]);
     await signInViaSession(page, reviewer.email, reviewer.password);
-    const denied = await rpcResult(page, "admin_set_listing_tier", {
+    const denied = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
       p_tier: "premium",
       p_reason: "promotion",
@@ -2471,7 +2390,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ["listings", "enforce"],
     ]);
     await signInViaSession(page, enforcer.email, enforcer.password);
-    const asked = await rpcResult(page, "admin_set_listing_tier", {
+    const asked = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
       p_tier: "premium",
       p_reason: "promotion",
@@ -2494,7 +2413,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       timeout: 20000,
     });
 
-    const deleted = await rpcResult(page, "transition_listing", {
+    const deleted = await pageDoor(page, "transition_listing", {
       p_listing_id: premium.id,
       p_new_status: "removed",
     });
@@ -2505,7 +2424,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(gone?.["deleted_at"]).not.toBeNull();
     expect(await feedRanks(premium.id)).toEqual([]);
 
-    const sale = await rpcResult(page, "transition_listing", {
+    const sale = await pageDoor(page, "transition_listing", {
       p_listing_id: sold.id,
       p_new_status: "sold",
     });
@@ -2630,7 +2549,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId(`listing-actions-${ad.id}-more-tier`)).toHaveCount(0);
     await page.keyboard.press("Escape");
 
-    const denied = await rpcResult(page, "admin_set_listing_tier", {
+    const denied = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
       p_tier: "premium",
       p_reason: "promotion",
