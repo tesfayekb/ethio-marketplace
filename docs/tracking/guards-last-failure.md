@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43116753764
-- Commit: `a10a525a665c06b03f74ae2244bfff1bf846d6a3`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43120433214
+- Commit: `62382440fe9536a7d7a2301efd0574de9e321345`
 - Attempt: 1
-- Written (UTC): 2026-11-11T23:27:11.249Z
+- Written (UTC): 2026-11-11T23:52:30.785Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -66,7 +66,7 @@ publish-evidence: published docs/tracking/branches/cursor/housekeeping/e2e-last-
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — not docs-only: .github/workflows/ci-status-report.yml is not a record (40 of 48 paths; diff base 8511aeed96f5ca9c2cba453176ab4b6fbe757a85, push base 8511aeed96f5ca9c2cba453176ab4b6fbe757a85)
+  LANES_LINE: ran — not docs-only: .github/workflows/ci-status-report.yml is not a record (40 of 49 paths; diff base 8511aeed96f5ca9c2cba453176ab4b6fbe757a85, push base a10a525a665c06b03f74ae2244bfff1bf846d6a3)
 ##[endgroup]
 lanes=failure
 ##[error]E2E failed — see docs/tracking/e2e-last-failure.md
@@ -74,7 +74,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/261154e8-ef84-4f58-93db-81d0ae03ae27' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/b9631651-60be-41f8-917d-133dc2012d6c' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
