@@ -16,6 +16,7 @@ import {
   asReported,
   assertFindings,
   baseFindings,
+  censusFindings,
   citedLineFindings,
   citedPathFindings,
   countCommandRefusal,
@@ -26,6 +27,7 @@ import {
   optionFindings,
   scopeFindings,
   stopRuleFindings,
+  templateKeys,
   textFindings,
   titleFindings,
   treeFindings,
@@ -41,7 +43,9 @@ import { readAllowlist, report } from "./kit";
  *   briefs were written under earlier laws), the TEXT laws: CF-BRIEF-1 the base line (the brief's;
  *   a ruling's base is its branch's), CF-BRIEF-2 no absolute stop rule, CF-BRIEF-3 a SCOPE by area or
  *   with each file's test, CF-BRIEF-11 a dictated commit title of at most 72 characters,
- *   CF-BRIEF-13 the allowlist keyed only to the brief in force and its rulings.
+ *   CF-BRIEF-13 the allowlist keyed only to the brief in force and its rulings, CF-BRIEF-15 the
+ *   brief's STEP 1 or its rulings answer every `CENSUS-ITEM` of docs/governance/go-template.md (the
+ *   one exception: a title that says RECORDS TURN or RULES TURN; a template with no item fails).
  * - The TREE laws (CF-BRIEF-5 cited path, 6 cited line, 7 free id, 8 option, 9 assert, 10 count)
  *   judge a GO against the tree it was written for — the supervisor's clone before sending, the
  *   executor's tree at STEP 0 — so they run through check-go.ts on a named root, not here on a
@@ -54,6 +58,7 @@ import { readAllowlist, report } from "./kit";
 
 const BRIEFS = "docs/governance/briefs";
 const ALLOWLIST = "scripts/conformance/briefs-allowlist.txt";
+const TEMPLATE = "docs/governance/go-template.md";
 
 /** The brief in force and its rulings, read from the tree. */
 function inForce(): { brief: string; rulings: string[] } {
@@ -76,13 +81,18 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     expect(report(asReported(baseFindings(readFileSync(brief, "utf8"), brief)))).toBe("");
   });
 
-  it("CF-BRIEF-2, CF-BRIEF-3 and CF-BRIEF-11 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit", () => {
+  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11 and CF-BRIEF-15 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered", () => {
     const { brief, rulings } = inForce();
     const findings: Finding[] = [];
     for (const file of [brief, ...rulings]) {
       const text = readFileSync(file, "utf8");
       findings.push(...textFindings(text, file).filter((f) => f.law !== "CF-BRIEF-1"));
     }
+    const keys = templateKeys(readFileSync(TEMPLATE, "utf8"));
+    expect(new Set(keys).size, "the template's census items are unique").toBe(keys.length);
+    expect(keys).toContain("definition");
+    const answers = rulings.map((file) => ({ file, text: readFileSync(file, "utf8") }));
+    findings.push(...censusFindings(readFileSync(brief, "utf8"), brief, answers, keys));
     const allowances = readAllowlist(ALLOWLIST, findings.map(keyOf));
     console.log(`[briefs] read ${1 + rulings.length} files, findings: ${findings.length}`);
     expect(report(asReported(findings.filter((f) => !allowances.has(keyOf(f)))))).toBe("");
@@ -238,6 +248,18 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       ]);
       expect(existsSync(join(root, "out.txt"))).toBe(false);
       expect(lawsOf(titleFindings(planted, f))).toEqual(["CF-BRIEF-11"]);
+      const keys = templateKeys(readFileSync(join(root, "docs/governance/go-template.md"), "utf8"));
+      expect(keys).toEqual(["consumers", "premises"]);
+      expect(censusFindings(planted, f, [], keys).map((x) => x.text)).toEqual([
+        "STEP 1 does not name the census item premises",
+      ]);
+      expect(
+        censusFindings(planted, f, [{ file: "r.md", text: "CENSUS-ITEM premises: covered" }], keys),
+      ).toEqual([]);
+      expect(censusFindings(planted, f, [], []).map((x) => x.text)).toEqual([
+        "the GO template marks no census item",
+      ]);
+      expect(censusFindings(`RECORDS TURN R1 — planted\n${planted}`, f, [], keys)).toEqual([]);
       expect(
         allowanceFindings("# header\nbriefs/old.md:3 any red | planted | INC-1\n", "allow.txt", [
           "briefs/planted.md",
@@ -249,6 +271,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       const f = "clean.md";
       expect(textFindings(clean, f)).toEqual([]);
       expect(treeFindings(clean, f, root)).toEqual([]);
+      expect(censusFindings(clean, f, [], ["consumers", "premises"])).toEqual([]);
       expect(
         allowanceFindings("# header\nbriefs/clean.md:3 any red | planted | INC-1\n", "allow.txt", [
           "briefs/clean.md",
