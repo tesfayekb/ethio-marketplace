@@ -22,6 +22,10 @@ import { report, walkFiles } from "./kit";
  * artifacts, checkout): each declares its own deadline. A download that is safe to repeat
  * (`pip install`, `git clone`, `git fetch`) runs through the wrapper; a push does not (it is not
  * repeated blindly), it carries its step deadline.
+ * INC-1101 (housekeeping turn 3, DEC-366) — the seventh rule: the browser's system libraries are
+ * installed only by scripts/ci/install-browser-deps.sh, which survives one apt mirror; a line that
+ * runs `playwright install-deps` or `playwright install --with-deps` itself is a breach. The script
+ * is a package install reaching outside, so the other rules hold around it (deadline, wrapper, once).
  */
 
 import { readWorkflow, type Step } from "./workflow-reader";
@@ -31,10 +35,10 @@ export type { Job, Step } from "./workflow-reader";
 
 /** A command line that reaches outside the runner. */
 const OUTSIDE =
-  /\b(?:bun install|playwright install|apt-get (?:update|install)|curl|wget|supabase start|pip install|git(?: -C \S+)? (?:clone|fetch|push|ls-remote))\b/;
+  /\b(?:bun install|playwright install|install-browser-deps\.sh|apt-get (?:update|install)|curl|wget|supabase start|pip install|git(?: -C \S+)? (?:clone|fetch|push|ls-remote))\b/;
 /** A command line that installs or downloads, and so must run through the retrying deadline. */
 const INSTALL =
-  /\b(?:bun install|playwright install|apt-get (?:update|install)|pip install|git(?: -C \S+)? (?:clone|fetch))\b/;
+  /\b(?:bun install|playwright install|install-browser-deps\.sh|apt-get (?:update|install)|pip install|git(?: -C \S+)? (?:clone|fetch))\b/;
 /** The action a step uses (`uses: owner/action@ref`), or null — a local `./` workflow is no action. */
 function actionOf(step: Step): string | null {
   for (const line of step.text.split("\n")) {
@@ -46,7 +50,10 @@ function actionOf(step: Step): string | null {
 const WRAPPER = "scripts/ci/with-deadline.sh";
 /** A package install: cut off part-way it is not safe to repeat, so it runs with one try (INC-943). */
 const PACKAGE_INSTALL =
-  /\b(?:apt-get install|playwright install-deps|playwright install --with-deps)\b/;
+  /\b(?:apt-get install|playwright install-deps|playwright install --with-deps|install-browser-deps\.sh)\b/;
+/** The one installer of the browser's system libraries (INC-1101); the direct forms it replaces. */
+const BROWSER_DEPS = "scripts/ci/install-browser-deps.sh";
+const BROWSER_DEPS_DIRECT = /\bplaywright install(?:-deps| --with-deps)\b/;
 /** The wrapper's tries on a command line, or null when the line does not call it. */
 function triesOf(line: string): number | null {
   const call = /with-deadline\.sh\s+\d+\s+(\d+)\s+--/.exec(line);
@@ -63,7 +70,7 @@ function commandLines(step: Step): string[] {
 
 type Finding = { file: string; line: number; what: string };
 
-/** Every breach of the six rules in the given workflows. */
+/** Every breach of the seven rules in the given workflows. */
 export function deadlineFindings(files: Array<{ file: string; text: string }>): Finding[] {
   const findings: Finding[] = [];
   for (const { file, text } of files) {
@@ -105,6 +112,12 @@ export function deadlineFindings(files: Array<{ file: string; text: string }>): 
               line: step.line,
               what: `a package install retried (${String(tries)} tries; it runs once): ${line.trim()}`,
             });
+          if (BROWSER_DEPS_DIRECT.test(line))
+            findings.push({
+              file,
+              line: step.line,
+              what: `the browser's system libraries installed outside ${BROWSER_DEPS}: ${line.trim()}`,
+            });
         }
         if (commands.some((line) => /\bsupabase start\b/.test(line)) && !reserved)
           findings.push({
@@ -124,7 +137,7 @@ const workflows = walkFiles([".github/workflows"], { ext: ["yml"] }).map((file) 
 }));
 
 describe("every CI job and every outside call carries a deadline (INC-935)", () => {
-  it("CF-CID-1 every workflow's jobs, actions, outside calls, installs and backend starts keep the six rules", () => {
+  it("CF-CID-1 every workflow's jobs, actions, outside calls, installs and backend starts keep the seven rules", () => {
     const jobs = workflows.flatMap(({ file, text }) => readWorkflow(file, text));
     const outside = jobs
       .flatMap((job) => job.steps)
@@ -138,7 +151,7 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
     expect(report(deadlineFindings(workflows))).toBe("");
   });
 
-  it("CF-CID-2 a planted workflow's eight breaches are named and its kept steps are not", () => {
+  it("CF-CID-2 a planted workflow's nine breaches are named and its kept steps are not", () => {
     const dir = "node_modules/.cache/ci-deadlines";
     mkdirSync(dir, { recursive: true });
     const file = `${dir}/planted.yml`;
@@ -166,7 +179,7 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
           "        run: supabase start",
           "      - name: Install the system libraries once",
           "        timeout-minutes: 27",
-          `        run: bash ${WRAPPER} 1500 1 -- bunx playwright install-deps chromium`,
+          `        run: bash ${WRAPPER} 1500 1 -- bash ${BROWSER_DEPS}`,
           "  bare:",
           "    runs-on: ubuntu-24.04",
           "    steps:",
@@ -207,6 +220,7 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
           `${file}:25 an install outside ${WRAPPER}: run: bun install --frozen-lockfile`,
           `${file}:27 the backend starts before its ports are reserved`,
           `${file}:32 a package install retried (2 tries; it runs once): run: bash ${WRAPPER} 300 2 -- bunx playwright install --with-deps chromium`,
+          `${file}:32 the browser's system libraries installed outside ${BROWSER_DEPS}: run: bash ${WRAPPER} 300 2 -- bunx playwright install --with-deps chromium`,
           `${file}:39 a step that uses actions/checkout@v5 declares no timeout-minutes`,
           `${file}:43 an install outside ${WRAPPER}: run: pip install semgrep`,
           `${file}:49 a step that reaches outside declares no timeout-minutes`,

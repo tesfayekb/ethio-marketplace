@@ -222,6 +222,12 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/lib/pattern.test.ts"), "utf8")).toContain(
       "CF-PATTERN-3",
     );
+    // install-browser-deps.test.ts CF-INSTALL-1…6 (housekeeping turn 3 Part A, INC-1101, DEC-366) is
+    // discovered by test:unit's scripts/**/*.test.ts; CF-CID-1's seventh rule holds every workflow's
+    // browser-library install to scripts/ci/install-browser-deps.sh.
+    expect(readFileSync(join(ROOT, "scripts/ci/install-browser-deps.test.ts"), "utf8")).toContain(
+      "CF-INSTALL-6",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {
