@@ -1058,14 +1058,28 @@ test.describe("Admin Legal", () => {
       const viewerCard = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(viewerCard.getByTestId("legal-view-inforce")).toBeVisible();
       await expect(viewerCard.getByTestId("legal-translate-inforce")).toHaveCount(0);
-      // Only this test's version is written: cover every enabled language, never alter a real text.
-      const enabled = await supabase.from("languages").select("code").eq("enabled_admin", true);
+      // INC-1073 (J3) — only this test's version is written, and only in its own scratch
+      // language and the languages the product ships: never another test's scratch language
+      // (every e2e language row is named `E2E …`), never a real text.
+      const isScratchName = (name: string) => name.startsWith("E2E ");
+      const enabled = await supabase
+        .from("languages")
+        .select("code, name_en")
+        .eq("enabled_admin", true);
       fail(enabled.error, "enabled languages");
-      const extra = (enabled.data ?? []).filter((l) => !["en", "am", PSEUDO_LANG].includes(l.code));
+      const written = (enabled.data ?? []).filter(
+        (l) =>
+          !["en", "am", PSEUDO_LANG].includes(l.code) &&
+          (l.code === code || !isScratchName(l.name_en)),
+      );
+      expect(
+        written.map((l) => l.code),
+        "LGA-21 writes its own language",
+      ).toContain(code);
       fail(
         (
           await supabase.from("legal_version_texts").insert(
-            extra.map((l) => ({
+            written.map((l) => ({
               version_id: versionId,
               language: l.code,
               body: "Scratch translated statement",
@@ -1078,7 +1092,21 @@ test.describe("Admin Legal", () => {
       await gotoReady(page, "/admin/legal");
       const translatedCard = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(translatedCard.getByTestId("legal-view-inforce")).toBeVisible();
-      await expect(translatedCard.getByTestId("legal-translate-inforce")).toHaveCount(0);
+      // J6 — another worker's scratch language may still be offered; nothing this test wrote,
+      // and no language the product ships, is. The control names every missing language.
+      const translate = translatedCard.getByTestId("legal-translate-inforce");
+      if ((await translate.count()) > 0) {
+        const label = await translate.innerText();
+        const offered = label
+          .slice(label.indexOf(": ") + 2)
+          .split(", ")
+          .map((name) => name.trim());
+        expect(offered, `LGA-21 offered: ${label}`).not.toContain(languageRow.data.name_en);
+        expect(
+          offered.filter((name) => !isScratchName(name)),
+          `LGA-21 offered: ${label}`,
+        ).toEqual([]);
+      }
     } finally {
       for (const roleId of [publisherRole, viewerRole]) {
         fail(
