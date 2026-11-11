@@ -57,6 +57,20 @@ describe("check-doors (CF-DOORS)", () => {
       "x(uuid) | owner | authenticated | - | - | draft | - | - | draft | - | -\nx(uuid) | owner | authenticated | - | - | draft | - | - | draft | - | -", // duplicate
     ];
     for (const text of bad) expect(parseManifest(text).errors.length, text).toBeGreaterThan(0);
+    const rest = " | owner | authenticated | - | - | draft | - | - | draft | - | -";
+    const badKeys = [
+      "X(uuid)", // the name's rule
+      "x(uuid,Text)", // an argument's rule
+      "x(uuid", // no closing parenthesis
+      "x(uuid,)", // an empty argument
+      "x((uuid))", // a parenthesis inside the arguments
+    ];
+    for (const key of badKeys)
+      expect(
+        parseManifest(key + rest).errors.map((e) => e.what),
+        key,
+      ).toEqual([`malformed key ${key}`]);
+    expect(parseManifest("x(uuid,text[],timestamp with time zone)" + rest).errors).toEqual([]);
     const good = parseManifest(
       "y(uuid,text) | staff | authenticated | listings:review | row | staff_moderation | listing.reviewed | row:listings.home_country_code | staff | notFound,alreadyDone | -",
     );

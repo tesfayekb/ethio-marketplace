@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { codeOf, walkFiles } from "../conformance/kit";
 import { sqlCodeOf } from "../conformance/migration-reader";
+import { pattern } from "../lib/pattern";
 import { callableBy, readCatalogue, type UnseenGrant } from "./catalogue";
 
 /**
@@ -134,9 +135,9 @@ export function treeCallers(root: string, rows: DoorRow[]): (name: string) => bo
   ].join("\n");
   const bodies = [...rows, ...chunkBodiesOf(sql)];
   return (name: string) => {
-    const quoted = new RegExp(`["']${name}["']`);
+    const quoted = pattern`["']${name}["']`;
     if (quoted.test(code)) return true;
-    const called = new RegExp(`\\b${name}\\s*\\(`);
+    const called = pattern`\\b${name}\\s*\\(`;
     if (called.test(policies)) return true;
     return bodies.some((body) => body.name !== name && called.test(body.body));
   };

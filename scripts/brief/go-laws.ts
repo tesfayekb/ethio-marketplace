@@ -18,6 +18,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { walkFiles } from "../conformance/kit";
+import { authored, exactWord, flaggedPattern, pattern } from "../lib/pattern";
 
 export type Finding = { law: string; file: string; line: number; text: string };
 export type Ruling = { file: string; text: string };
@@ -30,12 +31,11 @@ const DOUBLE_QUOTED = /"[^"\n]*"|“[^”\n]*”/g;
 const SENTENCE = /(?<=[.;!?])\s+/;
 const FULL_SENTENCE = /(?<=[.!?])\s+/;
 const CODE_FILE = /(?<![\w/.-])((?:src|e2e|scripts)\/[\w$./-]*[\w$-]\.(?:tsx?|mjs|sh))(?![\w/*])/g;
-const TREE_PREFIX = "(?:src|e2e|scripts|docs|supabase|\\.github|\\.cursor)\\/";
-const CITED_PATH = new RegExp(`^${TREE_PREFIX}[^\\s\`]*$`);
-const CITATION = new RegExp(
-  `(?<![\\w/.-])\`?(${TREE_PREFIX}[\\w$./*-]*[\\w$*-])\`? ?((?::\\d+)(?:\\s*(?:→|,|–)\\s*:\\d+)*)`,
+const TREE_PREFIX = /(?:src|e2e|scripts|docs|supabase|\.github|\.cursor)\//;
+const CITED_PATH = pattern`^${TREE_PREFIX}[^\\s\`]*$`;
+const CITATION = flaggedPattern(
   "g",
-);
+)`(?<![\\w/.-])\`?(${TREE_PREFIX}[\\w$./*-]*[\\w$*-])\`? ?((?::\\d+)(?:\\s*(?:→|,|–)\\s*:\\d+)*)`;
 const MADE_HERE = /\bnew\b|\bcreated here\b|\bbuilt as\b|\bbuilt here\b/i;
 const TEST_ID = /(?<![\w-])[A-Z]{2,6}(?:-[A-Z0-9]+)*-\d+(?![\w-])/g;
 const ID_WORD = /^\W*(?:new|free|gains)\W*$/i;
@@ -67,11 +67,6 @@ const EXEMPT_TITLE = /\b(?:RECORDS|RULES) TURN\b/i;
 
 function linesOf(text: string): string[] {
   return text.split("\n");
-}
-
-/** `text` as a literal inside a RegExp source: every metacharacter, the backslash included, escaped. */
-export function escapeRegExp(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 /** CF-BRIEF-1 — the brief's own base line. */
@@ -198,10 +193,12 @@ export function censusFindings(
   const answers = [step.text, ...rulings.map((r) => r.text)].join("\n");
   return keys
     .filter((key) => {
-      const word = escapeRegExp(key).replace(/-/g, "[- ]");
+      const pieces = key.split("-");
+      const spaced = (before: string, after: string): RegExp =>
+        flaggedPattern("i")([before, ...pieces.slice(1).map(() => "[- ]"), after], ...pieces);
       return (
-        !new RegExp(`(?<![\\w-])${word}(?![\\w-])`, "i").test(step.text) &&
-        !new RegExp(`CENSUS-ITEM ${word}:`, "i").test(answers)
+        !spaced("(?<![\\w-])", "(?![\\w-])").test(step.text) &&
+        !spaced("CENSUS-ITEM ", ":").test(answers)
       );
     })
     .map((key) => ({
@@ -222,16 +219,10 @@ export function treeRootProblem(root: string): string | null {
 }
 
 function globRegex(glob: string): RegExp {
-  const body = glob
-    .split("**")
-    .map((part) =>
-      part
-        .split("*")
-        .map((piece) => piece.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
-        .join("[^/]*"),
-    )
-    .join(".*");
-  return new RegExp(`^${body}$`);
+  const tokens = glob.split(/(\*\*|\*)/);
+  const pieces = tokens.filter((_, i) => i % 2 === 0);
+  const stars = tokens.filter((_, i) => i % 2 === 1).map((t) => (t === "**" ? ".*" : "[^/]*"));
+  return pattern(["^", ...stars, "$"], ...pieces);
 }
 
 /** The text files under one folder of the tree, root-relative (the kit's walker). */
@@ -268,8 +259,7 @@ export function citedPathFindings(text: string, file: string, root: string): Fin
     scopeStart < 0
       ? ""
       : lines.slice(scopeStart, scopeEnd < 0 ? lines.length : scopeEnd).join("\n");
-  const markedNew = (path: string) =>
-    new RegExp(`${escapeRegExp(path)}\`?\\s*\\(new\\)`).test(scope);
+  const markedNew = (path: string) => pattern`${path}\`?\\s*\\(new\\)`.test(scope);
   const findings: Finding[] = [];
   lines.forEach((content, index) => {
     for (const sentence of content.split(FULL_SENTENCE)) {
@@ -383,7 +373,7 @@ export function freeIdFindings(text: string, file: string, root: string): Findin
   const used = new Set<string>();
   const files = SEARCHED.flatMap((dir) => filesUnder(root, dir));
   const ids = [...new Set(claimed.map((c) => c.id))];
-  const patterns = ids.map((id) => ({ id, rx: new RegExp(`(?<![\\w-])${id}(?![\\w-])`) }));
+  const patterns = ids.map((id) => ({ id, rx: exactWord(id) }));
   for (const rel of files) {
     const body = readFileSync(join(root, rel), "utf8");
     for (const { id, rx } of patterns) if (!used.has(id) && rx.test(body)) used.add(id);
@@ -413,7 +403,7 @@ export function optionFindings(text: string, file: string, root: string): Findin
       return;
     }
     const lines = linesOf(readFileSync(full, "utf8"));
-    const declared = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}\\??\\s*:`);
+    const declared = pattern`(?<![\\w$.])${name}\\??\\s*:`;
     const sites = lines.flatMap((l, i) => (declared.test(l) ? [i] : []));
     if (sites.length === 0) {
       push(`names the option ${name}, which ${path} does not declare`);
@@ -445,7 +435,7 @@ export function assertFindings(text: string, file: string, root: string): Findin
       findings.push({ law: "CF-BRIEF-9", file, line: index + 1, text: what });
     let rx: RegExp;
     try {
-      rx = new RegExp(pattern, "m");
+      rx = authored(pattern, "m");
     } catch {
       push(`ASSERT-${kind} carries a pattern that does not compile: ${pattern}`);
       return;

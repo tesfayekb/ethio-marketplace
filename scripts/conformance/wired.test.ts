@@ -213,6 +213,15 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(
       readFileSync(join(ROOT, "scripts/conformance/lockfile-hosts.test.ts"), "utf8"),
     ).toContain("CF-LOCK-2");
+    // pattern-sites.test.ts CF-PATTERN-4 and scripts/lib/pattern.test.ts CF-PATTERN-1…3
+    // (housekeeping turn 2 Part D, INC-1102) are discovered by test:unit's scripts/**/*.test.ts;
+    // the census reads scripts/ and pattern-sites-allowlist.txt.
+    expect(readFileSync(join(ROOT, "scripts/conformance/pattern-sites.test.ts"), "utf8")).toContain(
+      "CF-PATTERN-4",
+    );
+    expect(readFileSync(join(ROOT, "scripts/lib/pattern.test.ts"), "utf8")).toContain(
+      "CF-PATTERN-3",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

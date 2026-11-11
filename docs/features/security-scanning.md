@@ -59,6 +59,14 @@ At launch: Cloudflare in front of the site (Bot Fight Mode, the free managed WAF
 - The token's default is read-only: `.github/workflows/ci.yml` and `nightly-e2e.yml` declare `permissions: contents: read` at the top. Jobs that hold more say so and why: the Semgrep job `security-events: write` (the SARIF upload); the secrets scan `pull-requests: read` (Gitleaks reads the pull request it runs on); the E2E job and the promote job `contents: write` (the evidence publish to ci-evidence; the fast-forward of main); the nightly job `contents: write` (its evidence publish).
 - The scan's rule set is the pinned clone less three removed rule files. `scripts/semgrep-sarif-filter.py` runs its self-test, then filters the SARIF before upload: a suppressed result is dropped, an ERROR is kept anywhere, a WARNING in test code (e2e/, `*.test.ts(x)`) is dropped; it prints counts only and fails on any ERROR.
 - Suppression form: a reason line, then `// nosemgrep: <rule>` on the line above the reviewed site. The reviewed sites are found by searching the tree for `nosemgrep:`.
+- A repository script builds a RegExp from text only through `scripts/lib/pattern.ts` (housekeeping turn 2 Part D, INC-1102):
+  - `literal(text)` escapes every metacharacter.
+  - `pattern` is a tagged template whose text is the author's source and whose every `${part}` is escaped (a flagless RegExp part enters as its source, in a group); `flaggedPattern(flags)` is the same tag with flags.
+  - `exactWord(text)` matches `text` with no word character, `$` or `-` beside it.
+  - `authored(source, flags)` compiles a pattern its author wrote as text (a brief's ASSERT line).
+  - Its one `new RegExp(` is the scripts' one reviewed site for `detect-non-literal-regexp`.
+  - `scripts/conformance/pattern-sites.test.ts` (CF-PATTERN-4) refuses any other `new RegExp(` or `RegExp(` under scripts/ (tests excluded), that marker elsewhere and an `authored` import outside scripts/brief/go-laws.ts, unless the file is counted on `pattern-sites-allowlist.txt` (the sites housekeeping turn 3 moves). `scripts/lib/pattern.test.ts` (CF-PATTERN-1…3) proves the escaping.
+  - The door manifest's key is checked token by token (a name, then each argument), with no nested quantifier.
 - The scan on 518da704 as the supervisor read it: ERROR=0, WARNING kept 0, WARNING dropped as test code 13, suppressed 9.
 - The code-scanning status page follows the CI workflow's last result on the branch.
 
