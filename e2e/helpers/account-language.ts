@@ -48,12 +48,21 @@ export async function setDeviceAmharic(page: Page): Promise<void> {
   );
 }
 
+/** A signed-in reload whose own account read (D239) has answered and been applied. */
+async function reloadSettled(page: Page): Promise<void> {
+  const account = watchAccountLanguage(page);
+  await page.reload();
+  await waitForHydration(page);
+  await account;
+}
+
 /**
  * The signed-in `page`'s account takes `code` (a public language) the way a person sets
- * it. First the session-start save has landed (the column is non-NULL), so nothing races
- * the pick (INC-1100); then the switcher picks `code`, which saves the account through
- * `user_set_preferred_language`; the column reads `code`; and a reload, its account read
- * awaited, shows `code` in `<html lang>` and on the language control.
+ * it. Nothing races the pick (INC-1100): the session-start save has landed (the column is
+ * non-NULL) and the page's own account read has answered (a reload with it awaited) — a
+ * pick that read answers after is replaced. Then the switcher picks `code`, which saves
+ * the account through `user_set_preferred_language`; the column reads `code`; and a
+ * settled reload shows `code` in `<html lang>` and on the language control.
  */
 export async function setAccountLanguage(page: Page, userId: string, code: string): Promise<void> {
   touched.add(userId);
@@ -63,6 +72,7 @@ export async function setAccountLanguage(page: Page, userId: string, code: strin
       message: `[e2e:lang] the session-start save of the account language never landed (D239)`,
     })
     .not.toBeNull();
+  await reloadSettled(page);
   await switchLanguage(page, code);
   await expect
     .poll(() => storedLanguage(userId), {
@@ -70,10 +80,7 @@ export async function setAccountLanguage(page: Page, userId: string, code: strin
       message: `[e2e:lang] the account language never reached ${code}`,
     })
     .toBe(code);
-  const account = watchAccountLanguage(page);
-  await page.reload();
-  await waitForHydration(page);
-  await account;
+  await reloadSettled(page);
   await expect(page.locator("html")).toHaveAttribute("lang", code);
   await expect
     .poll(
