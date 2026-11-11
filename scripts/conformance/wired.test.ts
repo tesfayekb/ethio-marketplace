@@ -246,6 +246,16 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // test:unit's scripts/**/*.test.ts; ci.yml's `scope` job runs scripts/ci/docs-only.ts, and
     // check-promote-needs.sh's planted fixture proves promote's explicit condition.
     expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain("CF-DOCS-6");
+    // redact.test.ts CF-REDACT-1/2, backend-config.test.ts CF-BCFG-1/2 and ci-images.test.ts
+    // CF-CI-IMG-5 (housekeeping turn 3 Part E) are discovered by test:unit's scripts/**/*.test.ts;
+    // local-backend-proof.yml imports scripts/ci/redact.py and runs scripts/ci/backend-config.py.
+    expect(readFileSync(join(ROOT, "scripts/ci/redact.test.ts"), "utf8")).toContain("CF-REDACT-2");
+    expect(readFileSync(join(ROOT, "scripts/ci/backend-config.test.ts"), "utf8")).toContain(
+      "CF-BCFG-2",
+    );
+    expect(readFileSync(join(ROOT, "scripts/conformance/ci-images.test.ts"), "utf8")).toContain(
+      "CF-CI-IMG-5",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

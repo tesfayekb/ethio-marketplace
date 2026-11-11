@@ -732,3 +732,26 @@ A migration is applied to a database on the operator's computer before it is pus
 ## Housekeeping turn 3 — the browser's system libraries survive one apt mirror (INC-1101, DEC-366)
 
 Four of turn 2's runs (43033934604, 43036501908 and its re-run, 43041366407) lost lanes at `Install Chromium's system libraries`: `Temporary failure resolving 'azure.archive.ubuntu.com'`, then `E: Unable to fetch some archives`. The runner's apt already fails over: `ubuntu.sources` reads `URIs: mirror+file:/etc/apt/apt-mirrors.txt`, three tab-separated lines (Azure, then the public archive, then security — actions/runner-images `configure-apt-sources.sh`; the green run's 144 B "Mirrorlist" is that file). The captured tails show the failover tried and failed with the Azure host's error carried onto the others, so the record cannot tell whether the public archive resolved at that moment. Every CI site (the lanes, flake-check, guard-proof, nightly-e2e twice) now installs the libraries only through `scripts/ci/install-browser-deps.sh`, run as `bash scripts/ci/with-deadline.sh 1500 1 -- bash scripts/ci/install-browser-deps.sh`, so one deadline covers the whole script and a second run never outlives the step's 27 minutes. Before the install it resolves (`getent hosts`) every host apt will use and prints the table (`ci-mirror probe: <host> → ok | no address`, the first record of which mirror fails). A host that does not resolve is dropped from the mirror list, announced as `::warning title=ci-mirror::<host> does not resolve — dropped`. A runner with plain deb822 `URIs:` gets the host swapped for the public archive host that resolves. When no host resolves, the probe repeats every 30 s, five times at most, then fails with `::error title=ci-mirror::no apt mirror resolves (<hosts>)`. `playwright install-deps chromium` runs once. A failure at apt's fetch stage (a resolve or fetch error and no `Unpacking` / `Setting up` line; apt fetches every archive before it unpacks one) gets one re-probe and ONE more run. Any failure after unpacking began, or a second fetch-stage failure, is final (DEC-276). CF-CID-1's seventh rule refuses a workflow line that runs `playwright install-deps` or `playwright install --with-deps` itself, and holds the script to the other rules (a deadline, the wrapper, one try). CF-INSTALL-1…6 (`scripts/ci/install-browser-deps.test.ts`) run the script against a fake `getent` and `bunx` under a temporary root (`INSTALL_DEPS_ROOT`), over the captured install output of a green lane (run 43074440038) and a lost one (ci-evidence 612e89e9c). The certificate tools' `apt-get install` (the lane's certificate step) is left: it was reached in none of the last 40 lane records, and it moves onto the probe the first time it runs red.
+
+## Housekeeping turn 3 — the lanes' three mechanisms once (concern 5)
+
+- **One redaction.** `scripts/ci/redact.py` holds the lanes' evidence redaction (account ids, the
+  staging keys' values, JWTs, Supabase keys, e-mail addresses, the CLI's storage key rows, long hex
+  with the run's own commit kept). The three heredoc programs that redact import it — "Write lane
+  evidence", "Write proof summary and notice" (both steps set `PYTHONPATH: scripts/ci`) and the
+  backend step's status-error program (`PYTHONPATH=scripts/ci` on its line; it keeps its
+  300-character cut). The separate account-id passes before the fragment and the summary are gone:
+  `redact` masks account ids first. A failed import fails the step loudly, never a raw write.
+  Guards: CF-REDACT-1 (`scripts/ci/redact.test.ts`: the module on the INC-794 probes and every
+  pattern), CF-REDACT-2 (no workflow defines `redact`/`safe` or masks account ids itself; every
+  program calling `redact(` imports the module; a planted copy is named), LFE-1…3. The TypeScript
+  reporter's `redact` (scripts/e2e-failure-report.ts) is a second rule set, left for turn 3b.
+- **The CLI version once.** The top-level `SUPABASE_CLI_VERSION` is the only literal: both setup-cli
+  steps read `${{ env.SUPABASE_CLI_VERSION }}` and the lane evidence prints the env's value.
+  CF-CI-IMG-5 (`scripts/conformance/ci-images.test.ts`) names any line that restates it.
+- **One config derivation.** `scripts/ci/backend-config.py <variant> <out> [source]` derives a
+  variant of `scripts/ci/local-backend-config.toml`; `images` (the backend-images job's learning
+  start) turns TLS and the before_user_created hook off and fails when either switch is not found
+  exactly once. `prepare-local-backend.sh` keeps its whole copy (the identity). The images' cache
+  key hashes the program beside the toml. Guards: CF-BCFG-1/2 (`scripts/ci/backend-config.test.ts`:
+  only those two lines change; an unknown variant or a missing switch fails; the job calls it).

@@ -38,8 +38,8 @@ jobs:
       - name: The images' cache key
         id: key
         run: |
-          # The CLI version, the services left out, the config and this workflow's image steps decide the set.
-          digest=$(cat scripts/ci/local-backend-config.toml <(printf '%s\n' "$BACKEND_EXCLUDES" "$SUPABASE_CLI_VERSION") | sha256sum | cut -c1-16)
+          # The CLI version, the services left out, the config, its derivation and this workflow's image steps decide the set.
+          digest=$(cat scripts/ci/local-backend-config.toml scripts/ci/backend-config.py <(printf '%s\n' "$BACKEND_EXCLUDES" "$SUPABASE_CLI_VERSION") | sha256sum | cut -c1-16)
           echo "key=backend-images-$SUPABASE_CLI_VERSION-$digest" >> "$GITHUB_OUTPUT"
       - name: Look up the images
         id: lookup
@@ -62,7 +62,7 @@ jobs:
         if: steps.lookup.outputs.cache-hit != 'true' || steps.list-hit.outputs.cache-hit != 'true'
         timeout-minutes: 5
         with:
-          version: 2.120.0
+          version: ${{ env.SUPABASE_CLI_VERSION }}
       - name: Learn, pull and save the images (cache miss)
         id: build-images
         if: steps.lookup.outputs.cache-hit != 'true' || steps.list-hit.outputs.cache-hit != 'true'
@@ -72,13 +72,7 @@ jobs:
           # auth hook are off because neither changes the image set and both need files this copy lacks.
           wc="$RUNNER_TEMP/images-wc"
           mkdir -p "$wc/supabase/migrations" "$RUNNER_TEMP/backend-images" "$RUNNER_TEMP/backend-images-list"
-          python3 - "$wc/supabase/config.toml" <<'PY'
-          import re, sys
-          text = open('scripts/ci/local-backend-config.toml').read()
-          text = re.sub(r'(\[api\.tls\]\s*enabled = )true', r'\1false', text)
-          text = re.sub(r'(\[auth\.hook\.before_user_created\]\s*enabled = )true', r'\1false', text)
-          open(sys.argv[1], 'w').write(text)
-          PY
+          python3 scripts/ci/backend-config.py images "$wc/supabase/config.toml"
           # The CLI pulls what it needs; its own pulls are not retried, so the start is tried at most three
           # times with a jittered pause. This start has no migration to replay.
           ok=0
@@ -316,7 +310,7 @@ jobs:
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 5
         with:
-          version: 2.120.0
+          version: ${{ env.SUPABASE_CLI_VERSION }}
       - name: Record CLI seconds
         id: record-cli-seconds
         if: always()
@@ -440,15 +434,12 @@ jobs:
           status_result=$?
           set -e
           if [ "$status_result" -ne 0 ]; then
-            python3 - "$status_result" <<'PY'
-          import os, re, sys
+            # The one redaction (scripts/ci/redact.py); the status error keeps its 300-character cut.
+            PYTHONPATH=scripts/ci python3 - "$status_result" <<'PY'
+          import os, sys
           from pathlib import Path
-          err = Path(os.environ['RUNNER_TEMP'], 'local-backend-status.err').read_text(errors='replace')
-          err = re.sub(r'\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b', '[masked JWT]', err)
-          err = re.sub(r'\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\b', '[masked key]', err)
-          err = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[e-mail]', err)
-          err = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', err)
-          err = re.sub(r'[0-9a-fA-F]{32,}', '[masked hex]', err)
+          from redact import redact
+          err = redact(Path(os.environ['RUNNER_TEMP'], 'local-backend-status.err').read_text(errors='replace'))
           err = ' '.join(err.split())[:300]
           with open('local-backend-failure.txt', 'a') as out:
               out.write('status: exit ' + sys.argv[1] + ' ' + err + '\n')
@@ -800,22 +791,13 @@ jobs:
           BACKEND_OUTCOME: ${{ steps.backend.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           SMOKE_OUTCOME: ${{ steps.smoke.outcome }}
+          # The one redaction: scripts/ci/redact.py (CF-REDACT-1/2).
+          PYTHONPATH: scripts/ci
         run: |
           python3 - <<'PY'
           import json, os, re
           from pathlib import Path
-          def redact(text):
-              text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text)
-              for key in ('E2E_SUPABASE_PUBLISHABLE_KEY', 'E2E_SUPABASE_SERVICE_ROLE_KEY'):
-                  value = os.environ.get(key)
-                  if value:
-                      text = text.replace(value, '[masked]')
-              text = re.sub(r'\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b', '[masked JWT]', text)
-              text = re.sub(r'\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\b', '[masked key]', text)
-              text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[e-mail]', text)
-              text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
-              text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
-              return text
+          from redact import redact
           def mask_json(value):
               if isinstance(value, str):
                   return redact(value)
@@ -833,7 +815,7 @@ jobs:
           print('results masking self-check: OK')
           env = os.environ
           lane = env['PROOF_LANE']
-          lines = ['- Lane: ' + lane, '# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: 2.120.0', '- Seconds — job: ' + env.get('JOB_SECONDS', 'not run')]
+          lines = ['- Lane: ' + lane, '# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: ' + env['SUPABASE_CLI_VERSION'], '- Seconds — job: ' + env.get('JOB_SECONDS', 'not run')]
           for label, key in [('checkout', 'CHECKOUT_SECONDS'), ('install', 'INSTALL_SECONDS'), ('CLI install', 'CLI_SECONDS'), ('working copy', 'PREPARE_SECONDS'), ('certificate', 'CERT_SECONDS'), ('start (migrations included)', 'START_SECONDS'), ('build', 'BUILD_SECONDS'), ('browser install', 'BROWSER_SECONDS'), ('tests', 'TEST_SECONDS')]:
               lines.append('- Seconds — ' + label + ': ' + env.get(key, 'not run'))
           lines.append('- Database session samples during the start (INC-944): ' + env.get('START_SAMPLES', 'not run'))
@@ -919,10 +901,8 @@ jobs:
           if failures:
               lines += ['', '## Failing/flaky tests and setup errors', *['- ' + redact(f) for f in failures]]
           lines += ['', 'DEC-209: compare with staging CI on this same commit; two consecutive dev proofs required. No automatic proceed verdict.']
-          # Account ids and raw test artifacts must not escape into public evidence.
-          def safe(text):
-              return redact(re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text))
-          Path('local-backend-proof-' + lane + '.md').write_text(safe('\n'.join(lines)) + '\n')
+          # Account ids and raw test artifacts must not escape into public evidence (redact masks both).
+          Path('local-backend-proof-' + lane + '.md').write_text(redact('\n'.join(lines)) + '\n')
           # INC-794: the results file is masked as data, string by string, so it stays valid JSON.
           if results.exists():
               try:
@@ -1068,22 +1048,14 @@ jobs:
           fi
       - name: Write proof summary and notice
         if: always()
+        env:
+          # The one redaction: scripts/ci/redact.py (CF-REDACT-1/2).
+          PYTHONPATH: scripts/ci
         run: |
           python3 - <<'PY'
           import os, re
           from pathlib import Path
-          def redact(text):
-              text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text)
-              for key in ('E2E_SUPABASE_PUBLISHABLE_KEY', 'E2E_SUPABASE_SERVICE_ROLE_KEY'):
-                  value = os.environ.get(key)
-                  if value:
-                      text = text.replace(value, '[masked]')
-              text = re.sub(r'\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b', '[masked JWT]', text)
-              text = re.sub(r'\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\b', '[masked key]', text)
-              text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[e-mail]', text)
-              text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
-              text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
-              return text
+          from redact import redact
           lanes = ['smoke', 'email', *map(str, range(1, 17)), 'repeat']
           fragments = {}
           for path in sorted(Path('local-proof-artifacts').rglob('local-backend-proof-*.md')):
@@ -1149,9 +1121,8 @@ jobs:
               lines += section(smoke, heading)
           lines += details
           lines += ['', 'DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.']
-          text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', '\n'.join(lines))
           Path('docs/tracking').mkdir(parents=True, exist_ok=True)
-          Path('docs/tracking/local-backend-proof.md').write_text(redact(text) + '\n')
+          Path('docs/tracking/local-backend-proof.md').write_text(redact('\n'.join(lines)) + '\n')
           full_evidence = Path('docs/tracking/local-backend-last-failure.md')
           if full_evidence.exists():
               full_evidence.write_text(redact(full_evidence.read_text(errors='replace')))

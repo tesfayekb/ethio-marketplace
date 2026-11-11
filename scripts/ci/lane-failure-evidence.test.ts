@@ -49,6 +49,9 @@ describe("a lane's step failure is published (INC-984)", () => {
         encoding: "utf8",
         env: {
           PATH: process.env["PATH"] ?? "",
+          // The step's PYTHONPATH (scripts/ci), absolute: the program runs in a scratch directory.
+          PYTHONPATH: join(process.cwd(), "scripts/ci"),
+          PYTHONDONTWRITEBYTECODE: "1",
           GITHUB_SHA: "f".repeat(40),
           GITHUB_REPOSITORY: "o/r",
           GITHUB_RUN_ID: "1",
@@ -82,10 +85,15 @@ describe("a lane's step failure is published (INC-984)", () => {
         encoding: "utf8",
         env: {
           PATH: process.env["PATH"] ?? "",
+          // The step's PYTHONPATH (scripts/ci), absolute: the program runs in a scratch directory.
+          PYTHONPATH: join(process.cwd(), "scripts/ci"),
+          PYTHONDONTWRITEBYTECODE: "1",
           GITHUB_SHA: "f".repeat(40),
           GITHUB_REPOSITORY: "o/r",
           GITHUB_RUN_ID: "1",
           PROOF_LANE: "1",
+          // The workflow's top-level pin, which the step inherits.
+          SUPABASE_CLI_VERSION: /^ {2}SUPABASE_CLI_VERSION: (\S+)$/m.exec(WORKFLOW)?.[1] ?? "",
         },
         timeout: 20_000,
       });

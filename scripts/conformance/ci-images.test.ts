@@ -147,3 +147,41 @@ describe("the backend images are local before the one start (DEC-309)", () => {
     expect(imageFindings([{ file: "p.yml", text: planted(LOAD + START) }])).toEqual([]);
   });
 });
+
+/**
+ * Housekeeping turn 3 (concern 5b, ruling 1 Q15) — THE CLI VERSION IS PINNED ONCE. The lanes'
+ * workflow declares `SUPABASE_CLI_VERSION` at the top; both setup-cli steps and the lane evidence
+ * read it, so the version's literal appears in the file exactly once.
+ */
+const LANES = ".github/workflows/local-backend-proof.yml";
+
+/** The lines after the pin that restate its value. */
+export function pinRestatements(file: string, text: string): Finding[] {
+  const pin = /^ {2}SUPABASE_CLI_VERSION: (\S+)$/m.exec(text);
+  if (!pin?.[1]) return [{ file, line: 0, what: "no top-level SUPABASE_CLI_VERSION pin" }];
+  const value = pin[1];
+  return text
+    .split("\n")
+    .flatMap((line, index) =>
+      line.includes(value) && !line.startsWith("  SUPABASE_CLI_VERSION:")
+        ? [{ file, line: index + 1, what: `restates the CLI version ${value}` }]
+        : [],
+    );
+}
+
+describe("the CLI version is pinned once (housekeeping turn 3)", () => {
+  it("CF-CI-IMG-5 the version's literal appears once; a planted second literal is named", () => {
+    const text = readFileSync(LANES, "utf8");
+    expect(report(pinRestatements(LANES, text))).toBe("");
+    const pinned = "env:\n  SUPABASE_CLI_VERSION: 2.120.0\njobs:\n  a:\n    steps:\n";
+    expect(
+      report(pinRestatements("p.yml", `${pinned}      - with:\n          version: 2.120.0\n`)),
+    ).toBe("p.yml:7 restates the CLI version 2.120.0");
+    expect(
+      pinRestatements(
+        "p.yml",
+        `${pinned}      - with:\n          version: \${{ env.SUPABASE_CLI_VERSION }}\n`,
+      ),
+    ).toEqual([]);
+  });
+});
