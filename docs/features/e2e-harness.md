@@ -594,9 +594,10 @@ patches, six fixtures; the list in `docs/features/ci-local-backend.md`), never e
 to landed migrations. DEC-209 criterion (1) counts the migrations hosted applied.
 
 Evidence (timings, migration result and CLI error tail, smoke counts and failing
-test titles) lands only on ci-evidence at `docs/tracking/local-backend-proof.md`;
-the workflow also keeps the JSON reporter output and prints a notice. No hosted
-service credentials are used; local keys are masked. Actions permissions are
+test titles) lands only on ci-evidence at `docs/tracking/local-backend-proof.md`
+for a dev run, and at `docs/tracking/branches/<ref>/local-backend-proof.md` for a
+run on another ref (DEC-321, housekeeping turn 3); the workflow also keeps the
+JSON reporter output and prints a notice. No hosted service credentials are used; local keys are masked. Actions permissions are
 job-scoped: the one evidence-producing job has contents write, but checkout
 persists no credential and only the publication step receives the write token.
 
