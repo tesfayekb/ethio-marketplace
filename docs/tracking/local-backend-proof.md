@@ -1,35 +1,35 @@
 # Local backend proof (non-gating)
 
-- Commit: `ffa542d97a8019d3e58912f110c45718a3251f20`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43036501908
+- Commit: `13ce313be19c00323141633e75d8c13ec4b0a580`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43041366407
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | not run | 62 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| email | not run | 59 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 1 | not run | 67 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 2 | not run | 75 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 3 | not run | 76 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 4 | not run | 68 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 5 | not run | 76 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 6 | not run | 75 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 7 | not run | 53 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 8 | not run | 71 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 9 | not run | 75 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 10 | not run | 67 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 11 | not run | 78 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 12 | not run | 67 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 13 | not run | 65 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 14 | not run | 76 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 15 | not run | 50 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| 16 | not run | 62 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
-| repeat | not run | 51 | applied 437/437 | 0 | 0 | 0 | 1393 | 1393 |
+| smoke | not run | 67 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| email | not run | 75 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 1 | not run | 51 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 2 | not run | 52 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 3 | not run | 63 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 4 | not run | 70 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 5 | not run | 72 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 6 | not run | 62 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 7 | not run | 69 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 8 | not run | 54 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 9 | not run | 77 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 10 | not run | 76 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 11 | not run | 76 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 12 | not run | 76 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 13 | not run | 60 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 14 | not run | 67 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 15 | not run | 65 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| 16 | not run | 68 | applied 437/437 | 0 | 0 | 0 | 0 | 0 |
+| repeat | not run | 77 | applied 437/437 | 0 | 0 | 0 | 1393 | 1393 |
 | TOTAL | — | — | — | 0 | 0 | 0 | 1393 | 1393 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
 - Slowest lane: none 0 s
 - Repeat lane (DEC-283): Not repeated: e2e/admin-attributes-import.spec.ts (20 tests); Not repeated: e2e/admin-attributes-library.spec.ts (21 tests); Not repeated: e2e/admin-attributes-links.spec.ts (17 tests); Not repeated: e2e/admin-attributes-safety.spec.ts (9 tests); Not repeated: e2e/admin-audit.spec.ts (7 tests); Not repeated: e2e/admin-categories-console.spec.ts (17 tests); Not repeated: e2e/admin-categories-home.spec.ts (5 tests); Not repeated: e2e/admin-categories-lifecycle.spec.ts (26 tests); Not repeated: e2e/admin-countries.spec.ts (9 tests); Not repeated: e2e/admin-guides.spec.ts (7 tests); Not repeated: e2e/admin-listings.spec.ts (38 tests); Not repeated: e2e/admin-locations.spec.ts (19 tests); Not repeated: e2e/admin-monetisation.spec.ts (17 tests); Not repeated: e2e/admin-roles.spec.ts (14 tests); Not repeated: e2e/admin-screening.spec.ts (27 tests); Not repeated: e2e/admin-services.spec.ts (5 tests); Not repeated: e2e/admin-translations-console.spec.ts (22 tests); Not repeated: e2e/admin-translations-data.spec.ts (5 tests); Not repeated: e2e/admin-translations-governance.spec.ts (4 tests); Not repeated: e2e/admin-users.spec.ts (14 tests); Not repeated: e2e/auth-signout.spec.ts (18 tests); Not repeated: e2e/category-image-routes.spec.ts (5 tests); Not repeated: e2e/i18n-coverage.spec.ts (7 tests); Not repeated: e2e/i18n-sign-in-language.spec.ts (6 tests); Not repeated: e2e/import-security.spec.ts (18 tests); Not repeated: e2e/legal-admin.spec.ts (22 tests); Not repeated: e2e/legal-certify.spec.ts (22 tests); Not repeated: e2e/legal-doors.spec.ts (17 tests); Not repeated: e2e/locale-format.spec.ts (1 tests); Not repeated: e2e/mfa-stepup.spec.ts (10 tests); Not repeated: e2e/my-listings-ad.spec.ts (19 tests); Not repeated: e2e/my-listings-doors.spec.ts (14 tests); Not repeated: e2e/my-listings-levels.spec.ts (14 tests); Not repeated: e2e/my-listings-page.spec.ts (8 tests); Not repeated: e2e/my-listings-promote.spec.ts (5 tests); Not repeated: e2e/name-check-queue.spec.ts (4 tests); Not repeated: e2e/one-line-slots-admin.spec.ts (5 tests); Not repeated: e2e/one-line-slots.spec.ts (5 tests); Not repeated: e2e/overlays.spec.ts (4 tests); Not repeated: e2e/page-head.spec.ts (2 tests); Not repeated: e2e/phone-frame.spec.ts (9 tests); Not repeated: e2e/photo-pipeline.spec.ts (34 tests); Not repeated: e2e/posting-routes-dials.spec.ts (7 tests); Not repeated: e2e/posting-routes.spec.ts (40 tests); Not repeated: e2e/rbac.spec.ts (3 tests); Not repeated: e2e/sage-ad-page.spec.ts (9 tests); Not repeated: e2e/shell-table-law.spec.ts (1 tests); Not repeated: e2e/shell.spec.ts (117 tests); Not repeated: e2e/account-saved.spec.ts (2 tests); Not repeated: e2e/ad-page-layout.spec.ts (1 tests); Not repeated: e2e/ad-page.spec.ts (39 tests); Not repeated: e2e/admin-shell.spec.ts (6 tests); Not repeated: e2e/auth-callback.spec.ts (4 tests); Not repeated: e2e/auth-caller-gates.spec.ts (4 tests); Not repeated: e2e/auth-google.spec.ts (2 tests); Not repeated: e2e/auth-reset.spec.ts (6 tests); Not repeated: e2e/auth-signin-errors.spec.ts (5 tests); Not repeated: e2e/category-nav.spec.ts (5 tests); Not repeated: e2e/choice-lists.spec.ts (48 tests); Not repeated: e2e/dark-cards.spec.ts (2 tests); Not repeated: e2e/dialogs.spec.ts (7 tests); Not repeated: e2e/door-refusals.spec.ts (6 tests); Not repeated: e2e/feed-index.spec.ts (15 tests); Not repeated: e2e/feed-route.spec.ts (11 tests); Not repeated: e2e/feed-screens.spec.ts (18 tests); Not repeated: e2e/fonts.spec.ts (1 tests); Not repeated: e2e/house-style.spec.ts (6 tests); Not repeated: e2e/i18n-bundle.spec.ts (3 tests); Not repeated: e2e/i18n-layers.spec.ts (3 tests); Not repeated: e2e/layout.spec.ts (5 tests); Not repeated: e2e/legal-accept.spec.ts (6 tests); Not repeated: e2e/legal-history.spec.ts (3 tests); Not repeated: e2e/legal-pages.spec.ts (5 tests); Not repeated: e2e/locations-tree.spec.ts (4 tests); Not repeated: e2e/menu-rows.spec.ts (3 tests); Not repeated: e2e/on-demand-failure.spec.ts (1 tests); Not repeated: e2e/overlay-shift.spec.ts (3 tests); Not repeated: e2e/post-wizard-bundle2.spec.ts (35 tests); Not repeated: e2e/post-wizard-category.spec.ts (24 tests); Not repeated: e2e/post-wizard-details.spec.ts (4 tests); Not repeated: e2e/post-wizard-finder.spec.ts (4 tests); Not repeated: e2e/post-wizard-place.spec.ts (20 tests); Not repeated: e2e/post-wizard-pricing.spec.ts (26 tests); Not repeated: e2e/post-wizard-recent.spec.ts (1 tests); Not repeated: e2e/post-wizard-removed.spec.ts (2 tests); Not repeated: e2e/post-wizard-resets.spec.ts (17 tests); Not repeated: e2e/post-wizard-specs.spec.ts (41 tests); Not repeated: e2e/post-wizard-units.spec.ts (2 tests); Not repeated: e2e/post-wizard-where.spec.ts (16 tests); Not repeated: e2e/posting-routes-catalog.spec.ts (9 tests); Not repeated: e2e/posting-routes-identity.spec.ts (2 tests); Not repeated: e2e/press.spec.ts (11 tests); Not repeated: e2e/primitives-law.spec.ts (12 tests); Not repeated: e2e/rail-first-paint.spec.ts (2 tests); Not repeated: e2e/sage-bands.spec.ts (38 tests); Not repeated: e2e/sage-cards.spec.ts (14 tests); Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/sage-tiers.spec.ts (20 tests); Not repeated: e2e/seller-name-hidden.spec.ts (1 tests); Not repeated: e2e/settings.spec.ts (9 tests); Not repeated: e2e/shell-bands.spec.ts (8 tests); Not repeated: e2e/smoke-auth-i18n.spec.ts (1 tests); Not repeated: e2e/submenu-look.spec.ts (6 tests); Not repeated: e2e/submenu-touch.spec.ts (4 tests); Not repeated: e2e/submenu.spec.ts (7 tests); Not repeated: e2e/supabase-door.spec.ts (6 tests); Not repeated: e2e/user-guides.spec.ts (9 tests); Not repeated: e2e/viewing-place.spec.ts (11 tests); Repeat: each 2 on both projects; 1393 tests selected, 38 repeated; budget 720 s at 4.7 s a test; directly changed: 5 of 53 repeated; importers of a changed helper: 0 of 60
-- Database session samples during each start (INC-944): smoke 7, email 6, 1 7, 2 9, 3 9, 4 8, 5 9, 6 9, 7 5, 8 8, 9 9, 10 7, 11 10, 12 7, 13 7, 14 9, 15 5, 16 7, repeat 5
+- Database session samples during each start (INC-944): smoke 7, email 9, 1 5, 2 5, 3 7, 4 8, 5 8, 6 7, 7 8, 8 5, 9 9, 10 9, 11 9, 12 9, 13 6, 14 8, 15 7, 16 8, repeat 9
 - Teardown:
   - smoke: not found
   - email: not found
@@ -153,8 +153,8 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 2
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
   Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -180,9 +180,9 @@ Step install-chromium-s-system-libraries: outcome failure
 Step install-chromium-s-system-libraries: outcome failure
   Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -228,11 +228,11 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 5
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -278,11 +278,11 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 7
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
+    Temporary failure resolving 'azure.archive.ubuntu.com'
   Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
-  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -305,9 +305,9 @@ Step install-chromium-s-system-libraries: outcome failure
 Step install-chromium-s-system-libraries: outcome failure
   Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -330,9 +330,9 @@ Step install-chromium-s-system-libraries: outcome failure
 Step install-chromium-s-system-libraries: outcome failure
   Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -353,11 +353,11 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 10
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-    Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
-  Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+  Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+    Temporary failure resolving 'azure.archive.ubuntu.com'
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -378,8 +378,8 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 11
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
-    Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -403,8 +403,8 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 12
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
   Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -428,11 +428,11 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 13
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-    Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
-  Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
+  Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+    Temporary failure resolving 'azure.archive.ubuntu.com'
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -453,11 +453,11 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 14
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
+  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -478,11 +478,11 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 15
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-    Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -503,8 +503,8 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane 16
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
-  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
-  Ign:9 https://archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
+  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
+    Temporary failure resolving 'azure.archive.ubuntu.com'
   Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
@@ -528,11 +528,11 @@ Step install-chromium-s-system-libraries: outcome failure
 ## Lane repeat
 - Step failure:
 Step install-chromium-s-system-libraries: outcome failure
+  Err:8 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3
     Temporary failure resolving 'azure.archive.ubuntu.com'
-  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
-  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:9 https://security.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1
     Temporary failure resolving 'azure.archive.ubuntu.com'
+  Ign:10 https://archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
   Err:10 https://security.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3
     Temporary failure resolving 'azure.archive.ubuntu.com'
   E: Failed to fetch https://security.ubuntu.com/ubuntu/pool/universe/f/fonts-ipafont/fonts-ipafont-gothic_00303-21ubuntu1_all.deb  Temporary failure resolving 'azure.archive.ubuntu.com'
