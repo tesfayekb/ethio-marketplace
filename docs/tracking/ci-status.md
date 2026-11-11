@@ -1,47 +1,47 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `cc151c2799d92dc73e875bd00b5026abc0ed5606` (short `cc151c2`)
+- Commit: `e295dc131c6c65de0ee449894edbeee4701f6fb6` (short `e295dc1`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-11T17:58:00Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43069973329
+- Completed (UTC): 2026-11-11T18:26:29Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43074440038
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Import gate guard (with self-test) | success |
-| i18n used-on map is fresh (U4i ②) | success |
-| E2E preflight (migration parity, staging) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Migration linter (with self-test) | success |
-| Build, typecheck, lint | success |
-| Component tests | success |
-| E2E lanes / Backend images (DEC-309) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Hardcoded string scan (enforcing) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
 | Gitleaks secrets scan | success |
+| E2E preflight (migration parity, staging) | success |
+| Migration linter (with self-test) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
+| Component tests | success |
+| i18n used-on map is fresh (U4i ②) | success |
+| Hardcoded string scan (enforcing) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Build, typecheck, lint | success |
+| Import gate guard (with self-test) | success |
 | Listing-write seam guard (with self-test) | success |
+| E2E lanes / Backend images (DEC-309) | success |
 | Semgrep (enforcing on ERROR) | success |
+| E2E lanes / Lane 4 on temporary Supabase | success |
+| E2E lanes / Lane 7 on temporary Supabase | success |
+| E2E lanes / Lane 9 on temporary Supabase | success |
+| E2E lanes / Lane 8 on temporary Supabase | success |
+| E2E lanes / Lane 16 on temporary Supabase | success |
+| E2E lanes / Lane 6 on temporary Supabase | success |
+| E2E lanes / Lane email on temporary Supabase | success |
 | E2E lanes / Lane 3 on temporary Supabase | success |
+| E2E lanes / Lane smoke on temporary Supabase | success |
+| E2E lanes / Lane 10 on temporary Supabase | success |
 | E2E lanes / Lane 5 on temporary Supabase | success |
 | E2E lanes / Lane 2 on temporary Supabase | success |
-| E2E lanes / Lane 1 on temporary Supabase | success |
-| E2E lanes / Lane 7 on temporary Supabase | success |
-| E2E lanes / Lane 15 on temporary Supabase | success |
+| E2E lanes / Lane 13 on temporary Supabase | success |
 | E2E lanes / Lane 14 on temporary Supabase | success |
 | E2E lanes / Lane repeat on temporary Supabase | success |
 | E2E lanes / Lane 12 on temporary Supabase | success |
-| E2E lanes / Lane 6 on temporary Supabase | success |
-| E2E lanes / Lane 13 on temporary Supabase | success |
-| E2E lanes / Lane 4 on temporary Supabase | success |
-| E2E lanes / Lane 10 on temporary Supabase | success |
-| E2E lanes / Lane email on temporary Supabase | success |
-| E2E lanes / Lane 9 on temporary Supabase | success |
-| E2E lanes / Lane 16 on temporary Supabase | success |
-| E2E lanes / Lane smoke on temporary Supabase | success |
-| E2E lanes / Lane 8 on temporary Supabase | success |
+| E2E lanes / Lane 15 on temporary Supabase | success |
+| E2E lanes / Lane 1 on temporary Supabase | success |
 | E2E lanes / Lane 11 on temporary Supabase | success |
 | E2E lanes / Summarize temporary backend lanes | success |
 | E2E (Playwright, ethio-staging) | success |
