@@ -15,8 +15,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  *   a function, of one of the names below (a `const asAnon = await …` answer is a value, not a copy).
  * - CF-HELPERS-2: no e2e file disables `rules-of-hooks`: a harness helper is named by its verb,
  *   never `use…`.
- * - CF-HELPERS-3: no e2e file but the language module writes `profiles.preferred_language`
- *   (`.from("profiles").update({ … preferred_language`, matched across lines).
+ * - CF-HELPERS-3: no e2e/*.spec.ts writes `profiles.preferred_language`; a spec sets it through
+ *   the language module (`.from("profiles").update({ … preferred_language`, matched across lines).
+ *   The lease (users.ts) and the pooled super admin's reset (ui.ts) write the NULL baseline themselves.
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -37,6 +38,9 @@ export const COPIED_NAMES = [
   "grantAdmin",
   "scratchHolder",
   "signInAsSuperAdmin",
+  "setAmharicAccount",
+  "setAccountLanguage",
+  "seedAccountLanguage",
 ];
 const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
@@ -119,10 +123,14 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3 no spec declares a helper's copy, no file disables rules-of-hooks, no file but the language module writes preferred_language",
+    "CF-HELPERS-1 → CF-HELPERS-3 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module",
     () => {
       const files = e2eFiles();
-      const findings = [...copyFindings(specs(), COPIED_NAMES), ...hooksDisableFindings(files)];
+      const findings = [
+        ...copyFindings(specs(), COPIED_NAMES),
+        ...hooksDisableFindings(files),
+        ...languageWriteFindings(specs()),
+      ];
       const allowances = readAllowlist(
         ALLOWLIST,
         findings.map((f) => f.key),

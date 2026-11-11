@@ -7,7 +7,11 @@ import { en } from "../src/i18n/locales/en";
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
 import { ANY_MENU_ROW, catalogueRows, isScratchSlug, slugOfRow } from "./helpers/category-menu";
 import { adminClient, leaseUser, grantRole } from "./helpers/users";
-import { setDeviceAmharic } from "./helpers/account-language";
+import {
+  setDeviceAmharic,
+  restoreAccountLanguages,
+  setAccountLanguage,
+} from "./helpers/account-language";
 
 /**
  * U0h PART 2 / U0i PART 3 — I18N CHROME COVERAGE GUARD.
@@ -68,31 +72,12 @@ const NAMESPACES = Array.from(
 const RAW_KEY_RE = new RegExp(`^(${NAMESPACES.join("|")})(\\.[A-Za-z0-9_]+)+$`);
 
 /**
- * INC-996 — under D239 a signed-in page shows the ACCOUNT's published language at
- * session start, so a signed-in test that needs Amharic sets its own leased account's
- * language (service client, J5 fixture write) as well as the device; afterEach puts
- * the fresh-user baseline (NULL, INC-173b) back.
+ * INC-996, INC-1100 — under D239 a signed-in page shows the ACCOUNT's published language at
+ * session start, so a signed-in test that needs Amharic sets its own leased account through
+ * `setAccountLanguage` (account-language.ts); afterEach puts the pool's baseline (NULL) back.
  */
-const accountsSet = new Set<string>();
-async function setAmharicAccount(page: Page, userId: string) {
-  accountsSet.add(userId);
-  const { error } = await adminClient()
-    .from("profiles")
-    .update({ preferred_language: "am" })
-    .eq("user_id", userId);
-  if (error) throw new Error(`[e2e:i18n] setting the account language failed: ${error.message}`);
-  await setDeviceAmharic(page);
-}
-
 test.afterEach(async () => {
-  const ids = [...accountsSet];
-  accountsSet.clear();
-  if (ids.length === 0) return;
-  const { error } = await adminClient()
-    .from("profiles")
-    .update({ preferred_language: null })
-    .in("user_id", ids);
-  if (error) throw new Error(`[e2e:i18n] restoring the account language failed: ${error.message}`);
+  await restoreAccountLanguages();
 });
 
 /** The chrome regions this guard owns. Absent regions are simply skipped. */
@@ -229,7 +214,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     // English labels. Then the account and the device are set to Amharic (INC-996:
     // the account decides at session start, D239), so /admin is measured in Amharic.
     await signIn(page, staff.email, staff.password);
-    await setAmharicAccount(page, staff.id);
+    await setAccountLanguage(page, staff.id, "am");
     await gotoReady(page, "/admin");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
@@ -254,7 +239,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     if (error || !role) throw new Error(`[e2e:i18n] super_admin role not found`);
 
     await signIn(page, staff.email, staff.password);
-    await setAmharicAccount(page, staff.id);
+    await setAccountLanguage(page, staff.id, "am");
     await gotoReady(page, `/admin/roles/${role.id}`);
     await expect(page.getByTestId("role-permissions")).toBeVisible({ timeout: 20000 });
 
