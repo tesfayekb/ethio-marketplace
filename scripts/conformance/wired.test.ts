@@ -198,6 +198,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/briefs.test.ts"), "utf8")).toContain(
       "CF-BRIEF-4",
     );
+    // lockfile-hosts.test.ts CF-LOCK-1…2 (the lockfile turn, DEC-363) is discovered by test:unit's
+    // scripts/**/*.test.ts; it reads bun.lock and lockfile-hosts-allowlist.txt.
+    expect(
+      readFileSync(join(ROOT, "scripts/conformance/lockfile-hosts.test.ts"), "utf8"),
+    ).toContain("CF-LOCK-2");
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {
