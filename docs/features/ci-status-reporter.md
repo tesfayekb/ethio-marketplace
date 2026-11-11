@@ -149,12 +149,19 @@ until`): the installs, the SARIF upload, the dependency audit, the staging prefl
 - The laws step's Semgrep on changed files (`scripts/ci/laws-changed.ts`) keeps CI's pinned rules
   and its venv under the same cache root (`scripts/ci/checks-cache.ts`, never /tmp, which the machine
   sweeps); the rules count as cached only when `javascript/` and `typescript/` each hold a `.yaml`
-  (`semgrepRulesWhole`), otherwise the archive is fetched again (INC-1098).
+  (`semgrepRulesWhole`), otherwise the archive is fetched again (INC-1098). When the rules' archive
+  or `pip install semgrep==<v>` cannot be fetched, `laws-changed.ts` prints one
+  `[laws] NOT RUN — <reason>` line and exits 3; the runner prints that step `NOT RUN — <reason>` (R3),
+  never FAIL. Semgrep's own exit 3 (a target it cannot parse) carries no such line and stays a FAIL
+  (housekeeping turn 3; TCK-11, TCK-3's neighbour).
+- One cache root (housekeeping turn 3): `CHECKS_CACHE` in `scripts/ci/checks-cache.ts` is
+  `ETHIO_CHECKS_CACHE || ~/.cache/ethio-checks` (an empty value is unset, as shell's `:-` reads it);
+  `scripts/db-proof.sh` reads the constant through `bun -e` and spells no root itself (CF-DBP-8).
 - The NEAR band (DEC-361): after the budget check, a NOTE for every size inside DEC-296's one band
   (`scripts/budget-band.mjs`, the local allowance included), with its growth against the turn's base
   build (HEAD's tree, built once per base and cached). A budget step whose only failure is that band
   is a PASS: CI's bundle-budget job judges, and a line moves only with a named cause.
-- Guard: `scripts/ci/turn-checks.test.ts` TCK-1…10.
+- Guard: `scripts/ci/turn-checks.test.ts` TCK-1…11.
 
 ## Known limitations
 

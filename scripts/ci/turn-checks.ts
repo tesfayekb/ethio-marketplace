@@ -50,7 +50,7 @@ import { ownValue } from "../../src/lib/own-key";
 import { NEAR_KIB, judgedSize } from "../budget-band.mjs";
 import { readAllowlist } from "../conformance/kit";
 import { CHECKS_CACHE as CACHE } from "./checks-cache";
-import { briefInForce } from "./laws-changed";
+import { briefInForce, NOT_RUN_EXIT, NOT_RUN_LINE } from "./laws-changed";
 
 export const CI_FILE = ".github/workflows/ci.yml";
 export const ALLOWLIST = "scripts/ci/turn-checks-allowlist.txt";
@@ -263,6 +263,18 @@ export function fetchFailure(step: Step, output: string): string | undefined {
   if (/curl: \(\d+\)|Could not resolve host|No matching distribution|ERROR: Could not/.test(output))
     return "the pinned download could not be fetched";
   return undefined;
+}
+
+/** R3 for the laws step's Semgrep (housekeeping turn 3): laws-changed.ts exits NOT_RUN_EXIT with its
+ *  `[laws] NOT RUN — <reason>` line when the pinned rules or `pip install semgrep==<v>` failed. Both
+ *  are required: Semgrep's own scan also exits 3 (a target it cannot parse), which stays a FAIL. */
+export function lawsNotRun(step: Step, code: number, output: string): string | undefined {
+  if (step.key !== LAWS_SEMGREP.key || code !== NOT_RUN_EXIT) return undefined;
+  const line = output
+    .split("\n")
+    .filter((l) => l.startsWith(NOT_RUN_LINE))
+    .at(-1);
+  return line === undefined ? undefined : line.slice(NOT_RUN_LINE.length);
 }
 
 /**
@@ -678,7 +690,10 @@ function main(): number {
       step.timeoutS,
       step.key.replace(/[^\w]+/g, "-"),
     );
-    const notFetched = r.code !== 0 ? fetchFailure(step, r.output) : undefined;
+    const notFetched =
+      r.code !== 0
+        ? (fetchFailure(step, r.output) ?? lawsNotRun(step, r.code, r.output))
+        : undefined;
     const nearOnly =
       step.key === BUDGET_STEP &&
       r.code !== 0 &&

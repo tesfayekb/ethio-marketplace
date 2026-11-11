@@ -1,5 +1,8 @@
 import {
   changedTestFolders,
+  NOT_RUN_EXIT,
+  NOT_RUN_LINE,
+  prepareSemgrep,
   semgrepPins,
   semgrepRulesWhole,
   semgrepTargets,
@@ -27,6 +30,7 @@ import {
   LAWS_STEPS,
   fastLine,
   fetchFailure,
+  lawsNotRun,
   lineText,
   localSecretsScan,
   localUnitTests,
@@ -52,7 +56,8 @@ import {
  * step's worker bound (INC-1001), TCK-7 a pinned binary built for another machine is NOT RUN
  * (INC-1094), TCK-8 `--no-tests` (INC-1064), TCK-9 the budget step's NEAR-only failure is a PASS
  * with its NOTE lines (DEC-361), TCK-10 the laws' Semgrep rules cache is whole only by its files
- * (INC-1098).
+ * (INC-1098), TCK-11 (TCK-3's neighbour) the laws' pinned Semgrep fetch or install that failed is
+ * NOT RUN (housekeeping turn 3).
  */
 const ciText = readFileSync(CI_FILE, "utf8");
 const steps = planFrom(ciText);
@@ -137,6 +142,54 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     expect(fetchFailure(pinned, "leaks found: 1")).toBeUndefined();
     const unpinned = steps.find((s) => s.key === "string-scan › Run string scan");
     expect(unpinned && fetchFailure(unpinned, "curl: (6) Could not resolve host")).toBeUndefined();
+  });
+
+  it("TCK-11 (TCK-3's neighbour) the laws step's pinned Semgrep rules or install that failed is NOT RUN (housekeeping turn 3)", () => {
+    const pins = { version: "1.2.3", rules: "a".repeat(40) };
+    const cache = mkdtempSync(join(tmpdir(), "tck-laws-"));
+    try {
+      // The rules' archive cannot be fetched: NOT RUN, and the half-made folder is gone.
+      const calls: string[] = [];
+      const fetchFails = prepareSemgrep(cache, pins, (cmd, args) => {
+        calls.push(cmd);
+        if (cmd === "mkdir") mkdirSync(args[1] ?? "", { recursive: true });
+        return cmd === "bash" ? 6 : 0;
+      });
+      expect(fetchFails).toEqual({ notRun: "the pinned Semgrep rules could not be fetched" });
+      expect(calls).toEqual(["mkdir", "bash"]);
+      expect(semgrepRulesWhole(join(cache, `semgrep-rules-${pins.rules}`))).toBe(false);
+      // The rules are whole; `pip install semgrep==1.2.3` fails: NOT RUN with its own reason.
+      for (const lang of ["javascript", "typescript"]) {
+        mkdirSync(join(cache, `semgrep-rules-${pins.rules}`, lang), { recursive: true });
+        writeFileSync(join(cache, `semgrep-rules-${pins.rules}`, lang, "r.yaml"), "rules: []\n");
+      }
+      const pipFails = prepareSemgrep(cache, pins, (cmd) => (cmd.endsWith("/bin/pip") ? 1 : 0));
+      expect(pipFails).toEqual({
+        notRun: "the pinned Semgrep 1.2.3 could not be installed (pip install semgrep==1.2.3)",
+      });
+      // A venv that cannot be made is not a fetch: it stays a failure.
+      expect(prepareSemgrep(cache, pins, (cmd) => (cmd === "python3" ? 1 : 0))).toHaveProperty(
+        "failed",
+      );
+    } finally {
+      rmSync(cache, { recursive: true, force: true });
+    }
+    // The runner maps exit 3 with the line to NOT RUN, for the laws' Semgrep step only.
+    for (const reason of [
+      "the pinned Semgrep rules could not be fetched",
+      "the pinned Semgrep 1.2.3 could not be installed (pip install semgrep==1.2.3)",
+    ])
+      expect(
+        lawsNotRun(
+          LAWS_SEMGREP,
+          NOT_RUN_EXIT,
+          `[laws] changed files Semgrep judges: 4\n${NOT_RUN_LINE}${reason}\n`,
+        ),
+      ).toBe(reason);
+    // Semgrep's own exit 3 (a target it cannot parse) carries no such line: it stays a FAIL.
+    expect(lawsNotRun(LAWS_SEMGREP, 3, "[ERROR] Syntax error at line src/x.ts:1")).toBeUndefined();
+    expect(lawsNotRun(LAWS_SEMGREP, 1, `${NOT_RUN_LINE}x`)).toBeUndefined();
+    expect(lawsNotRun(LAWS_CHANGED_UNITS, NOT_RUN_EXIT, `${NOT_RUN_LINE}x`)).toBeUndefined();
   });
 
   it("TCK-4 the last line's counts equal the lines printed", () => {
