@@ -69,6 +69,11 @@ function linesOf(text: string): string[] {
   return text.split("\n");
 }
 
+/** `text` as a literal inside a RegExp source: every metacharacter, the backslash included, escaped. */
+export function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /** CF-BRIEF-1 — the brief's own base line. */
 export function baseFindings(text: string, file: string): Finding[] {
   return /Base: dev [0-9a-f]{7,40}\b/.test(text)
@@ -193,7 +198,7 @@ export function censusFindings(
   const answers = [step.text, ...rulings.map((r) => r.text)].join("\n");
   return keys
     .filter((key) => {
-      const word = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/-/g, "[- ]");
+      const word = escapeRegExp(key).replace(/-/g, "[- ]");
       return (
         !new RegExp(`(?<![\\w-])${word}(?![\\w-])`, "i").test(step.text) &&
         !new RegExp(`CENSUS-ITEM ${word}:`, "i").test(answers)
@@ -264,7 +269,7 @@ export function citedPathFindings(text: string, file: string, root: string): Fin
       ? ""
       : lines.slice(scopeStart, scopeEnd < 0 ? lines.length : scopeEnd).join("\n");
   const markedNew = (path: string) =>
-    new RegExp(`${path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\`?\\s*\\(new\\)`).test(scope);
+    new RegExp(`${escapeRegExp(path)}\`?\\s*\\(new\\)`).test(scope);
   const findings: Finding[] = [];
   lines.forEach((content, index) => {
     for (const sentence of content.split(FULL_SENTENCE)) {
@@ -408,7 +413,7 @@ export function optionFindings(text: string, file: string, root: string): Findin
       return;
     }
     const lines = linesOf(readFileSync(full, "utf8"));
-    const declared = new RegExp(`(?<![\\w$.])${name.replace(/\$/g, "\\$")}\\??\\s*:`);
+    const declared = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}\\??\\s*:`);
     const sites = lines.flatMap((l, i) => (declared.test(l) ? [i] : []));
     if (sites.length === 0) {
       push(`names the option ${name}, which ${path} does not declare`);

@@ -19,6 +19,7 @@ import { walkFiles } from "../conformance/kit";
 import {
   allowanceFindings,
   censusFindings,
+  escapeRegExp,
   type Finding,
   type Ruling,
   templateKeys,
@@ -46,7 +47,7 @@ function argsOf(argv: string[]): { file: string; root: string } | null {
 function rulingsOf(file: string): Ruling[] {
   const dir = dirname(file);
   const stem = basename(file).replace(/\.md$/, "");
-  const rx = new RegExp(`^${stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-ruling-\\d+\\.md$`);
+  const rx = new RegExp(`^${escapeRegExp(stem)}-ruling-\\d+\\.md$`);
   return walkFiles([dir], { ext: ["md"] })
     .filter((path) => dirname(path) === dir && rx.test(basename(path)))
     .map((path) => ({ file: path, text: readFileSync(path, "utf8") }));

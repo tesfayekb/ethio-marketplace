@@ -18,6 +18,7 @@ import {
   baseFindings,
   censusFindings,
   citedLineFindings,
+  escapeRegExp,
   citedPathFindings,
   countCommandRefusal,
   countFindings,
@@ -293,6 +294,14 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       } finally {
         rmSync(bare, { recursive: true, force: true });
       }
+    });
+
+    it("a cited name enters a pattern as itself: every metacharacter, the backslash included", () => {
+      const name = String.raw`a\b.c$d(e)`;
+      const rx = new RegExp(`^${escapeRegExp(name)}$`);
+      expect(rx.test(name)).toBe(true);
+      expect(rx.test(String.raw`a\bxc$d(e)`)).toBe(false);
+      expect(rx.test("ab.c$d(e)")).toBe(false);
     });
 
     it("a COUNT command carrying a write is refused; a read-only pipe runs", () => {
