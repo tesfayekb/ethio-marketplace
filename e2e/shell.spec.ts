@@ -39,25 +39,8 @@ import {
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
 import { destroyCategory, scratchSlug } from "./helpers/categories";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 import { distanceKm } from "../src/lib/geo-distance";
-
-/** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:shell] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:shell] granting ${roleName} failed: ${error.message}`);
-}
 
 /**
  * Shell smoke — the design foundation.

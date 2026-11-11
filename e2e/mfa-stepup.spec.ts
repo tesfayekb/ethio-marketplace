@@ -6,7 +6,7 @@ import { en } from "../src/i18n/locales/en";
 
 import { totp, wrongCode } from "./helpers/totp";
 import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { adminClient, createUser, grantRole } from "./helpers/users";
 
 /**
  * U1f — STEP-UP AUTHENTICATION (MF-1..MF-5).
@@ -19,22 +19,6 @@ import { adminClient, createUser } from "./helpers/users";
  * PRE-REQUISITE (operator item): TOTP must be enabled in
  * Supabase Dashboard → Authentication → Multi-Factor for the target project.
  */
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:u1f] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:u1f] granting ${roleName} failed: ${error.message}`);
-}
 
 /** Enrolls a TOTP factor through the settings UI and returns its secret. */
 async function enrollThroughSettings(page: Page): Promise<string> {

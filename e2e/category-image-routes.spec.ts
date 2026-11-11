@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 
 import type { Database } from "../src/integrations/supabase/types";
 
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
 /**
  * C5a PART E — the AI foundation routes, proved in FAKE MODE (GEMINI_FAKE=1);
@@ -44,22 +44,6 @@ function anonClient() {
     process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
   if (url === "" || key === "") throw new Error("[e2e:c5a] supabase env missing");
   return createClient(url, key, { auth: { persistSession: false } });
-}
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .maybeSingle();
-  if (roleError || !role) {
-    throw new Error(`[e2e:c5a] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:c5a] granting ${roleName} failed: ${error.message}`);
 }
 
 /** A signed-in bearer token for a principal holding `categories:assets`. */

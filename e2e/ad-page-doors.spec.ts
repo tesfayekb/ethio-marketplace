@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { asAnonymous, asPerson } from "./helpers/door-callers";
-import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser, grantScratchRole } from "./helpers/users";
 import { updateListingRow } from "./helpers/listing-seed";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { doorAnswer, doorRefusal } from "./helpers/door-answer";
@@ -58,55 +58,6 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       if (role.error) throw new Error(`[e2e:ap] role reap failed: ${role.error.message}`);
     }
   });
-
-  /** The my-listings door spec's file-local grant, on an account already held. */
-  async function grantRole(
-    wanted: Array<[resource: string, action: string]>,
-    person: { id: string; email: string; password: string },
-  ) {
-    const supabase = adminClient();
-    const roleName = `e2e_mylistings_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:ap] scratch role failed: ${roleError?.message}`);
-    reportRoles.push(role.id as string);
-    const { data: perms, error: permsError } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    if (permsError) throw new Error(`[e2e:ap] permission read failed: ${permsError.message}`);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:ap] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:ap] grant failed: ${granted.error.message}`);
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: person.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:ap] assignment failed: ${assigned.error.message}`);
-    return person;
-  }
-
-  /** File-local scratchHolder; reuse a held account for AP-28's two-lease ceiling. */
-  async function scratchHolder(
-    wanted: Array<[resource: string, action: string]>,
-    person: { id: string; email: string; password: string },
-  ) {
-    return grantRole(wanted, person);
-  }
 
   /** A rate key of this file, reaped in afterEach: `e2e-<RUN><token>-<name>`. */
   function rateKey(name: string): string {
@@ -988,14 +939,15 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         "permission denied",
       );
       // X's plain-account checks finish before this held account gains the staff role.
-      const holder = await scratchHolder(
+      await grantScratchRole(
+        xPerson.id,
         [
           ["listings", "view"],
           ["listings", "review"],
         ],
-        xPerson,
+        reportRoles,
       );
-      const staff = await asPerson(holder);
+      const staff = await asPerson(xPerson);
       const reports = await staff.rpc("admin_listing_reports", { p_listing_id: ad.id });
       expect(reports.error).toBeNull();
       expect(reports.data).toHaveLength(2);

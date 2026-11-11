@@ -7,7 +7,7 @@ import { LANGUAGE_STORAGE_KEY } from "../src/i18n/provider";
 
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
 import { ANY_MENU_ROW, catalogueRows, isScratchSlug, slugOfRow } from "./helpers/category-menu";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
 /**
  * U0h PART 2 / U0i PART 3 — I18N CHROME COVERAGE GUARD.
@@ -66,23 +66,6 @@ const NAMESPACES = Array.from(
   new Set(Object.keys(en).map((key) => key.split(".")[0] ?? "")),
 ).filter(Boolean);
 const RAW_KEY_RE = new RegExp(`^(${NAMESPACES.join("|")})(\\.[A-Za-z0-9_]+)+$`);
-
-/** Grants a named role via the service role — the staff fixture. */
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:i18n] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:i18n] granting ${roleName} failed: ${error.message}`);
-}
 
 /** Amharic before the first paint, so no English frame is ever measured. */
 async function useAmharic(page: Page) {

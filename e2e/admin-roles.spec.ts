@@ -18,7 +18,7 @@ import {
   userRow,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
 /**
  * Phase U2 — Roles & Permissions console (RP-1..RP-8).
@@ -31,22 +31,6 @@ import { adminClient, leaseUser } from "./helpers/users";
  * (the U2 seed granted `admin` roles:view alone), so every mutating case signs
  * in as a super admin. RP-1 uses admin/moderator for the gating split.
  */
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:u2] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:u2] granting ${roleName} failed: ${error.message}`);
-}
 
 function rand() {
   return Math.random().toString(36).slice(2, 8);

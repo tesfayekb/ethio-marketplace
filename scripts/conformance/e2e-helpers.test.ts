@@ -33,6 +33,9 @@ export const COPIED_NAMES = [
   "restBase",
   "answerOf",
   "bearerClient",
+  "grantRole",
+  "grantAdmin",
+  "scratchHolder",
 ];
 const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
@@ -143,6 +146,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
           "async function asPerson() {}",
           "test('t', async () => {",
           "  const rpcResult = () => null;",
+          "  const scratchHolder = async function () {};",
           "  // eslint-disable-next-line react-hooks/rules-of-hooks -- planted",
           "  await adminClient()",
           '    .from("profiles")',
@@ -156,9 +160,10 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
       expect(copyFindings([spec], COPIED_NAMES).map((f) => [f.line, f.key])).toEqual([
         [2, `${spec} asPerson`],
         [4, `${spec} rpcResult`],
+        [5, `${spec} scratchHolder`],
       ]);
-      expect(hooksDisableFindings([spec]).map((f) => f.line)).toEqual([5]);
-      expect(languageWriteFindings([spec]).map((f) => f.line)).toEqual([7]);
+      expect(hooksDisableFindings([spec]).map((f) => f.line)).toEqual([6]);
+      expect(languageWriteFindings([spec]).map((f) => f.line)).toEqual([8]);
       expect(languageWriteFindings([spec], spec)).toEqual([]);
       const clean = join(dir, "clean.spec.ts");
       writeFileSync(

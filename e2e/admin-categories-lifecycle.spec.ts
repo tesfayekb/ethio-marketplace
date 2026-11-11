@@ -5,7 +5,7 @@ import { withinPreviewBudget } from "./helpers/rate-window";
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { gotoReady, stepUpIfPrompted, switchUser, waitForHydration } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
   scratchSlug,
@@ -1824,39 +1824,6 @@ test.describe("CAT-IE categories import/export", () => {
     }
   });
 
-  /**
-   * A scratch role carrying exactly the named permissions (J3): no ratified
-   * role is ever touched, and the role is dropped in the caller's `finally`.
-   */
-  async function scratchRole(wanted: [string, string][]) {
-    const supabase = adminClient();
-    const roleName = `e2e_catie_${rand()}`;
-    const { data: role, error } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (error || !role) throw new Error(`[e2e:cat-ie] scratch role failed: ${error?.message}`);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in(
-        "resources.name",
-        wanted.map(([resource]) => resource),
-      );
-    const chosen = (perms ?? []).filter((perm) => {
-      const resource = (perm as unknown as { resources: { name: string } }).resources.name;
-      return wanted.some(([name, act]) => name === resource && act === perm.action);
-    });
-    expect(chosen.length, "[e2e:cat-ie] the scratch role is missing a permission").toBe(
-      wanted.length,
-    );
-    await supabase
-      .from("role_permissions")
-      .insert(chosen.map((perm) => ({ role_id: role.id, permission_id: perm.id })));
-    return role.id;
-  }
-
   async function dropRole(roleId: string) {
     const supabase = adminClient();
     await supabase.from("role_permissions").delete().eq("role_id", roleId);
@@ -1870,15 +1837,17 @@ test.describe("CAT-IE categories import/export", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const roleId = await scratchRole([
-      ["admin_panel", "access"],
-      ["categories", "view"],
-    ]);
+    const reap: string[] = [];
     try {
       const viewer = await leaseUser();
-      await adminClient()
-        .from("user_roles")
-        .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
+      await grantScratchRole(
+        viewer.id,
+        [
+          ["admin_panel", "access"],
+          ["categories", "view"],
+        ],
+        reap,
+      );
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/categories");
       await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20000 });
@@ -1902,7 +1871,7 @@ test.describe("CAT-IE categories import/export", () => {
       });
       expect(anonymous.status()).toBe(401);
     } finally {
-      await dropRole(roleId);
+      for (const roleId of reap) await dropRole(roleId);
     }
   });
 
@@ -1910,17 +1879,19 @@ test.describe("CAT-IE categories import/export", () => {
   test("CT-23 a commit without step-up is refused and writes nothing", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const roleId = await scratchRole([
-      ["admin_panel", "access"],
-      ["categories", "view"],
-      ["categories", "import"],
-    ]);
+    const reap: string[] = [];
     const slug = scratchSlug();
     try {
       const importer = await leaseUser();
-      await adminClient()
-        .from("user_roles")
-        .insert({ user_id: importer.id, role_id: roleId, scope_type: "global" });
+      await grantScratchRole(
+        importer.id,
+        [
+          ["admin_panel", "access"],
+          ["categories", "view"],
+          ["categories", "import"],
+        ],
+        reap,
+      );
       await switchUser(page, importer.email, importer.password);
       await gotoReady(page, "/admin/categories");
 
@@ -1941,7 +1912,7 @@ test.describe("CAT-IE categories import/export", () => {
       expect(await readCategory(slug)).toBeNull();
     } finally {
       await destroyCategory(slug);
-      await dropRole(roleId);
+      for (const roleId of reap) await dropRole(roleId);
     }
   });
   /**

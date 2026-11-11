@@ -19,7 +19,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { inBrowserClient } from "./helpers/browser-client";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { errorText } from "../src/lib/error-text";
 import {
   langRow,
@@ -438,8 +438,7 @@ test.describe("U4b translations console", () => {
     const { secret } = await signInAsSuperAdmin(page);
     const target = await leaseUser();
     const supabase = adminClient();
-    const roleName = `e2e-tr10-${processId()}-${process.env["TEST_WORKER_INDEX"] ?? process.pid}`;
-    let roleId: string | null = null;
+    const reap: string[] = [];
     try {
       // STATE A — no translations:* permission: the card collapses honestly.
       await gotoReady(page, `/admin/users/${target.id}`);
@@ -449,38 +448,7 @@ test.describe("U4b translations console", () => {
       await expect(page.getByTestId("translator-save")).toHaveCount(0);
 
       // STATE B — a scratch custom role carrying ONLY translations:view.
-      const { data: permission, error: permissionError } = await supabase
-        .from("permissions")
-        .select("id, resources!inner(name)")
-        .eq("resources.name", "translations")
-        .eq("action", "view")
-        .single();
-      if (permissionError || !permission) {
-        throw new Error(
-          `[e2e:u4b] translations:view permission lookup failed: ${permissionError?.message ?? "no row"}`,
-        );
-      }
-      const { data: role, error: roleError } = await supabase
-        .from("roles")
-        .insert({ name: roleName, display_name: roleName, is_system: false })
-        .select("id")
-        .single();
-      if (roleError || !role) {
-        throw new Error(`[e2e:u4b] scratch role insert failed: ${roleError?.message ?? "no row"}`);
-      }
-      roleId = role.id;
-      const { error: grantError } = await supabase
-        .from("role_permissions")
-        .insert({ role_id: role.id, permission_id: permission.id, is_core: false });
-      if (grantError) {
-        throw new Error(`[e2e:u4b] scratch role permission failed: ${grantError.message}`);
-      }
-      const { error: assignError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: target.id, role_id: role.id, scope_type: "global" });
-      if (assignError) {
-        throw new Error(`[e2e:u4b] scratch role assign failed: ${assignError.message}`);
-      }
+      await grantScratchRole(target.id, [["translations", "view"]], reap);
 
       await gotoReady(page, `/admin/users/${target.id}`);
       const amBox = page.getByTestId("translator-lang-am");
@@ -506,7 +474,7 @@ test.describe("U4b translations console", () => {
       await expectNoHorizontalOverflow(page);
     } finally {
       await supabase.from("translator_languages").delete().eq("user_id", target.id);
-      if (roleId) {
+      for (const roleId of reap) {
         await supabase.from("user_roles").delete().eq("role_id", roleId);
         await supabase.from("roles").delete().eq("id", roleId);
       }
@@ -925,26 +893,16 @@ test.describe("U4b translations console", () => {
     // provider call and before any write.
     const user = await leaseUser();
     const supabase = adminClient();
-    const roleName = `e2e-u4c-machine-${processId()}-${process.env["TEST_WORKER_INDEX"] ?? "0"}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, is_system: false, priority: 10 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:u4c] scratch role failed: ${roleError?.message}`);
+    const reap: string[] = [];
     try {
-      const { data: perms, error: permError } = await supabase
-        .from("permissions")
-        .select("id, action, resources!inner(name)")
-        .eq("resources.name", "translations")
-        .in("action", ["view", "machine"]);
-      if (permError) throw new Error(`[e2e:u4c] permission read failed: ${permError.message}`);
-      await supabase
-        .from("role_permissions")
-        .insert((perms ?? []).map((p) => ({ role_id: role.id, permission_id: p.id })));
-      await supabase
-        .from("user_roles")
-        .insert({ user_id: user.id, role_id: role.id, scope_type: "global" });
+      await grantScratchRole(
+        user.id,
+        [
+          ["translations", "view"],
+          ["translations", "machine"],
+        ],
+        reap,
+      );
 
       await switchUser(page, user.email, user.password);
       await waitForHydration(page);
@@ -969,9 +927,11 @@ test.describe("U4b translations console", () => {
       expect(refusal.status).toBe(403);
       expect(refusal.error).toMatch(/not assigned to this language/i);
     } finally {
-      await supabase.from("user_roles").delete().eq("role_id", role.id);
-      await supabase.from("role_permissions").delete().eq("role_id", role.id);
-      await supabase.from("roles").delete().eq("id", role.id);
+      for (const roleId of reap) {
+        await supabase.from("user_roles").delete().eq("role_id", roleId);
+        await supabase.from("role_permissions").delete().eq("role_id", roleId);
+        await supabase.from("roles").delete().eq("id", roleId);
+      }
     }
   });
 

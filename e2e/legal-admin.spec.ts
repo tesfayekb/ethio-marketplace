@@ -6,7 +6,7 @@ import { grantRole } from "./helpers/categories";
 import { bearerClient, passwordGrant } from "./helpers/session";
 import { ensureFenceLanguage } from "./helpers/translations";
 import { gotoReady, openRailScope, useJobSuperAdmin, switchUser } from "./helpers/ui";
-import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser, grantScratchRole } from "./helpers/users";
 import { PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 import { errorText } from "../src/lib/error-text";
 
@@ -1011,60 +1011,26 @@ test.describe("Admin Legal", () => {
     await seed(kind);
     const versionId = (await version(kind)).id;
     const supabase = adminClient();
-    const { data: perms, error: permsError } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", ["admin_panel", "legal"]);
-    fail(permsError, "permissions read");
-    const picked = (names: string[]) =>
-      (perms ?? []).filter((p) =>
-        names.includes(
-          `${(p as unknown as { resources: { name: string } }).resources.name}:${p.action}`,
-        ),
-      );
-    const makeRole = async (tag: string, names: string[]) => {
-      const roleName = `${RUN_TAG}-role-${tag}`;
-      const { data: role, error: roleError } = await supabase
-        .from("roles")
-        .insert({ name: roleName, display_name: roleName, priority: 1 })
-        .select("id")
-        .single();
-      if (roleError || !role)
-        throw new Error(`[e2e:legal-admin] scratch role: ${roleError?.message}`);
-      roles.add(role.id);
-      const rows = picked(names);
-      expect(rows.length, `LGA-21 expected ${names.join(" + ")}`).toBe(names.length);
-      const granted = await supabase
-        .from("role_permissions")
-        .insert(rows.map((p) => ({ role_id: role.id, permission_id: p.id })));
-      fail(granted.error, "role permissions grant");
-      return role.id;
-    };
-    const publisherRole = await makeRole("pub", [
-      "admin_panel:access",
-      "legal:view",
-      "legal:publish",
-    ]);
-    const viewerRole = await makeRole("view", ["admin_panel:access", "legal:view"]);
     const publisher = await leaseUser();
     const viewer = await leaseUser();
+    const publisherRole = await grantScratchRole(
+      publisher.id,
+      [
+        ["admin_panel", "access"],
+        ["legal", "view"],
+        ["legal", "publish"],
+      ],
+      roles,
+    );
+    const viewerRole = await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["legal", "view"],
+      ],
+      roles,
+    );
     try {
-      fail(
-        (
-          await supabase
-            .from("user_roles")
-            .insert({ user_id: publisher.id, role_id: publisherRole, scope_type: "global" })
-        ).error,
-        "publisher role grant",
-      );
-      fail(
-        (
-          await supabase
-            .from("user_roles")
-            .insert({ user_id: viewer.id, role_id: viewerRole, scope_type: "global" })
-        ).error,
-        "viewer role grant",
-      );
       await useJobSuperAdmin(page);
       await switchUser(page, publisher.email, publisher.password);
       await gotoReady(page, "/admin/legal");

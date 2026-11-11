@@ -8,7 +8,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { expectActionsInsideCell } from "./helpers/row-actions";
@@ -791,39 +791,19 @@ test.describe("C3 attributes console", () => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
     const supabase = adminClient();
-    const roleName = `e2e_viewonly_${rand()}`;
-    let roleId = "";
+    const reap: string[] = [];
     const key = `e2e_attr_${rand()}`;
     try {
       const attributeId = await seedAttribute(key);
-      const { data: role, error: roleError } = await supabase
-        .from("roles")
-        .insert({ name: roleName, display_name: roleName, priority: 1 })
-        .select("id")
-        .single();
-      if (roleError || !role) throw new Error(`AT-14 scratch role failed: ${roleError?.message}`);
-      roleId = role.id;
-      const { data: perms, error: permError } = await supabase
-        .from("permissions")
-        .select("id, action, resources!inner(name)")
-        .in("resources.name", ["admin_panel", "categories"]);
-      if (permError) throw new Error(`AT-14 permission census failed: ${permError.message}`);
-      const wanted = (perms ?? []).filter((p) => {
-        const resource = (p as unknown as { resources: { name: string } }).resources.name;
-        return (
-          (resource === "admin_panel" && p.action === "access") ||
-          (resource === "categories" && p.action === "view")
-        );
-      });
-      expect(wanted, "AT-14 expected exactly admin_panel:access + categories:view").toHaveLength(2);
-      await supabase
-        .from("role_permissions")
-        .insert(wanted.map((p) => ({ role_id: roleId, permission_id: p.id })));
-
       const viewer = await leaseUser();
-      await supabase
-        .from("user_roles")
-        .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
+      await grantScratchRole(
+        viewer.id,
+        [
+          ["admin_panel", "access"],
+          ["categories", "view"],
+        ],
+        reap,
+      );
 
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/attributes");
@@ -892,7 +872,7 @@ test.describe("C3 attributes console", () => {
       expect(after ?? []).toHaveLength(0);
       expect(await readAttribute(key)).not.toBeNull();
     } finally {
-      if (roleId) {
+      for (const roleId of reap) {
         await supabase.from("user_roles").delete().eq("role_id", roleId);
         await supabase.from("role_permissions").delete().eq("role_id", roleId);
         await supabase.from("roles").delete().eq("id", roleId);

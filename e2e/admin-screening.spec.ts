@@ -27,7 +27,7 @@ import {
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { levelNameFor } from "./helpers/level-overrides";
 
@@ -216,48 +216,6 @@ test.describe("ADMIN SCREENING", () => {
     return row;
   }
 
-  /**
-   * Bundle 11 A3 — a pool user holding exactly these permissions through a
-   * scratch role, with no second factor (a pool user enrols none). The role is
-   * reaped in afterEach.
-   */
-  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
-    const supabase = adminClient();
-    const roleName = `e2e_screen_role_${rand()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:sc] scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:sc] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:sc] grant failed: ${granted.error.message}`);
-    const holder = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: holder.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:sc] assignment failed: ${assigned.error.message}`);
-    return holder;
-  }
-
   test("SC-1 the queue lists an ad waiting for review", async ({ page }) => {
     const ad = await seedWaiting();
     await useJobSuperAdmin(page);
@@ -334,32 +292,10 @@ test.describe("ADMIN SCREENING", () => {
   test("SC-16 a reviewer without a fresh second factor cannot decide", async ({ page }) => {
     test.setTimeout(180_000);
     const ad = await seedWaiting();
-    const supabase = adminClient();
 
     // (b) a scratch role holding listings:review only, no second factor.
-    const roleName = `e2e_screen_reviewer_${rand()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`SC-16 scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", ["listings"]);
-    const wanted = (perms ?? []).filter((p) => p.action === "review");
-    expect(wanted, "SC-16 expected exactly listings:review").toHaveLength(1);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`SC-16 grant failed: ${granted.error.message}`);
     const reviewer = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: reviewer.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`SC-16 assignment failed: ${assigned.error.message}`);
+    await grantScratchRole(reviewer.id, [["listings", "review"]], roles);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
     const deniedReviewer = (
@@ -465,7 +401,8 @@ test.describe("ADMIN SCREENING", () => {
     test.setTimeout(180_000);
     const ad = await seedWaiting({ contactPref: PREF });
 
-    const reviewer = await scratchHolder([["listings", "review"]]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(reviewer.id, [["listings", "review"]], roles);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
     const read = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
@@ -744,11 +681,16 @@ test.describe("ADMIN SCREENING", () => {
   }) => {
     test.setTimeout(180_000);
     const ad = await seedWaiting({ contactPref: PREF });
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await switchUser(page, reviewer.email, reviewer.password);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");

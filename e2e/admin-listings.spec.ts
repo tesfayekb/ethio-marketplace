@@ -25,7 +25,7 @@ import {
   stepUpIfPrompted,
   useJobSuperAdmin,
 } from "./helpers/ui";
-import { adminClient, leaseUser, createUser } from "./helpers/users";
+import { adminClient, leaseUser, createUser, grantScratchRole } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 import { levelNameFor } from "./helpers/level-overrides";
 
@@ -205,44 +205,6 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     return { id: data.id, title: data["title"] as string };
   }
 
-  /** A pooled account holding exactly the named permissions through a scratch role. */
-  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
-    const supabase = adminClient();
-    const roleName = `e2e_listings_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:al] scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:al] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:al] grant failed: ${granted.error.message}`);
-    const holder = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: holder.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:al] assignment failed: ${assigned.error.message}`);
-    return holder;
-  }
-
   const list = (page: Page, args: Record<string, unknown>) =>
     pageDoor(page, "admin_list_listings", args);
 
@@ -254,7 +216,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const draft = await seed(seller, "draft");
     // INC-555 — the account with no listing right is AL-3's (one leased account fewer here).
 
-    const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
     const byId = await viewer.rpc("admin_list_listings", { p_search: live.id });
     expect(byId.error).toBeNull();
     const rows = byId.data as Row[];
@@ -370,20 +334,22 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   test("AL-24 Edit refuses a reviewer (listings:view and review, not enforce), and writes nothing", async () => {
-    await refusedEdit(
-      await scratchHolder([
+    const holder = await leaseUser();
+    await grantScratchRole(
+      holder.id,
+      [
         ["listings", "view"],
         ["listings", "review"],
-      ]),
-      "permission denied",
+      ],
+      roles,
     );
+    await refusedEdit(holder, "permission denied");
   });
 
   test("AL-25 Edit refuses an enforcer without a second factor, and writes nothing", async () => {
-    await refusedEdit(
-      await scratchHolder([["listings", "enforce"]]),
-      "step-up required: no verified factor",
-    );
+    const holder = await leaseUser();
+    await grantScratchRole(holder.id, [["listings", "enforce"]], roles);
+    await refusedEdit(holder, "step-up required: no verified factor");
   });
 
   test("AL-12 Edit refuses as the super admin: the admin's own, a draft, a removed listing, a key not editable, a reason without its note", async ({
@@ -649,7 +615,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ).error,
     ).toBe("enforcement only: removed -> screening");
 
-    const enforcer = await asPerson(await scratchHolder([["listings", "enforce"]]));
+    const enforcerAccount = await leaseUser();
+    await grantScratchRole(enforcerAccount.id, [["listings", "enforce"]], roles);
+    const enforcer = await asPerson(enforcerAccount);
     const restoreAs = (id: string) =>
       enforcer.rpc("admin_move_listing", {
         p_listing_id: id,
@@ -823,10 +791,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // INC-550 — the admin shell opens only for admin_panel:access (as in
     // admin-screening.spec.ts); L2's AL-11 held listings:view alone and never
     // reached the page.
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+      ],
+      roles,
+    );
 
     await signInViaSession(page, viewer.email, viewer.password);
     await gotoReady(page, "/admin/listings");
@@ -1083,7 +1056,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     if (revision.error) throw new Error(`[e2e:al] revision seed failed: ${revision.error.message}`);
 
     // INC-555 — the account with no listing right is AL-3's (one leased account fewer here).
-    const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
     expect((await viewer.rpc("admin_listing_detail", { p_listing_id: draft.id })).error).toBe(
       "listing not found",
     );
@@ -1231,10 +1206,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
     const draft = await seed(seller, "draft");
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+      ],
+      roles,
+    );
     // A staff member's status change: a scratch revision of this listing.
     const revision = await adminClient()
       .from("listing_revisions")
@@ -2031,11 +2011,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     };
     const P = await policy();
 
-    const enforcer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "enforce"],
-    ]);
+    const enforcer = await leaseUser();
+    await grantScratchRole(
+      enforcer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "enforce"],
+      ],
+      roles,
+    );
     await signInViaSession(page, enforcer.email, enforcer.password);
     await gotoReady(page, "/admin/listings");
     const open = page.getByTestId("listings-header").getByTestId("listings-settings");
@@ -2068,10 +2053,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expectStored();
     expect(await policy()).toEqual(P);
 
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+      ],
+      roles,
+    );
     await signInViaSession(page, viewer.email, viewer.password);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-header")).toBeVisible({ timeout: 20000 });
@@ -2108,45 +2098,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     expect(second.error).toBeNull();
     expect(second.data).toMatchObject({ ok: true });
-    // EL-4 / G37 — reuse the held buyer, never change scratchHolder's lease default.
+    // EL-4 / G37 — reuse the held buyer: each grant replaces this test's earlier scratch grant.
     const holder = async (wanted: Array<[string, string]>) => {
-      const supabase = adminClient();
-      const old = await supabase
+      const old = await adminClient()
         .from("user_roles")
         .delete()
         .eq("user_id", buyer.id)
         .in("role_id", roles);
       if (old.error)
         throw new Error(`[e2e:al31] clearing scratch grants failed: ${old.error.message}`);
-      const name = `e2e_listings_role_${token()}`;
-      const role = await supabase
-        .from("roles")
-        .insert({ name, display_name: name, priority: 1 })
-        .select("id")
-        .single();
-      if (role.error) throw new Error(`[e2e:al31] role failed: ${role.error.message}`);
-      roles.push(role.data.id);
-      const perms = await supabase
-        .from("permissions")
-        .select("id,action,resources!inner(name)")
-        .in("resources.name", ["admin_panel", "listings"]);
-      if (perms.error) throw new Error(`[e2e:al31] permissions failed: ${perms.error.message}`);
-      const picked = perms.data.filter((p) =>
-        wanted.some(
-          ([resource, action]) =>
-            (p.resources as unknown as { name: string }).name === resource && p.action === action,
-        ),
-      );
-      expect(picked).toHaveLength(wanted.length);
-      const grant = await supabase
-        .from("role_permissions")
-        .insert(picked.map((p) => ({ role_id: role.data.id, permission_id: p.id })));
-      if (grant.error) throw new Error(`[e2e:al31] grants failed: ${grant.error.message}`);
-      const assigned = await supabase
-        .from("user_roles")
-        .insert({ user_id: buyer.id, role_id: role.data.id, scope_type: "global" });
-      if (assigned.error)
-        throw new Error(`[e2e:al31] assignment failed: ${assigned.error.message}`);
+      await grantScratchRole(buyer.id, wanted, roles);
       await signInViaSession(page, buyer.email, buyer.password);
     };
     await holder([
@@ -2358,11 +2319,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await signInViaSession(page, reviewer.email, reviewer.password);
     const denied = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
@@ -2385,10 +2351,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const enforcer = await scratchHolder([
-      ["listings", "view"],
-      ["listings", "enforce"],
-    ]);
+    const enforcer = await leaseUser();
+    await grantScratchRole(
+      enforcer.id,
+      [
+        ["listings", "view"],
+        ["listings", "enforce"],
+      ],
+      roles,
+    );
     await signInViaSession(page, enforcer.email, enforcer.password);
     const asked = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
@@ -2534,11 +2505,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await signInViaSession(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });

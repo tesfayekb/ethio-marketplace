@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser, userRow, waitForHydration } from "./helpers/ui";
-import { adminClient, createUser } from "./helpers/users";
+import { createUser, grantRole } from "./helpers/users";
 
 /**
  * U1b — THE TABLE LAW (INC-075).
@@ -13,22 +13,6 @@ import { adminClient, createUser } from "./helpers/users";
  * Census: playwright.config.ts defines only mobile-360 and desktop-1280
  * projects, so the 768 case sets the viewport in-test.
  */
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:u1b] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:u1b] granting ${roleName} failed: ${error.message}`);
-}
 
 test.describe("shell table law", () => {
   test("admin tables never overflow horizontally", async ({ page }) => {

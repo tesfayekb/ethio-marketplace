@@ -19,7 +19,7 @@ import {
   consumeAccountLanguage,
   watchAccountLanguage,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { leaseUser, grantRole } from "./helpers/users";
 import { updateListingRow } from "./helpers/listing-seed";
 
 /**
@@ -108,7 +108,7 @@ test("OLS-2 a signed-in bar shows the short seller label whole", async ({ page }
 
 test("OLS-3 an admin's five-item bar shows the short seller label whole", async ({ page }) => {
   const staff = await leaseUser();
-  await grantAdmin(staff.id);
+  await grantRole(staff.id, "admin");
   await signIn(page, staff.email, staff.password);
   await consumeAccountLanguage(page);
   const account = watchAccountLanguage(page);
@@ -180,19 +180,3 @@ test("OLS-5 an ad's section tabs, and its ribbon and tier tag when drawn, fit", 
     await fixtures.cleanup();
   }
 });
-
-async function grantAdmin(userId: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", "admin")
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:ols] role admin not found: ${roleError?.message ?? "none"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:ols] granting admin failed: ${error.message}`);
-}

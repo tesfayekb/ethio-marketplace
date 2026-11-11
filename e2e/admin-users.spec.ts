@@ -14,7 +14,13 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { pageDoor } from "./helpers/door-callers";
-import { adminClient, createUser, leaseUser, releaseStaleScratchAlias } from "./helpers/users";
+import {
+  adminClient,
+  createUser,
+  leaseUser,
+  releaseStaleScratchAlias,
+  grantRole,
+} from "./helpers/users";
 import { bearerClient, injectSession, passwordGrant } from "./helpers/session";
 import { errorText } from "../src/lib/error-text";
 
@@ -25,22 +31,6 @@ import { errorText } from "../src/lib/error-text";
  * proofs (permission gates, the status guard, the seam) ran in the migration
  * (P1–P6); AU-5/AU-6 re-prove two of them from a real browser session.
  */
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:u1] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:u1] granting ${roleName} failed: ${error.message}`);
-}
 
 /**
  * INC-109 — self-describing failure dump for the user-detail surface.

@@ -1,5 +1,3 @@
-import { type Page } from "@playwright/test";
-
 import { expect, test } from "./fixtures";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -13,7 +11,7 @@ import {
 } from "./helpers/posting";
 import { asAnonymous, asPerson, pageDoor } from "./helpers/door-callers";
 import { useJobSuperAdmin } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { levelAboveBaseline, seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { doorRefusal } from "./helpers/door-answer";
 
@@ -218,51 +216,6 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     return row as Row & { id: string; title: string };
   }
 
-  /** Gives an account the test already holds exactly the named permissions through a scratch role. */
-  async function grantRole(
-    wanted: Array<[resource: string, action: string]>,
-    person: { id: string; email: string; password: string },
-  ) {
-    const supabase = adminClient();
-    const roleName = `e2e_mylistings_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:ml] scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:ml] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:ml] grant failed: ${granted.error.message}`);
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: person.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:ml] assignment failed: ${assigned.error.message}`);
-    return person;
-  }
-
-  /** A pooled account holding exactly the named permissions through a scratch role. */
-  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
-    return grantRole(wanted, await leaseUser());
-  }
-
   type Person = Awaited<ReturnType<typeof asPerson>>;
 
   const close = (person: Person, id: string) =>
@@ -324,7 +277,9 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       "illegal transition: closed -> reduced",
     );
 
-    const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
     const view = async (p_view: string) => {
       const answer = await viewer.rpc("admin_list_listings", {
         p_seller: seller.alias,
@@ -391,12 +346,13 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect((await close(a, x.id)).error).toBeNull();
     const kept = (await listingTruth(x.id))["kept_remaining"];
     // Seller B, refused above as a stranger, now holds listings:view and listings:review (DEC-174).
-    await grantRole(
+    await grantScratchRole(
+      sellerB.id,
       [
         ["listings", "view"],
         ["listings", "review"],
       ],
-      sellerB,
+      roles,
     );
     expect((await reopen(b, x.id)).error).toBe("owner only: closed -> active");
     const service = await adminClient().rpc("transition_listing", {
@@ -770,15 +726,18 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       person.rpc("admin_set_listing_policy", { p_renew_allowed: allowed, p_renew_days: n });
     expect((await set(me, true, 30)).error).toBe("permission denied");
     // The same seller, now holding listings:view and listings:review (DEC-174).
-    await grantRole(
+    await grantScratchRole(
+      seller.id,
       [
         ["listings", "view"],
         ["listings", "review"],
       ],
-      seller,
+      roles,
     );
     expect((await set(me, true, 30)).error).toBe("permission denied");
-    const enforcer = await asPerson(await scratchHolder([["listings", "enforce"]]));
+    const enforcerAccount = await leaseUser();
+    await grantScratchRole(enforcerAccount.id, [["listings", "enforce"]], roles);
+    const enforcer = await asPerson(enforcerAccount);
     expect((await set(enforcer, true, 30)).error).toBe("step-up required: no verified factor");
 
     await useJobSuperAdmin(page);

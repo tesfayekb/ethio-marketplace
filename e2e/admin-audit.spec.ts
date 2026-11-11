@@ -13,7 +13,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -32,22 +32,6 @@ import {
  * (IMP-3, IMP-5) prove the SERVER is the authority — they call the RPC directly from
  * the signed-in browser client, bypassing every piece of UI.
  */
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:u3] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:u3] granting ${roleName} failed: ${error.message}`);
-}
 
 /**
  * INC-084c sixth — per-viewport scoping lives in one helper, never inline

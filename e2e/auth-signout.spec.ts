@@ -30,7 +30,7 @@ import {
   supabaseNamesIn,
 } from "./helpers/session";
 import { inBrowserClient } from "./helpers/browser-client";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
 /**
  * U0j — sign-out is a HARD RESET (INC-072), repaired in U0j-2.
@@ -47,22 +47,6 @@ import { adminClient, leaseUser } from "./helpers/users";
  * test proved nothing. SO-3b keeps the reload path (mount-time guard) as a
  * separate, explicitly labelled case.
  */
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:signout] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:signout] granting ${roleName} failed: ${error.message}`);
-}
 
 async function expectSignedOutMarketplace(page: Page) {
   await expect(page).toHaveURL(/\/$/);

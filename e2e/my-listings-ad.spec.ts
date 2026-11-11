@@ -18,7 +18,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { asAnonymous, asPerson } from "./helpers/door-callers";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { adminClient } from "./helpers/users";
+import { adminClient, grantScratchRole } from "./helpers/users";
 import { baselineLevelKey, seedListingRow } from "./helpers/listing-seed";
 
 /**
@@ -230,46 +230,6 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       .insert({ listing_id: id, location_id: seller.cityId, position: 1 });
     if (located.error) throw new Error(`[e2e:mla] coverage failed: ${located.error.message}`);
     return id;
-  }
-
-  /** Gives an account the test already holds exactly the named permissions through a scratch role (DEC-174). */
-  async function grantRole(
-    wanted: Array<[resource: string, action: string]>,
-    person: { id: string; email: string; password: string },
-  ) {
-    const supabase = adminClient();
-    const roleName = `e2e_mylistings_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:mla] scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:mla] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:mla] grant failed: ${granted.error.message}`);
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: person.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:mla] assignment failed: ${assigned.error.message}`);
-    return person;
   }
 
   /** Sets the scratch leaf's own capability words (never a real category's). */
@@ -697,7 +657,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
   test("MLA-8 A seller who also holds listings:enforce deletes his own ad as its owner; a deleted ad is never restored", async () => {
     const seller = await scratchSeller();
-    await grantRole([["listings", "enforce"]], seller);
+    await grantScratchRole(seller.id, [["listings", "enforce"]], roles);
     const s = await asPerson(seller);
     const X = await seed(seller, "active");
 

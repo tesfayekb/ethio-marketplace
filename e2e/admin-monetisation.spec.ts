@@ -28,7 +28,7 @@ import {
   useJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 
 /**
  * P-1b (D290, D295, D303, D304, D311, D312) — ADMIN › MONETISATION (MON-1..MON-15):
@@ -462,48 +462,6 @@ test.describe("P-1b Admin › Monetisation", () => {
     return data.id as string;
   }
 
-  /** The joined resource's name on a permissions row, narrowed by shape (no cast). */
-  function resourceNameOf(row: unknown): string | null {
-    if (typeof row !== "object" || row === null || !("resources" in row)) return null;
-    const joined = row.resources;
-    if (typeof joined !== "object" || joined === null || !("name" in joined)) return null;
-    return typeof joined.name === "string" ? joined.name : null;
-  }
-
-  /** A pooled account holding exactly the named permissions through a scratch role. */
-  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
-    const supabase = adminClient();
-    const roleName = `e2e_mon_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`${TAG} scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(([resource, action]) => resourceNameOf(p) === resource && p.action === action),
-    );
-    expect(
-      picked,
-      `${TAG} expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`${TAG} grant failed: ${granted.error.message}`);
-    const holder = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: holder.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`${TAG} assignment failed: ${assigned.error.message}`);
-    return holder;
-  }
-
   /** A scratch root with a leaf; the root is what an override and a season bind to. */
   async function seedRoot() {
     const branch = await seedCategoryBranch();
@@ -588,11 +546,16 @@ test.describe("P-1b Admin › Monetisation", () => {
     const key = scratchKey("deny", testInfo.project.name);
     await destroyProduct(key);
     const since = new Date().toISOString();
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await signInViaSession(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-nav-cards")).toBeVisible({ timeout: 20000 });
@@ -615,10 +578,15 @@ test.describe("P-1b Admin › Monetisation", () => {
     ).toBe("permission denied");
     expect((await pageDoor(page, "admin_list_monetisation", {})).error).toBe("denied");
 
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["packages", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["packages", "view"],
+      ],
+      roles,
+    );
     await signInViaSession(page, viewer.email, viewer.password);
     await openConsole(page);
     for (const id of ["markets", "levels", "reach"]) {

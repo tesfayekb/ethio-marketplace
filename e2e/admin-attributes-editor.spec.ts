@@ -2,7 +2,7 @@ import { parseCsvGrid } from "../src/server/imports/gate";
 import { expect, test } from "./fixtures";
 import { withinPreviewBudget } from "./helpers/rate-window";
 import { gotoReady, stepUpIfPrompted, switchUser } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
   rand,
@@ -388,14 +388,8 @@ test.describe("C3 attributes console", () => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
     const supabase = adminClient();
-    const roleName = `e2e_viewonly_${rand()}`;
+    const reap: string[] = [];
     const makeKey = `e2e_attr_${rand()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`AT-34 scratch role failed: ${roleError?.message}`);
     try {
       await supabase.from("attributes").insert({
         attr_key: makeKey,
@@ -403,26 +397,15 @@ test.describe("C3 attributes console", () => {
         attr_type: "single_select",
         options: ["alfa"],
       });
-      const { data: perms } = await supabase
-        .from("permissions")
-        .select("id, action, resources!inner(name)")
-        .in("resources.name", ["admin_panel", "categories"]);
-      const wanted = (perms ?? []).filter((p) => {
-        const resource = (p as unknown as { resources: { name: string } }).resources.name;
-        return (
-          (resource === "admin_panel" && p.action === "access") ||
-          (resource === "categories" && p.action === "view")
-        );
-      });
-      expect(wanted, "AT-34 expected exactly admin_panel:access + categories:view").toHaveLength(2);
-      await supabase
-        .from("role_permissions")
-        .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
-
       const viewer = await leaseUser();
-      await supabase
-        .from("user_roles")
-        .insert({ user_id: viewer.id, role_id: role.id, scope_type: "global" });
+      await grantScratchRole(
+        viewer.id,
+        [
+          ["admin_panel", "access"],
+          ["categories", "view"],
+        ],
+        reap,
+      );
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/attributes");
       await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
@@ -442,9 +425,11 @@ test.describe("C3 attributes console", () => {
       expect(denied.error, "AT-34 a view-only operator wrote a dependency").toBeTruthy();
     } finally {
       await destroyAttribute(makeKey);
-      await supabase.from("role_permissions").delete().eq("role_id", role.id);
-      await supabase.from("user_roles").delete().eq("role_id", role.id);
-      await supabase.from("roles").delete().eq("id", role.id);
+      for (const roleId of reap) {
+        await supabase.from("role_permissions").delete().eq("role_id", roleId);
+        await supabase.from("user_roles").delete().eq("role_id", roleId);
+        await supabase.from("roles").delete().eq("id", roleId);
+      }
     }
   });
 
