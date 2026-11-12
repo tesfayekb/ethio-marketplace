@@ -11,6 +11,7 @@ import { retryingFetch } from "./helpers/net-retry";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
 import { mintEmail } from "./helpers/users";
+import { madeJpeg } from "./helpers/photos";
 import { assertAppTargetsStaging } from "./helpers/app-target";
 import {
   FENCE_PREFIXES,
@@ -964,10 +965,11 @@ export default async function globalSetup() {
   // known object. An unreachable bucket fails the upload, and that throws.
   const proof = `${SCRATCH_PREFIXES.dash}proof`;
   const proofPrefix = `default/${proof}-${processId()}/${proof}-listing`;
+  // INC-1112: the bucket takes JPEG, PNG and WebP only (M7), so the proof is a real photo.
   const { error: proofUploadError } = await photoStorage.upload(
-    `${proofPrefix}/${proof}-photo/card.txt`,
-    new Blob(["x"], { type: "text/plain" }),
-    { upsert: true, contentType: "text/plain" },
+    `${proofPrefix}/${proof}-photo/card.jpg`,
+    madeJpeg(11, 11),
+    { upsert: true, contentType: "image/jpeg" },
   );
   if (proofUploadError) {
     throw new Error(`[e2e:setup] photo reaper proof upload failed: ${proofUploadError.message}`);
