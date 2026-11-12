@@ -11,8 +11,7 @@ import { ECHO_LINES, startFailureExcerpt, TAIL_LINES } from "./start-failure-exc
  * class guard over every workflow.
  */
 
-type Excerpt = { section: string[]; failure: string[]; server: string[] };
-const excerpt = startFailureExcerpt as (text: string, captureDir?: string | null) => Excerpt;
+const excerpt = startFailureExcerpt;
 
 /** The fixture without its "# " header (shape from source; see the file). */
 const LOG = readFileSync("scripts/ci/fixtures/start-failure-cli.log", "utf8")
