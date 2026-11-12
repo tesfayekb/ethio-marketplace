@@ -2,12 +2,6 @@ import type { NavAlertId } from "@/config/panels.types";
 import { useQuery } from "@tanstack/react-query";
 import { rpc } from "@/lib/supabase-door";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
-import type { MessageKey } from "@/i18n";
-
-/** Bundle 22 turn 20 (DEC-219) — the words each menu alert adds to its entry's accessible name. */
-export const NAV_ALERT_LABELS: Record<NavAlertId, MessageKey> = {
-  legalReview: "admin.nav.alert.legalReview",
-};
 
 /** The menu mark's query key, under the admin legal key so a legal write re-reads it. */
 export const LEGAL_REVIEW_OVERDUE_KEY = [

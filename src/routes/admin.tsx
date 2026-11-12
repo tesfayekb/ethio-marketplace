@@ -5,8 +5,9 @@ import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useEffect, useState } from "react";
 
 import { useShell } from "@/components/shell-context";
+import { sectionAt } from "@/components/shell/admin-nav-layer";
 import { AdminShellProvider } from "@/features/admin/admin-shell-provider";
-import { sectionForPath } from "@/features/admin/sections";
+import { ADMIN_NAV_LAYER } from "@/features/admin/nav-layer";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
@@ -40,8 +41,9 @@ export const Route = createFileRoute("/admin")({
     ],
   }),
   // DEC-258 — the admin screens show the admin and member strings layers; the
-  // shell's gate loads both before this layout draws.
-  staticData: { strings: ["admin", "member"] },
+  // shell's gate loads both before this layout draws. INC-1042 — and the admin
+  // navigation layer (src/components/shell/admin-nav-layer.ts).
+  staticData: { strings: ["admin", "member"], adminNav: true },
   component: AdminGate,
 });
 
@@ -52,9 +54,11 @@ function AdminGate() {
   const { permissions, loading } = usePermissions({ enabled: user !== null });
   const pending = authLoading || loading;
 
-  // INC-581 — the admin section follows the page the body shows.
+  // INC-581 — the admin section follows the page the body shows. INC-1042 — read from
+  // the admin navigation layer, so this layout's chunk carries the layer: the router
+  // loads it before the shell's crumbs and rail draw an admin page.
   const pathname = useShownPathname();
-  const section = sectionForPath(pathname);
+  const section = sectionAt(ADMIN_NAV_LAYER.sections, pathname);
 
   /**
    * U0j (INC-072) — LIVE guard, not a mount check. `user` comes from the

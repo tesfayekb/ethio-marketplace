@@ -1,0 +1,4 @@
+# BC-16 (housekeeping turn 4, INC-1042, ruling 1 Q5): a module under src/features/admin/ in the entry's closure (scripts/bundle-closure.mjs entryAdminModules, judged by scripts/check-bundle-size.mjs). <module path> | <reason> | <until>
+src/features/admin/impersonation/impersonation-banner.tsx | the impersonation banner the shell mounts for every signed-in user (app-shell.tsx); when its chunk loads and who probes is a Tier A decision of its own turn | INC-1116
+src/features/admin/impersonation/impersonation-service.ts | the banner hook's service | INC-1116
+src/features/admin/impersonation/use-impersonation.ts | the banner's hook | INC-1116

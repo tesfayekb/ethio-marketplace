@@ -102,6 +102,14 @@ navigation and works today. The path is one level deep while `useCategories`
 returns top-level categories only; it renders the full chain unchanged once
 category children land.
 
+Housekeeping turn 4 (INC-1042): on an admin page the trail's group and section
+crumbs come from the admin navigation layer (`useAdminNav()`, `sectionAt` and
+`groupAt` in `src/components/shell/admin-nav-layer.ts`), which the admin layout's
+chunk provides; without the layer the trail is Home › Admin. The admin panel's
+rail rows come from the same layer (`docs/features/admin-shell.md` §Layout).
+`src/components/shell/breadcrumbs.test.tsx` BRC-1…3 prove both, and the server's
+HTML carrying the admin trail.
+
 ## Location row
 
 D214 (changing D107) — the different-place notice is one line in the place band on marketplace feeds, only when the saved own choice is at least 24 hours old and the detected place is unrelated within the same saved market. Switch picks through the ordinary picker path, saving the cookie, account place and current pick time. Keep hides that detected node until it changes again; `ethio.place.keep` holds only its validated UUID. The guess uses the loaded tree, with no extra request.

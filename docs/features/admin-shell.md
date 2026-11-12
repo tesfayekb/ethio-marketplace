@@ -61,10 +61,26 @@ fixture sees six of the seven sections.
 
 Section navigation lives in the SHELL, exactly like Account and My Listings:
 `src/features/admin/rail-items.ts` derives `ADMIN_NAV_ITEMS` from
-`ADMIN_SECTIONS` (icons only are added) and `src/config/panels.ts` spreads them
-into the `admin` panel's `items`. The rail's existing `visibleItems()` filter
+`ADMIN_SECTIONS` (icons only are added). The rail's existing `visibleItems()` filter
 uses the permissions the shell has ALREADY fetched — no new read. Zero
 permitted sections → the panel simply shows no items.
+
+The admin navigation layer (housekeeping turn 4, INC-1042): the shell never imports
+the sections, the rail items or the menu alerts. `src/features/admin/nav-layer.ts`
+gathers them (`ADMIN_NAV_LAYER`: items, sections with their group, groups,
+`useNavAlerts`; the alerts' labels are the shell's, §Menu alerts) and hands them to the shell's store (`provideAdminNav`,
+`src/components/shell/admin-nav-layer.ts`) when its module runs. The admin layout
+(`src/routes/admin.tsx`) imports it and declares `staticData.adminNav`, so the layer rides
+the admin layout's chunk: the router loads that chunk before it draws an admin page, on the
+server and on hydration, and the shell holds the layer in that page's first render. The
+rail (`app-rail.tsx`) and the breadcrumbs (`breadcrumbs.tsx`) read it through
+`useAdminNav()`, which answers it only where an admin page is shown (a match declaring
+`adminNav`, or the admin panel active, which `panelOf` makes only under `/admin`);
+`src/config/panels.ts` leaves the admin panel's `items` empty. The admin panel without the
+layer draws no rows and the trail Home › Admin. BC-16 (`scripts/check-bundle-size.mjs`)
+fails a build whose entry closure holds a module under `src/features/admin/` but the three
+of `scripts/conformance/entry-admin-allowlist.txt` (the impersonation banner, its hook and
+its service, until INC-1116).
 
 - 360px: the in-place menu lists the permitted sections; the landing still renders
   full-width tappable cards (`min-h-16`, ≥44px targets) as its index content;
@@ -447,7 +463,7 @@ From 768 to 1023 px the admin rail is icons only; » / « opens the in-place men
 
 A section in `src/features/admin/sections.ts` may name an `alert`. `useNavAlerts` (`src/features/admin/nav-alerts.ts`) reads each alert as one server boolean — today `legalReview`, from `legal_review_overdue()`, for users with legal:view — and the rail draws a dot on that section's icon, with the alert's words in the entry's accessible name and `data-alert="true"` on the row. Never a count; the server decides.
 
-Each alert's read lives in nav-alerts.ts itself (a query on the server boolean, under the admin legal query key), so the first paint carries no admin feature code.
+Each alert's read lives in nav-alerts.ts itself (a query on the server boolean, under the admin legal query key), so the first paint carries no admin feature code. Since housekeeping turn 4 (INC-1042) the rail calls `useNavAlerts` through the admin navigation layer (`layer.useNavAlerts`), never by import; the alert labels (`NAV_ALERT_LABELS`) are the shell's own, in `src/components/shell/admin-nav-layer.ts`, because the rail draws them outside the strings gate (`src/routes/__root.tsx`), so their keys stay in the base layer (ruling 3; CF-SL-1 judges).
 
 ## Sage S2b — shared content tracks and rail header (D265/D266)
 
