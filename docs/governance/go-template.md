@@ -18,7 +18,7 @@ and the executor runs the same command at STEP 0 on the tree as saved, before an
 its output into the census. After its checks it runs it again with `--at <the commit STEP 0 began
 from>`: the tree laws read a snapshot of that commit (`git archive`, removed after), a COUNT that is a
 git read runs in the repository, the allowlist and this template are read from `--root`, and the first
-line names the commit. The laws a GO is written to:
+line names the commit. A finding that only a law THIS turn adds produces against this brief is expected output: name it in §11 and allowlist it with that reason; a brief is never edited after STEP 0. The laws a GO is written to:
 
 - A cited path in backticks exists, or its sentence says the turn makes it ("new", "created here",
   "built as", "built here", "(new)").
