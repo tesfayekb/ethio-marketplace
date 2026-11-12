@@ -97,115 +97,105 @@ for (const width of WIDTHS) {
         await page.setViewportSize({ width, height: 900 });
       });
 
-      test(
-        `SCS-1 heading and card read their tokens (${width}, ${mode})`,
-        {
-          tag: "@webkit",
-        },
-        async ({ page }) => {
-          const seller = await feed.scratchSeller();
-          const plain = await feed.seed(seller);
-          const negotiable = await feed.seed(seller);
-          const marked = await adminClient()
-            .from("listings")
-            .update({ price_negotiable: true })
-            .eq("id", negotiable.id as string);
-          if (marked.error)
-            throw new Error(`[e2e:sc] marking negotiable failed: ${marked.error.message}`);
-          await page.goto("/");
-          await setMode(page, mode);
-          await signIn(page, seller.email, seller.password);
-          await gotoReady(page, `/c/${seller.leafSlug}`);
-          await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
-          await expect(page.getByTestId("listing-card")).toHaveCount(2);
+      test(`SCS-1 heading and card read their tokens (${width}, ${mode})`, async ({ page }) => {
+        const seller = await feed.scratchSeller();
+        const plain = await feed.seed(seller);
+        const negotiable = await feed.seed(seller);
+        const marked = await adminClient()
+          .from("listings")
+          .update({ price_negotiable: true })
+          .eq("id", negotiable.id as string);
+        if (marked.error)
+          throw new Error(`[e2e:sc] marking negotiable failed: ${marked.error.message}`);
+        await page.goto("/");
+        await setMode(page, mode);
+        await signIn(page, seller.email, seller.password);
+        await gotoReady(page, `/c/${seller.leafSlug}`);
+        await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
+        await expect(page.getByTestId("listing-card")).toHaveCount(2);
 
-          // §5 — the heading.
-          const heading = page.getByTestId("feed-heading");
-          const size = width < 768 ? "21px" : width < 1024 ? "25px" : "30px";
-          expect(await style(heading, "font-size")).toBe(size);
-          expect(await style(heading, "font-weight")).toBe("800");
-          expect(await style(heading, "letter-spacing")).toBe("-0.9px");
-          const slot = heading.locator("[data-one-line-slot]");
-          if ((await slot.count()) > 0)
-            expect(await style(slot, "color")).toBe(
-              await tokenStyle(page, mode, "primary", "color"),
-            );
+        // §5 — the heading.
+        const heading = page.getByTestId("feed-heading");
+        const size = width < 768 ? "21px" : width < 1024 ? "25px" : "30px";
+        expect(await style(heading, "font-size")).toBe(size);
+        expect(await style(heading, "font-weight")).toBe("800");
+        expect(await style(heading, "letter-spacing")).toBe("-0.9px");
+        const slot = heading.locator("[data-one-line-slot]");
+        if ((await slot.count()) > 0)
+          expect(await style(slot, "color")).toBe(await tokenStyle(page, mode, "primary", "color"));
 
-          // §6 — the card.
-          const card = page.locator(
-            `[data-testid="listing-card"][data-listing="${negotiable.id}"]`,
-          );
-          const other = page.locator(`[data-testid="listing-card"][data-listing="${plain.id}"]`);
-          expect(await style(card, "background-color")).toBe(
-            await tokenStyle(page, mode, "card", "background-color"),
-          );
-          // The ring and shadow: the live --lift-card (its layers step up at md and lg).
-          const lift = await page.evaluate(() => {
-            const probe = document.createElement("div");
-            probe.style.boxShadow = "var(--lift-card)";
-            document.body.append(probe);
-            const value = getComputedStyle(probe).boxShadow;
-            probe.remove();
-            return value;
-          });
-          expect(await style(card, "box-shadow")).toBe(withoutEmptyLayers(lift));
-          if (mode === "dark") expect(lift).toContain("oklch(0.417 0.02 167.6)"); // C's edge, #42504A
-          const cardWidth = await card.evaluate((el) => el.getBoundingClientRect().width);
-          const compact = cardWidth < 176;
-          const body = card.locator("h3").locator("..");
-          const pad = compact
-            ? width < 768
-              ? ["6px", "7px", "6px"]
-              : ["8px", "9px", "8px"]
-            : ["13px", "14px", "14px"];
-          expect(await style(body, "padding-top")).toBe(pad[0]);
-          expect(await style(body, "padding-left")).toBe(pad[1]);
-          expect(await style(body, "padding-right")).toBe(pad[1]);
-          expect(await style(body, "padding-bottom")).toBe(pad[2]);
+        // §6 — the card.
+        const card = page.locator(`[data-testid="listing-card"][data-listing="${negotiable.id}"]`);
+        const other = page.locator(`[data-testid="listing-card"][data-listing="${plain.id}"]`);
+        expect(await style(card, "background-color")).toBe(
+          await tokenStyle(page, mode, "card", "background-color"),
+        );
+        // The ring and shadow: the live --lift-card (its layers step up at md and lg).
+        const lift = await page.evaluate(() => {
+          const probe = document.createElement("div");
+          probe.style.boxShadow = "var(--lift-card)";
+          document.body.append(probe);
+          const value = getComputedStyle(probe).boxShadow;
+          probe.remove();
+          return value;
+        });
+        expect(await style(card, "box-shadow")).toBe(withoutEmptyLayers(lift));
+        if (mode === "dark") expect(lift).toContain("oklch(0.417 0.02 167.6)"); // C's edge, #42504A
+        const cardWidth = await card.evaluate((el) => el.getBoundingClientRect().width);
+        const compact = cardWidth < 176;
+        const body = card.locator("h3").locator("..");
+        const pad = compact
+          ? width < 768
+            ? ["6px", "7px", "6px"]
+            : ["8px", "9px", "8px"]
+          : ["13px", "14px", "14px"];
+        expect(await style(body, "padding-top")).toBe(pad[0]);
+        expect(await style(body, "padding-left")).toBe(pad[1]);
+        expect(await style(body, "padding-right")).toBe(pad[1]);
+        expect(await style(body, "padding-bottom")).toBe(pad[2]);
 
-          const price = card.getByTestId("listing-card-price").locator("..");
-          expect(await style(price, "font-size")).toBe(
-            compact ? (width < 768 ? "12px" : "13px") : "16px",
-          );
-          expect(await style(price, "font-weight")).toBe("700");
-          expect(await style(price, "min-height")).toBe(compact ? "58px" : "44px");
+        const price = card.getByTestId("listing-card-price").locator("..");
+        expect(await style(price, "font-size")).toBe(
+          compact ? (width < 768 ? "12px" : "13px") : "16px",
+        );
+        expect(await style(price, "font-weight")).toBe("700");
+        expect(await style(price, "min-height")).toBe(compact ? "58px" : "44px");
 
-          const pill = card.getByTestId("price-negotiable-badge");
-          expect(await style(pill, "background-color")).toBe(
-            await tokenStyle(page, mode, "success-soft", "background-color"),
-          );
-          expect(await style(pill, "color")).toBe(await tokenStyle(page, mode, "success", "color"));
-          expect(await style(pill, "font-size")).toBe("11px");
-          expect(await style(pill, "font-weight")).toBe("600");
-          expect(await style(pill, "border-top-width")).toBe("0px");
+        const pill = card.getByTestId("price-negotiable-badge");
+        expect(await style(pill, "background-color")).toBe(
+          await tokenStyle(page, mode, "success-soft", "background-color"),
+        );
+        expect(await style(pill, "color")).toBe(await tokenStyle(page, mode, "success", "color"));
+        expect(await style(pill, "font-size")).toBe("11px");
+        expect(await style(pill, "font-weight")).toBe("600");
+        expect(await style(pill, "border-top-width")).toBe("0px");
 
-          const place = card.getByTestId("listing-card-place");
-          const rule = await tokenStyle(page, mode, "rule", "border-top-color");
-          expect(await style(place, "border-top-width")).toBe("1px");
-          expect(await style(place, "border-top-color")).toBe(rule);
-          expect(await style(place, "padding-top")).toBe(compact ? "6px" : "9px");
-          const leaf = await tokenStyle(page, mode, "leaf-ink", "color");
-          expect(await style(place, "color")).toBe(leaf);
-          const fill = await style(card, "background-color");
-          expect(await contrast(page, leaf, fill)).toBeGreaterThanOrEqual(4.5);
+        const place = card.getByTestId("listing-card-place");
+        const rule = await tokenStyle(page, mode, "rule", "border-top-color");
+        expect(await style(place, "border-top-width")).toBe("1px");
+        expect(await style(place, "border-top-color")).toBe(rule);
+        expect(await style(place, "padding-top")).toBe(compact ? "6px" : "9px");
+        const leaf = await tokenStyle(page, mode, "leaf-ink", "color");
+        expect(await style(place, "color")).toBe(leaf);
+        const fill = await style(card, "background-color");
+        expect(await contrast(page, leaf, fill)).toBeGreaterThanOrEqual(4.5);
 
-          const well = card.getByTestId("listing-card-picture");
-          expect(await style(well, "background-color")).toBe(
-            await tokenStyle(page, mode, "photo-empty", "background-color"),
-          );
-          // INC-1121 — the photo-less well: no failed picture, and any picture inside fits.
-          await expectPicturesFit(page, well, { atLeast: 0 });
-          const wellBox = well.locator("..");
-          expect(await style(wellBox, "border-bottom-width")).toBe("1px");
-          expect(await style(wellBox, "border-bottom-color")).toBe(rule);
+        const well = card.getByTestId("listing-card-picture");
+        expect(await style(well, "background-color")).toBe(
+          await tokenStyle(page, mode, "photo-empty", "background-color"),
+        );
+        // INC-1121 — the photo-less well: no failed picture, and any picture inside fits.
+        await expectPicturesFit(page, well, { atLeast: 0 });
+        const wellBox = well.locator("..");
+        expect(await style(wellBox, "border-bottom-width")).toBe("1px");
+        expect(await style(wellBox, "border-bottom-color")).toBe(rule);
 
-          // LL-1 / one card shape: the two cards are the same height (auto-rows-fr).
-          const heights = await Promise.all(
-            [card, other].map((c) => c.evaluate((el) => el.getBoundingClientRect().height)),
-          );
-          expect(Math.abs(heights[0] - heights[1])).toBeLessThanOrEqual(0.5);
-        },
-      );
+        // LL-1 / one card shape: the two cards are the same height (auto-rows-fr).
+        const heights = await Promise.all(
+          [card, other].map((c) => c.evaluate((el) => el.getBoundingClientRect().height)),
+        );
+        expect(Math.abs(heights[0] - heights[1])).toBeLessThanOrEqual(0.5);
+      });
 
       test(`SCS-2 the place line's ink meets 4.5 : 1 on every card fill (${width}, ${mode})`, async ({
         page,

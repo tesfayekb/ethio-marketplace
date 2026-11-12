@@ -1252,3 +1252,17 @@ type-level proof is an `expectTypeOf` assertion (the AI gateway's unknown task i
 `expectTypeOf<"unknown">().not.toExtend<Parameters<typeof aiCall>[0]>()`, in
 `src/server/ai/gateway.test.ts`). Guard: CF-NN-3 in `scripts/conformance/non-null.test.ts`, with a
 planted file of the three forms.
+
+## Every browser a job's projects use is installed — CF-CID-8 (the pictures turn, DEC-371)
+
+The Playwright projects run on two engines: Chromium (`mobile-360`, `desktop-1280`,
+`email-serial`) and WebKit (`webkit-1280`, `webkit-390`, the `@webkit`-tagged tests). CF-CID-8
+(`scripts/conformance/ci-deadlines.test.ts`) reads, per job of every workflow, the projects its
+`playwright test` runs name (every `--project=`, a variable's assignment included; a run that names
+none runs every project; a run on another config file is that config's) and requires, for each
+engine among them, `playwright install <that engine>` and `install-browser-deps.sh <that engine>`
+in the same job (the script installs chromium when it names none). A `$NAME` argument counts every
+value the job assigns it. Each project's engine comes from the browser guard's `enginesOf`
+(`scripts/e2e-browser-guard.ts`), which also stops `e2e:local` on a project of any other engine and
+names a WebKit this computer lacks (EBG-1…5). CF-CID-9 plants a job running `webkit-390` on a
+Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.

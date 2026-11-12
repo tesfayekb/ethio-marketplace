@@ -148,6 +148,7 @@ jobs:
           [
             smoke,
             email,
+            webkit,
             "1",
             "2",
             "3",
@@ -248,19 +249,25 @@ jobs:
             { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=0"; } >> "$GITHUB_ENV"
             exit 0
           fi
+          # DEC-371: a spec's `@webkit` tests repeat in the WebKit pair too, so each counts twice in the budget
+          # (once for the two Chromium projects, once for the two WebKit ones); webkit-1280 lists the tagged ones.
           # shellcheck disable=SC2086
-          bunx playwright test --list --project=mobile-360 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.txt"
+          bunx playwright test --list --project=mobile-360 --project=webkit-1280 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.txt"
           tests=$(python3 - "$RUNNER_TEMP/repeat-list.txt" "$RUNNER_TEMP/repeat-ranks.txt" <<'PY'
           import re, sys
           counts = {}
+          webkit = {}
           for line in open(sys.argv[1]).read().splitlines():
-              m = re.match(r'^\s+\[mobile-360\] › (\S+?):\d+:\d+ › ', line)
+              m = re.match(r'^\s+\[(mobile-360|webkit-1280)\] › (\S+?):\d+:\d+ › ', line)
               if m:
-                  counts['e2e/' + m[1]] = counts.get('e2e/' + m[1], 0) + 1
+                  spec = 'e2e/' + m[2]
+                  counts[spec] = counts.get(spec, 0) + 1
+                  if m[1] == 'webkit-1280':
+                      webkit[spec] = webkit.get(spec, 0) + 1
           with open('repeat-counts.txt', 'w') as out:
               for line in open(sys.argv[2]).read().splitlines():
                   spec, rank = line.split()
-                  out.write(spec + ' ' + str(counts.get(spec, 0)) + ' ' + rank + '\n')
+                  out.write(spec + ' ' + str(counts.get(spec, 0)) + ' ' + rank + ' ' + str(webkit.get(spec, 0)) + '\n')
           print(sum(counts.values()))
           PY
           )
@@ -269,16 +276,18 @@ jobs:
           take=${plan#* }
           chosen=""
           used=0
+          webkit_used=0
           direct_n=0; direct_taken=0; helper_n=0; helper_taken=0
           # In the selector's order (rank 1, then rank 2): a spec too large for what is left is skipped
           # and the next one tried (INC-967).
-          while read -r spec n rank; do
+          while read -r spec n rank w; do
             # A spec whose every test is left out by the tags has nothing to repeat.
             if [ "$n" -eq 0 ]; then continue; fi
             if [ "$rank" = 1 ]; then direct_n=$(( direct_n + 1 )); else helper_n=$(( helper_n + 1 )); fi
             if [ $(( used + n )) -le "$take" ]; then
               chosen="${chosen:+$chosen }$spec"
               used=$(( used + n ))
+              webkit_used=$(( webkit_used + w ))
               if [ "$rank" = 1 ]; then direct_taken=$(( direct_taken + 1 )); else helper_taken=$(( helper_taken + 1 )); fi
             else
               echo "- Not repeated: $spec ($n tests)" >> local-backend-repeat.txt
@@ -292,7 +301,11 @@ jobs:
             exit 0
           fi
           echo "- Repeat: each $each on both projects; $tests tests selected, $used repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test; directly changed: $direct_taken of $direct_n repeated; importers of a changed helper: $helper_taken of $helper_n" >> local-backend-repeat.txt
+          echo "- Repeat in WebKit (DEC-371): $webkit_used of the repeated tests, on webkit-1280 and webkit-390" >> local-backend-repeat.txt
+          webkit_projects=""
+          if [ "$webkit_used" -gt 0 ]; then webkit_projects="--project=webkit-1280 --project=webkit-390"; fi
           {
+            echo "REPEAT_WEBKIT_PROJECTS=$webkit_projects"
             echo "REPEAT_SPECS=$chosen"
             echo "REPEAT_TESTS=$tests"
             echo "REPEAT_EACH=$each"
@@ -715,6 +728,16 @@ jobs:
       - name: Begin browser clock
         id: begin-browser-clock
         run: echo "BROWSER_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
+      # DEC-371: the browsers the lane's projects use — webkit on the WebKit lane, chromium and webkit on the
+      # repeat lane when a repeated spec has `@webkit` tests, chromium elsewhere. Both installs below and the
+      # cache key read this list; CF-CID-8 holds every job's installs to the projects it runs.
+      - name: Choose the lane's browsers (DEC-371)
+        id: choose-the-lane-s-browsers
+        run: |
+          browsers=chromium
+          if [ "$PROOF_LANE" = webkit ]; then browsers=webkit; fi
+          if [ -n "${REPEAT_WEBKIT_PROJECTS:-}" ]; then browsers="chromium webkit"; fi
+          { echo "PROOF_BROWSERS=$browsers"; echo "PROOF_BROWSERS_KEY=${browsers// /-}"; } >> "$GITHUB_ENV"
       - name: Cache Playwright browsers
         id: cache-playwright-browsers
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
@@ -722,21 +745,27 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}-${{ env.PROOF_BROWSERS_KEY }}
       # INC-943 (DEC-276): measured over 371 lane runs, the combined install took 14 s at the median, 582 s at the
       # 90th percentile and 895 s at most. A package install cut off part-way cannot be repeated, so the system
       # libraries run once with 1500 s; the browser download may be repeated, 900 s a try. INC-1101 (DEC-366):
       # install-browser-deps.sh drops a mirror that does not resolve and runs once more only at apt's fetch stage.
+      # DEC-371: both steps install the lane's browser list; their names and ids stay, as the failure
+      # reporter's infrastructure list reads the ids.
       - name: Install Chromium's system libraries
         id: install-chromium-s-system-libraries
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 27
-        run: bash scripts/ci/with-deadline.sh 1500 1 -- bash scripts/ci/install-browser-deps.sh
+        run: |
+          # shellcheck disable=SC2086
+          bash scripts/ci/with-deadline.sh 1500 1 -- bash scripts/ci/install-browser-deps.sh $PROOF_BROWSERS
       - name: Install Chromium
         id: install-chromium
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 32
-        run: bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install chromium
+        run: |
+          # shellcheck disable=SC2086
+          bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install $PROOF_BROWSERS
       - name: Record browser seconds
         id: record-browser-seconds
         if: always()
@@ -759,7 +788,10 @@ jobs:
             bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts > "local-backend-lane-$PROOF_LANE.log" 2>&1
           elif [ "$PROOF_LANE" = repeat ]; then
             # shellcheck disable=SC2086
-            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS > "local-backend-lane-$PROOF_LANE.log" 2>&1
+            bunx playwright test --project=mobile-360 --project=desktop-1280 ${REPEAT_WEBKIT_PROJECTS:-} --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS > "local-backend-lane-$PROOF_LANE.log" 2>&1
+          elif [ "$PROOF_LANE" = webkit ]; then
+            # DEC-371: the `@webkit`-tagged tests (the picture screens) in Desktop Safari and on an iPhone.
+            bunx playwright test --project=webkit-1280 --project=webkit-390 --grep-invert "@global-state|@a11y" > "local-backend-lane-$PROOF_LANE.log" 2>&1
           elif [ "$PROOF_LANE" = email ]; then
             E2E_EMAIL_SINK=1 bunx playwright test --project=email-serial --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
           else
@@ -1038,7 +1070,7 @@ jobs:
           E2E_RESULTS_DIR: lane-results
           E2E_LOGS_DIR: lane-logs
           E2E_CONTEXT_DIR: lane-contexts
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
+          E2E_EXPECTED_SOURCES: smoke,email,webkit,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
           E2E_GREEN: ${{ needs.proof.result == 'success' && '1' || '0' }}
           E2E_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           E2E_OUT_PATH: docs/tracking/local-backend-last-failure.md
@@ -1062,11 +1094,11 @@ jobs:
           import os, re
           from pathlib import Path
           from redact import redact
-          lanes = ['smoke', 'email', *map(str, range(1, 17)), 'repeat']
+          lanes = ['smoke', 'email', 'webkit', *map(str, range(1, 17)), 'repeat']
           fragments = {}
           for path in sorted(Path('local-proof-artifacts').rglob('local-backend-proof-*.md')):
               text = path.read_text(errors='replace')
-              match = re.search(r'^- Lane: (smoke|email|repeat|[1-9]|1[0-6])$', text, re.M)
+              match = re.search(r'^- Lane: (smoke|email|repeat|webkit|[1-9]|1[0-6])$', text, re.M)
               if match:
                   if match[1] in fragments:
                       raise SystemExit('duplicate lane evidence: ' + match[1])
@@ -1120,19 +1152,19 @@ jobs:
               heading = '## Migration/start failure'
               if heading in fragment:
                   details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
-          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the nineteen lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
+          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the twenty lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Repeat in WebKit', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
           lines += ['- Teardown:', *['  - ' + lane + ': ' + field(fragments.get(lane, []), '- Teardown: ', 'no evidence') for lane in lanes]]
           smoke = fragments.get('smoke', [])
           for heading in ('- Working copy:', '- Parity:', '- Status:'):
               lines += section(smoke, heading)
           lines += details
-          lines += ['', 'DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.']
+          lines += ['', 'DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.']
           Path('docs/tracking').mkdir(parents=True, exist_ok=True)
           Path('docs/tracking/local-backend-proof.md').write_text(redact('\n'.join(lines)) + '\n')
           full_evidence = Path('docs/tracking/local-backend-last-failure.md')
           if full_evidence.exists():
               full_evidence.write_text(redact(full_evidence.read_text(errors='replace')))
-          print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/19; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
+          print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/20; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
           PY
       - name: Publish only proof evidence
         if: always()

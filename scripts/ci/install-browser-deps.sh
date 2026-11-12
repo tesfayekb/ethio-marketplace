@@ -14,7 +14,23 @@
 # manager is untouched) gets one re-probe and ONE more run; any other failure, or a second
 # fetch-stage failure, is final (INC-943).
 # INSTALL_DEPS_ROOT (default /) and INSTALL_DEPS_PAUSE (default 30 s) exist for the test.
+# DEC-371 (the pictures turn): the arguments are the browsers whose libraries to install, a list
+# (`chromium webkit`); none means chromium. A name beyond chromium and webkit is refused before any
+# probe, so a typo never installs nothing quietly. Every browser a job's Playwright projects name
+# is installed in that job (CF-CID-8).
 set -u
+browsers=("$@")
+if [ "${#browsers[@]}" -eq 0 ]; then browsers=(chromium); fi
+for browser in "${browsers[@]}"; do
+  case "$browser" in
+    chromium | webkit) ;;
+    *)
+      echo "::error title=ci-mirror::unknown browser \"$browser\" (chromium or webkit)"
+      exit 2
+      ;;
+  esac
+done
+echo "ci-mirror browsers: ${browsers[*]}"
 root=${INSTALL_DEPS_ROOT:-/}
 root=${root%/}
 pause=${INSTALL_DEPS_PAUSE:-30}
@@ -151,7 +167,7 @@ prepare() {
 }
 
 install() {
-  bunx playwright install-deps chromium 2>&1 | tee "$log"
+  bunx playwright install-deps "${browsers[@]}" 2>&1 | tee "$log"
   return "${PIPESTATUS[0]}"
 }
 

@@ -781,3 +781,28 @@ Four of turn 2's runs (43033934604, 43036501908 and its re-run, 43041366407) los
   exactly once. `prepare-local-backend.sh` keeps its whole copy (the identity). The images' cache
   key hashes the program beside the toml. Guards: CF-BCFG-1/2 (`scripts/ci/backend-config.test.ts`:
   only those two lines change; an unknown variant or a missing switch fails; the job calls it).
+
+## The pictures turn — the picture screens in WebKit (DEC-371, INC-1121)
+
+My listings' table drew a picture 80 × 480 in an 80 × 60 cell in Safari's engine alone, so the
+picture screens now run in WebKit too, in one dedicated lane beside the nineteen: `webkit` runs the
+`@webkit`-tagged tests (every screen that draws a picture, and the layout checks they lean on) in
+the projects `webkit-1280` (Desktop Safari at 1280 × 800) and `webkit-390` (iPhone 13), with
+`--grep-invert "@global-state|@a11y"` like the shards. The shards keep `--project=mobile-360
+--project=desktop-1280`, so no Chromium lane runs a WebKit project. A step "Choose the lane's
+browsers (DEC-371)" writes `PROOF_BROWSERS`: `webkit` on the WebKit lane, `chromium webkit` on the
+repeat lane when a repeated spec has `@webkit` tests, `chromium` elsewhere. Both installs read it —
+`install-browser-deps.sh $PROOF_BROWSERS` (its arguments are a browser list, chromium when empty;
+a name beyond chromium and webkit is refused before the mirror probe; CF-INSTALL-7) and `playwright
+install $PROOF_BROWSERS` — and the browser cache's key ends with the list
+(`playwright-<os>-<version>-<list>`). The two steps keep their names and ids ("Install Chromium's
+system libraries", "Install Chromium"): the failure reporter's infrastructure list reads the ids.
+The repeat lane's selection lists `mobile-360` and `webkit-1280` together, so a changed spec's
+tagged tests count once more in the budget, and repeats them in `webkit-1280` and `webkit-390` too
+(`REPEAT_WEBKIT_PROJECTS`); its evidence adds `- Repeat in WebKit (DEC-371): <n> of the repeated
+tests`. The summary counts twenty lanes, and `webkit` joins its lane list, its evidence pattern and
+the lane reporter's expected sources. CF-CID-8 (`scripts/conformance/ci-deadlines.test.ts`) holds
+every job of every workflow to installing, browser and system libraries both, each engine of the
+projects its Playwright runs name (a `$NAME` argument read through its assignments), proven on the
+real lanes with webkit taken out of the list and on a planted job (CF-CID-9). The full suite in
+WebKit is a roadmap line.

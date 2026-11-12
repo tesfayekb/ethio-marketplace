@@ -37,6 +37,8 @@ type Setup = {
   runs: Run[];
   /** ubuntu.sources; the runner's mirror form when absent. */
   sources?: string;
+  /** The script's arguments: the browsers (DEC-371). */
+  args?: string[];
 };
 
 const roots: string[] = [];
@@ -81,6 +83,7 @@ function install(setup: Setup) {
       "#!/usr/bin/env bash",
       `n=$(( $(cat "${fake}/runs" 2>/dev/null || echo 0) + 1 ))`,
       `echo "$n" > "${fake}/runs"`,
+      `echo "$*" >> "${fake}/args"`,
       `cat "${fake}/out.$n"`,
       `exit "$(cat "${fake}/code.$n")"`,
       "",
@@ -88,7 +91,7 @@ function install(setup: Setup) {
   );
   chmodSync(join(bin, "getent"), 0o755);
   chmodSync(join(bin, "bunx"), 0o755);
-  const result = spawnSync("bash", [SCRIPT], {
+  const result = spawnSync("bash", [SCRIPT, ...(setup.args ?? [])], {
     encoding: "utf8",
     env: {
       ...process.env,
@@ -105,10 +108,17 @@ function install(setup: Setup) {
   } catch {
     runs = 0;
   }
+  let args: string[] = [];
+  try {
+    args = readFileSync(join(fake, "args"), "utf8").trim().split("\n");
+  } catch {
+    args = [];
+  }
   return {
     code: result.status,
     out: `${result.stdout}${result.stderr}`,
     runs,
+    args,
     mirrors: readFileSync(join(apt, "apt-mirrors.txt"), "utf8"),
     sources: readFileSync(join(apt, "sources.list.d/ubuntu.sources"), "utf8"),
   };
@@ -225,5 +235,48 @@ describe("the browser's system libraries survive one apt mirror (INC-1101, DEC-3
     const good = install({ resolves: [AZURE], sources, runs: [{ out: SUCCESS, code: 0 }] });
     expect(good.sources).toBe(sources);
     expect(good.out).not.toContain("::warning title=ci-mirror::");
+  });
+
+  it("CF-INSTALL-7 the browsers are a list: none means chromium, chromium webkit installs both, an unknown name is refused before the probe (DEC-371)", () => {
+    const hosts = [AZURE, ARCHIVE, SECURITY];
+    const plain = install({ resolves: hosts, runs: [{ out: SUCCESS, code: 0 }] });
+    expect(plain.code).toBe(0);
+    expect(plain.args).toEqual(["playwright install-deps chromium"]);
+    expect(plain.out).toContain("ci-mirror browsers: chromium");
+
+    const both = install({
+      resolves: hosts,
+      args: ["chromium", "webkit"],
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(both.code).toBe(0);
+    expect(both.args).toEqual(["playwright install-deps chromium webkit"]);
+    expect(both.out).toContain("ci-mirror browsers: chromium webkit");
+
+    const again = install({
+      resolves: hosts,
+      args: ["webkit"],
+      runs: [
+        { out: FETCH_FAILURE, code: 1 },
+        { out: SUCCESS, code: 0 },
+      ],
+    });
+    expect(again.code).toBe(0);
+    expect(again.args).toEqual([
+      "playwright install-deps webkit",
+      "playwright install-deps webkit",
+    ]);
+
+    const typo = install({
+      resolves: hosts,
+      args: ["chromium", "firefox"],
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(typo.code).toBe(2);
+    expect(typo.runs).toBe(0);
+    expect(typo.out).toContain(
+      '::error title=ci-mirror::unknown browser "firefox" (chromium or webkit)',
+    );
+    expect(typo.out).not.toContain("ci-mirror probe:");
   });
 });
