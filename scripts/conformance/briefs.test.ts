@@ -23,6 +23,7 @@ import {
   countFindings,
   type Finding,
   freeIdFindings,
+  isTestId,
   keyOf,
   optionFindings,
   scopeFindings,
@@ -302,6 +303,28 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(rx.test(name)).toBe(true);
       expect(rx.test(String.raw`a\bxc$d(e)`)).toBe(false);
       expect(rx.test("ab.c$d(e)")).toBe(false);
+    });
+
+    it("CF-BRIEF-7 a test id is a whole run of capitals, tokens and digits: inside a word, at a `$`, lowercase or seven capitals is none", () => {
+      for (const run of [
+        "xCF-A-1",
+        "$CF-A-1",
+        "CF-A-1$",
+        "CF-a-1",
+        "ABCDEFG-1",
+        "CF",
+        "CF--1",
+        "CF-1-",
+      ])
+        expect(isTestId(run), run).toBe(false);
+      for (const run of ["CF-PLANT-9", "TCK-7", "CF-HELPERS-5", "AB-2B-10"])
+        expect(isTestId(run), run).toBe(true);
+      const f = "ids.md";
+      for (const word of ["xTCK-7", "$TCK-7", "TCK-7$", "tck-7", "TCKTCKT-7"])
+        expect(freeIdFindings(`A new id ${word} is free.`, f, root), word).toEqual([]);
+      expect(freeIdFindings("A new id (TCK-7, is free.", f, root).map((x) => x.text)).toEqual([
+        "calls TCK-7 new or free; the tree already uses it",
+      ]);
     });
 
     it("a COUNT command carrying a write is refused; a read-only pipe runs", () => {

@@ -32,6 +32,7 @@
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, posix } from "node:path";
+import { pattern, type PatternPart } from "./lib/pattern";
 
 export interface Area {
   name: string;
@@ -422,26 +423,27 @@ const ALWAYS_ALL = new Set([
 
 /** Minimal glob matcher: `**` crosses directories, `*` stays within one. */
 export function globToRegExp(glob: string): RegExp {
-  let out = "";
+  // Literal runs enter as escaped string parts, the stars as source parts.
+  const parts: PatternPart[] = [];
+  let run = "";
   for (let i = 0; i < glob.length; i++) {
     const c = glob[i];
-    if (c === "*") {
-      if (glob[i + 1] === "*") {
-        out += ".*";
-        i++;
-        if (glob[i + 1] === "/") i++; // "**/" also matches zero directories
-      } else {
-        out += "[^/]*";
-      }
-    } else if ("\\^$.|?+()[]{}".includes(c)) {
-      out += "\\" + c;
+    if (c !== "*") {
+      run += c;
+      continue;
+    }
+    parts.push(run);
+    run = "";
+    if (glob[i + 1] === "*") {
+      parts.push(/.*/);
+      i++;
+      if (glob[i + 1] === "/") i++; // "**/" also matches zero directories
     } else {
-      out += c;
+      parts.push(/[^/]*/);
     }
   }
-  // Reviewed (DEC-153): every metacharacter of the glob is escaped above.
-  // nosemgrep: detect-non-literal-regexp
-  return new RegExp(`^${out}$`);
+  parts.push(run);
+  return pattern(["^", ...parts.slice(1).map(() => ""), "$"], ...parts);
 }
 
 export function matches(glob: string, path: string): boolean {

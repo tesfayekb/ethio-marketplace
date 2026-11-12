@@ -115,6 +115,10 @@ describe("every RegExp a script builds goes through scripts/lib/pattern.ts (CF-P
     );
     expect(rows.some((row) => row.file === HELPER)).toBe(true);
     expect(report(findings)).toBe("");
+    expect(
+      found,
+      "INC-1102 closed in housekeeping turn 3b: no script site outside the helper",
+    ).toEqual([]);
 
     const planted = [
       'import { authored } from "../lib/pattern";',

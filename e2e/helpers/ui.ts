@@ -27,10 +27,15 @@ import {
 import { inBrowserClient } from "./browser-client";
 import { totp, totpStep } from "./totp";
 import { errorText } from "../../src/lib/error-text";
+import { flaggedPattern, type PatternTag } from "../../scripts/lib/pattern";
 
-/** Escape a catalog value for literal use inside a RegExp. */
-function escapeRe(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/**
+ * CF-HELPERS-7 — the one way the e2e harness builds a RegExp from text: the template is RegExp
+ * source, every `${part}` string (a catalog value, a name) is escaped — scripts/lib/pattern.ts,
+ * INC-1102's helper. `matcher("i")\`^${label}$\``.
+ */
+export function matcher(flags = ""): PatternTag {
+  return flaggedPattern(flags);
 }
 
 /**
@@ -38,7 +43,7 @@ function escapeRe(value: string) {
  * work in an Amharic shell too.
  */
 export function openMenuPattern() {
-  return new RegExp(`^(${escapeRe(en["shell.openMenu"])}|${escapeRe(am["shell.openMenu"])})$`);
+  return matcher()`^(${en["shell.openMenu"]}|${am["shell.openMenu"]})$`;
 }
 
 /** Lifted verbatim from smoke-auth-i18n.spec.ts (P1-c). */

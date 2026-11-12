@@ -1,10 +1,2 @@
 # CF-PATTERN-4 (scripts/conformance/pattern-sites.test.ts; housekeeping turn 2 Part D, INC-1102): a script that builds a RegExp outside scripts/lib/pattern.ts.
-# key "<file> (<sites>)" | reason | until — each file moves onto pattern.ts in housekeeping turn 3 (ruling 3 item 3); a count only falls.
-scripts/admin-tables.ts (1) | :213, a host file's import of a table name; housekeeping turn 3 moves it onto pattern.ts | INC-1102
-scripts/e2e-select.ts (1) | :444, a DEC-153 reviewed site (a spec glob, every metacharacter escaped by hand); housekeeping turn 3 moves it and its marker onto pattern.ts | INC-1102
-scripts/list-action-labels.ts (3) | :112 (a DEC-153 reviewed site, INC-517), :225, :241; housekeeping turn 3 moves them onto pattern.ts | INC-1102
-scripts/brief/apply-blocks.ts (2) | :52, :94, the dormant kit's applier: a constant marker source; housekeeping turn 3 moves it with the kit or keeps it here as dormant | INC-1102
-scripts/destructive-red.ts (1) | :43, built from constant strings; housekeeping turn 3 routes it through pattern so the census has one shape | INC-1102
-scripts/conformance/vendor-seams-scan.ts (1) | :39, the auth method list; housekeeping turn 3 moves it onto pattern.ts | INC-1102
-scripts/conformance/package-price.ts (2) | :59, :60, an operand fragment; housekeeping turn 3 moves them onto pattern.ts | INC-1102
-scripts/conformance/migration-reader.ts (2) | :49, :70, constant literal shapes; housekeeping turn 3 routes them through pattern so the census has one shape | INC-1102
+# key "<file> (<sites>)" | reason | until — empty since housekeeping turn 3b moved the last thirteen sites onto pattern.ts; CF-PATTERN-4 holds it empty.

@@ -37,7 +37,10 @@ const CITATION = flaggedPattern(
   "g",
 )`(?<![\\w/.-])\`?(${TREE_PREFIX}[\\w$./*-]*[\\w$*-])\`? ?((?::\\d+)(?:\\s*(?:→|,|–)\\s*:\\d+)*)`;
 const MADE_HERE = /\bnew\b|\bcreated here\b|\bbuilt as\b|\bbuilt here\b/i;
-const TEST_ID = /(?<![\w-])[A-Z]{2,6}(?:-[A-Z0-9]+)*-\d+(?![\w-])/g;
+const ID_RUN = /[^\w$-]+/;
+const ID_HEAD = /^[A-Z]{2,6}$/;
+const ID_MIDDLE = /^[A-Z0-9]+$/;
+const ID_TAIL = /^\d+$/;
 const ID_WORD = /^\W*(?:new|free|gains)\W*$/i;
 const COUNT_CLAUSE = /COUNT:\s*(\d+)\s*:=\s*(?:`([^`\n]+)`|([^\n;]+))/g;
 const BARE_COUNT =
@@ -347,6 +350,18 @@ export function citedLineFindings(text: string, file: string, root: string): Fin
   return findings;
 }
 
+/**
+ * A test id: a run of word characters, `$` and `-` whose `-`-separated tokens are `[A-Z]{2,6}`, zero or
+ * more `[A-Z0-9]+`, then `\d+` — each token judged by a flat anchored class (linear; alert #453).
+ */
+export function isTestId(run: string): boolean {
+  const tokens = run.split("-");
+  const head = tokens.shift();
+  const tail = tokens.pop();
+  if (head === undefined || tail === undefined) return false;
+  return ID_HEAD.test(head) && ID_TAIL.test(tail) && tokens.every((token) => ID_MIDDLE.test(token));
+}
+
 /** CF-BRIEF-7 — every test id the brief calls new, free or gained appears nowhere under src/, e2e/, scripts/. */
 export function freeIdFindings(text: string, file: string, root: string): Finding[] {
   const claimed: Array<{ id: string; line: number }> = [];
@@ -366,7 +381,7 @@ export function freeIdFindings(text: string, file: string, root: string): Findin
       if (negated) return;
       const near = words.some((w, j) => j !== i && Math.abs(j - i) <= 3 && ID_WORD.test(w.word));
       if (!near) return;
-      for (const id of word.match(TEST_ID) ?? []) claimed.push({ id, line: index + 1 });
+      for (const id of word.split(ID_RUN).filter(isTestId)) claimed.push({ id, line: index + 1 });
     });
   });
   if (claimed.length === 0) return [];

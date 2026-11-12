@@ -27,6 +27,7 @@ import {
 import { dirname, join } from "node:path";
 import { PROJECT_DIR, scopeVerdict } from "../../.claude/hooks/lib";
 import { errorText } from "../../src/lib/error-text";
+import { flaggedPattern } from "../lib/pattern";
 
 export type Block =
   | { kind: "file"; path: string; text: string }
@@ -47,9 +48,9 @@ export class ApplyRefused extends Error {}
 const BLOCK_RX =
   /^FILE-BEGIN (\S+)\n([\s\S]*?)\nFILE-END \1$|^EDIT (\S+) #(\d+)\nOLD-BEGIN\n([\s\S]*?)\nOLD-END\nNEW-BEGIN\n([\s\S]*?)\nNEW-END$/gm;
 
-const MARKER_SOURCE =
-  "^(OLD-BEGIN|OLD-END|NEW-BEGIN|NEW-END|FILE-BEGIN \\S+|FILE-END \\S+|EDIT \\S+ #\\d+)$";
-const MARKER_RX = new RegExp(MARKER_SOURCE, "m");
+const MARKER = /^(OLD-BEGIN|OLD-END|NEW-BEGIN|NEW-END|FILE-BEGIN \S+|FILE-END \S+|EDIT \S+ #\d+)$/;
+const MARKER_RX = flaggedPattern("m")`${MARKER}`;
+const EVERY_MARKER_RX = flaggedPattern("gm")`${MARKER}`;
 
 function lineOf(text: string, at: number): number {
   return text.slice(0, at).split("\n").length;
@@ -91,7 +92,7 @@ export function parseBlocks(brief: string): Block[] {
       blocks.push({ kind: "edit", path: editPath, n: Number(n), old, next });
     }
   }
-  for (const marker of brief.matchAll(new RegExp(MARKER_SOURCE, "gm"))) {
+  for (const marker of brief.matchAll(EVERY_MARKER_RX)) {
     const at = marker.index;
     if (!spans.some(([from, to]) => at >= from && at < to)) {
       throw new ApplyRefused(

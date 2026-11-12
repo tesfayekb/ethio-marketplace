@@ -25,6 +25,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { walkFiles } from "./conformance/kit";
+import { flaggedPattern } from "./lib/pattern";
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -38,12 +39,11 @@ export const NOT_DESTRUCTIVE: Record<string, Record<string, string>> = {
   },
 };
 
-const ACT = "(?:delete|remove|reject|revoke|unlink|deactivate|discard)(?!e?d(?:[A-Z.]|$))";
+const ACT = /(?:delete|remove|reject|revoke|unlink|deactivate|discard)(?!e?d(?:[A-Z.]|$))/;
 /** The act's own key (`….delete`, `….removePassword`), or its confirmation (`….delete.confirm`). */
-const DESTRUCTIVE = new RegExp(
-  `\\.${ACT}[A-Za-z]*$|\\.${ACT}[A-Za-z]*\\.(?:confirm|go|yes|submit)$`,
+const DESTRUCTIVE = flaggedPattern(
   "i",
-);
+)`\\.${ACT}[A-Za-z]*$|\\.${ACT}[A-Za-z]*\\.(?:confirm|go|yes|submit)$`;
 const KEY = /\bt\(\s*["'`]([A-Za-z0-9_.-]+)["'`]\s*\)/g;
 const CONTROL = /<(Button|button|AlertDialogAction|DropdownMenuItem|IconButton)(?![A-Za-z])/g;
 const RED = /destructive|danger/i;

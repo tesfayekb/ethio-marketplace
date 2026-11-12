@@ -18,6 +18,10 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  * - CF-HELPERS-3: no e2e/*.spec.ts writes `profiles.preferred_language`; a spec sets it through
  *   the language module (`.from("profiles").update({ … preferred_language`, matched across lines).
  *   The lease (users.ts) and the pooled super admin's reset (ui.ts) write the NULL baseline themselves.
+ * - CF-HELPERS-7 (housekeeping turn 3b, ruling 1 item 6, INC-1102's class in the e2e tree): no
+ *   file under e2e/helpers/, nor e2e/global-setup.ts or e2e/global-teardown.ts, calls `new RegExp(`
+ *   or `RegExp(` — a pattern built from text goes through `matcher` (e2e/helpers/ui.ts, over
+ *   scripts/lib/pattern.ts), which escapes every interpolated string.
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -118,18 +122,49 @@ export function languageWriteFindings(files: string[], home = LANGUAGE_HOME): He
   return findings;
 }
 
+/** CF-HELPERS-7 — a RegExp built by hand where the harness has `matcher`. */
+export function regexpSiteFindings(files: string[]): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const file of files) {
+    visitTs(file, (node, source) => {
+      if (
+        (ts.isNewExpression(node) || ts.isCallExpression(node)) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "RegExp"
+      ) {
+        const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
+        findings.push({
+          file,
+          line,
+          what: "builds a RegExp by hand: use matcher (e2e/helpers/ui.ts)",
+          key: `${file} RegExp`,
+        });
+      }
+    });
+  }
+  return findings;
+}
+
 const e2eFiles = () => walkFiles(["e2e"], { ext: ["ts"] });
+const harnessFiles = (files: string[]) =>
+  files.filter(
+    (file) =>
+      file.startsWith("e2e/helpers/") ||
+      file === "e2e/global-setup.ts" ||
+      file === "e2e/global-teardown.ts",
+  );
 const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(file));
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module",
+    "CF-HELPERS-1 → CF-HELPERS-3 and CF-HELPERS-7 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no harness file builds a RegExp by hand",
     () => {
       const files = e2eFiles();
       const findings = [
         ...copyFindings(specs(), COPIED_NAMES),
         ...hooksDisableFindings(files),
         ...languageWriteFindings(specs()),
+        ...regexpSiteFindings(harnessFiles(files)),
       ];
       const allowances = readAllowlist(
         ALLOWLIST,
@@ -144,7 +179,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
     TREE_SCAN_MS,
   );
 
-  it("planted: CF-HELPERS-1 → CF-HELPERS-3 each find their planted copy, disable and write", () => {
+  it("planted: CF-HELPERS-1 → CF-HELPERS-3 and CF-HELPERS-7 each find their planted copy, disable, write and RegExp", () => {
     const dir = mkdtempSync(join(tmpdir(), "e2e-helpers-"));
     try {
       const spec = join(dir, "planted.spec.ts");
@@ -188,6 +223,28 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
       expect(copyFindings([clean], COPIED_NAMES)).toEqual([]);
       expect(hooksDisableFindings([clean])).toEqual([]);
       expect(languageWriteFindings([clean])).toEqual([]);
+      const helper = join(dir, "planted-helper.ts");
+      writeFileSync(
+        helper,
+        [
+          'import { matcher } from "./ui";',
+          "export const a = new RegExp(`^${label}$`);",
+          "export const b = RegExp(label, 'i');",
+          "export const c = matcher('i')`^${label}$`;",
+          "export const d = /^literal$/;",
+          "",
+        ].join("\n"),
+      );
+      expect(regexpSiteFindings([helper]).map((f) => f.line)).toEqual([2, 3]);
+      expect(regexpSiteFindings([clean])).toEqual([]);
+      expect(
+        harnessFiles([
+          "e2e/helpers/x.ts",
+          "e2e/global-setup.ts",
+          "e2e/global-teardown.ts",
+          "e2e/x.spec.ts",
+        ]),
+      ).toEqual(["e2e/helpers/x.ts", "e2e/global-setup.ts", "e2e/global-teardown.ts"]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
