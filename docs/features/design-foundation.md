@@ -310,6 +310,11 @@ the content's top line, not in the bar. All controls keep the 44px floor.
 `THEME_INIT_SCRIPT` runs in `<head>` before the body paints, so `data-mode` and
 the `.dark` class are already correct on the first frame — there is no flash of
 the wrong theme, and the choice survives a reload (asserted in `shell.spec`).
+The script's three values (the theme names, the default theme, the storage key)
+enter its text through `scriptLiteral` (`src/lib/script-literal.ts`, housekeeping
+turn 4), which no value can break out of (TP-4 plants a `</script>` theme name);
+`scripts/conformance/script-text.test.ts` (CF-SCRIPT-3, CF-SCRIPT-4) holds every
+inline script and style text under `src/` to the builder or a literal.
 
 ### Nested rail submenus
 

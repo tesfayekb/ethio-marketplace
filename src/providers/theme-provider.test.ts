@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { parseStoredTheme, resolveTheme } from "@/lib/theme-resolver";
 
@@ -60,5 +60,32 @@ describe("THEME_INIT_SCRIPT", () => {
 
   it("TP-3 a storage refusal still paints the system's mode", () => {
     expect(runScript("dark", true, true)).toEqual({ theme: "sage", mode: "dark", dark: true });
+  });
+
+  it("TP-4 a theme name containing </script> cannot close the element (scriptLiteral)", async () => {
+    const planted = "</script><script>window.planted=1</script>";
+    vi.resetModules();
+    vi.doMock("@/lib/theme-resolver", async (importOriginal) => ({
+      ...(await importOriginal<typeof import("@/lib/theme-resolver")>()),
+      THEME_NAMES: ["sage", planted],
+    }));
+    try {
+      const { THEME_INIT_SCRIPT: script } = await import("./theme-provider");
+      expect(script).not.toMatch(/<\/?script/i);
+      const attrs = new Map<string, string>();
+      const window = {
+        localStorage: { getItem: () => JSON.stringify({ name: planted, mode: "dark" }) },
+        matchMedia: () => ({ matches: false }),
+      };
+      const documentElement = {
+        setAttribute: (name: string, value: string) => attrs.set(name, value),
+        classList: { toggle: () => undefined },
+      };
+      new Function("window", "document", script)(window, { documentElement });
+      expect(attrs.get("data-theme")).toBe(planted);
+    } finally {
+      vi.doUnmock("@/lib/theme-resolver");
+      vi.resetModules();
+    }
   });
 });

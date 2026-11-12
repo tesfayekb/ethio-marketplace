@@ -2,7 +2,7 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { readAllowlist, report, TREE_SCAN_MS } from "./kit";
+import { entryOfList, readAllowlist, report, TREE_SCAN_MS, typedProgram } from "./kit";
 
 /**
  * DEC-370 (INC-826) — a link target that comes from data reaches the page only through
@@ -27,39 +27,6 @@ const APP_CALLER = "src/features/ad-page/maps-links.ts";
 const ROUTER_CALLS = new Set(["redirect", "navigate"]);
 
 type Finding = { file: string; line: number; what: string; key: string };
-
-function compilerOptions(): ts.CompilerOptions {
-  const parsed = ts.getParsedCommandLineOfConfigFile(
-    join(ROOT, "tsconfig.json"),
-    {},
-    { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => undefined },
-  );
-  if (parsed === undefined) throw new Error("safe-href census: tsconfig.json did not parse");
-  return { ...parsed.options, noEmit: true };
-}
-
-/** The program over tsconfig.json's files, or over one planted file served from memory. */
-function programOf(planted?: { path: string; text: string }): ts.Program {
-  const options = compilerOptions();
-  if (planted === undefined) {
-    const parsed = ts.getParsedCommandLineOfConfigFile(
-      join(ROOT, "tsconfig.json"),
-      {},
-      { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => undefined },
-    );
-    return ts.createProgram(parsed?.fileNames ?? [], options);
-  }
-  const host = ts.createCompilerHost(options);
-  const full = join(ROOT, planted.path);
-  const getSourceFile = host.getSourceFile.bind(host);
-  host.getSourceFile = (name, language, ...rest) =>
-    name === full
-      ? ts.createSourceFile(name, planted.text, language, true, ts.ScriptKind.TSX)
-      : getSourceFile(name, language, ...rest);
-  const fileExists = host.fileExists.bind(host);
-  host.fileExists = (name) => name === full || fileExists(name);
-  return ts.createProgram([full], options, host);
-}
 
 function isBrand(type: ts.Type, checker: ts.TypeChecker): boolean {
   return checker
@@ -96,22 +63,6 @@ function argumentOf(node: ts.Node): ts.CallExpression | null {
   return ts.isCallExpression(parent) && parent.arguments.some((arg) => arg === current)
     ? parent
     : null;
-}
-
-/** An entry of a `links: [...]` list, through spreads, conditionals and nested lists. */
-function isHeadLink(literal: ts.ObjectLiteralExpression): boolean {
-  let current: ts.Node = literal.parent;
-  if (!ts.isArrayLiteralExpression(current)) return false;
-  while (
-    ts.isArrayLiteralExpression(current) ||
-    ts.isSpreadElement(current) ||
-    ts.isConditionalExpression(current) ||
-    ts.isParenthesizedExpression(current)
-  ) {
-    if (ts.isPropertyAssignment(current.parent)) return current.parent.name.getText() === "links";
-    current = current.parent;
-  }
-  return false;
 }
 
 /** Every finding in the program's src/ files (tests, the generated route tree and the
@@ -189,7 +140,7 @@ export function census(program: ts.Program): { sinks: number; findings: Finding[
                 what: "the router's href option takes safeReturnPath(…) or a string literal (D20)",
                 key: `${file} router href ${property.getText(source).replace(/\s+/g, " ")}`,
               });
-          } else if (isHeadLink(node) && value !== null) judge("links href", value);
+          } else if (entryOfList(node, "links") && value !== null) judge("links href", value);
         }
       } else if (
         (ts.isAsExpression(node) || ts.isTypeAssertionExpression(node)) &&
@@ -242,7 +193,7 @@ const PLANTED = [
 ].join("\n");
 
 describe("a data-derived link reaches the page only through safe-href.ts (DEC-370)", () => {
-  const tree = census(programOf());
+  const tree = census(typedProgram(ROOT));
   const allowed = readAllowlist(
     ALLOWLIST,
     tree.findings.map((f) => f.key),
@@ -267,7 +218,7 @@ describe("a data-derived link reaches the page only through safe-href.ts (DEC-37
     "CF-HREF-3 a planted bypass of each kind is found, and the mechanism's own forms are not",
     () => {
       const planted = census(
-        programOf({ path: "src/features/planted-safe-href.tsx", text: PLANTED }),
+        typedProgram(ROOT, { path: "src/features/planted-safe-href.tsx", text: PLANTED }),
       );
       expect(
         planted.findings.map((f) => `${f.line} ${f.key.split(" ").slice(1).join(" ")}`),

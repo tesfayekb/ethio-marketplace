@@ -1,6 +1,5 @@
 # CF-LOOK-1 (turn SAGE-S0, ruling 4; scripts/conformance/look-values.test.ts) — a recorded look value outside the tokens.
 # Key: `<file> (<findings>)` | reason | until — the Sage part that fixes it (under DEC-289), or a review date for a value that never reaches the stylesheet.
-src/components/ui/chart.tsx (7) | the chart's drawing colours (recharts' own #ccc / #fff stroke selectors) and its 2 px legend swatch corners: drawing, not the page's look; no Sage part owns the chart | 2027-04-30
 src/features/admin-categories/category-image-variants.ts (1) | the category picture's white background, burned into the raster file | 2027-04-30
 src/features/posting/colour-swatches.ts (19) | the product colours a seller picks: data about the item, never the site's look | 2027-04-30
 src/features/posting/map/leaflet.ts (1) | the map marker's drawn shadow, inside the map's own drawing | 2027-04-30

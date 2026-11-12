@@ -9,6 +9,7 @@ import {
   type ThemeMode,
   type ThemeName,
 } from "@/lib/theme-resolver";
+import { scriptLiteral } from "@/lib/script-literal";
 
 import { ThemeContext, type ThemeValue } from "./theme-context";
 
@@ -27,7 +28,7 @@ export const THEME_STORAGE_KEY = "ethio.theme";
  * an unknown name, a bad mode or malformed text falls through to the default theme in the
  * device's preferred mode. It writes data-theme, data-mode and the .dark class. Nothing else.
  */
-export const THEME_INIT_SCRIPT = `(function(){var d=document.documentElement,t=${JSON.stringify(THEME_NAMES)},n=${JSON.stringify(DEFAULT_THEME)},m=null;try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var v=window.localStorage.getItem(k);if(v==="light"||v==="dark"){m=v;}else if(v){try{var o=JSON.parse(v);if(o&&t.indexOf(o.name)>=0&&(o.mode==="light"||o.mode==="dark")){n=o.name;m=o.mode;}}catch(e){}}}catch(e){}if(!m){try{m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch(e){m="light";}}d.setAttribute("data-theme",n);d.setAttribute("data-mode",m);d.classList.toggle("dark",m==="dark");})();`;
+export const THEME_INIT_SCRIPT = `(function(){var d=document.documentElement,t=${scriptLiteral(THEME_NAMES)},n=${scriptLiteral(DEFAULT_THEME)},m=null;try{var k=${scriptLiteral(THEME_STORAGE_KEY)};var v=window.localStorage.getItem(k);if(v==="light"||v==="dark"){m=v;}else if(v){try{var o=JSON.parse(v);if(o&&t.indexOf(o.name)>=0&&(o.mode==="light"||o.mode==="dark")){n=o.name;m=o.mode;}}catch(e){}}}catch(e){}if(!m){try{m=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}catch(e){m="light";}}d.setAttribute("data-theme",n);d.setAttribute("data-mode",m);d.classList.toggle("dark",m==="dark");})();`;
 
 /** The theme the pre-paint script applied; the default when it is absent or unknown. */
 function appliedTheme(): ThemeName {
