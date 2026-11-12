@@ -1,0 +1,268 @@
+{
+  "project": "webkit-1280",
+  "ids": {
+    "landscape": "09343fa5-774b-48f8-a6e9-79266941cf9e",
+    "portrait": "f5960625-b950-432d-aebe-6eaa9d88e293",
+    "bare": "28940005-1d00-4ccd-bf48-5a2e8f0c23f3"
+  },
+  "record": [
+    {
+      "screen": "my-listings",
+      "width": 1280,
+      "path": "/my-listings",
+      "ready": true,
+      "images": [
+        {
+          "owner": "my-listing-28940005-1d00-4ccd-bf48-5a2e8f0c23f3-picture",
+          "file": "repro-shm36j-512x512.png",
+          "complete": true,
+          "natural": "512x512",
+          "drawn": "60x60",
+          "objectFit": "contain",
+          "frame": "60x60",
+          "frameStyle": "aspect-ratio: 1 / 1; width: calc(75cqw);",
+          "picture": "category",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < td:table-cell < tr:table-row < tbody:table-row-group < table:table"
+        },
+        {
+          "owner": "my-listing-f5960625-b950-432d-aebe-6eaa9d88e293-picture",
+          "file": "repro-5xy6gr-360x480.jpg",
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "80x60",
+          "objectFit": "cover",
+          "frame": "80x60",
+          "frameStyle": "width: 100%; height: 100%;",
+          "picture": "photo",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < td:table-cell < tr:table-row < tbody:table-row-group < table:table"
+        },
+        {
+          "owner": "my-listing-09343fa5-774b-48f8-a6e9-79266941cf9e-picture",
+          "file": "repro-xpxlcg-480x360.jpg",
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "80x60",
+          "objectFit": "cover",
+          "frame": "80x60",
+          "frameStyle": "width: 100%; height: 100%;",
+          "picture": "photo",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < td:table-cell < tr:table-row < tbody:table-row-group < table:table"
+        }
+      ]
+    },
+    {
+      "screen": "home-feed",
+      "width": 1280,
+      "path": "/",
+      "ready": true,
+      "images": [
+        {
+          "owner": "listing-card-picture",
+          "file": "repro-shm36j-512x512.png",
+          "complete": true,
+          "natural": "512x512",
+          "drawn": "139.2x139.2",
+          "objectFit": "contain",
+          "frame": "139.2x139.2",
+          "frameStyle": "width: calc(75cqw); aspect-ratio: 1 / 1;",
+          "picture": "category",
+          "pictureBox": "185.6x139.2",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < a:flex < article:flex < li:list-item < ul:grid < section:block"
+        },
+        {
+          "owner": "listing-card-picture",
+          "file": "repro-5xy6gr-360x480.jpg",
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "185.6x139.2",
+          "objectFit": "cover",
+          "frame": "185.6x139.2",
+          "frameStyle": "width:100%;height:100%",
+          "picture": "photo",
+          "pictureBox": "185.6x139.2",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < a:flex < article:flex < li:list-item < ul:grid < section:block"
+        },
+        {
+          "owner": "listing-card-picture",
+          "file": "repro-xpxlcg-480x360.jpg",
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "185.6x139.2",
+          "objectFit": "cover",
+          "frame": "185.6x139.2",
+          "frameStyle": "width:100%;height:100%",
+          "picture": "photo",
+          "pictureBox": "185.6x139.2",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < a:flex < article:flex < li:list-item < ul:grid < section:block"
+        }
+      ]
+    },
+    {
+      "screen": "ad-portrait",
+      "width": 1280,
+      "path": "/l/thgk3peb66",
+      "ready": true,
+      "images": [
+        {
+          "owner": "gallery-main",
+          "file": "repro-fc75wg-720x960.jpg",
+          "complete": true,
+          "natural": "432x576",
+          "drawn": "561.6x450",
+          "objectFit": "contain",
+          "frame": "561.6x450",
+          "frameStyle": "touch-action:pan-y",
+          "picture": "",
+          "pictureBox": null,
+          "drawnWithinFrame": true,
+          "frameWithinPicture": null,
+          "chain": "button:flex < div:flex < div:flex < div:flex < div:flex < div:grid < div:flex < article:flex < main:block"
+        }
+      ]
+    },
+    {
+      "screen": "ad-no-photo",
+      "width": 1280,
+      "path": "/l/eem97zk7uz",
+      "ready": true,
+      "images": [
+        {
+          "owner": "listing-detail-illustration",
+          "file": "repro-shm36j-512x512.png",
+          "complete": true,
+          "natural": "512x512",
+          "drawn": "320x240",
+          "objectFit": "contain",
+          "frame": "320x240",
+          "frameStyle": "aspect-ratio:1.3333333333333333;width:min(100cqw, 100cqw)",
+          "picture": "category",
+          "pictureBox": "320x240",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:flex < div:grid < div:flex < article:flex < main:block < main:block"
+        }
+      ]
+    },
+    {
+      "screen": "my-listings-candidate-absolute-img",
+      "width": 1280,
+      "path": "/my-listings",
+      "ready": true,
+      "images": [
+        {
+          "owner": "my-listing-28940005-1d00-4ccd-bf48-5a2e8f0c23f3-picture",
+          "file": "repro-shm36j-512x512.png",
+          "complete": true,
+          "natural": "512x512",
+          "drawn": "60x60",
+          "objectFit": "contain",
+          "frame": "60x60",
+          "frameStyle": "aspect-ratio: 1 / 1; width: calc(75cqw);",
+          "picture": "category",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < td:table-cell < tr:table-row < tbody:table-row-group < table:table"
+        },
+        {
+          "owner": "my-listing-f5960625-b950-432d-aebe-6eaa9d88e293-picture",
+          "file": "repro-5xy6gr-360x480.jpg",
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "80x60",
+          "objectFit": "cover",
+          "frame": "80x60",
+          "frameStyle": "width: 100%; height: 100%;",
+          "picture": "photo",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < td:table-cell < tr:table-row < tbody:table-row-group < table:table"
+        },
+        {
+          "owner": "my-listing-09343fa5-774b-48f8-a6e9-79266941cf9e-picture",
+          "file": "repro-xpxlcg-480x360.jpg",
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "80x60",
+          "objectFit": "cover",
+          "frame": "80x60",
+          "frameStyle": "width: 100%; height: 100%;",
+          "picture": "photo",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < td:table-cell < tr:table-row < tbody:table-row-group < table:table"
+        }
+      ]
+    },
+    {
+      "screen": "my-listings",
+      "width": 1024,
+      "path": "/my-listings",
+      "ready": true,
+      "images": [
+        {
+          "owner": "my-listing-28940005-1d00-4ccd-bf48-5a2e8f0c23f3-picture",
+          "file": "repro-shm36j-512x512.png",
+          "complete": true,
+          "natural": "512x512",
+          "drawn": "60x60",
+          "objectFit": "contain",
+          "frame": "60x60",
+          "frameStyle": "aspect-ratio: 1 / 1; width: calc(75cqw);",
+          "picture": "category",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < div:flex < div:flex < li:list-item < ul:grid"
+        },
+        {
+          "owner": "my-listing-f5960625-b950-432d-aebe-6eaa9d88e293-picture",
+          "file": "repro-5xy6gr-360x480.jpg",
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "80x60",
+          "objectFit": "cover",
+          "frame": "80x60",
+          "frameStyle": "width: 100%; height: 100%;",
+          "picture": "photo",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < div:flex < div:flex < li:list-item < ul:grid"
+        },
+        {
+          "owner": "my-listing-09343fa5-774b-48f8-a6e9-79266941cf9e-picture",
+          "file": "repro-xpxlcg-480x360.jpg",
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "80x60",
+          "objectFit": "cover",
+          "frame": "80x60",
+          "frameStyle": "width: 100%; height: 100%;",
+          "picture": "photo",
+          "pictureBox": "80x60",
+          "drawnWithinFrame": true,
+          "frameWithinPicture": true,
+          "chain": "div:block < div:flex < div:block < div:block < span:block < div:flex < div:flex < li:list-item < ul:grid"
+        }
+      ]
+    }
+  ]
+}
