@@ -69,6 +69,65 @@ export function missingCallers(domain: string[], callers: string): string[] {
   });
 }
 
+const MJS_IMPORT =
+  /^import\s+(?:type\s+)?(?:(\w+)\s*,?\s*)?(?:\{([^}]*)\}|\*\s+as\s+\w+)?\s*from\s*["']([^"']+\.mjs)["']/gm;
+const DECLARED =
+  /\bexport\s+(?:declare\s+)?(?:const|let|var|function|class|type|interface|enum)\s+([A-Za-z_$][\w$]*)/g;
+
+/** The names a declaration file exports: its declarations, `export { … }` lists and default. */
+export function declaredNames(source: string): Set<string> {
+  const names = new Set([...source.matchAll(DECLARED)].map((m) => m[1]));
+  for (const list of source.matchAll(/\bexport\s*\{([^}]*)\}/g))
+    for (const item of list[1].split(",")) {
+      const name = item
+        .trim()
+        .split(/\s+as\s+/)
+        .pop();
+      if (name) names.add(name);
+    }
+  if (/\bexport\s+default\b/.test(source)) names.add("default");
+  return names;
+}
+
+/**
+ * Housekeeping turn 3b (ruling 1, Q4) — every `.mjs` a scripts/ TypeScript file imports has a
+ * `.d.mts` beside it exporting each imported name: judged here today, by `tsc` the day scripts/
+ * joins the typecheck. `files` maps a root-relative path to its text.
+ */
+export function undeclaredMjsImports(files: Map<string, string>): string[] {
+  const findings: string[] = [];
+  for (const [file, text] of files) {
+    if (!/^scripts\/.*\.tsx?$/.test(file)) continue;
+    for (const m of text.matchAll(MJS_IMPORT)) {
+      const spec = m[3];
+      if (!spec.startsWith(".")) continue;
+      const declaration = join(dirname(file), spec.replace(/\.mjs$/, ".d.mts"))
+        .split("\\")
+        .join("/");
+      const source = files.get(declaration);
+      if (source === undefined) {
+        findings.push(`${file} imports ${spec}: no ${declaration}`);
+        continue;
+      }
+      const exported = declaredNames(source);
+      const wanted = (m[2] ?? "")
+        .split(",")
+        .map(
+          (item) =>
+            item
+              .trim()
+              .replace(/^type\s+/, "")
+              .split(/\s+as\s+/)[0],
+        )
+        .filter((name) => name !== "");
+      if (m[1]) wanted.push("default");
+      for (const name of wanted)
+        if (!exported.has(name)) findings.push(`${file} imports ${name}: ${declaration} lacks it`);
+    }
+  }
+  return findings.sort();
+}
+
 describe("every guard script is wired to a caller (INC-563)", () => {
   it("CF-WIRED-1 the domain is each named by a workflow, a package.json script or a test", () => {
     const domain = wiredDomain();
@@ -273,5 +332,43 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(
       missingCallers(["scripts/check-planted-thing.sh"], "bash scripts/check-planted-thing.sh"),
     ).toEqual([]);
+  });
+
+  it("CF-WIRED-3 every .mjs a scripts/ TypeScript file imports is declared beside it", () => {
+    const files = new Map<string, string>();
+    for (const file of walkFiles([join(ROOT, "scripts")], { ext: ["ts", "tsx", "mts"] }))
+      files.set(relative(ROOT, file).split("\\").join("/"), readFileSync(file, "utf8"));
+    const importers = [...files].filter(
+      ([file, text]) => /\.tsx?$/.test(file) && /\.mjs["']/.test(text),
+    );
+    console.log(`[wired] .mjs importers: ${importers.length}`);
+    expect(importers.length).toBeGreaterThanOrEqual(6);
+    expect(undeclaredMjsImports(files)).toEqual([]);
+  });
+
+  it("CF-WIRED-4 an undeclared .mjs import, or a name its declaration lacks, is reported", () => {
+    const planted = new Map([
+      [
+        "scripts/a.test.ts",
+        'import { one, two as second } from "./a.mjs";\nimport b from "./b.mjs";',
+      ],
+      ["scripts/ci/c.ts", 'import {\n  three,\n} from "../a.mjs";\nimport * as d from "./d.mjs";'],
+      ["scripts/a.d.mts", "export const one: number;\nexport function three(): void;"],
+      ["scripts/b.d.mts", "export const b: number;"],
+      ["scripts/a.mjs", "export const one = 1;"],
+      ["e2e/e.ts", 'import { x } from "./e.mjs";'],
+    ]);
+    expect(undeclaredMjsImports(planted)).toEqual([
+      "scripts/a.test.ts imports default: scripts/b.d.mts lacks it",
+      "scripts/a.test.ts imports two: scripts/a.d.mts lacks it",
+      "scripts/ci/c.ts imports ./d.mjs: no scripts/ci/d.d.mts",
+    ]);
+    planted.set(
+      "scripts/a.d.mts",
+      "declare const one: number, two: string;\nexport function three(): void;\nexport { one, two };",
+    );
+    planted.set("scripts/b.d.mts", "export default 1;");
+    planted.set("scripts/ci/d.d.mts", "export {};");
+    expect(undeclaredMjsImports(planted)).toEqual([]);
   });
 });
