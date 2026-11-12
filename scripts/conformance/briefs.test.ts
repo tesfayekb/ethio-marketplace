@@ -22,6 +22,7 @@ import {
   countCommandRefusal,
   countFindings,
   type Finding,
+  forbiddenScopeFindings,
   freeIdFindings,
   isTestId,
   keyOf,
@@ -48,7 +49,10 @@ import { readAllowlist, report } from "./kit";
  *   with each file's test, CF-BRIEF-11 a dictated commit title of at most 72 characters,
  *   CF-BRIEF-13 the allowlist keyed only to the brief in force and its rulings, CF-BRIEF-15 the
  *   brief's STEP 1 or its rulings answer every `CENSUS-ITEM` of docs/governance/go-template.md (the
- *   one exception: a title that says RECORDS TURN or RULES TURN; a template with no item fails).
+ *   one exception: a title that says RECORDS TURN or RULES TURN; a template with no item fails),
+ *   CF-BRIEF-16 a SCOPE that names no path rule 00 forbids the executor (housekeeping turn 3c).
+ * - check-go.ts `--at <commit>` judges the tree laws on a snapshot of that commit; CF-BRIEF-14 plants
+ *   a scratch repository whose working tree lost the cited line and the counted file.
  * - The TREE laws (CF-BRIEF-5 cited path, 6 cited line, 7 free id, 8 option, 9 assert, 10 count)
  *   judge a GO against the tree it was written for — the supervisor's clone before sending, the
  *   executor's tree at STEP 0 — so they run through check-go.ts on a named root, not here on a
@@ -84,7 +88,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     expect(report(asReported(baseFindings(readFileSync(brief, "utf8"), brief)))).toBe("");
   });
 
-  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11 and CF-BRIEF-15 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered", () => {
+  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15 and CF-BRIEF-16 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids", () => {
     const { brief, rulings } = inForce();
     const findings: Finding[] = [];
     for (const file of [brief, ...rulings]) {
@@ -206,7 +210,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "PLANTED — a planted GO with no base line.",
       "Any red is a STOP.",
       "",
-      "SCOPE: src/lib/x.ts, `e2e/used.spec.ts` (new)",
+      "SCOPE: src/lib/x.ts, `e2e/used.spec.ts` (new), `.claude/hooks/lib.ts`",
       "",
       "STEP 1 — the census: the consumers only.",
       "The cited `src/missing.ts` is read.",
@@ -254,6 +258,9 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       ]);
       expect(existsSync(join(root, "out.txt"))).toBe(false);
       expect(lawsOf(titleFindings(planted, f))).toEqual(["CF-BRIEF-11"]);
+      expect(forbiddenScopeFindings(planted, f).map((x) => x.text)).toEqual([
+        "SCOPE names .claude/hooks/lib.ts, which rule 00 forbids the executor",
+      ]);
       const keys = templateKeys(readFileSync(join(root, "docs/governance/go-template.md"), "utf8"));
       expect(keys).toEqual(["consumers", "premises"]);
       expect(censusFindings(planted, f, [], keys).map((x) => x.text)).toEqual([
@@ -401,6 +408,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "CF-BRIEF-10",
         "CF-BRIEF-11",
         "CF-BRIEF-15",
+        "CF-BRIEF-16",
         "CF-BRIEF-2",
         "CF-BRIEF-3",
         "CF-BRIEF-5",
@@ -412,6 +420,134 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       const green = run("briefs/clean.md");
       expect(green.status, green.stdout).toBe(0);
       expect(green.stdout).toContain("[check-go] no finding");
+    }, 60_000);
+
+    it("CF-BRIEF-16 a SCOPE path rule 00 forbids: `.claude/`, `CLAUDE.md`, and `supabase/migrations/` under no-migration", () => {
+      const brief = (flags: string, scope: string) =>
+        [`PLANTED — Base: dev 2b11a9d29. FLAGS: ${flags}.`, "", scope, "", "STEP 1 — x."].join(
+          "\n",
+        );
+      const texts = (text: string) => forbiddenScopeFindings(text, "s.md").map((x) => x.text);
+      const migrations = "SCOPE: `supabase/migrations/20261112_x.sql`, `src/` (each file's tests)";
+      expect(texts(brief("no-migration, no-new-string", migrations))).toEqual([
+        "SCOPE names supabase/migrations/20261112_x.sql, which rule 00 forbids the executor",
+      ]);
+      expect(texts(brief("no-new-string", migrations))).toEqual([]);
+      expect(
+        texts(
+          brief(
+            "no-new-string",
+            "SCOPE, by area: `.claude/hooks/**/*.ts` and CLAUDE.md;\nthe dormant kit's `.claude/settings.json`",
+          ),
+        ),
+      ).toEqual([
+        "SCOPE names .claude/hooks/**/*.ts, which rule 00 forbids the executor",
+        "SCOPE names CLAUDE.md, which rule 00 forbids the executor",
+        "SCOPE names .claude/settings.json, which rule 00 forbids the executor",
+      ]);
+      expect(forbiddenScopeFindings(brief("x", "SCOPE: a\nb `CLAUDE.md`"), "s.md")[0]?.line).toBe(
+        4,
+      );
+      expect(
+        texts(
+          brief(
+            "no-migration",
+            "SCOPE: `src/`. Nothing under `.claude/`; never `CLAUDE.md` or `supabase/migrations/`.",
+          ),
+        ),
+        "a negated sentence is not a claim",
+      ).toEqual([]);
+      expect(texts("No scope here: `.claude/hooks/lib.ts`, CLAUDE.md.")).toEqual([]);
+      const templateScope =
+        readFileSync(TEMPLATE, "utf8")
+          .split("\n")
+          .find((line) => line.startsWith("SCOPE")) ?? "";
+      expect(templateScope).toContain(
+        "never a path rule 00 forbids: `.claude/`, `CLAUDE.md`; `supabase/migrations/` only with a migration flag",
+      );
+      expect(texts(brief("no-migration", templateScope)), "the template's own sentence").toEqual(
+        [],
+      );
+    });
+
+    it("check-go --at judges the commit's snapshot: a line the working tree lost passes there, a git-read COUNT runs in the repository, the brief's own path is not judged, an unknown commit is refused", () => {
+      const repo = mkdtempSync(join(tmpdir(), "go-laws-at-"));
+      try {
+        const put = (path: string, text: string) => {
+          mkdirSync(dirname(join(repo, path)), { recursive: true });
+          writeFileSync(join(repo, path), text);
+        };
+        put("AGENTS.md", "planted\n");
+        put("roadmap.md", "planted\n");
+        put("src/alpha.ts", "// alpha\nexport function alpha() {}\n");
+        put("scripts/conformance/briefs-allowlist.txt", "# planted header\n");
+        put("docs/governance/go-template.md", "<!-- CENSUS-ITEM: consumers -->\n");
+        const git = (...args: string[]) => {
+          const run = spawnSync("git", args, { cwd: repo, encoding: "utf8" });
+          expect(run.status, run.stderr).toBe(0);
+          return run.stdout.trim();
+        };
+        git("init", "-q");
+        git("config", "user.email", "e2e@ethio-e2e.invalid");
+        git("config", "user.name", "e2e");
+        git("add", "-A");
+        git("commit", "-q", "--no-gpg-sign", "-m", "planted");
+        const sha = git("rev-parse", "HEAD");
+        put("src/alpha.ts", "// renamed\nexport function gamma() {}\n");
+        put("src/extra.ts", "// not yet committed\n");
+        put(
+          "docs/governance/briefs/at.md",
+          [
+            `AT — a planted GO. Base: dev ${sha.slice(0, 9)}`,
+            "",
+            "SCOPE: `src/` (each file's tests)",
+            "",
+            "STEP 0 — save this brief as `docs/governance/briefs/at.md`, which the commit lacks.",
+            "STEP 1 — the census: the consumers.",
+            "The function `alpha` at `src/alpha.ts` :2 is read.",
+            "COUNT: 1 := `find src -type f | wc -l`",
+            "COUNT: 1 := `git log --oneline | wc -l`",
+            "",
+          ].join("\n"),
+        );
+        const run = (...extra: string[]) =>
+          spawnSync(
+            "bun",
+            [
+              "scripts/brief/check-go.ts",
+              join(repo, "docs/governance/briefs/at.md"),
+              "--root",
+              repo,
+              ...extra,
+            ],
+            { encoding: "utf8", timeout: 60_000 },
+          );
+        const here = run();
+        expect(here.status, here.stdout).toBe(1);
+        expect(
+          here.stdout.split("\n").filter((line) => line.startsWith("CF-BRIEF-")),
+          "without --at the working tree is judged",
+        ).toEqual([
+          expect.stringMatching(/^CF-BRIEF-6 .*src\/alpha\.ts :2 holds "export function gamma/),
+          expect.stringMatching(/^CF-BRIEF-10 .*COUNT 1 := find src -type f \| wc -l — prints 2$/),
+        ]);
+        const at = run("--at", sha.slice(0, 9));
+        expect(at.status, at.stdout).toBe(0);
+        const [first] = at.stdout.split("\n");
+        expect(first).toContain(`[check-go] at ${sha} (--at ${sha.slice(0, 9)})`);
+        expect(first).toContain(`a COUNT that is a git read runs in ${repo}`);
+        expect(at.stdout).toContain("[check-go] no finding");
+        const snapshot = /its snapshot (\S+);/.exec(first ?? "")?.[1] ?? "";
+        expect(snapshot.startsWith(tmpdir()), snapshot).toBe(true);
+        expect(existsSync(snapshot), "the snapshot is removed").toBe(false);
+        const unknown = run("--at", "0000000deadbeef");
+        expect(unknown.status).toBe(2);
+        expect(unknown.stderr).toContain("holds no such commit; nothing judged");
+        expect(unknown.stdout).not.toContain("no finding");
+        expect(run("--at").status, "--at with no commit is a usage error").toBe(2);
+      } finally {
+        rmSync(repo, { recursive: true, force: true });
+      }
     }, 60_000);
   });
 });

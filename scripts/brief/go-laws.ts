@@ -8,7 +8,7 @@
  *
  * Text laws: CF-BRIEF-1 base line, CF-BRIEF-2 stop rule, CF-BRIEF-3 scope (the law brief (12) names),
  * CF-BRIEF-11 title (a code span after "Commit", "first line:" or "commit ("), CF-BRIEF-13 allowance,
- * CF-BRIEF-15 census items. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
+ * CF-BRIEF-15 census items, CF-BRIEF-16 a SCOPE path rule 00 forbids. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
  * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
  * CF-BRIEF-9 assert, CF-BRIEF-10 count. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
@@ -32,6 +32,9 @@ const DOUBLE_QUOTED = /"[^"\n]*"|“[^”\n]*”/g;
 const SENTENCE = /(?<=[.;!?])\s+/;
 const FULL_SENTENCE = /(?<=[.!?])\s+/;
 const CODE_FILE = /(?<![\w/.-])((?:src|e2e|scripts)\/[\w$./-]*[\w$-]\.(?:tsx?|mjs|sh))(?![\w/*])/g;
+const FORBIDDEN_PATH =
+  /(?<![\w/.-])(\.claude\/[\w$./*-]*|CLAUDE\.md|supabase\/migrations\/[\w$./*-]*)/g;
+const FLAGS = /\bFLAGS:([^.\n]*)/;
 const TREE_PREFIX = /(?:src|e2e|scripts|docs|supabase|\.github|\.cursor)\//;
 const CITED_PATH = pattern`^${TREE_PREFIX}[^\\s\`]*$`;
 const CITATION = flaggedPattern(
@@ -123,6 +126,35 @@ export function scopeFindings(text: string, file: string): Finding[] {
         text: `SCOPE names ${path} without its test`,
       });
   }
+  return findings;
+}
+
+/**
+ * CF-BRIEF-16 (housekeeping turn 3c, S588) — the SCOPE paragraph names no path rule 00 forbids the
+ * executor: nothing under `.claude/`, no `CLAUDE.md`, and nothing under `supabase/migrations/` while
+ * the brief's FLAGS carry `no-migration`. A sentence with a negation word, "nothing" or a condition
+ * ("only with", the GO template's own SCOPE sentence) is not a claim.
+ */
+export function forbiddenScopeFindings(text: string, file: string): Finding[] {
+  const paragraph = scopeOf(text);
+  if (paragraph === null) return [];
+  const noMigration = /\bno-migration\b/.test(FLAGS.exec(text)?.[1] ?? "");
+  const findings: Finding[] = [];
+  linesOf(paragraph.scope).forEach((content, offset) => {
+    for (const sentence of content.split(SENTENCE)) {
+      if (NEGATION.test(sentence) || /\b(?:nothing|only with)\b/i.test(sentence)) continue;
+      for (const match of sentence.matchAll(FORBIDDEN_PATH)) {
+        const path = match[1];
+        if (path.startsWith("supabase/") && !noMigration) continue;
+        findings.push({
+          law: "CF-BRIEF-16",
+          file,
+          line: paragraph.start + offset + 1,
+          text: `SCOPE names ${path}, which rule 00 forbids the executor`,
+        });
+      }
+    }
+  });
   return findings;
 }
 
@@ -286,8 +318,12 @@ function pathPresent(root: string, path: string): boolean {
   return filesAt(root, path).length > 0;
 }
 
-/** CF-BRIEF-5 — every backticked tree path exists, unless the brief says it makes it. */
+/**
+ * CF-BRIEF-5 — every backticked tree path exists, unless the brief says it makes it. The brief's own
+ * path is not judged: STEP 0 saves it, so the commit STEP 0 began from (check-go's `--at`) lacks it.
+ */
 export function citedPathFindings(text: string, file: string, root: string): Finding[] {
+  const own = file.split("\\").join("/");
   const lines = linesOf(text);
   const scopeStart = lines.findIndex((l) => /^SCOPE\b/.test(l));
   const scopeEnd = lines.findIndex((l, i) => i > scopeStart && l.trim() === "");
@@ -302,6 +338,7 @@ export function citedPathFindings(text: string, file: string, root: string): Fin
       for (const span of sentence.matchAll(/`([^`\n]+)`/g)) {
         const path = span[1].trim().replace(/:\d+$/, "");
         if (!CITED_PATH.test(path) || /[<>{}]/.test(path) || pathPresent(root, path)) continue;
+        if (own === path || own.endsWith(`/${path}`)) continue;
         if (MADE_HERE.test(sentence) || sentence.includes("(new)") || markedNew(path)) continue;
         findings.push({
           law: "CF-BRIEF-5",
@@ -525,8 +562,22 @@ export function countCommandRefusal(command: string): string | null {
   return null;
 }
 
-/** CF-BRIEF-10 — a count is a `COUNT: N := COMMAND` whose COMMAND prints N; a bare count is refused. */
-export function countFindings(text: string, file: string, root: string): Finding[] {
+/** A COUNT command whose first segment is a git read: it reads history, which a snapshot lacks. */
+export function isGitRead(command: string): boolean {
+  const [head, verb] = (command.split("|")[0] ?? "").trim().split(/\s+/);
+  return head === "git" && GIT_READS.has(verb);
+}
+
+/**
+ * CF-BRIEF-10 — a count is a `COUNT: N := COMMAND` whose COMMAND prints N; a bare count is refused.
+ * A git read runs in `repository` (check-go's `--at`: the repository, not its snapshot).
+ */
+export function countFindings(
+  text: string,
+  file: string,
+  root: string,
+  repository: string = root,
+): Finding[] {
   const findings: Finding[] = [];
   linesOf(text).forEach((content, index) => {
     const push = (what: string) =>
@@ -542,7 +593,7 @@ export function countFindings(text: string, file: string, root: string): Finding
         continue;
       }
       const run = spawnSync("/bin/sh", ["-c", command], {
-        cwd: root,
+        cwd: isGitRead(command) ? repository : root,
         encoding: "utf8",
         timeout: COUNT_DEADLINE_MS,
       });
@@ -561,18 +612,27 @@ export function countFindings(text: string, file: string, root: string): Finding
   return findings;
 }
 
-/** Every text law over one brief or ruling (laws 1, 2, 3, 11). */
+/** Every text law over one brief or ruling (laws 1, 2, 3, 11, 16). */
 export function textFindings(text: string, file: string): Finding[] {
   return [
     ...baseFindings(text, file),
     ...stopRuleFindings(text, file),
     ...scopeFindings(text, file),
     ...titleFindings(text, file),
+    ...forbiddenScopeFindings(text, file),
   ];
 }
 
-/** Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10); a root the laws cannot read fails each. */
-export function treeFindings(text: string, file: string, root: string): Finding[] {
+/**
+ * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10); a root the laws cannot
+ * read fails each. `repository` (check-go's `--at`): where a COUNT that is a git read runs.
+ */
+export function treeFindings(
+  text: string,
+  file: string,
+  root: string,
+  repository: string = root,
+): Finding[] {
   const problem = treeRootProblem(root);
   if (problem !== null)
     return [
@@ -591,7 +651,7 @@ export function treeFindings(text: string, file: string, root: string): Finding[
     ...freeIdFindings(text, file, root),
     ...optionFindings(text, file, root),
     ...assertFindings(text, file, root),
-    ...countFindings(text, file, root),
+    ...countFindings(text, file, root, repository),
   ];
 }
 

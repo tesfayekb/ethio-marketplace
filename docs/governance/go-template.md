@@ -15,7 +15,10 @@ bun scripts/brief/check-go.ts <the GO's file> --root <the clone>
 ```
 
 and the executor runs the same command at STEP 0 on the tree as saved, before any change, and pastes
-its output into the census. The laws a GO is written to:
+its output into the census. After its checks it runs it again with `--at <the commit STEP 0 began
+from>`: the tree laws read a snapshot of that commit (`git archive`, removed after), a COUNT that is a
+git read runs in the repository, the allowlist and this template are read from `--root`, and the first
+line names the commit. The laws a GO is written to:
 
 - A cited path in backticks exists, or its sentence says the turn makes it ("new", "created here",
   "built as", "built here", "(new)").
@@ -28,6 +31,8 @@ its output into the census. The laws a GO is written to:
 - A configuration option is named `OPTION: <name> in <d.ts path>`; a claimed presence or absence is
   `ASSERT-PRESENT: <regex> in <path>` / `ASSERT-ABSENT: <regex> in <path>`.
 - A dictated commit title is at most 72 characters.
+- The SCOPE names no path rule 00 forbids the executor: nothing under `.claude/`, no `CLAUDE.md`, and
+  nothing under `supabase/migrations/` while FLAGS carry `no-migration`.
 
 ## The GO, in order
 
@@ -50,7 +55,7 @@ FORWARD-SCAN: <the later REQs and register rows this design meets>. REGISTER: <t
 
 (one THE SYSTEM header per concern)
 
-SCOPE, by area (the plan narrows it to files): <the folders the concern lives in, each source file's own tests included; the records files; what is read only>.
+SCOPE, by area (the plan narrows it to files): <the folders the concern lives in, each source file's own tests included; the records files; what is read only>; never a path rule 00 forbids: `.claude/`, `CLAUDE.md`; `supabase/migrations/` only with a migration flag.
 
 THE TURN, IN THIS ORDER
 STEP 0 — on the lane: fetch, switch, `git status --short` empty. Save this brief byte for byte as `docs/governance/briefs/<stem>.md` (scripted copy, one fenced block; sha256 equal to the value after END BRIEF). Roadmap line 3: `The brief in force: docs/governance/briefs/<stem>.md (<what>). Previous: ` + the line as it stands after "The brief in force: ". Remove from `scripts/conformance/briefs-allowlist.txt` every line keyed to a brief other than this one. Run `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md` on the tree as saved and paste its output (`[check-go] no finding`, or its findings — each is a premise for STEP 1). Commit `<stem>: task saved`.
@@ -81,7 +86,7 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 - findings — what the census finds beyond the task, file:line.
 `docs/governance/reports/<stem>.stop-1.md`; STOP.
 STEP 2 → <n> — <the parts, in order; each part's tests; each part's commit>.
-STEP <n+1> — `bun run typecheck`; `bun run lint`; `bunx vitest run scripts --maxWorkers=2`; `bun run checks`; `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md` (its output pasted).
+STEP <n+1> — `bun run typecheck`; `bun run lint`; `bunx vitest run scripts --maxWorkers=2`; `bun run checks`; `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md --at <the commit STEP 0 began from>` (its output pasted).
 STEP <n+2> — commit by part, push, `gh pr checks <number> --watch --interval 60`; green on the last code commit → the comment per rule 00. ONE push after the final checks — a stop's own push, when a stop happens, is rule 00's and is not the judged run.
 STEP <n+3> — the report, rule 60's fourteen headings; §14 Records word for word.
 
