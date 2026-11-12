@@ -6,6 +6,7 @@ import { errorText } from "@/lib/error-text";
 import { parseLegalVersion } from "@/features/legal/legal-reader";
 import { SCRATCH_KIND } from "@/features/legal/legal-kinds";
 import { isCountryCode } from "@/lib/locale";
+import { saveBlobAs } from "@/lib/save-file";
 
 export const LEGAL_KINDS = ["terms", "privacy", "publishing"] as const;
 export type MissingLegalLanguage = { code: string; name_en: string };
@@ -444,12 +445,5 @@ export function legalFileName(
 }
 /** Turn 13 — saves text as a file in the browser. */
 export function saveTextFile(name: string, text: string, type: string): void {
-  const href = URL.createObjectURL(new Blob([text], { type }));
-  const anchor = document.createElement("a");
-  anchor.href = href;
-  anchor.download = name;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(href);
+  saveBlobAs(new Blob([text], { type }), name);
 }

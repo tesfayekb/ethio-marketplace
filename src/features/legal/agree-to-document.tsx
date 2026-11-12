@@ -2,6 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RequiredMark } from "@/features/posting/field";
 import { useI18n, type MessageKey } from "@/i18n";
+import { safeHref } from "@/lib/safe-href";
 
 type DocumentRole = "terms" | "privacy" | "publishing";
 
@@ -55,9 +56,9 @@ export function AgreeToDocument({
   for (const match of text.matchAll(token)) {
     parts.push(text.slice(end, match.index));
     const role = match[2] as DocumentRole;
-    const href = links[role];
+    const href = safeHref(links[role]);
     parts.push(
-      href ? (
+      href !== null ? (
         <a
           key={match.index}
           href={href}

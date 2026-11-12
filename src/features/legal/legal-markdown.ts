@@ -1,10 +1,11 @@
 import { ownValue } from "@/lib/own-key";
+import { safeHref, type SafeHref } from "@/lib/safe-href";
 
 export type LegalFacts = Record<string, string | number | null | undefined>;
 export type LegalInline =
   | { type: "text" | "code" | "unknown"; text: string }
   | { type: "bold"; children: LegalInline[] }
-  | { type: "link"; href: string; children: LegalInline[] };
+  | { type: "link"; href: SafeHref; children: LegalInline[] };
 export type LegalBlock =
   | { type: "heading"; level: 1 | 2 | 3; text: string; id?: string }
   | { type: "paragraph"; text: string }
@@ -41,16 +42,18 @@ export function legalInline(text: string, facts: LegalFacts = {}): LegalInline[]
     } else if (bold) parts.push({ type: "bold", children: legalInline(bold, facts) });
     else if (code !== undefined) parts.push({ type: "code", text: code });
     else if (href !== undefined && label !== undefined) {
-      if (/^(https?:\/\/|mailto:|\/(?!\/))/.test(href)) {
-        parts.push({ type: "link", href, children: legalInline(label, facts) });
+      const target = safeHref(href);
+      if (target !== null) {
+        parts.push({ type: "link", href: target, children: legalInline(label, facts) });
       } else parts.push({ type: "text", text: raw });
     } else {
       const url = raw.startsWith("https://") ? raw.replace(/[.,;!?]+$/, "") : raw;
-      parts.push({
-        type: "link",
-        href: url.startsWith("https://") ? url : `mailto:${url}`,
-        children: [{ type: "text", text: url }],
-      });
+      const target = safeHref(url.startsWith("https://") ? url : `mailto:${url}`);
+      parts.push(
+        target === null
+          ? { type: "text", text: url }
+          : { type: "link", href: target, children: [{ type: "text", text: url }] },
+      );
       if (url.length < raw.length) parts.push({ type: "text", text: raw.slice(url.length) });
     }
     cursor = index + raw.length;

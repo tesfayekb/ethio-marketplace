@@ -12,6 +12,8 @@ import {
   appPlaceUrl,
   appPinUrl,
   isIosHomeScreen,
+  mapsPair,
+  type MapsPair,
 } from "@/features/ad-page/maps-links";
 import { postedWhen } from "@/features/ad-page/posted";
 import { Heart, Expand } from "lucide-react";
@@ -451,8 +453,8 @@ export function ListingDetail(view: ListingDetailView) {
     places.join(", ");
   const placesMaps = webPlaceUrl(query);
   const placesApp = appPlaceUrl(query);
-  const [mapMaps, setMapMaps] = useState<{ web: string; app: string } | null>(null);
-  const [mapsChoice, setMapsChoice] = useState<{ web: string; app: string } | null>(null);
+  const [mapMaps, setMapMaps] = useState<MapsPair | null>(null);
+  const [mapsChoice, setMapsChoice] = useState<MapsPair | null>(null);
   // Turn C1-2's MINOR-4 (Foundations turn C2) — the links follow the pin's values, not the object
   // that carries them: a render that hands an equal pin keeps its links and asks for nothing again.
   const steadyPin = useSteadyPin(pin);
@@ -462,15 +464,12 @@ export function ListingDetail(view: ListingDetailView) {
     const { lat, lng } = steadyPin;
     if (steadyPin.precision === "exact") {
       // Google's Maps URLs require the comma between lat and lng as %2C.
-      setMapMaps({ web: webPinUrl(lat, lng), app: appPinUrl(lat, lng, 15) });
+      setMapMaps(mapsPair(webPinUrl(lat, lng), appPinUrl(lat, lng, 15)));
       return;
     }
     const snappedLat = snap(lat).toFixed(2);
     const snappedLng = snap(lng).toFixed(2);
-    setMapMaps({
-      web: webPinUrl(snappedLat, snappedLng),
-      app: appPinUrl(snappedLat, snappedLng, 13),
-    });
+    setMapMaps(mapsPair(webPinUrl(snappedLat, snappedLng), appPinUrl(snappedLat, snappedLng, 13)));
   }, [steadyPin]);
   const Title = view.actor === "buyer" ? "h1" : "h2";
   const [posted, setPosted] = useState<string | null>(null);
@@ -832,25 +831,31 @@ export function ListingDetail(view: ListingDetailView) {
                 </p>
               ))}
               <div className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
-                {places.length > 0 && (
-                  <a
-                    data-testid="listing-places-maps"
-                    href={placesMaps}
-                    onClick={(event) => {
-                      if (!isIosHomeScreen()) return;
-                      event.preventDefault();
-                      setMapsChoice({ web: placesMaps, app: placesApp });
-                    }}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      "inline-flex min-h-11 items-center underline underline-offset-4",
-                      look.ink,
-                    )}
-                  >
-                    <span data-testid="listing-detail-places">{places.join(", ")}</span>
-                  </a>
-                )}
+                {places.length > 0 &&
+                  (placesMaps === null ? (
+                    <span className="inline-flex min-h-11 items-center">
+                      <span data-testid="listing-detail-places">{places.join(", ")}</span>
+                    </span>
+                  ) : (
+                    <a
+                      data-testid="listing-places-maps"
+                      href={placesMaps}
+                      onClick={(event) => {
+                        const choice = mapsPair(placesMaps, placesApp);
+                        if (!isIosHomeScreen() || choice === null) return;
+                        event.preventDefault();
+                        setMapsChoice(choice);
+                      }}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "inline-flex min-h-11 items-center underline underline-offset-4",
+                        look.ink,
+                      )}
+                    >
+                      <span data-testid="listing-detail-places">{places.join(", ")}</span>
+                    </a>
+                  ))}
                 {posted !== null && (
                   <p data-testid="listing-detail-posted">
                     {places.length > 0 && <span aria-hidden="true">{" · "}</span>}

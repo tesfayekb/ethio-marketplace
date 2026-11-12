@@ -31,6 +31,24 @@ export const RESTRICTED_SYNTAX = {
         "INC-815: a caught error may be a plain { message } object (a Supabase door's refusal), not an Error. Read it with errorText (src/lib/error-text.ts). A line that truly needs an Error instance carries an eslint-disable-next-line comment with its reason.",
     },
   ],
+  // DEC-370 (INC-826) — a link is never built at its sink: an `href` attribute or a
+  // `.href =` takes a literal, a named value (judged by its type, scripts/conformance/
+  // safe-href.test.ts CF-HREF-1) or a call of src/lib/safe-href.ts — never a template, a
+  // concatenation or another call. Every file under src/ except the tests.
+  safeHref: [
+    {
+      selector:
+        "JSXAttribute[name.name='href'] > JSXExpressionContainer > :matches(TemplateLiteral[expressions.length>0], BinaryExpression, CallExpression:not([callee.name=/^(safeHref|siteHref|appObjectUrl)$/]))",
+      message:
+        "DEC-370: build a link with safeHref, siteHref or appObjectUrl (src/lib/safe-href.ts) and pass its answer.",
+    },
+    {
+      selector:
+        "AssignmentExpression[left.property.name='href'][right.type=/^(TemplateLiteral|BinaryExpression|CallExpression)$/]:not([right.callee.name=/^(safeHref|siteHref|appObjectUrl)$/]):not([right.expressions.length=0])",
+      message:
+        "DEC-370: build a link with safeHref, siteHref or appObjectUrl (src/lib/safe-href.ts) and pass its answer.",
+    },
+  ],
   // DEC-237 — the route boundary: src/routes/** and src/server/** outside the
   // block's ignores (CF-RT-5 keeps those equal to routes-allowlist.txt).
   routeBoundary: [
@@ -127,6 +145,7 @@ export default tseslint.config(
         "error",
         ...RESTRICTED_SYNTAX.typedClient,
         ...RESTRICTED_SYNTAX.caughtError,
+        ...RESTRICTED_SYNTAX.safeHref,
       ],
     },
   },
@@ -164,6 +183,7 @@ export default tseslint.config(
         "error",
         ...RESTRICTED_SYNTAX.typedClient,
         ...RESTRICTED_SYNTAX.caughtError,
+        ...RESTRICTED_SYNTAX.safeHref,
         ...RESTRICTED_SYNTAX.routeBoundary,
       ],
     },

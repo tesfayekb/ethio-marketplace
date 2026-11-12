@@ -1,3 +1,4 @@
+import { safeHref, type SafeHref } from "@/lib/safe-href";
 import { rpc } from "@/lib/supabase-door";
 
 /**
@@ -74,19 +75,21 @@ export async function revealContact(publicId: string): Promise<RevealAnswer> {
 }
 
 /** https://t.me/<handle> — the handle without a leading @, only [A-Za-z0-9_]; null when nothing is left. */
-export function telegramHref(handle: string): string | null {
+export function telegramHref(handle: string): SafeHref | null {
   const clean = handle.replace(/^@+/, "").replace(/[^A-Za-z0-9_]/g, "");
-  return clean === "" ? null : `https://t.me/${clean}`;
+  return clean === "" ? null : safeHref(`https://t.me/${clean}`);
 }
 
 /** https://wa.me/<digits>?text=... — the leading + dropped; null under 8 digits. */
-export function whatsappHref(number: string, text: string): string | null {
+export function whatsappHref(number: string, text: string): SafeHref | null {
   const digits = number.replace(/\D/g, "");
   if (digits.length < 8) return null;
-  return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
+  return safeHref(`https://wa.me/${digits}?text=${encodeURIComponent(text)}`);
 }
 
-/** tel:<number> — spaces removed. */
-export function telHref(number: string): string {
-  return `tel:${number.replace(/\s+/g, "")}`;
+/** tel:<number> — the stored value's digits and one leading +; null under three digits. */
+export function telHref(number: string): SafeHref | null {
+  const digits = number.replace(/\D/g, "");
+  if (digits.length < 3) return null;
+  return safeHref(`tel:${number.trim().startsWith("+") ? "+" : ""}${digits}`);
 }

@@ -24,7 +24,7 @@ export function owedLists(file: string): ListName[] {
   if (file.startsWith("e2e/")) return ["specLint"];
   if (/\.test\.tsx?$/.test(file) || file === "src/lib/lovable-error-reporting.ts")
     return ["typedClient"];
-  return ["typedClient", "caughtError"];
+  return ["typedClient", "caughtError", "safeHref"];
 }
 
 /** The owed lists any of whose selectors is absent from `selectors`. */
@@ -78,13 +78,41 @@ const E2E_FLOOR = 50;
 
 const PLANTED = "export function planted(e: unknown): boolean {\n  return e instanceof Error;\n}\n";
 
-async function inc815At(path: string): Promise<boolean> {
+async function refusedAt(text: string, path: string, prefix: string): Promise<number> {
   const eslint = new ESLint({ cwd: ROOT });
-  const [result] = await eslint.lintText(PLANTED, { filePath: join(ROOT, path) });
-  return result.messages.some(
-    (m) => m.ruleId === "no-restricted-syntax" && m.message.startsWith("INC-815:"),
-  );
+  const [result] = await eslint.lintText(text, { filePath: join(ROOT, path) });
+  return result.messages.filter(
+    (m) => m.ruleId === "no-restricted-syntax" && m.message.startsWith(prefix),
+  ).length;
 }
+
+async function inc815At(path: string): Promise<boolean> {
+  return (await refusedAt(PLANTED, path, "INC-815:")) > 0;
+}
+
+/** DEC-370 — four links built at their sinks (two attributes, two assignments), then the forms
+ * the lists leave to the type census or allow outright. */
+const PLANTED_HREFS = [
+  'import { safeHref } from "@/lib/safe-href";',
+  "export function Planted({ id, a }: { id: string; a: HTMLAnchorElement }) {",
+  "  a.href = `/l/${id}`;",
+  '  a.href = "https://example.invalid/" + id;',
+  '  a.href = safeHref("/terms") ?? "/";',
+  "  a.href = `/static`;",
+  "  const ok = safeHref(`/l/${id}`);",
+  "  return (",
+  "    <>",
+  "      <a href={`/l/${id}`}>x</a>",
+  "      <a href={String(id)}>x</a>",
+  "      <a href={safeHref(`/l/${id}`) ?? undefined}>x</a>",
+  '      <a href="/terms">x</a>',
+  "      <a href={`/terms`}>x</a>",
+  "      {ok !== null && <a href={ok}>x</a>}",
+  "    </>",
+  "  );",
+  "}",
+  "",
+].join("\n");
 
 describe("lint rules reach every file they owe (INC-891)", () => {
   it(
@@ -126,6 +154,19 @@ describe("lint rules reach every file they owe (INC-891)", () => {
       expect(await inc815At("src/server/planted-lint.ts")).toBe(true);
       expect(await inc815At("src/features/planted-lint.test.ts")).toBe(false);
       expect(missingLists(["caughtError"], [])).toEqual(["caughtError"]);
+    },
+    TREE_SCAN_MS,
+  );
+
+  it(
+    "CF-LINT-5 a link built at its sink is refused at a screen and a route, and not in a test (DEC-370)",
+    async () => {
+      expect(await refusedAt(PLANTED_HREFS, "src/features/planted-lint.tsx", "DEC-370:")).toBe(4);
+      expect(await refusedAt(PLANTED_HREFS, "src/routes/planted-lint.tsx", "DEC-370:")).toBe(4);
+      expect(await refusedAt(PLANTED_HREFS, "src/features/planted-lint.test.tsx", "DEC-370:")).toBe(
+        0,
+      );
+      expect(missingLists(["safeHref"], [])).toEqual(["safeHref"]);
     },
     TREE_SCAN_MS,
   );

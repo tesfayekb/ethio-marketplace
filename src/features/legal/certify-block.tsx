@@ -88,7 +88,7 @@ export function CertifyBlock({
     ...new Set(statements.flatMap((s) => (s.country_code ? [s.country_code] : []))),
   ];
   const href = countries.length
-    ? `/legal/publishing?country=${countries.join(",")}`
+    ? `/legal/publishing?country=${countries.map(encodeURIComponent).join(",")}`
     : "/legal/publishing";
   return (
     <section data-testid="certify-block" className="space-y-3">
