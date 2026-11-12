@@ -2,6 +2,8 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { fillOf, isRedFill } from "./helpers/colors";
+import { layoutOf } from "./helpers/layout";
+import { expectPicturesFit } from "./helpers/pictures";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   bearerOf,
@@ -27,8 +29,8 @@ import { listingPath } from "../src/features/ad-page/address";
 type Mode = "light" | "dark";
 const MODES: Mode[] = ["light", "dark"];
 
-function widthsOf(): number[] {
-  return test.info().project.name === "mobile-360" ? [390] : [834, 1440];
+function widthsOf(page: Page): number[] {
+  return layoutOf(page) === "mobile" ? [390] : [834, 1440];
 }
 
 async function openStyle(page: Page, width: number, mode: Mode) {
@@ -174,7 +176,7 @@ test.describe("one dialog look (turn S6-1)", () => {
   test("DLG-E1 a dialog: panel, scrim, heading, close, footer, choice rows and a field", async ({
     page,
   }) => {
-    for (const width of widthsOf())
+    for (const width of widthsOf(page))
       for (const mode of MODES) {
         const where = `dialog @ ${width} ${mode}`;
         await openStyle(page, width, mode);
@@ -215,7 +217,7 @@ test.describe("one dialog look (turn S6-1)", () => {
   test("DLG-E2 an alert dialog: the same panel and heading, no close button, a red action", async ({
     page,
   }) => {
-    for (const width of widthsOf())
+    for (const width of widthsOf(page))
       for (const mode of MODES) {
         const where = `alert @ ${width} ${mode}`;
         await openStyle(page, width, mode);
@@ -237,7 +239,7 @@ test.describe("one dialog look (turn S6-1)", () => {
   test("DLG-E3 a sheet from the end edge and from the bottom: its edge, corners and grabber", async ({
     page,
   }) => {
-    for (const width of widthsOf())
+    for (const width of widthsOf(page))
       for (const mode of MODES) {
         await openStyle(page, width, mode);
         for (const side of ["end", "bottom"] as const) {
@@ -269,7 +271,7 @@ test.describe("one dialog look (turn S6-1)", () => {
   test("DLG-E5 focus goes in on open and back to the trigger on Escape; the page does not move", async ({
     page,
   }) => {
-    const [width = 390] = widthsOf();
+    const [width = 390] = widthsOf(page);
     await openStyle(page, width, "light");
     for (const [trigger, id, first] of [
       ["style-dialog-open", "style-dialog", "a choice"],
@@ -305,7 +307,7 @@ test.describe("one dialog look (turn S6-1)", () => {
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    const [width = 390] = widthsOf();
+    const [width = 390] = widthsOf(page);
     await openStyle(page, width, "light");
     for (const [trigger, id] of [
       ["style-dialog-open", "style-dialog"],
@@ -341,7 +343,7 @@ test.describe("one dialog look on a real surface (turn S6-1)", () => {
     const seller = await scratchSeller();
     const ad = await seed(seller);
     const canonical = listingPath(ad.title, await publicIdOf(ad.id));
-    for (const width of widthsOf()) {
+    for (const width of widthsOf(page)) {
       const where = `share @ ${width}`;
       await page.setViewportSize({ width, height: 900 });
       await gotoReady(page, canonical);
@@ -449,94 +451,99 @@ test.describe("the full-screen surfaces on the one primitive (turn S6-4)", () =>
     for (const slug of places.splice(0)) await destroyLocation(slug);
   });
 
-  test("DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected", async ({
-    page,
-  }) => {
-    // Two modes × three surfaces, each opened and closed from a page that first stops growing,
-    // after seeding two ads with photos, a category, a place chain and a draft through the route.
-    test.setTimeout(300_000);
-    const width = test.info().project.name === "mobile-360" ? 390 : 1440;
-    await page.setViewportSize({ width, height: 900 });
+  test(
+    "DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      // Two modes × three surfaces, each opened and closed from a page that first stops growing,
+      // after seeding two ads with photos, a category, a place chain and a draft through the route.
+      test.setTimeout(300_000);
+      const width = layoutOf(page) === "mobile" ? 390 : 1440;
+      await page.setViewportSize({ width, height: 900 });
 
-    // Another seller's ad with photos (the viewer on the ad page).
-    const other = await scratchSeller();
-    const ad = await seed(other);
-    await seedPhotos(ad.id);
-    const canonical = listingPath(ad.title, await publicIdOf(ad.id));
+      // Another seller's ad with photos (the viewer on the ad page).
+      const other = await scratchSeller();
+      const ad = await seed(other);
+      await seedPhotos(ad.id);
+      const canonical = listingPath(ad.title, await publicIdOf(ad.id));
 
-    // The signed-in seller's own draft at review, with photos (the preview, the viewer over it,
-    // and the pin map on the place step).
-    const user = await leaseSeller();
-    sellers.push(user.id);
-    await signInViaSession(page, user.email, user.password);
-    const category = await seedPostableCategory();
-    categories.push(category.slug);
-    const chain = await seedScratchChain("ET");
-    places.push(chain.region.slug as string);
-    const saved = await postRoute(
-      page,
-      "/api/listings/draft",
-      completeDraft({
-        categoryId: category.id,
-        cityId: chain.city.id as string,
-        title: "e2e dialogs screens",
-        step: 7,
-      }),
-      { token: await bearerOf(page), country: "ET" },
-    );
-    expect(saved.payload["ok"], JSON.stringify(saved.payload)).toBe(true);
-    const listingId = String(saved.payload["listing_id"]);
-    await seedPhotos(listingId);
-
-    for (const mode of MODES) {
-      const reduced = mode === "dark";
-      await page.emulateMedia({ reducedMotion: reduced ? "reduce" : "no-preference" });
-      await page.evaluate(
-        (mode) =>
-          window.localStorage.setItem("ethio.theme", JSON.stringify({ name: "sage", mode })),
-        mode,
-      );
-
-      // The viewer on the ad page.
-      await gotoReady(page, canonical);
-      await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
-      let where = `the viewer @ ${width} ${mode}`;
-      const main = page.getByTestId("listing-detail-gallery").getByTestId("gallery-main");
-      await closesBack(
+      // The signed-in seller's own draft at review, with photos (the preview, the viewer over it,
+      // and the pin map on the place step).
+      const user = await leaseSeller();
+      sellers.push(user.id);
+      await signInViaSession(page, user.email, user.password);
+      const category = await seedPostableCategory();
+      categories.push(category.slug);
+      const chain = await seedScratchChain("ET");
+      places.push(chain.region.slug as string);
+      const saved = await postRoute(
         page,
-        main,
-        await opens(page, main, "gallery-viewer", where, "screen", reduced),
-        where,
+        "/api/listings/draft",
+        completeDraft({
+          categoryId: category.id,
+          cityId: chain.city.id as string,
+          title: "e2e dialogs screens",
+          step: 7,
+        }),
+        { token: await bearerOf(page), country: "ET" },
       );
+      expect(saved.payload["ok"], JSON.stringify(saved.payload)).toBe(true);
+      const listingId = String(saved.payload["listing_id"]);
+      await seedPhotos(listingId);
 
-      // The preview, and the viewer over it: one Escape closes the viewer only.
-      await gotoReady(page, `/post/${listingId}`);
-      await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
-      where = `the preview @ ${width} ${mode}`;
-      const open = page.getByTestId("post-preview-open");
-      const sheet = await opens(page, open, "post-preview-sheet", where, "screen", reduced);
-      const inner = sheet.panel.getByTestId("gallery-main");
-      const over = `the viewer over the preview @ ${width} ${mode}`;
-      await closesBack(
-        page,
-        inner,
-        await opens(page, inner, "gallery-viewer", over, "screen", reduced, 2),
-        over,
-      );
-      await expect(sheet.panel, `${over}: Escape closed the preview too`).toBeVisible();
-      await closesBack(page, open, sheet, where);
+      for (const mode of MODES) {
+        const reduced = mode === "dark";
+        await page.emulateMedia({ reducedMotion: reduced ? "reduce" : "no-preference" });
+        await page.evaluate(
+          (mode) =>
+            window.localStorage.setItem("ethio.theme", JSON.stringify({ name: "sage", mode })),
+          mode,
+        );
 
-      // The pin map on the place step: the whole screen below md, the 32rem card from md.
-      await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
-      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
-      where = `the pin map @ ${width} ${mode}`;
-      const pin = page.getByTestId("post-where-pin-open");
-      const shape = width < 768 ? "screen" : "card";
-      const map = await opens(page, pin, "post-pin-sheet", where, shape, reduced);
-      await expect(map.panel.getByTestId("post-pin-map")).toHaveAttribute("data-ready", "1", {
-        timeout: 20_000,
-      });
-      await closesBack(page, pin, map, where);
-    }
-  });
+        // The viewer on the ad page.
+        await gotoReady(page, canonical);
+        await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
+        let where = `the viewer @ ${width} ${mode}`;
+        const main = page.getByTestId("listing-detail-gallery").getByTestId("gallery-main");
+        await closesBack(
+          page,
+          main,
+          await opens(page, main, "gallery-viewer", where, "screen", reduced),
+          where,
+        );
+
+        // The preview, and the viewer over it: one Escape closes the viewer only.
+        await gotoReady(page, `/post/${listingId}`);
+        await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+        where = `the preview @ ${width} ${mode}`;
+        const open = page.getByTestId("post-preview-open");
+        const sheet = await opens(page, open, "post-preview-sheet", where, "screen", reduced);
+        await expectPicturesFit(page, sheet.panel.getByTestId("gallery-main"));
+        const inner = sheet.panel.getByTestId("gallery-main");
+        const over = `the viewer over the preview @ ${width} ${mode}`;
+        await closesBack(
+          page,
+          inner,
+          await opens(page, inner, "gallery-viewer", over, "screen", reduced, 2),
+          over,
+        );
+        await expect(sheet.panel, `${over}: Escape closed the preview too`).toBeVisible();
+        await closesBack(page, open, sheet, where);
+
+        // The pin map on the place step: the whole screen below md, the 32rem card from md.
+        await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+        await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+        where = `the pin map @ ${width} ${mode}`;
+        const pin = page.getByTestId("post-where-pin-open");
+        const shape = width < 768 ? "screen" : "card";
+        const map = await opens(page, pin, "post-pin-sheet", where, shape, reduced);
+        await expect(map.panel.getByTestId("post-pin-map")).toHaveAttribute("data-ready", "1", {
+          timeout: 20_000,
+        });
+        await closesBack(page, pin, map, where);
+      }
+    },
+  );
 });

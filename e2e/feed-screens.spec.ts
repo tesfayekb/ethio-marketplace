@@ -1,4 +1,3 @@
-import { adPageFixtures } from "./helpers/ad-page";
 import type { Locator, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
@@ -21,6 +20,8 @@ import {
   scratchCategorySlug,
   seedCategoryBranch,
 } from "./helpers/posting";
+import { scratchPictures } from "./helpers/photos";
+import { expectPicturesFit } from "./helpers/pictures";
 import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
 
 /**
@@ -40,10 +41,10 @@ test.describe("FEED SCREENS", () => {
   const sellers: string[] = [];
   const regions: string[] = [];
   const branches: string[][] = [];
-  const { seedPhotos, cleanup: cleanupPhotos } = adPageFixtures();
+  const pictures = scratchPictures();
 
   test.afterEach(async () => {
-    await cleanupPhotos();
+    await pictures.cleanup();
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
     for (const slug of regions.splice(0)) await destroyLocation(slug);
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
@@ -401,36 +402,49 @@ test.describe("FEED SCREENS", () => {
     await expect(page.getByTestId("feed-error")).toHaveCount(0);
   });
 
-  test("FS-7 a card without a photo draws the nearest category picture, else the placeholder", async ({
-    page,
-  }) => {
-    const picture = "https://example.invalid/e2e-feed-picture.jpg";
-    const user = await seller();
-    const pictured = await branch({ parentImageUrl: picture });
-    const bare = await branch();
-    const c = await chain();
-    const a = await addListing(pictured.leaf.id, user.id, c.city.id, "regular", 1);
-    const b = await addListing(bare.leaf.id, user.id, c.city.id, "regular", 2);
+  test(
+    "FS-7 a card without a photo draws the nearest category picture, else the placeholder",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      // INC-1121 — real pictures of two shapes: a square and the cutter's 4:3 card.
+      const square = await pictures.categoryPicture("square");
+      const card = await pictures.categoryPicture("card");
+      const user = await seller();
+      const pictured = await branch({ parentImageUrl: square });
+      const carded = await branch({ parentImageUrl: card });
+      const bare = await branch();
+      const c = await chain();
+      const a = await addListing(pictured.leaf.id, user.id, c.city.id, "regular", 1);
+      const b = await addListing(bare.leaf.id, user.id, c.city.id, "regular", 2);
+      const d = await addListing(carded.leaf.id, user.id, c.city.id, "regular", 3);
 
-    await gotoReady(page, `/c/${pictured.leaf.slug}`);
-    const boxA = page.locator(
-      `[data-testid="listing-card"][data-listing="${a}"] [data-testid="listing-card-picture"]`,
-    );
-    await expect(boxA, "FS-7: the leaf's card did not draw its folder's picture").toHaveAttribute(
-      "data-picture",
-      "category",
-      { timeout: 20_000 },
-    );
-    await expect(boxA.locator("img")).toHaveAttribute("src", picture);
+      for (const [leaf, id, picture] of [
+        [pictured.leaf.slug, a, square],
+        [carded.leaf.slug, d, card],
+      ] as const) {
+        await gotoReady(page, `/c/${leaf}`);
+        const box = page.locator(
+          `[data-testid="listing-card"][data-listing="${id}"] [data-testid="listing-card-picture"]`,
+        );
+        await expect(
+          box,
+          "FS-7: the leaf's card did not draw its folder's picture",
+        ).toHaveAttribute("data-picture", "category", { timeout: 20_000 });
+        await expect(box.locator("img")).toHaveAttribute("src", picture);
+        await expectPicturesFit(page, box);
+      }
 
-    await gotoReady(page, `/c/${bare.leaf.slug}`);
-    const boxB = page.locator(
-      `[data-testid="listing-card"][data-listing="${b}"] [data-testid="listing-card-picture"]`,
-    );
-    await expect(boxB).toBeVisible({ timeout: 20_000 });
-    await expect(boxB).toHaveAttribute("data-picture", "none");
-    await expect(boxB.locator("img")).toHaveCount(0);
-  });
+      await gotoReady(page, `/c/${bare.leaf.slug}`);
+      const boxB = page.locator(
+        `[data-testid="listing-card"][data-listing="${b}"] [data-testid="listing-card-picture"]`,
+      );
+      await expect(boxB).toBeVisible({ timeout: 20_000 });
+      await expect(boxB).toHaveAttribute("data-picture", "none");
+      await expect(boxB.locator("img")).toHaveCount(0);
+    },
+  );
 
   test("FS-8 the home page invites in the chosen place, naming the place alone", async ({
     page,
@@ -732,68 +746,58 @@ test.describe("FEED SCREENS", () => {
     await expect(page.locator("main h1")).toHaveText(en["nav.allListings"]);
   });
 
-  test("FS-15 the card's ribbon and the old price (D173, D175 1, D180)", async ({ page }) => {
-    const user = await seller();
-    const { leaf } = await branch();
-    const c = await chain();
-    const n = await addListing(leaf.id, user.id, c.city.id, "regular", 5);
-    const r = await addListing(leaf.id, user.id, c.city.id, "regular", 10);
-    const p = await addListing(leaf.id, user.id, c.city.id, "regular", 15);
-    // D318 — the fourth regular ad (sold below) is another scratch seller's.
-    const s = await addListing(leaf.id, (await seller()).id, c.city.id, "regular", 20);
-    const update = async (id: string, patch: Record<string, unknown>) => {
-      await updateListingRow(id, patch, { tag: "fs" });
-    };
-    await update(r, { reserved_at: new Date().toISOString() });
-    await update(p, { price_mode: "fixed", price_amount: 900, price_currency: "ETB" });
-    await update(p, {
-      price_was: 1000,
-      price_drop_at: new Date(Date.now() - 86_400_000).toISOString(),
-    });
-    await update(s, { status: "sold" });
-    for (const id of [r, p, s]) await seedPhotos(id, 1);
-
-    await gotoReady(page, `/c/${leaf.slug}`);
-    await expect.poll(async () => (await cardIds(page)).length).toBe(4);
-    const ids = await cardIds(page);
-    expect(ids[ids.length - 1]).toBe(s);
-
-    const card = (id: string) => page.locator(`[data-testid="listing-card"][data-listing="${id}"]`);
-    await expect(card(r).getByTestId("listing-ribbon-text")).toHaveText(en["feed.reserved"]);
-    await expect(card(p).getByTestId("listing-ribbon-text")).toHaveText(en["feed.priceReduced"]);
-    const was = card(p).getByTestId("listing-card-price-was");
-    await expect(was.locator("s")).not.toHaveText("");
-    await expect(was.locator(".sr-only")).toHaveText(/^Was /);
-    await expect(card(s).getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
-    await expect(card(s).getByTestId("listing-card-price-was")).toHaveCount(0);
-    await expect(card(n).getByTestId("listing-ribbon")).toHaveCount(0);
-    for (const id of [r, p, s]) {
-      const picture = card(id).getByTestId("listing-card-picture");
-      await expect(picture).toHaveAttribute("data-picture", "photo");
-      const image = picture.locator("img");
-      await expect(image).toBeVisible();
-      await expect
-        .poll(() =>
-          image.evaluate((img) => {
-            const photo = img as HTMLImageElement;
-            return photo.complete && photo.naturalWidth > 0;
-          }),
-        )
-        .toBe(true);
-      await expect(image).toHaveCSS("object-fit", "cover");
-      const fit = await picture.evaluate((box) => {
-        const img = box.querySelector("img");
-        if (img === null) throw new Error("FS-15: card photo disappeared");
-        const outer = box.getBoundingClientRect();
-        const inner = img.getBoundingClientRect();
-        return {
-          width: Math.abs(outer.width - inner.width),
-          height: Math.abs(outer.height - inner.height),
-          x: Math.abs(outer.x - inner.x),
-          y: Math.abs(outer.y - inner.y),
-        };
+  test(
+    "FS-15 the card's ribbon and the old price (D173, D175 1, D180)",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      const user = await seller();
+      const { leaf } = await branch();
+      const c = await chain();
+      const n = await addListing(leaf.id, user.id, c.city.id, "regular", 5);
+      const r = await addListing(leaf.id, user.id, c.city.id, "regular", 10);
+      const p = await addListing(leaf.id, user.id, c.city.id, "regular", 15);
+      // D318 — the fourth regular ad (sold below) is another scratch seller's.
+      const s = await addListing(leaf.id, (await seller()).id, c.city.id, "regular", 20);
+      const update = async (id: string, patch: Record<string, unknown>) => {
+        await updateListingRow(id, patch, { tag: "fs" });
+      };
+      await update(r, { reserved_at: new Date().toISOString() });
+      await update(p, { price_mode: "fixed", price_amount: 900, price_currency: "ETB" });
+      await update(p, {
+        price_was: 1000,
+        price_drop_at: new Date(Date.now() - 86_400_000).toISOString(),
       });
-      for (const difference of Object.values(fit)) expect(difference).toBeLessThanOrEqual(1);
-    }
-  });
+      await update(s, { status: "sold" });
+      // INC-1121 — a photo of each shape: portrait, landscape, square.
+      await pictures.seedShapedPhoto(r, "portrait");
+      await pictures.seedShapedPhoto(p, "landscape");
+      await pictures.seedShapedPhoto(s, "square");
+
+      await gotoReady(page, `/c/${leaf.slug}`);
+      await expect.poll(async () => (await cardIds(page)).length).toBe(4);
+      const ids = await cardIds(page);
+      expect(ids[ids.length - 1]).toBe(s);
+
+      const card = (id: string) =>
+        page.locator(`[data-testid="listing-card"][data-listing="${id}"]`);
+      await expect(card(r).getByTestId("listing-ribbon-text")).toHaveText(en["feed.reserved"]);
+      await expect(card(p).getByTestId("listing-ribbon-text")).toHaveText(en["feed.priceReduced"]);
+      const was = card(p).getByTestId("listing-card-price-was");
+      await expect(was.locator("s")).not.toHaveText("");
+      await expect(was.locator(".sr-only")).toHaveText(/^Was /);
+      await expect(card(s).getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
+      await expect(card(s).getByTestId("listing-card-price-was")).toHaveCount(0);
+      await expect(card(n).getByTestId("listing-ribbon")).toHaveCount(0);
+      for (const id of [r, p, s]) {
+        const picture = card(id).getByTestId("listing-card-picture");
+        await expect(picture).toHaveAttribute("data-picture", "photo");
+        const image = picture.locator("img");
+        await expect(image).toBeVisible();
+        await expect(image).toHaveCSS("object-fit", "cover");
+        await expectPicturesFit(page, picture);
+      }
+    },
+  );
 });

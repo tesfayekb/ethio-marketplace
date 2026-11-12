@@ -5,6 +5,7 @@ import { en } from "../src/i18n/locales/en";
 import { errorText } from "../src/lib/error-text";
 import { gotoReady, stepUpIfPrompted, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { expectPicturesFit } from "./helpers/pictures";
 import {
   sharedPrefix,
   bandOnly,
@@ -39,114 +40,120 @@ import {
    * row; the preview renders all three; a regenerate produces a NEW VERSIONED
    * set, so all three URLs change. Fake mode only — CI holds no provider key.
    */
-  test("CI-4 image tab: generate persists three assets and regenerate re-versions them", async ({
-    page,
-  }) => {
-    bandOnly(page, "any");
-    const { secret } = await signInJobSuperAdmin(page);
-    let slug = "";
-    try {
-      slug = await createViaUi(page, secret);
-      await findRow(page, slug);
-      await openEditor(page, slug);
-      await action(page, slug, "image").click();
-      await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
+  test(
+    "CI-4 image tab: generate persists three assets and regenerate re-versions them",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      bandOnly(page, "any");
+      const { secret } = await signInJobSuperAdmin(page);
+      let slug = "";
+      try {
+        slug = await createViaUi(page, secret);
+        await findRow(page, slug);
+        await openEditor(page, slug);
+        await action(page, slug, "image").click();
+        await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
 
-      await page.getByTestId("category-image-generate").click();
-      await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 60000 });
-      for (const part of ["card", "thumb", "og"]) {
-        await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
+        await page.getByTestId("category-image-generate").click();
+        await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 60000 });
+        for (const part of ["card", "thumb", "og"]) {
+          await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
+        }
+        await expectPicturesFit(page, page.getByTestId("category-image-assets"), { atLeast: 3 });
+        // C5e PART A — the pipeline demonstrably ran: a done stage with 0ms of
+        // processing was the regression's tell, so the timing line is asserted.
+        const timings = page.getByTestId("category-image-timings");
+        await expect(timings).toBeVisible();
+        const processMs = Number(
+          /·\s*\d+\/(\d+)\//.exec((await timings.textContent()) ?? "")?.[1] ?? "0",
+        );
+        expect(processMs, (await timings.textContent()) ?? "").toBeGreaterThan(0);
+
+        await expect
+          .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
+          .not.toBeNull();
+        const first = await readImages(slug);
+        expect(first?.image_thumb_url).toBeTruthy();
+        expect(first?.og_image_url).toBeTruthy();
+
+        // DEC-082 — the browser-cut variants have the C5a geometry: the STORED
+        // PNGs are loaded through an Image in the page and measured.
+        const dims = await page.evaluate(
+          async (urls) => {
+            const measure = (src: string) =>
+              new Promise<[number, number]>((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve([img.naturalWidth, img.naturalHeight]);
+                img.onerror = () => reject(new Error(`load failed: ${src}`));
+                img.src = src;
+              });
+            return Promise.all(urls.map(measure));
+          },
+          [first!.image_url!, first!.image_thumb_url!, first!.og_image_url!],
+        );
+        // D122 — the card and its thumb are cut at 4:3 (they were 512 and 128 square).
+        expect(dims).toEqual([
+          [640, 480],
+          [160, 120],
+          [1200, 630],
+        ]);
+
+        // C5i PART A — ACCEPT-CLOSES (the shipped flow): accept stamps the row and
+        // the dialog closes itself; the badge is then read from STORED truth on
+        // reopen, not from the local generation state.
+        expect(first?.image_accepted_at).toBeNull();
+        await page.getByTestId("category-image-accept").click();
+        await stepUpIfPrompted(page, secret);
+        await expect(page.getByTestId("category-image-dialog")).toBeHidden({ timeout: 20000 });
+        await expect
+          .poll(async () => (await readImages(slug))?.image_accepted_at ?? null, { timeout: 30000 })
+          .not.toBeNull();
+
+        // Reopen: stored assets render and the accepted badge is present.
+        await action(page, slug, "image").click();
+        await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
+        await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 30000 });
+        for (const part of ["card", "thumb", "og"]) {
+          await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
+        }
+        await expectPicturesFit(page, page.getByTestId("category-image-assets"), { atLeast: 3 });
+        await expect(page.getByTestId("category-image-accepted-badge")).toBeVisible({
+          timeout: 20000,
+        });
+        // …and no Accept button while the shown generation is the accepted one.
+        await expect(page.getByTestId("category-image-accept")).toBeHidden();
+
+        // C5c PART C.3 — the console sends no prompt any more: the house prompt is
+        // code truth, so the column stays NULL after a house generation.
+        await page.getByTestId("category-image-generate").click();
+        await expect
+          .poll(async () => (await readImages(slug))?.image_generation_prompt ?? null, {
+            timeout: 60000,
+          })
+          .toBeNull();
+        // C5e PART B — VERSIONED: all three URLs must CHANGE between generations
+        // (stronger than "overwrite" — a stale CDN copy can no longer be served).
+        await expect
+          .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 60000 })
+          .not.toBe(first?.image_url);
+        const second = await readImages(slug);
+        expect(second?.image_url).not.toBe(first?.image_url);
+        expect(second?.image_thumb_url).not.toBe(first?.image_thumb_url);
+        expect(second?.og_image_url).not.toBe(first?.og_image_url);
+        // …and a NEW generation un-accepts: acceptance is per-generation, so the
+        // badge disappears and Accept returns on the fresh assets (C5i PART A).
+        expect(second?.image_accepted_at).toBeNull();
+        await expect(page.getByTestId("category-image-accepted-badge")).toBeHidden({
+          timeout: 20000,
+        });
+        await expect(page.getByTestId("category-image-accept")).toBeVisible({ timeout: 20000 });
+      } finally {
+        if (slug) await destroyCategory(slug);
       }
-      // C5e PART A — the pipeline demonstrably ran: a done stage with 0ms of
-      // processing was the regression's tell, so the timing line is asserted.
-      const timings = page.getByTestId("category-image-timings");
-      await expect(timings).toBeVisible();
-      const processMs = Number(
-        /·\s*\d+\/(\d+)\//.exec((await timings.textContent()) ?? "")?.[1] ?? "0",
-      );
-      expect(processMs, (await timings.textContent()) ?? "").toBeGreaterThan(0);
-
-      await expect
-        .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 30000 })
-        .not.toBeNull();
-      const first = await readImages(slug);
-      expect(first?.image_thumb_url).toBeTruthy();
-      expect(first?.og_image_url).toBeTruthy();
-
-      // DEC-082 — the browser-cut variants have the C5a geometry: the STORED
-      // PNGs are loaded through an Image in the page and measured.
-      const dims = await page.evaluate(
-        async (urls) => {
-          const measure = (src: string) =>
-            new Promise<[number, number]>((resolve, reject) => {
-              const img = new Image();
-              img.onload = () => resolve([img.naturalWidth, img.naturalHeight]);
-              img.onerror = () => reject(new Error(`load failed: ${src}`));
-              img.src = src;
-            });
-          return Promise.all(urls.map(measure));
-        },
-        [first!.image_url!, first!.image_thumb_url!, first!.og_image_url!],
-      );
-      // D122 — the card and its thumb are cut at 4:3 (they were 512 and 128 square).
-      expect(dims).toEqual([
-        [640, 480],
-        [160, 120],
-        [1200, 630],
-      ]);
-
-      // C5i PART A — ACCEPT-CLOSES (the shipped flow): accept stamps the row and
-      // the dialog closes itself; the badge is then read from STORED truth on
-      // reopen, not from the local generation state.
-      expect(first?.image_accepted_at).toBeNull();
-      await page.getByTestId("category-image-accept").click();
-      await stepUpIfPrompted(page, secret);
-      await expect(page.getByTestId("category-image-dialog")).toBeHidden({ timeout: 20000 });
-      await expect
-        .poll(async () => (await readImages(slug))?.image_accepted_at ?? null, { timeout: 30000 })
-        .not.toBeNull();
-
-      // Reopen: stored assets render and the accepted badge is present.
-      await action(page, slug, "image").click();
-      await expect(page.getByTestId("category-image-dialog")).toBeVisible({ timeout: 20000 });
-      await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 30000 });
-      for (const part of ["card", "thumb", "og"]) {
-        await expect(page.getByTestId(`category-image-assets-${part}`)).toBeVisible();
-      }
-      await expect(page.getByTestId("category-image-accepted-badge")).toBeVisible({
-        timeout: 20000,
-      });
-      // …and no Accept button while the shown generation is the accepted one.
-      await expect(page.getByTestId("category-image-accept")).toBeHidden();
-
-      // C5c PART C.3 — the console sends no prompt any more: the house prompt is
-      // code truth, so the column stays NULL after a house generation.
-      await page.getByTestId("category-image-generate").click();
-      await expect
-        .poll(async () => (await readImages(slug))?.image_generation_prompt ?? null, {
-          timeout: 60000,
-        })
-        .toBeNull();
-      // C5e PART B — VERSIONED: all three URLs must CHANGE between generations
-      // (stronger than "overwrite" — a stale CDN copy can no longer be served).
-      await expect
-        .poll(async () => (await readImages(slug))?.image_url ?? null, { timeout: 60000 })
-        .not.toBe(first?.image_url);
-      const second = await readImages(slug);
-      expect(second?.image_url).not.toBe(first?.image_url);
-      expect(second?.image_thumb_url).not.toBe(first?.image_thumb_url);
-      expect(second?.og_image_url).not.toBe(first?.og_image_url);
-      // …and a NEW generation un-accepts: acceptance is per-generation, so the
-      // badge disappears and Accept returns on the fresh assets (C5i PART A).
-      expect(second?.image_accepted_at).toBeNull();
-      await expect(page.getByTestId("category-image-accepted-badge")).toBeHidden({
-        timeout: 20000,
-      });
-      await expect(page.getByTestId("category-image-accept")).toBeVisible({ timeout: 20000 });
-    } finally {
-      if (slug) await destroyCategory(slug);
-    }
-  });
+    },
+  );
 
   /**
    * CI-5 (C5b PART C) — BULK FILL. Three seeded scratch rows without imagery

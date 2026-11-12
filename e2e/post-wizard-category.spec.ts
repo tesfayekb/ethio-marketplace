@@ -2,7 +2,9 @@ import { join } from "node:path";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { expectAliasAccepted, scratchAlias } from "./helpers/alias-check";
-import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
+import { layoutOf } from "./helpers/layout";
+import { purgeListingObjects, photoRowsOf, scratchPictures } from "./helpers/photos";
+import { expectPicturesFit } from "./helpers/pictures";
 import {
   authFields,
   expectActivePanel,
@@ -94,6 +96,7 @@ test.describe("POSTING WIZARD", () => {
    * attachment is unconditional, so a green run carries its measurement too.
    */
   const walkMarks: string[] = [];
+  const pictures = scratchPictures();
 
   test.afterEach(async ({ page }) => {
     // INC-323 — stop the page first, and wait out a save in flight, so none lands after the purge.
@@ -105,6 +108,7 @@ test.describe("POSTING WIZARD", () => {
         .attach("step-timings", { body: ladder.join("\n"), contentType: "text/plain" });
     }
     // J3 — an afterEach survives a body timeout; a `finally` in the body does not.
+    await pictures.cleanup();
     for (const ref of objects.splice(0)) await purgeListingObjects(ref.userId, ref.listingId);
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
     // Links first: a category cannot be deleted while a definition link points at it.
@@ -424,150 +428,169 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-category-chip-path")).not.toContainText(slugs.b);
   });
 
-  test("PW-3 a folder is browsable and never selectable; its leaf is (D11)", async ({ page }) => {
-    // U6-C1-R2 — the folder carries an illustration and the LEAF has none, so the
-    // stand-in on step 2 can only come from the ancestor walk.
-    const { parent, leaf: child } = await seedCategoryBranch({
-      parentImageUrl: "https://example.invalid/e2e-standin.jpg",
-    });
-    branches.push(parent.slug, child.slug);
-    await seller(page);
-    await gotoReady(page, "/post");
+  test(
+    "PW-3 a folder is browsable and never selectable; its leaf is (D11)",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      // U6-C1-R2 — the folder carries an illustration and the LEAF has none, so the
+      // stand-in on step 2 can only come from the ancestor walk. INC-1121 — a real square picture,
+      // which the 4:3 box must contain whole.
+      const standIn = await pictures.categoryPicture("square");
+      const { parent, leaf: child } = await seedCategoryBranch({ parentImageUrl: standIn });
+      branches.push(parent.slug, child.slug);
+      await seller(page);
+      await gotoReady(page, "/post");
 
-    // The folder is present as a FOLDER, not as a choice.
-    const folder = page.locator(`[data-testid="post-browse-folder"][data-category="${parent.id}"]`);
-    await expect(folder, "PW-3: the scratch folder is missing from the browse level").toBeVisible();
-    // A folder is never a search answer either: search-to-leaf means leaves only.
-    await page.getByTestId("post-category-search").fill(parent.slug);
-    await expect(
-      page.locator(`[data-testid="post-category-hit"][data-category="${parent.id}"]`),
-    ).toHaveCount(0);
-    await page.getByTestId("post-category-search").fill("");
+      // The folder is present as a FOLDER, not as a choice.
+      const folder = page.locator(
+        `[data-testid="post-browse-folder"][data-category="${parent.id}"]`,
+      );
+      await expect(
+        folder,
+        "PW-3: the scratch folder is missing from the browse level",
+      ).toBeVisible();
+      // A folder is never a search answer either: search-to-leaf means leaves only.
+      await page.getByTestId("post-category-search").fill(parent.slug);
+      await expect(
+        page.locator(`[data-testid="post-category-hit"][data-category="${parent.id}"]`),
+      ).toHaveCount(0);
+      await page.getByTestId("post-category-search").fill("");
 
-    await folder.click();
-    const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`);
-    await expect(leafRow).toBeVisible();
+      await folder.click();
+      const leafRow = page.locator(`[data-testid="post-browse-leaf"][data-category="${child.id}"]`);
+      await expect(leafRow).toBeVisible();
 
-    /**
-     * U6-C1-R3b-3d STEP 5 — THE CRUMBS SAY WHERE YOU ARE, AND BACK CLIMBS.
-     * Inside the folder the trail names the level and BACK leaves the level, not the
-     * step; at the roots Back is closed because there is nothing above them, and the
-     * crumb for "all categories" returns in one tap.
-     */
-    await expect(
-      page.locator(`[data-testid="post-browse-crumb"][data-category="${parent.id}"]`),
-      "PW-3: the level is not named by a crumb",
-    ).toBeVisible();
-    await page.getByTestId("post-back").click();
-    await expect(folder, "PW-3: Back inside the tree did not climb to the roots").toBeVisible();
-    await expect(page.getByTestId("post-step-1")).toBeVisible();
-    await expect(
-      page.getByTestId("post-back"),
-      "PW-3: Back is still offered at the roots of step 1",
-    ).toBeDisabled();
+      /**
+       * U6-C1-R3b-3d STEP 5 — THE CRUMBS SAY WHERE YOU ARE, AND BACK CLIMBS.
+       * Inside the folder the trail names the level and BACK leaves the level, not the
+       * step; at the roots Back is closed because there is nothing above them, and the
+       * crumb for "all categories" returns in one tap.
+       */
+      await expect(
+        page.locator(`[data-testid="post-browse-crumb"][data-category="${parent.id}"]`),
+        "PW-3: the level is not named by a crumb",
+      ).toBeVisible();
+      await page.getByTestId("post-back").click();
+      await expect(folder, "PW-3: Back inside the tree did not climb to the roots").toBeVisible();
+      await expect(page.getByTestId("post-step-1")).toBeVisible();
+      await expect(
+        page.getByTestId("post-back"),
+        "PW-3: Back is still offered at the roots of step 1",
+      ).toBeDisabled();
 
-    await folder.click();
-    await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
-    await expect(
-      folder,
-      "PW-3: the all-categories crumb did not return to the roots",
-    ).toBeVisible();
-    await folder.click();
-    await expect(leafRow).toBeVisible();
-    await leafRow.click();
-    // The leaf advances by itself; the chip names the whole path, parent first.
-    await expect(page.getByTestId("post-step-3")).toBeVisible();
-    await expect(page.getByTestId("post-category-chip-path")).toContainText(parent.slug);
-    await expect(page.getByTestId("post-category-chip-path")).toContainText(child.slug);
-    // D39 — the stand-in lives on the photos step, which follows specifications.
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
-    // The leaf has no picture of its own: the stand-in is the FOLDER's.
-    await expect(
-      page.getByTestId("post-photos-illustration"),
-      "PW-3: a leaf without its own illustration showed no ancestor stand-in",
-    ).toHaveAttribute("src", "https://example.invalid/e2e-standin.jpg");
-    /**
-     * U6-C1-R3a-2 (the PW-4 illustration law, proved where the stand-in actually
-     * renders): a FIXED 4:3 box, never taller than 240 px, the picture CONTAINED
-     * inside it — so a tall or wide stand-in is neither stretched nor cropped.
-     */
-    const box = await page.getByTestId("post-photos-illustration-box").boundingBox();
-    expect(box, "PW-3: the illustration box was not laid out").not.toBeNull();
-    const ratio = (box?.width ?? 0) / (box?.height ?? 1);
-    expect(
-      Math.abs(ratio - 4 / 3),
-      `PW-3: the illustration box is ${ratio}:1, not 4:3`,
-    ).toBeLessThan(0.05);
-    expect(
-      box?.height ?? 0,
-      "PW-3: the illustration box is taller than 240 px",
-    ).toBeLessThanOrEqual(241);
-    await expect(page.getByTestId("post-photos-illustration")).toHaveCSS("object-fit", "contain");
-  });
+      await folder.click();
+      await page.locator('[data-testid="post-browse-crumb"][data-category=""]').click();
+      await expect(
+        folder,
+        "PW-3: the all-categories crumb did not return to the roots",
+      ).toBeVisible();
+      await folder.click();
+      await expect(leafRow).toBeVisible();
+      await leafRow.click();
+      // The leaf advances by itself; the chip names the whole path, parent first.
+      await expect(page.getByTestId("post-step-3")).toBeVisible();
+      await expect(page.getByTestId("post-category-chip-path")).toContainText(parent.slug);
+      await expect(page.getByTestId("post-category-chip-path")).toContainText(child.slug);
+      // D39 — the stand-in lives on the photos step, which follows specifications.
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
+      // The leaf has no picture of its own: the stand-in is the FOLDER's.
+      await expect(
+        page.getByTestId("post-photos-illustration"),
+        "PW-3: a leaf without its own illustration showed no ancestor stand-in",
+      ).toHaveAttribute("src", standIn);
+      /**
+       * U6-C1-R3a-2 (the PW-4 illustration law, proved where the stand-in actually
+       * renders): a FIXED 4:3 box, never taller than 240 px, the picture CONTAINED
+       * inside it — so a tall or wide stand-in is neither stretched nor cropped.
+       */
+      const box = await page.getByTestId("post-photos-illustration-box").boundingBox();
+      expect(box, "PW-3: the illustration box was not laid out").not.toBeNull();
+      const ratio = (box?.width ?? 0) / (box?.height ?? 1);
+      expect(
+        Math.abs(ratio - 4 / 3),
+        `PW-3: the illustration box is ${ratio}:1, not 4:3`,
+      ).toBeLessThan(0.05);
+      expect(
+        box?.height ?? 0,
+        "PW-3: the illustration box is taller than 240 px",
+      ).toBeLessThanOrEqual(241);
+      await expect(page.getByTestId("post-photos-illustration")).toHaveCSS("object-fit", "contain");
+      await expectPicturesFit(page, page.getByTestId("post-photos-illustration-box"));
+    },
+  );
 
-  test("PW-4 a photo is prepared on the device, stored stripped, and removable", async ({
-    page,
-  }) => {
-    const user = await seller(page);
-    const category = await leaf();
-    await gotoReady(page, "/post");
-    await chooseBySearch(page, category.slug, category.id);
+  test(
+    "PW-4 a photo is prepared on the device, stored stripped, and removable",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      const user = await seller(page);
+      const category = await leaf();
+      await gotoReady(page, "/post");
+      await chooseBySearch(page, category.slug, category.id);
 
-    const [draft] = await draftsOf(user.id);
-    const listingId = String(draft?.id ?? "");
-    expect(listingId, "PW-4: step 1 created no draft to hang photos on").not.toBe("");
-    objects.push({ userId: user.id, listingId });
+      const [draft] = await draftsOf(user.id);
+      const listingId = String(draft?.id ?? "");
+      expect(listingId, "PW-4: step 1 created no draft to hang photos on").not.toBe("");
+      objects.push({ userId: user.id, listingId });
 
-    // D39 — photos come AFTER specifications: the scratch leaf's empty form passes.
-    await expect(page.getByTestId("post-step-3")).toBeVisible();
-    await page.getByTestId("post-next").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
-    // U6-C1-R2 — PHOTOS ARE OPTIONAL and the step opens with a STAND-IN: the
-    // helper line states the rules once and nothing offers to skip, because Next
-    // already carries a seller who has no photo to give.
-    await expect(page.getByTestId("post-photos-helper")).toBeVisible();
-    await expect(page.getByTestId("post-photos-standin")).toBeVisible();
-    await expect(
-      page.getByTestId("post-photos-skip"),
-      "PW-4: the removed skip button is still on screen",
-    ).toHaveCount(0);
-    await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
-    // Exactly one photo was picked, so the locator is strict by construction (J5).
-    const tile = page.getByTestId("post-photo-tile");
-    // The device encodes, then sends; the tile reaches `stored` on its own.
-    await expect(tile, "PW-4: the tile never reached the stored state").toHaveAttribute(
-      "data-state",
-      "stored",
-      { timeout: 45_000 },
-    );
+      // D39 — photos come AFTER specifications: the scratch leaf's empty form passes.
+      await expect(page.getByTestId("post-step-3")).toBeVisible();
+      await page.getByTestId("post-next").click();
+      await expect(page.getByTestId("post-step-2")).toBeVisible();
+      // U6-C1-R2 — PHOTOS ARE OPTIONAL and the step opens with a STAND-IN: the
+      // helper line states the rules once and nothing offers to skip, because Next
+      // already carries a seller who has no photo to give.
+      await expect(page.getByTestId("post-photos-helper")).toBeVisible();
+      await expect(page.getByTestId("post-photos-standin")).toBeVisible();
+      await expect(
+        page.getByTestId("post-photos-skip"),
+        "PW-4: the removed skip button is still on screen",
+      ).toHaveCount(0);
+      await page.getByTestId("post-photos-input").setInputFiles(FIXTURE);
+      // Exactly one photo was picked, so the locator is strict by construction (J5).
+      const tile = page.getByTestId("post-photo-tile");
+      // The device encodes, then sends; the tile reaches `stored` on its own.
+      await expect(tile, "PW-4: the tile never reached the stored state").toHaveAttribute(
+        "data-state",
+        "stored",
+        { timeout: 45_000 },
+      );
+      await expectPicturesFit(page, tile);
 
-    // DB TRUTH: one registered photo, all three variants, and the strip flagged —
-    // the wizard's own encode never smuggles metadata past the server (DEC-069).
-    await expect
-      .poll(async () => (await photoRowsOf(listingId)).length, {
-        message: "PW-4: the photo was not registered",
-      })
-      .toBe(1);
-    const rows = await photoRowsOf(listingId);
-    const row = rows[0];
-    expect(row?.exif_stripped, "PW-4: the stored photo is not marked stripped").toBe(true);
-    // Each variant is an object reference (`partition` + `key`), the B1 shape.
-    for (const variant of ["cover", "card", "thumb"] as const) {
-      const ref = (row?.paths as Record<string, unknown>)[variant] as
-        | { partition?: unknown; key?: unknown }
-        | undefined;
-      expect(typeof ref?.partition, `PW-4: the ${variant} variant has no partition`).toBe("string");
-      expect(typeof ref?.key, `PW-4: the ${variant} variant has no stored key`).toBe("string");
-    }
+      // DB TRUTH: one registered photo, all three variants, and the strip flagged —
+      // the wizard's own encode never smuggles metadata past the server (DEC-069).
+      await expect
+        .poll(async () => (await photoRowsOf(listingId)).length, {
+          message: "PW-4: the photo was not registered",
+        })
+        .toBe(1);
+      const rows = await photoRowsOf(listingId);
+      const row = rows[0];
+      expect(row?.exif_stripped, "PW-4: the stored photo is not marked stripped").toBe(true);
+      // Each variant is an object reference (`partition` + `key`), the B1 shape.
+      for (const variant of ["cover", "card", "thumb"] as const) {
+        const ref = (row?.paths as Record<string, unknown>)[variant] as
+          | { partition?: unknown; key?: unknown }
+          | undefined;
+        expect(typeof ref?.partition, `PW-4: the ${variant} variant has no partition`).toBe(
+          "string",
+        );
+        expect(typeof ref?.key, `PW-4: the ${variant} variant has no stored key`).toBe("string");
+      }
 
-    await page.getByTestId("post-photo-remove").click();
-    await expect
-      .poll(async () => (await photoRowsOf(listingId)).length, {
-        message: "PW-4: removing the photo left the row behind",
-      })
-      .toBe(0);
-  });
+      await page.getByTestId("post-photo-remove").click();
+      await expect
+        .poll(async () => (await photoRowsOf(listingId)).length, {
+          message: "PW-4: removing the photo left the row behind",
+        })
+        .toBe(0);
+    },
+  );
 
   test("PW-141 Photos coming soon: the tick shows only with no photo, is saved, draws the ribbon, and goes when a photo is added (bundle 4 steps 14, 15)", async ({
     page,
@@ -1019,8 +1042,8 @@ test.describe("POSTING WIZARD", () => {
 
   test("PW-27 the mobile strip walks back to a step already done, and no further", async ({
     page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "mobile-360", "mobile-360 only");
+  }) => {
+    test.skip(layoutOf(page) !== "mobile", "the phone layout only");
     const user = await seller(page, { named: true });
     const category = await seedPostableCategory();
     categories.push(category.slug);

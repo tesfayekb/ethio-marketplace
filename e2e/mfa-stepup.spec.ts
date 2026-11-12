@@ -4,6 +4,7 @@ import { pageDoor } from "./helpers/door-callers";
 
 import { en } from "../src/i18n/locales/en";
 
+import { expectPicturesFit } from "./helpers/pictures";
 import { totp, wrongCode } from "./helpers/totp";
 import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
 import { adminClient, createUser, grantRole } from "./helpers/users";
@@ -25,6 +26,11 @@ async function enrollThroughSettings(page: Page): Promise<string> {
   await gotoReady(page, "/settings");
   await page.getByTestId("mfa-enroll").click();
   await expect(page.getByTestId("mfa-qr")).toBeVisible({ timeout: 15000 });
+  // INC-1121 — the QR is whole and square in its frame.
+  const reading = await expectPicturesFit(page, page.getByTestId("mfa-enroll-panel"));
+  const qr = reading.pictures.find((picture) => picture.testId === "mfa-qr");
+  if (qr === undefined) throw new Error("[e2e:mf] the QR was not measured");
+  expect(Math.abs(qr.content.width - qr.content.height)).toBeLessThanOrEqual(1);
   const secret = await page.getByTestId("mfa-secret").inputValue();
   expect(secret.length).toBeGreaterThan(10);
   await page.getByTestId("mfa-code").fill(totp(secret));
@@ -67,7 +73,7 @@ async function statusChangeCount(userId: string): Promise<number> {
 test.describe("U1f step-up authentication", () => {
   test(
     "MF-1 enroll: QR + secret shown, a generated code activates the factor",
-    { tag: "@private-identity" },
+    { tag: ["@private-identity", "@webkit"] },
     async ({ page }) => {
       const staff = await createUser({ confirmed: true });
       await grantRole(staff.id, "admin");
