@@ -758,6 +758,9 @@ Four of turn 2's runs (43033934604, 43036501908 and its re-run, 43041366407) los
   under `re.ASCII`, and no pattern uses `\s` or `\S`. A replacement names groups as `$1` … `$9`,
   which redact.py translates at load. Each loader refuses an unknown key, a `$` that names no group
   and a pattern its engine cannot compile, so a missing or malformed file fails the writer loudly.
+  INC-1114 (housekeeping turn 4): the `sb_` key rule ends with its character class, not a word
+  boundary, so a key whose last character is `-` is masked whole; CF-REDACT-1 and CF-REDACT-3 hold
+  a key ending in `-` and one ending in `_` as fixed cases, the same bytes from both writers.
   The reporter's own identifiers never pass through the rules: the run, the commit, the attempt,
   the lanes and the ledger's commit are written from its `ReportMeta`. The reporter's self-test
   proves the head block keeps a 40-hex commit after the rules run. CF-REDACT-3

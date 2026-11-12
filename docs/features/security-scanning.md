@@ -88,4 +88,6 @@ INC-1025 retires `function_executable_by_anon` from the count baseline: the 19 â
 
 The smoke lane reads the public catalogue through psql TSV using `SURFACE_QUERY` in `scripts/security-lints.ts`, excludes extension-owned functions, and distinguishes functions from live relations/columns. An unlisted anon-executable function fails with a count and the read-only query only: no name, hash or artifact. A stale public-list name fails naming that already-public entry. An authenticated-only allowance does not cover anon. PUBLIC is inherited by both browser roles. SLB-1â€¦6 plant missing, stale, exact, private-output, role-mismatch and shared-parser cases.
 
+Housekeeping turn 4 (INC-443's last item): the list names each surface once, with one reason. `parseSurface` refuses a repeated name ("public surface: repeated name <name> on line <n>"), so the migration guard's `--parse` step and the smoke lint both fail on it; `transition_listing`'s two lines are one. SLB-8 (`scripts/public-surface.test.ts`) plants the repeat in the parser and the CLI and reads the real list.
+
 The other four counts retain DEC-148/240. The nightly REST reader explicitly reports the name comparison NOT RUN because REST has no live catalogue; smoke is its gating caller. The authenticated comparison is a roadmap follow-up, not implemented here.

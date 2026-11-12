@@ -404,8 +404,8 @@ describe("the one AI call", () => {
     expectTypeOf<Extract<NameCheckAnswer, { ok: true }>["value"]>().toEqualTypeOf<
       OutputOf<"name_check">
     >();
-    // @ts-expect-error an unknown task id does not compile
-    void (() => aiCall("unknown", {}, ctx));
+    // an unknown task id is no task id aiCall takes
+    expectTypeOf<"unknown">().not.toExtend<Parameters<typeof aiCall>[0]>();
   });
   it("AIG-15 a deadline during the body read is timeout, not billed", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-only-provider-key");

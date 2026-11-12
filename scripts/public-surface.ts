@@ -10,6 +10,8 @@ export interface SurfaceEntry {
 }
 
 export function parseSurface(text: string): SurfaceEntry[] {
+  // INC-443 (housekeeping turn 4): one surface, one line, one reason.
+  const names = new Set<string>();
   return text.split(/\r?\n/).flatMap((line, index) => {
     if (/^\s*(?:#|$)/.test(line)) return [];
     const fields = line.split("|").map((field) => field.trim());
@@ -22,6 +24,9 @@ export function parseSurface(text: string): SurfaceEntry[] {
       !reason
     )
       throw new Error(`public surface: malformed line ${index + 1}`);
+    if (names.has(name))
+      throw new Error(`public surface: repeated name ${name} on line ${index + 1}`);
+    names.add(name);
     const roles: BrowserRole[] = [];
     for (const role of roleText.split(",").map((value) => value.trim())) {
       if (role !== "anon" && role !== "authenticated" && role !== "public")

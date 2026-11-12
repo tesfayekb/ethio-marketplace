@@ -19,7 +19,7 @@ submit_listing | authenticated | restated grant (not a new surface); seller draf
 edit_listing | authenticated | RETIRED (DEC-335, F1-1 M-F1a part 6, 20261106052000): browser EXECUTE revoked, no caller; the line stays because the migration guard still reads the grant restated in 20261014194317 — until F1-7 (DEC-347: the guards learn a retirement there and the body is dropped)
 get_posting_schema | authenticated | the posting form's schema read, restated by M5; rate-gated schema_read
 get_attribute_options | authenticated | restated grant (not a new surface); posting option read, rate-gated options_read (M10)
-transition_listing | authenticated | the status door, restated by M5; owner, reviewer and enforcer checks inside
+transition_listing | authenticated | the status door, restated by M5; owner, reviewer and enforcer checks inside; L1 adds removed -> screening for enforcement with a fresh second factor (D137)
 renew_listing | authenticated | the seller's renew door, restated by M5; ownership inside
 set_listing_pin | authenticated | the seller's pin door, restated by M5 with its comments; ownership inside
 attr_visible_when_ok | authenticated | pure shape check of a row condition (the links CHECK constraint calls it); reads no table; EXECUTE restated as live by M6
@@ -51,7 +51,6 @@ my_viewing_location | authenticated | D106: owner-only read keyed by auth.uid();
 admin_screening_facts | authenticated | bundle 11 A1 (D120): listings:review only; an ad waiting for review — its country, which contact methods are shown (true/false, never a value) and the seller's public name
 admin_reveal_listing_contact | authenticated | bundle 11 A1 (D120, D128): "Show number" — listings:review, rate-gated review_reveal, phone, phone2 or whatsapp shown by the seller; one audit_log row per reveal (the channel, never the number)
 seller_notices | authenticated | Listings console L1 (D136): the seller reads only their own notices (RLS seller_id = auth.uid()); no browser role writes
-transition_listing | authenticated | restated grant (not a new surface); L1 adds removed -> screening for enforcement with a fresh second factor (D137)
 admin_list_listings | authenticated | Listings console L1 (D134): listings:view only; drafts never; the seller's public name, the e-mail only for profiles:view holders
 admin_edit_listing | authenticated | Listings console L1 (D136): listings:enforce with a fresh second factor; the seller's content rules; never a draft, a removed or the admin's own listing; a revision, an audit row and a seller notice
 admin_move_listing | authenticated | Listings console L1 (D137): Remove, Restore, Send back to review; listings:enforce with a fresh second factor; a severe removal restored by a super admin only; through transition_listing; an audit row and a seller notice

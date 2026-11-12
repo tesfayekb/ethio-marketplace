@@ -66,6 +66,7 @@ Details: `docs/features/security-scanning.md`.
   loops that run `EXECUTE format('GRANT … TO anon|authenticated|PUBLIC', f)`
   and flags every listed function not in `scripts/public-surface-allowlist.txt`.
   Self-test fixture: `scripts/fixtures/bad-public-grant-format-example.sql`.
+  A name the list repeats is refused by its parser (housekeeping turn 4, SLB-8).
 - Real-row proof guard (INC-445, floor `REAL_ROW_FLOOR=20261007000000`): a DO
   block reading identity/reference tables without the `e2e-mig-` scratch
   namespace is refused. Self-test fixture:
@@ -1242,3 +1243,12 @@ runs the lanes (ruling 1, Q9). Guards: CF-DOCS-1…6 (`scripts/ci/docs-only.test
 API's real answers for runs 43103925609 and 43033934604 under `scripts/fixtures/docs-only/`),
 `check-promote-needs.sh` with its planted fixture, and the reporter's DEC-365 self-test.
 `bun run checks` does not run `scope` (`scope › *` in turn-checks-allowlist.txt).
+
+## No compiler directive — CF-NN-3 (housekeeping turn 4)
+
+No file under `src/`, `scripts/` or `e2e/` carries a comment that silences the type checker (its
+expect-error, ignore or nocheck forms), but the router's generated `src/routeTree.gen.ts`; a
+type-level proof is an `expectTypeOf` assertion (the AI gateway's unknown task id:
+`expectTypeOf<"unknown">().not.toExtend<Parameters<typeof aiCall>[0]>()`, in
+`src/server/ai/gateway.test.ts`). Guard: CF-NN-3 in `scripts/conformance/non-null.test.ts`, with a
+planted file of the three forms.
