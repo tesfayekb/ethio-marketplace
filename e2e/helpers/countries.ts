@@ -2,6 +2,7 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
 import { countrySlotCodes, userAssignedCodes } from "./country-slot";
+import { SCRATCH_PREFIXES } from "./scratch";
 import { assertNoStringifiedLeak, settled } from "./ui";
 import { adminClient } from "./users";
 import { errorText } from "../../src/lib/error-text";
@@ -47,7 +48,7 @@ export async function scratchCountryCode(): Promise<string> {
 export function scratchCountryName(code: string): string {
   const run = process.env["E2E_SHARD"] ?? "local";
   const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
-  return `E2E-Scratch-${code}-${run}-${worker}`;
+  return `${SCRATCH_PREFIXES.countryName}${code}-${run}-${worker}`;
 }
 
 /** Seed a scratch market before navigation; creation in the UI is file-only. */

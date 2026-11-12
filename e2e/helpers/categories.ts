@@ -9,6 +9,7 @@ import {
   signInJobSuperAdmin,
 } from "./ui";
 
+import { likePrefix, SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 import { seedListingRow } from "./listing-seed";
 import { errorText } from "../../src/lib/error-text";
@@ -42,7 +43,9 @@ export function sharedPrefix(values: string[]): string {
 
 export function scratchSlug() {
   const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
-  return `e2e-cat-${RUN}-${worker}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  return `${SCRATCH_PREFIXES.category}${RUN}-${worker}-${rand()}`
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-");
 }
 
 /**
@@ -269,7 +272,7 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
     .select("id, country_code")
     .eq("is_active", true)
     // INC-379: a real seeded place only, the same one on every run.
-    .not("slug", "like", "e2e%")
+    .not("slug", "like", likePrefix(SCRATCH_PREFIXES.stem))
     .order("slug")
     .limit(1)
     .maybeSingle();
@@ -285,7 +288,7 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
       home_country_code: location.country_code,
       // STAB-H PART B (INC-165) — the title carries the SCRATCH PREFIX, so the
       // owner setup's reaper can find an orphaned listing by title alone.
-      title: `e2e-cat-listing-${RUN}-${rand()}`,
+      title: `${SCRATCH_PREFIXES.categoryListing}${RUN}-${rand()}`,
       description: "e2e scratch listing for the retire walk",
       status: "active",
     },

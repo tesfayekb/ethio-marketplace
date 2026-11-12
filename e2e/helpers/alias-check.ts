@@ -1,6 +1,7 @@
 import type { Page, Response } from "@playwright/test";
 
 import { errorText } from "../../src/lib/error-text";
+import { SCRATCH_PREFIXES } from "./scratch";
 
 /**
  * P-2 (c) c2a ruling 5 §2 (INC-1085) — THE CONTACT STEP'S NAME CHECK, READ WHOLE.
@@ -50,7 +51,8 @@ function parsed(text: string): unknown {
  * alone was refused (INC-1085).
  */
 export function scratchAlias(): string {
-  return `e2e_${Math.random().toString(36).slice(2, 8).replace(/[0-9]/g, "q")}`;
+  const tail = Math.random().toString(36).slice(2, 8).replace(/[0-9]/g, "q");
+  return `${SCRATCH_PREFIXES.underscore}${tail}`;
 }
 
 /** The name as the screen sends it (`step-who.tsx` lowercases what is typed; the door trims). */

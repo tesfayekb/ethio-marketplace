@@ -5,11 +5,14 @@
  * public.ui_translations, answer the keys whose row must be set back to the
  * compiled text: a row whose value differs, or whose status is not approved.
  * A scratch key (`e2e.scratch.`) is never returned; a row whose key the
- * catalog no longer has is never returned. Imports nothing.
+ * catalog no longer has is never returned. The scratch prefix is the e2e tree's one list's
+ * (INC-1104).
  */
+import { SCRATCH_PREFIXES } from "../e2e/helpers/scratch";
+
 export type EnRow = { key: string; value: string | null; status: string | null };
 
-export const SCRATCH_PREFIX = "e2e.scratch.";
+const SCRATCH_PREFIX = SCRATCH_PREFIXES.translationKey;
 
 export function staleEnKeys(compiled: Record<string, string>, rows: readonly EnRow[]): string[] {
   const stale: string[] = [];

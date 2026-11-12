@@ -2,6 +2,7 @@ import { type Locator, type Page } from "@playwright/test";
 
 import { expect, test } from "../fixtures";
 import { fenceLang, processId } from "../global-setup";
+import { SCRATCH_PREFIXES } from "./scratch";
 import { isMobile, switchUser, signInJobSuperAdmin, waitForHydration } from "./ui";
 import { adminClient } from "./users";
 
@@ -145,8 +146,8 @@ export function scratchAxes(tag: string): string {
   return `${processId()}-${shard}-${project}-${worker}-${tag}`;
 }
 
-/** INC-289 — the ui_translations scratch namespace every scratchKey lives under. */
-export const SCRATCH_PREFIX = "e2e.scratch.";
+/** INC-289 — the ui_translations scratch namespace every scratchKey lives under (INC-1104's list). */
+export const SCRATCH_PREFIX = SCRATCH_PREFIXES.translationKey;
 
 export function scratchKey(tag: string): string {
   // INC-096f — the namespace MUST carry every parallelism axis: run id
@@ -174,8 +175,8 @@ export function scratchKey(tag: string): string {
  * `/^[a-z]{2,8}(-[a-z]{2,8})?$/`, which rejects the digit, and the route is
  * out of this task's scope. Flip this one constant if that regex ever widens.
  */
-// The code itself is declared once, in e2e/global-setup.ts, because the reaper
-// there must agree with every spec that seeds inside the fence.
+// The code itself is declared once, in e2e/helpers/scratch.ts (INC-1104), because
+// the reaper must agree with every spec that seeds inside the fence.
 
 /**
  * U4g-6 (INC-101) — J2 ADDENDUM: ONE FENCE PER GLOBAL-SWEEP TEST. Two sweeps

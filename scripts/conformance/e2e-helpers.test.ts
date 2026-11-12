@@ -3,6 +3,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import {
+  FENCE_PREFIXES,
+  likeAnywhere,
+  likePrefix,
+  SCRATCH_PREFIXES,
+  type ScratchKind,
+} from "../../e2e/helpers/scratch";
 import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
@@ -23,6 +30,13 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  *   (`data-lang-settled`, the dataset key `langSettled`) is named in src/ only by
  *   src/i18n/provider.tsx (its one home) and that rule's unit test, and in e2e/ only under
  *   e2e/helpers/ — every pick waits for it through `switchLanguage` (e2e/helpers/ui.ts).
+ * - CF-HELPERS-6 (housekeeping turn 3b, INC-1104, ruling 1 item 2): every scratch prefix lives in
+ *   e2e/helpers/scratch.ts. (a) No literal under e2e/helpers/, nor in e2e/global-setup.ts or
+ *   e2e/global-teardown.ts, carries a scratch shape (`e2e-`, `e2e_`, `e2e+`, `e2e.`, `e2e%`,
+ *   `E2E-Scratch-`, the fence codes) — a maker or matcher reads the list; the pool's names
+ *   (`e2e-pool-`, `e2e_pool_reset`) are never swept and pass. (b) Every LIKE pattern of the two
+ *   sweepers (`SWEEPERS`) is `likePrefix(…)` or `likeAnywhere(…)` over a prefix of the list, and
+ *   every prefix of the list falls under one the reaper sweeps, but the kinds in `UNSWEPT_KINDS`.
  * - CF-HELPERS-7 (housekeeping turn 3b, ruling 1 item 6, INC-1102's class in the e2e tree): no
  *   file under e2e/helpers/, nor e2e/global-setup.ts or e2e/global-teardown.ts, calls `new RegExp(`
  *   or `RegExp(` — a pattern built from text goes through `matcher` (e2e/helpers/ui.ts, over
@@ -59,6 +73,16 @@ export const LANGUAGE_HOME = "e2e/helpers/account-language.ts";
 const WATCH_CALL = /\b(?:watchAccountLanguage|consumeAccountLanguage)\s*\(/;
 const SETTLED_NAME = /data-lang-settled|\blangSettled\b/;
 export const SETTLED_HOMES = ["src/i18n/provider.tsx", "src/i18n/provider-d239.test.tsx"];
+export const SCRATCH_HOME = "e2e/helpers/scratch.ts";
+export const SWEEPERS = ["e2e/global-setup.ts", "e2e/helpers/locations.ts"];
+const SCRATCH_SHAPE = /(?<![\w-])e2e(?:[-_+.%[](?!\s)|$)|E2E-Scratch-|(?<![A-Za-z])zx[xy](?![a-z])/;
+const NEVER_SWEPT = ["e2e-pool-", "e2e_pool_reset"];
+/** Kinds no reaper LIKE names, each with why. */
+export const UNSWEPT_KINDS: Partial<Record<ScratchKind, string>> = {
+  stem: "the real-row filters' complement (`not like e2e%`), never a sweep",
+  underscore:
+    "attribute keys are reaped by the attribute plan (SCRATCH_KEY over every attribute row) and public names go with their user; the reach rows (`e2e_lvl_r…`, listing_packages) have no sweep — housekeeping-3b report §13",
+};
 const ALLOWLIST = "scripts/conformance/e2e-helpers-allowlist.txt";
 
 type HelperFinding = { file: string; line: number; what: string; key: string };
@@ -196,6 +220,178 @@ export function regexpSiteFindings(files: string[]): HelperFinding[] {
   return findings;
 }
 
+function isModuleName(node: ts.StringLiteral): boolean {
+  const parent = node.parent;
+  return (
+    ts.isImportDeclaration(parent) ||
+    ts.isExportDeclaration(parent) ||
+    ts.isExternalModuleReference(parent) ||
+    (ts.isCallExpression(parent) && parent.expression.kind === ts.SyntaxKind.ImportKeyword)
+  );
+}
+
+function literalText(node: ts.Node): string | null {
+  if (ts.isStringLiteral(node)) return isModuleName(node) ? null : node.text;
+  if (
+    ts.isNoSubstitutionTemplateLiteral(node) ||
+    ts.isTemplateHead(node) ||
+    ts.isTemplateMiddle(node) ||
+    ts.isTemplateTail(node) ||
+    ts.isRegularExpressionLiteral(node)
+  )
+    return node.text;
+  return null;
+}
+
+/** CF-HELPERS-6 (a) — a scratch shape written outside the list. */
+export function scratchLiteralFindings(files: string[]): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const file of files) {
+    if (file === SCRATCH_HOME) continue;
+    visitTs(file, (node, source) => {
+      const text = literalText(node);
+      if (text === null) return;
+      const rest = NEVER_SWEPT.reduce((left, name) => left.split(name).join(""), text);
+      if (!SCRATCH_SHAPE.test(rest)) return;
+      findings.push({
+        file,
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        what: `writes a scratch prefix (${JSON.stringify(text)}): read it from ${SCRATCH_HOME}`,
+        key: `${file} scratch`,
+      });
+    });
+  }
+  return findings;
+}
+
+const LIKE_BUILDERS = new Set(["likePrefix", "likeAnywhere"]);
+const FENCE_KINDS = (Object.keys(SCRATCH_PREFIXES) as ScratchKind[]).filter((kind) =>
+  (Object.values(FENCE_PREFIXES) as string[]).includes(SCRATCH_PREFIXES[kind]),
+);
+
+function isScratchKind(name: string): name is ScratchKind {
+  return Object.prototype.hasOwnProperty.call(SCRATCH_PREFIXES, name);
+}
+
+function kindOf(node: ts.Expression): ScratchKind | null {
+  return ts.isPropertyAccessExpression(node) &&
+    ts.isIdentifier(node.expression) &&
+    node.expression.text === "SCRATCH_PREFIXES" &&
+    isScratchKind(node.name.text)
+    ? node.name.text
+    : null;
+}
+
+/** The kinds a loop variable runs over: `for (const p of [SCRATCH_PREFIXES.k, …])` or the fence list. */
+function loopKinds(name: ts.Identifier): ScratchKind[] | null {
+  for (let at: ts.Node | undefined = name.parent; at !== undefined; at = at.parent) {
+    if (!ts.isForOfStatement(at) || !ts.isVariableDeclarationList(at.initializer)) continue;
+    const declared = at.initializer.declarations.some(
+      (declaration) => ts.isIdentifier(declaration.name) && declaration.name.text === name.text,
+    );
+    if (!declared) continue;
+    if (ts.isIdentifier(at.expression) && at.expression.text === "FENCE_PREFIX_LIST")
+      return FENCE_KINDS;
+    if (!ts.isArrayLiteralExpression(at.expression)) return null;
+    const kinds = at.expression.elements.map((element) => kindOf(element));
+    return kinds.every((kind) => kind !== null) ? kinds.filter((kind) => kind !== null) : null;
+  }
+  return null;
+}
+
+function likeArgument(node: ts.CallExpression): ts.Expression | null {
+  if (!ts.isPropertyAccessExpression(node.expression)) return null;
+  const method = node.expression.name.text;
+  if (method === "like" || method === "ilike") return node.arguments[1] ?? null;
+  const operator = node.arguments[1];
+  if (
+    method === "not" &&
+    operator !== undefined &&
+    ts.isStringLiteral(operator) &&
+    (operator.text === "like" || operator.text === "ilike")
+  )
+    return node.arguments[2] ?? null;
+  return null;
+}
+
+/** CF-HELPERS-6 (b) — each sweeper's LIKE patterns: the kinds they sweep, and every other form. */
+export function sweepReading(files: string[]): {
+  kinds: Set<ScratchKind>;
+  findings: HelperFinding[];
+} {
+  const kinds = new Set<ScratchKind>();
+  const findings: HelperFinding[] = [];
+  for (const file of files) {
+    visitTs(file, (node, source) => {
+      if (!ts.isCallExpression(node)) return;
+      const argument = likeArgument(node);
+      if (argument === null) return;
+      const line = source.getLineAndCharacterOfPosition(argument.getStart(source)).line + 1;
+      const prefix =
+        ts.isCallExpression(argument) &&
+        ts.isIdentifier(argument.expression) &&
+        LIKE_BUILDERS.has(argument.expression.text)
+          ? argument.arguments[0]
+          : undefined;
+      const named =
+        prefix === undefined
+          ? null
+          : ts.isIdentifier(prefix)
+            ? loopKinds(prefix)
+            : [kindOf(prefix)].filter((kind) => kind !== null);
+      if (named === null || named.length === 0) {
+        findings.push({
+          file,
+          line,
+          what: `sweeps by a LIKE that is not likePrefix/likeAnywhere over ${SCRATCH_HOME}'s list`,
+          key: `${file} like`,
+        });
+        return;
+      }
+      for (const kind of named) kinds.add(kind);
+    });
+  }
+  return { kinds, findings };
+}
+
+/** The list's kinds no swept prefix covers (a swept prefix covers every name it begins). */
+export function unsweptKinds(swept: ReadonlySet<ScratchKind>): ScratchKind[] {
+  return (Object.keys(SCRATCH_PREFIXES) as ScratchKind[]).filter(
+    (kind) =>
+      ![...swept].some((sweptKind) =>
+        SCRATCH_PREFIXES[kind].startsWith(SCRATCH_PREFIXES[sweptKind]),
+      ),
+  );
+}
+
+type LikeToken = { any: true } | { one: true } | { char: string };
+
+/** LIKE's own reading of a pattern: `\` escapes, `%` is any run, `_` any one character. */
+export function likeMatches(likePattern: string, text: string): boolean {
+  const tokens: LikeToken[] = [];
+  for (let index = 0; index < likePattern.length; index += 1) {
+    const char = likePattern.charAt(index);
+    if (char === "\\") {
+      index += 1;
+      tokens.push({ char: likePattern.charAt(index) });
+    } else if (char === "%") tokens.push({ any: true });
+    else if (char === "_") tokens.push({ one: true });
+    else tokens.push({ char });
+  }
+  const from = (token: number, at: number): boolean => {
+    const next = tokens[token];
+    if (next === undefined) return at === text.length;
+    if ("any" in next) {
+      for (let end = at; end <= text.length; end += 1) if (from(token + 1, end)) return true;
+      return false;
+    }
+    if (at >= text.length) return false;
+    if ("one" in next || next.char === text.charAt(at)) return from(token + 1, at + 1);
+    return false;
+  };
+  return from(0, 0);
+}
+
 const e2eFiles = () => walkFiles(["e2e"], { ext: ["ts"] });
 const harnessFiles = (files: string[]) =>
   files.filter(
@@ -208,7 +404,7 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 and CF-HELPERS-7 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file builds a RegExp by hand",
+    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-7 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand",
     () => {
       const files = e2eFiles();
       const findings = [
@@ -217,6 +413,8 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
         ...languageWriteFindings(specs()),
         ...watchCallFindings(specs()),
         ...settledNameFindings([...files, ...walkFiles(["src"], { ext: ["ts", "tsx"] })]),
+        ...scratchLiteralFindings(harnessFiles(files)),
+        ...sweepReading(SWEEPERS).findings,
         ...regexpSiteFindings(harnessFiles(files)),
       ];
       const allowances = readAllowlist(
@@ -232,7 +430,27 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
     TREE_SCAN_MS,
   );
 
-  it("planted: CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 and CF-HELPERS-7 each find their planted copy, disable, write, watch, attribute and RegExp", () => {
+  it("CF-HELPERS-6 the reaper's patterns match a name under every prefix it sweeps, LIKE's `_` is escaped, and every prefix of the list is swept but the named kinds", () => {
+    const { kinds, findings } = sweepReading(["e2e/global-setup.ts"]);
+    expect(findings).toEqual([]);
+    expect(kinds.has("role"), "INC-1104: grantScratchRole's prefix is swept").toBe(true);
+    expect(unsweptKinds(kinds).sort()).toEqual(Object.keys(UNSWEPT_KINDS).sort());
+    for (const kind of kinds) {
+      const prefix = SCRATCH_PREFIXES[kind];
+      expect(likeMatches(likePrefix(prefix), `${prefix}run-1`), kind).toBe(true);
+      expect(likeMatches(likeAnywhere(prefix), `x-${prefix}run-1`), kind).toBe(true);
+      expect(likeMatches(likePrefix(prefix), `x${prefix}`), kind).toBe(false);
+    }
+    expect(likePrefix(SCRATCH_PREFIXES.role)).toBe("e2e\\_scratch\\_role\\_%");
+    expect(likeMatches(likePrefix(SCRATCH_PREFIXES.role), "e2eXscratchXroleXab")).toBe(false);
+    expect(likeMatches("e2e_scratch_role_%", "e2eXscratchXroleXab"), "unescaped").toBe(true);
+    expect(
+      likeMatches(likePrefix(SCRATCH_PREFIXES.dash), "e2e_scratch_role_ab"),
+      "INC-1104: `e2e-%` never matched a scratch role",
+    ).toBe(false);
+  });
+
+  it("planted: CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-7 each find their planted copy, disable, write, watch, attribute and RegExp", () => {
     const dir = mkdtempSync(join(tmpdir(), "e2e-helpers-"));
     try {
       const spec = join(dir, "planted.spec.ts");
@@ -318,6 +536,59 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
           "e2e/x.spec.ts",
         ]),
       ).toEqual(["e2e/helpers/x.ts", "e2e/global-setup.ts", "e2e/global-teardown.ts"]);
+      const maker = join(dir, "planted-maker.ts");
+      writeFileSync(
+        maker,
+        [
+          'import { likePrefix, SCRATCH_PREFIXES } from "./scratch";',
+          'import migrationPreflight from "../scripts/e2e-migration-preflight";',
+          "export const a = `e2e_scratch_role_${letters}`;",
+          'export const b = "e2e-cat-";',
+          "export const c = `e2e+${id}@x`;",
+          "export const d = /(^|-)e2e[_-]/;",
+          'export const e = "E2E-Scratch-QM";',
+          'export const f = ["zxx", "zxy-mo"];',
+          'export const g = "e2e%";',
+          "export const pool = `e2e-pool-${lane}`;",
+          'export const reason = "e2e_pool_reset";',
+          'export const tag = "[e2e:setup] e2e scratch listing";',
+          "export const h = `${SCRATCH_PREFIXES.role}${letters}`;",
+          'export const words = ["maintenance_prune_e2e_audit", "__ethio-e2e-injected"];',
+          'export const prose = "scratch reviews go with their e2e- document";',
+          "export const proof = `default/e2e-proof-${id}`;",
+          "",
+        ].join("\n"),
+      );
+      expect(scratchLiteralFindings([maker]).map((f) => f.line)).toEqual([
+        3, 4, 5, 6, 7, 8, 8, 9, 16,
+      ]);
+      expect(scratchLiteralFindings([SCRATCH_HOME]), "the list is the home").toEqual([]);
+      const sweeper = join(dir, "planted-sweeper.ts");
+      writeFileSync(
+        sweeper,
+        [
+          'await db.from("roles").select("id").like("name", "e2e-%");',
+          'await db.from("roles").select("id").not("slug", "like", `${p}%`);',
+          'await db.from("roles").select("id").ilike("name", likePrefix("e2e_"));',
+          'await db.from("a").select("id").like("slug", likePrefix(SCRATCH_PREFIXES.dash));',
+          'await db.from("a").select("id").not("slug", "like", likeAnywhere(SCRATCH_PREFIXES.user));',
+          "for (const prefix of [SCRATCH_PREFIXES.dash, SCRATCH_PREFIXES.role])",
+          '  await db.from("roles").select("id").like("name", likePrefix(prefix));',
+          "for (const prefix of FENCE_PREFIX_LIST)",
+          '  await db.from("t").delete().like("lang_code", likePrefix(prefix));',
+          "for (const prefix of names)",
+          '  await db.from("t").delete().like("lang_code", likePrefix(prefix));',
+          'await db.from("t").select("id").eq("slug", "e2e-x").not("id", "in", "(1)");',
+          "",
+        ].join("\n"),
+      );
+      const reading = sweepReading([sweeper]);
+      expect(reading.findings.map((f) => f.line)).toEqual([1, 2, 3, 11]);
+      expect([...reading.kinds].sort()).toEqual(
+        ["dash", "fenceApprove", "fenceBulk", "role", "user"].sort(),
+      );
+      expect(unsweptKinds(new Set(["dash"]))).toContain("role");
+      expect(unsweptKinds(new Set(["dash"]))).not.toContain("category");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

@@ -7,6 +7,7 @@ import { expect, test } from "@playwright/test";
 
 import { adminClient, authErrorText, authFetch, processId, STATE_FILE } from "../global-setup";
 import { chunkByLength } from "./chunk-by-length";
+import { SCRATCH_PREFIXES, SCRATCH_USER_DOMAIN } from "./scratch";
 import { errorText } from "../../src/lib/error-text";
 
 export { adminClient } from "../global-setup";
@@ -42,7 +43,7 @@ export function mintEmail(n: number): string {
     .replace(/[^a-z0-9]/gi, "")
     .toLowerCase()
     .slice(0, 6);
-  return `e2e+${processId()}-${workerTag()}-${n}-${rand6}@ethio-e2e.invalid`;
+  return `${SCRATCH_PREFIXES.user}${processId()}-${workerTag()}-${n}-${rand6}${SCRATCH_USER_DOMAIN}`;
 }
 
 function baseUrl(): string {
@@ -464,7 +465,7 @@ export async function grantScratchRole(
   reap: string[] | Set<string>,
 ): Promise<string> {
   const supabase = adminClient();
-  const name = `e2e_scratch_role_${scratchLetters()}`;
+  const name = `${SCRATCH_PREFIXES.role}${scratchLetters()}`;
   const { data: role, error: roleError } = await supabase
     .from("roles")
     .insert({ name, display_name: name, priority: 1 })
@@ -522,7 +523,7 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
   const fold = alias.toLowerCase();
   const cutoff = Date.now() - 10 * 60 * 1000;
   // `processId()` is "<run>-<shard>": this run's accounts start with "e2e+<run>-".
-  const thisRun = `e2e+${processId().split("-")[0]}-`;
+  const thisRun = `${SCRATCH_PREFIXES.user}${processId().split("-")[0]}-`;
   const holders = new Set<string>();
   const profiles = await supabase.from("profiles").select("user_id").ilike("seller_alias", fold);
   if (profiles.error) throw new Error(`[e2e:alias] holder read failed: ${profiles.error.message}`);
@@ -540,7 +541,7 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
       continue;
     }
     const email = data.user.email ?? "";
-    const scratch = email.startsWith("e2e+") && email.endsWith("@ethio-e2e.invalid");
+    const scratch = email.startsWith(SCRATCH_PREFIXES.user) && email.endsWith(SCRATCH_USER_DOMAIN);
     const created = Date.parse(data.user.created_at ?? "");
     const otherRun = !email.startsWith(thisRun);
     if (!scratch) {

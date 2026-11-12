@@ -1,5 +1,7 @@
 import type { Locator } from "@playwright/test";
 
+import { SCRATCH_PREFIXES } from "./scratch";
+
 /**
  * INC-170's class (INC-170, INC-170b, INC-561 — the third occurrence; bundle 11
  * turn C3) — THE ONE READER OF THE PUBLIC CATEGORY MENU'S ROWS.
@@ -19,7 +21,7 @@ export const MENU_ROW_PREFIX = "rail-category-";
 export const ANY_MENU_ROW = `[data-testid^="${MENU_ROW_PREFIX}"]`;
 
 /** The catalogue's own rows: never another test's scratch root. */
-export const CATALOGUE_MENU_ROW = `${ANY_MENU_ROW}:not([data-testid^="${MENU_ROW_PREFIX}e2e-"])`;
+export const CATALOGUE_MENU_ROW = `${ANY_MENU_ROW}:not([data-testid^="${MENU_ROW_PREFIX}${SCRATCH_PREFIXES.dash}"])`;
 
 /** The catalogue's own rows inside `scope`; `element` narrows them (e.g. "nav li > a"). */
 export function catalogueRows(scope: Locator, element = ""): Locator {
@@ -38,5 +40,5 @@ export function slugOfRow(testid: string): string {
 
 /** True for another test's scratch root (J1). */
 export function isScratchSlug(slug: string): boolean {
-  return slug.startsWith("e2e-");
+  return slug.startsWith(SCRATCH_PREFIXES.dash);
 }

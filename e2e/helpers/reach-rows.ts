@@ -1,5 +1,6 @@
 import { test } from "../fixtures";
 import { RUN } from "./posting";
+import { SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 
 /**
@@ -15,7 +16,7 @@ import { adminClient } from "./users";
 
 const TAG = "[e2e:reach-rows]";
 /** The scratch reach rows' key prefix (letters first, the key check's form). */
-export const REACH_PREFIX = "e2e_lvl_r";
+export const REACH_PREFIX = `${SCRATCH_PREFIXES.underscore}lvl_r`;
 
 /** Letters and digits from one draw. */
 function draw(): string {
