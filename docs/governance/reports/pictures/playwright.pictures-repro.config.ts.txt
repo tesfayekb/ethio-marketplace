@@ -1,0 +1,19 @@
+import { defineConfig, devices } from "@playwright/test";
+
+import base from "./playwright.config";
+
+/**
+ * TEMPORARY — the pictures turn's STEP 1 reproduction (never committed): the repository's own
+ * config with one WebKit project beside the Blink ones, for e2e/pictures-repro.spec.ts only.
+ */
+export default defineConfig({
+  ...base,
+  projects: [
+    ...(base.projects ?? []),
+    {
+      name: "webkit-1280",
+      use: { ...devices["Desktop Safari"], viewport: { width: 1280, height: 800 } },
+      testMatch: ["**/pictures-repro.spec.ts"],
+    },
+  ],
+});
