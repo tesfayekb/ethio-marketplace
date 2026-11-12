@@ -51,7 +51,7 @@ export function Picture({
   style?: CSSProperties;
   frameTestId?: string;
   imgTestId?: string;
-  /** Beside the fit: an object position, an opacity, a zoom. Never a size. */
+  /** Beside the fit: an object position, an opacity, a zoom, an inner padding. Never a size. */
   imgClassName?: string;
   width?: number;
   height?: number;

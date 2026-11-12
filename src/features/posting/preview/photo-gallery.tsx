@@ -11,6 +11,7 @@ import {
 import { PhotoRibbon } from "@/components/marketplace/listing-picture";
 import type { RibbonPalette } from "@/components/marketplace/ribbon-geometry";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Picture } from "@/components/ui/picture";
 import { StripArrows } from "@/components/ui/strip-arrows";
 import { keepInStrip } from "@/components/ui/keep-in-strip";
 import { useI18n } from "@/i18n";
@@ -141,7 +142,7 @@ export function PhotoGallery({
             data-index={at}
             aria-label={t("post.gallery.enlarge")}
             aria-describedby={placeId}
-            className={`flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-row bg-photo-empty${fillColumn ? " @min-[32rem]:min-h-full" : ""}`}
+            className={`relative block aspect-[4/3] w-full overflow-hidden rounded-row bg-photo-empty${fillColumn ? " @min-[32rem]:min-h-full" : ""}`}
             style={{ touchAction: "pan-y" }}
             {...swipe.handlers}
             onClick={() => {
@@ -152,17 +153,18 @@ export function PhotoGallery({
               setViewer(true);
             }}
           >
-            <img
+            <Picture
               src={photo.main}
+              fit="contain"
               srcSet={srcSetOf(photo)}
               sizes="(min-width: 640px) 36rem, 100vw"
-              alt=""
               width={480}
               height={360}
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="h-full w-full object-contain @min-[32rem]:object-top"
+              className="absolute inset-0"
+              imgClassName="@min-[32rem]:object-top"
               draggable={false}
             />
           </button>
@@ -318,13 +320,13 @@ function Thumbs({
             }`}
             onClick={() => onPick(index)}
           >
-            <img
+            <Picture
               src={photo.thumb}
-              alt=""
+              fit="cover"
               width={64}
               height={48}
               loading="lazy"
-              className="h-full w-full object-cover"
+              className="h-full w-full"
             />
           </button>
         </li>
@@ -392,11 +394,13 @@ function Viewer({
           style={{ touchAction: "pan-y pinch-zoom" }}
           {...swipe.handlers}
         >
-          <img
-            data-testid="gallery-viewer-image"
+          <Picture
+            imgTestId="gallery-viewer-image"
             src={photo.large ?? photo.main}
+            fit="contain"
             alt={place}
-            className={`max-h-full max-w-full object-contain transition-transform ${
+            className="absolute inset-0"
+            imgClassName={`transition-transform ${
               zoomed ? "scale-200 cursor-zoom-out" : "cursor-zoom-in"
             }`}
             draggable={false}

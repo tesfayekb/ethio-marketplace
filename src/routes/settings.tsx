@@ -1,6 +1,7 @@
 import { pageHead } from "@/lib/page-head";
 import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
+import { Picture } from "@/components/ui/picture";
 import { passwordPairProblem } from "@/features/auth/password-pair";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
@@ -728,14 +729,16 @@ function SettingsScreen() {
           {mfa.pending ? (
             <div data-testid="mfa-enroll-panel" className="mt-4 flex flex-col gap-3">
               <p className="text-sm text-foreground">{t("mfa.step1")}</p>
-              <img
-                data-testid="mfa-qr"
+              <Picture
+                imgTestId="mfa-qr"
                 src={mfa.pending.qrCode}
+                fit="contain"
                 alt={t("mfa.qrAlt")}
                 width={200}
                 height={200}
                 loading="lazy"
-                className="h-[200px] w-[200px] self-start rounded-md border border-border bg-background p-2"
+                className="h-[200px] w-[200px] self-start rounded-md border border-border bg-background"
+                imgClassName="p-2"
               />
               <label htmlFor="mfa-secret" className="text-sm text-muted-foreground">
                 {t("mfa.secretLabel")}

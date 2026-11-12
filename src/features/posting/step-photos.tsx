@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { Certification } from "@/features/my-listings/my-listing";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
+import { Picture } from "@/components/ui/picture";
 import { AlertTriangle, ChevronLeft, ChevronRight, Crop, Eraser, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -633,12 +634,12 @@ export function StepPhotos({
         {...(atPlace ? placeProps(item.photoId as string, index) : {})}
       >
         <div className="relative">
-          <img
+          <Picture
             src={item.previewUrl}
-            alt=""
+            fit="cover"
             width={160}
             height={120}
-            className="h-24 w-full rounded-sm object-cover"
+            className="h-24 w-full rounded-sm"
           />
           {item.photoId !== null && item.photoId === coverId && coverRibbon()}
         </div>
@@ -715,13 +716,13 @@ export function StepPhotos({
       >
         <div className="relative">
           {url !== null ? (
-            <img
+            <Picture
               src={url}
-              alt=""
+              fit="cover"
               width={160}
               height={120}
               loading="lazy"
-              className="h-24 w-full rounded-sm object-cover"
+              className="h-24 w-full rounded-sm"
             />
           ) : (
             <p className="h-24 text-xs text-muted-foreground">{t("post.photos.done")}</p>

@@ -19,12 +19,16 @@ type ListName = keyof typeof RESTRICTED_SYNTAX;
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
+/** INC-1121 — the picture primitive, the one file that writes an img (pictures.test.ts). */
+const PICTURE_HOME = "src/components/ui/picture.tsx";
+
 /** The owed table: which lists a root-relative path must carry. */
 export function owedLists(file: string): ListName[] {
   if (file.startsWith("e2e/")) return ["specLint"];
   if (/\.test\.tsx?$/.test(file) || file === "src/lib/lovable-error-reporting.ts")
     return ["typedClient"];
-  return ["typedClient", "caughtError", "safeHref"];
+  if (file === PICTURE_HOME) return ["typedClient", "caughtError", "safeHref"];
+  return ["typedClient", "caughtError", "safeHref", "picture"];
 }
 
 /** The owed lists any of whose selectors is absent from `selectors`. */
@@ -167,6 +171,20 @@ describe("lint rules reach every file they owe (INC-891)", () => {
         0,
       );
       expect(missingLists(["safeHref"], [])).toEqual(["safeHref"]);
+    },
+    TREE_SCAN_MS,
+  );
+
+  it(
+    "CF-LINT-6 a hand-drawn img is refused at a screen and a route, and not in a test or the picture primitive (INC-1121)",
+    async () => {
+      const planted =
+        'export const A = () => <img src="/a.png" alt="" />;\nexport const B = () => <img src="/b.png" alt=""></img>;\n';
+      expect(await refusedAt(planted, "src/features/planted-lint.tsx", "INC-1121:")).toBe(2);
+      expect(await refusedAt(planted, "src/routes/planted-lint.tsx", "INC-1121:")).toBe(2);
+      expect(await refusedAt(planted, "src/features/planted-lint.test.tsx", "INC-1121:")).toBe(0);
+      expect(await refusedAt(planted, PICTURE_HOME, "INC-1121:")).toBe(0);
+      expect(missingLists(["picture"], [])).toEqual(["picture"]);
     },
     TREE_SCAN_MS,
   );

@@ -124,3 +124,5 @@ scripts/conformance/plan-seam.test.ts
 scripts/conformance/plan-seam-allowlist.txt
 # housekeeping turn 4 part B (ruling 1 Q4): the unused UI-kit chart (no importer, no chunk) and its <style> text
 src/components/ui/chart.tsx
+# pictures part B [intentional-delete] (ruling 1, answer 3c): the unused export AvatarImage of
+# src/components/ui/avatar.tsx (an image path with no caller) is removed; the file and its other exports stay

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Picture } from "@/components/ui/picture";
 import { useI18n } from "@/i18n";
 import { safeHref } from "@/lib/safe-href";
 import { fill } from "@/features/posting/refusal-text";
@@ -193,12 +194,14 @@ export function ShareAd({
             </Button>
             {qr && (
               <div className="flex flex-col items-center gap-2 py-2">
-                <img
-                  data-testid="listing-share-qr-image"
+                <Picture
+                  imgTestId="listing-share-qr-image"
                   src={`/l/${publicId}/qr.svg`}
+                  fit="contain"
                   alt={t("adPage.share.qrHint")}
                   width={192}
                   height={192}
+                  className="size-48"
                 />
                 <p className="text-sm text-muted-foreground">{t("adPage.share.qrHint")}</p>
                 {qrFile !== null && (
