@@ -8,7 +8,7 @@ import {
   semgrepTargets,
   turnBase,
 } from "./laws-changed";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -42,8 +42,9 @@ import {
   pinnedAsset,
   planFrom,
   platformReason,
+  sh,
+  stepLine,
   summary,
-  typecheckVerdict,
   uncovered,
   type Line,
   type Step,
@@ -57,7 +58,8 @@ import {
  * (INC-1094), TCK-8 `--no-tests` (INC-1064), TCK-9 the budget step's NEAR-only failure is a PASS
  * with its NOTE lines (DEC-361), TCK-10 the laws' Semgrep rules cache is whole only by its files
  * (INC-1098), TCK-11 (TCK-3's neighbour) the laws' pinned Semgrep fetch or install that failed is
- * NOT RUN (housekeeping turn 3).
+ * NOT RUN (housekeeping turn 3), TCK-12 the Typecheck step runs CI's own `bun run typecheck`, both
+ * projects (housekeeping turn 3c).
  */
 const ciText = readFileSync(CI_FILE, "utf8");
 const steps = planFrom(ciText);
@@ -108,24 +110,6 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
   });
 
   it("TCK-3 a check that cannot run says NOT RUN with its reason, never PASS", () => {
-    expect(typecheckVerdict(null, 0).verdict).toBe("NOT RUN");
-    const old = typecheckVerdict({ mtimeMs: 1_000, text: "=== build x ===\nbuild OK\n" }, 2_000);
-    expect(old.verdict).toBe("NOT RUN");
-    expect(old.reason).toMatch(/older than the newest change/);
-    expect(
-      typecheckVerdict({ mtimeMs: 3_000, text: "=== build x ===\nbuild OK\n" }, 2_000),
-    ).toEqual({
-      verdict: "PASS",
-    });
-    expect(
-      typecheckVerdict(
-        {
-          mtimeMs: 3_000,
-          text: "=== build a ===\nbuild OK\n=== build b ===\nsrc/x.ts(1,1): error TS2304\n",
-        },
-        2_000,
-      ).verdict,
-    ).toBe("FAIL");
     const pinned = steps.find((s) => s.key === "secrets-scan › Secrets scan (gitleaks, pinned)");
     expect(pinned).toBeDefined();
     if (pinned === undefined) return;
@@ -143,6 +127,45 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     const unpinned = steps.find((s) => s.key === "string-scan › Run string scan");
     expect(unpinned && fetchFailure(unpinned, "curl: (6) Could not resolve host")).toBeUndefined();
   });
+
+  it("TCK-12 the Typecheck step runs CI's own `bun run typecheck` (both projects): a planted failing scripts project is FAIL (housekeeping turn 3c)", () => {
+    const step = steps.find((s) => s.key === "build-and-check › Typecheck");
+    expect(step?.run).toBe("bun run typecheck");
+    if (step === undefined) return;
+    expect(Object.keys(LOCAL)).not.toContain(step.key);
+    expect(readFileSync("scripts/ci/turn-checks.ts", "utf8")).not.toMatch(/build-errors\.log/);
+    const typecheck = (
+      JSON.parse(readFileSync("package.json", "utf8")) as { scripts: Record<string, string> }
+    ).scripts["typecheck"];
+    expect(typecheck).toBe("tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json");
+    // A planted tree with the repository's two-project script: its root project is clean and its
+    // scripts project holds one type error.
+    const dir = mkdtempSync(join(tmpdir(), "tck-12-"));
+    try {
+      symlinkSync(join(process.cwd(), "node_modules"), join(dir, "node_modules"));
+      writeFileSync(join(dir, "package.json"), JSON.stringify({ scripts: { typecheck } }));
+      const options = { strict: true, noEmit: true, skipLibCheck: true, types: [] };
+      writeFileSync(
+        join(dir, "tsconfig.json"),
+        JSON.stringify({ include: ["app.ts"], compilerOptions: options }),
+      );
+      writeFileSync(
+        join(dir, "tsconfig.scripts.json"),
+        JSON.stringify({ extends: "./tsconfig.json", include: ["scripts/*.ts"] }),
+      );
+      writeFileSync(join(dir, "app.ts"), "export const app: number = 1;\n");
+      mkdirSync(join(dir, "scripts"));
+      writeFileSync(join(dir, "scripts", "planted.ts"), 'export const planted: number = "x";\n');
+      const red = stepLine(step, sh(step.run, {}, step.timeoutS, "tck-12-red", dir), 0);
+      expect(red.verdict).toBe("FAIL");
+      expect(red.reason).toMatch(/^exit [1-9]\d*; log /);
+      writeFileSync(join(dir, "scripts", "planted.ts"), "export const planted: number = 1;\n");
+      const green = stepLine(step, sh(step.run, {}, step.timeoutS, "tck-12-green", dir), 0);
+      expect(green).toEqual({ verdict: "PASS", key: step.key, seconds: 0, reason: undefined });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 60_000);
 
   it("TCK-11 (TCK-3's neighbour) the laws step's pinned Semgrep rules or install that failed is NOT RUN (housekeeping turn 3)", () => {
     const pins = { version: "1.2.3", rules: "a".repeat(40) };

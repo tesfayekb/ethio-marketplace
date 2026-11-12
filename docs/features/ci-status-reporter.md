@@ -136,8 +136,8 @@ It never stops at a FAIL; inside a job a failed step ends that job, as in CI.
 - Steps it does not run are lines of `scripts/ci/turn-checks-allowlist.txt` (`job › step | reason |
 until`): the installs, the SARIF upload, the dependency audit, the staging preflight, the E2E merge
   and promote.
-- Typecheck is the platform harness's verdict (`/tmp/observability/build-errors.log`): PASS only when
-  newer than every change under src/, e2e/ and scripts/ with no error; otherwise NOT RUN.
+- Typecheck runs CI's own step, `bun run typecheck`: both projects, `tsconfig.json` then
+  `tsconfig.scripts.json` (housekeeping turn 3c, TCK-12). No log another tool wrote is read.
 - A pinned download or checksum that fails is NOT RUN; no unpinned stand-in.
 - A pinned binary built for another machine is NOT RUN before any download, with the reason
   `pinned binary <platform/arch> (<asset>); this machine <platform/arch>`: the asset's name is read from

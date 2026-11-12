@@ -26,8 +26,9 @@
  *    real output, never authored from assumption.
  */
 
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -1924,10 +1925,9 @@ export async function rescueTitles(resultsDir: string | undefined): Promise<stri
 export async function readJson(
   path: string,
 ): Promise<{ json: PwJson | null; error: string | null }> {
-  const file = Bun.file(path);
-  if (!(await file.exists())) return { json: null, error: null };
+  if (!existsSync(path)) return { json: null, error: null };
   try {
-    return { json: (await file.json()) as PwJson, error: null };
+    return { json: jsonFile(path), error: null };
   } catch (e) {
     const message = errorText(e);
     return { json: null, error: `results.json exists but could not be parsed: ${redact(message)}` };
@@ -1936,9 +1936,28 @@ export async function readJson(
 
 /** The whole job log, redacted; `null` when the artifact was not uploaded. */
 async function readLog(path: string): Promise<string | null> {
-  const file = Bun.file(path);
-  if (!(await file.exists())) return null;
-  return redact(await file.text());
+  if (!existsSync(path)) return null;
+  return redact(readFileSync(path, "utf8"));
+}
+
+/** A Playwright JSON report read from disk (a lane's upload or a captured fixture). */
+function jsonFile(path: string): PwJson {
+  return JSON.parse(readFileSync(path, "utf8")) as PwJson;
+}
+
+/** A file's text, or `fallback` when it cannot be read (a missing allowlist or ledger). */
+function textOr(path: string, fallback: string): string {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return fallback;
+  }
+}
+
+/** Writes `text` to `path`, its folder made first. */
+function writeText(path: string, text: string): void {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, text);
 }
 
 /**
@@ -1972,7 +1991,7 @@ async function main() {
     // BOTH fixtures are REAL captured output (a two-failure Playwright run:
     // one locator failure with a page snapshot, one test-level timeout whose
     // context directory is deliberately NOT bundled).
-    const fixture = (await Bun.file(FIXTURE).json()) as PwJson;
+    const fixture = jsonFile(FIXTURE);
     const contexts = collectContextFiles(CONTEXT_FIXTURE);
     if (contexts.size !== 1) {
       // INC-084f: a 0-found result must name the glob and every walked path —
@@ -2037,7 +2056,7 @@ async function main() {
     // parses and records ZERO tests (real capture: an impossible --grep, the
     // same shape a dead webServer leaves behind). The old reporter printed
     // "Failed 0 · Sources without results: none" and quoted nothing.
-    const emptyJson = (await Bun.file(EMPTY_FIXTURE).json()) as PwJson;
+    const emptyJson = jsonFile(EMPTY_FIXTURE);
     if (countTests(emptyJson) !== 0 || countTests(fixture) !== 2) {
       console.error("SELF-TEST FAILED — countTests miscounted the captured fixtures.");
       process.exit(1);
@@ -2196,7 +2215,7 @@ async function main() {
     // INC-084g — DESCRIBE-NESTED SHAPE (real capture). The slug carries the
     // describe title, so a matcher built from the bare test title finds
     // nothing. This fixture fails loudly if that regression ever returns.
-    const describeJson = (await Bun.file(`${DESCRIBE_FIXTURE}/results.json`).json()) as PwJson;
+    const describeJson = jsonFile(`${DESCRIBE_FIXTURE}/results.json`);
     const describeContexts = collectContextFiles(DESCRIBE_FIXTURE);
     if (describeContexts.size !== 1) {
       if (describeContexts.size === 0) reportEmptySearch(DESCRIBE_FIXTURE, "describe fixture");
@@ -2379,7 +2398,7 @@ async function main() {
     // enough; a source with neither renders "None" with what was read.
     {
       const outsideJson = (await readJson(OUTSIDE_FIXTURE)).json;
-      const outsideLog = await Bun.file(OUTSIDE_LOG_FIXTURE).text();
+      const outsideLog = readFileSync(OUTSIDE_LOG_FIXTURE, "utf8");
       const cleanJson = (await readJson(FIXTURE)).json;
       const outside: Source = {
         label: "changed",
@@ -2446,7 +2465,7 @@ async function main() {
     // log and the tail is 35 lines of "waiting for the web server": a raw tail
     // quotes only the noise. The summary must carry the workerd error AND the
     // final lines, and must collapse the repeated wait line.
-    const bootLog = await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text();
+    const bootLog = readFileSync("scripts/fixtures/e2e-log-boot-crash.log.txt", "utf8");
     const bootSummary = summarizeLog(bootLog) ?? "";
     for (const needle of [
       "--- error lines",
@@ -2708,7 +2727,7 @@ async function main() {
     // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
     // of run 34741970648: 75 passed, 10 skipped, 0 failed, and exit code 1 whose
     // only cause was `fetch failed` inside the teardown's `admin.deleteUser`.
-    const postTestLog = await Bun.file(POST_TEST_FIXTURE).text();
+    const postTestLog = readFileSync(POST_TEST_FIXTURE, "utf8");
     const postTest = grepPostTestErrors(postTestLog);
     const hasTeardownLine = postTest.some(
       (line) => line.includes("[e2e:teardown] failed to delete") && line.includes("fetch failed"),
@@ -2794,8 +2813,8 @@ async function main() {
     // DEC-083 / DEC-084 — THE CENSUS AND THE A11Y LINE, from a REAL captured
     // local job log (import-security IG-1, posting-routes PR-10/13/14, a11y).
     {
-      const log = redact(await Bun.file(CENSUS_FIXTURE).text());
-      const allow = parseSsrAllowlist(await Bun.file(SSR_ALLOWLIST).text());
+      const log = redact(readFileSync(CENSUS_FIXTURE, "utf8"));
+      const allow = parseSsrAllowlist(readFileSync(SSR_ALLOWLIST, "utf8"));
       const censusSource: Source = {
         label: "shard 3",
         json: null,
@@ -2884,8 +2903,9 @@ async function main() {
       // (lane smoke, the planted failure; redacted as captured, never retyped):
       // the server's record with its PL/pgSQL CONTEXT frames follows the
       // Cause lines, and the report must show the frames.
-      const startFailureLines = (
-        await Bun.file("scripts/fixtures/local-backend-start-failure.dec340.txt").text()
+      const startFailureLines = readFileSync(
+        "scripts/fixtures/local-backend-start-failure.dec340.txt",
+        "utf8",
       )
         .split("\n")
         .filter((line) => line.trim() !== "");
@@ -2927,7 +2947,9 @@ async function main() {
       // code finding). No backend start has failed since DEC-313, so that shape is made by the real
       // tools: the workflow's own DEC-313 line, then step-failures.mjs naming a failed `backend`.
       const stepFile = async (path: string) =>
-        (await Bun.file(path).text()).split("\n").filter((line) => line !== "");
+        readFileSync(path, "utf8")
+          .split("\n")
+          .filter((line) => line !== "");
       const installDied: Source = {
         label: "shard 1",
         json: null,
@@ -2942,15 +2964,15 @@ async function main() {
         logRead: false,
         stepFailure: await stepFile("scripts/fixtures/lane-step-failure.smoke.txt"),
       };
-      const laneWorkflow = await Bun.file(".github/workflows/local-backend-proof.yml").text();
+      const laneWorkflow = readFileSync(".github/workflows/local-backend-proof.yml", "utf8");
       const dec313 =
         /echo "(start failed before any migration ran[^"]*)" >> local-backend-failure\.txt/.exec(
           laneWorkflow,
         )?.[1] ?? "";
       const stepDir = join(tmpdir(), `inc-1101-${process.pid}`);
       const failureFile = join(stepDir, "local-backend-failure.txt");
-      await Bun.write(failureFile, `${dec313}\n`);
-      Bun.spawnSync(["node", "scripts/ci/step-failures.mjs"], {
+      writeText(failureFile, `${dec313}\n`);
+      spawnSync("node", ["scripts/ci/step-failures.mjs"], {
         env: {
           ...process.env,
           STEPS_JSON: JSON.stringify({ backend: { outcome: "failure" } }),
@@ -2973,7 +2995,7 @@ async function main() {
       };
       const testsFailed: Source = {
         label: "smoke",
-        json: (await Bun.file(FIXTURE).json()) as PwJson,
+        json: jsonFile(FIXTURE),
         logTail: null,
       };
       const infraRed = renderSources([installDied, noLog], meta, new Map(), []);
@@ -3031,7 +3053,7 @@ async function main() {
       );
       // (b) every expected log read, none carrying either tag: REAL captured
       // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
-      const quietLog = redact(await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text());
+      const quietLog = redact(readFileSync("scripts/fixtures/e2e-log-boot-crash.log.txt", "utf8"));
       const quiet = [1, 2].map(
         (n): Source => ({
           label: `shard ${n}`,
@@ -3066,7 +3088,7 @@ async function main() {
     // DEC-087 — the timing census, from a REAL captured results.json (a local
     // before-split shard 3/6 run, 98 tests, CI-T1).
     {
-      const timingJson = (await Bun.file(TIMING_FIXTURE).json()) as PwJson;
+      const timingJson = jsonFile(TIMING_FIXTURE);
       const rows = testTimings(timingJson);
       const shard: Source = { label: "shard 1", json: timingJson, logTail: null };
       const gap: Source = { label: "shard 4", json: null, logTail: null };
@@ -3132,7 +3154,7 @@ async function main() {
   // DEC-365 — a docs-only push skipped the lanes: no source exists, no ledger line is due.
   if (process.env["E2E_DOCS_ONLY"] === "1") {
     if (!flakeOnly) {
-      await Bun.write(OUT, renderLanesSkipped(meta));
+      writeText(OUT, renderLanesSkipped(meta));
       console.log(`Wrote ${OUT} (run ${meta.runId} ran no lanes: ${meta.lanes ?? ""}).`);
     }
     return;
@@ -3231,9 +3253,7 @@ async function main() {
   // DEC-083 — the allowlist is read on every run; a missing file is an empty list
   // (every message then shows as off-list), never a crash.
   const ssrAllowlist = parseSsrAllowlist(
-    await Bun.file(process.env["E2E_SSR_ALLOWLIST"] ?? SSR_ALLOWLIST)
-      .text()
-      .catch(() => ""),
+    textOr(process.env["E2E_SSR_ALLOWLIST"] ?? SSR_ALLOWLIST, ""),
   );
 
   const contexts =
@@ -3258,19 +3278,13 @@ async function main() {
       }
     }
     // DEC-078 part 2 — the green report carries the flake ledger and bodies.
-    await Bun.write(
-      OUT,
-      renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist),
-    );
+    writeText(OUT, renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist));
     // DEC-028 — a green run still publishes its verdict, so a consumer never
     // has to treat a missing verdict file as "probably green". The flaky count
     // is the real one (DEC-078 part 2).
     const greenVerdict = process.env["E2E_VERDICT_PATH"];
     if (greenVerdict)
-      await Bun.write(
-        greenVerdict,
-        `gating=0\nquarantined=0\nsilent=0\nflaky=${allFlaky.length}\n`,
-      );
+      writeText(greenVerdict, `gating=0\nquarantined=0\nsilent=0\nflaky=${allFlaky.length}\n`);
     console.log(
       `Wrote ${OUT} (green run ${meta.runId}, ${postTestWarnings} post-test warning line(s), ${allFlaky.length} flaky, ${contexts.size} context file(s) found).`,
     );
@@ -3278,7 +3292,7 @@ async function main() {
   }
 
   if (!flakeOnly) {
-    await Bun.write(OUT, renderSources(sources, meta, contexts, ssrAllowlist));
+    writeText(OUT, renderSources(sources, meta, contexts, ssrAllowlist));
     console.log(
       `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
     );
@@ -3286,7 +3300,7 @@ async function main() {
     const classPath = process.env["E2E_VERDICT_CLASS_PATH"];
     if (classPath) {
       const verdict = verdictClass(sources);
-      await Bun.write(classPath, `${verdict}\n`);
+      writeText(classPath, `${verdict}\n`);
       console.log(`Verdict class: ${verdict} (${classPath}).`);
     }
   }
@@ -3296,12 +3310,10 @@ async function main() {
   // so "it passed eventually" is a tracked event and never a silent one.
   const ledgerPath = process.env["E2E_FLAKE_LEDGER"] ?? "docs/tracking/flake-ledger.md";
   if (allFlaky.length > 0) {
-    const existing = await Bun.file(ledgerPath)
-      .text()
-      .catch(() => FLAKE_LEDGER_HEADER);
+    const existing = textOr(ledgerPath, FLAKE_LEDGER_HEADER);
     const body = existing.endsWith("\n") ? existing : `${existing}\n`;
     const fresh = newLedgerLines(existing, ledgerLines(allFlaky, meta));
-    if (fresh.length > 0) await Bun.write(ledgerPath, `${body}${fresh.join("\n")}\n`);
+    if (fresh.length > 0) writeText(ledgerPath, `${body}${fresh.join("\n")}\n`);
     console.log(
       `Flake ledger: appended ${fresh.length} line(s) to ${ledgerPath}; ${allFlaky.length - fresh.length} already there for this run (INC-495).`,
     );
@@ -3319,7 +3331,7 @@ async function main() {
     // runner died, which is a gating condition of its own (law F4).
     const silentSources = sources.filter((s) => !s.json || countTests(s.json) === 0).length;
     const gatingCount = gating.length + silentSources;
-    await Bun.write(
+    writeText(
       verdictPath,
       `gating=${gatingCount}\nquarantined=${quarantined.length}\nsilent=${silentSources}\nflaky=${allFlaky.length}\n`,
     );
@@ -3351,7 +3363,7 @@ if (import.meta.main) {
       /* the rescue pass is best-effort by definition */
     }
     try {
-      await Bun.write(OUT, renderCrash(error, meta, titles));
+      writeText(OUT, renderCrash(error, meta, titles));
       console.error(`REPORTER ERROR written to ${OUT}.`);
     } catch (writeError) {
       console.error("REPORTER ERROR could not be written:", writeError);

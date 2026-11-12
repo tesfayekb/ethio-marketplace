@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { codeOf, walkFiles } from "./kit";
 
@@ -91,8 +92,8 @@ export function declaredNames(source: string): Set<string> {
 
 /**
  * Housekeeping turn 3b (ruling 1, Q4) — every `.mjs` a scripts/ TypeScript file imports has a
- * `.d.mts` beside it exporting each imported name: judged here today, by `tsc` the day scripts/
- * joins the typecheck. `files` maps a root-relative path to its text.
+ * `.d.mts` beside it exporting each imported name: judged here, and by `tsc` through the scripts
+ * project (CF-TSC-1). `files` maps a root-relative path to its text.
  */
 export function undeclaredMjsImports(files: Map<string, string>): string[] {
   const findings: string[] = [];
@@ -126,6 +127,85 @@ export function undeclaredMjsImports(files: Map<string, string>): string[] {
     }
   }
   return findings.sort();
+}
+
+/** Every module specifier a TypeScript text imports or re-exports, dynamic imports included. */
+export function importsOf(text: string): string[] {
+  return ts.preProcessFile(text, true, true).importedFiles.map((f) => f.fileName);
+}
+
+/**
+ * Housekeeping turn 3c (ruling 2) — the files whose imports reach `.claude/`: each file with a
+ * relative import that resolves under `.claude/`, then every file importing one of those, until
+ * none joins. `imports` maps a root-relative path to its specifiers.
+ */
+export function kitReach(imports: Map<string, string[]>): string[] {
+  const target = (file: string, spec: string) =>
+    spec.startsWith(".") ? join(dirname(file), spec).split("\\").join("/") : null;
+  const reach = new Set<string>();
+  for (const [file, specs] of imports)
+    if (specs.some((spec) => target(file, spec)?.startsWith(".claude/"))) reach.add(file);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const [file, specs] of imports) {
+      if (reach.has(file)) continue;
+      const hit = specs.some((spec) => {
+        const path = target(file, spec);
+        if (path === null) return false;
+        const bare = path.replace(/\.[cm]?[jt]sx?$/, "");
+        return [path, `${bare}.ts`, `${bare}.tsx`, `${bare}/index.ts`].some((p) => reach.has(p));
+      });
+      if (hit) {
+        reach.add(file);
+        grew = true;
+      }
+    }
+  }
+  return [...reach].sort();
+}
+
+/** The scripts project's `include` lines (housekeeping turn 3c). */
+export const SCRIPTS_PROJECT_INCLUDE = [
+  "scripts/**/*.ts",
+  "playwright.nightly.config.ts",
+  "vitest.config.ts",
+];
+
+/**
+ * CF-TSC-1 — the `typecheck` script runs the root project and the scripts project; the scripts
+ * project extends the root, includes every script and the two root configs, and excludes exactly
+ * the files whose imports reach `.claude/` (`reach`, from kitReach).
+ */
+export function typecheckReachProblems(
+  typecheck: string,
+  configText: string,
+  reach: string[],
+): string[] {
+  const problems: string[] = [];
+  if (!/\btsc --noEmit(?! -p)/.test(typecheck))
+    problems.push("`typecheck` does not run the root project");
+  if (!/\btsc --noEmit -p tsconfig\.scripts\.json\b/.test(typecheck))
+    problems.push("`typecheck` does not run tsconfig.scripts.json");
+  const parsed = ts.parseConfigFileTextToJson("tsconfig.scripts.json", configText);
+  const config: unknown = parsed.config;
+  if (parsed.error !== undefined || typeof config !== "object" || config === null)
+    return [...problems, "tsconfig.scripts.json cannot be read"];
+  const list = (key: string): string[] => {
+    const value: unknown = key in config ? Reflect.get(config, key) : [];
+    return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+  };
+  if (Reflect.get(config, "extends") !== "./tsconfig.json")
+    problems.push("tsconfig.scripts.json does not extend ./tsconfig.json");
+  const include = list("include");
+  for (const line of SCRIPTS_PROJECT_INCLUDE)
+    if (!include.includes(line)) problems.push(`include lacks ${line}`);
+  const exclude = list("exclude");
+  for (const file of reach)
+    if (!exclude.includes(file)) problems.push(`exclude lacks ${file}, which reaches .claude/`);
+  for (const file of exclude)
+    if (!reach.includes(file)) problems.push(`exclude names ${file}, which reaches no .claude/`);
+  return problems;
 }
 
 describe("every guard script is wired to a caller (INC-563)", () => {
@@ -370,5 +450,49 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     planted.set("scripts/b.d.mts", "export default 1;");
     planted.set("scripts/ci/d.d.mts", "export {};");
     expect(undeclaredMjsImports(planted)).toEqual([]);
+  });
+
+  it("CF-TSC-1 typecheck runs both projects; the scripts project's exclude is the import census of .claude/", () => {
+    const imports = new Map<string, string[]>();
+    for (const file of walkFiles([join(ROOT, "scripts")], { ext: ["ts", "tsx", "mts"] }))
+      imports.set(
+        relative(ROOT, file).split("\\").join("/"),
+        importsOf(readFileSync(file, "utf8")),
+      );
+    const reach = kitReach(imports);
+    console.log(`[wired] files reaching .claude/: ${reach.length} (${reach.join(", ")})`);
+    const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    const typecheck = pkg.scripts?.["typecheck"] ?? "";
+    const config = readFileSync(join(ROOT, "tsconfig.scripts.json"), "utf8");
+    expect(typecheckReachProblems(typecheck, config, reach)).toEqual([]);
+
+    // Planted: the census follows imports, never a path named in a string.
+    expect(importsOf('const s = \'from "../../.claude/hooks/lib"\';\nimport "./x";')).toEqual([
+      "./x",
+    ]);
+    const planted = new Map([
+      ["scripts/a.ts", ["../.claude/hooks/lib", "node:fs"]],
+      ["scripts/b.test.ts", ["./a"]],
+      ["scripts/ci/c.ts", ["../b.test.ts"]],
+      ["scripts/d.ts", ["./e"]],
+      ["scripts/e.ts", []],
+    ]);
+    expect(kitReach(planted)).toEqual(["scripts/a.ts", "scripts/b.test.ts", "scripts/ci/c.ts"]);
+    // Planted bypasses: an include without scripts/, one project run, a fourth or missing exclude.
+    const noScripts = config.replace('"scripts/**/*.ts", ', "");
+    expect(typecheckReachProblems(typecheck, noScripts, reach)).toEqual([
+      "include lacks scripts/**/*.ts",
+    ]);
+    expect(typecheckReachProblems("tsc --noEmit", config, reach)).toEqual([
+      "`typecheck` does not run tsconfig.scripts.json",
+    ]);
+    expect(typecheckReachProblems(typecheck, config, [...reach, "scripts/planted.ts"])).toEqual([
+      "exclude lacks scripts/planted.ts, which reaches .claude/",
+    ]);
+    expect(typecheckReachProblems(typecheck, config, reach.slice(1))).toEqual([
+      `exclude names ${reach[0] ?? ""}, which reaches no .claude/`,
+    ]);
   });
 });

@@ -9,10 +9,8 @@
  *
  * A step the sandbox cannot run is a line of scripts/ci/turn-checks-allowlist.txt
  * (`job › step | reason | until`; a whole job is `job › *`) and prints NOT RUN with its reason.
- * Local forms (LOCAL below) replace a step only where CI's text cannot mean the same here:
- *   - Typecheck (R1): the platform harness's verdict, read from /tmp/observability/build-errors.log;
- *     PASS only when that file is newer than every change under src/, e2e/ and scripts/ and its
- *     last entry is "build OK"; older or missing → NOT RUN. Never re-run, never an old PASS.
+ * Local forms (LOCAL below) replace a step only where CI's text cannot mean the same here (the
+ * Typecheck step is not one: it runs CI's own `bun run typecheck`, both projects — TCK-12):
  *   - the i18n drift check: the maps' bytes before and after regenerating (CI's `git diff` would
  *     read this tree's uncommitted work as drift).
  *   - the budget job's Build: the same `bun run build` as build-and-check › Build, reused.
@@ -29,7 +27,7 @@
  * Output: one line per step (`PASS|FAIL|NOT RUN  job › step  (Ns)[ — reason]`), then the last
  * line `checks: N PASS · N FAIL · N NOT RUN · Ns`. Scanner output stays in the step's own log
  * (~/.cache/ethio-checks/logs), never printed: counts only (Knowledge: scanner output).
- * Guard: scripts/ci/turn-checks.test.ts (TCK-1…9).
+ * Guard: scripts/ci/turn-checks.test.ts (TCK-1…12).
  */
 import { spawnSync } from "node:child_process";
 import {
@@ -38,7 +36,6 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
-  statSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -54,7 +51,6 @@ import { briefInForce, NOT_RUN_EXIT, NOT_RUN_LINE } from "./laws-changed";
 
 export const CI_FILE = ".github/workflows/ci.yml";
 export const ALLOWLIST = "scripts/ci/turn-checks-allowlist.txt";
-const HARNESS_LOG = "/tmp/observability/build-errors.log";
 
 export type Verdict = "PASS" | "FAIL" | "NOT RUN";
 export type Step = {
@@ -222,7 +218,6 @@ export function uncovered(steps: Step[], allow: Map<string, string>): string[] {
 
 /** The local forms, by step key; TCK-1 fails a key ci.yml no longer holds. */
 export const LOCAL = {
-  "build-and-check › Typecheck": "the platform harness's verdict (R1)",
   "i18n-usage-map › Assert no drift": "the maps' bytes before and after regenerating",
   "bundle-budget › Build": "build-and-check › Build, reused",
   "secrets-scan › Secrets scan (gitleaks, pinned)":
@@ -235,24 +230,6 @@ export const LOCAL = {
 export const LOCAL_UNIT_BOUND = "--maxWorkers=2";
 export function localUnitTests(run: string): string {
   return `${run} -- ${LOCAL_UNIT_BOUND}`;
-}
-
-/** R1 — the harness's typecheck verdict, never re-run, never older than the tree. */
-export function typecheckVerdict(
-  log: { mtimeMs: number; text: string } | null,
-  newestChangeMs: number,
-): { verdict: Verdict; reason?: string } {
-  if (log === null) return { verdict: "NOT RUN", reason: `${HARNESS_LOG} is missing` };
-  if (log.mtimeMs < newestChangeMs)
-    return {
-      verdict: "NOT RUN",
-      reason: "the harness's verdict is older than the newest change; let it run, then run again",
-    };
-  const entries = log.text.split(/^=== build /m);
-  const last = entries.at(-1) ?? "";
-  if (/\bbuild OK\b/.test(last) && !/error/i.test(last.replace(/build OK/g, "")))
-    return { verdict: "PASS" };
-  return { verdict: "FAIL", reason: "the harness's last verdict holds errors" };
 }
 
 /** R3 — a pinned fetch or checksum that failed is NOT RUN, never PASS and never a stand-in. */
@@ -451,32 +428,57 @@ export function budgetVerdict(code: number, output: string): Verdict {
   return other.test(output) ? "FAIL" : "PASS";
 }
 
+const BUDGET_STEP = "bundle-budget › Check the first-paint budget";
+
+/** A run step's line from its exit and output: PASS (or the NEAR-only budget), R3's NOT RUN, FAIL. */
+export function stepLine(step: Step, r: { code: number; output: string }, seconds: number): Line {
+  const notFetched =
+    r.code !== 0 ? (fetchFailure(step, r.output) ?? lawsNotRun(step, r.code, r.output)) : undefined;
+  const nearOnly =
+    step.key === BUDGET_STEP &&
+    r.code !== 0 &&
+    r.code !== 124 &&
+    budgetVerdict(r.code, r.output) === "PASS";
+  if (r.code === 0 || nearOnly)
+    return {
+      verdict: "PASS",
+      key: step.key,
+      seconds,
+      reason: nearOnly
+        ? "its one failure is DEC-296's NEAR band: a NOTE below, CI's bundle-budget job judges"
+        : ownValue(LOCAL, step.key),
+    };
+  if (notFetched) return { verdict: "NOT RUN", key: step.key, seconds, reason: notFetched };
+  return {
+    verdict: "FAIL",
+    key: step.key,
+    seconds,
+    reason:
+      r.code === 124 ? `past its ${step.timeoutS}s deadline` : `exit ${r.code}; log ${CACHE}/logs`,
+  };
+}
+
 // ─── the run ───────────────────────────────────────────────────────────────────────────────────
 
-function sh(cmd: string, env: Record<string, string>, timeoutS: number, logName: string) {
+/** Runs one step's text under bash with its deadline; the output goes to the step's log. */
+export function sh(
+  cmd: string,
+  env: Record<string, string>,
+  timeoutS: number,
+  logName: string,
+  cwd?: string,
+) {
   mkdirSync(join(CACHE, "logs"), { recursive: true });
   const r = spawnSync("bash", ["-eo", "pipefail", "-c", cmd], {
     encoding: "utf8",
     env: { ...process.env, ...env },
     timeout: timeoutS * 1000,
     maxBuffer: 256 * 1024 * 1024,
+    ...(cwd === undefined ? {} : { cwd }),
   });
   const output = `${r.stdout ?? ""}${r.stderr ?? ""}`;
   writeFileSync(join(CACHE, "logs", `${logName}.log`), output);
   return { code: r.error ? 124 : (r.status ?? 1), output };
-}
-
-function newestChange(): number {
-  const r = spawnSync("git", ["ls-files", "-co", "--exclude-standard", "src", "e2e", "scripts"], {
-    encoding: "utf8",
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  let newest = 0;
-  for (const f of r.stdout.split("\n")) {
-    if (!f || !existsSync(f)) continue;
-    newest = Math.max(newest, statSync(f).mtimeMs);
-  }
-  return newest;
 }
 
 function mapsHash(): string {
@@ -553,8 +555,6 @@ function baseSizes(): { sizes: Map<string, { kib: number; ceiling: number }>; sh
   }
   return { sizes: pageSizes(readFileSync(cached, "utf8")), sha: sha.slice(0, 8) };
 }
-
-const BUDGET_STEP = "bundle-budget › Check the first-paint budget";
 
 function main(): number {
   const started = Date.now();
@@ -641,20 +641,6 @@ function main(): number {
       });
       continue;
     }
-    if (step.key === "build-and-check › Typecheck") {
-      const log = existsSync(HARNESS_LOG)
-        ? { mtimeMs: statSync(HARNESS_LOG).mtimeMs, text: readFileSync(HARNESS_LOG, "utf8") }
-        : null;
-      const v = typecheckVerdict(log, newestChange());
-      print({
-        verdict: v.verdict,
-        key: step.key,
-        seconds: secs(),
-        reason: v.reason ?? LOCAL[step.key],
-      });
-      if (v.verdict === "FAIL") failedJobs.set(step.job, step.name);
-      continue;
-    }
     if (step.key === "bundle-budget › Build" && buildResult !== null) {
       print({ ...buildResult, key: step.key, reason: LOCAL[step.key] });
       if (buildResult.verdict !== "PASS") failedJobs.set(step.job, step.name);
@@ -690,36 +676,7 @@ function main(): number {
       step.timeoutS,
       step.key.replace(/[^\w]+/g, "-"),
     );
-    const notFetched =
-      r.code !== 0
-        ? (fetchFailure(step, r.output) ?? lawsNotRun(step, r.code, r.output))
-        : undefined;
-    const nearOnly =
-      step.key === BUDGET_STEP &&
-      r.code !== 0 &&
-      r.code !== 124 &&
-      budgetVerdict(r.code, r.output) === "PASS";
-    const line: Line =
-      r.code === 0 || nearOnly
-        ? {
-            verdict: "PASS",
-            key: step.key,
-            seconds: secs(),
-            reason: nearOnly
-              ? "its one failure is DEC-296's NEAR band: a NOTE below, CI's bundle-budget job judges"
-              : (LOCAL as Record<string, string>)[step.key],
-          }
-        : notFetched
-          ? { verdict: "NOT RUN", key: step.key, seconds: secs(), reason: notFetched }
-          : {
-              verdict: "FAIL",
-              key: step.key,
-              seconds: secs(),
-              reason:
-                r.code === 124
-                  ? `past its ${step.timeoutS}s deadline`
-                  : `exit ${r.code}; log ${CACHE}/logs`,
-            };
+    const line = stepLine(step, r, secs());
     print(line);
     if (step.key === "build-and-check › Build") buildResult = line;
     if (line.verdict !== "PASS") failedJobs.set(step.job, step.name);
