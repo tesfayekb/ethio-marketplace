@@ -1,4 +1,5 @@
 import { pathToNode, type TreeNode } from "@/components/shell/location-data";
+import { safeHref, type SafeHref } from "@/lib/safe-href";
 
 export function mapsPlaceQuery(nodes: TreeNode[], coverage: string[]): string {
   const paths = coverage.map((id) => pathToNode(nodes, id)).filter((path) => path.length > 0);
@@ -46,20 +47,35 @@ export function mapsPathQuery(places: ReadonlyArray<PathedPlace>): string {
     .join(", ");
 }
 
-export function webPlaceUrl(query: string): string {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+export function webPlaceUrl(query: string): SafeHref | null {
+  return safeHref(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`);
 }
 
-export function webPinUrl(lat: number | string, lng: number | string): string {
-  return `https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`;
+export function webPinUrl(lat: number | string, lng: number | string): SafeHref | null {
+  return safeHref(`https://www.google.com/maps/search/?api=1&query=${lat}%2C${lng}`);
 }
 
-export function appPlaceUrl(query: string): string {
-  return `comgooglemaps://?q=${encodeURIComponent(query)}`;
+/** DEC-370 — the Google Maps app's scheme; these two builders are `{ app: true }`'s only callers. */
+export function appPlaceUrl(query: string): SafeHref | null {
+  return safeHref(`comgooglemaps://?q=${encodeURIComponent(query)}`, { app: true });
 }
 
-export function appPinUrl(lat: number | string, lng: number | string, zoom: number): string {
-  return `comgooglemaps://?q=${lat},${lng}&center=${lat},${lng}&zoom=${zoom}`;
+export function appPinUrl(
+  lat: number | string,
+  lng: number | string,
+  zoom: number,
+): SafeHref | null {
+  return safeHref(`comgooglemaps://?q=${lat},${lng}&center=${lat},${lng}&zoom=${zoom}`, {
+    app: true,
+  });
+}
+
+/** The web and app addresses of one place, offered together on an iPhone home screen (INC-731). */
+export type MapsPair = { web: SafeHref; app: SafeHref };
+
+/** Both addresses, or null when either was refused. */
+export function mapsPair(web: SafeHref | null, app: SafeHref | null): MapsPair | null {
+  return web === null || app === null ? null : { web, app };
 }
 
 export function isIosHomeScreen(): boolean {

@@ -20,6 +20,8 @@ import { gzipSync } from "node:zlib";
 
 import {
   closureListViolations,
+  entryAdminModules,
+  entryAdminViolations,
   entryChunks,
   judgeRouteBudgets,
   moduleCensus,
@@ -40,6 +42,7 @@ import {
   SHARED_SHELL_MODULES,
   tierFlagViolations,
 } from "./route-budgets.mjs";
+import { readAllowlist } from "./conformance/kit.ts";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
@@ -60,7 +63,8 @@ const BUDGET_KIB = {
   // DEC-296 (turn P-1c): the fourth strings layer, guide — the loaders in the provider's chunk and the gate's layers prop; +0.13 KiB on every page (local 212.6 + 0.1 KiB sat inside the NEAR band of 213); 213 → 214 = ceilingForLocal(212.6).
   // DEC-296 (turn P-1c b): local 213.6 + 0.1 KiB sat inside the NEAR band of 214 — the Guide on the pages people use: the entry's dependency map names the new chunks (page-guide, guide-spec, guide-sheet, the split spinner and on-demand-notice) and the six prim.guide.* keys join the base catalogue (CF-SL-1); +1.0 on base eb72f3bd's 212.6, while index.js itself is 0.6 smaller; 214 → 215 = ceilingForLocal(213.6).
   // ratchet housekeeping-1b (206.0 KiB local; DEC-362): the closure is chunked by a rule, 215 → 207 = ceilingForLocal(206.0); was 215.
-  js: 207,
+  // ratchet housekeeping-4 (204.4 KiB local; INC-1042: the admin navigation off the entry): 207 → 205 = ceilingForLocal(204.4); was 207.
+  js: 205,
   css: 40,
 };
 
@@ -131,8 +135,10 @@ const jsEntries = files.filter(
     (referenced.size > 0 ? referenced.has(basename(f)) : entryChunks([basename(f)]).length === 1),
 );
 const eager = new Set();
+const closureNames = [];
 for (const entry of jsEntries) {
   const closure = staticClosure(dirname(entry), [basename(entry)]);
+  closureNames.push(...closure);
   // INC-864: a must-stay-lazy chunk in the first-paint closure fails here,
   // with its name, whatever the total weight — the same exit path as the ceiling.
   const lazy = mustStayLazyViolation(closure);
@@ -173,14 +179,28 @@ if (!existsSync(chunkModulesFile)) {
   );
   process.exit(1);
 }
+const chunkModules = parseChunkModules(readFileSync(chunkModulesFile, "utf8"));
 const censusFailures = moduleCensus({
-  record: parseChunkModules(readFileSync(chunkModulesFile, "utf8")),
+  record: chunkModules,
   listed: SHARED_SHELL_MODULES.map(([path]) => path),
   exists: (path) => existsSync(path),
 });
 if (censusFailures.length > 0) {
   console.error("Bundle budget: SHARED_SHELL_MODULES and the build disagree (DEC-362):");
   for (const line of censusFailures) console.error(`  ${line}`);
+  process.exit(1);
+}
+// BC-16 (INC-1042): no admin module in the entry's closure but an allowlisted one. A stale,
+// expired or malformed allowlist line throws here, by its file and line (the kit's grammar).
+const entryAdmin = entryAdminModules(chunkModules, closureNames);
+const adminAllowed = readAllowlist(
+  "scripts/conformance/entry-admin-allowlist.txt",
+  entryAdmin.map(({ module }) => module),
+);
+const adminFailures = entryAdminViolations(entryAdmin, adminAllowed);
+if (adminFailures.length > 0) {
+  console.error("Bundle budget: admin code in the first download (BC-16):");
+  for (const line of adminFailures) console.error(`  ${line}`);
   process.exit(1);
 }
 for (const file of files) {
@@ -223,6 +243,9 @@ for (const kind of ["js", "css"]) {
   console.log(`${kind.toUpperCase()}: ${used.toFixed(1)} KiB / ${budget} KiB — ${verdict}`);
   if (exceedsCeiling(used, budget)) failed = true;
 }
+console.log(
+  `Admin code in the entry's closure: ${entryAdmin.length} module(s), each allowlisted (BC-16) — ok`,
+);
 
 if (failed) {
   console.error(

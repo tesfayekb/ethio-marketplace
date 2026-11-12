@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
+import { saveBlobAs } from "@/lib/save-file";
 
 import { toCsv, toXliff, type TransferFormat, type TransferRow } from "./io-formats";
 
@@ -79,14 +80,10 @@ export function TransferBar({
         const transferRows = asTransferRows(all);
         const text = format === "csv" ? toCsv(transferRows) : toXliff(transferRows, baseLang, lang);
         // A Blob URL keeps Ge'ez intact (UTF-8) where a data: URI would need escaping.
-        const url = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = exportFilename(lang, scope, format);
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-        URL.revokeObjectURL(url);
+        saveBlobAs(
+          new Blob([text], { type: "text/plain;charset=utf-8" }),
+          exportFilename(lang, scope, format),
+        );
       })
       .catch((failure: unknown) => {
         setErrorKey(translationErrorKey(failure));

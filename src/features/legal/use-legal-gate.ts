@@ -4,6 +4,7 @@ import { currentSession } from "@/lib/supabase-door";
 import { useEffect } from "react";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
+import { safeReturnPath } from "@/lib/return-path";
 import { gateExempt, gateKinds } from "./legal-kinds";
 import { myLegalStatus } from "./legal-reader";
 
@@ -84,7 +85,11 @@ export async function landAfterSignIn(input: {
 }): Promise<void> {
   const { navigate, href, replace, client, deadlineMs = 5000 } = input;
   const land = (target: string) =>
-    void navigate(replace === undefined ? { href: target } : { href: target, replace });
+    void navigate(
+      replace === undefined
+        ? { href: safeReturnPath(target) }
+        : { href: safeReturnPath(target), replace },
+    );
   const read = await currentSession();
   // INC-914 — a session that could not be read lands where it was going, logged: the legal
   // gate's own check (LegalGate, the in-app net) runs once the session is read.

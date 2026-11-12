@@ -7,6 +7,8 @@ import { SimilarAds } from "@/features/ad-page/similar-ads";
 import { ReportAd } from "@/features/ad-page/report-ad";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { cn } from "@/lib/utils";
+import { safeReturnPath } from "@/lib/return-path";
+import { siteHref } from "@/lib/safe-href";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
 import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
@@ -42,7 +44,7 @@ export const Route = createFileRoute("/l/$slug")({
     const answer = await readAdPageFn({ data: { slug: params.slug } });
     if (answer.kind !== "ad") throw notFound();
     if (`/l/${params.slug}` !== answer.canonical) {
-      throw redirect({ href: answer.canonical, statusCode: 301 });
+      throw redirect({ href: safeReturnPath(answer.canonical), statusCode: 301 });
     }
     return answer;
   },
@@ -59,7 +61,7 @@ export const Route = createFileRoute("/l/$slug")({
       doc.description.slice(0, 160),
     );
     const root = matches[0]?.loaderData as { origin?: string } | undefined;
-    const url = root?.origin ? `${root.origin}${canonical}` : null;
+    const url = root?.origin ? siteHref(root.origin, canonical) : null;
     const image = root?.origin
       ? doc.photos.length > 0
         ? `${root.origin}/l/${doc.public_id}/photo.jpg`

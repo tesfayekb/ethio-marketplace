@@ -1,3 +1,4 @@
+import { groupAt, sectionAt } from "@/components/shell/admin-nav-layer";
 import type { NavAlertId } from "@/config/panels.types";
 import type { MessageKey } from "@/i18n";
 
@@ -181,11 +182,7 @@ export type AdminSectionId = AdminSection["id"];
 
 /** The section that owns a pathname, or null for the landing / unknown paths. */
 export function sectionForPath(pathname: string): AdminSection | null {
-  return (
-    ADMIN_SECTIONS.find(
-      (section) => pathname === section.path || pathname.startsWith(`${section.path}/`),
-    ) ?? null
-  );
+  return sectionAt(ADMIN_SECTIONS, pathname);
 }
 
 /** Section id → its page's own section record (used by each section route). */
@@ -204,9 +201,7 @@ export function groupForSection(section: AdminSection) {
 
 /** The group whose own page exactly matches this pathname, when one exists. */
 export function groupForPath(pathname: string) {
-  return (
-    Object.values(ADMIN_GROUPS).find((group) => "path" in group && group.path === pathname) ?? null
-  );
+  return groupAt(Object.values(ADMIN_GROUPS), pathname);
 }
 
 /** The declared group id of a section (the literal union hides the optional). */

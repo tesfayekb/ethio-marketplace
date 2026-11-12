@@ -66,6 +66,7 @@ Details: `docs/features/security-scanning.md`.
   loops that run `EXECUTE format('GRANT … TO anon|authenticated|PUBLIC', f)`
   and flags every listed function not in `scripts/public-surface-allowlist.txt`.
   Self-test fixture: `scripts/fixtures/bad-public-grant-format-example.sql`.
+  A name the list repeats is refused by its parser (housekeeping turn 4, SLB-8).
 - Real-row proof guard (INC-445, floor `REAL_ROW_FLOOR=20261007000000`): a DO
   block reading identity/reference tables without the `e2e-mig-` scratch
   namespace is refused. Self-test fixture:
@@ -1125,6 +1126,14 @@ A Supabase door's refusal reaches the app as a plain { message, code, details, h
 
 INC-891 (Foundations turn 21) — one list per lint concern: flat config replaces a rule's options per file, so the route-boundary block had dropped INC-815's (and DEC-025's) selector for every route and server file since Foundations turn 2 (121 files); `RESTRICTED_SYNTAX` in eslint.config.js holds each concern's one list (typedClient, caughtError, routeBoundary, specLint), every block composes the lists its files owe, and scripts/conformance/lint-rules.test.ts CF-LINT-1…3 checks every file's computed config against the owed table and lints a planted breach at a screen, a route and a server path.
 
+## DEC-370 — a data-derived link reaches the page only through safe-href.ts (housekeeping turn 4)
+
+Two layers. `RESTRICTED_SYNTAX.safeHref` (eslint.config.js; every non-test file under src/) refuses a link built at its sink: a JSX `href` or a `.href =` whose value is a template with expressions, a concatenation or a call of anything but `safeHref`, `siteHref` or `appObjectUrl`; CF-LINT-5 lints the planted cases. `scripts/conformance/safe-href.test.ts` reads every sink with the type checker (the program of tsconfig.json), so a value is followed through state, props and builders: a JSX `href`, a `.href =` or `.location =`, `location.assign/replace(…)`, `window.open(…)` and the `href` of a `links` entry in a route's head() carry the module's `SafeHref` brand, a string-literal type, or null/undefined (CF-HREF-1, floor 20 sinks of the 29 at birth); the router's `href` option (`redirect`, `navigate`) is a `safeReturnPath(…)` call or a string literal (D20, the navigation half); `safeHref`'s `{ app: true }` is the maps builders' alone and `as SafeHref` is written only inside the module (CF-HREF-2); a planted file holds one bypass of each kind and each is found (CF-HREF-3). Exceptions: `scripts/conformance/safe-href-allowlist.txt` (`<file> <sink> <value> | reason | until`) — the build's stylesheet address and the photo origin's preconnect, the site's own addresses.
+
+## A value in inline script text is embedded by scriptLiteral (housekeeping turn 4)
+
+`src/lib/script-literal.ts` `scriptLiteral(value)` is the one builder (CF-SCRIPT-1, CF-SCRIPT-2: the escapes, `undefined` → `null`, a value with no JSON form throws). `scripts/conformance/script-text.test.ts` reads, under src/, every text that becomes script or style — a `children` of a head's `scripts` entry, the `__html` of `dangerouslySetInnerHTML`, the expression children of `<script>` and `<style>`, an interpolation inside an open `<script>`/`<style>` of a template string — and follows each name or function with the type checker: it must be a literal, a `scriptLiteral(…)` call or a template whose every interpolation is one (CF-SCRIPT-3, at least the four sinks at birth); a planted `JSON.stringify`, a raw interpolation and an unbuilt style are each found (CF-SCRIPT-4). No allowlist. The two censuses share the kit's `typedProgram` and `entryOfList`.
+
 ## Turn 30 (2026-10-23) — three guards: the caller gates, the shell pipes, the lints on every commit
 
 - **Caller gates (DEC-241, INC-833)** — `scripts/check-caller-gates.ts`, run in the smoke lane of `local-backend-proof.yml` over the temporary backend's live catalogue (the same SELECT the acceptance-doors guard uses, with `gated` = the definition names `assert_caller_active(`, `rate_gate(`, `has_permission(` or `is_super_admin(`): every VOLATILE function the role `authenticated` may EXECUTE is gated or has one line in `scripts/caller-gates-allowlist.txt` (`<fn with argument types> | <reason> | <until: YYYY-MM-DD or INC-###/DEC-###>`); a malformed line, a missing reason, a stale line (the function absent, not VOLATILE, or now gated), an expired date or an unknown marker fails. Self-test in the guards job of `ci.yml` (`SELF_TEST=1`) on `scripts/fixtures/caller-gates-bad.tsv` (an unchecked door, a stale line, an expired line — all three refused). After M20 the live catalogue requires no line (115 doors gated, 0 allowlisted); any later line names `until INC-837` or a date. **Retired in F1-1 (DEC-334):** `scripts/doors/check-doors.ts` replaces it — the self-test (`SELF_TEST=1`, planted fixtures in code for all seven finding kinds) and the static check in the guards job of `ci.yml`, `--live` over the temporary backend's catalogue in the smoke lane of `local-backend-proof.yml`; a legacy body (no `door_context`) is still judged by the old gate names, a shell body by its manifest line. See docs/features/doors.md.
@@ -1133,7 +1142,7 @@ INC-891 (Foundations turn 21) — one list per lint concern: flat config replace
 
 ## The conformance kit (Foundations turn 1, DEC-244)
 
-One kit for every census guard: `scripts/conformance/kit.ts` — `walkFiles` (the one tree walk), `codeOf` (comment blanking in one pass: a string literal is never a comment, a `/*` inside a `//` comment opens no block), `visitTs` (the TypeScript AST walk), `readAllowlist` (the one allowlist grammar) and `report` (the one finding line). `TREE_SCAN_MS` (30s) is every census test's timeout.
+One kit for every census guard: `scripts/conformance/kit.ts` — `walkFiles` (the one tree walk), `codeOf` (comment blanking in one pass: a string literal is never a comment, a `/*` inside a `//` comment opens no block), `visitTs` (the TypeScript AST walk), `readAllowlist` (the one allowlist grammar) and `report` (the one finding line); housekeeping turn 4 adds `typedProgram` (the type-checked program of tsconfig.json, or of one planted file served from memory) and `entryOfList` (an entry of a head's `links` or `scripts` list), read by the safe-href and script-text censuses. `TREE_SCAN_MS` (30s) is every census test's timeout.
 
 The allowlist grammar is `key | reason | until`, where `until` is a date (YYYY-MM-DD, expired fails), an INC-### or a DEC-###. A stale line (its key no longer found) fails. There is no fourth shape.
 
@@ -1234,3 +1243,12 @@ runs the lanes (ruling 1, Q9). Guards: CF-DOCS-1…6 (`scripts/ci/docs-only.test
 API's real answers for runs 43103925609 and 43033934604 under `scripts/fixtures/docs-only/`),
 `check-promote-needs.sh` with its planted fixture, and the reporter's DEC-365 self-test.
 `bun run checks` does not run `scope` (`scope › *` in turn-checks-allowlist.txt).
+
+## No compiler directive — CF-NN-3 (housekeeping turn 4)
+
+No file under `src/`, `scripts/` or `e2e/` carries a comment that silences the type checker (its
+expect-error, ignore or nocheck forms), but the router's generated `src/routeTree.gen.ts`; a
+type-level proof is an `expectTypeOf` assertion (the AI gateway's unknown task id:
+`expectTypeOf<"unknown">().not.toExtend<Parameters<typeof aiCall>[0]>()`, in
+`src/server/ai/gateway.test.ts`). Guard: CF-NN-3 in `scripts/conformance/non-null.test.ts`, with a
+planted file of the three forms.

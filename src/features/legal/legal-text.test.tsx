@@ -19,6 +19,13 @@ describe("LegalText safety", () => {
     expect(container.querySelectorAll("a")).toHaveLength(0);
     expect(container.textContent).toBe("[bad](javascript:alert) [data](data:text/html,x)");
   });
+  it("does not turn cleartext or protocol-relative links into links (DEC-370)", () => {
+    const text =
+      "[plain](http://example.invalid) [elsewhere](//example.invalid) [case](JaVaScRiPt:x)";
+    const { container } = render(<LegalText text={text} facts={{}} />);
+    expect(container.querySelectorAll("a")).toHaveLength(0);
+    expect(container.textContent).toBe(text);
+  });
   it("renders tokens safely, including multiline facts", () => {
     render(
       <LegalText

@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
@@ -116,4 +116,63 @@ describe("no new non-null assertion (the executor's platform rule; turn K2)", ()
       rmSync(dir, { recursive: true, force: true });
     }
   });
+});
+
+/**
+ * Housekeeping turn 4 (ruling 1 Q8) — NO COMPILER DIRECTIVE. A comment that silences the
+ * type checker (its expect-error, ignore and nocheck forms) hides what the checker found; a
+ * type-level proof is an `expectTypeOf` assertion. None under src/, scripts/ or e2e/ but the
+ * router's generated tree. The pattern is spelled in pieces so this file's own text holds none.
+ */
+const DIRECTIVE = new RegExp(`@ts-${"(?:expect-error|ignore|nocheck)"}\\b`);
+const GENERATED = new Set(["src/routeTree.gen.ts"]);
+
+/** Each directive's file and line, in the files given. */
+export function directiveCensus(files: string[]): Finding[] {
+  const findings: Finding[] = [];
+  for (const file of files) {
+    if (GENERATED.has(file)) continue;
+    readFileSync(file, "utf8")
+      .split("\n")
+      .forEach((text, index) => {
+        if (DIRECTIVE.test(text))
+          findings.push({
+            file,
+            line: index + 1,
+            what: "silences the type checker — prove the type with expectTypeOf instead",
+          });
+      });
+  }
+  return findings;
+}
+
+describe("no compiler directive (housekeeping turn 4)", () => {
+  it(
+    "CF-NN-3 no file under src/, scripts/ or e2e/ silences the type checker but the generated route tree, and the census names planted ones",
+    () => {
+      const files = walkFiles(["src", "scripts", "e2e"], {
+        ext: ["ts", "tsx", "mts", "cts", "js", "mjs", "cjs"],
+      });
+      console.log(`[directives] files read: ${files.length}`);
+      expect(files).toContain("src/routeTree.gen.ts");
+      expect(report(directiveCensus(files))).toBe("");
+
+      const dir = "node_modules/.cache/directives";
+      mkdirSync(dir, { recursive: true });
+      const planted = `${dir}/planted.ts`;
+      const clean = `${dir}/clean.ts`;
+      const mark = (form: string) => `// @ts-${form} planted`;
+      try {
+        writeFileSync(
+          planted,
+          `${mark("expect-error")}\nconst a: number = "x";\n${mark("ignore")}\nconst b: number = "y";\n/* ${mark("nocheck")} */\nexport { a, b };\n`,
+        );
+        writeFileSync(clean, `// a ts-ignore in prose is no directive\nexport const c = 1;\n`);
+        expect(directiveCensus([planted, clean]).map(({ line }) => line)).toEqual([1, 3, 5]);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    },
+    TREE_SCAN_MS,
+  );
 });

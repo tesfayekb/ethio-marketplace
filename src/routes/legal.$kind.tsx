@@ -4,6 +4,7 @@ import { LegalDocumentPage } from "@/features/legal/legal-document-page";
 import { SCRATCH_KIND, shapedCountries, signedInOnlyKind } from "@/features/legal/legal-kinds";
 import { useI18n } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
+import { safeReturnPath } from "@/lib/return-path";
 import { LegalScratchInputSchema } from "@/lib/schemas/server-fns";
 
 const scratchPageFn = createServerFn({ method: "GET" })
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/legal/$kind")({
   loaderDeps: ({ search }) => ({ countries: shapedCountries(search.countries) }),
   loader: async ({ params, deps }) => {
     if (params.kind === "terms" || params.kind === "privacy")
-      throw redirect({ href: `/${params.kind}`, statusCode: 301 });
+      throw redirect({ href: safeReturnPath(`/${params.kind}`), statusCode: 301 });
     if (!isE2E || !SCRATCH_KIND.test(params.kind) || signedInOnlyKind(params.kind))
       throw notFound();
     return scratchPageFn({ data: { kind: params.kind, countries: deps.countries } });

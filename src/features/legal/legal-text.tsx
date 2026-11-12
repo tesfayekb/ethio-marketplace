@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import { safeHref } from "@/lib/safe-href";
 import {
   legalHeadings,
   legalInline,
@@ -15,7 +16,7 @@ function inlineElements(nodes: LegalInline[]): ReactNode {
         <a
           key={index}
           href={node.href}
-          {...(/^https?:\/\//.test(node.href)
+          {...(node.href.startsWith("https:")
             ? { target: "_blank", rel: "noopener noreferrer" }
             : {})}
           className="break-words text-primary underline underline-offset-4"
@@ -56,13 +57,20 @@ export function LegalText({
       {toc ? (
         <nav data-testid="legal-toc">
           <ol className="list-decimal space-y-1 ps-6">
-            {legalHeadings(text).map((h) => (
-              <li key={h.id}>
-                <a href={`#${h.id}`} className="text-primary underline underline-offset-4">
-                  {inline(h.text)}
-                </a>
-              </li>
-            ))}
+            {legalHeadings(text).map((h) => {
+              const target = safeHref(`#${h.id}`);
+              return (
+                <li key={h.id}>
+                  {target === null ? (
+                    inline(h.text)
+                  ) : (
+                    <a href={target} className="text-primary underline underline-offset-4">
+                      {inline(h.text)}
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </nav>
       ) : null}

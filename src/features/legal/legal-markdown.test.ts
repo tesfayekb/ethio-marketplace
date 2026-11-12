@@ -47,21 +47,24 @@ describe("legal Markdown subset", () => {
     ]);
   });
   it.each([
-    "https://example.invalid",
-    "http://example.invalid",
-    "mailto:one@example.invalid",
-    "/terms",
-  ])("allows explicit link %s", (href) => {
-    expect(legalInline(`[label](${href})`)).toEqual([
+    ["https://example.invalid", "https://example.invalid/"],
+    ["mailto:one@example.invalid", "mailto:one@example.invalid"],
+    ["/terms", "/terms"],
+  ])("allows explicit link %s", (written, href) => {
+    expect(legalInline(`[label](${written})`)).toEqual([
       { type: "link", href, children: [{ type: "text", text: "label" }] },
     ]);
   });
-  it.each(["javascript:alert", "data:text/html,x", "//example.invalid", "terms"])(
-    "refuses link %s",
-    (href) => {
-      expect(legalInline(`[label](${href})`)).toEqual([{ type: "text", text: `[label](${href})` }]);
-    },
-  );
+  it.each([
+    "javascript:alert",
+    "JaVaScRiPt:alert",
+    "data:text/html,x",
+    "http://example.invalid",
+    "//example.invalid",
+    "terms",
+  ])("refuses link %s", (href) => {
+    expect(legalInline(`[label](${href})`)).toEqual([{ type: "text", text: `[label](${href})` }]);
+  });
   it("links bare email addresses", () => {
     expect(legalInline("one@example.invalid")[0]).toEqual({
       type: "link",
@@ -72,7 +75,7 @@ describe("legal Markdown subset", () => {
   it("links bare https addresses", () => {
     expect(legalInline("https://example.invalid")[0]).toEqual({
       type: "link",
-      href: "https://example.invalid",
+      href: "https://example.invalid/",
       children: [{ type: "text", text: "https://example.invalid" }],
     });
   });

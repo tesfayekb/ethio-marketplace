@@ -92,8 +92,8 @@ describe("ad structured data", () => {
     const value = doc();
     value.title = "</script>";
     const json = adJsonLd(value, url, null);
-    expect(json).not.toContain("<");
-    expect(json).toContain("\\u003c/script>");
+    expect(json).not.toMatch(/[<>]/);
+    expect(json).toContain("\\u003c/script\\u003e");
     expect(JSON.parse(json).name).toBe("</script>");
   });
   it("JL-5 no image means no image key", () => {

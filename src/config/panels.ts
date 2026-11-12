@@ -34,8 +34,6 @@ import {
 
 import type { LucideIcon } from "lucide-react";
 
-import { ADMIN_NAV_ITEMS } from "@/features/admin/rail-items";
-
 import type { NavItem, Panel, PanelAuthContext, PanelId } from "./panels.types";
 import { ownValue } from "@/lib/own-key";
 
@@ -134,8 +132,11 @@ export const PANELS: Record<PanelId, Panel> = {
      * panel surfaces its sections through the SAME shell panel-item seam as
      * Account and My Listings — no panel carries its own parallel navigation.
      * visibleItems() filters them with the permissions the shell already read.
+     * INC-1042 (housekeeping turn 4) — they arrive with the admin navigation
+     * layer (src/components/shell/admin-nav-layer.ts), never in a public page's
+     * first download, so the panel's own list is empty.
      */
-    items: [...ADMIN_NAV_ITEMS],
+    items: [],
   },
 };
 

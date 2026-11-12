@@ -42,3 +42,11 @@ export function moduleCensus(args: {
   exists: (path: string) => boolean;
   group?: string;
 }): string[];
+export function entryAdminModules(
+  record: Record<string, readonly string[]>,
+  closureNames: readonly string[],
+): Array<{ module: string; chunk: string }>;
+export function entryAdminViolations(
+  found: ReadonlyArray<{ module: string; chunk: string }>,
+  allowed: { has: (module: string) => boolean },
+): string[];

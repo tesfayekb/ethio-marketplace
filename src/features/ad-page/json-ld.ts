@@ -1,6 +1,7 @@
+import { scriptLiteral } from "@/lib/script-literal";
 import type { PublicListingDoc } from "./public-listing";
 
-/** Public facts only; escape markup before placing JSON in a script element. */
+/** Public facts only, as script text through the one builder (scriptLiteral). */
 export function adJsonLd(doc: PublicListingDoc, url: string, image: string | null): string {
   const offers =
     doc.price.mode === "fixed" &&
@@ -17,7 +18,7 @@ export function adJsonLd(doc: PublicListingDoc, url: string, image: string | nul
           },
         }
       : {};
-  return JSON.stringify({
+  return scriptLiteral({
     "@context": "https://schema.org",
     "@type": "Product",
     name: doc.title,
@@ -25,5 +26,5 @@ export function adJsonLd(doc: PublicListingDoc, url: string, image: string | nul
     url,
     ...(image === null ? {} : { image: [image] }),
     ...offers,
-  }).replace(/</g, "\\u003c");
+  });
 }

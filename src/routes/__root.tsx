@@ -33,6 +33,7 @@ import { refreshPage } from "@/lib/on-demand-failure";
 import { projectEnv } from "@/lib/supabase-door";
 import { Button } from "@/components/ui/button";
 import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
+import { siteHref } from "@/lib/safe-href";
 import type { FirstFeedPage } from "@/features/feed/feed-page";
 import { HeldFirstPage } from "@/features/feed/held-first-page";
 import {
@@ -397,15 +398,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function alternateLinks(data: SsrLangContext | undefined) {
   if (!data || !isPublicPath(data.path) || data.languages.length === 0) return [];
   const url = (code?: string) =>
-    `${data.origin}${data.path}${code ? `?lang=${encodeURIComponent(code)}` : ""}`;
+    siteHref(data.origin, `${data.path}${code ? `?lang=${encodeURIComponent(code)}` : ""}`);
   return [
-    ...data.languages.map((row) => ({
-      rel: "alternate",
-      hrefLang: row.code,
-      href: url(row.code),
-    })),
-    { rel: "alternate", hrefLang: "x-default", href: url() },
-  ];
+    ...data.languages.map((row) => ({ hrefLang: row.code, href: url(row.code) })),
+    { hrefLang: "x-default", href: url() },
+  ].flatMap(({ hrefLang, href }) => (href === null ? [] : [{ hrefLang, href }]));
 }
 
 function RootShell({ children }: { children: ReactNode }) {

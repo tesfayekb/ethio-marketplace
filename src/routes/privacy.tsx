@@ -4,6 +4,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
 import { useI18n } from "@/i18n";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
+import { siteHref } from "@/lib/safe-href";
 
 const privacyPageFn = createServerFn({ method: "GET" })
   .validator(NoInputSchema)
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/privacy")({
   loader: () => privacyPageFn(),
   head: ({ matches }) => {
     const root = matches[0]?.loaderData as { origin?: string } | undefined;
-    const url = root?.origin ? `${root.origin}/privacy` : null;
+    const url = root?.origin ? siteHref(root.origin, "/privacy") : null;
     return {
       meta: [
         ...pageHead(

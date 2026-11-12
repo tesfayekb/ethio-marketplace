@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { sellerHead } from "@/features/seller/seller-head";
 import { SellerPage } from "@/features/seller/seller-page";
 import { useI18n } from "@/i18n";
+import { safeReturnPath } from "@/lib/return-path";
 import { SellerPageInputSchema } from "@/lib/schemas/server-fns";
 
 const sellerExistsFn = createServerFn({ method: "GET" })
@@ -26,8 +27,9 @@ const sellerExistsFn = createServerFn({ method: "GET" })
  */
 export const Route = createFileRoute("/$name")({
   loader: async ({ params }) => {
+    if (holdsSeparator(params.name)) throw notFound();
     if (/[A-Z]/.test(params.name)) {
-      throw redirect({ href: `/${params.name.toLowerCase()}`, statusCode: 301 });
+      throw redirect({ href: safeReturnPath(`/${params.name.toLowerCase()}`), statusCode: 301 });
     }
     const exists = await sellerExistsFn({ data: { name: params.name } });
     // N1b-2c (INC-977) — a held name is not found, exactly like an unknown one (SPA-3).
@@ -39,6 +41,18 @@ export const Route = createFileRoute("/$name")({
   head: ({ loaderData }) => sellerHead(loaderData),
   component: SellerRoute,
 });
+
+/** INC-1117 — a path separator, as given or once decoded, is in no seller's name; an escape
+ *  that does not decode is malformed as well. */
+function holdsSeparator(name: string): boolean {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(name);
+  } catch {
+    return true;
+  }
+  return /[/\\]/.test(name) || /[/\\]/.test(decoded);
+}
 
 function SellerGonePage() {
   const { t } = useI18n();

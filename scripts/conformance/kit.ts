@@ -47,6 +47,49 @@ export function visitTs(file: string, visit: (node: ts.Node, source: ts.SourceFi
   };
   walk(source);
 }
+/**
+ * The type-checked program of `root`'s tsconfig.json files — or of one planted file served from
+ * memory, resolved against the same options — for a census that follows a value through state,
+ * props and imports (DEC-370's CF-HREF, the script-text census).
+ */
+export function typedProgram(root: string, planted?: { path: string; text: string }): ts.Program {
+  const parsed = ts.getParsedCommandLineOfConfigFile(
+    join(root, "tsconfig.json"),
+    {},
+    { ...ts.sys, onUnRecoverableConfigFileDiagnostic: () => undefined },
+  );
+  if (parsed === undefined) throw new Error(`${root}/tsconfig.json did not parse`);
+  const options = { ...parsed.options, noEmit: true };
+  if (planted === undefined) return ts.createProgram(parsed.fileNames, options);
+  const host = ts.createCompilerHost(options);
+  const full = join(root, planted.path);
+  const getSourceFile = host.getSourceFile.bind(host);
+  host.getSourceFile = (name, language, ...rest) =>
+    name === full
+      ? ts.createSourceFile(name, planted.text, language, true, ts.ScriptKind.TSX)
+      : getSourceFile(name, language, ...rest);
+  const fileExists = host.fileExists.bind(host);
+  host.fileExists = (name) => name === full || fileExists(name);
+  return ts.createProgram([full], options, host);
+}
+
+/** True when `node` is an entry of a `<property>: [...]` list (a route head's `links`, `scripts`),
+ *  through spreads, conditionals and nested lists. */
+export function entryOfList(node: ts.Node, property: string): boolean {
+  let current: ts.Node = node.parent;
+  if (!ts.isArrayLiteralExpression(current)) return false;
+  while (
+    ts.isArrayLiteralExpression(current) ||
+    ts.isSpreadElement(current) ||
+    ts.isConditionalExpression(current) ||
+    ts.isParenthesizedExpression(current)
+  ) {
+    if (ts.isPropertyAssignment(current.parent)) return current.parent.name.getText() === property;
+    current = current.parent;
+  }
+  return false;
+}
+
 export type Allowance = { key: string; reason: string; until: string; line: number };
 export function readAllowlist(path: string, found: Iterable<string>): Map<string, Allowance> {
   const keys = new Set(found);

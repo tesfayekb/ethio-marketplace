@@ -81,6 +81,9 @@ function probes(): { inputs: string[]; env: Record<string, string> } {
   const secret = randomBytes(16).toString("base64url");
   const jwt = `${"eyJ"}${part()}.${"eyJ"}${part()}.${part()}`;
   const keys = `sb_${"secret"}_${part()} sb_${"publishable"}_${part()}`;
+  // INC-1114: a key's last character may be "-" or "_"; fixed here, not left to chance.
+  const dashKey = `sb_${"secret"}_${part()}-`;
+  const underscoreKey = `sb_${"publishable"}_${part()}_`;
   return {
     inputs: [
       "owner 0f1e2d3c-4b5a-6978-8a9b-0c1d2e3f4a5b",
@@ -91,6 +94,8 @@ function probes(): { inputs: string[]; env: Record<string, string> } {
       `keys ${keys}`,
       "│ Secret Key │ abcdef │",
       `env ${secret}`,
+      `dash ${dashKey}`,
+      `underscore ${underscoreKey}, then`,
     ],
     env: { E2E_SUPABASE_SERVICE_ROLE_KEY: secret },
   };
@@ -131,6 +136,8 @@ describe("the lanes' evidence has one redaction (housekeeping turn 3)", () => {
       "keys [masked key] [masked key]",
       "│ Secret Key │ [masked] │",
       "env [masked]",
+      "dash [masked key]",
+      "underscore [masked key], then",
     ]);
   });
 
@@ -179,6 +186,11 @@ describe("the lanes' evidence has one redaction (housekeeping turn 3)", () => {
     const fromReporter = all.map((text) => redact(text, rules));
     expect(redactAll(all, lanesEnv)).toEqual(fromReporter);
     expect(fromReporter.at(-1)).toBe("both [masked] [masked]");
+    // INC-1114: a key ending in "-" or "_" is masked whole, the same bytes in both engines.
+    expect(fromReporter.slice(inputs.length - 2, inputs.length)).toEqual([
+      "dash [masked key]",
+      "underscore [masked key], then",
+    ]);
     expect(fromReporter.some((text, i) => text !== all[i])).toBe(true);
     // A head block line through the rules would lose its commit (DEC-368): the reporter writes it from ReportMeta.
     expect(redact(`- Commit: \`${"12".repeat(20)}\``, rules)).toBe("- Commit: `[masked hex]`");

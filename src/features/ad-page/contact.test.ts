@@ -23,6 +23,15 @@ describe("contact link helpers (bundle 19 turn 11)", () => {
   it("telHref removes spaces", () => {
     expect(telHref("+251 911 000 001")).toBe("tel:+251911000001");
   });
+
+  it("telHref keeps the stored value's digits and one leading + only, and refuses under three digits (DEC-370)", () => {
+    expect(telHref("(0911) 000-001")).toBe("tel:0911000001");
+    expect(telHref(" ++251-911 ")).toBe("tel:+251911");
+    expect(telHref("911;javascript:alert(1)")).toBe("tel:9111");
+    expect(telHref("12")).toBeNull();
+    expect(telHref("call me")).toBeNull();
+    expect(telHref("")).toBeNull();
+  });
 });
 
 describe("revealContact's parser (bundle 19 turn 11)", () => {

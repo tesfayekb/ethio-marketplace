@@ -1,3 +1,4 @@
+import { saveBlobAs } from "@/lib/save-file";
 import { currentSession } from "@/lib/supabase-door";
 
 export type RoutePath = `/api/${string}`;
@@ -125,18 +126,7 @@ async function requestRoute(
     let text: string | null = null;
     let blob: Blob | null = null;
     if (filename !== undefined && response.ok) {
-      const download = await response.blob();
-      const href = URL.createObjectURL(download);
-      const anchor = document.createElement("a");
-      try {
-        anchor.href = href;
-        anchor.download = filename;
-        document.body.appendChild(anchor);
-        anchor.click();
-      } finally {
-        anchor.remove();
-        URL.revokeObjectURL(href);
-      }
+      saveBlobAs(await response.blob(), filename);
     } else if (isJson) {
       text = await response.text();
     } else if (init.expect === "bytes") {

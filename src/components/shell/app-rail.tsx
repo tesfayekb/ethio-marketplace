@@ -23,7 +23,12 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
-import type { NavItem } from "@/config/panels.types";
+import type { NavAlertId, NavItem } from "@/config/panels.types";
+import {
+  NAV_ALERT_LABELS,
+  useAdminNav,
+  type AdminNavLayer,
+} from "@/components/shell/admin-nav-layer";
 import {
   childrenOf,
   feedRouteOf,
@@ -50,7 +55,6 @@ import {
 } from "@/components/shell/menu-row";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
-import { NAV_ALERT_LABELS, useNavAlerts } from "@/features/admin/nav-alerts";
 
 /**
  * COLLAPSE — an OPTION on md+, never the default and never on mobile.
@@ -727,17 +731,51 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
-/** Non-Marketplace rails: config items, sectioned and/or nested. */
+const NO_ITEMS: readonly NavItem[] = [];
+const NO_ALERTS: ReadonlySet<NavAlertId> = new Set();
+
+/**
+ * Non-Marketplace rails: config items, sectioned and/or nested. INC-1042 (housekeeping
+ * turn 4) — the admin panel's items and alerts come with the admin navigation layer
+ * (admin-nav-layer.ts); until it is in, the admin rail holds no item. The alerts' words
+ * are the shell's own (NAV_ALERT_LABELS, base keys: the rail draws outside the strings gate).
+ */
 function MenuNav({ onNavigate }: { onNavigate: () => void }) {
+  const { activePanel } = useShell();
+  const adminNav = useAdminNav();
+  if (activePanel !== "admin")
+    return <PanelMenuNav items={PANELS[activePanel].items} onNavigate={onNavigate} />;
+  return adminNav === null ? (
+    <PanelMenuNav items={NO_ITEMS} onNavigate={onNavigate} />
+  ) : (
+    <AdminMenuNav layer={adminNav} onNavigate={onNavigate} />
+  );
+}
+
+/** The admin panel's rail: the layer's items, marked by the layer's alerts. */
+function AdminMenuNav({ layer, onNavigate }: { layer: AdminNavLayer; onNavigate: () => void }) {
+  const { auth } = useShell();
+  const alerts = layer.useNavAlerts(true, auth.permissions);
+  return <PanelMenuNav items={layer.items} alerts={alerts} onNavigate={onNavigate} />;
+}
+
+function PanelMenuNav({
+  items: panelItems,
+  alerts = NO_ALERTS,
+  onNavigate,
+}: {
+  items: readonly NavItem[];
+  alerts?: ReadonlySet<NavAlertId>;
+  onNavigate: () => void;
+}) {
   const variant = useContext(RailVariantContext);
   const strip = variant === "strip";
   const compact = variant === "strip" || variant === "menu";
   const hide = useHide();
   const { t } = useI18n();
-  const { auth, activePanel } = useShell();
-  const alerts = useNavAlerts(activePanel === "admin", auth.permissions);
+  const { auth } = useShell();
   const collapsed = useContext(CollapsedContext);
-  const items = visibleItems(PANELS[activePanel].items, auth).filter(
+  const items = visibleItems(panelItems, auth).filter(
     (item) => !compact || item.id !== "post-entry",
   );
   // Active state for routed items — the current section is highlighted the
@@ -756,9 +794,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     isCurrentAt(
       item,
       at,
-      PANELS[activePanel].items.some(
-        (other) => other.path === item.path && other.hash !== undefined,
-      ),
+      panelItems.some((other) => other.path === item.path && other.hash !== undefined),
     );
   const holdsCurrent = (item: NavItem): boolean =>
     isCurrent(item) || (item.children ?? []).some(holdsCurrent);

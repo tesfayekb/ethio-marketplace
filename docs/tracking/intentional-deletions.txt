@@ -122,3 +122,5 @@ scripts/conformance/plan-seam.ts
 scripts/conformance/plan-seam.test.ts
 # P-2 (c) c2b M-3c-b part 5: the plan seam dropped (coverage_plans, its four functions); CF-PLAN-1's allowlist goes with it
 scripts/conformance/plan-seam-allowlist.txt
+# housekeeping turn 4 part B (ruling 1 Q4): the unused UI-kit chart (no importer, no chunk) and its <style> text
+src/components/ui/chart.tsx

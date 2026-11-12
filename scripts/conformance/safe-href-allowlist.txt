@@ -1,0 +1,3 @@
+# DEC-370 (INC-826): an href, .href, location or head-link sink whose value is not a SafeHref (src/lib/safe-href.ts) or a literal, read by scripts/conformance/safe-href.test.ts (CF-HREF-1). <file> <sink> <value> | <reason> | <until>
+src/routes/__root.tsx links href appCss | the app's own stylesheet address, emitted by the build (styles.css?url), never data | 2027-05-12
+src/routes/__root.tsx links href PHOTO_ORIGIN | the preconnect to the project's own photo origin, read from the public env (DEC-195), never data | 2027-05-12

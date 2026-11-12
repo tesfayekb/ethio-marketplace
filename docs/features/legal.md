@@ -117,6 +117,15 @@ LegalText renders React nodes only, never HTML: h1–h3, paragraph lines joined 
 bullet/number lists with indented continuations, trimmed pipe tables, bold, inline code, safe explicit
 links, bare https links and e-mail addresses. Tokens use own-key facts; multiline values join with
 commas and unknown tokens stay literal. h2 ids `s-1` onward drive the optional contents list.
+
+Housekeeping turn 4 (DEC-370, INC-826): every link the text draws — an explicit link, a bare https
+link, an e-mail address, a contents entry — is built by `safeHref` (`src/lib/safe-href.ts`), the
+WHATWG URL parser's answer for `https:`, `mailto:`, `tel:`, a root-relative path or a fragment; any
+other target (`http:`, `javascript:` in any case or spacing, `data:`, protocol-relative) stays text.
+`AgreeToDocument` passes each role's link through the same function, and the certification's
+publishing link encodes each country code. The landing after a sign-in (`landAfterSignIn`) and the
+`/legal/terms` and `/legal/privacy` moves navigate through D20's `safeReturnPath`. The admin's text
+downloads save through the one helper `saveBlobAs` (`src/lib/save-file.ts`).
 Phone tables scroll within their own box; external links use a new tab and noopener/noreferrer.
 
 Next: turn 3 public Terms and Privacy, the 18+ acceptance at sign-in and the person's legal history.

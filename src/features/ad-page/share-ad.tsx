@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n";
+import { safeHref } from "@/lib/safe-href";
 import { fill } from "@/features/posting/refusal-text";
 import { countShare, type ShareChannel } from "./count-view";
 
@@ -75,6 +76,14 @@ export function ShareAd({
   const textWithoutUrl = fill(t(key), { title, price: priceText ?? "", url: "" })
     .replace(/(?:፦|:)\s*$/, "")
     .trim();
+  const telegram = safeHref(
+    `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(textWithoutUrl)}`,
+  );
+  const whatsapp = safeHref(`https://wa.me/?text=${encodeURIComponent(text)}`);
+  const facebook = safeHref(
+    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+  );
+  const qrFile = safeHref(`/l/${publicId}/qr.svg`);
   const count = (channel: ShareChannel) => void countShare(publicId, channel);
   const copy = async () => {
     count("copy");
@@ -109,42 +118,48 @@ export function ShareAd({
             <DialogTitle>{t("adPage.share.title")}</DialogTitle>
           </DialogHeader>
           <div className="flex min-w-0 flex-col gap-1">
-            <Button asChild variant="ghost" className={row}>
-              <a
-                data-testid="listing-share-telegram"
-                href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(textWithoutUrl)}`}
-                target="_blank"
-                rel="noopener"
-                onClick={() => count("telegram")}
-              >
-                <Send aria-hidden="true" className="size-5 shrink-0" />
-                {t("post.who.channel.telegram")}
-              </a>
-            </Button>
-            <Button asChild variant="ghost" className={row}>
-              <a
-                data-testid="listing-share-whatsapp"
-                href={`https://wa.me/?text=${encodeURIComponent(text)}`}
-                target="_blank"
-                rel="noopener"
-                onClick={() => count("whatsapp")}
-              >
-                <MessageCircle aria-hidden="true" className="size-5 shrink-0" />
-                {t("post.who.channel.whatsapp")}
-              </a>
-            </Button>
-            <Button asChild variant="ghost" className={row}>
-              <a
-                data-testid="listing-share-facebook"
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`}
-                target="_blank"
-                rel="noopener"
-                onClick={() => count("facebook")}
-              >
-                <Facebook aria-hidden="true" className="size-5 shrink-0" />
-                {t("adPage.share.facebook")}
-              </a>
-            </Button>
+            {telegram !== null && (
+              <Button asChild variant="ghost" className={row}>
+                <a
+                  data-testid="listing-share-telegram"
+                  href={telegram}
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => count("telegram")}
+                >
+                  <Send aria-hidden="true" className="size-5 shrink-0" />
+                  {t("post.who.channel.telegram")}
+                </a>
+              </Button>
+            )}
+            {whatsapp !== null && (
+              <Button asChild variant="ghost" className={row}>
+                <a
+                  data-testid="listing-share-whatsapp"
+                  href={whatsapp}
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => count("whatsapp")}
+                >
+                  <MessageCircle aria-hidden="true" className="size-5 shrink-0" />
+                  {t("post.who.channel.whatsapp")}
+                </a>
+              </Button>
+            )}
+            {facebook !== null && (
+              <Button asChild variant="ghost" className={row}>
+                <a
+                  data-testid="listing-share-facebook"
+                  href={facebook}
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => count("facebook")}
+                >
+                  <Facebook aria-hidden="true" className="size-5 shrink-0" />
+                  {t("adPage.share.facebook")}
+                </a>
+              </Button>
+            )}
             <Button
               variant="ghost"
               className={row}
@@ -186,16 +201,18 @@ export function ShareAd({
                   height={192}
                 />
                 <p className="text-sm text-muted-foreground">{t("adPage.share.qrHint")}</p>
-                <Button asChild variant="ghost" className="min-h-11">
-                  <a
-                    data-testid="listing-share-qr-download"
-                    href={`/l/${publicId}/qr.svg`}
-                    download={`ethio-${publicId}-qr.svg`}
-                  >
-                    <Download aria-hidden="true" className="size-5" />
-                    {t("adPage.share.download")}
-                  </a>
-                </Button>
+                {qrFile !== null && (
+                  <Button asChild variant="ghost" className="min-h-11">
+                    <a
+                      data-testid="listing-share-qr-download"
+                      href={qrFile}
+                      download={`ethio-${publicId}-qr.svg`}
+                    >
+                      <Download aria-hidden="true" className="size-5" />
+                      {t("adPage.share.download")}
+                    </a>
+                  </Button>
+                )}
               </div>
             )}
             {canShare && (

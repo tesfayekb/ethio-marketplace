@@ -8,6 +8,8 @@ import {
   carriedViolation,
   chunkBaseName,
   closureListViolations,
+  entryAdminModules,
+  entryAdminViolations,
   entryChunks,
   judgeRouteBudgets,
   moduleCensus,
@@ -20,6 +22,7 @@ import {
   staticClosure,
   staticImportsOf,
 } from "./bundle-closure.mjs";
+import { readAllowlist } from "./conformance/kit";
 import { ENTRY_CLOSURE, SHARED_SHELL_MODULES } from "./route-budgets.mjs";
 
 /**
@@ -310,5 +313,52 @@ describe("the first-paint closure is chunked by a rule (DEC-362)", () => {
       expect(existsSync(path), path).toBe(true);
       expect(reason.trim().length, path).toBeGreaterThan(0);
     }
+  });
+});
+
+/**
+ * Housekeeping turn 4 (INC-1042, rulings 1 Q5 and 2) — the public first download carries no
+ * admin code. Proven on planted records; the budget step (scripts/check-bundle-size.mjs) runs
+ * it on the build's own record with the real allowlist.
+ */
+describe("the entry carries no admin code (INC-1042)", () => {
+  const ALLOWLIST = "scripts/conformance/entry-admin-allowlist.txt";
+  const banner = "src/features/admin/impersonation/impersonation-banner.tsx";
+
+  it("BC-16 an admin module in the entry's closure fails by its path unless allowlisted; a lazy chunk's never counts; the real allowlist is the impersonation three", () => {
+    const record = {
+      "index-AAAAAAAA.js": ["src/components/shell/breadcrumbs.tsx", banner],
+      "shared-shell-BBBBBBBB.js": ["src/lib/safe-href.ts"],
+      "admin-CCCCCCCC.js": ["src/features/admin/nav-layer.ts", "src/features/admin/sections.ts"],
+    };
+    const closure = ["index-AAAAAAAA.js", "shared-shell-BBBBBBBB.js"];
+    const allowed = new Set([banner]);
+    // today's shape: the layer and the sections in the admin layout's chunk, the banner allowlisted
+    expect(entryAdminModules(record, closure)).toEqual([
+      { module: banner, chunk: "index-AAAAAAAA.js" },
+    ]);
+    expect(entryAdminViolations(entryAdminModules(record, closure), allowed)).toEqual([]);
+    // a planted import of the sections module from the shell: it joins the entry and fails by name
+    const planted = {
+      ...record,
+      "index-AAAAAAAA.js": [...record["index-AAAAAAAA.js"], "src/features/admin/sections.ts"],
+    };
+    expect(entryAdminViolations(entryAdminModules(planted, closure), allowed)).toEqual([
+      "src/features/admin/sections.ts: in index-AAAAAAAA.js, in the entry's closure — the public first download carries no admin code (BC-16, INC-1042)",
+    ]);
+    // the real allowlist against the three impersonation modules the build's entry holds, each
+    // until INC-1116; a line the build no longer finds fails as stale
+    const impersonation = [
+      banner,
+      "src/features/admin/impersonation/impersonation-service.ts",
+      "src/features/admin/impersonation/use-impersonation.ts",
+    ];
+    const found = entryAdminModules({ "index-AAAAAAAA.js": impersonation }, closure).map(
+      ({ module }) => module,
+    );
+    const allowances = readAllowlist(ALLOWLIST, found);
+    expect([...allowances.keys()].sort()).toEqual(impersonation);
+    for (const allowance of allowances.values()) expect(allowance.until).toBe("INC-1116");
+    expect(() => readAllowlist(ALLOWLIST, found.slice(1))).toThrow("stale allowance");
   });
 });

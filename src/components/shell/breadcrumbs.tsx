@@ -15,7 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
-import { groupForPath, groupForSection, sectionForPath } from "@/features/admin/sections";
+import { groupAt, sectionAt, useAdminNav } from "@/components/shell/admin-nav-layer";
 import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
@@ -116,6 +116,7 @@ export function Breadcrumbs() {
   });
   const { activePanel, selectedCategorySlug } = useShell();
   const { tree } = useCategoryTree();
+  const adminNav = useAdminNav();
 
   const panelLabel = t(PANELS[activePanel].labelKey);
   /** U0l (INC-073): the crumb reads the URL, exactly like the rail and body. */
@@ -218,13 +219,14 @@ export function Breadcrumbs() {
   /**
    * U0c — ADMIN ROUTES feed THIS seam, route-derived (INC-058). The admin
    * panel no longer carries its own breadcrumb row: exactly one breadcrumb
-   * nav renders on every route, and it is this one.
+   * nav renders on every route, and it is this one. INC-1042 (housekeeping turn 4) — the
+   * section and its group come from the admin navigation layer; without it the trail is
+   * Home › Admin.
    */
   if (pathname.startsWith("/admin")) {
-    const section = sectionForPath(pathname);
-    const ownGroup = groupForPath(pathname);
-    const sectionGroup = section ? groupForSection(section) : null;
-    const group = ownGroup ?? sectionGroup;
+    const section = adminNav === null ? null : sectionAt(adminNav.sections, pathname);
+    const ownGroup = adminNav === null ? null : groupAt(adminNav.groups, pathname);
+    const group = ownGroup ?? section?.group ?? null;
     /**
      * U1d — the user-detail route publishes the name through the SMALLEST
      * EXISTING SEAM: the react-query cache the detail page already fills
@@ -289,13 +291,13 @@ export function Breadcrumbs() {
                     the current segment — before, it wore the current look
                     (bold, underlined, aria-current) beside the real current
                     page. */}
-                {"path" in group && group.path !== pathname ? (
+                {group.path !== undefined && group.path !== pathname ? (
                   <BreadcrumbLink asChild className={BAND_CRUMB}>
                     <Link to={group.path} data-testid="breadcrumb-admin-group">
                       <CutText text={t(group.titleKey)} />
                     </Link>
                   </BreadcrumbLink>
-                ) : "path" in group ? (
+                ) : group.path !== undefined ? (
                   <BreadcrumbPage data-testid="breadcrumb-admin-group" className={CURRENT}>
                     <CutText text={t(group.titleKey)} />
                   </BreadcrumbPage>

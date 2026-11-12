@@ -291,3 +291,36 @@ export function moduleCensus({ record, listed, exists, group = "shared-shell" })
       failures.push(`${module}: in ${file} but SHARED_SHELL_MODULES does not name it`);
   return failures;
 }
+
+/** The modules of the admin feature (src/features/admin/), by their module key. */
+const ADMIN_MODULE = /^src\/features\/admin\//;
+
+/**
+ * BC-16 (housekeeping turn 4, INC-1042) — THE PUBLIC FIRST DOWNLOAD CARRIES NO ADMIN CODE.
+ * `record` is the build's chunk → module keys, `closureNames` the entry's closure (file
+ * names). Answers every module under src/features/admin/ that a chunk of the closure
+ * holds, with its chunk, sorted by module.
+ */
+export function entryAdminModules(record, closureNames) {
+  const closure = new Set(closureNames);
+  const found = [];
+  for (const [chunk, modules] of Object.entries(record)) {
+    if (!closure.has(chunk)) continue;
+    for (const module of modules) if (ADMIN_MODULE.test(module)) found.push({ module, chunk });
+  }
+  return found.sort((a, b) => a.module.localeCompare(b.module));
+}
+
+/**
+ * BC-16 — each admin module in the entry's closure that `allowed` (the keys of
+ * scripts/conformance/entry-admin-allowlist.txt, read through the kit's readAllowlist,
+ * which fails a stale or expired line) does not name fails by its path.
+ */
+export function entryAdminViolations(found, allowed) {
+  return found
+    .filter(({ module }) => !allowed.has(module))
+    .map(
+      ({ module, chunk }) =>
+        `${module}: in ${chunk}, in the entry's closure — the public first download carries no admin code (BC-16, INC-1042)`,
+    );
+}

@@ -23,7 +23,7 @@
     },
     {
       "name": "SUPABASE_KEY",
-      "pattern": "\\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\\b",
+      "pattern": "\\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+",
       "replacement": "[masked key]"
     },
     {
