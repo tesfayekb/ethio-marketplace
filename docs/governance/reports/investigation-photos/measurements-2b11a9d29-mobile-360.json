@@ -1,0 +1,927 @@
+{
+  "project": "mobile-360",
+  "ids": {
+    "landscape": "3779a5df-8794-4a5d-89eb-0dd33787213a",
+    "portrait": "3f0bd96f-e9e4-440b-a36c-34b8be58c965",
+    "bare": "bf5b3c5b-9995-4f5c-b9e9-b5097c6aaa92"
+  },
+  "record": [
+    {
+      "screen": "my-listings",
+      "width": 360,
+      "path": "/my-listings",
+      "ready": true,
+      "images": [
+        {
+          "owner": "my-listing-bf5b3c5b-9995-4f5c-b9e9-b5097c6aaa92-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/public/category-assets/e2e-local/iph-2cu36r-640x480.png",
+          "shown": true,
+          "complete": true,
+          "natural": "640x480",
+          "drawn": "80x60",
+          "drawnAt": "68,69",
+          "objectFit": "contain",
+          "cssSize": "80px / 60px",
+          "cssMax": "100% / none",
+          "frameWidth": 80,
+          "frameHeight": 60,
+          "frameStyle": "aspect-ratio: 1.33333 / 1; width: min(100cqw, 100cqw);",
+          "frameContainer": "inline-size",
+          "picture": "category",
+          "pictureWidth": 80,
+          "pictureHeight": 60,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 80
+            },
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 80
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/png",
+            "bytes": "3077"
+          }
+        },
+        {
+          "owner": "my-listing-3f0bd96f-e9e4-440b-a36c-34b8be58c965-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-3huz14-360x480.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "80x60",
+          "drawnAt": "68,220",
+          "objectFit": "cover",
+          "cssSize": "80px / 60px",
+          "cssMax": "100% / none",
+          "frameWidth": 80,
+          "frameHeight": 60,
+          "frameStyle": "width: 100%; height: 100%;",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 80,
+          "pictureHeight": 60,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 80
+            },
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 80
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "14282"
+          }
+        },
+        {
+          "owner": "my-listing-3779a5df-8794-4a5d-89eb-0dd33787213a-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-qu9ogz-480x360.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "80x60",
+          "drawnAt": "68,371",
+          "objectFit": "cover",
+          "cssSize": "80px / 60px",
+          "cssMax": "100% / none",
+          "frameWidth": 80,
+          "frameHeight": 60,
+          "frameStyle": "width: 100%; height: 100%;",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 80,
+          "pictureHeight": 60,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 80
+            },
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 80
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "13900"
+          }
+        },
+        {
+          "owner": "my-listing-bf5b3c5b-9995-4f5c-b9e9-b5097c6aaa92-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/public/category-assets/e2e-local/iph-2cu36r-640x480.png",
+          "shown": false,
+          "complete": false,
+          "natural": "0x0",
+          "drawn": "0x0",
+          "drawnAt": "0,0",
+          "objectFit": "contain",
+          "cssSize": "100% / 100%",
+          "cssMax": "100% / none",
+          "frameWidth": 0,
+          "frameHeight": 0,
+          "frameStyle": "aspect-ratio: 1.33333 / 1; width: min(100cqw, 100cqw);",
+          "frameContainer": "inline-size",
+          "picture": "category",
+          "pictureWidth": 0,
+          "pictureHeight": 0,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 0
+            },
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 0
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/png",
+            "bytes": "3077"
+          }
+        },
+        {
+          "owner": "my-listing-3f0bd96f-e9e4-440b-a36c-34b8be58c965-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-3huz14-360x480.jpg",
+          "shown": false,
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "0x0",
+          "drawnAt": "0,0",
+          "objectFit": "cover",
+          "cssSize": "100% / 100%",
+          "cssMax": "100% / none",
+          "frameWidth": 0,
+          "frameHeight": 0,
+          "frameStyle": "width: 100%; height: 100%;",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 0,
+          "pictureHeight": 0,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 0
+            },
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 0
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "14282"
+          }
+        },
+        {
+          "owner": "my-listing-3779a5df-8794-4a5d-89eb-0dd33787213a-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-qu9ogz-480x360.jpg",
+          "shown": false,
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "0x0",
+          "drawnAt": "0,0",
+          "objectFit": "cover",
+          "cssSize": "100% / 100%",
+          "cssMax": "100% / none",
+          "frameWidth": 0,
+          "frameHeight": 0,
+          "frameStyle": "width: 100%; height: 100%;",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 0,
+          "pictureHeight": 0,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 0
+            },
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 0
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "13900"
+          }
+        }
+      ],
+      "routes": [
+        {
+          "path": "/api/i18n/en",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations/ET",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/i18n/en",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/media/photo-links",
+          "method": "POST",
+          "status": 200,
+          "asked": {
+            "photoIds": [
+              "1197c8bf-c2aa-44ae-b5ac-218f611c4a3a",
+              "993267b6-7360-4f30-b905-e9052410b5d3"
+            ]
+          },
+          "variants": {
+            "1197c8bf-c2aa-44ae-b5ac-218f611c4a3a": [
+              "card",
+              "thumb",
+              "mid",
+              "cover"
+            ],
+            "993267b6-7360-4f30-b905-e9052410b5d3": [
+              "card",
+              "thumb",
+              "mid",
+              "cover"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "screen": "my-listing-portrait",
+      "width": 360,
+      "path": "/my-listings/3f0bd96f-e9e4-440b-a36c-34b8be58c965",
+      "ready": true,
+      "images": [
+        {
+          "owner": "gallery-main",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-3huz14-360x480.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "270x360",
+          "drawn": "232x174",
+          "drawnAt": "88,314",
+          "objectFit": "contain",
+          "cssSize": "232px / 174px",
+          "cssMax": "100% / none",
+          "frameWidth": 232,
+          "frameHeight": 174,
+          "frameStyle": "touch-action: pan-y;",
+          "frameContainer": "normal",
+          "picture": "",
+          "pictureWidth": null,
+          "pictureHeight": null,
+          "pictureContainer": "",
+          "containers": [
+            {
+              "at": "listing-detail-gallery",
+              "type": "inline-size",
+              "width": 232
+            },
+            {
+              "at": "listing-detail",
+              "type": "inline-size",
+              "width": 248
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "14282"
+          }
+        }
+      ],
+      "routes": [
+        {
+          "path": "/api/locations",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations/ET",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/i18n/en",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/media/photo-links",
+          "method": "POST",
+          "status": 200,
+          "asked": {
+            "photoIds": [
+              "993267b6-7360-4f30-b905-e9052410b5d3"
+            ]
+          },
+          "variants": {
+            "993267b6-7360-4f30-b905-e9052410b5d3": [
+              "card",
+              "thumb",
+              "mid",
+              "cover"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "screen": "ad-landscape",
+      "width": 360,
+      "path": "/l/srgbpeehjx",
+      "ready": true,
+      "images": [
+        {
+          "owner": "gallery-main",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-qu9ogz-480x360.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "360x270",
+          "drawn": "280x210",
+          "drawnAt": "64,108",
+          "objectFit": "contain",
+          "cssSize": "280px / 210px",
+          "cssMax": "100% / none",
+          "frameWidth": 280,
+          "frameHeight": 210,
+          "frameStyle": "touch-action:pan-y",
+          "frameContainer": "normal",
+          "picture": "",
+          "pictureWidth": null,
+          "pictureHeight": null,
+          "pictureContainer": "",
+          "containers": [
+            {
+              "at": "listing-detail-gallery",
+              "type": "inline-size",
+              "width": 280
+            },
+            {
+              "at": "listing-detail",
+              "type": "inline-size",
+              "width": 296
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "13900"
+          }
+        }
+      ],
+      "routes": [
+        {
+          "path": "/api/locations",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations/ET",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/i18n/en",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "screen": "ad-portrait",
+      "width": 360,
+      "path": "/l/bsrtmb9x2m",
+      "ready": true,
+      "images": [
+        {
+          "owner": "gallery-main",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-3huz14-360x480.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "270x360",
+          "drawn": "280x210",
+          "drawnAt": "64,108",
+          "objectFit": "contain",
+          "cssSize": "280px / 210px",
+          "cssMax": "100% / none",
+          "frameWidth": 280,
+          "frameHeight": 210,
+          "frameStyle": "touch-action:pan-y",
+          "frameContainer": "normal",
+          "picture": "",
+          "pictureWidth": null,
+          "pictureHeight": null,
+          "pictureContainer": "",
+          "containers": [
+            {
+              "at": "listing-detail-gallery",
+              "type": "inline-size",
+              "width": 280
+            },
+            {
+              "at": "listing-detail",
+              "type": "inline-size",
+              "width": 296
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "14282"
+          }
+        }
+      ],
+      "routes": [
+        {
+          "path": "/api/listings/view",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/locations",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations/ET",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/i18n/en",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "screen": "ad-no-photo",
+      "width": 360,
+      "path": "/l/mp8qfn575r",
+      "ready": true,
+      "images": [
+        {
+          "owner": "listing-detail-illustration",
+          "src": "https://<ethio-staging>/storage/v1/object/public/category-assets/e2e-local/iph-2cu36r-640x480.png",
+          "shown": true,
+          "complete": true,
+          "natural": "640x480",
+          "drawn": "280x210",
+          "drawnAt": "64,108",
+          "objectFit": "contain",
+          "cssSize": "280px / 210px",
+          "cssMax": "100% / none",
+          "frameWidth": 280,
+          "frameHeight": 210,
+          "frameStyle": "aspect-ratio:1.3333333333333333;width:min(100cqw, 100cqw)",
+          "frameContainer": "inline-size",
+          "picture": "category",
+          "pictureWidth": 280,
+          "pictureHeight": 210,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 280
+            },
+            {
+              "at": "listing-detail-illustration",
+              "type": "inline-size",
+              "width": 280
+            },
+            {
+              "at": "listing-detail",
+              "type": "inline-size",
+              "width": 296
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/png",
+            "bytes": "3077"
+          }
+        }
+      ],
+      "routes": [
+        {
+          "path": "/api/listings/view",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/locations",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations/ET",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/i18n/en",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "screen": "home-feed",
+      "width": 360,
+      "path": "/",
+      "ready": true,
+      "images": [
+        {
+          "owner": "listing-card-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/public/category-assets/e2e-local/iph-2cu36r-640x480.png",
+          "shown": true,
+          "complete": true,
+          "natural": "640x480",
+          "drawn": "93.3x70",
+          "drawnAt": "56,366.3",
+          "objectFit": "contain",
+          "cssSize": "93.3281px / 69.9844px",
+          "cssMax": "100% / none",
+          "frameWidth": 93.3,
+          "frameHeight": 70,
+          "frameStyle": "width: min(100cqw, 100cqw); aspect-ratio: 1.33333 / 1;",
+          "frameContainer": "inline-size",
+          "picture": "category",
+          "pictureWidth": 93.3,
+          "pictureHeight": 70,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card-picture",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card",
+              "type": "inline-size",
+              "width": 93.3
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/png",
+            "bytes": "3077"
+          }
+        },
+        {
+          "owner": "listing-card-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-3huz14-360x480.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "93.3x70",
+          "drawnAt": "157.3,366.3",
+          "objectFit": "cover",
+          "cssSize": "93.3281px / 69.9844px",
+          "cssMax": "100% / none",
+          "frameWidth": 93.3,
+          "frameHeight": 70,
+          "frameStyle": "width:100%;height:100%",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 93.3,
+          "pictureHeight": 70,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card-picture",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card",
+              "type": "inline-size",
+              "width": 93.3
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "14282"
+          }
+        },
+        {
+          "owner": "listing-card-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-qu9ogz-480x360.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "93.3x70",
+          "drawnAt": "258.7,366.3",
+          "objectFit": "cover",
+          "cssSize": "93.3438px / 70px",
+          "cssMax": "100% / none",
+          "frameWidth": 93.3,
+          "frameHeight": 70,
+          "frameStyle": "width:100%;height:100%",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 93.3,
+          "pictureHeight": 70,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card-picture",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card",
+              "type": "inline-size",
+              "width": 93.3
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "13900"
+          }
+        },
+        {
+          "owner": "listing-card-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/public/category-assets/e2e-local/iph-sl6w4l-640x480.png",
+          "shown": true,
+          "complete": true,
+          "natural": "640x480",
+          "drawn": "93.3x70",
+          "drawnAt": "157.3,630.3",
+          "objectFit": "contain",
+          "cssSize": "93.3281px / 69.9844px",
+          "cssMax": "100% / none",
+          "frameWidth": 93.3,
+          "frameHeight": 70,
+          "frameStyle": "width: min(100cqw, 100cqw); aspect-ratio: 1.33333 / 1;",
+          "frameContainer": "inline-size",
+          "picture": "category",
+          "pictureWidth": 93.3,
+          "pictureHeight": 70,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card-picture",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card",
+              "type": "inline-size",
+              "width": 93.3
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/png",
+            "bytes": "3077"
+          }
+        },
+        {
+          "owner": "listing-card-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-xo064w-360x480.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "360x480",
+          "drawn": "93.3x70",
+          "drawnAt": "258.7,630.3",
+          "objectFit": "cover",
+          "cssSize": "93.3438px / 70px",
+          "cssMax": "100% / none",
+          "frameWidth": 93.3,
+          "frameHeight": 70,
+          "frameStyle": "width:100%;height:100%",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 93.3,
+          "pictureHeight": 70,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card-picture",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card",
+              "type": "inline-size",
+              "width": 93.3
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "14282"
+          }
+        },
+        {
+          "owner": "listing-card-picture",
+          "src": "https://<ethio-staging>/storage/v1/object/sign/listing-photos/e2e-local/iph-qp9dq8-480x360.jpg",
+          "shown": true,
+          "complete": true,
+          "natural": "480x360",
+          "drawn": "93.3x70",
+          "drawnAt": "56,842.3",
+          "objectFit": "cover",
+          "cssSize": "93.3281px / 69.9844px",
+          "cssMax": "100% / none",
+          "frameWidth": 93.3,
+          "frameHeight": 70,
+          "frameStyle": "width:100%;height:100%",
+          "frameContainer": "inline-size",
+          "picture": "photo",
+          "pictureWidth": 93.3,
+          "pictureHeight": 70,
+          "pictureContainer": "inline-size",
+          "containers": [
+            {
+              "at": "div",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card-picture",
+              "type": "inline-size",
+              "width": 93.3
+            },
+            {
+              "at": "listing-card",
+              "type": "inline-size",
+              "width": 93.3
+            }
+          ],
+          "timingStatus": 0,
+          "timingBytes": 0,
+          "answer": {
+            "status": 200,
+            "type": "image/jpeg",
+            "bytes": "13900"
+          }
+        }
+      ],
+      "routes": [
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/locations/ET",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/i18n/en",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/categories/tree",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    }
+  ]
+}
