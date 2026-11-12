@@ -1,8 +1,9 @@
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { cliPin } from "./cli-pin";
 
 /**
  * INC-984 (Foundations turn N1b-2, C3 i) — a lane's failing guard lines reach the ci-evidence
@@ -49,6 +50,9 @@ describe("a lane's step failure is published (INC-984)", () => {
         encoding: "utf8",
         env: {
           PATH: process.env["PATH"] ?? "",
+          // The step's PYTHONPATH (scripts/ci), absolute: the program runs in a scratch directory.
+          PYTHONPATH: join(process.cwd(), "scripts/ci"),
+          PYTHONDONTWRITEBYTECODE: "1",
           GITHUB_SHA: "f".repeat(40),
           GITHUB_REPOSITORY: "o/r",
           GITHUB_RUN_ID: "1",
@@ -64,6 +68,44 @@ describe("a lane's step failure is published (INC-984)", () => {
       expect(lane).toContain(
         "S5 live FAIL: Accept-Profile: net answered HTTP 200: [] apikey [masked JWT]",
       );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("LFE-3 the lane writes its step file, redacted, and its log artifact carries it to the merged reporter (INC-1101)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "lfe-"));
+    try {
+      const captured = readFileSync("scripts/fixtures/lane-step-failure.install.txt", "utf8");
+      writeFileSync(
+        join(dir, "local-backend-failure.txt"),
+        `${captured}  owner user@example.invalid\n`,
+      );
+      const result = spawnSync("python3", ["-c", heredoc("Write lane evidence")], {
+        cwd: dir,
+        encoding: "utf8",
+        env: {
+          PATH: process.env["PATH"] ?? "",
+          // The step's PYTHONPATH (scripts/ci), absolute: the program runs in a scratch directory.
+          PYTHONPATH: join(process.cwd(), "scripts/ci"),
+          PYTHONDONTWRITEBYTECODE: "1",
+          GITHUB_SHA: "f".repeat(40),
+          GITHUB_REPOSITORY: "o/r",
+          GITHUB_RUN_ID: "1",
+          PROOF_LANE: "1",
+          // The workflow's top-level pin, which the step inherits.
+          SUPABASE_CLI_VERSION: cliPin(WORKFLOW) ?? "",
+        },
+        timeout: 20_000,
+      });
+      expect(result.status, result.stderr).toBe(0);
+      expect(readFileSync(join(dir, "local-backend-step-failure.txt"), "utf8")).toBe(
+        `${captured}  owner [e-mail]\n`,
+      );
+      const at = WORKFLOW.indexOf("- name: Upload lane log");
+      const upload = WORKFLOW.slice(at, WORKFLOW.indexOf("- name: ", at + 10));
+      expect(upload).toContain("name: e2e-log-${{ matrix.lane }}");
+      expect(upload).toContain("local-backend-step-failure.txt");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

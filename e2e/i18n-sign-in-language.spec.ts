@@ -7,10 +7,15 @@ import {
   signOutViaUi,
   stepUpIfPrompted,
   switchLanguage,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { destroyListingsOf, leaseSeller } from "./helpers/posting";
+import {
+  restoreAccountLanguages,
+  seedAccountLanguage,
+  setAccountLanguage,
+} from "./helpers/account-language";
 
 /**
  * D239 — SIGNING IN SWITCHES THE SITE TO THE ACCOUNT'S LANGUAGE.
@@ -23,17 +28,6 @@ import { destroyListingsOf, leaseSeller } from "./helpers/posting";
 const STAR_KEY = "ethio.lang.star";
 const STAR_COOKIE = "ethio_lang_star";
 const CURRENT_KEY = "ethio.lang";
-
-const touched = new Set<string>();
-
-async function setAccountLanguage(userId: string, code: string | null) {
-  touched.add(userId);
-  const { error } = await adminClient()
-    .from("profiles")
-    .update({ preferred_language: code })
-    .eq("user_id", userId);
-  if (error) throw new Error(`[e2e:d239] seeding preference: ${error.message}`);
-}
 
 async function accountLanguage(userId: string): Promise<string | null> {
   const { data, error } = await adminClient()
@@ -80,14 +74,7 @@ async function starCookie(page: Page): Promise<string | undefined> {
 }
 
 test.afterEach(async () => {
-  const ids = [...touched];
-  touched.clear();
-  if (ids.length === 0) return;
-  const { error } = await adminClient()
-    .from("profiles")
-    .update({ preferred_language: null })
-    .in("user_id", ids);
-  if (error) throw new Error(`[e2e:d239] restoring preference: ${error.message}`);
+  await restoreAccountLanguages();
 });
 
 test.describe("D239 — the account's language at sign-in", () => {
@@ -95,7 +82,7 @@ test.describe("D239 — the account's language at sign-in", () => {
     page,
   }) => {
     const user = await leaseUser();
-    await setAccountLanguage(user.id, "en");
+    await seedAccountLanguage(user.id, "en");
     await seedDevice(page, "am");
     // R7 — the flash measurement: one sample per animation frame of the page's
     // path and <html lang>, kept in the page (sign-in is an in-page transition).
@@ -141,7 +128,7 @@ test.describe("D239 — the account's language at sign-in", () => {
 
   test("D239-E2 an account with no language takes the device's", async ({ page }) => {
     const user = await leaseUser();
-    await setAccountLanguage(user.id, null);
+    await seedAccountLanguage(user.id, null);
     await seedDevice(page, "am");
     await gotoReady(page, "/");
     await signIn(page, user.email, user.password);
@@ -151,7 +138,7 @@ test.describe("D239 — the account's language at sign-in", () => {
 
   test("D239-E3 a signed-out pick leaves the account alone", async ({ page }) => {
     const user = await leaseUser();
-    await setAccountLanguage(user.id, "en");
+    await seedAccountLanguage(user.id, "en");
     await gotoReady(page, "/");
     await switchLanguage(page, "am");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
@@ -163,7 +150,7 @@ test.describe("D239 — the account's language at sign-in", () => {
   test("D239-E4 an unpublished account language is ignored and kept", async ({ page }) => {
     const code = await unpublishedLanguage();
     const user = await leaseUser();
-    await setAccountLanguage(user.id, code);
+    await seedAccountLanguage(user.id, code);
     await seedDevice(page, "am");
     await gotoReady(page, "/");
     await signIn(page, user.email, user.password);
@@ -176,7 +163,7 @@ test.describe("D239 — the account's language at sign-in", () => {
 
   test("D239-E5 sign-out keeps the current language", async ({ page }) => {
     const user = await leaseUser();
-    await setAccountLanguage(user.id, "am");
+    await seedAccountLanguage(user.id, "am");
     await gotoReady(page, "/");
     await signIn(page, user.email, user.password);
     await expect(page.locator("html")).toHaveAttribute("lang", "am", { timeout: 15000 });
@@ -190,12 +177,10 @@ test.describe("D239 — the account's language at sign-in", () => {
     "D239-E6 impersonation leaves the staff member's own language as it was, at start and at end",
     { tag: "@private-identity" },
     async ({ page }) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks -- a harness helper, not a React hook
-      const { secret, user: staff } = await useJobSuperAdmin(page);
-      touched.add(staff.id);
-      await switchLanguage(page, "am");
+      const { secret, user: staff } = await signInJobSuperAdmin(page);
+      await setAccountLanguage(page, staff.id, "am");
       const target = await leaseSeller();
-      await setAccountLanguage(target.id, "en");
+      await seedAccountLanguage(target.id, "en");
       try {
         await gotoReady(page, `/admin/users/${target.id}`);
         await page.getByTestId("impersonation-reason").fill("e2e support ticket 1234");

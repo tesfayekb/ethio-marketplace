@@ -6,9 +6,10 @@ import {
   gotoReady,
   settled,
   stepUpIfPrompted,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./ui";
 
+import { likePrefix, SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 import { seedListingRow } from "./listing-seed";
 import { errorText } from "../../src/lib/error-text";
@@ -42,7 +43,9 @@ export function sharedPrefix(values: string[]): string {
 
 export function scratchSlug() {
   const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
-  return `e2e-cat-${RUN}-${worker}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  return `${SCRATCH_PREFIXES.category}${RUN}-${worker}-${rand()}`
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-");
 }
 
 /**
@@ -241,18 +244,6 @@ export async function openEditor(page: Page, slug: string) {
 // INC-1049 (P-1c turn d): the one grant lives beside leaseUser; its eleven importers keep this name.
 export { grantRole } from "./users";
 
-/**
- * L4 (DEC-038) — THE JOB POOL. This helper used to mint a fresh super admin and
- * enrol a TOTP factor on every call; it now delegates to the job-scoped pooled
- * identity (`useJobSuperAdmin`), so nothing is minted here and the L1c
- * co-located disposer it owned has no mint left to reap. Call sites, titles,
- * tags and assertions are untouched (J1); the returned shape is unchanged.
- */
-export async function signInAsSuperAdmin(page: Page) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
-  return useJobSuperAdmin(page);
-}
-
 /** DB truth (J4): the scratch category row read through the service client. */
 export async function readCategory(slug: string) {
   const { data, error } = await adminClient()
@@ -281,7 +272,7 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
     .select("id, country_code")
     .eq("is_active", true)
     // INC-379: a real seeded place only, the same one on every run.
-    .not("slug", "like", "e2e%")
+    .not("slug", "like", likePrefix(SCRATCH_PREFIXES.stem))
     .order("slug")
     .limit(1)
     .maybeSingle();
@@ -297,7 +288,7 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
       home_country_code: location.country_code,
       // STAB-H PART B (INC-165) — the title carries the SCRATCH PREFIX, so the
       // owner setup's reaper can find an orphaned listing by title alone.
-      title: `e2e-cat-listing-${RUN}-${rand()}`,
+      title: `${SCRATCH_PREFIXES.categoryListing}${RUN}-${rand()}`,
       description: "e2e scratch listing for the retire walk",
       status: "active",
     },

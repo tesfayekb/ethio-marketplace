@@ -9,7 +9,8 @@ import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
-import { CountryDialogActions, CountryErrorLine, useCountryError } from "./country-dialogs";
+import { CountryDialogActions, CountryErrorLine } from "./country-dialogs";
+import { useCountryError } from "./country-dialog-state";
 import type { CountryRow } from "./countries-service";
 import {
   ROOT_CATEGORIES_KEY,

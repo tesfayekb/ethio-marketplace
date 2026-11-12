@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
-import { inBrowserClient } from "./helpers/browser-client";
+import { pageDoor } from "./helpers/door-callers";
 import { destroyCountry } from "./helpers/countries";
 import {
   OPEN_MARKET_LS11_MS,
@@ -12,6 +12,7 @@ import {
   waitForOpenMarket,
 } from "./helpers/locations";
 import { destroyCategoryBranch, seedCategoryBranch } from "./helpers/posting";
+import { publishableKey, supabaseUrl } from "./helpers/session";
 import { totpStep } from "./helpers/totp";
 import {
   afterTotpStep,
@@ -24,10 +25,10 @@ import {
   stepUpIfPrompted,
   switchLanguage,
   switchUser,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 
 /**
  * P-1b (D290, D295, D303, D304, D311, D312) — ADMIN › MONETISATION (MON-1..MON-15):
@@ -341,18 +342,6 @@ const firstReach = () => firstProduct("reach");
 /** The first enabled level: the row a read-only test opens (P-1c). */
 const firstLevel = () => firstProduct("level");
 
-/** A door's refusal as the page's own client reads it (the UI entirely bypassed, F3). */
-async function doorError(page: Page, fn: string, args: Record<string, unknown>) {
-  return inBrowserClient(
-    page,
-    async (client, call) => {
-      const result = await client.rpc(call.fn, call.args);
-      return result.error?.message ?? null;
-    },
-    { fn, args },
-  );
-}
-
 /** The resolver's answer as the service client reads it (MON-6, MON-7). */
 async function perksFor(levelKey: string, categoryId: string, countryCode: string | null) {
   const { data, error } = await adminClient().rpc("level_perks_for", {
@@ -374,15 +363,6 @@ async function perksFor(levelKey: string, categoryId: string, countryCode: strin
     badge: read("badge"),
     seasonUntil: read("season_until"),
   };
-}
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error(`${TAG} E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.`);
-  }
-  return { url: url.replace(/\/+$/, ""), key };
 }
 
 test.describe("P-1b Admin › Monetisation", () => {
@@ -482,48 +462,6 @@ test.describe("P-1b Admin › Monetisation", () => {
     return data.id as string;
   }
 
-  /** The joined resource's name on a permissions row, narrowed by shape (no cast). */
-  function resourceNameOf(row: unknown): string | null {
-    if (typeof row !== "object" || row === null || !("resources" in row)) return null;
-    const joined = row.resources;
-    if (typeof joined !== "object" || joined === null || !("name" in joined)) return null;
-    return typeof joined.name === "string" ? joined.name : null;
-  }
-
-  /** A pooled account holding exactly the named permissions through a scratch role. */
-  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
-    const supabase = adminClient();
-    const roleName = `e2e_mon_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`${TAG} scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(([resource, action]) => resourceNameOf(p) === resource && p.action === action),
-    );
-    expect(
-      picked,
-      `${TAG} expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`${TAG} grant failed: ${granted.error.message}`);
-    const holder = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: holder.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`${TAG} assignment failed: ${assigned.error.message}`);
-    return holder;
-  }
-
   /** A scratch root with a leaf; the root is what an override and a season bind to. */
   async function seedRoot() {
     const branch = await seedCategoryBranch();
@@ -540,7 +478,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-1 the menu entry, the order strip and the three blocks on both twins, no horizontal overflow; a level opens to its perks and prices; the real rows are read", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-section-link-monetisation")).toBeVisible({
       timeout: 20000,
@@ -608,11 +546,16 @@ test.describe("P-1b Admin › Monetisation", () => {
     const key = scratchKey("deny", testInfo.project.name);
     await destroyProduct(key);
     const since = new Date().toISOString();
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await signInViaSession(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-nav-cards")).toBeVisible({ timeout: 20000 });
@@ -621,22 +564,29 @@ test.describe("P-1b Admin › Monetisation", () => {
     await waitForHydration(page);
     await expect(section(page), "MON-2 the reviewer saw the screen").toHaveCount(0);
     expect(
-      await doorError(page, "admin_save_listing_package", {
-        p_key: key,
-        p_kind: "level",
-        p_name_en: "Scratch",
-        p_days: 7,
-        p_enabled: true,
-        p_self_serve: true,
-        p_extends_lifetime: true,
-      }),
+      (
+        await pageDoor(page, "admin_save_listing_package", {
+          p_key: key,
+          p_kind: "level",
+          p_name_en: "Scratch",
+          p_days: 7,
+          p_enabled: true,
+          p_self_serve: true,
+          p_extends_lifetime: true,
+        })
+      ).error,
     ).toBe("permission denied");
-    expect(await doorError(page, "admin_list_monetisation", {})).toBe("denied");
+    expect((await pageDoor(page, "admin_list_monetisation", {})).error).toBe("denied");
 
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["packages", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["packages", "view"],
+      ],
+      roles,
+    );
     await signInViaSession(page, viewer.email, viewer.password);
     await openConsole(page);
     for (const id of ["markets", "levels", "reach"]) {
@@ -657,11 +607,13 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expect(section(page).locator("[data-testid$='-edit']")).toHaveCount(0);
     await expect(section(page).locator("[data-testid$='-more']")).toHaveCount(0);
     expect(
-      await doorError(page, "admin_save_market_settings", {
-        p_free_regular_ads: 1,
-        p_included_reach: await firstReach(),
-        p_paid_levels: false,
-      }),
+      (
+        await pageDoor(page, "admin_save_market_settings", {
+          p_free_regular_ads: 1,
+          p_included_reach: await firstReach(),
+          p_paid_levels: false,
+        })
+      ).error,
     ).toBe("permission denied");
     expect(await readProduct(key)).toBeNull();
     expect(await audits("listing_package", key, "package.saved", since)).toHaveLength(0);
@@ -670,7 +622,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-3 /admin/packages and /admin/coverage send their reader to the console", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     for (const old of ["/admin/packages", "/admin/coverage"]) {
       await page.goto(old);
       await waitForHydration(page);
@@ -682,7 +634,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-4 a level is created with its perks and both names, shown under the language switch, edited, and attributed to its author and editor by name", async ({
     page,
   }, testInfo) => {
-    const { secret, user } = await useJobSuperAdmin(page);
+    const { secret, user } = await signInJobSuperAdmin(page);
     const key = scratchKey("lvl", testInfo.project.name);
     await destroyProduct(key);
     products.push(key);
@@ -803,7 +755,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-5 a reach row is created without perks, shown in the Reach block, and refused by name when perks are sent to it", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("reach", testInfo.project.name);
     await destroyProduct(key);
     products.push(key);
@@ -836,16 +788,18 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expect(page.getByTestId(`product-${key}-override-add`)).toHaveCount(0);
     // The door refuses perks on a reach row by name (the UI never offers them).
     expect(
-      await doorError(page, "admin_save_listing_package", {
-        p_key: key,
-        p_kind: "reach",
-        p_name_en: `Scratch reach ${key}`,
-        p_days: 30,
-        p_enabled: true,
-        p_self_serve: true,
-        p_extends_lifetime: true,
-        p_max_photos: 5,
-      }),
+      (
+        await pageDoor(page, "admin_save_listing_package", {
+          p_key: key,
+          p_kind: "reach",
+          p_name_en: `Scratch reach ${key}`,
+          p_days: 30,
+          p_enabled: true,
+          p_self_serve: true,
+          p_extends_lifetime: true,
+          p_max_photos: 5,
+        })
+      ).error,
     ).toBe("perks on reach");
     expect((await readProduct(key))?.max_photos).toBeNull();
   });
@@ -853,7 +807,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-6 per-category perks inside the level's row: Add override names the level; a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("perk", testInfo.project.name);
     await seedProduct(key, { days: 7, maxPhotos: 10, placement: "standard" });
     const since = new Date().toISOString();
@@ -984,7 +938,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-7 a season: a root ending in ten days caps the level's days and names season_until; an ended season answers 0", async ({
     page,
   }, testInfo) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = scratchKey("season", testInfo.project.name);
     await seedProduct(key, { days: 60 });
     const { rootId, leafId } = await seedRoot();
@@ -1017,7 +971,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-8 Add price inside the product's row names the product; the saved row reads Market · Category with its credit cost; a price for every market and a narrower one; the row's search narrows", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("price", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
@@ -1100,7 +1054,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-9 Edit while unused: the amount, the credit cost and the end change through the door; the start is kept; the row and the audit follow", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("edit", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
@@ -1153,7 +1107,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-10 a used price: the service client marks it used, the door refuses Edit by name and nothing changes; after a refresh the verb is gone while End stays", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("used", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
@@ -1201,14 +1155,14 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-11 End price sets the end to now; the row stays, says so, offers no verb any more, and the public read no longer lists it", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("end", testInfo.project.name);
     await seedProduct(key);
     const currency = await firstCurrency();
     const since = new Date().toISOString();
     const priceId = await seedPrice(key, { amount: 4, currency });
 
-    const { url, key: anonKey } = restBase();
+    const [url, anonKey] = [supabaseUrl(), publishableKey()];
     const anon = createClient(url, anonKey, { auth: { persistSession: false } });
     const publicRows = async () => {
       const { data, error } = await anon.from("package_prices").select("id").eq("package_key", key);
@@ -1251,7 +1205,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-12 a scratch market: paid levels ON without a bundle is refused by name; ON with 10/30 writes the bundle, paid_levels_since and the audit row; OFF clears the mark", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const since = new Date().toISOString();
     const reach = await firstReach();
     const market = await seedSingleOptionMarket();
@@ -1273,12 +1227,14 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await readMarket(market.code)).toBeNull();
     // The door itself refuses the same by name (the UI bypassed, F3).
     expect(
-      await doorError(page, "admin_save_market_settings", {
-        p_free_regular_ads: 2,
-        p_included_reach: reach,
-        p_paid_levels: true,
-        p_country_code: market.code,
-      }),
+      (
+        await pageDoor(page, "admin_save_market_settings", {
+          p_free_regular_ads: 2,
+          p_included_reach: reach,
+          p_paid_levels: true,
+          p_country_code: market.code,
+        })
+      ).error,
     ).toBe("launch bundle required");
     expect(await readMarket(market.code)).toBeNull();
 
@@ -1339,7 +1295,7 @@ test.describe("P-1b Admin › Monetisation", () => {
 
   test("MON-13 the browser roles read enabled products and valid prices by their own columns, never created_by or updated_by; the console rpc refuses them", async () => {
     const project = test.info().project.name;
-    const { url, key: anonKey } = restBase();
+    const [url, anonKey] = [supabaseUrl(), publishableKey()];
     const currency = await firstCurrency();
     const shown = scratchKey("pubon", project);
     const hidden = scratchKey("puboff", project);
@@ -1429,7 +1385,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-14 step-up: a staff session without a fresh second factor is asked for one before any write; the write lands once the code is given", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const spentStep = totpStep();
     const key = scratchKey("aal", testInfo.project.name);
     await destroyProduct(key);
@@ -1476,7 +1432,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-16 the order strip: a market switched on with a sellable product that has no price reads Needs a row, names a product and its market, and its link opens that product's prices", async ({
     page,
   }, testInfo) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = scratchKey("strip", testInfo.project.name);
     await seedProduct(key, { sort: 0 });
     const market = await seedSingleOptionMarket();
@@ -1528,7 +1484,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-17 the order strip: a price added for every market clears the product from Needs a row; the strip reads Set once no pair is left", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("set", testInfo.project.name);
     await seedProduct(key, { sort: 0 });
     const currency = await firstCurrency();
@@ -1580,7 +1536,7 @@ test.describe("P-1b Admin › Monetisation", () => {
   test("MON-18 a reach row's caps: cities left blank and regions 3 are saved as no limit and 3; the table reads No limit and 3; the editor reopens blank and 3", async ({
     page,
   }, testInfo) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = scratchKey("caps", testInfo.project.name);
     await destroyProduct(key);
     products.push(key);

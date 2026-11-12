@@ -11,7 +11,7 @@ import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { PageCard } from "@/components/shell/page-card";
 import { Star } from "lucide-react";
-import { useFavouriteCategory } from "@/components/shell/app-rail";
+import { useFavouriteCategory } from "@/components/shell/favourite-category";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCategoryTree } from "@/features/categories/category-tree";

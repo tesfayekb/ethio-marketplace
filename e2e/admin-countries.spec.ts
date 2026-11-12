@@ -28,7 +28,7 @@ import {
   gotoReady,
   stepUpIfPrompted,
   switchUser,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
 import { expectActionsInsideCell } from "./helpers/row-actions";
@@ -85,7 +85,7 @@ test.describe("L2b countries console", () => {
   test("CO-2 roster: every market renders, the two open ones carry the open tone, search and the status filter narrow, on the agreed toolbar", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
     await awaitConsole(page);
 
@@ -154,7 +154,7 @@ test.describe("L2b countries console", () => {
   test("CO-3 creation is absent from the header; the countries file is the only creation path", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
     await awaitRoster(page);
     await expect(page.getByTestId("country-create-open")).toHaveCount(0);
@@ -164,7 +164,7 @@ test.describe("L2b countries console", () => {
   test("CO-4 open and close: opening publishes the market's tree, closing takes it away", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const code = await scratchCountryCode();
 
     try {
@@ -224,7 +224,7 @@ test.describe("L2b countries console", () => {
   test("CO-5 profile round trip: units, currency and order are saved and read back", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const code = await scratchCountryCode();
 
     try {
@@ -254,7 +254,7 @@ test.describe("L2b countries console", () => {
   test("CO-6 rail order: two roots are stored in position order, and the reset removes every row", async ({
     page,
   }) => {
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const code = await scratchCountryCode();
 
     try {
@@ -364,7 +364,7 @@ test.describe("L2b countries console", () => {
     // Preview, commit and a refused undo are three step-up round trips: this one
     // test carries its own budget rather than the suite's default (J5).
     test.setTimeout(180_000);
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const code = await scratchCountryCode();
 
     try {
@@ -416,7 +416,7 @@ test.describe("L2b countries console", () => {
   test("CO-8 geometry: nothing overflows and every verb is reachable in both twins", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
     await awaitRoster(page);
 
@@ -464,7 +464,7 @@ test.describe("L2b countries console", () => {
   test("CO-9 the row's actions and the Columns button: Edit and the menu's market verbs, a hidden column remembered", async ({
     page,
   }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/countries");
     await awaitRoster(page);
     // INC-542 — Edit and the three-dots stay inside their own cell.

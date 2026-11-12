@@ -7,8 +7,9 @@ import {
   switchLanguage,
   switchUser,
   waitForHydration,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { expectActionsInsideCell } from "./helpers/row-actions";
@@ -23,7 +24,6 @@ import {
   openEditor,
   action,
   readCategory,
-  signInAsSuperAdmin,
 } from "./helpers/categories";
 import {
   isCardTwin,
@@ -73,7 +73,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       await gotoReady(page, "/admin/attributes");
@@ -132,7 +132,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     let slug = "";
     try {
@@ -175,7 +175,7 @@ test.describe("C3 attributes console", () => {
 
   test("AT-4 card picker: two ranked attributes clear the amber flag", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const keyA = `e2e_attr_${rand()}`;
     const keyB = `e2e_attr_${rand()}`;
     let slug = "";
@@ -230,7 +230,7 @@ test.describe("C3 attributes console", () => {
      */
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     let slug = "";
     try {
@@ -295,7 +295,7 @@ test.describe("C3 attributes console", () => {
      */
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const keep = `e2e_attr_keep_${rand()}`;
     const dupe = `e2e_attr_dupe_${rand()}`;
     let slug = "";
@@ -344,7 +344,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     let slug = "";
     try {
@@ -384,7 +384,7 @@ test.describe("C3 attributes console", () => {
   test("AT-8 assign from the library: the link lands and Used by updates", async ({ page }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     let slug = "";
     try {
@@ -424,7 +424,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
     if (isCardTwin(page)) {
@@ -495,7 +495,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       await seedAttribute(key);
@@ -594,7 +594,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     let slug = "";
     try {
@@ -626,7 +626,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     let slug = "";
     try {
@@ -686,7 +686,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     const marker = `ኢ2ኢ ${rand()}`;
     try {
@@ -738,7 +738,7 @@ test.describe("C3 attributes console", () => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
     // J6 — this test's actor. The "still pending" claim is scoped to it.
-    const actorId = (await signInAsSuperAdmin(page)).user.id;
+    const actorId = (await signInJobSuperAdmin(page)).user.id;
     const key = `e2e_attr_${rand()}`;
     try {
       const id = await seedAttribute(key);
@@ -791,39 +791,19 @@ test.describe("C3 attributes console", () => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
     const supabase = adminClient();
-    const roleName = `e2e_viewonly_${rand()}`;
-    let roleId = "";
+    const reap: string[] = [];
     const key = `e2e_attr_${rand()}`;
     try {
       const attributeId = await seedAttribute(key);
-      const { data: role, error: roleError } = await supabase
-        .from("roles")
-        .insert({ name: roleName, display_name: roleName, priority: 1 })
-        .select("id")
-        .single();
-      if (roleError || !role) throw new Error(`AT-14 scratch role failed: ${roleError?.message}`);
-      roleId = role.id;
-      const { data: perms, error: permError } = await supabase
-        .from("permissions")
-        .select("id, action, resources!inner(name)")
-        .in("resources.name", ["admin_panel", "categories"]);
-      if (permError) throw new Error(`AT-14 permission census failed: ${permError.message}`);
-      const wanted = (perms ?? []).filter((p) => {
-        const resource = (p as unknown as { resources: { name: string } }).resources.name;
-        return (
-          (resource === "admin_panel" && p.action === "access") ||
-          (resource === "categories" && p.action === "view")
-        );
-      });
-      expect(wanted, "AT-14 expected exactly admin_panel:access + categories:view").toHaveLength(2);
-      await supabase
-        .from("role_permissions")
-        .insert(wanted.map((p) => ({ role_id: roleId, permission_id: p.id })));
-
       const viewer = await leaseUser();
-      await supabase
-        .from("user_roles")
-        .insert({ user_id: viewer.id, role_id: roleId, scope_type: "global" });
+      await grantScratchRole(
+        viewer.id,
+        [
+          ["admin_panel", "access"],
+          ["categories", "view"],
+        ],
+        reap,
+      );
 
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/attributes");
@@ -892,7 +872,7 @@ test.describe("C3 attributes console", () => {
       expect(after ?? []).toHaveLength(0);
       expect(await readAttribute(key)).not.toBeNull();
     } finally {
-      if (roleId) {
+      for (const roleId of reap) {
         await supabase.from("user_roles").delete().eq("role_id", roleId);
         await supabase.from("role_permissions").delete().eq("role_id", roleId);
         await supabase.from("roles").delete().eq("id", roleId);
@@ -914,7 +894,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -1154,7 +1134,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const fixture = await seedInheritanceFixture();
     try {
       await gotoReady(page, `/admin/attributes?category=${fixture.childSlug}`);
@@ -1189,7 +1169,7 @@ test.describe("C3 attributes console", () => {
   test("AT-18 the scoped export carries the subtree only, with origin", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const fixture = await seedInheritanceFixture();
     try {
       await gotoReady(page, `/admin/attributes?category=${fixture.parentSlug}`);
@@ -1253,7 +1233,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const fixture = await seedInheritanceFixture();
     const supabase = adminClient();
     try {
@@ -1340,7 +1320,7 @@ test.describe("C3 attributes console", () => {
   test("AT-36 a secondary parent confers nothing, a primary parent confers", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const stamp = rand();

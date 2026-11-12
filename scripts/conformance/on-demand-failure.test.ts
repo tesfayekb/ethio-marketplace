@@ -308,7 +308,7 @@ export function onDemandFailureCensus(
       const handlers = loads.map(rejectionHandler);
       const verdict = handlers.some((handler) => handler === null)
         ? ("unhandled" as const)
-        : handlers.some((handler) => handler !== "lazy" && isSilent(handler))
+        : handlers.some((handler) => handler !== "lazy" && handler !== null && isSilent(handler))
           ? ("silent" as const)
           : ("handled" as const);
       return { ...call, verdict };

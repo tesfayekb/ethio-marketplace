@@ -2,7 +2,7 @@ import { type Page } from "@playwright/test";
 
 import { en } from "../../src/i18n/locales/en";
 
-import { fillUntilStable, waitForHydration } from "./ui";
+import { fillUntilStable, matcher, waitForHydration } from "./ui";
 
 /**
  * Bundle 22 turn 32 (K1) — THE ONE SIGN-UP FORM DRIVER. Every spec that makes
@@ -29,5 +29,5 @@ export async function signUpThroughForm(
     "password confirmation",
   );
   if (input.agree !== false) await page.getByTestId("auth-agree-tick").click();
-  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
+  await page.getByRole("button", { name: matcher("i")`^${en["auth.signUpButton"]}$` }).click();
 }

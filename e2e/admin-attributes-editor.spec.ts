@@ -1,17 +1,10 @@
 import { parseCsvGrid } from "../src/server/imports/gate";
 import { expect, test } from "./fixtures";
 import { withinPreviewBudget } from "./helpers/rate-window";
-import { gotoReady, stepUpIfPrompted, switchUser } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { gotoReady, stepUpIfPrompted, switchUser, signInJobSuperAdmin } from "./helpers/ui";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
-import {
-  rand,
-  bandOnly,
-  destroyCategory,
-  dialogDump,
-  action,
-  signInAsSuperAdmin,
-} from "./helpers/categories";
+import { rand, bandOnly, destroyCategory, dialogDump, action } from "./helpers/categories";
 import {
   isCardTwin,
   librarySurface,
@@ -206,7 +199,7 @@ test.describe("C3 attributes console", () => {
   test("AT-31 a dependent definition cascades in the editor", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const makeKey = `e2e_attr_${rand()}`;
@@ -282,7 +275,7 @@ test.describe("C3 attributes console", () => {
   test("AT-33 the dependency doors refuse and name what they judged", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const makeKey = `e2e_attr_${rand()}`;
@@ -388,14 +381,8 @@ test.describe("C3 attributes console", () => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
     const supabase = adminClient();
-    const roleName = `e2e_viewonly_${rand()}`;
+    const reap: string[] = [];
     const makeKey = `e2e_attr_${rand()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`AT-34 scratch role failed: ${roleError?.message}`);
     try {
       await supabase.from("attributes").insert({
         attr_key: makeKey,
@@ -403,26 +390,15 @@ test.describe("C3 attributes console", () => {
         attr_type: "single_select",
         options: ["alfa"],
       });
-      const { data: perms } = await supabase
-        .from("permissions")
-        .select("id, action, resources!inner(name)")
-        .in("resources.name", ["admin_panel", "categories"]);
-      const wanted = (perms ?? []).filter((p) => {
-        const resource = (p as unknown as { resources: { name: string } }).resources.name;
-        return (
-          (resource === "admin_panel" && p.action === "access") ||
-          (resource === "categories" && p.action === "view")
-        );
-      });
-      expect(wanted, "AT-34 expected exactly admin_panel:access + categories:view").toHaveLength(2);
-      await supabase
-        .from("role_permissions")
-        .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
-
       const viewer = await leaseUser();
-      await supabase
-        .from("user_roles")
-        .insert({ user_id: viewer.id, role_id: role.id, scope_type: "global" });
+      await grantScratchRole(
+        viewer.id,
+        [
+          ["admin_panel", "access"],
+          ["categories", "view"],
+        ],
+        reap,
+      );
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/attributes");
       await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
@@ -442,9 +418,11 @@ test.describe("C3 attributes console", () => {
       expect(denied.error, "AT-34 a view-only operator wrote a dependency").toBeTruthy();
     } finally {
       await destroyAttribute(makeKey);
-      await supabase.from("role_permissions").delete().eq("role_id", role.id);
-      await supabase.from("user_roles").delete().eq("role_id", role.id);
-      await supabase.from("roles").delete().eq("id", role.id);
+      for (const roleId of reap) {
+        await supabase.from("role_permissions").delete().eq("role_id", roleId);
+        await supabase.from("user_roles").delete().eq("role_id", roleId);
+        await supabase.from("roles").delete().eq("id", roleId);
+      }
     }
   });
 
@@ -458,7 +436,7 @@ test.describe("C3 attributes console", () => {
   test("AT-32 an import creates a parent and its dependent in one pass", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
 
@@ -523,7 +501,7 @@ test.describe("C3 attributes console", () => {
   test("AT-35 the options expansion reads as labels", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const makeKey = `e2e_attr_${rand()}`;
@@ -593,7 +571,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     const helpAm = "የእገዛ ጽሑፍ";
     try {
@@ -682,7 +660,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "desktop");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       const { error } = await adminClient()
@@ -768,7 +746,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       const { error } = await adminClient().from("attributes").insert({
@@ -822,7 +800,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     try {
       const { error } = await adminClient().from("attributes").insert({
@@ -882,7 +860,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const selectKey = `e2e_attr_${rand()}`;
     const sharedNumberKey = `e2e_attr_${rand()}`;
@@ -1002,7 +980,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const targetKey = `e2e_attr_${rand()}`;
@@ -1138,7 +1116,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const ownerKey = `e2e_attr_${rand()}`;
     const targetKey = `e2e_attr_${rand()}`;
@@ -1288,7 +1266,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const key = `e2e_attr_${rand()}`;
     try {
@@ -1334,7 +1312,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const parentKey = `e2e_attr_${rand()}`;
     const dependentKey = `e2e_attr_${rand()}`;
@@ -1438,7 +1416,7 @@ test.describe("C3 attributes console", () => {
   test("AT-56 the constraint pickers offer only co-linked targets", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const ownerKey = `e2e_attr_${rand()}`;
     const numAKey = `e2e_attr_${rand()}`;
@@ -1561,7 +1539,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const parentKey = `e2e_attr_${rand()}`;
     const dependentKey = `e2e_attr_${rand()}`;
@@ -1671,7 +1649,7 @@ test.describe("C3 attributes console", () => {
   test("AT-58 a rank swap within one category imports through the route", async ({ page }) => {
     test.setTimeout(240_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const slug = `e2e-cat-rank58-${rand()}`;
@@ -1894,7 +1872,7 @@ test.describe("C3 attributes console", () => {
         return link.fact_rank === null ? null : Number(link.fact_rank);
       });
     };
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
     const header =

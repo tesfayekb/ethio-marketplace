@@ -1,0 +1,2 @@
+# CF-PATTERN-4 (scripts/conformance/pattern-sites.test.ts; housekeeping turn 2 Part D, INC-1102): a script that builds a RegExp outside scripts/lib/pattern.ts.
+# key "<file> (<sites>)" | reason | until — empty since housekeeping turn 3b moved the last thirteen sites onto pattern.ts; CF-PATTERN-4 holds it empty.

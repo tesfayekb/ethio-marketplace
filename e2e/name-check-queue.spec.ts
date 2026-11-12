@@ -2,9 +2,8 @@ import type { Locator, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { adPageFixtures, token } from "./helpers/ad-page";
-import { signInAsSuperAdmin } from "./helpers/categories";
 import { markName, readNameCheck, releaseHold, saveOwnAlias } from "./helpers/seller-name";
-import { gotoReady, stepUpIfPrompted, waitForHydration } from "./helpers/ui";
+import { gotoReady, stepUpIfPrompted, waitForHydration, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { listingPath } from "../src/features/ad-page/address";
 import en from "../src/i18n/locales/en";
@@ -76,7 +75,7 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
     await markName(seller.id, alias, "imitates", "Ethio Telecom");
     held.push(seller.id);
 
-    const staff = await signInAsSuperAdmin(page);
+    const staff = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const row = rowIn(page, seller.id);
     await expect(row).toBeVisible({ timeout: 15000 });
@@ -128,7 +127,7 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
     await markName(seller.id, alias, "imitates");
     held.push(seller.id);
 
-    const staff = await signInAsSuperAdmin(page);
+    const staff = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const row = rowIn(page, seller.id);
     await expect(row).toBeVisible({ timeout: 15000 });
@@ -175,7 +174,7 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
     for (let i = 0; i < 5; i += 1) await markName(seller.id, alias, "unusable");
     expect((await readNameCheck(seller.id))?.state).toBe("needs_review");
 
-    const staff = await signInAsSuperAdmin(page);
+    const staff = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const row = rowIn(page, seller.id);
     await expect(row).toBeVisible({ timeout: 15000 });
@@ -213,7 +212,7 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
     if (set.error) throw new Error(`[e2e:ncq] job_pause_set: ${set.error.message}`);
     paused = true;
 
-    const staff = await signInAsSuperAdmin(page);
+    const staff = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const line = page.getByTestId("admin-job-line");
     await expect(line).toHaveAttribute("data-state", "paused", { timeout: 15000 });

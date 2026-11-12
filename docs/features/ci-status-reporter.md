@@ -22,6 +22,48 @@ The publisher works in its own worktree, never touches dev or main, retries thre
 times regenerating on top of the fetched branch, and a failed publish is a warning,
 never a red job. The copies on dev are frozen until stage 2.
 
+## Evidence per ref (DEC-321, housekeeping turn 3)
+
+Every caller of `scripts/publish-evidence.sh` sets `EVIDENCE_REF` to the ref its run tested: this
+reporter `github.event.workflow_run.head_branch`; ci.yml's E2E verdict job, the lanes' summary,
+flake-check, the nightly and the feed bench `github.head_ref || github.ref_name`. A `dev` run
+publishes at `docs/tracking/<file>` as before; any other ref at
+`docs/tracking/branches/<ref>/<file>`, the ref sanitised to `[A-Za-z0-9._/-]` and refused when it
+could name a path outside `branches/` (`..`, a `.` segment, a leading or trailing `/`, nothing
+left). A missing or refused ref publishes nothing, with a `::warning::`, like a path outside
+docs/tracking. The flake ledger stays one file for every ref (DEC-030), and each new line names its
+ref after the commit (`· ref \`<ref>\``). A lane's evidence is read at
+`git show origin/ci-evidence:docs/tracking/branches/<ref>/ci-status.md`. Guards: CF-PUBLISH-1…3
+(`scripts/publish-evidence.test.ts`, the mapping through `--print-path <ref> <file>`), the
+self-test's cases (f) and (g) (`scripts/publish-evidence.selftest.sh`, a lane ref and a refused ref
+against a bare repository), and CF-CID-5/6 (every workflow step that calls the publisher sets
+`EVIDENCE_REF`in its own`env:`; six calls). This reporter publishes from dev's code
+(`workflow_run`runs the default branch's workflow and it checks out`ref: dev`), so a lane's
+`ci-status.md`and`guards-last-failure.md` reach its branch folder from the first run after this
+change merges; ci.yml's and the lanes' files move at once, from the pull request's own code.
+
+## A docs-only push (DEC-365, housekeeping turn 3)
+
+The reporter reads the log of the `Scope (docs-only push, DEC-365)` job for its
+`DEC-365 lanes: <line>` and writes `- Lanes: <line>` under the run's URL. When the line says
+`skipped — docs-only push; …` (the commit whose lanes were green and its run), the skipped
+`E2E lanes` and `First-paint bundle budget (gzipped ceiling)` rows read `skipped (docs-only)`. A
+scope log that cannot be read is written as `- Lanes: unknown — …` and the rows stay `skipped`.
+The words show from the first run after the change merges (the reporter runs dev's code).
+
+## The repeat lane's coverage (INC-1107, housekeeping turn 3c)
+
+Where `repeat` is among `E2E_EXPECTED_SOURCES`, the E2E report reads that lane's selection file
+(`e2e-log-repeat/local-backend-repeat.txt`, redacted) and writes one head line after `- Lanes:`,
+on the red form and the green form alike: `- Repeat: <U> of <T> tests repeated — specs directly
+changed <a>/<b>, importers of a changed helper <c>/<d>; budget <B> s`, plus `; the time cap left
+<k> test runs` when `scripts/ci/repeat-cap.ts` appended its `- Not repeated (time cap):` lines.
+"nothing to repeat" is written as it stands; a missing file reads `- Repeat: selection not
+written`; a summary that does not parse is quoted raw. A run with no repeat lane (the nightly, a
+docs-only push) has no such line. The self-test's INC-1107 cases read a real selection file (run
+43144538685, `scripts/fixtures/local-backend-repeat.43144538685.txt`) and the workflow's own echo
+lines.
+
 ## guards-last-failure.md (DEC-066)
 
 So a red build or guard never needs a log paste, the reporter downloads the log of
@@ -107,13 +149,32 @@ It never stops at a FAIL; inside a job a failed step ends that job, as in CI.
 - Steps it does not run are lines of `scripts/ci/turn-checks-allowlist.txt` (`job › step | reason |
 until`): the installs, the SARIF upload, the dependency audit, the staging preflight, the E2E merge
   and promote.
-- Typecheck is the platform harness's verdict (`/tmp/observability/build-errors.log`): PASS only when
-  newer than every change under src/, e2e/ and scripts/ with no error; otherwise NOT RUN.
+- Typecheck runs CI's own step, `bun run typecheck`: both projects, `tsconfig.json` then
+  `tsconfig.scripts.json` (housekeeping turn 3c, TCK-12). No log another tool wrote is read.
 - A pinned download or checksum that fails is NOT RUN; no unpinned stand-in.
-- The NEAR band: after the budget check, each page within 0.3 KiB of its line, with its growth
-  against the turn's base build (HEAD's tree, built once per base and cached); a NEAR page that grew
-  is a FAIL until its line is raised with the cause.
-- Guard: `scripts/ci/turn-checks.test.ts` TCK-1…5.
+- A pinned binary built for another machine is NOT RUN before any download, with the reason
+  `pinned binary <platform/arch> (<asset>); this machine <platform/arch>`: the asset's name is read from
+  the step's own text (`tarball="…"` or the `releases/download/…` address); a name the reader cannot
+  classify is NOT RUN `pinned asset platform unknown: <name>` (INC-1094). A Linux arm64 or Windows
+  executor needs a row in the two platform tables in turn-checks.ts, nothing else.
+- `bun run checks --no-tests` runs every guard and scanner and no vitest or playwright step: those
+  print NOT RUN `--no-tests`, and the last line says so (INC-1064). Any other argument is refused.
+- The laws step's Semgrep on changed files (`scripts/ci/laws-changed.ts`) keeps CI's pinned rules
+  and its venv under the same cache root (`scripts/ci/checks-cache.ts`, never /tmp, which the machine
+  sweeps); the rules count as cached only when `javascript/` and `typescript/` each hold a `.yaml`
+  (`semgrepRulesWhole`), otherwise the archive is fetched again (INC-1098). When the rules' archive
+  or `pip install semgrep==<v>` cannot be fetched, `laws-changed.ts` prints one
+  `[laws] NOT RUN — <reason>` line and exits 3; the runner prints that step `NOT RUN — <reason>` (R3),
+  never FAIL. Semgrep's own exit 3 (a target it cannot parse) carries no such line and stays a FAIL
+  (housekeeping turn 3; TCK-11, TCK-3's neighbour).
+- One cache root (housekeeping turn 3): `CHECKS_CACHE` in `scripts/ci/checks-cache.ts` is
+  `ETHIO_CHECKS_CACHE || ~/.cache/ethio-checks` (an empty value is unset, as shell's `:-` reads it);
+  `scripts/db-proof.sh` reads the constant through `bun -e` and spells no root itself (CF-DBP-8).
+- The NEAR band (DEC-361): after the budget check, a NOTE for every size inside DEC-296's one band
+  (`scripts/budget-band.mjs`, the local allowance included), with its growth against the turn's base
+  build (HEAD's tree, built once per base and cached). A budget step whose only failure is that band
+  is a PASS: CI's bundle-budget job judges, and a line moves only with a named cause.
+- Guard: `scripts/ci/turn-checks.test.ts` TCK-1…11.
 
 ## Known limitations
 

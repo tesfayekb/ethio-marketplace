@@ -1,0 +1,20 @@
+{
+  // The second typecheck project (housekeeping turn 3c, CF-TSC-1): every script and the two root
+  // configs the root project does not include, under the root's compiler options. `allowJs` lets
+  // `eslint.config.js` type its importer; `checkJs` stays off, so no JavaScript is judged.
+  // `.claude/hooks/**` joins at rules turn 4, which opens the kit to the executor for its typecheck
+  // (INC-1110).
+  "extends": "./tsconfig.json",
+  "include": ["scripts/**/*.ts", "playwright.nightly.config.ts", "vitest.config.ts"],
+  // Each file below imports the dormant kit's `lib.ts`, which rule 00 closes to this executor;
+  // joins with the kit at rules turn 4 — INC-1110. CF-TSC-1 holds the list to the import census.
+  "exclude": [
+    "scripts/brief/apply-blocks.test.ts",
+    "scripts/brief/apply-blocks.ts",
+    "scripts/conformance/executor-hooks.test.ts"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false
+  }
+}

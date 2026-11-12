@@ -16,10 +16,10 @@ import {
   seedCategoryBranch,
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
+import { asAnonymous, asPerson } from "./helpers/door-callers";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { adminClient } from "./helpers/users";
+import { adminClient, grantScratchRole } from "./helpers/users";
 import { baselineLevelKey, seedListingRow } from "./helpers/listing-seed";
-import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 16 (My listings), turn 3 — ONE AD'S PAGE (MLA-1..MLA-6).
@@ -39,51 +39,6 @@ import { errorText } from "../src/lib/error-text";
  */
 
 type Row = Record<string, unknown>;
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:mla] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-async function answerOf(response: Response) {
-  const text = await response.text();
-  const body: unknown = text === "" ? null : JSON.parse(text);
-  if (!response.ok) {
-    const message =
-      body !== null && typeof body === "object" && "message" in body
-        ? errorText(body)
-        : `HTTP ${response.status}`;
-    return { data: null as unknown, error: message as string | null };
-  }
-  return { data: body, error: null as string | null };
-}
-
-/** A signed-in person from node: the door's data and its error, as the browser client reads them. */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown>) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-    select: async (table: string, query: string) =>
-      answerOf(await fetch(`${url}/rest/v1/${table}?${query}`, { headers })),
-  };
-}
 
 type Person = Awaited<ReturnType<typeof asPerson>>;
 
@@ -115,7 +70,7 @@ async function listingTruth(listingId: string) {
 
 /** The renew days the seller reads from listing_policy (read, never set). */
 async function renewDays(person: Person): Promise<number> {
-  const result = await person.select("listing_policy", "select=renew_days");
+  const result = await person.rest("listing_policy?select=renew_days");
   expect(result.error, "[e2e:mla] listing_policy read").toBeNull();
   const rows = result.data as Row[];
   expect(rows.length, "[e2e:mla] listing_policy rows").toBe(1);
@@ -277,46 +232,6 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     return id;
   }
 
-  /** Gives an account the test already holds exactly the named permissions through a scratch role (DEC-174). */
-  async function grantRole(
-    wanted: Array<[resource: string, action: string]>,
-    person: { id: string; email: string; password: string },
-  ) {
-    const supabase = adminClient();
-    const roleName = `e2e_mylistings_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:mla] scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:mla] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:mla] grant failed: ${granted.error.message}`);
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: person.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:mla] assignment failed: ${assigned.error.message}`);
-    return person;
-  }
-
   /** Sets the scratch leaf's own capability words (never a real category's). */
   async function setCapabilities(leafId: string, capabilities: string[]) {
     const { error } = await adminClient()
@@ -399,14 +314,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       expect(refused.data).toBeNull();
     }
 
-    const { url, key } = restBase();
-    const anonymous = await answerOf(
-      await fetch(`${url}/rest/v1/rpc/my_listing`, {
-        method: "POST",
-        headers: { apikey: key, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_listing_id: X }),
-      }),
-    );
+    const anonymous = await (await asAnonymous()).rpc("my_listing", { p_listing_id: X });
     expect(anonymous.error).not.toBeNull();
     expect(anonymous.data).toBeNull();
   });
@@ -749,7 +657,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
 
   test("MLA-8 A seller who also holds listings:enforce deletes his own ad as its owner; a deleted ad is never restored", async () => {
     const seller = await scratchSeller();
-    await grantRole([["listings", "enforce"]], seller);
+    await grantScratchRole(seller.id, [["listings", "enforce"]], roles);
     const s = await asPerson(seller);
     const X = await seed(seller, "active");
 

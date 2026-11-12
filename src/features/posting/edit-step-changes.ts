@@ -1,5 +1,5 @@
 import { priceSent, sameAnswers, samePlaces } from "@/features/admin-listings/edit-listing";
-import { sameChannels } from "./step-who";
+import { sameChannels } from "./same-channels";
 import type { DraftValues } from "./use-draft";
 
 /**

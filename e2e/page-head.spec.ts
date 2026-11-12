@@ -1,23 +1,16 @@
 import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { listingPath } from "../src/features/ad-page/address";
-import { signInAsSuperAdmin } from "./helpers/categories";
 import { adminClient } from "./helpers/users";
-import { gotoReady, switchLanguage } from "./helpers/ui";
+import { gotoReady, switchLanguage, signInJobSuperAdmin } from "./helpers/ui";
 import en from "../src/i18n/locales/en";
 import am from "../src/i18n/locales/am";
+import { restoreAccountLanguages, setAccountLanguage } from "./helpers/account-language";
 
 const fixtures = adPageFixtures();
-const preferences: { id: string; prior: string | null }[] = [];
 test.afterEach(async () => {
   try {
-    for (const { id, prior } of preferences.splice(0)) {
-      const { error } = await adminClient()
-        .from("profiles")
-        .update({ preferred_language: prior })
-        .eq("user_id", id);
-      if (error) throw new Error(`[e2e:pgh] restoring preference: ${error.message}`);
-    }
+    await restoreAccountLanguages();
   } finally {
     await fixtures.cleanup();
   }
@@ -75,15 +68,8 @@ test("PGH-E1 base server heads, applied Amharic and client navigation agree", as
     .click();
   await headText(page, am["head.home.title"], am["head.home.description"]);
 
-  const staff = await signInAsSuperAdmin(page);
-  const before = await adminClient()
-    .from("profiles")
-    .select("preferred_language")
-    .eq("user_id", staff.user.id)
-    .single();
-  if (before.error) throw new Error(`[e2e:pgh] reading preference: ${before.error.message}`);
-  preferences.push({ id: staff.user.id, prior: before.data.preferred_language });
-  await switchLanguage(page, "am");
+  const staff = await signInJobSuperAdmin(page);
+  await setAccountLanguage(page, staff.user.id, "am");
   const title = am["head.admin.pattern.title"].replace("{name}", am["admin.section.ai.title"]);
   const description = am["head.admin.pattern.description"].replace(
     "{name}",

@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { adminClient, STATE_FILE, type E2EUser } from "./global-setup";
-import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 
 async function checkRoutes(page: Page, routes: string[]) {
   for (const route of routes) {
@@ -62,7 +62,7 @@ test.describe("phone frame sweep", () => {
   });
 
   test("super admin routes fit", async ({ page }) => {
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const { data, error } = await adminClient()
       .from("roles")
       .select("id")
@@ -165,7 +165,7 @@ test.describe("width walk (C2g.4)", () => {
   });
 
   test("admin categories at every width", async ({ page }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     for (const width of WALK) {
       await page.setViewportSize({ width, height: 800 });
       await gotoReady(page, "/admin/categories");

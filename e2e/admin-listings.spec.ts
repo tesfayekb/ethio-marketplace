@@ -13,7 +13,7 @@ import {
   seedCategoryBranch,
   seedSpecSet,
 } from "./helpers/posting";
-import { passwordGrant } from "./helpers/session";
+import { asPerson, pageDoor } from "./helpers/door-callers";
 import { totpStep } from "./helpers/totp";
 import {
   afterTotpStep,
@@ -23,12 +23,11 @@ import {
   signInViaSession,
   staleStepUpOnClient,
   stepUpIfPrompted,
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
-import { adminClient, leaseUser, createUser } from "./helpers/users";
+import { adminClient, leaseUser, createUser, grantScratchRole } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 import { levelNameFor } from "./helpers/level-overrides";
-import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 11, the Listings console, turn L1 (D134, D136, D137) — THE CONSOLE'S DOORS (AL-1..AL-9).
@@ -48,90 +47,6 @@ import { errorText } from "../src/lib/error-text";
  * AL-3 signed four people into the browser, ran past its 60 s budget, and its
  * afterEach reaped the rows the abandoned body was still using.
  */
-
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
-};
-
-async function clientReady(page: Page) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-}
-
-/** A door called as the page's signed-in person: its data and its error. */
-async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) {
-  await clientReady(page);
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return { data: result.data, error: result.error?.message ?? null };
-    },
-    [fn, args] as const,
-  );
-}
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:al] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-/** A signed-in person from node: the door's data and its error, as the browser client reads them. */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  const answer = async (response: Response) => {
-    const text = await response.text();
-    const body: unknown = text === "" ? null : JSON.parse(text);
-    if (!response.ok) {
-      const message =
-        body !== null && typeof body === "object" && "message" in body
-          ? errorText(body)
-          : `HTTP ${response.status}`;
-      return { data: null as unknown, error: message as string | null };
-    }
-    return { data: body, error: null as string | null };
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown>) =>
-      answer(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-    notices: async (listingId: string) =>
-      answer(
-        await fetch(`${url}/rest/v1/seller_notices?select=kind,reason&listing_id=eq.${listingId}`, {
-          headers,
-        }),
-      ),
-    insertNotice: async (row: Record<string, unknown>) =>
-      answer(
-        await fetch(`${url}/rest/v1/seller_notices`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(row),
-        }),
-      ),
-  };
-}
 
 /** Letters only: a scratch name the contact-in-text rule never reads as a number. */
 function token(): string {
@@ -290,46 +205,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     return { id: data.id, title: data["title"] as string };
   }
 
-  /** A pooled account holding exactly the named permissions through a scratch role. */
-  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
-    const supabase = adminClient();
-    const roleName = `e2e_listings_role_${token()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:al] scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:al] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:al] grant failed: ${granted.error.message}`);
-    const holder = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: holder.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:al] assignment failed: ${assigned.error.message}`);
-    return holder;
-  }
-
   const list = (page: Page, args: Record<string, unknown>) =>
-    rpcResult(page, "admin_list_listings", args);
+    pageDoor(page, "admin_list_listings", args);
 
   test("AL-1 All listings: listings:view reads every listing but drafts; the e-mail only with profiles:view", async ({
     page,
@@ -339,7 +216,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const draft = await seed(seller, "draft");
     // INC-555 — the account with no listing right is AL-3's (one leased account fewer here).
 
-    const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
     const byId = await viewer.rpc("admin_list_listings", { p_search: live.id });
     expect(byId.error).toBeNull();
     const rows = byId.data as Row[];
@@ -360,7 +239,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // An e-mail is not a key for someone who may not read it.
     expect((await viewer.rpc("admin_list_listings", { p_seller: seller.email })).data).toEqual([]);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const full = (await list(page, { p_search: live.id })).data as Row[];
     expect(full[0]?.["seller_email"]).toBe(seller.email);
     const byEmail = (await list(page, { p_seller: seller.email })).data as Row[];
@@ -382,7 +261,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const removed = await seed(seller, "removed");
     await seed(seller, "draft");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const ids = async (args: Record<string, unknown>) => {
       const result = await list(page, { p_seller: seller.alias, ...args });
       expect(result.error).toBeNull();
@@ -455,20 +334,22 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   test("AL-24 Edit refuses a reviewer (listings:view and review, not enforce), and writes nothing", async () => {
-    await refusedEdit(
-      await scratchHolder([
+    const holder = await leaseUser();
+    await grantScratchRole(
+      holder.id,
+      [
         ["listings", "view"],
         ["listings", "review"],
-      ]),
-      "permission denied",
+      ],
+      roles,
     );
+    await refusedEdit(holder, "permission denied");
   });
 
   test("AL-25 Edit refuses an enforcer without a second factor, and writes nothing", async () => {
-    await refusedEdit(
-      await scratchHolder([["listings", "enforce"]]),
-      "step-up required: no verified factor",
-    );
+    const holder = await leaseUser();
+    await grantScratchRole(holder.id, [["listings", "enforce"]], roles);
+    await refusedEdit(holder, "step-up required: no verified factor");
   });
 
   test("AL-12 Edit refuses as the super admin: the admin's own, a draft, a removed listing, a key not editable, a reason without its note", async ({
@@ -479,14 +360,14 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const draft = await seed(seller, "draft");
     const removed = await seed(seller, "removed");
     const edit = (id: string, changes: Row, reason = "misleading", note?: string) =>
-      rpcResult(page, "admin_edit_listing", {
+      pageDoor(page, "admin_edit_listing", {
         p_listing_id: id,
         p_changes: changes,
         p_reason: reason,
         ...(note === undefined ? {} : { p_note: note }),
       });
 
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const own = await seed({ ...seller, id: user.id }, "active", { own: true });
     expect((await edit(own.id, { title: "My own" })).error).toBe(
       "your own listing is edited the seller's way",
@@ -511,9 +392,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const target = await seed(seller, "active");
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
-    const result = await rpcResult(page, "admin_edit_listing", {
+    const result = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -573,7 +454,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       throw new Error(`[e2e:al-4] notice country read failed: ${noticeCountry.error.message}`);
     expect(noticeCountry.data.home_country_code).toBe(sellerDirectory.data.home_country_code);
     // The same values again change nothing and write nothing.
-    const again = await rpcResult(page, "admin_edit_listing", {
+    const again = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -597,8 +478,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const sellerRefusals = (asSeller.data as { ok: boolean; refusals: Row[] }).refusals;
     expect(sellerRefusals).toContainEqual({ field: "title", reason: "contactInText" });
 
-    await useJobSuperAdmin(page);
-    const asAdmin = await rpcResult(page, "admin_edit_listing", {
+    await signInJobSuperAdmin(page);
+    const asAdmin = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -636,8 +517,8 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .eq("id", target.id);
     if (covered.error) throw new Error(`[e2e:al] cover failed: ${covered.error.message}`);
 
-    await useJobSuperAdmin(page);
-    const result = await rpcResult(page, "admin_edit_listing", {
+    await signInJobSuperAdmin(page);
+    const result = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: target.id,
       p_changes: { remove_photos: [first!.id] },
       p_reason: "photo",
@@ -658,7 +539,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       [first!.id, first!.storage_path],
     ]);
     expect(
-      await rpcResult(page, "admin_edit_listing", {
+      await pageDoor(page, "admin_edit_listing", {
         p_listing_id: target.id,
         p_changes: { remove_photos: [first!.id] },
         p_reason: "photo",
@@ -671,9 +552,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const target = await seed(seller, "active");
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const move = (to: string, reason: string) =>
-      rpcResult(page, "admin_move_listing", {
+      pageDoor(page, "admin_move_listing", {
         p_listing_id: target.id,
         p_to: to,
         p_reason: reason,
@@ -718,7 +599,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const plainRemoved = await seed(seller, "removed");
     const severe = await seed(seller, "removed", { screening: { severe: true } });
     const restore = (id: string) =>
-      rpcResult(page, "admin_move_listing", {
+      pageDoor(page, "admin_move_listing", {
         p_listing_id: id,
         p_to: "screening",
         p_reason: "appeal_accepted",
@@ -734,7 +615,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ).error,
     ).toBe("enforcement only: removed -> screening");
 
-    const enforcer = await asPerson(await scratchHolder([["listings", "enforce"]]));
+    const enforcerAccount = await leaseUser();
+    await grantScratchRole(enforcerAccount.id, [["listings", "enforce"]], roles);
+    const enforcer = await asPerson(enforcerAccount);
     const restoreAs = (id: string) =>
       enforcer.rpc("admin_move_listing", {
         p_listing_id: id,
@@ -746,7 +629,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       "a listing removed for a severe reason is restored by a super admin only",
     );
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     expect((await restore(severe.id)).data).toMatchObject({ ok: true, status: "screening" });
     expect((await listingTruth(severe.id))?.["status"]).toBe("screening");
     expect((await listingTruth(plainRemoved.id))?.["status"]).toBe("removed");
@@ -760,9 +643,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const live = await seed(seller, "active");
     const sold = await seed(seller, "sold");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const sendBack = (id: string) =>
-      rpcResult(page, "admin_move_listing", {
+      pageDoor(page, "admin_move_listing", {
         p_listing_id: id,
         p_to: "screening",
         p_reason: "wrong_category",
@@ -774,22 +657,26 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     expect((await sendBack(sold.id)).error).toBe("illegal move: sold -> screening");
 
+    const notices = `seller_notices?select=kind,reason&listing_id=eq.${live.id}`;
     const owner = await asPerson(seller);
-    expect(await owner.notices(live.id)).toEqual({
+    expect(await owner.rest(notices)).toEqual({
       data: [{ kind: "admin_send_back", reason: "wrong_category" }],
       error: null,
     });
-    const forged = await owner.insertNotice({
-      seller_id: seller.id,
-      listing_id: live.id,
-      kind: "admin_edit",
-      reason: "other",
-      note: "forged",
+    const forged = await owner.rest("seller_notices", {
+      method: "POST",
+      body: {
+        seller_id: seller.id,
+        listing_id: live.id,
+        kind: "admin_edit",
+        reason: "other",
+        note: "forged",
+      },
     });
     expect(forged.error).not.toBeNull();
 
     const other = await asPerson(await leaseUser());
-    expect(await other.notices(live.id)).toEqual({ data: [], error: null });
+    expect(await other.rest(notices)).toEqual({ data: [], error: null });
     expect(await noticeRows(live.id)).toHaveLength(1);
   });
 
@@ -824,7 +711,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     const draft = await seed(seller, "draft");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("listings-header").getByRole("heading", { level: 1 })).toHaveText(
@@ -904,10 +791,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // INC-550 — the admin shell opens only for admin_panel:access (as in
     // admin-screening.spec.ts); L2's AL-11 held listings:view alone and never
     // reached the page.
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+      ],
+      roles,
+    );
 
     await signInViaSession(page, viewer.email, viewer.password);
     await gotoReady(page, "/admin/listings");
@@ -988,7 +880,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1044,7 +936,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const live = await seed(seller, "active");
     const note = "The price is per day, not per month.";
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1084,7 +976,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const first = await seed(seller, "active");
     const second = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-filters").click();
@@ -1164,7 +1056,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     if (revision.error) throw new Error(`[e2e:al] revision seed failed: ${revision.error.message}`);
 
     // INC-555 — the account with no listing right is AL-3's (one leased account fewer here).
-    const viewer = await asPerson(await scratchHolder([["listings", "view"]]));
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
     expect((await viewer.rpc("admin_listing_detail", { p_listing_id: draft.id })).error).toBe(
       "listing not found",
     );
@@ -1207,14 +1101,14 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       expect(text, `AL-16 the door showed ${hidden}`).not.toContain(hidden);
     }
 
-    await useJobSuperAdmin(page);
-    const removed = await rpcResult(page, "admin_move_listing", {
+    await signInJobSuperAdmin(page);
+    const removed = await pageDoor(page, "admin_move_listing", {
       p_listing_id: live.id,
       p_to: "removed",
       p_reason: "misleading",
     });
     expect(removed.error).toBeNull();
-    const full = (await rpcResult(page, "admin_listing_detail", { p_listing_id: live.id }))
+    const full = (await pageDoor(page, "admin_listing_detail", { p_listing_id: live.id }))
       .data as Row;
     expect((full["seller"] as Row)["email"]).toBe(seller.email);
     const latest = (full["history"] as Row[])[0];
@@ -1248,7 +1142,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1312,10 +1206,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
     const draft = await seed(seller, "draft");
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+      ],
+      roles,
+    );
     // A staff member's status change: a scratch revision of this listing.
     const revision = await adminClient()
       .from("listing_revisions")
@@ -1374,9 +1273,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .eq("id", soon.id);
     if (ends.error) throw new Error(`[e2e:al] end date failed: ${ends.error.message}`);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
-    const first = await rpcResult(page, "admin_edit_listing", {
+    const first = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: soon.id,
       p_changes: { title },
       p_reason: "misleading",
@@ -1390,7 +1289,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .update({ is_active: false })
       .eq("id", seller.cityId);
     if (off.error) throw new Error(`[e2e:al] switching the place off failed: ${off.error.message}`);
-    const second = await rpcResult(page, "admin_edit_listing", {
+    const second = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: placed.id,
       p_changes: { description: "Corrected by the console" },
       p_reason: "rules",
@@ -1399,7 +1298,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(second.data).toEqual({ ok: true, status: "active", fields: ["description"] });
 
     // The seller's content rules still judge what the admin changes.
-    const third = await rpcResult(page, "admin_edit_listing", {
+    const third = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: soon.id,
       p_changes: { title: "Call me on 0911 223 344" },
       p_reason: "misleading",
@@ -1434,7 +1333,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .replace("{currency}", "ETB")
       .replace("{basis}", "bag");
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1538,7 +1437,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     // INC-554 (turn L4b) — the breadcrumb names the listing last.
@@ -1609,7 +1508,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await page.getByTestId("listing-edit").click();
@@ -1667,7 +1566,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const control = (key: string) =>
       page.locator(`[data-testid="post-attr-control"][data-attr="${key}"]`);
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
 
@@ -1747,15 +1646,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const title = `Corrected listing ${token()}`;
-    const first = await rpcResult(page, "admin_edit_listing", {
+    const first = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
       p_changes: { title },
       p_reason: "misleading",
     });
     expect(first.error).toBeNull();
-    const second = await rpcResult(page, "admin_edit_listing", {
+    const second = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
       p_changes: { price_amount: 120 },
       p_reason: "rules",
@@ -1832,13 +1731,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const live = await seed(seller, "active");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const undo = (listingId: string, at: string) =>
-      rpcResult(page, "admin_undo_listing_edit", { p_listing_id: listingId, p_at: at });
+      pageDoor(page, "admin_undo_listing_edit", { p_listing_id: listingId, p_at: at });
 
     // Nothing to undo yet; "undo" is not an edit reason; nothing is written.
     expect((await undo(live.id, new Date().toISOString())).error).toBe("nothing to undo");
-    const asReason = await rpcResult(page, "admin_edit_listing", {
+    const asReason = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
       p_changes: { title: `Corrected listing ${token()}` },
       p_reason: "undo",
@@ -1850,7 +1749,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const title = `Corrected listing ${token()}`;
     expect(
       (
-        await rpcResult(page, "admin_edit_listing", {
+        await pageDoor(page, "admin_edit_listing", {
           p_listing_id: live.id,
           p_changes: { title },
           p_reason: "misleading",
@@ -1906,7 +1805,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     if (phone.error) throw new Error(`[e2e:al] title seed failed: ${phone.error.message}`);
     expect(
       (
-        await rpcResult(page, "admin_edit_listing", {
+        await pageDoor(page, "admin_edit_listing", {
           p_listing_id: phoned.id,
           p_changes: { title: `Corrected listing ${token()}` },
           p_reason: "contact_in_text",
@@ -1962,7 +1861,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     }>;
     const note = "A phone number is written across the photo.";
 
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     // INC-620 — the step whose code the injected session's verification spent.
     const spentStep = totpStep();
     await gotoReady(page, `/admin/listings/${live.id}`);
@@ -2086,9 +1985,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await stored()).toEqual(kept);
 
     // Staff's door.
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     expect(
-      await rpcResult(page, "admin_edit_listing", {
+      await pageDoor(page, "admin_edit_listing", {
         p_listing_id: live.id,
         p_changes: { category_id: other.leaf.id },
         p_reason: "misleading",
@@ -2112,11 +2011,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     };
     const P = await policy();
 
-    const enforcer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "enforce"],
-    ]);
+    const enforcer = await leaseUser();
+    await grantScratchRole(
+      enforcer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "enforce"],
+      ],
+      roles,
+    );
     await signInViaSession(page, enforcer.email, enforcer.password);
     await gotoReady(page, "/admin/listings");
     const open = page.getByTestId("listings-header").getByTestId("listings-settings");
@@ -2149,10 +2053,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expectStored();
     expect(await policy()).toEqual(P);
 
-    const viewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-    ]);
+    const viewer = await leaseUser();
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+      ],
+      roles,
+    );
     await signInViaSession(page, viewer.email, viewer.password);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-header")).toBeVisible({ timeout: 20000 });
@@ -2189,45 +2098,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     expect(second.error).toBeNull();
     expect(second.data).toMatchObject({ ok: true });
-    // EL-4 / G37 — reuse the held buyer, never change scratchHolder's lease default.
+    // EL-4 / G37 — reuse the held buyer: each grant replaces this test's earlier scratch grant.
     const holder = async (wanted: Array<[string, string]>) => {
-      const supabase = adminClient();
-      const old = await supabase
+      const old = await adminClient()
         .from("user_roles")
         .delete()
         .eq("user_id", buyer.id)
         .in("role_id", roles);
       if (old.error)
         throw new Error(`[e2e:al31] clearing scratch grants failed: ${old.error.message}`);
-      const name = `e2e_listings_role_${token()}`;
-      const role = await supabase
-        .from("roles")
-        .insert({ name, display_name: name, priority: 1 })
-        .select("id")
-        .single();
-      if (role.error) throw new Error(`[e2e:al31] role failed: ${role.error.message}`);
-      roles.push(role.data.id);
-      const perms = await supabase
-        .from("permissions")
-        .select("id,action,resources!inner(name)")
-        .in("resources.name", ["admin_panel", "listings"]);
-      if (perms.error) throw new Error(`[e2e:al31] permissions failed: ${perms.error.message}`);
-      const picked = perms.data.filter((p) =>
-        wanted.some(
-          ([resource, action]) =>
-            (p.resources as unknown as { name: string }).name === resource && p.action === action,
-        ),
-      );
-      expect(picked).toHaveLength(wanted.length);
-      const grant = await supabase
-        .from("role_permissions")
-        .insert(picked.map((p) => ({ role_id: role.data.id, permission_id: p.id })));
-      if (grant.error) throw new Error(`[e2e:al31] grants failed: ${grant.error.message}`);
-      const assigned = await supabase
-        .from("user_roles")
-        .insert({ user_id: buyer.id, role_id: role.data.id, scope_type: "global" });
-      if (assigned.error)
-        throw new Error(`[e2e:al31] assignment failed: ${assigned.error.message}`);
+      await grantScratchRole(buyer.id, wanted, roles);
       await signInViaSession(page, buyer.email, buyer.password);
     };
     await holder([
@@ -2327,7 +2207,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const admin = await useJobSuperAdmin(page);
+    const admin = await signInJobSuperAdmin(page);
 
     await gotoReady(page, `/admin/listings/${ad.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(ad.title, { timeout: 20000 });
@@ -2398,7 +2278,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
     const gone = await seed(seller, "removed");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     await gotoReady(page, `/admin/listings/${ad.id}`);
     await expect(page.getByTestId("listing-set-tier")).toBeVisible({ timeout: 20000 });
@@ -2418,7 +2298,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
 
     // The door's own refusal for a removed ad, as the same signed-in super admin.
-    const refused = await rpcResult(page, "admin_set_listing_tier", {
+    const refused = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: gone.id,
       p_tier: "premium",
       p_reason: "promotion",
@@ -2439,13 +2319,18 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await signInViaSession(page, reviewer.email, reviewer.password);
-    const denied = await rpcResult(page, "admin_set_listing_tier", {
+    const denied = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
       p_tier: "premium",
       p_reason: "promotion",
@@ -2466,12 +2351,17 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const enforcer = await scratchHolder([
-      ["listings", "view"],
-      ["listings", "enforce"],
-    ]);
+    const enforcer = await leaseUser();
+    await grantScratchRole(
+      enforcer.id,
+      [
+        ["listings", "view"],
+        ["listings", "enforce"],
+      ],
+      roles,
+    );
     await signInViaSession(page, enforcer.email, enforcer.password);
-    const asked = await rpcResult(page, "admin_set_listing_tier", {
+    const asked = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
       p_tier: "premium",
       p_reason: "promotion",
@@ -2494,7 +2384,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       timeout: 20000,
     });
 
-    const deleted = await rpcResult(page, "transition_listing", {
+    const deleted = await pageDoor(page, "transition_listing", {
       p_listing_id: premium.id,
       p_new_status: "removed",
     });
@@ -2505,7 +2395,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(gone?.["deleted_at"]).not.toBeNull();
     expect(await feedRanks(premium.id)).toEqual([]);
 
-    const sale = await rpcResult(page, "transition_listing", {
+    const sale = await pageDoor(page, "transition_listing", {
       p_listing_id: sold.id,
       p_new_status: "sold",
     });
@@ -2534,7 +2424,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
     const gone = await seed(seller, "removed");
-    const admin = await useJobSuperAdmin(page);
+    const admin = await signInJobSuperAdmin(page);
     const own = await seed({ ...seller, id: admin.user.id }, "active", { own: true });
 
     await gotoReady(page, "/admin/listings");
@@ -2615,11 +2505,16 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await signInViaSession(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
@@ -2630,7 +2525,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId(`listing-actions-${ad.id}-more-tier`)).toHaveCount(0);
     await page.keyboard.press("Escape");
 
-    const denied = await rpcResult(page, "admin_set_listing_tier", {
+    const denied = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
       p_tier: "premium",
       p_reason: "promotion",

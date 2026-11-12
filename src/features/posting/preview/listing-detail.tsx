@@ -40,14 +40,24 @@ import { usePhotoLinks } from "../use-photo-links";
 import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
 import { boxLayout } from "./box-layout";
+import { currentListingSection } from "./listing-section";
 import { keyFacts } from "../key-facts";
-import { Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type Ref,
+} from "react";
 import { SellerLine } from "../seller-line";
 import { SellerReviewNotice } from "@/features/seller/seller-review-notice";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
 import { MapFailedHere } from "../map/map-failed-here";
 import { MapFrame } from "../map/map-frame";
+import { snap } from "../map/map-snap";
 import { useSteadyPin } from "../map/use-steady-pin";
 import type { Pin, PinPrecision } from "../map/pin";
 import type { LevelLook } from "@/features/levels/level-fields";
@@ -66,10 +76,9 @@ const BAR_RADIUS = "[--card-radius:var(--bar-radius)]";
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
  * with no pin never downloads Leaflet, and neither does the first paint. D234 S3
- * (INC-897) — the still map's module is fetched once per visit (its component and
- * the pin snap share the one download, src/lib/load-once.ts), and both maps are
- * resilientLazy: a map that cannot download says so in its own place, never the route's
- * error screen. INC-956 — in place (`inPlace`): the failure and its one cure, Refresh
+ * (INC-897) — the still map's module is fetched once per visit (src/lib/load-once.ts), and
+ * both maps are resilientLazy: a map that cannot download says so in its own place, never the
+ * route's error screen. INC-956 — in place (`inPlace`): the failure and its one cure, Refresh
  * (LoadFailedHere), where the person is looking — inside the large map's dialog too, where the
  * shell's notice could not be reached; the loading word ("Map pin") is the Suspense
  * fallback's alone.
@@ -165,28 +174,6 @@ const PERIOD_KEYS: Record<PricePeriod, MessageKey> = {
 
 function isPeriod(value: string | null): value is PricePeriod {
   return value !== null && value in PERIOD_KEYS;
-}
-
-/** DEC-192 candidates, with INC-753's page-end exception. */
-export function currentListingSection(
-  items: readonly { target: string; shown: boolean; top: number; inBand: boolean }[],
-  current: string,
-  viewportHeight: number,
-  atEnd: boolean,
-): string {
-  // INC-753 — at the end of the page the last section on screen is current: a section near the end can never reach the band.
-  if (atEnd) {
-    const last = items
-      .filter((item) => item.shown && item.top >= 0 && item.top < viewportHeight)
-      .at(-1);
-    if (last) return last.target;
-  }
-  const visible = items.filter((item) => item.inBand);
-  if (visible.length === 0) return current;
-  const minTop = Math.min(...visible.map((item) => item.top));
-  const candidates = visible.filter((item) => item.shown && item.top - minTop <= 8);
-  if (candidates.some((item) => item.target === current)) return current;
-  return candidates[0]?.target ?? current;
 }
 
 export type ListingActor = "buyer" | "owner" | "staff";
@@ -364,26 +351,31 @@ export function ListingDetail(view: ListingDetailView) {
   // DEC-196 — the sign-in return scrolls the seller card into view, highlights
   // it for three seconds and focuses Show contact; it never reveals. The flag
   // is used once, so a later re-render never moves the page again.
-  const showContactRef = useRef<HTMLButtonElement | null>(null);
   const focusOnReturnDone = useRef(false);
+  const highlightTimer = useRef<number | undefined>(undefined);
   const [contactHighlight, setContactHighlight] = useState(false);
-  useEffect(() => {
-    if (focusOnReturnDone.current) return;
-    if (view.contact?.focusOnReturn !== true || view.contact.viewer !== "signedIn") return;
-    const button = showContactRef.current;
-    const card = typeof document === "undefined" ? null : document.getElementById("contact");
-    if (button === null || card === null) return;
-    focusOnReturnDone.current = true;
-    const reduced =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (typeof card.scrollIntoView === "function") {
-      card.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
-    }
-    button.focus({ preventScroll: true });
-    setContactHighlight(true);
-    window.setTimeout(() => setContactHighlight(false), 3000);
-  });
+  const focusOnReturn = view.contact?.focusOnReturn;
+  const contactViewer = view.contact?.viewer;
+  const showContactRef = useCallback(
+    (button: HTMLButtonElement | null) => {
+      if (focusOnReturnDone.current || button === null) return;
+      if (focusOnReturn !== true || contactViewer !== "signedIn") return;
+      const card = typeof document === "undefined" ? null : document.getElementById("contact");
+      if (card === null) return;
+      focusOnReturnDone.current = true;
+      const reduced =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (typeof card.scrollIntoView === "function") {
+        card.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+      }
+      button.focus({ preventScroll: true });
+      setContactHighlight(true);
+      highlightTimer.current = window.setTimeout(() => setContactHighlight(false), 3000);
+    },
+    [focusOnReturn, contactViewer],
+  );
+  useEffect(() => () => window.clearTimeout(highlightTimer.current), []);
 
   const channels = (["phone", "phone2", "telegram", "whatsapp"] as const).filter((channel) => {
     const entry = view.contactPref[channel];
@@ -465,7 +457,6 @@ export function ListingDetail(view: ListingDetailView) {
   // that carries them: a render that hands an equal pin keeps its links and asks for nothing again.
   const steadyPin = useSteadyPin(pin);
   useEffect(() => {
-    let active = true;
     setMapMaps(null);
     if (steadyPin === null) return;
     const { lat, lng } = steadyPin;
@@ -474,25 +465,12 @@ export function ListingDetail(view: ListingDetailView) {
       setMapMaps({ web: webPinUrl(lat, lng), app: appPinUrl(lat, lng, 15) });
       return;
     }
-    // Keep the still-map module off the marketplace's first-paint graph.
-    // INC-956 — a failed download is logged only: the map beside the link is the same download
-    // and says so in its own place (one message, where the person is looking).
-    MAP_PREVIEW.load().then(
-      ({ snap }) => {
-        if (active) {
-          const snappedLat = snap(lat).toFixed(2);
-          const snappedLng = snap(lng).toFixed(2);
-          setMapMaps({
-            web: webPinUrl(snappedLat, snappedLng),
-            app: appPinUrl(snappedLat, snappedLng, 13),
-          });
-        }
-      },
-      (error: unknown) => logOnDemandFailure("the map's links", error),
-    );
-    return () => {
-      active = false;
-    };
+    const snappedLat = snap(lat).toFixed(2);
+    const snappedLng = snap(lng).toFixed(2);
+    setMapMaps({
+      web: webPinUrl(snappedLat, snappedLng),
+      app: appPinUrl(snappedLat, snappedLng, 13),
+    });
   }, [steadyPin]);
   const Title = view.actor === "buyer" ? "h1" : "h2";
   const [posted, setPosted] = useState<string | null>(null);

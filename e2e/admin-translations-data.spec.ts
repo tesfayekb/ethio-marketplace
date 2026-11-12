@@ -7,6 +7,7 @@ import {
   describeStringsPage,
   gotoReady,
   stepUpIfPrompted,
+  signInJobSuperAdmin,
 } from "./helpers/ui";
 import { inBrowserClient } from "./helpers/browser-client";
 import { adminClient } from "./helpers/users";
@@ -21,7 +22,6 @@ import {
   bulkFence,
   approveFence,
   ensureFenceLanguage,
-  signInAsSuperAdmin,
 } from "./helpers/translations";
 import { translationMapperSelfTest } from "../src/features/admin/translations/translations-service";
 
@@ -191,7 +191,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     const supabase = adminClient();
     const marker = `አዲስ አበባ ${processId()}`;
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/translations/am?scope=data");
       await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("data-search").fill(name);
@@ -296,7 +296,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     };
 
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
 
       // U4j-3 — the UNIVERSE, not the existing rows: the scratch location has
       // no entity_translations row in the fence language yet, and must still be
@@ -480,7 +480,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       );
 
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
 
       // 1. FILL — INC-287b: the sweep is FILTERED to this test's own stem, so
       //    it covers `one` and `two` and nothing else in the fence.
@@ -619,7 +619,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     const idOf = (key: string) => attrs.find((row) => row.attr_key === key)!.id as string;
 
     try {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       void secret;
 
       const bearer = async () =>
@@ -739,7 +739,7 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
       })
       .eq("id", id);
     if (updated.error) throw new Error(`TR-42 options: ${updated.error.message}`);
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/translations/${fence}?scope=data`);
     await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("data-search").fill(source);

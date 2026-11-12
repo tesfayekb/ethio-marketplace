@@ -106,7 +106,7 @@ jobs:
       # libraries run once with 1500 s; the browser download may be repeated, 900 s a try.
       - name: Install Chromium's system libraries
         timeout-minutes: 27
-        run: bash scripts/ci/with-deadline.sh 1500 1 -- bunx playwright install-deps chromium
+        run: bash scripts/ci/with-deadline.sh 1500 1 -- bash scripts/ci/install-browser-deps.sh
       - name: Install Chromium
         timeout-minutes: 32
         run: bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install chromium
@@ -141,6 +141,10 @@ jobs:
       - name: Run nightly E2E (real-elapsed-time cases)
         id: run
         continue-on-error: true
+        # DEC-369: this run owns the maintenance pass on ethio-staging (once a night; the serial
+        # run below does not). CF-CID-7.
+        env:
+          E2E_MAINTENANCE: "1"
         run: |
           set -o pipefail
           bunx playwright test -c playwright.nightly.config.ts 2>&1 | tee nightly.log
@@ -259,6 +263,8 @@ jobs:
           RUN_QUARANTINED: ${{ steps.evidence.outputs.quarantined }}
           RUN_SHA: ${{ github.sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # DEC-321 — the ref this run tested; the publisher files a non-dev ref's evidence under branches/<ref>/.
+          EVIDENCE_REF: ${{ github.head_ref || github.ref_name }}
         run: |
           set -u
           mkdir -p docs/tracking
@@ -369,7 +375,7 @@ jobs:
       # libraries run once with 1500 s; the browser download may be repeated, 900 s a try.
       - name: Install Chromium's system libraries
         timeout-minutes: 27
-        run: bash scripts/ci/with-deadline.sh 1500 1 -- bunx playwright install-deps chromium
+        run: bash scripts/ci/with-deadline.sh 1500 1 -- bash scripts/ci/install-browser-deps.sh
       - name: Install Chromium
         timeout-minutes: 32
         run: bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install chromium

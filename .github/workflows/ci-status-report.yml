@@ -42,6 +42,37 @@ jobs:
               { owner: context.repo.owner, repo: context.repo.repo, run_id: run.id, per_page: 100 }
             );
             const sha = run.head_sha;
+            // DEC-365 — a docs-only push skips the lanes and the bundle budget. The scope job's
+            // log line `DEC-365 lanes: skipped — …` names the commit whose lanes were green and
+            // its run; those two jobs then read `skipped (docs-only)`. A log that cannot be read
+            // is said in the file (self-report law), and the rows stay plain `skipped`.
+            const docsSkippable = (name) =>
+              name === 'E2E lanes' ||
+              name.startsWith('E2E lanes / ') ||
+              name === 'First-paint bundle budget (gzipped ceiling)';
+            const scopeJob = jobs.find((j) => j.name.startsWith('Scope (docs-only push'));
+            let lanesLine = null;
+            if (scopeJob && scopeJob.conclusion === 'success') {
+              try {
+                const res = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  job_id: scopeJob.id,
+                });
+                const text = typeof res.data === 'string' ? res.data : String(res.data ?? '');
+                for (const raw of text.split('\n')) {
+                  const decided = /DEC-365 lanes: (.+)$/.exec(raw.trim());
+                  if (decided) lanesLine = decided[1];
+                }
+              } catch (error) {
+                lanesLine = `unknown — the scope job's log could not be read: ${error.message}`;
+              }
+            }
+            const docsOnly = lanesLine !== null && lanesLine.startsWith('skipped — docs-only push;');
+            const conclusionOf = (j) =>
+              docsOnly && j.conclusion === 'skipped' && docsSkippable(j.name)
+                ? 'skipped (docs-only)'
+                : (j.conclusion ?? j.status);
             const lines = [
               '# CI Status (auto-generated — do not edit by hand)',
               '',
@@ -49,12 +80,13 @@ jobs:
               `- Conclusion: **${String(run.conclusion || 'unknown').toUpperCase()}**`,
               `- Completed (UTC): ${run.updated_at}`,
               `- Run: ${run.html_url}`,
+              ...(lanesLine === null ? [] : [`- Lanes: ${lanesLine}`]),
               '',
               '## Jobs',
               '',
               '| Job | Conclusion |',
               '| --- | ---------- |',
-              ...jobs.map((j) => `| ${j.name} | ${j.conclusion ?? j.status} |`),
+              ...jobs.map((j) => `| ${j.name} | ${conclusionOf(j)} |`),
               '',
             ];
             fs.mkdirSync('docs/tracking', { recursive: true });
@@ -205,6 +237,9 @@ jobs:
       # three times regenerating on top of the fetched branch, and a failed
       # publish is a warning, never a red job.
       - name: Commit and push
+        env:
+          # DEC-321 — the ref this run tested; the publisher files a non-dev ref's evidence under branches/<ref>/.
+          EVIDENCE_REF: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -u
           mkdir -p docs/tracking

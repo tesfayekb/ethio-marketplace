@@ -11,7 +11,15 @@ import { retryingFetch } from "./helpers/net-retry";
 import migrationPreflight from "../scripts/e2e-migration-preflight";
 import { totp } from "./helpers/totp";
 import { mintEmail } from "./helpers/users";
+import { madeJpeg } from "./helpers/photos";
 import { assertAppTargetsStaging } from "./helpers/app-target";
+import {
+  FENCE_PREFIXES,
+  likeAnywhere,
+  likePrefix,
+  SCRATCH_PREFIXES,
+  SCRATCH_USER_DOMAIN,
+} from "./helpers/scratch";
 import { staleEnKeys, type EnRow } from "../scripts/en-baseline-heal";
 import { readAllPages } from "../src/lib/read-all-pages";
 import { errorText } from "../src/lib/error-text";
@@ -45,7 +53,7 @@ const STAGING_REF = "jatpuhfdjfzctjipklmk";
  * `zxy-mo` / `zxy-de`. The reaper's prefixes are unchanged — it matches by
  * prefix, so a longer suffix is still swept.
  */
-export const FENCE_PREFIXES = { bulk: "zxx", approve: "zxy" } as const;
+export { FENCE_PREFIXES };
 
 export type FenceKind = keyof typeof FENCE_PREFIXES;
 
@@ -71,7 +79,7 @@ export function fenceLang(kind: FenceKind, project: string): string {
 /**
  * L4 (DEC-038) — a POOLED super admin: an identity with one enrolled+verified
  * TOTP factor, minted once in setup and borrowed by non-enrolment admin tests
- * through `useJobSuperAdmin` (e2e/helpers/ui.ts). Tests whose SUBJECT is
+ * through `signInJobSuperAdmin` (e2e/helpers/ui.ts). Tests whose SUBJECT is
  * enrolment or unenrolment keep minting their own identity.
  *
  * L5c (DEC-041 amended) — IDENTITY PER WORKER, SESSION PER TEST. One pooled
@@ -203,7 +211,10 @@ export async function listE2EUserIds(
     const users = data?.users ?? [];
     for (const user of users) {
       liveUserIds?.add(user.id);
-      if (user.email?.startsWith("e2e+") && user.email.endsWith("@ethio-e2e.invalid")) {
+      if (
+        user.email?.startsWith(SCRATCH_PREFIXES.user) &&
+        user.email.endsWith(SCRATCH_USER_DOMAIN)
+      ) {
         ids.push(user.id);
       }
     }
@@ -580,10 +591,11 @@ export default async function globalSetup() {
   //     Every sharded job used to run the full reaper + prune + storage sweep +
   //     tripwire at t=0, so N jobs hammered the same staging tables at the same
   //     instant (the thundering herd behind the 57014 statement timeouts).
-  //     Shard 1 owns maintenance; every other job logs the skip and proceeds
-  //     straight to its own minted user. An unsharded (local/solo) run has no
-  //     herd and keeps ownership. The TEARDOWN is untouched.
-  // DEC-142 — E2E_MAINTENANCE=1 lets a local run prove the reapers (CI never sets it).
+  //     One owner per backend (DEC-369): lane 1 owns the pass on a temporary
+  //     backend; the nightly's first run owns it on staging; E2E_MAINTENANCE=1 is
+  //     the owner's mark. Every other job logs the skip and proceeds straight to
+  //     its own minted user. An `e2e:local` run sets `local` and skips unless it
+  //     sets the mark (DEC-142). The TEARDOWN is untouched.
   const maintenanceOwner =
     (process.env["E2E_SHARD"] ?? "1") === "1" || process.env["E2E_MAINTENANCE"] === "1";
   if (!maintenanceOwner) {
@@ -601,7 +613,7 @@ export default async function globalSetup() {
   const { data: staleRevisions, error: revisionError } = await supabase
     .from("ui_translation_revisions")
     .delete()
-    .like("key", "e2e.scratch.%")
+    .like("key", likePrefix(SCRATCH_PREFIXES.translationKey))
     .lt("changed_at", cutoff)
     .select("id");
   if (revisionError) {
@@ -611,7 +623,7 @@ export default async function globalSetup() {
   const { data: staleRows, error: rowError } = await supabase
     .from("ui_translations")
     .delete()
-    .like("key", "e2e.scratch.%")
+    .like("key", likePrefix(SCRATCH_PREFIXES.translationKey))
     .lt("updated_at", cutoff)
     .select("key");
   if (rowError) {
@@ -629,7 +641,7 @@ export default async function globalSetup() {
     const { data: staleFenceRevisions, error: fenceRevisionError } = await supabase
       .from("ui_translation_revisions")
       .delete()
-      .like("lang_code", `${prefix}%`)
+      .like("lang_code", likePrefix(prefix))
       .lt("changed_at", cutoff)
       .select("id");
     if (fenceRevisionError) {
@@ -639,7 +651,7 @@ export default async function globalSetup() {
     const { data: staleFenceRows, error: fenceRowError } = await supabase
       .from("ui_translations")
       .delete()
-      .like("lang_code", `${prefix}%`)
+      .like("lang_code", likePrefix(prefix))
       .lt("updated_at", cutoff)
       .select("key");
     if (fenceRowError) {
@@ -653,7 +665,7 @@ export default async function globalSetup() {
     const { data: staleFenceEntities, error: fenceEntityError } = await supabase
       .from("entity_translations")
       .delete()
-      .like("lang_code", `${prefix}%`)
+      .like("lang_code", likePrefix(prefix))
       .lt("updated_at", cutoff)
       .select("entity_id");
     if (fenceEntityError) {
@@ -690,7 +702,7 @@ export default async function globalSetup() {
   const { data: staleLocations, error: locationError } = await supabase
     .from("locations")
     .select("id, level, slug")
-    .like("slug", "e2e-%")
+    .like("slug", likePrefix(SCRATCH_PREFIXES.dash))
     .lt("created_at", cutoff);
   if (locationError) {
     throw new Error(`[e2e:setup] listing stale scratch locations failed: ${locationError.message}`);
@@ -729,7 +741,7 @@ export default async function globalSetup() {
   const { data: staleCountries, error: staleCountryError } = await supabase
     .from("countries")
     .select("code, name_en, created_at")
-    .like("name_en", "E2E-Scratch-%")
+    .like("name_en", likePrefix(SCRATCH_PREFIXES.countryName))
     .lt("created_at", cutoff);
   if (staleCountryError) {
     throw new Error(
@@ -812,7 +824,7 @@ export default async function globalSetup() {
   const { data: staleImportRevisions, error: importRevisionError } = await supabase
     .from("location_import_revisions")
     .delete()
-    .like("entity_key", "%e2e-%")
+    .like("entity_key", likeAnywhere(SCRATCH_PREFIXES.dash))
     .lt("created_at", cutoff)
     .select("id");
   if (importRevisionError) {
@@ -826,15 +838,20 @@ export default async function globalSetup() {
   // rows, so an accumulated graveyard of `e2e-%` roles hid newly created ones
   // from RP-2's list (its dump showed dataLength=1000). The reaper law now
   // covers every scratch entity type, not just translations.
-  const { data: staleRoles, error: staleRoleError } = await supabase
-    .from("roles")
-    .select("id")
-    .like("name", "e2e-%")
-    .lt("created_at", cutoff);
-  if (staleRoleError) {
-    throw new Error(`[e2e:setup] listing stale scratch roles failed: ${staleRoleError.message}`);
+  // INC-1104 — `grantScratchRole` names its roles `e2e_scratch_role_…`, which
+  // `e2e-%` never matched (`-` is literal in LIKE): both prefixes are swept.
+  const staleRoleIds: string[] = [];
+  for (const prefix of [SCRATCH_PREFIXES.dash, SCRATCH_PREFIXES.role]) {
+    const { data: staleRoles, error: staleRoleError } = await supabase
+      .from("roles")
+      .select("id")
+      .like("name", likePrefix(prefix))
+      .lt("created_at", cutoff);
+    if (staleRoleError) {
+      throw new Error(`[e2e:setup] listing stale scratch roles failed: ${staleRoleError.message}`);
+    }
+    staleRoleIds.push(...(staleRoles ?? []).map((row) => row.id));
   }
-  const staleRoleIds = (staleRoles ?? []).map((row) => row.id);
   for (const roleBatch of chunkByLength(staleRoleIds)) {
     // Dependents first: a role with grants or members cannot be deleted.
     const { error: permError } = await supabase
@@ -867,7 +884,7 @@ export default async function globalSetup() {
   const { data: e2eSellers, error: e2eSellerError } = await supabase
     .from("profiles")
     .select("user_id")
-    .like("display_name", "e2e+%");
+    .like("display_name", likePrefix(SCRATCH_PREFIXES.user));
   if (e2eSellerError) {
     throw new Error(`[e2e:setup] listing e2e sellers failed: ${e2eSellerError.message}`);
   }
@@ -882,7 +899,7 @@ export default async function globalSetup() {
     .from("listings")
     .delete()
     .lt("created_at", cutoff)
-    .like("title", "e2e-cat-listing-%")
+    .like("title", likePrefix(SCRATCH_PREFIXES.categoryListing))
     .select("id, seller_id");
   if (listingError) {
     throw new Error(`[e2e:setup] reaping scratch listings failed: ${listingError.message}`);
@@ -946,11 +963,13 @@ export default async function globalSetup() {
   };
   // DEC-077 part 2 — PROOF on every shard-1 run: the delete path must remove a
   // known object. An unreachable bucket fails the upload, and that throws.
-  const proofPrefix = `default/e2e-proof-${processId()}/e2e-proof-listing`;
+  const proof = `${SCRATCH_PREFIXES.dash}proof`;
+  const proofPrefix = `default/${proof}-${processId()}/${proof}-listing`;
+  // INC-1112: the bucket takes JPEG, PNG and WebP only (M7), so the proof is a real photo.
   const { error: proofUploadError } = await photoStorage.upload(
-    `${proofPrefix}/e2e-proof-photo/card.txt`,
-    new Blob(["x"], { type: "text/plain" }),
-    { upsert: true, contentType: "text/plain" },
+    `${proofPrefix}/${proof}-photo/card.jpg`,
+    madeJpeg(11, 11),
+    { upsert: true, contentType: "image/jpeg" },
   );
   if (proofUploadError) {
     throw new Error(`[e2e:setup] photo reaper proof upload failed: ${proofUploadError.message}`);
@@ -1054,7 +1073,7 @@ export default async function globalSetup() {
     const { data: page, error: staleCategoryError } = await supabase
       .from("categories")
       .select("id")
-      .like("slug", "e2e-%")
+      .like("slug", likePrefix(SCRATCH_PREFIXES.dash))
       .lt("created_at", categoryCutoff)
       .order("id")
       .range(from, from + 999);
@@ -1207,7 +1226,7 @@ export default async function globalSetup() {
   const { data: e2eCategories, error: e2eCategoryError } = await supabase
     .from("categories")
     .select("id")
-    .like("slug", "e2e-cat-%");
+    .like("slug", likePrefix(SCRATCH_PREFIXES.category));
   if (e2eCategoryError) {
     throw new Error(
       `[e2e:setup] listing e2e categories for the storage sweep failed: ${e2eCategoryError.message}`,
@@ -1246,7 +1265,7 @@ export default async function globalSetup() {
     .from("categories")
     .select("id,slug")
     .eq("is_active", true)
-    .not("slug", "like", "e2e-%");
+    .not("slug", "like", likePrefix(SCRATCH_PREFIXES.dash));
   if (ratifiedError) {
     console.log(`[e2e:maintenance] ratified-am probe unavailable: ${ratifiedError.message}`);
   } else {

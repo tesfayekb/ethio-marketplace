@@ -1,6 +1,6 @@
 import { Moon, Sun } from "lucide-react";
 
-import { useTheme } from "@/providers/theme-provider";
+import { useTheme } from "@/providers/theme-context";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 

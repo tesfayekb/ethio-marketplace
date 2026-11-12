@@ -9,6 +9,8 @@
 # (workflow_dispatch) always goes on. Prints "go=true|false" (and writes it to $GITHUB_OUTPUT
 # when GitHub provides one); a cron it cannot read, or a New York zone this machine cannot
 # resolve (INC-962), is an error (exit 2), never a silent skip.
+# It reads GNU date (`date -d`), as CI's ubuntu runner has it; a machine without GNU date cannot
+# run it (INC-1096).
 set -euo pipefail
 
 readonly WANT_HOUR=11
@@ -37,7 +39,7 @@ fi
 # America/New_York as UTC without a word, and both schedules would stand down silently.
 if [ "$(TZ="$ZONE" date -d 2026-01-15T12:00:00Z +%z 2>/dev/null)" != "-0500" ] ||
   [ "$(TZ="$ZONE" date -d 2026-07-15T12:00:00Z +%z 2>/dev/null)" != "-0400" ]; then
-  echo "::error title=nightly-hour::the America/New_York time zone does not resolve on this machine (no time-zone files?)" >&2
+  echo "::error title=nightly-hour::the ${ZONE} time zone does not resolve on this machine (no time-zone files?)" >&2
   exit 2
 fi
 if ! [[ "$cron" =~ ^([0-9]{1,2})\ ([0-9]{1,2})\ \*\ \*\ \*$ ]]; then

@@ -2,9 +2,9 @@ import { type Browser, type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
-import { inBrowserClient } from "./helpers/browser-client";
+import { pageDoor } from "./helpers/door-callers";
 import { destroyCountry } from "./helpers/countries";
-import { doorAnswer, type DoorResult } from "./helpers/door-answer";
+import { doorAnswer } from "./helpers/door-answer";
 import {
   baselineLevelKey,
   freeSlotRoom,
@@ -29,7 +29,7 @@ import {
 } from "./helpers/posting";
 import { destroyScratchReaches, seedScratchReaches } from "./helpers/reach-rows";
 import { anonRpc } from "./helpers/session";
-import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -142,18 +142,6 @@ async function trace(listingId: string) {
     revisions: (await revisions(listingId)).length,
     audits: (await audits(listingId)).length,
   };
-}
-
-/** A door called through the page's own client as its signed-in person: data and error text. */
-async function door(page: Page, fn: string, args: Record<string, unknown>): Promise<DoorResult> {
-  return inBrowserClient(
-    page,
-    async (client, call) => {
-      const result = await client.rpc(call.fn, call.args);
-      return { data: result.data, error: result.error?.message ?? null };
-    },
-    { fn, args },
-  );
 }
 
 /** The sweep's core on the test's own ads (service only). */
@@ -366,7 +354,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     await signInViaSession(page, seller.email, seller.password);
 
     const answer = doorAnswer(
-      await door(page, "set_listing_level", { p_listing_id: ad, p_level_key: level }),
+      await pageDoor(page, "set_listing_level", { p_listing_id: ad, p_level_key: level }),
       "set_listing_level",
     );
     expect(answer["level"]).toBe(level);
@@ -432,7 +420,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     ];
     for (const refusal of cases) {
       const before = await trace(refusal.id);
-      const answer = await door(page, "set_listing_level", {
+      const answer = await pageDoor(page, "set_listing_level", {
         p_listing_id: refusal.id,
         p_level_key: refusal.key,
       });
@@ -458,7 +446,10 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     await signInViaSession(page, seller.email, seller.password);
 
     const before = await trace(ad);
-    const answer = await door(page, "set_listing_level", { p_listing_id: ad, p_level_key: level });
+    const answer = await pageDoor(page, "set_listing_level", {
+      p_listing_id: ad,
+      p_level_key: level,
+    });
     expect(answer.data).toBeNull();
     expect(String(answer.error)).toContain("creditsNotAvailable");
     expect(await trace(ad)).toEqual(before);
@@ -473,10 +464,10 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     const timed = await seed(seller, market);
     const open = await seed(seller, market);
     const level = await selfServeAbove("level", await baselineLevelKey());
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const days = doorAnswer(
-      await door(page, "admin_set_listing_tier", {
+      await pageDoor(page, "admin_set_listing_tier", {
         p_listing_id: timed,
         p_tier: level,
         p_reason: "promotion",
@@ -491,7 +482,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     expectAbout(timedRow["tier_until"], Date.now() + 7 * DAY, "tier_until");
 
     const openEnded = doorAnswer(
-      await door(page, "admin_set_listing_tier", {
+      await pageDoor(page, "admin_set_listing_tier", {
         p_listing_id: open,
         p_tier: level,
         p_reason: "promotion",
@@ -505,7 +496,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     expect(openRow["tier_until"]).toBeNull();
 
     const before = await trace(timed);
-    const refused = await door(page, "admin_set_listing_tier", {
+    const refused = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: timed,
       p_tier: await baselineLevelKey(),
       p_reason: "promotion_ended",
@@ -536,7 +527,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     });
     await signInViaSession(page, seller.email, seller.password);
 
-    const removed = await door(page, "transition_listing", {
+    const removed = await pageDoor(page, "transition_listing", {
       p_listing_id: ad,
       p_new_status: "removed",
     });
@@ -563,7 +554,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     await signInViaSession(page, seller.email, seller.password);
 
     const answer = doorAnswer(
-      await door(page, "promote_options", { p_listing_id: ad }),
+      await pageDoor(page, "promote_options", { p_listing_id: ad }),
       "promote_options",
     );
     expect(answer["reach"]).toEqual({
@@ -834,7 +825,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
 
     const [first] = filled.ids;
     if (first === undefined) throw new Error(`${TAG} the market holds no free slot to fill`);
-    doorAnswer(await door(page, "mark_sold", { p_listing_id: first }), "mark_sold");
+    doorAnswer(await pageDoor(page, "mark_sold", { p_listing_id: first }), "mark_sold");
     const published = await publish(page, posting.token, draft);
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     expect(await statusOf(draft)).toBe("screening");
@@ -871,7 +862,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     });
     expect(await trace(paused)).toEqual(before);
 
-    doorAnswer(await door(page, "mark_sold", { p_listing_id: live }), "mark_sold");
+    doorAnswer(await pageDoor(page, "mark_sold", { p_listing_id: live }), "mark_sold");
     await openPaused(page, paused);
     await page.getByTestId("my-listing-action-resume").click();
     await expect(page.getByTestId("my-listing-notice")).toHaveText(en["myListings.done.reopen"], {

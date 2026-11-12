@@ -15,7 +15,9 @@ import {
   type AttrOption,
 } from "./attribute-options";
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
-import { Field, controlClass } from "./field";
+import { Field } from "./field";
+import { firstSentence } from "./spec-sentences";
+import { controlClass } from "./field-refusals";
 import { readPostingSchemaAnswer, type AttrDef, type PostingSchema } from "./posting-service";
 import { contactRuleApplies, looksLikeContact } from "./contact-like";
 import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
@@ -111,28 +113,6 @@ function otherText(raw: unknown): string {
 
 /** INC-434 — the form's provenance per category, kept across remounts (this tab only). */
 const PREFILLS_HELD = new Map<string, Record<string, unknown>>();
-
-/**
- * D36 — HELP IS ONE SENTENCE UNTIL IT IS ASKED FOR. A curator's guidance can run
- * to a paragraph, and a paragraph under every field is what makes a 360-pixel
- * form unreadable. The FIRST sentence stays inline; the rest waits behind the
- * (i) tap beside the label. Amharic's own full stop (`።`) ends a sentence here
- * exactly as a full stop does.
- */
-function firstSentence(text: string): { head: string; rest: string } {
-  // INC-294 — "e.g." / "i.e." / "etc." / "vs." / "approx." / "cf." do not end
-  // a sentence. Amharic's `።` is never an abbreviation.
-  const terminator = /[.!?…።](?=\s|$)/g;
-  for (let match = terminator.exec(text); match !== null; match = terminator.exec(text)) {
-    const before = text.slice(0, match.index);
-    if (match[0] !== "።" && /(?:^|[^\p{L}])(?:e\.g|i\.e|etc|vs|approx|cf)$/iu.test(before)) {
-      continue;
-    }
-    const end = match.index + 1;
-    return { head: text.slice(0, end).trim(), rest: text.slice(end).trim() };
-  }
-  return { head: text.trim(), rest: "" };
-}
 
 export function StepSpecifications({
   categoryId,
@@ -1939,6 +1919,3 @@ export function StepSpecifications({
 }
 
 export default StepSpecifications;
-
-/** Pure pieces of this screen, one export so the module stays a component file (unit tests). */
-export const stepSpecificationsPure = { firstSentence, foldFact };

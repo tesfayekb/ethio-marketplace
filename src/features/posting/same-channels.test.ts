@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sameChannels } from "./step-who";
+import { sameChannels } from "./same-channels";
 
 /** Bundle 4 step 23 — unchanged channels make no identity call. */
 describe("sameChannels", () => {

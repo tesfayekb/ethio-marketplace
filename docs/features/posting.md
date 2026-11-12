@@ -1122,7 +1122,7 @@ A pre-D62-2 client still sends `price_mode: "negotiable"`. `validate_listing_dra
 
 ### D62-1c — refusal summary and test handler order (INC-311, INC-313)
 
-- The refusal summary lists only refusals that name a control. Refusals against the request itself (`door`, `residency`, `id` — `CONTROL_LESS_FIELDS` in `field.tsx`) are left out; their words already render as post-refusal paragraphs.
+- The refusal summary lists only refusals that name a control. Refusals against the request itself (`door`, `residency`, `id` — `CONTROL_LESS_FIELDS` in `field-refusals.ts`) are left out; their words already render as post-refusal paragraphs.
 - E2E rule: a test-level `page.route` on a path `asEdge` covers must `route.fallback()`, never `route.continue()`, or the edge country header is lost.
 
 ### D62-1d — a draft's percentage may be absent (INC-312)
@@ -1149,7 +1149,7 @@ Choosing the commission basis stores `price_mode = 'commission'` before the sell
 ### INC-320 / D70 / D71 (2026-09-28)
 
 - **INC-320 — an answered big list is read up front.** DEC-053 amended: a list over `EAGER_OPTION_LIMIT` stays lazy, but a select that mounts WITH a stored answer requests its list once per key per mount (`step-specifications.tsx`, effect beside the eager one, keyed on which selects are answered), so the chosen option's label shows on re-entry instead of the placeholder. Test: PW-69 (210-model scratch list).
-- **D70 — focus the first refused field.** After a strict refusal, `focusFirstRefusal` (`field.tsx`) keeps the control-bearing refusals this step owns and focuses the first in document order (block center); one effect in `wizard.tsx` keyed on `draft.refusals`. Control lookup also tries `post-<field>` and `post-attr-<key>`, the ids the steps use. Test: PW-70.
+- **D70 — focus the first refused field.** After a strict refusal, `focusFirstRefusal` (`field-refusals.ts`) keeps the control-bearing refusals this step owns and focuses the first in document order (block center); one effect in `wizard.tsx` keyed on `draft.refusals`. Control lookup also tries `post-<field>` and `post-attr-<key>`, the ids the steps use. Test: PW-70.
 - **D71 — the category picker's soft border.** `post-category-group` wears `border-destructive/40` while no leaf is chosen and nothing is refused, full destructive after a refusal, none once chosen; `data-empty="1"/"0"`. Test: PW-71.
 - **INC-325 — step strip focusable.** axe named `ol.-mx-1` (the mobile step strip) as `scrollable-region-focusable` on step 1 at mobile-360; the scroll container now takes `tabIndex={0}` with a focus ring.
 

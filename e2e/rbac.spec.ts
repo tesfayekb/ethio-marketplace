@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 
 import { expectPanelOffered, gotoReady, signIn, waitForHydration } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { leaseUser, grantRole } from "./helpers/users";
 
 /**
  * Phase R3 — RBAC client seam.
@@ -12,23 +12,6 @@ import { adminClient, leaseUser } from "./helpers/users";
  * server-side proofs (RLS, has_permission, the function matrix) live in the
  * migration suite; a green run here is NOT an authorization proof.
  */
-
-/** Grants a named role via the service role — the staff fixture. */
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:rbac] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:rbac] granting ${roleName} failed: ${error.message}`);
-}
 
 test.describe("RBAC client seam", () => {
   test("R-6 logged out: no Admin tab and no RBAC request at all", async ({ page }) => {

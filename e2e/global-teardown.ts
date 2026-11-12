@@ -1,12 +1,12 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 
 import { netRetryLedgerFile } from "./helpers/net-retry";
+import { SCRATCH_PREFIXES, SCRATCH_USER_DOMAIN } from "./helpers/scratch";
 import { accountLedgerFile } from "./helpers/users";
 
 import { adminClient, authErrorText, processId, STATE_FILE, type E2EUser } from "./global-setup";
 import { errorText } from "../src/lib/error-text";
 
-const NAMESPACE = "@ethio-e2e.invalid";
 const STALE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 type ListedUser = { id: string; email?: string; created_at?: string };
@@ -25,7 +25,9 @@ async function listAll(supabase: ReturnType<typeof adminClient>): Promise<Listed
 }
 
 function inNamespace(email: string | undefined): email is string {
-  return Boolean(email && email.startsWith("e2e+") && email.endsWith(NAMESPACE));
+  return Boolean(
+    email && email.startsWith(SCRATCH_PREFIXES.user) && email.endsWith(SCRATCH_USER_DOMAIN),
+  );
 }
 
 /** A fixture belongs to this process iff its local part carries the process id. */
@@ -124,7 +126,9 @@ export async function sweepStaleUsers(): Promise<number> {
     deleted += 1;
   }
 
-  console.log(`[e2e:sweep] deleted ${deleted} stale user(s) in ${NAMESPACE} older than 24h`);
+  console.log(
+    `[e2e:sweep] deleted ${deleted} stale user(s) in ${SCRATCH_USER_DOMAIN} older than 24h`,
+  );
   return deleted;
 }
 

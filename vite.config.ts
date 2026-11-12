@@ -4,7 +4,13 @@
 //     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
+import { realpathSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+
+import { chunkModulesPlugin, moduleKey } from "./scripts/chunk-modules-plugin.mjs";
+import { sharedShellOwns } from "./scripts/route-budgets.mjs";
 
 /**
  * DEC-019 — THE E2E SERVE RUNTIME IS NODE, THE DEPLOY TARGET STAYS CLOUDFLARE.
@@ -24,6 +30,45 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
  * sets. An unset variable resolves to the deploy target, byte-identically.
  */
 const NITRO_PRESET = process.env["NITRO_PRESET"] ?? "cloudflare-module";
+
+/**
+ * DEC-362 (housekeeping turn 1b, INC-1097) — THE FIRST-PAINT CLOSURE IS CHUNKED BY A
+ * RULE. Before this, the bundler put a module every page needs into the entry, into
+ * another shared chunk, or into a chunk of its own by which modules happened to reference
+ * it, so moving an export between modules moved a visitor's first download (INC-1097:
+ * +1 KiB on every page from one module split; P-1c b: +0.9 KiB).
+ *
+ * One Rolldown `output.codeSplitting` group, `shared-shell`, gathers the repository's own
+ * modules every page downloads and a lazy chunk also imports (SHARED_SHELL_MODULES in
+ * scripts/route-budgets.mjs — the one list, whose census the budget step runs against this
+ * build, scripts/check-bundle-size.mjs). A module of a lazy feature (the map, the admin
+ * sections, the overlay primitives) is never in the list, so it never rides the first
+ * paint.
+ *
+ * `includeDependenciesRecursively: false` — the list names every module; a dependency a
+ * module imports is not swept in behind its back. Swept in (the default), the vendor code
+ * joined the chunk and every vendor chunk's file name changed with each src-only deploy
+ * (measured at ruling 1 of housekeeping 1b: a returning phone would fetch React again);
+ * left alone, the vendor chunks keep their names across such a deploy. A second group
+ * for the vendor modules was measured and refused by the frozen rule (up to 0.9 KiB a
+ * page above the swept shape). `entriesAware: false` — the client has one entry.
+ *
+ * SCOPE: the client environment only. A top-level `build` option reaches the `ssr` and
+ * `nitro` environments too and reshapes the server bundle (measured: SSR chunks 277 →
+ * 246); under `environments.client` the server and nitro partitions are byte-identical to
+ * the build without the group. `rolldownOptions` is the spelling vite 8 keeps
+ * (`rollupOptions` is its deprecated alias).
+ */
+const PROJECT_ROOT = realpathSync(process.cwd());
+const FIRST_PAINT_GROUPS = [
+  {
+    name: "shared-shell",
+    test: (id: string) => sharedShellOwns(moduleKey(id, PROJECT_ROOT)),
+    priority: 100,
+    includeDependenciesRecursively: false,
+    entriesAware: false,
+  },
+];
 
 export default defineConfig({
   // INC-085e — NITRO TARGET IS PINNED, NEVER ENVIRONMENT-DETECTED.
@@ -67,6 +112,20 @@ export default defineConfig({
   },
 
   vite: {
+    // DEC-362 — the build writes which modules each client chunk holds, beside (never inside)
+    // the served client output, for the budget step's module census.
+    plugins: [
+      chunkModulesPlugin({
+        file: resolve(PROJECT_ROOT, "dist", ".chunk-modules.json"),
+        root: PROJECT_ROOT,
+      }),
+    ],
+    environments: {
+      client: {
+        build: { rolldownOptions: { output: { codeSplitting: { groups: FIRST_PAINT_GROUPS } } } },
+      },
+    },
+
     // INC-085g — the e2e build is a test artifact; readability outranks size;
     // prod build untouched. Minified React errors ("Minified React error #185
     // … at si") name nothing; unminified they carry the component.

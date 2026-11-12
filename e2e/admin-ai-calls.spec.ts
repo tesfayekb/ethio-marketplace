@@ -1,14 +1,13 @@
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
-import { signInAsSuperAdmin } from "./helpers/categories";
-import { gotoReady } from "./helpers/ui";
+import { gotoReady, signInJobSuperAdmin } from "./helpers/ui";
 import { inBrowserClient } from "./helpers/browser-client";
 
 /** A2 read-only consumer proof: no real row changes and no scratch visibility bypass. */
 test("ACR-E1 staff history filters through the real door and renders its exact page", async ({
   page,
 }) => {
-  await signInAsSuperAdmin(page);
+  await signInJobSuperAdmin(page);
   await gotoReady(page, "/admin/ai");
   const section = page.getByTestId("ai-calls");
   await expect(section).toBeVisible();

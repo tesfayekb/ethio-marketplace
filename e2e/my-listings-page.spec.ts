@@ -10,7 +10,7 @@ import {
   RUN,
   seedCategoryBranch,
 } from "./helpers/posting";
-import { passwordGrant } from "./helpers/session";
+import { asAnonymous, asPerson } from "./helpers/door-callers";
 import {
   expectActivePanel,
   expectNoHorizontalOverflow,
@@ -22,7 +22,6 @@ import {
 } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
-import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 16 (My listings), turn 2 — THE LIST PAGE (MLP-1..MLP-4).
@@ -39,49 +38,6 @@ import { errorText } from "../src/lib/error-text";
  */
 
 type Row = Record<string, unknown>;
-
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) {
-    throw new Error("[e2e:mlp] E2E_SUPABASE_URL and E2E_SUPABASE_PUBLISHABLE_KEY must be set.");
-  }
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
-async function answerOf(response: Response) {
-  const text = await response.text();
-  const body: unknown = text === "" ? null : JSON.parse(text);
-  if (!response.ok) {
-    const message =
-      body !== null && typeof body === "object" && "message" in body
-        ? errorText(body)
-        : `HTTP ${response.status}`;
-    return { data: null as unknown, error: message as string | null };
-  }
-  return { data: body, error: null as string | null };
-}
-
-/** A signed-in person from node: the door's data and its error, as the browser client reads them. */
-async function asPerson(person: { email: string; password: string }) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const headers = {
-    apikey: key,
-    Authorization: `Bearer ${session.access_token}`,
-    "Content-Type": "application/json",
-  };
-  return {
-    rpc: async (fn: string, args: Record<string, unknown>) =>
-      answerOf(
-        await fetch(`${url}/rest/v1/rpc/${fn}`, {
-          method: "POST",
-          headers,
-          body: JSON.stringify(args),
-        }),
-      ),
-  };
-}
 
 /** Letters only: a scratch name the contact-in-text rule never reads as a number. */
 function token(): string {
@@ -342,14 +298,9 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     const badPage = await myListings(s.a, "live", 101, 0);
     expect(badPage.error).toBe("bad page");
 
-    const { url, key } = restBase();
-    const anonymous = await answerOf(
-      await fetch(`${url}/rest/v1/rpc/my_listings`, {
-        method: "POST",
-        headers: { apikey: key, "Content-Type": "application/json" },
-        body: JSON.stringify({ p_group: "live", p_limit: 50, p_offset: 0 }),
-      }),
-    );
+    const anonymous = await (
+      await asAnonymous()
+    ).rpc("my_listings", { p_group: "live", p_limit: 50, p_offset: 0 });
     expect(anonymous.error).not.toBeNull();
     expect(anonymous.data).toBeNull();
   });

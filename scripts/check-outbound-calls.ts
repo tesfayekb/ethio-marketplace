@@ -12,6 +12,7 @@
  * Accept-Profile: net refused with PGRST106) runs in the workflow step.
  */
 import { readFileSync } from "node:fs";
+import { readCliPin } from "./ci/cli-pin";
 
 const ALLOWED = "public.job_call(text)";
 
@@ -91,9 +92,7 @@ if (process.env["SELF_TEST"] === "1") {
   const [catalogue, config] = process.argv.slice(2);
   if (!catalogue || !config)
     throw new Error("usage: check-outbound-calls.ts <catalogue.tsv> <config.toml>");
-  const pin = /^\s*version: (\d+\.\d+\.\d+)$/m.exec(
-    readFileSync(".github/workflows/local-backend-proof.yml", "utf8"),
-  )?.[1];
+  const pin = readCliPin();
   const list = allowlist(
     readFileSync("scripts/conformance/outbound-calls-allowlist.txt", "utf8"),
     pin ?? "unknown",

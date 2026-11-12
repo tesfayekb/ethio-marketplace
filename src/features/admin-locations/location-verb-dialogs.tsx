@@ -11,7 +11,8 @@ import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
-import { LocationDialogActions, LocationErrorLine, useLocationError } from "./location-dialogs";
+import { LocationDialogActions, LocationErrorLine } from "./location-dialogs";
+import { useLocationError } from "./location-dialog-state";
 import { levelRank, type LocationNode } from "./locations-service";
 import {
   ADMIN_LOCATIONS_KEY,

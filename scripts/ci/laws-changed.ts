@@ -6,12 +6,16 @@
  *    (read from .github/workflows/ci.yml, never restated here).
  * The turn's base is TURN_BASE when set, else the `Base: dev <sha>` of the brief roadmap line 3
  * names (F4b, TC-E5); with neither the step fails and says so. The diff includes the working tree.
+ * A pinned fetch that failed — the rules' archive or `pip install semgrep==<v>` — exits NOT_RUN_EXIT
+ * with one `[laws] NOT RUN — <reason>` line, which turn-checks prints as NOT RUN (R3, housekeeping
+ * turn 3): never a FAIL, never a PASS.
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 
 import { walkFiles } from "../conformance/kit";
+import { CHECKS_CACHE } from "./checks-cache";
 
 const UNIT = /\.test\.tsx?$/;
 
@@ -43,6 +47,22 @@ export function semgrepTargets(files: string[]): string[] {
   );
 }
 
+/** CI's pinned rules are whole only when both scanned folders hold rule files: a swept cache
+ *  keeps its folders and loses its files (INC-1098). */
+export function semgrepRulesWhole(dir: string): boolean {
+  return ["javascript", "typescript"].every((lang) => {
+    const folder = join(dir, lang);
+    return existsSync(folder) && walkFiles([folder], { ext: ["yaml"] }).length > 0;
+  });
+}
+
+/** The brief in force: the first brief roadmap line 3 names; null when it names none. The one
+ *  reader of line 3 for scripts/ (turnBase here, turn-checks.ts, conformance/briefs.test.ts). */
+export function briefInForce(roadmap: string): string | null {
+  const line = roadmap.split("\n")[2] ?? "";
+  return /docs\/governance\/briefs\/[\w.-]+\.md/.exec(line)?.[0] ?? null;
+}
+
 /** The turn's base: TURN_BASE, else the brief's `Base: dev <sha>` (roadmap line 3's first
  *  brief); null when neither names one — the caller fails loudly, never the last commit alone. */
 export function turnBase(
@@ -51,9 +71,8 @@ export function turnBase(
   readBrief: (path: string) => string | null,
 ): string | null {
   if (env !== undefined && env.trim() !== "") return env.trim();
-  const line = roadmap.split("\n")[2] ?? "";
-  const brief = /docs\/governance\/briefs\/[\w.-]+\.md/.exec(line)?.[0];
-  if (brief === undefined) return null;
+  const brief = briefInForce(roadmap);
+  if (brief === null) return null;
   const text = readBrief(brief);
   return text === null ? null : (/Base: dev ([0-9a-f]{7,40})\b/.exec(text)?.[1] ?? null);
 }
@@ -77,6 +96,57 @@ function changedFiles(): string[] {
 
 function run(cmd: string, args: string[]): number {
   return spawnSync(cmd, args, { stdio: "inherit" }).status ?? 1;
+}
+
+/** The exit code and line prefix of a pinned fetch that failed (R3); turn-checks reads both. */
+export const NOT_RUN_EXIT = 3;
+export const NOT_RUN_LINE = "[laws] NOT RUN — ";
+
+export type Runner = (cmd: string, args: string[]) => number;
+export type SemgrepReady = { bin: string; rules: string } | { notRun: string } | { failed: string };
+
+/** CI's pinned rules and Semgrep under the cache root, fetched when missing. */
+export function prepareSemgrep(
+  cache: string,
+  pins: { version: string; rules: string },
+  exec: Runner,
+): SemgrepReady {
+  const dir = join(cache, `semgrep-rules-${pins.rules}`);
+  if (!semgrepRulesWhole(dir)) {
+    // The same commit CI checks out, as its archive (no git state touched).
+    rmSync(dir, { recursive: true, force: true });
+    if (exec("mkdir", ["-p", dir]) !== 0)
+      return { failed: `the rules folder ${dir} could not be made` };
+    const url = `https://codeload.github.com/semgrep/semgrep-rules/tar.gz/${pins.rules}`;
+    const got = exec("bash", [
+      "-c",
+      `set -o pipefail; curl -fsSL --max-time 120 "${url}" | tar -xz --strip-components=1 -C "${dir}"`,
+    ]);
+    if (got !== 0) {
+      rmSync(dir, { recursive: true, force: true });
+      return { notRun: "the pinned Semgrep rules could not be fetched" };
+    }
+    // CI's removals (ci.yml): rules it drops before the scan.
+    for (const drop of [
+      "typescript/react/portability/i18next/i18next-key-format.yaml",
+      "javascript/lang/correctness/no-stringify-keys.yaml",
+      "javascript/lang/correctness/no-replaceall.yaml",
+      "typescript/react/best-practice/react-props-in-state.yaml",
+    ])
+      exec("rm", ["-f", join(dir, drop)]);
+  }
+  // CI's pinned version, in its own venv (pip, as CI installs it).
+  const venv = join(cache, `semgrep-${pins.version}`);
+  const bin = join(venv, "bin", "semgrep");
+  if (!existsSync(bin)) {
+    if (exec("python3", ["-m", "venv", venv]) !== 0)
+      return { failed: `the venv ${venv} could not be made` };
+    if (exec(join(venv, "bin", "pip"), ["install", "--quiet", `semgrep==${pins.version}`]) !== 0)
+      return {
+        notRun: `the pinned Semgrep ${pins.version} could not be installed (pip install semgrep==${pins.version})`,
+      };
+  }
+  return { bin, rules: dir };
 }
 
 export function check(mode: string): number {
@@ -105,35 +175,20 @@ export function check(mode: string): number {
     const targets = semgrepTargets(files);
     console.log(`[laws] changed files Semgrep judges: ${targets.length}`);
     if (targets.length === 0) return 0;
-    const { version, rules } = semgrepPins(readFileSync(".github/workflows/ci.yml", "utf8"));
-    const dir = join("/tmp", `semgrep-rules-${rules}`);
-    if (!existsSync(join(dir, "javascript"))) {
-      // The same commit CI checks out, as its archive (no git state touched).
-      if (run("mkdir", ["-p", dir]) !== 0) return 1;
-      const url = `https://codeload.github.com/semgrep/semgrep-rules/tar.gz/${rules}`;
-      const got = spawnSync(
-        "bash",
-        ["-c", `curl -fsSL --max-time 120 "${url}" | tar -xz --strip-components=1 -C "${dir}"`],
-        { stdio: "inherit" },
-      );
-      if (got.status !== 0) return 1;
-      // CI's removals (ci.yml): rules it drops before the scan.
-      for (const drop of [
-        "typescript/react/portability/i18next/i18next-key-format.yaml",
-        "javascript/lang/correctness/no-stringify-keys.yaml",
-        "javascript/lang/correctness/no-replaceall.yaml",
-        "typescript/react/best-practice/react-props-in-state.yaml",
-      ])
-        run("rm", ["-f", join(dir, drop)]);
+    const ready = prepareSemgrep(
+      CHECKS_CACHE,
+      semgrepPins(readFileSync(".github/workflows/ci.yml", "utf8")),
+      run,
+    );
+    if ("notRun" in ready) {
+      console.log(`${NOT_RUN_LINE}${ready.notRun}`);
+      return NOT_RUN_EXIT;
     }
-    // CI's pinned version, in its own venv (pip, as CI installs it).
-    const venv = join("/tmp", `semgrep-${version}`);
-    const bin = join(venv, "bin", "semgrep");
-    if (!existsSync(bin)) {
-      if (run("python3", ["-m", "venv", venv]) !== 0) return 1;
-      if (run(join(venv, "bin", "pip"), ["install", "--quiet", `semgrep==${version}`]) !== 0)
-        return 1;
+    if ("failed" in ready) {
+      console.error(`[laws] ${ready.failed}`);
+      return 1;
     }
+    const { bin, rules: dir } = ready;
     return run(bin, [
       "scan",
       "--metrics=off",

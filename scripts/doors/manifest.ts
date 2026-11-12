@@ -96,7 +96,7 @@ export type ManifestError = { line: number; what: string };
 
 export type Manifest = { lines: Map<string, ManifestLine>; errors: ManifestError[] };
 
-const KEY = /^[a-z][a-z0-9_]*\((?:[a-z][a-z0-9 _]*(?:\[\])*(?:,[a-z][a-z0-9 _]*(?:\[\])*)*)?\)$/;
+const KEY_ARGUMENT = /^[a-z][a-z0-9 _]*(?:\[\])*$/;
 const PERMISSION = /^[a-z][a-z0-9_]*:[a-z][a-z0-9_]*$/;
 const NAME_WORD = /^[a-z][a-z0-9_]*$/;
 const CODE = /^[a-z][A-Za-z]*$/;
@@ -107,6 +107,15 @@ export function scopeModeOf(line: Pick<ManifestLine, "country">): ScopeMode {
   if (line.country.kind === "filter") return "filter";
   if (line.country.kind === "global") return "global";
   return "match";
+}
+
+/** `name(arg,…)`: split on its parentheses and commas, each token tested whole (no nested quantifier). */
+function keyWellFormed(key: string): boolean {
+  const open = key.indexOf("(");
+  if (open < 0 || !key.endsWith(")")) return false;
+  const args = key.slice(open + 1, -1);
+  if (!NAME_WORD.test(key.slice(0, open)) || args.includes("(") || args.includes(")")) return false;
+  return args === "" || args.split(",").every((arg) => KEY_ARGUMENT.test(arg));
 }
 
 function parseLine(text: string, line: number): { value?: ManifestLine; error?: string } {
@@ -126,7 +135,7 @@ function parseLine(text: string, line: number): { value?: ManifestLine; error?: 
       string,
       string,
     ];
-  if (!KEY.test(key)) return { error: `malformed key ${key}` };
+  if (!keyWellFormed(key)) return { error: `malformed key ${key}` };
   if (!(DOOR_CLASSES as readonly string[]).includes(cls)) return { error: `unknown class ${cls}` };
   const roleList = roles.split(",").map((role) => role.trim());
   if (

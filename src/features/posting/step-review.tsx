@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/brand/spinner";
 import { listingPath } from "@/features/ad-page/address";
-import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
+import { ShareAd } from "@/features/ad-page/share-ad";
+import { sharePriceText } from "@/features/ad-page/share-price-text";
 import { readMyListing, type MyListing } from "@/features/my-listings/my-listing";
 import { storedUnitNoun } from "./price-line";
 import { usePriceUnitLabels } from "./use-price-unit-labels";
@@ -24,7 +25,8 @@ import type { MessageKey } from "@/i18n";
 
 import { Switch } from "@/components/ui/switch";
 
-import { controlClass, Field } from "./field";
+import { Field } from "./field";
+import { controlClass } from "./field-refusals";
 import { ListingPreview } from "./listing-preview";
 import {
   attributeDisplayValue,

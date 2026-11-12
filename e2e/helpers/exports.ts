@@ -1,3 +1,5 @@
+import { SCRATCH_STEM } from "./scratch";
+
 /**
  * R-TR34 — ONE SCRATCH STRIP FOR WHOLE-EXPORT COMPARISONS (the G28 law).
  *
@@ -23,8 +25,8 @@
  * scratch identity in any of its cells, is not part of the comparison.
  */
 
-/** The reserved scratch stem (J1): `e2e_` or `e2e-`. */
-export const SCRATCH_STEM = /e2e[_-]/;
+/** The reserved scratch stem (J1): `e2e_` or `e2e-`, from the one list (INC-1104). */
+export { SCRATCH_STEM };
 
 export interface StrippedCsv {
   /** The file with every scratch record removed; BOM and header preserved. */

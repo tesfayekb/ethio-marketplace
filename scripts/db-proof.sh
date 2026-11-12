@@ -59,8 +59,9 @@ esac
 
 # The pins, read from CI's workflow (one source); the checksums from the release's checksums.txt,
 # matched by GitHub's own asset digests (scripts/conformance/db-proof.test.ts holds the workflow's
-# version to this table).
-version=$(sed -n 's/^  SUPABASE_CLI_VERSION: *//p' "$WORKFLOW")
+# version to this table). The CLI pin through its one reader, scripts/ci/cli-pin.ts (INC-1106).
+version=$(bun -e 'import { readCliPin } from "./scripts/ci/cli-pin.ts"; const pin = readCliPin(); if (pin === null) process.exit(1); console.log(pin);') ||
+  not_run "the CLI pin could not be read (scripts/ci/cli-pin.ts)"
 excludes=$(sed -n 's/^  BACKEND_EXCLUDES: *//p' "$WORKFLOW")
 cli_sha256() {
   case "$1" in
@@ -96,7 +97,11 @@ trap 'rm -rf "$STATE/lock"' EXIT
 case "$(uname -s)" in Darwin) os=darwin ;; Linux) os=linux ;; *) not_run "no pinned CLI for $(uname -s)" ;; esac
 case "$(uname -m)" in arm64 | aarch64) arch=arm64 ;; x86_64) arch=amd64 ;; *) not_run "no pinned CLI for $(uname -m)" ;; esac
 want=$(cli_sha256 "$version/${os}_$arch") || not_run "no pinned checksum for CLI $version on ${os}_$arch (scripts/db-proof.sh)"
-cli_dir="${ETHIO_CHECKS_CACHE:-$HOME/.cache/ethio-checks}/supabase-cli/$version/${os}_$arch"
+# The checks' one cache root (scripts/ci/checks-cache.ts), read from its constant, never restated.
+checks_cache=$(bun -e 'import { CHECKS_CACHE } from "./scripts/ci/checks-cache.ts"; console.log(CHECKS_CACHE);') ||
+  not_run "the checks' cache root could not be read (scripts/ci/checks-cache.ts)"
+[ -n "$checks_cache" ] || not_run "the checks' cache root is empty (scripts/ci/checks-cache.ts)"
+cli_dir="$checks_cache/supabase-cli/$version/${os}_$arch"
 cli="$cli_dir/supabase"
 if [ ! -x "$cli" ]; then
   mkdir -p "$cli_dir"

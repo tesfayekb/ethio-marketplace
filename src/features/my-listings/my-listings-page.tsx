@@ -88,7 +88,8 @@ import {
 } from "./my-listings";
 import { dateFormatter } from "@/lib/format";
 import { listingPath } from "@/features/ad-page/address";
-import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
+import { ShareAd } from "@/features/ad-page/share-ad";
+import { sharePriceText } from "@/features/ad-page/share-price-text";
 import { stateLine } from "./state-line";
 import { LazyPromoteSheet } from "./promote-sheet-lazy";
 import { catalogText, entityName } from "@/i18n/entity";

@@ -1,8 +1,10 @@
+import { SCRATCH_KEY } from "./scratch";
+
 /**
  * INC-458 / DEC-142 — WHICH SCRATCH ATTRIBUTE DEFINITIONS THE SETUP REAPS.
  *
- * Pure (imports nothing). A row is stale when its attr_key starts with `e2e_`
- * or `e2e-`, or carries `e2e_`/`e2e-` directly after a hyphen (a family prefix
+ * Pure (imports only the scratch list, INC-1104). A row is stale when its attr_key starts with
+ * `e2e_` or `e2e-`, or carries `e2e_`/`e2e-` directly after a hyphen (a family prefix
  * such as `pricing_type-e2e_…`, INC-463), AND it was created before the cutoff;
  * any other key is never returned, whatever its age. A stale definition that a
  * definition OUTSIDE the stale set still depends on is kept for a later run.
@@ -21,13 +23,11 @@ export interface ReapPlan {
   kept: number;
 }
 
-const SCRATCH = /(^|-)e2e[_-]/;
-
 export function planAttributeReap(rows: ReapRow[], cutoff: string): ReapPlan {
   const cut = Date.parse(cutoff);
   const stale = new Set(
     rows
-      .filter((row) => SCRATCH.test(row.attr_key) && Date.parse(row.created_at) < cut)
+      .filter((row) => SCRATCH_KEY.test(row.attr_key) && Date.parse(row.created_at) < cut)
       .map((row) => row.id),
   );
   const candidates = stale.size;

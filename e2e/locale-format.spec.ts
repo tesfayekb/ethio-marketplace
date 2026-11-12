@@ -10,6 +10,7 @@ import {
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
+import { restoreAccountLanguages, seedAccountLanguage } from "./helpers/account-language";
 
 /**
  * Foundations turn L-1, B5 — LF-E1 (INC-985): an Amharic reader's dates carry the month's full
@@ -17,50 +18,34 @@ import { seedListingRow } from "./helpers/listing-seed";
  *
  * The oracle is independent of src/lib/format.ts: the two Amharic names of September are written
  * here. The seller is a pool lease (J9) with a scratch branch, place and listing (J1), all
- * destroyed in afterEach, the account's language put back to the value read before (J3, INC-377); every row is found by id.
+ * destroyed in afterEach, the account's language put back to the pool's baseline, NULL (J3,
+ * D324 (c)); every row is found by id.
  */
 
 const FULL = "ሴፕቴምበር";
 const SHORT_ONLY = /ሴፕቴ(?!ምበር)/;
 const FIRST_POSTED = "2026-09-15T12:00:00.000Z";
 
-const sellers: { id: string; prior: string | null }[] = [];
+const sellers: string[] = [];
 const regions: string[] = [];
 const branches: string[][] = [];
 
 test.afterEach(async () => {
-  // L-2 Part 0.2 (INC-377) — a leased account gets back exactly the value it had.
-  for (const { id, prior } of sellers.splice(0)) {
-    await destroyListingsOf(id);
-    const { error } = await adminClient()
-      .from("profiles")
-      .update({ preferred_language: prior })
-      .eq("user_id", id);
-    if (error) throw new Error(`[e2e:lf] restoring preference: ${error.message}`);
-  }
+  for (const id of sellers.splice(0)) await destroyListingsOf(id);
+  await restoreAccountLanguages();
   for (const slug of regions.splice(0)) await destroyLocation(slug);
   for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
 });
 
 test("LF-E1 an Amharic account sees the full Amharic month on My listings", async ({ page }) => {
   const seller = await leaseSeller({ alias: true, named: true });
-  const before = await adminClient()
-    .from("profiles")
-    .select("preferred_language")
-    .eq("user_id", seller.id)
-    .single();
-  if (before.error) throw new Error(`[e2e:lf] reading preference: ${before.error.message}`);
-  sellers.push({ id: seller.id, prior: before.data.preferred_language });
+  sellers.push(seller.id);
   const { parent, leaf } = await seedCategoryBranch();
   branches.push([parent.slug as string, leaf.slug as string]);
   const chain = await seedScratchChain("ET");
   regions.push(chain.region.slug as string);
 
-  const language = await adminClient()
-    .from("profiles")
-    .update({ preferred_language: "am" })
-    .eq("user_id", seller.id);
-  if (language.error) throw new Error(`[e2e:lf] seeding preference: ${language.error.message}`);
+  await seedAccountLanguage(seller.id, "am");
 
   // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
   const data = await seedListingRow(

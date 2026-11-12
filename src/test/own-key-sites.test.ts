@@ -5,7 +5,7 @@ import { categoryGlyph, categoryGlyphOrNull } from "@/components/shell/category-
 import { categoryIcon } from "@/config/panels";
 import { compiledCatalogLoader } from "@/i18n/compiled-catalog";
 import { colourSwatch } from "@/features/posting/colour-swatches";
-import { stepOfField, summaryLabel } from "@/features/posting/field";
+import { stepOfField, summaryLabel } from "@/features/posting/field-refusals";
 import { priceLine } from "@/features/posting/price-line";
 import { draftRefusalKey, photoRefusalKey } from "@/features/posting/refusal-text";
 import { familyOf } from "@/server/imports/registry";

@@ -3,6 +3,7 @@ import { type Locator, type Page } from "@playwright/test";
 import { expect } from "../fixtures";
 import { assertNoStringifiedLeak, settled } from "./ui";
 import { isUserAssigned, readAnchor, scratchCountryCode, seedCountry } from "./countries";
+import { likePrefix, SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 import { chunkByLength } from "./chunk-by-length";
 import { errorText } from "../../src/lib/error-text";
@@ -29,7 +30,9 @@ export function rand() {
 /** A scratch slug: `e2e-loc-<run>-<worker>-<tag>-<rand>` (J1). */
 export function scratchSlug(tag: string) {
   const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
-  return `e2e-loc-${RUN}-${worker}-${tag}-${rand()}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  return `${SCRATCH_PREFIXES.location}${RUN}-${worker}-${tag}-${rand()}`
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "-");
 }
 
 /**
@@ -239,7 +242,9 @@ export async function readLocationTranslations(locationId: string) {
  * chain never fails on its own descendants. Only ever called on `e2e-` slugs.
  */
 export async function destroyLocation(slug: string) {
-  if (!slug.startsWith("e2e-")) throw new Error(`[e2e:l2a] refusing to destroy ${slug}`);
+  if (!slug.startsWith(SCRATCH_PREFIXES.dash)) {
+    throw new Error(`[e2e:l2a] refusing to destroy ${slug}`);
+  }
   const supabase = adminClient();
   const row = await readLocation(slug);
   if (!row) return;
@@ -286,7 +291,7 @@ export async function regionUnder(countryCode: string) {
     .eq("country_code", countryCode)
     .eq("level", "region")
     .eq("is_active", true)
-    .not("slug", "like", "e2e-%")
+    .not("slug", "like", likePrefix(SCRATCH_PREFIXES.dash))
     .order("display_order")
     // INC-379: a tie on display_order must not make the pick vary by run.
     .order("slug")
@@ -393,7 +398,7 @@ export async function seedGuessFixture(countryCode: string, point: { lat: number
   const stale = await supabase
     .from("locations")
     .select("slug, parent_id")
-    .like("slug", "e2e-%")
+    .like("slug", likePrefix(SCRATCH_PREFIXES.dash))
     .eq("country_code", countryCode)
     .eq("center_lat", point.lat)
     .eq("center_lng", point.lng)
@@ -406,7 +411,7 @@ export async function seedGuessFixture(countryCode: string, point: { lat: number
     if (parent?.error)
       throw new Error(`[e2e:l4b2] stale parent read failed: ${parent.error.message}`);
     const parentSlug = parent?.data?.slug;
-    await destroyLocation(parentSlug?.startsWith("e2e-") ? parentSlug : row.slug);
+    await destroyLocation(parentSlug?.startsWith(SCRATCH_PREFIXES.dash) ? parentSlug : row.slug);
   }
   const anchor = await anchorOf(countryCode);
   const regionSlug = scratchSlug("gs-region");

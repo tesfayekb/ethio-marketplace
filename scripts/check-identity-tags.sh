@@ -5,7 +5,7 @@
 # enrol/unenrol, or the admin factor APIs) may not borrow the job-scoped
 # pooled super admin: its mutation would poison every sibling test that
 # shares that identity. Such a test declares itself with the Playwright tag
-# "@private-identity" (see e2e/helpers/ui.ts), and `useJobSuperAdmin` reads
+# "@private-identity" (see e2e/helpers/ui.ts), and `signInJobSuperAdmin` reads
 # that tag to hand out a private mint instead of the pool.
 #
 # This guard fails when a test body touches one of the auth-mutating tokens

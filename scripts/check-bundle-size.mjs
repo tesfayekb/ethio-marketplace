@@ -19,8 +19,11 @@ import { basename, dirname, join, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 
 import {
+  closureListViolations,
   entryChunks,
   judgeRouteBudgets,
+  moduleCensus,
+  parseChunkModules,
   carriedViolation,
   mustStayLazyViolation,
   pageRouteIds,
@@ -30,7 +33,13 @@ import {
   staticClosure,
 } from "./bundle-closure.mjs";
 import { judgedSize, exceedsCeiling, nearFindings } from "./budget-band.mjs";
-import { RATCHET_SLACK_KIB, ROUTE_BUDGETS_KIB, tierFlagViolations } from "./route-budgets.mjs";
+import {
+  ENTRY_CLOSURE,
+  RATCHET_SLACK_KIB,
+  ROUTE_BUDGETS_KIB,
+  SHARED_SHELL_MODULES,
+  tierFlagViolations,
+} from "./route-budgets.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
@@ -50,7 +59,8 @@ const BUDGET_KIB = {
   // DEC-296 (turn S6-3): local 211.6 + 0.1 KiB sat inside the NEAR band of 212 — the popover joins the overlay facade (row 48): its closed state and the click replayed once in overlay-facade.tsx, on every page, while Radix's popover leaves the staff toolbars' first download; 212 → 213 = ceilingForLocal(211.6).
   // DEC-296 (turn P-1c): the fourth strings layer, guide — the loaders in the provider's chunk and the gate's layers prop; +0.13 KiB on every page (local 212.6 + 0.1 KiB sat inside the NEAR band of 213); 213 → 214 = ceilingForLocal(212.6).
   // DEC-296 (turn P-1c b): local 213.6 + 0.1 KiB sat inside the NEAR band of 214 — the Guide on the pages people use: the entry's dependency map names the new chunks (page-guide, guide-spec, guide-sheet, the split spinner and on-demand-notice) and the six prim.guide.* keys join the base catalogue (CF-SL-1); +1.0 on base eb72f3bd's 212.6, while index.js itself is 0.6 smaller; 214 → 215 = ceilingForLocal(213.6).
-  js: 215,
+  // ratchet housekeeping-1b (206.0 KiB local; DEC-362): the closure is chunked by a rule, 215 → 207 = ceilingForLocal(206.0); was 215.
+  js: 207,
   css: 40,
 };
 
@@ -142,7 +152,36 @@ for (const entry of jsEntries) {
     );
     process.exit(1);
   }
+  // DEC-362: the entry's closure is a law — a chunk that joins or leaves it fails, by name.
+  const listFailures = closureListViolations(closure, ENTRY_CLOSURE);
+  if (listFailures.length > 0) {
+    console.error(
+      `Bundle budget: the first-paint closure of ${basename(entry)} no longer matches ENTRY_CLOSURE (scripts/route-budgets.mjs, DEC-362):`,
+    );
+    for (const line of listFailures) console.error(`  ${line}`);
+    process.exit(1);
+  }
   for (const name of closure) eager.add(join(dirname(entry), name));
+}
+// DEC-362: the shared-shell group's modules are one list; the build's own record of which
+// modules each chunk holds (scripts/chunk-modules-plugin.mjs, beside — never inside — the
+// client output) is checked against it, both ways.
+const chunkModulesFile = join(dirname(buildDir), ".chunk-modules.json");
+if (!existsSync(chunkModulesFile)) {
+  console.error(
+    `Bundle budget: ${chunkModulesFile} is missing — the build's chunk-modules plugin writes it; the module census (DEC-362) cannot run.`,
+  );
+  process.exit(1);
+}
+const censusFailures = moduleCensus({
+  record: parseChunkModules(readFileSync(chunkModulesFile, "utf8")),
+  listed: SHARED_SHELL_MODULES.map(([path]) => path),
+  exists: (path) => existsSync(path),
+});
+if (censusFailures.length > 0) {
+  console.error("Bundle budget: SHARED_SHELL_MODULES and the build disagree (DEC-362):");
+  for (const line of censusFailures) console.error(`  ${line}`);
+  process.exit(1);
 }
 for (const file of files) {
   if (extname(file) === ".css" && isEntry(file)) eager.add(file);

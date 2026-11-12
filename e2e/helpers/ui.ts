@@ -27,10 +27,15 @@ import {
 import { inBrowserClient } from "./browser-client";
 import { totp, totpStep } from "./totp";
 import { errorText } from "../../src/lib/error-text";
+import { flaggedPattern, type PatternTag } from "../../scripts/lib/pattern";
 
-/** Escape a catalog value for literal use inside a RegExp. */
-function escapeRe(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/**
+ * CF-HELPERS-7 — the one way the e2e harness builds a RegExp from text: the template is RegExp
+ * source, every `${part}` string (a catalog value, a name) is escaped — scripts/lib/pattern.ts,
+ * INC-1102's helper. `matcher("i")\`^${label}$\``.
+ */
+export function matcher(flags = ""): PatternTag {
+  return flaggedPattern(flags);
 }
 
 /**
@@ -38,7 +43,7 @@ function escapeRe(value: string) {
  * work in an Amharic shell too.
  */
 export function openMenuPattern() {
-  return new RegExp(`^(${escapeRe(en["shell.openMenu"])}|${escapeRe(am["shell.openMenu"])})$`);
+  return matcher()`^(${en["shell.openMenu"]}|${am["shell.openMenu"]})$`;
 }
 
 /** Lifted verbatim from smoke-auth-i18n.spec.ts (P1-c). */
@@ -530,7 +535,7 @@ export async function signIn(
   // IE-1r PART D — DEC-041 AMENDMENT: THE REAL DOOR, ALWAYS.
   // `signIn` (and therefore `switchUser` and `mintPrivateSuperAdmin`) drives
   // the product's own form unconditionally: injection belongs to the POOL path
-  // alone (`useJobSuperAdmin`), which is where DEC-041 put it. The
+  // alone (`signInJobSuperAdmin`), which is where DEC-041 put it. The
   // `E2E_UI_LOGIN` knob is now INERT here and stays in ci.yml /
   // nightly-e2e.yml only until a harness DEC deletes it. `opts.uiLogin` is
   // kept in the signature so INC-120 callers read unchanged.
@@ -735,7 +740,7 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
  * or unenrols a factor, deletes factors through the admin API, or starts/ends
  * an impersonation session) must declare itself with the Playwright tag
  * `@private-identity`: it may not borrow the pool, because its mutation would
- * poison every sibling test that shares that identity. `useJobSuperAdmin`
+ * poison every sibling test that shares that identity. `signInJobSuperAdmin`
  * reads `test.info().tags`; a tagged test gets a PRIVATE mint (the pre-L4 path,
  * kept as `mintPrivateSuperAdmin`: fresh user, super_admin grant, enrol-in-
  * session), an untagged test gets the pool. `scripts/check-identity-tags.sh`
@@ -1004,8 +1009,9 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
  *
  * The baseline is now NULL, written with the SERVICE CLIENT as a fixture write
  * (J5 — fixtures are table operations, not product doors; the product door
- * `user_set_preferred_language` cannot express "unset"). What was cleared is
- * logged so a surprising inheritance is visible in the run log.
+ * `user_set_preferred_language` takes NULL, but it would spend the slot's
+ * `account_pref` dial). What was cleared is logged so a surprising inheritance
+ * is visible in the run log.
  *
  * INC-1071 (F1-1) — THE SLOT'S COUNTERS ARE PART OF THE BASELINE. A leased
  * pool account's `rate_limits` rows are deleted when it is reaped
@@ -1051,7 +1057,7 @@ async function resetLanguageBaseline(pool: E2ESuperAdmin): Promise<void> {
   );
 }
 
-export async function useJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
+export async function signInJobSuperAdmin(page: Page): Promise<JobSuperAdmin> {
   if (declaresPrivateIdentity()) return mintPrivateSuperAdmin(page);
 
   const pool = pooledSuperAdmin();
@@ -1123,7 +1129,7 @@ export async function stepUpIfPrompted(
  * INC-620 (bundle 14 turn 2) — MAKE THE NEXT GUARDED ACTION ASK. Step-up
  * freshness is read from the session token (INC-167; mfa-service.isStepUpFresh):
  * a verified factor, the aal2 claim, and the token's newest totp verification
- * inside the window. `useJobSuperAdmin` injects a session verified moments ago,
+ * inside the window. `signInJobSuperAdmin` injects a session verified moments ago,
  * so its guarded actions run without the modal. This helper shortens the CLIENT
  * window of the current document through the DEV/E2E instrument
  * `window.__ethioStepUp` (MF-7's precedent; compiled out of production builds,
@@ -1144,7 +1150,7 @@ export async function staleStepUpOnClient(page: Page): Promise<void> {
 /**
  * INC-620 — A TOTP CODE IS SPENT ONCE. The factor refuses a code it already
  * accepted inside its 30-second step (`freshAal2Session` retries for that
- * reason). A test that answers the modal with the identity `useJobSuperAdmin`
+ * reason). A test that answers the modal with the identity `signInJobSuperAdmin`
  * has just verified in node reads `totpStep()` as that call returns, and waits
  * here for the next step before it types: the code it types is then one the
  * factor has not used. A clock boundary, polled — never a fixed sleep; the
@@ -1275,60 +1281,23 @@ export function userRow(page: Page, userId: string) {
   return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
 }
 
-function isAccountLanguageRead(response: Response): boolean {
-  return (
-    response.request().method() === "GET" &&
-    response.url().includes("/rest/v1/profiles") &&
-    response.url().includes("select=preferred_language")
-  );
-}
-
-function preferredLanguageCode(body: unknown): string | null {
-  const row = Array.isArray(body) ? body[0] : body;
-  if (typeof row !== "object" || row === null) return null;
-  const value = Object.fromEntries(Object.entries(row))["preferred_language"];
-  return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-async function applyAccountLanguage(page: Page, response: Response) {
-  let code: string | null = null;
-  try {
-    code = preferredLanguageCode(await response.json());
-  } catch {
-    code = null;
-  }
-  if (code === null) return;
-  await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
-}
-
 /**
- * D239 — arm BEFORE the navigation. A signed-in load reads `preferred_language`
- * once and may replace the device's language. A pick made while that read is in
- * flight is overwritten, and `html lang` stays on the account's language.
- * Resolves when that read has been applied. A signed-out load has no such read;
- * the caller does not arm this.
+ * DEC-367 — THE PAGE SAYS WHEN ITS LANGUAGE IS SETTLED. The i18n provider's account rule
+ * (D239) writes `data-lang-settled="1"` on `<html>` when it has run to its end for this
+ * session start, or when no one is signed in; a new identity's read removes it. A pick made
+ * before it could be replaced by that read (INC-1103), so every pick waits here.
  */
-export function watchAccountLanguage(page: Page, timeout = 15000): Promise<void> {
-  return page
-    .waitForResponse(isAccountLanguageRead, { timeout })
-    .then((response) => applyAccountLanguage(page, response));
-}
-
-/**
- * The sign-in page's account read may already have landed by the time the test
- * can arm a watch. A miss here is that case; the next navigation arms its own.
- */
-export async function consumeAccountLanguage(page: Page): Promise<void> {
-  try {
-    await watchAccountLanguage(page, 2000);
-  } catch {
-    // Already applied on the page that is about to be left.
-  }
+export async function waitForLanguageSettled(page: Page, timeout = 15000): Promise<void> {
+  await expect(
+    page.locator("html"),
+    "the page never said its language was settled (DEC-367)",
+  ).toHaveAttribute("data-lang-settled", "1", { timeout });
 }
 
 /** `code` is a public language as the switcher lists it, not only the compiled catalogs. */
 export async function switchLanguage(page: Page, code: string) {
   await waitForHydration(page);
+  await waitForLanguageSettled(page);
   /**
    * INC-1004 — a person opens the switcher only when no menu is open: a click
    * on the trigger while the previous menu is still closing is lost, and the

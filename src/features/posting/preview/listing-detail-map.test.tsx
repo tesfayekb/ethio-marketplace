@@ -50,7 +50,6 @@ vi.mock("../map/map-preview", async () => {
   await download.arrived;
   return {
     MapPreview: () => <div data-testid="listing-map-pin" />,
-    snap: (value: number) => Math.round(value / 0.01) * 0.01,
   };
 });
 vi.mock("../map/map-large", () => ({ MapLarge: () => null }));

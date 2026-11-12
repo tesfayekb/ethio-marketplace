@@ -3,7 +3,12 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
-import { awaitGuardedOutcome, gotoReady, stepUpIfPrompted } from "./helpers/ui";
+import {
+  awaitGuardedOutcome,
+  gotoReady,
+  stepUpIfPrompted,
+  signInJobSuperAdmin,
+} from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import {
   action,
@@ -16,7 +21,6 @@ import {
   readCategory,
   scratchSlug,
   seedActiveListing,
-  signInAsSuperAdmin,
 } from "./helpers/categories";
 import { destroyAttribute } from "./helpers/admin-attributes";
 import { readStoredSession } from "./helpers/session";
@@ -77,7 +81,7 @@ test.describe("Bundle 7 category doors", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const parent = scratchSlug();
     const child = scratchSlug();
     try {
@@ -112,7 +116,7 @@ test.describe("Bundle 7 category doors", () => {
 
   test("CT-39 the badge sits on the home path, and Make primary moves it", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const home = scratchSlug();
     const other = scratchSlug();
     const child = scratchSlug();
@@ -179,7 +183,7 @@ test.describe("Bundle 7 category doors", () => {
 
   test("CT-40 the delete door's refusals read as words, never as keys", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const active = scratchSlug();
     const held = scratchSlug();
     let listingId = "";
@@ -226,7 +230,7 @@ test.describe("Bundle 7 category doors", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     let slug = "";
     try {
       // The door creates the scratch row …
@@ -321,7 +325,7 @@ test.describe("Bundle 7 category doors", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const [p1, p2, p3, leaf] = [scratchSlug(), scratchSlug(), scratchSlug(), scratchSlug()];
     const keyA = `e2e_attr_${rand()}_a`;

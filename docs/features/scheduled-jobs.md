@@ -35,6 +35,7 @@ One mechanism for a server task that runs on a schedule (register row 72).
   - `[api] schemas` holds neither `net` nor `extensions`;
   - `extra_search_path` does not hold `net`. `extensions` stays there: it is the platform's default and governs lookup, not exposure.
   - It also makes a live request with `Accept-Profile` / `Content-Profile: net`, which must be refused with PGRST106.
+  - Its allowlist (`scripts/conformance/outbound-calls-allowlist.txt`) expires with the CLI pin, which it reads through the pin's one reader, `scripts/ci/cli-pin.ts` (INC-1106).
 
 ## Adding a job
 

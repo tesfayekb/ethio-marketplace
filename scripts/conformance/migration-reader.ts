@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { flaggedPattern } from "../lib/pattern";
 import { walkFiles } from "./kit";
 
 /**
@@ -45,11 +46,11 @@ export const COMPUTED_BY_HAND: Readonly<Record<string, { since: string; reason: 
  * A string literal on one line: a doubled quote is a quote, and a backslash
  * pair is one character pair (an `E'\n'` escape, or a standard literal's `\`).
  */
-const ONE_LINE_LITERAL = String.raw`'(?:[^'\\\n]|''|\\[^\n])*'`;
-const COMMENT_OR_LITERAL = new RegExp(
-  String.raw`\/\*[\s\S]*?\*\/|--[^\n]*|` + ONE_LINE_LITERAL,
+const ONE_LINE_LITERAL = /'(?:[^'\\\n]|''|\\[^\n])*'/;
+const EVERY_ONE_LINE_LITERAL = flaggedPattern("g")`${ONE_LINE_LITERAL}`;
+const COMMENT_OR_LITERAL = flaggedPattern(
   "g",
-);
+)`\\/\\*[\\s\\S]*?\\*\\/|--[^\\n]*|${ONE_LINE_LITERAL}`;
 
 /** SQL text with every `--` and `/* … *\/` comment blanked (positions kept). */
 export function sqlCodeOf(text: string): string {
@@ -67,7 +68,7 @@ export function sqlCodeOf(text: string): string {
  */
 export function spanningLiterals(sql: string): Array<{ line: number }> {
   const blank = (s: string) => s.replace(/[^\n]/g, " ");
-  const code = sqlCodeOf(sql).replace(new RegExp(ONE_LINE_LITERAL, "g"), blank);
+  const code = sqlCodeOf(sql).replace(EVERY_ONE_LINE_LITERAL, blank);
   const lines = new Set<number>();
   for (const match of code.matchAll(/'/g))
     lines.add(code.slice(0, match.index ?? 0).split("\n").length);

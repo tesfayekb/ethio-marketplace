@@ -3,10 +3,11 @@ import { randomBytes } from "node:crypto";
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { adminClient, authErrorText, authFetch, processId, STATE_FILE } from "../global-setup";
 import { chunkByLength } from "./chunk-by-length";
+import { SCRATCH_PREFIXES, SCRATCH_USER_DOMAIN } from "./scratch";
 import { errorText } from "../../src/lib/error-text";
 
 export { adminClient } from "../global-setup";
@@ -42,7 +43,7 @@ export function mintEmail(n: number): string {
     .replace(/[^a-z0-9]/gi, "")
     .toLowerCase()
     .slice(0, 6);
-  return `e2e+${processId()}-${workerTag()}-${n}-${rand6}@ethio-e2e.invalid`;
+  return `${SCRATCH_PREFIXES.user}${processId()}-${workerTag()}-${n}-${rand6}${SCRATCH_USER_DOMAIN}`;
 }
 
 function baseUrl(): string {
@@ -412,8 +413,8 @@ export async function leaseUser(): Promise<TestUser> {
  * via the service role: a plain INSERT into user_roles. Its UNIQUE is
  * (user_id, role_id, scope_type, scope_country), so an onConflict list that
  * omits scope_country is not a valid conflict target; every fixture user is
- * freshly minted or reaped at lease, so a plain insert never collides. The
- * spec-local copies fold onto this one a few files a turn (roadmap, INC-1049).
+ * freshly minted or reaped at lease, so a plain insert never collides. No spec
+ * keeps a copy (housekeeping turn 2, CF-HELPERS-1).
  */
 export async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
@@ -429,6 +430,77 @@ export async function grantRole(userId: string, roleName: string) {
     .from("user_roles")
     .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
   if (error) throw new Error(`[e2e:users] granting ${roleName} failed: ${error.message}`);
+}
+
+/** A permission as `[resource, action]` (`["listings", "view"]`). */
+export type Permission = readonly [resource: string, action: string];
+
+/** A permissions row joined to its resource, narrowed by shape: its id and `resource:action`. */
+function permissionOf(row: unknown): { id: string; key: string } | null {
+  if (typeof row !== "object" || row === null) return null;
+  if (!("id" in row) || typeof row.id !== "string") return null;
+  if (!("action" in row) || typeof row.action !== "string") return null;
+  if (!("resources" in row)) return null;
+  const joined = row.resources;
+  if (typeof joined !== "object" || joined === null || !("name" in joined)) return null;
+  if (typeof joined.name !== "string") return null;
+  return { id: row.id, key: `${joined.name}:${row.action}` };
+}
+
+function scratchLetters(): string {
+  return Array.from(randomBytes(8), (byte) => String.fromCharCode(97 + (byte % 26))).join("");
+}
+
+/**
+ * Housekeeping turn 2 (INC-1049, ruling 1 Q4) — THE ONE SCRATCH ROLE, via the
+ * service role: a role `e2e_scratch_role_<letters>` holding exactly `wanted`
+ * (each pair must exist once), assigned to `userId` globally. Its id is added
+ * to the spec's `reap` list the moment the role exists, so a later failure
+ * still reaps it; the spec's own teardown deletes its user_roles,
+ * role_permissions and roles rows. Answers the role's id.
+ */
+export async function grantScratchRole(
+  userId: string,
+  wanted: readonly Permission[],
+  reap: string[] | Set<string>,
+): Promise<string> {
+  const supabase = adminClient();
+  const name = `${SCRATCH_PREFIXES.role}${scratchLetters()}`;
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .insert({ name, display_name: name, priority: 1 })
+    .select("id")
+    .single();
+  const roleId: unknown = role?.id;
+  if (roleError || typeof roleId !== "string") {
+    throw new Error(`[e2e:users] scratch role failed: ${roleError?.message ?? "no row"}`);
+  }
+  if (Array.isArray(reap)) reap.push(roleId);
+  else reap.add(roleId);
+  const { data: rows, error: readError } = await supabase
+    .from("permissions")
+    .select("id, action, resources!inner(name)")
+    .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
+  if (readError) throw new Error(`[e2e:users] permission read failed: ${readError.message}`);
+  const keys = wanted.map(([resource, action]) => `${resource}:${action}`);
+  const picked = (Array.isArray(rows) ? rows : [])
+    .map(permissionOf)
+    .filter((row): row is { id: string; key: string } => row !== null && keys.includes(row.key));
+  expect(
+    picked.map((row) => row.key).sort(),
+    `[e2e:users] expected exactly ${keys.join(", ")}`,
+  ).toEqual([...keys].sort());
+  const granted = await supabase
+    .from("role_permissions")
+    .insert(picked.map((row) => ({ role_id: roleId, permission_id: row.id })));
+  if (granted.error) throw new Error(`[e2e:users] grant failed: ${granted.error.message}`);
+  const assigned = await supabase
+    .from("user_roles")
+    .insert({ user_id: userId, role_id: roleId, scope_type: "global" });
+  if (assigned.error) {
+    throw new Error(`[e2e:users] assignment failed: ${assigned.error.message}`);
+  }
+  return roleId;
 }
 
 /**
@@ -451,7 +523,7 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
   const fold = alias.toLowerCase();
   const cutoff = Date.now() - 10 * 60 * 1000;
   // `processId()` is "<run>-<shard>": this run's accounts start with "e2e+<run>-".
-  const thisRun = `e2e+${processId().split("-")[0]}-`;
+  const thisRun = `${SCRATCH_PREFIXES.user}${processId().split("-")[0]}-`;
   const holders = new Set<string>();
   const profiles = await supabase.from("profiles").select("user_id").ilike("seller_alias", fold);
   if (profiles.error) throw new Error(`[e2e:alias] holder read failed: ${profiles.error.message}`);
@@ -469,7 +541,7 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
       continue;
     }
     const email = data.user.email ?? "";
-    const scratch = email.startsWith("e2e+") && email.endsWith("@ethio-e2e.invalid");
+    const scratch = email.startsWith(SCRATCH_PREFIXES.user) && email.endsWith(SCRATCH_USER_DOMAIN);
     const created = Date.parse(data.user.created_at ?? "");
     const otherRun = !email.startsWith(thisRun);
     if (!scratch) {

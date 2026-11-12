@@ -4,6 +4,7 @@ import { type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
+import { pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
@@ -25,8 +26,8 @@ import {
   seedCategoryBranch,
 } from "./helpers/posting";
 import { passwordGrant } from "./helpers/session";
-import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { gotoReady, stepUpIfPrompted, switchUser, signInJobSuperAdmin } from "./helpers/ui";
+import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { levelNameFor } from "./helpers/level-overrides";
 
@@ -41,53 +42,6 @@ import { levelNameFor } from "./helpers/level-overrides";
  * (SC-19). Seeded as feed-route seeds; every row is found by its unique title in the page's search (G28); DB truth
  * through the service client; cleanup in afterEach (J3).
  */
-
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ error: { message: string } | null }>;
-};
-
-async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return result.error?.message ?? null;
-    },
-    [fn, args] as const,
-  );
-}
-
-type RpcDataClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
-};
-
-/** Bundle 11 A1 — a door called as the page's signed-in person: its data and its error. */
-async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcDataClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return { data: result.data, error: result.error?.message ?? null };
-    },
-    [fn, args] as const,
-  );
-}
 
 /**
  * P-2 (c) c2a — a level row's English name, which the console's picks, notices and badge draw
@@ -262,51 +216,9 @@ test.describe("ADMIN SCREENING", () => {
     return row;
   }
 
-  /**
-   * Bundle 11 A3 — a pool user holding exactly these permissions through a
-   * scratch role, with no second factor (a pool user enrols none). The role is
-   * reaped in afterEach.
-   */
-  async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
-    const supabase = adminClient();
-    const roleName = `e2e_screen_role_${rand()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`[e2e:sc] scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
-    const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
-    );
-    expect(
-      picked,
-      `[e2e:sc] expected exactly ${wanted.map((pair) => pair.join(":")).join(", ")}`,
-    ).toHaveLength(wanted.length);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(picked.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`[e2e:sc] grant failed: ${granted.error.message}`);
-    const holder = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: holder.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`[e2e:sc] assignment failed: ${assigned.error.message}`);
-    return holder;
-  }
-
   test("SC-1 the queue lists an ad waiting for review", async ({ page }) => {
     const ad = await seedWaiting();
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const row = await findRow(page, ad.title, ad.id);
     await expect(row).toContainText(ad.title);
     await expect(row).toContainText(ad.categoryName);
@@ -319,7 +231,7 @@ test.describe("ADMIN SCREENING", () => {
 
   test("SC-2 Approve puts the ad on the site", async ({ page }) => {
     const ad = await seedWaiting();
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "approve");
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
@@ -338,7 +250,7 @@ test.describe("ADMIN SCREENING", () => {
 
   test("SC-3 Reject keeps the ad off", async ({ page }) => {
     const ad = await seedWaiting();
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "reject");
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
@@ -367,10 +279,12 @@ test.describe("ADMIN SCREENING", () => {
     const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await gotoReady(page, "/");
-    const deniedPlain = await rpcFromBrowser(page, "transition_listing", {
-      p_listing_id: ad.id,
-      p_new_status: "active",
-    });
+    const deniedPlain = (
+      await pageDoor(page, "transition_listing", {
+        p_listing_id: ad.id,
+        p_new_status: "active",
+      })
+    ).error;
     expect(deniedPlain).not.toBeNull();
     expect((await listingTruth(ad.id)).status).toBe("screening");
   });
@@ -378,44 +292,24 @@ test.describe("ADMIN SCREENING", () => {
   test("SC-16 a reviewer without a fresh second factor cannot decide", async ({ page }) => {
     test.setTimeout(180_000);
     const ad = await seedWaiting();
-    const supabase = adminClient();
 
     // (b) a scratch role holding listings:review only, no second factor.
-    const roleName = `e2e_screen_reviewer_${rand()}`;
-    const { data: role, error: roleError } = await supabase
-      .from("roles")
-      .insert({ name: roleName, display_name: roleName, priority: 1 })
-      .select("id")
-      .single();
-    if (roleError || !role) throw new Error(`SC-16 scratch role failed: ${roleError?.message}`);
-    roles.push(role.id as string);
-    const { data: perms } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", ["listings"]);
-    const wanted = (perms ?? []).filter((p) => p.action === "review");
-    expect(wanted, "SC-16 expected exactly listings:review").toHaveLength(1);
-    const granted = await supabase
-      .from("role_permissions")
-      .insert(wanted.map((p) => ({ role_id: role.id, permission_id: p.id })));
-    if (granted.error) throw new Error(`SC-16 grant failed: ${granted.error.message}`);
     const reviewer = await leaseUser();
-    const assigned = await supabase
-      .from("user_roles")
-      .insert({ user_id: reviewer.id, role_id: role.id, scope_type: "global" });
-    if (assigned.error) throw new Error(`SC-16 assignment failed: ${assigned.error.message}`);
+    await grantScratchRole(reviewer.id, [["listings", "review"]], roles);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
-    const deniedReviewer = await rpcFromBrowser(page, "transition_listing", {
-      p_listing_id: ad.id,
-      p_new_status: "active",
-    });
+    const deniedReviewer = (
+      await pageDoor(page, "transition_listing", {
+        p_listing_id: ad.id,
+        p_new_status: "active",
+      })
+    ).error;
     expect(deniedReviewer).toMatch(/no verified factor|step-up required/i);
     expect((await listingTruth(ad.id)).status).toBe("screening");
   });
 
   test("SC-5 an empty search shows the empty message", async ({ page }) => {
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(`e2e-none-${rand()}`);
     await expect(page.getByTestId("admin-screening-empty")).toHaveText(
@@ -428,7 +322,7 @@ test.describe("ADMIN SCREENING", () => {
   test("SC-6 Preview as buyer draws the ad's category picture", async ({ page }) => {
     const picture = "https://example.invalid/e2e-screen-picture.jpg";
     const ad = await seedWaiting({ parentImageUrl: picture });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -454,8 +348,8 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
-    await useJobSuperAdmin(page);
-    const { data, error } = await rpcResult(page, "admin_screening_facts", {
+    await signInJobSuperAdmin(page);
+    const { data, error } = await pageDoor(page, "admin_screening_facts", {
       p_listing_id: ad.id,
     });
     expect(error, "SC-7: the reviewer was refused").toBeNull();
@@ -491,9 +385,9 @@ test.describe("ADMIN SCREENING", () => {
     const plain = await leaseUser();
     await switchUser(page, plain.email, plain.password);
     await gotoReady(page, "/");
-    const facts = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    const facts = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(facts.error).toBe("permission denied");
-    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+    const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
@@ -507,12 +401,13 @@ test.describe("ADMIN SCREENING", () => {
     test.setTimeout(180_000);
     const ad = await seedWaiting({ contactPref: PREF });
 
-    const reviewer = await scratchHolder([["listings", "review"]]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(reviewer.id, [["listings", "review"]], roles);
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
-    const read = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    const read = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(read.error, "SC-17: a reviewer reads the facts without a second factor").toBeNull();
-    const revealed = await rpcResult(page, "admin_reveal_listing_contact", {
+    const revealed = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
@@ -527,8 +422,8 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting({ contactPref: PREF });
-    const { user } = await useJobSuperAdmin(page);
-    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+    const { user } = await signInJobSuperAdmin(page);
+    const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "whatsapp",
     });
@@ -542,13 +437,13 @@ test.describe("ADMIN SCREENING", () => {
       meta: { channel: "whatsapp" },
     });
 
-    const hidden = await rpcResult(page, "admin_reveal_listing_contact", {
+    const hidden = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone2",
     });
     expect(hidden.error).toBeNull();
     expect(hidden.data).toEqual({ ok: false, reason: "notShown" });
-    const handle = await rpcResult(page, "admin_reveal_listing_contact", {
+    const handle = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "telegram",
     });
@@ -558,10 +453,10 @@ test.describe("ADMIN SCREENING", () => {
 
   test("SC-10 an ad that is not waiting for review answers neither door", async ({ page }) => {
     const ad = await seedWaiting({ contactPref: PREF, status: "active" });
-    await useJobSuperAdmin(page);
-    const facts = await rpcResult(page, "admin_screening_facts", { p_listing_id: ad.id });
+    await signInJobSuperAdmin(page);
+    const facts = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(facts.error).toBe("listing not found");
-    const shown = await rpcResult(page, "admin_reveal_listing_contact", {
+    const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
@@ -573,7 +468,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting();
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await expect(rowOf(page, ad.id)).toContainText(ad.cityName);
 
@@ -630,7 +525,7 @@ test.describe("ADMIN SCREENING", () => {
     const stem = `e2e-screen-${RUN}-${rand()}`;
     const first = await seedWaiting({ title: `${stem}-a` });
     const second = await seedWaiting({ title: `${stem}-b` });
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(stem);
     await expect(rowOf(page, first.id)).toBeVisible({ timeout: 20000 });
@@ -668,7 +563,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting({ contactPref: PREF, business: "Escreen Trading" });
-    const { user } = await useJobSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     const { data: profile } = await adminClient()
       .from("profiles")
       .select("seller_alias")
@@ -752,7 +647,7 @@ test.describe("ADMIN SCREENING", () => {
     page,
   }) => {
     const ad = await seedWaiting();
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -786,11 +681,16 @@ test.describe("ADMIN SCREENING", () => {
   }) => {
     test.setTimeout(180_000);
     const ad = await seedWaiting({ contactPref: PREF });
-    const reviewer = await scratchHolder([
-      ["admin_panel", "access"],
-      ["listings", "view"],
-      ["listings", "review"],
-    ]);
+    const reviewer = await leaseUser();
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["admin_panel", "access"],
+        ["listings", "view"],
+        ["listings", "review"],
+      ],
+      roles,
+    );
     await switchUser(page, reviewer.email, reviewer.password);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
@@ -908,7 +808,7 @@ test.describe("ADMIN SCREENING", () => {
   }) => {
     const ad = await seedWaiting();
     const photos = await seedHeldPhotos(ad.id);
-    const { user, secret } = await useJobSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -976,7 +876,7 @@ test.describe("ADMIN SCREENING", () => {
     // INC-615 — priced, so the ad meets today's rules and the door removes the photo.
     const ad = await seedWaiting({ priced: true });
     const photos = await seedHeldPhotos(ad.id);
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -1086,7 +986,7 @@ test.describe("ADMIN SCREENING", () => {
       ["removed", warnedId, null, []],
     ]);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const section = page.getByTestId("admin-photo-changes");
     const mine = section.locator(`[data-testid="admin-photo-change"][data-listing-id="${ad.id}"]`);
@@ -1158,7 +1058,7 @@ test.describe("ADMIN SCREENING", () => {
     if (warning.error)
       throw new Error(`[e2e:sc] seeding the warning failed: ${warning.error.message}`);
 
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const row = await findRow(page, ad.title, ad.id);
     await expect(row.getByTestId(`admin-screening-row-${ad.id}-photo-warning`)).toHaveText(
       en["admin.screening.photoWarning"],
@@ -1216,7 +1116,7 @@ test.describe("ADMIN SCREENING", () => {
     });
     const plain = await register("plain", false);
 
-    const { user, secret } = await useJobSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -1307,7 +1207,7 @@ test.describe("ADMIN SCREENING", () => {
     await updateListingRow(drafted.id, { status: "draft" }, { tag: "sc" });
     await register(drafted.id, "draft-failed", true, failReview);
 
-    const { user, secret } = await useJobSuperAdmin(page);
+    const { user, secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const section = page.getByTestId("admin-photo-reviews");
     const row = section.locator(`[data-testid="admin-photo-review"][data-photo-id="${failed}"]`);
@@ -1366,7 +1266,7 @@ test.describe("ADMIN SCREENING", () => {
     };
     const ad = await seedWaiting({ priced: true });
     const corrected = `Corrected e2e-screen-${RUN}-${rand()}`;
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     const sheet = page.getByTestId("post-preview-sheet");
@@ -1441,7 +1341,7 @@ test.describe("ADMIN SCREENING", () => {
     };
     const ad = await seedWaiting({ priced: true });
     const corrected = `Corrected e2e-screen-${RUN}-${rand()}`;
-    const { secret } = await useJobSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
@@ -1510,7 +1410,7 @@ test.describe("ADMIN SCREENING", () => {
     const stem = `e2e-screen-${RUN}-${rand()}`;
     const premium = await seedWaiting({ title: `${stem}-premium`, tier: "premium" });
     const regular = await seedWaiting({ title: `${stem}-regular` });
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     await page.getByTestId("admin-screening-search").fill(stem);
     await expect(rowOf(page, premium.id)).toBeVisible({ timeout: 20000 });

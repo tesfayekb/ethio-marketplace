@@ -1,4 +1,5 @@
-import { passwordGrant } from "./session";
+import { asPerson } from "./door-callers";
+import { doorAnswer } from "./door-answer";
 import { adminClient } from "./users";
 
 /**
@@ -7,30 +8,10 @@ import { adminClient } from "./users";
  * door's own write), and a hold or its release is made only through the service
  * door name_check_mark (R7) — nothing is written to name_checks by hand.
  */
-function restBase(): { url: string; key: string } {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key)
-    throw new Error("[e2e:snh] E2E_SUPABASE_URL and the publishable key must be set.");
-  return { url: url.replace(/\/+$/, ""), key };
-}
-
 /** The seller's own door call, signed in from node. */
 export async function saveOwnAlias(person: { email: string; password: string }, alias: string) {
-  const { url, key } = restBase();
-  const session = await passwordGrant(person.email, person.password);
-  const response = await fetch(`${url}/rest/v1/rpc/save_posting_identity`, {
-    method: "POST",
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${session.access_token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ p_alias: alias }),
-  });
-  const body = (await response.json()) as { ok?: boolean };
-  if (!response.ok || body.ok !== true)
-    throw new Error(`[e2e:snh] saving the scratch name failed: HTTP ${response.status}`);
+  const saved = await (await asPerson(person)).rpc("save_posting_identity", { p_alias: alias });
+  doorAnswer(saved, "[e2e:snh] saving the scratch name");
 }
 
 export async function markName(

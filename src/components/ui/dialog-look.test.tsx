@@ -12,7 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
 } from "./alert-dialog";
-import { buttonVariants } from "./button";
+import { buttonVariants } from "./button-variants";
 import {
   Dialog,
   DialogContent,

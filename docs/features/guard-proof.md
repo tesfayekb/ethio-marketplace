@@ -102,3 +102,7 @@ against current source:
 - `b3-enumeration.patch` — REGENERATED. The sign-in error block shifted ~102 lines;
   the mutation intent (leak the attempted address into the error copy) and the
   forbidden-on-main header are unchanged.
+
+## Housekeeping turn 3 — the browser's libraries (INC-1101)
+
+The proof installs Chromium's system libraries through `scripts/ci/install-browser-deps.sh`, the one installer CF-CID-1's seventh rule allows: it drops an apt mirror that does not resolve and runs once more only at apt's fetch stage (docs/features/ci-local-backend.md, DEC-366).

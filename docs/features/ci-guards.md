@@ -9,7 +9,7 @@ DEC-133 (2026-10-05): every job runs on ubuntu-24.04, pinned — GitHub moves ub
 
 | Job             | Purpose                                                                                                                                                                    | Status   |
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| build-and-check | `bun install` → `bun run typecheck` → `bun run lint` → `bun run build`.                                                                                                    | **FAIL** |
+| build-and-check | `bun install` → `bun run typecheck` (two projects: `tsconfig.json`, then `tsconfig.scripts.json` — CF-TSC-1) → `bun run lint` → `bun run build`.                           | **FAIL** |
 | bundle-report   | Prints total client JS output size after build (informational).                                                                                                            | log-only |
 | secrets-scan    | pinned gitleaks 8.24.3 (SHA-256 checked) over every commit on dev that main does not hold yet, merges included (INC-975); exit code is the verdict, no artifact (INC-976). | **FAIL** |
 | migration-lint  | Runs `scripts/check-migrations.sh` (see below).                                                                                                                            | **FAIL** |
@@ -339,6 +339,31 @@ are captured from real output, never authored from assumption). The self-test
 adds the **wipeout case** — every source zero-test — asserting the log tails
 are quoted and the header names both sources instead of "none".
 
+### A lane without results is named by the step it died at (INC-1101, housekeeping turn 3)
+
+Run 43036501908's report read "17 sources without results" and quoted nothing more, because a
+lane that dies before "Run proof lane" writes no log: a reader could not tell the runner's mirror
+from a code failure. Each lane's "Write lane evidence" now writes its INC-992 step lines (the
+fragment's `- Step failure:` section, redacted by the same `redact`) to
+`local-backend-step-failure.txt`, and "Upload lane log" carries it in `e2e-log-<lane>` beside
+`local-backend-start-failure.txt`; the reporter reads it and redacts it again. For every silent
+source it prints each failed step (`- Failed step: \`<id>\` (outcome <o>) — <error line>`) and
+quotes the step lines. A source whose every failed step is in `INFRA_STEP_IDS`(the steps before
+any test: checkout, bun, the dependencies, the CLI, the backend images, the certificate, the
+browser's libraries and the browser, its cache;`backend`only with DEC-313's "start failed before
+any migration ran" line) is marked`(INFRA: <step>)`on the "Sources without results" line, the
+head block gains`- Infrastructure: <n> lane(s) died before any test at <step> — <error line>`,
+and its section opens with `- Class: **infrastructure**`. The build, the migration apply and the
+smoke guards stay code findings. A missing step file keeps today's words. The reporter writes
+`e2e-verdict-class.txt` (`INFRA <n> <step>`when every red source died that way and no test
+failed, else`TESTS`); the Verdict step reads it for its `::error` text only (`E2E: <n> lane(s)
+died in infrastructure before any test (<step>) — re-run the failed jobs`), and its exit stays
+the lanes' result (DEC-028). The self-test covers the install death (lane 1 of run 43033934604),
+the proof lane's own death (lane 5 of run 42587592780), a backend start death made by the real
+tools, the class, and that every id in `INFRA_STEP_IDS`is a step id of the lane job;`scripts/e2e-failure-report.test.ts`(EFR-1) runs that self-test inside`bunx vitest run scripts`,
+and `scripts/ci/lane-failure-evidence.test.ts` LFE-3 runs the lane's own evidence program over the
+captured step file.
+
 Caches: the Playwright browser cache is keyed on `runner.os` + the resolved
 `@playwright/test` version; bun's install cache is keyed on `bun.lock`. Both
 jobs echo `cache-hit` so a silently-missing cache is visible in the log rather
@@ -358,8 +383,11 @@ and `e2e-last-failure.md` always describe HEAD.
 
 Every parallel test process derives
 `PROCESS_ID = ${GITHUB_RUN_ID ?? local<rand>}-${E2E_SHARD ?? "solo"}`.
-`ci.yml` sets `E2E_SHARD: ${{ matrix.shard }}` on the shard matrix and
-`E2E_SHARD: smoke` on the smoke tier; `nightly-e2e.yml` sets `E2E_SHARD: nightly`.
+`ci.yml` no longer runs a staging shard matrix (since cc93140c2, 2026-10-21); the
+temporary-backend lanes of `local-backend-proof.yml` set `E2E_SHARD: localproof` (smoke) or
+`local-<lane>`, and `nightly-e2e.yml` sets `E2E_SHARD: nightly`. The maintenance pass's owner is
+`E2E_MAINTENANCE=1`, set by lane 1's proof step and the nightly's first Playwright run (DEC-369,
+CF-CID-7).
 
 - Minted fixtures are
   `e2e+<PROCESS_ID>-<workerTag>-<n>-<rand6>@ethio-e2e.invalid`, where
@@ -991,6 +1019,16 @@ the script exit non-zero. Wired as "Promote needs every job (with self-test)" in
 `build-and-check`. Rule (DEC-137): a job gates promotion unless SIGNAL_ONLY names
 it with its decision number.
 
+**The explicit condition (DEC-365, housekeeping turn 3).** `promote`'s `if:` reads
+every needed job's result by name (`needs.<job>.result == 'success'`) and never calls
+`success()`; it holds `!cancelled()`, so a skipped job does not skip `promote` before
+the condition is read. `scope` is in `needs` and must succeed. `e2e-lanes` and
+`bundle-budget` (DOCS_SKIPPABLE) appear only as `(needs.<job>.result == 'success' ||
+(needs.<job>.result == 'skipped' && needs.scope.outputs.docs_only == 'true'))`, and
+their own `if:` is exactly `${{ !cancelled() && needs.scope.outputs.docs_only != 'true' }}`:
+a failed `scope` runs them and blocks promotion. The planted fixture breaks every
+clause; the self-test step requires each clause's message.
+
 ## Workflow lint (added 2026-10-06, Bundle 6 X, INC-457, DEC-140)
 
 "Workflow lint (actionlint, pinned)" in `build-and-check`, right after the
@@ -1040,7 +1078,7 @@ The first eight-shard run (38131355354 on cf7187ab) lasted 34 minutes: six shard
 A census of every script under scripts/ against the CI workflows and the unit tests found two enforcing guards that nothing ran: `scripts/check-identity-tags.sh` (a test that changes its own sign-in factors or starts an impersonation declares `@private-identity`; L4b part C) and `scripts/check-datatable-minwidth.sh` (a table column takes a tier and a width, not a min-width; C3-UX-1d). Their comments called them guards; no job called them. (`scripts/publish-evidence.selftest.sh` is a self-test of the evidence publisher, run by hand when that script changes — DEC-098.)
 
 - **Run by the unit tests now** (scripts/shell-guards.test.ts): GW-1 — the identity-tag guard's self-test, then the tree; GW-2 — the min-width guard on its planted file (`scripts/fixtures/bad-datatable-minwidth-example.tsx.txt`, one finding), then the tree (none). No workflow changes: the unit tests already run on every commit.
-- **What the identity-tag guard found:** LT-6 (e2e/admin-locations.spec.ts) enrols a factor on its own leased account without the tag; it now carries `@private-identity`. The tag changes only what `useJobSuperAdmin` hands out, which LT-6 does not call.
+- **What the identity-tag guard found:** LT-6 (e2e/admin-locations.spec.ts) enrols a factor on its own leased account without the tag; it now carries `@private-identity`. The tag changes only what `signInJobSuperAdmin` hands out, which LT-6 does not call.
 - **The same reading gap twice:** the guard, like the test-id check (TI-5, docs/features/test-ids.md), read a title only on the line that opens `test(`, so a title the formatter wrapped onto the next line was not read. Both read it now; the guard's self-test plants a wrapped title (X-3) and fails if it is not flagged. These are the two readers of test titles in source text.
 
 ## DEC-172's verdict — six shards again, unweighted (bundle 11 turn C11, 2026-10-12)
@@ -1101,7 +1139,9 @@ The allowlist grammar is `key | reason | until`, where `until` is a date (YYYY-M
 
 `kit-adoption.test.ts` is the adoption census: every import of a tree enumerator (`readdirSync`, `readdir`, `opendirSync`, `glob`, `globSync` — static or dynamic `await import`) and every `createSourceFile(` call under src/, scripts/ and e2e/ is a finding; a finding is either on `kit-adoption-allowlist.txt` or a breach. The allowlist holds the five guard walkers not yet moved (until INC-858, the door turn) and the six enumerators that are not guards (until DEC-244); INC-856 moved four walkers (Foundations turn 2) and INC-857 six (Foundations turn 22). Detection is import/call-based, never a bare word.
 
-`wired.test.ts` (INC-563's class) censuses the domain — every `scripts/check-*.{sh,ts,mjs}`, every `scripts/*.sh`, every `scripts/*.ts` exporting `check(`/`inspect(`, every `scripts/conformance/*.ts` census (not a test, not the kit) — and requires each to be NAMED, by basename, in a workflow step, a package.json script or a test under scripts/ or src/. No allowlist: a script nothing runs is retired or wired, never excused.
+`wired.test.ts` (INC-563's class) censuses the domain — every `scripts/check-*.{sh,ts,mjs}`, every `scripts/*.sh`, every `scripts/*.ts` exporting `check(`/`inspect(`, every `scripts/conformance/*.ts` census (not a test, not the kit) — and requires each to be NAMED, by basename, in a workflow step, a package.json script or a test under scripts/ or src/. No allowlist: a script nothing runs is retired or wired, never excused. Since housekeeping turn 3b it also holds every `.mjs` a scripts/ TypeScript file imports to a `.d.mts` beside it that exports each imported name (CF-WIRED-3 over the tree, CF-WIRED-4 on a planted importer; no allowlist): the declarations are judged there, and by `tsc` through the scripts project.
+
+Since housekeeping turn 3c every script is typechecked. `bun run typecheck` runs two projects: `tsconfig.json` (`src/`, `e2e/`, the root configs) and `tsconfig.scripts.json`, which extends it and includes `scripts/**/*.ts`, `playwright.nightly.config.ts` and `vitest.config.ts` (`allowJs` with `checkJs` off, so `eslint.config.js` types its one importer and no JavaScript is judged). The dormant kit (`.claude/hooks/**`) is outside both until rules turn 4 (INC-1110), and so are the three scripts that import it (`scripts/conformance/executor-hooks.test.ts`, `scripts/brief/apply-blocks.ts`, `scripts/brief/apply-blocks.test.ts`): the project's `exclude` lists them, because `tsc` checks every file an import reaches, whatever `include` says. CF-TSC-1 (`wired.test.ts`) holds the `typecheck` script to both projects, the `include` to those three lines, and the `exclude` to exactly the import census — every file under `scripts/` whose imports reach `.claude/`, directly or through another such file (TypeScript's own `preProcessFile` lists the specifiers) — with planted bypasses (no `scripts/` include, one project, a fourth or a missing exclude). The checks runner runs the same `bun run typecheck` (TCK-12).
 
 A new census is one file: census → breaches → allowlist → CF-X-1 (the domain's rule) / CF-X-2 (a planted breach is caught) / CF-X-3 where the grammar needs it, all under `TREE_SCAN_MS`, on the kit.
 
@@ -1160,3 +1200,37 @@ The weight guard's FORBIDDEN gains `@radix-ui/react-dialog` and `@radix-ui/react
 `scripts/test-ids.ts` (INC-536, TI-1…5) already refused a test id used twice across src/, e2e/ and scripts/; TI-6 extends it to the census ids of several parts (`CF-BC-1`, `CF-KIT-7`), which its title pattern skipped — shown red against BASE's pattern.
 
 `scripts/conformance/agents-lines.test.ts`: AGL-1 reads every path (under src/, e2e/, scripts/, docs/, supabase/, public/, .claude/, .github/; globs and placeholders aside) and every bare file name AGENTS.md names and fails on one that does not exist; AGL-2 holds AGENTS.md after its LOVABLE block to the 5,120-byte budget (S326, INC-735), or to a recorded exception `AGENTS.md (<bytes>) | reason | until` in `scripts/conformance/agents-lines-allowlist.txt` that names today's count (9,409 bytes, held for a ruling); AGL-3 proves both on planted text.
+
+## DEC-363 — one install everywhere: the lockfile's addresses (the lockfile turn)
+
+`bun.lock`'s tarball addresses are the public registry's (`https://registry.npmjs.org/<name>/-/<file>`), so every `bun install --frozen-lockfile` — CI's (`ci.yml`'s five install steps, `local-backend-proof.yml`'s one in each lane, and the nightly, flake-check, guard-proof and feed-bench workflows), the executor's and the supervisor's — fetches from the same place, and bun's `sha512-` integrity check proves the same bytes. The 775 entries that pointed at a platform's private npm cache were rewritten by script, host only, every version and integrity value byte-identical. `scripts/conformance/lockfile-hosts.test.ts`: CF-LOCK-1 reads every URL in `bun.lock` and fails on one whose host is not `registry.npmjs.org` (or that is not `https://`), unless its host has a line `<host> | reason | until` in `scripts/conformance/lockfile-hosts-allowlist.txt` (none); CF-LOCK-2 proves it on a planted lockfile with one private-cache URL. A platform install that rewrites the addresses to its cache fails CI here on its first run.
+
+### A docs-only push runs no browser lane (DEC-365, housekeeping turn 3)
+
+ci.yml's first job `scope` runs `scripts/ci/docs-only.ts`. A push is docs-only when its base is
+known (`github.event.before`: the push's, or the pull request's previous head on `synchronize`;
+anything else, or all zeros, is unknown) AND, walking at most ten commits along the first parents
+from that base (the base itself first), the newest commit whose own CI run on the same ref
+concluded success with a lane job `success` and the E2E verdict `success` is found AND every path
+of `git diff <that commit> <sha>` is a record: `docs/**` but never `docs/generated/**`, `.cursor/**`,
+or a `*.md` at the root (`roadmap.md`, `README.md`, `AGENTS.md`). Each run is read from the Actions
+API (`actions: read`, the workflow's token) through `scripts/ci/with-deadline.sh` (30 s, two tries);
+a failed read, a missing commit or a walk past the bound runs the lanes. The job's outputs are
+`docs_only` and `lanes` (one line), and its log carries `DEC-365 lanes: <line>`:
+
+- `skipped — docs-only push; the code tree equals <commit>, whose lanes were green in run <id>`
+- `ran — not docs-only: <reason>` (the reason names the push's base and, past the walk, the diff's
+  base: an unknown base, a failed read, no green commit within the bound, or the first path that is
+  not a record, with the count).
+
+When docs-only: `e2e-lanes` and `bundle-budget` do not run; the verdict job writes
+`docs/tracking/e2e-last-failure.md` in its skipped form (`last E2E run <id> ran no lanes
+(docs-only push, DEC-365)` and `- Lanes: skipped — …`), reads no source, appends no ledger line,
+and passes; the status reporter lists the two jobs as `skipped (docs-only)` with the `- Lanes:` line
+under the run's URL; `promote` reads the explicit condition above. Otherwise every report carries the
+`- Lanes: ran — …` line and the graph is the one before DEC-365. A pull request's diff runs from the
+lane's previous head to the new merge commit, so it also holds what dev gained since: that error
+runs the lanes (ruling 1, Q9). Guards: CF-DOCS-1…6 (`scripts/ci/docs-only.test.ts`, on the Actions
+API's real answers for runs 43103925609 and 43033934604 under `scripts/fixtures/docs-only/`),
+`check-promote-needs.sh` with its planted fixture, and the reporter's DEC-365 self-test.
+`bun run checks` does not run `scope` (`scope › *` in turn-checks-allowlist.txt).

@@ -1,0 +1,3 @@
+# One install everywhere (scripts/conformance/lockfile-hosts.test.ts, CF-LOCK-1, DEC-363): a host other
+# than registry.npmjs.org that bun.lock may name — key "<host>" | reason | until. A line no URL
+# needs is stale and fails. Empty at birth.

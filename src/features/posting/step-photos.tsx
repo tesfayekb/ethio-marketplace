@@ -8,7 +8,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
-import { controlClass, Field } from "./field";
+import { Field } from "./field";
+import { controlClass } from "./field-refusals";
 import { encodeBitmap, encodeVariants } from "./photo-encode";
 import { BackgroundDialog } from "./background-dialog";
 import { PhotoEditor } from "./photo-editor";

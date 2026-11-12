@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { summaryLabel, summaryRefusals } from "./field";
+import { summaryLabel, summaryRefusals } from "./field-refusals";
 
 describe("summaryRefusals (INC-313)", () => {
   it("drops control-less refusals and keeps field refusals", () => {

@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 682,
+  "scanned": 708,
   "dynamicCallSites": 445,
   "keys": {
     "account.deactivatedBanner": [
@@ -4945,17 +4945,13 @@
       "/auth"
     ],
     "auth.signOut": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "auth.signUpButton": [
       "/auth"
     ],
     "auth.signedInAs": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "auth.telegramSlot": [
       "/auth"
@@ -5042,11 +5038,9 @@
     ],
     "common.error": [
       "(every page)",
-      "/",
       "/admin/listings",
       "/admin/listings/$listingId",
-      "/admin/screening",
-      "/c/$slug"
+      "/admin/screening"
     ],
     "common.goHome": [
       "(every page)"
@@ -6178,9 +6172,7 @@
     ],
     "nav.home": [
       "(every page)",
-      "/",
       "/admin/listings/$listingId/edit",
-      "/c/$slug",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7360,17 +7352,13 @@
       "/post/$listingId"
     ],
     "post.refusal.aliasImitatesBrand": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.refusal.aliasTooSoon": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7388,9 +7376,7 @@
       "/post/$listingId"
     ],
     "post.refusal.countryTooSoon": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8137,113 +8123,85 @@
       "/post/$listingId"
     ],
     "post.who.addPhone2": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasAvailable": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasBuyerLine": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChangeFirst": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChangeRule": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasChecking": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasCorrectionWindow": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasLatinOnly": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasNextChange": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasRules": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.aliasSuggestions": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.businessLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.channel.messages": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8299,281 +8257,211 @@
       "/post/$listingId"
     ],
     "post.who.channelsLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.contactFromLastPost": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryChange": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirm": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmGo": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmTitle": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryConfirmYes": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryNone": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryRequired": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.countryWhereHint": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.edit": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.firstNameLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.identityLoading": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.lastNameLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesCannotOff": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesEveryBuyer": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.messagesOnBadge": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.nameBusinessHint": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.nameHint": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.optionalHeading": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.optionalLine": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryChosen": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountryNone": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneCountrySearch": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.phoneLibFailed": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.readFailed": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.saveFailed": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.savedHint": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.showToSignedIn": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typeBusiness": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typeLabel": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.typePerson": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
     "post.who.why": [
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -9337,14 +9225,10 @@
       "(every page)"
     ],
     "shell.categoriesEmpty": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.categoriesLabel": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.collapseRail": [
       "(every page)"
@@ -9353,24 +9237,16 @@
       "(every page)"
     ],
     "shell.favouriteBadge": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.mainMenu": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.mainNav": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.menuTitle": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.panelLabel": [
       "(every page)"
@@ -9394,9 +9270,7 @@
       "(every page)"
     ],
     "shell.switchPanel": [
-      "(every page)",
-      "/",
-      "/c/$slug"
+      "(every page)"
     ],
     "shell.themeToggle": [
       "(every page)"

@@ -8,7 +8,7 @@ import {
   RUN,
   seedCategoryBranch,
 } from "./helpers/posting";
-import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 
@@ -204,7 +204,7 @@ test.describe("breadcrumbs — the seller's and the account's pages (D198)", () 
   test("BR-3 the admin's listing Edit: … › All listings › <title> › Edit", async ({ page }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
-    await useJobSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     await gotoReady(page, `/admin/listings/${ad.id}/edit`);
     const trail = page.getByTestId("breadcrumbs");
 

@@ -1,10 +1,12 @@
 import { spawnSync } from "node:child_process";
 import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { report, walkFiles } from "./kit";
 import { readWorkflow } from "./workflow-reader";
+import { checksCacheRoot } from "../ci/checks-cache";
+import { cliPin } from "../ci/cli-pin";
 
 /**
  * DEC-343 (turn db-proof) — CF-DBP: ONE PREPARATION AND ONE SET OF DATABASE STEPS FOR CI AND db:proof.
@@ -26,6 +28,9 @@ import { readWorkflow } from "./workflow-reader";
  *      scripts/db-proof-docker.sh first on PATH as `docker`; it gives each `-p` / `--publish` value
  *      without an address 127.0.0.1 and runs the real docker by the absolute path db:proof resolved
  *      before, never through PATH.
+ *   6. Housekeeping turn 3 (ruling 1 Q16): the checks' cache root is one constant — db:proof reads
+ *      scripts/ci/checks-cache.ts's CHECKS_CACHE through `bun -e` and never spells the root itself; an
+ *      empty ETHIO_CHECKS_CACHE is unset in both.
  */
 
 const WORKFLOW = ".github/workflows/local-backend-proof.yml";
@@ -123,7 +128,7 @@ export function sharedStepFindings(workflow: Source, others: Source[]): Finding[
 export function dbProofFindings(dbProof: Source, workflow: Source): Finding[] {
   const findings: Finding[] = [];
   const add = (line: number, what: string) => findings.push({ file: dbProof.file, line, what });
-  const version = /^ {2}SUPABASE_CLI_VERSION: (\S+)$/m.exec(workflow.text)?.[1];
+  const version = cliPin(workflow.text);
   if (!version) add(0, `${workflow.file} names no SUPABASE_CLI_VERSION`);
   for (const platform of PLATFORMS)
     if (
@@ -417,5 +422,28 @@ describe("one preparation and one set of database steps for CI and db:proof (DEC
     expect(wrapperFindings(late, wrapper).map((f) => f.what)).toEqual([
       "the real docker or the wrapper is set up after the start",
     ]);
+  });
+
+  it("CF-DBP-8 db:proof's cache root is the checks' constant: planted, none and empty agree", () => {
+    const text = readFileSync(DB_PROOF, "utf8");
+    expect(text).not.toContain("${ETHIO_CHECKS_CACHE");
+    expect(text).not.toContain(".cache/ethio-checks");
+    const line = text.split("\n").find((l) => l.startsWith("checks_cache=$(")) ?? "";
+    const read = line.replace(/ \|\|$/, "");
+    expect(read).toContain("bun -e");
+    expect(text).toContain('cli_dir="$checks_cache/supabase-cli/');
+    const home = homedir();
+    for (const value of ["/planted/cache-root", undefined, ""]) {
+      const env: Record<string, string> = { PATH: process.env["PATH"] ?? "", HOME: home };
+      if (value !== undefined) env["ETHIO_CHECKS_CACHE"] = value;
+      const run = spawnSync("bash", ["-c", `${read}\nprintf '%s' "$checks_cache"`], {
+        encoding: "utf8",
+        env,
+        timeout: 20_000,
+      });
+      expect([run.status, run.stdout], run.stderr).toEqual([0, checksCacheRoot(value, home)]);
+    }
+    expect(checksCacheRoot("", "/h")).toBe("/h/.cache/ethio-checks");
+    expect(checksCacheRoot("/x", "/h")).toBe("/x");
   });
 });

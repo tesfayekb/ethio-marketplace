@@ -1,7 +1,8 @@
 import { pageHead } from "@/lib/page-head";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
-import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
+import { ShareAd } from "@/features/ad-page/share-ad";
+import { sharePriceText } from "@/features/ad-page/share-price-text";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
 import { ReportAd } from "@/features/ad-page/report-ad";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";

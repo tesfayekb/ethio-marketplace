@@ -1,15 +1,11 @@
-import { useState } from "react";
-import { errorText } from "@/lib/error-text";
-
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { countryErrorKey, UNIT_SYSTEMS, type CountryRefusal } from "./countries-service";
+import { UNIT_SYSTEMS, type CountryRefusal } from "./countries-service";
 
 /**
  * LOCATIONS ERA L2b-C1 — THE COUNTRIES WRITE SURFACE SHARED PIECES.
@@ -20,22 +16,6 @@ import { countryErrorKey, UNIT_SYSTEMS, type CountryRefusal } from "./countries-
  * Nothing closes on failure. 360-first: full-width controls, ≥44px targets,
  * logical spacing only (C5).
  */
-
-/** F4 — one refusal mapping for every countries surface (B2). */
-export function useCountryError() {
-  const [refusal, setRefusal] = useState<CountryRefusal | null>(null);
-  const clear = () => setRefusal(null);
-  const fail = (error: unknown) => {
-    const abort = stepUpAbortKey(error);
-    if (abort !== undefined) {
-      setRefusal(abort === null ? null : { key: abort as MessageKey, raw: null });
-      return;
-    }
-    setRefusal(countryErrorKey(error === null || error === undefined ? "" : errorText(error)));
-  };
-  const render = (message: MessageKey) => setRefusal({ key: message, raw: null });
-  return { refusal, clear, fail, render };
-}
 
 export function CountryErrorLine({
   refusal,
@@ -167,9 +147,4 @@ export function CountryFormFields({
       </FormField>
     </>
   );
-}
-
-export function numberOrZero(raw: string): number {
-  const parsed = Number(raw.trim());
-  return Number.isFinite(parsed) ? parsed : 0;
 }

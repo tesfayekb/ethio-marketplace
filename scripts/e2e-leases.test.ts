@@ -24,7 +24,7 @@ const POSTING: Source = {
 };
 const UI: Source = {
   file: "e2e/helpers/ui.ts",
-  text: "export async function useJobSuperAdmin(page: unknown) { return { page }; }",
+  text: "export async function signInJobSuperAdmin(page: unknown) { return { page }; }",
 };
 const F = "e2e/planted.spec.ts";
 const planted = (...lines: string[]): Source[] => [
@@ -73,12 +73,12 @@ describe("the pooled-lease check (DEC-174)", () => {
   it("EL-3 a lease in a loop is refused; a named function counts where it is called; both arms of an if count; the job super admin and a fresh account are not leases", () => {
     const sources = planted(
       'import { leaseUser as lease, createUser } from "./helpers/users";',
-      'import { useJobSuperAdmin } from "./helpers/ui";',
+      'import { signInJobSuperAdmin } from "./helpers/ui";',
       'test("Z5 loop", async () => { for (const n of [1, 2]) await lease(); });',
       'test("Z6 callback", async () => { await Promise.all([1].map(() => lease())); });',
       'test("Z7 named", async () => { const one = async () => lease(); await one(); await one(); });',
       'test("Z8 branches", async () => { if (Math.random()) await lease(); else await lease(); await lease(); });',
-      'test("Z9 fresh", async ({ page }) => { await useJobSuperAdmin(page); await createUser({ confirmed: true }); await lease(); await lease(); });',
+      'test("Z9 fresh", async ({ page }) => { await signInJobSuperAdmin(page); await createUser({ confirmed: true }); await lease(); await lease(); });',
       'test("Z10 step", async () => { await test.step("s", async () => { await lease(); }); });',
     );
     expect(check(sources)).toEqual([

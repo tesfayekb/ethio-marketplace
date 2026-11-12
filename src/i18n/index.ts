@@ -1,13 +1,11 @@
+export { I18nProvider, LANGUAGE_STORAGE_KEY, BASE_LANGUAGE } from "./provider";
 export {
-  I18nProvider,
   useI18n,
   useStringsLayers,
-  LANGUAGE_STORAGE_KEY,
   LANGUAGE_STAR_STORAGE_KEY,
   LANGUAGE_STAR_COOKIE,
-  BASE_LANGUAGE,
   readDeviceStar,
-} from "./provider";
+} from "./i18n-context";
 export type { LayerState, PublicLanguage } from "./provider";
 export {
   STRINGS_LAYERS,

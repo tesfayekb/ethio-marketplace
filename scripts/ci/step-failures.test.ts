@@ -3,7 +3,6 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-// @ts-expect-error — plain Node module (it must run before the install), no declaration file.
 import { failedStepLines, TAIL_LINES } from "./step-failures.mjs";
 
 /**

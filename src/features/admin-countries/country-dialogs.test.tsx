@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { DIALOG_FIELD } from "@/components/ui/dialog-look";
 
-import { CountryFormFields, useCountryError } from "./country-dialogs";
+import { CountryFormFields } from "./country-dialogs";
+import { useCountryError } from "./country-dialog-state";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", setLanguage: () => {} }),

@@ -17,8 +17,8 @@
  * failure's last 20 lines.
  *
  * Laws it honours:
- *  - F1/F4: nothing secret is ever written. Anything shaped like an auth-token
- *    storage key or a JWT is redacted before it reaches the file.
+ *  - F1/F4: nothing secret is ever written. Every quoted text passes through
+ *    `redact` (scripts/ci/redaction-rules.json, DEC-368) before it reaches the file.
  *  - Guard self-test (docs/features/ci-guards.md): SELF_TEST=1 renders REAL
  *    captured fixtures and asserts both failures, the quoted context and the
  *    missing-context branch are present — a reporter that only ever prints "no
@@ -26,11 +26,14 @@
  *    real output, never authored from assumption.
  */
 
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { errorText } from "../src/lib/error-text";
+import { authored } from "./lib/pattern";
 
 /**
  * INC-108 — THE OUTPUT PATH AND THE SOURCE LABEL ARE INPUTS, NOT CONSTANTS.
@@ -83,6 +86,11 @@ const POST_TEST_FIXTURE =
  */
 const OUTSIDE_FIXTURE = "scripts/fixtures/e2e-outside-error/results.json";
 const OUTSIDE_LOG_FIXTURE = "scripts/fixtures/e2e-outside-error/changed.log.txt";
+/**
+ * INC-1107 — REAL captured: the repeat lane's selection file of run 43144538685 (108
+ * `- Not repeated:` lines and the summary), as that lane's proof fragment carried it.
+ */
+const REPEAT_FIXTURE = "scripts/fixtures/local-backend-repeat.43144538685.txt";
 
 /** DEC-030 — the ledger's header, written once when the file does not exist. */
 export const FLAKE_LEDGER_HEADER = [
@@ -112,13 +120,119 @@ type PwJson = {
   errors?: Array<{ message?: string; stack?: string; location?: { file?: string; line?: number } }>;
 };
 
-// eslint-disable-next-line no-control-regex -- stripping real ANSI colour codes is the point
-const ANSI = /\u001b\[[0-9;]*m/g;
-const JWT = /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g;
-const STORAGE_KEY = /sb-[A-Za-z0-9-]+-auth-token/g;
+/* -------------------------------------------------------------------------- */
+/* redaction (DEC-368)                                                          */
+/* -------------------------------------------------------------------------- */
 
-export function redact(input: string): string {
-  return input.replace(ANSI, "").replace(JWT, "[redacted-jwt]").replace(STORAGE_KEY, "[redacted]");
+/**
+ * DEC-368 (housekeeping turn 3b) — the reporter redacts by scripts/ci/redaction-rules.json, the
+ * rule set scripts/ci/redact.py reads too (CF-REDACT-3: the same bytes from both). A missing or
+ * malformed file, or a pattern JavaScript cannot compile, throws at load: never a raw write. The
+ * reporter's own identifiers (the run, the commit, the attempt, the lanes, the ledger's commit)
+ * are written from `ReportMeta`, never through `redact`.
+ */
+export type RedactionRule =
+  | { name: string; rx: RegExp; replacement: string; keepEnv: string | null }
+  | { name: string; env: readonly string[]; replacement: string };
+
+const RULES_FILE = join(dirname(fileURLToPath(import.meta.url)), "ci/redaction-rules.json");
+const RULES_NAME = "redaction-rules.json";
+const PATTERN_KEYS = "name,pattern,replacement";
+const ENV_KEYS = "env,name,replacement";
+const GROUP_REFERENCE = /\$([1-9])/g;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function ruleOf(raw: unknown): RedactionRule {
+  if (!isRecord(raw) || typeof raw["name"] !== "string")
+    throw new Error(`${RULES_NAME}: a rule without a name`);
+  const name = raw["name"];
+  const replacement = raw["replacement"];
+  if (typeof replacement !== "string")
+    throw new Error(`${RULES_NAME}: rule ${name}: no replacement`);
+  const keys = Object.keys(raw).sort();
+  const env = raw["env"];
+  if (env !== undefined) {
+    if (
+      keys.join() !== ENV_KEYS ||
+      !Array.isArray(env) ||
+      !env.every((value): value is string => typeof value === "string")
+    )
+      throw new Error(`${RULES_NAME}: rule ${name}: an environment rule is { ${ENV_KEYS} }`);
+    return { name, env, replacement };
+  }
+  const keepEnv = raw["keep_env"];
+  const source = raw["pattern"];
+  if (
+    keys.filter((key) => key !== "keep_env").join() !== PATTERN_KEYS ||
+    (keepEnv !== undefined && typeof keepEnv !== "string")
+  )
+    throw new Error(
+      `${RULES_NAME}: rule ${name}: a pattern rule is { ${PATTERN_KEYS} } and keep_env`,
+    );
+  if (typeof source !== "string" || /\\[sS]/.test(source))
+    throw new Error(`${RULES_NAME}: rule ${name}: a pattern is a string without \\s or \\S`);
+  if (replacement.replace(GROUP_REFERENCE, "").includes("$"))
+    throw new Error(`${RULES_NAME}: rule ${name}: a "$" that names no group`);
+  let rx: RegExp;
+  try {
+    rx = authored(source, "g");
+  } catch (error) {
+    throw new Error(`${RULES_NAME}: rule ${name}: ${errorText(error)}`);
+  }
+  return { name, rx, replacement, keepEnv: keepEnv ?? null };
+}
+
+/** The ordered rules of the file's text; anything malformed throws. */
+export function redactionRules(text: string): RedactionRule[] {
+  const data: unknown = JSON.parse(text);
+  if (
+    !isRecord(data) ||
+    Object.keys(data).sort().join() !== "about,rules" ||
+    !Array.isArray(data["rules"])
+  )
+    throw new Error(`${RULES_NAME}: the file is { about, rules }`);
+  return data["rules"].map(ruleOf);
+}
+
+const RULES = redactionRules(readFileSync(RULES_FILE, "utf8"));
+
+function patternOf(name: string): RegExp {
+  const rule = RULES.find((candidate) => candidate.name === name);
+  if (rule === undefined || "env" in rule)
+    throw new Error(`${RULES_NAME}: no pattern rule ${name}`);
+  return rule.rx;
+}
+
+const ANSI = patternOf("ANSI");
+
+/** `$1` … `$9` of a replacement, from the match's groups (an unmatched group is empty, as in Python). */
+function expand(replacement: string, groups: readonly unknown[]): string {
+  return replacement.replace(GROUP_REFERENCE, (_, n: string) => {
+    const group = groups[Number(n) - 1];
+    return typeof group === "string" ? group : "";
+  });
+}
+
+/** Every rule of redaction-rules.json, in its order. */
+export function redact(input: string, rules: readonly RedactionRule[] = RULES): string {
+  let text = input;
+  for (const rule of rules) {
+    if ("env" in rule) {
+      for (const name of rule.env) {
+        const value = process.env[name];
+        if (value) text = text.split(value).join(rule.replacement);
+      }
+      continue;
+    }
+    const keep = rule.keepEnv === null ? "" : (process.env[rule.keepEnv] ?? "");
+    text = text.replace(rule.rx, (match: string, ...groups: unknown[]) =>
+      keep !== "" && match === keep ? match : expand(rule.replacement, groups),
+    );
+  }
+  return text;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -529,14 +643,16 @@ export function collect(json: PwJson): {
 /** DEC-030 — one ledger line per flaky test, appended by the CI ledger step. */
 export function ledgerLines(
   flaky: (Flake & { source?: string })[],
-  meta: { runUrl?: string; runId: string; sha: string },
+  meta: { runUrl?: string; runId: string; sha: string; ref?: string },
   now = new Date(),
 ): string[] {
   const date = now.toISOString().slice(0, 10);
   const run = meta.runUrl || meta.runId;
+  // DEC-321 — the ledger stays one file for every ref, so each line names the ref its run tested.
+  const ref = meta.ref ? ` · ref \`${meta.ref}\`` : "";
   return flaky.map(
     (f) =>
-      `- ${date} · \`${f.project}\` · ${f.title}${f.source ? ` · source \`${f.source}\`` : ""} · run ${run} · commit \`${meta.sha}\` · ${f.message}`,
+      `- ${date} · \`${f.project}\` · ${f.title}${f.source ? ` · source \`${f.source}\`` : ""} · run ${run} · commit \`${meta.sha}\`${ref} · ${f.message}`,
   );
 }
 
@@ -611,6 +727,8 @@ export type Source = {
   outsideSummary?: number;
   /** INC-973 — the lane's redacted start-failure lines (failing migration + last ERROR/FATAL), when the backend never came up. */
   startFailure?: string[];
+  /** INC-1101 — the lane's redacted step file (INC-992's `Step <id>: outcome <o>` lines and their tails), when a step failed. */
+  stepFailure?: string[];
   /** INC-398 — every `[ssr-error]` line with the tests that finished next in its log. */
   ssrNext?: { line: string; next: string[] }[];
 };
@@ -657,6 +775,141 @@ export function startFailureSection(sources: Source[]): string[] {
     "",
     "```text",
     ...firstLines,
+    "```",
+    "",
+  ];
+}
+
+/**
+ * INC-1101 (housekeeping turn 3) — THE STEPS BEFORE ANY TEST. A lane that died at one of these
+ * produced no results because the runner failed it, not the code: the report names it INFRA and
+ * the verdict says "re-run the failed jobs". The ids are the lane job's step ids in
+ * .github/workflows/local-backend-proof.yml (the self-test reads that file, so a renamed step
+ * cannot drop out of the class silently). `backend` counts only when the step file carries
+ * DEC-313's start line; its migration apply, the build and the smoke guards are code findings.
+ */
+export const INFRA_STEP_IDS = [
+  "checkout",
+  "setup-bun",
+  "cache-bun-install",
+  "install-dependencies",
+  "setup-cli",
+  "restore-backend-images",
+  "load-backend-images",
+  "make-the-temporary-backend-s-certificate",
+  "install-chromium-s-system-libraries",
+  "install-chromium",
+  "cache-playwright-browsers",
+  "backend",
+] as const;
+/** DEC-313 — the backend step's own line when the start failed before any migration ran. */
+export const BACKEND_START_LINE = "start failed before any migration ran";
+
+/** One failed step of a lane's step file (scripts/ci/step-failures.mjs's shape). */
+export type FailedStep = { id: string; outcome: string; tail: string[] };
+
+/** The failed steps a step file names, in order, each with its kept tail. */
+export function failedSteps(lines: string[]): FailedStep[] {
+  const steps: FailedStep[] = [];
+  for (const line of lines) {
+    const named = /^Step (\S+): outcome (\S+)$/.exec(line);
+    if (named) {
+      steps.push({ id: named[1] ?? "", outcome: named[2] ?? "", tail: [] });
+      continue;
+    }
+    const last = steps[steps.length - 1];
+    if (last && line.startsWith("  ")) last.tail.push(line.slice(2));
+  }
+  return steps;
+}
+
+/** The step's error line: the first E:/Error:/::error/fatal line, else apt's Err:, else its last line. */
+export function stepErrorLine(step: FailedStep): string {
+  const lines = step.tail.map((line) => line.trim()).filter((line) => line !== "");
+  const pick =
+    lines.find((line) => /^(?:E:|Error:|error:|::error|FATAL|fatal:)/.test(line)) ??
+    lines.find((line) => line.startsWith("Err:")) ??
+    lines[lines.length - 1] ??
+    `(step ${step.id} kept no output)`;
+  return pick.slice(0, 200);
+}
+
+/** The step a lane died at when every failed step is before any test, else null. */
+export function infraDeath(source: Source): FailedStep | null {
+  const lines = source.stepFailure ?? [];
+  const steps = failedSteps(lines);
+  if (steps.length === 0) return null;
+  const startFailed = lines.some((line) => line.includes(BACKEND_START_LINE));
+  const infra = steps.every(
+    (step) =>
+      (INFRA_STEP_IDS as readonly string[]).includes(step.id) &&
+      (step.id !== "backend" || startFailed),
+  );
+  return infra ? (steps[0] ?? null) : null;
+}
+
+/** A source that recorded no usable results (INC-086's two shapes). */
+function isSilent(source: Source): boolean {
+  return !source.json || countTests(source.json) === 0;
+}
+
+/**
+ * INC-1101 — the verdict's class (DEC-028: the Verdict step reads it for its `::error` text only):
+ * `INFRA <n> <step[,step]>` when every red source died before any test at an INFRA step and no
+ * test failed, else `TESTS`.
+ */
+export function verdictClass(sources: Source[]): string {
+  const silent = sources.filter(isSilent);
+  const testFailed = sources.some(
+    (s) => s.json && !isSilent(s) && collect(s.json).failures.length > 0,
+  );
+  const deaths = silent.map(infraDeath);
+  const steps: string[] = [];
+  for (const death of deaths) {
+    if (death === null) return "TESTS";
+    if (!steps.includes(death.id)) steps.push(death.id);
+  }
+  if (silent.length === 0 || testFailed) return "TESTS";
+  return `INFRA ${silent.length} ${steps.join(",")}`;
+}
+
+/** INC-1101 — a silent source's label in the head block, marked when it died in infrastructure. */
+function silentLabel(source: Source): string {
+  const death = infraDeath(source);
+  return death ? `${source.label} (INFRA: ${death.id})` : source.label;
+}
+
+/** INC-1101 — the head block's line for lanes that died before any test, or nothing. */
+function infraHeadline(silent: Source[]): string[] {
+  const deaths = silent.flatMap((source) => {
+    const death = infraDeath(source);
+    return death ? [death] : [];
+  });
+  const first = deaths[0];
+  if (!first) return [];
+  const steps = [...new Set(deaths.map((d) => d.id))].join(", ");
+  return [
+    `- Infrastructure: ${deaths.length} lane(s) died before any test at ${steps} — ${stepErrorLine(first)}`,
+  ];
+}
+
+/** INC-1101 — a silent source's failed steps, from its step file; nothing when it uploaded none. */
+function stepFailureLines(source: Source): string[] {
+  const steps = failedSteps(source.stepFailure ?? []);
+  if (steps.length === 0) return [];
+  const death = infraDeath(source);
+  return [
+    ...(death
+      ? [
+          `- Class: **infrastructure** (INC-1101) — died before any test at \`${death.id}\`; re-run the failed jobs, never a code finding`,
+        ]
+      : []),
+    ...steps.map(
+      (step) => `- Failed step: \`${step.id}\` (outcome ${step.outcome}) — ${stepErrorLine(step)}`,
+    ),
+    "",
+    "```text",
+    ...(source.stepFailure ?? []),
     "```",
     "",
   ];
@@ -1254,6 +1507,10 @@ export type ReportMeta = {
   sha: string;
   /** INC-088 — the head commit's message, for the PLATFORM-ORIGIN? hint. */
   commitMessage?: string;
+  /** DEC-321 — the ref the run tested (EVIDENCE_REF), written into each new flake-ledger line. */
+  ref?: string;
+  /** DEC-365 — the scope job's line (`ran — …` or `skipped — …`), shown as `- Lanes:` when set. */
+  lanes?: string;
   /**
    * INC-100 — the GitHub run ATTEMPT this report describes. Re-runs used to be
    * blind: upload-artifact@v4 refused to replace attempt-1 artifacts, the
@@ -1262,11 +1519,74 @@ export type ReportMeta = {
    * wipeout on attempt >= 2 reads as "artifact contract broken".
    */
   attempt?: string;
+  /**
+   * INC-1107 — the repeat lane's selection file (redacted) when `repeat` is an expected source: its
+   * text, or null when the lane uploaded none. Undefined when the run has no repeat lane.
+   */
+  repeatSelection?: string | null;
 };
 
 /** INC-100 — the attempt line every rendered report carries. */
 export function attemptLine(meta: ReportMeta): string {
   return `- Attempt: ${meta.attempt && meta.attempt.trim() !== "" ? meta.attempt.trim() : "1"}`;
+}
+
+/** DEC-365 — the scope's decision, after the attempt line; nothing when the run carried none. */
+export function lanesLines(meta: ReportMeta): string[] {
+  return meta.lanes && meta.lanes.trim() !== "" ? [`- Lanes: ${meta.lanes.trim()}`] : [];
+}
+
+/** INC-1107 — the repeat lane's selection file, uploaded inside its `e2e-log-repeat` artifact. */
+export const REPEAT_SELECTION_FILE = "local-backend-repeat.txt";
+/** The line scripts/ci/repeat-cap.ts appends for each test run the time cap left unrun. */
+export const TIME_CAP_LINE = "- Not repeated (time cap): ";
+/** The selection step's summary line (local-backend-proof.yml), its counts captured. */
+const REPEAT_SUMMARY =
+  /^- Repeat: each \d+ on both projects; (\d+) tests selected, (\d+) repeated; budget (\d+) s at [\d.]+ s a test; directly changed: (\d+) of (\d+) repeated; importers of a changed helper: (\d+) of (\d+)$/;
+
+/**
+ * INC-1107 — the head's repeat-coverage line, only where the repeat lane is an expected source. An
+ * absent file is named; the selector's "nothing to repeat" is kept; a summary that does not parse
+ * is quoted raw, never counted.
+ */
+export function repeatLines(meta: ReportMeta): string[] {
+  const text = meta.repeatSelection;
+  if (text === undefined) return [];
+  if (text === null) return ["- Repeat: selection not written"];
+  const lines = text
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line !== "");
+  const summary = lines.filter((line) => line.startsWith("- Repeat: ")).at(-1);
+  if (summary === undefined)
+    return [`- Repeat: the selection holds no summary line; its first line: \`${lines[0] ?? ""}\``];
+  if (summary === "- Repeat: nothing to repeat") return [summary];
+  const m = REPEAT_SUMMARY.exec(summary);
+  if (m === null) return [`- Repeat: the selection's summary did not parse: \`${summary}\``];
+  const [, selected, repeated, budget, direct, directAll, helper, helperAll] = m;
+  const capped = lines.filter((line) => line.startsWith(TIME_CAP_LINE)).length;
+  return [
+    `- Repeat: ${repeated} of ${selected} tests repeated — specs directly changed ${direct}/${directAll}, importers of a changed helper ${helper}/${helperAll}; budget ${budget} s${capped > 0 ? `; the time cap left ${capped} test runs` : ""}`,
+  ];
+}
+
+/**
+ * DEC-365 — a docs-only push ran no lane: the evidence names the commit whose lanes were green and
+ * reads no sources, so a reader never mistakes the empty run for nineteen dead lanes.
+ */
+export function renderLanesSkipped(meta: ReportMeta): string {
+  return [
+    "# Last E2E failure (auto-generated — do not edit by hand)",
+    "",
+    `last E2E run ${meta.runId} ran no lanes (docs-only push, DEC-365)`,
+    "",
+    `- Run: ${meta.runUrl || meta.runId}`,
+    `- Commit: \`${meta.sha}\``,
+    attemptLine(meta),
+    `- Written (UTC): ${new Date().toISOString()}`,
+    ...lanesLines(meta),
+    "",
+  ].join("\n");
 }
 
 /** DEC-078 — at most this many flaky bodies per run; the rest are listed by title. */
@@ -1385,6 +1705,8 @@ export function renderSources(
         ]
       : []),
     attemptLine(meta),
+    ...lanesLines(meta),
+    ...repeatLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     // DEC-028 — the verdict line: quarantined failures are excluded from it.
@@ -1393,7 +1715,9 @@ export function renderSources(
     `- Flaky (passed on retry, DEC-030, non-gating): ${flaky.length}`,
     // DEC-059 — post-test errors are reported, never counted as failures.
     `- Post-test errors (DEC-059, non-gating): ${postTestSources.length === 0 ? "none" : postTestSources.map((s) => s.label).join(", ")}`,
-    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => s.source.label).join(", ")}`,
+    `- Sources without results: ${silent.length === 0 ? "none" : silent.map((s) => silentLabel(s.source)).join(", ")}`,
+    // INC-1101 — lanes that died before any test, named by the step.
+    ...infraHeadline(silent.map((s) => s.source)),
     outsideHeadline(sources),
     "",
     ...flakeSection,
@@ -1516,6 +1840,8 @@ export function renderSources(
       "",
       sentence,
       "",
+      // INC-1101 — the failed steps from the lane's step file, when it uploaded one.
+      ...stepFailureLines(s),
       "```text",
       s.logTail ?? "(no log tail was uploaded for this source)",
       "```",
@@ -1558,6 +1884,8 @@ export function renderGreen(
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
     attemptLine(meta),
+    ...lanesLines(meta),
+    ...repeatLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Post-test warnings: ${postTestWarnings}`,
     // DEC-078 part 2 — a green run names its flaky count and carries the sections.
@@ -1643,10 +1971,9 @@ export async function rescueTitles(resultsDir: string | undefined): Promise<stri
 export async function readJson(
   path: string,
 ): Promise<{ json: PwJson | null; error: string | null }> {
-  const file = Bun.file(path);
-  if (!(await file.exists())) return { json: null, error: null };
+  if (!existsSync(path)) return { json: null, error: null };
   try {
-    return { json: (await file.json()) as PwJson, error: null };
+    return { json: jsonFile(path), error: null };
   } catch (e) {
     const message = errorText(e);
     return { json: null, error: `results.json exists but could not be parsed: ${redact(message)}` };
@@ -1655,9 +1982,44 @@ export async function readJson(
 
 /** The whole job log, redacted; `null` when the artifact was not uploaded. */
 async function readLog(path: string): Promise<string | null> {
-  const file = Bun.file(path);
-  if (!(await file.exists())) return null;
-  return redact(await file.text());
+  if (!existsSync(path)) return null;
+  return redact(readFileSync(path, "utf8"));
+}
+
+/** A Playwright JSON report read from disk (a lane's upload or a captured fixture). */
+function jsonFile(path: string): PwJson {
+  return JSON.parse(readFileSync(path, "utf8")) as PwJson;
+}
+
+/** A file's text, or `fallback` when it cannot be read (a missing allowlist or ledger). */
+function textOr(path: string, fallback: string): string {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return fallback;
+  }
+}
+
+/** Writes `text` to `path`, its folder made first. */
+function writeText(path: string, text: string): void {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, text);
+}
+
+/**
+ * Housekeeping turn 3b (E vi) — a failed self-test check prints under the record its name leads
+ * with (INC-…, DEC-…, R1a/R1b); a name with no record prints under `fallback`. One line per record,
+ * in the order the records first fail.
+ */
+export function selfTestFailureLines(failed: readonly string[], fallback: string): string[] {
+  const byRecord = new Map<string, string[]>();
+  for (const name of failed) {
+    const record = /^(?:INC|DEC)-\d+\w*|^R1[ab]\b/.exec(name)?.[0] ?? fallback;
+    byRecord.set(record, [...(byRecord.get(record) ?? []), name]);
+  }
+  return [...byRecord].map(
+    ([record, names]) => `SELF-TEST FAILED — ${record}: ${names.join("; ")}`,
+  );
 }
 
 async function main() {
@@ -1667,13 +2029,15 @@ async function main() {
     sha: process.env["GITHUB_SHA"] ?? "local",
     commitMessage: process.env["E2E_HEAD_COMMIT_MESSAGE"] ?? "",
     attempt: process.env["GITHUB_RUN_ATTEMPT"] ?? "1",
+    ref: process.env["EVIDENCE_REF"] ?? "",
+    lanes: process.env["E2E_LANES"] ?? "",
   };
 
   if (SELF_TEST) {
     // BOTH fixtures are REAL captured output (a two-failure Playwright run:
     // one locator failure with a page snapshot, one test-level timeout whose
     // context directory is deliberately NOT bundled).
-    const fixture = (await Bun.file(FIXTURE).json()) as PwJson;
+    const fixture = jsonFile(FIXTURE);
     const contexts = collectContextFiles(CONTEXT_FIXTURE);
     if (contexts.size !== 1) {
       // INC-084f: a 0-found result must name the glob and every walked path —
@@ -1738,7 +2102,7 @@ async function main() {
     // parses and records ZERO tests (real capture: an impossible --grep, the
     // same shape a dead webServer leaves behind). The old reporter printed
     // "Failed 0 · Sources without results: none" and quoted nothing.
-    const emptyJson = (await Bun.file(EMPTY_FIXTURE).json()) as PwJson;
+    const emptyJson = jsonFile(EMPTY_FIXTURE);
     if (countTests(emptyJson) !== 0 || countTests(fixture) !== 2) {
       console.error("SELF-TEST FAILED — countTests miscounted the captured fixtures.");
       process.exit(1);
@@ -1832,6 +2196,28 @@ async function main() {
       console.error("SELF-TEST FAILED — secret-shaped text survived redaction.");
       process.exit(1);
     }
+    {
+      // DEC-368 — the union masks every 32+ hex string but GITHUB_SHA's; the reporter's own
+      // identifiers never pass through it, so a head block keeps a commit the rules would mask.
+      const sha = "0123456789abcdef".repeat(3).slice(0, 40);
+      const headMeta = { runId: "self-test", runUrl: "", sha, attempt: "2" };
+      const crash = renderCrash(new Error(`boom at ${sha}`), headMeta, [`title ${sha}`]);
+      const green = renderGreen(headMeta);
+      const headChecks: Array<[string, boolean]> = [
+        ["the crash form's head block keeps its commit", crash.includes(`- Commit: \`${sha}\``)],
+        ["the green form's head block keeps its commit", green.includes(`- Commit: \`${sha}\``)],
+        [
+          "the quoted text masks it",
+          crash.split(sha).length === 2 && crash.includes("[masked hex]"),
+        ],
+        ["the rules are the file's, ANSI first", RULES[0]?.name === "ANSI"],
+      ];
+      const headFailed = headChecks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (headFailed.length > 0) {
+        console.error(`SELF-TEST FAILED — DEC-368 head block: ${headFailed.join("; ")}`);
+        process.exit(1);
+      }
+    }
 
     // INC-084e — LIVE-SHAPE REHEARSAL. actions/download-artifact@v4 with a
     // `pattern` and merge-multiple:false drops EACH artifact into its own
@@ -1875,7 +2261,7 @@ async function main() {
     // INC-084g — DESCRIBE-NESTED SHAPE (real capture). The slug carries the
     // describe title, so a matcher built from the bare test title finds
     // nothing. This fixture fails loudly if that regression ever returns.
-    const describeJson = (await Bun.file(`${DESCRIBE_FIXTURE}/results.json`).json()) as PwJson;
+    const describeJson = jsonFile(`${DESCRIBE_FIXTURE}/results.json`);
     const describeContexts = collectContextFiles(DESCRIBE_FIXTURE);
     if (describeContexts.size !== 1) {
       if (describeContexts.size === 0) reportEmptySearch(DESCRIBE_FIXTURE, "describe fixture");
@@ -1997,6 +2383,60 @@ async function main() {
         );
         process.exit(1);
       }
+      // DEC-321 — a line names the ref its run tested after the commit; the key is unchanged.
+      const flake: Flake = {
+        project: "mobile-360",
+        title: "a.spec.ts › R-4 one",
+        message: "Timeout",
+        file: "a.spec.ts",
+        body: "Timeout",
+        specTitle: "R-4 one",
+        titlePath: ["R-4 one"],
+      };
+      const [withRef] = ledgerLines(
+        [{ ...flake, source: "shard 3" }],
+        { runId: "1", runUrl: run, sha: "abc", ref: "cursor/housekeeping" },
+        new Date("2026-10-09T00:00:00Z"),
+      );
+      if (
+        withRef !==
+          `${line("2026-10-09", flake.title, run, "Timeout")}`.replace(
+            "commit `abc` · ",
+            "commit `abc` · ref `cursor/housekeeping` · ",
+          ) ||
+        ledgerKey(withRef) !== ledgerKey(line("2026-10-08", flake.title, run, "Timeout"))
+      ) {
+        console.error(`SELF-TEST FAILED — DEC-321: the ledger line's ref: ${String(withRef)}`);
+        process.exit(1);
+      }
+    }
+    // DEC-365 — the scope's line heads both forms when the run carried one, and only then; a
+    // docs-only push's form names the commit whose lanes were green and quotes no source.
+    {
+      const plain = { runId: "self-test", runUrl: "", sha: "self-test" };
+      const skippedLine =
+        "skipped — docs-only push; the code tree equals abc, whose lanes were green in run 7";
+      const ranLine = "ran — not docs-only: src/a.ts is not a record (1 of 1 paths)";
+      const skipped = renderLanesSkipped({ ...plain, lanes: skippedLine });
+      const lanesChecks: Array<[string, boolean]> = [
+        ["no line without a decision", !renderGreen(plain).includes("- Lanes:")],
+        [
+          "the green form",
+          renderGreen({ ...plain, lanes: ranLine }).includes(`- Lanes: ${ranLine}`),
+        ],
+        [
+          "the red form",
+          renderSources([], { ...plain, lanes: ranLine }).includes(`- Lanes: ${ranLine}`),
+        ],
+        ["the skipped form", skipped.includes(`- Lanes: ${skippedLine}`)],
+        ["the skipped form's headline", skipped.includes("ran no lanes (docs-only push, DEC-365)")],
+        ["no source in the skipped form", !skipped.includes("Sources without results")],
+      ];
+      const lanesFailed = lanesChecks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (lanesFailed.length > 0) {
+        console.error(`SELF-TEST FAILED — DEC-365 lanes line: ${lanesFailed.join("; ")}`);
+        process.exit(1);
+      }
     }
     // INC-589 — ERRORS OUTSIDE ANY TEST, on the real capture: both tests passed
     // and the run exited 1 (its teardown threw). Both forms name the source, the
@@ -2004,7 +2444,7 @@ async function main() {
     // enough; a source with neither renders "None" with what was read.
     {
       const outsideJson = (await readJson(OUTSIDE_FIXTURE)).json;
-      const outsideLog = await Bun.file(OUTSIDE_LOG_FIXTURE).text();
+      const outsideLog = readFileSync(OUTSIDE_LOG_FIXTURE, "utf8");
       const cleanJson = (await readJson(FIXTURE)).json;
       const outside: Source = {
         label: "changed",
@@ -2071,7 +2511,7 @@ async function main() {
     // log and the tail is 35 lines of "waiting for the web server": a raw tail
     // quotes only the noise. The summary must carry the workerd error AND the
     // final lines, and must collapse the repeated wait line.
-    const bootLog = await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text();
+    const bootLog = readFileSync("scripts/fixtures/e2e-log-boot-crash.log.txt", "utf8");
     const bootSummary = summarizeLog(bootLog) ?? "";
     for (const needle of [
       "--- error lines",
@@ -2333,7 +2773,7 @@ async function main() {
     // DEC-059 — THE POST-TEST BAND, proved on the REAL captured shard-6 log tail
     // of run 34741970648: 75 passed, 10 skipped, 0 failed, and exit code 1 whose
     // only cause was `fetch failed` inside the teardown's `admin.deleteUser`.
-    const postTestLog = await Bun.file(POST_TEST_FIXTURE).text();
+    const postTestLog = readFileSync(POST_TEST_FIXTURE, "utf8");
     const postTest = grepPostTestErrors(postTestLog);
     const hasTeardownLine = postTest.some(
       (line) => line.includes("[e2e:teardown] failed to delete") && line.includes("fetch failed"),
@@ -2419,8 +2859,8 @@ async function main() {
     // DEC-083 / DEC-084 — THE CENSUS AND THE A11Y LINE, from a REAL captured
     // local job log (import-security IG-1, posting-routes PR-10/13/14, a11y).
     {
-      const log = redact(await Bun.file(CENSUS_FIXTURE).text());
-      const allow = parseSsrAllowlist(await Bun.file(SSR_ALLOWLIST).text());
+      const log = redact(readFileSync(CENSUS_FIXTURE, "utf8"));
+      const allow = parseSsrAllowlist(readFileSync(SSR_ALLOWLIST, "utf8"));
       const censusSource: Source = {
         label: "shard 3",
         json: null,
@@ -2509,8 +2949,9 @@ async function main() {
       // (lane smoke, the planted failure; redacted as captured, never retyped):
       // the server's record with its PL/pgSQL CONTEXT frames follows the
       // Cause lines, and the report must show the frames.
-      const startFailureLines = (
-        await Bun.file("scripts/fixtures/local-backend-start-failure.dec340.txt").text()
+      const startFailureLines = readFileSync(
+        "scripts/fixtures/local-backend-start-failure.dec340.txt",
+        "utf8",
       )
         .split("\n")
         .filter((line) => line.trim() !== "");
@@ -2546,9 +2987,197 @@ async function main() {
             startQuiet.includes("Sources without results: shard 5"),
         ],
       );
+      // INC-1101 — a lane that died before any test is named by its step. REAL step files, as the
+      // lanes published them: lane 1 of run 43033934604 (ci-evidence 612e89e9c — the install step,
+      // INFRA) and lane 5 of run 42587592780 (ci-evidence 44d29e7d8 — the proof lane's own step, a
+      // code finding). No backend start has failed since DEC-313, so that shape is made by the real
+      // tools: the workflow's own DEC-313 line, then step-failures.mjs naming a failed `backend`.
+      const stepFile = async (path: string) =>
+        readFileSync(path, "utf8")
+          .split("\n")
+          .filter((line) => line !== "");
+      const installDied: Source = {
+        label: "shard 1",
+        json: null,
+        logTail: null,
+        logRead: false,
+        stepFailure: await stepFile("scripts/fixtures/lane-step-failure.install.txt"),
+      };
+      const proofDied: Source = {
+        label: "shard 2",
+        json: null,
+        logTail: null,
+        logRead: false,
+        stepFailure: await stepFile("scripts/fixtures/lane-step-failure.smoke.txt"),
+      };
+      const laneWorkflow = readFileSync(".github/workflows/local-backend-proof.yml", "utf8");
+      const dec313 =
+        /echo "(start failed before any migration ran[^"]*)" >> local-backend-failure\.txt/.exec(
+          laneWorkflow,
+        )?.[1] ?? "";
+      const stepDir = join(tmpdir(), `inc-1101-${process.pid}`);
+      const failureFile = join(stepDir, "local-backend-failure.txt");
+      writeText(failureFile, `${dec313}\n`);
+      spawnSync("node", ["scripts/ci/step-failures.mjs"], {
+        env: {
+          ...process.env,
+          STEPS_JSON: JSON.stringify({ backend: { outcome: "failure" } }),
+          RUNNER_TEMP: stepDir,
+          FAILURE_FILE: failureFile,
+        },
+      });
+      const backendLines = await stepFile(failureFile);
+      const startDied: Source = {
+        label: "shard 3",
+        json: null,
+        logTail: null,
+        logRead: false,
+        stepFailure: backendLines,
+      };
+      const applyDied: Source = {
+        ...startDied,
+        label: "shard 4",
+        stepFailure: backendLines.filter((line) => !line.includes(BACKEND_START_LINE)),
+      };
+      const testsFailed: Source = {
+        label: "smoke",
+        json: jsonFile(FIXTURE),
+        logTail: null,
+      };
+      const infraRed = renderSources([installDied, noLog], meta, new Map(), []);
+      const proofRed = renderSources([proofDied], meta, new Map(), []);
+      checks.push(
+        [
+          "INC-1101 an install death is INFRA in the head block and its section",
+          infraRed.includes(
+            "- Sources without results: shard 1 (INFRA: install-chromium-s-system-libraries), shard 5",
+          ) &&
+            infraRed.includes(
+              "- Infrastructure: 1 lane(s) died before any test at install-chromium-s-system-libraries — E: Failed to fetch https://security.ubuntu.com/",
+            ) &&
+            infraRed.includes(
+              "- Failed step: `install-chromium-s-system-libraries` (outcome failure) — E: Failed to fetch",
+            ) &&
+            infraRed.includes("- Class: **infrastructure** (INC-1101)"),
+        ],
+        [
+          "INC-1101 a proof-lane death is named by its step and is not INFRA",
+          proofRed.includes("- Sources without results: shard 2\n") &&
+            !proofRed.includes("- Infrastructure:") &&
+            !proofRed.includes("(INFRA:") &&
+            proofRed.includes(
+              "- Failed step: `smoke` (outcome failure) — (step smoke kept no output)",
+            ),
+        ],
+        [
+          "INC-1101 no step file keeps today's words",
+          !startQuiet.includes("- Failed step:") &&
+            !startQuiet.includes("- Infrastructure:") &&
+            verdictClass([noLog]) === "TESTS",
+        ],
+        [
+          "INC-1101 a backend death is INFRA only with DEC-313's start line",
+          dec313 !== "" &&
+            backendLines[1] === "Step backend: outcome failure" &&
+            infraDeath(startDied)?.id === "backend" &&
+            infraDeath(applyDied) === null,
+        ],
+        [
+          "INC-1101 the verdict class: INFRA only when every red source died in infrastructure",
+          verdictClass([installDied]) === "INFRA 1 install-chromium-s-system-libraries" &&
+            verdictClass([installDied, startDied]) ===
+              "INFRA 2 install-chromium-s-system-libraries,backend" &&
+            verdictClass([installDied, proofDied]) === "TESTS" &&
+            verdictClass([installDied, testsFailed]) === "TESTS",
+        ],
+        [
+          "INC-1101 every INFRA step id is a step of the lane job",
+          INFRA_STEP_IDS.every((id) =>
+            laneWorkflow.split("\n").some((line) => line.trim() === `id: ${id}`),
+          ),
+        ],
+      );
+      // INC-1107 — the head's repeat-coverage line. The selection file is REAL (REPEAT_FIXTURE);
+      // the two summary shapes are the workflow's own echo lines, filled in; the time-cap line is
+      // repeat-cap.ts's own words.
+      const realSelection = readFileSync(REPEAT_FIXTURE, "utf8");
+      const repeatMeta = (repeatSelection: string | null): ReportMeta => ({
+        ...meta,
+        repeatSelection,
+      });
+      const echoes = [
+        ...laneWorkflow.matchAll(/echo "(- Repeat: each [^"]+)" >> local-backend-repeat\.txt/g),
+      ].map((match) => match[1] ?? "");
+      const values = new Map([
+        ["each", "2"],
+        ["tests", "1393"],
+        ["used", "38"],
+        ["REPEAT_BUDGET_SECONDS", "720"],
+        ["REPEAT_SECONDS_PER_TEST", "4.7"],
+        ["direct_taken", "5"],
+        ["direct_n", "53"],
+        ["helper_taken", "0"],
+        ["helper_n", "60"],
+      ]);
+      const filled = (line: string) =>
+        line.replace(/\$\{?(\w+)\}?/g, (all, name: string) => values.get(name) ?? all);
+      const noneFits = filled(echoes.find((line) => line.includes(", 0 repeated;")) ?? "");
+      const someFit = filled(echoes.find((line) => line.includes("$used repeated")) ?? "");
+      const realLine =
+        "- Repeat: 38 of 1393 tests repeated — specs directly changed 5/53, importers of a changed helper 0/60; budget 720 s";
+      const capped = `${realSelection}${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [mobile-360]\n${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [desktop-1280]\n`;
+      const oneSource: Source = { label: "repeat", json: null, logTail: null };
+      checks.push(
+        [
+          "INC-1107 the real selection reads as its counts",
+          repeatLines(repeatMeta(realSelection)).join("\n") === realLine,
+        ],
+        [
+          "INC-1107 the workflow's summary echo is the shape the reader parses",
+          echoes.length === 2 && repeatLines(repeatMeta(`${someFit}\n`)).join("\n") === realLine,
+        ],
+        [
+          "INC-1107 selected but none fits: the workflow writes the counts, 0 repeated",
+          repeatLines(repeatMeta(`- Not repeated: e2e/a.spec.ts (20 tests)\n${noneFits}\n`)).join(
+            "\n",
+          ) ===
+            "- Repeat: 0 of 1393 tests repeated — specs directly changed 0/53, importers of a changed helper 0/60; budget 720 s" &&
+            laneWorkflow.split('echo "- Repeat: nothing to repeat"').length === 2,
+        ],
+        [
+          "INC-1107 the time cap's lines are counted in repeat-cap.ts's own words",
+          readFileSync("scripts/ci/repeat-cap.ts", "utf8").includes(
+            `\`${TIME_CAP_LINE}\${title}\\n\``,
+          ) &&
+            repeatLines(repeatMeta(capped)).join("\n") ===
+              `${realLine}; the time cap left 2 test runs`,
+        ],
+        [
+          "INC-1107 nothing selected, no file, no summary, an unparsed summary",
+          repeatLines(repeatMeta("- Repeat: nothing to repeat\n")).join("\n") ===
+            "- Repeat: nothing to repeat" &&
+            repeatLines(repeatMeta(null)).join("\n") === "- Repeat: selection not written" &&
+            repeatLines(repeatMeta("- Not repeated: e2e/a.spec.ts (20 tests)\n")).join("\n") ===
+              "- Repeat: the selection holds no summary line; its first line: `- Not repeated: e2e/a.spec.ts (20 tests)`" &&
+            repeatLines(repeatMeta("- Repeat: each two on both projects\n")).join("\n") ===
+              "- Repeat: the selection's summary did not parse: `- Repeat: each two on both projects`",
+        ],
+        [
+          "INC-1107 the line sits in the head only where the repeat lane is expected",
+          renderGreen(repeatMeta(realSelection), 0, [], new Map(), [], allow).includes(
+            `${realLine}\n`,
+          ) &&
+            renderSources([oneSource], repeatMeta(null), new Map(), []).includes(
+              "- Repeat: selection not written\n",
+            ) &&
+            !renderGreen(meta, 0, [], new Map(), [], allow).includes("- Repeat:") &&
+            !renderSources([oneSource], meta, new Map(), []).includes("- Repeat:") &&
+            !renderLanesSkipped(repeatMeta(realSelection)).includes("- Repeat:"),
+        ],
+      );
       // (b) every expected log read, none carrying either tag: REAL captured
       // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
-      const quietLog = redact(await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text());
+      const quietLog = redact(readFileSync("scripts/fixtures/e2e-log-boot-crash.log.txt", "utf8"));
       const quiet = [1, 2].map(
         (n): Source => ({
           label: `shard ${n}`,
@@ -2574,7 +3203,7 @@ async function main() {
       const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
       for (const [name, ok] of checks) if (ok && name.startsWith("R1")) console.log(`ok — ${name}`);
       if (failed.length > 0) {
-        console.error(`SELF-TEST FAILED — DEC-083/084 census: ${failed.join("; ")}`);
+        for (const line of selfTestFailureLines(failed, "DEC-083/084 census")) console.error(line);
         console.error(green);
         process.exit(1);
       }
@@ -2583,7 +3212,7 @@ async function main() {
     // DEC-087 — the timing census, from a REAL captured results.json (a local
     // before-split shard 3/6 run, 98 tests, CI-T1).
     {
-      const timingJson = (await Bun.file(TIMING_FIXTURE).json()) as PwJson;
+      const timingJson = jsonFile(TIMING_FIXTURE);
       const rows = testTimings(timingJson);
       const shard: Source = { label: "shard 1", json: timingJson, logTail: null };
       const gap: Source = { label: "shard 4", json: null, logTail: null };
@@ -2646,6 +3275,15 @@ async function main() {
   // the flake ledger, and writes neither the evidence file nor the verdict.
   const flakeOnly = process.env["E2E_FLAKE_ONLY"] === "1";
 
+  // DEC-365 — a docs-only push skipped the lanes: no source exists, no ledger line is due.
+  if (process.env["E2E_DOCS_ONLY"] === "1") {
+    if (!flakeOnly) {
+      writeText(OUT, renderLanesSkipped(meta));
+      console.log(`Wrote ${OUT} (run ${meta.runId} ran no lanes: ${meta.lanes ?? ""}).`);
+    }
+    return;
+  }
+
   // SHARDED RUNS: every source (smoke tier + six shards — DEC-029) uploads its own
   // results.json, so the reporter reads them ALL, labels each failure with its
   // source, and quotes the log tail of any source that produced no results.
@@ -2665,6 +3303,11 @@ async function main() {
     .map((s) => s.trim())
     .filter(Boolean)
     .map((s) => ({ id: s.replace(/\?$/, ""), optional: s.endsWith("?") }));
+  // INC-1107 — read outside the source loop: a repeat lane that repeated nothing uploads no results.
+  if (expected.some((source) => source.id === "repeat"))
+    meta.repeatSelection = logsDir
+      ? await readLog(`${logsDir}/e2e-log-repeat/${REPEAT_SELECTION_FILE}`)
+      : null;
 
   const sources: Source[] = [];
   let found = 0;
@@ -2685,6 +3328,10 @@ async function main() {
       // lane then uploads its redacted start-failure lines beside it.
       const startFailureText = logsDir
         ? await readLog(`${logsDir}/e2e-log-${id}/local-backend-start-failure.txt`)
+        : null;
+      // INC-1101: the lane's step file (redacted by the lane), redacted again here.
+      const stepFailureText = logsDir
+        ? await readLog(`${logsDir}/e2e-log-${id}/local-backend-step-failure.txt`)
         : null;
       // INC-088: error lines from the WHOLE log first, then the final 10 —
       // never a bare tail, which quotes the noise and hides the cause.
@@ -2712,6 +3359,11 @@ async function main() {
         startFailure: startFailureText
           ? startFailureText.split("\n").filter((line) => line.trim() !== "")
           : undefined,
+        stepFailure: stepFailureText
+          ? redact(stepFailureText)
+              .split("\n")
+              .filter((line) => line !== "")
+          : undefined,
       });
     }
   } else {
@@ -2730,9 +3382,7 @@ async function main() {
   // DEC-083 — the allowlist is read on every run; a missing file is an empty list
   // (every message then shows as off-list), never a crash.
   const ssrAllowlist = parseSsrAllowlist(
-    await Bun.file(process.env["E2E_SSR_ALLOWLIST"] ?? SSR_ALLOWLIST)
-      .text()
-      .catch(() => ""),
+    textOr(process.env["E2E_SSR_ALLOWLIST"] ?? SSR_ALLOWLIST, ""),
   );
 
   const contexts =
@@ -2757,19 +3407,13 @@ async function main() {
       }
     }
     // DEC-078 part 2 — the green report carries the flake ledger and bodies.
-    await Bun.write(
-      OUT,
-      renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist),
-    );
+    writeText(OUT, renderGreen(meta, postTestWarnings, allFlaky, contexts, sources, ssrAllowlist));
     // DEC-028 — a green run still publishes its verdict, so a consumer never
     // has to treat a missing verdict file as "probably green". The flaky count
     // is the real one (DEC-078 part 2).
     const greenVerdict = process.env["E2E_VERDICT_PATH"];
     if (greenVerdict)
-      await Bun.write(
-        greenVerdict,
-        `gating=0\nquarantined=0\nsilent=0\nflaky=${allFlaky.length}\n`,
-      );
+      writeText(greenVerdict, `gating=0\nquarantined=0\nsilent=0\nflaky=${allFlaky.length}\n`);
     console.log(
       `Wrote ${OUT} (green run ${meta.runId}, ${postTestWarnings} post-test warning line(s), ${allFlaky.length} flaky, ${contexts.size} context file(s) found).`,
     );
@@ -2777,10 +3421,17 @@ async function main() {
   }
 
   if (!flakeOnly) {
-    await Bun.write(OUT, renderSources(sources, meta, contexts, ssrAllowlist));
+    writeText(OUT, renderSources(sources, meta, contexts, ssrAllowlist));
     console.log(
       `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
     );
+    // INC-1101 — the class the Verdict step names in its error (DEC-028: never its exit).
+    const classPath = process.env["E2E_VERDICT_CLASS_PATH"];
+    if (classPath) {
+      const verdict = verdictClass(sources);
+      writeText(classPath, `${verdict}\n`);
+      console.log(`Verdict class: ${verdict} (${classPath}).`);
+    }
   }
 
   // DEC-030 — THE FLAKE LEDGER. Every test that failed then passed on retry
@@ -2788,12 +3439,10 @@ async function main() {
   // so "it passed eventually" is a tracked event and never a silent one.
   const ledgerPath = process.env["E2E_FLAKE_LEDGER"] ?? "docs/tracking/flake-ledger.md";
   if (allFlaky.length > 0) {
-    const existing = await Bun.file(ledgerPath)
-      .text()
-      .catch(() => FLAKE_LEDGER_HEADER);
+    const existing = textOr(ledgerPath, FLAKE_LEDGER_HEADER);
     const body = existing.endsWith("\n") ? existing : `${existing}\n`;
     const fresh = newLedgerLines(existing, ledgerLines(allFlaky, meta));
-    if (fresh.length > 0) await Bun.write(ledgerPath, `${body}${fresh.join("\n")}\n`);
+    if (fresh.length > 0) writeText(ledgerPath, `${body}${fresh.join("\n")}\n`);
     console.log(
       `Flake ledger: appended ${fresh.length} line(s) to ${ledgerPath}; ${allFlaky.length - fresh.length} already there for this run (INC-495).`,
     );
@@ -2811,7 +3460,7 @@ async function main() {
     // runner died, which is a gating condition of its own (law F4).
     const silentSources = sources.filter((s) => !s.json || countTests(s.json) === 0).length;
     const gatingCount = gating.length + silentSources;
-    await Bun.write(
+    writeText(
       verdictPath,
       `gating=${gatingCount}\nquarantined=${quarantined.length}\nsilent=${silentSources}\nflaky=${allFlaky.length}\n`,
     );
@@ -2843,7 +3492,7 @@ if (import.meta.main) {
       /* the rescue pass is best-effort by definition */
     }
     try {
-      await Bun.write(OUT, renderCrash(error, meta, titles));
+      writeText(OUT, renderCrash(error, meta, titles));
       console.error(`REPORTER ERROR written to ${OUT}.`);
     } catch (writeError) {
       console.error("REPORTER ERROR could not be written:", writeError);

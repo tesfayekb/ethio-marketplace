@@ -20,7 +20,8 @@ import { entityName } from "@/i18n/entity";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 
-import { RefusalSummary, focusFirstRefusal } from "./field";
+import { RefusalSummary } from "./field";
+import { focusFirstRefusal } from "./field-refusals";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { mergeRefusals } from "./validate";
 import { prefillFromMatches } from "./catalog-finder";

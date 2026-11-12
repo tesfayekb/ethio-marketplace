@@ -3,11 +3,15 @@ import { expect, test } from "./fixtures";
 
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
-import { LANGUAGE_STORAGE_KEY } from "../src/i18n/provider";
 
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
 import { ANY_MENU_ROW, catalogueRows, isScratchSlug, slugOfRow } from "./helpers/category-menu";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
+import {
+  setDeviceAmharic,
+  restoreAccountLanguages,
+  setAccountLanguage,
+} from "./helpers/account-language";
 
 /**
  * U0h PART 2 / U0i PART 3 — I18N CHROME COVERAGE GUARD.
@@ -67,64 +71,13 @@ const NAMESPACES = Array.from(
 ).filter(Boolean);
 const RAW_KEY_RE = new RegExp(`^(${NAMESPACES.join("|")})(\\.[A-Za-z0-9_]+)+$`);
 
-/** Grants a named role via the service role — the staff fixture. */
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:i18n] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:i18n] granting ${roleName} failed: ${error.message}`);
-}
-
-/** Amharic before the first paint, so no English frame is ever measured. */
-async function useAmharic(page: Page) {
-  await page.addInitScript(
-    ([storageKey, lang]) => {
-      try {
-        window.localStorage.setItem(storageKey as string, lang as string);
-      } catch {
-        /* private mode: the test's own assertion below will catch it */
-      }
-    },
-    [LANGUAGE_STORAGE_KEY, "am"] as const,
-  );
-}
-
 /**
- * INC-996 — under D239 a signed-in page shows the ACCOUNT's published language at
- * session start, so a signed-in test that needs Amharic sets its own leased account's
- * language (service client, J5 fixture write) as well as the device; afterEach puts
- * the fresh-user baseline (NULL, INC-173b) back.
+ * INC-996, INC-1100 — under D239 a signed-in page shows the ACCOUNT's published language at
+ * session start, so a signed-in test that needs Amharic sets its own leased account through
+ * `setAccountLanguage` (account-language.ts); afterEach puts the pool's baseline (NULL) back.
  */
-const accountsSet = new Set<string>();
-async function setAmharicAccount(page: Page, userId: string) {
-  accountsSet.add(userId);
-  const { error } = await adminClient()
-    .from("profiles")
-    .update({ preferred_language: "am" })
-    .eq("user_id", userId);
-  if (error) throw new Error(`[e2e:i18n] setting the account language failed: ${error.message}`);
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- a harness helper, not a React hook
-  await useAmharic(page);
-}
-
 test.afterEach(async () => {
-  const ids = [...accountsSet];
-  accountsSet.clear();
-  if (ids.length === 0) return;
-  const { error } = await adminClient()
-    .from("profiles")
-    .update({ preferred_language: null })
-    .in("user_id", ids);
-  if (error) throw new Error(`[e2e:i18n] restoring the account language failed: ${error.message}`);
+  await restoreAccountLanguages();
 });
 
 /** The chrome regions this guard owns. Absent regions are simply skipped. */
@@ -221,7 +174,7 @@ async function assertAmharicCategories(page: Page, scope: string, where: string)
 
 test.describe("i18n chrome coverage (Amharic)", () => {
   test("the marketplace shell renders no English fallback", async ({ page, viewport }) => {
-    await useAmharic(page);
+    await setDeviceAmharic(page);
     await gotoReady(page, "/");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
@@ -240,7 +193,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
 
   test("the mobile drawer renders no English fallback", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) >= 768, "mobile only");
-    await useAmharic(page);
+    await setDeviceAmharic(page);
     await gotoReady(page, "/");
     // INC-082: the drawer is opened ONLY through openRailScope (locale-agnostic
     // hamburger + the one open contract), never inline.
@@ -261,7 +214,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     // English labels. Then the account and the device are set to Amharic (INC-996:
     // the account decides at session start, D239), so /admin is measured in Amharic.
     await signIn(page, staff.email, staff.password);
-    await setAmharicAccount(page, staff.id);
+    await setAccountLanguage(page, staff.id, "am");
     await gotoReady(page, "/admin");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
@@ -286,7 +239,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     if (error || !role) throw new Error(`[e2e:i18n] super_admin role not found`);
 
     await signIn(page, staff.email, staff.password);
-    await setAmharicAccount(page, staff.id);
+    await setAccountLanguage(page, staff.id, "am");
     await gotoReady(page, `/admin/roles/${role.id}`);
     await expect(page.getByTestId("role-permissions")).toBeVisible({ timeout: 20000 });
 
@@ -316,7 +269,7 @@ test("B21SC-3 SC-3 the phone category level and Main menu are Amharic", async ({
   const hasAmharic = new Map(
     tree.nodes.map((node) => [node.slug, (node.name_am ?? "").trim() !== ""]),
   );
-  await useAmharic(page);
+  await setDeviceAmharic(page);
   await gotoReady(page, "/c/electronics");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   const menu = await openRailScope(page);
@@ -399,7 +352,7 @@ test("PN-AM-1 the different-place notice and place name are Amharic", async ({ p
       url: baseURL,
     },
   ]);
-  await useAmharic(page);
+  await setDeviceAmharic(page);
   await gotoReady(page, "/");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   const notice = page.getByTestId("place-notice");
@@ -418,7 +371,7 @@ test("PN-AM-1 the different-place notice and place name are Amharic", async ({ p
 // Read-only catalogue: electronics is found by slug; no translation row is touched.
 test("FV-AM-1 the ☆'s fine print is Amharic", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile-360", "the fine print shows without a mouse");
-  await useAmharic(page);
+  await setDeviceAmharic(page);
   await gotoReady(page, "/c/electronics");
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   const hint = page.getByTestId("category-favourite-hint");

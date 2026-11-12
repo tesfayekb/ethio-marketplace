@@ -1,10 +1,11 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { pageDoor } from "./helpers/door-callers";
 
 import { en } from "../src/i18n/locales/en";
 
 import {
-  useJobSuperAdmin,
+  signInJobSuperAdmin,
   expectNoHorizontalOverflow,
   gotoReady,
   isMobile,
@@ -12,7 +13,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -32,29 +33,6 @@ import {
  * the signed-in browser client, bypassing every piece of UI.
  */
 
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ error: { message: string } | null }>;
-};
-
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:u3] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:u3] granting ${roleName} failed: ${error.message}`);
-}
-
 /**
  * INC-084c sixth — per-viewport scoping lives in one helper, never inline
  * (roleRow/userRow law). The audit list has a card twin at 360 and a table twin
@@ -64,27 +42,6 @@ async function grantRole(userId: string, roleName: string) {
 function auditSurface(page: Page) {
   const width = page.viewportSize()?.width ?? 1280;
   return width < 768 ? page.getByTestId("data-table-cards") : page.getByRole("table");
-}
-
-async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
-      const result = await client.rpc(name as string, payload as Record<string, unknown>);
-      return result.error?.message ?? null;
-    },
-    [fn, args] as const,
-  );
-}
-
-async function signInAsSuperAdmin(page: Page) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- L4: a harness helper, not a React hook
-  return useJobSuperAdmin(page);
 }
 
 test.describe("U3 audit & security", () => {
@@ -109,7 +66,7 @@ test.describe("U3 audit & security", () => {
   });
 
   test("AS-2 filters: an action filter narrows the list", async ({ page }) => {
-    const { user } = await signInAsSuperAdmin(page);
+    const { user } = await signInJobSuperAdmin(page);
     // The MFA enrolment above wrote nothing to the audit log; a role grant does.
     await grantRole(user.id, "moderator");
     await gotoReady(page, "/admin/audit");
@@ -236,7 +193,7 @@ test.describe("U3 audit & security", () => {
     "IMP-1 impersonation: super admin opens a read-only session and ends it",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       // G3b — a seller with one scratch listing, so the view's footer has a row
       // to page (J3: scratch rows only, removed in finally).
       const target = await leaseSeller();
@@ -300,7 +257,7 @@ test.describe("U3 audit & security", () => {
     "IMP-2 dual-actor audit: start and end are both recorded",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       const target = await leaseUser();
 
       await gotoReady(page, `/admin/users/${target.id}`);
@@ -329,22 +286,26 @@ test.describe("U3 audit & security", () => {
     "IMP-3 server refusals: self and a super-admin target",
     { tag: "@private-identity" },
     async ({ page }) => {
-      const { user, secret } = await signInAsSuperAdmin(page);
+      const { user, secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/audit");
       await stepUpIfPrompted(page, secret);
 
-      const self = await rpcFromBrowser(page, "begin_impersonation", {
-        p_target: user.id,
-        p_reason: "e2e self target",
-      });
+      const self = (
+        await pageDoor(page, "begin_impersonation", {
+          p_target: user.id,
+          p_reason: "e2e self target",
+        })
+      ).error;
       expect(self ?? "").toContain("cannot impersonate yourself");
 
       const other = await leaseUser();
       await grantRole(other.id, "super_admin");
-      const superTarget = await rpcFromBrowser(page, "begin_impersonation", {
-        p_target: other.id,
-        p_reason: "e2e super target",
-      });
+      const superTarget = (
+        await pageDoor(page, "begin_impersonation", {
+          p_target: other.id,
+          p_reason: "e2e super target",
+        })
+      ).error;
       expect(superTarget ?? "").toContain("cannot impersonate a super admin");
     },
   );
@@ -364,10 +325,12 @@ test.describe("U3 audit & security", () => {
       await switchUser(page, admin.email, admin.password);
       await waitForHydration(page);
       const victim = await leaseUser();
-      const refused = await rpcFromBrowser(page, "begin_impersonation", {
-        p_target: victim.id,
-        p_reason: "e2e non-super caller",
-      });
+      const refused = (
+        await pageDoor(page, "begin_impersonation", {
+          p_target: victim.id,
+          p_reason: "e2e non-super caller",
+        })
+      ).error;
       expect(refused ?? "").toContain("super-admin only");
     },
   );

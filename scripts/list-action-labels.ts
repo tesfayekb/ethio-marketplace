@@ -24,6 +24,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { walkFiles } from "./conformance/kit";
+import { flaggedPattern, pattern } from "./lib/pattern";
 
 export type Kind =
   | "button"
@@ -107,9 +108,7 @@ function openTagEnd(text: string, start: number): number {
 /** The index of the matching close tag, nesting of the same tag respected. */
 function closeTag(text: string, tag: string, from: number): number {
   if (!/^[A-Za-z]+$/.test(tag)) return -1;
-  // Reviewed (DEC-153): tag is letters only (checked above): a TAG_KIND key or "Link".
-  // nosemgrep: detect-non-literal-regexp
-  const re = new RegExp(`<${tag}(?=[\\s>/])|</${tag}\\s*>`, "g");
+  const re = flaggedPattern("g")`<${tag}(?=[\\s>/])|</${tag}\\s*>`;
   re.lastIndex = from;
   let depth = 1;
   for (let m = re.exec(text); m; m = re.exec(text)) {
@@ -222,9 +221,7 @@ export function scan(sources: Source[]): Scan {
       for (const p of body.matchAll(/\{\s*(?:props\.)?([a-z][A-Za-z0-9]*)\s*\}/g)) {
         const name = p[1];
         if (!/label|text|title|cta|action|confirm|cancel|verb/i.test(name)) continue;
-        const typed = new RegExp(
-          `\\b${name}\\s*[?]?:\\s*(string|ReactNode|React\\.ReactNode|MessageKey)`,
-        );
+        const typed = pattern`\\b${name}\\s*[?]?:\\s*(string|ReactNode|React\\.ReactNode|MessageKey)`;
         if (!typed.test(text)) continue;
         const byComponent = receivers.get(name) ?? new Map<string, Kind>();
         for (const component of exported) {
@@ -238,7 +235,7 @@ export function scan(sources: Source[]): Scan {
   const propNames = new Set<string>(["label", ...receivers.keys()]);
   for (const { file, text } of sources) {
     for (const name of propNames) {
-      const re = new RegExp(`\\s${name}=\\{\\s*t\\(\\s*["'\`]([A-Za-z0-9_.-]+)["'\`]`, "g");
+      const re = flaggedPattern("g")`\\s${name}=\\{\\s*t\\(\\s*["'\`]([A-Za-z0-9_.-]+)["'\`]`;
       for (const m of text.matchAll(re)) {
         const at = m.index ?? 0;
         const open = text.lastIndexOf("<", at);

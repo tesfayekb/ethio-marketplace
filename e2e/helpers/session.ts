@@ -46,13 +46,15 @@ export type PersistedSession = {
   user: Record<string, unknown>;
 };
 
-function supabaseUrl(): string {
+/** The backend's address, no trailing slash — the one reader of E2E_SUPABASE_URL for node calls. */
+export function supabaseUrl(): string {
   const url = process.env["E2E_SUPABASE_URL"];
   if (!url) throw new Error("[e2e:session] E2E_SUPABASE_URL is not set.");
   return url.replace(/\/+$/, "");
 }
 
-function publishableKey(): string {
+/** The publishable key — the one reader of E2E_SUPABASE_PUBLISHABLE_KEY for node calls. */
+export function publishableKey(): string {
   const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
   if (!key) throw new Error("[e2e:session] E2E_SUPABASE_PUBLISHABLE_KEY is not set.");
   return key;

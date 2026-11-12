@@ -2,6 +2,7 @@ import { expect, type Page, type Response } from "@playwright/test";
 
 import { inBrowserClient } from "./browser-client";
 import { scratchSlug } from "./categories";
+import { likePrefix, SCRATCH_PREFIXES } from "./scratch";
 import { adminClient, leaseUser, type TestUser } from "./users";
 
 /**
@@ -21,7 +22,18 @@ export function rand(): string {
 }
 
 export function scratchCategorySlug(): string {
-  return `e2e-post-${RUN}-${process.env["TEST_WORKER_INDEX"] ?? "0"}-${rand()}`;
+  return `${SCRATCH_PREFIXES.post}${RUN}-${process.env["TEST_WORKER_INDEX"] ?? "0"}-${rand()}`;
+}
+
+/** A scratch attribute stem, `e2e_<kind>_<run>_<worker>_<draw>` — the one builder (INC-1104). */
+function scratchStem(kind: string): string {
+  const worker = process.env["TEST_WORKER_INDEX"] ?? "0";
+  return `${SCRATCH_PREFIXES.underscore}${kind}_${RUN}_${worker}_${rand()}`;
+}
+
+/** A short scratch stem, `e2e_<time><draw>`, for keys that also carry a family prefix (INC-463). */
+function shortScratchStem(): string {
+  return `${SCRATCH_PREFIXES.underscore}${Date.now().toString(36)}${rand()}`;
 }
 
 /** The bearer the browser holds — the routes' only authority (F3). */
@@ -254,7 +266,7 @@ export async function activeCityOf(countryCode: string) {
     .eq("country_code", countryCode)
     .eq("level", "region")
     .eq("is_active", true)
-    .not("slug", "like", "e2e%");
+    .not("slug", "like", likePrefix(SCRATCH_PREFIXES.stem));
   if (regionError) {
     throw new Error(`[e2e:a2c] reading regions of ${countryCode} failed: ${regionError.message}`);
   }
@@ -266,7 +278,7 @@ export async function activeCityOf(countryCode: string) {
     .eq("country_code", countryCode)
     .eq("level", "city")
     .eq("is_active", true)
-    .not("slug", "like", "e2e%")
+    .not("slug", "like", likePrefix(SCRATCH_PREFIXES.stem))
     .in("parent_id", regionIds)
     .order("slug")
     .limit(1)
@@ -310,7 +322,7 @@ export async function anyAttributeId(): Promise<string> {
     .from("attributes")
     .select("id")
     // INC-379: never another test's scratch definition; a fixed pick.
-    .not("attr_key", "like", "e2e%")
+    .not("attr_key", "like", likePrefix(SCRATCH_PREFIXES.stem))
     .order("attr_key")
     .limit(1)
     .maybeSingle();
@@ -499,7 +511,7 @@ export async function seedSpecSet(categoryId: string): Promise<{
   optionValues: string[];
 }> {
   const supabase = adminClient();
-  const stem = `e2e_post_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("post");
   const optionValues = [`${stem}_a`, `${stem}_b`];
 
   const rows = [
@@ -617,7 +629,7 @@ export async function seedFoldSet(
   options: { sharedOther?: boolean } = {},
 ): Promise<FoldSet> {
   const supabase = adminClient();
-  const stem = `e2e_fold_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("fold");
   const yearKey = `${stem}_year`;
   const dualKey = `${stem}_dual`;
   const makeValues: [string, string] = [`${stem}_mk1`, `${stem}_mk2`];
@@ -814,7 +826,7 @@ export async function seedDeepFoldSet(params: {
   sectionId: string;
 }): Promise<DeepFoldSet> {
   const supabase = adminClient();
-  const stem = `e2e_deep_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("deep");
   const yearKey = `${stem}_year`;
   const brandValue = `${stem}_br1`;
   const seriesValue = `${stem}_se1`;
@@ -946,7 +958,7 @@ export interface ColourSet {
 
 export async function seedColourSet(categoryId: string): Promise<ColourSet> {
   const supabase = adminClient();
-  const stem = `e2e_colour_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("colour");
   const inked = "black";
   const prefixed = "dog_black";
   const pattern = "cat_tabby";
@@ -1021,7 +1033,7 @@ export interface SwatchSet {
 
 export async function seedSwatchSet(categoryId: string): Promise<SwatchSet> {
   const supabase = adminClient();
-  const stem = `e2e_swatch_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("swatch");
   const solid = `${stem}_one`;
   const duo = `${stem}_two`;
   const patterned = `${stem}_pat`;
@@ -1078,7 +1090,7 @@ export interface ConditionalSet {
 
 export async function seedConditionalSet(categoryId: string): Promise<ConditionalSet> {
   const supabase = adminClient();
-  const stem = `e2e_cond_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("cond");
   const petrol = `${stem}_petrol`;
   const electric = `${stem}_electric`;
   const plug = `${stem}_plug`;
@@ -1168,7 +1180,7 @@ export interface UnhideFactSet {
 
 export async function seedUnhideFactSet(categoryId: string): Promise<UnhideFactSet> {
   const supabase = adminClient();
-  const stem = `e2e_unhide_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("unhide");
   const treadmill = `${stem}_treadmill`;
   const mat = `${stem}_mat`;
   const electric = `${stem}_electric`;
@@ -1308,7 +1320,7 @@ export interface FactShiftSet {
 
 export async function seedFactShiftSet(categoryId: string): Promise<FactShiftSet> {
   const supabase = adminClient();
-  const stem = `e2e_shift_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("shift");
   const makeValue = `${stem}_mk`;
   const otherMake = `${stem}_mk2`;
   const golf = `${stem}_golf`;
@@ -1657,7 +1669,7 @@ export interface AllowedSet {
 
 export async function seedAllowedSet(categoryId: string): Promise<AllowedSet> {
   const supabase = adminClient();
-  const stem = `e2e_allow_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("allow");
   const strictModel = `${stem}_ev`;
   const openModel = `${stem}_any`;
   const fuelElectric = `${stem}_electric`;
@@ -1746,7 +1758,7 @@ export interface SurfacedDependentSet {
 
 export async function seedSurfacedDependentSet(categoryId: string): Promise<SurfacedDependentSet> {
   const supabase = adminClient();
-  const stem = `e2e_surf_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("surf");
   const byd = `${stem}_byd`;
   const toyota = `${stem}_toyota`;
   const bydModel = `${byd}_seagull`;
@@ -2058,7 +2070,7 @@ export interface WideSet {
 
 export async function seedWideSet(categoryId: string): Promise<WideSet> {
   const supabase = adminClient();
-  const stem = `e2e_wide_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("wide");
   const rows = Array.from({ length: 14 }, (_, index) => ({
     attr_key: `${stem}_${String(index).padStart(2, "0")}`,
     name_en: `${stem} ${String(index)}`,
@@ -2117,7 +2129,7 @@ export interface PhoneSet {
 
 export async function seedPhoneSet(categoryId: string): Promise<PhoneSet> {
   const supabase = adminClient();
-  const stem = `e2e_phone_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("phone");
   const brandKey = `${stem}_brand`;
   const seriesKey = `${stem}_series`;
   const modelKey = `${stem}_model`;
@@ -2232,7 +2244,7 @@ export interface ConditionalPair {
 
 export async function seedConditionalPair(categoryId: string): Promise<ConditionalPair> {
   const supabase = adminClient();
-  const stem = `e2e_cond_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("cond");
   const parentKey = `${stem}_region`;
   const childKey = `${stem}_garment`;
   const parentValues: [string, string] = [`${stem}_rg1`, `${stem}_rg2`];
@@ -2314,7 +2326,7 @@ export async function seedBasisSet(
   categoryId: string,
   { withOther = false }: { withOther?: boolean } = {},
 ): Promise<BasisSet> {
-  const stem = `e2e_${Date.now().toString(36)}${rand()}`;
+  const stem = shortScratchStem();
   const tokens = [
     "hourly",
     "per_month",
@@ -2439,10 +2451,7 @@ export async function seedFinderOption(): Promise<{
     .toString(36)
     .replace(/[^a-z]/g, "")
     .slice(0, 6)}`;
-  const attrKey = `e2e_find_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`.replace(
-    /[^a-z0-9_]/g,
-    "_",
-  );
+  const attrKey = scratchStem("find").replace(/[^a-z0-9_]/g, "_");
   const attrLabel = `e2efindattr${tag}`;
   const value = `e2efindval${tag}`;
   const label = `e2eflabel${tag}`;
@@ -2492,7 +2501,7 @@ export async function seedUnitFactSet(
   categoryId: string,
   shape: { settled?: boolean } = {},
 ): Promise<UnitFactSet> {
-  const stem = `e2e_${Date.now().toString(36)}${rand()}`;
+  const stem = shortScratchStem();
   const typeKey = `${stem}_type`;
   const typeValue = `${stem}_milk`;
   const basisKey = `unit_of_sale-${stem}`;
@@ -2587,7 +2596,7 @@ export interface WriteInSet {
 
 export async function seedWriteInSet(categoryId: string): Promise<WriteInSet> {
   const supabase = adminClient();
-  const stem = `e2e_wri_${RUN}_${process.env["TEST_WORKER_INDEX"] ?? "0"}_${rand()}`;
+  const stem = scratchStem("wri");
   const kindOtherOnly = `${stem}_k1`;
   const brandNamed = `${stem}_b1`;
   const option = (value: string, extra: Record<string, unknown> = {}) => ({
@@ -2687,7 +2696,7 @@ export async function seedDealSet(
   categoryId: string,
   shape: { noUnit?: boolean } = {},
 ): Promise<DealSet> {
-  const stem = `e2e_${Date.now().toString(36)}${rand()}`;
+  const stem = shortScratchStem();
   const typeKey = `${stem}_type`;
   const typeValue = `${stem}_narrow`;
   const basisKey = `unit_of_sale-${stem}`;

@@ -18,6 +18,7 @@ import {
   reportFallback,
   watchTiles,
 } from "./leaflet";
+import { snap } from "./map-snap";
 import type { PinPrecision } from "./pin";
 
 /**
@@ -34,16 +35,6 @@ import type { PinPrecision } from "./pin";
  * cannot be undone by reading the circle's middle. A seller who chose to hide
  * their door has hidden it here and everywhere this component is mounted (U7).
  */
-
-/**
- * INC-389 — the same grid the door writes to `pin_show_*` for an approx pin
- * (two decimals, 0.01° ≈ 1.1 km), so the seller sees what a buyer will see.
- */
-const SNAP = 0.01;
-
-export function snap(value: number): number {
-  return Math.round(value / SNAP) * SNAP;
-}
 
 export function MapPreview({
   lat,

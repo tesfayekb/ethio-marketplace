@@ -50,6 +50,7 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { walkFiles } from "./conformance/kit";
+import { pattern } from "./lib/pattern";
 
 export type Rule = "T1" | "T2" | "T2b" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8" | "T9" | "T10";
 
@@ -210,7 +211,7 @@ export function check(
     const hostText = byFile.get(host);
     const name = section.replace(/^.*\//, "").replace(/\.tsx$/, "");
     if (!byFile.has(section)) continue;
-    if (hostText === undefined || !new RegExp(`from "\\./${name}"`).test(hostText)) {
+    if (hostText === undefined || !pattern`from "\\./${name}"`.test(hostText)) {
       refusals.push(`${section}: T1 — its host ${host} does not draw it`);
     } else if (breaches(host, hostText).includes("T1")) {
       refusals.push(`${section}: T1 — its host ${host} has no heading in the header`);

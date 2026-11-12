@@ -1,3 +1,4 @@
+import { flaggedPattern } from "../lib/pattern";
 import { codeOf } from "./kit";
 
 /**
@@ -23,7 +24,8 @@ export function seamExempt(file: string): boolean {
 }
 
 const AUTH_METHODS =
-  "(?:getSession|getUser|signIn[A-Za-z]*|signUp|signOut|onAuthStateChange|mfa|verifyOtp|refreshSession|setSession|resetPasswordForEmail|updateUser|admin|resend)";
+  /getSession|getUser|signIn[A-Za-z]*|signUp|signOut|onAuthStateChange|mfa|verifyOtp|refreshSession|setSession|resetPasswordForEmail|updateUser|admin|resend/;
+const AUTH_CALL = flaggedPattern("")`\\.auth\\.${AUTH_METHODS}\\b`;
 
 /** The two ties the census reports: a direct Supabase reach, a Lovable naming. */
 export function vendorTies(source: string): { supabase: boolean; lovable: boolean } {
@@ -36,7 +38,7 @@ export function vendorTies(source: string): { supabase: boolean; lovable: boolea
       /import\(\s*["'](?:@supabase\/supabase-js|@\/integrations\/supabase\/client)["']\s*\)/.test(
         code,
       ) ||
-      new RegExp(`\\.auth\\.${AUTH_METHODS}\\b`).test(code) ||
+      AUTH_CALL.test(code) ||
       /\.storage\.from\(/.test(code),
     lovable: /lovable/i.test(code),
   };

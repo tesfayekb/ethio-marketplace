@@ -1,0 +1,5 @@
+# The brief laws (scripts/conformance/briefs.test.ts, CF-BRIEF-2, CF-BRIEF-3 and CF-BRIEF-16, DEC-361): a phrase a
+# brief must state as written — key "<file>:<line> <phrase>", "<file>:<line> SCOPE names <path>
+# without its test" or "<file>:<line> SCOPE names <path>, which rule 00 forbids the executor" | reason | until.
+# A line no finding needs is stale and fails. Empty at birth.
+docs/governance/briefs/housekeeping-3c.md:50 SCOPE names .claude/hooks/**/*.ts, which rule 00 forbids the executor | the law CF-BRIEF-16 landed in this turn and judges the brief that built it (ruling 3); the next brief's STEP 0 removes it | INC-1110

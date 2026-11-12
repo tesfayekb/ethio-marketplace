@@ -10,6 +10,7 @@ import {
 } from "./posting";
 import jpeg from "jpeg-js";
 import { fixture, BUCKET } from "./photos";
+import { SCRATCH_PREFIXES } from "./scratch";
 
 type Row = Record<string, unknown>;
 
@@ -163,7 +164,7 @@ export function adPageFixtures() {
     /* Census (bundle 19 turn 25): listing_photos' only uniqueness is
       (listing_id, display_order) — storage_path is not unique, so the rows of
       one ad may share one uploaded image; upload once. */
-    const key = `e2e-${RUN}/ad-page-${token()}.jpg`;
+    const key = `${SCRATCH_PREFIXES.dash}${RUN}/ad-page-${token()}.jpg`;
     const uploaded = await supabase.storage
       .from(BUCKET)
       .upload(key, jpeg.encode(jpeg.decode(fixture("gps.jpg")), 80).data, {

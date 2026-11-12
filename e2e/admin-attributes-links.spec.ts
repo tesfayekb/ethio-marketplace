@@ -1,7 +1,12 @@
 import { expect, test } from "./fixtures";
 import { withinPreviewBudget } from "./helpers/rate-window";
 import { en } from "../src/i18n/locales/en";
-import { awaitGuardedOutcome, gotoReady, stepUpIfPrompted } from "./helpers/ui";
+import {
+  awaitGuardedOutcome,
+  gotoReady,
+  stepUpIfPrompted,
+  signInJobSuperAdmin,
+} from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -14,7 +19,6 @@ import {
   openEditor,
   action,
   readCategory,
-  signInAsSuperAdmin,
 } from "./helpers/categories";
 import {
   librarySurface,
@@ -179,7 +183,7 @@ test.describe("C3 attributes console", () => {
   test("AT-29 an imported label_am is pending, silent when blank, and undone", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -257,7 +261,7 @@ test.describe("C3 attributes console", () => {
   }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const free = `e2e_attr_${rand()}`;
@@ -357,7 +361,7 @@ test.describe("C3 attributes console", () => {
   test("AT-37 a delete after the file's own unlink is accepted and undone", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -448,7 +452,7 @@ test.describe("C3 attributes console", () => {
   test("AT-38 an inherited echo does not collide with a direct row", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -543,7 +547,7 @@ test.describe("C3 attributes console", () => {
   test("AT-39 empty read-only cells are never reported as edits", async ({ page }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -600,7 +604,7 @@ test.describe("C3 attributes console", () => {
    */
   test("AT-42 toggling Required keeps the card rank and never loses the link", async ({ page }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     let slug = "";
     try {
@@ -680,7 +684,7 @@ test.describe("C3 attributes console", () => {
     page,
   }) => {
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const first = `e2e_attr_${rand()}`;
     const second = `e2e_attr_${rand()}`;
     const door = "**/rest/v1/rpc/admin_set_card_attributes";
@@ -778,7 +782,7 @@ test.describe("C3 attributes console", () => {
   test("AT-59 the link editor's Save reflects change, saved and error", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
     const values = [`${key}_one`, `${key}_two`];
@@ -883,7 +887,7 @@ test.describe("C3 attributes console", () => {
   test("AT-60 a links file reorders three links and the posting read follows", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const keys = [`e2e_attr_${rand()}`, `e2e_attr_${rand()}`, `e2e_attr_${rand()}`];
@@ -1021,7 +1025,7 @@ test.describe("C3 attributes console", () => {
   test("AT-62 an exported link's condition and order re-import as unchanged", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const parentKey = `e2e_attr_${rand()}`;
@@ -1148,7 +1152,7 @@ test.describe("C3 attributes console", () => {
   test("AT-61 the import dialog previews and confirms a links-only file", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -1242,7 +1246,7 @@ test.describe("C3 attributes console", () => {
   test("AT-40 the import dialog reaches Applied and undoes", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
 
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
@@ -1387,7 +1391,7 @@ test.describe("C3 attributes console", () => {
   test("AT-65 a two-pair condition imports, exports and re-imports unchanged", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const leaf = await seedTwoPairLeaf("AT-65");
     try {
       await gotoReady(page, "/admin/attributes");
@@ -1455,7 +1459,7 @@ test.describe("C3 attributes console", () => {
   test("AT-66 the link editor saves and reopens a two-pair condition", async ({ page }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
-    const { secret } = await signInAsSuperAdmin(page);
+    const { secret } = await signInJobSuperAdmin(page);
     const leaf = await seedTwoPairLeaf("AT-66");
     try {
       const open = async () => {
@@ -1509,7 +1513,7 @@ test.describe("C3 attributes console", () => {
   test("AT-67 catalogue tokens import and are stored unchanged", async ({ page }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const supabase = adminClient();
     const key = `e2e_attr_${rand()}`;
     const slug = `e2e-cat-tok-${rand()}`;
@@ -1594,7 +1598,7 @@ test.describe("C3 attributes console", () => {
   test("AT-68 an import naming an unknown category is refused", async ({ page }) => {
     test.setTimeout(120_000);
     bandOnly(page, "any");
-    await signInAsSuperAdmin(page);
+    await signInJobSuperAdmin(page);
     const key = `e2e_attr_${rand()}`;
     const ghost = `e2e-cat-ghost-${rand()}`;
     try {
@@ -1652,7 +1656,7 @@ test.describe("C3 attributes console", () => {
       page,
     }) => {
       bandOnly(page, "any");
-      const { secret } = await signInAsSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       const ids: string[] = [];
       for (const letter of ["a", "b", "c", "d", "e"]) {
         const key = `e2e_attr_${letter}_${rand()}`;

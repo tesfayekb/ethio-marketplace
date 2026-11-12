@@ -13,7 +13,7 @@ import {
 } from "./guide-spec";
 import { TableActionButton } from "./table-actions";
 
-export { guideAnchor, type BlockGuideSpec, type GuideColumn } from "./guide-spec";
+export { type BlockGuideSpec, type GuideColumn } from "./guide-spec";
 
 /**
  * P-1c (D313) — THE GUIDE OF AN ADMIN BLOCK, one mechanism for every block.

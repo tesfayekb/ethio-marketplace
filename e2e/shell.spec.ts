@@ -39,25 +39,10 @@ import {
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
 import { destroyCategory, scratchSlug } from "./helpers/categories";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, leaseUser, grantRole } from "./helpers/users";
 import { distanceKm } from "../src/lib/geo-distance";
-
-/** Grants a named role via the service role — the staff fixture (see rbac.spec.ts). */
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:shell] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:shell] granting ${roleName} failed: ${error.message}`);
-}
+import { restoreAccountLanguages, seedAccountLanguage } from "./helpers/account-language";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Shell smoke — the design foundation.
@@ -2469,18 +2454,11 @@ test.describe("U4h device language star", () => {
   test("TR-37 the account carries onto a starless device, and (D239) over a star too", async ({
     page,
   }) => {
-    const supabase = adminClient();
-    const seeded: string[] = [];
     let restoreError: string | null = null;
     try {
       // Persona A — account prefers Amharic, device has never starred anything.
       const carried = await leaseUser();
-      seeded.push(carried.id);
-      const { error: carryError } = await supabase
-        .from("profiles")
-        .update({ preferred_language: "am" })
-        .eq("user_id", carried.id);
-      if (carryError) throw new Error(`[e2e:shell] seeding preference: ${carryError.message}`);
+      await seedAccountLanguage(carried.id, "am");
 
       await signIn(page, carried.email, carried.password);
       await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute(
@@ -2499,12 +2477,7 @@ test.describe("U4h device language star", () => {
       // device's star at sign-in.
       await signOutViaUi(page);
       const overridden = await leaseUser();
-      seeded.push(overridden.id);
-      const { error: prefError } = await supabase
-        .from("profiles")
-        .update({ preferred_language: "am" })
-        .eq("user_id", overridden.id);
-      if (prefError) throw new Error(`[e2e:shell] seeding preference: ${prefError.message}`);
+      await seedAccountLanguage(overridden.id, "am");
 
       const context = await page.context().browser()!.newContext();
       const fresh = await context.newPage();
@@ -2523,12 +2496,10 @@ test.describe("U4h device language star", () => {
       }
     } finally {
       // DEC-099 step 4: undo what this test wrote on its leased accounts.
-      if (seeded.length > 0) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ preferred_language: null })
-          .in("user_id", seeded);
-        if (error) restoreError = error.message;
+      try {
+        await restoreAccountLanguages();
+      } catch (error) {
+        restoreError = errorText(error);
       }
     }
     if (restoreError) throw new Error(`[e2e:shell] restoring preference: ${restoreError}`);

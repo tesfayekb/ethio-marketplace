@@ -1,0 +1,4 @@
+# Housekeeping turn 2 (scripts/conformance/e2e-helpers.test.ts, CF-HELPERS-1 → CF-HELPERS-3) — an e2e file that
+# declares its own copy of a shared helper, disables rules-of-hooks, or writes profiles.preferred_language outside
+# e2e/helpers/account-language.ts. Key: `<file> <name>` | reason | until (a date or an INC-/DEC- number); stale or
+# expired lines fail. Empty at birth.

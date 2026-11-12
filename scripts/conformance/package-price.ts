@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
+import { pattern } from "../lib/pattern";
 import { codeOf, walkFiles } from "./kit";
 
 /**
@@ -52,12 +53,12 @@ const TOUCHES_PACKAGE_PRICES =
   /package_prices|package_price_for|product_price_for|\bPriceRow\b|monetisation-service/;
 
 /** A price operand: `amount`, `credit_cost` or `creditCost` (or `x.<operand>`). */
-const OPERAND = String.raw`\b(?:amount|credit_cost|creditCost)\b`;
+const OPERAND = /\b(?:amount|credit_cost|creditCost)\b/;
 
 /** A price operand beside a spaced arithmetic operator (prettier's form). */
 const ARITHMETIC_FORMS = [
-  new RegExp(String.raw`${OPERAND}\s+[-+*/%]\s+`),
-  new RegExp(String.raw`\s[-+*/%]\s+(?:\w+\.)?${OPERAND}`),
+  pattern`${OPERAND}\\s+[-+*/%]\\s+`,
+  pattern`\\s[-+*/%]\\s+(?:\\w+\\.)?${OPERAND}`,
 ] as const;
 
 export function priceFindingsIn(root: string, file: string): PriceFinding[] {

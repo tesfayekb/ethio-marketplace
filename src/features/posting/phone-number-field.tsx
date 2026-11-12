@@ -4,13 +4,8 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { chosenFirst } from "@/lib/chosen-first";
-import {
-  PickerOption,
-  LIST_SCROLLER,
-  pickerPopClass,
-  usePickerKeys,
-  usePickerPlacement,
-} from "@/components/searchable-picker";
+import { PickerOption, LIST_SCROLLER } from "@/components/searchable-picker";
+import { pickerPopClass, usePickerKeys, usePickerPlacement } from "@/components/picker-popup";
 import { useI18n } from "@/i18n";
 
 import {

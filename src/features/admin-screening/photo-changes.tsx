@@ -9,7 +9,8 @@ import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { photoUrl } from "@/features/posting/photo-links";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
-import { SectionNotice, useSectionNotice } from "@/components/ui/section-notice";
+import { SectionNotice } from "@/components/ui/section-notice";
+import { useSectionNotice } from "@/components/ui/section-notice-state";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import {

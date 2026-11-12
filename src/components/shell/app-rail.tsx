@@ -2,18 +2,11 @@ import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@/components/ui/dialog-primitive";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, House, LogOut, Star, type LucideIcon } from "lucide-react";
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
+import { useFavouriteCategory } from "@/components/shell/favourite-category";
+import { RailVariantContext } from "@/components/shell/rail-variant";
 import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useMenuAt, useShownPathname } from "@/components/shell/use-shown-pathname";
@@ -24,7 +17,7 @@ import {
   SUBMENU_SIGNALS,
   submenuTriggerProps,
 } from "@/components/shell/submenu/submenu-signal";
-import { useOverlays } from "@/components/ui/overlay-facade";
+import { useOverlays } from "@/components/ui/overlay-loader";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -59,58 +52,6 @@ import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
 import { NAV_ALERT_LABELS, useNavAlerts } from "@/features/admin/nav-alerts";
 
-/** D207 — one device favourite, shared by every mounted reader. */
-const FAVOURITE_KEY = "ethio.fav";
-const FAVOURITE_SLUG = /^[a-z0-9-]{1,80}$/;
-const favouriteReaders = new Set<() => void>();
-function readFavourite(): string | null {
-  try {
-    const slug = window.localStorage.getItem(FAVOURITE_KEY);
-    return slug !== null && FAVOURITE_SLUG.test(slug) ? slug : null;
-  } catch {
-    // D207: unavailable storage deliberately means no device favourite.
-    return null;
-  }
-}
-function subscribeFavourite(reader: () => void): () => void {
-  favouriteReaders.add(reader);
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === FAVOURITE_KEY || event.key === null) reader();
-  };
-  window.addEventListener("storage", onStorage);
-  return () => {
-    favouriteReaders.delete(reader);
-    window.removeEventListener("storage", onStorage);
-  };
-}
-const favouriteServerSnapshot = () => null;
-function writeFavourite(slug: string | null): void {
-  try {
-    if (slug === null) window.localStorage.removeItem(FAVOURITE_KEY);
-    else window.localStorage.setItem(FAVOURITE_KEY, slug);
-  } catch {
-    console.warn("[favourite] device storage is unavailable");
-  }
-  for (const reader of favouriteReaders) reader();
-}
-export function useFavouriteCategory(): {
-  slug: string | null;
-  set: (slug: string | null) => void;
-} {
-  const { tree } = useCategoryTree();
-  const bySlug = useMemo(
-    () => Object.fromEntries(tree.nodes.map((node) => [node.slug, node])),
-    [tree],
-  );
-  const stored = useSyncExternalStore(subscribeFavourite, readFavourite, favouriteServerSnapshot);
-  const slug = stored !== null && ownValue(bySlug, stored) ? stored : null;
-  const set = (next: string | null) => {
-    if (next === null || (FAVOURITE_SLUG.test(next) && ownValue(bySlug, next)))
-      writeFavourite(next);
-  };
-  return { slug, set };
-}
-
 /**
  * COLLAPSE — an OPTION on md+, never the default and never on mobile.
  *
@@ -144,9 +85,6 @@ const ITEM_BASE = `${ITEM_CORE} ${ITEM_ICONS}`;
 /** True only after hydration on a collapsed desktop rail. */
 
 const CollapsedContext = createContext(false);
-/** The persistent rail, phone icon strip and opened phone menu. */
-export const RailVariantContext = createContext<"rail" | "strip" | "menu">("rail");
-
 /** Icons-only hiding belongs to the persistent rail alone. */
 function useHide(): string {
   return useContext(RailVariantContext) === "rail" ? HIDE_WHEN_COLLAPSED : "";
@@ -919,7 +857,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
         <overlays.submenu.SubmenuLayer
           // DEC-302 (R1d-c b) — the rows are built in the on-demand layer (navLevelOf).
           itemsOf={(id: string) =>
-            overlays.submenu.navLevelOf(items, id, {
+            overlays.submenuLevels.navLevelOf(items, id, {
               label: (item) => t(item.labelKey),
               isCurrent,
               holdsCurrent,
