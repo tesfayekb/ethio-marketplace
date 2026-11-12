@@ -2,3 +2,4 @@
 # brief must state as written — key "<file>:<line> <phrase>", "<file>:<line> SCOPE names <path>
 # without its test" or "<file>:<line> SCOPE names <path>, which rule 00 forbids the executor" | reason | until.
 # A line no finding needs is stale and fails. Empty at birth.
+docs/governance/briefs/investigation-photos.md:1 carries no STEP 1 | the investigation brief (read-only, charter-and-execute) was sent with no STEP 1 census and the GO checker did not refuse it; reported in the report (Findings, Records) for the supervisor | 2026-11-30
