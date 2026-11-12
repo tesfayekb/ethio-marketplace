@@ -1941,6 +1941,22 @@ async function readLog(path: string): Promise<string | null> {
   return redact(await file.text());
 }
 
+/**
+ * Housekeeping turn 3b (E vi) — a failed self-test check prints under the record its name leads
+ * with (INC-…, DEC-…, R1a/R1b); a name with no record prints under `fallback`. One line per record,
+ * in the order the records first fail.
+ */
+export function selfTestFailureLines(failed: readonly string[], fallback: string): string[] {
+  const byRecord = new Map<string, string[]>();
+  for (const name of failed) {
+    const record = /^(?:INC|DEC)-\d+\w*|^R1[ab]\b/.exec(name)?.[0] ?? fallback;
+    byRecord.set(record, [...(byRecord.get(record) ?? []), name]);
+  }
+  return [...byRecord].map(
+    ([record, names]) => `SELF-TEST FAILED — ${record}: ${names.join("; ")}`,
+  );
+}
+
 async function main() {
   const meta: ReportMeta = {
     runId: process.env["GITHUB_RUN_ID"] ?? "local",
@@ -3041,7 +3057,7 @@ async function main() {
       const failed = checks.filter(([, ok]) => !ok).map(([name]) => name);
       for (const [name, ok] of checks) if (ok && name.startsWith("R1")) console.log(`ok — ${name}`);
       if (failed.length > 0) {
-        console.error(`SELF-TEST FAILED — DEC-083/084 census: ${failed.join("; ")}`);
+        for (const line of selfTestFailureLines(failed, "DEC-083/084 census")) console.error(line);
         console.error(green);
         process.exit(1);
       }

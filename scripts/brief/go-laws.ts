@@ -7,16 +7,17 @@
  * tree root — the supervisor's pre-send run, and the executor's at STEP 0 on the tree as saved).
  *
  * Text laws: CF-BRIEF-1 base line, CF-BRIEF-2 stop rule, CF-BRIEF-3 scope (the law brief (12) names),
- * CF-BRIEF-11 title, CF-BRIEF-13 allowance, CF-BRIEF-15 census items. Tree laws: CF-BRIEF-5 cited
- * path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option, CF-BRIEF-9 assert,
- * CF-BRIEF-10 count. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
+ * CF-BRIEF-11 title (a code span after "Commit", "first line:" or "commit ("), CF-BRIEF-13 allowance,
+ * CF-BRIEF-15 census items. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
+ * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
+ * CF-BRIEF-9 assert, CF-BRIEF-10 count. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
  * is not a claim (laws 2, 7, 10; law 11 keeps code spans, the titles' own form), and a sentence
  * with a negation word is not a claim (laws 2, 7). The laws guard carelessness, not evasion.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { basename, join, relative } from "node:path";
 import { walkFiles } from "../conformance/kit";
 import { authored, exactWord, flaggedPattern, pattern } from "../lib/pattern";
 
@@ -60,7 +61,8 @@ const READ_COMMANDS = new Set([
 const GIT_READS = new Set(["show", "log", "diff", "ls-files"]);
 const CODE_WRITES =
   /\b(?:open|write\w*|unlink\w*|remove|rm\w*|rename\w*|mkdir\w*|spawn\w*|exec\w*|system|subprocess|Bun\.write)\b/;
-const TITLE = /\b(?:Commit|first line):?\s*`([^`\n]+)`/gi;
+const TITLE = /(?<!`)\b(?:Commit|first line):?\s*\(?`([^`\n]+)`/gi;
+const NEW_TEST = /([\w$./-]*[\w$-]\.(?:test\.tsx?|selftest\.sh|spec\.ts))`?\s*\(new\)/g;
 const TITLE_MAX = 72;
 const SEARCHED = ["src", "e2e", "scripts"];
 const TEXT_EXT = ["ts", "tsx", "mjs", "js", "cjs", "sh", "sql", "txt", "json", "md", "yml", "yaml"];
@@ -92,13 +94,20 @@ export function stopRuleFindings(text: string, file: string): Finding[] {
   return findings;
 }
 
-/** CF-BRIEF-3 — each single code file the SCOPE paragraph names comes with its test. */
-export function scopeFindings(text: string, file: string): Finding[] {
+/** The SCOPE paragraph: its first line's index and its text, or null. */
+function scopeOf(text: string): { start: number; scope: string } | null {
   const lines = linesOf(text);
   const start = lines.findIndex((l) => /^SCOPE\b/.test(l));
-  if (start < 0) return [];
+  if (start < 0) return null;
   const end = lines.findIndex((l, i) => i > start && l.trim() === "");
-  const scope = lines.slice(start, end < 0 ? lines.length : end).join("\n");
+  return { start, scope: lines.slice(start, end < 0 ? lines.length : end).join("\n") };
+}
+
+/** CF-BRIEF-3 — each single code file the SCOPE paragraph names comes with its test. */
+export function scopeFindings(text: string, file: string): Finding[] {
+  const paragraph = scopeOf(text);
+  if (paragraph === null) return [];
+  const { start, scope } = paragraph;
   const named = [...scope.matchAll(CODE_FILE)].map((m) => m[1]);
   const findings: Finding[] = [];
   for (const path of new Set(named)) {
@@ -115,6 +124,30 @@ export function scopeFindings(text: string, file: string): Finding[] {
       });
   }
   return findings;
+}
+
+/**
+ * CF-BRIEF-3, the K1 clause (S581) — SCOPE names a test, self-test or spec "(new)" whose file name
+ * the tree already holds under src/, e2e/ or scripts/: the stem has its test, which the turn extends.
+ */
+export function newTestFindings(text: string, file: string, root: string): Finding[] {
+  const paragraph = scopeOf(text);
+  if (paragraph === null) return [];
+  const names = new Set(
+    [...paragraph.scope.matchAll(NEW_TEST)].map((m) => basename(m[1] ?? "")).filter(Boolean),
+  );
+  if (names.size === 0) return [];
+  const files = SEARCHED.flatMap((dir) => filesUnder(root, dir));
+  return [...names].flatMap((name) =>
+    files
+      .filter((path) => basename(path) === name)
+      .map((path) => ({
+        law: "CF-BRIEF-3",
+        file,
+        line: paragraph.start + 1,
+        text: `SCOPE names ${name} (new); the tree holds ${path}`,
+      })),
+  );
 }
 
 /** The brief's title: its first line of text (a saved brief's heading and fence skipped). */
@@ -492,14 +525,14 @@ export function countCommandRefusal(command: string): string | null {
   return null;
 }
 
-/** CF-BRIEF-10 — a count is a `COUNT: <n> := <command>` whose command prints n; a bare count is refused. */
+/** CF-BRIEF-10 — a count is a `COUNT: N := COMMAND` whose COMMAND prints N; a bare count is refused. */
 export function countFindings(text: string, file: string, root: string): Finding[] {
   const findings: Finding[] = [];
   linesOf(text).forEach((content, index) => {
     const push = (what: string) =>
       findings.push({ law: "CF-BRIEF-10", file, line: index + 1, text: what });
     for (const bare of content.replace(COUNT_CLAUSE, "").replace(QUOTED, "").matchAll(BARE_COUNT))
-      push(`a bare count "${bare[1]} ${bare[2]}" — write COUNT: <n> := <command>`);
+      push(`a bare count "${bare[1]} ${bare[2]}" — write COUNT: N := COMMAND`);
     for (const clause of content.matchAll(COUNT_CLAUSE)) {
       const expected = Number(clause[1]);
       const command = (clause[2] ?? clause[3]).trim();
@@ -538,11 +571,12 @@ export function textFindings(text: string, file: string): Finding[] {
   ];
 }
 
-/** Every tree law over one brief or ruling (laws 5 → 10); a root the laws cannot read fails each. */
+/** Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10); a root the laws cannot read fails each. */
 export function treeFindings(text: string, file: string, root: string): Finding[] {
   const problem = treeRootProblem(root);
   if (problem !== null)
     return [
+      "CF-BRIEF-3",
       "CF-BRIEF-5",
       "CF-BRIEF-6",
       "CF-BRIEF-7",
@@ -551,6 +585,7 @@ export function treeFindings(text: string, file: string, root: string): Finding[
       "CF-BRIEF-10",
     ].map((law) => ({ law, file, line: 1, text: problem }));
   return [
+    ...newTestFindings(text, file, root),
     ...citedPathFindings(text, file, root),
     ...citedLineFindings(text, file, root),
     ...freeIdFindings(text, file, root),

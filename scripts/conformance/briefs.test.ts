@@ -25,6 +25,7 @@ import {
   freeIdFindings,
   isTestId,
   keyOf,
+  newTestFindings,
   optionFindings,
   scopeFindings,
   stopRuleFindings,
@@ -189,7 +190,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     const clean = [
       "CLEAN — a planted GO. Base: dev 2b11a9d29",
       "",
-      "SCOPE: `src/` (each file's tests)",
+      "SCOPE: `src/` (each file's tests), `scripts/fresh.test.ts` (new)",
       "",
       "STEP 1 — the census: the consumers and the premises.",
       "The function `alpha` at `src/alpha.ts` :2 is read; `src/alpha.ts` exists; `src/beta.ts` is new.",
@@ -205,7 +206,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "PLANTED — a planted GO with no base line.",
       "Any red is a STOP.",
       "",
-      "SCOPE: src/lib/x.ts",
+      "SCOPE: src/lib/x.ts, `e2e/used.spec.ts` (new)",
       "",
       "STEP 1 — the census: the consumers only.",
       "The cited `src/missing.ts` is read.",
@@ -228,6 +229,9 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(lawsOf(baseFindings(planted, f))).toEqual(["CF-BRIEF-1"]);
       expect(lawsOf(stopRuleFindings(planted, f))).toEqual(["CF-BRIEF-2"]);
       expect(lawsOf(scopeFindings(planted, f))).toEqual(["CF-BRIEF-3"]);
+      expect(newTestFindings(planted, f, root).map((x) => x.text)).toEqual([
+        "SCOPE names used.spec.ts (new); the tree holds e2e/used.spec.ts",
+      ]);
       expect(citedPathFindings(planted, f, root).map((x) => x.text)).toEqual([
         "cites src/missing.ts, not in the tree",
       ]);
@@ -244,7 +248,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "ASSERT-PRESENT function beta is absent from src",
       ]);
       expect(countFindings(planted, f, root).map((x) => x.text)).toEqual([
-        'a bare count "3 files" — write COUNT: <n> := <command>',
+        'a bare count "3 files" — write COUNT: N := COMMAND',
         "COUNT 5 := find src -type f | wc -l — prints 1",
         "COUNT 1 := ls src > out.txt — refused: carries a redirect, a chain or a substitution",
       ]);
@@ -286,6 +290,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       try {
         expect(lawsOf(treeFindings(clean, "clean.md", bare))).toEqual([
           "CF-BRIEF-10",
+          "CF-BRIEF-3",
           "CF-BRIEF-5",
           "CF-BRIEF-6",
           "CF-BRIEF-7",
@@ -325,6 +330,34 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(freeIdFindings("A new id (TCK-7, is free.", f, root).map((x) => x.text)).toEqual([
         "calls TCK-7 new or free; the tree already uses it",
       ]);
+    });
+
+    it('CF-BRIEF-3\'s K1 clause reads a "(new)" test by its file name anywhere in the tree; CF-BRIEF-11 reads a title after `commit (`', () => {
+      const scope = [
+        "SCOPE: `scripts/ci/used.spec.ts` (new), alpha.test.ts (new), `e2e/fresh.selftest.sh` (new),",
+        "src/alpha.ts with its test",
+        "",
+        "Not SCOPE: `e2e/used.spec.ts` (new).",
+      ].join("\n");
+      expect(newTestFindings(scope, "k1.md", root)).toEqual([
+        {
+          law: "CF-BRIEF-3",
+          file: "k1.md",
+          line: 1,
+          text: "SCOPE names used.spec.ts (new); the tree holds e2e/used.spec.ts",
+        },
+      ]);
+      expect(newTestFindings("no scope here, `e2e/used.spec.ts` (new)", "k1.md", root)).toEqual([]);
+      const long =
+        "planted: a dictated commit title that runs well past the seventy-two characters";
+      expect(titleFindings(`One commit (\`${long}\`).`, "t.md").map((x) => x.law)).toEqual([
+        "CF-BRIEF-11",
+      ]);
+      expect(titleFindings(`Commit (\`${long}\`)`, "t.md")).toHaveLength(1);
+      expect(titleFindings("One commit (`planted: short`).", "t.md")).toEqual([]);
+      const quotedForm =
+        "law 11 also reads a backticked title that follows `commit (` or `Commit (`; law 10's message at :487 and the template's line 25 lose the angle-bracket placeholders (`COUNT: N := COMMAND` or a wording)";
+      expect(titleFindings(quotedForm, "t.md"), "a quoted form is not a title").toEqual([]);
     });
 
     it("a COUNT command carrying a write is refused; a read-only pipe runs", () => {

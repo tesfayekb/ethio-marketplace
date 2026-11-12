@@ -1142,60 +1142,24 @@ test.describe("Admin Legal", () => {
       (await supabase.from("languages").update({ enabled_admin: false }).eq("code", off)).error,
       "disable the off language",
     );
-    const { data: perms, error: permsError } = await supabase
-      .from("permissions")
-      .select("id, action, resources!inner(name)")
-      .in("resources.name", ["admin_panel", "legal"]);
-    fail(permsError, "permissions read");
-    const makeRole = async (tag: string, names: string[]) => {
-      const roleName = `${RUN_TAG}-role-${tag}`;
-      const { data: role, error: roleError } = await supabase
-        .from("roles")
-        .insert({ name: roleName, display_name: roleName, priority: 1 })
-        .select("id")
-        .single();
-      if (roleError || !role)
-        throw new Error(`[e2e:legal-admin] scratch role: ${roleError?.message}`);
-      roles.add(role.id);
-      // The joined resource's name, read by shape (the client types the inner join loosely).
-      const resourceName = (row: { resources: unknown }): string => {
-        const joined = row.resources;
-        return joined !== null &&
-          typeof joined === "object" &&
-          "name" in joined &&
-          typeof joined.name === "string"
-          ? joined.name
-          : "";
-      };
-      const rows = (perms ?? []).filter((p) => names.includes(`${resourceName(p)}:${p.action}`));
-      expect(rows.length, `LGA-22 expected ${names.join(" + ")}`).toBe(names.length);
-      fail(
-        (
-          await supabase
-            .from("role_permissions")
-            .insert(rows.map((p) => ({ role_id: role.id, permission_id: p.id })))
-        ).error,
-        "role permissions grant",
-      );
-      return role.id;
-    };
-    const editorRole = await makeRole("bl-edit", ["admin_panel:access", "legal:edit"]);
-    const viewerRole = await makeRole("bl-view", ["admin_panel:access", "legal:view"]);
     const editor = await leaseUser();
     const viewer = await leaseUser();
-    for (const [user, roleId] of [
-      [editor, editorRole],
-      [viewer, viewerRole],
-    ] as const) {
-      fail(
-        (
-          await supabase
-            .from("user_roles")
-            .insert({ user_id: user.id, role_id: roleId, scope_type: "global" })
-        ).error,
-        "scratch role grant",
-      );
-    }
+    await grantScratchRole(
+      editor.id,
+      [
+        ["admin_panel", "access"],
+        ["legal", "edit"],
+      ],
+      roles,
+    );
+    await grantScratchRole(
+      viewer.id,
+      [
+        ["admin_panel", "access"],
+        ["legal", "view"],
+      ],
+      roles,
+    );
     const asEditor = bearerClient(
       (await passwordGrant(editor.email, editor.password)).access_token,
     );

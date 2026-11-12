@@ -22,7 +22,7 @@ its output into the census. The laws a GO is written to:
 - A citation `path :N` with a backticked name beside it holds that name on line N (two lines either
   side for a comment above a declaration).
 - A test id called new or free is used nowhere under src/, e2e/, scripts/.
-- A count is written `COUNT: <n> := <command>` (a read-only shell line — rg, grep, find, ls, wc,
+- A count is written `COUNT: N := COMMAND` (a read-only shell line — rg, grep, find, ls, wc,
   sort, uniq, cut, head, tail, `python3 -c`, `bun -e`, `git` show/log/diff/ls-files; no `>`, no
   chain); a tolerance is written in words ("two lines").
 - A configuration option is named `OPTION: <name> in <d.ts path>`; a claimed presence or absence is
@@ -53,10 +53,10 @@ FORWARD-SCAN: <the later REQs and register rows this design meets>. REGISTER: <t
 SCOPE, by area (the plan narrows it to files): <the folders the concern lives in, each source file's own tests included; the records files; what is read only>.
 
 THE TURN, IN THIS ORDER
-STEP 0 — on the lane: fetch, switch, `git status --short` empty. Save this brief byte for byte as `docs/governance/briefs/<stem>.md` (scripted copy, one fenced block; sha256 equal to the value after END BRIEF). Roadmap line 3: `The brief in force: docs/governance/briefs/<stem>.md (<what>). Previous: ` + the line as it stands after "The brief in force: ". Remove from `scripts/conformance/briefs-allowlist.txt` every line keyed to a brief other than this one. Run `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md` on the tree as saved and paste its output. Commit `<stem>: task saved`.
+STEP 0 — on the lane: fetch, switch, `git status --short` empty. Save this brief byte for byte as `docs/governance/briefs/<stem>.md` (scripted copy, one fenced block; sha256 equal to the value after END BRIEF). Roadmap line 3: `The brief in force: docs/governance/briefs/<stem>.md (<what>). Previous: ` + the line as it stands after "The brief in force: ". Remove from `scripts/conformance/briefs-allowlist.txt` every line keyed to a brief other than this one. Run `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md` on the tree as saved and paste its output (`[check-go] no finding`, or its findings — each is a premise for STEP 1). Commit `<stem>: task saved`.
 STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer every item by its key word, or write the line "CENSUS-ITEM <key>: not applicable — <why>":
 <!-- CENSUS-ITEM: consumers -->
-- consumers — every consumer by the concern's definition, across src/, e2e/, scripts/, supabase/, each file:line marked uses or bypasses.
+- consumers — every consumer by the concern's definition, across src/, e2e/, scripts/, supabase/, each file:line marked uses or bypasses; a value's consumers include every script that READS the file that holds it: grep the holder's path across scripts/, e2e/, src/ and .github/, and list each reader's form.
 <!-- CENSUS-ITEM: definition -->
 - definition — the concern's consumers enumerated by its definition, not by the pattern a COUNT line counts; the difference listed (a COUNT is a floor, never the scope).
 <!-- CENSUS-ITEM: tests -->
@@ -74,9 +74,9 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 <!-- CENSUS-ITEM: mechanisms -->
 - mechanisms — the mechanisms that already serve the concern, by file:line, read before anything is proposed.
 <!-- CENSUS-ITEM: first-download -->
-- first-download — the first-download table from the executor's own lock-exact build, before and after.
+- first-download — the first-download table from the executor's own lock-exact build, before and after; a change under src/ names `scripts/route-budgets.mjs` in SCOPE for ceilings only and asks the census for every page's room to the NEAR band.
 <!-- CENSUS-ITEM: premises -->
-- premises — every premise of this GO the census finds wrong.
+- premises — every premise of this GO the census finds wrong; outside systems — a runner image, a platform event, a provider API, an artifact's contents: cite the repository record read (a ci-evidence log at its commit, the vendor's source file, the workflow's upload step) or write `OPEN: <the question>` for the census; never from memory.
 <!-- CENSUS-ITEM: findings -->
 - findings — what the census finds beyond the task, file:line.
 `docs/governance/reports/<stem>.stop-1.md`; STOP.

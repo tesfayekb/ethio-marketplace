@@ -19,7 +19,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  * `grantRole` and `grantScratchRole` (users.ts), `signInJobSuperAdmin` (ui.ts), and the account's
  * language (e2e/helpers/account-language.ts).
  * - CF-HELPERS-1: no e2e/*.spec.ts declares its own copy — a local `function`, or a `const` holding
- *   a function, of one of the names below (a `const asAnon = await …` answer is a value, not a copy).
+ *   a function, of one of the names below (a `const asAnon = await …` answer is a value, not a copy);
+ *   and no spec inserts a role inline (`.from("roles").insert(`, matched across lines; housekeeping
+ *   turn 3b, LGA-22) — a scratch role is `grantScratchRole`'s (e2e/helpers/users.ts).
  * - CF-HELPERS-2: no e2e file disables `rules-of-hooks`: a harness helper is named by its verb,
  *   never `use…`.
  * - CF-HELPERS-3: no e2e/*.spec.ts writes `profiles.preferred_language`; a spec sets it through
@@ -70,6 +72,7 @@ const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
   /\.from\(\s*["'`]profiles["'`]\s*\)\s*\.update\(\s*\{[^}]*?\bpreferred_language\b/g;
 export const LANGUAGE_HOME = "e2e/helpers/account-language.ts";
+const ROLE_INSERT = /\.from\(\s*["'`]roles["'`]\s*\)\s*\.insert\(/g;
 const WATCH_CALL = /\b(?:watchAccountLanguage|consumeAccountLanguage)\s*\(/;
 const SETTLED_NAME = /data-lang-settled|\blangSettled\b/;
 export const SETTLED_HOMES = ["src/i18n/provider.tsx", "src/i18n/provider-d239.test.tsx"];
@@ -114,6 +117,22 @@ export function copyFindings(specs: string[], names: readonly string[]): HelperF
         key: `${file} ${name.text}`,
       });
     });
+  }
+  return findings;
+}
+
+/** CF-HELPERS-1 — a spec's inline role insert, where `grantScratchRole` makes the scratch role. */
+export function roleInsertFindings(specs: string[]): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const file of specs) {
+    const code = codeOf(readFileSync(file, "utf8"));
+    for (const match of code.matchAll(ROLE_INSERT))
+      findings.push({
+        file,
+        line: lineAt(code, match.index),
+        what: "inserts a role inline: grantScratchRole (e2e/helpers/users.ts)",
+        key: `${file} roles.insert`,
+      });
   }
   return findings;
 }
@@ -409,6 +428,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
       const files = e2eFiles();
       const findings = [
         ...copyFindings(specs(), COPIED_NAMES),
+        ...roleInsertFindings(specs()),
         ...hooksDisableFindings(files),
         ...languageWriteFindings(specs()),
         ...watchCallFindings(specs()),
@@ -468,10 +488,14 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
           "    .update({",
           "      preferred_language: 'am' })",
           '    .eq("id", "x");',
+          "  await adminClient()",
+          '    .from("roles")',
+          "    .insert({ name: roleName, display_name: roleName, priority: 1 });",
           "});",
           "",
         ].join("\n"),
       );
+      expect(roleInsertFindings([spec]).map((f) => f.line)).toEqual([13]);
       expect(copyFindings([spec], COPIED_NAMES).map((f) => [f.line, f.key])).toEqual([
         [2, `${spec} asPerson`],
         [4, `${spec} rpcResult`],
@@ -488,10 +512,13 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
           "const seller = await asPerson(person);",
           "const asAnon = await seller.rpc('x');",
           'await adminClient().from("profiles").update({ display_name: "x" });',
+          'await grantScratchRole(seller.id, [["legal", "view"]], roles);',
+          'await adminClient().from("roles").delete().in("id", [...roles]);',
           "",
         ].join("\n"),
       );
       expect(copyFindings([clean], COPIED_NAMES)).toEqual([]);
+      expect(roleInsertFindings([clean])).toEqual([]);
       expect(hooksDisableFindings([clean])).toEqual([]);
       expect(languageWriteFindings([clean])).toEqual([]);
       const helper = join(dir, "planted-helper.ts");
