@@ -583,6 +583,10 @@ files a push changed — and the specs importing a changed e2e helper — chosen
 `bun run scripts/e2e-select.ts --repeat`, up to six times on each project with
 `--retries 0` under a 720-second test cap, starting no backend when nothing is
 selected ("nothing to repeat"); scripts/conformance/repeat-lane.test.ts guards it.
+Since housekeeping turn 3c (INC-1107) the E2E report's head carries the lane's
+coverage — `- Repeat: <U> of <T> tests repeated — specs directly changed <a>/<b>,
+importers of a changed helper <c>/<d>; budget <B> s` — wherever `repeat` is an
+expected source (docs/features/ci-status-reporter.md).
 Since Foundations turn K5 (INC-967) the selector ranks its list — the spec files the
 push changed come first, then the importers of a changed helper (`--repeat --ranks`)
 — and the lane takes rank one before rank two within its budget; the time cap is read

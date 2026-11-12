@@ -286,7 +286,8 @@ jobs:
           done < repeat-counts.txt
           rm -f repeat-counts.txt
           if [ -z "$chosen" ]; then
-            echo "- Repeat: nothing to repeat" >> local-backend-repeat.txt
+            # INC-1107: specs were selected and none fits the budget; the counts are written, never inferred.
+            echo "- Repeat: each $each on both projects; $tests tests selected, 0 repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test; directly changed: 0 of $direct_n repeated; importers of a changed helper: 0 of $helper_n" >> local-backend-repeat.txt
             { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=$tests"; } >> "$GITHUB_ENV"
             exit 0
           fi
@@ -958,6 +959,7 @@ jobs:
             local-backend-start-failure.txt
             local-backend-db-error.txt
             local-backend-step-failure.txt
+            local-backend-repeat.txt
           overwrite: true
           if-no-files-found: warn
           retention-days: 7

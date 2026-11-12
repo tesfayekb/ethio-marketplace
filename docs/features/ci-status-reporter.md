@@ -51,6 +51,19 @@ The reporter reads the log of the `Scope (docs-only push, DEC-365)` job for its
 scope log that cannot be read is written as `- Lanes: unknown — …` and the rows stay `skipped`.
 The words show from the first run after the change merges (the reporter runs dev's code).
 
+## The repeat lane's coverage (INC-1107, housekeeping turn 3c)
+
+Where `repeat` is among `E2E_EXPECTED_SOURCES`, the E2E report reads that lane's selection file
+(`e2e-log-repeat/local-backend-repeat.txt`, redacted) and writes one head line after `- Lanes:`,
+on the red form and the green form alike: `- Repeat: <U> of <T> tests repeated — specs directly
+changed <a>/<b>, importers of a changed helper <c>/<d>; budget <B> s`, plus `; the time cap left
+<k> test runs` when `scripts/ci/repeat-cap.ts` appended its `- Not repeated (time cap):` lines.
+"nothing to repeat" is written as it stands; a missing file reads `- Repeat: selection not
+written`; a summary that does not parse is quoted raw. A run with no repeat lane (the nightly, a
+docs-only push) has no such line. The self-test's INC-1107 cases read a real selection file (run
+43144538685, `scripts/fixtures/local-backend-repeat.43144538685.txt`) and the workflow's own echo
+lines.
+
 ## guards-last-failure.md (DEC-066)
 
 So a red build or guard never needs a log paste, the reporter downloads the log of

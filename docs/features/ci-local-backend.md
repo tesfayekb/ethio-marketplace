@@ -679,6 +679,8 @@ CF-CID-1 gains its sixth rule: every step that uses an action (checkout, setup-b
 
 The repeat lane's evidence line now ends "directly changed: <taken> of <n> repeated; importers of a changed helper: <taken> of <m>", counting the specs of each rank (`scripts/e2e-select.ts --repeat --ranks`) the budget let it repeat.
 
+Housekeeping turn 3c (INC-1107): when specs were selected and none fits the budget, the selection step writes the same line with `0 repeated` (and `0 of <n>` for each rank), never "nothing to repeat", which stays the line of a push that selected nothing. `local-backend-repeat.txt` rides in the lane's `e2e-log-*` upload, so the E2E report reads it.
+
 ### DEC-284 — the backend's ports below the ephemeral range (INC-991)
 
 Run 40854479197 lost lane 3's start: "failed to bind host port 0.0.0.0:54324" while Runner.Worker held an established connection on local port 54324, opened at job start before the INC-935 reservation could run. The reservation cannot reach such a connection, so the CI-local config's four ports moved to the block 31320–31329 (API 31321, database 31322, shadow 31320, Inbucket 31324), below Linux's ephemeral range (32768–60999), where no outgoing connection is given a port. `e2e/global-setup.ts`, `e2e/helpers/app-target.ts` and their tests accept only `https://127.0.0.1:31321`. CF-CID-3/4 (scripts/conformance/ci-deadlines.test.ts) refuse a config port outside the block. The 54320–54329 reservation step stays until the rule closes. Rule (frozen): over the next 20 completed CI runs, zero lanes lost to a bind failure on the backend's ports → KEEP; any such loss → a new INC and a revisit.

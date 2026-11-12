@@ -86,6 +86,11 @@ const POST_TEST_FIXTURE =
  */
 const OUTSIDE_FIXTURE = "scripts/fixtures/e2e-outside-error/results.json";
 const OUTSIDE_LOG_FIXTURE = "scripts/fixtures/e2e-outside-error/changed.log.txt";
+/**
+ * INC-1107 — REAL captured: the repeat lane's selection file of run 43144538685 (108
+ * `- Not repeated:` lines and the summary), as that lane's proof fragment carried it.
+ */
+const REPEAT_FIXTURE = "scripts/fixtures/local-backend-repeat.43144538685.txt";
 
 /** DEC-030 — the ledger's header, written once when the file does not exist. */
 export const FLAKE_LEDGER_HEADER = [
@@ -1514,6 +1519,11 @@ export type ReportMeta = {
    * wipeout on attempt >= 2 reads as "artifact contract broken".
    */
   attempt?: string;
+  /**
+   * INC-1107 — the repeat lane's selection file (redacted) when `repeat` is an expected source: its
+   * text, or null when the lane uploaded none. Undefined when the run has no repeat lane.
+   */
+  repeatSelection?: string | null;
 };
 
 /** INC-100 — the attempt line every rendered report carries. */
@@ -1524,6 +1534,40 @@ export function attemptLine(meta: ReportMeta): string {
 /** DEC-365 — the scope's decision, after the attempt line; nothing when the run carried none. */
 export function lanesLines(meta: ReportMeta): string[] {
   return meta.lanes && meta.lanes.trim() !== "" ? [`- Lanes: ${meta.lanes.trim()}`] : [];
+}
+
+/** INC-1107 — the repeat lane's selection file, uploaded inside its `e2e-log-repeat` artifact. */
+export const REPEAT_SELECTION_FILE = "local-backend-repeat.txt";
+/** The line scripts/ci/repeat-cap.ts appends for each test run the time cap left unrun. */
+export const TIME_CAP_LINE = "- Not repeated (time cap): ";
+/** The selection step's summary line (local-backend-proof.yml), its counts captured. */
+const REPEAT_SUMMARY =
+  /^- Repeat: each \d+ on both projects; (\d+) tests selected, (\d+) repeated; budget (\d+) s at [\d.]+ s a test; directly changed: (\d+) of (\d+) repeated; importers of a changed helper: (\d+) of (\d+)$/;
+
+/**
+ * INC-1107 — the head's repeat-coverage line, only where the repeat lane is an expected source. An
+ * absent file is named; the selector's "nothing to repeat" is kept; a summary that does not parse
+ * is quoted raw, never counted.
+ */
+export function repeatLines(meta: ReportMeta): string[] {
+  const text = meta.repeatSelection;
+  if (text === undefined) return [];
+  if (text === null) return ["- Repeat: selection not written"];
+  const lines = text
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line !== "");
+  const summary = lines.filter((line) => line.startsWith("- Repeat: ")).at(-1);
+  if (summary === undefined)
+    return [`- Repeat: the selection holds no summary line; its first line: \`${lines[0] ?? ""}\``];
+  if (summary === "- Repeat: nothing to repeat") return [summary];
+  const m = REPEAT_SUMMARY.exec(summary);
+  if (m === null) return [`- Repeat: the selection's summary did not parse: \`${summary}\``];
+  const [, selected, repeated, budget, direct, directAll, helper, helperAll] = m;
+  const capped = lines.filter((line) => line.startsWith(TIME_CAP_LINE)).length;
+  return [
+    `- Repeat: ${repeated} of ${selected} tests repeated — specs directly changed ${direct}/${directAll}, importers of a changed helper ${helper}/${helperAll}; budget ${budget} s${capped > 0 ? `; the time cap left ${capped} test runs` : ""}`,
+  ];
 }
 
 /**
@@ -1662,6 +1706,7 @@ export function renderSources(
       : []),
     attemptLine(meta),
     ...lanesLines(meta),
+    ...repeatLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     // DEC-028 — the verdict line: quarantined failures are excluded from it.
@@ -1840,6 +1885,7 @@ export function renderGreen(
     `- Commit: \`${meta.sha}\``,
     attemptLine(meta),
     ...lanesLines(meta),
+    ...repeatLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Post-test warnings: ${postTestWarnings}`,
     // DEC-078 part 2 — a green run names its flaky count and carries the sections.
@@ -3051,6 +3097,84 @@ async function main() {
           ),
         ],
       );
+      // INC-1107 — the head's repeat-coverage line. The selection file is REAL (REPEAT_FIXTURE);
+      // the two summary shapes are the workflow's own echo lines, filled in; the time-cap line is
+      // repeat-cap.ts's own words.
+      const realSelection = readFileSync(REPEAT_FIXTURE, "utf8");
+      const repeatMeta = (repeatSelection: string | null): ReportMeta => ({
+        ...meta,
+        repeatSelection,
+      });
+      const echoes = [
+        ...laneWorkflow.matchAll(/echo "(- Repeat: each [^"]+)" >> local-backend-repeat\.txt/g),
+      ].map((match) => match[1] ?? "");
+      const values = new Map([
+        ["each", "2"],
+        ["tests", "1393"],
+        ["used", "38"],
+        ["REPEAT_BUDGET_SECONDS", "720"],
+        ["REPEAT_SECONDS_PER_TEST", "4.7"],
+        ["direct_taken", "5"],
+        ["direct_n", "53"],
+        ["helper_taken", "0"],
+        ["helper_n", "60"],
+      ]);
+      const filled = (line: string) =>
+        line.replace(/\$\{?(\w+)\}?/g, (all, name: string) => values.get(name) ?? all);
+      const noneFits = filled(echoes.find((line) => line.includes(", 0 repeated;")) ?? "");
+      const someFit = filled(echoes.find((line) => line.includes("$used repeated")) ?? "");
+      const realLine =
+        "- Repeat: 38 of 1393 tests repeated — specs directly changed 5/53, importers of a changed helper 0/60; budget 720 s";
+      const capped = `${realSelection}${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [mobile-360]\n${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [desktop-1280]\n`;
+      const oneSource: Source = { label: "repeat", json: null, logTail: null };
+      checks.push(
+        [
+          "INC-1107 the real selection reads as its counts",
+          repeatLines(repeatMeta(realSelection)).join("\n") === realLine,
+        ],
+        [
+          "INC-1107 the workflow's summary echo is the shape the reader parses",
+          echoes.length === 2 && repeatLines(repeatMeta(`${someFit}\n`)).join("\n") === realLine,
+        ],
+        [
+          "INC-1107 selected but none fits: the workflow writes the counts, 0 repeated",
+          repeatLines(repeatMeta(`- Not repeated: e2e/a.spec.ts (20 tests)\n${noneFits}\n`)).join(
+            "\n",
+          ) ===
+            "- Repeat: 0 of 1393 tests repeated — specs directly changed 0/53, importers of a changed helper 0/60; budget 720 s" &&
+            laneWorkflow.split('echo "- Repeat: nothing to repeat"').length === 2,
+        ],
+        [
+          "INC-1107 the time cap's lines are counted in repeat-cap.ts's own words",
+          readFileSync("scripts/ci/repeat-cap.ts", "utf8").includes(
+            `\`${TIME_CAP_LINE}\${title}\\n\``,
+          ) &&
+            repeatLines(repeatMeta(capped)).join("\n") ===
+              `${realLine}; the time cap left 2 test runs`,
+        ],
+        [
+          "INC-1107 nothing selected, no file, no summary, an unparsed summary",
+          repeatLines(repeatMeta("- Repeat: nothing to repeat\n")).join("\n") ===
+            "- Repeat: nothing to repeat" &&
+            repeatLines(repeatMeta(null)).join("\n") === "- Repeat: selection not written" &&
+            repeatLines(repeatMeta("- Not repeated: e2e/a.spec.ts (20 tests)\n")).join("\n") ===
+              "- Repeat: the selection holds no summary line; its first line: `- Not repeated: e2e/a.spec.ts (20 tests)`" &&
+            repeatLines(repeatMeta("- Repeat: each two on both projects\n")).join("\n") ===
+              "- Repeat: the selection's summary did not parse: `- Repeat: each two on both projects`",
+        ],
+        [
+          "INC-1107 the line sits in the head only where the repeat lane is expected",
+          renderGreen(repeatMeta(realSelection), 0, [], new Map(), [], allow).includes(
+            `${realLine}\n`,
+          ) &&
+            renderSources([oneSource], repeatMeta(null), new Map(), []).includes(
+              "- Repeat: selection not written\n",
+            ) &&
+            !renderGreen(meta, 0, [], new Map(), [], allow).includes("- Repeat:") &&
+            !renderSources([oneSource], meta, new Map(), []).includes("- Repeat:") &&
+            !renderLanesSkipped(repeatMeta(realSelection)).includes("- Repeat:"),
+        ],
+      );
       // (b) every expected log read, none carrying either tag: REAL captured
       // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
       const quietLog = redact(readFileSync("scripts/fixtures/e2e-log-boot-crash.log.txt", "utf8"));
@@ -3179,6 +3303,11 @@ async function main() {
     .map((s) => s.trim())
     .filter(Boolean)
     .map((s) => ({ id: s.replace(/\?$/, ""), optional: s.endsWith("?") }));
+  // INC-1107 — read outside the source loop: a repeat lane that repeated nothing uploads no results.
+  if (expected.some((source) => source.id === "repeat"))
+    meta.repeatSelection = logsDir
+      ? await readLog(`${logsDir}/e2e-log-repeat/${REPEAT_SELECTION_FILE}`)
+      : null;
 
   const sources: Source[] = [];
   let found = 0;
