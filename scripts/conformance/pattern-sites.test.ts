@@ -11,13 +11,13 @@ import { readAllowlist, report, walkFiles } from "./kit";
  * (`<file> (<sites>)`, a count only falls); the reviewed-site marker for Semgrep's
  * detect-non-literal-regexp sits on pattern.ts's one site and nowhere else but an allowlisted file;
  * and `authored` (a pattern its author wrote as text, compiled as written) is imported by the
- * brief laws alone.
+ * brief laws and the E2E reporter's redaction-rules loader (DEC-368) alone.
  */
 
 const HELPER = "scripts/lib/pattern.ts";
 const REVIEWED = "Reviewed (DEC-153): every interpolated part is escaped by literal() above";
 const MARKER = "nosemgrep: detect-non-literal-regexp";
-const AUTHORED_CALLERS = ["scripts/brief/go-laws.ts"];
+const AUTHORED_CALLERS = ["scripts/brief/go-laws.ts", "scripts/e2e-failure-report.ts"];
 
 type Census = { sites: number[]; markers: number[]; authored: boolean };
 
@@ -61,7 +61,7 @@ function findingsOf(file: string, census: Census, text: string, allowed: Set<str
     findings.push({
       file,
       line: 1,
-      what: "imports authored (only the brief laws compile a pattern as written)",
+      what: "imports authored (only the brief laws and the rules loader compile a pattern as written)",
     });
   if (file === HELPER) {
     const lines = text.split("\n");
@@ -130,7 +130,7 @@ describe("every RegExp a script builds goes through scripts/lib/pattern.ts (CF-P
     const census = censusOf(file, planted);
     expect(census).toEqual({ sites: [3, 4], markers: [2], authored: true });
     expect(findingsOf(file, census, planted, new Set()).map((f) => `${f.line} ${f.what}`)).toEqual([
-      "1 imports authored (only the brief laws compile a pattern as written)",
+      "1 imports authored (only the brief laws and the rules loader compile a pattern as written)",
       "3 builds a RegExp outside scripts/lib/pattern.ts",
       "4 builds a RegExp outside scripts/lib/pattern.ts",
       "2 carries the reviewed-site marker outside pattern.ts",

@@ -249,7 +249,9 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // redact.test.ts CF-REDACT-1/2, backend-config.test.ts CF-BCFG-1/2 and ci-images.test.ts
     // CF-CI-IMG-5 (housekeeping turn 3 Part E) are discovered by test:unit's scripts/**/*.test.ts;
     // local-backend-proof.yml imports scripts/ci/redact.py and runs scripts/ci/backend-config.py.
-    expect(readFileSync(join(ROOT, "scripts/ci/redact.test.ts"), "utf8")).toContain("CF-REDACT-2");
+    // CF-REDACT-3 (housekeeping turn 3b, DEC-368): redact.py and scripts/e2e-failure-report.ts read
+    // scripts/ci/redaction-rules.json.
+    expect(readFileSync(join(ROOT, "scripts/ci/redact.test.ts"), "utf8")).toContain("CF-REDACT-3");
     expect(readFileSync(join(ROOT, "scripts/ci/backend-config.test.ts"), "utf8")).toContain(
       "CF-BCFG-2",
     );

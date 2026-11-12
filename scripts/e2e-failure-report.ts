@@ -17,8 +17,8 @@
  * failure's last 20 lines.
  *
  * Laws it honours:
- *  - F1/F4: nothing secret is ever written. Anything shaped like an auth-token
- *    storage key or a JWT is redacted before it reaches the file.
+ *  - F1/F4: nothing secret is ever written. Every quoted text passes through
+ *    `redact` (scripts/ci/redaction-rules.json, DEC-368) before it reaches the file.
  *  - Guard self-test (docs/features/ci-guards.md): SELF_TEST=1 renders REAL
  *    captured fixtures and asserts both failures, the quoted context and the
  *    missing-context branch are present — a reporter that only ever prints "no
@@ -29,8 +29,10 @@
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { errorText } from "../src/lib/error-text";
+import { authored } from "./lib/pattern";
 
 /**
  * INC-108 — THE OUTPUT PATH AND THE SOURCE LABEL ARE INPUTS, NOT CONSTANTS.
@@ -112,13 +114,119 @@ type PwJson = {
   errors?: Array<{ message?: string; stack?: string; location?: { file?: string; line?: number } }>;
 };
 
-// eslint-disable-next-line no-control-regex -- stripping real ANSI colour codes is the point
-const ANSI = /\u001b\[[0-9;]*m/g;
-const JWT = /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g;
-const STORAGE_KEY = /sb-[A-Za-z0-9-]+-auth-token/g;
+/* -------------------------------------------------------------------------- */
+/* redaction (DEC-368)                                                          */
+/* -------------------------------------------------------------------------- */
 
-export function redact(input: string): string {
-  return input.replace(ANSI, "").replace(JWT, "[redacted-jwt]").replace(STORAGE_KEY, "[redacted]");
+/**
+ * DEC-368 (housekeeping turn 3b) — the reporter redacts by scripts/ci/redaction-rules.json, the
+ * rule set scripts/ci/redact.py reads too (CF-REDACT-3: the same bytes from both). A missing or
+ * malformed file, or a pattern JavaScript cannot compile, throws at load: never a raw write. The
+ * reporter's own identifiers (the run, the commit, the attempt, the lanes, the ledger's commit)
+ * are written from `ReportMeta`, never through `redact`.
+ */
+export type RedactionRule =
+  | { name: string; rx: RegExp; replacement: string; keepEnv: string | null }
+  | { name: string; env: readonly string[]; replacement: string };
+
+const RULES_FILE = join(dirname(fileURLToPath(import.meta.url)), "ci/redaction-rules.json");
+const RULES_NAME = "redaction-rules.json";
+const PATTERN_KEYS = "name,pattern,replacement";
+const ENV_KEYS = "env,name,replacement";
+const GROUP_REFERENCE = /\$([1-9])/g;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function ruleOf(raw: unknown): RedactionRule {
+  if (!isRecord(raw) || typeof raw["name"] !== "string")
+    throw new Error(`${RULES_NAME}: a rule without a name`);
+  const name = raw["name"];
+  const replacement = raw["replacement"];
+  if (typeof replacement !== "string")
+    throw new Error(`${RULES_NAME}: rule ${name}: no replacement`);
+  const keys = Object.keys(raw).sort();
+  const env = raw["env"];
+  if (env !== undefined) {
+    if (
+      keys.join() !== ENV_KEYS ||
+      !Array.isArray(env) ||
+      !env.every((value): value is string => typeof value === "string")
+    )
+      throw new Error(`${RULES_NAME}: rule ${name}: an environment rule is { ${ENV_KEYS} }`);
+    return { name, env, replacement };
+  }
+  const keepEnv = raw["keep_env"];
+  const source = raw["pattern"];
+  if (
+    keys.filter((key) => key !== "keep_env").join() !== PATTERN_KEYS ||
+    (keepEnv !== undefined && typeof keepEnv !== "string")
+  )
+    throw new Error(
+      `${RULES_NAME}: rule ${name}: a pattern rule is { ${PATTERN_KEYS} } and keep_env`,
+    );
+  if (typeof source !== "string" || /\\[sS]/.test(source))
+    throw new Error(`${RULES_NAME}: rule ${name}: a pattern is a string without \\s or \\S`);
+  if (replacement.replace(GROUP_REFERENCE, "").includes("$"))
+    throw new Error(`${RULES_NAME}: rule ${name}: a "$" that names no group`);
+  let rx: RegExp;
+  try {
+    rx = authored(source, "g");
+  } catch (error) {
+    throw new Error(`${RULES_NAME}: rule ${name}: ${errorText(error)}`);
+  }
+  return { name, rx, replacement, keepEnv: keepEnv ?? null };
+}
+
+/** The ordered rules of the file's text; anything malformed throws. */
+export function redactionRules(text: string): RedactionRule[] {
+  const data: unknown = JSON.parse(text);
+  if (
+    !isRecord(data) ||
+    Object.keys(data).sort().join() !== "about,rules" ||
+    !Array.isArray(data["rules"])
+  )
+    throw new Error(`${RULES_NAME}: the file is { about, rules }`);
+  return data["rules"].map(ruleOf);
+}
+
+const RULES = redactionRules(readFileSync(RULES_FILE, "utf8"));
+
+function patternOf(name: string): RegExp {
+  const rule = RULES.find((candidate) => candidate.name === name);
+  if (rule === undefined || "env" in rule)
+    throw new Error(`${RULES_NAME}: no pattern rule ${name}`);
+  return rule.rx;
+}
+
+const ANSI = patternOf("ANSI");
+
+/** `$1` … `$9` of a replacement, from the match's groups (an unmatched group is empty, as in Python). */
+function expand(replacement: string, groups: readonly unknown[]): string {
+  return replacement.replace(GROUP_REFERENCE, (_, n: string) => {
+    const group = groups[Number(n) - 1];
+    return typeof group === "string" ? group : "";
+  });
+}
+
+/** Every rule of redaction-rules.json, in its order. */
+export function redact(input: string, rules: readonly RedactionRule[] = RULES): string {
+  let text = input;
+  for (const rule of rules) {
+    if ("env" in rule) {
+      for (const name of rule.env) {
+        const value = process.env[name];
+        if (value) text = text.split(value).join(rule.replacement);
+      }
+      continue;
+    }
+    const keep = rule.keepEnv === null ? "" : (process.env[rule.keepEnv] ?? "");
+    text = text.replace(rule.rx, (match: string, ...groups: unknown[]) =>
+      keep !== "" && match === keep ? match : expand(rule.replacement, groups),
+    );
+  }
+  return text;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2006,6 +2114,28 @@ async function main() {
     if (out.includes("eyJhbGciOi") || /sb-[a-z]+-auth-token/.test(out)) {
       console.error("SELF-TEST FAILED — secret-shaped text survived redaction.");
       process.exit(1);
+    }
+    {
+      // DEC-368 — the union masks every 32+ hex string but GITHUB_SHA's; the reporter's own
+      // identifiers never pass through it, so a head block keeps a commit the rules would mask.
+      const sha = "0123456789abcdef".repeat(3).slice(0, 40);
+      const headMeta = { runId: "self-test", runUrl: "", sha, attempt: "2" };
+      const crash = renderCrash(new Error(`boom at ${sha}`), headMeta, [`title ${sha}`]);
+      const green = renderGreen(headMeta);
+      const headChecks: Array<[string, boolean]> = [
+        ["the crash form's head block keeps its commit", crash.includes(`- Commit: \`${sha}\``)],
+        ["the green form's head block keeps its commit", green.includes(`- Commit: \`${sha}\``)],
+        [
+          "the quoted text masks it",
+          crash.split(sha).length === 2 && crash.includes("[masked hex]"),
+        ],
+        ["the rules are the file's, ANSI first", RULES[0]?.name === "ANSI"],
+      ];
+      const headFailed = headChecks.filter(([, ok]) => !ok).map(([name]) => name);
+      if (headFailed.length > 0) {
+        console.error(`SELF-TEST FAILED — DEC-368 head block: ${headFailed.join("; ")}`);
+        process.exit(1);
+      }
     }
 
     // INC-084e — LIVE-SHAPE REHEARSAL. actions/download-artifact@v4 with a

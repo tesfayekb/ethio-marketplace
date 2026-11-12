@@ -1,0 +1,51 @@
+{
+  "about": "DEC-368 (housekeeping turn 3b) — the ONE ordered redaction rule set of every evidence writer: scripts/ci/redact.py (the lanes) and scripts/e2e-failure-report.ts `redact` (the E2E reporter) read this file; scripts/ci/redact.test.ts CF-REDACT-3 proves both give byte-identical output. A rule is a pattern rule { name, pattern, replacement, keep_env? } (a match equal to the keep_env variable's value stays) or an environment rule { name, env, replacement } (each named variable's value, when set, replaced as text). Patterns use only what Python's re (under re.ASCII) and JavaScript's RegExp read alike: no \\s or \\S, no (?P<…>) and no (?<name>…). A replacement names a group only as $1 … $9 and holds no other $.",
+  "rules": [
+    {
+      "name": "ANSI",
+      "pattern": "\\u001b\\[[0-9;]*m",
+      "replacement": ""
+    },
+    {
+      "name": "ACCOUNT_ID",
+      "pattern": "\\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\\b",
+      "replacement": "[account id]"
+    },
+    {
+      "name": "SECRET_VALUES",
+      "env": ["E2E_SUPABASE_PUBLISHABLE_KEY", "E2E_SUPABASE_SERVICE_ROLE_KEY"],
+      "replacement": "[masked]"
+    },
+    {
+      "name": "JWT",
+      "pattern": "\\beyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\b",
+      "replacement": "[masked JWT]"
+    },
+    {
+      "name": "SUPABASE_KEY",
+      "pattern": "\\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\\b",
+      "replacement": "[masked key]"
+    },
+    {
+      "name": "STORAGE_KEY",
+      "pattern": "sb-[A-Za-z0-9-]+-auth-token",
+      "replacement": "[masked]"
+    },
+    {
+      "name": "EMAIL",
+      "pattern": "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}",
+      "replacement": "[e-mail]"
+    },
+    {
+      "name": "STORAGE_KEY_ROW",
+      "pattern": "(│[ \\t]*(?:Access Key|Secret Key)[ \\t]*│[ \\t]*)[^│]*?([ \\t]*│)",
+      "replacement": "$1[masked]$2"
+    },
+    {
+      "name": "LONG_HEX",
+      "pattern": "[0-9a-fA-F]{32,}",
+      "replacement": "[masked hex]",
+      "keep_env": "GITHUB_SHA"
+    }
+  ]
+}

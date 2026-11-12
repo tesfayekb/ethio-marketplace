@@ -744,8 +744,22 @@ Four of turn 2's runs (43033934604, 43036501908 and its re-run, 43041366407) los
   `redact` masks account ids first. A failed import fails the step loudly, never a raw write.
   Guards: CF-REDACT-1 (`scripts/ci/redact.test.ts`: the module on the INC-794 probes and every
   pattern), CF-REDACT-2 (no workflow defines `redact`/`safe` or masks account ids itself; every
-  program calling `redact(` imports the module; a planted copy is named), LFE-1…3. The TypeScript
-  reporter's `redact` (scripts/e2e-failure-report.ts) is a second rule set, left for turn 3b.
+  program calling `redact(` imports the module; a planted copy is named), LFE-1…3.
+- **One rule set for every evidence writer (housekeeping turn 3b, DEC-368).** The rules live in
+  `scripts/ci/redaction-rules.json`, an ordered list both writers read: redact.py and the E2E
+  reporter's `redact` (scripts/e2e-failure-report.ts). The order is ANSI colour codes, account ids,
+  the two staging keys' values (an environment rule), JWTs, `sb_` keys, `sb-…-auth-token` storage
+  key names, e-mail addresses, the CLI's storage key rows, then 32+ hex strings except the
+  `GITHUB_SHA` value (`keep_env`). Every pattern is one both engines read alike: Python compiles
+  under `re.ASCII`, and no pattern uses `\s` or `\S`. A replacement names groups as `$1` … `$9`,
+  which redact.py translates at load. Each loader refuses an unknown key, a `$` that names no group
+  and a pattern its engine cannot compile, so a missing or malformed file fails the writer loudly.
+  The reporter's own identifiers never pass through the rules: the run, the commit, the attempt,
+  the lanes and the ledger's commit are written from its `ReportMeta`. The reporter's self-test
+  proves the head block keeps a 40-hex commit after the rules run. CF-REDACT-3
+  (`scripts/ci/redact.test.ts`) runs both writers on the probes and one string per rule, requires
+  byte-identical output, and plants a Python-only and a JavaScript-only rule, each refused by the
+  other engine's loader.
 - **The CLI version once.** The top-level `SUPABASE_CLI_VERSION` is the only literal: both setup-cli
   steps read `${{ env.SUPABASE_CLI_VERSION }}` and the lane evidence prints the env's value.
   CF-CI-IMG-5 (`scripts/conformance/ci-images.test.ts`) names any line that restates it. The pin
