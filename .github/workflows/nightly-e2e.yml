@@ -141,6 +141,10 @@ jobs:
       - name: Run nightly E2E (real-elapsed-time cases)
         id: run
         continue-on-error: true
+        # DEC-369: this run owns the maintenance pass on ethio-staging (once a night; the serial
+        # run below does not). CF-CID-7.
+        env:
+          E2E_MAINTENANCE: "1"
         run: |
           set -o pipefail
           bunx playwright test -c playwright.nightly.config.ts 2>&1 | tee nightly.log

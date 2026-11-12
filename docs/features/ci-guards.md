@@ -383,8 +383,11 @@ and `e2e-last-failure.md` always describe HEAD.
 
 Every parallel test process derives
 `PROCESS_ID = ${GITHUB_RUN_ID ?? local<rand>}-${E2E_SHARD ?? "solo"}`.
-`ci.yml` sets `E2E_SHARD: ${{ matrix.shard }}` on the shard matrix and
-`E2E_SHARD: smoke` on the smoke tier; `nightly-e2e.yml` sets `E2E_SHARD: nightly`.
+`ci.yml` no longer runs a staging shard matrix (since cc93140c2, 2026-10-21); the
+temporary-backend lanes of `local-backend-proof.yml` set `E2E_SHARD: localproof` (smoke) or
+`local-<lane>`, and `nightly-e2e.yml` sets `E2E_SHARD: nightly`. The maintenance pass's owner is
+`E2E_MAINTENANCE=1`, set by lane 1's proof step and the nightly's first Playwright run (DEC-369,
+CF-CID-7).
 
 - Minted fixtures are
   `e2e+<PROCESS_ID>-<workerTag>-<n>-<rand6>@ethio-e2e.invalid`, where

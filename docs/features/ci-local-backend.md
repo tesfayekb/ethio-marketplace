@@ -532,7 +532,9 @@ CI evidence read at the start of turn 15 still named run 1063.
 
 The non-gating proof now runs thirteen lanes: smoke and shards 1–12, each on its
 own temporary backend, with its own unchanged migration working copy, build and
-Chromium. The smoke lane keeps `E2E_SHARD=localproof`; shards use `local-<n>`.
+Chromium. The smoke lane keeps `E2E_SHARD=localproof`; shards use `local-<n>`. (Since
+housekeeping turn 3c, lane 1's proof step also sets `E2E_MAINTENANCE: "1"`, so it alone runs the
+maintenance pass on its backend — DEC-369, CF-CID-7.)
 The shard lanes use twelve slices of the two CI viewport projects, excluding
 `@global-state|@a11y`. `email-serial` is not run. Only the summary job publishes:
 it gathers lane fragments, JSON results and logs, lists missing evidence, totals

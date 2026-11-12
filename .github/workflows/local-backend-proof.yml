@@ -746,6 +746,10 @@ jobs:
       - name: Run proof lane
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         id: smoke
+        # DEC-369: lane 1 owns the maintenance pass on its temporary backend; every other lane skips
+        # it (the variable is empty). CF-CID-7.
+        env:
+          E2E_MAINTENANCE: ${{ matrix.lane == '1' && '1' || '' }}
         run: |
           begin=$(date +%s)
           set +e

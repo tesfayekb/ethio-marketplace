@@ -295,6 +295,97 @@ describe("every evidence publication names its ref (DEC-321)", () => {
 });
 
 /**
+ * DEC-369 (housekeeping turn 3c, INC-1108) — THE MAINTENANCE PASS HAS AN OWNER ON EVERY BACKEND.
+ * e2e/global-setup.ts runs the pass (reaper, prune, storage sweeps, tripwire) only for the run that
+ * carries `E2E_MAINTENANCE=1`. Two steps set it, each in its own `env:`: the nightly's first
+ * Playwright run (ethio-staging; its serial run does not) and the lanes' proof step, for lane 1
+ * alone (its temporary backend). An owner without the line, or the variable set anywhere else, is
+ * a breach.
+ */
+export const MAINTENANCE_OWNERS = [
+  {
+    file: "nightly-e2e.yml",
+    step: "Run nightly E2E (real-elapsed-time cases)",
+    value: '"1"',
+  },
+  {
+    file: "local-backend-proof.yml",
+    step: "Run proof lane",
+    value: "${{ matrix.lane == '1' && '1' || '' }}",
+  },
+] as const;
+
+export function maintenanceOwnerFindings(files: Array<{ file: string; text: string }>): Finding[] {
+  const findings: Finding[] = [];
+  for (const { file, text } of files) {
+    const owners = MAINTENANCE_OWNERS.filter((o) => o.file === basename(file));
+    const sets = text.split("\n").filter((l) => /E2E_MAINTENANCE/.test(l) && !/^\s*#/.test(l));
+    let kept = 0;
+    const seen = new Set<string>();
+    for (const job of readWorkflow(file, text))
+      for (const step of job.steps) {
+        const owner = owners.find((o) => /- name: (.+)/.exec(step.text)?.[1] === o.step);
+        if (owner === undefined) continue;
+        seen.add(owner.step);
+        if (step.text.split("\n").includes(`          E2E_MAINTENANCE: ${owner.value}`)) kept += 1;
+        else
+          findings.push({
+            file,
+            line: step.line,
+            what: `the maintenance owner's step does not set E2E_MAINTENANCE: ${owner.value} in its env (DEC-369)`,
+          });
+      }
+    for (const owner of owners)
+      if (!seen.has(owner.step))
+        findings.push({
+          file,
+          line: 0,
+          what: `the maintenance owner's step "${owner.step}" is gone (DEC-369)`,
+        });
+    if (sets.length > kept)
+      findings.push({
+        file,
+        line: 0,
+        what: `E2E_MAINTENANCE is set outside its owner's step (${sets.length - kept}) (DEC-369)`,
+      });
+  }
+  return findings;
+}
+
+describe("the maintenance pass has an owner on every backend (DEC-369)", () => {
+  it("CF-CID-7 the nightly's first Playwright run and lane 1's proof step set E2E_MAINTENANCE, and nothing else does", () => {
+    expect(report(maintenanceOwnerFindings(workflows))).toBe("");
+    for (const owner of MAINTENANCE_OWNERS)
+      expect(workflows.map((w) => basename(w.file))).toContain(owner.file);
+    // Planted breaches, one for each owner: its line removed; and the mark set on a third step.
+    for (const owner of MAINTENANCE_OWNERS) {
+      const real = workflows.find((w) => basename(w.file) === owner.file);
+      expect(real).toBeDefined();
+      if (real === undefined) continue;
+      const line = `          E2E_MAINTENANCE: ${owner.value}\n`;
+      expect(real.text).toContain(line);
+      const bare = real.text.replace(line, "");
+      expect(report(maintenanceOwnerFindings([{ file: real.file, text: bare }]))).toMatch(
+        /the maintenance owner's step does not set E2E_MAINTENANCE: .+ in its env \(DEC-369\)$/,
+      );
+    }
+    const third = [
+      "jobs:",
+      "  other:",
+      "    steps:",
+      "      - name: Run something",
+      "        env:",
+      '          E2E_MAINTENANCE: "1"',
+      "        run: bunx playwright test",
+      "",
+    ].join("\n");
+    expect(report(maintenanceOwnerFindings([{ file: "planted.yml", text: third }]))).toBe(
+      "planted.yml:0 E2E_MAINTENANCE is set outside its owner's step (1) (DEC-369)",
+    );
+  });
+});
+
+/**
  * DEC-284 (INC-991) — THE TEMPORARY BACKEND'S PORTS SIT BELOW THE EPHEMERAL RANGE. Lane 3 of run
  * 40854479197 lost its start to a connection the runner opened on 54324 at job start, before the
  * reservation step could run (INC-935's class). Every `port`/`shadow_port` the CI-local config

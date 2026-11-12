@@ -590,10 +590,11 @@ export default async function globalSetup() {
   //     Every sharded job used to run the full reaper + prune + storage sweep +
   //     tripwire at t=0, so N jobs hammered the same staging tables at the same
   //     instant (the thundering herd behind the 57014 statement timeouts).
-  //     Shard 1 owns maintenance; every other job logs the skip and proceeds
-  //     straight to its own minted user. An unsharded (local/solo) run has no
-  //     herd and keeps ownership. The TEARDOWN is untouched.
-  // DEC-142 — E2E_MAINTENANCE=1 lets a local run prove the reapers (CI never sets it).
+  //     One owner per backend (DEC-369): lane 1 owns the pass on a temporary
+  //     backend; the nightly's first run owns it on staging; E2E_MAINTENANCE=1 is
+  //     the owner's mark. Every other job logs the skip and proceeds straight to
+  //     its own minted user. An `e2e:local` run sets `local` and skips unless it
+  //     sets the mark (DEC-142). The TEARDOWN is untouched.
   const maintenanceOwner =
     (process.env["E2E_SHARD"] ?? "1") === "1" || process.env["E2E_MAINTENANCE"] === "1";
   if (!maintenanceOwner) {
