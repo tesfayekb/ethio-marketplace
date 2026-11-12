@@ -18,6 +18,11 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  * - CF-HELPERS-3: no e2e/*.spec.ts writes `profiles.preferred_language`; a spec sets it through
  *   the language module (`.from("profiles").update({ … preferred_language`, matched across lines).
  *   The lease (users.ts) and the pooled super admin's reset (ui.ts) write the NULL baseline themselves.
+ * - CF-HELPERS-5 (housekeeping turn 3b, INC-1103, DEC-367): no e2e/*.spec.ts calls
+ *   `watchAccountLanguage` or `consumeAccountLanguage`, and the page's settled-language attribute
+ *   (`data-lang-settled`, the dataset key `langSettled`) is named in src/ only by
+ *   src/i18n/provider.tsx (its one home) and that rule's unit test, and in e2e/ only under
+ *   e2e/helpers/ — every pick waits for it through `switchLanguage` (e2e/helpers/ui.ts).
  * - CF-HELPERS-7 (housekeeping turn 3b, ruling 1 item 6, INC-1102's class in the e2e tree): no
  *   file under e2e/helpers/, nor e2e/global-setup.ts or e2e/global-teardown.ts, calls `new RegExp(`
  *   or `RegExp(` — a pattern built from text goes through `matcher` (e2e/helpers/ui.ts, over
@@ -45,11 +50,15 @@ export const COPIED_NAMES = [
   "setAmharicAccount",
   "setAccountLanguage",
   "seedAccountLanguage",
+  "waitForLanguageSettled",
 ];
 const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
   /\.from\(\s*["'`]profiles["'`]\s*\)\s*\.update\(\s*\{[^}]*?\bpreferred_language\b/g;
 export const LANGUAGE_HOME = "e2e/helpers/account-language.ts";
+const WATCH_CALL = /\b(?:watchAccountLanguage|consumeAccountLanguage)\s*\(/;
+const SETTLED_NAME = /data-lang-settled|\blangSettled\b/;
+export const SETTLED_HOMES = ["src/i18n/provider.tsx", "src/i18n/provider-d239.test.tsx"];
 const ALLOWLIST = "scripts/conformance/e2e-helpers-allowlist.txt";
 
 type HelperFinding = { file: string; line: number; what: string; key: string };
@@ -122,6 +131,48 @@ export function languageWriteFindings(files: string[], home = LANGUAGE_HOME): He
   return findings;
 }
 
+/** CF-HELPERS-5 — a spec arming the account-language watch itself. */
+export function watchCallFindings(specs: string[]): HelperFinding[] {
+  return specs.flatMap((file) =>
+    codeOf(readFileSync(file, "utf8"))
+      .split("\n")
+      .flatMap((text, index) =>
+        WATCH_CALL.test(text)
+          ? [
+              {
+                file,
+                line: index + 1,
+                what: "arms the account-language watch itself: switchLanguage waits (DEC-367)",
+                key: `${file} watch`,
+              },
+            ]
+          : [],
+      ),
+  );
+}
+
+/** CF-HELPERS-5 — the settled-language attribute named outside its homes. */
+export function settledNameFindings(files: string[]): HelperFinding[] {
+  return files
+    .filter((file) => !SETTLED_HOMES.includes(file) && !file.startsWith("e2e/helpers/"))
+    .flatMap((file) =>
+      readFileSync(file, "utf8")
+        .split("\n")
+        .flatMap((text, index) =>
+          SETTLED_NAME.test(text)
+            ? [
+                {
+                  file,
+                  line: index + 1,
+                  what: "names data-lang-settled outside src/i18n/provider.tsx and e2e/helpers/ (DEC-367)",
+                  key: `${file} data-lang-settled`,
+                },
+              ]
+            : [],
+        ),
+    );
+}
+
 /** CF-HELPERS-7 — a RegExp built by hand where the harness has `matcher`. */
 export function regexpSiteFindings(files: string[]): HelperFinding[] {
   const findings: HelperFinding[] = [];
@@ -157,13 +208,15 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3 and CF-HELPERS-7 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no harness file builds a RegExp by hand",
+    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 and CF-HELPERS-7 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file builds a RegExp by hand",
     () => {
       const files = e2eFiles();
       const findings = [
         ...copyFindings(specs(), COPIED_NAMES),
         ...hooksDisableFindings(files),
         ...languageWriteFindings(specs()),
+        ...watchCallFindings(specs()),
+        ...settledNameFindings([...files, ...walkFiles(["src"], { ext: ["ts", "tsx"] })]),
         ...regexpSiteFindings(harnessFiles(files)),
       ];
       const allowances = readAllowlist(
@@ -179,7 +232,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
     TREE_SCAN_MS,
   );
 
-  it("planted: CF-HELPERS-1 → CF-HELPERS-3 and CF-HELPERS-7 each find their planted copy, disable, write and RegExp", () => {
+  it("planted: CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 and CF-HELPERS-7 each find their planted copy, disable, write, watch, attribute and RegExp", () => {
     const dir = mkdtempSync(join(tmpdir(), "e2e-helpers-"));
     try {
       const spec = join(dir, "planted.spec.ts");
@@ -237,6 +290,26 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
       );
       expect(regexpSiteFindings([helper]).map((f) => f.line)).toEqual([2, 3]);
       expect(regexpSiteFindings([clean])).toEqual([]);
+      const waits = join(dir, "waits.spec.ts");
+      writeFileSync(
+        waits,
+        [
+          'import { watchAccountLanguage } from "./helpers/ui";',
+          "const account = watchAccountLanguage(page);",
+          "await consumeAccountLanguage (page);",
+          'await expect(page.locator("html")).toHaveAttribute("data-lang-settled", "1");',
+          'document.documentElement.dataset["langSettled"] = "1";',
+          "// switchLanguage waits for the page",
+          "",
+        ].join("\n"),
+      );
+      expect(watchCallFindings([waits]).map((f) => f.line)).toEqual([2, 3]);
+      expect(settledNameFindings([waits]).map((f) => f.line)).toEqual([4, 5]);
+      expect(
+        settledNameFindings([...SETTLED_HOMES, "e2e/helpers/ui.ts"]),
+        "the homes may name it",
+      ).toEqual([]);
+      expect(watchCallFindings([clean])).toEqual([]);
       expect(
         harnessFiles([
           "e2e/helpers/x.ts",

@@ -222,6 +222,19 @@ function requestedFromUrl(): string | null {
 }
 
 /**
+ * DEC-367 — THE PAGE SAYS WHEN ITS LANGUAGE IS SETTLED: `data-lang-settled="1"`
+ * on `<html>`, written only by the account rule below (its one home, as
+ * `data-app-ready` has one in router.tsx). The e2e pick helper waits for it.
+ */
+function settle(): void {
+  document.documentElement.dataset["langSettled"] = "1";
+}
+
+function unsettle(): void {
+  delete document.documentElement.dataset["langSettled"];
+}
+
+/**
  * U4g-8 (INC-101b) — INVARIANT: THE AUTH CALLBACK OWNS THE AUTH LOCK ON THE
  * FIRST FRAMES; EVERY OTHER PROVIDER'S SUPABASE READ STARTS AFTER AUTH SETTLES.
  *
@@ -479,6 +492,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
    * READ. Signing in is an in-page transition (no remount), so the latch is
    * keyed by the signed-in user id and released on sign-out. A token refresh
    * keeps the id, so it never re-runs the rule.
+   *
+   * DEC-367 — every exit of the rule calls `settle()` (a save, after it
+   * answers), and a new identity's read starts with `unsettle()`: `<html>`
+   * carries `data-lang-settled="1"` exactly when no read can still replace a
+   * pick. A read that a newer identity overtook settles nothing.
    */
   const languageRef = useRef(language);
   useEffect(() => {
@@ -489,31 +507,50 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (userId === null) {
       // Signed out: nothing to decide; the next sign-in gets its own attempt.
       carriedForRef.current = null;
+      settle();
       return;
     }
     if (carriedForRef.current === userId) return;
     carriedForRef.current = userId;
-    if (requestedFromUrl() !== null) return;
+    unsettle();
+    if (requestedFromUrl() !== null) {
+      settle();
+      return;
+    }
+    const settleRead = () => {
+      if (carriedForRef.current === userId) settle();
+    };
     void fetchPreferredLanguage()
       .then((read) => {
         if (!read.ok) {
           if (!read.signedOut) {
             console.warn(`[i18n] account language read failed: ${read.error.failure.message}`);
           }
+          settleRead();
           return;
         }
         const code = read.code;
         if (code === null) {
           const current = languageRef.current;
-          if (!isPublic(current)) return;
-          void savePreferredLanguage(current).then((result) => {
-            if (!result.ok && result.reason !== "no session") {
-              console.warn(`[i18n] account language save failed for ${current}: ${result.reason}`);
-            }
-          });
+          if (!isPublic(current)) {
+            settleRead();
+            return;
+          }
+          void savePreferredLanguage(current)
+            .then((result) => {
+              if (!result.ok && result.reason !== "no session") {
+                console.warn(
+                  `[i18n] account language save failed for ${current}: ${result.reason}`,
+                );
+              }
+            })
+            .finally(settleRead);
           return;
         }
-        if (!isLanguageCode(code) || !isPublic(code)) return;
+        if (!isLanguageCode(code) || !isPublic(code)) {
+          settleRead();
+          return;
+        }
         setStarState(code);
         writeDeviceStar(code);
         setLanguageState(code);
@@ -522,11 +559,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         } catch {
           // Storage unavailable; the star cookie still carries the choice.
         }
+        settleRead();
       })
       .catch((error: unknown) => {
         // The read's own code did not download (reported to the shell's notice): the
         // device keeps its choice and nothing is written.
         console.warn(`[i18n] account language read failed: ${errorText(error)}`);
+        settleRead();
       });
   }, [bootRead, authSettled, gateReady, userId, isPublic]);
 

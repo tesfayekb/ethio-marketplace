@@ -81,6 +81,7 @@ function languageShown() {
 const flush = () => act(() => new Promise((resolve) => setTimeout(resolve, 20)));
 
 beforeEach(() => {
+  document.documentElement.removeAttribute("data-lang-settled");
   window.localStorage.clear();
   document.cookie = `${LANGUAGE_STAR_COOKIE}=; Path=/; Max-Age=0`;
   auth.listeners.clear();
@@ -205,5 +206,130 @@ describe("D239 R4 — every open tab follows the star", () => {
     expect(console.warn).not.toHaveBeenCalledWith(
       expect.stringContaining("account language sync failed"),
     );
+  });
+});
+
+/** DEC-367 — the account rule's own readiness attribute on `<html>`. */
+function settled() {
+  return document.documentElement.getAttribute("data-lang-settled");
+}
+
+/** A promise the test answers when it chooses. */
+function deferred<T>() {
+  let answer: (value: T) => void = () => undefined;
+  const promise = new Promise<T>((resolve) => {
+    answer = resolve;
+  });
+  return { promise, answer };
+}
+
+describe("DEC-367 — the page says when its language is settled", () => {
+  it("LANG-D239-U9 every branch of the account rule ends settled: applied, unpublished, failed read, read that threw, a ?lang= view", async () => {
+    const branches: Array<{ name: string; arrange: () => void }> = [
+      {
+        name: "applied",
+        arrange: () => auth.fetchPreferredLanguage.mockResolvedValue({ ok: true, code: "am" }),
+      },
+      {
+        name: "unpublished",
+        arrange: () => auth.fetchPreferredLanguage.mockResolvedValue({ ok: true, code: "ti" }),
+      },
+      {
+        name: "failed read",
+        arrange: () =>
+          auth.fetchPreferredLanguage.mockResolvedValue({
+            ok: false,
+            signedOut: false,
+            error: new ReaderError({ class: "network", message: "Failed to fetch" }),
+          }),
+      },
+      {
+        name: "read threw",
+        arrange: () => auth.fetchPreferredLanguage.mockRejectedValue(new Error("chunk")),
+      },
+      {
+        name: "?lang= view",
+        arrange: () => {
+          auth.fetchPreferredLanguage.mockResolvedValue({ ok: true, code: "am" });
+          window.history.replaceState(null, "", "/?lang=en");
+        },
+      },
+    ];
+    for (const branch of branches) {
+      document.documentElement.removeAttribute("data-lang-settled");
+      auth.fetchPreferredLanguage.mockReset();
+      branch.arrange();
+      const view = render(
+        <I18nProvider>
+          <Probe />
+        </I18nProvider>,
+      );
+      await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
+      expect(settled(), branch.name).toBeNull();
+      emit({ user: { id: `user-${branch.name}` } });
+      await waitFor(() => expect(settled(), branch.name).toBe("1"));
+      view.unmount();
+      window.history.replaceState(null, "", "/");
+    }
+    expect(auth.savePreferredLanguage).not.toHaveBeenCalled();
+  });
+
+  it("LANG-D239-U10 an account with no language settles only after the device's language is saved", async () => {
+    setDevice("am");
+    auth.fetchPreferredLanguage.mockResolvedValue({ ok: true, code: null });
+    const save = deferred<{ ok: true }>();
+    auth.savePreferredLanguage.mockReturnValue(save.promise);
+    await mount();
+    emit({ user: { id: "user-1" } });
+    await waitFor(() => expect(auth.savePreferredLanguage).toHaveBeenCalledWith("am"));
+    await flush();
+    expect(settled()).toBeNull();
+    await act(async () => {
+      save.answer({ ok: true });
+      await save.promise;
+    });
+    await waitFor(() => expect(settled()).toBe("1"));
+  });
+
+  it("LANG-D239-U11 signed out is settled; an in-page sign-in removes it while the read is in flight", async () => {
+    const read = deferred<{ ok: true; code: string }>();
+    auth.fetchPreferredLanguage.mockReturnValue(read.promise);
+    await mount();
+    expect(settled()).toBeNull();
+    emit(null, "INITIAL_SESSION");
+    await waitFor(() => expect(settled()).toBe("1"));
+    emit({ user: { id: "user-1" } });
+    await waitFor(() => expect(auth.fetchPreferredLanguage).toHaveBeenCalledTimes(1));
+    expect(settled()).toBeNull();
+    await act(async () => {
+      read.answer({ ok: true, code: "am" });
+      await read.promise;
+    });
+    await waitFor(() => expect(languageShown()).toBe("am"));
+    expect(settled()).toBe("1");
+  });
+
+  it("LANG-D239-U12 a read a newer identity overtook settles nothing", async () => {
+    const first = deferred<{ ok: true; code: string }>();
+    const second = deferred<{ ok: true; code: string }>();
+    auth.fetchPreferredLanguage
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+    await mount();
+    emit({ user: { id: "user-1" } });
+    await waitFor(() => expect(auth.fetchPreferredLanguage).toHaveBeenCalledTimes(1));
+    emit({ user: { id: "user-2" } });
+    await waitFor(() => expect(auth.fetchPreferredLanguage).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      first.answer({ ok: true, code: "en" });
+      await first.promise;
+    });
+    await flush();
+    expect(settled()).toBeNull();
+    await act(async () => {
+      second.answer({ ok: true, code: "en" });
+      await second.promise;
+    });
+    await waitFor(() => expect(settled()).toBe("1"));
   });
 });

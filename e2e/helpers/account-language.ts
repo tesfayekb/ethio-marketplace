@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
 import { LANGUAGE_STORAGE_KEY } from "../../src/i18n/provider";
-import { switchLanguage, waitForHydration, watchAccountLanguage } from "./ui";
+import { switchLanguage, waitForHydration, waitForLanguageSettled } from "./ui";
 import { adminClient } from "./users";
 
 /**
@@ -48,12 +48,11 @@ export async function setDeviceAmharic(page: Page): Promise<void> {
   );
 }
 
-/** A signed-in reload whose own account read (D239) has answered and been applied. */
+/** A signed-in reload whose own account read (D239) has answered and been applied (DEC-367). */
 async function reloadSettled(page: Page): Promise<void> {
-  const account = watchAccountLanguage(page);
   await page.reload();
   await waitForHydration(page);
-  await account;
+  await waitForLanguageSettled(page);
 }
 
 /**

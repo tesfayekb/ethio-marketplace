@@ -8,7 +8,6 @@ import {
   switchUser,
   waitForHydration,
   signInJobSuperAdmin,
-  watchAccountLanguage,
 } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
@@ -704,9 +703,7 @@ test.describe("C3 attributes console", () => {
       });
       if (error) throw new Error(`AT-12 label seed failed: ${error.message}`);
 
-      const account = watchAccountLanguage(page);
       await gotoReady(page, "/admin/attributes");
-      await account;
       await switchLanguage(page, "am");
       await gotoReady(page, "/admin/attributes");
       await page.getByTestId("attribute-search").fill(key);

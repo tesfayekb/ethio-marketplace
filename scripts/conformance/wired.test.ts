@@ -203,11 +203,12 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(briefLaws).toContain("CF-BRIEF-15");
     expect(briefLaws).toContain('"scripts/brief/check-go.ts"');
     expect(briefLaws).toContain('from "../brief/go-laws"');
-    // e2e-helpers.test.ts CF-HELPERS-1…3 (housekeeping turn 2, INC-1065) is discovered by test:unit's
-    // scripts/**/*.test.ts; it reads e2e/ and e2e-helpers-allowlist.txt.
-    expect(readFileSync(join(ROOT, "scripts/conformance/e2e-helpers.test.ts"), "utf8")).toContain(
-      "CF-HELPERS-3",
-    );
+    // e2e-helpers.test.ts CF-HELPERS-1…3 (housekeeping turn 2, INC-1065), CF-HELPERS-5 and 7
+    // (housekeeping turn 3b: the settled-language attribute, matcher) is
+    // discovered by test:unit's scripts/**/*.test.ts; it reads e2e/, src/ and e2e-helpers-allowlist.txt.
+    const helperLaws = readFileSync(join(ROOT, "scripts/conformance/e2e-helpers.test.ts"), "utf8");
+    for (const id of ["CF-HELPERS-3", "CF-HELPERS-5", "CF-HELPERS-7"])
+      expect(helperLaws).toContain(id);
     // lockfile-hosts.test.ts CF-LOCK-1…2 (the lockfile turn, DEC-363) is discovered by test:unit's
     // scripts/**/*.test.ts; it reads bun.lock and lockfile-hosts-allowlist.txt.
     expect(

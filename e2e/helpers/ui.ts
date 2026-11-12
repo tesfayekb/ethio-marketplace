@@ -1281,60 +1281,23 @@ export function userRow(page: Page, userId: string) {
   return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
 }
 
-function isAccountLanguageRead(response: Response): boolean {
-  return (
-    response.request().method() === "GET" &&
-    response.url().includes("/rest/v1/profiles") &&
-    response.url().includes("select=preferred_language")
-  );
-}
-
-function preferredLanguageCode(body: unknown): string | null {
-  const row = Array.isArray(body) ? body[0] : body;
-  if (typeof row !== "object" || row === null) return null;
-  const value = Object.fromEntries(Object.entries(row))["preferred_language"];
-  return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-async function applyAccountLanguage(page: Page, response: Response) {
-  let code: string | null = null;
-  try {
-    code = preferredLanguageCode(await response.json());
-  } catch {
-    code = null;
-  }
-  if (code === null) return;
-  await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
-}
-
 /**
- * D239 — arm BEFORE the navigation. A signed-in load reads `preferred_language`
- * once and may replace the device's language. A pick made while that read is in
- * flight is overwritten, and `html lang` stays on the account's language.
- * Resolves when that read has been applied. A signed-out load has no such read;
- * the caller does not arm this.
+ * DEC-367 — THE PAGE SAYS WHEN ITS LANGUAGE IS SETTLED. The i18n provider's account rule
+ * (D239) writes `data-lang-settled="1"` on `<html>` when it has run to its end for this
+ * session start, or when no one is signed in; a new identity's read removes it. A pick made
+ * before it could be replaced by that read (INC-1103), so every pick waits here.
  */
-export function watchAccountLanguage(page: Page, timeout = 15000): Promise<void> {
-  return page
-    .waitForResponse(isAccountLanguageRead, { timeout })
-    .then((response) => applyAccountLanguage(page, response));
-}
-
-/**
- * The sign-in page's account read may already have landed by the time the test
- * can arm a watch. A miss here is that case; the next navigation arms its own.
- */
-export async function consumeAccountLanguage(page: Page): Promise<void> {
-  try {
-    await watchAccountLanguage(page, 2000);
-  } catch {
-    // Already applied on the page that is about to be left.
-  }
+export async function waitForLanguageSettled(page: Page, timeout = 15000): Promise<void> {
+  await expect(
+    page.locator("html"),
+    "the page never said its language was settled (DEC-367)",
+  ).toHaveAttribute("data-lang-settled", "1", { timeout });
 }
 
 /** `code` is a public language as the switcher lists it, not only the compiled catalogs. */
 export async function switchLanguage(page: Page, code: string) {
   await waitForHydration(page);
+  await waitForLanguageSettled(page);
   /**
    * INC-1004 — a person opens the switcher only when no menu is open: a click
    * on the trigger while the previous menu is still closing is lost, and the
