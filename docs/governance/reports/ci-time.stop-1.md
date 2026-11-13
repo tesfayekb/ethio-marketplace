@@ -303,3 +303,23 @@ Each candidate cut against the four clauses:
 
 No cut meets the rule, so Part C builds nothing unless ruling 1 says otherwise; each refused cut gets its
 roadmap line in §14.
+
+## This push's full run (added in ruling 1's first commit)
+
+Run 43511822492 on `5a969c237` (the merge ref `d6b8f8246`), green; one worker a lane; read with
+`gh api` (the jobs) and ci-evidence `docs/tracking/branches/cursor/ci-time/local-backend-proof.md`
+(the lanes' clocks); every job's wait and length is in `/tmp/ethio-scratch/ci-time/runs/43511822492.*`.
+
+| Measure | Seconds | Source |
+| --- | --- | --- |
+| push-to-result: the run's creation to its last job's end | 1044 (17.4 min) | jobs API (Promote, skipped, at +1044) |
+| the last lane: lane 6 | ends at +1003; wait 90, length 882 (JOB clock 865, TEST 677) | jobs API, proof file |
+| lane 12 (the census's median lane): start-up before its first test (JOB − TEST) | 175 (814 − 639); START 60 | proof file |
+| start-up (JOB − TEST), lanes 1 → 16 | 152–205, median 176 | proof file |
+| lane waits for a runner | smoke 340, lane 8 147, lane 6 90, email 76, repeat 55, lanes 15 and 16 21 and 20; the rest 2–11 | jobs API |
+| the long jobs | Component tests 417 (ends +421), Semgrep 172, Build 100 | jobs API |
+| the repeat lane | "nothing to repeat" (no spec changed) | proof file |
+
+The waits fall on the lanes that start last again (the smoke lane waited 340 s, the longest of the four
+runs read); lane 6 ended last because it waited 90 s. The concurrency reading of the environments item
+stands.
