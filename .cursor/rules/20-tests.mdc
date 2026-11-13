@@ -28,9 +28,8 @@ must obey too.
   other tests' rows; never locate a real row by its position on a shared roster (search or DB truth).
 - J7 Seed before navigate; assert seeded rows render before acting; polls shorter than the budget
   so failures assert with values; Playwright's built-in waiting only — never `waitForTimeout`.
-- J8 `@global-state` tests run serial-only: on every push in the serial lane (`smoke`, one worker,
-  its own backend; INC-1135) and in the nightly's serial run; flaky passes are ledgered, and three
-  in seven days is an incident.
+- J8 `@global-state` tests run serial-only in the nightly; flaky passes are ledgered, and three in
+  seven days is an incident.
 - J9 Identity: the pool (`leaseUser()`) for consumers — at most TWO pooled accounts per test; tests
   that mutate their own auth state carry `@private-identity` and take the real door.
 

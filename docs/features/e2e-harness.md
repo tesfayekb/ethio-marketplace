@@ -584,10 +584,10 @@ files a push changed — and the specs importing a changed e2e helper — chosen
 `--retries 0` under a 720-second test cap, starting no backend when nothing is
 selected ("nothing to repeat"); scripts/conformance/repeat-lane.test.ts guards it.
 Since DEC-375 (b) (the speed turn) the cap is the slowest planned lane's seconds at
-two workers (`bun scripts/ci/lane-plan.ts --repeat-budget`), so the repeat lane ends
+one worker (`bun scripts/ci/lane-plan.ts --repeat-budget`), so the repeat lane ends
 within that lane.
 
-Since DEC-375 (b) and DEC-376 (the speed turn) every Chromium test runs in exactly one
+Since DEC-375 (b) (the speed turn) every per-push Chromium test runs in exactly one
 lane. Lanes 1 → 16 run SPEC FILES split by measured seconds, not `--shard`:
 `scripts/ci/lane-plan.ts` reads `playwright test --list --reporter=json` over the two
 Chromium projects and `scripts/ci/lane-weights.json` (seconds and test count per file
@@ -595,9 +595,12 @@ and project, from a green dev run's lane results; `scripts/ci/lane-weights.ts` m
 it offline), places the heaviest file first in the least-loaded lane, gives a file
 heavier than a lane's mean share a lane to itself, weighs a file the weights lack by
 the median file, and hands the lane its list through `--test-list`. The `smoke` lane is
-the serial lane: `--grep "@a11y|@global-state" --workers=1`, so it no longer re-runs
-specs the sixteen run, and the `@global-state` tests run on every push (INC-1135).
-Lanes 1 → 16, `webkit` and `repeat` run two workers; `email` and the serial lane one.
+the serial lane: `--grep "@a11y" --workers=1`, so it no longer re-runs specs the
+sixteen run. The `@global-state` tests stay with the nightly (J8): they ran in the
+serial lane on the speed turn's first run and TR-30 failed there, so INC-1135 stays
+open (CF-LANES-1 carries the tag as an allowlist line). Every lane runs one worker:
+DEC-376's two workers met its revert rule on that run (ATR-1 read a level rank that
+MON-16's scratch level moved, in the same lane's backend).
 Each numbered lane's evidence carries its `- Plan (DEC-375 b):` line and the plan's
 line; the summary's `- Lane plan (DEC-375 b):` line adds planned against test seconds
 per lane. Guards: CF-LANES-1 → 3 (`scripts/conformance/lanes.test.ts`, the one-worker
@@ -645,7 +648,7 @@ scratchCountryCode draws from the user-assigned codes whose position modulo 8 eq
 
 Knowledge v3.11 (2026-10-23, DEC-238) binds these nine laws from here; they are the v3.10 text, verbatim, identifiers unchanged. Read them before touching e2e/\*\*.
 
-J. TEST AUTHORING J1 Every mutable fixture is namespaced run × job (E2E_SHARD) × worker × project × test tag; every scratch slug/key starts with e2e- (letters-only prefix where a door forbids digits). J2 Global-sweep tests run in a fence language per project; real catalog keys are read-only to specs. J3 Never edit real reference rows in ANY project; per-axes scratch entities, deleted in a hook that survives a timeout (afterEach, not only a body finally) by a destroy that throws on failure; lane 1 of every pull-request run and the nightly's first run own the maintenance pass that reaps residue (DEC-369), and every setup heals the EN rows. J4 Bulk/count assertions read per-key DB truth via the service client; summaries asserted for visibility only; mismatches throw with the page/query-cache/audit dump. J5 Locators via the viewport-aware twin helpers, never bare prefix + .first(); fixtures via service-client TABLE operations; bulk tests carry a budget and named phases; anchor on structure, never English. J6 Tests mutating a global list run in ONE project; invariants and public-surface anchors exclude other tests' rows; never locate a real row by page position on a shared roster (search or DB truth). J7 Seed before navigate; assert seeded rows render before acting; polls shorter than the budget so failures assert with values. J8 @global-state tests run serial-only: on every push in the serial lane (`smoke`, one worker, its own backend; INC-1135), and in the nightly's serial run (DEC-028), non-gating there; flaky passes are ledgered (DEC-030), 3-in-7-days → INC. J9 Identity: the pool for consumers; tests mutating their own auth state carry @private-identity and take the real door.
+J. TEST AUTHORING J1 Every mutable fixture is namespaced run × job (E2E_SHARD) × worker × project × test tag; every scratch slug/key starts with e2e- (letters-only prefix where a door forbids digits). J2 Global-sweep tests run in a fence language per project; real catalog keys are read-only to specs. J3 Never edit real reference rows in ANY project; per-axes scratch entities, deleted in a hook that survives a timeout (afterEach, not only a body finally) by a destroy that throws on failure; lane 1 of every pull-request run and the nightly's first run own the maintenance pass that reaps residue (DEC-369), and every setup heals the EN rows. J4 Bulk/count assertions read per-key DB truth via the service client; summaries asserted for visibility only; mismatches throw with the page/query-cache/audit dump. J5 Locators via the viewport-aware twin helpers, never bare prefix + .first(); fixtures via service-client TABLE operations; bulk tests carry a budget and named phases; anchor on structure, never English. J6 Tests mutating a global list run in ONE project; invariants and public-surface anchors exclude other tests' rows; never locate a real row by page position on a shared roster (search or DB truth). J7 Seed before navigate; assert seeded rows render before acting; polls shorter than the budget so failures assert with values. J8 @global-state tests run serial-only in the nightly (DEC-028), quarantined non-gating until DEC-026 coverage; flaky passes are ledgered (DEC-030), 3-in-7-days → INC. J9 Identity: the pool for consumers; tests mutating their own auth state carry @private-identity and take the real door.
 
 A test that polls database truth or navigates after a wizard change calls awaitDraftSaved(page) first (e2e/helpers/ui.ts) — INC-809.
 

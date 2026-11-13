@@ -42,11 +42,10 @@ export default defineConfig({
     : process.env["CI"]
       ? 1
       : 0,
-  // DEC-024, DEC-376 — capacity knob. Lanes 1 → 16, webkit and repeat export
-  // E2E_WORKERS=2; the scratch-key identity law (run×shard×worker×project×test)
-  // makes worker parallelism safe by construction. REVERT RULE: any cross-worker
+  // DEC-024, DEC-376 — capacity knob. Every CI lane exports E2E_WORKERS=1:
+  // DEC-376's two workers met this REVERT RULE on their first run (a scratch
+  // level moved another test's feed rank). REVERT RULE: any cross-worker
   // interference class returns this knob to 1 BEFORE the class is diagnosed.
-  // The serial lane (smoke) and email stay serial.
   workers: process.env["E2E_WORKERS"] ? Number(process.env["E2E_WORKERS"]) : 1,
   // U1e: the json reporter is what scripts/e2e-failure-report.ts reads to
   // publish docs/tracking/e2e-last-failure.md (the artifact courier is retired).

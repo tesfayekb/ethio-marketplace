@@ -1,3 +1,2 @@
-# CF-LANES-3 (scripts/conformance/lanes.test.ts) — the lanes that run one worker: `<lane>` | reason | until
-email | the e-mail quota is per project and per hour: auth-signup.spec.ts runs in one process (INC-082) | DEC-376
-smoke | the serial lane: the @a11y and @global-state tests, which no other lane runs, at one worker on their own backend (INC-1135) | DEC-376
+# CF-LANES-1 (scripts/conformance/lanes.test.ts) — a tag whose tests run in no per-push lane: `@<tag>` | reason | until
+@global-state | the @global-state tests stay with the nightly's serial run (DEC-028): TR-30 failed in the serial lane on the speed turn's first run (run 43457682073), for a cause in the pseudo generator, not in its fixture (ruling 1 item 5) | INC-1135

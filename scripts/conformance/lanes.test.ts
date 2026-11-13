@@ -4,9 +4,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  LANE_WORKERS,
   laneFilesOf,
   laneLine,
   listedTests,
+  NIGHTLY_TAGS,
   planLanes,
   planLine,
   readWeights,
@@ -22,20 +24,23 @@ import { readAllowlist, report } from "./kit";
 
 /**
  * The speed turn (DEC-375 b, DEC-376) — EVERY CHROMIUM TEST IN EXACTLY ONE LANE, SPLIT BY MEASURED
- * TIME, TWO WORKERS. The mechanism is scripts/ci/lane-plan.ts over scripts/ci/lane-weights.json;
+ * TIME. The mechanism is scripts/ci/lane-plan.ts over scripts/ci/lane-weights.json;
  * local-backend-proof.yml's "Run proof lane" step runs it.
  *
  * CF-LANES-1 lists every test (`playwright test --list --reporter=json` over mobile-360,
  * desktop-1280 and email-serial: it collects, it starts no browser, server or backend) and reads
  * the step's commands: each Chromium test runs in exactly one of lanes 1 → 16 (its file in one
  * lane's plan, outside the lanes' `--grep-invert` tags) or the serial lane (`smoke`, its `--grep`
- * tags); the email project's file runs in the email lane and in no numbered lane.
+ * tags); the email project's file runs in the email lane and in no numbered lane. A tag whose
+ * tests run in no per-push lane is a line `@<tag> | reason | until` in lanes-allowlist.txt.
  * CF-LANES-2: the plan is deterministic, holds every file once, and its largest lane is within
  * SPREAD_LIMIT of the mean unless a file has that lane to itself (the plan's line names it).
  * CF-LANES-3: each lane's workers, read from the job's E2E_WORKERS and the step's `--workers=`:
- * two, except a lane with a line `<lane> | reason | until` in lanes-allowlist.txt, which runs one.
+ * LANE_WORKERS in every lane (DEC-376's count restarted at one on the speed turn's first run).
  */
 type Finding = { file: string; line: number; what: string };
+/** A coverage finding's allowlist key: `@<tag>` for a test every lane leaves out, else the test. */
+type CoverageFinding = Finding & { key: string };
 
 const ROOT = process.cwd();
 const WORKFLOW = ".github/workflows/local-backend-proof.yml";
@@ -106,8 +111,8 @@ export function coverageFindings(
   serialTags: string[],
   invertTags: string[],
   emailRuns: boolean,
-): Finding[] {
-  const findings: Finding[] = [];
+): CoverageFinding[] {
+  const findings: CoverageFinding[] = [];
   const seen = new Set<string>();
   for (const test of tests) {
     const key = `${test.file} › ${test.title} [${test.project}]`;
@@ -117,6 +122,7 @@ export function coverageFindings(
       const numbered = laneLists.filter((files) => files.includes(test.file)).length;
       if (!emailRuns || numbered > 0)
         findings.push({
+          key,
           file: test.file,
           line: 0,
           what: `${key} runs in ${emailRuns ? "the email lane and " : ""}${String(numbered)} numbered lane(s); the email lane alone must run it`,
@@ -127,8 +133,10 @@ export function coverageFindings(
     const serial = test.tags.some((tag) => serialTags.includes(tag)) ? 1 : 0;
     const inverted = test.tags.some((tag) => invertTags.includes(tag));
     const numbered = inverted ? 0 : laneLists.filter((files) => files.includes(test.file)).length;
+    const leftOut = test.tags.find((tag) => invertTags.includes(tag) && !serialTags.includes(tag));
     if (serial + numbered !== 1)
       findings.push({
+        key: serial + numbered === 0 && leftOut !== undefined ? `@${leftOut}` : key,
         file: test.file,
         line: 0,
         what: `${key} runs in ${String(serial + numbered)} lanes (serial ${String(serial)}, numbered ${String(numbered)})`,
@@ -181,16 +189,11 @@ export function workersByLane(yml: string): Map<string, number | null> {
   return workers;
 }
 
-export function workerFindings(
-  yml: string,
-  single: Set<string>,
-): Array<Finding & { lane: string }> {
-  const findings: Array<Finding & { lane: string }> = [];
+export function workerFindings(yml: string, expected: number = LANE_WORKERS): Finding[] {
+  const findings: Finding[] = [];
   for (const [lane, value] of workersByLane(yml)) {
-    const expected = single.has(lane) ? 1 : 2;
     if (value !== expected)
       findings.push({
-        lane,
         file: WORKFLOW,
         line: 0,
         what: `lane ${lane} runs ${value === null ? "an unread number of" : String(value)} worker(s); expected ${String(expected)}`,
@@ -205,7 +208,7 @@ function laneLists(plan: Plan): string[][] {
 
 const yml = readFileSync(join(ROOT, WORKFLOW), "utf8");
 
-describe("every Chromium test in exactly one lane, by measured time, two workers (DEC-375 b, DEC-376)", () => {
+describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, DEC-376)", () => {
   const tests = listAll();
   const weights = readWeights();
   const plan = planLanes(laneFilesOf(tests), weights);
@@ -218,7 +221,7 @@ describe("every Chromium test in exactly one lane, by measured time, two workers
     const smoke = branches.get("smoke")?.text ?? "";
     const numbered = branches.get("numbered")?.text ?? "";
     expect(serialArg).toBe(SERIAL_GREP);
-    expect(tagsOf(invertArg)).toEqual([...SERIAL_TAGS].sort());
+    expect(tagsOf(invertArg)).toEqual([...SERIAL_TAGS, ...NIGHTLY_TAGS].sort());
     for (const text of [smoke, numbered])
       expect(text).toContain("--project=mobile-360 --project=desktop-1280");
     expect(numbered).toContain("--test-list");
@@ -233,9 +236,16 @@ describe("every Chromium test in exactly one lane, by measured time, two workers
       tagsOf(invertArg),
       emailRuns,
     );
-    expect(report(found)).toBe("");
+    const allowed = readAllowlist(
+      join(ROOT, ALLOWLIST),
+      found.map((finding) => finding.key),
+    );
+    expect(report(found.filter((finding) => !allowed.has(finding.key)))).toBe("");
+    expect([...allowed.keys()]).toEqual(["@global-state"]);
+    expect(found.length).toBeGreaterThan(0);
+    expect(found.every((finding) => finding.what.includes("runs in 0 lanes"))).toBe(true);
 
-    // Planted: a file in no list, a file in two, a @global-state test in none, an email file in a lane.
+    // Planted: a file in no list, a file in two, an @a11y test in none, an email file in a lane.
     const [first, second] = plan.lanes;
     const moved = first?.files[0] ?? "";
     const dropped = laneLists(plan).map((files) => files.filter((file) => file !== moved));
@@ -247,15 +257,10 @@ describe("every Chromium test in exactly one lane, by measured time, two workers
     expect(
       report(coverageFindings(tests, twice, tagsOf(serialArg), tagsOf(invertArg), emailRuns)),
     ).toContain("runs in 2 lanes (serial 0, numbered 2)");
-    const noGlobal = coverageFindings(
-      tests,
-      laneLists(plan),
-      ["a11y"],
-      tagsOf(invertArg),
-      emailRuns,
-    );
-    expect(noGlobal.length).toBeGreaterThan(0);
-    expect(noGlobal.every((finding) => finding.what.includes("runs in 0 lanes"))).toBe(true);
+    const noSerial = coverageFindings(tests, laneLists(plan), [], tagsOf(invertArg), emailRuns);
+    const a11y = noSerial.filter((finding) => finding.key === "@a11y");
+    expect(a11y.length).toBeGreaterThan(0);
+    expect(a11y.every((finding) => finding.what.includes("runs in 0 lanes"))).toBe(true);
     const emailFile = tests.find((test) => test.project === "email-serial")?.file ?? "";
     const withEmail = laneLists(plan).map((files, i) => (i === 0 ? [...files, emailFile] : files));
     expect(
@@ -306,25 +311,20 @@ describe("every Chromium test in exactly one lane, by measured time, two workers
     expect(planLine(unweighed)).toContain("planted-new.spec.ts");
   });
 
-  it("CF-LANES-3 two workers in every lane but the allowlisted ones, which run one", () => {
+  it("CF-LANES-3 every lane runs LANE_WORKERS workers (one: DEC-376's count restarted)", () => {
     const workers = workersByLane(yml);
-    const findings = workerFindings(yml, new Set());
-    const allowed = readAllowlist(
-      join(ROOT, ALLOWLIST),
-      findings.map((finding) => finding.lane),
-    );
-    expect(report(workerFindings(yml, new Set(allowed.keys())))).toBe("");
-    expect([...allowed.keys()].sort()).toEqual(["email", "smoke"]);
-    expect(findings.every((finding) => workers.get(finding.lane) === 1)).toBe(true);
+    expect(LANE_WORKERS).toBe(1);
+    expect(report(workerFindings(yml))).toBe("");
     expect(workers.size).toBe(20);
 
-    // Planted: the job-wide "1" of DEC-230; a `--workers=1` on the numbered lanes.
-    const oneWorker = yml.replace(/E2E_WORKERS: \$\{\{[^\n]*\}\}/, 'E2E_WORKERS: "1"');
-    expect(workerFindings(oneWorker, new Set(allowed.keys()))).toHaveLength(18);
+    // Planted: DEC-376's two workers job-wide; a `--workers=2` on the numbered lanes.
+    const twoWorkers = yml.replace(/\n(\s*)E2E_WORKERS: "1"/, '\n$1E2E_WORKERS: "2"');
+    expect(twoWorkers).not.toBe(yml);
+    expect(workerFindings(twoWorkers)).toHaveLength(18);
     const flagged = yml.replace(
       '--grep-invert "@global-state|@a11y" --test-list',
-      '--grep-invert "@global-state|@a11y" --workers=1 --test-list',
+      '--grep-invert "@global-state|@a11y" --workers=2 --test-list',
     );
-    expect(workerFindings(flagged, new Set(allowed.keys()))).toHaveLength(16);
+    expect(workerFindings(flagged)).toHaveLength(16);
   });
 });

@@ -1,7 +1,7 @@
 /**
- * DEC-375 (b), the speed turn — LANES 1 → 16 BY MEASURED TIME. Every Chromium test runs in exactly
- * one lane: the serial lane (`smoke`) runs the tests tagged SERIAL_TAGS at one worker, and lanes
- * 1 → 16 run every other per-push Chromium test, split by SPEC FILE (both projects, as the lane's
+ * DEC-375 (b), the speed turn — LANES 1 → 16 BY MEASURED TIME. Every per-push Chromium test runs in
+ * exactly one lane: the serial lane (`smoke`) runs the tests tagged SERIAL_TAGS, and lanes 1 → 16
+ * run every other Chromium test but the NIGHTLY_TAGS ones, split by SPEC FILE (both projects, as the lane's
  * command runs it) on the seconds `scripts/ci/lane-weights.json` measured. The plan is offline and
  * deterministic: heaviest file first (ties by name), each to the least-loaded lane (ties by lane
  * number). A file heavier than a lane's mean share gets a lane to itself; a file the weights do
@@ -23,15 +23,18 @@ import {
   type Weights,
 } from "./lane-weights";
 
-/** The serial lane's tags (`--grep "@a11y|@global-state"`); lanes 1 → 16 leave them out. */
-export const SERIAL_TAGS = ["a11y", "global-state"] as const;
-/** The tags as the lane steps' `--grep` / `--grep-invert` argument. */
+/** The serial lane's tags (`--grep "@a11y"`); lanes 1 → 16 leave them out. */
+export const SERIAL_TAGS = ["a11y"] as const;
+/** The serial lane's `--grep` argument. */
 export const SERIAL_GREP = SERIAL_TAGS.map((tag) => `@${tag}`).join("|");
 /**
- * A two-worker lane's test time as a share of its one-worker seconds: DEC-376's frozen judge
- * (at most 75 %). The repeat lane's budget is the slowest planned lane's seconds at this share.
+ * Tags no per-push lane runs: the `@global-state` tests stay with the nightly's serial run while
+ * INC-1135 is open (TR-30 failed in the serial lane on the speed turn's first run). Lanes 1 → 16
+ * leave them out with the serial tags (`--grep-invert`).
  */
-export const TWO_WORKER_SHARE = 0.75;
+export const NIGHTLY_TAGS = ["global-state"] as const;
+/** The lanes' workers: DEC-376's count restarted at one on the speed turn's first run. */
+export const LANE_WORKERS = 1;
 /** A lane over the mean by more than this, with no file alone in it, is a finding (CF-LANES-2). */
 export const SPREAD_LIMIT = 0.25;
 
@@ -95,11 +98,16 @@ export function isSerial(test: ListedTest): boolean {
   return test.tags.some((tag) => SERIAL_TAGS.some((serial) => serial === tag));
 }
 
-/** The spec files lanes 1 → 16 run: every per-push Chromium file with a test outside the serial tags. */
+/** A test lanes 1 → 16 leave out: a serial or a nightly tag. */
+export function isOutsideLanes(test: ListedTest): boolean {
+  return isSerial(test) || test.tags.some((tag) => NIGHTLY_TAGS.some((nightly) => nightly === tag));
+}
+
+/** The spec files lanes 1 → 16 run: every per-push Chromium file with a test they do not leave out. */
 export function laneFilesOf(tests: ListedTest[]): string[] {
   const files = new Set<string>();
   for (const test of tests)
-    if (LANE_PROJECTS.some((project) => project === test.project) && !isSerial(test))
+    if (LANE_PROJECTS.some((project) => project === test.project) && !isOutsideLanes(test))
       files.add(test.file);
   return [...files].sort();
 }
@@ -167,9 +175,9 @@ export function planLanes(files: string[], weights: Weights, count = NUMBERED_LA
   };
 }
 
-/** The repeat lane's budget: the slowest planned lane's seconds at two workers. */
+/** The repeat lane's budget: the slowest planned lane's seconds, at the lanes' one worker. */
 export function repeatBudget(plan: Plan): number {
-  return Math.round(Math.max(...plan.lanes.map((lane) => lane.seconds)) * TWO_WORKER_SHARE);
+  return Math.round(Math.max(...plan.lanes.map((lane) => lane.seconds)));
 }
 
 /** The lane's evidence line. */
