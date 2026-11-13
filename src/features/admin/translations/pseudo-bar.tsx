@@ -16,8 +16,11 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
 import { PSEUDO_LANG, pseudoize } from "./pseudo";
-import { serverMessage, translationErrorKey } from "./translations-service";
+import { serverMessage, translationErrorKey, type LanguageRow } from "./translations-service";
 import { usePseudoGenerate } from "./use-translations";
+
+/** INC-1137 — a run names at most this many of the keys it could not write. */
+const NAMED_FAILURES = 20;
 
 /**
  * U4i ⑦ — PSEUDO-LOCALIZATION (`translations:manage`).
@@ -34,23 +37,35 @@ import { usePseudoGenerate } from "./use-translations";
  * route uses — so pseudo text is `machine`, unapproved, placeholder-validated
  * and revertible through History like any other machine row.
  */
-export function PseudoBar({ guard }: { guard: GuardFn }) {
+export function PseudoBar({
+  guard,
+  roster,
+}: {
+  guard: GuardFn;
+  /** INC-1137 — the languages roster (absent until it is read); the generator reads its one
+      base language's keys. */
+  roster: readonly LanguageRow[] | undefined;
+}) {
   const { t } = useI18n();
   const generate = usePseudoGenerate();
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
+  const [failedKeys, setFailedKeys] = useState<string[]>([]);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
   const run = () => {
     setConfirming(false);
+    if (roster === undefined) return;
     setSummary(null);
+    setFailedKeys([]);
     setErrorKey(null);
     setErrorDetail(null);
     setProgress({ done: 0, total: 0 });
     void guard(async () => {
       const result = await generate.mutateAsync({
+        roster,
         transform: pseudoize,
         onProgress: (done, total) => setProgress({ done, total }),
       });
@@ -59,6 +74,7 @@ export function PseudoBar({ guard }: { guard: GuardFn }) {
           .replace("{written}", String(result.written))
           .replace("{failed}", String(result.failed)),
       );
+      setFailedKeys(result.failedKeys.slice(0, NAMED_FAILURES));
     })
       .catch((failure: unknown) => {
         setErrorKey(translationErrorKey(failure));
@@ -82,7 +98,7 @@ export function PseudoBar({ guard }: { guard: GuardFn }) {
           variant="outline"
           className="min-h-11"
           data-testid="pseudo-generate"
-          disabled={generate.isPending}
+          disabled={generate.isPending || roster === undefined}
           onClick={() => setConfirming(true)}
         >
           {generate.isPending
@@ -121,6 +137,11 @@ export function PseudoBar({ guard }: { guard: GuardFn }) {
       {summary ? (
         <p role="status" data-testid="strings-pseudo-summary" className="text-sm text-foreground">
           {summary}
+        </p>
+      ) : null}
+      {failedKeys.length > 0 ? (
+        <p data-testid="strings-pseudo-failed" className="text-xs text-destructive">
+          {t("admin.translations.ai.failedList").replace("{keys}", failedKeys.join(", "))}
         </p>
       ) : null}
       {errorKey ? (

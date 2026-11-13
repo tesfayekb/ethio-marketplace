@@ -1,5 +1,5 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 
@@ -8,6 +8,8 @@ import { AppFooter } from "@/components/shell/app-footer";
 import { AppHeader, SearchRow } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
+import { impersonationCheckOn } from "@/components/shell/impersonation-gate";
+import { LazyImpersonationBanner } from "@/components/shell/impersonation-notice";
 import { OnDemandNotice } from "@/components/shell/on-demand-notice";
 import { NOTICE_DOCK, NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
@@ -41,7 +43,6 @@ import { MENU_INSET, MENU_WIDTH } from "@/components/shell/menu-width";
 import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { panelAt } from "@/components/shell/menu-current";
-import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { takeDeactivatedSignOut } from "@/features/auth/deactivated";
 import { useAuth } from "@/features/auth/use-auth";
 import { feedRouteOf, useCategoryTree } from "@/features/categories/category-tree";
@@ -84,17 +85,16 @@ function PanelPlaceholder() {
  * cache free of an "auth-derived" entry after the hard reset: an unmounted
  * observer cannot re-register a purged key.
  */
-function PermissionsLoader({
-  onChange,
-}: {
-  onChange: (state: { permissions: string[]; loading: boolean }) => void;
-}) {
-  const { permissions, loading } = usePermissions();
+function PermissionsLoader({ onChange }: { onChange: (state: PermissionsState) => void }) {
+  const { permissions, loading, error } = usePermissions();
+  const failed = error !== null;
   useEffect(() => {
-    onChange({ permissions, loading });
-  }, [permissions, loading, onChange]);
+    onChange({ permissions, loading, failed });
+  }, [permissions, loading, failed, onChange]);
   return null;
 }
+
+type PermissionsState = { permissions: string[]; loading: boolean; failed: boolean };
 
 /**
  * THE CORNER-BLOCK GRID + THE VERTICAL STACK.
@@ -633,10 +633,11 @@ export function AppShell({ children }: { children: ReactNode }) {
    * Law F3: this only decides whether the Admin TAB renders. Every admin
    * action is enforced by RLS / has_permission on the server.
    */
-  const [permissionsState, setPermissionsState] = useState<{
-    permissions: string[];
-    loading: boolean;
-  }>({ permissions: [], loading: false });
+  const [permissionsState, setPermissionsState] = useState<PermissionsState>({
+    permissions: [],
+    loading: false,
+    failed: false,
+  });
   const permissions = permissionsState.permissions;
   const permissionsLoading = permissionsState.loading;
 
@@ -647,9 +648,10 @@ export function AppShell({ children }: { children: ReactNode }) {
    * new. Paired with the stable identity in usePermissions, an unchanged report
    * is now a genuine no-op for React.
    */
-  const applyPermissions = useCallback((next: { permissions: string[]; loading: boolean }) => {
+  const applyPermissions = useCallback((next: PermissionsState) => {
     setPermissionsState((prev) =>
       prev.loading === next.loading &&
+      prev.failed === next.failed &&
       prev.permissions.length === next.permissions.length &&
       prev.permissions.every((slug, i) => slug === next.permissions[i])
         ? prev
@@ -689,7 +691,7 @@ export function AppShell({ children }: { children: ReactNode }) {
        *   4. navigate.
        */
       setSigningOut(true);
-      setPermissionsState({ permissions: [], loading: false });
+      setPermissionsState({ permissions: [], loading: false, failed: false });
       setPanelChoice("marketplace");
       resetLocationState();
       setNavOpen(false);
@@ -752,6 +754,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     permissionsLoading || permissions.includes(ADMIN_PANEL_PERMISSION)
       ? ("staff" as const)
       : ("regular" as const);
+
+  const impersonationCheck = impersonationCheckOn({
+    signedIn: user !== null,
+    signingOut,
+    loading: permissionsLoading,
+    failed: permissionsState.failed,
+    staff: permissions.includes(ADMIN_PANEL_PERMISSION),
+  });
 
   const onExpire = useCallback(
     (reason: SessionExpiryReason) => {
@@ -819,7 +829,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (authLoading || user !== null) return;
     void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });
     queryClient.removeQueries({ queryKey: [AUTH_DERIVED_ROOT] });
-    setPermissionsState({ permissions: [], loading: false });
+    setPermissionsState({ permissions: [], loading: false, failed: false });
     setPanelChoice("marketplace");
     // INC-741 — a fresh signed-out visit is not a sign-out (INC-627's rule): closing the menu here
     // closed the D206 peek in the commit that opened it (a child's effects run first), so the peek
@@ -919,13 +929,19 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ShellContext.Provider value={value}>
       {user !== null && !signingOut ? <PermissionsLoader onChange={applyPermissions} /> : null}
-      {/* U3 / DEC-016 — an active impersonation is ALWAYS visible, on every
-          page, for as long as the 15-minute box is open.
+      {/* U3 / DEC-016 — an active impersonation is ALWAYS visible to staff, on
+          every page, for as long as the 15-minute box is open; DEC-372 — only
+          staff (or a failed permission read) mount it, and nothing shows
+          while its code downloads.
           INC-085: the banner MOUNTS conditionally. A mounted useQuery with
           `enabled:false` re-registers its entry after the hard reset's
           removeQueries (INC-078 class), so `enabled` is never the mechanism —
-          unmounting is. The prop stays, pinned to `true` while mounted. */}
-      {user !== null && !signingOut ? <ImpersonationBanner enabled /> : null}
+          unmounting is. */}
+      {impersonationCheck ? (
+        <Suspense fallback={null}>
+          <LazyImpersonationBanner />
+        </Suspense>
+      ) : null}
       {/* Bundle 22 turn 4 (INC-769) — the acceptance gate mounts only while signed in (SO-4). */}
       {user !== null && !signingOut ? <LegalGate userId={user.id} /> : null}
 

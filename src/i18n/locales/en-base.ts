@@ -456,6 +456,8 @@ export const enBase = {
   "impersonation.unknownTarget": "this account",
   "impersonation.open": "Open view",
   "impersonation.endNow": "End now",
+  "impersonation.mayBeActive": "A view-as session may be active.",
+  "impersonation.noneActive": "No view-as session is active.",
   "impersonation.cancel": "Cancel",
   "impersonation.listingsTitle": "Listings",
   // U4b — Translations console (languages, strings editor, translator scope).

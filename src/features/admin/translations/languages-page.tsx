@@ -32,6 +32,7 @@ import { DeleteLanguageDialog } from "./delete-language-dialog";
 import { LanguagePicker } from "./language-picker";
 import { PseudoBar } from "./pseudo-bar";
 import {
+  baseTotalOf,
   coverageAgainstBase,
   serverMessage,
   translationErrorKey,
@@ -101,7 +102,7 @@ export function AdminTranslationsLanguagesPage() {
     (stats.data ?? []).map((row) => [row.langCode, row]),
   );
   const rows = sortLanguages(languages.data);
-  const baseTotal = statsByLang.get("en")?.total ?? 0;
+  const baseTotal = baseTotalOf(languages.data, statsByLang);
   const enabledCount = rows.filter((row) => row.enabledAdmin || row.enabledPublic).length;
   const totals = (stats.data ?? []).reduce(
     (acc, row) => ({ approved: acc.approved + row.approved, total: acc.total + row.total }),
@@ -122,7 +123,7 @@ export function AdminTranslationsLanguagesPage() {
           <StatGrid testid="translations-stats">
             <StatCard
               testid="translations-stat-keys"
-              loading={stats.isLoading}
+              loading={stats.isLoading || languages.isLoading}
               label={t("admin.translations.stat.totalKeys")}
               value={baseTotal}
             />
@@ -165,7 +166,7 @@ export function AdminTranslationsLanguagesPage() {
                * the export bar — a place an operator had no reason to open, so
                * the walk reported "not found".
                */}
-              <PseudoBar guard={guard} />
+              <PseudoBar guard={guard} roster={languages.data} />
             </>
           ) : null}
         </div>
@@ -219,8 +220,7 @@ function LanguagesTable({
   const ordered = sortLanguages(rows);
 
   // Source-catalog size drives the publication gate's empty-set branch.
-  const baseCode = ordered.find((row) => row.isBase)?.code ?? "en";
-  const baseKeyCount = statsByLang.get(baseCode)?.total ?? 0;
+  const baseKeyCount = baseTotalOf(rows, statsByLang);
 
   const apply = (row: LanguageRow, next: { admin?: boolean; public?: boolean }) => {
     setErrorKey(null);

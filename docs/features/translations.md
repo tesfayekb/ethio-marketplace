@@ -100,6 +100,8 @@ public switch is disabled with the sync-first tooltip.
 
 INC-790 (2026-10-20): the console judges a language exactly as the door does — against the base catalogue's live keys, never against the language's own rows (`coverageAgainstBase`, translations-service.ts). A language holding no rows reads 0 of N, not 0 of 0, and its switch stays closed with the gate's line; the base language keeps its own counts.
 
+INC-1143 (the app-fixes turn): the base catalogue's size is read by one helper, `baseTotalOf` (translations-service.ts) — the total of the roster's one `isBase` language. It replaces two reads in `languages-page.tsx`: the stat card's literal `"en"` and the publication gate's `?? "en"` fallback. No single base row reads 0, an empty catalogue; the stat card stays loading until both the roster and the stats are read, so a roster still arriving never shows as 0 keys. Proof: BTO-1, whose decoy `en` row with another total is its positive control, and BTO-2.
+
 ## Machine translation (U4c)
 
 Provider decision: **Google Cloud Translation v3**, wrapped in an edge
@@ -765,6 +767,24 @@ generator's own output. Rows land in the reserved `zxa` language through
 `admin_machine_translation`, i.e. `machine`, unapproved, and revertible through
 History. `admin_set_language_flags` REFUSES `enabled_public` for `zxa` by rule:
 the pseudo catalog can never reach a real user.
+
+INC-1137 (the app-fixes turn, part F) — the generator fills from the BASE
+language's keys, never from the target's rows. `admin_list_translations` lists
+only the rows the target already owns, so a `zxa` just created had none and the
+run wrote nothing while reporting 0 written, 0 failed. `usePseudoGenerate`
+(`use-translations.ts`) now takes the languages roster the page already holds
+(`PseudoBar`'s `roster`; Generate stays disabled until it is read): its one
+`isBase` row names the base (zero or several refuse with `noSingleBase: <n>`
+before anything is written, spoken by `translationErrorKey`). The base's live
+keys (`orphaned === false`) are read ONCE through `fetchAllTranslationRows` —
+`readAllPages` over `admin_export_translations`, keyset by key (`WHERE
+t.lang_code = p_lang AND (p_after IS NULL OR t.key > p_after) ORDER BY t.key`,
+migration 20261012101642 :43–45), a list the run's own writes never change —
+and each is written by `admin_machine_translation`, which creates the target's
+row. The summary is `{written, failed, total, failedKeys}`, `total` being the
+keys read; a refused write and an empty source are named, the first twenty under
+`admin.translations.ai.failedList` (`strings-pseudo-failed`). Proof: PSG-1…5
+(`pseudo-generate.test.tsx`), each red on the old generator; TR-30.
 
 ## U4i-3 — walk findings (INC-122)
 
