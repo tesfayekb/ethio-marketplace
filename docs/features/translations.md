@@ -100,7 +100,7 @@ public switch is disabled with the sync-first tooltip.
 
 INC-790 (2026-10-20): the console judges a language exactly as the door does — against the base catalogue's live keys, never against the language's own rows (`coverageAgainstBase`, translations-service.ts). A language holding no rows reads 0 of N, not 0 of 0, and its switch stays closed with the gate's line; the base language keeps its own counts.
 
-INC-1143 (the app-fixes turn): the base catalogue's size is read by one helper, `baseTotalOf` (translations-service.ts) — the total of the roster's one `isBase` language. It replaces two reads in `languages-page.tsx`: the stat card's literal `"en"` and the publication gate's `?? "en"` fallback. No single base row reads 0, an empty catalogue. Proof: BTO-1, whose decoy `en` row with another total is its positive control, and BTO-2.
+INC-1143 (the app-fixes turn): the base catalogue's size is read by one helper, `baseTotalOf` (translations-service.ts) — the total of the roster's one `isBase` language. It replaces two reads in `languages-page.tsx`: the stat card's literal `"en"` and the publication gate's `?? "en"` fallback. No single base row reads 0, an empty catalogue; the stat card stays loading until both the roster and the stats are read, so a roster still arriving never shows as 0 keys. Proof: BTO-1, whose decoy `en` row with another total is its positive control, and BTO-2.
 
 ## Machine translation (U4c)
 

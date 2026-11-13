@@ -123,7 +123,7 @@ export function AdminTranslationsLanguagesPage() {
           <StatGrid testid="translations-stats">
             <StatCard
               testid="translations-stat-keys"
-              loading={stats.isLoading}
+              loading={stats.isLoading || languages.isLoading}
               label={t("admin.translations.stat.totalKeys")}
               value={baseTotal}
             />
