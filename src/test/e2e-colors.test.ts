@@ -55,4 +55,16 @@ describe("the E2E colour reader (INC-910)", () => {
     expect(rgbOf("rgb(1, 2, 3)")?.alpha).toBe(1);
     expect(rgbOf("oklch(0.5 0.1 30)")).toBeNull();
   });
+
+  it("EC-7 the lightness is read too, and WebKit's spelling of a token is the token at its precision (the pictures turn, ruling 2)", () => {
+    const chromium = okLchOf("oklch(0.417 0.02 167.6)");
+    const webkit = okLchOf("oklch(0.417 0.02 167.600006)");
+    expect(chromium).toEqual({ lightness: 0.417, chroma: 0.02, hue: 167.6, alpha: 1 });
+    expect(webkit?.lightness).toBeCloseTo(0.417, 3);
+    expect(webkit?.chroma).toBeCloseTo(0.02, 3);
+    expect(webkit?.hue).toBeCloseTo(167.6, 3);
+    expect(webkit?.hue).not.toBeCloseTo(167.7, 3);
+    expect(okLchOf("oklch(41.7% 0.02 167.6)")?.lightness).toBeCloseTo(0.417, 5);
+    expect(okLchOf("oklab(0.5 0.158405 0.0896211)")?.lightness).toBe(0.5);
+  });
 });

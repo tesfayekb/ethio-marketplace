@@ -12,8 +12,9 @@ export async function fillOf(locator: Locator): Promise<string> {
   return locator.evaluate((element) => getComputedStyle(element).backgroundColor);
 }
 
-/** A colour as OKLCH's chroma and hue (degrees, 0–360) with its alpha (0–1). */
+/** A colour as OKLCH's lightness (0–1), chroma and hue (degrees, 0–360) with its alpha (0–1). */
 export interface OkLch {
+  lightness: number;
   chroma: number;
   hue: number;
   alpha: number;
@@ -25,23 +26,34 @@ function alphaOf(raw: string | undefined): number {
 }
 
 /**
- * INC-910 — oklch() and oklab() read as chroma, hue and alpha (oklab's a and b
- * are the same chroma and hue in Cartesian form); null for any other form.
+ * INC-910 — oklch() and oklab() read as lightness, chroma, hue and alpha
+ * (oklab's a and b are the same chroma and hue in Cartesian form); null for any
+ * other form. Compare the numbers, never the text: an engine may spell a token's
+ * 167.6 as 167.600006 (WebKit; the pictures turn, ruling 2).
  */
 export function okLchOf(color: string): OkLch | null {
-  const lch = /^oklch\(\s*[\d.]+%?\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/i.exec(color);
-  if (lch) return { chroma: Number(lch[1]), hue: Number(lch[2]), alpha: alphaOf(lch[3]) };
-  const lab = /^oklab\(\s*[\d.]+%?\s+(-?[\d.]+)\s+(-?[\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/i.exec(
+  const lch = /^oklch\(\s*([\d.]+%?)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/i.exec(
+    color,
+  );
+  if (lch)
+    return {
+      lightness: alphaOf(lch[1]),
+      chroma: Number(lch[2]),
+      hue: Number(lch[3]),
+      alpha: alphaOf(lch[4]),
+    };
+  const lab = /^oklab\(\s*([\d.]+%?)\s+(-?[\d.]+)\s+(-?[\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/i.exec(
     color,
   );
   if (lab) {
-    const a = Number(lab[1]);
-    const b = Number(lab[2]);
+    const a = Number(lab[2]);
+    const b = Number(lab[3]);
     const degrees = (Math.atan2(b, a) * 180) / Math.PI;
     return {
+      lightness: alphaOf(lab[1]),
       chroma: Math.hypot(a, b),
       hue: degrees < 0 ? degrees + 360 : degrees,
-      alpha: alphaOf(lab[3]),
+      alpha: alphaOf(lab[4]),
     };
   }
   return null;
