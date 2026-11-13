@@ -1264,5 +1264,11 @@ engine among them, `playwright install <that engine>` and `install-browser-deps.
 in the same job (the script installs chromium when it names none). A `$NAME` argument counts every
 value the job assigns it. Each project's engine comes from the browser guard's `enginesOf`
 (`scripts/e2e-browser-guard.ts`), which also stops `e2e:local` on a project of any other engine and
-names a WebKit this computer lacks (EBG-1…5). CF-CID-9 plants a job running `webkit-390` on a
+names a WebKit this computer lacks (EBG-1…5). On the temporary backend (`E2E_LOCAL_BACKEND=1`) the
+two WebKit projects take `ignoreHTTPSErrors`: its certificate comes from an authority made for the
+run, which Chromium trusts through the NSS database and WebKit cannot (INC-1125, ruling 2). EBG-6
+loads playwright.config.ts with and without the variable and holds the option to the WebKit
+projects on that backend alone; a planted Chromium project with it, a WebKit project with it off
+that backend and a config-wide one are named, and the guard refuses them before `e2e:local`
+builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.

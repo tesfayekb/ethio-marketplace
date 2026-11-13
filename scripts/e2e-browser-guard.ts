@@ -96,6 +96,37 @@ export function browserVerdict(
   return verdict;
 }
 
+type ConfigShape = {
+  use?: { ignoreHTTPSErrors?: boolean };
+  projects?: readonly (ProjectShape & { use?: { ignoreHTTPSErrors?: boolean } })[];
+};
+
+/**
+ * EBG-6 (INC-1125, ruling 2) — the certificate check is skipped only by the WebKit projects, and only
+ * on the temporary backend (`E2E_LOCAL_BACKEND=1`, whose authority is made for the run): Chromium
+ * keeps verifying that chain through the NSS database. `config` is playwright.config.ts as it
+ * evaluates with or without that variable.
+ */
+export function httpsErrorFindings(config: ConfigShape, localBackend: boolean): string[] {
+  const findings: string[] = [];
+  if (config.use?.ignoreHTTPSErrors === true)
+    findings.push("[e2e:browser-guard] every project skips the certificate check (INC-1125)");
+  for (const project of config.projects ?? []) {
+    if (project.use?.ignoreHTTPSErrors !== true) continue;
+    const [engine = "chromium"] = [...enginesOf([project]).keys()];
+    const name = project.name ?? "(unnamed)";
+    if (engine !== "webkit")
+      findings.push(
+        `[e2e:browser-guard] project ${name} (${engine}) skips the certificate check; only WebKit may, on the temporary backend (INC-1125)`,
+      );
+    else if (!localBackend)
+      findings.push(
+        `[e2e:browser-guard] project ${name} skips the certificate check off the temporary backend (INC-1125)`,
+      );
+  }
+  return findings;
+}
+
 function usable(path: string): boolean {
   try {
     accessSync(path, constants.X_OK);
@@ -113,8 +144,12 @@ if (import.meta.main) {
     usable,
   });
   for (const notice of verdict.notices) console.log(notice);
-  if (verdict.failures.length > 0) {
-    for (const failure of verdict.failures) console.error(failure);
+  const failures = [
+    ...verdict.failures,
+    ...httpsErrorFindings(config, process.env["E2E_LOCAL_BACKEND"] === "1"),
+  ];
+  if (failures.length > 0) {
+    for (const failure of failures) console.error(failure);
     process.exit(1);
   }
   console.log(`[e2e:browser-guard] browser resolved: ${verdict.resolved.join("; ")}`);

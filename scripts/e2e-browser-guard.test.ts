@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import config from "../playwright.config";
-import { browserVerdict, enginesOf, type BrowserLookup } from "./e2e-browser-guard";
+import {
+  browserVerdict,
+  enginesOf,
+  httpsErrorFindings,
+  type BrowserLookup,
+} from "./e2e-browser-guard";
 
 /**
  * DEC-371 (the pictures turn) — scripts/e2e-browser-guard.ts admits Chromium and WebKit only.
@@ -59,6 +64,41 @@ describe("the browser guard admits Chromium and WebKit only (DEC-371)", () => {
     expect(
       browserVerdict(engines, lookup(["/bin/chromium"], "/bin/chromium", [])).failures,
     ).toHaveLength(1);
+  });
+
+  it("EBG-6 only the WebKit projects skip the certificate check, and only on the temporary backend (INC-1125); planted breaches are named", async () => {
+    const load = async (localBackend: string) => {
+      vi.resetModules();
+      vi.stubEnv("E2E_LOCAL_BACKEND", localBackend);
+      const loaded = (await import("../playwright.config")).default;
+      vi.unstubAllEnvs();
+      return loaded;
+    };
+    const skipping = (c: typeof config) =>
+      (c.projects ?? []).filter((p) => p.use?.ignoreHTTPSErrors === true).map((p) => p.name);
+    const local = await load("1");
+    const staging = await load("");
+    expect(skipping(local)).toEqual(["webkit-1280", "webkit-390"]);
+    expect(skipping(staging)).toEqual([]);
+    expect(httpsErrorFindings(local, true)).toEqual([]);
+    expect(httpsErrorFindings(staging, false)).toEqual([]);
+
+    const chromium = {
+      name: "planted-chromium",
+      use: { defaultBrowserType: "chromium", ignoreHTTPSErrors: true },
+    };
+    const webkit = {
+      name: "planted-webkit",
+      use: { defaultBrowserType: "webkit", ignoreHTTPSErrors: true },
+    };
+    expect(httpsErrorFindings({ projects: [chromium] }, true)).toEqual([
+      "[e2e:browser-guard] project planted-chromium (chromium) skips the certificate check; only WebKit may, on the temporary backend (INC-1125)",
+    ]);
+    expect(httpsErrorFindings({ projects: [webkit] }, true)).toEqual([]);
+    expect(httpsErrorFindings({ projects: [webkit] }, false)).toEqual([
+      "[e2e:browser-guard] project planted-webkit skips the certificate check off the temporary backend (INC-1125)",
+    ]);
+    expect(httpsErrorFindings({ use: { ignoreHTTPSErrors: true } }, true)).toHaveLength(1);
   });
 
   it("EBG-5 a planted project on another engine fails, by name", () => {

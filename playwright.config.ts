@@ -15,6 +15,14 @@ const CHROMIUM_LAUNCH = process.env["E2E_CHROMIUM_PATH"]
   ? { launchOptions: { executablePath: process.env["E2E_CHROMIUM_PATH"] } }
   : {};
 const NOT_PER_PUSH = ["**/nightly/**", "**/auth-signup.spec.ts"];
+// INC-1125 (ruling 2): the temporary backend's certificate is signed by an
+// authority made for the run, which Chromium trusts through the NSS database
+// (so the chain stays verified in every run) and WebKit cannot be made to
+// trust. WebKit's tests are about pictures and Safari's behaviour, never
+// certificates, so its two projects skip the check on that backend alone
+// (EBG-6, scripts/e2e-browser-guard.ts).
+const WEBKIT_ON_TEMPORARY_BACKEND =
+  process.env["E2E_LOCAL_BACKEND"] === "1" ? { ignoreHTTPSErrors: true } : {};
 
 export default defineConfig({
   testDir: "./e2e",
@@ -104,13 +112,17 @@ export default defineConfig({
     {
       name: "webkit-1280",
       grep: /@webkit/,
-      use: { ...devices["Desktop Safari"], viewport: { width: 1280, height: 800 } },
+      use: {
+        ...devices["Desktop Safari"],
+        ...WEBKIT_ON_TEMPORARY_BACKEND,
+        viewport: { width: 1280, height: 800 },
+      },
       testIgnore: NOT_PER_PUSH,
     },
     {
       name: "webkit-390",
       grep: /@webkit/,
-      use: { ...devices["iPhone 13"] },
+      use: { ...devices["iPhone 13"], ...WEBKIT_ON_TEMPORARY_BACKEND },
       testIgnore: NOT_PER_PUSH,
     },
   ],
