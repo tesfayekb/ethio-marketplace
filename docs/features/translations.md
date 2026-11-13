@@ -766,6 +766,24 @@ generator's own output. Rows land in the reserved `zxa` language through
 History. `admin_set_language_flags` REFUSES `enabled_public` for `zxa` by rule:
 the pseudo catalog can never reach a real user.
 
+INC-1137 (the app-fixes turn, part F) — the generator fills from the BASE
+language's keys, never from the target's rows. `admin_list_translations` lists
+only the rows the target already owns, so a `zxa` just created had none and the
+run wrote nothing while reporting 0 written, 0 failed. `usePseudoGenerate`
+(`use-translations.ts`) now takes the languages roster the page already holds
+(`PseudoBar`'s `roster`; Generate stays disabled until it is read): its one
+`isBase` row names the base (zero or several refuse with `noSingleBase: <n>`
+before anything is written, spoken by `translationErrorKey`). The base's live
+keys (`orphaned === false`) are read ONCE through `fetchAllTranslationRows` —
+`readAllPages` over `admin_export_translations`, keyset by key (`WHERE
+t.lang_code = p_lang AND (p_after IS NULL OR t.key > p_after) ORDER BY t.key`,
+migration 20261012101642 :43–45), a list the run's own writes never change —
+and each is written by `admin_machine_translation`, which creates the target's
+row. The summary is `{written, failed, total, failedKeys}`, `total` being the
+keys read; a refused write and an empty source are named, the first twenty under
+`admin.translations.ai.failedList` (`strings-pseudo-failed`). Proof: PSG-1…5
+(`pseudo-generate.test.tsx`), each red on the old generator; TR-30.
+
 ## U4i-3 — walk findings (INC-122)
 
 - **Context note renders.** The saved note is its own paragraph under the

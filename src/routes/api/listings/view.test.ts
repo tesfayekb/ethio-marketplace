@@ -4,12 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * Foundations turn 3 (DEC-237) — THE VIEW COUNTER ON defineRoute (C3).
  */
 
-const mocks = vi.hoisted(() => ({ rate: vi.fn(), rpc: vi.fn() }));
+const mocks = vi.hoisted(() => ({ rate: vi.fn(), rpc: vi.fn(), logged: vi.fn() }));
 vi.mock("@/server/supabase/user-client", async (original) => ({
   ...(await original<typeof import("@/server/supabase/user-client")>()),
   consumeRate: mocks.rate,
   anonymousClient: () => null,
-  logRouteError: () => undefined,
+  logRouteError: mocks.logged,
   envDial: (_name: string, fallback: number) => fallback,
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { rpc: mocks.rpc } }));
@@ -56,5 +56,34 @@ describe("POST /api/listings/view on defineRoute (C3)", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ counted: true });
     expect(mocks.rpc).toHaveBeenCalledOnce();
+  });
+
+  it("VWR-3 an ad removed before its counter's write answers its not-found, quietly", async () => {
+    // INC-1134 — the counter's link to the ad fails (Postgres 23503): nothing was written.
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "23503", message: "insert or update violates foreign key constraint" },
+      status: 409,
+    });
+    const errors = vi.spyOn(console, "error");
+    const response = await post({ publicId: ID });
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "listingNotFound" });
+    expect(mocks.rpc).toHaveBeenCalledOnce();
+    expect(mocks.logged).not.toHaveBeenCalled();
+    expect(errors).not.toHaveBeenCalled();
+    errors.mockRestore();
+  });
+
+  it("VWR-4 another database error is logged and answers counted false, as before", async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "P0001", message: "rate key required" },
+      status: 400,
+    });
+    const response = await post({ publicId: ID });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ counted: false });
+    expect(mocks.logged).toHaveBeenCalledExactlyOnceWith("/api/listings/view", "rate key required");
   });
 });

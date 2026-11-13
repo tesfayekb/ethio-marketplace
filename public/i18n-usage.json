@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 715,
+  "scanned": 716,
   "dynamicCallSites": 446,
   "keys": {
     "account.deactivatedBanner": [
@@ -4154,6 +4154,7 @@
       "/admin/translations/$lang"
     ],
     "admin.translations.ai.failedList": [
+      "/admin/translations",
       "/admin/translations/$lang"
     ],
     "admin.translations.ai.pending": [

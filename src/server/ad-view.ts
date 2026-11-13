@@ -1,10 +1,17 @@
-import { ok, upstreamFailed, upstreamUnavailable } from "@/server/answer";
+import { clientError, ok, upstreamFailed, upstreamUnavailable } from "@/server/answer";
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
 import { DIALS } from "@/lib/dials";
 import { spend } from "@/server/dials";
 import { logRouteError } from "@/server/supabase/user-client";
 
 const SESSION_PATTERN = /^[A-Za-z0-9-]{16,64}$/;
+
+/**
+ * INC-1134 — Postgres's foreign-key violation: the ad was removed between the door's read of it
+ * and its counter's write, so the write has no ad to link to. The door answers false for an ad it
+ * cannot find; this is the same absence one step later, and nothing was written.
+ */
+const MISSING_LINK = "23503";
 
 /** The typed context the route hands over: the parsed body, the verified caller. */
 export type AdViewContext = {
@@ -44,6 +51,10 @@ export async function countAdView({ body, userId, request }: AdViewContext): Pro
   });
   if (upstreamFailed(error, status)) {
     return upstreamUnavailable("/api/listings/view", "view", status);
+  }
+  if (error?.code === MISSING_LINK) {
+    console.info("[ad-view] /api/listings/view listingNotFound");
+    return clientError("listingNotFound", 404);
   }
   if (error) {
     logRouteError("/api/listings/view", error.message);

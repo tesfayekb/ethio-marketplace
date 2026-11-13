@@ -165,7 +165,7 @@ export function AdminTranslationsLanguagesPage() {
                * the export bar — a place an operator had no reason to open, so
                * the walk reported "not found".
                */}
-              <PseudoBar guard={guard} />
+              <PseudoBar guard={guard} roster={languages.data} />
             </>
           ) : null}
         </div>

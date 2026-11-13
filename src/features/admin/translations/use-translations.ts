@@ -3,8 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
-import { PSEUDO_LANG } from "./pseudo";
-
 import {
   aiTranslate,
   aiTranslateEntities,
@@ -12,6 +10,7 @@ import {
   approveAllTranslations,
   deleteLanguage,
   ensurePseudoLanguage,
+  fetchAllTranslationRows,
   importTranslations,
   undoImport,
   languageDeletePreview,
@@ -38,6 +37,7 @@ import {
   type AiTranslateItem,
   type EntityTranslationFilters,
   type EntityType,
+  type LanguageRow,
   type TranslationFilters,
 } from "./translations-service";
 
@@ -313,58 +313,62 @@ export function useUndoImport(lang: string) {
   });
 }
 
+/** U4i ⑦ — what one pseudo run did: every key it read is written or named as failed. */
+export type PseudoSummary = {
+  written: number;
+  failed: number;
+  total: number;
+  failedKeys: string[];
+};
+
 /**
  * U4i ⑦ — generate the pseudo catalog.
  *
- * The base rows are read page by page through the ordinary list RPC (no new
- * read seam), and each row is written by `admin_machine_translation`. Progress
- * is reported honestly per row, and a per-row refusal is COUNTED rather than
- * aborting the run — the summary states both numbers (F4).
+ * INC-1137 (the app-fixes turn, part F) — the run is driven by the BASE
+ * language's keys, never by the target's rows: the target's own list holds only
+ * the rows it already owns, so a pseudo language just created had none and the
+ * run wrote nothing while reporting a result. The base code is the roster's one
+ * `isBase` row (zero or several refuse before anything is written). Its live
+ * keys are read once through the data-API reader (`fetchAllTranslationRows`,
+ * keyset by key), then each is written by `admin_machine_translation`, which
+ * creates the target's row. A per-row refusal and an empty source are counted
+ * and their keys named, never only counted (F4).
  */
 export function usePseudoGenerate() {
   const invalidate = useInvalidateTranslations();
   return useMutation({
     mutationFn: async (input: {
+      roster: readonly LanguageRow[];
       transform: (source: string) => string;
       onProgress?: (done: number, total: number) => void;
-    }) => {
+    }): Promise<PseudoSummary> => {
+      const bases = input.roster.filter((language) => language.isBase);
+      const base = bases.length === 1 ? bases[0] : undefined;
+      if (base === undefined) throw new Error(`noSingleBase: ${bases.length}`);
       await ensurePseudoLanguage();
 
-      const pageSize = 200;
-      let offset = 0;
-      let total = 0;
+      const keys = (await fetchAllTranslationRows(base.code)).filter((row) => !row.orphaned);
+      const total = keys.length;
       let written = 0;
-      let failed = 0;
+      const failedKeys: string[] = [];
 
-      for (;;) {
-        const page = await listTranslations({
-          lang: PSEUDO_LANG,
-          status: "all",
-          limit: pageSize,
-          offset,
-        });
-        total = page.totalCount;
-        if (page.rows.length === 0) break;
-        for (const row of page.rows) {
-          const source = row.sourceValue ?? "";
-          if (source === "") {
-            failed += 1;
-          } else {
-            try {
-              await writePseudoRow({ key: row.key, value: input.transform(source) });
-              written += 1;
-            } catch {
-              // A single refused row must not lose the other 400 (F4: counted).
-              failed += 1;
-            }
+      for (const row of keys) {
+        const source = row.value ?? "";
+        if (source === "") {
+          failedKeys.push(row.key);
+        } else {
+          try {
+            await writePseudoRow({ key: row.key, value: input.transform(source) });
+            written += 1;
+          } catch {
+            // A single refused row must not lose the other 400 (F4: named).
+            failedKeys.push(row.key);
           }
-          input.onProgress?.(written + failed, total);
         }
-        offset += page.rows.length;
-        if (offset >= total) break;
+        input.onProgress?.(written + failedKeys.length, total);
       }
 
-      return { written, failed, total };
+      return { written, failed: failedKeys.length, total, failedKeys };
     },
     onSettled: invalidate,
   });
