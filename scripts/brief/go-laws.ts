@@ -8,7 +8,7 @@
  *
  * Text laws: CF-BRIEF-1 base line, CF-BRIEF-2 stop rule, CF-BRIEF-3 scope (the law brief (12) names),
  * CF-BRIEF-11 title (a code span after "Commit", "first line:" or "commit ("), CF-BRIEF-13 allowance,
- * CF-BRIEF-15 census items, CF-BRIEF-16 a SCOPE path rule 00 forbids. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
+ * CF-BRIEF-15 census items, CF-BRIEF-16 a SCOPE path rule 00 forbids, CF-BRIEF-17 a ruling saved bare. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
  * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
  * CF-BRIEF-9 assert, CF-BRIEF-10 count. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
@@ -156,6 +156,25 @@ export function forbiddenScopeFindings(text: string, file: string): Finding[] {
     }
   });
   return findings;
+}
+
+/**
+ * CF-BRIEF-17 (the pictures turn, ruling 2) — a ruling is saved bare: its file begins with the
+ * ruling's own first line, `RULING — …`, never a heading or a fence of the saver's (its sha256 is then
+ * the file's). Judged on the rulings of the brief in force, as the other text laws are.
+ */
+export function rulingFormFindings(text: string, file: string): Finding[] {
+  const first = linesOf(text)[0] ?? "";
+  return first.startsWith("RULING — ")
+    ? []
+    : [
+        {
+          law: "CF-BRIEF-17",
+          file,
+          line: 1,
+          text: `a ruling saved with a wrapper: its first line is \`${first.slice(0, 40)}\`, not "RULING — "`,
+        },
+      ];
 }
 
 /**

@@ -28,6 +28,7 @@ import {
   keyOf,
   newTestFindings,
   optionFindings,
+  rulingFormFindings,
   scopeFindings,
   stopRuleFindings,
   templateKeys,
@@ -50,7 +51,8 @@ import { readAllowlist, report } from "./kit";
  *   CF-BRIEF-13 the allowlist keyed only to the brief in force and its rulings, CF-BRIEF-15 the
  *   brief's STEP 1 or its rulings answer every `CENSUS-ITEM` of docs/governance/go-template.md (the
  *   one exception: a title that says RECORDS TURN or RULES TURN; a template with no item fails),
- *   CF-BRIEF-16 a SCOPE that names no path rule 00 forbids the executor (housekeeping turn 3c).
+ *   CF-BRIEF-16 a SCOPE that names no path rule 00 forbids the executor (housekeeping turn 3c),
+ *   CF-BRIEF-17 each ruling saved bare, its first line `RULING — …` (the pictures turn, ruling 2).
  * - check-go.ts `--at <commit>` judges the tree laws on a snapshot of that commit; CF-BRIEF-14 plants
  *   a scratch repository whose working tree lost the cited line and the counted file.
  * - The TREE laws (CF-BRIEF-5 cited path, 6 cited line, 7 free id, 8 option, 9 assert, 10 count)
@@ -103,6 +105,20 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     const allowances = readAllowlist(ALLOWLIST, findings.map(keyOf));
     console.log(`[briefs] read ${1 + rulings.length} files, findings: ${findings.length}`);
     expect(report(asReported(findings.filter((f) => !allowances.has(keyOf(f)))))).toBe("");
+  });
+
+  it("CF-BRIEF-17 every ruling of the brief in force is saved bare: its first line is the ruling's `RULING — …`; a planted wrapped ruling is named", () => {
+    const { rulings } = inForce();
+    const findings = rulings.flatMap((file) =>
+      rulingFormFindings(readFileSync(file, "utf8"), file),
+    );
+    expect(report(asReported(findings))).toBe("");
+    const bare =
+      "RULING — planted, stop 1: the answers. Base: cursor/planted 2b11a9d29.\n\n1. Yes.\n";
+    expect(rulingFormFindings(bare, "planted-ruling-1.md")).toEqual([]);
+    const wrapped = `# Planted — ruling 1 (sha256 ${"0".repeat(64)})\n\n\`\`\`\`text\n${bare}\`\`\`\`\n`;
+    expect(lawsOf(rulingFormFindings(wrapped, "planted-ruling-1.md"))).toEqual(["CF-BRIEF-17"]);
+    expect(rulingFormFindings(`\`\`\`\`\n${bare}`, "planted-ruling-2.md")).toHaveLength(1);
   });
 
   it("CF-BRIEF-13 the allowlist holds no line keyed to a brief other than the one in force", () => {

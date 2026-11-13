@@ -1,6 +1,3 @@
-# Pictures — ruling 1 (sha256 9e83316ad7d42674a18339a2784496dd8c35c8560b169dc56c241b302e57d650)
-
-````text
 RULING — pictures, stop 1: the census — the seven answers. Base: cursor/pictures c20a844dd.
 
 The census is accepted whole, its WebKit reproduction is the turn's red-first proof, and its correction of the cause stands: the image's percentage height (`listing-picture.tsx` :222) fails in WebKit inside a TABLE CELL (My listings draws a real table at 1280 and up), while the frames are sized right; the same component fits on the feed and the ad page. Build Parts A → D against the plan and these answers; the brief is not rebuilt. Save this ruling by scripted copy as `docs/governance/briefs/pictures-ruling-1.md` (sha256 as the operator's line gives it) in the Part A commit; name it in §10.
@@ -16,4 +13,3 @@ PREVENTION (G70). Root cause of the brief's partial error, as a class: the GO na
 7. Unit tests — YES: one each for `photo-reviews.tsx` and `category-image-dialog.tsx` (the primitive's props they pass, and the error fallback).
 
 Records (beside the brief's): INC-1121's cause line reads "the image sized by a percentage height (`listing-picture.tsx` :222) inside a table cell — My listings' table form at 1280 and up; WebKit only (the census's reproduction: portrait 360×480 → 80×480, landscape 480×360 → 80×360, square 512×512 → 60×512)". INC-1122 — the ad gallery's `srcset` gives a photo's long edge as its width (`photo-gallery.tsx` :271 → :273), so browsers fetch a file too small for a portrait (softer, never distorted); fix: carry each photo's width and height through the photo links, the posting service and the public listing read; the photo-data turn; OPEN. INC-1123 — 42 spec files branch on the Playwright project's name (`"desktop-1280"`, `"mobile-360"`), so a new project (WebKit) silently skips their layout branches; fix: `layoutOf(page)` everywhere, CF-HELPERS-9's allowlist to zero; the e2e leftovers turn; OPEN.
-````
