@@ -1218,7 +1218,10 @@ The weight guard's FORBIDDEN gains `@radix-ui/react-dialog` and `@radix-ui/react
 
 ci.yml's first job `scope` runs `scripts/ci/docs-only.ts`. A push's CODE TREE is its commit's tree
 with every record set aside — a record is `docs/**` but never `docs/generated/**`, `.cursor/**`, or
-a `*.md` at the root (`roadmap.md`, `README.md`, `AGENTS.md`) — and `codeTreeId` names it: the
+a `*.md` at the root (`roadmap.md`, `README.md`, `AGENTS.md`), or a `SET_ASIDE` path: the brief
+allowlist `scripts/conformance/briefs-allowlist.txt` (the CI turn, DEC-378 b — no lane and no
+first-download step reads it, and its one CI reader, `briefs.test.ts`, runs in Component tests,
+which a proven tree still runs; CF-DOCS-11) — and `codeTreeId` names it: the
 sha256 of the commit's `git ls-tree -r -z` entries (mode, type, object, path) that are not records.
 A pull request's run computes it for the merge commit it tests (`GITHUB_SHA`), a push for its head.
 

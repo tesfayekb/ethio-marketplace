@@ -94,7 +94,8 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
    line 3 as it stands and runs every check with `TURN_BASE=<its Base sha>` and `CHECKS_BASE=<its Base
    sha>` in the environment (the checks read the base from the first brief named on line 3 otherwise).
    Tick or add only the roadmap lines the task dictates; `bunx prettier --check roadmap.md`. Commit:
-   `<stem>: task saved`.
+   `<stem>: task saved`. It is not pushed by itself: the turn's first push is a stop's (below) or
+   the final one (step 9), and the draft pull request opens with it.
 3. **Census first, every part.** Before any edit, read the real tree for the part's concern: every
    consumer by DEFINITION, across `src/`, `supabase/migrations/`, `e2e/` and `scripts/` (never only
    the folder the first instance sits in), and the mechanism that already serves it. A census hit the
@@ -104,11 +105,14 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
    test ids, censuses, allowlists, about a minute) whenever the part touched a test, a guard, an
    allowlist or a shared mechanism → one commit whose title claims only what happened
    (`<stem> part C: photo screening onto aiCall`); its subject line is at most 72 characters, any
-   detail below a blank line. A commit is never red.
+   detail below a blank line. A commit is never red. The first-download check belongs to the gate
+   (step 6): a ceiling's change lands in the commit of the part that causes it when the cause is
+   known, otherwise in one ceilings commit before the push, named in the report's §10.
 5. **A migration** ends the part that writes it: commit, write the MIGRATION stop report (rule 30),
    commit it, push, open the pull request as a draft, say so in the chat and stop. You never apply a
    migration anywhere.
-6. **THE CHECKS — the pre-push gate (DEC-374), once, on the final code tree.** `bun run
+6. **THE CHECKS — the pre-push gate (DEC-374), once, whole, on the final code tree, before the
+   self-review.** `bun run
    typecheck`, `bun run lint`, the touched files' unit tests and `bunx vitest run scripts
    --maxWorkers=2`, then `bun run checks` (every CI job that needs no backend or browser, read from
    `.github/workflows/ci.yml`, its own typecheck included; the laws run first; about eight minutes —
@@ -119,26 +123,32 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
    (`mobile-360` and `desktop-1280`; a `@webkit` test also `webkit-1280` and `webkit-390`), 0
    retries, through `bun run e2e:local -- <files> --grep "<ids>"`, plus each red-first run for a
    defect the task fixes (rule 20). No spec file runs whole locally unless the task wrote it new.
-   When the values are not set, say so. Then push at once (step 10): CI on the pull request is the
-   full proof — every test in its lane, and the repeat lane repeating the changed specs that fit
-   its budget (DEC-283) — and steps 8 and 9, and any by-id run that remains, happen while it runs.
-8. **THE SELF-REVIEW.** Open `.cursor/rules/80-review.mdc` and read your whole diff
+   When the values are not set, say so. CI on the pull request is the full proof — every test in
+   its lane, and the repeat lane repeating the changed specs that fit its budget (DEC-283) — so the
+   tree it runs on is the reviewed one: the self-review before the push (step 8, then step 9).
+8. **THE SELF-REVIEW, before the push.** Open `.cursor/rules/80-review.mdc` and read your whole diff
    (`git diff <BASE>..HEAD`) against it, heading by heading, as if someone else wrote it. Every BLOCKER
    is fixed in a new commit and the review runs again; MAJOR and MINOR are fixed inside scope when the
-   task allows, otherwise listed under Departures. Its last line goes into the report word for word.
-9. **THE REPORT.** Open `.cursor/rules/60-report.mdc` and write
-   `docs/governance/reports/<stem>.report.md`; commit it on its own (`<stem>: report`).
-10. **PUSH, OPEN THE PULL REQUEST, AND WAIT FOR ITS CI.** `git push -u origin cursor/<stem>` (never
-    `--force`), right after step 7. `gh pr create --base dev --title "<the task's title line>" --body
-    "<the report's path and its first heading>"`. Then wait for the pull request's CI with
-    `gh pr checks <number> --watch --interval 60` (about 12 minutes; run it again if the wait
-    times out). Read every red as rule 40 says, fix it at its root in a new commit (with the report's
-    sections brought up to date in the same commit), push, and wait again. You are done only when
-    every check on the pull request is green on your last commit. Then add one comment to the pull
-    request with `gh pr comment <number> --body "Every check green on <sha>"` (no commit, so no new
-    run), and say in the chat: the pull request's link, its last commit, and "every check green". You never
-    merge it: the supervisor reviews it, and the operator merges it ("Create a merge commit", never
-    squash or rebase, so your commit titles stay true).
+   task allows, otherwise listed under Departures. A fix the review makes is followed by the checks
+   that fix can affect (typecheck, lint, its unit tests, the laws when it touched a test, a guard or
+   an allowlist, its test ids by `--grep`), then the push; the gate (step 6) is not run again for
+   it. Its last line goes into the report word for word.
+9. **PUSH AND OPEN THE PULL REQUEST.** `git push -u origin cursor/<stem>` (never `--force`), once,
+   after step 8. `gh pr create --base dev --title "<the task's title line>" --body "<the brief's
+   path; the report follows at docs/governance/reports/<stem>.report.md>"`, or `gh pr ready
+   <number>` when a stop opened it as a draft.
+10. **THE REPORT WHILE CI RUNS, AND CI GREEN.** While the pull request's CI runs, open
+    `.cursor/rules/60-report.mdc` and write `docs/governance/reports/<stem>.report.md`. Wait for the
+    CI with `gh pr checks <number> --watch --interval 60` (about 12 minutes; run it again if the wait
+    times out). Read every red as rule 40 says, fix it at its root in a new commit, push, and wait
+    again. When every check is green on your last code commit, complete the report's CI section,
+    commit it on its own (`<stem>: report`) and push it: it changes records only, so its run reuses
+    the proven code tree (DEC-375 a) and runs no browser lane. You are done only when every check on
+    the pull request is green on your last commit. Then add one comment to the pull request with
+    `gh pr comment <number> --body "Every check green on <sha>"` (no commit, so no new run), and say
+    in the chat: the pull request's link, its last commit, and "every check green". You never merge
+    it: the supervisor reviews it, and the operator merges it ("Create a merge commit", never squash
+    or rebase, so your commit titles stay true).
 
 ## Stopping before the end
 

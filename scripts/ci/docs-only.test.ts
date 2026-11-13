@@ -140,6 +140,7 @@ describe("a proven code tree is not proven again (DEC-375 a)", () => {
       "AGENTS.md",
       "CLAUDE.md",
       ".cursor/rules/00-protocol.mdc",
+      "scripts/conformance/briefs-allowlist.txt",
     ])
       expect(isRecord(path), path).toBe(true);
     for (const path of [
@@ -149,6 +150,8 @@ describe("a proven code tree is not proven again (DEC-375 a)", () => {
       "src/routes/index.tsx",
       "e2e/specs/a.spec.ts",
       "scripts/ci/docs-only.ts",
+      "scripts/conformance/lanes-allowlist.txt",
+      "scripts/conformance/briefs.test.ts",
       ".github/workflows/ci.yml",
       "supabase/migrations/1_a.sql",
       ".claude/settings.md",
@@ -365,5 +368,31 @@ describe("a proven code tree is not proven again (DEC-375 a)", () => {
       "ran — no proven code tree: this commit's tree could not be read",
     ])
       expect(accepts(planted), planted).toBe(false);
+  });
+
+  it("CF-DOCS-11 a tree that differs only in the brief allowlist is proven; one that differs in another conformance file is not", () => {
+    const scratch = scratchTrees();
+    const source: [string, string] = ["src/a.ts", "a\n"];
+    const briefs = "scripts/conformance/briefs-allowlist.txt";
+    const lanes = "scripts/conformance/lanes-allowlist.txt";
+    const header = "# header\n";
+    const line = "# header\nkey | reason | 2026-12-31\n";
+    const id = (files: Array<[string, string]>) => readCodeTreeId(scratch.tree(files), scratch.dir);
+    const original = id([source, [briefs, header], [lanes, header]]);
+    expect(original).toMatch(/^[0-9a-f]{64}$/);
+    const proven = (treeId: string | null) =>
+      decide(
+        treeId,
+        SELF,
+        probeOf({ [original ?? ""]: [candidate(PR_GREEN.id)] }, [PR_GREEN], {
+          [PR_GREEN.id]: PR_JOBS,
+        }),
+      ).docsOnly;
+    const allowlistOnly = id([source, [briefs, line], [lanes, header]]);
+    expect(allowlistOnly).toBe(original);
+    expect(proven(allowlistOnly)).toBe(true);
+    const otherConformance = id([source, [briefs, header], [lanes, line]]);
+    expect(otherConformance).not.toBe(original);
+    expect(proven(otherConformance)).toBe(false);
   });
 });

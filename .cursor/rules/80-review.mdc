@@ -1,5 +1,5 @@
 ---
-description: The independent review checklist for an ethio.com turn — run it on the turn's whole diff before the report, and in a fresh chat when the operator asks for a second review.
+description: The independent review checklist for an ethio.com turn — run it on the turn's whole diff before the push (the self-review before the push, rule 00 step 8), and in a fresh chat when the operator asks for a second review.
 alwaysApply: false
 ---
 
