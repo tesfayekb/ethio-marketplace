@@ -21,8 +21,8 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 - Server-keyed tables use DataTable's keyset prop and the existing reader/error slots; no local row slicing or invented totals, so cursor pages stay intact.
 - Text attributes: preset allowlist (`attr_preset_ok`), never free regex; option records: the strict shape `value, label_en, label_am, parent, active, bounds, aliases`, unknown keys refused, defaults omitted.
 - A console save never drops a field it does not show: editors round-trip every stored field.
-- CI evidence: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ — ci-status.md, e2e-last-failure.md, guards-last-failure.md; never dev/main copies or a git fetch of it.
-- Every turn starts by reading the last COMPLETED CI run at the raw ci-evidence addresses (ci-status.md, guards-last-failure.md, e2e-last-failure.md, local-backend-proof.md); any red is fixed first, at its root, then the work continues; never end a turn only to wait for CI; the report opens with that CI line (sha + verdict).
+- CI evidence: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ — ci-status.md, e2e-last-failure.md, guards-last-failure.md (dev's at the root, a lane's under `branches/<ref>/`, DEC-321); never dev/main copies or a git fetch of it.
+- Every turn starts by reading the last COMPLETED CI run at the raw ci-evidence addresses (the three above and local-backend-proof.md); any red is fixed first, at its root, then the work continues; never end a turn only to wait for CI; the report opens with that CI line (sha + verdict).
 - Before a push (DEC-374): `bun run checks`, no FAIL, NOT RUNs named, last line reported; browser tests by `--grep` id; CI proves all.
 - Market-neutral wording: a market-dependent statement names no single country — use {country}.
 - Data-API lists use `readAllPages`: keyset paging, never positional.

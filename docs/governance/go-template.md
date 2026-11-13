@@ -81,7 +81,7 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 <!-- CENSUS-ITEM: first-download -->
 - first-download — the first-download table from the executor's own lock-exact build, before and after; a change under src/ names `scripts/route-budgets.mjs` in SCOPE for ceilings only and asks the census for every page's room to the NEAR band.
 <!-- CENSUS-ITEM: premises -->
-- premises — every premise of this GO the census finds wrong; outside systems — a runner image, a platform event, a provider API, an artifact's contents: cite the repository record read (a ci-evidence log at its commit, the vendor's source file, the workflow's upload step) or write `OPEN: <the question>` for the census; never from memory.
+- premises — every premise of this GO the census finds wrong; outside systems — a runner image, a platform event, a provider API, an artifact's contents: cite the repository record read (a ci-evidence log at its commit, the vendor's source file, the workflow's upload step) or write `OPEN: <the question>` for the census; never from memory; a setting the task changes is named with the decision that set it.
 <!-- CENSUS-ITEM: findings -->
 - findings — what the census finds beyond the task, file:line.
 `docs/governance/reports/<stem>.stop-1.md`; STOP.

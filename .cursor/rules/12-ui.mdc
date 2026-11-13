@@ -76,8 +76,9 @@ candidates with fixture data.
 
 - A control a person types into or chooses from renders inside the one `Field` primitive with the
   door's field name as its id, carries `aria-invalid` and `aria-describedby` when refused, reports
-  its missing answer to the shared gate (`Field` and `focusFirstRefusal` in
-  `src/features/posting/field.tsx`, `reportMissing` in `src/features/posting/wizard.tsx`; row 14),
+  its missing answer to the shared gate (`Field` in `src/features/posting/field.tsx`,
+  `focusFirstRefusal` in `src/features/posting/field-refusals.ts`, `reportMissing` in
+  `src/features/posting/wizard.tsx`; row 14),
   and shows its refusal only through the one refusal
   reader as a translated key. No form without `noValidate`, no local `fieldClass`, no per-feature
   error mapper, no sentinel number parse.

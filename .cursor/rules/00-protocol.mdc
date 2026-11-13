@@ -115,7 +115,8 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
    485 s on the pictures turn's final tree); let it finish. Fix every FAIL at its root in a new commit
    and run it again WHOLE. Name every NOT RUN with its reason. Paste its fast line and its last line.
 7. **THE BROWSER CHECK — by test id (DEC-374).** When the E2E values are in your environment (rule
-   50): only the test ids the task adds or changes, by `--grep`, in every project that runs them, 0
+   50): only the test ids the task adds or changes, by `--grep`, in every project that runs them
+   (`mobile-360` and `desktop-1280`; a `@webkit` test also `webkit-1280` and `webkit-390`), 0
    retries, through `bun run e2e:local -- <files> --grep "<ids>"`, plus each red-first run for a
    defect the task fixes (rule 20). No spec file runs whole locally unless the task wrote it new.
    When the values are not set, say so. Then push at once (step 10): CI on the pull request is the

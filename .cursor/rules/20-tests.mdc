@@ -17,7 +17,8 @@ must obey too.
 - J2 Global-sweep tests run in a fence language per project; real catalogue keys are read-only.
 - J3 Never edit a real reference row in ANY project (a seeded plan, category, location, language,
   user); per-axes scratch entities, deleted in a hook that survives a timeout (`afterEach`, not only
-  a body `finally`) by a destroy that throws on failure; the shard-1 setup alone reaps residue.
+  a body `finally`) by a destroy that throws on failure; lane 1 of every pull-request run and the
+  nightly's first run own the maintenance pass that reaps residue (DEC-369).
 - J4 Bulk/count assertions read per-key DB truth via the service client; summaries are asserted for
   visibility only; mismatches throw with the page/query-cache/audit dump.
 - J5 Locators via the viewport-aware twin helpers, never a bare prefix + `.first()`; fixtures via
@@ -27,8 +28,9 @@ must obey too.
   other tests' rows; never locate a real row by its position on a shared roster (search or DB truth).
 - J7 Seed before navigate; assert seeded rows render before acting; polls shorter than the budget
   so failures assert with values; Playwright's built-in waiting only — never `waitForTimeout`.
-- J8 `@global-state` tests run serial-only in the nightly; flaky passes are ledgered, and three in
-  seven days is an incident.
+- J8 `@global-state` tests run serial-only: on every push in the serial lane (`smoke`, one worker,
+  its own backend; INC-1135) and in the nightly's serial run; flaky passes are ledgered, and three
+  in seven days is an incident.
 - J9 Identity: the pool (`leaseUser()`) for consumers — at most TWO pooled accounts per test; tests
   that mutate their own auth state carry `@private-identity` and take the real door.
 
@@ -95,7 +97,8 @@ position; `pickCity` (`e2e/helpers/posting.ts`) for the place step; `switchLangu
   `E2E_SUPABASE_SERVICE_ROLE_KEY` in the environment (on this computer the operator may keep them in
   `~/.ethio-e2e.env`, loaded by the shell; you check only that the three names are set, never their
   values) — never `supabase/config.toml`, never production. Before the push (DEC-374, rule 00 step
-  7): only the test ids the turn adds or changes, by `--grep`, in every project that runs them, 2
+  7): only the test ids the turn adds or changes, by `--grep`, in every project that runs them
+  (`mobile-360` and `desktop-1280`; a `@webkit` test also `webkit-1280` and `webkit-390`), 2
   workers, fake mode, 0 retries, plus each red-first run; a spec file runs whole locally only when
   the turn wrote it new — CI on the pull request runs every test. Paste every count line and the
   server log's `[ssr-error]` count by path.

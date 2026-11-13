@@ -24,12 +24,18 @@ gh run view <run-id> --log-failed               # the failed steps' logs
 ```
 
 A pull request is done only when every check is green on your last commit. A newer push replaces a
-queued run, never the running one; read the run whose commit is your last.
+queued run, never the running one; read the run whose commit is your last. A push with no run listed
+by `gh run list --branch cursor/<stem>` after fifteen minutes is reported in the chat with that
+listing; the operator re-triggers it (closes and reopens the pull request); never a re-push.
+
+A new browser project's census runs on the local backend where this machine can run it (db:proof's
+stack); otherwise the report names CI's first run as the proof.
 
 ## The evidence files (the base, and the newest completed run)
 
 CI also writes its evidence to the branch `ci-evidence`. Read it with git, never the copies on dev or
-main (frozen old text):
+main (frozen old text). Dev's runs write at the root of `docs/tracking/`; a lane's runs (your pull
+request's) write under `docs/tracking/branches/<ref>/` (DEC-321), `<ref>` being `cursor/<stem>`:
 
 ```
 git fetch origin ci-evidence
@@ -37,10 +43,12 @@ git show origin/ci-evidence:docs/tracking/ci-status.md | head -6
 git show origin/ci-evidence:docs/tracking/e2e-last-failure.md
 git show origin/ci-evidence:docs/tracking/guards-last-failure.md
 git show origin/ci-evidence:docs/tracking/flake-ledger.md
+git show origin/ci-evidence:docs/tracking/branches/cursor/<stem>/ci-status.md | head -6
+git show origin/ci-evidence:docs/tracking/branches/cursor/<stem>/e2e-last-failure.md
 ```
 
-These files describe the newest completed run, whichever branch it was on — a pull request's run
-included, so the reported commit may be yours. The two-step read,
+Each file describes the newest completed run on its ref (the flake ledger is one file for every
+ref). The two-step read,
 always both: (1) the conclusion; (2) the reported commit equals the commit you are judging. A
 mismatch means that commit's run is unfinished, queued or superseded: STALE, never current. At the
 start of a task they tell you the state of `dev` (step 1 of rule 00); `e2e-last-failure.md` carries
@@ -82,7 +90,8 @@ The pass bar: both viewport projects green at `retries: 0`; no secret in any log
 
 - "Every check green on <sha>" only after reading a completed run on that sha.
 - The report's CI section is the pull request's check list on your last CODE commit
-  (`gh pr checks <number>`), plus the first six lines of `ci-status.md` for the base. The report
+  (`gh pr checks <number>`), plus the first six lines of the root `ci-status.md` for the base (dev)
+  and of `branches/cursor/<stem>/ci-status.md` for that commit. The report
   commit rides without a run of its own: never push a second time to obtain a run for a report, a
   docs or a rules change (two report-only pushes cost two full runs and two transport reds).
 - Never re-run a red outside (b) and (d); never ask anyone to paste a log.
