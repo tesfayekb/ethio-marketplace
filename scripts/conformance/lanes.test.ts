@@ -10,6 +10,7 @@ import {
   laneLine,
   listedTests,
   NIGHTLY_TAGS,
+  ONE_WORKER_LANES,
   planLanes,
   planLine,
   readWeights,
@@ -38,7 +39,8 @@ import { readManifest, sharedValueFindings, triggerFindings } from "./shared-val
  * CF-LANES-2: the plan is deterministic, holds every file once, and its largest lane is within
  * SPREAD_LIMIT of the mean unless a file has that lane to itself (the plan's line names it).
  * CF-LANES-3: each lane's workers, read from the job's E2E_WORKERS and the step's `--workers=`:
- * LANE_WORKERS in every lane (DEC-376's count restarted at one on the speed turn's first run).
+ * LANE_WORKERS (two, DEC-378 a) in lanes 1 → 16, one in ONE_WORKER_LANES (smoke, email, webkit,
+ * repeat).
  * CF-LANES-4 (the CI turn, DEC-378 a, INC-1136): no scratch row moves a shared value in a split
  * lane — every write site on a table of shared-value-tables.txt sits in a `@global-state` test or
  * a sanctioned helper, or is a line of shared-values-allowlist.txt; every table a migration gives a
@@ -197,9 +199,15 @@ export function workersByLane(yml: string): Map<string, number | null> {
   return workers;
 }
 
-export function workerFindings(yml: string, expected: number = LANE_WORKERS): Finding[] {
+/** The workers a lane must run: one in ONE_WORKER_LANES, LANE_WORKERS in every lane the plan splits. */
+function expectedWorkers(lane: string): number {
+  return ONE_WORKER_LANES.some((name) => name === lane) ? 1 : LANE_WORKERS;
+}
+
+export function workerFindings(yml: string): Finding[] {
   const findings: Finding[] = [];
   for (const [lane, value] of workersByLane(yml)) {
+    const expected = expectedWorkers(lane);
     if (value !== expected)
       findings.push({
         file: WORKFLOW,
@@ -321,20 +329,30 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
     expect(planLine(unweighed)).toContain("planted-new.spec.ts");
   });
 
-  it("CF-LANES-3 every lane runs LANE_WORKERS workers (one: DEC-376's count restarted)", () => {
+  it("CF-LANES-3 lanes 1 → 16 run LANE_WORKERS (two, DEC-378 a); smoke, email, webkit and repeat run one", () => {
     const workers = workersByLane(yml);
-    expect(LANE_WORKERS).toBe(1);
+    expect(LANE_WORKERS).toBe(2);
+    expect([...ONE_WORKER_LANES]).toEqual(["smoke", "email", "webkit", "repeat"]);
     expect(report(workerFindings(yml))).toBe("");
     expect(workers.size).toBe(20);
+    expect([...workers.values()].filter((value) => value === 2)).toHaveLength(16);
 
-    // Planted: DEC-376's two workers job-wide; a `--workers=2` on the numbered lanes.
-    const twoWorkers = yml.replace(/\n(\s*)E2E_WORKERS: "1"/, '\n$1E2E_WORKERS: "2"');
-    expect(twoWorkers).not.toBe(yml);
-    expect(workerFindings(twoWorkers)).toHaveLength(18);
+    // Planted: one worker job-wide (the knob before DEC-378 a); two job-wide (the smoke and email
+    // branches keep their `--workers=1`, webkit and repeat do not); `--workers=1` on lanes 1 → 16.
+    const chosen = /E2E_WORKERS: \$\{\{[^}]*\}\}/;
+    expect(chosen.test(yml)).toBe(true);
+    expect(workerFindings(yml.replace(chosen, 'E2E_WORKERS: "1"'))).toHaveLength(16);
+    expect(
+      workerFindings(yml.replace(chosen, 'E2E_WORKERS: "2"')).map((finding) => finding.what),
+    ).toEqual([
+      "lane webkit runs 2 worker(s); expected 1",
+      "lane repeat runs 2 worker(s); expected 1",
+    ]);
     const flagged = yml.replace(
       '--grep-invert "@global-state|@a11y" --test-list',
-      '--grep-invert "@global-state|@a11y" --workers=2 --test-list',
+      '--grep-invert "@global-state|@a11y" --workers=1 --test-list',
     );
+    expect(flagged).not.toBe(yml);
     expect(workerFindings(flagged)).toHaveLength(16);
   });
 });

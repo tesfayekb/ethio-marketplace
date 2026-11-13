@@ -600,9 +600,11 @@ specs the sixteen run. J8's `@global-state` tests run there, serially, on every 
 since the app-fixes turn (INC-1135; `SERIAL_TAGS` holds both tags and `NIGHTLY_TAGS`
 none): TR-30 failed there on the speed turn's first run for a cause in the pseudo
 generator (INC-1137), not in its fixture. CF-LANES-1 has no allowlist line, and its
-planted cases find an `@a11y` or a `@global-state` test in no lane. Every lane runs one worker:
-DEC-376's two workers met its revert rule on that run (ATR-1 read a level rank that
-MON-16's scratch level moved, in the same lane's backend).
+planted cases find an `@a11y` or a `@global-state` test in no lane. Lanes 1 → 16 run two
+workers since the CI turn (DEC-378 a; the smoke, e-mail, WebKit and repeat lanes one,
+CF-LANES-3). DEC-376's two workers had met its revert rule on the speed turn's first run (ATR-1
+read a level rank that MON-16's scratch level moved, in the same lane's backend); INC-1136,
+below, removed that class.
 Since the CI turn (INC-1136) no scratch row moves a shared value in a split lane: a test
 whose write changes a value that rows it did not create carry (a level's rank, the public
 language list, a job's pause), or whose subject is a value other tests' own rows change
@@ -661,7 +663,7 @@ proof evidence; the operator dispatches the separate FV-1 Flake check (DEC-184).
 
 ## INC-817 — a scratch market's code comes from the worker's own slot
 
-scratchCountryCode draws from the user-assigned codes whose position modulo 8 equals the worker's TEST_PARALLEL_INDEX, so two workers running at the same moment never pick the same market (CO-7 collided on XR with two workers, bundle 22 turn 22b). CI runs two workers a lane since DEC-376 (the email lane and the serial lane one); local runs default to two.
+scratchCountryCode draws from the user-assigned codes whose position modulo 8 equals the worker's TEST_PARALLEL_INDEX, so two workers running at the same moment never pick the same market (CO-7 collided on XR with two workers, bundle 22 turn 22b). CI runs two workers in lanes 1 → 16 since DEC-378 (a) (the serial, e-mail, WebKit and repeat lanes one); local runs default to two.
 
 ## Authoring laws (Knowledge J1–J9)
 

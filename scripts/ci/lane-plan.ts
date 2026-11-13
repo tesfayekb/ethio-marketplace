@@ -33,8 +33,14 @@ export const SERIAL_GREP = SERIAL_TAGS.map((tag) => `@${tag}`).join("|");
  * leave a tag here out with the serial tags (`--grep-invert`).
  */
 export const NIGHTLY_TAGS: readonly string[] = [];
-/** The lanes' workers: DEC-376's count restarted at one on the speed turn's first run. */
-export const LANE_WORKERS = 1;
+/**
+ * The workers of the lanes the plan splits (DEC-378 a): two, since no scratch row moves a shared
+ * value there (INC-1136, CF-LANES-4). A test that fails, or passes only on a retry, for a cause in
+ * another test's rows on the same backend returns this to one in the next commit, with its INC.
+ */
+export const LANE_WORKERS = 2;
+/** The lanes that run one worker: the serial lane, the e-mail lane, WebKit and the repeat lane. */
+export const ONE_WORKER_LANES = ["smoke", "email", "webkit", "repeat"] as const;
 /** A lane over the mean by more than this, with no file alone in it, is a finding (CF-LANES-2). */
 export const SPREAD_LIMIT = 0.25;
 
@@ -175,7 +181,7 @@ export function planLanes(files: string[], weights: Weights, count = NUMBERED_LA
   };
 }
 
-/** The repeat lane's budget: the slowest planned lane's seconds, at the lanes' one worker. */
+/** The repeat lane's budget: the slowest planned lane's seconds, measured at one worker (its own count). */
 export function repeatBudget(plan: Plan): number {
   return Math.round(Math.max(...plan.lanes.map((lane) => lane.seconds)));
 }

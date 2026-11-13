@@ -42,10 +42,11 @@ export default defineConfig({
     : process.env["CI"]
       ? 1
       : 0,
-  // DEC-024, DEC-376 — capacity knob. Every CI lane exports E2E_WORKERS=1:
-  // DEC-376's two workers met this REVERT RULE on their first run (a scratch
-  // level moved another test's feed rank). REVERT RULE: any cross-worker
-  // interference class returns this knob to 1 BEFORE the class is diagnosed.
+  // DEC-024, DEC-376, DEC-378 (a) — capacity knob. CI's lanes 1 → 16 export
+  // E2E_WORKERS=2, the serial, e-mail, WebKit and repeat lanes 1 (CF-LANES-3).
+  // REVERT RULE: a test that fails, or passes only on a retry, for a cause in
+  // another test's rows on the same backend returns the lanes to 1 in the next
+  // commit, with its INC.
   workers: process.env["E2E_WORKERS"] ? Number(process.env["E2E_WORKERS"]) : 1,
   // U1e: the json reporter is what scripts/e2e-failure-report.ts reads to
   // publish docs/tracking/e2e-last-failure.md (the artifact courier is retired).
