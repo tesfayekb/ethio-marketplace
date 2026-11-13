@@ -269,6 +269,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/bundle-closure.test.ts"), "utf8")).toContain("BC-16");
     expect(budgetStep).toContain("entryAdminViolations(");
     expect(budgetStep).toContain('"scripts/conformance/entry-admin-allowlist.txt"');
+    // stale-reload.test.ts CF-STALE-1…2 (the app-fixes turn, part B, INC-1128) is discovered by
+    // test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/stale-reload.test.ts"), "utf8")).toContain(
+      "CF-STALE-2",
+    );
     // vendor-seams.test.ts VS-1…3 is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
       "VS-3",

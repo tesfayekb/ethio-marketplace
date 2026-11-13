@@ -1,0 +1,4 @@
+# CF-STALE-1 (the app-fixes turn, part B, INC-1128): a file under src/ that reloads the page (location.reload) outside the one reloader, src/lib/stale-chunk.ts (scripts/conformance/stale-reload.test.ts). <file> | <reason> | <until>
+src/lib/error-page.ts | the root error page's Try again button: the dependency-free page drawn when the app itself could not start, where no module of the app is there to call | 2027-05-13
+src/lib/on-demand-failure.ts | refreshPage, the shared cure a person presses for a piece that could not download (INC-911): their own choice, once, never automatic | 2027-05-13
+src/components/marketplace/feed.tsx | the feed's retry button reloads the page by its own call beside the shared cure refreshPage (feed.tsx:206); not edited in this turn (its bundle guards) | INC-1140
