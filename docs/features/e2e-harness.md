@@ -385,7 +385,7 @@ DEC-087 — Timing census (2026-09-29, non-gating). Every run, green or red, wri
 - Implementation (`scripts/e2e-failure-report.ts`): `testTimings` walks a results.json; `timingSection` renders in `renderSources` and `renderGreen`. Verdicts and promote are unchanged.
 - Self-test fixture: `scripts/fixtures/e2e-timing/results.json`, a real local capture (the before-split shard 3/6 run, 98 tests).
 
-THE FILE IS THE SHARD UNIT. `playwright.config.ts` sets `fullyParallel: false`, so `--shard` distributes whole spec files: one large file is one shard's long pole. No spec file carries more than ~25 tests; a file that grows past that is split by area, helpers moved to `e2e/helpers/` unchanged, every test keeping its exact title and body, and its afterEach/afterAll hooks travelling with its tests (J3).
+THE FILE IS THE LANE UNIT. `playwright.config.ts` sets `fullyParallel: false`, and the lane plan (DEC-375 b) distributes whole spec files: one large file is one lane's long pole. No spec file carries more than ~25 tests; a file that grows past that is split by area, helpers moved to `e2e/helpers/` unchanged, every test keeping its exact title and body, and its afterEach/afterAll hooks travelling with its tests (J3).
 
 - CI-T1 split (2026-09-29): `post-wizard.spec.ts` (76 tests) became `post-wizard-category` (20), `post-wizard-specs` (23), `post-wizard-pricing` (13), `post-wizard-resets` (8), `post-wizard-place` (12); `admin-attributes.spec.ts` (64) became `admin-attributes-library` (20), `admin-attributes-import` (16), `admin-attributes-links` (11), `admin-attributes-editor` (17). The attribute console's module-level locators and fixture helpers moved to `e2e/helpers/admin-attributes.ts`; the wizard's describe-scoped helpers and its afterEach are repeated in each wizard file that uses them. Total listed tests 922 before and after; tag selections unchanged (@global-state 16, @a11y 4, @private-identity 34).
 
@@ -583,6 +583,27 @@ files a push changed — and the specs importing a changed e2e helper — chosen
 `bun run scripts/e2e-select.ts --repeat`, up to six times on each project with
 `--retries 0` under a 720-second test cap, starting no backend when nothing is
 selected ("nothing to repeat"); scripts/conformance/repeat-lane.test.ts guards it.
+Since DEC-375 (b) (the speed turn) the cap is the slowest planned lane's seconds at
+two workers (`bun scripts/ci/lane-plan.ts --repeat-budget`), so the repeat lane ends
+within that lane.
+
+Since DEC-375 (b) and DEC-376 (the speed turn) every Chromium test runs in exactly one
+lane. Lanes 1 → 16 run SPEC FILES split by measured seconds, not `--shard`:
+`scripts/ci/lane-plan.ts` reads `playwright test --list --reporter=json` over the two
+Chromium projects and `scripts/ci/lane-weights.json` (seconds and test count per file
+and project, from a green dev run's lane results; `scripts/ci/lane-weights.ts` makes
+it offline), places the heaviest file first in the least-loaded lane, gives a file
+heavier than a lane's mean share a lane to itself, weighs a file the weights lack by
+the median file, and hands the lane its list through `--test-list`. The `smoke` lane is
+the serial lane: `--grep "@a11y|@global-state" --workers=1`, so it no longer re-runs
+specs the sixteen run, and the `@global-state` tests run on every push (INC-1135).
+Lanes 1 → 16, `webkit` and `repeat` run two workers; `email` and the serial lane one.
+Each numbered lane's evidence carries its `- Plan (DEC-375 b):` line and the plan's
+line; the summary's `- Lane plan (DEC-375 b):` line adds planned against test seconds
+per lane. Guards: CF-LANES-1 → 3 (`scripts/conformance/lanes.test.ts`, the one-worker
+lanes in `lanes-allowlist.txt`) and LWM-1/2 (`scripts/ci/lane-weights.test.ts`). The
+weights are refreshed by running the maker on a newer green run when they are the
+cause of a lane more than 25 % over the mean.
 Since housekeeping turn 3c (INC-1107) the E2E report's head carries the lane's
 coverage — `- Repeat: <U> of <T> tests repeated — specs directly changed <a>/<b>,
 importers of a changed helper <c>/<d>; budget <B> s` — wherever `repeat` is an
@@ -618,7 +639,7 @@ proof evidence; the operator dispatches the separate FV-1 Flake check (DEC-184).
 
 ## INC-817 — a scratch market's code comes from the worker's own slot
 
-scratchCountryCode draws from the user-assigned codes whose position modulo 8 equals the worker's TEST_PARALLEL_INDEX, so two workers running at the same moment never pick the same market (CO-7 collided on XR with two workers, bundle 22 turn 22b). CI runs one worker a lane; local runs default to two.
+scratchCountryCode draws from the user-assigned codes whose position modulo 8 equals the worker's TEST_PARALLEL_INDEX, so two workers running at the same moment never pick the same market (CO-7 collided on XR with two workers, bundle 22 turn 22b). CI runs two workers a lane since DEC-376 (the email lane and the serial lane one); local runs default to two.
 
 ## Authoring laws (Knowledge J1–J9)
 

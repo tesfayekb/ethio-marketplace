@@ -1,0 +1,3 @@
+# CF-LANES-3 (scripts/conformance/lanes.test.ts) — the lanes that run one worker: `<lane>` | reason | until
+email | the e-mail quota is per project and per hour: auth-signup.spec.ts runs in one process (INC-082) | DEC-376
+smoke | the serial lane: the @a11y and @global-state tests, which no other lane runs, at one worker on their own backend (INC-1135) | DEC-376

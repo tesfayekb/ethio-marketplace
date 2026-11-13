@@ -421,6 +421,16 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/rules.test.ts"), "utf8")).toContain(
       "CF-RULES-1",
     );
+    // lanes.test.ts CF-LANES-1 → 3 and lane-weights.test.ts LWM-1/2 (the speed turn, DEC-375 b,
+    // DEC-376) are discovered by test:unit's scripts/**/*.test.ts; local-backend-proof.yml's
+    // "Run proof lane" step runs scripts/ci/lane-plan.ts over scripts/ci/lane-weights.json.
+    expect(readFileSync(join(ROOT, "scripts/conformance/lanes.test.ts"), "utf8")).toContain(
+      "CF-LANES-3",
+    );
+    expect(readFileSync(join(ROOT, "scripts/ci/lane-weights.test.ts"), "utf8")).toContain("LWM-2");
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "scripts/ci/lane-plan.ts",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {
