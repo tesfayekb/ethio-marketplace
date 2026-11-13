@@ -18,6 +18,7 @@ import {
 import { withoutEmptyLayers } from "./helpers/shadows";
 import { gotoReady, layoutBoxes, settled, signInViaSession, stillPage } from "./helpers/ui";
 import { listingPath } from "../src/features/ad-page/address";
+import { en } from "../src/i18n/locales/en";
 
 /**
  * CF-DIALOG-1's browser half (turn S6-1, Sage §14, the operator's D268) — every dialog, alert
@@ -369,6 +370,29 @@ test.describe("one dialog look on a real surface (turn S6-1)", () => {
       await expect(panel).toBeHidden();
     }
   });
+
+  test(
+    "DLG-E9 a small panel opened from state gives the focus back to its opener, by Escape and by its close button",
+    { tag: "@webkit" },
+    async ({ page }) => {
+      // INC-1130 — Share this ad opens from its owner's state (no library trigger): a press on the
+      // control (Safari leaves the focus on the page) and a closing by Escape or by the ✕.
+      const seller = await scratchSeller();
+      const ad = await seed(seller);
+      await gotoReady(page, listingPath(ad.title, await publicIdOf(ad.id)));
+      const opener = page.getByTestId("listing-share-open");
+      const panel = page.locator("[data-dialog-panel][role='dialog']");
+      for (const close of ["Escape", "the close button"] as const) {
+        await opener.click();
+        await expect(panel, `${close}: it opened`).toBeVisible();
+        await settled(page);
+        if (close === "Escape") await page.keyboard.press("Escape");
+        else await panel.getByRole("button", { name: en["common.close"], exact: true }).click();
+        await expect(panel, `${close}: it closed`).toBeHidden();
+        await expect(opener, `${close}: the focus is not back on its opener`).toBeFocused();
+      }
+    },
+  );
 });
 
 /** A screen-sized surface opened from its opener: the one primitive, the focus inside it, the

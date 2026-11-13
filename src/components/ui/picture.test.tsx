@@ -107,3 +107,30 @@ describe("Picture — the one frame-and-image rule (INC-1121)", () => {
     expect(image).toHaveAttribute("draggable", "false");
   });
 });
+
+describe("Picture — a picture that cannot draw keeps its text (INC-1131)", () => {
+  it("PIC-6 a failed load with an alt: the empty-photo state is the image, labelled by the alt", () => {
+    render(<Picture src={PHOTO} fit="cover" alt="the ad's photo" frameTestId="pic-6-frame" />);
+    const frame = screen.getByTestId("pic-6-frame");
+    const image = frame.querySelector("img");
+    expect(image).not.toBeNull();
+    if (image !== null) fireEvent.error(image);
+    expect(frame).toHaveAttribute("data-picture-failed", "");
+    expect(screen.getByRole("img", { name: "the ad's photo" }).parentElement).toBe(frame);
+  });
+
+  it("PIC-7 a failed load with an empty alt stays decorative: nothing for a screen reader", () => {
+    render(<Picture src={PHOTO} fit="cover" frameTestId="pic-7-frame" />);
+    const frame = screen.getByTestId("pic-7-frame");
+    const image = frame.querySelector("img");
+    if (image !== null) fireEvent.error(image);
+    expect(frame).toHaveAttribute("data-picture-failed", "");
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(frame.querySelector("[aria-label]")).toBeNull();
+  });
+
+  it("PIC-8 no source with an alt: the empty-photo state is the image, labelled by the alt", () => {
+    render(<Picture src={null} fit="contain" alt="the category's picture" />);
+    expect(screen.getByRole("img", { name: "the category's picture" })).toBeInTheDocument();
+  });
+});

@@ -99,7 +99,14 @@ export function Picture({
           )}
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
+        // INC-1131 — the empty-photo state keeps the picture's text alternative: with an alt it
+        // is the image (its role and label on this box, so a caller's ribbon or badge stays
+        // readable); with an empty alt it is decorative and stays hidden.
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          role={alt === "" ? undefined : "img"}
+          aria-label={alt === "" ? undefined : alt}
+        >
           <ImageOff className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
         </div>
       )}

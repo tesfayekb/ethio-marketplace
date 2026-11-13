@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { useOpenerFocus } from "./dialog-opener";
 import { NoticeOutlet } from "./notice-outlet";
 import {
   DIALOG_CLOSE,
@@ -53,32 +54,47 @@ interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof SheetP
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "end", className, closeTestId, children, ...props }, ref) => {
-  const { t } = useI18n();
-  return (
-    <SheetPortal>
-      <SheetOverlay />
-      <SheetPrimitive.Content
-        ref={ref}
-        data-dialog-panel=""
-        className={cn(SHEET_PANEL, DIALOG_LAYER.modal, SHEET_SIDE[side], className)}
-        {...props}
-      >
-        {side === "bottom" ? (
-          <div aria-hidden="true" data-dialog-grabber="" className={DIALOG_GRABBER} />
-        ) : null}
-        {children}
-        {/* INC-955 — the shell's notices are drawn here while this sheet is open. */}
-        <NoticeOutlet />
-        <SheetPrimitive.Close data-testid={closeTestId} className={DIALOG_CLOSE}>
-          <X aria-hidden="true" />
-          {/* D1 — screen-reader text is user-visible text. */}
-          <span className="sr-only">{t("common.close")}</span>
-        </SheetPrimitive.Close>
-      </SheetPrimitive.Content>
-    </SheetPortal>
-  );
-});
+>(
+  (
+    { side = "end", className, closeTestId, children, onOpenAutoFocus, onCloseAutoFocus, ...props },
+    ref,
+  ) => {
+    const { t } = useI18n();
+    // INC-1130 — the sheet gives the focus back to its opener, as every panel does.
+    const opener = useOpenerFocus();
+    return (
+      <SheetPortal>
+        <SheetOverlay />
+        <SheetPrimitive.Content
+          ref={ref}
+          data-dialog-panel=""
+          className={cn(SHEET_PANEL, DIALOG_LAYER.modal, SHEET_SIDE[side], className)}
+          onOpenAutoFocus={(event) => {
+            opener.opened(event);
+            onOpenAutoFocus?.(event);
+          }}
+          onCloseAutoFocus={(event) => {
+            onCloseAutoFocus?.(event);
+            opener.closed(event);
+          }}
+          {...props}
+        >
+          {side === "bottom" ? (
+            <div aria-hidden="true" data-dialog-grabber="" className={DIALOG_GRABBER} />
+          ) : null}
+          {children}
+          {/* INC-955 — the shell's notices are drawn here while this sheet is open. */}
+          <NoticeOutlet />
+          <SheetPrimitive.Close data-testid={closeTestId} className={DIALOG_CLOSE}>
+            <X aria-hidden="true" />
+            {/* D1 — screen-reader text is user-visible text. */}
+            <span className="sr-only">{t("common.close")}</span>
+          </SheetPrimitive.Close>
+        </SheetPrimitive.Content>
+      </SheetPortal>
+    );
+  },
+);
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

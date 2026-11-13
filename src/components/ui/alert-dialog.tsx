@@ -2,6 +2,7 @@ import * as React from "react";
 import * as AlertDialogPrimitive from "./alert-dialog-primitive";
 
 import { cn } from "@/lib/utils";
+import { useOpenerFocus } from "./dialog-opener";
 import { NoticeOutlet } from "./notice-outlet";
 import { buttonVariants } from "@/components/ui/button-variants";
 import {
@@ -41,27 +42,39 @@ AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> & { size?: DialogSize }
->(({ className, size = "default", children, ...props }, ref) => (
-  <AlertDialogPortal>
-    <AlertDialogOverlay />
-    <AlertDialogPrimitive.Content
-      ref={ref}
-      data-dialog-panel=""
-      className={cn(
-        DIALOG_PANEL,
-        DIALOG_LAYER.modal,
-        DIALOG_SIZE[size],
-        DIALOG_FIT.bounded,
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      {/* INC-955 — the shell's notices are drawn here while this alert is open. */}
-      <NoticeOutlet />
-    </AlertDialogPrimitive.Content>
-  </AlertDialogPortal>
-));
+>(({ className, size = "default", children, onOpenAutoFocus, onCloseAutoFocus, ...props }, ref) => {
+  // INC-1130 — the alert gives the focus back to its opener, as every panel does.
+  const opener = useOpenerFocus();
+  return (
+    <AlertDialogPortal>
+      <AlertDialogOverlay />
+      <AlertDialogPrimitive.Content
+        ref={ref}
+        data-dialog-panel=""
+        className={cn(
+          DIALOG_PANEL,
+          DIALOG_LAYER.modal,
+          DIALOG_SIZE[size],
+          DIALOG_FIT.bounded,
+          className,
+        )}
+        onOpenAutoFocus={(event) => {
+          opener.opened(event);
+          onOpenAutoFocus?.(event);
+        }}
+        onCloseAutoFocus={(event) => {
+          onCloseAutoFocus?.(event);
+          opener.closed(event);
+        }}
+        {...props}
+      >
+        {children}
+        {/* INC-955 — the shell's notices are drawn here while this alert is open. */}
+        <NoticeOutlet />
+      </AlertDialogPrimitive.Content>
+    </AlertDialogPortal>
+  );
+});
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
 
 const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
