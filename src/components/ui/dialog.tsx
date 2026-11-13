@@ -5,6 +5,7 @@ import * as DialogPrimitive from "./dialog-primitive";
 import { X } from "lucide-react";
 
 import { useI18n } from "@/i18n";
+import { pressTarget } from "@/lib/press";
 import { cn } from "@/lib/utils";
 import { NoticeOutlet } from "./notice-outlet";
 import {
@@ -67,6 +68,50 @@ type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.
   closeTestId?: string;
 };
 
+/**
+ * INC-1126 — the press that may open a panel. Safari leaves the focus on the page (or on the
+ * focusable box around the control) after a click, so the opener is then the control the press
+ * landed on, as press.ts names it (`pressTarget`); press.ts's own mark ends at the pointer's
+ * release, before the click opens anything. The next press or key ends the gesture; an opening
+ * takes the record and empties it.
+ */
+let pressed: HTMLElement | null = null;
+let hearingPresses = false;
+
+function hearPresses(doc: Document) {
+  if (hearingPresses) return;
+  hearingPresses = true;
+  doc.addEventListener(
+    "pointerdown",
+    (event) => {
+      const control = pressTarget(event.target);
+      pressed = control instanceof HTMLElement ? control : null;
+    },
+    true,
+  );
+  doc.addEventListener(
+    "keydown",
+    () => {
+      pressed = null;
+    },
+    true,
+  );
+}
+
+// From the module's first evaluation: a panel mounted only on its opening (`<Dialog open>`) is
+// opened by a press that came before any panel's own effect could hear it.
+if (typeof document !== "undefined") hearPresses(document);
+
+/** What held the focus when a panel opened, or the gesture's press when the focus sat around it. */
+function openerOf(held: Element | null): HTMLElement | null {
+  const press = pressed;
+  pressed = null;
+  const page = held === null || held === held.ownerDocument.body;
+  const around = held !== null && held !== press && press !== null && held.contains(press);
+  if (press !== null && press.isConnected && (page || around)) return press;
+  return held instanceof HTMLElement ? held : null;
+}
+
 /** Turn S6-1 — the one dialog panel (dialog-look.ts); the consumer chooses variants, never a look. */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
@@ -110,9 +155,9 @@ const DialogContent = React.forwardRef<
           )}
           onOpenAutoFocus={(event) => {
             const panel = event.target;
-            if (screenSized && panel instanceof HTMLElement) {
-              const held = panel.ownerDocument.activeElement;
-              opener.current = held instanceof HTMLElement ? held : null;
+            if (panel instanceof HTMLElement) {
+              const held = openerOf(panel.ownerDocument.activeElement);
+              if (screenSized) opener.current = held;
             }
             onOpenAutoFocus?.(event);
             if (!screenSized || event.defaultPrevented || !(panel instanceof HTMLElement)) return;
