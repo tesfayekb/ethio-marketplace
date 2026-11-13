@@ -806,3 +806,13 @@ every job of every workflow to installing, browser and system libraries both, ea
 projects its Playwright runs name (a `$NAME` argument read through its assignments), proven on the
 real lanes with webkit taken out of the list and on a planted job (CF-CID-9). The full suite in
 WebKit is a roadmap line.
+
+The lane matrix is the one list (INC-1124, ruling 2). The lane's first run (43319295611) was red in
+WebKit while the merged report in ci.yml, whose `E2E_EXPECTED_SOURCES` did not list `webkit`, named
+no failing test: the second lane a list missed (INC-966: `repeat`). ci.yml's merged report now reads
+`smoke,email,webkit,1,…,16,repeat?`, and CF-CID-10 (`scripts/conformance/repeat-lane.test.ts`, the
+file that reads both workflows) holds every reader to the matrix of `local-backend-proof.yml`: the
+summary's `lanes = [...]`, the lane reporter's and the merged report's expected sources equal it in
+order (both reporters write `repeat?`); the summary's evidence pattern, a regular expression, holds
+the same lanes in any order. A lane planted out of each of the four is named, and so is a reader
+naming a lane the matrix lost.
