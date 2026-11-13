@@ -23,16 +23,16 @@ import {
   type Weights,
 } from "./lane-weights";
 
-/** The serial lane's tags (`--grep "@a11y"`); lanes 1 → 16 leave them out. */
-export const SERIAL_TAGS = ["a11y"] as const;
+/** The serial lane's tags (`--grep "@a11y|@global-state"`); lanes 1 → 16 leave them out. */
+export const SERIAL_TAGS = ["a11y", "global-state"] as const;
 /** The serial lane's `--grep` argument. */
 export const SERIAL_GREP = SERIAL_TAGS.map((tag) => `@${tag}`).join("|");
 /**
- * Tags no per-push lane runs: the `@global-state` tests stay with the nightly's serial run while
- * INC-1135 is open (TR-30 failed in the serial lane on the speed turn's first run). Lanes 1 → 16
- * leave them out with the serial tags (`--grep-invert`).
+ * Tags no per-push lane runs. None since the app-fixes turn: the `@global-state` tests re-entered
+ * the serial lane (INC-1135; TR-30's cause was the pseudo generator, INC-1137). Lanes 1 → 16 would
+ * leave a tag here out with the serial tags (`--grep-invert`).
  */
-export const NIGHTLY_TAGS = ["global-state"] as const;
+export const NIGHTLY_TAGS: readonly string[] = [];
 /** The lanes' workers: DEC-376's count restarted at one on the speed turn's first run. */
 export const LANE_WORKERS = 1;
 /** A lane over the mean by more than this, with no file alone in it, is a finding (CF-LANES-2). */

@@ -69,6 +69,19 @@ export function coverageAgainstBase(
   return { total: baseTotal, approved, remaining: Math.max(0, baseTotal - approved) };
 }
 
+/**
+ * INC-1143 — the base catalogue's size: the total of the roster's one `isBase` language, never a
+ * language code written in the code. No single base row reads 0, as an empty catalogue.
+ */
+export function baseTotalOf(
+  roster: readonly LanguageRow[] | undefined,
+  statsByLang: ReadonlyMap<string, TranslationStats>,
+): number {
+  const bases = (roster ?? []).filter((language) => language.isBase);
+  const base = bases.length === 1 ? bases[0] : undefined;
+  return base === undefined ? 0 : (statsByLang.get(base.code)?.total ?? 0);
+}
+
 export type TranslationStatus = "untranslated" | "machine" | "edited" | "approved";
 
 export interface TranslationRow {

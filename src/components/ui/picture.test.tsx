@@ -123,7 +123,9 @@ describe("Picture — a picture that cannot draw keeps its text (INC-1131)", () 
     render(<Picture src={PHOTO} fit="cover" frameTestId="pic-7-frame" />);
     const frame = screen.getByTestId("pic-7-frame");
     const image = frame.querySelector("img");
+    expect(image).not.toBeNull();
     if (image !== null) fireEvent.error(image);
+    // Positive control: the failed state was really entered, so the absence below is its own.
     expect(frame).toHaveAttribute("data-picture-failed", "");
     expect(screen.queryByRole("img")).toBeNull();
     expect(frame.querySelector("[aria-label]")).toBeNull();

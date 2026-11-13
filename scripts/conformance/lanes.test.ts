@@ -241,11 +241,11 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
       found.map((finding) => finding.key),
     );
     expect(report(found.filter((finding) => !allowed.has(finding.key)))).toBe("");
-    expect([...allowed.keys()]).toEqual(["@global-state"]);
-    expect(found.length).toBeGreaterThan(0);
-    expect(found.every((finding) => finding.what.includes("runs in 0 lanes"))).toBe(true);
+    expect([...allowed.keys()]).toEqual([]);
+    expect(found).toEqual([]);
 
-    // Planted: a file in no list, a file in two, an @a11y test in none, an email file in a lane.
+    // Planted: a file in no list, a file in two, an @a11y or @global-state test in none, an email
+    // file in a lane.
     const [first, second] = plan.lanes;
     const moved = first?.files[0] ?? "";
     const dropped = laneLists(plan).map((files) => files.filter((file) => file !== moved));
@@ -258,9 +258,11 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
       report(coverageFindings(tests, twice, tagsOf(serialArg), tagsOf(invertArg), emailRuns)),
     ).toContain("runs in 2 lanes (serial 0, numbered 2)");
     const noSerial = coverageFindings(tests, laneLists(plan), [], tagsOf(invertArg), emailRuns);
-    const a11y = noSerial.filter((finding) => finding.key === "@a11y");
-    expect(a11y.length).toBeGreaterThan(0);
-    expect(a11y.every((finding) => finding.what.includes("runs in 0 lanes"))).toBe(true);
+    for (const tag of ["@a11y", "@global-state"]) {
+      const inNone = noSerial.filter((finding) => finding.key === tag);
+      expect(inNone.length, `${tag}: a test in no lane is found`).toBeGreaterThan(0);
+      expect(inNone.every((finding) => finding.what.includes("runs in 0 lanes"))).toBe(true);
+    }
     const emailFile = tests.find((test) => test.project === "email-serial")?.file ?? "";
     const withEmail = laneLists(plan).map((files, i) => (i === 0 ? [...files, emailFile] : files));
     expect(

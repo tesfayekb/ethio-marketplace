@@ -791,8 +791,8 @@ jobs:
           set -o pipefail
           if [ "$PROOF_LANE" = smoke ]; then
             # DEC-375 (b): the serial lane runs only what no other lane runs, at one worker; the
-            # @global-state tests stay with the nightly while INC-1135 is open (TR-30, the first run).
-            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "@a11y" --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
+            # @global-state tests run here since the app-fixes turn (INC-1135).
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "@a11y|@global-state" --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
           elif [ "$PROOF_LANE" = repeat ]; then
             # shellcheck disable=SC2086
             bunx playwright test --project=mobile-360 --project=desktop-1280 ${REPEAT_WEBKIT_PROJECTS:-} --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS > "local-backend-lane-$PROOF_LANE.log" 2>&1

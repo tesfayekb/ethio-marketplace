@@ -1,6 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { coverageAgainstBase, type TranslationStats } from "./translations-service";
+import {
+  baseTotalOf,
+  coverageAgainstBase,
+  type LanguageRow,
+  type TranslationStats,
+} from "./translations-service";
+
+function language(code: string, isBase: boolean): LanguageRow {
+  return {
+    code,
+    nameEn: code,
+    nameNative: code,
+    rtl: false,
+    isBase,
+    enabledAdmin: true,
+    enabledPublic: isBase,
+    sort: 0,
+  };
+}
 
 function stats(langCode: string, total: number, approved: number): TranslationStats {
   return {
@@ -57,5 +75,23 @@ describe("INC-790 — coverageAgainstBase", () => {
       approved: 0,
       remaining: 0,
     });
+  });
+});
+
+describe("INC-1143 — baseTotalOf: the base catalogue is the roster's isBase row", () => {
+  const byLang = new Map([
+    ["xb", stats("xb", 7, 7)],
+    ["en", stats("en", 99, 99)],
+  ]);
+
+  it("BTO-1 the roster's base language names the total, not a code written in the code", () => {
+    // Positive control: an "en" row is present with another total, so a literal read is seen.
+    expect(baseTotalOf([language("en", false), language("xb", true)], byLang)).toBe(7);
+  });
+
+  it("BTO-2 no single base row reads an empty catalogue", () => {
+    expect(baseTotalOf(undefined, byLang)).toBe(0);
+    expect(baseTotalOf([language("en", false)], byLang)).toBe(0);
+    expect(baseTotalOf([language("en", true), language("xb", true)], byLang)).toBe(0);
   });
 });

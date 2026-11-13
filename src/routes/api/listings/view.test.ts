@@ -84,6 +84,8 @@ describe("POST /api/listings/view on defineRoute (C3)", () => {
     const response = await post({ publicId: ID });
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ counted: false });
+    // Positive control: the other-error branch was really taken (its error line, once).
+    expect(mocks.rpc).toHaveBeenCalledOnce();
     expect(mocks.logged).toHaveBeenCalledExactlyOnceWith("/api/listings/view", "rate key required");
   });
 });

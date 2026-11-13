@@ -595,10 +595,12 @@ and project, from a green dev run's lane results; `scripts/ci/lane-weights.ts` m
 it offline), places the heaviest file first in the least-loaded lane, gives a file
 heavier than a lane's mean share a lane to itself, weighs a file the weights lack by
 the median file, and hands the lane its list through `--test-list`. The `smoke` lane is
-the serial lane: `--grep "@a11y" --workers=1`, so it no longer re-runs specs the
-sixteen run. The `@global-state` tests stay with the nightly (J8): they ran in the
-serial lane on the speed turn's first run and TR-30 failed there, so INC-1135 stays
-open (CF-LANES-1 carries the tag as an allowlist line). Every lane runs one worker:
+the serial lane: `--grep "@a11y|@global-state" --workers=1`, so it no longer re-runs
+specs the sixteen run. J8's `@global-state` tests run there, serially, on every push
+since the app-fixes turn (INC-1135; `SERIAL_TAGS` holds both tags and `NIGHTLY_TAGS`
+none): TR-30 failed there on the speed turn's first run for a cause in the pseudo
+generator (INC-1137), not in its fixture. CF-LANES-1 has no allowlist line, and its
+planted cases find an `@a11y` or a `@global-state` test in no lane. Every lane runs one worker:
 DEC-376's two workers met its revert rule on that run (ATR-1 read a level rank that
 MON-16's scratch level moved, in the same lane's backend).
 Each numbered lane's evidence carries its `- Plan (DEC-375 b):` line and the plan's
