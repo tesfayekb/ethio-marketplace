@@ -1435,6 +1435,8 @@ test.describe("PHOTO PIPELINE", () => {
       tag: "@webkit",
     },
     async ({ page }) => {
+      // Three photos encoded on the device and stored through the route (each tile waited up to
+      // 60 s), then two page loads, the gallery measured three times and the viewer once.
       test.setTimeout(150_000);
       const { user, token } = await seller(page);
       const listingId = await draft(page, token, user.id);
