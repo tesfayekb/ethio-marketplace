@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43491896215
-- Commit: `8afc3cc568a583d6b51e4de310c101b1684cc371`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43495299783
+- Commit: `1e8be93577109d288ba9fe83365c5457ff5191bf`
 - Attempt: 1
-- Written (UTC): 2026-11-13T19:45:03.113Z
+- Written (UTC): 2026-11-13T19:53:58.366Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
