@@ -14,12 +14,118 @@
  * On failure the guard prints the resolved path and both remedies and exits 1
  * before anything is built. No launch, no install, no network, no side effects
  * — an existence + executable-bit check is the whole test.
+ *
+ * DEC-371 (the pictures turn) — the projects name two engines, Chromium and
+ * WebKit (webkit-1280, webkit-390), and the guard admits those two only: a
+ * project on any other engine fails it. Chromium stays required. The guard
+ * cannot see which projects a run asks for (e2e:local hands its arguments to
+ * Playwright alone), so a WebKit the computer lacks is a notice with its
+ * remedy, never a failure: a Chromium-only run needs no WebKit.
  */
 import { accessSync, constants, existsSync } from "node:fs";
-import { chromium } from "playwright";
+import { chromium, webkit } from "playwright";
+import config from "../playwright.config";
 
-const override = process.env["E2E_CHROMIUM_PATH"];
-const resolved = override ?? chromium.executablePath();
+export const ADMITTED_ENGINES = ["chromium", "webkit"] as const;
+export type Engine = (typeof ADMITTED_ENGINES)[number];
+
+type ProjectShape = {
+  name?: string;
+  use?: { browserName?: string; defaultBrowserType?: string };
+};
+
+/** Each engine the projects run on, with the projects that name it. */
+export function enginesOf(projects: readonly ProjectShape[]): Map<string, string[]> {
+  const engines = new Map<string, string[]>();
+  for (const project of projects) {
+    const engine = project.use?.browserName ?? project.use?.defaultBrowserType ?? "chromium";
+    engines.set(engine, [...(engines.get(engine) ?? []), project.name ?? "(unnamed)"]);
+  }
+  return engines;
+}
+
+function isAdmitted(engine: string): engine is Engine {
+  return ADMITTED_ENGINES.some((admitted) => admitted === engine);
+}
+
+export type BrowserLookup = {
+  /** `E2E_CHROMIUM_PATH`, when set. */
+  chromiumOverride: string | undefined;
+  /** The Playwright-managed binary of an engine. */
+  managedPath: (engine: Engine) => string;
+  exists: (path: string) => boolean;
+  usable: (path: string) => boolean;
+};
+
+export type BrowserVerdict = { failures: string[]; notices: string[]; resolved: string[] };
+
+/** The guard's verdict over the projects' engines; a failure stops e2e:local. */
+export function browserVerdict(
+  engines: ReadonlyMap<string, readonly string[]>,
+  lookup: BrowserLookup,
+): BrowserVerdict {
+  const verdict: BrowserVerdict = { failures: [], notices: [], resolved: [] };
+  for (const [engine, projects] of engines) {
+    const named = projects.join(", ");
+    if (!isAdmitted(engine)) {
+      verdict.failures.push(
+        `[e2e:browser-guard] project ${named} runs on ${engine}; the harness admits ${ADMITTED_ENGINES.join(" and ")} only (DEC-371)`,
+      );
+      continue;
+    }
+    if (engine === "chromium") {
+      const override = lookup.chromiumOverride;
+      const path = override ?? lookup.managedPath("chromium");
+      if (!lookup.exists(path) || (override !== undefined && !lookup.usable(path))) {
+        verdict.failures.push(
+          `[e2e:browser-guard] no usable browser at the resolved path: ${path}\n` +
+            `  remedy 1: bunx playwright install chromium   (installs the Playwright-managed shell)\n` +
+            `  remedy 2: E2E_CHROMIUM_PATH=<absolute path to a Chromium/Chrome binary>`,
+        );
+      } else verdict.resolved.push(`chromium ${path}`);
+      continue;
+    }
+    const path = lookup.managedPath(engine);
+    if (lookup.exists(path)) verdict.resolved.push(`${engine} ${path}`);
+    else
+      verdict.notices.push(
+        `[e2e:browser-guard] no ${engine} at ${path}: the projects ${named} cannot run here\n` +
+          `  remedy: bunx playwright install ${engine}`,
+      );
+  }
+  return verdict;
+}
+
+type ConfigShape = {
+  use?: { ignoreHTTPSErrors?: boolean };
+  projects?: readonly (ProjectShape & { use?: { ignoreHTTPSErrors?: boolean } })[];
+};
+
+/**
+ * EBG-6 (INC-1125, ruling 2) — the certificate check is skipped only by the WebKit projects, and only
+ * on the temporary backend (`E2E_LOCAL_BACKEND=1`, whose authority is made for the run): Chromium
+ * keeps verifying that chain through the NSS database. `config` is playwright.config.ts as it
+ * evaluates with or without that variable.
+ */
+export function httpsErrorFindings(config: ConfigShape, localBackend: boolean): string[] {
+  const findings: string[] = [];
+  if (config.use?.ignoreHTTPSErrors === true)
+    findings.push("[e2e:browser-guard] every project skips the certificate check (INC-1125)");
+  for (const project of config.projects ?? []) {
+    if (project.use?.ignoreHTTPSErrors !== true) continue;
+    const [engine = "chromium"] = [...enginesOf([project]).keys()];
+    const name = project.name ?? "(unnamed)";
+    if (engine !== "webkit")
+      findings.push(
+        `[e2e:browser-guard] project ${name} (${engine}) skips the certificate check; only WebKit may, on the temporary backend (INC-1125)`,
+      );
+    else if (!localBackend)
+      findings.push(
+        `[e2e:browser-guard] project ${name} skips the certificate check off the temporary backend (INC-1125)`,
+      );
+  }
+  return findings;
+}
 
 function usable(path: string): boolean {
   try {
@@ -30,13 +136,21 @@ function usable(path: string): boolean {
   }
 }
 
-if (!existsSync(resolved) || (override !== undefined && !usable(resolved))) {
-  console.error(
-    `[e2e:browser-guard] no usable browser at the resolved path: ${resolved}\n` +
-      `  remedy 1: bunx playwright install chromium   (installs the Playwright-managed shell)\n` +
-      `  remedy 2: E2E_CHROMIUM_PATH=<absolute path to a Chromium/Chrome binary>`,
-  );
-  process.exit(1);
+if (import.meta.main) {
+  const verdict = browserVerdict(enginesOf(config.projects ?? []), {
+    chromiumOverride: process.env["E2E_CHROMIUM_PATH"],
+    managedPath: (engine) => (engine === "webkit" ? webkit : chromium).executablePath(),
+    exists: existsSync,
+    usable,
+  });
+  for (const notice of verdict.notices) console.log(notice);
+  const failures = [
+    ...verdict.failures,
+    ...httpsErrorFindings(config, process.env["E2E_LOCAL_BACKEND"] === "1"),
+  ];
+  if (failures.length > 0) {
+    for (const failure of failures) console.error(failure);
+    process.exit(1);
+  }
+  console.log(`[e2e:browser-guard] browser resolved: ${verdict.resolved.join("; ")}`);
 }
-
-console.log(`[e2e:browser-guard] browser resolved: ${resolved}`);

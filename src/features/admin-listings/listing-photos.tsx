@@ -6,6 +6,7 @@ import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Picture } from "@/components/ui/picture";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import {
   allowListingPhoto,
@@ -186,13 +187,13 @@ export function ListingPhotos({
             >
               <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-muted">
                 {link !== null ? (
-                  <img
+                  <Picture
                     src={link}
-                    alt=""
+                    fit="cover"
                     width={160}
                     height={120}
                     loading="lazy"
-                    className="h-full w-full object-cover"
+                    className="absolute inset-0"
                   />
                 ) : null}
                 {row.unscreened === true ? (
@@ -320,12 +321,12 @@ function RemoveDialog({
     >
       <div className="min-w-0 space-y-3">
         {link !== null ? (
-          <img
+          <Picture
             src={link}
-            alt=""
+            fit="contain"
             width={480}
             height={360}
-            className="max-h-48 w-auto max-w-full rounded-md object-contain"
+            className="aspect-[4/3] w-full max-w-64 rounded-md"
           />
         ) : null}
         <p className="text-sm text-muted-foreground">{t("admin.listings.photos.hint")}</p>

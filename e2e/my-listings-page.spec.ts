@@ -22,6 +22,8 @@ import {
 } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
+import { scratchPictures } from "./helpers/photos";
+import { expectPicturesFit } from "./helpers/pictures";
 
 /**
  * Bundle 16 (My listings), turn 2 — THE LIST PAGE (MLP-1..MLP-4).
@@ -106,8 +108,10 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
   const listingIds: string[] = [];
   const regions: string[] = [];
   const branches: string[][] = [];
+  const pictures = scratchPictures();
 
   test.afterEach(async () => {
+    await pictures.cleanup();
     const supabase = adminClient();
     const owned = listingIds.splice(0);
     if (owned.length > 0) {
@@ -838,4 +842,33 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     await box(page, R).getByTestId(`my-listing-${R}-more`).click();
     await expect(page.getByTestId(`my-listing-${R}-more-share`)).toHaveCount(0);
   });
+
+  /**
+   * MLP-9 — INC-1121: each row's picture fits its box in the form the width draws (the table
+   * from 1280 px, where WebKit once drew it 80 px wide and the photo's own height tall; the cards
+   * below), for a photo of every shape.
+   */
+  test(
+    "MLP-9 each row's picture fits its box in the table and in the cards, every shape (INC-1121)",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      const seller = await scratchSeller();
+      const shaped: string[] = [];
+      for (const shape of ["portrait", "landscape", "square"] as const) {
+        const id = await seed(seller, "active");
+        await pictures.seedShapedPhoto(id, shape);
+        shaped.push(id);
+      }
+      await signInViaSession(page, seller.email, seller.password);
+      await gotoReady(page, "/my-listings");
+      for (const id of shaped) {
+        await expect(twin(page, id)).toBeVisible({ timeout: 15000 });
+        const picture = page.getByTestId(`my-listing-${id}-picture`).filter({ visible: true });
+        await expect(picture.locator("[data-picture]")).toHaveAttribute("data-picture", "photo");
+        await expectPicturesFit(page, picture);
+      }
+    },
+  );
 });

@@ -1,0 +1,90 @@
+Bundle budget — the entry's static import closure under dist/client (gzipped):
+     127.1 KiB  dist/client/assets/index-COqzXCp3.js
+      29.6 KiB  dist/client/assets/shared-shell-5rURMtP6.js
+      22.6 KiB  dist/client/assets/styles-BGSI5kon.css
+      11.7 KiB  dist/client/assets/createServerFn-DCYSOUFG.js
+       8.1 KiB  dist/client/assets/bundle-mjs-ry-q0ArR.js
+       7.7 KiB  dist/client/assets/useQuery-B_datWrR.js
+       2.9 KiB  dist/client/assets/link-CkQjZMj4.js
+       2.8 KiB  dist/client/assets/react-DPqvtlQV.js
+       2.2 KiB  dist/client/assets/useSelector-DSbyHGUA.js
+       1.9 KiB  dist/client/assets/dist-DEpcibJZ.js
+       1.7 KiB  dist/client/assets/useMutation-CTAL8_he.js
+       1.3 KiB  dist/client/assets/lazyRouteComponent-BirVGXVO.js
+       1.3 KiB  dist/client/assets/react-dom-B6cvz6ju.js
+       1.0 KiB  dist/client/assets/dist-mRIjv3bL.js
+       0.7 KiB  dist/client/assets/createLucideIcon-DGPfniA1.js
+       0.7 KiB  dist/client/assets/preload-helper-Czpn1I53.js
+       0.4 KiB  dist/client/assets/rolldown-runtime-QTnfLwEv.js
+       0.4 KiB  dist/client/assets/useMatch-i8-xg83V.js
+       0.4 KiB  dist/client/assets/dist-DGFCZd-W.js
+       0.3 KiB  dist/client/assets/utils-DtbVXzXx.js
+       0.3 KiB  dist/client/assets/jsx-runtime-By8HlURe.js
+       0.3 KiB  dist/client/assets/qss-JC7fkHHg.js
+       0.3 KiB  dist/client/assets/ClientOnly-CTnPRrI8.js
+       0.2 KiB  dist/client/assets/useNavigate-CZzmch58.js
+       0.2 KiB  dist/client/assets/useRouterState-C1UxbrdN.js
+       0.2 KiB  dist/client/assets/useSearch-2KudQkUT.js
+       0.2 KiB  dist/client/assets/ellipsis-Dw-TxPP1.js
+       0.2 KiB  dist/client/assets/useRouter-CI6lzJu4.js
+       0.1 KiB  dist/client/assets/x-drj1Vrig.js
+       0.1 KiB  dist/client/assets/chevron-right-BJcjsBNR.js
+       0.1 KiB  dist/client/assets/not-found-i5RsCZif.js
+       0.1 KiB  dist/client/assets/root-DLTE-HSj.js
+JS: 204.4 KiB / 205 KiB — ok
+CSS: 22.6 KiB / 40 KiB — ok
+Admin code in the entry's closure: 3 module(s), each allowlisted (BC-16) — ok
+
+Per-page first download (entry + the page's chunks, gzipped):
+    225.9 / 227 KiB  /
+    224.0 / 225 KiB  /$name
+    266.6 / 268 KiB  /account
+    207.0 / 208 KiB  /account_/legal
+    207.6 / 209 KiB  /account_/legal_/$versionId
+    224.1 / 225 KiB  /account_/saved
+    208.8 / 210 KiB  /admin
+    209.6 / 211 KiB  /admin/
+    322.1 / 323 KiB  /admin/ai
+    335.3 / 336 KiB  /admin/attributes
+    294.3 / 295 KiB  /admin/audit
+    343.3 / 344 KiB  /admin/categories
+    324.9 / 326 KiB  /admin/countries
+    209.4 / 210 KiB  /admin/images
+    289.4 / 290 KiB  /admin/impersonation_/$sessionId
+    280.4 / 281 KiB  /admin/legal
+    277.8 / 279 KiB  /admin/legal_/$versionId
+    279.3 / 280 KiB  /admin/legal_/edit
+    346.7 / 348 KiB  /admin/listings
+    349.0 / 350 KiB  /admin/listings_/$listingId
+    408.3 / 409 KiB  /admin/listings_/$listingId_/edit
+    269.5 / 270 KiB  /admin/locations
+    332.7 / 334 KiB  /admin/monetisation
+    326.4 / 327 KiB  /admin/places
+    291.1 / 292 KiB  /admin/roles
+    272.1 / 273 KiB  /admin/roles_/$roleId
+    367.9 / 369 KiB  /admin/screening
+    301.9 / 303 KiB  /admin/translations
+    305.4 / 306 KiB  /admin/translations_/$lang
+    291.2 / 292 KiB  /admin/users
+    286.5 / 287 KiB  /admin/users_/$userId
+    221.6 / 223 KiB  /auth
+    208.5 / 209 KiB  /auth_/callback
+    210.4 / 211 KiB  /auth_/reset
+    225.9 / 227 KiB  /c/$slug
+    225.3 / 226 KiB  /dev/primitives
+    246.7 / 248 KiB  /dev/style
+    204.7 / 206 KiB  /dev/tall
+    256.2 / 257 KiB  /l/$slug
+    209.1 / 210 KiB  /legal/$kind
+    216.0 / 217 KiB  /legal/accept
+    209.9 / 211 KiB  /legal/publishing
+    313.7 / 315 KiB  /my-listings
+    321.8 / 323 KiB  /my-listings_/$listingId
+    400.4 / 401 KiB  /my-listings_/$listingId_/edit
+    400.4 / 401 KiB  /post
+    400.4 / 401 KiB  /post_/$listingId
+    209.1 / 210 KiB  /privacy
+    276.1 / 277 KiB  /settings
+    209.1 / 210 KiB  /terms
+Tier flag: card pages only (CF-TIER-3) — ok
+Bundle budget OK.

@@ -28,6 +28,8 @@ import { report, walkFiles } from "./kit";
  * is a package install reaching outside, so the other rules hold around it (deadline, wrapper, once).
  */
 
+import playwrightConfig from "../../playwright.config";
+import { enginesOf } from "../e2e-browser-guard";
 import { readWorkflow, type Step } from "./workflow-reader";
 
 export { readWorkflow };
@@ -381,6 +383,166 @@ describe("the maintenance pass has an owner on every backend (DEC-369)", () => {
     ].join("\n");
     expect(report(maintenanceOwnerFindings([{ file: "planted.yml", text: third }]))).toBe(
       "planted.yml:0 E2E_MAINTENANCE is set outside its owner's step (1) (DEC-369)",
+    );
+  });
+});
+
+/**
+ * DEC-371 (the pictures turn) — EVERY BROWSER A JOB'S PLAYWRIGHT PROJECTS RUN ON IS INSTALLED IN THAT
+ * JOB: the browser (`playwright install <browsers>`) and its system libraries (install-browser-deps.sh
+ * <browsers>, chromium when it names none). A job's projects are every `--project=` it names (a
+ * variable's assignment included) and, for a run that names none, every project; a run on another
+ * config file (`-c`) is that config's own. A `$NAME` argument is read through its assignments in the
+ * job, so a lane's browser list counts every value it can take. Each project's engine comes from the
+ * one reader, the browser guard's `enginesOf` (playwright.config.ts).
+ */
+const PROJECT_ENGINE = new Map(
+  [...enginesOf(playwrightConfig.projects ?? [])].flatMap(([engine, names]) =>
+    names.map((name) => [name, engine] as const),
+  ),
+);
+
+/** The words an argument stands for: itself, or every value its `$NAME` is assigned in the job. */
+function wordsOf(token: string, lines: string[], depth = 0): string[] {
+  const bare = token.replace(/["';{}]/g, "");
+  const variable = /^\$\{?([A-Za-z_][A-Za-z0-9_]*)(?::-)?\}?$/.exec(bare);
+  if (variable === null) return /^[a-z]+$/.test(bare) ? [bare] : [];
+  if (depth > 3) return [];
+  const assigned = new RegExp(`(?:^|[\\s"'])${variable[1] ?? ""}=("[^"]*"|\\S+)`, "g");
+  return lines.flatMap((line) =>
+    [...line.matchAll(assigned)].flatMap((m) =>
+      (m[1] ?? "")
+        .replace(/^"|"$/g, "")
+        .split(/\s+/)
+        .flatMap((word) => wordsOf(word, lines, depth + 1)),
+    ),
+  );
+}
+
+/** The browsers a command line installs after `marker`, each argument read through wordsOf. */
+function installedAfter(marker: RegExp, line: string, lines: string[]): string[] | null {
+  const at = marker.exec(line);
+  if (at === null) return null;
+  const rest = line.slice(at.index + at[0].length).split(/\s+(?:&&|\|\||;|\|)\s+/)[0] ?? "";
+  return rest
+    .split(/\s+/)
+    .filter(Boolean)
+    .flatMap((token) => wordsOf(token, lines));
+}
+
+export function browserInstallFindings(
+  files: Array<{ file: string; text: string }>,
+  projectEngine: ReadonlyMap<string, string> = PROJECT_ENGINE,
+): Finding[] {
+  const findings: Finding[] = [];
+  for (const { file, text } of files)
+    for (const job of readWorkflow(file, text)) {
+      const lines = job.steps.flatMap(commandLines);
+      const runs = lines.filter(
+        (line) => /\bplaywright test\b/.test(line) && !/\s(?:-c|--config)[\s=]/.test(line),
+      );
+      if (runs.length === 0) continue;
+      const named = lines.flatMap((line) =>
+        [...line.matchAll(/--project=([A-Za-z0-9_-]+)/g)].map((m) => m[1] ?? ""),
+      );
+      const everyProject = runs.some((line) => !/--project[= ]/.test(line));
+      const projects = new Set(everyProject ? [...named, ...projectEngine.keys()] : named);
+      const browsers = new Set<string>();
+      const libraries = new Set<string>();
+      for (const line of lines) {
+        for (const b of installedAfter(/\bplaywright install(?!-deps)\b/, line, lines) ?? [])
+          browsers.add(b);
+        const deps = installedAfter(/install-browser-deps\.sh\b/, line, lines);
+        if (deps !== null) for (const b of deps.length > 0 ? deps : ["chromium"]) libraries.add(b);
+      }
+      const engines = new Map<string, string[]>();
+      for (const project of projects) {
+        const engine = projectEngine.get(project);
+        if (engine !== undefined) engines.set(engine, [...(engines.get(engine) ?? []), project]);
+      }
+      for (const [engine, users] of engines) {
+        const by = users.join(", ");
+        if (!browsers.has(engine))
+          findings.push({
+            file,
+            line: job.line,
+            what: `job "${job.id}" runs ${by} on ${engine} and installs no ${engine} browser (DEC-371)`,
+          });
+        if (!libraries.has(engine))
+          findings.push({
+            file,
+            line: job.line,
+            what: `job "${job.id}" runs ${by} on ${engine} and installs no ${engine} system libraries through ${BROWSER_DEPS} (DEC-371)`,
+          });
+      }
+    }
+  return findings;
+}
+
+describe("every browser a job's projects run on is installed in that job (DEC-371)", () => {
+  const LANES = ".github/workflows/local-backend-proof.yml";
+  it("CF-CID-8 every workflow installs each engine its Playwright runs use; the lanes install WebKit for the WebKit pair", () => {
+    expect([...new Set(PROJECT_ENGINE.values())].sort()).toEqual(["chromium", "webkit"]);
+    expect(report(browserInstallFindings(workflows))).toBe("");
+    const lanes = workflows.find((w) => w.file === LANES);
+    expect(lanes).toBeDefined();
+    if (lanes === undefined) return;
+    // Planted: the lanes' browser list without webkit.
+    const noWebkit = lanes.text
+      .replace("then browsers=webkit; fi", "then browsers=chromium; fi")
+      .replace('browsers="chromium webkit"', "browsers=chromium");
+    expect(noWebkit).not.toBe(lanes.text);
+    const proof = readWorkflow(LANES, lanes.text).find((job) => job.id === "proof");
+    expect(proof).toBeDefined();
+    const at = `${LANES}:${String(proof?.line ?? 0)} job "proof" runs`;
+    expect(report(browserInstallFindings([{ file: LANES, text: noWebkit }]))).toBe(
+      [
+        `${at} webkit-1280, webkit-390 on webkit and installs no webkit browser (DEC-371)`,
+        `${at} webkit-1280, webkit-390 on webkit and installs no webkit system libraries through ${BROWSER_DEPS} (DEC-371)`,
+      ].join("\n"),
+    );
+    // Planted: the system libraries' line without the list (chromium alone).
+    const bareDeps = lanes.text.replace(
+      "install-browser-deps.sh $PROOF_BROWSERS",
+      "install-browser-deps.sh",
+    );
+    expect(bareDeps).not.toBe(lanes.text);
+    expect(report(browserInstallFindings([{ file: LANES, text: bareDeps }]))).toBe(
+      `${at} webkit-1280, webkit-390 on webkit and installs no webkit system libraries through ${BROWSER_DEPS} (DEC-371)`,
+    );
+  });
+
+  it("CF-CID-9 a planted job running a WebKit project on a Chromium install is named; its kept twin and another config's run are not", () => {
+    const job = (id: string, deps: string, browsers: string, run: string) => [
+      `  ${id}:`,
+      "    steps:",
+      "      - name: Libraries",
+      `        run: bash ${WRAPPER} 1500 1 -- bash ${BROWSER_DEPS}${deps}`,
+      "      - name: Browsers",
+      `        run: bash ${WRAPPER} 900 2 -- bunx playwright install${browsers}`,
+      "      - name: Run",
+      `        run: ${run}`,
+    ];
+    const text = [
+      "jobs:",
+      ...job("bare", "", " chromium", "bunx playwright test --project=webkit-390 e2e/a.spec.ts"),
+      ...job(
+        "kept",
+        " chromium webkit",
+        " chromium webkit",
+        "bunx playwright test --project=webkit-390",
+      ),
+      ...job("nightly", "", " chromium", "bunx playwright test -c playwright.nightly.config.ts"),
+      ...job("all", "", " chromium", "bunx playwright test e2e/a.spec.ts"),
+      "",
+    ].join("\n");
+    expect(report(browserInstallFindings([{ file: "planted.yml", text }]))).toBe(
+      [
+        'planted.yml:2 job "bare" runs webkit-390 on webkit and installs no webkit browser (DEC-371)',
+        `planted.yml:2 job "bare" runs webkit-390 on webkit and installs no webkit system libraries through ${BROWSER_DEPS} (DEC-371)`,
+        'planted.yml:26 job "all" runs webkit-1280, webkit-390 on webkit and installs no webkit browser (DEC-371)',
+        `planted.yml:26 job "all" runs webkit-1280, webkit-390 on webkit and installs no webkit system libraries through ${BROWSER_DEPS} (DEC-371)`,
+      ].join("\n"),
     );
   });
 });

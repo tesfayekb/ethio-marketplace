@@ -49,6 +49,17 @@ export const RESTRICTED_SYNTAX = {
         "DEC-370: build a link with safeHref, siteHref or appObjectUrl (src/lib/safe-href.ts) and pass its answer.",
     },
   ],
+  // INC-1121 (the pictures turn) — every raster image is drawn through Picture
+  // (src/components/ui/picture.tsx): every file under src/ except the tests and
+  // the primitive's own file. scripts/conformance/pictures.test.ts
+  // (CF-PICTURE-1…3) is the census beside it.
+  picture: [
+    {
+      selector: "JSXOpeningElement[name.name='img']",
+      message:
+        "INC-1121: draw a picture through Picture (src/components/ui/picture.tsx). A hand-sized img resolves differently by browser engine.",
+    },
+  ],
   // DEC-237 — the route boundary: src/routes/** and src/server/** outside the
   // block's ignores (CF-RT-5 keeps those equal to routes-allowlist.txt).
   routeBoundary: [
@@ -146,6 +157,19 @@ export default tseslint.config(
         ...RESTRICTED_SYNTAX.typedClient,
         ...RESTRICTED_SYNTAX.caughtError,
         ...RESTRICTED_SYNTAX.safeHref,
+        ...RESTRICTED_SYNTAX.picture,
+      ],
+    },
+  },
+  {
+    // INC-1121 — the picture primitive is the one file that writes an img.
+    files: ["src/components/ui/picture.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...RESTRICTED_SYNTAX.typedClient,
+        ...RESTRICTED_SYNTAX.caughtError,
+        ...RESTRICTED_SYNTAX.safeHref,
       ],
     },
   },
@@ -184,6 +208,7 @@ export default tseslint.config(
         ...RESTRICTED_SYNTAX.typedClient,
         ...RESTRICTED_SYNTAX.caughtError,
         ...RESTRICTED_SYNTAX.safeHref,
+        ...RESTRICTED_SYNTAX.picture,
         ...RESTRICTED_SYNTAX.routeBoundary,
       ],
     },

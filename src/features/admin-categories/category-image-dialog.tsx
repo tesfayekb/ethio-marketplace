@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Picture } from "@/components/ui/picture";
 import { useI18n } from "@/i18n";
 
 import { relativeTime } from "@/lib/relative-time";
@@ -52,42 +53,45 @@ export function AssetsPreview({
   return (
     <div className="space-y-2" data-testid={testid}>
       <figure className="space-y-1">
-        <img
+        <Picture
           src={assets.imageUrl}
+          fit="contain"
           alt={t("admin.categories.image.card")}
           width={256}
           height={256}
           loading="lazy"
-          data-testid={`${testid}-card`}
-          className="h-auto w-40 rounded-md border border-border bg-background"
+          imgTestId={`${testid}-card`}
+          className="aspect-[4/3] w-40 rounded-md border border-border bg-background"
         />
         <figcaption className="text-xs text-muted-foreground">
           {t("admin.categories.image.card")}
         </figcaption>
       </figure>
       <figure className="space-y-1">
-        <img
+        <Picture
           src={assets.thumbUrl}
+          fit="contain"
           alt={t("admin.categories.image.thumb")}
           width={64}
           height={64}
           loading="lazy"
-          data-testid={`${testid}-thumb`}
-          className="h-auto w-16 rounded-md border border-border bg-background"
+          imgTestId={`${testid}-thumb`}
+          className="aspect-[4/3] w-16 rounded-md border border-border bg-background"
         />
         <figcaption className="text-xs text-muted-foreground">
           {t("admin.categories.image.thumb")}
         </figcaption>
       </figure>
       <figure className="space-y-1">
-        <img
+        <Picture
           src={assets.ogUrl}
+          fit="contain"
           alt={t("admin.categories.image.og")}
           width={240}
           height={126}
           loading="lazy"
-          data-testid={`${testid}-og`}
-          className="h-auto w-full max-w-xs rounded-md border border-border bg-background"
+          imgTestId={`${testid}-og`}
+          className="aspect-[40/21] w-full max-w-xs rounded-md border border-border bg-background"
         />
         <figcaption className="text-xs text-muted-foreground">
           {t("admin.categories.image.og")}

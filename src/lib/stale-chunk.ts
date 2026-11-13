@@ -20,6 +20,15 @@
  * chunk: a reload would only show the browser's own "cannot open" page. It is left to the piece
  * that asked (the on-demand notice, src/lib/on-demand-failure.ts), and it counts as the page's
  * first failure, so no later one reloads the page either.
+ * INC-1127 (the pictures turn) — a page that is leaving abandons its downloads, and WebKit reports
+ * each as a failed import ("Importing a module script failed."), with no address to check. Such a
+ * failure is no stale chunk: a reload there would replace the navigation the person asked for.
+ * The leaving mark is set by `beforeunload` (WebKit abandons the downloads after it) and
+ * `pagehide`, never `unload` (it keeps the page out of the back-forward cache); it ends when the
+ * page comes back from that cache, or at the next press or key (a leave that did not happen, as a
+ * `tel:` link's). It is heard once per window from this module's first evaluation: on a first
+ * load the person can leave before the root mounts the handler, and the abandoned downloads fail
+ * after it has. An abandoned download is not the page's failure: its one reload stays.
  */
 
 export const STALE_CHUNK_KEY = "ethio:stale-chunk-reloaded-at";
@@ -44,6 +53,39 @@ function reloadedRecently(win: StaleChunkWindow, now: number): boolean {
   }
 }
 
+interface Leaving {
+  now: boolean;
+}
+const leavingOf = new WeakMap<StaleChunkWindow, Leaving>();
+
+/** Whether the window's page is leaving, heard once per window for the page's life. */
+export function hearLeaving(win: StaleChunkWindow): Leaving {
+  const known = leavingOf.get(win);
+  if (known !== undefined) return known;
+  const leaving: Leaving = { now: false };
+  leavingOf.set(win, leaving);
+  const leave = () => {
+    leaving.now = true;
+  };
+  const stay = () => {
+    leaving.now = false;
+  };
+  win.addEventListener("beforeunload", leave, true);
+  win.addEventListener("pagehide", leave, true);
+  win.addEventListener(
+    "pageshow",
+    (event) => {
+      if ("persisted" in event && event.persisted === true) stay();
+    },
+    true,
+  );
+  win.addEventListener("pointerdown", stay, true);
+  win.addEventListener("keydown", stay, true);
+  return leaving;
+}
+
+if (typeof window !== "undefined") hearLeaving(window);
+
 /**
  * Installs the handler; returns the uninstaller. `failedInPage` lets only the
  * page's first failure reload it — one reload per page life, never a loop, also
@@ -54,7 +96,9 @@ export function reloadOnStaleChunk(
   now: () => number = () => Date.now(),
 ): () => void {
   let failedInPage = false;
+  const leaving = hearLeaving(win);
   const onPreloadError = (event: Event) => {
+    if (leaving.now) return;
     const at = now();
     const first = !failedInPage;
     failedInPage = true;

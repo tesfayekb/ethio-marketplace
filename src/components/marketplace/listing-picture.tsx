@@ -1,6 +1,6 @@
-import { ImageOff } from "lucide-react";
 import { useState, type CSSProperties, type ReactNode } from "react";
 
+import { Picture } from "@/components/ui/picture";
 import { useI18n } from "@/i18n";
 
 import {
@@ -57,6 +57,10 @@ export { RIBBON_TEXT_STYLE };
  * tokens, with a rolled cap beyond each edge it crosses. Place, angle, size and words are
  * unchanged; the geometry lives in ribbon-geometry.ts. The box no longer clips: its clip layer
  * keeps the photo and the band inside its corners, and the caps sit on a copy of the drawn frame.
+ *
+ * INC-1121 — the frame and its image are the shared `Picture` (src/components/ui/picture.tsx): the
+ * image is placed over the frame, so a table cell (My listings at 1280 and up) no longer gives it its
+ * natural height in WebKit; a load that fails draws the placeholder icon in the frame.
  */
 /** The band itself — one class set for every ribbon; a test proves no ribbon is drawn with another. */
 export const RIBBON_BAND_CLASS = "ribbon-band absolute font-bold uppercase";
@@ -199,33 +203,25 @@ export function ListingPicture({
       aria-label={photoUrl === null ? t("feed.noPhoto") : undefined}
     >
       <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-[inherit]">
-        <div
-          className="@container relative overflow-hidden"
-          data-testid={imgTestId === undefined ? undefined : `${imgTestId}-frame`}
+        <Picture
+          src={source}
+          fit={cropPhoto ? "cover" : "contain"}
+          className="@container"
           style={frameStyle}
+          frameTestId={imgTestId === undefined ? undefined : `${imgTestId}-frame`}
+          imgTestId={imgTestId}
+          imgClassName={photoUrl === null && dimCategory ? "opacity-60" : undefined}
+          width={320}
+          height={240}
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : undefined}
+          decoding="async"
+          onLoad={(event) => {
+            const { naturalWidth, naturalHeight } = event.currentTarget;
+            if (!cropPhoto && naturalWidth > 0 && naturalHeight > 0)
+              setRatio(naturalWidth / naturalHeight);
+          }}
         >
-          {source !== null ? (
-            <img
-              src={source}
-              data-testid={imgTestId}
-              alt=""
-              width={320}
-              height={240}
-              loading={priority ? "eager" : "lazy"}
-              fetchPriority={priority ? "high" : undefined}
-              decoding="async"
-              onLoad={(event) => {
-                const { naturalWidth, naturalHeight } = event.currentTarget;
-                if (!cropPhoto && naturalWidth > 0 && naturalHeight > 0)
-                  setRatio(naturalWidth / naturalHeight);
-              }}
-              className={`block h-full w-full ${cropPhoto ? "object-cover" : "object-contain"} ${photoUrl === null && dimCategory ? "opacity-60" : ""}`}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <ImageOff className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
-            </div>
-          )}
           {showRibbon && (
             <ListingRibbon
               text={t("listing.photosSoon")}
@@ -235,7 +231,7 @@ export function ListingPicture({
             />
           )}
           {ribbon !== null && <ListingRibbon text={ribbon} palette={palette} />}
-        </div>
+        </Picture>
       </div>
       {banded && (
         <div

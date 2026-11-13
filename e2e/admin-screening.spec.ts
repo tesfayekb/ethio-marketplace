@@ -15,8 +15,10 @@ import {
   photoAction,
   photoRowsOf,
   purgeListingObjects,
+  scratchPictures,
   uploadPhoto,
 } from "./helpers/photos";
+import { expectPicturesFit } from "./helpers/pictures";
 import {
   destroyCategoryBranch,
   destroyListingsOf,
@@ -124,8 +126,10 @@ test.describe("ADMIN SCREENING", () => {
   const roles: string[] = [];
   /** Bundle 13 turn 10 — photos a test stored through the upload route: their objects and the seller's dial. */
   const uploads: { userId: string; listingId: string }[] = [];
+  const pictures = scratchPictures();
 
   test.afterEach(async () => {
+    await pictures.cleanup();
     for (const ref of uploads.splice(0)) {
       await purgeListingObjects(ref.userId, ref.listingId);
       await clearUploadCounter(ref.userId);
@@ -319,21 +323,27 @@ test.describe("ADMIN SCREENING", () => {
   });
 
   /** SC-6 (INC-525) — the preview draws the nearest category picture, as the card does. */
-  test("SC-6 Preview as buyer draws the ad's category picture", async ({ page }) => {
-    const picture = "https://example.invalid/e2e-screen-picture.jpg";
-    const ad = await seedWaiting({ parentImageUrl: picture });
-    await signInJobSuperAdmin(page);
-    await findRow(page, ad.title, ad.id);
-    await rowMenu(page, ad.id, "open");
-    await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
-    const box = page.getByTestId("listing-detail-illustration");
-    await expect(box, "SC-6: the preview did not draw the category picture").toBeVisible({
-      timeout: 20000,
-    });
-    await expect(box).toHaveAttribute("data-picture", "category");
-    await expect(box.locator("img")).toHaveAttribute("src", picture);
-    await expect(page.getByTestId("listing-detail-nophoto")).toHaveCount(0);
-  });
+  test(
+    "SC-6 Preview as buyer draws the ad's category picture",
+    { tag: "@webkit" },
+    async ({ page }) => {
+      // INC-1121 — a real 4:3 picture, measured where the preview draws it.
+      const picture = await pictures.categoryPicture("card");
+      const ad = await seedWaiting({ parentImageUrl: picture });
+      await signInJobSuperAdmin(page);
+      await findRow(page, ad.title, ad.id);
+      await rowMenu(page, ad.id, "open");
+      await expect(page.getByTestId("post-preview-sheet")).toBeVisible({ timeout: 20000 });
+      const box = page.getByTestId("listing-detail-illustration");
+      await expect(box, "SC-6: the preview did not draw the category picture").toBeVisible({
+        timeout: 20000,
+      });
+      await expect(box).toHaveAttribute("data-picture", "category");
+      await expect(box.locator("img")).toHaveAttribute("src", picture);
+      await expectPicturesFit(page, box);
+      await expect(page.getByTestId("listing-detail-nophoto")).toHaveCount(0);
+    },
+  );
 
   /** Bundle 11 A1 (D120, D128) — the contact the scratch seller chose: two numbers shown, one hidden. */
   const PREF = {
@@ -939,96 +949,114 @@ test.describe("ADMIN SCREENING", () => {
    * warning the screen gave; Mark reviewed takes one off the list through the
    * door, which audits it; Show photos opens the ad's photos, view-only (D169).
    */
-  test("SC-21 Photo changes on live ads: a seller's additions, edit and removal are listed with their warnings and marked reviewed (D154 B5)", async ({
-    page,
-  }) => {
-    test.setTimeout(120_000);
-    const ad = await seedWaiting({ status: "active" });
-    uploads.push({ userId: ad.sellerId, listingId: ad.id });
-    const token = (await passwordGrant(ad.seller.email, ad.seller.password)).access_token;
+  test(
+    "SC-21 Photo changes on live ads: a seller's additions, edit and removal are listed with their warnings and marked reviewed (D154 B5)",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      test.setTimeout(120_000);
+      const ad = await seedWaiting({ status: "active" });
+      uploads.push({ userId: ad.sellerId, listingId: ad.id });
+      const token = (await passwordGrant(ad.seller.email, ad.seller.password)).access_token;
 
-    const warned = await uploadPhoto(page, { listingId: ad.id, token, cover: { made: [17, 17] } });
-    expect(warned.payload["ok"], JSON.stringify(warned.payload)).toBe(true);
-    const plain = await uploadPhoto(page, { listingId: ad.id, token, cover: { name: "meta.png" } });
-    expect(plain.payload["ok"], JSON.stringify(plain.payload)).toBe(true);
-    const [warnedId, plainId] = [
-      String(warned.payload["photoId"]),
-      String(plain.payload["photoId"]),
-    ];
-    const edited = await uploadPhoto(page, {
-      listingId: ad.id,
-      token,
-      cover: { name: "meta.webp" },
-      replaces: plainId,
-    });
-    expect(edited.payload["ok"], JSON.stringify(edited.payload)).toBe(true);
-    const editedId = String(edited.payload["photoId"]);
-    const removed = await photoAction(page, warnedId, "delete", token);
-    expect(removed.payload["ok"], JSON.stringify(removed.payload)).toBe(true);
-    const left = await photoRowsOf(ad.id);
-    expect(left.map((row) => row.id)).toEqual([editedId]);
-    // The live ad's photo is never read straight from the bucket by a visitor: only
-    // through the link the server signs (bundle 13 turn 10, part G).
-    const direct = await buyer().storage.from(BUCKET).download(keyOf(left[0]!, "cover"));
-    expect(
-      direct.error,
-      "SC-21: a visitor downloaded a live ad's photo from the bucket",
-    ).not.toBeNull();
+      const warned = await uploadPhoto(page, {
+        listingId: ad.id,
+        token,
+        cover: { made: [17, 17] },
+      });
+      expect(warned.payload["ok"], JSON.stringify(warned.payload)).toBe(true);
+      const plain = await uploadPhoto(page, {
+        listingId: ad.id,
+        token,
+        cover: { name: "meta.png" },
+      });
+      expect(plain.payload["ok"], JSON.stringify(plain.payload)).toBe(true);
+      const [warnedId, plainId] = [
+        String(warned.payload["photoId"]),
+        String(plain.payload["photoId"]),
+      ];
+      const edited = await uploadPhoto(page, {
+        listingId: ad.id,
+        token,
+        cover: { name: "meta.webp" },
+        replaces: plainId,
+      });
+      expect(edited.payload["ok"], JSON.stringify(edited.payload)).toBe(true);
+      const editedId = String(edited.payload["photoId"]);
+      const removed = await photoAction(page, warnedId, "delete", token);
+      expect(removed.payload["ok"], JSON.stringify(removed.payload)).toBe(true);
+      const left = await photoRowsOf(ad.id);
+      expect(left.map((row) => row.id)).toEqual([editedId]);
+      // The live ad's photo is never read straight from the bucket by a visitor: only
+      // through the link the server signs (bundle 13 turn 10, part G).
+      const direct = await buyer().storage.from(BUCKET).download(keyOf(left[0]!, "cover"));
+      expect(
+        direct.error,
+        "SC-21: a visitor downloaded a live ad's photo from the bucket",
+      ).not.toBeNull();
 
-    const truth = await changesOf(ad.id);
-    expect(
-      truth.map((row) => [row.kind, row.photo_id, row.replaced_photo_id, row.codes]),
-      "SC-21: the changes are not as the seller made them",
-    ).toEqual([
-      ["added", warnedId, null, ["not_relevant"]],
-      ["added", plainId, null, []],
-      ["edited", editedId, plainId, []],
-      ["removed", warnedId, null, []],
-    ]);
+      const truth = await changesOf(ad.id);
+      expect(
+        truth.map((row) => [row.kind, row.photo_id, row.replaced_photo_id, row.codes]),
+        "SC-21: the changes are not as the seller made them",
+      ).toEqual([
+        ["added", warnedId, null, ["not_relevant"]],
+        ["added", plainId, null, []],
+        ["edited", editedId, plainId, []],
+        ["removed", warnedId, null, []],
+      ]);
 
-    await signInJobSuperAdmin(page);
-    await gotoReady(page, "/admin/screening");
-    const section = page.getByTestId("admin-photo-changes");
-    const mine = section.locator(`[data-testid="admin-photo-change"][data-listing-id="${ad.id}"]`);
-    await expect(mine).toHaveCount(4, { timeout: 20000 });
-    for (const [index, row] of truth.entries()) {
-      await expect(mine.nth(index)).toHaveAttribute("data-change-id", row.id);
-      await expect(mine.nth(index)).toHaveAttribute("data-kind", row.kind);
-    }
-    await expect(mine.nth(0).getByTestId("admin-photo-change-warning")).toHaveText(
-      en["admin.listings.photos.notRelevant"],
-    );
-    await expect(mine.nth(1).getByTestId("admin-photo-change-warning")).toHaveCount(0);
-    await expect(mine.nth(0).getByTestId("admin-photo-change-ad")).toHaveText(ad.title);
+      await signInJobSuperAdmin(page);
+      await gotoReady(page, "/admin/screening");
+      const section = page.getByTestId("admin-photo-changes");
+      const mine = section.locator(
+        `[data-testid="admin-photo-change"][data-listing-id="${ad.id}"]`,
+      );
+      await expect(mine).toHaveCount(4, { timeout: 20000 });
+      for (const [index, row] of truth.entries()) {
+        await expect(mine.nth(index)).toHaveAttribute("data-change-id", row.id);
+        await expect(mine.nth(index)).toHaveAttribute("data-kind", row.kind);
+      }
+      await expect(mine.nth(0).getByTestId("admin-photo-change-warning")).toHaveText(
+        en["admin.listings.photos.notRelevant"],
+      );
+      await expect(mine.nth(1).getByTestId("admin-photo-change-warning")).toHaveCount(0);
+      await expect(mine.nth(0).getByTestId("admin-photo-change-ad")).toHaveText(ad.title);
+      // INC-1121 — each change's thumbnail fits its box (a removed photo's change draws none).
+      for (const index of truth.keys())
+        await expectPicturesFit(page, mine.nth(index), { atLeast: 0 });
 
-    // Show photos: the one photo left, view-only (D169: Remove is in Edit on the ad's page).
-    await mine.nth(2).getByTestId("admin-photo-change-photos").click();
-    const photos = mine.nth(2).getByTestId("admin-photo-change-ad-photos-item");
-    await expect(photos).toHaveCount(1, { timeout: 20000 });
-    await expect(photos.nth(0)).toHaveAttribute("data-photo-id", editedId);
-    await expect(photos.nth(0).getByTestId("admin-photo-change-ad-photos-remove")).toHaveCount(0);
+      // Show photos: the one photo left, view-only (D169: Remove is in Edit on the ad's page).
+      await mine.nth(2).getByTestId("admin-photo-change-photos").click();
+      const photos = mine.nth(2).getByTestId("admin-photo-change-ad-photos-item");
+      await expect(photos).toHaveCount(1, { timeout: 20000 });
+      await expect(photos.nth(0)).toHaveAttribute("data-photo-id", editedId);
+      await expectPicturesFit(page, photos.nth(0));
+      await expect(photos.nth(0).getByTestId("admin-photo-change-ad-photos-remove")).toHaveCount(0);
 
-    // Mark reviewed: the removal leaves the list, the door wrote who and when, and an audit row.
-    const removal = truth[3]!;
-    await mine.nth(3).getByTestId("admin-photo-change-review").click();
-    await expect(mine).toHaveCount(3, { timeout: 20000 });
-    await expect(section.locator(`[data-change-id="${removal.id}"]`)).toHaveCount(0);
-    const after = await changesOf(ad.id);
-    expect(after.filter((row) => row.reviewed_at !== null).map((row) => row.id)).toEqual([
-      removal.id,
-    ]);
-    expect(after.find((row) => row.id === removal.id)!.reviewed_by).not.toBeNull();
-    const { data: audit, error } = await adminClient()
-      .from("audit_log")
-      .select("action, meta")
-      .eq("entity_type", "listing")
-      .eq("entity_id", ad.id)
-      .eq("action", "listing.photo_change_reviewed");
-    if (error) throw new Error(`[e2e:sc] reading audit_log failed: ${error.message}`);
-    expect(audit).toEqual([
-      { action: "listing.photo_change_reviewed", meta: { change: removal.id } },
-    ]);
-  });
+      // Mark reviewed: the removal leaves the list, the door wrote who and when, and an audit row.
+      const removal = truth[3]!;
+      await mine.nth(3).getByTestId("admin-photo-change-review").click();
+      await expect(mine).toHaveCount(3, { timeout: 20000 });
+      await expect(section.locator(`[data-change-id="${removal.id}"]`)).toHaveCount(0);
+      const after = await changesOf(ad.id);
+      expect(after.filter((row) => row.reviewed_at !== null).map((row) => row.id)).toEqual([
+        removal.id,
+      ]);
+      expect(after.find((row) => row.id === removal.id)!.reviewed_by).not.toBeNull();
+      const { data: audit, error } = await adminClient()
+        .from("audit_log")
+        .select("action, meta")
+        .eq("entity_type", "listing")
+        .eq("entity_id", ad.id)
+        .eq("action", "listing.photo_change_reviewed");
+      if (error) throw new Error(`[e2e:sc] reading audit_log failed: ${error.message}`);
+      expect(audit).toEqual([
+        { action: "listing.photo_change_reviewed", meta: { change: removal.id } },
+      ]);
+    },
+  );
 
   /**
    * SC-22 — bundle 13 turn 10 (D154 B3): an ad holding a photo the screen warned

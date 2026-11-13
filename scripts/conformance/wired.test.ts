@@ -408,6 +408,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/ci-images.test.ts"), "utf8")).toContain(
       "CF-CI-IMG-7",
     );
+    // pictures.test.ts CF-PICTURE-1…3 (the pictures turn, INC-1121) is discovered by test:unit's
+    // scripts/**/*.test.ts; it reads src/ and pictures-allowlist.txt. Its lint twin is CF-LINT-6.
+    expect(readFileSync(join(ROOT, "scripts/conformance/pictures.test.ts"), "utf8")).toContain(
+      "CF-PICTURE-3",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

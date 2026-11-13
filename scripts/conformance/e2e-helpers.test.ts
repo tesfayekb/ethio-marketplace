@@ -4,6 +4,11 @@ import { join } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import {
+  PICTURE_SCREENS,
+  pictureFitProblems,
+  type PictureMeasure,
+} from "../../e2e/helpers/pictures";
+import {
   FENCE_PREFIXES,
   likeAnywhere,
   likePrefix,
@@ -43,6 +48,12 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  *   file under e2e/helpers/, nor e2e/global-setup.ts or e2e/global-teardown.ts, calls `new RegExp(`
  *   or `RegExp(` — a pattern built from text goes through `matcher` (e2e/helpers/ui.ts, over
  *   scripts/lib/pattern.ts), which escapes every interpolated string.
+ * - CF-HELPERS-8 (the pictures turn, INC-1121): every e2e/*.spec.ts naming a picture screen's test
+ *   id (PICTURE_SCREENS, e2e/helpers/pictures.ts) calls `expectPicturesFit` — the drawn pictures
+ *   are measured against their frames, never only their attributes.
+ * - CF-HELPERS-9 (the pictures turn, ruling 1 answer 4, INC-1123): no e2e/*.spec.ts names a
+ *   Playwright project (PROJECT_NAMES) in a string — a spec branches on `layoutOf(page)`
+ *   (e2e/helpers/layout.ts), so a new engine at the same width never silently skips its branch.
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -283,6 +294,79 @@ export function scratchLiteralFindings(files: string[]): HelperFinding[] {
   return findings;
 }
 
+/** A string's text in a spec, a template's parts joined by `${}` (PICTURE_SCREENS' form). */
+function specText(node: ts.Node): string | null {
+  if (ts.isStringLiteral(node)) return isModuleName(node) ? null : node.text;
+  if (ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
+  if (ts.isTemplateExpression(node))
+    return [node.head.text, ...node.templateSpans.map((span) => span.literal.text)].join("${}");
+  return null;
+}
+
+/** CF-HELPERS-8 — a spec naming a picture screen that never measures its pictures. */
+export function pictureCheckFindings(
+  specFiles: string[],
+  screens: readonly string[] = PICTURE_SCREENS,
+): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const file of specFiles) {
+    const seen: { named: { id: string; line: number } | null; measures: boolean } = {
+      named: null,
+      measures: false,
+    };
+    visitTs(file, (node, source) => {
+      if (
+        ts.isCallExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "expectPicturesFit"
+      )
+        seen.measures = true;
+      const text = specText(node);
+      if (text === null || seen.named !== null) return;
+      const id = screens.find((screen) => text.includes(screen));
+      if (id !== undefined)
+        seen.named = {
+          id,
+          line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        };
+    });
+    if (seen.named !== null && !seen.measures) {
+      const { id, line } = seen.named;
+      findings.push({
+        file,
+        line,
+        what: `names the picture screen ${id} and never calls expectPicturesFit (e2e/helpers/pictures.ts)`,
+        key: `${file} expectPicturesFit`,
+      });
+    }
+  }
+  return findings;
+}
+
+/** The Playwright projects (playwright.config.ts) a spec may not name (CF-HELPERS-9). */
+export const PROJECT_NAMES = ["mobile-360", "desktop-1280", "webkit-1280", "webkit-390"];
+
+/** CF-HELPERS-9 — a spec naming a project, the form a branch on the project's name takes. */
+export function projectNameFindings(
+  specFiles: string[],
+  names: readonly string[] = PROJECT_NAMES,
+): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const file of specFiles) {
+    visitTs(file, (node, source) => {
+      const text = specText(node);
+      if (text === null || !names.includes(text)) return;
+      findings.push({
+        file,
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        what: `names the project ${text}: branch on layoutOf(page) (e2e/helpers/layout.ts)`,
+        key: `${file} project-name`,
+      });
+    });
+  }
+  return findings;
+}
+
 const LIKE_BUILDERS = new Set(["likePrefix", "likeAnywhere"]);
 const FENCE_KINDS = (Object.keys(SCRATCH_PREFIXES) as ScratchKind[]).filter((kind) =>
   (Object.values(FENCE_PREFIXES) as string[]).includes(SCRATCH_PREFIXES[kind]),
@@ -423,7 +507,7 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-7 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand",
+    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-9 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project",
     () => {
       const files = e2eFiles();
       const findings = [
@@ -436,6 +520,8 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
         ...scratchLiteralFindings(harnessFiles(files)),
         ...sweepReading(SWEEPERS).findings,
         ...regexpSiteFindings(harnessFiles(files)),
+        ...pictureCheckFindings(specs()),
+        ...projectNameFindings(specs()),
       ];
       const allowances = readAllowlist(
         ALLOWLIST,
@@ -619,5 +705,111 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it("planted: CF-HELPERS-8 and CF-HELPERS-9 find a picture screen never measured and a project's name, and pass the helpers", () => {
+    const dir = mkdtempSync(join(tmpdir(), "e2e-helpers-pictures-"));
+    try {
+      const bare = join(dir, "bare.spec.ts");
+      writeFileSync(
+        bare,
+        [
+          'import { test } from "./fixtures";',
+          "test('t', async ({ page }, testInfo) => {",
+          '  test.skip(testInfo.project.name !== "desktop-1280", "one width");',
+          "  await page.getByTestId(`my-listing-${id}-picture`).waitFor();",
+          "  const wide = testInfo.project.name === 'webkit-1280';",
+          "  const tag = `scratch-${testInfo.project.name}`;",
+          "});",
+          "",
+        ].join("\n"),
+      );
+      const measured = join(dir, "measured.spec.ts");
+      writeFileSync(
+        measured,
+        [
+          'import { test } from "./fixtures";',
+          'import { layoutOf } from "./helpers/layout";',
+          'import { expectPicturesFit } from "./helpers/pictures";',
+          "test('t', async ({ page }) => {",
+          '  test.skip(layoutOf(page) !== "desktop", "one layout");',
+          '  await expectPicturesFit(page, page.getByTestId("gallery-main"));',
+          "});",
+          "",
+        ].join("\n"),
+      );
+      expect(pictureCheckFindings([bare, measured]).map((f) => [f.line, f.key])).toEqual([
+        [4, `${bare} expectPicturesFit`],
+      ]);
+      expect(projectNameFindings([bare, measured]).map((f) => [f.line, f.key])).toEqual([
+        [3, `${bare} project-name`],
+        [5, `${bare} project-name`],
+      ]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("CF-HELPERS-8 the geometry check: INC-1121's 80 × 480 drawn box in an 80 × 60 frame fails with its sizes; fitting pictures pass", () => {
+    const frame = { left: 0, top: 0, width: 80, height: 60 };
+    const picture = (over: Partial<PictureMeasure>): PictureMeasure => ({
+      testId: "my-listing-x-picture",
+      src: "https://x.example/card.jpg",
+      loaded: true,
+      natural: { width: 360, height: 480 },
+      content: frame,
+      fit: "cover",
+      position: "50% 50%",
+      frame: { fit: "cover", box: frame },
+      ...over,
+    });
+    const fits = (pictures: PictureMeasure[], failed: string[] = [], atLeast = 1) =>
+      pictureFitProblems({ pictures, failed }, atLeast);
+
+    const sliver = fits([picture({ content: { left: 0, top: 0, width: 80, height: 480 } })]);
+    expect(sliver).toEqual([
+      "my-listing-x-picture: the image's box overflows its frame — natural 360×480, drawn 80×480, frame 80×60 (https://x.example/card.jpg)",
+      "my-listing-x-picture: a cropped picture does not fill its frame — natural 360×480, drawn 80×480, frame 80×60 (https://x.example/card.jpg)",
+    ]);
+    expect(fits([picture({})])).toEqual([]);
+
+    // A whole picture: a square in a 4:3 box touches top and bottom; drawn wide it fails.
+    const contain = { fit: "contain", frame: { fit: "contain", box: frame } };
+    expect(fits([picture({ ...contain, natural: { width: 512, height: 512 } })])).toEqual([]);
+    expect(
+      fits([picture({ ...contain, fit: "fill", natural: { width: 512, height: 512 } })]).map(
+        (line) => line.split(" — ")[0],
+      ),
+    ).toEqual([
+      "my-listing-x-picture: drawn with object-fit fill, its frame says contain",
+      "my-listing-x-picture: a whole picture is drawn out of its ratio",
+    ]);
+    // The QR's padding: the content box inside the frame, the picture whole inside it.
+    const padded = { left: 9, top: 9, width: 182, height: 182 };
+    const qr = { left: 1, top: 1, width: 198, height: 198 };
+    expect(
+      fits([
+        picture({
+          fit: "contain",
+          natural: { width: 200, height: 200 },
+          content: padded,
+          frame: { fit: "contain", box: qr },
+        }),
+      ]),
+    ).toEqual([]);
+    // The gallery's object-top: a wide photo at the top of its 4:3 frame still fits.
+    expect(
+      fits([picture({ ...contain, natural: { width: 1600, height: 900 }, position: "50% 0%" })]),
+    ).toEqual([]);
+
+    expect(fits([picture({ loaded: false, natural: { width: 0, height: 0 } })])[0]).toMatch(
+      /^my-listing-x-picture: never loaded — /,
+    );
+    expect(fits([picture({ frame: null })])[0]).toMatch(/drawn outside Picture/);
+    expect(fits([], ["gallery-main"])).toEqual([
+      "0 picture(s) measured, at least 1 expected",
+      "gallery-main: the failed-load state is showing",
+    ]);
+    expect(fits([], [], 0)).toEqual([]);
   });
 });

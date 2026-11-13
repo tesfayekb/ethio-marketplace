@@ -1,0 +1,1 @@
+# The pictures turn (INC-1121, DEC-371), CF-PICTURE-1: a file under src/ drawing a raster image from an address by hand — a JSX img, a library's .Image part or a style url( — outside the picture primitive (scripts/conformance/pictures.test.ts; Picture, src/components/ui/picture.tsx). Born empty. <file> | <reason> | <until>

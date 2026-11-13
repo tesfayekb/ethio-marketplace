@@ -3,7 +3,10 @@ import { dirname, join } from "node:path";
 
 import type { Page } from "@playwright/test";
 import jpeg from "jpeg-js";
+import { PNG } from "pngjs";
 
+import { RUN, rand } from "./posting";
+import { SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 
 /**
@@ -63,6 +66,127 @@ export function madeJpeg(width: number, height: number): Buffer {
     }
   }
   return Buffer.from(jpeg.encode({ data, width, height }, 85).data);
+}
+
+/**
+ * The pictures turn (INC-1121) — a category picture made in memory: a centred square motif at 85 %
+ * of the height on white, as the category-image cutter draws one (category-image-variants.ts).
+ */
+export function madePng(width: number, height: number): Buffer {
+  const png = new PNG({ width, height });
+  const side = Math.round(height * 0.85);
+  const left = Math.round((width - side) / 2);
+  const top = Math.round((height - side) / 2);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const at = (y * width + x) * 4;
+      const inside = x >= left && x < left + side && y >= top && y < top + side;
+      png.data[at] = inside ? Math.round(((x - left) / side) * 255) : 255;
+      png.data[at + 1] = inside ? 96 : 255;
+      png.data[at + 2] = inside ? Math.round(((y - top) / side) * 255) : 255;
+      png.data[at + 3] = 255;
+    }
+  }
+  return PNG.sync.write(png);
+}
+
+export const CATEGORY_BUCKET = "category-assets";
+
+/**
+ * The pictures turn (INC-1121) — the stored variants of a photo of each shape, at the photo
+ * encoder's sizes (the cover's long edge 1600, the middle 960, the card 480, the thumb 160), so a
+ * ratio defect cannot hide behind uniform 4:3 photos.
+ */
+export const PHOTO_SHAPES = {
+  portrait: { cover: [1200, 1600], mid: [720, 960], card: [360, 480], thumb: [120, 160] },
+  landscape: { cover: [1600, 1200], mid: [960, 720], card: [480, 360], thumb: [160, 120] },
+  square: { cover: [1600, 1600], mid: [960, 960], card: [480, 480], thumb: [160, 160] },
+} as const;
+export type PhotoShape = keyof typeof PHOTO_SHAPES;
+
+/** The category pictures the scratch categories carry: the cutter's 4:3 card and a square (D122's old card). */
+export const CATEGORY_PICTURE_SHAPES = {
+  card: [640, 480],
+  square: [512, 512],
+} as const;
+export type CategoryPictureShape = keyof typeof CATEGORY_PICTURE_SHAPES;
+
+/**
+ * Real stored pictures for the picture specs (J3: the caller's afterEach runs `cleanup`, which
+ * removes every object this set uploaded): a photo row of a shape on an ad, a category picture of
+ * a shape on a category.
+ */
+export function scratchPictures() {
+  const uploaded: Array<{ bucket: string; key: string }> = [];
+
+  async function upload(bucket: string, width: number, height: number, kind: "jpg" | "png") {
+    const key = `${SCRATCH_PREFIXES.dash}${RUN}/pictures-${rand()}-${width}x${height}.${kind}`;
+    const body = kind === "png" ? madePng(width, height) : madeJpeg(width, height);
+    const answer = await adminClient()
+      .storage.from(bucket)
+      .upload(key, body, { contentType: kind === "png" ? "image/png" : "image/jpeg" });
+    if (answer.error) throw new Error(`[e2e:pictures] upload failed: ${answer.error.message}`);
+    uploaded.push({ bucket, key });
+    return key;
+  }
+
+  /** A stored photo of `shape` on the ad at `displayOrder`, every variant its own object. */
+  async function seedShapedPhoto(listingId: string, shape: PhotoShape, displayOrder = 0) {
+    const sizes = PHOTO_SHAPES[shape];
+    const paths: Record<string, { partition: string; key: string }> = {};
+    for (const [variant, [width, height]] of Object.entries(sizes)) {
+      paths[variant] = { partition: "default", key: await upload(BUCKET, width, height, "jpg") };
+    }
+    const inserted = await adminClient()
+      .from("listing_photos")
+      .insert({
+        listing_id: listingId,
+        storage_path: paths["cover"]?.key ?? "",
+        display_order: displayOrder,
+        exif_stripped: true,
+        unscreened: false,
+        width: sizes.cover[0],
+        height: sizes.cover[1],
+        paths,
+      })
+      .select("id")
+      .single();
+    if (inserted.error)
+      throw new Error(`[e2e:pictures] photo row failed: ${inserted.error.message}`);
+    return inserted.data.id as string;
+  }
+
+  /** A category picture of `shape`, stored publicly; answers its address. */
+  async function categoryPicture(shape: CategoryPictureShape): Promise<string> {
+    const [width, height] = CATEGORY_PICTURE_SHAPES[shape];
+    const key = await upload(CATEGORY_BUCKET, width, height, "png");
+    return adminClient().storage.from(CATEGORY_BUCKET).getPublicUrl(key).data.publicUrl;
+  }
+
+  /** Gives the category a picture of `shape` (`categories.image_url`); answers its address. */
+  async function giveCategoryPicture(categoryId: string, shape: CategoryPictureShape) {
+    const url = await categoryPicture(shape);
+    const updated = await adminClient()
+      .from("categories")
+      .update({ image_url: url })
+      .eq("id", categoryId);
+    if (updated.error)
+      throw new Error(`[e2e:pictures] picture link failed: ${updated.error.message}`);
+    return url;
+  }
+
+  async function cleanup() {
+    const byBucket = new Map<string, string[]>();
+    for (const { bucket, key } of uploaded.splice(0))
+      byBucket.set(bucket, [...(byBucket.get(bucket) ?? []), key]);
+    for (const [bucket, keys] of byBucket) {
+      const removed = await adminClient().storage.from(bucket).remove(keys);
+      if (removed.error)
+        throw new Error(`[e2e:pictures] picture reap failed: ${removed.error.message}`);
+    }
+  }
+
+  return { seedShapedPhoto, categoryPicture, giveCategoryPicture, cleanup };
 }
 
 /** A cover named by its fixture, or made in memory at `made` = [width, height] (D154 B3). */

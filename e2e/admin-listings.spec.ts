@@ -27,6 +27,8 @@ import {
 } from "./helpers/ui";
 import { adminClient, leaseUser, createUser, grantScratchRole } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
+import { scratchPictures } from "./helpers/photos";
+import { expectPicturesFit } from "./helpers/pictures";
 import { levelNameFor } from "./helpers/level-overrides";
 
 /**
@@ -112,8 +114,10 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   const roles: string[] = [];
   /** Turn L4b — scratch specification sets (attribute keys), reaped before their branch. */
   const specSets: string[][] = [];
+  const pictures = scratchPictures();
 
   test.afterEach(async () => {
+    await pictures.cleanup();
     const supabase = adminClient();
     for (const id of listingIds.splice(0)) {
       const removed = await supabase.from("listings").delete().eq("id", id);
@@ -1829,124 +1833,111 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
    * built (a reason and a note, the step-up by keyboard). The two photos on one
    * row, no sideways scroll. History says so and the seller is told.
    */
-  test("AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4)", async ({
-    page,
-  }) => {
-    const seller = await scratchSeller();
-    const live = await seed(seller, "active");
-    const { data: photos, error } = await adminClient()
-      .from("listing_photos")
-      .insert([
+  test(
+    "AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4)",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      const seller = await scratchSeller();
+      const live = await seed(seller, "active");
+      // INC-1121 — two stored photos of two shapes, so the card's pictures are measured.
+      const firstId = await pictures.seedShapedPhoto(live.id, "portrait", 0);
+      const secondId = await pictures.seedShapedPhoto(live.id, "landscape", 1);
+      const note = "A phone number is written across the photo.";
+
+      const { secret } = await signInJobSuperAdmin(page);
+      // INC-620 — the step whose code the injected session's verification spent.
+      const spentStep = totpStep();
+      await gotoReady(page, `/admin/listings/${live.id}`);
+      // D194 — the photos card is on the page without clicking Edit.
+      await expect(page.getByTestId("listing-as-seen")).toContainText(live.title, {
+        timeout: 20000,
+      });
+      const card = page.getByTestId("listing-photos");
+      await expect(card).toBeVisible({ timeout: 20000 });
+      const items = card.getByTestId("listing-photos-item");
+      await expect(items).toHaveCount(2, { timeout: 20000 });
+      await expect(items.nth(0)).toHaveAttribute("data-photo-id", firstId);
+      await expect(items.nth(1)).toHaveAttribute("data-photo-id", secondId);
+      await expectPicturesFit(page, card, { atLeast: 2 });
+      // D171 — no sideways scroll, the two photos on one row.
+      await expectNoHorizontalOverflow(page);
+      // INC-680 — both rects are read in the same frame after the images load.
+      const { first: firstBox, second: secondBox } = await card.evaluate((node) => {
+        const photos = node.querySelectorAll('[data-testid="listing-photos-item"]');
+        const first = photos.item(0)?.getBoundingClientRect();
+        const second = photos.item(1)?.getBoundingClientRect();
+        const rect = (box: DOMRect | undefined) =>
+          box === undefined ? null : { x: box.x, y: box.y, width: box.width, height: box.height };
+        return { first: rect(first), second: rect(second) };
+      });
+      expect(
+        firstBox !== null && secondBox !== null && Math.abs(firstBox.y - secondBox.y) < 2,
+        `the two photos are not on one row: ${JSON.stringify({ firstBox, secondBox })}`,
+      ).toBe(true);
+      expect(
+        firstBox !== null && secondBox !== null && secondBox.x > firstBox.x + firstBox.width - 1,
+        `the second photo is not after the first: ${JSON.stringify({ firstBox, secondBox })}`,
+      ).toBe(true);
+      await expect(card.getByTestId("listing-photos-hint")).toHaveText(
+        en["admin.listings.photos.hint"],
+      );
+
+      await items.nth(1).getByTestId("listing-photos-remove").click();
+      const dialog = page.getByTestId("listing-photo-remove-dialog");
+      await expect(dialog).toBeVisible();
+      await expectPicturesFit(page, dialog);
+      // A reason first.
+      await dialog.getByTestId("listing-photo-remove-confirm").click();
+      await expect(dialog.getByTestId("listing-photo-remove-problem")).toHaveText(
+        en["admin.listings.move.pickReason"],
+      );
+      await dialog.getByTestId("listing-photo-remove-reason-photo").click();
+      await dialog.getByTestId("listing-photo-remove-note").fill(note);
+      // INC-618's class — the second factor is asked, and its code is typed key by key.
+      // INC-620 — the injected session stepped up moments ago, so the client is told its
+      // step-up is stale (the server's window is untouched), and the code typed is one
+      // the factor has not spent.
+      await staleStepUpOnClient(page);
+      await dialog.getByTestId("listing-photo-remove-confirm").click();
+      await expect(page.getByTestId("step-up-modal")).toBeVisible({ timeout: 20000 });
+      await afterTotpStep(spentStep);
+      await stepUpIfPrompted(page, secret, { typed: true });
+
+      await expect(page.getByTestId("listing-notice")).toHaveText(
+        en["admin.listings.photos.done"],
         {
-          listing_id: live.id,
-          storage_path: `e2e-al/${token()}-a.webp`,
-          display_order: 0,
-          exif_stripped: true,
-          unscreened: false,
+          timeout: 20000,
         },
-        {
-          listing_id: live.id,
-          storage_path: `e2e-al/${token()}-b.webp`,
-          display_order: 1,
-          exif_stripped: true,
-          unscreened: false,
-        },
-      ])
-      .select("id,display_order");
-    if (error || !photos || photos.length !== 2) {
-      throw new Error(`[e2e:al] seeding photos failed: ${error?.message ?? "no rows"}`);
-    }
-    const [first, second] = [...photos].sort((a, b) => a.display_order - b.display_order) as Array<{
-      id: string;
-    }>;
-    const note = "A phone number is written across the photo.";
+      );
+      await expect(dialog).toHaveCount(0);
+      await expect(items).toHaveCount(1, { timeout: 20000 });
+      await expect(items.nth(0)).toHaveAttribute("data-photo-id", firstId);
 
-    const { secret } = await signInJobSuperAdmin(page);
-    // INC-620 — the step whose code the injected session's verification spent.
-    const spentStep = totpStep();
-    await gotoReady(page, `/admin/listings/${live.id}`);
-    // D194 — the photos card is on the page without clicking Edit.
-    await expect(page.getByTestId("listing-as-seen")).toContainText(live.title, {
-      timeout: 20000,
-    });
-    const card = page.getByTestId("listing-photos");
-    await expect(card).toBeVisible({ timeout: 20000 });
-    const items = card.getByTestId("listing-photos-item");
-    await expect(items).toHaveCount(2, { timeout: 20000 });
-    await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
-    await expect(items.nth(1)).toHaveAttribute("data-photo-id", second!.id);
-    // D171 — no sideways scroll, the two photos on one row.
-    await expectNoHorizontalOverflow(page);
-    // INC-680 — both rects are read in the same frame after the images load.
-    const { first: firstBox, second: secondBox } = await card.evaluate((node) => {
-      const photos = node.querySelectorAll('[data-testid="listing-photos-item"]');
-      const first = photos.item(0)?.getBoundingClientRect();
-      const second = photos.item(1)?.getBoundingClientRect();
-      const rect = (box: DOMRect | undefined) =>
-        box === undefined ? null : { x: box.x, y: box.y, width: box.width, height: box.height };
-      return { first: rect(first), second: rect(second) };
-    });
-    expect(
-      firstBox !== null && secondBox !== null && Math.abs(firstBox.y - secondBox.y) < 2,
-      `the two photos are not on one row: ${JSON.stringify({ firstBox, secondBox })}`,
-    ).toBe(true);
-    expect(
-      firstBox !== null && secondBox !== null && secondBox.x > firstBox.x + firstBox.width - 1,
-      `the second photo is not after the first: ${JSON.stringify({ firstBox, secondBox })}`,
-    ).toBe(true);
-    await expect(card.getByTestId("listing-photos-hint")).toHaveText(
-      en["admin.listings.photos.hint"],
-    );
-
-    await items.nth(1).getByTestId("listing-photos-remove").click();
-    const dialog = page.getByTestId("listing-photo-remove-dialog");
-    await expect(dialog).toBeVisible();
-    // A reason first.
-    await dialog.getByTestId("listing-photo-remove-confirm").click();
-    await expect(dialog.getByTestId("listing-photo-remove-problem")).toHaveText(
-      en["admin.listings.move.pickReason"],
-    );
-    await dialog.getByTestId("listing-photo-remove-reason-photo").click();
-    await dialog.getByTestId("listing-photo-remove-note").fill(note);
-    // INC-618's class — the second factor is asked, and its code is typed key by key.
-    // INC-620 — the injected session stepped up moments ago, so the client is told its
-    // step-up is stale (the server's window is untouched), and the code typed is one
-    // the factor has not spent.
-    await staleStepUpOnClient(page);
-    await dialog.getByTestId("listing-photo-remove-confirm").click();
-    await expect(page.getByTestId("step-up-modal")).toBeVisible({ timeout: 20000 });
-    await afterTotpStep(spentStep);
-    await stepUpIfPrompted(page, secret, { typed: true });
-
-    await expect(page.getByTestId("listing-notice")).toHaveText(en["admin.listings.photos.done"], {
-      timeout: 20000,
-    });
-    await expect(dialog).toHaveCount(0);
-    await expect(items).toHaveCount(1, { timeout: 20000 });
-    await expect(items.nth(0)).toHaveAttribute("data-photo-id", first!.id);
-
-    const { data: left } = await adminClient()
-      .from("listing_photos")
-      .select("id")
-      .eq("listing_id", live.id);
-    expect((left ?? []).map((row) => row.id)).toEqual([first!.id]);
-    // History is on the page.
-    const newest = page.getByTestId("listing-history-entry-0");
-    await expect(newest.getByTestId("listing-history-what")).toContainText(
-      en["admin.listings.detail.photos"],
-      { timeout: 20000 },
-    );
-    await expect(newest.getByTestId("listing-history-reason")).toHaveText(
-      en["admin.listings.history.reason"].replace("{reason}", en["admin.listings.reason.photo"]),
-    );
-    await expect(newest.getByTestId("listing-history-note")).toHaveText(
-      en["admin.listings.history.note"].replace("{note}", note),
-    );
-    expect(await noticeRows(live.id)).toEqual([
-      { seller_id: seller.id, kind: "admin_edit", fields: ["photos"], reason: "photo", note },
-    ]);
-    expect((await listingTruth(live.id))?.["status"]).toBe("active");
-  });
+      const { data: left } = await adminClient()
+        .from("listing_photos")
+        .select("id")
+        .eq("listing_id", live.id);
+      expect((left ?? []).map((row) => row.id)).toEqual([firstId]);
+      // History is on the page.
+      const newest = page.getByTestId("listing-history-entry-0");
+      await expect(newest.getByTestId("listing-history-what")).toContainText(
+        en["admin.listings.detail.photos"],
+        { timeout: 20000 },
+      );
+      await expect(newest.getByTestId("listing-history-reason")).toHaveText(
+        en["admin.listings.history.reason"].replace("{reason}", en["admin.listings.reason.photo"]),
+      );
+      await expect(newest.getByTestId("listing-history-note")).toHaveText(
+        en["admin.listings.history.note"].replace("{note}", note),
+      );
+      expect(await noticeRows(live.id)).toEqual([
+        { seller_id: seller.id, kind: "admin_edit", fields: ["photos"], reason: "photo", note },
+      ]);
+      expect((await listingTruth(live.id))?.["status"]).toBe("active");
+    },
+  );
 
   /**
    * D172 (the operator, 2026-10-14) — a posted ad's category is never changed, by its

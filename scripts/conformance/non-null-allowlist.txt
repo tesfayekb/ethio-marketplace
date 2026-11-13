@@ -12,7 +12,7 @@ e2e/admin-categories-home.spec.ts (7) | non-null assertions written before the p
 e2e/admin-categories-images.spec.ts (6) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/admin-categories-lifecycle.spec.ts (29) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/admin-countries.spec.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
-e2e/admin-listings.spec.ts (11) | non-null assertions written before the platform rule was enforced | INC-932
+e2e/admin-listings.spec.ts (7) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/admin-locations.spec.ts (19) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/admin-screening.spec.ts (20) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/admin-shell.spec.ts (14) | non-null assertions written before the platform rule was enforced | INC-932

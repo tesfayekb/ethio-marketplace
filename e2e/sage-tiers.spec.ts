@@ -5,6 +5,8 @@ import { en } from "../src/i18n/locales/en";
 import { THEMES } from "../src/lib/themes";
 import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
+import { layoutOf } from "./helpers/layout";
+import { expectPicturesFit } from "./helpers/pictures";
 import { withoutEmptyLayers } from "./helpers/shadows";
 import {
   expectNoHorizontalOverflow,
@@ -386,9 +388,9 @@ for (const width of WIDTHS) {
       test.afterEach(async () => {
         await feed.cleanup();
       });
-      test.beforeEach(async ({ page }, testInfo) => {
+      test.beforeEach(async ({ page }) => {
         test.skip(
-          width < 768 !== (testInfo.project.name === "mobile-360"),
+          width < 768 !== (layoutOf(page) === "mobile"),
           "each width uses its pointer project",
         );
         await page.setViewportSize({ width, height: 900 });
@@ -418,114 +420,119 @@ for (const width of WIDTHS) {
         return { card };
       }
 
-      test(`STG-1 each tier's card reads its tokens, flag and ribbon (${width}, ${mode})`, async ({
-        page,
-      }) => {
-        const { card } = await openTiers(page);
-        const tokens = { ...THEMES.sage.light, ...THEMES.sage[mode] };
-        const fills: Record<Tier, Token> = {
-          regular: "card",
-          premium: "tier-premium",
-          featured: "tier-featured",
-        };
-        const lifts: Record<Tier, string> = {
-          regular: "lift-card",
-          premium: "lift-premium",
-          featured: "lift-featured",
-        };
-        const rules: Record<Tier, Token> = {
-          regular: "rule",
-          premium: "tier-premium-rule",
-          featured: "tier-featured-rule",
-        };
-        for (const tier of TIERS) {
-          const at = `${tier} card`;
-          const c = card(tier);
-          expect(await style(c, "background-color"), at).toBe(
-            await tokenStyle(page, mode, fills[tier], "background-color"),
-          );
-          const lift = await liftOf(page, lifts[tier]);
-          expect(await style(c, "box-shadow"), at).toBe(lift);
-          if (tier !== "regular") expect(lift, `${at}: the tier's frame`).toContain("1.5px");
-          expect(await style(c.getByTestId("listing-card-place"), "border-top-color"), at).toBe(
-            await tokenStyle(page, mode, rules[tier], "border-top-color"),
-          );
+      test(
+        `STG-1 each tier's card reads its tokens, flag and ribbon (${width}, ${mode})`,
+        { tag: "@webkit" },
+        async ({ page }) => {
+          const { card } = await openTiers(page);
+          const tokens = { ...THEMES.sage.light, ...THEMES.sage[mode] };
+          const fills: Record<Tier, Token> = {
+            regular: "card",
+            premium: "tier-premium",
+            featured: "tier-featured",
+          };
+          const lifts: Record<Tier, string> = {
+            regular: "lift-card",
+            premium: "lift-premium",
+            featured: "lift-featured",
+          };
+          const rules: Record<Tier, Token> = {
+            regular: "rule",
+            premium: "tier-premium-rule",
+            featured: "tier-featured-rule",
+          };
+          for (const tier of TIERS) {
+            const at = `${tier} card`;
+            const c = card(tier);
+            expect(await style(c, "background-color"), at).toBe(
+              await tokenStyle(page, mode, fills[tier], "background-color"),
+            );
+            const lift = await liftOf(page, lifts[tier]);
+            expect(await style(c, "box-shadow"), at).toBe(lift);
+            if (tier !== "regular") expect(lift, `${at}: the tier's frame`).toContain("1.5px");
+            expect(await style(c.getByTestId("listing-card-place"), "border-top-color"), at).toBe(
+              await tokenStyle(page, mode, rules[tier], "border-top-color"),
+            );
 
-          // §8 — the ribbon's palette by tier: its six stops, its ink, its caps.
-          const ribbon = c.getByTestId("listing-ribbon");
-          const palette = PALETTE[tier];
-          await expect(ribbon).toHaveAttribute("data-ribbon", palette);
-          for (const part of ["1", "2", "3", "4", "5", "6"]) {
-            // The built stylesheet rewrites a colour's text, so both sides are compared resolved.
-            const name = `ribbon-${palette}-${part}` as Token;
-            expect(
-              await resolvedIn(ribbon, "color", `var(--rb-${part})`),
-              `${at}: stop ${part}`,
-            ).toBe(await tokenStyle(page, mode, name, "color"));
+            // §8 — the ribbon's palette by tier: its six stops, its ink, its caps.
+            const ribbon = c.getByTestId("listing-ribbon");
+            const palette = PALETTE[tier];
+            await expect(ribbon).toHaveAttribute("data-ribbon", palette);
+            for (const part of ["1", "2", "3", "4", "5", "6"]) {
+              // The built stylesheet rewrites a colour's text, so both sides are compared resolved.
+              const name = `ribbon-${palette}-${part}` as Token;
+              expect(
+                await resolvedIn(ribbon, "color", `var(--rb-${part})`),
+                `${at}: stop ${part}`,
+              ).toBe(await tokenStyle(page, mode, name, "color"));
+            }
+            expect(await style(ribbon.locator(".ribbon-band"), "color"), at).toBe(
+              await tokenStyle(page, mode, `ribbon-${palette}-ink` as Token, "color"),
+            );
+            const ends = c.getByTestId("listing-ribbon-ends");
+            await expect(ends).toHaveAttribute("data-ribbon", palette);
+            // INC-1121 — the photo-less well: no failed picture, and any picture inside fits.
+            await expectPicturesFit(page, c.getByTestId("listing-card-picture"), { atLeast: 0 });
+            const boxes = await layoutBoxes({
+              card: c,
+              frame: c.getByTestId("listing-card-picture"),
+              capEnd: ends.locator(".ribbon-cap-end"),
+              capFoot: ends.locator(".ribbon-cap-foot"),
+            });
+            expect(boxes.capEnd.x, `${at}: the end cap past the picture`).toBeGreaterThanOrEqual(
+              boxes.frame.x + boxes.frame.width - 0.5,
+            );
+            expect(boxes.capFoot.y, `${at}: the foot cap below it`).toBeGreaterThanOrEqual(
+              boxes.frame.y + boxes.frame.height - 0.5,
+            );
+
+            // §7 — the flag and the word, on paid cards only.
+            const compact = boxes.card.width < COMPACT_PX;
+            if (tier === "regular") {
+              await expect(c.getByTestId("listing-card-tier")).toHaveCount(0);
+              await expect(c.getByTestId("listing-card-tier-word")).toHaveCount(0);
+              continue;
+            }
+            const name = await levelNameFor(tier, "en");
+            const flag = c.getByRole("img", { name });
+            await expect(flag).toHaveCount(1);
+            await expect(flag.locator("path")).toHaveCount(tier === "premium" ? 4 : 3);
+            const scale = compact ? (width < 768 ? 1.6 : 1.25) : 1;
+            const flagBox = (await layoutBoxes({ flag, card: c })).flag;
+            expect(flagBox.width, `${at}: the flag's size`).toBeCloseTo(
+              scale * 0.19 * boxes.card.width,
+              0,
+            );
+            expect(flagBox.x, `${at}: the fold past the card's edge`).toBeCloseTo(
+              boxes.card.x - scale * 0.0225 * boxes.card.width,
+              0,
+            );
+            const word = c.getByTestId("listing-card-tier-word");
+            await expect(word).toHaveText(name);
+            expect(await style(word, "font-size"), at).toBe(
+              compact ? (width < 768 ? "9px" : "10px") : "11px",
+            );
+            expect(await style(word, "font-weight"), at).toBe("800");
+            expect(await style(word, "text-transform"), at).toBe("uppercase");
+            expect(await style(word, "color"), at).toBe(
+              await tokenStyle(page, mode, `tier-${tier}-ink` as Token, "color"),
+            );
+            await expect(word.locator("svg")).toHaveCount(tier === "premium" ? 2 : 1);
           }
-          expect(await style(ribbon.locator(".ribbon-band"), "color"), at).toBe(
-            await tokenStyle(page, mode, `ribbon-${palette}-ink` as Token, "color"),
-          );
-          const ends = c.getByTestId("listing-ribbon-ends");
-          await expect(ends).toHaveAttribute("data-ribbon", palette);
-          const boxes = await layoutBoxes({
-            card: c,
-            frame: c.getByTestId("listing-card-picture"),
-            capEnd: ends.locator(".ribbon-cap-end"),
-            capFoot: ends.locator(".ribbon-cap-foot"),
+          // Ruling 3 (LL-1) — one card shape, paid or not.
+          const heights = await layoutBoxes({
+            regular: card("regular"),
+            premium: card("premium"),
+            featured: card("featured"),
           });
-          expect(boxes.capEnd.x, `${at}: the end cap past the picture`).toBeGreaterThanOrEqual(
-            boxes.frame.x + boxes.frame.width - 0.5,
-          );
-          expect(boxes.capFoot.y, `${at}: the foot cap below it`).toBeGreaterThanOrEqual(
-            boxes.frame.y + boxes.frame.height - 0.5,
-          );
-
-          // §7 — the flag and the word, on paid cards only.
-          const compact = boxes.card.width < COMPACT_PX;
-          if (tier === "regular") {
-            await expect(c.getByTestId("listing-card-tier")).toHaveCount(0);
-            await expect(c.getByTestId("listing-card-tier-word")).toHaveCount(0);
-            continue;
-          }
-          const name = await levelNameFor(tier, "en");
-          const flag = c.getByRole("img", { name });
-          await expect(flag).toHaveCount(1);
-          await expect(flag.locator("path")).toHaveCount(tier === "premium" ? 4 : 3);
-          const scale = compact ? (width < 768 ? 1.6 : 1.25) : 1;
-          const flagBox = (await layoutBoxes({ flag, card: c })).flag;
-          expect(flagBox.width, `${at}: the flag's size`).toBeCloseTo(
-            scale * 0.19 * boxes.card.width,
-            0,
-          );
-          expect(flagBox.x, `${at}: the fold past the card's edge`).toBeCloseTo(
-            boxes.card.x - scale * 0.0225 * boxes.card.width,
-            0,
-          );
-          const word = c.getByTestId("listing-card-tier-word");
-          await expect(word).toHaveText(name);
-          expect(await style(word, "font-size"), at).toBe(
-            compact ? (width < 768 ? "9px" : "10px") : "11px",
-          );
-          expect(await style(word, "font-weight"), at).toBe("800");
-          expect(await style(word, "text-transform"), at).toBe("uppercase");
-          expect(await style(word, "color"), at).toBe(
-            await tokenStyle(page, mode, `tier-${tier}-ink` as Token, "color"),
-          );
-          await expect(word.locator("svg")).toHaveCount(tier === "premium" ? 2 : 1);
-        }
-        // Ruling 3 (LL-1) — one card shape, paid or not.
-        const heights = await layoutBoxes({
-          regular: card("regular"),
-          premium: card("premium"),
-          featured: card("featured"),
-        });
-        const tall = Object.values(heights).map((box) => box.height);
-        expect(Math.max(...tall) - Math.min(...tall), "every card one height").toBeLessThanOrEqual(
-          0.5,
-        );
-        await expectNoHorizontalOverflow(page);
-      });
+          const tall = Object.values(heights).map((box) => box.height);
+          expect(
+            Math.max(...tall) - Math.min(...tall),
+            "every card one height",
+          ).toBeLessThanOrEqual(0.5);
+          await expectNoHorizontalOverflow(page);
+        },
+      );
 
       test(`STG-2 the tier word and every ribbon word meet 4.5 : 1 where they are read (${width}, ${mode})`, async ({
         page,
@@ -573,8 +580,8 @@ test.describe("The Amharic tier word at 390 (§7)", () => {
   test.afterEach(async () => {
     await feed.cleanup();
   });
-  test.beforeEach(async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "mobile-360", "the phone width");
+  test.beforeEach(async ({ page }) => {
+    test.skip(layoutOf(page) !== "mobile", "the phone width");
     await page.setViewportSize({ width: 390, height: 900 });
   });
 
@@ -627,8 +634,8 @@ test.describe("The same Premium card on every card surface (§7)", () => {
     }
     await feed.cleanup();
   });
-  test.beforeEach(async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1280", "one width: the look, not the layout");
+  test.beforeEach(async ({ page }) => {
+    test.skip(layoutOf(page) !== "desktop", "one width: the look, not the layout");
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
@@ -693,9 +700,9 @@ test.describe("The same Premium card on every card surface (§7)", () => {
 for (const width of WIDTHS) {
   for (const mode of MODES) {
     test.describe(`The invite card at ${width}, ${mode} (§9)`, () => {
-      test.beforeEach(async ({ page }, testInfo) => {
+      test.beforeEach(async ({ page }) => {
         test.skip(
-          width < 768 !== (testInfo.project.name === "mobile-360"),
+          width < 768 !== (layoutOf(page) === "mobile"),
           "each width uses its pointer project",
         );
         await page.setViewportSize({ width, height: 900 });

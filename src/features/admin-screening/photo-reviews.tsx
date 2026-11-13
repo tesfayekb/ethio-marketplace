@@ -5,6 +5,7 @@ import { useState } from "react";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
+import { Picture } from "@/components/ui/picture";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import { ADMIN_LISTINGS_KEY } from "@/features/admin-listings/use-admin-listings";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
@@ -142,13 +143,13 @@ export function PhotoReviews({ mayReview, guard }: { mayReview: boolean; guard: 
               <div className="flex min-w-0 flex-wrap items-start gap-3">
                 <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
                   {link !== null ? (
-                    <img
+                    <Picture
                       src={link}
-                      alt=""
+                      fit="cover"
                       width={64}
                       height={48}
                       loading="lazy"
-                      className="h-full w-full object-cover"
+                      className="h-full w-full"
                     />
                   ) : null}
                 </div>

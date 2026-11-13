@@ -16,6 +16,7 @@ import {
   downloadObject,
   fillUploadCounter,
   keyOf,
+  madeJpeg,
   objectExists,
   objectsUnder,
   photoAction,
@@ -25,6 +26,7 @@ import {
   scanForMetadata,
   uploadPhoto,
 } from "./helpers/photos";
+import { expectPicturesFit } from "./helpers/pictures";
 import {
   leaseSeller,
   bearerOf,
@@ -582,36 +584,41 @@ test.describe("PHOTO PIPELINE", () => {
    * step (`isStepFinished`, types.ts), so it resumes on the price page; the
    * seller's way back to the photos is Back.
    */
-  test("PP-12 a stored photo is drawn on the photo step through a link that expires", async ({
-    page,
-  }) => {
-    const { user, token } = await seller(page);
-    const listingId = await draft(page, token, user.id);
-    const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
-    expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+  test(
+    "PP-12 a stored photo is drawn on the photo step through a link that expires",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      const { user, token } = await seller(page);
+      const listingId = await draft(page, token, user.id);
+      const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
+      expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
 
-    await gotoReady(page, `/post/${listingId}`);
-    await expect(
-      page.getByTestId("post-step-4"),
-      "PP-12: a draft holding a photo resumes past the photo step (D39)",
-    ).toBeVisible();
-    await page.getByTestId("post-back").click();
-    await expect(page.getByTestId("post-step-2")).toBeVisible();
-    const image = page.getByTestId("post-photo-stored").locator("img");
-    await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(
-      "src",
-      /^https:\/\/.+\/storage\/v1\/object\/sign\/listing-photos\/.+token=/,
-      { timeout: 20_000 },
-    );
-    // The image loads lazily: bring it into view, then it must draw.
-    await image.scrollIntoViewIfNeeded();
-    await expect
-      .poll(async () => image.evaluate((element) => (element as HTMLImageElement).naturalWidth), {
-        message: "PP-12: the signed link did not draw",
-        timeout: 20_000,
-      })
-      .toBeGreaterThan(0);
-  });
+      await gotoReady(page, `/post/${listingId}`);
+      await expect(
+        page.getByTestId("post-step-4"),
+        "PP-12: a draft holding a photo resumes past the photo step (D39)",
+      ).toBeVisible();
+      await page.getByTestId("post-back").click();
+      await expect(page.getByTestId("post-step-2")).toBeVisible();
+      const image = page.getByTestId("post-photo-stored").locator("img");
+      await expect(image, "PP-12: the stored photo has no signed link").toHaveAttribute(
+        "src",
+        /^https:\/\/.+\/storage\/v1\/object\/sign\/listing-photos\/.+token=/,
+        { timeout: 20_000 },
+      );
+      // The image loads lazily: bring it into view, then it must draw.
+      await image.scrollIntoViewIfNeeded();
+      await expect
+        .poll(async () => image.evaluate((element) => (element as HTMLImageElement).naturalWidth), {
+          message: "PP-12: the signed link did not draw",
+          timeout: 20_000,
+        })
+        .toBeGreaterThan(0);
+      await expectPicturesFit(page, page.getByTestId("post-photo-stored"));
+    },
+  );
 
   /**
    * INC-588 / D151 — WHO GETS A LINK. The rows are read as the caller, so the
@@ -1416,6 +1423,72 @@ test.describe("PHOTO PIPELINE", () => {
       inLink(keyOf(rows[0]!, "cover")),
     );
   });
+
+  /**
+   * PP-35 — INC-1121: a portrait, a landscape and a square photo picked on the photo step, as a
+   * seller picks them (the device encodes each), fit their tiles, the buyer's preview's gallery
+   * and the full-screen viewer.
+   */
+  test(
+    "PP-35 photos of every shape fit the photo step, the preview's gallery and the viewer (INC-1121)",
+    {
+      tag: "@webkit",
+    },
+    async ({ page }) => {
+      // Three photos encoded on the device and stored through the route (each tile waited up to
+      // 60 s), then two page loads, the gallery measured three times and the viewer once.
+      test.setTimeout(150_000);
+      const { user, token } = await seller(page);
+      const listingId = await draft(page, token, user.id);
+      await gotoReady(page, `/post/${listingId}`);
+      await expect(page.getByTestId("post-step-2")).toBeVisible();
+      const shapes = [
+        ["portrait", 1200, 1600],
+        ["landscape", 1600, 1200],
+        ["square", 1200, 1200],
+      ] as const;
+      await page.getByTestId("post-photos-input").setInputFiles(
+        shapes.map(([name, width, height]) => ({
+          name: `${name}.jpg`,
+          mimeType: "image/jpeg",
+          buffer: madeJpeg(width, height),
+        })),
+      );
+      const tiles = page.getByTestId("post-photo-tile");
+      await expect(tiles).toHaveCount(shapes.length, { timeout: 45_000 });
+      for (const tile of await tiles.all()) {
+        await expect(tile).toHaveAttribute("data-state", "stored", { timeout: 60_000 });
+      }
+      for (const tile of await tiles.all()) await expectPicturesFit(page, tile);
+      expect(await photoRowsOf(listingId), "PP-35: three photos were stored").toHaveLength(3);
+      // Recorded as past contact (service client, this scratch row only), so the
+      // draft opens on review, where the preview is.
+      const { error } = await adminClient()
+        .from("listings")
+        .update({ draft_step: 7 })
+        .eq("id", listingId)
+        .eq("seller_id", user.id);
+      if (error) throw new Error(`[e2e:pp] seeding draft_step failed: ${error.message}`);
+
+      await gotoReady(page, `/post/${listingId}`);
+      await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+      await page.getByTestId("post-preview-open").click();
+      const gallery = page.getByTestId("post-preview-sheet").getByTestId("listing-detail-gallery");
+      const thumbs = gallery.getByTestId("gallery-thumb");
+      await expect(thumbs).toHaveCount(shapes.length, { timeout: 20_000 });
+      for (const index of shapes.keys()) {
+        await thumbs.nth(index).click();
+        await expect(gallery.getByTestId("gallery-count")).toHaveText(
+          `${index + 1} / ${shapes.length}`,
+        );
+        await expectPicturesFit(page, gallery, { atLeast: shapes.length + 1 });
+      }
+      await gallery.getByTestId("gallery-main").click();
+      await expectPicturesFit(page, page.getByTestId("gallery-viewer"), {
+        atLeast: shapes.length + 1,
+      });
+    },
+  );
 
   /** PP-24 — D162: a middle size over its own cap (1,200 px) is refused by name, and nothing is stored. */
   test("PP-24 a middle size over its cap is refused by name and nothing is stored (D162)", async ({

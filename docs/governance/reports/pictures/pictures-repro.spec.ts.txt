@@ -1,0 +1,294 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+
+import type { Page } from "@playwright/test";
+import { PNG } from "pngjs";
+
+import { test } from "./fixtures";
+import { adPageFixtures } from "./helpers/ad-page";
+import { BUCKET, madeJpeg } from "./helpers/photos";
+import { RUN, rand } from "./helpers/posting";
+import { gotoReady, settled, signInViaSession } from "./helpers/ui";
+import { adminClient } from "./helpers/users";
+
+/**
+ * TEMPORARY — the pictures turn's STEP 1 reproduction of INC-1121 (a MEASURING spec, never
+ * committed; its text is kept under docs/governance/reports/pictures/). It asserts nothing.
+ *
+ * One scratch seller with three ads — a portrait photo (the encoder's shapes: cover 1200 × 1600 …
+ * card 360 × 480), a landscape photo (card 480 × 360) and no photo under a category whose picture
+ * is SQUARE (512 × 512 PNG) — drawn at 1280 on My listings, the home feed, the portrait ad's page
+ * and the no-photo ad's page. For every visible `img`: its natural size, its drawn box, its
+ * frame's box (the parent), the nearest `[data-picture]` box, `object-fit`, and two verdicts:
+ * the drawn box lies within its frame (±1 px) and the frame within its picture box (±1 px).
+ * The operator's Safari snippet measured the same three boxes (img, frame, box).
+ * Built from the investigation's measuring spec (investigation-photos.spec.ts.txt).
+ */
+
+const CATEGORY_BUCKET = "category-assets";
+const LANDSCAPE = { cover: [1600, 1200], mid: [960, 720], card: [480, 360], thumb: [160, 120] };
+const PORTRAIT = { cover: [1200, 1600], mid: [720, 960], card: [360, 480], thumb: [120, 160] };
+type Sizes = typeof LANDSCAPE;
+
+interface Screen {
+  name: string;
+  path: string;
+  ready: string[];
+}
+
+test.describe("REPRO — INC-1121 pictures by engine", () => {
+  const fixtures = adPageFixtures();
+  const photoKeys: string[] = [];
+  const categoryKeys: string[] = [];
+
+  test.afterEach(async () => {
+    await fixtures.cleanup();
+    const supabase = adminClient();
+    if (photoKeys.length > 0) {
+      const removed = await supabase.storage.from(BUCKET).remove(photoKeys.splice(0));
+      if (removed.error) throw new Error(`[e2e:repro] photo reap failed: ${removed.error.message}`);
+    }
+    if (categoryKeys.length > 0) {
+      const removed = await supabase.storage.from(CATEGORY_BUCKET).remove(categoryKeys.splice(0));
+      if (removed.error) {
+        throw new Error(`[e2e:repro] category picture reap failed: ${removed.error.message}`);
+      }
+    }
+  });
+
+  function madePng(width: number, height: number): Buffer {
+    const png = new PNG({ width, height });
+    const side = Math.round(height * 0.85);
+    const left = Math.round((width - side) / 2);
+    const top = Math.round((height - side) / 2);
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 0; x < width; x += 1) {
+        const at = (y * width + x) * 4;
+        const inside = x >= left && x < left + side && y >= top && y < top + side;
+        png.data[at] = inside ? Math.round(((x - left) / side) * 255) : 255;
+        png.data[at + 1] = inside ? 96 : 255;
+        png.data[at + 2] = inside ? Math.round(((y - top) / side) * 255) : 255;
+        png.data[at + 3] = 255;
+      }
+    }
+    return PNG.sync.write(png);
+  }
+
+  async function upload(
+    bucket: string,
+    keys: string[],
+    width: number,
+    height: number,
+    kind: "jpg" | "png" = "jpg",
+  ) {
+    const key = `e2e-${RUN}/repro-${rand()}-${width}x${height}.${kind}`;
+    const body = kind === "png" ? madePng(width, height) : madeJpeg(width, height);
+    const uploaded = await adminClient()
+      .storage.from(bucket)
+      .upload(key, body, { contentType: kind === "png" ? "image/png" : "image/jpeg" });
+    if (uploaded.error) throw new Error(`[e2e:repro] upload failed: ${uploaded.error.message}`);
+    keys.push(key);
+    return key;
+  }
+
+  async function seedPhoto(listingId: string, sizes: Sizes) {
+    const paths: Record<string, { partition: string; key: string }> = {};
+    for (const [variant, [width, height]] of Object.entries(sizes)) {
+      paths[variant] = { partition: "default", key: await upload(BUCKET, photoKeys, width, height) };
+    }
+    const inserted = await adminClient()
+      .from("listing_photos")
+      .insert({
+        listing_id: listingId,
+        storage_path: paths["cover"]?.key ?? "",
+        display_order: 0,
+        exif_stripped: true,
+        unscreened: false,
+        width: sizes.cover[0],
+        height: sizes.cover[1],
+        paths,
+      });
+    if (inserted.error) throw new Error(`[e2e:repro] photo row failed: ${inserted.error.message}`);
+  }
+
+  async function giveCategoryPicture(categoryId: string) {
+    const key = await upload(CATEGORY_BUCKET, categoryKeys, 512, 512, "png");
+    const url = adminClient().storage.from(CATEGORY_BUCKET).getPublicUrl(key).data.publicUrl;
+    const updated = await adminClient()
+      .from("categories")
+      .update({ image_url: url })
+      .eq("id", categoryId);
+    if (updated.error) throw new Error(`[e2e:repro] picture link failed: ${updated.error.message}`);
+  }
+
+  async function waitForPictures(page: Page, selectors: string[]): Promise<boolean> {
+    return page
+      .waitForFunction(
+        (list) =>
+          list.every((selector) =>
+            [...document.querySelectorAll(selector)].some((element) => {
+              if (element.getClientRects().length === 0) return false;
+              const img =
+                element instanceof HTMLImageElement ? element : element.querySelector("img");
+              return img !== null && img.complete && img.naturalWidth > 0;
+            }),
+          ),
+        selectors,
+        { timeout: 30_000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+  }
+
+  async function measure(page: Page) {
+    await settled(page);
+    return page.evaluate(() => {
+      const px = (value: number) => Math.round(value * 10) / 10;
+      const within = (inner: DOMRect, outer: DOMRect) =>
+        inner.left >= outer.left - 1 &&
+        inner.top >= outer.top - 1 &&
+        inner.right <= outer.right + 1 &&
+        inner.bottom <= outer.bottom + 1;
+      return [...document.querySelectorAll("img")]
+        .filter((img) => img.getClientRects().length > 0)
+        .map((img) => {
+          const box = img.getBoundingClientRect();
+          const frame = img.parentElement;
+          const frameBox = frame?.getBoundingClientRect() ?? null;
+          const picture = img.closest("[data-picture]");
+          const pictureBox = picture?.getBoundingClientRect() ?? null;
+          let owner = "";
+          for (let up: Element | null = img; up !== null && owner === ""; up = up.parentElement) {
+            owner = up.getAttribute("data-testid") ?? "";
+          }
+          const url = new URL(img.currentSrc === "" ? img.src : img.currentSrc, location.href);
+          return {
+            owner,
+            file: url.pathname.split("/").pop() ?? "",
+            complete: img.complete,
+            natural: `${img.naturalWidth}x${img.naturalHeight}`,
+            drawn: `${px(box.width)}x${px(box.height)}`,
+            objectFit: getComputedStyle(img).objectFit,
+            frame: frameBox === null ? null : `${px(frameBox.width)}x${px(frameBox.height)}`,
+            frameStyle: frame?.getAttribute("style") ?? "",
+            picture: picture?.getAttribute("data-picture") ?? "",
+            pictureBox:
+              pictureBox === null ? null : `${px(pictureBox.width)}x${px(pictureBox.height)}`,
+            drawnWithinFrame: frameBox === null ? null : within(box, frameBox),
+            frameWithinPicture:
+              frameBox === null || pictureBox === null ? null : within(frameBox, pictureBox),
+            chain: (() => {
+              const out: string[] = [];
+              let up: Element | null = img.parentElement;
+              for (let depth = 0; up !== null && depth < 9; depth += 1, up = up.parentElement) {
+                out.push(`${up.tagName.toLowerCase()}:${getComputedStyle(up).display}`);
+              }
+              return out.join(" < ");
+            })(),
+          };
+        });
+    });
+  }
+
+  test("REPRO-1 the pictures on My listings, the home feed and two ad pages at 1280 (no assertion)", async ({
+    page,
+    baseURL,
+  }, testInfo) => {
+    test.setTimeout(300_000);
+    const seller = await fixtures.scratchSeller({ served: true });
+    const landscape = await fixtures.seed(seller, "active");
+    const portrait = await fixtures.seed(seller, "active");
+    const bare = await fixtures.seed(seller, "active");
+    await seedPhoto(landscape.id, LANDSCAPE);
+    await seedPhoto(portrait.id, PORTRAIT);
+    await giveCategoryPicture(seller.parentId);
+    const ids = { landscape: landscape.id, portrait: portrait.id, bare: bare.id };
+    const publicIds = {
+      portrait: await fixtures.publicIdOf(portrait.id),
+      bare: await fixtures.publicIdOf(bare.id),
+    };
+
+    await page
+      .context()
+      .addCookies([{ name: "ethio_area", value: `ET:${seller.cityId}`, url: baseURL ?? "" }]);
+    await signInViaSession(page, seller.email, seller.password);
+
+    const listPicture = (id: string, kind: string) =>
+      `[data-testid="my-listing-${id}-picture"] [data-picture="${kind}"]`;
+    const card = (id: string, kind: string) =>
+      `[data-testid="listing-card"][data-listing="${id}"] [data-testid="listing-card-picture"][data-picture="${kind}"]`;
+    const screens: Screen[] = [
+      {
+        name: "my-listings",
+        path: "/my-listings",
+        ready: [
+          listPicture(ids.landscape, "photo"),
+          listPicture(ids.portrait, "photo"),
+          listPicture(ids.bare, "category"),
+        ],
+      },
+      {
+        name: "home-feed",
+        path: "/",
+        ready: [
+          card(ids.landscape, "photo"),
+          card(ids.portrait, "photo"),
+          card(ids.bare, "category"),
+        ],
+      },
+      {
+        name: "ad-portrait",
+        path: `/l/${publicIds.portrait}`,
+        ready: ['[data-testid="gallery-main"]'],
+      },
+      { name: "ad-no-photo", path: `/l/${publicIds.bare}`, ready: ['[data-picture="category"]'] },
+    ];
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const record: Record<string, unknown>[] = [];
+    for (const screen of screens) {
+      await gotoReady(page, screen.path);
+      const ready = await waitForPictures(page, screen.ready);
+      const images = await measure(page);
+      await page.screenshot({ path: testInfo.outputPath(`${screen.name}-1280.png`) });
+      record.push({ screen: screen.name, width: 1280, path: screen.path, ready, images });
+    }
+
+    // The candidate form, injected on the base: the image placed over its frame.
+    const [first] = screens;
+    if (first === undefined) throw new Error("[e2e:repro] no screen");
+    await gotoReady(page, first.path);
+    const candidateReady = await waitForPictures(page, first.ready);
+    await page.addStyleTag({
+      content: "[data-picture] img { position: absolute; inset: 0; width: 100%; height: 100%; }",
+    });
+    record.push({
+      screen: "my-listings-candidate-absolute-img",
+      width: 1280,
+      path: first.path,
+      ready: candidateReady,
+      images: await measure(page),
+    });
+
+    // My listings below `cardUntil="xl"`: the card form, no table.
+    await page.setViewportSize({ width: 1024, height: 800 });
+    await gotoReady(page, first.path);
+    const cardReady = await waitForPictures(page, first.ready);
+    record.push({
+      screen: "my-listings",
+      width: 1024,
+      path: first.path,
+      ready: cardReady,
+      images: await measure(page),
+    });
+
+    const project = testInfo.project.name;
+    const body = JSON.stringify({ project, ids, record }, null, 2);
+    const folder = "docs/governance/reports/pictures";
+    mkdirSync(folder, { recursive: true });
+    const tag = process.env["REPRO_TAG"] ?? "run";
+    writeFileSync(`${folder}/measurements-${tag}-${project}.json`, `${body}\n`);
+    writeFileSync(testInfo.outputPath("measurements.json"), body);
+  });
+});

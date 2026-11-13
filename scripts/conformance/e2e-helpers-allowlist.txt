@@ -2,3 +2,26 @@
 # declares its own copy of a shared helper, disables rules-of-hooks, or writes profiles.preferred_language outside
 # e2e/helpers/account-language.ts. Key: `<file> <name>` | reason | until (a date or an INC-/DEC- number); stale or
 # expired lines fail. Empty at birth.
+e2e/admin-shell.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/admin-translations-console.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/admin-translations-governance.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/choice-lists.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/house-style.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/i18n-coverage.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/menu-rows.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/name-check-queue.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/one-line-slots-admin.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/one-line-slots.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/overlay-shift.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/overlays.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/post-wizard-pricing.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/post-wizard-recent.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/post-wizard-specs.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/press.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/sage-bands.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/sage-shell.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/shell-bands.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/shell.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/submenu-look.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/submenu-touch.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/submenu.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123

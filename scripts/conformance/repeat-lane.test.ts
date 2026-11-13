@@ -114,6 +114,98 @@ export function mergedReportFindings(ciText: string): string[] {
   return [];
 }
 
+/**
+ * INC-1124 (the pictures turn, ruling 2) — THE LANE MATRIX IS THE ONE LIST. The second lane a list that
+ * reads lanes missed (INC-966: `repeat`; then `webkit`). Every reader equals the matrix of
+ * local-backend-proof.yml in order: the summary's `lanes = [...]`, the lane reporter's
+ * `E2E_EXPECTED_SOURCES` and the merged report's in ci.yml (both write the repeat lane `repeat?`).
+ * The summary's evidence pattern is a regular expression, whose alternation order means nothing (and
+ * RPL-2 anchors its `(smoke|email|repeat|`), so it holds the same lanes in any order.
+ */
+function matrixLanes(text: string): string[] {
+  const matrix = /lane:\s*\[([\s\S]*?)\]/.exec(text)?.[1] ?? "";
+  return matrix
+    .split(",")
+    .map((item) => item.trim().replace(/^"|"$/g, ""))
+    .filter(Boolean);
+}
+
+function summaryLanes(text: string): string[] {
+  const list = /^\s*lanes = \[(.*)\]\s*$/m.exec(text)?.[1] ?? "";
+  const items: string[] = [];
+  let depth = 0;
+  let item = "";
+  for (const ch of list) {
+    if (ch === "," && depth === 0) {
+      items.push(item);
+      item = "";
+      continue;
+    }
+    if (ch === "(") depth += 1;
+    if (ch === ")") depth -= 1;
+    item += ch;
+  }
+  items.push(item);
+  return items.flatMap((entry) => {
+    const range = /^\*map\(str, range\((\d+), (\d+)\)\)$/.exec(entry.trim());
+    if (range === null) return [entry.trim().replace(/^'|'$/g, "")];
+    const from = Number(range[1]);
+    return Array.from({ length: Number(range[2]) - from }, (_, i) => String(from + i));
+  });
+}
+
+function evidenceLanes(text: string): string[] {
+  const group = /- Lane: \(([^)]*)\)/.exec(text)?.[1] ?? "";
+  return group.split("|").flatMap((alt) => {
+    const digits = /^(\d*)\[(\d)-(\d)\]$/.exec(alt);
+    if (digits === null) return [alt];
+    const [, head = "", low = "0", high = "0"] = digits;
+    return Array.from(
+      { length: Number(high) - Number(low) + 1 },
+      (_, i) => `${head}${Number(low) + i}`,
+    );
+  });
+}
+
+function mergedStep(ciText: string): string {
+  const at = ciText.indexOf(MERGED);
+  return at < 0 ? "" : ciText.slice(at, ciText.indexOf("\n      - name:", at + 1) >>> 0);
+}
+
+function sourcesOf(text: string): string[] {
+  return (/E2E_EXPECTED_SOURCES:\s*(\S+)/.exec(text)?.[1] ?? "").split(",").filter(Boolean);
+}
+
+export function laneListFindings(text: string, ciText: string): string[] {
+  const lanes = matrixLanes(text);
+  if (lanes.length === 0) return ["the workflow has no lane matrix"];
+  const findings: string[] = [];
+  const judge = (reader: string, got: string[], ordered: boolean) => {
+    for (const lane of lanes)
+      if (!got.includes(lane)) findings.push(`${reader} leaves out the lane ${lane}`);
+    for (const lane of got)
+      if (!lanes.includes(lane)) findings.push(`${reader} names ${lane}, no lane of the matrix`);
+    const same = got.length === lanes.length && got.every((lane) => lanes.includes(lane));
+    if (ordered && same && got.some((lane, i) => lane !== lanes[i]))
+      findings.push(`${reader} lists the lanes out of the matrix's order`);
+  };
+  const asSources = (reader: string, sources: string[]) => {
+    for (const source of sources)
+      if (source.replace(/\?$/, "") === "repeat" && source !== "repeat?")
+        findings.push(`${reader} writes the repeat lane as ${source}, not repeat?`);
+    judge(
+      reader,
+      sources.map((s) => s.replace(/\?$/, "")),
+      true,
+    );
+  };
+  judge("the summary's lane list", summaryLanes(text), true);
+  judge("the summary's evidence pattern", evidenceLanes(text), false);
+  asSources("the lane reporter's expected sources", sourcesOf(text));
+  asSources("the merged report's expected sources (ci.yml)", sourcesOf(mergedStep(ciText)));
+  return findings;
+}
+
 /** INC-966: no workflow reads Playwright's global-timeout text inline. */
 export function inlineCapFindings(files: Record<string, string>): string[] {
   return Object.entries(files)
@@ -201,6 +293,52 @@ describe("the repeat lane (DEC-283)", () => {
     expect(
       repeatLaneFindings(moved).some((f) => f.startsWith("the selection comes after a step")),
     ).toBe(true);
+  });
+
+  it("CF-CID-10 every list that reads lanes equals the lane matrix (INC-1124); a lane planted out of each of the four is named", () => {
+    expect(matrixLanes(real)).toEqual([
+      "smoke",
+      "email",
+      "webkit",
+      ...Array.from({ length: 16 }, (_, i) => String(i + 1)),
+      "repeat",
+    ]);
+    expect(laneListFindings(real, realCi)).toEqual([]);
+    const cases: Array<[string, string, string]> = [
+      [
+        "'email', 'webkit', *map",
+        "'email', *map",
+        "the summary's lane list leaves out the lane webkit",
+      ],
+      [
+        "|repeat|webkit|[1-9]",
+        "|repeat|[1-9]",
+        "the summary's evidence pattern leaves out the lane webkit",
+      ],
+      [
+        "E2E_EXPECTED_SOURCES: smoke,email,webkit,1,",
+        "E2E_EXPECTED_SOURCES: smoke,email,1,",
+        "the lane reporter's expected sources leaves out the lane webkit",
+      ],
+    ];
+    for (const [from, to, named] of cases)
+      expect(laneListFindings(plant(from, to), realCi)).toEqual([named]);
+    const ciFrom = "E2E_EXPECTED_SOURCES: smoke,email,webkit,1,";
+    expect(realCi.split(ciFrom).length - 1, "merged sources anchor found once").toBe(1);
+    expect(
+      laneListFindings(real, realCi.replace(ciFrom, "E2E_EXPECTED_SOURCES: smoke,email,1,")),
+    ).toEqual(["the merged report's expected sources (ci.yml) leaves out the lane webkit"]);
+    expect(
+      laneListFindings(real, realCi.replace(ciFrom, "E2E_EXPECTED_SOURCES: email,smoke,webkit,1,")),
+    ).toEqual([
+      "the merged report's expected sources (ci.yml) lists the lanes out of the matrix's order",
+    ]);
+    expect(laneListFindings(plant("            webkit,\n", ""), realCi)).toEqual([
+      "the summary's lane list names webkit, no lane of the matrix",
+      "the summary's evidence pattern names webkit, no lane of the matrix",
+      "the lane reporter's expected sources names webkit, no lane of the matrix",
+      "the merged report's expected sources (ci.yml) names webkit, no lane of the matrix",
+    ]);
   });
 
   it("RPL-3 the repeat count fits the budget: six at most, never below two, the rest left out", () => {

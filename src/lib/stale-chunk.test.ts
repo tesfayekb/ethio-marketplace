@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { reloadOnStaleChunk, STALE_CHUNK_KEY, STALE_CHUNK_WINDOW_MS } from "./stale-chunk";
+import {
+  hearLeaving,
+  reloadOnStaleChunk,
+  STALE_CHUNK_KEY,
+  STALE_CHUNK_WINDOW_MS,
+} from "./stale-chunk";
 
 /** A window stand-in: listeners, a reload counter and a storage that can refuse. */
 function fakeWindow(storage: Map<string, string> | null = new Map()) {
@@ -38,12 +43,15 @@ function fakeWindow(storage: Map<string, string> | null = new Map()) {
             },
           },
   };
-  const fire = () => {
-    const event = new Event("vite:preloadError", { cancelable: true });
-    for (const listener of listeners.get("vite:preloadError") ?? []) listener(event);
+  const dispatch = (event: Event) => {
+    for (const listener of listeners.get(event.type) ?? []) listener(event);
     return event;
   };
-  return { win, fire, reloads: () => reloads, listeners };
+  const fire = () => dispatch(new Event("vite:preloadError", { cancelable: true }));
+  /** A page event by type; `pageshow` takes `persisted` as the back-forward cache sets it. */
+  const send = (type: string, persisted = false) =>
+    dispatch(Object.assign(new Event(type), type === "pageshow" ? { persisted } : {}));
+  return { win, fire, send, reloads: () => reloads, listeners };
 }
 
 describe("reloadOnStaleChunk (INC-640)", () => {
@@ -103,6 +111,64 @@ describe("reloadOnStaleChunk (INC-640)", () => {
     net.onLine = true;
     expect(fire().defaultPrevented).toBe(false);
     expect(reloads()).toBe(0);
+  });
+
+  it("STC-3 a download the leaving page abandons never reloads it, after beforeunload or pagehide (INC-1127)", () => {
+    for (const leave of ["beforeunload", "pagehide"]) {
+      const storage = new Map<string, string>();
+      const { win, fire, send, reloads } = fakeWindow(storage);
+      reloadOnStaleChunk(win, () => 1_000);
+      send(leave);
+      expect(fire().defaultPrevented, leave).toBe(false);
+      expect(fire().defaultPrevented, leave).toBe(false);
+      expect(reloads(), leave).toBe(0);
+      expect(storage.has(STALE_CHUNK_KEY), leave).toBe(false);
+    }
+  });
+
+  it("STC-4 a leave that did not happen ends at the next press or key, and a page back from the back-forward cache is staying: a stale chunk reloads once (INC-1127)", () => {
+    for (const stay of ["pointerdown", "keydown"]) {
+      const { win, fire, send, reloads } = fakeWindow();
+      reloadOnStaleChunk(win, () => 1_000);
+      send("beforeunload");
+      send(stay);
+      expect(fire().defaultPrevented, stay).toBe(true);
+      expect(reloads(), stay).toBe(1);
+    }
+    const kept = fakeWindow();
+    reloadOnStaleChunk(kept.win, () => 1_000);
+    kept.send("pagehide");
+    kept.send("pageshow", false);
+    kept.fire();
+    expect(kept.reloads()).toBe(0);
+    kept.send("pageshow", true);
+    kept.fire();
+    expect(kept.reloads()).toBe(1);
+  });
+
+  it("STC-5 an abandoned download is not the page's first failure: the page's own first failure keeps its one reload, a second gets none (INC-640, INC-922)", () => {
+    const { win, fire, send, reloads } = fakeWindow();
+    reloadOnStaleChunk(win, () => 1_000);
+    send("beforeunload");
+    fire();
+    expect(reloads()).toBe(0);
+    send("pointerdown");
+    expect(fire().defaultPrevented).toBe(true);
+    expect(fire().defaultPrevented).toBe(false);
+    expect(reloads()).toBe(1);
+  });
+
+  it("STC-6 a leave heard before the handler was mounted (a first load left before hydration ends) still keeps the reload away; the window is heard once for its life (INC-1127)", () => {
+    const { win, fire, send, reloads, listeners } = fakeWindow();
+    hearLeaving(win);
+    send("beforeunload");
+    const off = reloadOnStaleChunk(win, () => 1_000);
+    expect(fire().defaultPrevented).toBe(false);
+    expect(reloads()).toBe(0);
+    off();
+    reloadOnStaleChunk(win, () => 1_000);
+    for (const type of ["beforeunload", "pagehide", "pageshow", "pointerdown", "keydown"])
+      expect(listeners.get(type), type).toHaveLength(1);
   });
 
   it("still reloads once per page when storage is refused", () => {

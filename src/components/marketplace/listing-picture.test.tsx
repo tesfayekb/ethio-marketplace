@@ -73,6 +73,31 @@ it("LP-11 crop fills the card with a tall seller photo; default and category pic
   expect(frame.style.height).toBe("100%");
 });
 
+it("LP-14 the image is placed over its frame (INC-1121), and a load that fails draws the placeholder in the frame", () => {
+  render(
+    <ListingPicture
+      photoUrl={PHOTO}
+      categoryUrl={null}
+      imgTestId="lp-14-img"
+      crop
+      fill
+      ribbon="Sold"
+    />,
+  );
+  const image = screen.getByTestId("lp-14-img");
+  const frame = screen.getByTestId("lp-14-img-frame");
+  expect(image.parentElement).toBe(frame);
+  expect(image).toHaveClass("absolute", "inset-0", "h-full", "w-full", "object-cover");
+  expect(image).not.toHaveClass("relative");
+  expect(frame).toHaveClass("@container", "relative", "overflow-hidden");
+
+  fireEvent.error(image);
+  expect(screen.queryByTestId("lp-14-img")).toBeNull();
+  expect(frame).toHaveAttribute("data-picture-failed", "");
+  expect(frame.querySelector("svg")).not.toBeNull();
+  expect(screen.getByTestId("listing-ribbon").parentElement).toBe(frame);
+});
+
 it("LP-12 a corner mark sits on the box itself, outside the picture's clip layer (S5)", () => {
   render(
     <ListingPicture

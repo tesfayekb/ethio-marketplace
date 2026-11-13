@@ -7,6 +7,22 @@ import { defineConfig, devices } from "@playwright/test";
  */
 const PORT = Number(process.env["E2E_PORT"] ?? 4173);
 const BASE_URL = process.env["E2E_BASE_URL"] ?? `http://127.0.0.1:${PORT}`;
+// Sandbox escape hatch ONLY: the Lovable executor image ships a system
+// chromium but no playwright-managed one (its headless shell cannot load
+// libglib). CI never sets this, so the CI browser resolution is untouched.
+// DEC-371: it is a Chromium binary, so only the Chromium projects take it.
+const CHROMIUM_LAUNCH = process.env["E2E_CHROMIUM_PATH"]
+  ? { launchOptions: { executablePath: process.env["E2E_CHROMIUM_PATH"] } }
+  : {};
+const NOT_PER_PUSH = ["**/nightly/**", "**/auth-signup.spec.ts"];
+// INC-1125 (ruling 2): the temporary backend's certificate is signed by an
+// authority made for the run, which Chromium trusts through the NSS database
+// (so the chain stays verified in every run) and WebKit cannot be made to
+// trust. WebKit's tests are about pictures and Safari's behaviour, never
+// certificates, so its two projects skip the check on that backend alone
+// (EBG-6, scripts/e2e-browser-guard.ts).
+const WEBKIT_ON_TEMPORARY_BACKEND =
+  process.env["E2E_LOCAL_BACKEND"] === "1" ? { ignoreHTTPSErrors: true } : {};
 
 export default defineConfig({
   testDir: "./e2e",
@@ -42,25 +58,27 @@ export default defineConfig({
     baseURL: BASE_URL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    // Sandbox escape hatch ONLY: the Lovable executor image ships a system
-    // chromium but no playwright-managed one (its headless shell cannot load
-    // libglib). CI never sets this, so the CI browser resolution is untouched.
-    ...(process.env["E2E_CHROMIUM_PATH"]
-      ? { launchOptions: { executablePath: process.env["E2E_CHROMIUM_PATH"] } }
-      : {}),
   },
 
   projects: [
     {
       name: "mobile-360",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 740 } },
+      use: {
+        ...devices["Desktop Chrome"],
+        ...CHROMIUM_LAUNCH,
+        viewport: { width: 360, height: 740 },
+      },
       // Nightly specs need real elapsed time; they never run per push (INC-020).
       // INC-082: email-sending specs belong to `email-serial` ONLY.
-      testIgnore: ["**/nightly/**", "**/auth-signup.spec.ts"],
+      testIgnore: NOT_PER_PUSH,
     },
     {
       name: "desktop-1280",
-      use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
+      use: {
+        ...devices["Desktop Chrome"],
+        ...CHROMIUM_LAUNCH,
+        viewport: { width: 1280, height: 800 },
+      },
       // Operator ruling (2026-08-02): auth logic/error cases run on mobile-360
       // only; the smoke spec keeps both viewports.
       testIgnore: [
@@ -80,7 +98,32 @@ export default defineConfig({
       // their own small job with --workers=1.
       name: "email-serial",
       testMatch: ["**/auth-signup.spec.ts"],
-      use: { ...devices["Desktop Chrome"], viewport: { width: 360, height: 740 } },
+      use: {
+        ...devices["Desktop Chrome"],
+        ...CHROMIUM_LAUNCH,
+        viewport: { width: 360, height: 740 },
+      },
+    },
+    // DEC-371 (the pictures turn, INC-1121) — THE PICTURE SCREENS IN WEBKIT.
+    // Safari's engine sized a picture in a table cell differently from
+    // Chromium, so the `@webkit`-tagged tests (every picture screen) run in
+    // Desktop Safari at 1280 and on an iPhone 13 at 390, in one dedicated CI
+    // lane (`webkit`); the full suite in WebKit is a roadmap line.
+    {
+      name: "webkit-1280",
+      grep: /@webkit/,
+      use: {
+        ...devices["Desktop Safari"],
+        ...WEBKIT_ON_TEMPORARY_BACKEND,
+        viewport: { width: 1280, height: 800 },
+      },
+      testIgnore: NOT_PER_PUSH,
+    },
+    {
+      name: "webkit-390",
+      grep: /@webkit/,
+      use: { ...devices["iPhone 13"], ...WEBKIT_ON_TEMPORARY_BACKEND },
+      testIgnore: NOT_PER_PUSH,
     },
   ],
 
