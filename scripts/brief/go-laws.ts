@@ -10,7 +10,8 @@
  * CF-BRIEF-11 title (a code span after "Commit", "first line:" or "commit ("), CF-BRIEF-13 allowance,
  * CF-BRIEF-15 census items, CF-BRIEF-16 a SCOPE path rule 00 forbids, CF-BRIEF-17 a ruling saved bare. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
  * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
- * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
+ * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision, CF-BRIEF-20 a cited
+ * list's reader. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
  * is not a claim (laws 2, 7, 10; law 11 keeps code spans, the titles' own form), and a sentence
  * with a negation word is not a claim (laws 2, 7). The laws guard carelessness, not evasion.
@@ -232,6 +233,57 @@ export function settingDecisionFindings(text: string, file: string, root: string
       file,
       line,
       text: `names ${name}; its newest decision is ${id}`,
+    });
+  }
+  return findings;
+}
+
+const LIST_PATH = /(?<![\w/.-])(scripts\/conformance\/[\w.-]+\.txt)(?![\w/.-])/g;
+const TEST_PATH = /(?<![\w/.-])((?:src|e2e|scripts)\/[\w$./-]*[\w$-]\.test\.tsx?)(?![\w/.-])/g;
+
+/**
+ * CF-BRIEF-20 (the CI turn, S603) — a brief that cites an allowlist or a manifest under
+ * `scripts/conformance/` also cites a test that reads it by name: a cited `*.test.ts` whose text in
+ * the tree holds the list's file name. A list the tree does not hold yet (the turn makes it) is
+ * read by a test the brief cites. One finding per list, at its first line, naming the tree's own
+ * readers when it has some.
+ */
+export function listReaderFindings(text: string, file: string, root: string): Finding[] {
+  const firstLine = new Map<string, number>();
+  const cited = new Set<string>();
+  linesOf(text).forEach((content, index) => {
+    for (const match of content.matchAll(LIST_PATH))
+      if (!firstLine.has(match[1])) firstLine.set(match[1], index + 1);
+    for (const match of content.matchAll(TEST_PATH)) cited.add(match[1]);
+  });
+  const reads = (test: string, name: string) => {
+    const full = join(root, test);
+    return existsSync(full) && !statSync(full).isDirectory()
+      ? readFileSync(full, "utf8").includes(name)
+      : false;
+  };
+  const findings: Finding[] = [];
+  for (const [list, line] of firstLine) {
+    const name = basename(list);
+    if (!existsSync(join(root, list))) {
+      if (cited.size === 0)
+        findings.push({
+          law: "CF-BRIEF-20",
+          file,
+          line,
+          text: `cites ${list}, which the tree does not hold, and no test to read it`,
+        });
+      continue;
+    }
+    if ([...cited].some((test) => reads(test, name))) continue;
+    const readers = filesUnder(root, "scripts")
+      .filter((path) => /\.test\.tsx?$/.test(path) && reads(path, name))
+      .slice(0, 2);
+    findings.push({
+      law: "CF-BRIEF-20",
+      file,
+      line,
+      text: `cites ${list}; no test it cites reads it by name${readers.length > 0 ? ` (the tree's: ${readers.join(", ")})` : ""}`,
     });
   }
   return findings;
@@ -703,7 +755,7 @@ export function textFindings(text: string, file: string): Finding[] {
 }
 
 /**
- * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10, law 18); a root the laws cannot
+ * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10, laws 18 and 20); a root the laws cannot
  * read fails each. `repository` (check-go's `--at`): where a COUNT that is a git read runs.
  */
 export function treeFindings(
@@ -723,10 +775,12 @@ export function treeFindings(
       "CF-BRIEF-9",
       "CF-BRIEF-10",
       "CF-BRIEF-18",
+      "CF-BRIEF-20",
     ].map((law) => ({ law, file, line: 1, text: problem }));
   return [
     ...newTestFindings(text, file, root),
     ...settingDecisionFindings(text, file, root),
+    ...listReaderFindings(text, file, root),
     ...citedPathFindings(text, file, root),
     ...citedLineFindings(text, file, root),
     ...freeIdFindings(text, file, root),

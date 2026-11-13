@@ -26,6 +26,7 @@ import {
   freeIdFindings,
   isTestId,
   keyOf,
+  listReaderFindings,
   newTestFindings,
   optionFindings,
   rulingFormFindings,
@@ -56,7 +57,10 @@ import { readAllowlist, report } from "./kit";
  *   CF-BRIEF-17 each ruling saved bare, its first line `RULING — …` (the pictures turn, ruling 2),
  *   CF-BRIEF-18 a setting named in a code span cites the newest decision the spec ledger records for
  *   it (the speed turn, ruling 1 item 6; it reads the ledger and the workflows, which the records
- *   turns alone change, so it runs here on the tree as well as through check-go.ts).
+ *   turns alone change, so it runs here on the tree as well as through check-go.ts), CF-BRIEF-20 a
+ *   cited allowlist or manifest under scripts/conformance/ comes with a cited test that reads it by
+ *   name (the CI turn, S603; here on the turn's own tree, where a list the turn makes has its reader,
+ *   and through check-go.ts).
  * - check-go.ts `--at <commit>` judges the tree laws on a snapshot of that commit; CF-BRIEF-14 plants
  *   a scratch repository whose working tree lost the cited line and the counted file.
  * - The TREE laws (CF-BRIEF-5 cited path, 6 cited line, 7 free id, 8 option, 9 assert, 10 count)
@@ -94,13 +98,14 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     expect(report(asReported(baseFindings(readFileSync(brief, "utf8"), brief)))).toBe("");
   });
 
-  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16 and CF-BRIEF-18 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited", () => {
+  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16, CF-BRIEF-18 and CF-BRIEF-20 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited, each cited list's reader cited", () => {
     const { brief, rulings } = inForce();
     const findings: Finding[] = [];
     for (const file of [brief, ...rulings]) {
       const text = readFileSync(file, "utf8");
       findings.push(...textFindings(text, file).filter((f) => f.law !== "CF-BRIEF-1"));
       findings.push(...settingDecisionFindings(text, file, process.cwd()));
+      findings.push(...listReaderFindings(text, file, process.cwd()));
     }
     const keys = templateKeys(readFileSync(TEMPLATE, "utf8"));
     expect(new Set(keys).size, "the template's census items are unique").toBe(keys.length);
@@ -221,6 +226,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       ].join("\n"),
     );
     write("scripts/conformance/briefs-allowlist.txt", "# planted header\n");
+    write("scripts/conformance/plant-allowlist.txt", "# planted header\n");
+    write("scripts/conformance/plant.test.ts", '// reads "plant-allowlist.txt"\n');
     write(
       "docs/governance/go-template.md",
       "<!-- CENSUS-ITEM: consumers -->\n<!-- CENSUS-ITEM: premises -->\n",
@@ -238,6 +245,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "ASSERT-ABSENT: `function beta` in src",
       "COUNT: 1 := `find src -type f | wc -l`",
       "The lanes keep `E2E_WORKERS` as DEC-230 set it.",
+      "The list `scripts/conformance/plant-allowlist.txt` is read by `scripts/conformance/plant.test.ts`.",
       "Commit `planted: task saved`.",
       "",
     ].join("\n");
@@ -257,6 +265,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "COUNT: 5 := `find src -type f | wc -l`",
       "COUNT: 1 := `ls src > out.txt`",
       "The lanes keep `E2E_WORKERS` as DEC-217 set it.",
+      "The list `scripts/conformance/plant-allowlist.txt` gains a line.",
       "Commit `planted: a dictated commit title that runs well past the seventy-two characters kept`.",
       "",
     ].join("\n");
@@ -300,6 +309,20 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(settingDecisionFindings(planted, f, root).map((x) => x.text)).toEqual([
         "names E2E_WORKERS; its newest decision is DEC-230",
       ]);
+      expect(listReaderFindings(planted, f, root).map((x) => x.text)).toEqual([
+        "cites scripts/conformance/plant-allowlist.txt; no test it cites reads it by name (the tree's: scripts/conformance/plant.test.ts)",
+      ]);
+      const fresh = "The manifest `scripts/conformance/fresh.txt` (new) is made here.";
+      expect(listReaderFindings(fresh, f, root).map((x) => x.text)).toEqual([
+        "cites scripts/conformance/fresh.txt, which the tree does not hold, and no test to read it",
+      ]);
+      expect(
+        listReaderFindings(
+          `${fresh} Its census is \`scripts/conformance/plant.test.ts\`.`,
+          f,
+          root,
+        ),
+      ).toEqual([]);
       const keys = templateKeys(readFileSync(join(root, "docs/governance/go-template.md"), "utf8"));
       expect(keys).toEqual(["consumers", "premises"]);
       expect(censusFindings(planted, f, [], keys).map((x) => x.text)).toEqual([
@@ -337,6 +360,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         expect(lawsOf(treeFindings(clean, "clean.md", bare))).toEqual([
           "CF-BRIEF-10",
           "CF-BRIEF-18",
+          "CF-BRIEF-20",
           "CF-BRIEF-3",
           "CF-BRIEF-5",
           "CF-BRIEF-6",
@@ -464,6 +488,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "CF-BRIEF-16",
         "CF-BRIEF-18",
         "CF-BRIEF-2",
+        "CF-BRIEF-20",
         "CF-BRIEF-3",
         "CF-BRIEF-5",
         "CF-BRIEF-6",

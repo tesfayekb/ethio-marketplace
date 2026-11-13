@@ -18,7 +18,7 @@
     },
     {
       "name": "JWT",
-      "pattern": "\\beyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\b",
+      "pattern": "\\beyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+(?![A-Za-z0-9_-])",
       "replacement": "[masked JWT]"
     },
     {
