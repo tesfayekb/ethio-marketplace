@@ -78,9 +78,9 @@ rail (`app-rail.tsx`) and the breadcrumbs (`breadcrumbs.tsx`) read it through
 `adminNav`, or the admin panel active, which `panelOf` makes only under `/admin`);
 `src/config/panels.ts` leaves the admin panel's `items` empty. The admin panel without the
 layer draws no rows and the trail Home › Admin. BC-16 (`scripts/check-bundle-size.mjs`)
-fails a build whose entry closure holds a module under `src/features/admin/` but the three
-of `scripts/conformance/entry-admin-allowlist.txt` (the impersonation banner, its hook and
-its service, until INC-1116).
+fails a build whose entry closure holds a module under `src/features/admin/`;
+`scripts/conformance/entry-admin-allowlist.txt` holds no line (DEC-372, the app-fixes turn:
+the impersonation banner, its hook and its service arrive on demand, for staff only).
 
 - 360px: the in-place menu lists the permitted sections; the landing still renders
   full-width tappable cards (`min-h-16`, ≥44px targets) as its index content;

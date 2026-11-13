@@ -47,6 +47,24 @@ impersonated read, so an expired session degrades to a refusal, never to data.
   `/admin/impersonation/{sessionId}`.
 - The banner is mounted in `src/components/app-shell.tsx`, so an open session
   is visible on **every** page and clears on expiry without a reload.
+- DEC-372 (INC-1116, the app-fixes turn) — the check is for staff only. The
+  shell's gate (`src/components/shell/impersonation-gate.ts`,
+  `impersonationCheckOn`) turns it on when the settled permissions hold
+  `admin_panel:access`, or when the permission read FAILED (fail toward
+  showing); it is off while the read loads, for a signed-out visitor and from
+  the moment a sign-out starts. Only then does the shell load the banner, its
+  hook and its service, on demand (`resilientLazy`; nothing shows while they
+  download), so a member's page never calls `get_active_impersonation` and no
+  admin module is in any page's first download (BC-16's allowlist is empty).
+  If the module cannot download, staff see the plain notice
+  (`src/components/shell/impersonation-notice.tsx`, `impersonation-notice`):
+  a red line that a view-as session may be active (`impersonation.mayBeActive`)
+  and End now (`impersonation-banner-end`), which loads the service on demand,
+  reads the caller's active session and ends it; no session → "No view-as
+  session is active." (`impersonation.noneActive`); a failed download says
+  `common.loadFailed`, a failed call the one refusal key `door.refused`, each
+  with Refresh page (`refreshPage`). Guards: the gate's census IMPG-1…4, the
+  notice's unit test IMPN-1…4, IMP-6 (below), BC-16.
 
 ## Scope law — what v1 deliberately is NOT
 
@@ -60,7 +78,9 @@ surface reads the target's profile and listings through the definer RPCs above.
 - In-migration proofs P0–P10 (self-target, super target, short reason,
   non-super caller, step-up, expiry, deny-all grants).
 - `e2e/admin-audit.spec.ts` — AS-1/AS-2 (gating, stats, filters, overflow law),
-  IMP-1 (open → banner → end), IMP-2 (dual-actor audit rows), IMP-3 and IMP-5
+  IMP-6 (DEC-372: a member's pages, across two route changes, make no call to
+  the active-session door and download none of the banner's module; a staff
+  page does both), IMP-1 (open → banner → end), IMP-2 (dual-actor audit rows), IMP-3 and IMP-5
   (server refusals called straight from the browser client: IMP-3 the self
   target and a super-admin target, IMP-5 a caller who is not a super admin —
   split in turn C5 so that no test leases more than two pooled accounts,

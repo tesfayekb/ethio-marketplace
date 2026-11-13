@@ -325,7 +325,7 @@ describe("the entry carries no admin code (INC-1042)", () => {
   const ALLOWLIST = "scripts/conformance/entry-admin-allowlist.txt";
   const banner = "src/features/admin/impersonation/impersonation-banner.tsx";
 
-  it("BC-16 an admin module in the entry's closure fails by its path unless allowlisted; a lazy chunk's never counts; the real allowlist is the impersonation three", () => {
+  it("BC-16 an admin module in the entry's closure fails by its path unless allowlisted; a lazy chunk's never counts; the real allowlist is empty", () => {
     const record = {
       "index-AAAAAAAA.js": ["src/components/shell/breadcrumbs.tsx", banner],
       "shared-shell-BBBBBBBB.js": ["src/lib/safe-href.ts"],
@@ -333,7 +333,7 @@ describe("the entry carries no admin code (INC-1042)", () => {
     };
     const closure = ["index-AAAAAAAA.js", "shared-shell-BBBBBBBB.js"];
     const allowed = new Set([banner]);
-    // today's shape: the layer and the sections in the admin layout's chunk, the banner allowlisted
+    // a planted shape: the layer and the sections in the admin layout's chunk, the banner allowlisted
     expect(entryAdminModules(record, closure)).toEqual([
       { module: banner, chunk: "index-AAAAAAAA.js" },
     ]);
@@ -346,19 +346,36 @@ describe("the entry carries no admin code (INC-1042)", () => {
     expect(entryAdminViolations(entryAdminModules(planted, closure), allowed)).toEqual([
       "src/features/admin/sections.ts: in index-AAAAAAAA.js, in the entry's closure — the public first download carries no admin code (BC-16, INC-1042)",
     ]);
-    // the real allowlist against the three impersonation modules the build's entry holds, each
-    // until INC-1116; a line the build no longer finds fails as stale
-    const impersonation = [
-      banner,
-      "src/features/admin/impersonation/impersonation-service.ts",
-      "src/features/admin/impersonation/use-impersonation.ts",
-    ];
-    const found = entryAdminModules({ "index-AAAAAAAA.js": impersonation }, closure).map(
-      ({ module }) => module,
+    // the real allowlist is empty (DEC-372: the impersonation banner, its hook and its service
+    // arrive on demand, for staff only), so the banner back in the entry fails by its path
+    const found = entryAdminModules(record, closure);
+    const allowances = readAllowlist(
+      ALLOWLIST,
+      found.map(({ module }) => module),
     );
-    const allowances = readAllowlist(ALLOWLIST, found);
-    expect([...allowances.keys()].sort()).toEqual(impersonation);
-    for (const allowance of allowances.values()) expect(allowance.until).toBe("INC-1116");
-    expect(() => readAllowlist(ALLOWLIST, found.slice(1))).toThrow("stale allowance");
+    expect(allowances.size).toBe(0);
+    expect(entryAdminViolations(found, new Set(allowances.keys()))).toEqual([
+      `${banner}: in index-AAAAAAAA.js, in the entry's closure — the public first download carries no admin code (BC-16, INC-1042)`,
+    ]);
+    // a planted line the build no longer finds fails as stale
+    const dir = mkdtempSync(join(tmpdir(), "bc16-"));
+    try {
+      const planted = join(dir, "entry-admin-allowlist.txt");
+      writeFileSync(planted, `# planted\n${banner} | the banner | INC-1116\n`);
+      expect(
+        readAllowlist(
+          planted,
+          found.map(({ module }) => module),
+        ).size,
+      ).toBe(1);
+      expect(() =>
+        readAllowlist(
+          planted,
+          found.slice(1).map(({ module }) => module),
+        ),
+      ).toThrow("stale allowance");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -334,4 +334,51 @@ test.describe("U3 audit & security", () => {
       expect(refused ?? "").toContain("super-admin only");
     },
   );
+
+  /**
+   * DEC-372 (INC-1116) — the active-impersonation check is for staff only: a signed-in member's
+   * pages, across two route changes, make no call to the active-session door and download none
+   * of the banner's module; a staff page makes the call and downloads it. The member's own
+   * permission read is awaited first, so the gate has had its input before the absence is read.
+   */
+  test(
+    "IMP-6 the active-session check runs for staff only, never on a member's page",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const checks: string[] = [];
+      const modules: string[] = [];
+      page.on("request", (request) => {
+        const url = request.url();
+        if (url.includes("/rest/v1/rpc/get_active_impersonation")) checks.push(url);
+        if (/impersonation-banner|use-impersonation|impersonation-service/.test(url))
+          modules.push(url);
+      });
+      const permissionsRead = (target: Page) =>
+        target.waitForResponse((response) =>
+          response.url().includes("/rest/v1/rpc/get_my_permissions"),
+        );
+
+      const member = await leaseUser();
+      await switchUser(page, member.email, member.password);
+      const memberRead = permissionsRead(page);
+      await gotoReady(page, "/terms");
+      await memberRead;
+      await page.getByTestId("footer-privacy").click();
+      await expect(page).toHaveURL(/\/privacy$/);
+      await page.getByTestId("footer-terms").click();
+      await expect(page).toHaveURL(/\/terms$/);
+      await expect(page.getByTestId("footer-privacy")).toBeVisible();
+      expect(checks, "a member's page called the active-session door").toEqual([]);
+      expect(modules, "a member's page downloaded the banner's module").toEqual([]);
+
+      await signInJobSuperAdmin(page);
+      await gotoReady(page, "/terms");
+      await expect
+        .poll(() => checks.length, { message: "a staff page never ran the active-session check" })
+        .toBeGreaterThan(0);
+      expect(modules.length, "a staff page never downloaded the banner's module").toBeGreaterThan(
+        0,
+      );
+    },
+  );
 });

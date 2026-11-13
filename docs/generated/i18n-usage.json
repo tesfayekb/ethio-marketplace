@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 713,
-  "dynamicCallSites": 445,
+  "scanned": 715,
+  "dynamicCallSites": 446,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -5330,6 +5330,12 @@
     ],
     "impersonation.listings.title": [
       "/admin/impersonation/$sessionId"
+    ],
+    "impersonation.mayBeActive": [
+      "(every page)"
+    ],
+    "impersonation.noneActive": [
+      "(every page)"
     ],
     "impersonation.open": [
       "(every page)"

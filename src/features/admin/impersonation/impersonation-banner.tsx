@@ -7,14 +7,17 @@ import { useActiveImpersonation, useCountdown, useEndImpersonation } from "./use
 /**
  * U3 / DEC-016 — THE GLOBAL IMPERSONATION BANNER.
  *
- * Mounted once by the app shell, so it is present on EVERY page while a
- * session is open. It disappears by itself when the 15-minute box closes
- * (the probe re-reads on a 30s poll and on every route change) — there is no
- * client-side clock that can keep it alive past the server's word.
+ * Mounted once by the app shell for staff only (DEC-372: the gate,
+ * src/components/shell/impersonation-gate.ts; this module, its hook and its
+ * service arrive on demand), so it is present on EVERY page while a session
+ * is open. It disappears by itself when the 15-minute box closes (the probe
+ * re-reads on a 30s poll and on every route change) — there is no
+ * client-side clock that can keep it alive past the server's word. If this
+ * module cannot load, the shell shows ImpersonationNotice in its place.
  */
-export function ImpersonationBanner({ enabled }: { enabled: boolean }) {
+export function ImpersonationBanner() {
   const { t } = useI18n();
-  const { data: session } = useActiveImpersonation(enabled);
+  const { data: session } = useActiveImpersonation(true);
   const end = useEndImpersonation();
   const countdown = useCountdown(session?.expiresAt);
 

@@ -430,6 +430,8 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "impersonation.unknownTarget": "ይህ መለያ",
   "impersonation.open": "እይታውን ክፈት",
   "impersonation.endNow": "አሁን አቁም",
+  "impersonation.mayBeActive": "የመወከል ክፍለ ጊዜ ንቁ ሊሆን ይችላል።",
+  "impersonation.noneActive": "ንቁ የመወከል ክፍለ ጊዜ የለም።",
   "impersonation.cancel": "ሰርዝ",
   "impersonation.listingsTitle": "ማስታወቂያዎች",
   // U4b — Translations console (languages, strings editor, translator scope).
