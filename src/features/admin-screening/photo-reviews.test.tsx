@@ -56,7 +56,7 @@ vi.mock("./use-photo-reviews", async (importOriginal) => ({
 }));
 
 function mount() {
-  const guard = vi.fn() as unknown as GuardFn;
+  const guard: GuardFn = async <T,>(action: () => T | Promise<T>): Promise<T> => action();
   render(
     <QueryClientProvider client={new QueryClient()}>
       <PhotoReviews mayReview guard={guard} />
