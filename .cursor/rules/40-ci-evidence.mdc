@@ -12,8 +12,8 @@ proves it. You never write "CI green" from a local run.
 
 CI runs the full suite on every pull request into `dev`: the build and guards, the unit and
 conformance tests, and every browser test in sixteen numbered lanes plus the smoke, e-mail and
-repeat lanes, each on a temporary backend built from the repository's migrations (about half an
-hour). Read it with `gh`:
+repeat lanes, each on a temporary backend built from the repository's migrations (about 12
+minutes). Read it with `gh`:
 
 ```
 gh pr checks <number> --watch --interval 60     # wait; run again if the wait times out

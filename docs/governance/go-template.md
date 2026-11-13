@@ -86,7 +86,7 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 - findings — what the census finds beyond the task, file:line.
 `docs/governance/reports/<stem>.stop-1.md`; STOP.
 STEP 2 → <n> — <the parts, in order; each part's tests; each part's commit>.
-STEP <n+1> — `bun run typecheck`; `bun run lint`; `bunx vitest run scripts --maxWorkers=2`; `bun run checks`; `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md --at <the commit STEP 0 began from>` (its output pasted).
+STEP <n+1> — `bun run typecheck`; `bun run lint`; `bunx vitest run scripts --maxWorkers=2`; `bun run checks`; the test ids the turn adds or changes, by `--grep` (DEC-374; no spec file whole unless new); `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md --at <the commit STEP 0 began from>` (its output pasted).
 STEP <n+2> — commit by part, push, `gh pr checks <number> --watch --interval 60`; green on the last code commit → the comment per rule 00. ONE push after the final checks — a stop's own push, when a stop happens, is rule 00's and is not the judged run.
 STEP <n+3> — the report, rule 60's fourteen headings; §14 Records word for word.
 

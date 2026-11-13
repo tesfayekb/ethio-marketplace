@@ -413,6 +413,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/pictures.test.ts"), "utf8")).toContain(
       "CF-PICTURE-3",
     );
+    // rules.test.ts CF-RULES-1 (the speed turn, DEC-374) is discovered by test:unit's
+    // scripts/**/*.test.ts; it reads .cursor/rules/*.mdc and AGENTS.md.
+    expect(readFileSync(join(ROOT, "scripts/conformance/rules.test.ts"), "utf8")).toContain(
+      "CF-RULES-1",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {
