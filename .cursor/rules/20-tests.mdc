@@ -17,7 +17,8 @@ must obey too.
 - J2 Global-sweep tests run in a fence language per project; real catalogue keys are read-only.
 - J3 Never edit a real reference row in ANY project (a seeded plan, category, location, language,
   user); per-axes scratch entities, deleted in a hook that survives a timeout (`afterEach`, not only
-  a body `finally`) by a destroy that throws on failure; the shard-1 setup alone reaps residue.
+  a body `finally`) by a destroy that throws on failure; lane 1 of every pull-request run and the
+  nightly's first run own the maintenance pass that reaps residue (DEC-369).
 - J4 Bulk/count assertions read per-key DB truth via the service client; summaries are asserted for
   visibility only; mismatches throw with the page/query-cache/audit dump.
 - J5 Locators via the viewport-aware twin helpers, never a bare prefix + `.first()`; fixtures via
@@ -84,19 +85,22 @@ position; `pickCity` (`e2e/helpers/posting.ts`) for the place step; `switchLangu
 
 ## Running tests
 
-- Unit: `bun run test:unit` (vitest, the whole suite) at THE CHECKS; while iterating, a touched
+- Unit: `bun run test:unit` (vitest, the whole suite) inside `bun run checks`; while iterating, a touched
   file's tests alone (`bunx vitest run <file>`), and the laws (`bunx vitest run scripts
   --maxWorkers=2`: the test ids, the censuses, the allowlists) after any change to a test, a guard,
   an allowlist or a shared mechanism.
-- Browser tests start ONLY with `bun run e2e:local -- <spec files>` or `bun run e2e:changed` (when
-  `scripts/e2e-select.ts` prints five files or fewer) — never plain `playwright test` or
-  `bun run test:e2e` (the committed `.env` points at production and the setup refuses it). Target:
+- Browser tests start ONLY with `bun run e2e:local -- <spec files> --grep "<ids>"` — never plain
+  `playwright test`, `bun run test:e2e` (the committed `.env` points at production and the setup
+  refuses it) or, before a push, `bun run e2e:changed` (it runs every changed spec whole). Target:
   ethio-staging, through `E2E_SUPABASE_URL`, `E2E_SUPABASE_PUBLISHABLE_KEY` and
   `E2E_SUPABASE_SERVICE_ROLE_KEY` in the environment (on this computer the operator may keep them in
   `~/.ethio-e2e.env`, loaded by the shell; you check only that the three names are set, never their
-  values) — never `supabase/config.toml`, never production. Both projects (`mobile-360`, `desktop-1280`), 2 workers, fake mode, 0 retries; each
-  touched spec file whole and alone; named ids by `--grep`. Paste every count line and the server
-  log's `[ssr-error]` count by path.
+  values) — never `supabase/config.toml`, never production. Before the push (DEC-374, rule 00 step
+  7): only the test ids the turn adds or changes, by `--grep`, in every project that runs them
+  (`mobile-360` and `desktop-1280`; a `@webkit` test also `webkit-1280` and `webkit-390`), 2
+  workers, fake mode, 0 retries, plus each red-first run; a spec file runs whole locally only when
+  the turn wrote it new — CI on the pull request runs every test. Paste every count line and the
+  server log's `[ssr-error]` count by path.
 - A spec file not fully green is not committed.
 - Repeats: a changed spec's repeatability is proven by CI's repeat lane (DEC-283), never by local
   `--repeat-each` runs; the operator-dispatched Flake check is for investigations only.

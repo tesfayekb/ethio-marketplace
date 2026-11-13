@@ -108,17 +108,20 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
 5. **A migration** ends the part that writes it: commit, write the MIGRATION stop report (rule 30),
    commit it, push, open the pull request as a draft, say so in the chat and stop. You never apply a
    migration anywhere.
-6. **THE CHECKS, once, on the final code tree.** `bun run typecheck` (the checks runner's own
-   typecheck step reads Lovable's harness log and prints NOT RUN here, so you run it yourself), then
-   `bun run checks` (every CI job that needs no backend or browser, read from
-   `.github/workflows/ci.yml`; the laws run first). It is long (tens of minutes); let it finish.
-   Fix every FAIL at its root in a new commit and run it again WHOLE. Name every NOT RUN with its
-   reason. Paste its fast line and its last line.
-7. **THE BROWSER CHECK.** When the E2E values are in your environment (rule 50), the spec files the
-   task changed or added — each whole, both projects (`mobile-360`, `desktop-1280`), 0 retries —
-   through `bun run e2e:local -- <files>`, plus every test id the task names (`--grep`), plus every
-   spec that exercises a screen or shared helper you changed (rule 20). When the values are not set,
-   say so; CI is then the proof.
+6. **THE CHECKS — the pre-push gate (DEC-374), once, on the final code tree.** `bun run
+   typecheck`, `bun run lint`, the touched files' unit tests and `bunx vitest run scripts
+   --maxWorkers=2`, then `bun run checks` (every CI job that needs no backend or browser, read from
+   `.github/workflows/ci.yml`, its own typecheck included; the laws run first; about eight minutes —
+   485 s on the pictures turn's final tree); let it finish. Fix every FAIL at its root in a new commit
+   and run it again WHOLE. Name every NOT RUN with its reason. Paste its fast line and its last line.
+7. **THE BROWSER CHECK — by test id (DEC-374).** When the E2E values are in your environment (rule
+   50): only the test ids the task adds or changes, by `--grep`, in every project that runs them
+   (`mobile-360` and `desktop-1280`; a `@webkit` test also `webkit-1280` and `webkit-390`), 0
+   retries, through `bun run e2e:local -- <files> --grep "<ids>"`, plus each red-first run for a
+   defect the task fixes (rule 20). No spec file runs whole locally unless the task wrote it new.
+   When the values are not set, say so. Then push at once (step 10): CI on the pull request is the
+   full proof — every test in its lane, and the repeat lane repeating the changed specs that fit
+   its budget (DEC-283) — and steps 8 and 9, and any by-id run that remains, happen while it runs.
 8. **THE SELF-REVIEW.** Open `.cursor/rules/80-review.mdc` and read your whole diff
    (`git diff <BASE>..HEAD`) against it, heading by heading, as if someone else wrote it. Every BLOCKER
    is fixed in a new commit and the review runs again; MAJOR and MINOR are fixed inside scope when the
@@ -126,9 +129,9 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
 9. **THE REPORT.** Open `.cursor/rules/60-report.mdc` and write
    `docs/governance/reports/<stem>.report.md`; commit it on its own (`<stem>: report`).
 10. **PUSH, OPEN THE PULL REQUEST, AND WAIT FOR ITS CI.** `git push -u origin cursor/<stem>` (never
-    `--force`). `gh pr create --base dev --title "<the task's title line>" --body "<the report's path
-    and its first heading>"`. Then wait for the pull request's CI with
-    `gh pr checks <number> --watch --interval 60` (about half an hour; run it again if the wait
+    `--force`), right after step 7. `gh pr create --base dev --title "<the task's title line>" --body
+    "<the report's path and its first heading>"`. Then wait for the pull request's CI with
+    `gh pr checks <number> --watch --interval 60` (about 12 minutes; run it again if the wait
     times out). Read every red as rule 40 says, fix it at its root in a new commit (with the report's
     sections brought up to date in the same commit), push, and wait again. You are done only when
     every check on the pull request is green on your last commit. Then add one comment to the pull

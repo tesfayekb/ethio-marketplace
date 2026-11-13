@@ -1,0 +1,2 @@
+# CF-LANES-1 (scripts/conformance/lanes.test.ts) — a tag whose tests run in no per-push lane: `@<tag>` | reason | until
+@global-state | the @global-state tests stay with the nightly's serial run (DEC-028): TR-30 failed in the serial lane on the speed turn's first run (run 43457682073), for a cause in the pseudo generator, not in its fixture (ruling 1 item 5) | INC-1135

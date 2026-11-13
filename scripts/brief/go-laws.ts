@@ -10,7 +10,7 @@
  * CF-BRIEF-11 title (a code span after "Commit", "first line:" or "commit ("), CF-BRIEF-13 allowance,
  * CF-BRIEF-15 census items, CF-BRIEF-16 a SCOPE path rule 00 forbids, CF-BRIEF-17 a ruling saved bare. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
  * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
- * CF-BRIEF-9 assert, CF-BRIEF-10 count. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
+ * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
  * is not a claim (laws 2, 7, 10; law 11 keeps code spans, the titles' own form), and a sentence
  * with a negation word is not a claim (laws 2, 7). The laws guard carelessness, not evasion.
@@ -175,6 +175,66 @@ export function rulingFormFindings(text: string, file: string): Finding[] {
           text: `a ruling saved with a wrapper: its first line is \`${first.slice(0, 40)}\`, not "RULING — "`,
         },
       ];
+}
+
+const CODE_SPAN = /`[^`\n]*`/g;
+const SETTING = /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/g;
+const LEDGER = "docs/spec/spec-ledger.md";
+const LEDGER_ENTRY = /^- (DEC-(\d+))\b/;
+const WORKFLOWS = ".github/workflows";
+const PLAYWRIGHT_CONFIG = "playwright.config.ts";
+
+/** Whether `name` is a key of a workflow (a YAML key) or of playwright.config.ts (an env read). */
+function isSettingKey(name: string, workflows: string[], config: string): boolean {
+  const yamlKey = flaggedPattern("m")`^\\s*(?:-\\s*)?${name}\\s*:`;
+  const envRead = pattern`process\\.env(?:\\.${name}\\b|\\[\\s*["']${name}["']\\s*\\])`;
+  return workflows.some((text) => yamlKey.test(text)) || envRead.test(config);
+}
+
+/** The newest decision (highest id) whose spec-ledger entry names `name`, or null. */
+function newestDecision(name: string, entries: { id: string; n: number; text: string }[]) {
+  const word = pattern`(?<![\\w])${name}(?![\\w])`;
+  const naming = entries.filter((entry) => word.test(entry.text));
+  return naming.length === 0 ? null : naming.reduce((a, b) => (b.n > a.n ? b : a)).id;
+}
+
+/**
+ * CF-BRIEF-18 (the speed turn, ruling 1 item 6) — a brief that names, in a code span, a setting that
+ * is a key in `.github/workflows/` or `playwright.config.ts` (an upper-case name with an underscore)
+ * cites the NEWEST decision whose `docs/spec/spec-ledger.md` entry (a line `- DEC-<n> …`) names it.
+ * One finding per setting, at its first line.
+ */
+export function settingDecisionFindings(text: string, file: string, root: string): Finding[] {
+  const ledger = join(root, LEDGER);
+  if (!existsSync(ledger)) return [];
+  const entries = linesOf(readFileSync(ledger, "utf8")).flatMap((line) => {
+    const head = LEDGER_ENTRY.exec(line);
+    return head === null ? [] : [{ id: head[1], n: Number(head[2]), text: line }];
+  });
+  const workflows = filesUnder(root, WORKFLOWS)
+    .filter((path) => /\.ya?ml$/.test(path))
+    .map((path) => readFileSync(join(root, path), "utf8"));
+  const configPath = join(root, PLAYWRIGHT_CONFIG);
+  const config = existsSync(configPath) ? readFileSync(configPath, "utf8") : "";
+  const firstLine = new Map<string, number>();
+  linesOf(text).forEach((content, index) => {
+    for (const span of content.match(CODE_SPAN) ?? [])
+      for (const name of span.match(SETTING) ?? [])
+        if (!firstLine.has(name)) firstLine.set(name, index + 1);
+  });
+  const findings: Finding[] = [];
+  for (const [name, line] of firstLine) {
+    if (!isSettingKey(name, workflows, config)) continue;
+    const id = newestDecision(name, entries);
+    if (id === null || pattern`(?<![\\w-])${id}(?!\\d)`.test(text)) continue;
+    findings.push({
+      law: "CF-BRIEF-18",
+      file,
+      line,
+      text: `names ${name}; its newest decision is ${id}`,
+    });
+  }
+  return findings;
 }
 
 /**
@@ -643,7 +703,7 @@ export function textFindings(text: string, file: string): Finding[] {
 }
 
 /**
- * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10); a root the laws cannot
+ * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10, law 18); a root the laws cannot
  * read fails each. `repository` (check-go's `--at`): where a COUNT that is a git read runs.
  */
 export function treeFindings(
@@ -662,9 +722,11 @@ export function treeFindings(
       "CF-BRIEF-8",
       "CF-BRIEF-9",
       "CF-BRIEF-10",
+      "CF-BRIEF-18",
     ].map((law) => ({ law, file, line: 1, text: problem }));
   return [
     ...newTestFindings(text, file, root),
+    ...settingDecisionFindings(text, file, root),
     ...citedPathFindings(text, file, root),
     ...citedLineFindings(text, file, root),
     ...freeIdFindings(text, file, root),

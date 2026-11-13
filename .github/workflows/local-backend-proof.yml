@@ -174,6 +174,8 @@ jobs:
       E2E_LOCAL_BACKEND: "1"
       E2E_SHARD: ${{ matrix.lane == 'smoke' && 'localproof' || format('local-{0}', matrix.lane) }}
       PROOF_LANE: ${{ matrix.lane }}
+      # DEC-376's count restarted: two workers shared a backend on the speed turn's first run
+      # (ATR-1 read a level rank MON-16's scratch level moved), so every lane runs one. CF-LANES-3.
       E2E_WORKERS: "1"
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
@@ -236,9 +238,12 @@ jobs:
         if: matrix.lane == 'repeat'
         timeout-minutes: 5
         run: |
-          REPEAT_BUDGET_SECONDS=720
-          REPEAT_SECONDS_PER_TEST=4.7
           set -euo pipefail
+          # DEC-375 (b): the budget is the slowest planned lane's seconds at one worker, so this job
+          # ends within that lane's (scripts/ci/lane-plan.ts, the same plan every lane computes).
+          bunx playwright test --list --reporter=json --project=mobile-360 --project=desktop-1280 > "$RUNNER_TEMP/chromium-list.json"
+          REPEAT_BUDGET_SECONDS=$(bun scripts/ci/lane-plan.ts --list "$RUNNER_TEMP/chromium-list.json" --repeat-budget)
+          REPEAT_SECONDS_PER_TEST=4.7
           # INC-967: "<rank> <spec>" lines — rank 1 the specs this push changed, rank 2 the importers of a changed helper.
           ranked=$(bun run scripts/e2e-select.ts --repeat --ranks)
           specs=$(printf '%s\n' "$ranked" | awk 'NF { print $2 }')
@@ -785,7 +790,9 @@ jobs:
           set +e
           set -o pipefail
           if [ "$PROOF_LANE" = smoke ]; then
-            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts > "local-backend-lane-$PROOF_LANE.log" 2>&1
+            # DEC-375 (b): the serial lane runs only what no other lane runs, at one worker; the
+            # @global-state tests stay with the nightly while INC-1135 is open (TR-30, the first run).
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "@a11y" --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
           elif [ "$PROOF_LANE" = repeat ]; then
             # shellcheck disable=SC2086
             bunx playwright test --project=mobile-360 --project=desktop-1280 ${REPEAT_WEBKIT_PROJECTS:-} --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS > "local-backend-lane-$PROOF_LANE.log" 2>&1
@@ -795,7 +802,15 @@ jobs:
           elif [ "$PROOF_LANE" = email ]; then
             E2E_EMAIL_SINK=1 bunx playwright test --project=email-serial --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
           else
-            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard="$PROOF_LANE/16" > "local-backend-lane-$PROOF_LANE.log" 2>&1
+            # DEC-375 (b): the lane's spec files by measured time (scripts/ci/lane-plan.ts, CF-LANES-1 → 3).
+            bunx playwright test --list --reporter=json --project=mobile-360 --project=desktop-1280 > "$RUNNER_TEMP/chromium-list.json"
+            if plan=$(bun scripts/ci/lane-plan.ts --list "$RUNNER_TEMP/chromium-list.json" --lane "$PROOF_LANE" --out "$RUNNER_TEMP/lane-files.txt"); then
+              { echo "PLAN_LINE=$(printf '%s\n' "$plan" | sed -n 1p)"; echo "PLAN_SUMMARY=$(printf '%s\n' "$plan" | sed -n 2p)"; } >> "$GITHUB_ENV"
+              bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --test-list "$RUNNER_TEMP/lane-files.txt" > "local-backend-lane-$PROOF_LANE.log" 2>&1
+            else
+              echo "::error::lane-plan: lane $PROOF_LANE has no plan" | tee "local-backend-lane-$PROOF_LANE.log"
+              false
+            fi
           fi
           result=$?
           if [ "$PROOF_LANE" = repeat ] && [ "$result" -ne 0 ]; then
@@ -855,6 +870,8 @@ jobs:
           lines = ['- Lane: ' + lane, '# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: ' + env['SUPABASE_CLI_VERSION'], '- Seconds — job: ' + env.get('JOB_SECONDS', 'not run')]
           for label, key in [('checkout', 'CHECKOUT_SECONDS'), ('install', 'INSTALL_SECONDS'), ('CLI install', 'CLI_SECONDS'), ('working copy', 'PREPARE_SECONDS'), ('certificate', 'CERT_SECONDS'), ('start (migrations included)', 'START_SECONDS'), ('build', 'BUILD_SECONDS'), ('browser install', 'BROWSER_SECONDS'), ('tests', 'TEST_SECONDS')]:
               lines.append('- Seconds — ' + label + ': ' + env.get(key, 'not run'))
+          # DEC-375 (b): a numbered lane's planned seconds and the plan's line, for the summary's plan line.
+          lines += [env[key] for key in ('PLAN_LINE', 'PLAN_SUMMARY') if env.get(key)]
           lines.append('- Database session samples during the start (INC-944): ' + env.get('START_SAMPLES', 'not run'))
           lines.append('- Backend images (DEC-309): ' + env.get('IMAGES_SOURCE', 'not loaded') + ' — ' + (env.get('IMAGES_LIST', '').strip() or 'none'))
           ok = env.get('MIGRATIONS_OK') == '1'
@@ -1153,6 +1170,9 @@ jobs:
               if heading in fragment:
                   details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
           lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the twenty lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Repeat in WebKit', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
+          planned = [lane + ' ' + re.sub(r'.* (\d+) s planned.*', r'\1', field(fragments.get(lane, []), '- Plan (DEC-375 b): ', '?')) + '/' + field(fragments.get(lane, []), '- Seconds — tests: ', '?') for lane in map(str, range(1, 17))]
+          plan_line = next((field(fragments[lane], '- Lane plan (DEC-375 b): ', '') for lane in map(str, range(1, 17)) if lane in fragments and field(fragments[lane], '- Lane plan (DEC-375 b): ', '')), 'no evidence')
+          lines.append('- Lane plan (DEC-375 b): ' + plan_line + '; planned/test seconds: ' + ', '.join(planned))
           lines += ['- Teardown:', *['  - ' + lane + ': ' + field(fragments.get(lane, []), '- Teardown: ', 'no evidence') for lane in lanes]]
           smoke = fragments.get('smoke', [])
           for heading in ('- Working copy:', '- Parity:', '- Status:'):

@@ -1,32 +1,43 @@
 /**
- * DEC-365 (housekeeping turn 3) — A PUSH'S LANES BY WHAT IT CHANGED. A push whose every changed file
- * is a record (docs, the roadmap, the rules, the agent file) runs no browser lane and no bundle
- * budget when the code tree it stands on was tested green. ci.yml's first job `scope` runs this file;
- * `e2e-lanes`, `bundle-budget`, the E2E verdict and `promote` read its two outputs, and the status
- * reporter reads its `DEC-365 lanes:` log line.
+ * DEC-375 (a), the speed turn — A PROVEN CODE TREE IS NOT PROVEN AGAIN (DEC-365's first-parent walk
+ * retired into this rule). A push's code tree is its commit's tree with every record (docs, the
+ * roadmap, the rules, the agent file) set aside; `codeTreeId` names it. ci.yml's first job `scope`
+ * runs this file: when the lanes RUN it uploads the artifact `code-tree-<id>` (the commit, the event,
+ * the ref), and before that it looks its own id up. `e2e-lanes`, `bundle-budget`, the E2E verdict
+ * and `promote` read its outputs (`docs_only` keeps its name: "the code tree is proven"), and the
+ * status reporter reads its `DEC-365 lanes:` log line.
  *
- * The decision (ruling 1, Q9/Q10): the push's base is `before` (the push's, or the pull request's on
- * `synchronize`; anything else is unknown → the lanes run). From `before`, at most WALK_BOUND commits
- * along the first parents (`before` itself first) are read from the Actions API, each under
- * scripts/ci/with-deadline.sh, to the newest whose own CI run on this ref concluded success with its
- * lanes run and green (a lane job `success`, not a skipped lanes call) and the E2E verdict `success`.
- * The push is docs-only only when every path of `git diff <that commit> <sha>` is a record. A failed
- * read, a missing commit or a walk past the bound is not docs-only: the lanes run.
+ * The lookup (ruling 1, Q2): one read of `actions/artifacts?name=code-tree-<id>` under
+ * scripts/ci/with-deadline.sh; its runs newest first, at most MAX_CANDIDATES, never this run. A run
+ * counts only when it is this repository's (not a fork's), its workflow is ci.yml, and its lanes ran
+ * green (`lanesGreen`: the run succeeded, a lane job succeeded, the verdict succeeded). The first
+ * that counts is reused. A failed read, a shape the parser does not know, or no run that counts:
+ * the lanes run.
  */
 import { spawnSync } from "node:child_process";
-import { appendFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
-/** How many commits the walk reads, `before` included. */
-export const WALK_BOUND = 10;
+/** How many indexed runs the lookup reads, newest first. */
+export const MAX_CANDIDATES = 5;
+/** The workflow whose runs prove a tree. */
+export const CI_WORKFLOW = ".github/workflows/ci.yml";
+/** The index artifact's name before the id. */
+export const INDEX_PREFIX = "code-tree-";
+/** The stable start of the skipped line; the status reporter and the failure reporter match it. */
+export const SKIPPED_PREFIX = "skipped — ";
 /** A lane job's name in the Actions API (the reusable workflow's jobs, `E2E lanes / Lane 4 …`). */
 export const LANE_JOB = "E2E lanes / Lane ";
 /** The merged verdict's job name (ci.yml `e2e`). */
 export const VERDICT_JOB = "E2E (Playwright, ethio-staging)";
 /** The `--jq` filters the API reads use; the fixtures under scripts/fixtures/docs-only/ are their output. */
-export const RUNS_JQ = "[.workflow_runs[] | {id, conclusion}]";
+export const ARTIFACTS_JQ = "[.artifacts[] | {id, expired, workflow_run}]";
+export const RUN_JQ = "{id, status, conclusion, path, event, head_branch, head_sha}";
 export const JOBS_JQ = "[.jobs[] | {name, conclusion}]";
 
 const SHA = /^[0-9a-f]{40}$/;
+const TREE_ID = /^[0-9a-f]{64}$/;
 
 /** A record: `docs/**` but never `docs/generated/**`, `.cursor/**`, or a `*.md` at the root. */
 export function isRecord(path: string): boolean {
@@ -35,7 +46,44 @@ export function isRecord(path: string): boolean {
   return !path.includes("/") && path.endsWith(".md");
 }
 
-export type RunView = { id: number; conclusion: string | null };
+/**
+ * The code tree's id from `git ls-tree -r -z <commit>`: the sha256 of its entries (mode, type,
+ * object, path) with every record set aside, one per line in git's order.
+ */
+export function codeTreeId(lsTree: string): string {
+  const code = lsTree
+    .split("\0")
+    .filter((entry) => entry !== "")
+    .filter((entry) => !isRecord(entry.slice(entry.indexOf("\t") + 1)));
+  return createHash("sha256").update(code.join("\n")).digest("hex");
+}
+
+/** The id of a commit's (or a tree's) code tree, or null when git does not hold it. */
+export function readCodeTreeId(treeish: string, cwd = process.cwd()): string | null {
+  const read = spawnSync("git", ["ls-tree", "-r", "-z", treeish], {
+    cwd,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+  return read.status === 0 ? codeTreeId(read.stdout) : null;
+}
+
+/** An indexed run, as the artifacts read names it. */
+export type Candidate = {
+  runId: number;
+  expired: boolean;
+  repositoryId: number;
+  headRepositoryId: number;
+};
+export type RunView = {
+  id: number;
+  status: string;
+  conclusion: string | null;
+  path: string;
+  event: string;
+  headBranch: string;
+  headSha: string;
+};
 export type JobView = { name: string; conclusion: string | null };
 
 function isRecordObject(value: unknown): value is Record<string, unknown> {
@@ -47,34 +95,60 @@ function conclusionOf(value: unknown): string | null | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-function parseList(text: string): unknown[] | null {
+function parseJson(text: string): unknown {
   try {
     const value: unknown = JSON.parse(text);
-    return Array.isArray(value) ? value : null;
+    return value;
   } catch {
-    return null;
+    return undefined;
   }
 }
 
-/** The runs read by RUNS_JQ, newest first, or null when the answer has another shape. */
-export function parseRuns(text: string): RunView[] | null {
-  const list = parseList(text);
-  if (list === null) return null;
-  const runs: RunView[] = [];
+/** The indexed runs read by ARTIFACTS_JQ, or null when the answer has another shape. */
+export function parseCandidates(text: string): Candidate[] | null {
+  const list = parseJson(text);
+  if (!Array.isArray(list)) return null;
+  const candidates: Candidate[] = [];
   for (const item of list) {
     if (!isRecordObject(item)) return null;
-    const { id } = item;
-    const conclusion = conclusionOf(item["conclusion"]);
-    if (typeof id !== "number" || conclusion === undefined) return null;
-    runs.push({ id, conclusion });
+    const { expired, workflow_run: run } = item;
+    if (typeof expired !== "boolean" || !isRecordObject(run)) return null;
+    const { id, repository_id: repositoryId, head_repository_id: headRepositoryId } = run;
+    if (
+      typeof id !== "number" ||
+      typeof repositoryId !== "number" ||
+      typeof headRepositoryId !== "number"
+    )
+      return null;
+    candidates.push({ runId: id, expired, repositoryId, headRepositoryId });
   }
-  return runs;
+  return candidates;
+}
+
+/** The run read by RUN_JQ, or null when the answer has another shape. */
+export function parseRun(text: string): RunView | null {
+  const item = parseJson(text);
+  if (!isRecordObject(item)) return null;
+  const { id, status, path, event, head_branch: headBranch, head_sha: headSha } = item;
+  const conclusion = conclusionOf(item["conclusion"]);
+  if (
+    typeof id !== "number" ||
+    typeof status !== "string" ||
+    conclusion === undefined ||
+    typeof path !== "string" ||
+    typeof event !== "string" ||
+    typeof headBranch !== "string" ||
+    typeof headSha !== "string" ||
+    !SHA.test(headSha)
+  )
+    return null;
+  return { id, status, conclusion, path, event, headBranch, headSha };
 }
 
 /** The jobs read by JOBS_JQ, or null when the answer has another shape. */
 export function parseJobs(text: string): JobView[] | null {
-  const list = parseList(text);
-  if (list === null) return null;
+  const list = parseJson(text);
+  if (!Array.isArray(list)) return null;
   const jobs: JobView[] = [];
   for (const item of list) {
     if (!isRecordObject(item)) return null;
@@ -87,7 +161,7 @@ export function parseJobs(text: string): JobView[] | null {
 }
 
 /** A run whose lanes ran green: the run succeeded, a lane job succeeded, the verdict succeeded. */
-export function lanesGreen(run: RunView, jobs: JobView[]): boolean {
+export function lanesGreen(run: { conclusion: string | null }, jobs: JobView[]): boolean {
   return (
     run.conclusion === "success" &&
     jobs.some((job) => job.name.startsWith(LANE_JOB) && job.conclusion === "success") &&
@@ -95,69 +169,62 @@ export function lanesGreen(run: RunView, jobs: JobView[]): boolean {
   );
 }
 
-/** What the decision reads from git and the Actions API. */
+/** What the decision reads from the Actions API; "unreadable" when a read or its shape failed. */
 export type Probe = {
-  /** The commit's first parent, or null when it has none or git does not hold it. */
-  parent: (commit: string) => string | null;
-  /** The id of the commit's newest completed run on this ref when its lanes ran green; null when
-   * they did not (or it has no run); "unreadable" when the API read failed. */
-  greenRun: (commit: string) => number | null | "unreadable";
-  /** `git diff --name-only <base> <sha>`, or null when git fails. */
-  changed: (base: string, sha: string) => string[] | null;
+  candidates: (treeId: string) => Candidate[] | "unreadable";
+  run: (runId: number) => RunView | "unreadable";
+  jobs: (runId: number) => JobView[] | "unreadable";
 };
 
 export type Decision =
-  | { docsOnly: true; base: string; runId: number; lanes: string }
+  | { docsOnly: true; runId: number; lanes: string }
   | { docsOnly: false; lanes: string };
 
-/** A path as the evidence line may print it: one line, no Markdown, at most 120 characters. */
-function shown(path: string): string {
-  return path.replace(/[^A-Za-z0-9._/@+-]/g, "?").slice(0, 120);
+/** A ref as the evidence line may print it: one line, no Markdown, at most 120 characters. */
+function shown(ref: string): string {
+  return ref.replace(/[^A-Za-z0-9._/@+-]/g, "?").slice(0, 120);
 }
 
 function ran(reason: string): Decision {
   return { docsOnly: false, lanes: `ran — ${reason}` };
 }
 
-export function decide(
-  before: string | null,
-  sha: string,
-  probe: Probe,
-  bound = WALK_BOUND,
-): Decision {
-  if (before === null || !SHA.test(before) || /^0+$/.test(before))
-    return ran("not docs-only: the push's base is unknown");
-  let commit: string | null = before;
-  let base: { commit: string; runId: number } | null = null;
-  for (let hop = 0; hop < bound && commit !== null; hop += 1) {
-    const run = probe.greenRun(commit);
-    if (run === "unreadable")
-      return ran(`not docs-only: the Actions API read for ${commit} failed (push base ${before})`);
-    if (run !== null) {
-      base = { commit, runId: run };
-      break;
-    }
-    commit = probe.parent(commit);
+/** The skipped line, read by the status reporter (`skipped — `) and the failure reporter. */
+export function skippedLine(run: RunView): string {
+  return `${SKIPPED_PREFIX}the code tree was proven by run ${String(run.id)} (${shown(run.event)}, ${shown(run.headBranch)}, head ${run.headSha.slice(0, 7)})`;
+}
+
+export function decide(treeId: string | null, selfRunId: number, probe: Probe): Decision {
+  if (treeId === null || !TREE_ID.test(treeId))
+    return ran("no proven code tree: this commit's tree could not be read");
+  const short = treeId.slice(0, 12);
+  const indexed = probe.candidates(treeId);
+  if (indexed === "unreadable")
+    return ran(`no proven code tree: the Actions API read of ${INDEX_PREFIX}${short}… failed`);
+  const runIds = [
+    ...new Set(
+      indexed
+        .filter((candidate) => !candidate.expired && candidate.runId !== selfRunId)
+        .filter((candidate) => candidate.headRepositoryId === candidate.repositoryId)
+        .map((candidate) => candidate.runId),
+    ),
+  ]
+    .sort((a, b) => b - a)
+    .slice(0, MAX_CANDIDATES);
+  for (const runId of runIds) {
+    const view = probe.run(runId);
+    if (view === "unreadable")
+      return ran(`no proven code tree: the Actions API read of run ${String(runId)} failed`);
+    if (view.path !== CI_WORKFLOW || view.status !== "completed" || view.conclusion !== "success")
+      continue;
+    const jobs = probe.jobs(runId);
+    if (jobs === "unreadable")
+      return ran(`no proven code tree: the Actions API read of run ${String(runId)}'s jobs failed`);
+    if (lanesGreen(view, jobs)) return { docsOnly: true, runId, lanes: skippedLine(view) };
   }
-  if (base === null)
-    return ran(
-      `not docs-only: no commit within ${String(bound)} first-parent commits of ${before} ran its lanes green`,
-    );
-  const paths = probe.changed(base.commit, sha);
-  if (paths === null)
-    return ran(`not docs-only: git diff ${base.commit} ${sha} failed (push base ${before})`);
-  const code = paths.filter((path) => !isRecord(path));
-  const first = code[0];
-  if (first !== undefined)
-    return ran(
-      `not docs-only: ${shown(first)} is not a record (${String(code.length)} of ${String(paths.length)} paths; diff base ${base.commit}, push base ${before})`,
-    );
-  return {
-    docsOnly: true,
-    base: base.commit,
-    runId: base.runId,
-    lanes: `skipped — docs-only push; the code tree equals ${base.commit}, whose lanes were green in run ${String(base.runId)}`,
-  };
+  return ran(
+    `no proven code tree: no green ci.yml run of this repository holds ${INDEX_PREFIX}${short}… (${String(runIds.length)} read)`,
+  );
 }
 
 function run(command: string, args: string[]): { ok: boolean; out: string } {
@@ -182,51 +249,67 @@ function api(path: string, jq: string): string | null {
   return read.ok ? read.out : null;
 }
 
-function liveProbe(repo: string, ref: string): Probe {
+function parsed<T>(text: string | null, parse: (text: string) => T | null): T | "unreadable" {
+  const value = text === null ? null : parse(text);
+  return value === null ? "unreadable" : value;
+}
+
+function liveProbe(repo: string): Probe {
   return {
-    parent: (commit) => {
-      const read = run("git", ["rev-parse", "--verify", "--quiet", `${commit}^1`]);
-      const parent = read.out.trim();
-      return read.ok && SHA.test(parent) ? parent : null;
-    },
-    greenRun: (commit) => {
-      const query = `head_sha=${commit}&branch=${encodeURIComponent(ref)}&status=completed&per_page=20`;
-      const runsText = api(`repos/${repo}/actions/workflows/ci.yml/runs?${query}`, RUNS_JQ);
-      const runs = runsText === null ? null : parseRuns(runsText);
-      if (runs === null) return "unreadable";
-      const newest = runs[0];
-      if (newest === undefined || newest.conclusion !== "success") return null;
-      const jobsText = api(
-        `repos/${repo}/actions/runs/${String(newest.id)}/jobs?per_page=100`,
-        JOBS_JQ,
-      );
-      const jobs = jobsText === null ? null : parseJobs(jobsText);
-      if (jobs === null) return "unreadable";
-      return lanesGreen(newest, jobs) ? newest.id : null;
-    },
-    changed: (base, sha) => {
-      const read = run("git", ["diff", "--name-only", base, sha]);
-      return read.ok ? read.out.split("\n").filter((line) => line !== "") : null;
-    },
+    candidates: (treeId) =>
+      parsed(
+        api(
+          `repos/${repo}/actions/artifacts?name=${INDEX_PREFIX}${treeId}&per_page=100`,
+          ARTIFACTS_JQ,
+        ),
+        parseCandidates,
+      ),
+    run: (runId) => parsed(api(`repos/${repo}/actions/runs/${String(runId)}`, RUN_JQ), parseRun),
+    jobs: (runId) =>
+      parsed(
+        api(`repos/${repo}/actions/runs/${String(runId)}/jobs?per_page=100`, JOBS_JQ),
+        parseJobs,
+      ),
   };
 }
 
 if (import.meta.main) {
-  const before = process.env["DOCS_ONLY_BEFORE"] || null;
   const sha = process.env["GITHUB_SHA"] ?? "";
   const ref = process.env["DOCS_ONLY_REF"] ?? "";
   const repo = process.env["GITHUB_REPOSITORY"] ?? "";
+  const event = process.env["GITHUB_EVENT_NAME"] ?? "";
+  const selfRunId = Number(process.env["GITHUB_RUN_ID"] ?? "");
+  const temp = process.env["RUNNER_TEMP"] ?? "";
   const output = process.env["GITHUB_OUTPUT"];
-  if (!SHA.test(sha) || ref === "" || repo === "" || !output) {
+  if (
+    !SHA.test(sha) ||
+    ref === "" ||
+    repo === "" ||
+    event === "" ||
+    !Number.isInteger(selfRunId) ||
+    temp === "" ||
+    !output
+  ) {
     console.error(
-      "docs-only: GITHUB_SHA, DOCS_ONLY_REF, GITHUB_REPOSITORY and GITHUB_OUTPUT are required",
+      "docs-only: GITHUB_SHA, DOCS_ONLY_REF, GITHUB_REPOSITORY, GITHUB_EVENT_NAME, GITHUB_RUN_ID, RUNNER_TEMP and GITHUB_OUTPUT are required",
     );
     process.exit(2);
   }
-  const decision = decide(before, sha, liveProbe(repo, ref));
+  const treeId = readCodeTreeId(sha);
+  const decision = decide(treeId, selfRunId, liveProbe(repo));
   console.log(`DEC-365 lanes: ${decision.lanes}`);
+  // The index carries no claim about the run's results: the lookup asks the API how the run ended.
+  const indexed = !decision.docsOnly && treeId !== null ? treeId : "";
+  if (indexed !== "") {
+    const dir = join(temp, "code-tree");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, "code-tree.txt"),
+      `commit ${sha}\nevent ${event}\nref ${ref}\ntree ${indexed}\n`,
+    );
+  }
   appendFileSync(
     output,
-    `docs_only=${decision.docsOnly ? "true" : "false"}\nlanes=${decision.lanes}\n`,
+    `docs_only=${decision.docsOnly ? "true" : "false"}\nlanes=${decision.lanes}\ntree=${indexed}\n`,
   );
 }

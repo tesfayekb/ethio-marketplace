@@ -33,6 +33,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { errorText } from "../src/lib/error-text";
+import { SKIPPED_PREFIX } from "./ci/docs-only";
 import { authored } from "./lib/pattern";
 
 /**
@@ -1571,14 +1572,26 @@ export function repeatLines(meta: ReportMeta): string[] {
 }
 
 /**
- * DEC-365 — a docs-only push ran no lane: the evidence names the commit whose lanes were green and
- * reads no sources, so a reader never mistakes the empty run for nineteen dead lanes.
+ * The reason the scope's skipped line gives (`skipped — <reason> (…)`), or null when the line has
+ * another form.
+ */
+export function lanesSkippedReason(lanes: string | undefined): string | null {
+  const line = (lanes ?? "").trim();
+  if (!line.startsWith(SKIPPED_PREFIX)) return null;
+  const reason = line.slice(SKIPPED_PREFIX.length).split(" (")[0]?.trim() ?? "";
+  return reason === "" ? null : reason;
+}
+
+/**
+ * DEC-375 (a) — a push whose code tree was proven ran no lane: the evidence names the run that
+ * proved it and reads no sources, so a reader never mistakes the empty run for twenty dead lanes.
  */
 export function renderLanesSkipped(meta: ReportMeta): string {
+  const reason = lanesSkippedReason(meta.lanes) ?? "the scope job's line names no reason";
   return [
     "# Last E2E failure (auto-generated — do not edit by hand)",
     "",
-    `last E2E run ${meta.runId} ran no lanes (docs-only push, DEC-365)`,
+    `last E2E run ${meta.runId} ran no lanes — ${reason}`,
     "",
     `- Run: ${meta.runUrl || meta.runId}`,
     `- Commit: \`${meta.sha}\``,
@@ -2411,12 +2424,13 @@ async function main() {
       }
     }
     // DEC-365 — the scope's line heads both forms when the run carried one, and only then; a
-    // docs-only push's form names the commit whose lanes were green and quotes no source.
+    // proven tree's form names the run that proved it and quotes no source (DEC-375 a).
     {
       const plain = { runId: "self-test", runUrl: "", sha: "self-test" };
       const skippedLine =
-        "skipped — docs-only push; the code tree equals abc, whose lanes were green in run 7";
-      const ranLine = "ran — not docs-only: src/a.ts is not a record (1 of 1 paths)";
+        "skipped — the code tree was proven by run 7 (pull_request, cursor/a, head abcdef1)";
+      const ranLine =
+        "ran — no proven code tree: no green ci.yml run of this repository holds code-tree-abc… (0 read)";
       const skipped = renderLanesSkipped({ ...plain, lanes: skippedLine });
       const lanesChecks: Array<[string, boolean]> = [
         ["no line without a decision", !renderGreen(plain).includes("- Lanes:")],
@@ -2429,7 +2443,10 @@ async function main() {
           renderSources([], { ...plain, lanes: ranLine }).includes(`- Lanes: ${ranLine}`),
         ],
         ["the skipped form", skipped.includes(`- Lanes: ${skippedLine}`)],
-        ["the skipped form's headline", skipped.includes("ran no lanes (docs-only push, DEC-365)")],
+        [
+          "the skipped form's headline",
+          skipped.includes("ran no lanes — the code tree was proven by run 7\n"),
+        ],
         ["no source in the skipped form", !skipped.includes("Sources without results")],
       ];
       const lanesFailed = lanesChecks.filter(([, ok]) => !ok).map(([name]) => name);
@@ -3275,7 +3292,7 @@ async function main() {
   // the flake ledger, and writes neither the evidence file nor the verdict.
   const flakeOnly = process.env["E2E_FLAKE_ONLY"] === "1";
 
-  // DEC-365 — a docs-only push skipped the lanes: no source exists, no ledger line is due.
+  // DEC-375 (a) — a proven code tree skipped the lanes: no source exists, no ledger line is due.
   if (process.env["E2E_DOCS_ONLY"] === "1") {
     if (!flakeOnly) {
       writeText(OUT, renderLanesSkipped(meta));

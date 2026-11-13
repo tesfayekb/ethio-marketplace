@@ -345,6 +345,7 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(briefLaws).toContain("CF-BRIEF-4");
     expect(briefLaws).toContain("CF-BRIEF-14");
     expect(briefLaws).toContain("CF-BRIEF-15");
+    expect(briefLaws).toContain("CF-BRIEF-18");
     expect(briefLaws).toContain('"scripts/brief/check-go.ts"');
     expect(briefLaws).toContain('from "../brief/go-laws"');
     // e2e-helpers.test.ts CF-HELPERS-1…3 (housekeeping turn 2, INC-1065), CF-HELPERS-5…7
@@ -387,10 +388,13 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/ci-deadlines.test.ts"), "utf8")).toContain(
       "CF-CID-6",
     );
-    // docs-only.test.ts CF-DOCS-1…6 (housekeeping turn 3 Part D, DEC-365) is discovered by
-    // test:unit's scripts/**/*.test.ts; ci.yml's `scope` job runs scripts/ci/docs-only.ts, and
-    // check-promote-needs.sh's planted fixture proves promote's explicit condition.
-    expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain("CF-DOCS-6");
+    // docs-only.test.ts CF-DOCS-1…10 (housekeeping turn 3 Part D, DEC-365; the speed turn, DEC-375 a)
+    // is discovered by test:unit's scripts/**/*.test.ts; ci.yml's `scope` job runs
+    // scripts/ci/docs-only.ts, and check-promote-needs.sh's planted fixture proves promote's
+    // explicit condition.
+    expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain(
+      "CF-DOCS-10",
+    );
     // redact.test.ts CF-REDACT-1/2, backend-config.test.ts CF-BCFG-1/2 and ci-images.test.ts
     // CF-CI-IMG-5 (housekeeping turn 3 Part E) are discovered by test:unit's scripts/**/*.test.ts;
     // local-backend-proof.yml imports scripts/ci/redact.py and runs scripts/ci/backend-config.py.
@@ -412,6 +416,21 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // scripts/**/*.test.ts; it reads src/ and pictures-allowlist.txt. Its lint twin is CF-LINT-6.
     expect(readFileSync(join(ROOT, "scripts/conformance/pictures.test.ts"), "utf8")).toContain(
       "CF-PICTURE-3",
+    );
+    // rules.test.ts CF-RULES-1 (the speed turn, DEC-374) is discovered by test:unit's
+    // scripts/**/*.test.ts; it reads .cursor/rules/*.mdc and AGENTS.md.
+    expect(readFileSync(join(ROOT, "scripts/conformance/rules.test.ts"), "utf8")).toContain(
+      "CF-RULES-1",
+    );
+    // lanes.test.ts CF-LANES-1 → 3 and lane-weights.test.ts LWM-1/2 (the speed turn, DEC-375 b,
+    // DEC-376) are discovered by test:unit's scripts/**/*.test.ts; local-backend-proof.yml's
+    // "Run proof lane" step runs scripts/ci/lane-plan.ts over scripts/ci/lane-weights.json.
+    expect(readFileSync(join(ROOT, "scripts/conformance/lanes.test.ts"), "utf8")).toContain(
+      "CF-LANES-3",
+    );
+    expect(readFileSync(join(ROOT, "scripts/ci/lane-weights.test.ts"), "utf8")).toContain("LWM-2");
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "scripts/ci/lane-plan.ts",
     );
   });
 

@@ -1,4 +1,6 @@
-# The brief laws (scripts/conformance/briefs.test.ts, CF-BRIEF-2, CF-BRIEF-3 and CF-BRIEF-16, DEC-361): a phrase a
+# The brief laws (scripts/conformance/briefs.test.ts, CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-16 and CF-BRIEF-18, DEC-361): a phrase a
 # brief must state as written — key "<file>:<line> <phrase>", "<file>:<line> SCOPE names <path>
-# without its test" or "<file>:<line> SCOPE names <path>, which rule 00 forbids the executor" | reason | until.
+# without its test", "<file>:<line> SCOPE names <path>, which rule 00 forbids the executor" or
+# "<file>:<line> names <SETTING>; its newest decision is DEC-<n>" | reason | until.
 # A line no finding needs is stale and fails. Empty at birth.
+docs/governance/briefs/speed.md:9 names E2E_WORKERS; its newest decision is DEC-230 | the speed turn's ruling 1 item 6: the brief is saved byte for byte and not edited; CF-BRIEF-18 was born from this brief's own miss; until the next brief's STEP 0, when CF-BRIEF-13 refuses a line keyed to a brief not in force | DEC-375

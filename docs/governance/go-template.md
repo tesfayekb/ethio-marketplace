@@ -81,12 +81,12 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 <!-- CENSUS-ITEM: first-download -->
 - first-download — the first-download table from the executor's own lock-exact build, before and after; a change under src/ names `scripts/route-budgets.mjs` in SCOPE for ceilings only and asks the census for every page's room to the NEAR band.
 <!-- CENSUS-ITEM: premises -->
-- premises — every premise of this GO the census finds wrong; outside systems — a runner image, a platform event, a provider API, an artifact's contents: cite the repository record read (a ci-evidence log at its commit, the vendor's source file, the workflow's upload step) or write `OPEN: <the question>` for the census; never from memory.
+- premises — every premise of this GO the census finds wrong; outside systems — a runner image, a platform event, a provider API, an artifact's contents: cite the repository record read (a ci-evidence log at its commit, the vendor's source file, the workflow's upload step) or write `OPEN: <the question>` for the census; never from memory; a setting the task changes is named with the decision that set it.
 <!-- CENSUS-ITEM: findings -->
 - findings — what the census finds beyond the task, file:line.
 `docs/governance/reports/<stem>.stop-1.md`; STOP.
 STEP 2 → <n> — <the parts, in order; each part's tests; each part's commit>.
-STEP <n+1> — `bun run typecheck`; `bun run lint`; `bunx vitest run scripts --maxWorkers=2`; `bun run checks`; `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md --at <the commit STEP 0 began from>` (its output pasted).
+STEP <n+1> — `bun run typecheck`; `bun run lint`; `bunx vitest run scripts --maxWorkers=2`; `bun run checks`; the test ids the turn adds or changes, by `--grep` (DEC-374; no spec file whole unless new); `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md --at <the commit STEP 0 began from>` (its output pasted).
 STEP <n+2> — commit by part, push, `gh pr checks <number> --watch --interval 60`; green on the last code commit → the comment per rule 00. ONE push after the final checks — a stop's own push, when a stop happens, is rule 00's and is not the judged run.
 STEP <n+3> — the report, rule 60's fourteen headings; §14 Records word for word.
 

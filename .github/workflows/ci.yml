@@ -40,9 +40,11 @@ permissions:
   contents: read
 
 jobs:
-  # DEC-365 — a push whose every changed file is a record runs no browser lane and no bundle budget
-  # when the code tree it stands on was tested green: scripts/ci/docs-only.ts decides (CF-DOCS-1…6),
-  # walking at most ten first-parent commits back from the push's base through the Actions API.
+  # DEC-375 (a), retiring DEC-365's walk — a push whose code tree (its tree with the records set
+  # aside) was proven by a green ci.yml run of this repository runs no browser lane and no bundle
+  # budget: scripts/ci/docs-only.ts decides (CF-DOCS-1…10) by looking up the artifact
+  # `code-tree-<id>`, which this job uploads whenever the lanes run. `docs_only` keeps its name and
+  # now means "the code tree is proven" (a merged pull request's merge commit, a docs-only push).
   # `e2e-lanes`, `bundle-budget`, the verdict and `promote` read its outputs; a failed `scope` runs
   # the lanes and blocks promotion (check-promote-needs.sh). Its `DEC-365 lanes:` log line is what
   # the status reporter reads.
@@ -59,8 +61,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         timeout-minutes: 5
-        with:
-          fetch-depth: 0
       - uses: oven-sh/setup-bun@v2
         timeout-minutes: 5
         with:
@@ -70,10 +70,18 @@ jobs:
         timeout-minutes: 5
         env:
           GH_TOKEN: ${{ github.token }}
-          # The push's base, or the pull request's previous head on `synchronize`; empty otherwise.
-          DOCS_ONLY_BEFORE: ${{ github.event.before }}
           DOCS_ONLY_REF: ${{ github.head_ref || github.ref_name }}
         run: bun scripts/ci/docs-only.ts
+      # The index of the tree these lanes prove; the lookup asks the API how this run ended.
+      - name: Index the code tree the lanes prove
+        if: ${{ steps.decide.outputs.tree != '' }}
+        timeout-minutes: 5
+        uses: actions/upload-artifact@v6
+        with:
+          name: code-tree-${{ steps.decide.outputs.tree }}
+          path: ${{ runner.temp }}/code-tree/code-tree.txt
+          overwrite: true
+          retention-days: 30
 
   build-and-check:
     name: Build, typecheck, lint
