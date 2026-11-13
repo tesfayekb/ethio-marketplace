@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43260321653
-- Commit: `db13e13b7df1639de3f2ab44bbe0332eba28a468`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43464275487
+- Commit: `203907b3db66a298664d0d4019142a4109a4d7d5`
 - Attempt: 1
-- Written (UTC): 2026-11-12T22:35:51.886Z
+- Written (UTC): 2026-11-13T22:36:10.958Z
 - Passed: 0 · Skipped: 0 · Failed: 1
 - Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -19,7 +19,7 @@ None: no results file lists one and no log's summary names one (1 of 2 results f
 
 Logs read: nightly, full · unavailable: none
 
-63 line(s), 28 message(s): 1 off the allowlist, 27 allowlisted.
+62 line(s), 27 message(s): 0 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
@@ -50,20 +50,10 @@ Logs read: nightly, full · unavailable: none
 | `strings tooManyRows` (quiet) | 2 | full |
 | `strings unknownColumn` (quiet) | 2 | full |
 | `strings wrongFile` (quiet) | 2 | full |
-| `category tree read: upstream unavailable (<n>)` | 1 | full |
 
 Quiet (allowlisted): categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
 
-Off the allowlist:
-
-### category tree read: upstream unavailable (<n>)
-
-- Count: 1 · Sources: full
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): MON-1 the menu entry, the order strip and the three blocks on both twins, no hor ×1 · MON-2 gating: a reviewer has no entry and a deep link is turned away; a packages ×1
-
-```text
-[WebServer] [ssr-error] /api/categories/tree category tree read: upstream unavailable (0)
-```
+Off the allowlist: none.
 
 ## Accessibility (DEC-084, gating)
 
@@ -77,7 +67,7 @@ Results read: nightly · unavailable: full
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-12T16:36:33.001Z | 1.1 min |
+| nightly | 2026-11-13T16:50:36.790Z | 0.8 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
@@ -87,7 +77,7 @@ Results read: nightly · unavailable: full
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 31.7 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 31.5 s |
 
 ## Post-test errors: nightly
 
@@ -96,7 +86,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43260321653-nightly
+[e2e:teardown] deleted 3 user(s) owned by process 43464275487-nightly
 ```
 
 ## auth-resend-exhaustion.spec.ts › A-3: three resends exhaust the per-visit limit
@@ -187,18 +177,18 @@ full: no results file — the process failed outside test results (setup/teardow
 
 ```text
 --- error lines (2) ---
-  ✘  1035 [mobile-360] › e2e/posting-routes-identity.spec.ts:100:3 › POSTING ROUTES — IDENTITY GATE › PR-43 the owner's own client cannot write the profile; the identity route still can (7.0s)
-  ✘  1794 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.1m)
+  ✘    38 [mobile-360] › e2e/ad-page.spec.ts:748:3 › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-32 similar ads: up to six of the same leaf and place, the ad itself never among them; none on a sold ad (31.6s)
+  ✘  1800 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.1m)
 --- final 10 lines ---
-[WebServer] [upstream] ssr language gate 200 96ms
-[WebServer] [upstream] ssr language gate 200 113ms
-  ✓  2289 [desktop-1280] › e2e/post-wizard-place.spec.ts:552:3 › POSTING WIZARD › PW-13 review: the preview shows what was answered, and Publish lands in review — never live (17.7s)
-[WebServer] [upstream] ssr language gate 200 85ms
-[WebServer] [upstream] ssr language gate 200 117ms
-PW-30 walk: signed in @ 4797 ms | category and specifications seeded @ 5174 ms | step 3 reached @ 6943 ms | specifications answered @ 7119 ms | step 6 open @ 11764 ms | tree served @ 12090 ms | place chosen @ 12289 ms | review open @ 15699 ms | review labels read @ 15719 ms | buyer preview read @ 15840 ms | Amharic review read @ 16161 ms
-  ✓  2290 [desktop-1280] › e2e/post-wizard-place.spec.ts:647:3 › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans (17.4s)
-[WebServer] [upstream] ssr language gate 200 83ms
-[WebServer] [upstream] ssr language gate 200 99ms
+[WebServer] [upstream] ssr language gate 200 64ms
+  ✓  2342 [desktop-1280] › e2e/post-wizard-removed.spec.ts:150:3 › POSTING WIZARD — removed catalogue answers › PW-177 a question removed while the form is open never blocks the next edits (20.6s)
+[WebServer] [upstream] ssr language gate 200 79ms
+[WebServer] [upstream] ssr language gate 200 63ms
+  ✓  2343 [desktop-1280] › e2e/post-wizard-resets.spec.ts:208:3 › POSTING WIZARD › PW-26 a category change drops the details the new category never asks (10.4s)
+[WebServer] [upstream] ssr language gate 200 67ms
+[WebServer] [upstream] ssr language gate 200 69ms
+PW-72 bodies: []
+  ✓  2344 [desktop-1280] › e2e/post-wizard-resets.spec.ts:316:3 › POSTING WIZARD › PW-72 after a category reset, a currency prefill that lands late never claims a step the seller has not re-completed (INC-317) (12.3s)
 ```
 
 ```text
