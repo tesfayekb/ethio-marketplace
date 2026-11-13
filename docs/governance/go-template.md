@@ -84,6 +84,8 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 - premises — every premise of this GO the census finds wrong; outside systems — a runner image, a platform event, a provider API, an artifact's contents: cite the repository record read (a ci-evidence log at its commit, the vendor's source file, the workflow's upload step) or write `OPEN: <the question>` for the census; never from memory; a setting the task changes is named with the decision that set it. A mechanism that reads through a database door cites the door's own matching and ordering line (file:line). A GO that fixes an INC names every allowlist line and test keyed to that INC.
 <!-- CENSUS-ITEM: findings -->
 - findings — what the census finds beyond the task, file:line.
+<!-- CENSUS-ITEM: queued -->
+- queued — every item an earlier ruling, a report's §13 or a roadmap line queued for this turn (rg the turn's name across docs/governance/briefs, docs/governance/reports and roadmap.md), each marked built here | left (where).
 `docs/governance/reports/<stem>.stop-1.md`; STOP.
 STEP 2 → <n> — <the parts, in order; each part's tests; each part's commit>.
 STEP <n+1> — `bun run typecheck`; `bun run lint`; `bunx vitest run scripts --maxWorkers=2`; `bun run checks`; the test ids the turn adds or changes, by `--grep` (DEC-374; no spec file whole unless new); `bun scripts/brief/check-go.ts docs/governance/briefs/<stem>.md --at <the commit STEP 0 began from>` (its output pasted). Then the self-review (rule 80), the self-review before the push; a fix it makes is followed by the checks that fix can affect.

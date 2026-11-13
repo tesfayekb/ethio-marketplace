@@ -10,8 +10,9 @@
  * CF-BRIEF-11 title (a code span after "Commit", "first line:" or "commit ("), CF-BRIEF-13 allowance,
  * CF-BRIEF-15 census items, CF-BRIEF-16 a SCOPE path rule 00 forbids, CF-BRIEF-17 a ruling saved bare. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
  * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
- * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision, CF-BRIEF-20 a cited
- * list's reader. CF-BRIEF-4 and CF-BRIEF-14 are the self-tests in briefs.test.ts.
+ * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision, CF-BRIEF-19 a
+ * record's files inside SCOPE, CF-BRIEF-20 a cited list's reader. CF-BRIEF-4 and CF-BRIEF-14 are the
+ * self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
  * is not a claim (laws 2, 7, 10; law 11 keeps code spans, the titles' own form), and a sentence
  * with a negation word is not a claim (laws 2, 7). The laws guard carelessness, not evasion.
@@ -285,6 +286,83 @@ export function listReaderFindings(text: string, file: string, root: string): Fi
       line,
       text: `cites ${list}; no test it cites reads it by name${readers.length > 0 ? ` (the tree's: ${readers.join(", ")})` : ""}`,
     });
+  }
+  return findings;
+}
+
+const RECORDS_HEAD = /^(?:\d+\.\s+)?RECORDS\b/;
+const RECORD_ID = /^(?:-\s+)?((?:INC|DEC)-\d+)\b/;
+const CHANGED_ID =
+  /\b(?:fix(?:es|ed)?|chang(?:es|ed)|amend(?:s|ed)|supersed(?:es|ed)|revis(?:es|ed))\s+((?:INC|DEC)-\d+)\b/gi;
+const WHY_NOT = /\b(?:not in|outside|out of)\s+(?:the\s+)?SCOPE\b/i;
+const SCOPE_SPAN = /`([^`\s]+)`/g;
+
+/** The RECORDS section: its heading line through the next blank line, each line with its number. */
+function recordsOf(text: string): Array<{ line: number; content: string }> {
+  const lines = linesOf(text);
+  const start = lines.findIndex((l) => RECORDS_HEAD.test(l));
+  if (start < 0) return [];
+  const end = lines.findIndex((l, i) => i > start && l.trim() === "");
+  return lines
+    .slice(start, end < 0 ? lines.length : end)
+    .map((content, offset) => ({ line: start + offset + 1, content }));
+}
+
+/** The paths the SCOPE paragraph grants: its code spans, outside a "read only" or "never" sentence. */
+function scopeGrants(scope: string): string[] {
+  return scope
+    .split(SENTENCE)
+    .filter((sentence) => !/\b(?:read only|never)\b/i.test(sentence))
+    .flatMap((sentence) => [...sentence.matchAll(SCOPE_SPAN)].map((m) => m[1]));
+}
+
+function granted(path: string, grants: string[]): boolean {
+  return grants.some((grant) => {
+    const prefix = grant.includes("*") ? grant.slice(0, grant.indexOf("*")) : grant;
+    return grant.endsWith("/") || grant.includes("*") ? path.startsWith(prefix) : path === grant;
+  });
+}
+
+/**
+ * CF-BRIEF-19 (app-fixes ruling 2, built by the CI turn's ruling 1 item 5) — for every INC or DEC a
+ * brief's RECORDS say it fixes or changes, each file under `scripts/` that names that id lies inside
+ * the brief's SCOPE, or the brief says why not. An id is fixed or changed when a RECORDS line opens
+ * with it (`INC-n —`, `DEC-n (…) —`, `- DEC-n …`) or when "fixes", "changes", "amends",
+ * "supersedes" or "revises" precedes it. SCOPE grants the code spans of its paragraph outside a
+ * "read only" or "never" sentence (a path ending in `/` or holding `*` grants what starts with it);
+ * the brief says why not by naming the file on a line that says "not in SCOPE", "outside SCOPE" or
+ * "out of scope". A ruling has no SCOPE of its own (it builds inside its brief's): nothing to judge.
+ */
+export function recordScopeFindings(text: string, file: string, root: string): Finding[] {
+  const paragraph = scopeOf(text);
+  if (paragraph === null) return [];
+  const grants = scopeGrants(paragraph.scope);
+  const whyNot = linesOf(text).filter((line) => WHY_NOT.test(line));
+  const ids = new Map<string, number>();
+  for (const { line, content } of recordsOf(text)) {
+    const head = RECORD_ID.exec(content.trim())?.[1];
+    if (head !== undefined && !ids.has(head)) ids.set(head, line);
+    for (const match of content.matchAll(CHANGED_ID))
+      if (!ids.has(match[1])) ids.set(match[1], line);
+  }
+  if (ids.size === 0) return [];
+  const scripts = filesUnder(root, "scripts").map((path) => ({
+    path,
+    text: readFileSync(join(root, path), "utf8"),
+  }));
+  const findings: Finding[] = [];
+  for (const [id, line] of ids) {
+    const named = pattern`(?<![\\w-])${id}(?!\\d)`;
+    for (const script of scripts) {
+      if (!named.test(script.text) || granted(script.path, grants)) continue;
+      if (whyNot.some((reason) => reason.includes(script.path))) continue;
+      findings.push({
+        law: "CF-BRIEF-19",
+        file,
+        line,
+        text: `${id} (RECORDS) is named by ${script.path}, outside SCOPE`,
+      });
+    }
   }
   return findings;
 }
@@ -755,7 +833,7 @@ export function textFindings(text: string, file: string): Finding[] {
 }
 
 /**
- * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10, laws 18 and 20); a root the laws cannot
+ * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10, laws 18 → 20); a root the laws cannot
  * read fails each. `repository` (check-go's `--at`): where a COUNT that is a git read runs.
  */
 export function treeFindings(
@@ -775,11 +853,13 @@ export function treeFindings(
       "CF-BRIEF-9",
       "CF-BRIEF-10",
       "CF-BRIEF-18",
+      "CF-BRIEF-19",
       "CF-BRIEF-20",
     ].map((law) => ({ law, file, line: 1, text: problem }));
   return [
     ...newTestFindings(text, file, root),
     ...settingDecisionFindings(text, file, root),
+    ...recordScopeFindings(text, file, root),
     ...listReaderFindings(text, file, root),
     ...citedPathFindings(text, file, root),
     ...citedLineFindings(text, file, root),

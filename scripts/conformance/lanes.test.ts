@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -20,7 +21,8 @@ import {
   type Plan,
 } from "../ci/lane-plan";
 import { LANE_PROJECTS, type Weights } from "../ci/lane-weights";
-import { readAllowlist, report } from "./kit";
+import { readAllowlist, report, walkFiles } from "./kit";
+import { readManifest, sharedValueFindings, triggerFindings } from "./shared-values";
 
 /**
  * The speed turn (DEC-375 b, DEC-376) — EVERY CHROMIUM TEST IN EXACTLY ONE LANE, SPLIT BY MEASURED
@@ -37,6 +39,10 @@ import { readAllowlist, report } from "./kit";
  * SPREAD_LIMIT of the mean unless a file has that lane to itself (the plan's line names it).
  * CF-LANES-3: each lane's workers, read from the job's E2E_WORKERS and the step's `--workers=`:
  * LANE_WORKERS in every lane (DEC-376's count restarted at one on the speed turn's first run).
+ * CF-LANES-4 (the CI turn, DEC-378 a, INC-1136): no scratch row moves a shared value in a split
+ * lane — every write site on a table of shared-value-tables.txt sits in a `@global-state` test or
+ * a sanctioned helper, or is a line of shared-values-allowlist.txt; every table a migration gives a
+ * statement-level trigger is on the manifest (shared-values.ts).
  */
 type Finding = { file: string; line: number; what: string };
 /** A coverage finding's allowlist key: `@<tag>` for a test every lane leaves out, else the test. */
@@ -45,6 +51,8 @@ type CoverageFinding = Finding & { key: string };
 const ROOT = process.cwd();
 const WORKFLOW = ".github/workflows/local-backend-proof.yml";
 const ALLOWLIST = "scripts/conformance/lanes-allowlist.txt";
+const MANIFEST = "scripts/conformance/shared-value-tables.txt";
+const SHARED_ALLOWLIST = "scripts/conformance/shared-values-allowlist.txt";
 const NUMBERED = Array.from({ length: 16 }, (_, i) => String(i + 1));
 
 function listAll(): ListedTest[] {
@@ -328,5 +336,108 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
       '--grep-invert "@global-state|@a11y" --workers=2 --test-list',
     );
     expect(workerFindings(flagged)).toHaveLength(16);
+  });
+});
+
+describe("no scratch row moves a shared value in a split lane (DEC-378 a, INC-1136)", () => {
+  const read = (path: string) => ({ path, text: readFileSync(join(ROOT, path), "utf8") });
+  const manifest = readManifest(read(MANIFEST).text, MANIFEST);
+
+  it("CF-LANES-4 every write to a shared-value table is serial, a sanctioned helper's or allowlisted; every statement trigger's table is on the manifest", () => {
+    const specs = walkFiles(["e2e"], { ext: ["ts"] }).map(read);
+    const found = sharedValueFindings(specs, manifest.shared);
+    const allowed = readAllowlist(
+      join(ROOT, SHARED_ALLOWLIST),
+      found.map((finding) => finding.key),
+    );
+    expect(report(found.filter((finding) => !allowed.has(finding.key)))).toBe("");
+    expect(manifest.shared.map((row) => row.table)).toEqual([
+      "listing_packages",
+      "languages",
+      "job_pauses",
+    ]);
+    const defined = (name: string) =>
+      specs.some(
+        ({ text }) => text.includes(`function ${name}(`) || text.includes(`const ${name} =`),
+      );
+    const missing = manifest.shared.flatMap((row) =>
+      row.helpers.filter((name) => !defined(name)).map((name) => `${row.table}: ${name}`),
+    );
+    expect(missing, "a sanctioned helper no file under e2e/ defines").toEqual([]);
+    const migrations = walkFiles(["supabase/migrations"], { ext: ["sql"] }).map(read);
+    expect(report(triggerFindings(migrations, manifest, MANIFEST))).toBe("");
+
+    // Planted: an untagged writer, a helper's caller and a door's caller are found; a tagged test,
+    // a tagged describe and a sanctioned helper's caller are not.
+    const planted = [
+      {
+        path: "e2e/helpers/planted-writer.ts",
+        text: [
+          'export async function seedLevel() { await adminClient().from("listing_packages").update({ sort: 0 }).eq("key", "k"); }',
+          'export async function ensureFenceLanguage(code: string) { await adminClient().from("languages").upsert({ code }); }',
+        ].join("\n"),
+      },
+      {
+        path: "e2e/planted-writer.spec.ts",
+        text: [
+          'import { ensureFenceLanguage, seedLevel } from "./helpers/planted-writer";',
+          'test("SVP-1 writes a level", async () => { await adminClient().from("listing_packages").insert({ key: "k" }); });',
+          'test("SVP-2 tagged", { tag: "@global-state" }, async () => { await adminClient().from("languages").update({}).eq("code", "x"); });',
+          'test("SVP-3 through a helper", async () => { await seedLevel(); });',
+          'test("SVP-4 a sanctioned helper", async () => { await ensureFenceLanguage("zxx1"); });',
+          'test("SVP-5 a door", async () => { await adminClient().rpc("job_pause_set", {}); });',
+          'test.describe("SVP serial @global-state", () => { test("SVP-6 in a tagged describe", async () => { await seedLevel(); }); });',
+          "function seedLevelHere() { return 0; }",
+          'test("SVP-7 a same-named function elsewhere", async () => { seedLevelHere(); });',
+        ].join("\n"),
+      },
+      {
+        path: "e2e/unrelated.spec.ts",
+        text: 'function seedLevel() { return 1; }\ntest("SVU-1 its own seedLevel", async () => { seedLevel(); });',
+      },
+    ];
+    expect(
+      sharedValueFindings(planted, manifest.shared)
+        .map((finding) => finding.key)
+        .sort(),
+    ).toEqual([
+      "e2e/planted-writer.spec.ts::SVP-1::listing_packages",
+      "e2e/planted-writer.spec.ts::SVP-3::listing_packages",
+      "e2e/planted-writer.spec.ts::SVP-5::job_pauses",
+    ]);
+
+    // Planted: a stale allowlist line fails.
+    const scratch = mkdtempSync(join(tmpdir(), "cf-lanes-4-"));
+    const stale = join(scratch, "shared-values-allowlist.txt");
+    writeFileSync(stale, "e2e/gone.spec.ts::GONE-1::languages | planted | INC-1136\n");
+    expect(() =>
+      readAllowlist(
+        stale,
+        found.map((finding) => finding.key),
+      ),
+    ).toThrow(/stale allowance/);
+    rmSync(scratch, { recursive: true, force: true });
+
+    // Planted: a statement trigger on an unlisted table is found, a commented one is not; a
+    // "read, not shared" line with no trigger is stale; a malformed line throws.
+    const trigger = {
+      path: "supabase/migrations/planted.sql",
+      text: [
+        "-- CREATE TRIGGER t0 AFTER INSERT ON public.commented FOR EACH STATEMENT EXECUTE FUNCTION f();",
+        "CREATE TRIGGER t1",
+        "  AFTER INSERT OR DELETE ON public.planted_counts",
+        "  FOR EACH STATEMENT EXECUTE FUNCTION public.f();",
+      ].join("\n"),
+    };
+    expect(report(triggerFindings([trigger], manifest, MANIFEST)).split("\n")).toEqual(
+      [
+        ...manifest.readOnly.map(
+          (row) =>
+            `${MANIFEST}:${String(row.line)} ${row.table} is "read, not shared" but carries no statement-level trigger (stale)`,
+        ),
+        'supabase/migrations/planted.sql:2 public.planted_counts carries a statement-level trigger; the manifest names it neither shared nor "read, not shared"',
+      ].sort(),
+    );
+    expect(() => readManifest("languages | why | -\n", "planted.txt")).toThrow(/planted.txt:1/);
   });
 });

@@ -603,9 +603,26 @@ generator (INC-1137), not in its fixture. CF-LANES-1 has no allowlist line, and 
 planted cases find an `@a11y` or a `@global-state` test in no lane. Every lane runs one worker:
 DEC-376's two workers met its revert rule on that run (ATR-1 read a level rank that
 MON-16's scratch level moved, in the same lane's backend).
+Since the CI turn (INC-1136) no scratch row moves a shared value in a split lane: a test
+whose write changes a value that rows it did not create carry (a level's rank, the public
+language list, a job's pause), or whose subject is a value other tests' own rows change
+(the monetisation strip's first unpriced pair, MON-16/17), runs in the serial lane
+(`@global-state`, its reason in a `global-state` annotation); any other writer goes
+through a helper whose placement moves none — `seedProduct` places its row after every
+row of its kind, `seedScratchReaches` its reaches above every real one,
+`ensureFenceLanguage` a language never public. LG-33's rank snapshot is keyed to the
+real levels. `scripts/conformance/shared-value-tables.txt` names each shared-value table
+(why, the doors that write it, the sanctioned helpers) and each table a migration gives
+a statement-level trigger whose writes move no such value ("read, not shared").
+CF-LANES-4 (`scripts/conformance/shared-values.ts`, run by `lanes.test.ts`) reads every
+service-client write under `e2e/` on those tables (`.from("<table>")…insert|update|
+upsert|delete(`, and `.rpc("<door>"` for a door the manifest names); the helper is the
+unit, so a writing function's calls are the sites. A site outside `@global-state` and
+the sanctioned helpers fails unless `shared-values-allowlist.txt` names it, and a table
+with a statement-level trigger that the manifest does not name fails.
 Each numbered lane's evidence carries its `- Plan (DEC-375 b):` line and the plan's
 line; the summary's `- Lane plan (DEC-375 b):` line adds planned against test seconds
-per lane. Guards: CF-LANES-1 → 3 (`scripts/conformance/lanes.test.ts`, the one-worker
+per lane. Guards: CF-LANES-1 → 4 (`scripts/conformance/lanes.test.ts`, the one-worker
 lanes in `lanes-allowlist.txt`) and LWM-1/2 (`scripts/ci/lane-weights.test.ts`). The
 weights are refreshed by running the maker on a newer green run when they are the
 cause of a lane more than 25 % over the mean.

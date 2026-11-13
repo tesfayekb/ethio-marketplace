@@ -1,0 +1,14 @@
+# CF-LANES-4 (scripts/conformance/lanes.test.ts, through shared-values.ts) — the shared-value tables:
+# a write changes a value that rows the writer did not create carry, so two workers of one lane race.
+# Key: `<table>` | why its rows are shared | doors that write it | helpers whose placement moves no shared value
+# Or: `<table>` | read, not shared | why — a table with a statement-level trigger whose writes move no such value.
+listing_packages | level_ranks_rebuild() renumbers every level by (sort, key) and requeues the live ads on any write | - | seedProduct (e2e/admin-monetisation.spec.ts: after every row of its kind), destroyProduct (e2e/admin-monetisation.spec.ts: removes that row), seedScratchReaches (e2e/helpers/reach-rows.ts: above every real reach), destroyScratchReaches (e2e/helpers/reach-rows.ts: removes those rows)
+languages | the switcher, the hreflang gate and every bundle read the enabled_public rows | - | ensureFenceLanguage (e2e/helpers/translations.ts: a fence language, never public, DEC-148)
+job_pauses | one row per job: a pause stops that job for every caller | job_pause_set | -
+categories | read, not shared | catalog_find_rebuild() rewrites every find entry from the rows as they are: a real row's entry reads the same after a scratch row's write
+category_attribute_links | read, not shared | catalog_find_rebuild(), as categories
+entity_translations | read, not shared | catalog_find_rebuild(), as categories
+listings | read, not shared | the feed index triggers rewrite the written ads' own rows only
+listing_locations | read, not shared | the feed index triggers rewrite the written places' own ads only
+category_tree_pointers | read, not shared | the reindex triggers queue the ads under the moved pointers only
+locations | read, not shared | the reindex trigger queues the ads in the moved places only

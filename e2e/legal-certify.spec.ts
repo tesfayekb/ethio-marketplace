@@ -22,6 +22,7 @@ import { gotoReady, signInViaSession, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { levelAboveBaseline, updateListingRow } from "./helpers/listing-seed";
 import { doorAnswer } from "./helpers/door-answer";
+import { SCRATCH_KEY } from "./helpers/scratch";
 
 /**
  * Bundle 22 (Stage 1), turn 4 — THE PUBLISHING STATEMENT AND ITS CERTIFICATION (LG-15..LG-18, LGC-1..LGC-3).
@@ -273,7 +274,11 @@ async function guardedTruth(listingId: string) {
   return { listing: listing.data, photos: photos.data ?? [], revisions: revisions.data ?? [] };
 }
 
-/** The levels' rank table and the feed queue's rows for one ad (P-2 (a): a refused door leaves both as they were). */
+/**
+ * The levels' rank table and the feed queue's rows for one ad (P-2 (a): a refused door leaves both
+ * as they were). The ranks are keyed to the real levels: LG-33 makes no level of its own, and
+ * other tests' scratch levels, added and removed while it runs, are left out (INC-1136).
+ */
 async function rankTruth(listingId: string) {
   const client = adminClient();
   const ranks = await client.from("level_ranks").select("key, feed_rank").order("key");
@@ -283,7 +288,10 @@ async function rankTruth(listingId: string) {
     .eq("listing_id", listingId);
   if (ranks.error || queued.error)
     throw new Error(`[e2e:certify] rank truth: ${ranks.error?.message ?? queued.error?.message}`);
-  return { ranks: ranks.data ?? [], queued: queued.data ?? [] };
+  return {
+    ranks: (ranks.data ?? []).filter((row) => !SCRATCH_KEY.test(row.key)),
+    queued: queued.data ?? [],
+  };
 }
 
 /**

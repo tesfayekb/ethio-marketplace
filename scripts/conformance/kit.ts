@@ -33,10 +33,15 @@ export function codeOf(text: string): string {
     (match) => (match.startsWith("//") || match.startsWith("/*") ? blank(match) : match),
   );
 }
-export function visitTs(file: string, visit: (node: ts.Node, source: ts.SourceFile) => void): void {
+/** Walks every node of `file` (read from disk, or `text` when a census serves a planted file). */
+export function visitTs(
+  file: string,
+  visit: (node: ts.Node, source: ts.SourceFile) => void,
+  text?: string,
+): void {
   const source = ts.createSourceFile(
     file,
-    readFileSync(file, "utf8"),
+    text ?? readFileSync(file, "utf8"),
     ts.ScriptTarget.Latest,
     true,
     file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,

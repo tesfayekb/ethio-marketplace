@@ -391,7 +391,11 @@ test.describe("P-1b Admin › Monetisation", () => {
     }
   });
 
-  /** Seeds the test's own product through the service client (seed before navigate, J7). */
+  /**
+   * Seeds the test's own product through the service client (seed before navigate, J7), after
+   * every row of its kind: `level_ranks_rebuild()` ranks levels by sort, so a row placed among the
+   * real levels would move their ranks for every test of the lane (INC-1136).
+   */
   async function seedProduct(
     key: string,
     dials: {
@@ -401,11 +405,19 @@ test.describe("P-1b Admin › Monetisation", () => {
       maxPhotos?: number;
       placement?: string;
       badge?: boolean;
-      sort?: number;
     } = {},
   ) {
     await destroyProduct(key);
     const kind = dials.kind ?? "level";
+    const top = await adminClient()
+      .from("listing_packages")
+      .select("sort")
+      .eq("kind", kind)
+      .order("sort", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (top.error)
+      throw new Error(`${TAG} reading the top ${kind} sort failed: ${top.error.message}`);
     const { error } = await adminClient()
       .from("listing_packages")
       .insert({
@@ -416,7 +428,7 @@ test.describe("P-1b Admin › Monetisation", () => {
         enabled: dials.enabled ?? true,
         self_serve: true,
         extends_lifetime: true,
-        sort: dials.sort ?? 90,
+        sort: (top.data === null ? 0 : Number(top.data.sort)) + 1,
         ...(kind === "level"
           ? {
               max_photos: dials.maxPhotos ?? 10,
@@ -1429,109 +1441,127 @@ test.describe("P-1b Admin › Monetisation", () => {
     if (error) throw new Error(`${TAG} seeding the market ${code} on failed: ${error.message}`);
   }
 
-  test("MON-16 the order strip: a market switched on with a sellable product that has no price reads Needs a row, names a product and its market, and its link opens that product's prices", async ({
-    page,
-  }, testInfo) => {
-    await signInJobSuperAdmin(page);
-    const key = scratchKey("strip", testInfo.project.name);
-    await seedProduct(key, { sort: 0 });
-    const market = await seedSingleOptionMarket();
-    countries.push(market.code);
-    await seedMarketOn(market.code);
-    await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS);
-    const pairs = await unpricedPairs(new Date().toISOString());
-    expect(pairs, "MON-16 the scratch pair is missing from the rows").toContainEqual({
-      key,
-      market: market.code,
-    });
-    await openConsole(page);
-
-    const step = page.getByTestId("monetisation-order-prices");
-    await expect(step).toHaveAttribute("data-state", "needsRow");
-    await expect(step.getByTestId("monetisation-order-prices-state")).toHaveText(
-      en["prim.orderStrip.needsRow"],
-    );
-    // The detail names the first such product and market: one of the pairs the rows hold.
-    const detail = await step.getByTestId("monetisation-order-prices-detail").textContent();
-    const namedPairs = await Promise.all(
-      pairs.map(async (pair) => {
-        const product = await readProduct(pair.key);
-        return { pair, name: product?.name_en ?? "", kind: product?.kind ?? "" };
-      }),
-    );
-    const named = namedPairs.find(({ name }) => name !== "" && (detail ?? "").includes(name));
-    expect(named, `MON-16 the detail "${detail}" names no unpriced product`).toBeTruthy();
-    const namedKey = named?.pair.key as string;
-    // The link opens that product's row (on the drawn twin) on its prices table.
-    await step.click();
-    await expect(page).toHaveURL(new RegExp(`#product-${namedKey}-prices$`));
-    await expect(productFrame(page, namedKey, "prices")).toBeVisible({ timeout: 20000 });
-    await expect(
-      productRow(page, named?.kind === "reach" ? "reach" : "levels", namedKey).getByTestId(
-        `product-${namedKey}-open`,
-      ),
-    ).toHaveAttribute("aria-expanded", "true");
-    // Markets names the switched-on market; Products is Set (the real level and reach rows).
-    await expect(page.getByTestId("monetisation-order-markets-detail")).toContainText(
-      market.anchor.name_en as string,
-    );
-    await expect(page.getByTestId("monetisation-order-products")).toHaveAttribute(
-      "data-state",
-      "set",
-    );
-  });
-
-  test("MON-17 the order strip: a price added for every market clears the product from Needs a row; the strip reads Set once no pair is left", async ({
-    page,
-  }, testInfo) => {
-    const { secret } = await signInJobSuperAdmin(page);
-    const key = scratchKey("set", testInfo.project.name);
-    await seedProduct(key, { sort: 0 });
-    const currency = await firstCurrency();
-    const market = await seedSingleOptionMarket();
-    countries.push(market.code);
-    await seedMarketOn(market.code);
-    await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS);
-    await openConsole(page);
-    const step = page.getByTestId("monetisation-order-prices");
-    await expect(step).toHaveAttribute("data-state", "needsRow");
-
-    // Add price inside the product's row, for every market and every category.
-    await openProduct(page, "levels", key);
-    await page.getByTestId(`product-${key}-price-add`).click();
-    const dialog = page.getByTestId("monetisation-price-create");
-    await expect(dialog).toBeVisible({ timeout: 20000 });
-    await dialog.getByTestId("monetisation-price-create-amount").fill("12");
-    await dialog.getByTestId("monetisation-price-create-credit-cost").fill("2");
-    await expect(dialog.getByTestId("monetisation-price-create-currency")).toHaveValue(currency);
-    await dialog.getByTestId("monetisation-price-create-save").click();
-    await awaitGuardedOutcome(page, secret, {
-      poll: async () => (await readPrices(key)).length === 1,
-      describe: `the price of ${key}`,
-    });
-    await expect(dialog).toHaveCount(0);
-
-    // The strip follows the page's read: the product is priced everywhere now.
-    const name = (await readProduct(key))?.name_en ?? key;
-    const left = await unpricedPairs(new Date().toISOString());
-    expect(left.some((pair) => pair.key === key)).toBe(false);
-    if (left.length === 0) {
-      await expect(step).toHaveAttribute("data-state", "set", { timeout: 20000 });
-      await expect(step.getByTestId("monetisation-order-prices-state")).toHaveText(
-        en["prim.orderStrip.set"],
-      );
-      await expect(step.getByTestId("monetisation-order-prices-detail")).toHaveCount(0);
-    } else {
-      // Another product of the backend's own rows is still unpriced: the row names it, never ours.
-      await expect(step).toHaveAttribute("data-state", "needsRow");
-      await expect(step.getByTestId("monetisation-order-prices-detail")).not.toContainText(name, {
-        timeout: 20000,
+  test(
+    "MON-16 the order strip: a market switched on with a sellable product that has no price reads Needs a row, names a product and its market, and its link opens that product's prices",
+    {
+      tag: "@global-state",
+    },
+    async ({ page }, testInfo) => {
+      testInfo.annotations.push({
+        type: "global-state",
+        description:
+          "INC-1136: the strip names the first unpriced pair over every product and market on, which other tests' own rows change",
       });
-    }
-    // Reloaded, the strip reads the same from the server's rows.
-    await openConsole(page);
-    await expect(step).toHaveAttribute("data-state", left.length === 0 ? "set" : "needsRow");
-  });
+      await signInJobSuperAdmin(page);
+      const key = scratchKey("strip", testInfo.project.name);
+      await seedProduct(key);
+      const market = await seedSingleOptionMarket();
+      countries.push(market.code);
+      await seedMarketOn(market.code);
+      await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS);
+      const pairs = await unpricedPairs(new Date().toISOString());
+      expect(pairs, "MON-16 the scratch pair is missing from the rows").toContainEqual({
+        key,
+        market: market.code,
+      });
+      await openConsole(page);
+
+      const step = page.getByTestId("monetisation-order-prices");
+      await expect(step).toHaveAttribute("data-state", "needsRow");
+      await expect(step.getByTestId("monetisation-order-prices-state")).toHaveText(
+        en["prim.orderStrip.needsRow"],
+      );
+      // The detail names the first such product and market: one of the pairs the rows hold.
+      const detail = await step.getByTestId("monetisation-order-prices-detail").textContent();
+      const namedPairs = await Promise.all(
+        pairs.map(async (pair) => {
+          const product = await readProduct(pair.key);
+          return { pair, name: product?.name_en ?? "", kind: product?.kind ?? "" };
+        }),
+      );
+      const named = namedPairs.find(({ name }) => name !== "" && (detail ?? "").includes(name));
+      expect(named, `MON-16 the detail "${detail}" names no unpriced product`).toBeTruthy();
+      const namedKey = named?.pair.key as string;
+      // The link opens that product's row (on the drawn twin) on its prices table.
+      await step.click();
+      await expect(page).toHaveURL(new RegExp(`#product-${namedKey}-prices$`));
+      await expect(productFrame(page, namedKey, "prices")).toBeVisible({ timeout: 20000 });
+      await expect(
+        productRow(page, named?.kind === "reach" ? "reach" : "levels", namedKey).getByTestId(
+          `product-${namedKey}-open`,
+        ),
+      ).toHaveAttribute("aria-expanded", "true");
+      // Markets names the switched-on market; Products is Set (the real level and reach rows).
+      await expect(page.getByTestId("monetisation-order-markets-detail")).toContainText(
+        market.anchor.name_en as string,
+      );
+      await expect(page.getByTestId("monetisation-order-products")).toHaveAttribute(
+        "data-state",
+        "set",
+      );
+    },
+  );
+
+  test(
+    "MON-17 the order strip: a price added for every market clears the product from Needs a row; the strip reads Set once no pair is left",
+    {
+      tag: "@global-state",
+    },
+    async ({ page }, testInfo) => {
+      testInfo.annotations.push({
+        type: "global-state",
+        description:
+          "INC-1136: the strip's state is read over every product and market on, which other tests' own rows change",
+      });
+      const { secret } = await signInJobSuperAdmin(page);
+      const key = scratchKey("set", testInfo.project.name);
+      await seedProduct(key);
+      const currency = await firstCurrency();
+      const market = await seedSingleOptionMarket();
+      countries.push(market.code);
+      await seedMarketOn(market.code);
+      await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS);
+      await openConsole(page);
+      const step = page.getByTestId("monetisation-order-prices");
+      await expect(step).toHaveAttribute("data-state", "needsRow");
+
+      // Add price inside the product's row, for every market and every category.
+      await openProduct(page, "levels", key);
+      await page.getByTestId(`product-${key}-price-add`).click();
+      const dialog = page.getByTestId("monetisation-price-create");
+      await expect(dialog).toBeVisible({ timeout: 20000 });
+      await dialog.getByTestId("monetisation-price-create-amount").fill("12");
+      await dialog.getByTestId("monetisation-price-create-credit-cost").fill("2");
+      await expect(dialog.getByTestId("monetisation-price-create-currency")).toHaveValue(currency);
+      await dialog.getByTestId("monetisation-price-create-save").click();
+      await awaitGuardedOutcome(page, secret, {
+        poll: async () => (await readPrices(key)).length === 1,
+        describe: `the price of ${key}`,
+      });
+      await expect(dialog).toHaveCount(0);
+
+      // The strip follows the page's read: the product is priced everywhere now.
+      const name = (await readProduct(key))?.name_en ?? key;
+      const left = await unpricedPairs(new Date().toISOString());
+      expect(left.some((pair) => pair.key === key)).toBe(false);
+      if (left.length === 0) {
+        await expect(step).toHaveAttribute("data-state", "set", { timeout: 20000 });
+        await expect(step.getByTestId("monetisation-order-prices-state")).toHaveText(
+          en["prim.orderStrip.set"],
+        );
+        await expect(step.getByTestId("monetisation-order-prices-detail")).toHaveCount(0);
+      } else {
+        // Another product of the backend's own rows is still unpriced: the row names it, never ours.
+        await expect(step).toHaveAttribute("data-state", "needsRow");
+        await expect(step.getByTestId("monetisation-order-prices-detail")).not.toContainText(name, {
+          timeout: 20000,
+        });
+      }
+      // Reloaded, the strip reads the same from the server's rows.
+      await openConsole(page);
+      await expect(step).toHaveAttribute("data-state", left.length === 0 ? "set" : "needsRow");
+    },
+  );
 
   test("MON-18 a reach row's caps: cities left blank and regions 3 are saved as no limit and 3; the table reads No limit and 3; the editor reopens blank and 3", async ({
     page,

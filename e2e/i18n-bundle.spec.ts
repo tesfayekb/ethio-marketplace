@@ -73,84 +73,104 @@ async function cleanup(code: string, key: string) {
 }
 
 test.describe("STAB-I18N · cached translation bundle", () => {
-  test("IB-1 repeated GETs are identical, validated, and 304 on If-None-Match", async ({
-    request,
-  }) => {
-    const code = scratchLang();
-    const key = `e2e.bundle.${code}`;
-    await ensureLanguage(code, true);
-    await seedApproved(code, key, "seeded value");
-    try {
-      const first = await request.get(`/api/i18n/${code}`);
-      expect(first.status(), "first GET").toBe(200);
-      const firstEtag = first.headers()["etag"];
-      expect(firstEtag, "first response carries a strong validator").toBeTruthy();
-      expect(firstEtag?.startsWith("W/")).toBe(false);
-      const firstBody = (await first.json()) as BundlePayload;
-      expect(firstBody.lang).toBe(code);
-      expect(firstBody.bundle.copied[key]).toBe("seeded value");
-
-      const second = await request.get(`/api/i18n/${code}`);
-      expect(second.status(), "second GET").toBe(200);
-      expect(second.headers()["etag"], "ETag is stable across identical data").toBe(firstEtag);
-      const secondBody = (await second.json()) as BundlePayload;
-      expect(secondBody, "the cached body is byte-equal").toEqual(firstBody);
-
-      const conditional = await request.get(`/api/i18n/${code}`, {
-        headers: { "If-None-Match": firstEtag ?? "" },
+  test(
+    "IB-1 repeated GETs are identical, validated, and 304 on If-None-Match",
+    {
+      tag: "@global-state",
+    },
+    async ({ request }) => {
+      test.info().annotations.push({
+        type: "global-state",
+        description:
+          "INC-1136: a published scratch language joins the public language list every page reads",
       });
-      expect(conditional.status(), "If-None-Match is honoured").toBe(304);
-    } finally {
-      await cleanup(code, key);
-    }
-  });
-
-  test("IB-2 publishing a fence language moves the version and the bundle", async ({ request }) => {
-    test.setTimeout(150_000); // two bounded TTL windows (15s each) + seeding.
-    const code = scratchLang();
-    const key = `e2e.bundle.pub.${code}`;
-    await ensureLanguage(code, false);
-    await seedApproved(code, key, "published value");
-    try {
-      const unpublished = await request.get(`/api/i18n/${code}`);
-      expect(unpublished.status()).toBe(200);
-      const beforeEtag = unpublished.headers()["etag"];
-      const beforeBody = (await unpublished.json()) as BundlePayload;
-      expect(
-        beforeBody.bundle.copied[key],
-        "an unpublished language serves no rows",
-      ).toBeUndefined();
-
+      const code = scratchLang();
+      const key = `e2e.bundle.${code}`;
       await ensureLanguage(code, true);
-      const { data: published, error } = await adminClient()
-        .from("languages")
-        .select("enabled_public")
-        .eq("code", code)
-        .maybeSingle();
-      if (error) throw new Error(`[e2e:stab-i18n] publish read-back failed: ${error.message}`);
-      expect(published?.enabled_public, "DB truth: the language is published").toBe(true);
+      await seedApproved(code, key, "seeded value");
+      try {
+        const first = await request.get(`/api/i18n/${code}`);
+        expect(first.status(), "first GET").toBe(200);
+        const firstEtag = first.headers()["etag"];
+        expect(firstEtag, "first response carries a strong validator").toBeTruthy();
+        expect(firstEtag?.startsWith("W/")).toBe(false);
+        const firstBody = (await first.json()) as BundlePayload;
+        expect(firstBody.lang).toBe(code);
+        expect(firstBody.bundle.copied[key]).toBe("seeded value");
 
-      const deadline = Date.now() + VERSION_POLL_MS;
-      let lastEtag = beforeEtag;
-      let lastBody: BundlePayload | null = null;
-      while (Date.now() < deadline) {
-        const response = await request.get(`/api/i18n/${code}`);
-        expect(response.status()).toBe(200);
-        lastEtag = response.headers()["etag"];
-        lastBody = (await response.json()) as BundlePayload;
-        if (lastBody.bundle.copied[key] === "published value") break;
-        await new Promise((resolve) => setTimeout(resolve, 2_000));
+        const second = await request.get(`/api/i18n/${code}`);
+        expect(second.status(), "second GET").toBe(200);
+        expect(second.headers()["etag"], "ETag is stable across identical data").toBe(firstEtag);
+        const secondBody = (await second.json()) as BundlePayload;
+        expect(secondBody, "the cached body is byte-equal").toEqual(firstBody);
+
+        const conditional = await request.get(`/api/i18n/${code}`, {
+          headers: { "If-None-Match": firstEtag ?? "" },
+        });
+        expect(conditional.status(), "If-None-Match is honoured").toBe(304);
+      } finally {
+        await cleanup(code, key);
       }
-      expect(
-        lastBody?.bundle.copied[key],
-        `bundle after publish (etag before=${beforeEtag} after=${lastEtag}, ` +
-          `payload=${JSON.stringify(lastBody)})`,
-      ).toBe("published value");
-      expect(lastEtag, "the validator moved with the publication version").not.toBe(beforeEtag);
-    } finally {
-      await cleanup(code, key);
-    }
-  });
+    },
+  );
+
+  test(
+    "IB-2 publishing a fence language moves the version and the bundle",
+    {
+      tag: "@global-state",
+    },
+    async ({ request }) => {
+      test.info().annotations.push({
+        type: "global-state",
+        description:
+          "INC-1136: publishing the scratch language is the condition under test; it joins the public language list every page reads",
+      });
+      test.setTimeout(150_000); // two bounded TTL windows (15s each) + seeding.
+      const code = scratchLang();
+      const key = `e2e.bundle.pub.${code}`;
+      await ensureLanguage(code, false);
+      await seedApproved(code, key, "published value");
+      try {
+        const unpublished = await request.get(`/api/i18n/${code}`);
+        expect(unpublished.status()).toBe(200);
+        const beforeEtag = unpublished.headers()["etag"];
+        const beforeBody = (await unpublished.json()) as BundlePayload;
+        expect(
+          beforeBody.bundle.copied[key],
+          "an unpublished language serves no rows",
+        ).toBeUndefined();
+
+        await ensureLanguage(code, true);
+        const { data: published, error } = await adminClient()
+          .from("languages")
+          .select("enabled_public")
+          .eq("code", code)
+          .maybeSingle();
+        if (error) throw new Error(`[e2e:stab-i18n] publish read-back failed: ${error.message}`);
+        expect(published?.enabled_public, "DB truth: the language is published").toBe(true);
+
+        const deadline = Date.now() + VERSION_POLL_MS;
+        let lastEtag = beforeEtag;
+        let lastBody: BundlePayload | null = null;
+        while (Date.now() < deadline) {
+          const response = await request.get(`/api/i18n/${code}`);
+          expect(response.status()).toBe(200);
+          lastEtag = response.headers()["etag"];
+          lastBody = (await response.json()) as BundlePayload;
+          if (lastBody.bundle.copied[key] === "published value") break;
+          await new Promise((resolve) => setTimeout(resolve, 2_000));
+        }
+        expect(
+          lastBody?.bundle.copied[key],
+          `bundle after publish (etag before=${beforeEtag} after=${lastEtag}, ` +
+            `payload=${JSON.stringify(lastBody)})`,
+        ).toBe("published value");
+        expect(lastEtag, "the validator moved with the publication version").not.toBe(beforeEtag);
+      } finally {
+        await cleanup(code, key);
+      }
+    },
+  );
   /**
    * IB-3 (Part H1) — a `?lang=` that passes the provider's shape test (two to
    * eight letters) and names a member every object inherits finds no compiled

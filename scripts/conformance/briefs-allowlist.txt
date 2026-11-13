@@ -1,5 +1,8 @@
-# The brief laws (scripts/conformance/briefs.test.ts, CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-16 and CF-BRIEF-18, DEC-361): a phrase a
+# The brief laws (scripts/conformance/briefs.test.ts, CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-16, CF-BRIEF-18, CF-BRIEF-19 and CF-BRIEF-20, DEC-361): a phrase a
 # brief must state as written — key "<file>:<line> <phrase>", "<file>:<line> SCOPE names <path>
-# without its test", "<file>:<line> SCOPE names <path>, which rule 00 forbids the executor" or
-# "<file>:<line> names <SETTING>; its newest decision is DEC-<n>" | reason | until.
+# without its test", "<file>:<line> SCOPE names <path>, which rule 00 forbids the executor",
+# "<file>:<line> names <SETTING>; its newest decision is DEC-<n>", "<file>:<line> <id> (RECORDS) is
+# named by <path>, outside SCOPE" or "<file>:<line> cites <list>; no test it cites reads it by name…" | reason | until.
 # A line no finding needs is stale and fails. Empty at birth.
+docs/governance/briefs/ci-time-ruling-1.md:17 cites scripts/conformance/shared-value-tables.txt; no test it cites reads it by name (the tree's: scripts/conformance/lanes.test.ts, scripts/conformance/wired.test.ts) | expected output of CF-BRIEF-20, a law this turn adds: the ruling names the reader by its law (CF-LANES-4), not by its path | DEC-378
+docs/governance/briefs/ci-time-ruling-1.md:17 cites scripts/conformance/shared-values-allowlist.txt; no test it cites reads it by name (the tree's: scripts/conformance/lanes.test.ts, scripts/conformance/wired.test.ts) | expected output of CF-BRIEF-20, a law this turn adds: the ruling names the reader by its law (CF-LANES-4), not by its path | DEC-378

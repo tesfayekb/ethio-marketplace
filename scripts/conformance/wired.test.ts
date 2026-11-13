@@ -351,6 +351,7 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(briefLaws).toContain("CF-BRIEF-14");
     expect(briefLaws).toContain("CF-BRIEF-15");
     expect(briefLaws).toContain("CF-BRIEF-18");
+    expect(briefLaws).toContain("CF-BRIEF-19");
     expect(briefLaws).toContain("CF-BRIEF-20");
     expect(briefLaws).toContain('"scripts/brief/check-go.ts"');
     expect(briefLaws).toContain('from "../brief/go-laws"');
@@ -434,6 +435,13 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/lanes.test.ts"), "utf8")).toContain(
       "CF-LANES-3",
     );
+    // CF-LANES-4 (the CI turn, DEC-378 a, INC-1136): lanes.test.ts runs the shared-value census
+    // (shared-values.ts) over e2e/, the manifest and its allowlist.
+    const lanesLaw = readFileSync(join(ROOT, "scripts/conformance/lanes.test.ts"), "utf8");
+    expect(lanesLaw).toContain("CF-LANES-4");
+    expect(lanesLaw).toContain('from "./shared-values"');
+    expect(lanesLaw).toContain("scripts/conformance/shared-value-tables.txt");
+    expect(lanesLaw).toContain("scripts/conformance/shared-values-allowlist.txt");
     expect(readFileSync(join(ROOT, "scripts/ci/lane-weights.test.ts"), "utf8")).toContain("LWM-2");
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "scripts/ci/lane-plan.ts",

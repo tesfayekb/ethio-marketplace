@@ -1367,47 +1367,60 @@ test.describe("Legal doors", () => {
     expect(audit.error).toBeNull();
     expect(audit.data).toHaveLength(1);
   });
-  test("LG-32 acceptance records the language actually shown, version by version", async () => {
-    const info = test.info();
-    const stem = `${RUN_TAG}-${info.workerIndex}-${info.project.name}-${info.retry}-texts`;
-    const code = `${stem}-lang`;
-    scratchLanguages.add(code);
-    const supabase = adminClient();
-    const language = await supabase.from("languages").insert({
-      code,
-      name_en: `E2E ${code}`,
-      name_native: "E2E",
-      enabled_admin: true,
-      enabled_public: true,
-    });
-    expect(language.error, "scratch public language seed").toBeNull();
-    const translated = await seedFixture(`${stem}-with`, null);
-    const fallback = await seedFixture(`${stem}-without`, null);
-    const text = await supabase.from("legal_version_texts").insert({
-      version_id: translated.publishedId,
-      language: code,
-      body: "Scratch public text",
-    });
-    expect(text.error, "scratch translation seed").toBeNull();
-    const person = await leaseUser();
-    const caller = await asPerson(person);
-    const ids = [translated.publishedId, fallback.publishedId];
-    const accepted = await caller.rpc("accept_legal", {
-      p_version_ids: ids,
-      p_language: code,
-      p_adult: true,
-    });
-    expect(accepted.error).toBeNull();
-    const rows = await supabase
-      .from("legal_acceptances")
-      .select("version_id, language")
-      .eq("user_id", person.id)
-      .in("version_id", ids);
-    expect(rows.error).toBeNull();
-    expect(rows.data).toHaveLength(2);
-    expect(rows.data?.find((row) => row.version_id === translated.publishedId)?.language).toBe(
-      code,
-    );
-    expect(rows.data?.find((row) => row.version_id === fallback.publishedId)?.language).toBe("en");
-  });
+  test(
+    "LG-32 acceptance records the language actually shown, version by version",
+    {
+      tag: "@global-state",
+    },
+    async () => {
+      const info = test.info();
+      info.annotations.push({
+        type: "global-state",
+        description:
+          "INC-1136: accept_legal takes only a public language, so the test publishes a scratch one into the list every page reads",
+      });
+      const stem = `${RUN_TAG}-${info.workerIndex}-${info.project.name}-${info.retry}-texts`;
+      const code = `${stem}-lang`;
+      scratchLanguages.add(code);
+      const supabase = adminClient();
+      const language = await supabase.from("languages").insert({
+        code,
+        name_en: `E2E ${code}`,
+        name_native: "E2E",
+        enabled_admin: true,
+        enabled_public: true,
+      });
+      expect(language.error, "scratch public language seed").toBeNull();
+      const translated = await seedFixture(`${stem}-with`, null);
+      const fallback = await seedFixture(`${stem}-without`, null);
+      const text = await supabase.from("legal_version_texts").insert({
+        version_id: translated.publishedId,
+        language: code,
+        body: "Scratch public text",
+      });
+      expect(text.error, "scratch translation seed").toBeNull();
+      const person = await leaseUser();
+      const caller = await asPerson(person);
+      const ids = [translated.publishedId, fallback.publishedId];
+      const accepted = await caller.rpc("accept_legal", {
+        p_version_ids: ids,
+        p_language: code,
+        p_adult: true,
+      });
+      expect(accepted.error).toBeNull();
+      const rows = await supabase
+        .from("legal_acceptances")
+        .select("version_id, language")
+        .eq("user_id", person.id)
+        .in("version_id", ids);
+      expect(rows.error).toBeNull();
+      expect(rows.data).toHaveLength(2);
+      expect(rows.data?.find((row) => row.version_id === translated.publishedId)?.language).toBe(
+        code,
+      );
+      expect(rows.data?.find((row) => row.version_id === fallback.publishedId)?.language).toBe(
+        "en",
+      );
+    },
+  );
 });

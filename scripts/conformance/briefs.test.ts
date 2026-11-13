@@ -27,6 +27,7 @@ import {
   isTestId,
   keyOf,
   listReaderFindings,
+  recordScopeFindings,
   newTestFindings,
   optionFindings,
   rulingFormFindings,
@@ -60,7 +61,9 @@ import { readAllowlist, report } from "./kit";
  *   turns alone change, so it runs here on the tree as well as through check-go.ts), CF-BRIEF-20 a
  *   cited allowlist or manifest under scripts/conformance/ comes with a cited test that reads it by
  *   name (the CI turn, S603; here on the turn's own tree, where a list the turn makes has its reader,
- *   and through check-go.ts).
+ *   and through check-go.ts), CF-BRIEF-19 each file under scripts/ that names an INC or DEC the
+ *   brief's RECORDS fix or change lies inside its SCOPE, or the brief says why not (app-fixes ruling
+ *   2, built by the CI turn's ruling 1 item 5).
  * - check-go.ts `--at <commit>` judges the tree laws on a snapshot of that commit; CF-BRIEF-14 plants
  *   a scratch repository whose working tree lost the cited line and the counted file.
  * - The TREE laws (CF-BRIEF-5 cited path, 6 cited line, 7 free id, 8 option, 9 assert, 10 count)
@@ -98,13 +101,14 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     expect(report(asReported(baseFindings(readFileSync(brief, "utf8"), brief)))).toBe("");
   });
 
-  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16, CF-BRIEF-18 and CF-BRIEF-20 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited, each cited list's reader cited", () => {
+  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16, CF-BRIEF-18, CF-BRIEF-19 and CF-BRIEF-20 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited, each record's files inside SCOPE, each cited list's reader cited", () => {
     const { brief, rulings } = inForce();
     const findings: Finding[] = [];
     for (const file of [brief, ...rulings]) {
       const text = readFileSync(file, "utf8");
       findings.push(...textFindings(text, file).filter((f) => f.law !== "CF-BRIEF-1"));
       findings.push(...settingDecisionFindings(text, file, process.cwd()));
+      findings.push(...recordScopeFindings(text, file, process.cwd()));
       findings.push(...listReaderFindings(text, file, process.cwd()));
     }
     const keys = templateKeys(readFileSync(TEMPLATE, "utf8"));
@@ -228,6 +232,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     write("scripts/conformance/briefs-allowlist.txt", "# planted header\n");
     write("scripts/conformance/plant-allowlist.txt", "# planted header\n");
     write("scripts/conformance/plant.test.ts", '// reads "plant-allowlist.txt"\n');
+    write("scripts/ci/fixed.ts", "// INC-901: the planted fix\n");
+    write("scripts/lib/other.ts", "// INC-901 is cited here too\n");
     write(
       "docs/governance/go-template.md",
       "<!-- CENSUS-ITEM: consumers -->\n<!-- CENSUS-ITEM: premises -->\n",
@@ -235,7 +241,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     const clean = [
       "CLEAN — a planted GO. Base: dev 2b11a9d29",
       "",
-      "SCOPE: `src/` (each file's tests), `scripts/fresh.test.ts` (new)",
+      "SCOPE: `src/` (each file's tests), `scripts/fresh.test.ts` (new), `scripts/ci/`",
       "",
       "STEP 1 — the census: the consumers and the premises.",
       "The function `alpha` at `src/alpha.ts` :2 is read; `src/alpha.ts` exists; `src/beta.ts` is new.",
@@ -247,6 +253,10 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "The lanes keep `E2E_WORKERS` as DEC-230 set it.",
       "The list `scripts/conformance/plant-allowlist.txt` is read by `scripts/conformance/plant.test.ts`.",
       "Commit `planted: task saved`.",
+      "`scripts/lib/other.ts` names INC-901 and stays outside SCOPE: it cites the fix as history.",
+      "",
+      "RECORDS (word for word)",
+      "INC-901 — the planted defect; FIXED.",
       "",
     ].join("\n");
     const planted = [
@@ -267,6 +277,9 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "The lanes keep `E2E_WORKERS` as DEC-217 set it.",
       "The list `scripts/conformance/plant-allowlist.txt` gains a line.",
       "Commit `planted: a dictated commit title that runs well past the seventy-two characters kept`.",
+      "",
+      "RECORDS (word for word)",
+      "INC-901 — the planted defect; FIXED.",
       "",
     ].join("\n");
     write("briefs/clean.md", clean);
@@ -309,6 +322,15 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(settingDecisionFindings(planted, f, root).map((x) => x.text)).toEqual([
         "names E2E_WORKERS; its newest decision is DEC-230",
       ]);
+      expect(recordScopeFindings(planted, f, root).map((x) => x.text)).toEqual([
+        "INC-901 (RECORDS) is named by scripts/ci/fixed.ts, outside SCOPE",
+        "INC-901 (RECORDS) is named by scripts/lib/other.ts, outside SCOPE",
+      ]);
+      expect(recordScopeFindings(clean, "clean.md", root)).toEqual([]);
+      expect(
+        recordScopeFindings("RULING — planted.\n\nRECORDS\nINC-901 — FIXED.\n", f, root),
+        "a ruling has no SCOPE of its own",
+      ).toEqual([]);
       expect(listReaderFindings(planted, f, root).map((x) => x.text)).toEqual([
         "cites scripts/conformance/plant-allowlist.txt; no test it cites reads it by name (the tree's: scripts/conformance/plant.test.ts)",
       ]);
@@ -360,6 +382,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         expect(lawsOf(treeFindings(clean, "clean.md", bare))).toEqual([
           "CF-BRIEF-10",
           "CF-BRIEF-18",
+          "CF-BRIEF-19",
           "CF-BRIEF-20",
           "CF-BRIEF-3",
           "CF-BRIEF-5",
@@ -487,6 +510,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "CF-BRIEF-15",
         "CF-BRIEF-16",
         "CF-BRIEF-18",
+        "CF-BRIEF-19",
         "CF-BRIEF-2",
         "CF-BRIEF-20",
         "CF-BRIEF-3",
