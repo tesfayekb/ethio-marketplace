@@ -1214,34 +1214,41 @@ The weight guard's FORBIDDEN gains `@radix-ui/react-dialog` and `@radix-ui/react
 
 `bun.lock`'s tarball addresses are the public registry's (`https://registry.npmjs.org/<name>/-/<file>`), so every `bun install --frozen-lockfile` — CI's (`ci.yml`'s five install steps, `local-backend-proof.yml`'s one in each lane, and the nightly, flake-check, guard-proof and feed-bench workflows), the executor's and the supervisor's — fetches from the same place, and bun's `sha512-` integrity check proves the same bytes. The 775 entries that pointed at a platform's private npm cache were rewritten by script, host only, every version and integrity value byte-identical. `scripts/conformance/lockfile-hosts.test.ts`: CF-LOCK-1 reads every URL in `bun.lock` and fails on one whose host is not `registry.npmjs.org` (or that is not `https://`), unless its host has a line `<host> | reason | until` in `scripts/conformance/lockfile-hosts-allowlist.txt` (none); CF-LOCK-2 proves it on a planted lockfile with one private-cache URL. A platform install that rewrites the addresses to its cache fails CI here on its first run.
 
-### A docs-only push runs no browser lane (DEC-365, housekeeping turn 3)
+### A proven code tree runs no browser lane (DEC-365, housekeeping turn 3; DEC-375 a, the speed turn)
 
-ci.yml's first job `scope` runs `scripts/ci/docs-only.ts`. A push is docs-only when its base is
-known (`github.event.before`: the push's, or the pull request's previous head on `synchronize`;
-anything else, or all zeros, is unknown) AND, walking at most ten commits along the first parents
-from that base (the base itself first), the newest commit whose own CI run on the same ref
-concluded success with a lane job `success` and the E2E verdict `success` is found AND every path
-of `git diff <that commit> <sha>` is a record: `docs/**` but never `docs/generated/**`, `.cursor/**`,
-or a `*.md` at the root (`roadmap.md`, `README.md`, `AGENTS.md`). Each run is read from the Actions
-API (`actions: read`, the workflow's token) through `scripts/ci/with-deadline.sh` (30 s, two tries);
-a failed read, a missing commit or a walk past the bound runs the lanes. The job's outputs are
-`docs_only` and `lanes` (one line), and its log carries `DEC-365 lanes: <line>`:
+ci.yml's first job `scope` runs `scripts/ci/docs-only.ts`. A push's CODE TREE is its commit's tree
+with every record set aside — a record is `docs/**` but never `docs/generated/**`, `.cursor/**`, or
+a `*.md` at the root (`roadmap.md`, `README.md`, `AGENTS.md`) — and `codeTreeId` names it: the
+sha256 of the commit's `git ls-tree -r -z` entries (mode, type, object, path) that are not records.
+A pull request's run computes it for the merge commit it tests (`GITHUB_SHA`), a push for its head.
 
-- `skipped — docs-only push; the code tree equals <commit>, whose lanes were green in run <id>`
-- `ran — not docs-only: <reason>` (the reason names the push's base and, past the walk, the diff's
-  base: an unknown base, a failed read, no green commit within the bound, or the first path that is
-  not a record, with the count).
+When the lanes RUN, the job uploads the artifact `code-tree-<id>` (`code-tree.txt`: the commit, the
+event, the ref, the id; `overwrite: true`, kept 30 days). It carries no claim about the run's
+results. Before that, the job looks its own id up: one read of `actions/artifacts?name=code-tree-<id>`
+(`actions: read`, the workflow's token, through `scripts/ci/with-deadline.sh`, 30 s, two tries);
+the indexed runs newest first, at most five, never the run itself and never a fork's
+(`head_repository_id` ≠ `repository_id`). A run counts only when its workflow is
+`.github/workflows/ci.yml`, it completed with conclusion success, a lane job succeeded and the E2E
+verdict succeeded (the standard `promote` uses; a test that passed on retry is ledgered by the run
+that saw it). The first that counts is reused. A failed read, an answer of another shape, or no run
+that counts runs the lanes. So the merge commit of a pull request proven green, and a docs-only
+push on a proven tree, run no lanes again. DEC-365's first-parent walk is retired into this rule.
+The job's outputs are `docs_only` ("the code tree is proven"; the name stays for its readers),
+`lanes` (one line) and `tree`, and its log carries `DEC-365 lanes: <line>`:
 
-When docs-only: `e2e-lanes` and `bundle-budget` do not run; the verdict job writes
-`docs/tracking/e2e-last-failure.md` in its skipped form (`last E2E run <id> ran no lanes
-(docs-only push, DEC-365)` and `- Lanes: skipped — …`), reads no source, appends no ledger line,
-and passes; the status reporter lists the two jobs as `skipped (docs-only)` with the `- Lanes:` line
-under the run's URL; `promote` reads the explicit condition above. Otherwise every report carries the
-`- Lanes: ran — …` line and the graph is the one before DEC-365. A pull request's diff runs from the
-lane's previous head to the new merge commit, so it also holds what dev gained since: that error
-runs the lanes (ruling 1, Q9). Guards: CF-DOCS-1…6 (`scripts/ci/docs-only.test.ts`, on the Actions
-API's real answers for runs 43103925609 and 43033934604 under `scripts/fixtures/docs-only/`),
-`check-promote-needs.sh` with its planted fixture, and the reporter's DEC-365 self-test.
+- `skipped — the code tree was proven by run <id> (<event>, <ref>, head <sha7>)`
+- `ran — no proven code tree: <reason>` (the tree could not be read, a named read failed, or no
+  green ci.yml run of this repository holds the index, with the count read).
+
+When proven: `e2e-lanes` and `bundle-budget` do not run; the verdict job writes
+`docs/tracking/e2e-last-failure.md` in its skipped form (`last E2E run <id> ran no lanes — the code
+tree was proven by run <id>` and `- Lanes: skipped — …`), reads no source, appends no ledger line,
+and passes; the status reporter lists the two jobs as `skipped (proven tree)` with the `- Lanes:`
+line under the run's URL; `promote` reads the explicit condition above. Otherwise every report
+carries the `- Lanes: ran — …` line. Guards: CF-DOCS-1…10 (`scripts/ci/docs-only.test.ts`, on the
+Actions API's real answers under `scripts/fixtures/docs-only/` and real `git ls-tree` output of a
+scratch repository; CF-DOCS-10 proves the skipped line meets both readers), `check-promote-needs.sh`
+with its planted fixture, and the reporter's DEC-365 self-test.
 `bun run checks` does not run `scope` (`scope › *` in turn-checks-allowlist.txt).
 
 ## No compiler directive — CF-NN-3 (housekeeping turn 4)

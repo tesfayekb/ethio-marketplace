@@ -126,3 +126,6 @@ scripts/conformance/plan-seam-allowlist.txt
 src/components/ui/chart.tsx
 # pictures part B [intentional-delete] (ruling 1, answer 3c): the unused export AvatarImage of
 # src/components/ui/avatar.tsx (an image path with no caller) is removed; the file and its other exports stay
+# speed part B [intentional-delete] (ruling 1, Q2): DEC-365's first-parent walk is retired; its runs-list
+# fixture has no reader (the lookup reads the artifacts index and one run, CF-DOCS-1…10)
+scripts/fixtures/docs-only/runs-8511aeed9.json
