@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `3bcacd84beb9310b1ab3508a008db7f516bc50aa`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43572457160
+- Commit: `b125205b511d5e1e2ee82fb3748874480494c695`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43579527857
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 343 | 50 | applied 442/442 | 27 | 0 | 0 | 5 | 32 |
-| email | 207 | 66 | applied 442/442 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 803 | 76 | applied 442/442 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 491 | 52 | applied 442/442 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 488 | 60 | applied 442/442 | 174 | 0 | 0 | 26 | 200 |
-| 3 | 539 | 54 | applied 442/442 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 563 | 63 | applied 442/442 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 546 | 60 | applied 442/442 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 628 | 77 | applied 442/442 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 585 | 67 | applied 442/442 | 147 | 0 | 0 | 77 | 224 |
-| 8 | 572 | 64 | applied 442/442 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 1294 | 58 | applied 442/442 | 89 | 34 | 0 | 1 | 124 |
-| 10 | 447 | 59 | applied 442/442 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 501 | 60 | applied 442/442 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 586 | 62 | applied 442/442 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 525 | 61 | applied 442/442 | 156 | 0 | 1 | 9 | 166 |
-| 14 | 604 | 75 | applied 442/442 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 592 | 57 | applied 442/442 | 120 | 4 | 0 | 8 | 132 |
-| 16 | 559 | 50 | applied 442/442 | 164 | 8 | 0 | 48 | 220 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2499 | 46 | 1 | 360 | 2906 |
+| smoke | 355 | 60 | applied 443/443 | 27 | 0 | 0 | 5 | 32 |
+| email | 215 | 76 | applied 443/443 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 796 | 75 | applied 443/443 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 512 | 60 | applied 443/443 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 549 | 62 | applied 443/443 | 174 | 0 | 0 | 26 | 200 |
+| 3 | 525 | 61 | applied 443/443 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 491 | 53 | applied 443/443 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 603 | 76 | applied 443/443 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 615 | 71 | applied 443/443 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 624 | 75 | applied 443/443 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 564 | 63 | applied 443/443 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 489 | 60 | applied 443/443 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 626 | 75 | applied 443/443 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 621 | 75 | applied 443/443 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 490 | 49 | applied 443/443 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 442 | 50 | applied 443/443 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 543 | 62 | applied 443/443 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 523 | 61 | applied 443/443 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 634 | 76 | applied 443/443 | 172 | 0 | 0 | 48 | 220 |
+| repeat | 996 | 64 | applied 443/443 | 106 | 0 | 0 | 26 | 132 |
+| TOTAL | — | — | — | 2652 | 0 | 0 | 386 | 3038 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 9 1294 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 4, email 7, webkit 9, 1 5, 2 6, 3 5, 4 7, 5 6, 6 9, 7 8, 8 7, 9 6, 10 5, 11 6, 12 7, 13 6, 14 9, 15 5, 16 4, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/339, 2 641/337, 3 641/373, 4 640/382, 5 640/379, 6 641/432, 7 641/402, 8 641/396, 9 641/1148, 10 643/303, 11 640/358, 12 641/414, 13 640/344, 14 641/420, 15 641/425, 16 641/414
+- Slowest lane: repeat 996 s
+- Repeat lane (DEC-283): Not repeated: e2e/admin-users.spec.ts (14 tests); Repeat: each 2 on both projects; 47 tests selected, 33 repeated; budget 643 s at 4.7 s a test; directly changed: 3 of 4 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 1 of the repeated tests, on webkit-1280 and webkit-390; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-10 members link preselects the role filter via the URL / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-16 the roles list on the agreed blocks: heading, Create role, Columns, Open and View members / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-17 P-1: the matrix shows the packages resource with View and Update, Update marked step-up / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-4 system lock: super_admin role is read-only in UI and refused by the RPCs / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-5 delete guards: members block deletion; typed confirm deletes / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-6 revocation path: unenrolling the factor refuses the next change / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-7 registration: DEC-016 permissions appear as grantable rows / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-8 Amharic + no horizontal overflow / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / FIX-SCAN-1 step-up abort / MF-7b cancelling the prompt releases the caller and writes nothing / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / FIX-SCAN-1 step-up abort / MF-7c a no-factor identity is released with the hint / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-1 enroll: QR + secret shown, a generated code activates the factor / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-1 enroll: QR + secret shown, a generated code activates the factor / webkit-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-1 enroll: QR + secret shown, a generated code activates the factor / webkit-390; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-2 gate: wrong code refused, correct code lets the action through / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-3 no factor: the modal explains and the RPC is never called / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-4 server: permission first, then step-up — the RPC refuses regardless of UI / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-5 unenroll requires a fresh verification / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f step-up authentication / MF-8 the gate's dialog is not in the page's first download; the first step-up fetches it and draws it on the top layer / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f-4 step-up freshness / MF-6 unenrolling the only factor drops the stepped-up state / desktop-1280; Not repeated (time cap): mfa-stepup.spec.ts / U1f-4 step-up freshness / MF-7 a verification older than the window re-prompts / desktop-1280
+- Database session samples during each start (INC-944): smoke 5, email 9, webkit 9, 1 6, 2 7, 3 6, 4 5, 5 9, 6 8, 7 9, 8 7, 9 6, 10 9, 11 9, 12 4, 13 5, 14 7, 15 6, 16 9, repeat 7
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/347, 2 641/370, 3 641/374, 4 640/336, 5 640/402, 6 641/422, 7 641/437, 8 641/383, 9 641/341, 10 643/416, 11 640/435, 12 641/340, 13 640/297, 14 641/369, 15 641/381, 16 641/438
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43572457160-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43572457160-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43572457160-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43572457160-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43572457160-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43572457160-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43572457160-local-8
-  - 9: [e2e:teardown] deleted 21 user(s) owned by process 43572457160-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43572457160-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43572457160-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43572457160-local-14
-  - 15: [e2e:teardown] deleted 47 user(s) owned by process 43572457160-local-15
-  - 16: [e2e:teardown] deleted 31 user(s) owned by process 43572457160-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43579527857-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 43579527857-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43579527857-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43579527857-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43579527857-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43579527857-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43579527857-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43579527857-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43579527857-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43579527857-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43579527857-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 43579527857-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43579527857-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43579527857-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43579527857-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43579527857-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43579527857-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 43579527857-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 43579527857-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -78,68 +78,8 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 9
-- Step failure:
-Step smoke: outcome failure
-  
-- admin-audit.spec.ts / U3 audit & security / IMP-1 impersonation: super admin opens a read-only session and ends it / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-audit.spec.ts / U3 audit & security / IMP-2 dual-actor audit: start and end are both recorded / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-audit.spec.ts / U3 audit & security / IMP-3 server refusals: self and a super-admin target / mobile-360 — Error: expect(received).toContain(expected) // indexOf
-- admin-audit.spec.ts / U3 audit & security / IMP-5 server refusal: a caller who is not a super admin / mobile-360 — Error: expect(received).toContain(expected) // indexOf
-- admin-audit.spec.ts / U3 audit & security / IMP-1 impersonation: super admin opens a read-only session and ends it / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-audit.spec.ts / U3 audit & security / IMP-2 dual-actor audit: start and end are both recorded / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-audit.spec.ts / U3 audit & security / IMP-3 server refusals: self and a super-admin target / desktop-1280 — Error: expect(received).toContain(expected) // indexOf
-- admin-audit.spec.ts / U3 audit & security / IMP-5 server refusal: a caller who is not a super admin / desktop-1280 — Error: expect(received).toContain(expected) // indexOf
-- admin-roles.spec.ts / U2 roles console / RP-2 create: a super admin creates a custom role through step-up / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-3 matrix: grant then revoke a benign permission, persisted across reload / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-4 system lock: super_admin role is read-only in UI and refused by the RPCs / mobile-360 — Error: expect(received).toMatch(expected)
-- admin-roles.spec.ts / U2 roles console / RP-5 delete guards: members block deletion; typed confirm deletes / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-6 revocation path: unenrolling the factor refuses the next change / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-7 registration: DEC-016 permissions appear as grantable rows / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-8 Amharic + no horizontal overflow / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-10 members link preselects the role filter via the URL / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-16 the roles list on the agreed blocks: heading, Create role, Columns, Open and View members / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-17 P-1: the matrix shows the packages resource with View and Update, Update marked step-up / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-2 create: a super admin creates a custom role through step-up / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-3 matrix: grant then revoke a benign permission, persisted across reload / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-4 system lock: super_admin role is read-only in UI and refused by the RPCs / desktop-1280 — Error: expect(received).toMatch(expected)
-- admin-roles.spec.ts / U2 roles console / RP-5 delete guards: members block deletion; typed confirm deletes / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-6 revocation path: unenrolling the factor refuses the next change / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-7 registration: DEC-016 permissions appear as grantable rows / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-8 Amharic + no horizontal overflow / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-10 members link preselects the role filter via the URL / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-16 the roles list on the agreed blocks: heading, Create role, Columns, Open and View members / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-roles.spec.ts / U2 roles console / RP-17 P-1: the matrix shows the packages resource with View and Update, Update marked step-up / desktop-1280 — Error: expect(locator).toBeVisible() failed
-
-## Lane 13
-- submenu-touch.spec.ts / SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, panel rows the rail's / desktop-1280 — Error: SMN-E3 a panel row is at most the rail's (D248)
-
-## Lane 15
-- Step failure:
-Step smoke: outcome failure
-  
-- i18n-sign-in-language.spec.ts / D239 — the account's language at sign-in / D239-E6 impersonation leaves the staff member's own language as it was, at start and at end / mobile-360 — Error: expect(locator).toBeVisible() failed
-- i18n-sign-in-language.spec.ts / D239 — the account's language at sign-in / D239-E6 impersonation leaves the staff member's own language as it was, at start and at end / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- mfa-stepup.spec.ts / U1f step-up authentication / MF-4 server: permission first, then step-up — the RPC refuses regardless of UI / mobile-360 — Error: expect(received).toMatch(expected)
-- mfa-stepup.spec.ts / U1f step-up authentication / MF-4 server: permission first, then step-up — the RPC refuses regardless of UI / desktop-1280 — Error: expect(received).toMatch(expected)
-
-## Lane 16
-- Step failure:
-Step smoke: outcome failure
-  
-- admin-users.spec.ts / U1 admin users / AU-6 negative: a base user cannot call the status RPC / mobile-360 — Error: expect(received).toContain(expected) // indexOf
-- admin-users.spec.ts / U1 admin users / AU-10 edit: a duplicate alias is refused inline and nothing changes / mobile-360 — Error: expect(locator).toHaveText(expected) failed
-- admin-users.spec.ts / U1 admin users / AU-12 edit: a reserved name needs a reason of ten characters / mobile-360 — Error: expect(locator).toHaveText(expected) failed
-- admin-users.spec.ts / U1 admin users / AU-6 negative: a base user cannot call the status RPC / desktop-1280 — Error: expect(received).toContain(expected) // indexOf
-- admin-users.spec.ts / U1 admin users / AU-10 edit: a duplicate alias is refused inline and nothing changes / desktop-1280 — Error: expect(locator).toHaveText(expected) failed
-- admin-users.spec.ts / U1 admin users / AU-12 edit: a reserved name needs a reason of ten characters / desktop-1280 — Error: expect(locator).toHaveText(expected) failed
-- admin-users.spec.ts / D189 deactivated staff / AU-14 a deactivated staff account holds no permission: the staff door refuses it and has_permission answers false (D189) / mobile-360 — Error: expect(received).toMatch(expected)
-- admin-users.spec.ts / D189 deactivated staff / AU-14 a deactivated staff account holds no permission: the staff door refuses it and has_permission answers false (D189) / desktop-1280 — Error: expect(received).toMatch(expected)
+## Lane repeat
+- Outside test — Timed out waiting 763s for the test suite to run
+- Outside test — Timed out waiting 763s for the teardown for test suite to run
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
