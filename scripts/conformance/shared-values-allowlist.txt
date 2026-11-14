@@ -1,0 +1,7 @@
+# CF-LANES-4 (scripts/conformance/lanes.test.ts) — a write site on a shared-value table that moves no shared value: `<file>::<test id or function>::<table>` | reason | until
+e2e/admin-translations-governance.spec.ts::TR-20m::languages | moves its own fence language's sort; a fence is never public (DEC-148) | INC-1136
+e2e/admin-translations-governance.spec.ts::TR-31::languages | writes its own scratch language, never public | INC-1136
+e2e/legal-admin.spec.ts::LGA-22::languages | turns off the admin flag of its own fence language, never public | INC-1136
+e2e/legal-admin.spec.ts::afterEach::languages | removes the tests' own fence languages | INC-1136
+e2e/legal-doors.spec.ts::afterEach::languages | removes LG-32's scratch language; LG-32 runs in the serial lane, and after every other test the set is empty | INC-1136
+e2e/my-listings-promote.spec.ts::LVP-5::listing_packages | moves its own scratch reach row, still above every real reach | INC-1136

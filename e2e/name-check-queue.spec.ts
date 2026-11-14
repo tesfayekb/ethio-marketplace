@@ -203,42 +203,50 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
     });
   });
 
-  test("NCQ-E2E-3 Resume: a paused re-check names its reason; staff resume it under step-up; the pause is gone and audited", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1280", "J6: the job's one pause row");
-    const started = new Date().toISOString();
-    const set = await adminClient().rpc("job_pause_set", { p_job: JOB, p_reason: "credits" });
-    if (set.error) throw new Error(`[e2e:ncq] job_pause_set: ${set.error.message}`);
-    paused = true;
+  test(
+    "NCQ-E2E-3 Resume: a paused re-check names its reason; staff resume it under step-up; the pause is gone and audited",
+    {
+      tag: "@global-state",
+    },
+    async ({ page }, testInfo) => {
+      testInfo.annotations.push({
+        type: "global-state",
+        description: "INC-1136: the job's one pause row stops the name re-check for every caller",
+      });
+      test.skip(testInfo.project.name !== "desktop-1280", "J6: the job's one pause row");
+      const started = new Date().toISOString();
+      const set = await adminClient().rpc("job_pause_set", { p_job: JOB, p_reason: "credits" });
+      if (set.error) throw new Error(`[e2e:ncq] job_pause_set: ${set.error.message}`);
+      paused = true;
 
-    const staff = await signInJobSuperAdmin(page);
-    await gotoReady(page, "/admin/screening");
-    const line = page.getByTestId("admin-job-line");
-    await expect(line).toHaveAttribute("data-state", "paused", { timeout: 15000 });
-    await expect(line).toContainText(en["admin.screening.job.pause.credits"]);
+      const staff = await signInJobSuperAdmin(page);
+      await gotoReady(page, "/admin/screening");
+      const line = page.getByTestId("admin-job-line");
+      await expect(line).toHaveAttribute("data-state", "paused", { timeout: 15000 });
+      await expect(line).toContainText(en["admin.screening.job.pause.credits"]);
 
-    await line.getByTestId("admin-job-resume").click();
-    await stepUpIfPrompted(page, staff.secret);
-    await expect(page.getByText(en["admin.screening.job.resume.done"])).toBeVisible({
-      timeout: 15000,
-    });
-    await expect(line).not.toHaveAttribute("data-state", "paused");
-    await expect(line).not.toHaveAttribute("data-state", "error");
-    await expect(page.getByTestId("admin-job-resume")).toHaveCount(0);
+      await line.getByTestId("admin-job-resume").click();
+      await stepUpIfPrompted(page, staff.secret);
+      await expect(page.getByText(en["admin.screening.job.resume.done"])).toBeVisible({
+        timeout: 15000,
+      });
+      await expect(line).not.toHaveAttribute("data-state", "paused");
+      await expect(line).not.toHaveAttribute("data-state", "error");
+      await expect(page.getByTestId("admin-job-resume")).toHaveCount(0);
 
-    // DB truth (J4): no pause row, and one job.resumed audit row by this staff member.
-    const pauses = await adminClient().from("job_pauses").select("job").eq("job", JOB);
-    expect(pauses.error).toBeNull();
-    expect(pauses.data).toEqual([]);
-    paused = false;
-    const audit = await adminClient()
-      .from("audit_log")
-      .select("actor_id")
-      .eq("action", "job.resumed")
-      .eq("entity_id", JOB)
-      .gte("created_at", started);
-    expect(audit.error).toBeNull();
-    expect(audit.data?.map((r) => r.actor_id)).toEqual([staff.user.id]);
-  });
+      // DB truth (J4): no pause row, and one job.resumed audit row by this staff member.
+      const pauses = await adminClient().from("job_pauses").select("job").eq("job", JOB);
+      expect(pauses.error).toBeNull();
+      expect(pauses.data).toEqual([]);
+      paused = false;
+      const audit = await adminClient()
+        .from("audit_log")
+        .select("actor_id")
+        .eq("action", "job.resumed")
+        .eq("entity_id", JOB)
+        .gte("created_at", started);
+      expect(audit.error).toBeNull();
+      expect(audit.data?.map((r) => r.actor_id)).toEqual([staff.user.id]);
+    },
+  );
 });

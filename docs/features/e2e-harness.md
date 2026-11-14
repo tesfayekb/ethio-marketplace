@@ -600,12 +600,31 @@ specs the sixteen run. J8's `@global-state` tests run there, serially, on every 
 since the app-fixes turn (INC-1135; `SERIAL_TAGS` holds both tags and `NIGHTLY_TAGS`
 none): TR-30 failed there on the speed turn's first run for a cause in the pseudo
 generator (INC-1137), not in its fixture. CF-LANES-1 has no allowlist line, and its
-planted cases find an `@a11y` or a `@global-state` test in no lane. Every lane runs one worker:
-DEC-376's two workers met its revert rule on that run (ATR-1 read a level rank that
-MON-16's scratch level moved, in the same lane's backend).
+planted cases find an `@a11y` or a `@global-state` test in no lane. Lanes 1 → 16 run two
+workers since the CI turn (DEC-378 a; the smoke, e-mail, WebKit and repeat lanes one,
+CF-LANES-3). DEC-376's two workers had met its revert rule on the speed turn's first run (ATR-1
+read a level rank that MON-16's scratch level moved, in the same lane's backend); INC-1136,
+below, removed that class.
+Since the CI turn (INC-1136) no scratch row moves a shared value in a split lane: a test
+whose write changes a value that rows it did not create carry (a level's rank, the public
+language list, a job's pause), or whose subject is a value other tests' own rows change
+(the monetisation strip's first unpriced pair, MON-16/17), runs in the serial lane
+(`@global-state`, its reason in a `global-state` annotation); any other writer goes
+through a helper whose placement moves none — `seedProduct` places its row after every
+row of its kind, `seedScratchReaches` its reaches above every real one,
+`ensureFenceLanguage` a language never public. LG-33's rank snapshot is keyed to the
+real levels. `scripts/conformance/shared-value-tables.txt` names each shared-value table
+(why, the doors that write it, the sanctioned helpers) and each table a migration gives
+a statement-level trigger whose writes move no such value ("read, not shared").
+CF-LANES-4 (`scripts/conformance/shared-values.ts`, run by `lanes.test.ts`) reads every
+service-client write under `e2e/` on those tables (`.from("<table>")…insert|update|
+upsert|delete(`, and `.rpc("<door>"` for a door the manifest names); the helper is the
+unit, so a writing function's calls are the sites. A site outside `@global-state` and
+the sanctioned helpers fails unless `shared-values-allowlist.txt` names it, and a table
+with a statement-level trigger that the manifest does not name fails.
 Each numbered lane's evidence carries its `- Plan (DEC-375 b):` line and the plan's
 line; the summary's `- Lane plan (DEC-375 b):` line adds planned against test seconds
-per lane. Guards: CF-LANES-1 → 3 (`scripts/conformance/lanes.test.ts`, the one-worker
+per lane. Guards: CF-LANES-1 → 4 (`scripts/conformance/lanes.test.ts`, the one-worker
 lanes in `lanes-allowlist.txt`) and LWM-1/2 (`scripts/ci/lane-weights.test.ts`). The
 weights are refreshed by running the maker on a newer green run when they are the
 cause of a lane more than 25 % over the mean.
@@ -644,13 +663,13 @@ proof evidence; the operator dispatches the separate FV-1 Flake check (DEC-184).
 
 ## INC-817 — a scratch market's code comes from the worker's own slot
 
-scratchCountryCode draws from the user-assigned codes whose position modulo 8 equals the worker's TEST_PARALLEL_INDEX, so two workers running at the same moment never pick the same market (CO-7 collided on XR with two workers, bundle 22 turn 22b). CI runs two workers a lane since DEC-376 (the email lane and the serial lane one); local runs default to two.
+scratchCountryCode draws from the user-assigned codes whose position modulo 8 equals the worker's TEST_PARALLEL_INDEX, so two workers running at the same moment never pick the same market (CO-7 collided on XR with two workers, bundle 22 turn 22b). CI runs two workers in lanes 1 → 16 since DEC-378 (a) (the serial, e-mail, WebKit and repeat lanes one); local runs default to two.
 
 ## Authoring laws (Knowledge J1–J9)
 
 Knowledge v3.11 (2026-10-23, DEC-238) binds these nine laws from here; they are the v3.10 text, verbatim, identifiers unchanged. Read them before touching e2e/\*\*.
 
-J. TEST AUTHORING J1 Every mutable fixture is namespaced run × job (E2E_SHARD) × worker × project × test tag; every scratch slug/key starts with e2e- (letters-only prefix where a door forbids digits). J2 Global-sweep tests run in a fence language per project; real catalog keys are read-only to specs. J3 Never edit real reference rows in ANY project; per-axes scratch entities, deleted in a hook that survives a timeout (afterEach, not only a body finally) by a destroy that throws on failure; lane 1 of every pull-request run and the nightly's first run own the maintenance pass that reaps residue (DEC-369), and every setup heals the EN rows. J4 Bulk/count assertions read per-key DB truth via the service client; summaries asserted for visibility only; mismatches throw with the page/query-cache/audit dump. J5 Locators via the viewport-aware twin helpers, never bare prefix + .first(); fixtures via service-client TABLE operations; bulk tests carry a budget and named phases; anchor on structure, never English. J6 Tests mutating a global list run in ONE project; invariants and public-surface anchors exclude other tests' rows; never locate a real row by page position on a shared roster (search or DB truth). J7 Seed before navigate; assert seeded rows render before acting; polls shorter than the budget so failures assert with values. J8 @global-state tests run serial-only in the nightly (DEC-028), quarantined non-gating until DEC-026 coverage; flaky passes are ledgered (DEC-030), 3-in-7-days → INC. J9 Identity: the pool for consumers; tests mutating their own auth state carry @private-identity and take the real door.
+J. TEST AUTHORING J1 Every mutable fixture is namespaced run × job (E2E_SHARD) × worker × project × test tag; every scratch slug/key starts with e2e- (letters-only prefix where a door forbids digits). J2 Global-sweep tests run in a fence language per project; real catalog keys are read-only to specs. J3 Never edit real reference rows in ANY project; per-axes scratch entities, deleted in a hook that survives a timeout (afterEach, not only a body finally) by a destroy that throws on failure; lane 1 of every pull-request run and the nightly's first run own the maintenance pass that reaps residue (DEC-369), and every setup heals the EN rows. J4 Bulk/count assertions read per-key DB truth via the service client; summaries asserted for visibility only; mismatches throw with the page/query-cache/audit dump. J5 Locators via the viewport-aware twin helpers, never bare prefix + .first(); fixtures via service-client TABLE operations; bulk tests carry a budget and named phases; anchor on structure, never English. J6 Tests mutating a global list run in ONE project; invariants and public-surface anchors exclude other tests' rows; never locate a real row by page position on a shared roster (search or DB truth). J7 Seed before navigate; assert seeded rows render before acting; polls shorter than the budget so failures assert with values. J8 @global-state tests run serial-only in the serial lane, on every push (`SERIAL_TAGS`, scripts/ci/lane-plan.ts); flaky passes are ledgered (DEC-030), 3-in-7-days → INC. J9 Identity: the pool for consumers; tests mutating their own auth state carry @private-identity and take the real door.
 
 A test that polls database truth or navigates after a wizard change calls awaitDraftSaved(page) first (e2e/helpers/ui.ts) — INC-809.
 

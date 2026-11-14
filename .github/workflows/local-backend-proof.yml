@@ -174,9 +174,9 @@ jobs:
       E2E_LOCAL_BACKEND: "1"
       E2E_SHARD: ${{ matrix.lane == 'smoke' && 'localproof' || format('local-{0}', matrix.lane) }}
       PROOF_LANE: ${{ matrix.lane }}
-      # DEC-376's count restarted: two workers shared a backend on the speed turn's first run
-      # (ATR-1 read a level rank MON-16's scratch level moved), so every lane runs one. CF-LANES-3.
-      E2E_WORKERS: "1"
+      # DEC-378 (a): the lanes the plan splits run two workers, since no scratch row moves a shared
+      # value there (INC-1136, CF-LANES-4); the serial, e-mail, WebKit and repeat lanes run one. CF-LANES-3.
+      E2E_WORKERS: ${{ (matrix.lane == 'smoke' || matrix.lane == 'email' || matrix.lane == 'webkit' || matrix.lane == 'repeat') && '1' || '2' }}
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"

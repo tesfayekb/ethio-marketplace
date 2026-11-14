@@ -80,6 +80,9 @@ function probes(): { inputs: string[]; env: Record<string, string> } {
   const part = () => randomBytes(9).toString("base64url");
   const secret = randomBytes(16).toString("base64url");
   const jwt = `${"eyJ"}${part()}.${"eyJ"}${part()}.${part()}`;
+  // INC-1138: a JWT's last character may be "-" or "_"; fixed here, not left to chance.
+  const dashJwt = `${"eyJ"}${part()}.${"eyJ"}${part()}.${part()}-`;
+  const underscoreJwt = `${"eyJ"}${part()}.${"eyJ"}${part()}.${part()}_`;
   const keys = `sb_${"secret"}_${part()} sb_${"publishable"}_${part()}`;
   // INC-1114: a key's last character may be "-" or "_"; fixed here, not left to chance.
   const dashKey = `sb_${"secret"}_${part()}-`;
@@ -91,6 +94,8 @@ function probes(): { inputs: string[]; env: Record<string, string> } {
       "\u001b[2mtoken",
       `hex ${hex} commit ${COMMIT}`,
       `jwt ${jwt}`,
+      `dash jwt ${dashJwt} then`,
+      `underscore jwt ${underscoreJwt}.`,
       `keys ${keys}`,
       "│ Secret Key │ abcdef │",
       `env ${secret}`,
@@ -133,6 +138,8 @@ describe("the lanes' evidence has one redaction (housekeeping turn 3)", () => {
       "token",
       `hex [masked hex] commit ${COMMIT}`,
       "jwt [masked JWT]",
+      "dash jwt [masked JWT] then",
+      "underscore jwt [masked JWT].",
       "keys [masked key] [masked key]",
       "│ Secret Key │ [masked] │",
       "env [masked]",

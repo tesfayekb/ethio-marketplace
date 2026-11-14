@@ -1,9 +1,9 @@
 /**
  * DEC-375 (a), the speed turn — A PROVEN CODE TREE IS NOT PROVEN AGAIN (DEC-365's first-parent walk
  * retired into this rule). A push's code tree is its commit's tree with every record (docs, the
- * roadmap, the rules, the agent file) set aside; `codeTreeId` names it. ci.yml's first job `scope`
- * runs this file: when the lanes RUN it uploads the artifact `code-tree-<id>` (the commit, the event,
- * the ref), and before that it looks its own id up. `e2e-lanes`, `bundle-budget`, the E2E verdict
+ * roadmap, the rules, the agent file, the brief allowlist) set aside; `codeTreeId` names it.
+ * ci.yml's first job `scope` runs this file: when the lanes RUN it uploads the artifact
+ * `code-tree-<id>` (the commit, the event, the ref), and before that it looks its own id up. `e2e-lanes`, `bundle-budget`, the E2E verdict
  * and `promote` read its outputs (`docs_only` keeps its name: "the code tree is proven"), and the
  * status reporter reads its `DEC-365 lanes:` log line.
  *
@@ -39,8 +39,19 @@ export const JOBS_JQ = "[.jobs[] | {name, conclusion}]";
 const SHA = /^[0-9a-f]{40}$/;
 const TREE_ID = /^[0-9a-f]{64}$/;
 
-/** A record: `docs/**` but never `docs/generated/**`, `.cursor/**`, or a `*.md` at the root. */
+/**
+ * DEC-378 (b), the CI turn — files set aside exactly like a record: no lane and no first-download
+ * step reads them, and their one CI reader (`scripts/conformance/briefs.test.ts`) runs in Component
+ * tests, which a proven tree still runs.
+ */
+export const SET_ASIDE: readonly string[] = ["scripts/conformance/briefs-allowlist.txt"];
+
+/**
+ * A record: `docs/**` but never `docs/generated/**`, `.cursor/**`, a `*.md` at the root, or a
+ * SET_ASIDE path.
+ */
 export function isRecord(path: string): boolean {
+  if (SET_ASIDE.includes(path)) return true;
   if (path.startsWith("docs/generated/")) return false;
   if (path.startsWith("docs/") || path.startsWith(".cursor/")) return true;
   return !path.includes("/") && path.endsWith(".md");
