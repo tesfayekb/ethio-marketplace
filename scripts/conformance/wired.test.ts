@@ -446,6 +446,12 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "scripts/ci/lane-plan.ts",
     );
+    // forms.test.ts CF-FORM-1 → 5 (the forms-kit turn, DEC-339) is discovered by test:unit's
+    // scripts/**/*.test.ts; it runs forms.ts's census over src/ against forms-allowlist.txt.
+    const formsLaw = readFileSync(join(ROOT, "scripts/conformance/forms.test.ts"), "utf8");
+    expect(formsLaw).toContain("CF-FORM-5");
+    expect(formsLaw).toContain('from "./forms"');
+    expect(formsLaw).toContain("scripts/conformance/forms-allowlist.txt");
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {
