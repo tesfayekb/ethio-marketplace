@@ -4,5 +4,3 @@
 # "<file>:<line> names <SETTING>; its newest decision is DEC-<n>", "<file>:<line> <id> (RECORDS) is
 # named by <path>, outside SCOPE" or "<file>:<line> cites <list>; no test it cites reads it by name…" | reason | until.
 # A line no finding needs is stale and fails. Empty at birth.
-docs/governance/briefs/ci-time-ruling-1.md:17 cites scripts/conformance/shared-value-tables.txt; no test it cites reads it by name (the tree's: scripts/conformance/lanes.test.ts, scripts/conformance/wired.test.ts) | expected output of CF-BRIEF-20, a law this turn adds: the ruling names the reader by its law (CF-LANES-4), not by its path | DEC-378
-docs/governance/briefs/ci-time-ruling-1.md:17 cites scripts/conformance/shared-values-allowlist.txt; no test it cites reads it by name (the tree's: scripts/conformance/lanes.test.ts, scripts/conformance/wired.test.ts) | expected output of CF-BRIEF-20, a law this turn adds: the ruling names the reader by its law (CF-LANES-4), not by its path | DEC-378
