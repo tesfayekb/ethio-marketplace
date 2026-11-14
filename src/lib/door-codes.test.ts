@@ -86,46 +86,6 @@ describe("doorCode", () => {
     });
   });
 
-  it("DRC-8 F1-2's family codes are on the list and keep their detail", () => {
-    const family = [
-      "roleReserved",
-      "unknownRole",
-      "systemRole",
-      "unknownPermission",
-      "permissionReserved",
-      "corePermission",
-      "hasDependents",
-      "duplicateKey",
-      "nameRequired",
-      "badSlug",
-      "badValue",
-      "required",
-      "unknownUser",
-      "unknownCountry",
-      "aliasShape",
-      "aliasTaken",
-      "aliasReserved",
-      "badLength",
-      "impersonateSelf",
-      "impersonateSuperAdmin",
-      "sessionActive",
-      "noActiveSession",
-    ];
-    for (const code of family) {
-      expect(DOOR_CODES).toContain(code);
-      expect(doorCode({ message: code, code: "P0D01" })).toEqual({ code, detail: null });
-    }
-    expect(doorCode({ message: "roleReserved:super_admin", code: "P0D01" })).toEqual({
-      code: "roleReserved",
-      detail: "super_admin",
-    });
-    expect(doorCode({ message: "aliasReserved:b", code: "P0D01" })).toEqual({
-      code: "aliasReserved",
-      detail: "b",
-    });
-    expect(doorCode("role has members")).toEqual({ code: null, detail: null });
-  });
-
   it("DRC-5 a detail with colons stays whole", () => {
     expect(doorCode("rateLimited:2026-11-06T10:00:00Z")).toEqual({
       code: "rateLimited",

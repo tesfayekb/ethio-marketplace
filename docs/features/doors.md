@@ -98,8 +98,10 @@ src/features/my-listings/promote-service.ts.
   `admin_create_role`, `admin_update_role`, `admin_delete_role`, `admin_set_role_permission`,
   `admin_set_account_status`, `admin_update_profile`, `begin_impersonation`,
   `end_impersonation`), nine staff readers and `get_active_impersonation` on its reader forms;
-  the family's codes joined `DOOR_CODES` (DRC-8), and its client reads them through
-  `readRefusal` with each family's words (`ROLE_REFUSALS`, `PROFILE_EDIT_REFUSALS`).
+  its client reads the codes through `readRefusal` with each family's words (`ROLE_REFUSALS`,
+  `PROFILE_EDIT_REFUSALS`), and a code without words reads as the screen's own generic line.
+  `DOOR_CODES` did not grow: the list sits in the entry, so a code on it moves every page's
+  first download, and none of this family's screens reads a code the words do not name.
 - **The manifest's grammar gained two rules (DEC-380)**: an `arg:` country names the country of
   the row the door writes or creates — an argument that is a new value for an existing row's
   country is not a scope, and such a door is `row:` or `global` (`admin_update_profile` is

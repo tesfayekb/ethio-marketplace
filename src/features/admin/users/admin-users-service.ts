@@ -1,6 +1,5 @@
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
-import { doorCode } from "@/lib/door-codes";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
@@ -221,7 +220,9 @@ export interface UpdateProfileInput {
 
 /** The door refused a name only for want of a reason (`aliasReserved:<rule>`). */
 export function asksAliasReason(error: unknown): boolean {
-  return doorCode(error).code === "aliasReserved";
+  return (
+    readRefusal(error, PROFILE_EDIT_REFUSALS).key === PROFILE_EDIT_REFUSALS.words.aliasReserved
+  );
 }
 
 export async function updateProfile(input: UpdateProfileInput): Promise<void> {
