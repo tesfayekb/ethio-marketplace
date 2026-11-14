@@ -6116,4 +6116,322 @@ INC-1092 (later word, 2026-11-09; records turn R13): Status: FIXED in pull reque
 
 INC-1093 — `20261107125358_704f04ac` (M-3b part 3, :38–45) and `20261107125359_ee072b49` (M-3b part 4, :39–41) normalise the live body (`v_norm := replace(v_src, E'\r', '')`) but compare raw multi-line literals (`v_f1a`, `v_f2a`), so under the Supabase SQL editor's CRLF paste the fragments carry chr(13) and are not found: ethio-prod refused part 3 at 2026-11-09 06:04 New York ("a fragment is not unique in validate_listing_draft"), rolled back whole (the live md5 unchanged, scratch rows 0). The two files passed on ethio-staging on 2026-11-07 because the supervisor's connector carried LF bytes. A tokenizer scan of the chain's twenty-one files found spanning literals in fifteen, every one stripped on BOTH sides (law 13) except these two; parts 5 → 21 are both-sided or one-line. Status: RESOLVED on ethio-prod by the LF carrier — the supervisor's connector applied files 5 → 21 at the operator's instruction (DEC-360); the landed files are not edited (DEC-345 would allow the proof-text edit, but the files are applied on both databases and the correction matters nowhere now). Class: THE CARRIER LAW (INC-1056, INC-1089 — third occurrence; the c2b guard covers new files; a LANDED one-sided file is carried by an LF carrier, never by paste — DEC-323 addendum; rule 30 point 7 in the Cursor rules turn 3).
 
-Numbering: next free INC-1094.
+## Later words for earlier findings (records turn R14, 2026-11-13)
+
+Word for word from the reports of block S89 (DEC-346); each line names the finding it closes or amends.
+
+- (the lockfile turn, docs/governance/reports/lockfile.report.md §14) INC-420 — status line: FIXED in the lockfile turn (DEC-363) — every one of `bun.lock`'s 775 tarball addresses is now `https://registry.npmjs.org/…`, rewritten by script with every version and `sha512-` value byte-identical; `bun install --frozen-lockfile` from an empty cache succeeded on the executor's machine and in all 24 install steps of run 42947663641; CF-LOCK-1 (`scripts/conformance/lockfile-hosts.test.ts`) refuses any other host; CLOSED on 7c97c921c once merged.
+
+- (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14) INC-1065: FIXED in housekeeping turn 2 — e2e/helpers/door-callers.ts (`asPerson`, `asAnonymous`, `asBearer`, `pageDoor`): the seven `asPerson`, seven `restBase`, six `answerOf`, `asAnonymous`/`asAnon` and admin-users' `bearerClient` copies, admin-monetisation's and seller-name.ts's `restBase`, legal-admin's raw grant and the thirteen page-side wrappers are gone; CF-HELPERS-1 refuses a copy.
+
+- (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14) INC-1049: FIXED in housekeeping turn 2 — `grantRole` and `grantScratchRole` (e2e/helpers/users.ts): the ten same-signature copies, the three other-signature copies, the three `scratchHolder` bodies, `grantAdmin`, the inline super_admin grant and the nine inline scratch-role builds moved; CF-HELPERS-1 refuses a copy.
+
+- (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14) INC-1073: FIXED in housekeeping turn 2 — LGA-21 writes texts only for its own scratch language and the non-scratch languages; its last check reads the card's translate control and requires that it offer neither this test's language nor any language without the `E2E ` name; the cross-worker write is gone.
+
+- (housekeeping turn 3b, docs/governance/reports/housekeeping-3b.report.md §14) INC-1049 — amendment: the one insert that remained (LGA-22's `makeRole`, legal-admin :1150) moved onto `grantScratchRole` in housekeeping turn 3b; CF-HELPERS-1 refuses an inline `.from("roles").insert(` in a spec.
+
+- (housekeeping turn 4, docs/governance/reports/housekeeping-4.report.md §14) INC-826 — status line: FIXED (housekeeping turn 4) — DEC-370; `legal-markdown.ts`'s regex replaced; the eight sites through the mechanism; alert #430 [fixed at CodeQL javascript-typescript, run 43276862841 on 5b110a1ab: no instance, which is not proof — report §12; dev's first scan after the merge judges].
+
+- (housekeeping turn 4, docs/governance/reports/housekeeping-4.report.md §14) INC-1042 — status line: FIXED (housekeeping turn 4) — the admin navigation (sections, rail items, nav alerts) leaves the entry as the admin navigation layer in the admin layout's chunk (`src/components/shell/admin-nav-layer.ts`, `src/features/admin/nav-layer.ts`); every non-admin page's first download falls by [1.5 → 2.3] KiB gzipped (the three posting pages by 1.4 → 1.5, the others by 2.0 → 2.3) and the 25 admin pages grow by [1.1 → 1.4] KiB (the same code in smaller chunks); BC-16; the impersonation three remain (INC-1116).
+
+- (housekeeping turn 4, docs/governance/reports/housekeeping-4.report.md §14) INC-443 — status line: CLOSED (housekeeping turn 4) — the duplicate merged; the reader refuses duplicates (fixture).
+
+- (housekeeping turn 4, docs/governance/reports/housekeeping-4.report.md §14) Alerts #434 → #436 — closed by Part B [fixed at CodeQL javascript-typescript, run 43276862841 on 5b110a1ab: no instance, which is not proof — report §12; dev's first scan after the merge judges].
+
+- (the photo investigation, docs/governance/reports/investigation-photos.report.md §14) The investigation's GO asked the executor to sign in on the published site (ethio-prod), which rule 50 forbids (stop 1). Ruling 1's prevention: CF-BRIEF-16 gains "the published site", "ethio-prod" and "sign in to production" among its refusals. The GO template's premises line gains "the executor reads only its local stack, its temporary backends and ethio-staging; anything on ethio-prod or the published site is measured by the operator or the supervisor's read-only connector". Instructions v1.18: G34's "performable" sentence names environments.
+
+- (the photo investigation, docs/governance/reports/investigation-photos.report.md §14) The investigation's GO carried no STEP 1 census, and the GO checker did not refuse it. CF-BRIEF-15 failed only once the brief was saved in the repository, so the lane allowlisted it (`briefs-allowlist.txt`, until 2026-11-30).
+
+- (the photo investigation, docs/governance/reports/investigation-photos.report.md §14) A measuring spec that a ruling places under `e2e/` cannot be committed unless `scripts/e2e-select.ts` gives it an AREA (`scripts/e2e-select.test.ts`). Ruling 1's scope named only the spec, so it was committed as evidence text under the reports folder. A ruling that commits a spec names its AREA's file too.
+
+## INC-1094 — the local checks runner reports FAIL for steps the executor's machine cannot run (2026-11-10; housekeeping turn 1)
+
+- **INC-1094** (housekeeping turn 1, docs/governance/reports/housekeeping-1.report.md §14): INC-1094 — the local checks runner reports FAIL for steps the executor's machine cannot run (2026-11-09; the rules-3 report, the third occurrence after db-proof and f1-doors-1). Defect: `bun run checks` prints FAIL for the pinned linux/amd64 actionlint and gitleaks binaries on arm64 macOS ("exec format error") and for NH-6 (`scripts/ci/nightly-hour.test.ts`: `TZDIR` emptied to make the zone unresolvable; macOS's libc ignores `TZDIR`, so the zone resolves and the exit is 0, "expected +0 to be 2") in the scripts and component runs — green in CI every time, so the executor cannot tell a machine limit from a defect and every report carries four reds under Limits. Class: a check's verdict comes from the check, not the machine (G0.6 failure modes); mechanism: turn-checks.ts's allowance and R3. Fix: housekeeping turn 1 — the runner reads the pinned asset's platform from the step's text and says NOT RUN with the reason before any download; NH-6 runs where `TZDIR` governs (Linux) and NH-7 proves the same refusal on every platform through `NIGHTLY_ZONE`, and the laws' Semgrep caches live under the runner's cache root and are judged whole by their files (INC-1098). Status: FIXED in housekeeping turn 1 (TCK-7, NH-7).
+
+## INC-1095 — twenty-nine `react-hooks/exhaustive-deps` sites hidden behind `eslint-disable` lines (2026-11-10; housekeeping turn 1)
+
+- **INC-1095** (housekeeping turn 1, docs/governance/reports/housekeeping-1.report.md §14): INC-1095 — twenty-nine `react-hooks/exhaustive-deps` sites hidden behind `eslint-disable` lines (2026-11-10; the housekeeping-1 census, finding (g) 2). Defect: the lint count shows one `exhaustive-deps` warning, but 29 lines disable the rule (src/components/app-shell.tsx :781; posting/step-where.tsx :892, :949, :970, :1000, :1026, :1154, :1232, :1263, :1284; posting/catalog-finder.ts :222; step-pricing.tsx :398; map/map-pin-dropper.tsx :311, :316; step-details.tsx :202; step-specifications.tsx :597, :1093; wizard.tsx :459, :520, :691, :853; phone-number-field.tsx :112, :129; admin-screening/screening-page.tsx :278, :293; admin-categories/categories-page.tsx :330; category-image-dialog.tsx :234; admin-translations/strings-page.tsx :186; use-label-room.ts :42), three with a stated reason; `--max-warnings 0` does not see a disabled line, so the lint floor of housekeeping turn 1 does not cover them. Class: an effect whose dependency list is wrong or suppressed — a re-run or a stale closure the rule exists to catch (G23: each effect must be read); mechanism: the lint rule, and for the disables a guard that a disable line carries a reason and an expiry (the allowlist law G55 applied to lint directives — `eslint-plugin-eslint-comments/require-description` or the repository's own census test; a package is G42's own turn). Fix: a turn of its own after housekeeping (each effect read and fixed at its cause or its disable given a reason and an INC), on the roadmap. Status: OPEN.
+
+## INC-1096 — scripts/ci/nightly-hour.sh reads GNU `date` (2026-11-10; housekeeping turn 1)
+
+- **INC-1096** (housekeeping turn 1, docs/governance/reports/housekeeping-1.report.md §14): INC-1096 — scripts/ci/nightly-hour.sh reads GNU `date` (2026-11-10; the housekeeping-1 census, finding (g) 4). Defect: `date -d` at :38–:39 and :58 is GNU syntax; on a stock macOS (BSD `date`) every NH test fails for a machine reason the platform reader of INC-1094 does not see, and the executor's Mac passes them only because Homebrew coreutils' `date` is ahead of `/bin/date` on PATH. Class: INC-1094's — a check's verdict must come from the check, not the machine. Fix: housekeeping turn 1 — the NH suite runs under `describe.runIf(hasGnuDate)` with its reason in the title (CI's ubuntu always has it), and the script's header names the requirement; no second code path in the script (G0.2). Status: FIXED in housekeeping turn 1.
+
+## INC-1097 — a module move re-chunks the entry's shared modules and costs every page their glue (2026-11-10; housekeeping turn 1)
+
+- **INC-1097** (housekeeping turn 1, docs/governance/reports/housekeeping-1.report.md §14): INC-1097 — a module move re-chunks the entry's shared modules and costs every page their glue (2026-11-10; housekeeping-1 stop 4; the second occurrence after P-1c b's +0.9 KiB artefact recorded at scripts/route-budgets.mjs :45). Defect: splitting `useI18n`, `useStringsLayers` and `readDeviceStar` out of `src/i18n/provider.tsx` into `i18n-context.ts` (ruling 1, Q9's list) left the provider reached by the root alone, so the bundler folded it into the entry and split the four modules it shares with lazy pages (auth-result, on-demand-failure, entity, load-once) into chunks of their own: +0.8 → 1.4 KiB on every page, six pages over their ceilings and seven NEAR, the code unchanged (the executor's experiment x1: the two files at their base text, every page holds or falls). Class: the first-paint closure's chunking depends on which module happens to reference a shared module, so an unrelated move changes every visitor's download; mechanism: NONE YET — a chunk rule for the first-paint closure (vite.config.ts), housekeeping turn 1b; until it lands the split is reverted and provider.tsx's three exports carry a reasoned, expiring lint disable (D323). Status: OPEN — turn 1b.
+
+- **INC-1097** (housekeeping turn 1b, docs/governance/reports/housekeeping-1b.report.md §14): INC-1097 — status line: FIXED in housekeeping turn 1b — the group shared-shell (vite.config.ts), ENTRY_CLOSURE in route-budgets.mjs with its test, the i18n split landed (i18n-context.ts), provider.tsx's three disables gone; the first occurrence (P-1c b's +0.9 KiB, route-budgets.mjs :45's comment) is explained by the same mechanism.
+
+## INC-1098 — the laws' Semgrep step judged its rules cache whole by a folder's existence, under /tmp (2026-11-10; housekeeping turn 1)
+
+- **INC-1098** (housekeeping turn 1, docs/governance/reports/housekeeping-1.report.md §14): INC-1098 — the laws' Semgrep step judged its rules cache whole by a folder's existence, under /tmp (2026-11-10; housekeeping-1 stop 5; INC-1094's class). Defect: `scripts/ci/laws-changed.ts` :109–:110 kept CI's pinned Semgrep rules at `/tmp/semgrep-rules-<pin>` and read "the `javascript` folder exists" as "the cache is whole"; macOS's periodic /tmp sweep empties old files and leaves the folders, so the step ran Semgrep with no rules — exit 7, "No config given" — and `bun run checks` printed a FAIL that named no defect in the tree (the first run of STEP 6 on 64f80cf60; the second, after the cache was moved aside and fetched again, 34 PASS · 0 FAIL). The venv at :130 sat under /tmp too. Class: a check's verdict comes from the check, not the machine (INC-1094); a cache's wholeness is judged by its contents, never by a folder's name; a tool's cache lives under the user's cache root, never under a path the machine sweeps. Fix: housekeeping turn 1 (ruling 5) — both caches under the runner's cache root (`ETHIO_CHECKS_CACHE ?? ~/.cache/ethio-checks`), `semgrepRulesWhole()` counts the rule files in both folders and a false answer fetches again; TCK-10. Status: FIXED in housekeeping turn 1.
+
+## INC-1099 — a push to an open pull request started no CI workflow run (2026-11-10; housekeeping turn 1b)
+
+- **INC-1099** (housekeeping turn 1b, docs/governance/reports/housekeeping-1b.report.md §14): INC-1099 — a push to an open pull request started no CI workflow run (2026-11-10; cursor/housekeeping, the pushes of b92e0775d 16:06 UTC and 6e3fc365b 16:17 UTC; CodeQL ran on both and passed). Defect: `.github/workflows/ci.yml`'s `pull_request` trigger (no path filter; concurrency `ci-${{ github.ref }}`, cancel-in-progress false; nothing running at 16:06) started no run for either push; neither commit message carries a skip marker; `gh run list --branch cursor/housekeeping` listed only CodeQL; the supervisor's watcher on ci-evidence found no completed run in 45 minutes. Root cause: not readable from the repository or the evidence branch — GitHub's own view (the executor's `gh run list`) is the only witness. Class: a missing run for a covered push (INC-061's class); the harness cannot tell "no run started" from "a slow run" for a lane. Prevention: rule 40 / G67 — a push with no run listed after fifteen minutes is reported with the listing and the operator re-triggers by closing and reopening the pull request, never by a re-push (rules turn 4; instructions v1.18); the per-branch CI status file (INC-1039 / DEC-321, housekeeping turn 3) makes a lane's run state readable from ci-evidence. Status: OPEN — the re-trigger path is the operator's; the prevention lands in turn 3 and the rules turn.
+
+## INC-1100 — a signed-in test's Amharic account language did not apply on the page it then read (2026-11-10; housekeeping turn 1b)
+
+- **INC-1100** (housekeeping turn 1b, docs/governance/reports/housekeeping-1b.report.md §14): INC-1100 — a signed-in test's Amharic account language did not apply on the page it then read (2026-11-10; housekeeping-1b's local run on ethio-staging, `e2e/i18n-coverage.spec.ts` :277 "the roles permission matrix renders no raw English vocabulary", both projects). Defect: after `setAmharicAccount` (the spec-local helper, :108 — a `profiles.preferred_language = 'am'` write through the service client plus the device language) and `gotoReady(/admin/roles/<id>)`, the whole chrome rendered in English (the language control `EN`, the rail, the breadcrumb) and the matrix listed 83 Latin labels — byte-identical failure bodies in both projects, so deterministic on staging; CI's seeded backends pass it; the flake ledger holds one same-day line of the same shape ("the admin shell renders no English fallback", shard 12, 2026-11-10). Class: a test asserts an effect it only assumed — the helper writes the row and never proves the page took the language (G38: tests see what a person sees); and D239's session-start language path (`src/i18n/server-shell-language.ts`; the published language at session start) may not re-read a profile written after sign-in on a shared backend. Mechanism: the one language-setting helper for signed-in tests (e2e/helpers — NONE YET: the spec-local helper is the only copy), which sets the account language, re-enters the session or reloads as the product does, and asserts the chrome's language before returning. Fix: housekeeping turn 2 (the e2e tree) — the helper onto e2e/helpers with its proof of effect and a census of every spec that sets an account or device language (i18n-coverage, i18n-sign-in-language, locale-format, page-head, shell); the server path read first (G23). Status: OPEN.
+
+- **INC-1100** (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14): INC-1100: FIXED in housekeeping turn 2 — setAccountLanguage settles the session-start save, sets the language as the product does and proves the page took it; cause: the test's direct write raced D239's first-sign-in save (read, then measured at the first local run of i18n-coverage.spec.ts — paste the run). The run: report §5, run 1 (4 passed, 3 skipped, 0 failed, on 7f8002d40); after the settle reload (§10 item 11), run 3 (i18n-coverage 4 passed, 3 skipped).
+
+## INC-1101 — the browser lanes install the browser's system libraries with one try, so a mirror outage on the runners takes down every lane… (2026-11-11; housekeeping turn 2)
+
+- **INC-1101** (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14): INC-1101 — the browser lanes install the browser's system libraries with one try, so a mirror outage on the runners takes down every lane before any test (2026-11-11; housekeeping-2 stop 2; runs 43033934604 and 43036501908). Defect: `.github/workflows/local-backend-proof.yml` :741 "Install Chromium's system libraries" runs its package install once; the runners' Ubuntu mirror did not resolve ("Temporary failure resolving 'azure.archive.ubuntu.com'") and all 19 lanes failed at that step with 0 results from 18 sources, twice in a row, while every other check was green. AGENTS.md's install law gives every install one loud retry, and the repository's install steps already run under `scripts/ci/with-deadline.sh <s> 2 --`; this step does not. Class: a CI step that depends on an outside service and has no retry (INC-318's family — a transport failure read as a red); the evidence file does not name "every source without results" as runner infrastructure, so the two-step read says red. Fix: housekeeping turn 3 — the step under with-deadline.sh's one retry; the E2E failure reporter's head line names the class. Until then: a run lost this way is re-run once by the executor on the supervisor's ruling (rule 40's second-red clause as amended at rules turn 4). Status: OPEN — turn 3.
+
+- **INC-1101** (housekeeping turn 3, docs/governance/reports/housekeeping-3.report.md §14): INC-1101 — status line: FIXED in housekeeping turn 3 — Parts A and B (`scripts/ci/install-browser-deps.sh` (new), DEC-366; the reporter's INFRA class); until DEC-366's judge closes, an INFRA red is re-run once by the executor after 20 minutes (rule 40 as amended at rules turn 4).
+
+## INC-1102 — a repository script builds a RegExp from text at twenty-five sites, each its own way (2026-11-11; housekeeping turn 2)
+
+- **INC-1102** (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14): INC-1102 — a repository script builds a RegExp from text at twenty-five sites, each its own way (2026-11-11; code scanning: Semgrep #443, #445 on scripts/doors/rows.ts :137, :139 and #442 (ReDoS shape) on scripts/doors/manifest.ts :99 — F1-1; three findings on pull request #34's scripts/brief/check-go.ts :50 and go-laws.ts :272, :416 — housekeeping turn 2). Defect: `new RegExp(` with an interpolated part appears at 25 sites under scripts/ (tests excluded), some escaping their parts (`escapeRegExp` in go-laws.ts), some not (rows.ts interpolates a door name raw), one reviewed under DEC-153's marker (e2e-select.ts :444), one with a nested-quantifier shape over a manifest line (manifest.ts :99). None is reachable by a user — every input is a repository file — so no exploit; but a pattern shaped by its input is a defect class (an unescaped name that carries a metacharacter matches the wrong text or none, silently), and Semgrep flags the sites one by one. Class: a RegExp built from text without the one helper that escapes it; mechanism: NONE YET → scripts/lib/pattern.ts (`literal`, `pattern`, `exactWord`; the one reviewed `new RegExp(`), with CF-PATTERN-1 → 4. Fix: housekeeping turn 2 Part D (the helper; go-laws.ts, check-go.ts, rows.ts, manifest.ts) and turn 3 (the twelve remaining sites, allowlisted until then). Status: OPEN — turn 3 closes it.
+
+- **INC-1102** (housekeeping turn 3b, docs/governance/reports/housekeeping-3b.report.md §14): INC-1102 — status line: FIXED (housekeeping turn 3b) — the thirteen allowlisted sites moved; the allowlist is empty; `TEST_ID` replaced by the flat token check (alert #453).
+
+## INC-1103 — a signed-in pick inside the page's own account-read window is replaced by the read (2026-11-11; housekeeping turn 2)
+
+- **INC-1103** (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14): (new) A signed-in pick inside the page's own account-read window is replaced by the read (D239): AT-12 (e2e/admin-attributes-library.spec.ts) failed locally on housekeeping turn 2's run; the trace shows the read began 40 ms before the pick and answered after it. Fixed for AT-12 and `setAccountLanguage` in housekeeping turn 2 (the read awaited before the pick); 14 further sites after a navigation without the watch are listed in the report's §4, to be read.
+
+- **INC-1103** (housekeeping turn 3b, docs/governance/reports/housekeeping-3b.report.md §14): INC-1103 — status line: FIXED (housekeeping turn 3b) — DEC-367; the fourteen sites of turn 2's §4 covered without a site edit; the AT-12 arm retired onto the helper.
+
+## INC-1104 — the global reaper never sweeps the underscore scratch-role names (2026-11-11; housekeeping turn 2)
+
+- **INC-1104** (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14): (new) The global reaper (e2e/global-setup.ts :832) sweeps roles `LIKE 'e2e-%'` only; the underscore scratch-role names (`e2e_scratch_role_`, `e2e_viewonly_`, `e2e_catie_`, `e2e_mylistings_role_`) are never swept, and TR-10 / TR-scope AI lost the sweep when they moved onto `grantScratchRole` in housekeeping turn 2.
+
+- **INC-1104** (housekeeping turn 3b, docs/governance/reports/housekeeping-3b.report.md §14): INC-1104 — status line: FIXED (housekeeping turn 3b) — one scratch-prefix list read by the reaper and every helper that names a scratch row; CF-HELPERS-6; the specs' own literals LEFT (roadmap line).
+
+## INC-1105 — a code-scanning alert on the GO checker's own escape (2026-11-11; housekeeping turn 3)
+
+- **INC-1105** (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14): (new) CodeQL js/incomplete-sanitization on pull request #34: scripts/brief/go-laws.ts's option law escaped only `$` in a RegExp source; fixed in housekeeping turn 2 by one `escapeRegExp` in the module (a8c84e496).
+
+- **INC-1105** (the supervisor's record; records turn R14): the code scan flagged `scripts/brief/go-laws.ts` (incomplete sanitisation): the option law escaped only `$` when it built a pattern from text. FIXED in the same turn (`a8c84e496`), then moved onto `scripts/lib/pattern.ts`'s `literal` (`cc151c279`). Class: a pattern built from text outside the one helper (register row 98, DEC-153).
+
+## INC-1106 — the CLI pin had five readers with five regexes on the workflow's text (2026-11-11; housekeeping turn 3)
+
+- **INC-1106** (housekeeping turn 3, docs/governance/reports/housekeeping-3.report.md §14): INC-1106 — the CLI pin had five readers with five regexes on the workflow's text (`scripts/check-outbound-calls.ts` :94 by a setup-cli line's form; `ci-images.test.ts` :160, `db-proof.test.ts` :130, `lane-failure-evidence.test.ts` :96 and `db-proof.sh` :63 by the `SUPABASE_CLI_VERSION:` line); Part E's "the pin appears once" (ruling 1 Q15) changed the setup-cli lines and the outbound-calls guard read "unreadable", refusing its one allowlisted caller in the smoke lane (run 43116753764 on a10a525a6; no test failed, 2598 passed). Evidence: the stop-2 report §"The cause". Fix: `scripts/ci/cli-pin.ts` (new), the one reader, used by all five; CF-CI-IMG-6 (the reader on the real tree), CF-CI-IMG-7 (no second reader). Class: a value's readers censused by the literal, not by the file that holds it (G68) — the GO template's `consumers` item amended at turn 3b. Status: FIXED (housekeeping turn 3). The register row "the CLI version pinned once" reads: mechanism `local-backend-proof.yml` `SUPABASE_CLI_VERSION` + `scripts/ci/cli-pin.ts` (the one reader) → guards CF-CI-IMG-5 (one literal), CF-CI-IMG-6, CF-CI-IMG-7 → exceptions: `outbound-calls-allowlist.txt` :3's `until` field names the pin's value by design (it expires with the pin). The changelog line gains "; the CLI pin has one reader (`scripts/ci/cli-pin.ts`, INC-1106)". Departures §9 names the a10a525a6 docs commit (accepted: a page in SCOPE under rule 10) and the scratch copies.
+
+## INC-1107 — the evidence did not say what the repeat lane left unrepeated (2026-11-12; housekeeping turn 3c)
+
+- **INC-1107** (housekeeping turn 3c, docs/governance/reports/housekeeping-3c.report.md §14): INC-1107 — status line: FIXED (housekeeping turn 3c) — the `- Repeat:` head line; DEC-364 amended. INC-1108 — status line: FIXED (housekeeping turn 3c) — DEC-369; the judge's read-back at the records turn.
+
+## INC-1108 — no runner owned ethio-staging's reaper pass (2026-11-12; housekeeping turn 3c)
+
+- **INC-1108** (housekeeping turn 3c, docs/governance/reports/housekeeping-3c.report.md §14): INC-1107 — status line: FIXED (housekeeping turn 3c) — the `- Repeat:` head line; DEC-364 amended. INC-1108 — status line: FIXED (housekeeping turn 3c) — DEC-369; the judge's read-back at the records turn.
+
+## INC-1109 — scratch `listing_packages` rows are not reaped (2026-11-12; housekeeping turn 3c)
+
+- **INC-1109** (housekeeping turn 3b, docs/governance/reports/housekeeping-3b.report.md §14): (proposed by this report, §13) scratch reach rows are never swept: `e2e/helpers/reach-rows.ts` makes `listing_packages` rows named `e2e_lvl_r…` and no reaper step deletes them, so a run that dies before its own cleanup leaves them on ethio-staging; the spec's `e2e_mon_` packages (`e2e/admin-monetisation.spec.ts:54`) are likely the same. Named in CF-HELPERS-6's `UNSWEPT_KINDS` and `docs/features/e2e-harness.md`; a sweep needs its own design (`market_settings.included_reach` references catalogue rows).
+
+- **INC-1109** (the supervisor's record; records turn R14): the prefix sweep does not remove scratch level and reach rows: a sweep must first handle the rows that name them as an included reach. Open. Class: a scratch row the reaper cannot remove. Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1110 — `.claude/hooks/land.ts` :389 reports a timed-out step as "exit 124" (reads `step.timedOut`, absent from `Step`) (2026-11-12; housekeeping turn 3c)
+
+- **INC-1110** (housekeeping turn 3c, docs/governance/reports/housekeeping-3c.report.md §14): INC-1110 — `.claude/hooks/land.ts` :389 reports a timed-out step as "exit 124" (reads `step.timedOut`, absent from `Step`); the dormant kit; found by the scripts typecheck's census (housekeeping 3c); fix at rules turn 4 with the kit's typecheck.
+
+## INC-1111 — the nightly's serial full run exceeds the job's 360-minute ceiling (2026-11-12; housekeeping turn 3c)
+
+- **INC-1111** (housekeeping turn 3c, docs/governance/reports/housekeeping-3c.report.md §14): INC-1111 — the nightly's serial full run exceeds the job's 360-minute ceiling (cancelled 2026-11-08, -09, -10; red 2026-11-11 after 5 h 08 min; the Cloudflare parity smoke dead at the install step) — the nightly has given no verdict for four days; a CI-turn item after the bundle; DEC-369's judge reads the setup, not the suite.
+
+INC-1111 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1112 — the photo reaper's proof (`e2e/global-setup.ts` :967 → :971, DEC-077 part 2) uploaded `card.txt` as `text/plain` into… (2026-11-12; housekeeping turn 3c)
+
+- **INC-1112** (housekeeping turn 3c, docs/governance/reports/housekeeping-3c.report.md §14): INC-1112 — the photo reaper's proof (`e2e/global-setup.ts` :967 → :971, DEC-077 part 2) uploaded `card.txt` as `text/plain` into `listing-photos`, a bucket restricted to JPEG, PNG and WebP since 2026-10-28 (M7 proves the values on both projects); the pass had no owner since cc93140c2 (2026-10-21), so the proof never met the restriction until DEC-369 gave lane 1 the pass (runs 43220268168, 43222749146: `photo reaper proof upload failed: mime type text/plain is not supported`). Fix: the proof uploads a real JPEG from `madeJpeg` (housekeeping 3c). Class: a mechanism without an owner (DEC-369 is the guard; G35's window for a re-enabled mechanism). Status: FIXED (housekeeping 3c).
+
+## INC-1113 — the lanes' seed carries categories without an approved Amharic name (2026-11-12; housekeeping turn 4)
+
+- **INC-1113** (the supervisor's record; records turn R14): the INC-158 tripwire printed on lane 1's first owned run: 28 active categories on the temporary backend without an approved Amharic name. Whether the seed predates the curator's approvals or production lacks them is not read yet (HYPOTHESIS: the seed). Open. Placement (DEC-379): the before-launch list, tests and CI, with a read of ethio-prod first.
+
+## INC-1114 — the redaction's key rule ends at a word boundary (2026-11-12; housekeeping turn 4)
+
+- **INC-1114** (housekeeping turn 4, docs/governance/reports/housekeeping-4.report.md §14): INC-1114 — status line: FIXED (housekeeping turn 4) — the key rule no longer ends at a word boundary; fixed cases for a key ending in `-` or `_`.
+
+## INC-1115 — a script runs a command built from the environment (2026-11-12; housekeeping turn 4)
+
+- **INC-1115** (the supervisor's record; records turn R14): code-scanning alert on `scripts/ci/laws-changed.ts`: a command and its arguments derived from the environment; the wider class in the scripts is two shell strings built with interpolated values (`scripts/e2e-select.ts`) and one table-driven `bash -c` (`scripts/ci/turn-checks.ts`). Developer and CI tooling fed by the developer's own arguments, not a path a visitor reaches. Open. Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1116 — the impersonation banner, its hook and its service ride every page's first download (`app-shell.tsx` :44), and the shell… (2026-11-12; housekeeping turn 4)
+
+- **INC-1116** (housekeeping turn 4, docs/governance/reports/housekeeping-4.report.md §14): INC-1116 — the impersonation banner, its hook and its service ride every page's first download (`app-shell.tsx` :44), and the shell mounts the banner for every signed-in user (:928), so every signed-in visitor polls the active-session probe every 30 s and on every route change; found by housekeeping turn 4's chunk census. Class: admin-only code and an admin-only probe on the public path. Fix: a Tier A design the operator decides (who probes, when the banner's chunk loads, how a load failure shows) — its own turn; BC-16's allowlist carries the three modules until then. Status: OPEN.
+
+- **INC-1116** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1116 — every signed-in page downloaded the impersonation banner, its hook and its service in the first download and ran the active-session check on load, on each route change and every thirty seconds, though only a super admin can hold a session; fix: DEC-372 — one on-demand module for staff, the gate in the shell, BC-16's allowlist empty; the app-fixes turn; FIXED [9eedabf63; the entry's JS 204.5 → 203.9 KiB, gzipped, this machine's lock-exact builds of 3e3a51a89 and part A].
+
+INC-1116 (later word, 2026-11-13; records turn R14): FIXED in the app-fixes turn (DEC-372, ADOPTED).
+
+## INC-1117 — `src/routes/$name.tsx` :29 redirects an upper-case name before it checks the name is one path segment, so a malformed name… (2026-11-12; housekeeping turn 4)
+
+- **INC-1117** (housekeeping turn 4, docs/governance/reports/housekeeping-4.report.md §14): INC-1117 — `src/routes/$name.tsx` :29 redirects an upper-case name before it checks the name is one path segment, so a malformed name reaches the router's refusal of the redirect (an error page) instead of a 404; no redirect leaves the site. Fix: `notFound()` first; the redirect's href through `safeReturnPath` (housekeeping turn 4). Status: FIXED.
+
+## INC-1118 — two tests write the page's direction while the language provider owns it (2026-11-12; housekeeping turn 4, ruling 2)
+
+- **INC-1118** (the supervisor's record; records turn R14): HM-2 and HM-3 write the `dir` attribute of the page's root element directly while the language provider's effect owns it; red in a local run against ethio-staging, green on CI. The text is in docs/governance/briefs/housekeeping-4-ruling-2.md. Open. Class: a test that writes what a mechanism owns. Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1119 — the redaction's JWT rule ends at a word boundary (2026-11-12; housekeeping turn 4, finding F7)
+
+- **INC-1119** (the supervisor's record; records turn R14): INC-1114's class on the JWT rule. FIXED in the CI turn under INC-1138 — the same defect numbered twice (S610).
+
+## INC-1120 — the view counter logs a gone ad as a server error (2026-11-12; housekeeping turn 4, finding F8)
+
+- **INC-1120** (the supervisor's record; records turn R14): `count_listing_view` on an ad a test had deleted answered a database refusal that the route logged as a server error. FIXED in the app-fixes turn under INC-1134 — the same defect numbered twice (S610): a gone ad answers typed absence, 404 `listingNotFound`, logged quietly (VWR-3, VWR-4).
+
+## INC-1121 — Safari draws listing photos at the frame's width and the photo's natural height (2026-11-12; the operator's finding)
+
+- **INC-1121** (the photo investigation, docs/governance/reports/investigation-photos.report.md §14): On the published site at large widths, My listings drew ad photos malformed and category images blank (the operator's walk of 2026-11-12). It is not reproduced in the repository's code at `2b11a9d29`, `db13e13b7` or `6457836f3` on fresh data: every picture loaded and fitted at 1280 / 1024 / 360 against ethio-staging (`docs/governance/reports/investigation-photos.report.md`, Q2). The cause is the published build (the `@container` rule `ListingPicture`'s frame width needs, `listing-picture.tsx:191`) or production's data (`categories.image_url`, `listing_photos.paths` variants). Open until the operator's snippet and a read-only production read decide; the build turn's outline is in the report.
+
+- **INC-1121** (the photo investigation, docs/governance/reports/investigation-photos.report.md §14): No e2e spec proves that a category picture loads. FS-7 (`feed-screens.spec.ts:407`), AP-52 (`ad-page.spec.ts:1561`) and SC-6 (`admin-screening.spec.ts:323`) point it at `example.invalid` and assert attributes only. No spec measures a picture on My listings at 1024 or 1280. The guard proposed: the `pictureDrawn` assertion (loaded, frame within box, contained ratio = natural ratio) with a real uploaded picture.
+
+- **INC-1121** (the pictures turn, docs/governance/reports/pictures.report.md §14): (ruling 1's Records, the cause line it gives, in the brief's INC-1121 with its brackets filled) INC-1121 — in WebKit (Safari, every iPhone), the picture mechanism drew every photo at its frame's width and its NATURAL height and every category picture blank (its empty top margin), on My listings and every screen drawing `ListingPicture` at large widths (the operator's measurements, Safari 1352 wide: 480×320 → 80×320, 640×480 → 80×480, 512×512 → 60×512; Chrome correct); cause: the image sized by a percentage height (`listing-picture.tsx` :222) inside a table cell — My listings' table form at 1280 and up; WebKit only (the census's reproduction: portrait 360×480 → 80×480, landscape 480×360 → 80×360, square 512×512 → 60×512); why unseen: the lanes ran Blink only and no test measured a drawn picture against its frame. Evidence: the operator's two snippets; the investigation (PR #36: every picture fits in Blink at three commits); the WebKit reproduction (50783a30e, WebKit 26.0 at 1280, My listings' table form: category 512×512 drawn 60×512 in a 60×60 frame, portrait 360×480 drawn 80×480 in 80×60, landscape 480×360 drawn 80×360 in 80×60; the card form at 1024, the feed, the gallery and the illustration fit). Fix: the mechanism's frame-and-image form; the fourteen raw images onto one primitive (CF-PICTURE-1 → 3); `expectPicturesFit` on every picture screen in both engines (CF-HELPERS-8); DEC-371. Class: a browser engine the users use that CI never ran; a rendering concern with fourteen local copies. Status: FIXED (the pictures turn).
+
+- **INC-1121** (the supervisor's record; records turn R14): the operator, 2026-11-12 15:57 New York: Chrome draws My listings correctly, Safari does not. Cause (the investigation, pull request #36; corrected at the pictures turn's stop 1): the image's percentage height fails in WebKit inside a table cell — My listings' table form at 1280 and wider; the lanes ran Blink only. FIXED in the pictures turn (pull request #37): one `Picture` primitive whose frame-and-image form holds in every engine; the WebKit lane (DEC-371); `expectPicturesFit`. Class: a rendering law proven in one engine.
+
+## INC-1122 — the ad gallery's `srcset` gives a photo's long edge as its width (`photo-gallery.tsx` :271 → :273), so browsers fetch a file… (2026-11-13; the pictures turn)
+
+- **INC-1122** (the photo investigation, docs/governance/reports/investigation-photos.report.md §14): The ad gallery's `srcset` declares long edges as widths (`photo-gallery.tsx:271–273`: 480w / 960w / 1600w). A portrait's variants are 360 / 720 / 1200 wide, so the browser picks a smaller file than the slot needs. PP-23 tests only a wide photo.
+
+- **INC-1122** (the pictures turn, docs/governance/reports/pictures.report.md §14): (ruling 1's Records) INC-1122 — the ad gallery's `srcset` gives a photo's long edge as its width (`photo-gallery.tsx` :271 → :273), so browsers fetch a file too small for a portrait (softer, never distorted); fix: carry each photo's width and height through the photo links, the posting service and the public listing read; the photo-data turn; OPEN.
+
+INC-1122 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the cache groundwork's photo turn, with INC-1129.
+
+## INC-1123 — 42 spec files branch on the Playwright project's name (`"desktop-1280"`, `"mobile-360"`), so a new project (WebKit) silently… (2026-11-13; the pictures turn)
+
+- **INC-1123** (the pictures turn, docs/governance/reports/pictures.report.md §14): (ruling 1's Records) INC-1123 — 42 spec files branch on the Playwright project's name (`"desktop-1280"`, `"mobile-360"`), so a new project (WebKit) silently skips their layout branches; fix: `layoutOf(page)` everywhere, CF-HELPERS-9's allowlist to zero; the e2e leftovers turn; OPEN.
+
+INC-1123 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1124 — the merged E2E report in `ci.yml` (:682) did not list the `webkit` lane, so a red WebKit lane turned E2E red while… (2026-11-13; the pictures turn)
+
+- **INC-1124** (the pictures turn, docs/governance/reports/pictures.report.md §14): INC-1124 — the merged E2E report in `ci.yml` (:682) did not list the `webkit` lane, so a red WebKit lane turned E2E red while `e2e-last-failure.md` named no failing test, and a WebKit test that passed on retry never reached the flake ledger (run 43319295611); the second lane missed by a list that reads lanes (INC-966: `repeat`); fix: the token, and CF-CID-10 — the lane matrix is the one list, and every reader equals it; the pictures turn; FIXED 6aaf10822.
+
+## INC-1125 — the `webkit` lane's browser did not trust the temporary backend's certificate (an authority made for the run, trusted through… (2026-11-13; the pictures turn)
+
+- **INC-1125** (the pictures turn, docs/governance/reports/pictures.report.md §14): INC-1125 — the `webkit` lane's browser did not trust the temporary backend's certificate (an authority made for the run, trusted through the NSS database and `NODE_EXTRA_CA_CERTS` only), so every photo, and the calls behind the sign-in and read timeouts, failed at `https://127.0.0.1:31321`: 14 passed, 38 failed and 2 flaky on the lane's first run (43319295611); the census had run WebKit against ethio-staging; fix: `ignoreHTTPSErrors` on the two WebKit projects for the temporary backend only, EBG-6; the pictures turn; FIXED e4c536539; the judged run's `webkit` line: 68 passed · 0 failed · 0 flaky · 24 skipped · total 92 (run 43355488221).
+
+## INC-1126 — in Safari a click does not focus a button, so a screen-sized dialog opened by a click (the photo viewer) recorded the page as… (2026-11-13; the pictures turn)
+
+- **INC-1126** (the pictures turn, docs/governance/reports/pictures.report.md §14): INC-1126 — in Safari a click does not focus a button, so a screen-sized dialog opened by a click (the photo viewer) recorded the page as its opener and gave the focus to the page on close (`dialog.tsx` :113 → :115; DLG-E8 in WebKit); fix: the opener falls back to the control the opening press landed on; the pictures turn; FIXED 7a1238685; K2: `wizard.tsx` :1286 (blurs a field, gives nothing back — no gap), `app-rail.tsx` :1149 (returns to the named ☰ control — no gap), `guide-sheet.tsx` :84 (returns to its caller's ref — no gap), `overlay-facade.tsx` :229 (replays a focus already held — no gap), Radix's own return to a `DialogTrigger` (no gap); non-screen panels opened without a trigger return the focus nowhere in every engine (§13).
+
+## INC-1127 — HYPOTHESIS: in WebKit the downloads a page abandons when it navigates away fail as errors, and the stale-chunk handler… (2026-11-13; the pictures turn)
+
+- **INC-1127** (the pictures turn, docs/governance/reports/pictures.report.md §14): INC-1127 — HYPOTHESIS: in WebKit the downloads a page abandons when it navigates away fail as errors, and the stale-chunk handler (`stale-chunk.ts` :57 → :69) reloads the page over the navigation ("Navigation to "/settings" is interrupted by another navigation to "/"" — STG-1 on staging; LY-1, LY-3, LY-4, PP-12 and PW-3 in the lane's first run); probe: cold-cache WebKit, '/' then at once '/settings': interrupted 7 of 10, the mark SET in 5; Chromium 0 of 10; fix: a leaving mark (`hearLeaving`: beforeunload and pagehide, never unload), heard from the module's first evaluation; the router's own lazyRouteComponent reload remains (2 of 10); the pictures turn; FIXED 4268c6c09.
+
+## INC-1128 — the router library's own reload on a module-load error (once per message, its own session key) still interrupts a WebKit… (2026-11-13; the app-fixes turn)
+
+- **INC-1128** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1128 — the router library's own reload on a module-load error (once per message, its own session key) still interrupts a WebKit navigation during the first load after the pictures turn fixed the site's reloader; OPEN — no seam inside the repository's code; the reading in §13; a package turn.
+
+INC-1128 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, page reloads — a package turn.
+
+## INC-1129 — a deleted photo's files stay in storage (2026-11-13; the pictures turn's local run, PP-8)
+
+- **INC-1129** (the supervisor's record; records turn R14): after a photo DELETE the door completes and the photo's stored files remain. The supervisor's read (DEC-246, reads only, 2026-11-13): ethio-prod holds 12 such objects (3 deleted photos, all of 2026-10-14); ethio-staging 1,095. Open. Class: a multi-step action that leaves something behind on the server (INC-1147's second class). Placement (DEC-379): the cache groundwork's photo turn (DEC-264 — "purged the moment it leaves"), Tier A, with a purge record and a sweeper; a clean-up of ethio-prod only on the operator's word.
+
+## INC-1130 — a dialog panel smaller than the screen, opened from state, returned the keyboard focus to the page when it closed, in every… (2026-11-13; the app-fixes turn)
+
+- **INC-1130** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1130 — a dialog panel smaller than the screen, opened from state, returned the keyboard focus to the page when it closed, in every engine (WCAG 2.4.3); fix: every panel returns the focus to its opener; the app-fixes turn; FIXED d7b458e80; K2: the phone menu (`app-rail.tsx`, its own `onCloseAutoFocus` to the ☰) and `guide-sheet.tsx`'s own handler return the focus by their own code and stay; DropdownMenu and Tooltip have library triggers; every DialogContent, SheetContent and AlertDialogContent opened from state now returns it through the primitives (report §4).
+
+## INC-1131 — a picture that failed to load showed a hidden icon and dropped its text alternative (WCAG 1.1.1) (2026-11-13; the app-fixes turn)
+
+- **INC-1131** (the photo investigation, docs/governance/reports/investigation-photos.report.md §14): `ListingPicture` and `PhotoGallery` have no failed-image path (`listing-picture.tsx:207–223`, `photo-gallery.tsx:157`): a picture whose URL fails draws an empty frame.
+
+- **INC-1131** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1131 — a picture that failed to load showed a hidden icon and dropped its text alternative (WCAG 1.1.1); fix: the failed frame carries the image role and the text; the app-fixes turn; FIXED d7b458e80.
+
+INC-1131 (later word, 2026-11-13; records turn R14): FIXED in the app-fixes turn (`d7b458e80`).
+
+## INC-1132 — three picture checks pass with nothing measured (2026-11-13; the speed turn)
+
+- **INC-1132** (the supervisor's record; records turn R14): three `expectPicturesFit` calls take `atLeast: 0` and pass when no picture is drawn (`e2e/sage-cards.spec.ts`, `e2e/sage-tiers.spec.ts`, `e2e/admin-screening.spec.ts`). Open. Class: a proof that can pass empty (G38). Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1133 — `as unknown as` casts in the unit tests, with no guard (2026-11-13; the speed turn)
+
+- **INC-1133** (the supervisor's record; records turn R14): 73 `as unknown as` casts in tests under `src/` against the TypeScript law; no guard counts them. Open. Class: a law with no guard (G0.4). Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1134 — the view route logged an error line when asked to count a view for an ad removed a moment before (2026-11-13; the app-fixes turn)
+
+- **INC-1134** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1134 — the view route logged an error line when asked to count a view for an ad removed a moment before; fix: a typed not-found, quiet, no write (Postgres 23503 read by code; FIXED 314d1a881); the app-fixes turn.
+
+INC-1134 (later word, 2026-11-13; records turn R14): FIXED in the app-fixes turn. The same defect as INC-1120 (S610).
+
+## INC-1135 — the `@global-state` tests ran in no per-push lane (2026-11-13; the speed turn)
+
+- **INC-1135** (the speed turn, docs/governance/reports/speed.report.md §14): INC-1135 — the `@global-state` tests (four spec files: admin-categories-images, admin-translations-console, admin-translations-governance, shell) ran in no per-push lane (every lane's command excluded them, local-backend-proof.yml :788 → :798) and only in the nightly's serial run on staging (DEC-028, nightly-e2e.yml :151 → :163), where their failures are non-gating; that run wrote no results on 2026-11-12 ("Sources without results: full") and the nightly concluded FAILURE every day from 2026-11-08 to 2026-11-12 — so no pull request and no promotion was judged on them. Cause: DEC-028 excluded them for the shards' shared staging database; since DEC-211 each lane has its own backend and the reason no longer held. Fix: the serial lane runs them on every push, one worker, its own backend; the speed turn; [OPEN — the lane runs `@a11y` only; the failure bodies in §13]. Class: a rule kept after its cause went away; a test set whose only runner can fail without anyone judging it.
+
+- **INC-1135** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1135 — amendment line: the `@global-state` tests run in the serial lane on every push since 13a53a37b, 16 tests (12 run, 4 skipped by their own project gates), 126 s of test time (run 43488341499, the smoke lane 16 passed · 0 failed · 0 flaky · 4 skipped, with TR-30 passed on desktop-1280 in 44.2 s) — FIXED.
+
+INC-1135 (later word, 2026-11-13; records turn R14): FIXED in the app-fixes turn (`13a53a37b`). The set is three spec files; `shell.spec.ts` holds no such test.
+
+## INC-1136 — a scratch row moves a value other tests read (global state in lane tests) (2026-11-13; the speed turn)
+
+- **INC-1136** (the speed turn, docs/governance/reports/speed.report.md §14): Global state in lane tests: MON-16 and MON-17 (`e2e/admin-monetisation.spec.ts` :1437, :1489) seed a level at `sort: 0`; `level_ranks_rebuild()` renumbers every level and moves every live ad's `tier_rank`; ATR-1 (`e2e/admin-listings.spec.ts` :2249) read 3 for premium when both ran on one backend at two workers (run 43457682073, lane 10). Class: a scratch row that changes a value every test reads, untagged as global state. Open; it blocks two workers (DEC-376).
+
+- **INC-1136** (the CI turn, docs/governance/reports/ci-time.report.md §14): INC-1136 — global state in lane tests (MON-16, MON-17 → every level's rank; ATR-1): [B1 MON-16, MON-17 — `listing_packages` (kind level) → `level_ranks` through `level_ranks_rebuild()` — every real level's rank +1 — root fix: `seedProduct` places the scratch level after every real level; met while building, the two read the order strip over every product and market on, the value under test, so they also carry `@global-state`. B2 LG-33 — `level_ranks` (the row set) — other tests' scratch levels added and removed in its window — root fix, keyed: the snapshot keeps every real level and leaves out other tests' scratch rows (LG-33 makes none); a scratch level ranked before the real ones in its window turns it red. B3 IB-1, IB-2 — `languages` (`enabled_public`) — the public language list — serial tag. B4 LG-32 — `languages` — the public language list — serial tag. B5 NCQ-E2E-3 — `job_pauses` — the name re-check job's one pause — serial tag]; the manifest and its guard; the CI turn; [FIXED a28cf954d].
+
+INC-1136 (later word, 2026-11-13; records turn R14): FIXED in the CI turn (`a28cf954d`, `70dc4f626`); CF-LANES-4 holds the class. DEC-378 (a)'s judge counts its five runs.
+
+## INC-1137 — the pseudo-translation generator listed only the rows the target language already owned (`admin_list_translations`), and a… (2026-11-13; the app-fixes turn)
+
+- **INC-1137** (the speed turn, docs/governance/reports/speed.report.md §14): The pseudo generator pages by offset while it writes into the list it reads (`src/features/admin/translations/use-translations.ts` :333 → :365, `listTranslations({ offset })`), and its catch at :356 counts a refused row and goes on; TR-30 saw the summary and no `zxa` row for its probe key (run 43457682073). Class: positional paging over a list the loop changes (the `readAllPages` law); a degraded result shown as a summary. Open; it keeps INC-1135 open.
+
+- **INC-1137** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1137 — the pseudo-translation generator listed only the rows the target language already owned (`admin_list_translations`), and a language's rows are made only by the key sync for languages that exist when it runs; a language the generator had just created had none, so it wrote nothing and reported 0 written and 0 failed (`TR-30`, run 43457682073: "Received: "missing""). The supervisor's first reading (rows skipped by offset paging) was wrong; the executor's census read the door. Fix: the generator reads the base language's keys once through the data-API reader and writes each, the writer creating the row; the summary names the keys it could not write; the app-fixes turn; FIXED 314d1a881. Class: a write loop driven by the target's rows, not the source's keys; an operation that did nothing reported as a result.
+
+INC-1137 (later word, 2026-11-13; records turn R14): FIXED in the app-fixes turn; the cause this paragraph names (offset paging) was the supervisor's hypothesis and was wrong — the app-fixes report's text below it carries the cause read at the door (S602).
+
+## INC-1138 — the redaction's JWT rule ended in a word boundary and left a token's last `-` unmasked (CF-REDACT-1 red about once in… (2026-11-13; the CI turn)
+
+- **INC-1138** (the speed turn, docs/governance/reports/speed.report.md §14): CF-REDACT-1 fails about one run in 64: `scripts/ci/redaction-rules.json` :21's JWT pattern ends in `\b`, so a token whose last base64url character is `-` keeps that `-` after the mask; `scripts/ci/redact.test.ts` :80 → :82's random probe meets it (run 43457682073, Component tests). Class: a word boundary after a character class that holds a non-word character. Open.
+
+- **INC-1138** (the CI turn, docs/governance/reports/ci-time.report.md §14): INC-1138 — the redaction's JWT rule ended in a word boundary and left a token's last `-` unmasked (CF-REDACT-1 red about once in sixty-four runs); fix: the rule ends where no token character follows; the CI turn; FIXED [278eddf40].
+
+INC-1138 (later word, 2026-11-13; records turn R14): FIXED in the CI turn. The same defect as INC-1119 (S610).
+
+## INC-1139 — a landed migration's proof depends on the clock (2026-11-13; the speed turn)
+
+- **INC-1139** (the speed turn, docs/governance/reports/speed.report.md §14): A migration's proof depends on the clock: `supabase/migrations/20261028235443_3e3ea913-f01e-472e-a2dd-671adba96a2e.sql` :1438 → :1446 expects the second save inside one rate window to be refused; at `16:00:00.002` the window rolled over between the saves and the webkit lane's backend never started (run 43457682073). Class: a proof that reads a time window without holding it. Open.
+
+- **INC-1139** (the supervisor's record; records turn R14): migration `20261028235443`'s proof reads a rate window that rolls over on the hour: applied at 16:00:00.002 it failed, and the WebKit lane's backend never started (run 43457682073). Open. Class: a proof whose verdict depends on when it runs. Placement (DEC-379): the before-launch list, tests and CI — a correction of the proof text under DEC-345.
+
+## INC-1140 — the feed's retry button reloads the page by its own call (`feed.tsx` :206) beside the shared cure `refreshPage` (2026-11-13; the app-fixes turn)
+
+- **INC-1140** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1140 — the feed's retry button reloads the page by its own call (`feed.tsx` :206) beside the shared cure `refreshPage`; an app turn that may touch the feed's chunk.
+
+INC-1140 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, page reloads.
+
+## INC-1141 — `ai-bulk-bar.tsx` :122 → :165 reads a list by position (the data-API law) (2026-11-13; the app-fixes turn)
+
+- **INC-1141** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1141 — `ai-bulk-bar.tsx` :122 → :165 reads a list by position (the data-API law); not a write loop.
+
+INC-1141 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, small app laws.
+
+## INC-1142 — `use-translations.ts` :385 fetches a static asset by a bare fetch outside the route mechanism (2026-11-13; the app-fixes turn)
+
+- **INC-1142** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1142 — `use-translations.ts` :385 fetches a static asset by a bare fetch outside the route mechanism.
+
+INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, small app laws.
+
+## INC-1143 — the languages page read the base language's total with a literal (2026-11-13; the app-fixes turn)
+
+- **INC-1143** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1143 — `languages-page.tsx` :104 read the base language's total with a literal `"en"` (K4: a language code outside the one constants module and the roster); fix: the roster's `isBase` row; the app-fixes turn; FIXED 13a53a37b (and 8afc3cc56: the stat waits for the roster).
+
+## INC-1144 — a failed read shows "0 keys" on the translations page (2026-11-13; the app-fixes verification)
+
+- **INC-1144** (the supervisor's record; records turn R14): the stat card has no error state: a failed stats or roster read draws 0 (`src/features/admin/translations/languages-page.tsx`; `baseTotalOf`'s reader). Open, minor. Class: an absence drawn as a number. Placement (DEC-379): the before-launch list, small app laws.
+
+## INC-1145 — the view-as notice repeats the banner's look (2026-11-13; the app-fixes verification)
+
+- **INC-1145** (the supervisor's record; records turn R14): `src/components/shell/impersonation-notice.tsx` repeats the class list of `src/features/admin/impersonation/impersonation-banner.tsx`. Open, minor. Class: one look written in two places. Placement (DEC-379): the before-launch list, small app laws.
+
+## INC-1146 — the dialogs do not follow the house design (2026-11-13; the operator's walk)
+
+- **INC-1146** (the supervisor's record; records turn R14): the operator: "the dialog boxes need a design work as it doesn't follow the design, doesn't appear color and style based on our work and appears white, with minimal content. this is not the only dialog box but many are" — the Share panel, the ad-approval dialog without pictures, a stepped dialog; "for later before launch and needs detail look before fixing. just record". Open. Class: a shared primitive without the house style. Placement (DEC-379): with the operator's UI redesign before Stage 2 — a census of every dialog with a picture first, then one fix at the primitive. The Settings card's line "This action requires two-factor verification…", shown when no action was attempted, is reviewed with it.
+
+## INC-1147 — a second two-factor setup is refused with a generic line (2026-11-13; the operator's walk)
+
+- **INC-1147** (the supervisor's record; records turn R14): the operator started two-factor setup on a second device while the first setup was still pending and read "We couldn't complete that. Please try again." Read: the Settings page always enrols under one fixed, translated name; the sign-in provider's table allows a name once per person (read on ethio-prod, reads only); the page keeps a pending setup only in its own state and lists verified factors only, so after a reload, a second tab or another device it offers the button again; the service maps every refusal but a wrong code to the generic line. The provider's own error line at that minute was not read: a strong HYPOTHESIS. Not a security hole — nothing is bypassed; setup is blocked until the provider clears the pending factor. Open. Three classes, each attached to its scheduled turn (DEC-379): (1) a server refusal shown as a generic failure — the form kit's one refusal reader and its sign-in and settings wave; (2) a pending server state the page forgets — the account-security phase (ACT-020), with a census of the other multi-step account flows and a test that starts, reloads and starts again; (3) a stored value taken from translated text — the messages mechanism, with a guard.
+
+## INC-1148 — the failure reporter still calls the `@global-state` tests nightly-only (2026-11-13; the CI turn's finding)
+
+- **INC-1148** (the supervisor's record; records turn R14): `scripts/e2e-failure-report.ts` describes the `@global-state` tests as serial in the nightly only and non-gating; since the app-fixes turn the serial lane runs them on every push and the lanes' result gates. Open, minor. Placement (DEC-379): the before-launch list, tests and CI.
+
+## INC-1149 — the shared-values allowlist expires on an INC its own turn closed (2026-11-13; the CI turn's verification)
+
+- **INC-1149** (the supervisor's record; records turn R14): the six lines of `scripts/conformance/shared-values-allowlist.txt` carry `INC-1136` as their expiry, the finding the same turn fixed; the guard does not judge an expiry INC's state. Open, minor. Class: an allowlist expiry that cannot lapse (G55). Placement (DEC-379): the before-launch list, tests and CI.
+
+Numbering: next free INC-1150.
