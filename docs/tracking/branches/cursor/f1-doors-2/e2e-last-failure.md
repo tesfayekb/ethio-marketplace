@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43572434121
-- Commit: `276339ca41c60041419a12dc13d2e18bb36b2615`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43572457160
+- Commit: `3bcacd84beb9310b1ab3508a008db7f516bc50aa`
 - Attempt: 1
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-66df641cda10… (0 read)
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-66df641cda10… (1 read)
 - Repeat: nothing to repeat
-- Written (UTC): 2026-11-14T08:09:10.955Z
+- Written (UTC): 2026-11-14T08:32:38.575Z
 - Passed: 2499 · Skipped: 360 · Failed: 46
 - Gating failures: 46 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 1
@@ -133,165 +133,165 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-14T07:47:01.180Z | 4.1 min |
-| email | 2026-11-14T07:47:13.540Z | 0.4 min |
-| webkit | 2026-11-14T07:47:17.331Z | 9.1 min |
-| shard 1 | 2026-11-14T07:46:50.537Z | 5.5 min |
-| shard 2 | 2026-11-14T07:47:12.863Z | 5.5 min |
-| shard 3 | 2026-11-14T07:47:38.751Z | 7.8 min |
-| shard 4 | 2026-11-14T07:51:25.525Z | 7.7 min |
-| shard 5 | 2026-11-14T07:47:19.438Z | 6.2 min |
-| shard 6 | 2026-11-14T07:47:23.923Z | 6.7 min |
-| shard 7 | 2026-11-14T07:47:59.758Z | 5.3 min |
-| shard 8 | 2026-11-14T07:46:34.826Z | 5.5 min |
-| shard 9 | 2026-11-14T07:47:26.333Z | 21.0 min |
-| shard 10 | 2026-11-14T07:46:47.519Z | 5.3 min |
-| shard 11 | 2026-11-14T07:47:42.420Z | 5.9 min |
-| shard 12 | 2026-11-14T07:49:17.250Z | 7.1 min |
-| shard 13 | 2026-11-14T07:47:00.091Z | 5.1 min |
-| shard 14 | 2026-11-14T07:48:37.585Z | 7.1 min |
-| shard 15 | 2026-11-14T07:47:18.748Z | 7.0 min |
-| shard 16 | 2026-11-14T07:48:42.143Z | 7.0 min |
+| smoke | 2026-11-14T08:12:14.903Z | 3.2 min |
+| email | 2026-11-14T08:12:51.147Z | 0.3 min |
+| webkit | 2026-11-14T08:16:53.606Z | 10.0 min |
+| shard 1 | 2026-11-14T08:13:36.929Z | 5.5 min |
+| shard 2 | 2026-11-14T08:12:25.797Z | 5.5 min |
+| shard 3 | 2026-11-14T08:12:38.871Z | 6.1 min |
+| shard 4 | 2026-11-14T08:12:54.112Z | 6.2 min |
+| shard 5 | 2026-11-14T08:12:39.947Z | 6.2 min |
+| shard 6 | 2026-11-14T08:13:12.569Z | 7.0 min |
+| shard 7 | 2026-11-14T08:12:57.890Z | 6.5 min |
+| shard 8 | 2026-11-14T08:12:50.378Z | 6.5 min |
+| shard 9 | 2026-11-14T08:12:56.758Z | 19.0 min |
+| shard 10 | 2026-11-14T08:12:17.220Z | 4.9 min |
+| shard 11 | 2026-11-14T08:12:16.900Z | 5.9 min |
+| shard 12 | 2026-11-14T08:12:44.862Z | 6.8 min |
+| shard 13 | 2026-11-14T08:13:05.439Z | 5.6 min |
+| shard 14 | 2026-11-14T08:14:51.607Z | 6.8 min |
+| shard 15 | 2026-11-14T08:12:42.698Z | 7.0 min |
+| shard 16 | 2026-11-14T08:12:25.580Z | 6.8 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `admin-roles.spec.ts` | 28 | 22.6 min | shard 9 |
-| `shell.spec.ts` | 234 | 9.6 min | shard 1 |
-| `import-security.spec.ts` | 36 | 7.0 min | shard 4 |
-| `admin-users.spec.ts` | 28 | 6.6 min | shard 16 |
-| `post-wizard-bundle2.spec.ts` | 70 | 6.6 min | shard 3 |
-| `admin-audit.spec.ts` | 16 | 5.8 min | shard 9 |
-| `admin-screening.spec.ts` | 58 | 5.6 min | webkit, shard 14 |
+| `admin-roles.spec.ts` | 28 | 21.7 min | shard 9 |
+| `shell.spec.ts` | 234 | 9.7 min | shard 1 |
+| `admin-users.spec.ts` | 28 | 6.4 min | shard 16 |
+| `import-security.spec.ts` | 36 | 5.6 min | shard 4 |
 | `admin-attributes-library.spec.ts` | 42 | 5.6 min | shard 2 |
-| `admin-listings.spec.ts` | 78 | 5.6 min | webkit, shard 10 |
-| `post-wizard-specs.spec.ts` | 82 | 5.4 min | shard 12 |
-| `admin-locations.spec.ts` | 38 | 5.2 min | shard 6 |
+| `admin-screening.spec.ts` | 58 | 5.5 min | webkit, shard 14 |
+| `admin-locations.spec.ts` | 38 | 5.5 min | shard 6 |
+| `post-wizard-bundle2.spec.ts` | 70 | 5.4 min | shard 3 |
+| `ad-page.spec.ts` | 104 | 5.4 min | webkit, shard 13 |
+| `admin-translations-console.spec.ts` | 46 | 5.2 min | smoke, shard 8 |
+| `admin-categories-console.spec.ts` | 34 | 5.2 min | shard 7 |
+| `post-wizard-specs.spec.ts` | 82 | 5.1 min | shard 12 |
+| `admin-audit.spec.ts` | 16 | 5.1 min | shard 9 |
+| `admin-listings.spec.ts` | 78 | 5.0 min | webkit, shard 10 |
 | `feed-screens.spec.ts` | 40 | 4.9 min | webkit, shard 5 |
-| `admin-translations-console.spec.ts` | 46 | 4.7 min | smoke, shard 8 |
 | `post-wizard-place.spec.ts` | 40 | 4.6 min | shard 11 |
-| `ad-page.spec.ts` | 104 | 4.5 min | webkit, shard 13 |
-| `admin-categories-console.spec.ts` | 34 | 4.5 min | shard 7 |
-| `admin-attributes-editor.spec.ts` | 36 | 4.2 min | shard 14 |
-| `admin-attributes-links.spec.ts` | 34 | 4.1 min | shard 13 |
+| `admin-attributes-links.spec.ts` | 34 | 4.3 min | shard 13 |
+| `admin-attributes-editor.spec.ts` | 36 | 4.1 min | shard 14 |
 | `viewing-place.spec.ts` | 22 | 3.8 min | shard 15 |
-| `post-wizard-where.spec.ts` | 32 | 3.7 min | shard 11 |
+| `post-wizard-pricing.spec.ts` | 52 | 3.7 min | shard 8 |
 | `photo-pipeline.spec.ts` | 74 | 3.7 min | webkit, shard 16 |
-| `my-listings-ad.spec.ts` | 38 | 3.6 min | shard 12 |
-| `post-wizard-category.spec.ts` | 52 | 3.5 min | webkit, shard 4 |
-| `auth-signout.spec.ts` | 36 | 3.5 min | shard 9 |
-| `admin-monetisation.spec.ts` | 34 | 3.4 min | smoke, shard 10 |
+| `my-listings-ad.spec.ts` | 38 | 3.7 min | shard 12 |
+| `post-wizard-where.spec.ts` | 32 | 3.6 min | shard 11 |
+| `sage-bands.spec.ts` | 76 | 3.5 min | shard 6 |
+| `choice-lists.spec.ts` | 96 | 3.4 min | shard 7 |
 | `admin-categories-lifecycle.spec.ts` | 52 | 3.3 min | shard 15 |
-| `post-wizard-resets.spec.ts` | 34 | 3.2 min | shard 3 |
-| `sage-bands.spec.ts` | 76 | 3.2 min | shard 6 |
-| `admin-translations-governance.spec.ts` | 20 | 3.2 min | smoke, shard 16 |
-| `post-wizard-pricing.spec.ts` | 52 | 3.0 min | shard 8 |
-| `choice-lists.spec.ts` | 96 | 2.7 min | shard 7 |
-| `dialogs.spec.ts` | 20 | 2.7 min | webkit, shard 10 |
-| `admin-countries.spec.ts` | 18 | 2.5 min | shard 6 |
+| `post-wizard-category.spec.ts` | 52 | 3.2 min | webkit, shard 4 |
+| `auth-signout.spec.ts` | 36 | 3.0 min | shard 9 |
+| `admin-translations-governance.spec.ts` | 20 | 3.0 min | smoke, shard 16 |
+| `dialogs.spec.ts` | 20 | 2.9 min | webkit, shard 10 |
+| `admin-monetisation.spec.ts` | 34 | 2.9 min | smoke, shard 10 |
+| `admin-countries.spec.ts` | 18 | 2.6 min | shard 6 |
+| `post-wizard-resets.spec.ts` | 34 | 2.6 min | shard 3 |
 | `admin-attributes-safety.spec.ts` | 18 | 2.5 min | shard 5 |
+| `legal-admin.spec.ts` | 44 | 2.5 min | shard 7 |
 | `i18n-sign-in-language.spec.ts` | 12 | 2.5 min | shard 15 |
-| `legal-certify.spec.ts` | 44 | 2.4 min | shard 14 |
+| `legal-certify.spec.ts` | 44 | 2.3 min | shard 14 |
 | `posting-routes.spec.ts` | 80 | 2.3 min | shard 2 |
+| `sage-ad-page.spec.ts` | 30 | 2.2 min | webkit, shard 11 |
+| `admin-attributes-import.spec.ts` | 40 | 2.1 min | shard 8 |
 | `admin-translations-data.spec.ts` | 10 | 2.0 min | shard 5 |
-| `sage-ad-page.spec.ts` | 30 | 1.9 min | webkit, shard 11 |
-| `admin-categories-home.spec.ts` | 10 | 1.9 min | shard 4 |
-| `legal-admin.spec.ts` | 44 | 1.9 min | shard 7 |
 | `mfa-stepup.spec.ts` | 22 | 1.7 min | webkit, shard 15 |
-| `sage-tiers.spec.ts` | 52 | 1.7 min | webkit, shard 2 |
-| `admin-attributes-import.spec.ts` | 40 | 1.6 min | shard 8 |
-| `admin-guides.spec.ts` | 14 | 1.6 min | shard 3 |
+| `admin-categories-home.spec.ts` | 10 | 1.7 min | shard 4 |
+| `sage-tiers.spec.ts` | 52 | 1.6 min | webkit, shard 2 |
 | `admin-categories-images.spec.ts` | 6 | 1.6 min | smoke, webkit, shard 12 |
-| `one-line-slots-admin.spec.ts` | 10 | 1.5 min | shard 3 |
 | `phone-frame.spec.ts` | 18 | 1.3 min | shard 12 |
-| `press.spec.ts` | 22 | 1.3 min | shard 12 |
+| `press.spec.ts` | 22 | 1.2 min | shard 12 |
 | `my-listings-promote.spec.ts` | 10 | 1.1 min | shard 11 |
-| `my-listings-page.spec.ts` | 20 | 1.0 min | webkit, shard 10 |
-| `name-check-queue.spec.ts` | 8 | 1.0 min | smoke, shard 9 |
+| `admin-guides.spec.ts` | 14 | 1.1 min | shard 3 |
+| `one-line-slots-admin.spec.ts` | 10 | 1.1 min | shard 3 |
+| `user-guides.spec.ts` | 18 | 1.0 min | shard 13 |
 | `admin-shell.spec.ts` | 12 | 1.0 min | shard 2 |
-| `user-guides.spec.ts` | 18 | 0.9 min | shard 13 |
-| `my-listings-levels.spec.ts` | 28 | 0.8 min | shard 4 |
-| `sage-cards.spec.ts` | 40 | 0.8 min | webkit, shard 7 |
-| `locations-tree.spec.ts` | 8 | 0.8 min | shard 13 |
-| `ad-page-doors.spec.ts` | 30 | 0.7 min | shard 14 |
-| `my-listings-doors.spec.ts` | 28 | 0.7 min | shard 3 |
+| `sage-cards.spec.ts` | 40 | 1.0 min | webkit, shard 7 |
+| `my-listings-page.spec.ts` | 20 | 0.9 min | webkit, shard 10 |
+| `name-check-queue.spec.ts` | 8 | 0.9 min | smoke, shard 9 |
+| `locations-tree.spec.ts` | 8 | 0.9 min | shard 13 |
+| `legal-doors.spec.ts` | 34 | 0.8 min | smoke, shard 8 |
 | `post-wizard-removed.spec.ts` | 4 | 0.7 min | shard 7 |
 | `posting-routes-catalog.spec.ts` | 18 | 0.7 min | shard 6 |
+| `ad-page-doors.spec.ts` | 30 | 0.7 min | shard 14 |
+| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 4 |
 | `post-wizard-details.spec.ts` | 8 | 0.6 min | shard 14 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
-| `sage-shell.spec.ts` | 80 | 0.6 min | shard 16 |
-| `legal-doors.spec.ts` | 34 | 0.6 min | smoke, shard 8 |
-| `post-wizard-finder.spec.ts` | 8 | 0.5 min | shard 6 |
 | `supabase-door.spec.ts` | 12 | 0.5 min | shard 13 |
-| `house-style.spec.ts` | 12 | 0.5 min | shard 11 |
-| `i18n-coverage.spec.ts` | 14 | 0.5 min | shard 4 |
+| `post-wizard-finder.spec.ts` | 8 | 0.5 min | shard 6 |
 | `layout.spec.ts` | 18 | 0.5 min | webkit, shard 10 |
-| `posting-routes-dials.spec.ts` | 14 | 0.4 min | shard 9 |
+| `sage-shell.spec.ts` | 80 | 0.5 min | shard 16 |
+| `house-style.spec.ts` | 12 | 0.5 min | shard 11 |
+| `my-listings-doors.spec.ts` | 28 | 0.5 min | shard 3 |
 | `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 5 |
+| `one-line-slots.spec.ts` | 10 | 0.4 min | shard 8 |
 | `legal-accept.spec.ts` | 12 | 0.4 min | shard 2 |
 | `shell-bands.spec.ts` | 16 | 0.4 min | shard 12 |
-| `one-line-slots.spec.ts` | 10 | 0.3 min | shard 8 |
-| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
-| `auth-signup.spec.ts` | 6 | 0.3 min | email |
+| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4 |
 | `settings.spec.ts` | 9 | 0.3 min | shard 1 |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
-| `admin-services.spec.ts` | 10 | 0.3 min | shard 1 |
 | `primitives-law.spec.ts` | 24 | 0.3 min | shard 16 |
-| `page-head.spec.ts` | 4 | 0.3 min | shard 13 |
+| `admin-services.spec.ts` | 10 | 0.3 min | shard 1 |
+| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
 | `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 10 |
-| `a11y.spec.ts` | 4 | 0.3 min | smoke |
-| `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
+| `page-head.spec.ts` | 4 | 0.3 min | shard 13 |
+| `posting-routes-dials.spec.ts` | 14 | 0.3 min | shard 9 |
+| `auth-signup.spec.ts` | 6 | 0.3 min | email |
+| `feed-index.spec.ts` | 30 | 0.3 min | shard 6 |
+| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
 | `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
 | `submenu.spec.ts` | 14 | 0.2 min | shard 15 |
 | `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
-| `account-saved.spec.ts` | 4 | 0.2 min | shard 4 |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
-| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
-| `legal-history.spec.ts` | 6 | 0.2 min | shard 16 |
-| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
-| `auth-callback.spec.ts` | 4 | 0.2 min | shard 3 |
 | `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
-| `post-wizard-recent.spec.ts` | 2 | 0.2 min | shard 9 |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
-| `overlays.spec.ts` | 8 | 0.1 min | shard 15 |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
-| `door-refusals.spec.ts` | 12 | 0.1 min | shard 7 |
+| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
+| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
+| `a11y.spec.ts` | 4 | 0.2 min | smoke |
+| `legal-history.spec.ts` | 6 | 0.2 min | shard 16 |
+| `account-saved.spec.ts` | 4 | 0.2 min | shard 4 |
+| `door-refusals.spec.ts` | 12 | 0.2 min | shard 7 |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 12 |
 | `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
-| `posting-routes-identity.spec.ts` | 4 | 0.1 min | shard 15 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
+| `overlays.spec.ts` | 8 | 0.1 min | shard 15 |
+| `feed-route.spec.ts` | 22 | 0.1 min | shard 9 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
 | `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
+| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
+| `posting-routes-identity.spec.ts` | 4 | 0.1 min | shard 15 |
+| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
 | `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
+| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
 | `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
 | `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
-| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
-| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
 | `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
+| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
 | `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
 | `fonts.spec.ts` | 2 | 0.0 min | shard 1 |
-| `geo.spec.ts` | 10 | 0.0 min | shard 3 |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
+| `geo.spec.ts` | 10 | 0.0 min | shard 3 |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 11 |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `i18n-sign-in-language.spec.ts` › D239-E6 impersonation leaves the staff member's own language as it was, at start and at end | desktop-1280 | 63.5 s |
-| `admin-audit.spec.ts` › IMP-2 dual-actor audit: start and end are both recorded | desktop-1280 | 61.9 s |
-| `admin-users.spec.ts` › AU-10 edit: a duplicate alias is refused inline and nothing changes | desktop-1280 | 61.4 s |
-| `admin-roles.spec.ts` › RP-6 revocation path: unenrolling the factor refuses the next change | mobile-360 | 61.2 s |
-| `admin-audit.spec.ts` › IMP-1 impersonation: super admin opens a read-only session and ends it | desktop-1280 | 61.1 s |
-| `admin-roles.spec.ts` › RP-6 revocation path: unenrolling the factor refuses the next change | desktop-1280 | 61.0 s |
-| `i18n-sign-in-language.spec.ts` › D239-E6 impersonation leaves the staff member's own language as it was, at start and at end | mobile-360 | 60.8 s |
-| `admin-users.spec.ts` › AU-10 edit: a duplicate alias is refused inline and nothing changes | mobile-360 | 60.7 s |
-| `admin-audit.spec.ts` › IMP-1 impersonation: super admin opens a read-only session and ends it | mobile-360 | 60.4 s |
-| `admin-audit.spec.ts` › IMP-2 dual-actor audit: start and end are both recorded | mobile-360 | 60.3 s |
-| `admin-roles.spec.ts` › RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC | mobile-360 | 56.2 s |
-| `admin-roles.spec.ts` › RP-8 Amharic + no horizontal overflow | desktop-1280 | 55.7 s |
-| `admin-roles.spec.ts` › RP-8 Amharic + no horizontal overflow | mobile-360 | 55.6 s |
-| `admin-roles.spec.ts` › RP-7 registration: DEC-016 permissions appear as grantable rows | mobile-360 | 55.5 s |
-| `admin-roles.spec.ts` › RP-7 registration: DEC-016 permissions appear as grantable rows | desktop-1280 | 55.4 s |
+| `i18n-sign-in-language.spec.ts` › D239-E6 impersonation leaves the staff member's own language as it was, at start and at end | desktop-1280 | 63.3 s |
+| `i18n-sign-in-language.spec.ts` › D239-E6 impersonation leaves the staff member's own language as it was, at start and at end | mobile-360 | 61.1 s |
+| `admin-users.spec.ts` › AU-10 edit: a duplicate alias is refused inline and nothing changes | desktop-1280 | 61.0 s |
+| `admin-users.spec.ts` › AU-10 edit: a duplicate alias is refused inline and nothing changes | mobile-360 | 59.9 s |
+| `admin-audit.spec.ts` › IMP-1 impersonation: super admin opens a read-only session and ends it | mobile-360 | 57.8 s |
+| `admin-audit.spec.ts` › IMP-1 impersonation: super admin opens a read-only session and ends it | desktop-1280 | 57.6 s |
+| `admin-audit.spec.ts` › IMP-2 dual-actor audit: start and end are both recorded | desktop-1280 | 57.6 s |
+| `admin-audit.spec.ts` › IMP-2 dual-actor audit: start and end are both recorded | mobile-360 | 57.3 s |
+| `admin-roles.spec.ts` › RP-6 revocation path: unenrolling the factor refuses the next change | desktop-1280 | 57.2 s |
+| `admin-roles.spec.ts` › RP-6 revocation path: unenrolling the factor refuses the next change | mobile-360 | 56.9 s |
+| `admin-roles.spec.ts` › RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match | desktop-1280 | 53.6 s |
+| `admin-roles.spec.ts` › RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC | mobile-360 | 53.6 s |
+| `admin-roles.spec.ts` › RP-7 registration: DEC-016 permissions appear as grantable rows | desktop-1280 | 53.5 s |
+| `admin-roles.spec.ts` › RP-8 Amharic + no horizontal overflow | mobile-360 | 53.5 s |
+| `admin-roles.spec.ts` › RP-5 delete guards: members block deletion; typed confirm deletes | mobile-360 | 53.4 s |
 
 ## Post-test errors: smoke
 
@@ -300,7 +300,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 43572434121-localproof
+[e2e:teardown] deleted 2 user(s) owned by process 43572457160-localproof
 ```
 
 ## Post-test errors: email
@@ -310,7 +310,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43572434121-local-email
+[e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-email
 ```
 
 ## Post-test errors: webkit
@@ -320,7 +320,7 @@ webkit: every test's verdict stands — these lines were printed OUTSIDE any tes
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 43572434121-local-webkit
+[e2e:teardown] deleted 4 user(s) owned by process 43572457160-local-webkit
 ```
 
 ## Post-test errors: shard 1
@@ -330,7 +330,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43572434121-local-1
+[e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-1
 ```
 
 ## Post-test errors: shard 2
@@ -340,7 +340,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 9 user(s) owned by process 43572434121-local-2
+[e2e:teardown] deleted 9 user(s) owned by process 43572457160-local-2
 ```
 
 ## Post-test errors: shard 3
@@ -350,7 +350,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 43572434121-local-3
+[e2e:teardown] deleted 5 user(s) owned by process 43572457160-local-3
 ```
 
 ## Post-test errors: shard 4
@@ -360,7 +360,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 28 (pool 4, fresh 24)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 25 user(s) owned by process 43572434121-local-4
+[e2e:teardown] deleted 25 user(s) owned by process 43572457160-local-4
 ```
 
 ## Post-test errors: shard 5
@@ -370,7 +370,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 15 user(s) owned by process 43572434121-local-5
+[e2e:teardown] deleted 15 user(s) owned by process 43572457160-local-5
 ```
 
 ## Post-test errors: shard 6
@@ -380,7 +380,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43572434121-local-6
+[e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-6
 ```
 
 ## Post-test errors: shard 7
@@ -390,7 +390,7 @@ shard 7: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43572434121-local-7
+[e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-7
 ```
 
 ## Post-test errors: shard 8
@@ -398,9 +398,9 @@ shard 7: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 8: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
+[e2e:teardown] accounts signed in this run: 9 (pool 3, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 43572434121-local-8
+[e2e:teardown] deleted 8 user(s) owned by process 43572457160-local-8
 ```
 
 ## Post-test errors: shard 9
@@ -410,7 +410,7 @@ shard 9: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 24 (pool 4, fresh 20)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 21 user(s) owned by process 43572434121-local-9
+[e2e:teardown] deleted 21 user(s) owned by process 43572457160-local-9
 ```
 
 ## Post-test errors: shard 10
@@ -420,7 +420,7 @@ shard 10: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 43572434121-local-10
+[e2e:teardown] deleted 5 user(s) owned by process 43572457160-local-10
 ```
 
 ## Post-test errors: shard 11
@@ -430,7 +430,7 @@ shard 11: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43572434121-local-11
+[e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-11
 ```
 
 ## Post-test errors: shard 12
@@ -440,7 +440,7 @@ shard 12: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 3, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 43572434121-local-12
+[e2e:teardown] deleted 5 user(s) owned by process 43572457160-local-12
 ```
 
 ## Post-test errors: shard 13
@@ -450,7 +450,7 @@ shard 13: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43572434121-local-13
+[e2e:teardown] deleted 3 user(s) owned by process 43572457160-local-13
 ```
 
 ## Post-test errors: shard 14
@@ -460,7 +460,7 @@ shard 14: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 43572434121-local-14
+[e2e:teardown] deleted 11 user(s) owned by process 43572457160-local-14
 ```
 
 ## Post-test errors: shard 15
@@ -470,7 +470,7 @@ shard 15: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 30 (pool 2, fresh 28)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 47 user(s) owned by process 43572434121-local-15
+[e2e:teardown] deleted 47 user(s) owned by process 43572457160-local-15
 ```
 
 ## Post-test errors: shard 16
@@ -480,7 +480,7 @@ shard 16: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 14 (pool 4, fresh 10)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 31 user(s) owned by process 43572434121-local-16
+[e2e:teardown] deleted 31 user(s) owned by process 43572457160-local-16
 ```
 
 ## admin-audit.spec.ts › U3 audit & security › IMP-1 impersonation: super admin opens a read-only session and ends it
@@ -874,25 +874,25 @@ Received string:    "impersonateSelf"
 Context:
 
 ```text
-          - listitem [ref=e826]:
-            - generic [ref=e827]: About
-          - listitem [ref=e828]:
-            - generic [ref=e829]: Contact
-      - navigation "Help" [ref=e830]:
-        - heading "Help" [level=2] [ref=e831]
-        - list [ref=e832]:
-          - listitem [ref=e833]:
-            - generic [ref=e834]: Safety
-      - navigation "Legal" [ref=e835]:
-        - heading "Legal" [level=2] [ref=e836]
-        - list [ref=e837]:
-          - listitem [ref=e838]:
-            - link "Terms" [ref=e839] [cursor=pointer]:
+          - listitem [ref=e829]:
+            - generic [ref=e830]: About
+          - listitem [ref=e831]:
+            - generic [ref=e832]: Contact
+      - navigation "Help" [ref=e833]:
+        - heading "Help" [level=2] [ref=e834]
+        - list [ref=e835]:
+          - listitem [ref=e836]:
+            - generic [ref=e837]: Safety
+      - navigation "Legal" [ref=e838]:
+        - heading "Legal" [level=2] [ref=e839]
+        - list [ref=e840]:
+          - listitem [ref=e841]:
+            - link "Terms" [ref=e842] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e840]:
-            - link "Privacy" [ref=e841] [cursor=pointer]:
+          - listitem [ref=e843]:
+            - link "Privacy" [ref=e844] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e843]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e846]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -3055,25 +3055,25 @@ Received string:    "permissionDenied"
 Context:
 
 ```text
-          - listitem [ref=e326]:
-            - generic [ref=e327]: About
-          - listitem [ref=e328]:
-            - generic [ref=e329]: Contact
-      - navigation "Help" [ref=e330]:
-        - heading "Help" [level=2] [ref=e331]
-        - list [ref=e332]:
-          - listitem [ref=e333]:
-            - generic [ref=e334]: Safety
-      - navigation "Legal" [ref=e335]:
-        - heading "Legal" [level=2] [ref=e336]
-        - list [ref=e337]:
-          - listitem [ref=e338]:
-            - link "Terms" [ref=e339] [cursor=pointer]:
+          - listitem [ref=e354]:
+            - generic [ref=e355]: About
+          - listitem [ref=e356]:
+            - generic [ref=e357]: Contact
+      - navigation "Help" [ref=e358]:
+        - heading "Help" [level=2] [ref=e359]
+        - list [ref=e360]:
+          - listitem [ref=e361]:
+            - generic [ref=e362]: Safety
+      - navigation "Legal" [ref=e363]:
+        - heading "Legal" [level=2] [ref=e364]
+        - list [ref=e365]:
+          - listitem [ref=e366]:
+            - link "Terms" [ref=e367] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e340]:
-            - link "Privacy" [ref=e341] [cursor=pointer]:
+          - listitem [ref=e368]:
+            - link "Privacy" [ref=e369] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e343]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e371]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
