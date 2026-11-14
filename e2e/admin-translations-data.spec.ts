@@ -787,7 +787,7 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
       },
       { id, fence },
     );
-    expect(refusal).toBe("unknown entity");
+    expect(refusal).toBe("unknownEntity");
     const optionListCount = async (language: string) => {
       const rows = await inBrowserClient(
         page,
@@ -825,7 +825,7 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
         },
         { fn, id },
       );
-      expect(amharicRefusal).toBe("unknown entity field");
+      expect(amharicRefusal).toBe("badValue:field");
     }
     await page.getByTestId("data-search").fill(offSource);
     await expect

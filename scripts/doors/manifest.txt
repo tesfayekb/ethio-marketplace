@@ -36,7 +36,7 @@ admin_delete_role(uuid) | staff | authenticated | roles:delete | row | staff_con
 admin_discard_legal_draft(uuid) | staff | authenticated | legal:edit | row | staff_config | manual | global | staff | notDraft,unknownVersion | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_edit_listing(uuid,jsonb,text,text) | staff | authenticated | listings:enforce | row | staff_moderation | - | row:listings.home_country_code | staff | - | -
 admin_edit_package_price(uuid,numeric,character,integer,character,uuid,timestamp with time zone,timestamp with time zone) | staff | authenticated | packages:update | row | staff_config | manual | arg:country_code | staff | - | -
-admin_end_package_price(uuid,timestamp with time zone) | staff | authenticated | packages:update | row | staff_config | manual | row:package_prices.country | staff | - | -
+admin_end_package_price(uuid,timestamp with time zone) | staff | authenticated | packages:update | row | staff_config | manual | row:package_prices.country_code | staff | - | -
 admin_entity_translation_stats(text) | staff-reader | authenticated | translations:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_export_attributes() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 admin_export_attributes(text) | staff-reader | authenticated | categories:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)

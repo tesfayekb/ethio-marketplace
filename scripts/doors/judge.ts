@@ -4,7 +4,7 @@ import { browserCallable, type DoorRow } from "./rows";
 
 /**
  * Foundations 1 (DEC-333) — THE JUDGEMENT of the manifest against the rows.
- * Seven finding kinds, each planted in check-doors' self-test (DEC-334):
+ * Eight finding kinds, each planted in check-doors' self-test (DEC-334):
  *
  * - missing-line           a browser-callable function with no manifest line;
  * - line-without-door      a line whose function is absent or closed to the browser;
@@ -18,7 +18,9 @@ import { browserCallable, type DoorRow } from "./rows";
  * - grant-unseen           a dynamic GRANT the static reader could not resolve;
  * - grant-without-caller   a browser grant nothing in the tree calls by name;
  * - scope-mode-missing     a staff body whose p_scope_mode (or country
- *                          argument) does not carry the line's country scope.
+ *                          argument) does not carry the line's country scope;
+ * - row-column-unknown     a line's `row:<table.column>` cell names a column no
+ *                          migration declares (F1-3, INC-1159's class).
  *
  * A legacy body (no door_context yet) is judged by the old rule only; its line
  * is the promise its family's turn keeps (plan §5).
@@ -32,6 +34,7 @@ export const FINDING_KINDS = [
   "grant-unseen",
   "grant-without-caller",
   "scope-mode-missing",
+  "row-column-unknown",
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -162,6 +165,8 @@ export type Evidence = {
   unseen?: UnseenGrant[];
   /** Whether the tree names a function (static only). */
   callers?: (name: string) => boolean;
+  /** Every `table.column` the migrations declare (columns.ts). */
+  columns?: ReadonlySet<string>;
 };
 
 /** Every finding of the rows against the manifest. */
@@ -199,6 +204,17 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
         where: `manifest.txt:${line.line}`,
       });
   }
+  const columns = evidence.columns;
+  if (columns !== undefined)
+    for (const line of manifest.lines.values()) {
+      if (line.country?.kind !== "row" || columns.has(line.country.column)) continue;
+      found.push({
+        kind: "row-column-unknown",
+        key: line.key,
+        what: `row:${line.country.column} names a column no migration declares`,
+        where: `manifest.txt:${line.line}`,
+      });
+    }
   for (const grant of evidence.unseen ?? [])
     found.push({
       kind: "grant-unseen",

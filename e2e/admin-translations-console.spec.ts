@@ -239,10 +239,10 @@ test.describe("U4b translations console", () => {
    * observed state instead of assuming one:
    *   step 1 — read the base key count; if the catalog is EMPTY assert the
    *            empty-set branch (switch disabled, sync-first tooltip, and the
-   *            server RAISEs the empty refusal through the DEV client);
+   *            door refuses `catalogEmpty` through the DEV client);
    *   step 2 — ensure non-empty by seeding ONE scratch key (scratch-key law),
    *            then assert the incomplete branch (N-remaining tooltip + the
-   *            'not fully approved' RAISE).
+   *            door's `notFullyApproved` refusal, F1-3).
    * Ordering: step 2 only ever ADDS a key, so it can never make step 1's
    * branch flip back — the sequence is monotonic and shard-order-proof.
    */
@@ -278,7 +278,7 @@ test.describe("U4b translations console", () => {
       await expect(surfaceControl(page, "lang-public-gate-om")).toContainText(
         en["admin.translations.syncFirstTooltip"],
       );
-      expect(await flipOm()).toMatch(/catalog empty/i);
+      expect(await flipOm()).toBe("catalogEmpty");
     }
 
     // Step 2 — ensure NON-empty via this spec's own scratch key.
@@ -288,7 +288,7 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, "/admin/translations");
       await expect(publicSwitch).toBeDisabled();
       await expect(surfaceControl(page, "lang-public-gate-om")).toBeVisible();
-      expect(await flipOm()).toMatch(/not fully approved/i);
+      expect(await flipOm()).toBe("notFullyApproved");
     } finally {
       await reapScratchKey(key);
     }
