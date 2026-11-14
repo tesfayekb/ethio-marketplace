@@ -18,16 +18,16 @@ guardrail the decision named.
 **RPCs** (all `SECURITY DEFINER`, `REVOKE ALL FROM PUBLIC, anon`,
 `GRANT EXECUTE TO authenticated, service_role`)
 
-| Function                                | Gate                                           | Audit                 |
-| --------------------------------------- | ---------------------------------------------- | --------------------- |
-| `admin_list_audit(...)`                 | `audit_logs:view`                              | —                     |
-| `admin_audit_facets()`                  | `audit_logs:view`                              | —                     |
-| `admin_audit_stats(days)`               | `audit_logs:view`                              | —                     |
-| `begin_impersonation(target, reason)`   | super-admin only + `impersonation:use` step-up | `impersonation.start` |
-| `end_impersonation(session)`            | session owner                                  | `impersonation.end`   |
-| `get_active_impersonation()`            | caller's own live session                      | —                     |
-| `impersonated_get_profile(session)`     | live session box                               | —                     |
-| `impersonated_list_listings(session,…)` | live session box                               | —                     |
+| Function                                | Gate                                                                             | Audit                 |
+| --------------------------------------- | -------------------------------------------------------------------------------- | --------------------- |
+| `admin_list_audit(...)`                 | `audit_logs:view`                                                                | —                     |
+| `admin_audit_facets()`                  | `audit_logs:view`                                                                | —                     |
+| `admin_audit_stats(days)`               | `audit_logs:view`                                                                | —                     |
+| `begin_impersonation(target, reason)`   | `impersonation:use` (super_admin alone, DEC-381) + step-up; dial `impersonation` | `impersonation.start` |
+| `end_impersonation(session)`            | session owner; dial `account_pref` (DEC-380)                                     | `impersonation.end`   |
+| `get_active_impersonation()`            | caller's own live session                                                        | —                     |
+| `impersonated_get_profile(session)`     | live session box                                                                 | —                     |
+| `impersonated_list_listings(session,…)` | live session box                                                                 | —                     |
 
 `begin_impersonation` refuses: a non-super caller, self-targets, super-admin
 targets, a reason under 5 characters, a second concurrent session, and aal1
@@ -128,3 +128,11 @@ Auth dashboard toggle on the external `ethio-prod` project.
 - **G3a (INC-546):** the impersonation view's listings have their footer (`impersonation-listings-pagination`, page size kept under `ethio.admin.impersonation.pageSize`) and page through the door (`impersonated_list_listings` p_limit / p_offset); before it the view drew the first 25 with no way past them. IMP-1 reads the footer.
 - **G3b (INC-547, INC-548; the operator's walk of G2b):** the events-per-day chart is drawn again — the frame mounted while its data loaded and its one measurement at mount found no plot (`ChartFrame` now measures the plot whenever it appears; AS-1 sees the bars). The dates in Filters are bounded: From is never after To or today, To never before From or after today; a date outside them is refused and the field keeps its value (AS-3). IMP-1 seeds one scratch listing for its seller (a pooled account is reaped to none), so the view's footer has a row to page: "1–1 of 1".
 - **L1b (INC-549; the operator's walk of G3b):** From and To are the house date field — the app's own calendar, where a day after today, or a To before From, is greyed and cannot be chosen, and the month stops at the bounds; the two fields stack, each calendar opening under its field inside Filters. AS-3 picks through the calendar.
+
+## Impersonation and the audit log on the door mechanism (Foundations 1, turn F1-2; DEC-333, DEC-380, DEC-381)
+
+`begin_impersonation` calls `door_context('staff', impersonation:use, impersonation, NULL, 'global')`: the super-admin rule is the permission `impersonation:use`, held by `super_admin` alone and assignable to no custom role (DEC-381). It refuses `impersonateSelf`, `impersonateSuperAdmin`, `unknownUser`, `badLength:reason` and `sessionActive`, and answers `{ ok:true, session_id, expires_at }` (it returned a table). `end_impersonation` calls `door_context('owner', …, account_pref)` — a door that only closes what another door opened spends a dial other than its opener's, so a live session can always be ended by hand (DEC-380, INC-1152) — refuses `noActiveSession`, and answers `{ ok:true }`. Both take the shell. `get_active_impersonation` takes `door_context`'s reader form: a signed-out caller is refused `notSignedIn`, a deactivated one `accountDeactivated`; the shell mounts the banner for staff only, so a visitor makes no call, and a refused read draws nothing. The audit readers (`admin_list_audit`, `admin_audit_facets`, `admin_audit_stats`) take the staff-reader form. Migrations `20261114070700_e30e4335` (mark `20261114090300`), `20261114070800_d66e79e1` (mark `20261114090400`) and `20261114070900_21a900de` (part 6; mark `20261114100000`).
+
+The lint `impersonation_reach` (`public.security_lints()`, ERROR, baseline 0 in `scripts/security-lints-baseline.json`) counts the roles other than `super_admin` that reach `impersonation:use` or `impersonation:manage` through `get_role_hierarchy`; the smoke lane and the nightly fail above 0. View-as v2 (DEC-373) decides who else may hold it, by changing the baseline in a recorded decision.
+
+The client: `beginImpersonation` reads the answer through a shape guard (`startedSession`); the starter reads a refusal through `readRefusal` with its own generic (`impersonation.failed`). Unit tests: `impersonation-service.test.ts`. E2E: IMP-3 (`impersonateSelf`, `impersonateSuperAdmin`) and IMP-5 (`permissionDenied`) read the code.
