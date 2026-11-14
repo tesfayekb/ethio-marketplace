@@ -1250,7 +1250,7 @@ test.describe("Legal doors", () => {
     expect(done.data).toEqual([]);
   });
 
-  test("LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row", async ({
+  test("LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row per page", async ({
     page,
   }) => {
     const kind = `${RUN_TAG}-y`;
@@ -1366,7 +1366,7 @@ test.describe("Legal doors", () => {
       .eq("action", "legal.acceptances_exported")
       .eq("entity_id", fixture.publishedId);
     expect(audit.error).toBeNull();
-    expect(audit.data).toHaveLength(1);
+    expect(audit.data).toHaveLength(3);
   });
   test(
     "LG-32 acceptance records the language actually shown, version by version",

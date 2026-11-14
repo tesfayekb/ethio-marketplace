@@ -90,8 +90,8 @@ still reads "Machine", with "Approved by …" appended.
 
 `admin_set_language_flags(code, enabled_admin, enabled_public)` refuses
 `enabled_public = true` unless every key in the base catalog has an approved,
-non-null row for that language: the door refuses `notFullyApproved` (F1-3; the
-console's coverage line). `enabled_admin` has no gate —
+non-null row for that language: the door refuses `notFullyApproved:<n>`, `n` the keys
+still to approve (F1-3; the console's coverage line). `enabled_admin` has no gate —
 that is how a language is worked on before it is published.
 
 EMPTY-SET LAW (U4b-4, INC-095h): every completeness/totality gate defines its

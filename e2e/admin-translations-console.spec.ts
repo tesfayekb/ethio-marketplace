@@ -288,7 +288,7 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, "/admin/translations");
       await expect(publicSwitch).toBeDisabled();
       await expect(surfaceControl(page, "lang-public-gate-om")).toBeVisible();
-      expect(await flipOm()).toBe("notFullyApproved");
+      expect(await flipOm()).toMatch(/^notFullyApproved:[1-9]\d*$/);
     } finally {
       await reapScratchKey(key);
     }
