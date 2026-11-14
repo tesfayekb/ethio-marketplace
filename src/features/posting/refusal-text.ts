@@ -1,7 +1,5 @@
 import type { MessageKey } from "@/i18n";
-
-import type { Refusal } from "./types";
-import { ownValue } from "@/lib/own-key";
+import { readRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
  * U6-C1a — THE DOORS' VOCABULARY, IN WORDS (D1 + F4).
@@ -145,19 +143,38 @@ const BACKGROUND_REASONS: Record<string, MessageKey> = {
   notCover: "post.photos.background.notCover",
 };
 
+/**
+ * DEC-339 — posting's words, as the families the one reader takes
+ * (`src/lib/refusal.ts`): an unknown reason reads as the family's own generic.
+ */
+export const DRAFT_REFUSALS: RefusalFamily = {
+  words: DRAFT_REASONS,
+  generic: "post.refusal.unknown",
+};
+
+export const PHOTO_REFUSALS: RefusalFamily = {
+  words: PHOTO_REASONS,
+  generic: "post.photo.refusal.unknown",
+};
+
+const BACKGROUND_REFUSALS: RefusalFamily = {
+  words: { ...PHOTO_REASONS, ...BACKGROUND_REASONS },
+  generic: "post.photo.refusal.unknown",
+};
+
 /** A background-route refusal, in the seller's language. */
 export function backgroundRefusalKey(reason: string): MessageKey {
-  return ownValue(BACKGROUND_REASONS, base(reason)) ?? photoRefusalKey(reason);
+  return readRefusal(reason, BACKGROUND_REFUSALS).key;
 }
 
 /** A draft-route refusal, in the seller's language. */
 export function draftRefusalKey(reason: string): MessageKey {
-  return ownValue(DRAFT_REASONS, base(reason)) ?? "post.refusal.unknown";
+  return readRefusal(reason, DRAFT_REFUSALS).key;
 }
 
 /** An upload-route refusal, in the seller's language. */
 export function photoRefusalKey(reason: string): MessageKey {
-  return ownValue(PHOTO_REASONS, base(reason)) ?? "post.photo.refusal.unknown";
+  return readRefusal(reason, PHOTO_REFUSALS).key;
 }
 
 /**
@@ -177,15 +194,4 @@ export function refusalFor(refusals: Refusal[], field: string): Refusal | null {
   return refusals.find((entry) => entry.field === field) ?? null;
 }
 
-/**
- * `{name}`-style interpolation, the same shape every other surface uses
- * (`t(key).replace("{x}", v)`), gathered into one call so a message with three
- * placeholders does not become three chained replaces at the call site.
- */
-export function fill(template: string, values: Record<string, string | number>): string {
-  let out = template;
-  for (const [name, value] of Object.entries(values)) {
-    out = out.replace(`{${name}}`, String(value));
-  }
-  return out;
-}
+export { fill } from "@/lib/refusal";

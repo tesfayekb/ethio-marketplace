@@ -1,4 +1,4 @@
-import { doorRefusal } from "@/features/posting/door-error";
+import { doorRefusal } from "@/lib/door-error";
 import {
   doorAnswer,
   ok,

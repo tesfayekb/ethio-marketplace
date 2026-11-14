@@ -1,4 +1,5 @@
 import { readerFailure } from "@/lib/reader-failure";
+import type { Refusal } from "@/lib/refusal";
 import {
   doorAnswer,
   logRouteError,
@@ -90,11 +91,8 @@ export function plain(text: string, status: number, init?: { cache?: string }): 
   });
 }
 
-/**
- * A refusal the client renders: the door's or the schema's own vocabulary.
- * `retry` (Foundations turn 4): the upload screen's provider refusals carry it.
- */
-export type Refusal = { field: string; reason: string; detail?: string; retry?: boolean };
+/** A refusal the client renders: the one shape, in `src/lib/refusal.ts` (DEC-339). */
+export type { Refusal };
 
 /** The posting contract: refusals at 200, `ok: false`. */
 export function verdict(refusals: Refusal[], status = 200): Response {
