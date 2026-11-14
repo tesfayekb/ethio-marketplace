@@ -35,6 +35,7 @@ import { fill } from "./refusal-text";
  */
 export function PhoneNumberField({
   id,
+  describedBy,
   testId,
   value,
   defaultIso,
@@ -48,6 +49,8 @@ export function PhoneNumberField({
   requiredEmpty = false,
 }: {
   id: string;
+  /** DEC-339 — what its Field says about the number (the hint, the refusal). */
+  describedBy?: string;
   testId: string;
   value: string;
   defaultIso: string;
@@ -239,7 +242,11 @@ export function PhoneNumberField({
           dir="ltr"
           value={national}
           placeholder={plan === null ? undefined : plan.example}
-          aria-describedby={hint === null ? undefined : `${id}-hint`}
+          aria-describedby={
+            [describedBy, hint === null ? undefined : `${id}-length`]
+              .filter((part) => part !== undefined)
+              .join(" ") || undefined
+          }
           onChange={(event) => {
             const typed = tidyTyping(event.target.value);
             const international = readInternational(typed, iso);
@@ -325,7 +332,7 @@ export function PhoneNumberField({
       </div>
       {hint !== null && plan !== null && (
         <p
-          id={`${id}-hint`}
+          id={`${id}-length`}
           data-testid={`${testId}-length-hint`}
           data-hint={hint}
           className="text-xs text-muted-foreground"

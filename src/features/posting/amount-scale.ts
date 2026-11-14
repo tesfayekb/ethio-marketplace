@@ -1,3 +1,5 @@
+import { numberOf, parseNumber } from "@/lib/parse-input";
+
 /** W6b-2 A2 — how many zeros the typed amount is shifted by. */
 export type AmountScale = 0 | 3 | 6;
 
@@ -12,7 +14,5 @@ export function scaleAmount(raw: string, zeros: AmountScale): number | null {
   const moved = frac.padEnd(zeros, "0");
   const digits = `${whole}${moved.slice(0, zeros)}`;
   const rest = moved.slice(zeros);
-  const text = rest === "" ? digits : `${digits}.${rest}`;
-  const value = Number(text === "" ? "0" : text);
-  return Number.isFinite(value) ? value : null;
+  return numberOf(parseNumber(rest === "" ? digits : `${digits}.${rest}`));
 }

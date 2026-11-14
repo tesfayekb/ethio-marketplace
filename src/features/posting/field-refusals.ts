@@ -1,87 +1,58 @@
+import { registeredField, type FieldRegistry } from "@/components/forms/field-registry";
+import { revealControl } from "@/components/forms/reveal-control";
 import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 
 import { type Refusal } from "./types";
 
 /**
- * The door's field names, in the seller's words. An attribute's own key has no
- * entry here: the summary then shows the key as DATA, which is what the
- * specification step labels it with too.
- */
-const FIELD_LABEL_KEYS: Record<string, MessageKey> = {
-  category_id: "post.step.category",
-  photos: "post.step.photos",
-  attributes: "post.step.specifications",
-  title: "post.details.titleLabel",
-  description: "post.details.descriptionLabel",
-  video_url: "post.details.videoLabel",
-  videoUrl: "post.details.videoLabel",
-  price_mode: "post.price.modeLabel",
-  price_amount: "post.price.amountLabel",
-  price_currency: "post.price.currencyLabel",
-  price_period: "post.price.periodLabel",
-  poster_expires_at: "post.price.expiryLabel",
-  coverage: "post.step.place",
-  contact_pref: "post.step.contact",
-  messages: "post.who.channel.messages",
-  phone: "post.who.channel.phone",
-  telegram: "post.who.channel.telegram",
-  whatsapp: "post.who.channel.whatsapp",
-  alias: "post.who.aliasLabel",
-  first_name: "post.who.firstNameLabel",
-  last_name: "post.who.lastNameLabel",
-  business_name: "post.who.businessLabel",
-  home_country_code: "post.who.countryLabel",
-  // U6-C1-R3a — the contact door names its fields with the object's own path
-  // (`listing_contact_refusals`), so those names carry labels too.
-  "contact_pref.messages": "post.who.channel.messages",
-  "contact_pref.phone": "post.who.channel.phone",
-  "contact_pref.telegram": "post.who.channel.telegram",
-  "contact_pref.whatsapp": "post.who.channel.whatsapp",
-};
-
-/**
- * INC-231 — WHICH STEP OWNS A FIELD.
+ * DEC-339 — POSTING'S FIELD REGISTRY: the draft and contact doors' field names,
+ * each with its words in the seller's language and the step that draws it.
  *
- * The summary above Back/Next is about THIS step: a seller reading "Title" under
- * the price form has no control to fix and no idea where it lives. A refusal
- * naming another step's field therefore renders as "Fix <Step name>: <label>"
- * and takes the seller there in one tap — nothing is swallowed (F4), and nothing
- * is shown where it cannot be acted on.
+ * An attribute's own key has no entry: the summary then shows the key as DATA,
+ * which is what the specification step labels it with too, and the wizard
+ * reports the attribute keys each step draws, so those refusals find their step
+ * by that list.
  *
- * An attribute key has no entry: the specification step declares its own fields
- * and the wizard reports them, so those refusals are matched by that list.
+ * INC-231 — WHICH STEP OWNS A FIELD. The summary above Back/Next is about THIS
+ * step: a seller reading "Title" under the price form has no control to fix and
+ * no idea where it lives. A refusal naming another step's field therefore
+ * renders as "Fix <Step name>: <label>" and takes the seller there in one tap —
+ * nothing is swallowed (F4), and nothing is shown where it cannot be acted on.
+ *
+ * U6-C1-R3a — the contact door names its fields with the object's own path
+ * (`listing_contact_refusals`), so those names carry labels too.
  */
-const FIELD_STEPS: Record<string, number> = {
-  category_id: 1,
-  photos: 2,
-  video_url: 2,
-  videoUrl: 2,
-  attributes: 3,
-  title: 5,
-  description: 5,
-  price_mode: 4,
-  price_amount: 4,
-  price_currency: 4,
-  price_period: 4,
-  coverage: 6,
-  contact_pref: 7,
-  "contact_pref.messages": 7,
-  "contact_pref.phone": 7,
-  "contact_pref.telegram": 7,
-  "contact_pref.whatsapp": 7,
-  messages: 7,
-  phone: 7,
-  telegram: 7,
-  whatsapp: 7,
-  alias: 7,
-  first_name: 7,
-  last_name: 7,
-  "contact_pref.phone2": 7,
-  seller_type: 7,
-  business_name: 7,
-  home_country_code: 7,
-  poster_expires_at: 8,
+export const POSTING_FIELDS: FieldRegistry = {
+  category_id: { label: "post.step.category", step: 1 },
+  photos: { label: "post.step.photos", step: 2 },
+  video_url: { label: "post.details.videoLabel", step: 2 },
+  videoUrl: { label: "post.details.videoLabel", step: 2 },
+  attributes: { label: "post.step.specifications", step: 3 },
+  title: { label: "post.details.titleLabel", step: 5 },
+  description: { label: "post.details.descriptionLabel", step: 5 },
+  price_mode: { label: "post.price.modeLabel", step: 4 },
+  price_amount: { label: "post.price.amountLabel", step: 4 },
+  price_currency: { label: "post.price.currencyLabel", step: 4 },
+  price_period: { label: "post.price.periodLabel", step: 4 },
+  coverage: { label: "post.step.place", step: 6 },
+  contact_pref: { label: "post.step.contact", step: 7 },
+  "contact_pref.messages": { label: "post.who.channel.messages", step: 7 },
+  "contact_pref.phone": { label: "post.who.channel.phone", step: 7 },
+  "contact_pref.telegram": { label: "post.who.channel.telegram", step: 7 },
+  "contact_pref.whatsapp": { label: "post.who.channel.whatsapp", step: 7 },
+  "contact_pref.phone2": { step: 7 },
+  messages: { label: "post.who.channel.messages", step: 7 },
+  phone: { label: "post.who.channel.phone", step: 7 },
+  telegram: { label: "post.who.channel.telegram", step: 7 },
+  whatsapp: { label: "post.who.channel.whatsapp", step: 7 },
+  alias: { label: "post.who.aliasLabel", step: 7 },
+  first_name: { label: "post.who.firstNameLabel", step: 7 },
+  last_name: { label: "post.who.lastNameLabel", step: 7 },
+  seller_type: { step: 7 },
+  business_name: { label: "post.who.businessLabel", step: 7 },
+  home_country_code: { label: "post.who.countryLabel", step: 7 },
+  poster_expires_at: { label: "post.price.expiryLabel", step: 8 },
 };
 
 /** Which step a refused field belongs to, or `null` when no step claims it. */
@@ -93,31 +64,7 @@ export function stepOfField(
   if (specFields.includes(field)) return 3;
   // DEC-109 — a detail drawn on the price page belongs to step 4.
   if (priceFields.includes(field)) return 4;
-  return ownValue(FIELD_STEPS, field) ?? null;
-}
-
-export const fieldControlClass =
-  "min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground " +
-  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 " +
-  "focus-visible:ring-ring";
-
-/**
- * The border a control wears.
- *
- * U6-C1-R2 — THREE STATES, NOT TWO. A refused control wears the full
- * destructive border (the door has spoken). A REQUIRED control that is still
- * EMPTY wears a soft one from the start: the seller can see, before pressing
- * anything, which answers the form is still waiting for — without the screen
- * claiming a refusal nobody made (F4).
- */
-export function controlClass(refused: boolean, soft = false): string {
-  // INC-355 — required + empty is the FULL destructive border; refused adds the ring.
-  const border = refused
-    ? "border-destructive ring-1 ring-destructive"
-    : soft
-      ? "border-destructive"
-      : "border-input";
-  return `${fieldControlClass} ${border}`;
+  return registeredField(POSTING_FIELDS, field)?.step ?? null;
 }
 
 /**
@@ -149,24 +96,15 @@ function fieldTarget(field: string): HTMLElement | null {
 }
 
 /**
- * Move the seller to the control a refusal names, however that step built it.
- *
- * W4 D2 — the FIELD CONTAINER (label included) is scrolled into view, smoothly
- * unless the seller asked for reduced motion; its `scroll-mt-20` keeps the label
- * below the fixed header. Then the control takes focus without a second jump.
+ * Move the seller to the control a refusal names, however that step built it:
+ * its Field's box (W4 D2), or the specification row that holds it.
  */
 function focusElement(target: HTMLElement): void {
-  const container =
-    target.closest<HTMLElement>('[data-testid="post-field"]') ??
+  const box =
+    target.closest<HTMLElement>("[data-form-field]") ??
     target.closest<HTMLElement>('[data-testid="post-spec"]') ??
-    target;
-  const reduced =
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  container.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
-  if (typeof (target as HTMLElement & { focus?: () => void }).focus === "function") {
-    target.focus({ preventScroll: true });
-  }
+    undefined;
+  revealControl(target, box);
 }
 
 export function focusField(field: string): void {
@@ -218,7 +156,7 @@ export function summaryLabel(
   t: (key: MessageKey) => string,
   fieldNames: Readonly<Record<string, string>> = {},
 ): string {
-  const key = ownValue(FIELD_LABEL_KEYS, field);
+  const key = registeredField(POSTING_FIELDS, field)?.label;
   if (key !== undefined) return t(key);
   const name = ownValue(fieldNames, field);
   return name === undefined || name === "" ? field : name;

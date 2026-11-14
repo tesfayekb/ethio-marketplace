@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { DIALS } from "@/lib/dials";
+import type { Refusal } from "@/lib/refusal";
 
 /**
  * U6-C1a — THE WIZARD'S VOCABULARY.
@@ -134,12 +135,8 @@ export interface DealLists {
   terms: string[];
 }
 
-/** One refusal, exactly as a door or route worded it. Never translated here. */
-export interface Refusal {
-  field: string;
-  reason: string;
-  detail?: string;
-}
+/** One refusal, exactly as a door or route worded it: the one shape (DEC-339). */
+export type { Refusal };
 
 /** What every route answer looks like once parsed (F4: a refusal is an answer). */
 export interface DoorAnswer {

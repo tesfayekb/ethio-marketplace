@@ -10,7 +10,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
 import { Field } from "./field";
-import { controlClass } from "./field-refusals";
+import { controlClass } from "@/components/forms/control-class";
 import { encodeBitmap, encodeVariants } from "./photo-encode";
 import { BackgroundDialog } from "./background-dialog";
 import { PhotoEditor } from "./photo-editor";
@@ -888,26 +888,34 @@ export function StepPhotos({
             {t("post.photos.standIn")}
           </p>
           {onPhotosSoon !== undefined && listingId !== null && (
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-foreground">
-              <input
-                type="checkbox"
-                data-testid="post-photos-soon"
-                className="h-5 w-5 shrink-0 accent-primary"
-                checked={photosSoon}
-                disabled={soonBusy}
-                onChange={(event) => {
-                  const on = event.target.checked;
-                  setSoonBusy(true);
-                  setSoonFailed(false);
-                  void onPhotosSoon(on).then((ok) => {
-                    if (!aliveRef.current) return;
-                    setSoonBusy(false);
-                    setSoonFailed(!ok);
-                  });
-                }}
-              />
-              <span>{t("post.photos.soonTick")}</span>
-            </label>
+            <Field
+              id="post-photos-soon"
+              label={t("post.photos.soonTick")}
+              required={false}
+              refusal={null}
+              layout="choice"
+            >
+              {(field) => (
+                <input
+                  type="checkbox"
+                  {...field}
+                  data-testid="post-photos-soon"
+                  className="h-5 w-5 shrink-0 accent-primary"
+                  checked={photosSoon}
+                  disabled={soonBusy}
+                  onChange={(event) => {
+                    const on = event.target.checked;
+                    setSoonBusy(true);
+                    setSoonFailed(false);
+                    void onPhotosSoon(on).then((ok) => {
+                      if (!aliveRef.current) return;
+                      setSoonBusy(false);
+                      setSoonFailed(!ok);
+                    });
+                  }}
+                />
+              )}
+            </Field>
           )}
           {soonFailed && (
             <p

@@ -3,6 +3,7 @@ import { CutText } from "@/components/ui/cut-text";
 import { readerFailure } from "@/lib/reader-failure";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { FormLayout } from "@/components/layout/form-layout";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageGuide } from "@/components/shell/page-guide";
@@ -246,39 +247,23 @@ function WizardShell({
     );
   }, []);
   /**
-   * D193 — THE MIRROR, GATHERED. Each step on screen reports the required answers
-   * it still lacks (its own reading of the door's `required` rule); the wizard
-   * holds them per source for the step they were reported on, and Next is CLOSED
-   * while any remain: a tap marks them in red and moves to the first, nothing is
-   * sent. The door still decides (F3) — a mirror that falls short lets a save
-   * through to be refused there, exactly as before; a mirror that says "missing"
-   * for an answer the door would take is a defect of the mirror, never a rule.
+   * D193 — THE MIRROR, GATHERED, through the one form gate (DEC-339). Each step
+   * on screen reports the required answers it still lacks (its own reading of
+   * the door's `required` rule); the gate holds them per source for the step
+   * they were reported on, and Next is CLOSED while any remain: a tap marks them
+   * in red and moves to the first, nothing is sent. The door still decides (F3).
    * Contact joins the mirror; its pending identity/alias gate stays in whoQueue.
    */
-  const stepRef = useRef(draft.step);
-  stepRef.current = draft.step;
-  const [mirror, setMirror] = useState<{ step: number; by: Record<string, string[]> }>({
-    step: 0,
-    by: {},
-  });
-  const reportMissing = useCallback((source: string, fields: string[]) => {
-    const step = stepRef.current;
-    setMirror((prev) => {
-      const same =
-        prev.step === step &&
-        (prev.by[source] ?? []).length === fields.length &&
-        (prev.by[source] ?? []).every((key, index) => key === fields[index]);
-      if (same) return prev;
-      return {
-        step,
-        by: prev.step === step ? { ...prev.by, [source]: fields } : { [source]: fields },
-      };
-    });
-  }, []);
-  const missing = useMemo(
-    () => (mirror.step === draft.step ? Object.values(mirror.by).flat() : []),
-    [mirror, draft.step],
+  const gate = useFormGate(draft.step, (fields) =>
+    focusFirstRefusal(
+      fields.map((field) => ({ field, reason: "required" })),
+      draft.step,
+      specFields,
+      priceFields,
+    ),
   );
+  const reportMissing = gate.report;
+  const missing = gate.missing;
   const onMissingDetails = useCallback(
     (fields: string[]) => reportMissing("details", fields),
     [reportMissing],
@@ -296,16 +281,8 @@ function WizardShell({
     [reportMissing],
   );
   const [submitted, setSubmitted] = useState(false);
-  /** A tap on the closed Next: the missing answers are marked until they are given. */
-  const [tried, setTried] = useState(false);
-  useEffect(() => {
-    setTried(false);
-  }, [draft.step]);
-  const triedRefusals = useMemo<Refusal[]>(
-    () => (tried ? missing.map((field) => ({ field, reason: "required" })) : []),
-    [tried, missing],
-  );
-  /** What the steps and the summary show: the door's word first, then the marks. */
+  /** What the steps and the summary show: the door's word first, then the gate's marks. */
+  const triedRefusals = gate.marks;
   const shownRefusals = useMemo(
     () =>
       triedRefusals.length === 0 ? draft.refusals : mergeRefusals(draft.refusals, triedRefusals),
@@ -523,8 +500,16 @@ function WizardShell({
   /** R-YEAR STEP 5 — the notice is read once and can be put away. */
   const [noticeDismissed, setNoticeDismissed] = useState(false);
   const categoryId = draft.values.categoryId;
-  /** U6-C1-R3a-2 — step 1's only answer: a leaf. No leaf, nothing to send. */
+  /**
+   * U6-C1-R3a-2 — step 1's only answer: a leaf. No leaf, nothing to send: the
+   * gate holds it as `category_id`, like every other blank (DEC-339). Next stays
+   * disabled here, not only drawn closed, while PW-1 asserts so.
+   */
   const needsLeaf = draft.step === 1 && categoryId === null;
+  useEffect(() => {
+    if (draft.step === 1) reportMissing("category", needsLeaf ? ["category_id"] : []);
+  }, [draft.step, needsLeaf, reportMissing]);
+  const leafMarked = gate.marks.some((mark) => mark.field === "category_id");
   /** INC-585 — photos on step 2 that were not added (refused or unsent). */
   const [photosHeld, setPhotosHeld] = useState(0);
   const photosBlockNext = draft.step === 2 && photosHeld > 0;
@@ -555,7 +540,6 @@ function WizardShell({
     if (window.location.pathname === own) return;
     replaceAddressQuietly(own);
   }, [listingId, draft.listingId]);
-  const [triedWithoutLeaf, setTriedWithoutLeaf] = useState(false);
   /**
    * U6-C1-R3b-3d STEP 5 — WHICH LEVEL OF THE TREE STEP 1 STANDS ON. It lives here,
    * not inside the step, because BACK leaves a level while there is one to leave
@@ -764,7 +748,6 @@ function WizardShell({
     // answer to step 1, so the wizard saves it and moves on. No
     // confirmation screen — the chip above every later step is the
     // confirmation, and it carries the way back.
-    setTriedWithoutLeaf(false);
     setNoticeDismissed(false);
     const previous = draft.values.categoryId;
     if (previous === null || previous === nextCategoryId) {
@@ -906,16 +889,7 @@ function WizardShell({
   function goNext() {
     void (async () => {
       if (submitted) return;
-      if (missing.length > 0) {
-        setTried(true);
-        focusFirstRefusal(
-          missing.map((field) => ({ field, reason: "required" })),
-          draft.step,
-          specFields,
-          priceFields,
-        );
-        return;
-      }
+      if (!gate.try()) return;
       if (draft.step === 7 && whoSaveRef.current !== null && !(await whoSaveRef.current())) return;
       const saved = await draft.saveAt(draft.step);
       if (!saved) return;
@@ -1390,16 +1364,7 @@ function WizardShell({
                               }
                               data-closed={missing.length > 0 || certifyClosed ? "1" : undefined}
                               onClick={() => {
-                                if (missing.length > 0) {
-                                  setTried(true);
-                                  focusFirstRefusal(
-                                    missing.map((field) => ({ field, reason: "required" })),
-                                    draft.step,
-                                    specFields,
-                                    priceFields,
-                                  );
-                                  return;
-                                }
+                                if (!gate.try()) return;
                                 if (sellerEdit && !certifyAllows(certify)) {
                                   if (certify.state === "ready") setCertifyTried((n) => n + 1);
                                   return;
@@ -1482,7 +1447,7 @@ function WizardShell({
                          outlined, and the reason said (F4). */
                         onKeyDown={(event) => {
                           if (event.key !== "Enter" || !needsLeaf) return;
-                          setTriedWithoutLeaf(true);
+                          gate.try();
                         }}
                       >
                         {draft.step === 1 && (
@@ -1495,7 +1460,7 @@ function WizardShell({
                             term={categoryTerm}
                             onTerm={setCategoryTerm}
                             selectedId={categoryId}
-                            invalid={triedWithoutLeaf && categoryId === null}
+                            invalid={leafMarked}
                             onChoose={(nextCategoryId, matches) => {
                               const choice = ++leafChoiceRef.current;
                               // D37-2 — a finder hit carries proposed answers; they are

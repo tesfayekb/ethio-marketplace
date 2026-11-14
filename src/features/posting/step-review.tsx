@@ -26,7 +26,7 @@ import type { MessageKey } from "@/i18n";
 import { Switch } from "@/components/ui/switch";
 
 import { Field } from "./field";
-import { controlClass } from "./field-refusals";
+import { controlClass } from "@/components/forms/control-class";
 import { ListingPreview } from "./listing-preview";
 import {
   attributeDisplayValue,
@@ -768,20 +768,25 @@ export function StepReview({
               ? t("post.review.staysUp")
               : fill(t("post.review.staysUpDays"), { days: expiryDays })}
           </p>
-          <div className="flex min-h-11 items-center justify-between gap-3">
-            <label htmlFor="post-take-down-switch" className="text-sm font-medium text-foreground">
-              {t("post.review.takeDownSwitch")}
-            </label>
-            <Switch
-              id="post-take-down-switch"
-              data-testid="post-take-down-switch"
-              checked={dateOn}
-              onCheckedChange={(on) => {
-                setDateOn(on);
-                if (!on) onChangeExpiry("");
-              }}
-            />
-          </div>
+          <Field
+            id="post-take-down-switch"
+            label={t("post.review.takeDownSwitch")}
+            required={false}
+            refusal={null}
+            layout="inline"
+          >
+            {(field) => (
+              <Switch
+                {...field}
+                data-testid="post-take-down-switch"
+                checked={dateOn}
+                onCheckedChange={(on) => {
+                  setDateOn(on);
+                  if (!on) onChangeExpiry("");
+                }}
+              />
+            )}
+          </Field>
           {dateOn && (
             <Field
               id="post-active-until"

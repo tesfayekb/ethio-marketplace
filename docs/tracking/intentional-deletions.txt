@@ -129,3 +129,9 @@ src/components/ui/chart.tsx
 # speed part B [intentional-delete] (ruling 1, Q2): DEC-365's first-parent walk is retired; its runs-list
 # fixture has no reader (the lookup reads the artifacts index and one run, CF-DOCS-1…10)
 scripts/fixtures/docs-only/runs-8511aeed9.json
+# forms-kit part A [intentional-delete] (DEC-339): the worder's test moves beside it
+# (src/lib/door-error.test.ts, INC-1050)
+src/features/posting/door-error.test.ts
+# forms-kit part C [intentional-delete] (DEC-339): the dead form file (no importer); the one Field is
+# src/components/forms/field.tsx
+src/components/ui/form.tsx

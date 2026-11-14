@@ -103,7 +103,6 @@ src/features/legal/legal-kinds.test.ts (3) | non-null assertions written before 
 src/features/posting/attribute-options.test.ts (3) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/background-dialog.test.tsx (3) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/calling-codes.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
-src/features/posting/field.tsx (1) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/listing-preview.tsx (1) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/photo-edit.test.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/preview/photo-gallery.test.tsx (3) | non-null assertions written before the platform rule was enforced | INC-932

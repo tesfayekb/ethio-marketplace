@@ -1,5 +1,6 @@
 import { errorText } from "@/lib/error-text";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { refusalsOf } from "@/lib/refusal";
 import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
 import { tierOf } from "@/components/marketplace/card-tier";
@@ -8,7 +9,7 @@ import type { Certification } from "@/features/my-listings/my-listing";
 
 import { createDoorQueue, type DoorQueue } from "./door-queue";
 import { readPin, type Pin, type PinPrecision } from "./map/pin";
-import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
+import type { CategoryFacts, DoorAnswer } from "./types";
 import type { VisibleWhen } from "./visible-when";
 import { shapePlanCaps, shapePostingSchema } from "./schema-shape";
 import type { PlaceFact } from "./where-seed";
@@ -33,22 +34,6 @@ export { shapeDeal, shapePostingSchema } from "./schema-shape";
 /** The bearer the routes demand; absent means "not signed in" and the route 401s. */
 export function mayResumePosting(status: string): boolean {
   return status === "draft";
-}
-
-function refusalsOf(payload: Record<string, unknown>): Refusal[] {
-  const list = Array.isArray(payload["refusals"]) ? payload["refusals"] : [];
-  return list.map((entry) => {
-    const row = (entry ?? {}) as Record<string, unknown>;
-    return {
-      // The attribute authority names the offending definition in `attr_key`
-      // rather than `field` (A1's own vocabulary), and the form's controls are
-      // keyed by exactly that — so both spellings resolve to one `field` here
-      // and a refused detail can never end up without a message under it.
-      field: String(row["field"] ?? row["attr_key"] ?? ""),
-      reason: String(row["reason"] ?? ""),
-      ...(typeof row["detail"] === "string" ? { detail: row["detail"] } : {}),
-    };
-  });
 }
 
 const UNREACHABLE: DoorAnswer = {

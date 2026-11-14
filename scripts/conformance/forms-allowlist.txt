@@ -1,0 +1,93 @@
+# DEC-339 (Foundations 2) — the form kit's five laws (scripts/conformance/forms.test.ts, CF-FORM-1 → 5).
+# One line per law and file, keyed `<law> <file> (<findings>)`: a count that rises is a new finding, and a
+# count that falls leaves its line stale until it is rewritten — the list only falls. The reason names the
+# wave that moves the file onto the kit. <key> | <reason> | <until>
+CF-FORM-1 src/features/ad-page/report-ad.tsx (2) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339
+CF-FORM-1 src/features/admin-ai/ai-feature-form.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-ai/ai-spend-days.tsx (1) | wave 3 — a report's filter drawn apart from its toolbar's file (DEC-338 by kind unseen) | DEC-339
+CF-FORM-1 src/features/admin-attributes/attribute-dialogs.tsx (13) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-attributes/category-attributes-dialog.tsx (7) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-attributes/components/attribute-allowed-values.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-attributes/components/attribute-link-cells.tsx (7) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-attributes/components/attribute-option-row.tsx (8) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-attributes/components/attribute-option-rows.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-attributes/components/attribute-v2-fields.tsx (11) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-categories/category-dialogs.tsx (9) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-categories/category-form-fields.tsx (10) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-countries/country-dialogs.tsx (4) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-listings/listing-settings.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-listings/reason-note.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-listings/tier-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-listings/undo-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-locations/location-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-locations/location-form-fields.tsx (7) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-locations/location-verb-dialogs.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin-locations/locations-toolbar.tsx (1) | wave 3 — a list filter drawn apart from its toolbar's file (DEC-338 by kind unseen) | DEC-339
+CF-FORM-1 src/features/admin-monetisation/market-dialog.tsx (2) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-1 src/features/admin-monetisation/monetisation-dialogs.tsx (4) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-1 src/features/admin-monetisation/override-dialog.tsx (3) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-1 src/features/admin-monetisation/price-dialog.tsx (5) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-1 src/features/admin-monetisation/product-editor.tsx (3) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-1 src/features/admin-screening/name-checks.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/impersonation/impersonation-starter.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/legal/legal-editor-form.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/legal/legal-facts-card.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/legal/legal-page.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/legal/legal-publish-dialog.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/legal/legal-version-view.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/roles/role-detail.tsx (4) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/roles/roles-list.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/translations/data-scope.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/translations/delete-language-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/translations/language-picker.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/translations/languages-page.tsx (7) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/translations/strings-page.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/translations/translator-card.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/admin/users/user-detail.tsx (6) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-1 src/features/auth/mfa/step-up-dialog.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-1 src/features/posting/map/map-pin-dropper.tsx (1) | no wave named by the plan — the pin's two precision radios, drawn as list rows (no Field layout in that look yet) | DEC-339
+CF-FORM-1 src/routes/auth.tsx (4) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-1 src/routes/auth_.reset.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-1 src/routes/dev.primitives.tsx (1) | no wave named by the plan — the dev sample pages | DEC-339
+CF-FORM-1 src/routes/dev.style.tsx (3) | no wave named by the plan — the dev sample pages | DEC-339
+CF-FORM-1 src/routes/settings.tsx (9) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-2 src/components/shell/app-header.tsx (2) | no wave named by the plan — the header's two search forms (DEC-338: noValidate still) | DEC-339
+CF-FORM-2 src/routes/auth.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-2 src/routes/auth_.reset.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-2 src/routes/settings.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-3 src/features/admin-ai/ai-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-attributes/attribute-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-attributes/attribute-error.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-categories/category-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-categories/category-image-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-categories/category-submit-error.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-countries/countries-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-countries/country-dialog-state.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-countries/country-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-listings/edit-listing.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-listings/listing-policy.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-listings/move-reasons.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-listings/photo-remove.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-listings/tier-reasons.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-listings/undo-edit.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-locations/location-dialog-state.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-locations/location-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-locations/locations-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-monetisation/monetisation-dialogs.tsx (1) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-3 src/features/admin-monetisation/monetisation-service.ts (1) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-3 src/features/admin-monetisation/use-monetisation-error.ts (1) | wave 4 — the monetisation dialogs | DEC-339
+CF-FORM-3 src/features/admin-screening/use-photo-changes.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin-screening/use-photo-reviews.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin/legal/legal-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin/roles/roles-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin/translations/translations-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/admin/users/admin-users-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-3 src/features/auth/auth-error-key.ts (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-3 src/features/auth/mfa/mfa-service.ts (2) | wave 2 — the two-factor service's own mappers (INC-1147 class 1) | INC-1147
+CF-FORM-3 src/features/my-listings/my-listing.ts (1) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339
+CF-FORM-3 src/features/my-listings/promote-service.ts (1) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339
+CF-FORM-3 src/features/my-listings/promote-sheet.tsx (1) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339
+CF-FORM-4 src/features/admin-countries/country-dialog-state.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
+CF-FORM-5 src/routes/auth.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-5 src/routes/auth_.reset.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
+CF-FORM-5 src/routes/settings.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339

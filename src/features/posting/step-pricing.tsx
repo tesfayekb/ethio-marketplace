@@ -10,7 +10,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
 import { Field, RequiredMark } from "./field";
-import { controlClass } from "./field-refusals";
+import { controlClass } from "@/components/forms/control-class";
 import {
   currencyText,
   orderCurrencies,
@@ -30,6 +30,7 @@ import { formatCommission, percentToBp, priceShapeFor } from "./price-basis";
 import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
 import { ownValue } from "@/lib/own-key";
 import { numberFormatter } from "@/lib/format";
+import { numberOf, parseNumber } from "@/lib/parse-input";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -630,8 +631,7 @@ export function StepPricing({
             onChange={(event) => {
               const raw = event.target.value;
               setPercentText(raw);
-              const parsed = raw.trim() === "" ? null : Number(raw);
-              onChange({ priceBp: percentToBp(parsed) }, false);
+              onChange({ priceBp: percentToBp(numberOf(parseNumber(raw))) }, false);
             }}
           />
         </Field>
@@ -639,16 +639,24 @@ export function StepPricing({
 
       {/* DEC-081 — "Price is negotiable": a flag on a price with a figure, never a type. */}
       {toggleShown && (
-        <label className="flex min-h-11 items-center gap-3 text-sm text-foreground">
-          <input
-            type="checkbox"
-            data-testid="post-price-negotiable"
-            className="size-5 accent-primary"
-            checked={values.priceNegotiable}
-            onChange={(event) => onChange({ priceNegotiable: event.target.checked }, true)}
-          />
-          <span>{t("post.price.negotiableToggle")}</span>
-        </label>
+        <Field
+          id="post-price-negotiable"
+          label={t("post.price.negotiableToggle")}
+          required={false}
+          refusal={null}
+          layout="choice"
+        >
+          {(field) => (
+            <input
+              type="checkbox"
+              {...field}
+              data-testid="post-price-negotiable"
+              className="size-5 accent-primary"
+              checked={values.priceNegotiable}
+              onChange={(event) => onChange({ priceNegotiable: event.target.checked }, true)}
+            />
+          )}
+        </Field>
       )}
 
       {/* --------------- 4 · the period, ONLY when it is choosable ------------ */}
