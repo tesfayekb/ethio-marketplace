@@ -317,6 +317,46 @@ describe("defineImportRoute", () => {
     expect(state.logs.join("\n")).toMatch(/cat_secret/);
   });
 
+  it("IMR-13 a door's coded refusal answers its code, the shell's status and its detail, never the database's text", async () => {
+    const envelope = (reason: string, detail?: string) => ({
+      code: "P0D01",
+      message: detail === undefined ? reason : `${reason}:${detail}`,
+      details: "pg detail",
+      hint: "secret",
+      refusals: [detail === undefined ? { reason } : { reason, detail }],
+    });
+    const cases: [unknown, number, Record<string, string> | null][] = [
+      [
+        envelope("permissionDenied", "language"),
+        403,
+        { error: "permissionDenied", detail: "language" },
+      ],
+      [envelope("permissionDenied"), 403, { error: "permissionDenied" }],
+      [envelope("notSignedIn"), 401, { error: "notSignedIn" }],
+      [
+        envelope("rateLimited", "2026-11-14T15:00:00+00:00"),
+        429,
+        { error: "rateLimited", detail: "2026-11-14T15:00:00+00:00" },
+      ],
+      [envelope("baseLocked"), 400, { error: "baseLocked" }],
+      [envelope("tooManyRows", "<b>5001</b>"), 400, { error: "tooManyRows" }],
+      [
+        { code: "P0D01", message: "unknownKey:e2e.imr.key", details: "pg detail" },
+        400,
+        { error: "unknownKey", detail: "e2e.imr.key" },
+      ],
+      [envelope("stepUpRequired"), 428, null],
+    ];
+    for (const [error, status, body] of cases) {
+      state.answers["admin_import_translations"] = { data: null, error };
+      const response = await send(translations, { mode: "commit", lang: "am", strings: STRINGS });
+      expect(response.status).toBe(status);
+      const text = await response.text();
+      expect(text).not.toMatch(/pg detail|secret/);
+      if (body !== null) expect(JSON.parse(text)).toEqual(body);
+    }
+  });
+
   it("IMR-10 the refresh runs only after a successful commit, never after a refused one", async () => {
     const digest = await digestOf([CATEGORIES]);
     state.answers["admin_commit_category_import"] = {

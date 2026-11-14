@@ -78,8 +78,6 @@ CF-FORM-3 src/features/admin-monetisation/monetisation-service.ts (1) | wave 4 �
 CF-FORM-3 src/features/admin-monetisation/use-monetisation-error.ts (1) | wave 4 — the monetisation dialogs | DEC-339
 CF-FORM-3 src/features/admin-screening/use-photo-changes.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-3 src/features/admin-screening/use-photo-reviews.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin/legal/legal-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin/translations/translations-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-3 src/features/auth/auth-error-key.ts (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-3 src/features/auth/mfa/mfa-service.ts (2) | wave 2 — the two-factor service's own mappers (INC-1147 class 1) | INC-1147
 CF-FORM-3 src/features/my-listings/my-listing.ts (1) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339

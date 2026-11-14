@@ -16,7 +16,7 @@ import { relativeTime } from "@/lib/relative-time";
 
 import {
   serverMessage,
-  translationErrorKey,
+  translationRefusalKey,
   type TranslationRevision,
 } from "./translations-service";
 import {
@@ -104,7 +104,7 @@ export function HistoryDrawer({
       .then(() => onRestored(true))
       .catch((failure: unknown) => {
         // F4 — a refusal is shown, never swallowed.
-        setErrorKey(translationErrorKey(failure));
+        setErrorKey(translationRefusalKey(failure));
         setErrorDetail(serverMessage(failure));
       });
   };

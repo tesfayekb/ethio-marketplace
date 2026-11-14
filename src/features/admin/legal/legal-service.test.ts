@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 import { supabase } from "@/integrations/supabase/client";
+import { StepUpCancelled } from "@/features/auth/mfa/mfa-service";
 import {
   FACT_KEYS,
   acceptancesCsv,
@@ -8,9 +9,9 @@ import {
   fillFacts,
   getLegalVersion,
   listLegalDocuments,
-  legalErrorKey,
+  legalRefusalKey,
   listBaseLanguages,
-  legalErrorName,
+  legalRefusalName,
   legalFileName,
   lineDiff,
   reviewState,
@@ -29,8 +30,11 @@ it.each([
   "notDraft",
   "translationExists",
   "badLanguage",
+  "unknownFact",
+  "factMissing",
+  "nothingToReview",
 ])("maps refusal %s", (message) => {
-  expect(legalErrorKey({ message })).toBe(`admin.legal.error.${message}`);
+  expect(legalRefusalKey({ message })).toBe(`admin.legal.error.${message}`);
 });
 it.each([null, undefined, [], "text", { om: 42 }])(
   "staff version parser refuses invalid texts %j",
@@ -53,12 +57,14 @@ it.each([null, undefined, [], "text", { om: 42 }])(
   },
 );
 it("maps the publish fact refusals and reads the fact they name", () => {
-  expect(legalErrorKey({ message: "unknownFact:nope_fact" })).toBe("admin.legal.error.unknownFact");
-  expect(legalErrorKey({ message: "factMissing:legal_phone" })).toBe(
+  expect(legalRefusalKey({ message: "unknownFact:nope_fact" })).toBe(
+    "admin.legal.error.unknownFact",
+  );
+  expect(legalRefusalKey({ message: "factMissing:legal_phone" })).toBe(
     "admin.legal.error.factMissing",
   );
-  expect(legalErrorName({ message: "factMissing:legal_phone" })).toBe("legal_phone");
-  expect(legalErrorName({ message: "notDraft" })).toBe("");
+  expect(legalRefusalName({ message: "factMissing:legal_phone" })).toBe("legal_phone");
+  expect(legalRefusalName({ message: "notDraft" })).toBe("");
 });
 it.each([undefined, null, "om", [42], {}])(
   "M22 list refuses missing or malformed languages %j",
@@ -236,8 +242,25 @@ it("reads a document's review state", () => {
   expect(reviewState(review(new Date(NOW - 86_400_000).toISOString()), NOW)).toBe("overdue");
 });
 it("maps all other failures to the generic sentence", () => {
-  expect(legalErrorKey({ message: "permission denied" })).toBe("admin.legal.error.generic");
-  expect(legalErrorKey({ message: "constructor" })).toBe("admin.legal.error.generic");
+  expect(legalRefusalKey({ message: "permission denied" })).toBe("admin.legal.error.generic");
+  expect(legalRefusalKey({ message: "constructor" })).toBe("admin.legal.error.generic");
+  for (const code of ["permissionDenied", "notSignedIn", "rateLimited", "unknownVersion"])
+    expect(legalRefusalKey({ code: "P0D01", message: code })).toBe("admin.legal.error.generic");
+  expect(legalRefusalKey(new Error("Failed to fetch"))).toBe("admin.legal.error.generic");
+});
+it("reads the door shell's envelope: its code's words and the fact its detail names (F1-3)", () => {
+  const envelope = {
+    ok: false,
+    code: "P0D01",
+    message: "factMissing:legal_phone",
+    refusals: [{ reason: "factMissing", detail: "legal_phone" }],
+  };
+  expect(legalRefusalKey(envelope)).toBe("admin.legal.error.factMissing");
+  expect(legalRefusalName(envelope)).toBe("legal_phone");
+  expect(legalRefusalName({ code: "P0D01", message: "permissionDenied" })).toBe("");
+});
+it("says nothing for a step-up the person cancelled", () => {
+  expect(legalRefusalKey(new StepUpCancelled())).toBeNull();
 });
 it("validates kind and optional uppercase country", () => {
   expect(validDocument("terms")).toBe(true);
@@ -352,11 +375,11 @@ it("pages the export through next and stops when next is null (turn 13)", async 
   expect(answer.kind).toBe("terms");
   expect(rpc).toHaveBeenNthCalledWith(1, "admin_export_legal_acceptances", {
     p_version_id: "v2",
-    p_limit: 1000,
+    p_limit: 5000,
   });
   expect(rpc).toHaveBeenNthCalledWith(2, "admin_export_legal_acceptances", {
     p_version_id: "v2",
-    p_limit: 1000,
+    p_limit: 5000,
     p_after_at: "t1",
     p_after_id: "i1",
   });

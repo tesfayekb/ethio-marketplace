@@ -27,6 +27,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { shippedCatalogues, useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
+import type { RefusalFamily } from "@/lib/refusal";
 
 import { DeleteLanguageDialog } from "./delete-language-dialog";
 import { LanguagePicker } from "./language-picker";
@@ -35,7 +36,8 @@ import {
   baseTotalOf,
   coverageAgainstBase,
   serverMessage,
-  translationErrorKey,
+  TRANSLATION_REFUSALS,
+  translationRefusalKey,
   type EntityTranslationStats,
   type LanguageRow,
   type ProviderLanguage,
@@ -51,6 +53,12 @@ import {
   useTranslationStats,
   useUpsertLanguage,
 } from "./use-translations";
+
+/** The flags door's empty catalogue reads the sync-first line, this screen's own key. */
+const FLAG_REFUSALS = {
+  ...TRANSLATION_REFUSALS,
+  words: { ...TRANSLATION_REFUSALS.words, catalogEmpty: "admin.translations.syncFirstTooltip" },
+} as const satisfies RefusalFamily;
 
 /** Provider codes can carry a region subtag (`zh-CN`); the roster stores them lowercased. */
 const LANGUAGE_CODE_RE = /^[a-z]{2,8}(-[a-z0-9]{2,8})?$/;
@@ -232,15 +240,8 @@ function LanguagesTable({
         enabledPublic: next.public ?? row.enabledPublic,
       }),
     ).catch((failure: unknown) => {
-      // Both server refusals read translated: the coverage one through the
-      // shared mapper, the empty-catalog one through the sync-first line.
-      const raw = serverMessage(failure) ?? "";
-      setErrorKey(
-        /catalog empty/i.test(raw)
-          ? "admin.translations.syncFirstTooltip"
-          : translationErrorKey(failure),
-      );
-      setErrorDetail(raw === "" ? null : raw);
+      setErrorKey(translationRefusalKey(failure, FLAG_REFUSALS));
+      setErrorDetail(serverMessage(failure));
     });
   };
 
@@ -262,7 +263,7 @@ function LanguagesTable({
     next[index] = neighbour.code;
     next[target] = row.code;
     void guard(() => order.mutateAsync(next)).catch((failure: unknown) => {
-      setErrorKey(translationErrorKey(failure));
+      setErrorKey(translationRefusalKey(failure));
       setErrorDetail(serverMessage(failure));
     });
   };
@@ -725,7 +726,7 @@ function SyncKeysCard({ guard }: { guard: GuardFn }) {
                       .replace("{seeded}", String(result.seeded)),
                   );
                 })
-                .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
+                .catch((failure: unknown) => setErrorKey(translationRefusalKey(failure)));
             }}
           >
             {t("admin.translations.sync.action")}
@@ -848,7 +849,7 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
                     setManual(false);
                     reset();
                   })
-                  .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
+                  .catch((failure: unknown) => setErrorKey(translationRefusalKey(failure)));
               }}
             >
               {t("admin.translations.add.submit")}

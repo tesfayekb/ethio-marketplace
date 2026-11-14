@@ -215,7 +215,7 @@ export const DIALS = {
     windowSeconds: 86400,
     countedBy: "door",
   },
-  /** admin_export_legal_acceptances — first pages only (the audited write). */
+  /** admin_export_legal_acceptances — every page (each one audited). */
   legalExport: {
     action: "legal_export",
     limit: { fallback: 60 },

@@ -7,7 +7,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
-import { FACT_KEYS, legalErrorKey, type FactKey, type LegalSettings } from "./legal-service";
+import { FACT_KEYS, legalRefusalKey, type FactKey, type LegalSettings } from "./legal-service";
 import { FACT_BOUNDS, validateLegalFacts } from "./facts-validation";
 import { useLegalWrites } from "./use-legal";
 
@@ -117,7 +117,7 @@ export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: 
                   setEditing(false);
                   setSaved(true);
                 })
-                .catch((failure: unknown) => setError(legalErrorKey(failure)));
+                .catch((failure: unknown) => setError(legalRefusalKey(failure)));
             }}
           >
             {t("admin.legal.action.saveFacts")}
