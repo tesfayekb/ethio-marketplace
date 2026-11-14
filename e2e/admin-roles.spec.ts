@@ -221,7 +221,7 @@ test.describe("U2 roles console", () => {
           p_description: null,
         })
       ).error,
-    ).toMatch(/system role/i);
+    ).toBe("systemRole");
     const permId = (
       await adminClient()
         .from("permissions")
@@ -238,7 +238,7 @@ test.describe("U2 roles console", () => {
           p_granted: true,
         })
       ).error,
-    ).toMatch(/system role/i);
+    ).toBe("systemRole");
   });
 
   test("RP-5 delete guards: members block deletion; typed confirm deletes", async ({ page }) => {
@@ -252,8 +252,8 @@ test.describe("U2 roles console", () => {
     await gotoReady(page, `/admin/roles/${id}`);
     await expect(page.getByTestId("role-delete-hint")).toBeVisible();
     await expect(page.getByTestId("role-delete")).toBeDisabled();
-    expect((await pageDoor(page, "admin_delete_role", { p_role_id: id })).error).toMatch(
-      /role has members/i,
+    expect((await pageDoor(page, "admin_delete_role", { p_role_id: id })).error).toBe(
+      "hasDependents",
     );
 
     const { error } = await adminClient()
@@ -441,7 +441,7 @@ test.describe("U2 roles console", () => {
           p_granted: true,
         })
       ).error,
-    ).toMatch(/not assignable to custom roles/i);
+    ).toBe("permissionReserved");
 
     await switchLanguage(page, "am");
     await expect(page.getByTestId("role-permission-reserved-roles:update")).toContainText(
