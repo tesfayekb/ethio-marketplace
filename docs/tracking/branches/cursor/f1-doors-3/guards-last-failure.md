@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43591785189
-- Commit: `900c2149adbd37ea50dce755c052bab77407c4af`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43592099375
+- Commit: `9c82af68702f96e3bb8823be78edc1109016d521`
 - Attempt: 1
-- Written (UTC): 2026-11-14T12:04:14.768Z
+- Written (UTC): 2026-11-14T12:18:52.900Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -67,7 +67,7 @@ STAGING BEHIND: apply 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/8be91e95-8dbc-47f1-8471-6a985efec528' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/2cac0ca3-59b1-42f2-a210-a04795b64059' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -138,7 +138,7 @@ publish-evidence: published docs/tracking/branches/cursor/f1-doors-3/e2e-last-fa
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-5d4f49494191… (0 read)
+  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-5d4f49494191… (1 read)
   EVIDENCE_REF: cursor/f1-doors-3
 ##[endgroup]
 lanes=failure
@@ -147,7 +147,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/85df54a7-4ce1-49a0-af6d-8cd60b65671c' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/661eed14-cd5c-424f-a7d0-c634474b4fbb' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
