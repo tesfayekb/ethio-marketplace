@@ -192,3 +192,10 @@ attr_answer_tokens | authenticated | INC-443: an older browser grant the list la
 attr_answer_other_text | authenticated | INC-443: an older browser grant the list lacked — a helper (scripts/doors/manifest.txt), last granted in 20261002013936
 attr_contact_like | authenticated | INC-443: an older browser grant the list lacked — a helper (scripts/doors/manifest.txt), last granted in 20261003005802
 listing_contact_refusals | authenticated | INC-443: an older browser grant the list lacked — a signed-in-reader (scripts/doors/manifest.txt), last granted in 20261003005802
+assign_role | authenticated | restated grant (not a new surface); staff door behind door_context(staff, roles:assign, staff_config, the scope country in match mode), now RETURNS jsonb on the door shell (F1-2 part 1, DEC-333)
+revoke_role | authenticated | restated grant (not a new surface); staff door behind door_context(staff, roles:assign, staff_config, global), now RETURNS jsonb on the door shell (F1-2 part 1, DEC-333)
+admin_create_role | authenticated | restated grant (not a new surface); staff door behind door_context(staff, roles:create, staff_config, global), now RETURNS jsonb on the door shell (F1-2 part 2, DEC-333)
+admin_update_role | authenticated | restated grant (not a new surface); staff door behind door_context(staff, roles:update, staff_config, global), now RETURNS jsonb on the door shell (F1-2 part 2, DEC-333)
+admin_delete_role | authenticated | restated grant (not a new surface); staff door behind door_context(staff, roles:delete, staff_config, global), now RETURNS jsonb on the door shell (F1-2 part 2, DEC-333)
+admin_set_role_permission | authenticated | restated grant (not a new surface); staff door behind door_context(staff, roles:update, staff_config, global), now RETURNS jsonb on the door shell (F1-2 part 2, DEC-333)
+admin_set_account_status | authenticated | restated grant (not a new surface); staff door behind door_context(staff, profiles:update, staff_moderation, global), now RETURNS jsonb on the door shell (F1-2 part 3, DEC-333)

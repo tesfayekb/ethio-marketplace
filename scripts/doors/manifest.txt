@@ -27,12 +27,12 @@ admin_commit_attribute_import(jsonb,jsonb,text,text) | staff | authenticated | c
 admin_commit_category_import(jsonb,text,text) | staff | authenticated | categories:import | row | staff_config | category_import.commit | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_commit_location_import(jsonb,jsonb,text,text) | staff | authenticated | locations:import | row | staff_config | location.import.commit | row:locations.country_code | staff | - | -
 admin_create_category(text,text,text,uuid,boolean,boolean,integer,timestamp with time zone,timestamp with time zone) | staff | authenticated | categories:create | row | staff_config | - | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-admin_create_role(text,text,text) | staff | authenticated | roles:create | row | staff_config | role.create | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
+admin_create_role(text,text,text) | staff | authenticated | roles:create | row | staff_config | role.create | global | staff | badSlug,duplicateKey,nameRequired | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_delete_attribute(uuid,text) | staff | authenticated | categories:restructure | row | staff_config | attribute.delete | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_delete_category(uuid,text) | staff | authenticated | categories:restructure | row | staff_config | category.delete | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_delete_language(text) | staff | authenticated | translations:manage | row | staff_config | translation.language_delete | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_delete_location(uuid,text) | staff | authenticated | locations:restructure | row | staff_config | location.delete | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-admin_delete_role(uuid) | staff | authenticated | roles:delete | row | staff_config | role.delete | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
+admin_delete_role(uuid) | staff | authenticated | roles:delete | row | staff_config | role.delete | global | staff | hasDependents,systemRole,unknownRole | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_discard_legal_draft(uuid) | staff | authenticated | legal:edit | row | staff_config | manual | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_edit_listing(uuid,jsonb,text,text) | staff | authenticated | listings:enforce | row | staff_moderation | - | row:listings.home_country_code | staff | - | -
 admin_edit_package_price(uuid,numeric,character,integer,character,uuid,timestamp with time zone,timestamp with time zone) | staff | authenticated | packages:update | row | staff_config | manual | arg:country_code | staff | - | -
@@ -108,7 +108,7 @@ admin_save_market_settings(integer,text,boolean,character,integer,integer) | sta
 admin_save_package_price(text,numeric,character,integer,character,uuid,timestamp with time zone,timestamp with time zone) | staff | authenticated | packages:update | row | staff_config | manual | arg:country_code | staff | - | -
 admin_save_translation(text,text,text) | staff | authenticated | translations:update | row | staff_translation | - | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_screening_facts(uuid) | staff-reader | authenticated | listings:review | - | - | - | filter | - | - | -
-admin_set_account_status(uuid,text,text) | staff | authenticated | profiles:update | row | staff_moderation | user.status_change | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
+admin_set_account_status(uuid,text,text) | staff | authenticated | profiles:update | row | staff_moderation | user.status_change | global | staff | badValue,required,unknownUser | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_ai_feature(text,boolean,integer,integer) | staff | authenticated | services:manage | row | staff_config | manual | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_attribute_link_order(uuid,uuid[]) | staff | authenticated | categories:update | row | staff_config | attribute.reorder | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_card_attributes(uuid,uuid[]) | staff | authenticated | categories:update | row | staff_config | attribute.set_card | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
@@ -127,7 +127,7 @@ admin_set_listing_policy(boolean,integer) | staff | authenticated | listings:enf
 admin_set_listing_tier(uuid,text,text,text,integer) | staff | authenticated | listings:enforce | row | staff_moderation | manual | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_location_active(uuid,boolean) | staff | authenticated | locations:update | row | staff_config | - | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_primary_pointer(uuid) | staff | authenticated | categories:restructure | row | staff_config | category.pointer_home | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-admin_set_role_permission(uuid,uuid,boolean) | staff | authenticated | roles:update | row | staff_config | role.permission_change | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
+admin_set_role_permission(uuid,uuid,boolean) | staff | authenticated | roles:update | row | staff_config | role.permission_change | global | staff | corePermission,permissionReserved,systemRole,unknownPermission,unknownRole | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_translation_status(text,text,text) | staff | authenticated | translations:approve | row | staff_config | translation.status | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_translator_languages(uuid,text[]) | staff | authenticated | translations:manage | row | staff_config | translation.translator_scope | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_sync_ui_keys(jsonb,jsonb) | staff | authenticated | translations:manage | row | staff_config | translation.sync | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
@@ -140,8 +140,8 @@ admin_undo_location_import(uuid) | staff | authenticated | locations:import | ro
 admin_unlink_attribute(uuid) | staff | authenticated | categories:update | row | staff_config | attribute.unlink | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_update_attribute_link(uuid,boolean,boolean,text[],jsonb,jsonb,text[]) | staff | authenticated | categories:update | row | staff_config | attribute.link_update | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_update_category(uuid,text,text,integer,boolean,boolean,integer) | staff | authenticated | categories:update | row | staff_config | category.update | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-admin_update_profile(uuid,text,text,character,text) | staff | authenticated | profiles:update | row | staff_moderation | user.profile_edit | arg:home_country_code | staff | - | -
-admin_update_role(uuid,text,text) | staff | authenticated | roles:update | row | staff_config | role.update | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
+admin_update_profile(uuid,text,text,character,text) | staff | authenticated | profiles:update | row | staff_moderation | user.profile_edit | arg:home_country_code | staff | aliasReserved,aliasShape,aliasTaken,nameRequired,unknownCountry,unknownUser | -
+admin_update_role(uuid,text,text) | staff | authenticated | roles:update | row | staff_config | role.update | global | staff | systemRole,unknownRole | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_upsert_attribute(uuid,text,text,text,jsonb,text,text,text,text,text,text,smallint,text,text,integer,text) | staff | authenticated | categories:update | row | staff_config | attribute.create | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_upsert_country(text,text,text,text,integer) | staff | authenticated | countries:update | row | staff_config | country.upsert | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_upsert_language(text,text,text,boolean,text[]) | staff | authenticated | translations:manage | row | staff_config | translation.language_upsert | row:languages_country_codes.country_code | staff | - | -
@@ -149,7 +149,7 @@ admin_upsert_location(uuid,uuid,text,text,text,text,text[],integer,double precis
 admin_user_activity(uuid,integer) | staff-reader | authenticated | profiles:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_user_legal_history(uuid) | staff-reader | authenticated | profiles:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 assert_parent_not_catchall(uuid) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-assign_role(uuid,text,character) | staff | authenticated | roles:assign | row | staff_config | role.assign | arg:scope_country | staff | - | -
+assign_role(uuid,text,character) | staff | authenticated | roles:assign | row | staff_config | role.assign | arg:scope_country | staff | roleReserved,unknownRole | -
 attr_allowed_check(text,jsonb,jsonb,jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
 attr_answer_other_text(jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 attr_answer_tokens(jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
@@ -171,7 +171,7 @@ attr_split_option_cell(text) | helper | authenticated | - | - | - | - | - | - | 
 attr_visible_when_met(jsonb,jsonb,jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 attr_visible_when_ok(jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
 base_languages() | staff-reader | authenticated | legal:edit | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-begin_impersonation(uuid,text) | staff | authenticated | impersonation:use | row | impersonation | impersonation.start | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
+begin_impersonation(uuid,text) | staff | authenticated | impersonation:use | row | impersonation | impersonation.start | global | staff | badLength,impersonateSelf,impersonateSuperAdmin,sessionActive,unknownUser | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 cat_primary_parent(uuid) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 cat_primary_pointer(uuid) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 catalog_find_norm(text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
@@ -183,7 +183,7 @@ check_seller_alias(text) | owner | authenticated | - | - | alias_check | - | - |
 clear_seller_place() | owner | authenticated | - | - | draft | - | - | account | - | -
 copy_my_listing(uuid) | owner | authenticated | - | - | draft | - | - | draft | - | -
 edit_my_listing(uuid,jsonb,uuid[],text) | owner | authenticated | - | - | revise | - | - | checks | - | -
-end_impersonation(uuid) | owner | authenticated | - | - | impersonation | impersonation.end | - | account | - | -
+end_impersonation(uuid) | owner | authenticated | - | - | impersonation | impersonation.end | - | account | noActiveSession | -
 entity_source_value(text,uuid,text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 feed_page(uuid,uuid,jsonb,integer) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
 get_active_impersonation() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
@@ -251,7 +251,7 @@ renew_listing(uuid,uuid[],text) | owner | authenticated | - | - | revise | - | -
 report_listing(text,text,text) | owner | authenticated | - | - | report | - | - | signal | - | -
 resume_listing(uuid) | owner | authenticated | - | - | revise | - | - | guarded | - | -
 reveal_listing_contact(text) | owner | authenticated | - | - | contact_reveal | - | - | checks | - | -
-revoke_role(uuid,text) | staff | authenticated | roles:assign | row | staff_config | role.revoke | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
+revoke_role(uuid,text) | staff | authenticated | roles:assign | row | staff_config | role.revoke | global | staff | roleReserved,unknownRole | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 save_listing(text) | owner | authenticated | - | - | save | - | - | signal | - | -
 save_posting_identity(text,text,text,text,text,jsonb,character) | owner | authenticated | - | - | identity | - | - | guarded | - | -
 save_seller_place(uuid) | owner | authenticated | - | - | draft | - | - | account | - | -
