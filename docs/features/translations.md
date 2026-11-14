@@ -40,10 +40,12 @@ machine/flag/approval provenance. `approve` stamps `approved_by/approved_at`.
 | `translations:*` perms | _may this person edit/approve/manage at all_ |
 | `translator_languages` | _which languages may they touch_             |
 
-Every mutation runs `has_permission` → `require_step_up_if_needed` →
-`translation_scope_ok(lang)`, in that order. Holders of `translations:manage`
-are **exempt** from the scope check (they administer the roster). Everyone
-else gets `not assigned to this language`.
+Every mutation runs `door_context` (permission → step-up → its dial) and then
+the language scope, in that order (DEC-333, F1-3). Holders of
+`translations:manage` are **exempt** from the scope check (they administer the
+roster). Everyone else is refused `permissionDenied:language`, which the console
+reads as the scope line (`translationRefusalKey`); the translate route still
+answers its own `translation_scope_ok` read as `not assigned to this language`.
 
 Permissions (DEC-017 pattern): `view`, `update`, `machine`, `approve`,
 `manage` — all five `assignable = true`, all but `view` `requires_step_up`,
@@ -88,15 +90,15 @@ still reads "Machine", with "Approved by …" appended.
 
 `admin_set_language_flags(code, enabled_admin, enabled_public)` refuses
 `enabled_public = true` unless every key in the base catalog has an approved,
-non-null row for that language:
-`language not fully approved: N of M remaining`. `enabled_admin` has no gate —
+non-null row for that language: the door refuses `notFullyApproved` (F1-3; the
+console's coverage line). `enabled_admin` has no gate —
 that is how a language is worked on before it is published.
 
 EMPTY-SET LAW (U4b-4, INC-095h): every completeness/totality gate defines its
 behavior on the empty set explicitly. An empty source catalog is NOT vacuously
 complete — when the base catalog holds zero keys the server refuses first with
-`catalog empty — sync keys before publishing a language`, and the console's
-public switch is disabled with the sync-first tooltip.
+`catalogEmpty` (F1-3; the languages page reads it as the sync-first line), and
+the console's public switch is disabled with the sync-first tooltip.
 
 INC-790 (2026-10-20): the console judges a language exactly as the door does — against the base catalogue's live keys, never against the language's own rows (`coverageAgainstBase`, translations-service.ts). A language holding no rows reads 0 of N, not 0 of 0, and its switch stays closed with the gate's line; the base language keeps its own counts.
 
@@ -322,7 +324,7 @@ The table above is the U4c record; since turn 19 the route reads as follows.
 - **The scope door.** `translation_scope_ok(target)` as the caller, before any provider call or spend (false → 403 `not assigned to this language`); the door already ORs `translations:manage`, so the route reads no permission itself.
 - **The provider.** `translationLanguages()` (gateway) checks the target unless the stand-in (unsupported → 422; no key → 503, any other failure → 502, `{ error: "internal error" }`), then 100 texts per `aiCall("translation")` — gate, key, audit row, the meter (characters sent, per chunk) and the stand-in inside the gateway (docs/features/ai-gateway.md). The FIRST chunk's gate answer (`gate: true`) is today's 409/503 `machine translation is switched off (<staff|budget|unavailable>)` before anything is written; any other failed call, on any chunk, marks that chunk's keys and writes nothing for them. GET answers `{ languages }` from the same list.
 - **Fixed per-item reasons** (INC-447): `failed[].reason` is a code, never a provider's or Postgres's text — `providerUnavailable` (the chunk's call failed), `providerNoText` (no text for that item), and the writer's refusal by its message: `permission denied` → `permission`, `step-up required…` (bare, `: no verified factor`, `: verification expired`) → `stepUp`, `not assigned to this language` → `scope`, `base language rows are sync-owned` → `baseLocked`, `unknown translation key` / `unknown entity` / `unknown entity field` → `unknownTarget`, `empty machine value` → `emptyValue`, anything else → `writerFailed`. The writer's own text is logged with its key.
-- **The client.** `postTranslate` / `listProviderLanguages` (translations-service.ts) call `callRoute("/api/translate")` with `auth: "required"`: a refusal throws the route's words (fallback `translation request failed (<status>)` / `language list failed (<status>)`), signed out throws `not signed in`, unreachable throws `… failed (0)`, and a 2xx payload is narrowed by shape guards. `translationErrorKey` reads the codes exactly first (`permission`, `stepUp`, `scope`, `baseLocked` → their keys; every other code → `admin.translations.error.generic`), and `serverMessage` gives a code no detail line (ruling R4), so the row screens show the translated message alone.
+- **The client.** `postTranslate` / `listProviderLanguages` (translations-service.ts) call `callRoute("/api/translate")` with `auth: "required"`: a refusal throws the route's words (fallback `translation request failed (<status>)` / `language list failed (<status>)`), signed out throws `not signed in`, unreachable throws `… failed (0)`, and a 2xx payload is narrowed by shape guards. `translationRefusalKey` reads them through `readRefusal` with `TRANSLATION_REFUSALS` (`permission`, `stepUp`, `scope`, `baseLocked` → their keys; every other reason → `admin.translations.error.generic`), and `serverMessage` gives anything the reader knows — a reason, a door code, a route word — no detail line (ruling R4; F1-3), so the row screens show the translated message alone. The writer's refusals reach the route as the machine doors' codes (`permissionDenied` → `permission`, `permissionDenied:language` → `scope`, `baseLocked`, `unknownKey` / `unknownEntity` / `badValue:field` → `unknownTarget`, `required:value` → `emptyValue`, anything else → `writerFailed`; TRR-6).
 - **Key handling.** The key is read inside the adapter and travels only in the `x-goog-api-key` header (INC-829); both provider calls have deadlines.
 
 ## Revisions (U4c)
@@ -775,7 +777,7 @@ run wrote nothing while reporting 0 written, 0 failed. `usePseudoGenerate`
 (`use-translations.ts`) now takes the languages roster the page already holds
 (`PseudoBar`'s `roster`; Generate stays disabled until it is read): its one
 `isBase` row names the base (zero or several refuse with `noSingleBase: <n>`
-before anything is written, spoken by `translationErrorKey`). The base's live
+before anything is written, spoken by `translationRefusalKey`). The base's live
 keys (`orphaned === false`) are read ONCE through `fetchAllTranslationRows` —
 `readAllPages` over `admin_export_translations`, keyset by key (`WHERE
 t.lang_code = p_lang AND (p_after IS NULL OR t.key > p_after) ORDER BY t.key`,

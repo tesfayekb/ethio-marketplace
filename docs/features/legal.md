@@ -57,9 +57,11 @@ Reader doors:
 | `my_legal_version(p_version_id)`                                   | signed in; accepted, noticed or in-force versions | not authenticated, notYours                                                                                                     |
 | `record_legal_notice(...)`                                         | service role only                                 | permission denied, notPublished                                                                                                 |
 
-Staff doors (each checks its own permission through `has_permission`; the mutating ones also call
-`require_step_up_if_needed('legal', <action>)`; every refusal of a missing or lesser caller is
-`permission denied` or the step-up refusal; `e2e-` scratch documents follow the real kinds in the staff list):
+Staff doors (F1-3: each gates through `door_context` — its permission, scoped by the document's
+country where its target row has one (`row:legal_documents.country_code`), the step-up for the
+mutating ones, the manifest's dial — and refuses through the shell; every refusal of a missing or
+lesser caller is `permissionDenied` (signed out: `notSignedIn`) or the step-up refusal, read by
+`legalRefusalKey` through `LEGAL_REFUSALS`; `e2e-` scratch documents follow the real kinds in the staff list):
 
 | Door                                                                            | Permission                       | Refusals                                                                                                                               |
 | ------------------------------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -74,7 +76,7 @@ Staff doors (each checks its own permission through `has_permission`; the mutati
 | `admin_export_legal_acceptances(p_version_id, p_after_at, p_after_id, p_limit)` | legal:export + step-up           | badValue:limit, badValue:after, unknownVersion                                                                                         |
 
 The mutating staff doors write an audit row (`legal.draft_saved`, `legal.draft_discarded`,
-`legal.published`, `legal.settings_set`); the export writes `legal.acceptances_exported` on its first page.
+`legal.published`, `legal.settings_set`); the export writes `legal.acceptances_exported` on every page (F1-3).
 
 ## Permissions
 
@@ -199,7 +201,7 @@ Publish no version of the Publishing statement before turn 4 is on production: t
 - **The open app.** The gate also reads again when the window regains focus once its answer is five minutes old, so a version that comes into force while the app is open brings the screen at the person's return.
 - **Local times.** Every legal moment is stored in UTC and shown in the viewer's own time zone: `legalMoment` (date, time with seconds, and the zone named) on Account › Legal documents and Admin › Users › Legal; `legalDate` (date only) for the "in force from" dates.
 - **Admin › Users › Legal.** Each acceptance shows its time with the zone, and "18 or older confirmed" only on the acceptance that confirmed it.
-- **The export (D226).** `admin_export_legal_acceptances(p_version_id, p_after_at, p_after_id, p_limit)` (legal:export with a fresh second factor; granted to no role, so only the super admin holds it) answers the version, its kind and country, and up to `p_limit` (1 to 5,000; default 1,000) rows ordered by acceptance time: account id, accepted at, language, sign-in method, home country, 18+ confirmed, storage consent — never a name, e-mail or phone. `next` (at, id) is present when a page is full; the next page passes it as `p_after_at` and `p_after_id`. Only a published version can be exported. The first page writes the audit row `legal.acceptances_exported`. The Admin › Legal page's Export button comes in turn 13.
+- **The export (D226).** `admin_export_legal_acceptances(p_version_id, p_after_at, p_after_id, p_limit)` (legal:export with a fresh second factor; granted to no role, so only the super admin holds it) answers the version, its kind and country, and up to `p_limit` (1 to 5,000; default 1,000) rows ordered by acceptance time: account id, accepted at, language, sign-in method, home country, 18+ confirmed, storage consent — never a name, e-mail or phone. `next` (at, id) is present when a page is full; the next page passes it as `p_after_at` and `p_after_id`. Only a published version can be exported. Every page passes the gate, spends `legal_export` (60 an hour) and writes the audit row `legal.acceptances_exported` (F1-3): the console asks pages of 5,000 (`ACCEPTANCE_EXPORT_PAGE`), so one hour reads at most 60 × 5,000 = 300,000 acceptances, and a larger export is refused `rateLimited`, never cut short. The Admin › Legal page's Export button comes in turn 13.
 
 ## Turn 13 — Admin › Legal made easy to use (D226)
 
@@ -254,7 +256,7 @@ Publish no version of the Publishing statement before turn 4 is on production: t
 - **INC-812.** A finality trigger lets its own ON DELETE SET NULL keys through: deleting the account of someone who published or drafted a legal version sets `published_by` and `created_by` to NULL; every other change to a published version is still refused.
 - **One language per page.** /terms, /privacy, /legal/<kind> and a person's own version page show the text in the site's language only, with no print button (the operator, 2026-10-21); staff pages keep both languages.
 - **The house surfaces.** The acceptance screen sits in one PageCard; the public legal page's text, the person's two legal lists and his version's text each sit in a Section — like the account and settings pages (the operator, 2026-10-21: "All pages should have consistent designs and themes").
-- **Tests.** LGA-16 (the review line, the dialog, the audit, the door's refusal), LGA-17 (overdue: the card and the menu's mark, cleared by a review; false without legal:view), LGA-18 (INC-812); unit cases for the 24 facts, the bound, reviewState and the menu item's alert.
+- **Tests.** LGA-16 (the review line, the dialog, the audit, the door's refusal), LGA-17 (overdue: the card and the menu's mark, cleared by a review; refused without legal:view), LGA-18 (INC-812); unit cases for the 24 facts, the bound, reviewState and the menu item's alert.
 
 ## Every enabled language (bundle 22 turn 23, DEC-228)
 
