@@ -1,58 +1,58 @@
 # Local backend proof (non-gating)
 
-- Commit: `c9c5842e815d839da43ddeb497936f5044c632cb`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43592099375
+- Commit: `f6e8f3c439c8d412ba515e59d257da5dbe861df9`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43607584070
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 353 | 59 | applied 455/455 | 27 | 0 | 0 | 5 | 32 |
-| email | 168 | 50 | applied 455/455 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 734 | 65 | applied 455/455 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 575 | 76 | applied 455/455 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 490 | 59 | applied 455/455 | 174 | 0 | 0 | 26 | 200 |
-| 3 | 518 | 58 | applied 455/455 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 653 | 76 | applied 455/455 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 533 | 50 | applied 455/455 | 91 | 2 | 0 | 1 | 94 |
-| 6 | 546 | 61 | applied 455/455 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 513 | 55 | applied 455/455 | 143 | 4 | 0 | 77 | 224 |
-| 8 | 633 | 66 | applied 455/455 | 167 | 12 | 0 | 7 | 186 |
-| 9 | 555 | 63 | applied 455/455 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 491 | 61 | applied 455/455 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 599 | 64 | applied 455/455 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 521 | 51 | applied 455/455 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 586 | 76 | applied 455/455 | 157 | 0 | 0 | 9 | 166 |
-| 14 | 618 | 76 | applied 455/455 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 528 | 51 | applied 455/455 | 124 | 0 | 0 | 8 | 132 |
-| 16 | 641 | 76 | applied 455/455 | 172 | 0 | 0 | 48 | 220 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2528 | 18 | 0 | 360 | 2906 |
+| smoke | 429 | 64 | applied 456/456 | 27 | 0 | 0 | 5 | 32 |
+| email | 163 | 58 | applied 456/456 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 836 | 77 | applied 456/456 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 575 | 76 | applied 456/456 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 463 | 51 | applied 456/456 | 174 | 0 | 0 | 26 | 200 |
+| 3 | 511 | 60 | applied 456/456 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 546 | 67 | applied 456/456 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 603 | 78 | applied 456/456 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 609 | 76 | applied 456/456 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 626 | 75 | applied 456/456 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 583 | 63 | applied 456/456 | 175 | 4 | 0 | 7 | 186 |
+| 9 | 494 | 59 | applied 456/456 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 591 | 67 | applied 456/456 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 637 | 77 | applied 456/456 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 486 | 59 | applied 456/456 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 544 | 63 | applied 456/456 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 586 | 66 | applied 456/456 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 651 | 76 | applied 456/456 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 482 | 58 | applied 456/456 | 172 | 0 | 0 | 48 | 220 |
+| repeat | 886 | 50 | applied 456/456 | 104 | 4 | 0 | 0 | 108 |
+| TOTAL | — | — | — | 2646 | 8 | 0 | 360 | 3014 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: webkit 734 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 6, email 4, webkit 7, 1 9, 2 6, 3 6, 4 9, 5 5, 6 7, 7 5, 8 8, 9 7, 10 6, 11 7, 12 5, 13 9, 14 9, 15 5, 16 9, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/387, 2 641/341, 3 641/373, 4 640/464, 5 640/386, 6 641/370, 7 641/337, 8 641/443, 9 641/368, 10 643/322, 11 640/404, 12 641/370, 13 640/391, 14 641/424, 15 641/379, 16 641/441
+- Slowest lane: repeat 886 s
+- Repeat lane (DEC-283): Not repeated: e2e/legal-admin.spec.ts (22 tests); Not repeated: e2e/legal-doors.spec.ts (16 tests); Repeat: each 2 on both projects; 65 tests selected, 27 repeated; budget 643 s at 4.7 s a test; directly changed: 2 of 4 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390
+- Database session samples during each start (INC-944): smoke 7, email 6, webkit 9, 1 9, 2 5, 3 6, 4 8, 5 9, 6 9, 7 9, 8 7, 9 6, 10 8, 11 10, 12 6, 13 7, 14 7, 15 9, 16 6, repeat 5
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/385, 2 641/315, 3 641/369, 4 640/360, 5 640/406, 6 641/423, 7 641/435, 8 641/402, 9 641/328, 10 643/403, 11 640/448, 12 641/347, 13 640/358, 14 641/386, 15 641/462, 16 641/331
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43592099375-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43592099375-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43592099375-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43592099375-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43592099375-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43592099375-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43592099375-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 43592099375-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43592099375-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43592099375-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43592099375-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 43592099375-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 43592099375-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43607584070-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 43607584070-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43607584070-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43607584070-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43607584070-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43607584070-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43607584070-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43607584070-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43607584070-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43607584070-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43607584070-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 43607584070-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43607584070-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43607584070-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43607584070-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43607584070-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43607584070-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 43607584070-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 43607584070-local-16
+  - repeat: [e2e:teardown] deleted 6 user(s) owned by process 43607584070-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -78,37 +78,22 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 5
-- Step failure:
-Step smoke: outcome failure
-  
-- admin-translations-data.spec.ts / TR-42 answer-option translations (DEC-233) / TR-42 the Data scope saves and approves an answer option, excluding switched-off options and Amharic (INC-820) / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
-- admin-translations-data.spec.ts / TR-42 answer-option translations (DEC-233) / TR-42 the Data scope saves and approves an answer option, excluding switched-off options and Amharic (INC-820) / desktop-1280 — Error: expect(received).toBe(expected) // Object.is equality
-
-## Lane 7
-- Step failure:
-Step smoke: outcome failure
-  
-- legal-admin.spec.ts / Admin Legal / LGA-16 a document's review: its publish counts; Reviewed — no change with a note moves the due date and is audited; a blank note sends nothing; the door refuses a person without legal:edit / mobile-360 — Error: expect(received).toContain(expected) // indexOf
-- legal-admin.spec.ts / Admin Legal / LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view reads false / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
-- legal-admin.spec.ts / Admin Legal / LGA-16 a document's review: its publish counts; Reviewed — no change with a note moves the due date and is audited; a blank note sends nothing; the door refuses a person without legal:edit / desktop-1280 — Error: expect(received).toContain(expected) // indexOf
-- legal-admin.spec.ts / Admin Legal / LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view reads false / desktop-1280 — Error: expect(received).toBe(expected) // Object.is equality
-
 ## Lane 8
 - Step failure:
 Step smoke: outcome failure
   
-- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / mobile-360 — Error: expect(received).toMatch(expected)
-- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / desktop-1280 — Error: expect(received).toMatch(expected)
-- legal-doors.spec.ts / Legal doors / LG-2 publish and draft refusals: plain user, admin by role, stale second factor, and every content rule / mobile-360 — Error: plain user is refused the draft door
-- legal-doors.spec.ts / Legal doors / LG-6 the settings doors: the seeded row for the super admin, refusals for every lesser caller and every bad value; the row is never written / mobile-360 — Error: plain user is refused the settings read
-- legal-doors.spec.ts / Legal doors / LG-7 admin_user_legal_history shows staff the person's acceptances and legal e-mails, newest first; refused for a plain user; the notice door is service-only / mobile-360 — Error: a plain user is refused the staff history
-- legal-doors.spec.ts / Legal doors / LG-9 the staff reads: admin_legal_documents and admin_legal_version refuse every lesser caller; the super admin reads a scratch version whole, its change log included / mobile-360 — Error: expect(received).toContain(expected) // indexOf
-- legal-doors.spec.ts / Legal doors / LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row / mobile-360 — Error: expect(received).toContain(expected) // indexOf
-- legal-doors.spec.ts / Legal doors / LG-2 publish and draft refusals: plain user, admin by role, stale second factor, and every content rule / desktop-1280 — Error: plain user is refused the draft door
-- legal-doors.spec.ts / Legal doors / LG-6 the settings doors: the seeded row for the super admin, refusals for every lesser caller and every bad value; the row is never written / desktop-1280 — Error: plain user is refused the settings read
-- legal-doors.spec.ts / Legal doors / LG-7 admin_user_legal_history shows staff the person's acceptances and legal e-mails, newest first; refused for a plain user; the notice door is service-only / desktop-1280 — Error: a plain user is refused the staff history
-- legal-doors.spec.ts / Legal doors / LG-9 the staff reads: admin_legal_documents and admin_legal_version refuse every lesser caller; the super admin reads a scratch version whole, its change log included / desktop-1280 — Error: expect(received).toContain(expected) // indexOf
-- legal-doors.spec.ts / Legal doors / LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row / desktop-1280 — Error: expect(received).toContain(expected) // indexOf
+- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
+- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / desktop-1280 — Error: expect(received).toBe(expected) // Object.is equality
+- legal-doors.spec.ts / Legal doors / LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row / mobile-360 — Error: expect(received).toHaveLength(expected)
+- legal-doors.spec.ts / Legal doors / LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row / desktop-1280 — Error: expect(received).toHaveLength(expected)
+
+## Lane repeat
+- Step failure:
+Step smoke: outcome failure
+  repeat-cap: failed
+- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
+- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
+- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / desktop-1280 — Error: expect(received).toBe(expected) // Object.is equality
+- admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / desktop-1280 — Error: expect(received).toBe(expected) // Object.is equality
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
