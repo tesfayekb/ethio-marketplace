@@ -1,10 +1,10 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43591785189
-- Commit: `698483b75991cb70fea2c02af7fd1f4617fdb03d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43592099375
+- Commit: `c9c5842e815d839da43ddeb497936f5044c632cb`
 - Attempt: 1
 - Repeat: nothing to repeat
-- Written (UTC): 2026-11-14T12:03:22.833Z
+- Written (UTC): 2026-11-14T12:17:52.772Z
 - Passed: 2528 · Skipped: 360 · Failed: 18
 - Gating failures: 18 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -68,141 +68,141 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-14T11:51:59.514Z | 3.7 min |
-| email | 2026-11-14T11:52:10.947Z | 0.3 min |
-| webkit | 2026-11-14T11:52:57.968Z | 10.0 min |
-| shard 1 | 2026-11-14T11:52:59.166Z | 6.1 min |
-| shard 2 | 2026-11-14T11:51:55.884Z | 5.3 min |
-| shard 3 | 2026-11-14T11:52:19.020Z | 6.2 min |
-| shard 4 | 2026-11-14T11:52:10.342Z | 6.0 min |
-| shard 5 | 2026-11-14T11:52:07.375Z | 6.3 min |
-| shard 6 | 2026-11-14T11:52:48.103Z | 7.0 min |
-| shard 7 | 2026-11-14T11:51:55.261Z | 5.6 min |
-| shard 8 | 2026-11-14T11:51:41.890Z | 5.6 min |
-| shard 9 | 2026-11-14T11:53:24.930Z | 6.8 min |
-| shard 10 | 2026-11-14T11:51:58.774Z | 5.3 min |
-| shard 11 | 2026-11-14T11:52:08.180Z | 6.3 min |
-| shard 12 | 2026-11-14T11:52:25.242Z | 6.9 min |
-| shard 13 | 2026-11-14T11:54:52.243Z | 5.9 min |
-| shard 14 | 2026-11-14T11:55:36.043Z | 5.8 min |
-| shard 15 | 2026-11-14T11:52:26.945Z | 7.1 min |
-| shard 16 | 2026-11-14T11:53:37.474Z | 5.4 min |
+| smoke | 2026-11-14T12:07:09.070Z | 3.3 min |
+| email | 2026-11-14T12:07:00.158Z | 0.3 min |
+| webkit | 2026-11-14T12:08:19.926Z | 8.7 min |
+| shard 1 | 2026-11-14T12:07:48.500Z | 6.3 min |
+| shard 2 | 2026-11-14T12:07:08.088Z | 5.5 min |
+| shard 3 | 2026-11-14T12:07:03.157Z | 6.1 min |
+| shard 4 | 2026-11-14T12:07:49.948Z | 7.5 min |
+| shard 5 | 2026-11-14T12:07:03.492Z | 6.3 min |
+| shard 6 | 2026-11-14T12:07:34.418Z | 6.1 min |
+| shard 7 | 2026-11-14T12:07:33.060Z | 5.5 min |
+| shard 8 | 2026-11-14T12:08:00.496Z | 7.2 min |
+| shard 9 | 2026-11-14T12:07:44.651Z | 6.0 min |
+| shard 10 | 2026-11-14T12:07:29.447Z | 5.3 min |
+| shard 11 | 2026-11-14T12:09:54.565Z | 6.6 min |
+| shard 12 | 2026-11-14T12:07:08.850Z | 6.0 min |
+| shard 13 | 2026-11-14T12:10:59.627Z | 6.4 min |
+| shard 14 | 2026-11-14T12:07:53.885Z | 6.9 min |
+| shard 15 | 2026-11-14T12:07:06.228Z | 6.2 min |
+| shard 16 | 2026-11-14T12:09:13.853Z | 7.2 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 234 | 10.5 min | shard 1 |
-| `admin-attributes-library.spec.ts` | 42 | 5.6 min | shard 2 |
-| `ad-page.spec.ts` | 104 | 5.5 min | webkit, shard 13 |
-| `admin-locations.spec.ts` | 38 | 5.4 min | shard 6 |
-| `admin-listings.spec.ts` | 78 | 5.4 min | webkit, shard 10 |
-| `post-wizard-bundle2.spec.ts` | 70 | 5.4 min | shard 3 |
-| `import-security.spec.ts` | 36 | 5.4 min | shard 4 |
-| `post-wizard-specs.spec.ts` | 82 | 5.2 min | shard 12 |
-| `admin-roles.spec.ts` | 28 | 5.1 min | shard 9 |
-| `post-wizard-place.spec.ts` | 40 | 4.9 min | shard 11 |
-| `admin-screening.spec.ts` | 58 | 4.9 min | webkit, shard 14 |
-| `feed-screens.spec.ts` | 40 | 4.8 min | webkit, shard 5 |
-| `admin-translations-console.spec.ts` | 46 | 4.7 min | smoke, shard 8 |
-| `admin-attributes-links.spec.ts` | 34 | 4.5 min | shard 13 |
-| `admin-categories-console.spec.ts` | 34 | 4.5 min | shard 7 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 4.4 min | shard 15 |
-| `viewing-place.spec.ts` | 22 | 4.0 min | shard 15 |
-| `photo-pipeline.spec.ts` | 74 | 4.0 min | webkit, shard 16 |
-| `post-wizard-where.spec.ts` | 32 | 3.8 min | shard 11 |
-| `admin-users.spec.ts` | 28 | 3.7 min | shard 16 |
-| `auth-signout.spec.ts` | 36 | 3.6 min | shard 9 |
-| `my-listings-ad.spec.ts` | 38 | 3.6 min | shard 12 |
-| `admin-attributes-editor.spec.ts` | 36 | 3.5 min | shard 14 |
-| `admin-monetisation.spec.ts` | 34 | 3.4 min | smoke, shard 10 |
-| `sage-bands.spec.ts` | 76 | 3.4 min | shard 6 |
+| `shell.spec.ts` | 234 | 10.7 min | shard 1 |
+| `import-security.spec.ts` | 36 | 7.0 min | shard 4 |
+| `photo-pipeline.spec.ts` | 74 | 5.7 min | webkit, shard 16 |
+| `admin-attributes-library.spec.ts` | 42 | 5.7 min | shard 2 |
+| `admin-screening.spec.ts` | 58 | 5.5 min | webkit, shard 14 |
+| `admin-translations-console.spec.ts` | 46 | 5.5 min | smoke, shard 8 |
+| `ad-page.spec.ts` | 104 | 5.3 min | webkit, shard 13 |
+| `post-wizard-bundle2.spec.ts` | 70 | 5.3 min | shard 3 |
+| `admin-listings.spec.ts` | 78 | 5.0 min | webkit, shard 10 |
+| `post-wizard-place.spec.ts` | 40 | 5.0 min | shard 11 |
+| `admin-locations.spec.ts` | 38 | 4.9 min | shard 6 |
+| `feed-screens.spec.ts` | 40 | 4.9 min | webkit, shard 5 |
+| `admin-attributes-links.spec.ts` | 34 | 4.8 min | shard 13 |
+| `admin-roles.spec.ts` | 28 | 4.7 min | shard 9 |
+| `admin-users.spec.ts` | 28 | 4.7 min | shard 16 |
+| `post-wizard-specs.spec.ts` | 82 | 4.5 min | shard 12 |
+| `admin-categories-console.spec.ts` | 34 | 4.4 min | shard 7 |
+| `admin-attributes-editor.spec.ts` | 36 | 4.2 min | shard 14 |
+| `post-wizard-where.spec.ts` | 32 | 4.1 min | shard 11 |
+| `viewing-place.spec.ts` | 22 | 3.9 min | shard 15 |
+| `post-wizard-pricing.spec.ts` | 52 | 3.9 min | shard 8 |
+| `post-wizard-category.spec.ts` | 52 | 3.6 min | webkit, shard 4 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 3.4 min | shard 15 |
+| `my-listings-ad.spec.ts` | 38 | 3.3 min | shard 12 |
+| `auth-signout.spec.ts` | 36 | 3.3 min | shard 9 |
+| `admin-monetisation.spec.ts` | 34 | 3.2 min | smoke, shard 10 |
 | `admin-translations-governance.spec.ts` | 20 | 3.2 min | smoke, shard 16 |
-| `dialogs.spec.ts` | 20 | 3.0 min | webkit, shard 10 |
-| `post-wizard-pricing.spec.ts` | 52 | 2.9 min | shard 8 |
-| `post-wizard-category.spec.ts` | 52 | 2.9 min | webkit, shard 4 |
-| `choice-lists.spec.ts` | 96 | 2.7 min | shard 7 |
-| `post-wizard-resets.spec.ts` | 34 | 2.6 min | shard 3 |
-| `admin-countries.spec.ts` | 18 | 2.6 min | shard 6 |
-| `admin-translations-data.spec.ts` | 10 | 2.5 min | shard 5 |
+| `dialogs.spec.ts` | 20 | 2.7 min | webkit, shard 10 |
+| `choice-lists.spec.ts` | 96 | 2.6 min | shard 7 |
+| `sage-bands.spec.ts` | 76 | 2.6 min | shard 6 |
+| `post-wizard-resets.spec.ts` | 34 | 2.5 min | shard 3 |
 | `admin-attributes-safety.spec.ts` | 18 | 2.4 min | shard 5 |
-| `sage-ad-page.spec.ts` | 30 | 2.3 min | webkit, shard 11 |
-| `mfa-stepup.spec.ts` | 22 | 2.3 min | webkit, shard 15 |
-| `posting-routes.spec.ts` | 80 | 2.2 min | shard 2 |
+| `admin-translations-data.spec.ts` | 10 | 2.4 min | shard 5 |
+| `admin-countries.spec.ts` | 18 | 2.3 min | shard 6 |
+| `legal-certify.spec.ts` | 44 | 2.3 min | shard 14 |
+| `posting-routes.spec.ts` | 80 | 2.3 min | shard 2 |
+| `admin-attributes-import.spec.ts` | 40 | 2.3 min | shard 8 |
+| `sage-ad-page.spec.ts` | 30 | 2.2 min | webkit, shard 11 |
 | `legal-admin.spec.ts` | 44 | 2.1 min | shard 7 |
-| `admin-audit.spec.ts` | 16 | 2.1 min | shard 9 |
-| `legal-certify.spec.ts` | 44 | 1.8 min | shard 14 |
-| `admin-categories-home.spec.ts` | 10 | 1.7 min | shard 4 |
-| `admin-categories-images.spec.ts` | 6 | 1.6 min | smoke, webkit, shard 12 |
-| `sage-tiers.spec.ts` | 52 | 1.6 min | webkit, shard 2 |
-| `admin-attributes-import.spec.ts` | 40 | 1.5 min | shard 8 |
-| `press.spec.ts` | 22 | 1.3 min | shard 12 |
-| `phone-frame.spec.ts` | 18 | 1.3 min | shard 12 |
-| `my-listings-promote.spec.ts` | 10 | 1.2 min | shard 11 |
+| `admin-categories-home.spec.ts` | 10 | 1.9 min | shard 4 |
+| `admin-audit.spec.ts` | 16 | 1.9 min | shard 9 |
+| `mfa-stepup.spec.ts` | 22 | 1.8 min | webkit, shard 15 |
+| `sage-tiers.spec.ts` | 52 | 1.5 min | webkit, shard 2 |
+| `admin-categories-images.spec.ts` | 6 | 1.5 min | smoke, webkit, shard 12 |
+| `my-listings-promote.spec.ts` | 10 | 1.3 min | shard 11 |
+| `user-guides.spec.ts` | 18 | 1.2 min | shard 13 |
+| `phone-frame.spec.ts` | 18 | 1.1 min | shard 12 |
+| `press.spec.ts` | 22 | 1.1 min | shard 12 |
 | `one-line-slots-admin.spec.ts` | 10 | 1.1 min | shard 3 |
 | `admin-guides.spec.ts` | 14 | 1.1 min | shard 3 |
-| `user-guides.spec.ts` | 18 | 1.1 min | shard 13 |
-| `name-check-queue.spec.ts` | 8 | 1.1 min | smoke, shard 9 |
-| `i18n-sign-in-language.spec.ts` | 12 | 1.0 min | shard 15 |
-| `my-listings-page.spec.ts` | 20 | 1.0 min | webkit, shard 10 |
+| `sage-shell.spec.ts` | 80 | 1.1 min | shard 16 |
 | `admin-shell.spec.ts` | 12 | 1.0 min | shard 2 |
+| `legal-doors.spec.ts` | 34 | 1.0 min | smoke, shard 8 |
+| `locations-tree.spec.ts` | 8 | 1.0 min | shard 13 |
+| `name-check-queue.spec.ts` | 8 | 1.0 min | smoke, shard 9 |
+| `my-listings-levels.spec.ts` | 28 | 0.9 min | shard 4 |
+| `my-listings-page.spec.ts` | 20 | 0.9 min | webkit, shard 10 |
 | `sage-cards.spec.ts` | 40 | 0.9 min | webkit, shard 7 |
-| `locations-tree.spec.ts` | 8 | 0.8 min | shard 13 |
-| `posting-routes-dials.spec.ts` | 14 | 0.8 min | shard 9 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.7 min | shard 6 |
-| `legal-doors.spec.ts` | 34 | 0.7 min | smoke, shard 8 |
-| `sage-shell.spec.ts` | 80 | 0.7 min | shard 16 |
+| `i18n-sign-in-language.spec.ts` | 12 | 0.8 min | shard 15 |
 | `post-wizard-removed.spec.ts` | 4 | 0.7 min | shard 7 |
-| `my-listings-levels.spec.ts` | 28 | 0.7 min | shard 4 |
-| `ad-page-doors.spec.ts` | 30 | 0.6 min | shard 14 |
-| `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
+| `ad-page-doors.spec.ts` | 30 | 0.7 min | shard 14 |
 | `supabase-door.spec.ts` | 12 | 0.6 min | shard 13 |
-| `layout.spec.ts` | 18 | 0.6 min | webkit, shard 10 |
-| `house-style.spec.ts` | 12 | 0.5 min | shard 11 |
-| `post-wizard-finder.spec.ts` | 8 | 0.5 min | shard 6 |
+| `primitives-law.spec.ts` | 24 | 0.6 min | shard 16 |
+| `post-wizard-details.spec.ts` | 8 | 0.6 min | shard 14 |
+| `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.6 min | shard 6 |
+| `house-style.spec.ts` | 12 | 0.6 min | shard 11 |
 | `my-listings-doors.spec.ts` | 28 | 0.5 min | shard 3 |
-| `post-wizard-details.spec.ts` | 8 | 0.5 min | shard 14 |
+| `i18n-coverage.spec.ts` | 14 | 0.5 min | shard 4 |
+| `layout.spec.ts` | 18 | 0.5 min | webkit, shard 10 |
+| `post-wizard-finder.spec.ts` | 8 | 0.5 min | shard 6 |
 | `admin-services.spec.ts` | 10 | 0.4 min | shard 1 |
-| `settings.spec.ts` | 9 | 0.4 min | shard 1 |
 | `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 5 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 16 |
-| `submenu.spec.ts` | 14 | 0.4 min | shard 15 |
-| `shell-bands.spec.ts` | 16 | 0.3 min | shard 12 |
-| `legal-accept.spec.ts` | 12 | 0.3 min | shard 2 |
-| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4 |
-| `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 10 |
-| `page-head.spec.ts` | 4 | 0.3 min | shard 13 |
-| `one-line-slots.spec.ts` | 10 | 0.3 min | shard 8 |
+| `settings.spec.ts` | 9 | 0.4 min | shard 1 |
+| `one-line-slots.spec.ts` | 10 | 0.4 min | shard 8 |
+| `posting-routes-dials.spec.ts` | 14 | 0.4 min | shard 9 |
+| `legal-accept.spec.ts` | 12 | 0.4 min | shard 2 |
+| `page-head.spec.ts` | 4 | 0.4 min | shard 13 |
 | `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
-| `feed-index.spec.ts` | 30 | 0.3 min | shard 6 |
-| `auth-signup.spec.ts` | 6 | 0.3 min | email |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
-| `a11y.spec.ts` | 4 | 0.2 min | smoke |
-| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
-| `post-wizard-units.spec.ts` | 4 | 0.2 min | shard 3 |
-| `overlays.spec.ts` | 8 | 0.2 min | shard 15 |
-| `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
-| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
-| `post-wizard-recent.spec.ts` | 2 | 0.2 min | shard 9 |
-| `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
-| `legal-history.spec.ts` | 6 | 0.2 min | shard 16 |
-| `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
+| `shell-bands.spec.ts` | 16 | 0.3 min | shard 12 |
+| `legal-history.spec.ts` | 6 | 0.3 min | shard 16 |
+| `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 10 |
+| `submenu.spec.ts` | 14 | 0.3 min | shard 15 |
+| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
 | `account-saved.spec.ts` | 4 | 0.2 min | shard 4 |
-| `auth-signin-errors.spec.ts` | 5 | 0.2 min | shard 12 |
-| `auth-reset.spec.ts` | 6 | 0.1 min | shard 8 |
-| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
+| `a11y.spec.ts` | 4 | 0.2 min | smoke |
+| `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
+| `auth-signup.spec.ts` | 6 | 0.2 min | email |
+| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
+| `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
+| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
+| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
+| `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
+| `overlays.spec.ts` | 8 | 0.2 min | shard 15 |
+| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
+| `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.2 min | shard 8 |
+| `post-wizard-recent.spec.ts` | 2 | 0.2 min | shard 9 |
+| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
 | `door-refusals.spec.ts` | 12 | 0.1 min | shard 7 |
-| `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
 | `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
+| `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
+| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
+| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
 | `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
-| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
 | `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
+| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
 | `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
-| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `fonts.spec.ts` | 2 | 0.1 min | shard 1 |
+| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 3 |
@@ -212,21 +212,21 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 43.9 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 42.5 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 40.1 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 39.8 s |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 39.4 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 38.4 s |
-| `dialogs.spec.ts` › DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected | webkit-390 | 36.6 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 33.6 s |
-| `dialogs.spec.ts` › DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected | webkit-1280 | 33.6 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 32.4 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 31.0 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 30.7 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 30.6 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | desktop-1280 | 30.5 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | desktop-1280 | 30.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 51.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 51.0 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 50.8 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 48.1 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 42.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 39.1 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | desktop-1280 | 34.7 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 32.5 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.3 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 31.6 s |
+| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 31.5 s |
+| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 31.3 s |
+| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.2 s |
+| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | desktop-1280 | 30.2 s |
+| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | desktop-1280 | 30.2 s |
 
 ## Post-test errors: smoke
 
@@ -235,7 +235,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 43591785189-localproof
+[e2e:teardown] deleted 2 user(s) owned by process 43592099375-localproof
 ```
 
 ## Post-test errors: email
@@ -245,7 +245,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43591785189-local-email
+[e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-email
 ```
 
 ## Post-test errors: webkit
@@ -255,7 +255,7 @@ webkit: every test's verdict stands — these lines were printed OUTSIDE any tes
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 43591785189-local-webkit
+[e2e:teardown] deleted 4 user(s) owned by process 43592099375-local-webkit
 ```
 
 ## Post-test errors: shard 1
@@ -265,7 +265,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43591785189-local-1
+[e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-1
 ```
 
 ## Post-test errors: shard 2
@@ -275,7 +275,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 9 user(s) owned by process 43591785189-local-2
+[e2e:teardown] deleted 9 user(s) owned by process 43592099375-local-2
 ```
 
 ## Post-test errors: shard 3
@@ -285,7 +285,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 43591785189-local-3
+[e2e:teardown] deleted 5 user(s) owned by process 43592099375-local-3
 ```
 
 ## Post-test errors: shard 4
@@ -295,7 +295,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 28 (pool 4, fresh 24)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 25 user(s) owned by process 43591785189-local-4
+[e2e:teardown] deleted 25 user(s) owned by process 43592099375-local-4
 ```
 
 ## Post-test errors: shard 5
@@ -305,7 +305,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 15 user(s) owned by process 43591785189-local-5
+[e2e:teardown] deleted 15 user(s) owned by process 43592099375-local-5
 ```
 
 ## Post-test errors: shard 6
@@ -315,7 +315,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43591785189-local-6
+[e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-6
 ```
 
 ## Post-test errors: shard 7
@@ -325,7 +325,7 @@ shard 7: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43591785189-local-7
+[e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-7
 ```
 
 ## Post-test errors: shard 8
@@ -335,7 +335,7 @@ shard 8: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 3, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 43591785189-local-8
+[e2e:teardown] deleted 8 user(s) owned by process 43592099375-local-8
 ```
 
 ## Post-test errors: shard 9
@@ -345,7 +345,7 @@ shard 9: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 16 (pool 4, fresh 12)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 13 user(s) owned by process 43591785189-local-9
+[e2e:teardown] deleted 13 user(s) owned by process 43592099375-local-9
 ```
 
 ## Post-test errors: shard 10
@@ -355,7 +355,7 @@ shard 10: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 43591785189-local-10
+[e2e:teardown] deleted 5 user(s) owned by process 43592099375-local-10
 ```
 
 ## Post-test errors: shard 11
@@ -365,7 +365,7 @@ shard 11: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43591785189-local-11
+[e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-11
 ```
 
 ## Post-test errors: shard 12
@@ -375,7 +375,7 @@ shard 12: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 3, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 43591785189-local-12
+[e2e:teardown] deleted 5 user(s) owned by process 43592099375-local-12
 ```
 
 ## Post-test errors: shard 13
@@ -385,7 +385,7 @@ shard 13: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 5 (pool 3, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 43591785189-local-13
+[e2e:teardown] deleted 3 user(s) owned by process 43592099375-local-13
 ```
 
 ## Post-test errors: shard 14
@@ -395,7 +395,7 @@ shard 14: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 43591785189-local-14
+[e2e:teardown] deleted 11 user(s) owned by process 43592099375-local-14
 ```
 
 ## Post-test errors: shard 15
@@ -405,7 +405,7 @@ shard 15: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 28 (pool 2, fresh 26)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 43 user(s) owned by process 43591785189-local-15
+[e2e:teardown] deleted 43 user(s) owned by process 43592099375-local-15
 ```
 
 ## Post-test errors: shard 16
@@ -415,7 +415,7 @@ shard 16: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 23 user(s) owned by process 43591785189-local-16
+[e2e:teardown] deleted 23 user(s) owned by process 43592099375-local-16
 ```
 
 ## admin-translations-data.spec.ts › TR-42 answer-option translations (DEC-233) › TR-42 the Data scope saves and approves an answer option, excluding switched-off options and Amharic (INC-820)
@@ -856,7 +856,7 @@ Received string:    "permissionDenied"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-doors.spec.ts:285:65
 ```
 
-Context: context file not found for `legal-doors-Legal-doors-LG-2-publish-and-draft-refusals-plain-user-admin-by-role-stale-second-factor-and-every-content-rule-mobile-360` — Playwright's name `legal-doors-Legal-doors-LG-9f099-ctor-and-every-content-rule-mobile-360`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360-retry1`
+Context: context file not found for `legal-doors-Legal-doors-LG-2-publish-and-draft-refusals-plain-user-admin-by-role-stale-second-factor-and-every-content-rule-mobile-360` — Playwright's name `legal-doors-Legal-doors-LG-9f099-ctor-and-every-content-rule-mobile-360`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280-retry1`
 
 ## legal-doors.spec.ts › Legal doors › LG-6 the settings doors: the seeded row for the super admin, refusals for every lesser caller and every bad value; the row is never written
 
@@ -996,7 +996,7 @@ Received has value: undefined
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-doors.spec.ts:915:70
 ```
 
-Context: context file not found for `legal-doors-Legal-doors-LG-9-the-staff-reads-admin_legal_documents-and-admin_legal_version-refuse-every-lesser-caller-the-super-admin-reads-a-scratch-version-whole-its-change-log-included-mobile-360` — Playwright's name `legal-doors-Legal-doors-LG-1267e-ole-its-change-log-included-mobile-360`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360-retry1`
+Context: context file not found for `legal-doors-Legal-doors-LG-9-the-staff-reads-admin_legal_documents-and-admin_legal_version-refuse-every-lesser-caller-the-super-admin-reads-a-scratch-version-whole-its-change-log-included-mobile-360` — Playwright's name `legal-doors-Legal-doors-LG-1267e-ole-its-change-log-included-mobile-360`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280-retry1`
 
 ## legal-doors.spec.ts › Legal doors › LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row
 
@@ -1024,7 +1024,7 @@ Received string:    "permissionDenied"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-doors.spec.ts:1279:80
 ```
 
-Context: context file not found for `legal-doors-Legal-doors-LG-24-admin_export_legal_acceptances-refused-for-an-anonymous-caller-a-plain-user-an-admin-by-role-and-a-stale-second-factor-the-super-admin-reads-a-published-version-s-acceptances-page-by-page-account-id-time-language-method-home-country-and-the-two-flags-never-a-name-or-e-mail-with-one-audit-row-mobile-360` — Playwright's name `legal-doors-Legal-doors-LG-57fce-e-mail-—-with-one-audit-row-mobile-360`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360-retry1`
+Context: context file not found for `legal-doors-Legal-doors-LG-24-admin_export_legal_acceptances-refused-for-an-anonymous-caller-a-plain-user-an-admin-by-role-and-a-stale-second-factor-the-super-admin-reads-a-published-version-s-acceptances-page-by-page-account-id-time-language-method-home-country-and-the-two-flags-never-a-name-or-e-mail-with-one-audit-row-mobile-360` — Playwright's name `legal-doors-Legal-doors-LG-57fce-e-mail-—-with-one-audit-row-mobile-360`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280-retry1`
 
 ## legal-doors.spec.ts › Legal doors › LG-2 publish and draft refusals: plain user, admin by role, stale second factor, and every content rule
 
@@ -1056,7 +1056,7 @@ Received string:    "permissionDenied"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-doors.spec.ts:285:65
 ```
 
-Context: context file not found for `legal-doors-Legal-doors-LG-2-publish-and-draft-refusals-plain-user-admin-by-role-stale-second-factor-and-every-content-rule-desktop-1280` — Playwright's name `legal-doors-Legal-doors-LG-9f099-ctor-and-every-content-rule-desktop-1280`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360-retry1`
+Context: context file not found for `legal-doors-Legal-doors-LG-2-publish-and-draft-refusals-plain-user-admin-by-role-stale-second-factor-and-every-content-rule-desktop-1280` — Playwright's name `legal-doors-Legal-doors-LG-9f099-ctor-and-every-content-rule-desktop-1280`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280-retry1`
 
 ## legal-doors.spec.ts › Legal doors › LG-6 the settings doors: the seeded row for the super admin, refusals for every lesser caller and every bad value; the row is never written
 
@@ -1196,7 +1196,7 @@ Received has value: undefined
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-doors.spec.ts:915:70
 ```
 
-Context: context file not found for `legal-doors-Legal-doors-LG-9-the-staff-reads-admin_legal_documents-and-admin_legal_version-refuse-every-lesser-caller-the-super-admin-reads-a-scratch-version-whole-its-change-log-included-desktop-1280` — Playwright's name `legal-doors-Legal-doors-LG-1267e-ole-its-change-log-included-desktop-1280`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360-retry1`
+Context: context file not found for `legal-doors-Legal-doors-LG-9-the-staff-reads-admin_legal_documents-and-admin_legal_version-refuse-every-lesser-caller-the-super-admin-reads-a-scratch-version-whole-its-change-log-included-desktop-1280` — Playwright's name `legal-doors-Legal-doors-LG-1267e-ole-its-change-log-included-desktop-1280`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280-retry1`
 
 ## legal-doors.spec.ts › Legal doors › LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row
 
@@ -1224,7 +1224,7 @@ Received string:    "permissionDenied"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-doors.spec.ts:1279:80
 ```
 
-Context: context file not found for `legal-doors-Legal-doors-LG-24-admin_export_legal_acceptances-refused-for-an-anonymous-caller-a-plain-user-an-admin-by-role-and-a-stale-second-factor-the-super-admin-reads-a-published-version-s-acceptances-page-by-page-account-id-time-language-method-home-country-and-the-two-flags-never-a-name-or-e-mail-with-one-audit-row-desktop-1280` — Playwright's name `legal-doors-Legal-doors-LG-57fce-e-mail-—-with-one-audit-row-desktop-1280`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360-retry1`
+Context: context file not found for `legal-doors-Legal-doors-LG-24-admin_export_legal_acceptances-refused-for-an-anonymous-caller-a-plain-user-an-admin-by-role-and-a-stale-second-factor-the-super-admin-reads-a-published-version-s-acceptances-page-by-page-account-id-time-language-method-home-country-and-the-two-flags-never-a-name-or-e-mail-with-one-audit-row-desktop-1280` — Playwright's name `legal-doors-Legal-doors-LG-57fce-e-mail-—-with-one-audit-row-desktop-1280`; this run carried 24 context file(s); of the same spec: `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-mobile-360`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-mobile-360-retry1`, `legal-doors-Legal-doors-LG-ddfc0-notice-door-is-service-only-desktop-1280-retry1`, `legal-doors-Legal-doors-LG-49b93-ue-the-row-is-never-written-desktop-1280-retry1`
 
 ## Server errors: shard 5
 
