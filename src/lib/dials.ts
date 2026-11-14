@@ -178,7 +178,8 @@ export const DIALS = {
     windowSeconds: 3600,
     countedBy: "door",
   },
-  /** admin_save_translation, admin_save_entity_translation — per-key saves. */
+  /** admin_save_translation, admin_save_entity_translation, admin_set_translation_status,
+      admin_set_entity_translation_status — per-key saves and reviews. */
   staffTranslation: {
     action: "staff_translation",
     limit: { fallback: 2000 },
