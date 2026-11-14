@@ -12,7 +12,7 @@ import {
   exportFilename,
   fetchAllTranslationRows,
   serverMessage,
-  translationErrorKey,
+  translationRefusalKey,
   type TranslationRow,
 } from "./translations-service";
 import { useImportTranslations, useUndoImport } from "./use-translations";
@@ -86,7 +86,7 @@ export function TransferBar({
         );
       })
       .catch((failure: unknown) => {
-        setErrorKey(translationErrorKey(failure));
+        setErrorKey(translationRefusalKey(failure));
         setErrorDetail(serverMessage(failure));
       })
       .finally(() => setExporting(false));
@@ -116,7 +116,7 @@ export function TransferBar({
           .replace("{skipped}", String(result.skipped)),
       );
     }).catch((failure: unknown) => {
-      setErrorKey(translationErrorKey(failure));
+      setErrorKey(translationRefusalKey(failure));
       setErrorDetail(serverMessage(failure));
     });
   };
@@ -139,7 +139,7 @@ export function TransferBar({
       );
       setBatchId(null);
     }).catch((failure: unknown) => {
-      setErrorKey(translationErrorKey(failure));
+      setErrorKey(translationRefusalKey(failure));
       setErrorDetail(serverMessage(failure));
     });
   };

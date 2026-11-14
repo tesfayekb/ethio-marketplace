@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { legalErrorKey, legalErrorName } from "./legal-service";
+import { legalRefusalKey, legalRefusalName } from "./legal-service";
 import { earliestLegalDate, legalPublishDate } from "./publish-date";
 import { useLegalWrites } from "./use-legal";
 
@@ -138,8 +138,8 @@ export function LegalPublishDialog({
               void guard(() => publish.mutateAsync({ id, ...request }))
                 .then(onPublished)
                 .catch((failure: unknown) => {
-                  setErrorName(legalErrorName(failure));
-                  setError(legalErrorKey(failure));
+                  setErrorName(legalRefusalName(failure));
+                  setError(legalRefusalKey(failure));
                 });
             }}
           >

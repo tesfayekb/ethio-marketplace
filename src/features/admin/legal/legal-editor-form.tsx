@@ -21,7 +21,7 @@ import { unknownTokens } from "@/features/legal/legal-markdown";
 import { ownValue } from "@/lib/own-key";
 import {
   kindKey,
-  legalErrorKey,
+  legalRefusalKey,
   type DraftInput,
   type LegalSettings,
   type LegalVersionDetail,
@@ -304,7 +304,7 @@ export function LegalEditorForm({
                         setSavedValues(submitted);
                         setSaved(true);
                       })
-                      .catch((failure: unknown) => setError(legalErrorKey(failure)))
+                      .catch((failure: unknown) => setError(legalRefusalKey(failure)))
                       .finally(() => setSaving(false));
                   }}
                 >
@@ -364,7 +364,7 @@ export function LegalEditorForm({
                         setDiscarding(false);
                         void navigate({ to: "/admin/legal", search: { outcome: "discarded" } });
                       })
-                      .catch((failure: unknown) => setError(legalErrorKey(failure)));
+                      .catch((failure: unknown) => setError(legalRefusalKey(failure)));
                   }}
                 >
                   {t("admin.legal.action.discardDraft")}

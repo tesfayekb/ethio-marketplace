@@ -23,7 +23,7 @@ import { ownValue } from "@/lib/own-key";
 import {
   LEGAL_KINDS,
   kindKey,
-  legalErrorKey,
+  legalRefusalKey,
   reviewState,
   versionStatus,
   type LegalDocument,
@@ -455,7 +455,7 @@ export function LegalPage() {
                         setReviewing(null);
                         setReviewSaved(true);
                       })
-                      .catch((failure: unknown) => setReviewError(legalErrorKey(failure)));
+                      .catch((failure: unknown) => setReviewError(legalRefusalKey(failure)));
                   }}
                 >
                   {t("admin.legal.action.saveReview")}

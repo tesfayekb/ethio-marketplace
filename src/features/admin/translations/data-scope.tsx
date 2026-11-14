@@ -26,7 +26,7 @@ import {
   entityRowSlug,
   pickEntityStats,
   serverMessage,
-  translationErrorKey,
+  translationRefusalKey,
   type EntityTranslationRow,
 } from "./translations-service";
 import {
@@ -456,7 +456,7 @@ function EntityEditor({
     void guard(action)
       .then(() => setSaved(true))
       .catch((failure: unknown) => {
-        setErrorKey(translationErrorKey(failure));
+        setErrorKey(translationRefusalKey(failure));
         setErrorDetail(serverMessage(failure));
       });
   };

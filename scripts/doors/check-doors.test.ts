@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { allow, liveFindings, plantedCases, selfTest, staticFindings } from "./check-doors";
+import { columnsOf, declaredColumns } from "./columns";
 import { FINDING_KINDS, doorContextCall, judge } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
 import {
@@ -20,7 +21,7 @@ import {
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
- * the seven finding kinds each fire on their planted bypass and a clean pair
+ * the eight finding kinds each fire on their planted bypass and a clean pair
  * fires nothing (DOORS-1); the manifest's grammar refuses what it must
  * (DOORS-2); the live reader answers the same rows the judge reads and refuses
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
@@ -29,7 +30,8 @@ import {
  * script prints verbatim, its clauses on their own lines (DOORS-5, INC-1070);
  * the live judgement reads the same tree census as the static one, so the one
  * allowlist serves both modes (DOORS-6, INC-1072), and a body the migrations
- * hand over in chunks counts as a caller in both (DOORS-7, INC-1072).
+ * hand over in chunks counts as a caller in both (DOORS-7, INC-1072); a `row:` cell names a
+ * column the migrations declare (DOORS-8, F1-3).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -196,6 +198,55 @@ describe("check-doors (CF-DOORS)", () => {
       .filter((line) => !line.startsWith("--"))
       .join("\n");
     expect(statement).toMatch(/^select [\s\S]*\nfrom pg_proc p\nwhere [\s\S]*\norder by 1;\n$/);
+  });
+
+  it("DOORS-8 a row: cell names a column the migrations declare: the census reads tables, added and renamed columns, never a DO block's scratch table", () => {
+    const sql = [
+      "-- CREATE TABLE public.commented (ghost text);",
+      "CREATE TABLE public.e2e_planted_prices (",
+      "  id uuid PRIMARY KEY,",
+      "  country_code char(2) NOT NULL REFERENCES public.countries(code),",
+      "  amount numeric(12, 2),",
+      "  CONSTRAINT e2e_planted_prices_amount CHECK (amount > 0),",
+      "  UNIQUE (country_code, amount)",
+      ");",
+      "ALTER TABLE public.e2e_planted_prices ADD COLUMN IF NOT EXISTS ends_at timestamptz;",
+      "ALTER TABLE ONLY public.e2e_planted_prices RENAME COLUMN amount TO price;",
+      "DO $ BEGIN CREATE TEMP TABLE scratch (country text); END $;",
+    ].join("\n");
+    expect(columnsOf(sql).sort()).toEqual([
+      "e2e_planted_prices.amount",
+      "e2e_planted_prices.country_code",
+      "e2e_planted_prices.ends_at",
+      "e2e_planted_prices.id",
+      "e2e_planted_prices.price",
+    ]);
+    const line = (cell: string) =>
+      `e2e_planted_staff(uuid) | staff | authenticated | packages:update | row | staff_config | - | row:${cell} | staff | - | -`;
+    const columns = new Set(columnsOf(sql));
+    const fired = (cell: string) =>
+      judge([], parseManifest(line(cell)), { columns }).filter(
+        (finding) => finding.kind === "row-column-unknown",
+      );
+    expect(fired("e2e_planted_prices.country_code")).toEqual([]);
+    expect(fired("e2e_planted_prices.country").map((finding) => finding.what)).toEqual([
+      "row:e2e_planted_prices.country names a column no migration declares",
+    ]);
+    expect(fired("scratch.country")).toHaveLength(1);
+    expect(fired("commented.ghost")).toHaveLength(1);
+    // The tree: every row: cell of the manifest names a declared column.
+    const declared = declaredColumns(ROOT);
+    expect(declared.has("package_prices.country_code")).toBe(true);
+    expect(declared.has("package_prices.country")).toBe(false);
+    const cells = [
+      ...parseManifest(
+        readFileSync(join(ROOT, "scripts", "doors", "manifest.txt"), "utf8"),
+      ).lines.values(),
+    ]
+      .map((entry) => entry.country)
+      .flatMap((country) => (country?.kind === "row" ? [country.column] : []));
+    expect(cells.length).toBeGreaterThan(0);
+    expect(cells.filter((column) => !declared.has(column))).toEqual([]);
   });
 
   it("DOORS-4 the repository's tree reconciles: every browser-callable function has its line, every line its door", () => {

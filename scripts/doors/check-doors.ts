@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { readAllowlist } from "../conformance/kit";
+import { declaredColumns } from "./columns";
 import { FINDING_KINDS, judge, type Finding, type FindingKind } from "./judge";
 import { parseManifest } from "./manifest";
 import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./rows";
@@ -17,7 +18,7 @@ import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./r
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the seven finding kinds must fire on its planted fixture
+ * process — each of the eight finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -53,6 +54,7 @@ export function plantedCases(): Array<{
   rows: DoorRow[];
   manifest: string;
   callers?: (name: string) => boolean;
+  columns?: ReadonlySet<string>;
 }> {
   return [
     {
@@ -129,6 +131,17 @@ export function plantedCases(): Array<{
       ],
       manifest: STAFF_LINE,
     },
+    {
+      kind: "row-column-unknown",
+      rows: [
+        row({
+          key: "e2e_planted_staff(uuid)",
+          body: SHELL_BODY("'staff', 'listings', 'review', 'staff_moderation', v_country, 'match'"),
+        }),
+      ],
+      manifest: STAFF_LINE.replace("| global |", "| row:listings.country |"),
+      columns: new Set(["listings.home_country_code"]),
+    },
   ];
 }
 
@@ -148,7 +161,7 @@ export function selfTest(): string[] {
             ],
             callers: planted.callers,
           }
-        : { callers: planted.callers };
+        : { callers: planted.callers, columns: planted.columns };
     const findings = judge(planted.rows, parseManifest(planted.manifest), evidence);
     if (planted.kind === "clean") {
       if (findings.length > 0)
@@ -177,7 +190,11 @@ export function staticFindings(root = ROOT): Finding[] {
   const manifest = parseManifest(
     readFileSync(join(root, "scripts", "doors", "manifest.txt"), "utf8"),
   );
-  return judge(rows, manifest, { unseen, callers: treeCallers(root, rows) });
+  return judge(rows, manifest, {
+    unseen,
+    callers: treeCallers(root, rows),
+    columns: declaredColumns(root),
+  });
 }
 
 export function liveFindings(tsv: string, root = ROOT): Finding[] {
@@ -188,7 +205,10 @@ export function liveFindings(tsv: string, root = ROOT): Finding[] {
   // fire the same kinds and one allowlist serves both (a `grant-without-caller` line the live
   // mode never judged read as stale and killed the smoke lane's first live run).
   const rows = liveRows(tsv);
-  return judge(rows, manifest, { callers: treeCallers(root, rows) });
+  return judge(rows, manifest, {
+    callers: treeCallers(root, rows),
+    columns: declaredColumns(root),
+  });
 }
 
 function print(label: string, findings: Finding[]): void {

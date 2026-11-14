@@ -57,17 +57,18 @@ const PATH = "/api/translate";
 const MAX_BODY_BYTES = 1_048_576;
 
 /**
- * CHANGE (4) — the writer's refusal by its message (admin_machine_translation,
- * admin_machine_entity_translation and require_step_up_if_needed's RAISEs).
+ * CHANGE (4) — the writer's refusal by its code (admin_machine_translation and
+ * admin_machine_entity_translation on the door shell, DEC-333, F1-3: `code[:detail]`);
+ * a step-up stays require_step_up_if_needed's sentence. Any other code is writerFailed.
  */
 const WRITER_REASONS = new Map<string, TranslateReason>([
-  ["permission denied", "permission"],
-  ["not assigned to this language", "scope"],
-  ["base language rows are sync-owned", "baseLocked"],
-  ["unknown translation key", "unknownTarget"],
-  ["unknown entity", "unknownTarget"],
-  ["unknown entity field", "unknownTarget"],
-  ["empty machine value", "emptyValue"],
+  ["permissionDenied", "permission"],
+  ["permissionDenied:language", "scope"],
+  ["baseLocked", "baseLocked"],
+  ["unknownKey", "unknownTarget"],
+  ["unknownEntity", "unknownTarget"],
+  ["badValue:field", "unknownTarget"],
+  ["required:value", "emptyValue"],
 ]);
 
 function writerReason(message: string): TranslateReason {

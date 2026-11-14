@@ -444,9 +444,6 @@ export const enBase = {
   "admin.roles.error.nameTaken": "That role key is already taken.",
   "admin.roles.error.nameRequired": "A role key is required.",
   "admin.roles.error.nameFormat": "Use lowercase letters, digits, dash or underscore.",
-  "mfa.errorGeneric": "We couldn't complete that. Please try again.",
-  "mfa.errorInvalidCode": "That code isn't right. Enter the current code from your app.",
-  "mfa.errorNoFactor": "No authenticator app is set up on this account.",
   // FIX-SCAN-1 ISSUE 2 — the hint a caller renders when the gate could not run.
   "mfa.stepUpUnavailableHint":
     "Set up an authenticator app in Settings → Two-factor authentication to complete this action.",

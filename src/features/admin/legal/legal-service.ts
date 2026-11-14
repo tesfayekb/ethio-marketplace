@@ -2,7 +2,7 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 import type { LegalFacts } from "@/features/legal/legal-markdown";
-import { errorText } from "@/lib/error-text";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 import { parseLegalVersion } from "@/features/legal/legal-reader";
 import { SCRATCH_KIND } from "@/features/legal/legal-kinds";
 import { isCountryCode } from "@/lib/locale";
@@ -117,28 +117,37 @@ export function kindKey(kind: string): MessageKey | null {
   };
   return ownValue(keys, kind) ?? null;
 }
-const refusals: Record<string, MessageKey> = {
-  labelRequired: "admin.legal.error.labelRequired",
-  labelTaken: "admin.legal.error.labelTaken",
-  bothLanguages: "admin.legal.error.bothLanguages",
-  changelogRequired: "admin.legal.error.changelogRequired",
-  noticeTooShort: "admin.legal.error.noticeTooShort",
-  notDraft: "admin.legal.error.notDraft",
-  unknownFact: "admin.legal.error.unknownFact",
-  factMissing: "admin.legal.error.factMissing",
-  nothingToReview: "admin.legal.error.nothingToReview",
-  translationExists: "admin.legal.error.translationExists",
-  badLanguage: "admin.legal.error.badLanguage",
-};
-export function legalErrorKey(error: unknown): MessageKey {
-  const message = errorText(error);
-  return ownValue(refusals, message.trim().split(":")[0] ?? "") ?? "admin.legal.error.generic";
+/**
+ * The legal family's own words for its doors' codes (DEC-333, F1-3); every other refusal (a gate
+ * code, a sentence, a failure) reads as the family's generic.
+ */
+export const LEGAL_REFUSALS = {
+  words: {
+    labelRequired: "admin.legal.error.labelRequired",
+    labelTaken: "admin.legal.error.labelTaken",
+    bothLanguages: "admin.legal.error.bothLanguages",
+    changelogRequired: "admin.legal.error.changelogRequired",
+    noticeTooShort: "admin.legal.error.noticeTooShort",
+    notDraft: "admin.legal.error.notDraft",
+    unknownFact: "admin.legal.error.unknownFact",
+    factMissing: "admin.legal.error.factMissing",
+    nothingToReview: "admin.legal.error.nothingToReview",
+    translationExists: "admin.legal.error.translationExists",
+    badLanguage: "admin.legal.error.badLanguage",
+  },
+  generic: "admin.legal.error.generic",
+} as const satisfies RefusalFamily;
+/**
+ * A legal door's refusal as the key a screen draws, through the one reader; null when the person
+ * cancelled the step-up (nothing ran, nothing is said).
+ */
+export function legalRefusalKey(error: unknown): MessageKey | null {
+  const read = readRefusal(error, LEGAL_REFUSALS);
+  return read.silent ? null : read.key;
 }
-/** The part of a refusal after its first colon (the fact a publish refusal names), or "". */
-export function legalErrorName(error: unknown): string {
-  const message = errorText(error);
-  const at = message.indexOf(":");
-  return at < 0 ? "" : message.slice(at + 1).trim();
+/** The detail a refusal carries (the fact a publish refusal names), or "". */
+export function legalRefusalName(error: unknown): string {
+  return readRefusal(error, LEGAL_REFUSALS).tail?.trim() ?? "";
 }
 function objectOf(data: unknown, door: string): Record<string, unknown> {
   if (!data || typeof data !== "object" || Array.isArray(data))
@@ -377,14 +386,21 @@ export type AcceptanceExport = {
   country_code: string | null;
   rows: AcceptanceExportRow[];
 };
-/** Turn 13 — every acceptance of a published version, page by page through the export door (D226). */
+/** The export door's largest page (`badValue:limit` beyond it). */
+export const ACCEPTANCE_EXPORT_PAGE = 5000;
+/**
+ * Turn 13 — every acceptance of a published version, page by page through the export door (D226).
+ * F1-3: every page passes the door's gate, spends its `legal_export` dial and writes its audit
+ * line, so one hour reads at most the dial's count of full pages; a page past it is refused
+ * `rateLimited` and the whole export fails, never a file cut short.
+ */
 export async function exportLegalAcceptances(versionId: string): Promise<AcceptanceExport> {
   const rows: AcceptanceExportRow[] = [];
   let after: { at: string; id: string } | null = null;
   for (let page = 0; page < 1000; page++) {
     const { data, error } = await supabase.rpc("admin_export_legal_acceptances", {
       p_version_id: versionId,
-      p_limit: 1000,
+      p_limit: ACCEPTANCE_EXPORT_PAGE,
       ...(after ? { p_after_at: after.at, p_after_id: after.id } : {}),
     });
     if (error) throw error;

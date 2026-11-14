@@ -4,6 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { DIALS, type Dial } from "@/lib/dials";
 import { errorText } from "@/lib/error-text";
 import { ownValue } from "@/lib/own-key";
+import { refusalsOf } from "@/lib/refusal";
 import { DOOR_KEY, splitRefusal } from "@/lib/refusal-tail";
 import { importBody, type ImportBody } from "@/lib/schemas/imports";
 import { clientError, ok, serverError, stepUpRequired, upstreamUnavailable } from "@/server/answer";
@@ -34,7 +35,13 @@ import { familyOf } from "./registry";
  * the database's text (OWASP ASVS V7.4).
  */
 
-type DoorError = { message: string; details?: string | null; hint?: string | null };
+type DoorError = {
+  message: string;
+  details?: string | null;
+  hint?: string | null;
+  code?: string | null;
+  refusals?: unknown;
+};
 
 /**
  * THE DOOR TABLE (CHANGE 4). `exact`: the whole message; `key`: the message is
@@ -62,10 +69,6 @@ export const IMPORT_REFUSALS: readonly ImportRefusal[] = [
   { match: "undoBlocked", kind: "exact", status: 409, detail: "hasRows" },
   { match: "unknownParent", kind: "key", status: 409 },
   { match: "batch id required", kind: "exact", status: 400 },
-  { match: "not assigned to this language", kind: "exact", status: 403 },
-  { match: "p_items must be a json array", kind: "exact", status: 400 },
-  { match: "too many rows (max 5000)", kind: "exact", status: 400, error: "tooManyRows" },
-  { match: "base language rows are sync-owned", kind: "exact", status: 403 },
 ];
 
 /** The factory's own words and the gate's file-law words — with the table, every word answered. */
@@ -98,6 +101,36 @@ const IMPORT_DIALS: Readonly<Record<string, Dial>> = {
   translations: DIALS.importTranslations,
 };
 
+const CODE_WORD = /^[a-z][A-Za-z]*$/;
+const CODE_DETAIL = /^[A-Za-z0-9_.:+ -]{1,64}$/;
+const CODE_STATUS: Readonly<Record<string, 401 | 403 | 429>> = {
+  notSignedIn: 401,
+  accountDeactivated: 403,
+  permissionDenied: 403,
+  rateLimited: 429,
+};
+
+/**
+ * DEC-333 (F1-3) — a door's coded refusal (SQLSTATE P0D01): the shell's envelope, read as data
+ * from its first refusal, or a raise's `code[:detail]`. The code answers itself with the
+ * shell's own status and its detail, a step-up the one 428. Anything not shaped as a code is
+ * not answered here.
+ */
+function codedRefusal(error: DoorError): Response | null {
+  if (error.code !== "P0D01") return null;
+  const listed = refusalsOf({ refusals: error.refusals })[0];
+  const raised = splitRefusal(String(error.message ?? "").trim());
+  const word = listed?.reason ?? raised.key;
+  if (!CODE_WORD.test(word)) return null;
+  if (word === "stepUpRequired") return stepUpRequired();
+  const detail = listed === undefined ? raised.tail : listed.detail;
+  return clientError(
+    word,
+    ownValue(CODE_STATUS, word) ?? 400,
+    detail !== undefined && CODE_DETAIL.test(detail) ? { detail } : undefined,
+  );
+}
+
 /**
  * ONE RELAY. A declared message answers its code; a nested door's own
  * translation key (`admin.<family>.error.<name>[:tail]`, DOOR_KEY — e.g. the
@@ -105,6 +138,8 @@ const IMPORT_DIALS: Readonly<Record<string, Dial>> = {
  * anything else is a 500 with an incident and no text.
  */
 export function relay(path: string, what: string, error: DoorError): Response {
+  const coded = codedRefusal(error);
+  if (coded !== null) return coded;
   const message = String(error.message ?? "").trim();
   for (const entry of IMPORT_REFUSALS) {
     if (entry.kind === "stepUp") {

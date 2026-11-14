@@ -4855,7 +4855,7 @@ export type Database = {
           p_type: string
           p_value: string
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_machine_entity_translation_core: {
         Args: {
@@ -4869,7 +4869,7 @@ export type Database = {
       }
       admin_machine_translation: {
         Args: { p_key: string; p_lang: string; p_value: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_machine_translation_core: {
         Args: { p_key: string; p_lang: string; p_value: string }
@@ -4988,7 +4988,7 @@ export type Database = {
           p_type: string
           p_value: string
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_save_entity_translation_core: {
         Args: {
@@ -5068,7 +5068,7 @@ export type Database = {
       }
       admin_save_translation: {
         Args: { p_key: string; p_lang: string; p_value: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_save_translation_core: {
         Args: { p_key: string; p_lang: string; p_value: string }
@@ -5134,7 +5134,7 @@ export type Database = {
           p_lang: string
           p_type: string
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_fact_attributes: {
         Args: { p_category_id: string; p_ordered_attribute_ids: string[] }
@@ -5142,7 +5142,7 @@ export type Database = {
       }
       admin_set_key_context: {
         Args: { p_context: string; p_key: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_language_flags: {
         Args: {
@@ -5150,11 +5150,11 @@ export type Database = {
           p_enabled_admin: boolean
           p_enabled_public: boolean
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_language_order: {
         Args: { p_codes: string[] }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_legal_settings: { Args: { p_settings: Json }; Returns: Json }
       admin_set_listing_policy: {
@@ -5185,11 +5185,11 @@ export type Database = {
       }
       admin_set_translation_status: {
         Args: { p_action: string; p_key: string; p_lang: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_translator_languages: {
         Args: { p_langs: string[]; p_user: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_sync_ui_keys: { Args: { p_am?: Json; p_en: Json }; Returns: Json }
       admin_translation_stats: {
@@ -5299,7 +5299,7 @@ export type Database = {
           p_name_native: string
           p_rtl?: boolean
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_upsert_location: {
         Args: {
@@ -5946,6 +5946,7 @@ export type Database = {
       }
       job_runs_prune: { Args: never; Returns: number }
       job_runs_prune_core: { Args: { p_only: string[] }; Returns: number }
+      language_code: { Args: { p_role: string }; Returns: string }
       legal_acceptance_pending: {
         Args: { p_listing_id: string; p_uid: string }
         Returns: boolean

@@ -21,7 +21,7 @@ import {
   listEntityTranslations,
   listTranslations,
   serverMessage,
-  translationErrorKey,
+  translationRefusalKey,
   type AiEntityItem,
   type AiTranslateItem,
 } from "./translations-service";
@@ -221,7 +221,7 @@ export function AiBulkBar({
   const start = () => {
     setConfirming(false);
     void guard(run).catch((failure: unknown) => {
-      setErrorKey(translationErrorKey(failure));
+      setErrorKey(translationRefusalKey(failure));
       setErrorDetail(serverMessage(failure));
     });
   };

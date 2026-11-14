@@ -1,9 +1,9 @@
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { ownValue } from "@/lib/own-key";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 import { callRoute } from "@/lib/route-client";
 import type { TranslateReason } from "@/lib/schemas/translate";
 
@@ -222,12 +222,13 @@ export async function saveTranslation(input: {
   lang: string;
   value: string;
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_save_translation", {
+  const { data, error } = await supabase.rpc("admin_save_translation", {
     p_key: input.key,
     p_lang: input.lang,
     p_value: input.value,
   });
   if (error) throw error;
+  requireDone("admin_save_translation", data);
 }
 
 export async function setTranslationStatus(input: {
@@ -235,12 +236,13 @@ export async function setTranslationStatus(input: {
   lang: string;
   action: "approve" | "clear";
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_translation_status", {
+  const { data, error } = await supabase.rpc("admin_set_translation_status", {
     p_key: input.key,
     p_lang: input.lang,
     p_action: input.action,
   });
   if (error) throw error;
+  requireDone("admin_set_translation_status", data);
 }
 
 /**
@@ -256,13 +258,11 @@ export interface ApproveAllResult {
 export async function approveAllTranslations(lang: string): Promise<ApproveAllResult> {
   const { data, error } = await supabase.rpc("admin_approve_all_translations", { p_lang: lang });
   if (error) throw error;
-  const record =
-    data !== null && typeof data === "object" && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {};
+  const fn = "admin_approve_all_translations";
+  const record = requireRecord(fn, data);
   return {
-    approved: Number(record["approved"] ?? 0),
-    skippedFlagged: Number(record["skipped_flagged"] ?? 0),
+    approved: requireCount(fn, record, "approved"),
+    skippedFlagged: requireCount(fn, record, "skipped_flagged"),
   };
 }
 
@@ -282,17 +282,15 @@ export async function approveAllEntityTranslations(lang: string): Promise<Approv
     p_lang: lang,
   });
   if (error) throw error;
-  const record =
-    data !== null && typeof data === "object" && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {};
-  return { approved: Number(record["approved"] ?? 0) };
+  const fn = "admin_approve_all_entity_translations";
+  return { approved: requireCount(fn, requireRecord(fn, data), "approved") };
 }
 
 /** U4g — roster order; the public language switcher follows `languages.sort`. */
 export async function setLanguageOrder(codes: string[]): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_language_order", { p_codes: codes });
+  const { data, error } = await supabase.rpc("admin_set_language_order", { p_codes: codes });
   if (error) throw error;
+  requireDone("admin_set_language_order", data);
 }
 
 export async function upsertLanguage(input: {
@@ -303,7 +301,7 @@ export async function upsertLanguage(input: {
   /** U4j — ISO country codes this language is spoken in; validated server-side. */
   countryCodes?: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_upsert_language", {
+  const { data, error } = await supabase.rpc("admin_upsert_language", {
     p_code: input.code,
     p_name_en: input.nameEn,
     p_name_native: input.nameNative,
@@ -311,6 +309,7 @@ export async function upsertLanguage(input: {
     p_country_codes: input.countryCodes ?? [],
   });
   if (error) throw error;
+  requireDone("admin_upsert_language", data);
 }
 
 export async function setLanguageFlags(input: {
@@ -318,12 +317,13 @@ export async function setLanguageFlags(input: {
   enabledAdmin: boolean;
   enabledPublic: boolean;
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_language_flags", {
+  const { data, error } = await supabase.rpc("admin_set_language_flags", {
     p_code: input.code,
     p_enabled_admin: input.enabledAdmin,
     p_enabled_public: input.enabledPublic,
   });
   if (error) throw error;
+  requireDone("admin_set_language_flags", data);
 }
 
 export async function syncUiKeys(input: {
@@ -335,19 +335,17 @@ export async function syncUiKeys(input: {
     p_am: input.am,
   });
   if (error) throw error;
-  const record =
-    data !== null && typeof data === "object" && !Array.isArray(data)
-      ? (data as Record<string, unknown>)
-      : {};
+  const fn = "admin_sync_ui_keys";
+  const record = requireRecord(fn, data);
   // INC-607 — the door's own names. `keys_added` counts the keys this sync
   // added; `am_seeded` the Amharic texts it set from the code (empty ones, and,
   // since INC-603, changed ones no person wrote); `languages` the staff
   // languages it reached. The screen used to read names the door never
   // returned, so it always said 0.
   return {
-    inserted: Number(record["keys_added"] ?? 0),
-    seeded: Number(record["am_seeded"] ?? 0),
-    languages: Number(record["languages"] ?? 0),
+    inserted: requireCount(fn, record, "keys_added"),
+    seeded: requireCount(fn, record, "am_seeded"),
+    languages: requireCount(fn, record, "languages"),
   };
 }
 
@@ -355,11 +353,12 @@ export async function setTranslatorLanguages(input: {
   userId: string;
   langs: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_translator_languages", {
+  const { data, error } = await supabase.rpc("admin_set_translator_languages", {
     p_user: input.userId,
     p_langs: input.langs,
   });
   if (error) throw error;
+  requireDone("admin_set_translator_languages", data);
 }
 
 /** The caller's OWN assigned language codes (U4b read seam). */
@@ -391,68 +390,111 @@ export async function fetchUiBundle(lang: string): Promise<Record<string, string
   return out;
 }
 
+/** The press dial's refusal (POST /api/translate answered 429). */
+export const MACHINE_TRANSLATE_RATE_LIMITED = "machineTranslateRateLimited";
+
+const GENERIC = "admin.translations.error.generic" satisfies MessageKey;
+const PERMISSION = "admin.translations.error.permission" satisfies MessageKey;
+const FILE_REJECTED = "admin.translations.error.fileRejected" satisfies MessageKey;
+const FILE_SHAPE = "admin.translations.error.fileShape" satisfies MessageKey;
+const FILE_EMPTY = "admin.translations.error.fileEmpty" satisfies MessageKey;
+const FILE_TOO_MANY = "admin.translations.error.fileTooMany" satisfies MessageKey;
+
 /**
- * Foundations turn 19, CHANGE (5) — the machine-translation route's per-item
- * reason codes (CHANGE 4) and the existing key each one says.
+ * The translations and languages family's own words for its codes (DEC-333, F1-3): the doors'
+ * codes, the machine-translation route's per-item reasons (Foundations turn 19, CHANGE 4), the
+ * import route's file words (IMPORT-GATE PART C) and the press dial's own 429 (D1 M5a ruling 4).
+ * Every code the family's doors raise has its words here, the generic ones included, so none is
+ * ever drawn raw. Step-up stays P0009 on the wire, a sentence; the translate route still answers
+ * its own scope check (`translation_scope_ok`) as a sentence.
  */
-const TRANSLATE_REASON_KEYS: Readonly<Record<TranslateReason, MessageKey>> = {
-  providerUnavailable: "admin.translations.error.generic",
-  providerNoText: "admin.translations.error.generic",
-  permission: "admin.translations.error.permission",
-  stepUp: "admin.translations.error.stepUp",
-  scope: "admin.translations.error.scope",
-  baseLocked: "admin.translations.error.baseLocked",
-  unknownTarget: "admin.translations.error.generic",
-  emptyValue: "admin.translations.error.generic",
-  writerFailed: "admin.translations.error.generic",
+export const TRANSLATION_REFUSALS = {
+  words: {
+    permissionDenied: PERMISSION,
+    forbidden: PERMISSION,
+    baseLocked: "admin.translations.error.baseLocked",
+    translationFlagged: "admin.translations.error.flaggedApprove",
+    notFullyApproved: "admin.translations.error.coverage",
+    languagePublished: "admin.translations.error.deletePublished",
+    baseLanguage: "admin.translations.error.deleteBase",
+    catalogEmpty: GENERIC,
+    badValue: GENERIC,
+    badLanguage: GENERIC,
+    emptyList: GENERIC,
+    nameRequired: GENERIC,
+    pseudoLanguage: GENERIC,
+    required: GENERIC,
+    tooLong: GENERIC,
+    unknownBatch: GENERIC,
+    unknownEntity: GENERIC,
+    unknownKey: GENERIC,
+    unknownTranslation: GENERIC,
+    unknownUser: GENERIC,
+    stepUpRequired: "admin.translations.error.stepUp",
+    tooManyRows: FILE_TOO_MANY,
+    rateLimited: FILE_TOO_MANY,
+    [MACHINE_TRANSLATE_RATE_LIMITED]: "admin.translations.ai.rateLimited",
+    fileTooLarge: FILE_REJECTED,
+    invalidEncoding: FILE_REJECTED,
+    nulByte: FILE_REJECTED,
+    badHeader: FILE_SHAPE,
+    wrongFile: FILE_SHAPE,
+    unknownColumn: FILE_SHAPE,
+    duplicateColumn: FILE_SHAPE,
+    emptyFile: FILE_EMPTY,
+    providerUnavailable: GENERIC,
+    providerNoText: GENERIC,
+    permission: PERMISSION,
+    stepUp: "admin.translations.error.stepUp",
+    scope: "admin.translations.error.scope",
+    unknownTarget: GENERIC,
+    emptyValue: GENERIC,
+    writerFailed: GENERIC,
+  },
+  sentences: [
+    [/step-up required/i, "admin.translations.error.stepUp"],
+    [/^not assigned to this language$/, "admin.translations.error.scope"],
+    [/^no file$/, FILE_EMPTY],
+  ],
+  generic: GENERIC,
+} as const satisfies RefusalFamily & {
+  words: Readonly<Record<TranslateReason, MessageKey>>;
 };
 
 /**
- * Maps every refusal these RPCs can raise onto a translation key. The server's
- * own message is the authority; this only chooses how to SAY it. Law F4 — an
- * unmapped failure still surfaces, through the generic key, never silently.
+ * A code whose detail changes its words, by the words its code reads and that detail: a
+ * translator outside the languages assigned to them (`permissionDenied:language`, told from a
+ * plain `permissionDenied`) and a language code of the wrong shape (`badValue:code`).
  */
-export function translationErrorKey(error: unknown): MessageKey | null {
-  // FIX-SCAN-1 ISSUE 2 — an aborted step-up is not a failure: `null` renders
-  // nothing (cancelled), the hint key renders "set up an authenticator".
-  const abort = stepUpAbortKey(error);
-  if (abort !== undefined) return abort;
-  const message = (error as { message?: string } | null)?.message ?? "";
-  // Foundations turn 19, CHANGE (5) — a per-item reason code, read exactly.
-  const coded = ownValue(TRANSLATE_REASON_KEYS, message);
-  if (coded !== undefined) return coded;
-  if (/step-up required/i.test(message)) return "admin.translations.error.stepUp";
-  if (/flagged rows cannot be approved/i.test(message))
-    return "admin.translations.error.flaggedApprove";
-  if (/not assigned to this language/i.test(message)) return "admin.translations.error.scope";
-  if (/not fully approved/i.test(message)) return "admin.translations.error.coverage";
-  if (/unpublish it first/i.test(message)) return "admin.translations.error.deletePublished";
-  if (/base language cannot be deleted/i.test(message))
-    return "admin.translations.error.deleteBase";
-  if (/base language|sync-owned/i.test(message)) return "admin.translations.error.baseLocked";
-  if (/permission denied|^forbidden$/i.test(message)) return "admin.translations.error.permission";
-  // IMPORT-GATE PART C — the one gate's named file refusals, spoken here.
-  if (/fileTooLarge|invalidEncoding|nulByte/.test(message))
-    return "admin.translations.error.fileRejected";
-  if (/badHeader|wrongFile|unknownColumn|duplicateColumn/.test(message))
-    return "admin.translations.error.fileShape";
-  if (/emptyFile|no file/.test(message)) return "admin.translations.error.fileEmpty";
-  // D1 M5a ruling 4 — the press dial's own 429, named so a real limit is never hidden (F4).
-  if (message === MACHINE_TRANSLATE_RATE_LIMITED) return "admin.translations.ai.rateLimited";
-  if (/tooManyRows|rateLimited/.test(message)) return "admin.translations.error.fileTooMany";
-  if (/language code/i.test(message)) return "admin.translations.error.codeInvalid";
-  return "admin.translations.error.generic";
+const TRANSLATION_DETAIL_WORDS: Readonly<Record<string, MessageKey>> = {
+  [`${PERMISSION}|language`]: "admin.translations.error.scope",
+  [`${GENERIC}|code`]: "admin.translations.error.codeInvalid",
+};
+
+/**
+ * A translations door's or route's refusal as the key a screen draws, through the one reader;
+ * null when the person cancelled the step-up (nothing ran, nothing is said). A screen whose
+ * layer holds a code's own words passes the family extended by them (this file is on every
+ * page's path, so it names base keys only).
+ */
+export function translationRefusalKey(
+  error: unknown,
+  family: RefusalFamily = TRANSLATION_REFUSALS,
+): MessageKey | null {
+  const read = readRefusal(error, family);
+  if (read.silent) return null;
+  if (read.branch !== "family" || read.tail === undefined) return read.key;
+  return ownValue(TRANSLATION_DETAIL_WORDS, `${read.key}|${read.tail}`) ?? read.key;
 }
 
 /**
- * The server's own refusal text, surfaced verbatim beneath the translated
- * line. A per-item reason code is not text: its translated line says it all
- * (Foundations turn 19, ruling R4), so it has no detail line.
+ * The failure's own text beneath the translated line, only for a failure the reader does not
+ * know (a network or shape error): a code, a route word or a sentence the family words is said
+ * by its translated line alone, never shown raw.
  */
 export function serverMessage(error: unknown): string | null {
+  if (readRefusal(error, TRANSLATION_REFUSALS).branch !== "generic") return null;
   const message = (error as { message?: string } | null)?.message ?? "";
-  if (ownValue(TRANSLATE_REASON_KEYS, message) !== undefined) return null;
-  if (message === MACHINE_TRANSLATE_RATE_LIMITED) return null;
   return message.trim() === "" ? null : message;
 }
 
@@ -485,9 +527,6 @@ export interface AiTranslateResult {
   flagged: number | null;
   failed: { key: string; reason: string }[];
 }
-
-/** The press dial's refusal (POST /api/translate answered 429). */
-export const MACHINE_TRANSLATE_RATE_LIMITED = "machineTranslateRateLimited";
 
 /** The route's own hard cap; the caller chunks to this size. */
 export const AI_CHUNK_SIZE = 100;
@@ -723,7 +762,7 @@ export async function saveEntityTranslation(input: {
   lang: string;
   value: string;
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_save_entity_translation", {
+  const { data, error } = await supabase.rpc("admin_save_entity_translation", {
     p_type: input.type,
     p_id: input.id,
     p_field: input.field,
@@ -731,6 +770,7 @@ export async function saveEntityTranslation(input: {
     p_value: input.value,
   });
   if (error) throw error;
+  requireDone("admin_save_entity_translation", data);
 }
 
 export async function setEntityTranslationStatus(input: {
@@ -740,7 +780,7 @@ export async function setEntityTranslationStatus(input: {
   lang: string;
   action: "approve" | "clear";
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_entity_translation_status", {
+  const { data, error } = await supabase.rpc("admin_set_entity_translation_status", {
     p_type: input.type,
     p_id: input.id,
     p_field: input.field,
@@ -748,6 +788,7 @@ export async function setEntityTranslationStatus(input: {
     p_action: input.action,
   });
   if (error) throw error;
+  requireDone("admin_set_entity_translation_status", data);
 }
 
 /**
@@ -859,6 +900,11 @@ function requireCount(fn: string, row: Record<string, unknown>, field: string): 
   throw new RpcShapeError(fn, field, value);
 }
 
+/** A write door's answer when it has nothing to count (DEC-333): exactly `{ ok: true }`. */
+function requireDone(fn: string, data: unknown): void {
+  if (requireRecord(fn, data)["ok"] !== true) throw new RpcShapeError(fn, "ok", data);
+}
+
 const ENTITY_STATS_FN = "admin_entity_translation_stats";
 
 /** The ONLY parser of an `admin_entity_translation_stats` row. */
@@ -930,11 +976,12 @@ export function translationMapperSelfTest(): string {
  * translator too. Gated `translations:manage` server-side (F3).
  */
 export async function setKeyContext(input: { key: string; context: string }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_key_context", {
+  const { data, error } = await supabase.rpc("admin_set_key_context", {
     p_key: input.key,
     p_context: input.context,
   });
   if (error) throw error;
+  requireDone("admin_set_key_context", data);
 }
 
 /**
@@ -971,13 +1018,13 @@ export const TRANSLATIONS_IMPORT_PATH = "/api/admin/translations/import";
 
 /**
  * The route's named refusals, spoken as the messages this console maps (F4).
- * Foundations turn 12 — a named code is returned as itself whenever one came
- * (so `not assigned to this language` reaches the scope key); the status is
- * read only when none did.
+ * Foundations turn 12 — a named code is returned as itself whenever one came,
+ * with its detail (`permissionDenied:language` reaches the scope key, F1-3);
+ * the status is read only when none did.
  */
-function importFailure(status: number, named: string): Error {
-  if (named !== "") return new Error(named);
-  if (status === 403) return new Error("permission denied");
+function importFailure(status: number, named: string, detail: string | null): Error {
+  if (named !== "") return new Error(detail === null ? named : `${named}:${detail}`);
+  if (status === 403) return new Error("permissionDenied");
   if (status === 428) return new Error("step-up required");
   return new Error(`import failed (${status})`);
 }
@@ -985,7 +1032,7 @@ function importFailure(status: number, named: string): Error {
 async function postImport(body: Record<string, unknown>): Promise<Record<string, unknown>> {
   const answer = await callRoute(TRANSLATIONS_IMPORT_PATH, { json: body });
   if (answer.kind !== "answered") throw new Error("import failed (0)");
-  if (!answer.ok) throw importFailure(answer.status, answer.error ?? "");
+  if (!answer.ok) throw importFailure(answer.status, answer.error ?? "", answer.detail);
   return answer.payload ?? {};
 }
 
@@ -995,11 +1042,12 @@ export async function importTranslations(input: {
   text: string;
 }): Promise<ImportResult> {
   const payload = await postImport({ mode: "commit", lang: input.lang, strings: input.text });
+  const fn = "admin_import_translations";
   return {
-    imported: Number(payload["imported"] ?? 0),
-    flagged: Number(payload["flagged"] ?? 0),
-    unchanged: Number(payload["unchanged"] ?? 0),
-    skipped: Number(payload["skipped"] ?? 0),
+    imported: requireCount(fn, payload, "imported"),
+    flagged: requireCount(fn, payload, "flagged"),
+    unchanged: requireCount(fn, payload, "unchanged"),
+    skipped: requireCount(fn, payload, "skipped"),
     batchId: typeof payload["batch_id"] === "string" ? payload["batch_id"] : null,
   };
 }
@@ -1028,9 +1076,10 @@ export async function undoImport(input: {
   // The same gated door as the import: metered, audited, gates re-run in the
   // RPC. `admin_undo_import` keeps its EXECUTE grant — the route is the caller.
   const payload = await postImport({ mode: "undo", lang: input.lang, batchId: input.batchId });
+  const fn = "admin_undo_import";
   return {
-    restored: Number(payload["restored"] ?? 0),
-    conflicted: Number(payload["conflicted"] ?? 0),
+    restored: requireCount(fn, payload, "restored"),
+    conflicted: requireCount(fn, payload, "conflicted"),
   };
 }
 
@@ -1055,12 +1104,13 @@ export async function ensurePseudoLanguage(): Promise<void> {
  * Pseudo output is therefore reviewable and revertible like any machine row.
  */
 export async function writePseudoRow(input: { key: string; value: string }): Promise<void> {
-  const { error } = await supabase.rpc("admin_machine_translation", {
+  const { data, error } = await supabase.rpc("admin_machine_translation", {
     p_key: input.key,
     p_lang: PSEUDO_LANG,
     p_value: input.value,
   });
   if (error) throw error;
+  requireDone("admin_machine_translation", data);
 }
 
 /* ===================== U4i-4 — EXPORT-ALL · LANGUAGE DELETION ============== */
@@ -1144,27 +1194,24 @@ export interface LanguageDeleteCounts {
   revisions: number;
 }
 
-function mapDeleteCounts(payload: unknown): LanguageDeleteCounts {
-  const record =
-    payload !== null && typeof payload === "object" && !Array.isArray(payload)
-      ? (payload as Record<string, unknown>)
-      : {};
+function mapDeleteCounts(fn: string, payload: unknown): LanguageDeleteCounts {
+  const record = requireRecord(fn, payload);
   return {
-    assignments: Number(record["assignments"] ?? 0),
-    uiRows: Number(record["ui_rows"] ?? 0),
-    entityRows: Number(record["entity_rows"] ?? 0),
-    revisions: Number(record["revisions"] ?? 0),
+    assignments: requireCount(fn, record, "assignments"),
+    uiRows: requireCount(fn, record, "ui_rows"),
+    entityRows: requireCount(fn, record, "entity_rows"),
+    revisions: requireCount(fn, record, "revisions"),
   };
 }
 
 export async function languageDeletePreview(code: string): Promise<LanguageDeleteCounts> {
   const { data, error } = await supabase.rpc("admin_language_delete_preview", { p_code: code });
   if (error) throw error;
-  return mapDeleteCounts(data);
+  return mapDeleteCounts("admin_language_delete_preview", data);
 }
 
 export async function deleteLanguage(code: string): Promise<LanguageDeleteCounts> {
   const { data, error } = await supabase.rpc("admin_delete_language", { p_code: code });
   if (error) throw error;
-  return mapDeleteCounts(data);
+  return mapDeleteCounts("admin_delete_language", data);
 }

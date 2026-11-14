@@ -780,10 +780,10 @@ test.describe("Admin Legal", () => {
       p_note: "not allowed",
     });
     expect(refused.status).toBeGreaterThanOrEqual(400);
-    expect(JSON.stringify(refused.body)).toContain("permission denied");
+    expect(JSON.stringify(refused.body)).toContain("permissionDenied");
     expect(await reviewRows(id)).toHaveLength(1);
   });
-  test("LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view reads false", async ({
+  test("LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused", async ({
     page,
   }) => {
     const { user: staff } = await signInJobSuperAdmin(page);
@@ -856,7 +856,9 @@ test.describe("Admin Legal", () => {
     await page.keyboard.press("Escape");
     expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(false);
     const person = await leaseUser();
-    expect((await rpcAs(person, "legal_review_overdue")).body).toBe(false);
+    const refused = await rpcAs(person, "legal_review_overdue");
+    expect(refused.status).toBeGreaterThanOrEqual(400);
+    expect(JSON.stringify(refused.body)).toContain("permissionDenied");
   });
   test("LGA-18 INC-812: the account of someone who published a legal version can be deleted; the version keeps its text and loses only the name", async () => {
     const person = await createUser({ confirmed: true });

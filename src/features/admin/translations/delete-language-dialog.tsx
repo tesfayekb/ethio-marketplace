@@ -15,7 +15,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { serverMessage, translationErrorKey, type LanguageRow } from "./translations-service";
+import { serverMessage, translationRefusalKey, type LanguageRow } from "./translations-service";
 import { useDeleteLanguage, useLanguageDeletePreview } from "./use-translations";
 
 /**
@@ -71,7 +71,7 @@ export function DeleteLanguageDialog({
       );
       onClose();
     }).catch((failure: unknown) => {
-      setErrorKey(translationErrorKey(failure));
+      setErrorKey(translationRefusalKey(failure));
       setErrorDetail(serverMessage(failure));
     });
   };
