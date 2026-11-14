@@ -7,7 +7,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 import { useState } from "react";
 
-import { permissionSlug, roleErrorKey, type RolePermissionRow } from "./roles-service";
+import { permissionSlug, roleRefusalKey, type RolePermissionRow } from "./roles-service";
 import { useSetRolePermission } from "./use-admin-roles";
 
 /**
@@ -70,7 +70,7 @@ export function PermissionMatrix({
     setErrorKey(null);
     void guard(() =>
       setPermission.mutateAsync({ permissionId: row.permissionId, granted: !row.granted }),
-    ).catch((cause: unknown) => setErrorKey(roleErrorKey(cause, "admin.roles.perm.failed")));
+    ).catch((cause: unknown) => setErrorKey(roleRefusalKey(cause, "admin.roles.perm.failed")));
   };
 
   return (

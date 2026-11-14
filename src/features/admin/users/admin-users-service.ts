@@ -1,6 +1,7 @@
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
+import { doorCode } from "@/lib/door-codes";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
  * The Users section's client seam (Phase U1).
@@ -184,9 +185,10 @@ export async function revokeRole(userId: string, roleName: string): Promise<void
 /* ---------------------------------------------------------------------------
  * U1g — EDIT USER.
  *
- * The write is the definer RPC `admin_update_profile`, which checks
- * profiles:update AND require_step_up_if_needed('profiles','update') before it
- * touches a row. The browser never writes to profiles across users.
+ * The write is the definer RPC `admin_update_profile`, behind
+ * door_context(staff, profiles:update — global, step-up, staff_moderation)
+ * before it touches a row (DEC-333, DEC-380). The browser never writes to
+ * profiles across users.
  * ------------------------------------------------------------------------ */
 
 export interface CountryOption {
@@ -217,10 +219,9 @@ export interface UpdateProfileInput {
   reason?: string | null;
 }
 
-/** The door refused a name only for want of a reason (HINT reason_required). */
-export function needsAliasReason(error: unknown): boolean {
-  const message = (error as { message?: string } | null)?.message ?? "";
-  return /seller alias needs a reason/i.test(message);
+/** The door refused a name only for want of a reason (`aliasReserved:<rule>`). */
+export function asksAliasReason(error: unknown): boolean {
+  return doorCode(error).code === "aliasReserved";
 }
 
 export async function updateProfile(input: UpdateProfileInput): Promise<void> {
@@ -237,23 +238,32 @@ export async function updateProfile(input: UpdateProfileInput): Promise<void> {
 }
 
 /**
- * Maps the RPC's (and the table constraints') refusals onto translation keys.
- * Law F4 — an unmapped failure is still a failure: it falls back to the
- * generic key, never to silence.
+ * The profile edit's own words for `admin_update_profile`'s codes (DEC-333,
+ * F1-2); unknownUser and rateLimited read as the generic. Two sentences remain: step-up stays
+ * P0009 on the wire, and the alias's unique index answers a name taken in a
+ * race past the door's own check.
  */
-export function profileEditErrorKey(error: unknown): MessageKey | null {
-  // FIX-SCAN-1 ISSUE 2 — cancelled gate: no message; no factor: the hint.
-  const abort = stepUpAbortKey(error);
-  if (abort !== undefined) return abort;
-  const message = (error as { message?: string } | null)?.message ?? "";
-  if (needsAliasReason(error)) return "admin.users.edit.errorAliasReason";
-  if (/alias already taken|profiles_seller_alias_unique|duplicate key/i.test(message)) {
-    return "admin.users.edit.errorAliasTaken";
-  }
-  if (/display name is required/i.test(message)) return "admin.users.edit.errorNameRequired";
-  if (/seller_alias|alias/i.test(message)) return "admin.users.edit.errorAliasFormat";
-  if (/unknown country|home_country_code/i.test(message)) return "admin.users.edit.errorCountry";
-  if (/step-up required/i.test(message)) return "admin.users.edit.errorStepUp";
-  if (/permission denied/i.test(message)) return "admin.users.edit.errorPermission";
-  return "admin.users.edit.failed";
+export const PROFILE_EDIT_REFUSALS = {
+  words: {
+    permissionDenied: "admin.users.edit.errorPermission",
+    nameRequired: "admin.users.edit.errorNameRequired",
+    unknownCountry: "admin.users.edit.errorCountry",
+    aliasShape: "admin.users.edit.errorAliasFormat",
+    aliasTaken: "admin.users.edit.errorAliasTaken",
+    aliasReserved: "admin.users.edit.errorAliasReason",
+  },
+  sentences: [
+    [/step-up required/i, "admin.users.edit.errorStepUp"],
+    [/profiles_seller_alias_unique/i, "admin.users.edit.errorAliasTaken"],
+  ],
+  generic: "admin.users.edit.failed",
+} as const satisfies RefusalFamily;
+
+/**
+ * The profile edit's refusal as the key the editor draws, through the one
+ * reader; null when the person cancelled the step-up.
+ */
+export function profileEditRefusalKey(error: unknown): MessageKey | null {
+  const read = readRefusal(error, PROFILE_EDIT_REFUSALS);
+  return read.silent ? null : read.key;
 }

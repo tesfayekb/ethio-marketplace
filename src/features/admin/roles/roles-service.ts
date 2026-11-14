@@ -1,14 +1,14 @@
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
  * The Roles & Permissions section's client seam (Phase U2).
  *
- * Every read and write is a definer RPC that re-checks
- * has_permission(auth.uid(), 'roles', …) and — for mutations —
- * require_step_up_if_needed('roles', …) server-side. The browser never writes
- * to public.roles or public.role_permissions directly.
+ * Every read and write is a definer RPC behind door_context (DEC-333): the
+ * roles permission, and — for mutations — step-up and the dial, server-side;
+ * a refusal is a code (`code[:detail]`). The browser never writes to
+ * public.roles or public.role_permissions directly.
  *
  * Law F3 — what these return decides what the UI RENDERS; the server is the
  * sole authorization authority.
@@ -94,6 +94,14 @@ export interface CreateRoleInput {
   description: string;
 }
 
+/** The door's success answer (DEC-333 shell): `{ ok: true, id }`. */
+export function createdRoleId(data: unknown): string | null {
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return null;
+  const answer = data as Record<string, unknown>;
+  const id = answer["id"];
+  return answer["ok"] === true && typeof id === "string" ? id : null;
+}
+
 export async function createRole(input: CreateRoleInput): Promise<string> {
   const { data, error } = await supabase.rpc("admin_create_role", {
     p_name: input.name,
@@ -101,7 +109,9 @@ export async function createRole(input: CreateRoleInput): Promise<string> {
     p_description: input.description,
   });
   if (error) throw error;
-  return data as unknown as string;
+  const id = createdRoleId(data);
+  if (id === null) throw new Error("admin_create_role returned no role");
+  return id;
 }
 
 export async function updateRole(input: {
@@ -136,27 +146,33 @@ export async function setRolePermission(input: {
 }
 
 /**
- * Maps every refusal the RPCs (and the R1 triggers behind them) can raise onto
- * a translation key. Law F4 — an unmapped failure still surfaces, through the
- * generic key, never through silence.
+ * The role doors' own words for their codes (DEC-333, F1-2). A code without
+ * words here (unknownRole, unknownPermission, roleReserved, rateLimited) reads
+ * as the screen's generic.
+ * Step-up stays P0009 on the wire, a sentence until the step-up gate answers a
+ * code.
  */
-export function roleErrorKey(error: unknown, fallback: MessageKey): MessageKey | null {
-  // FIX-SCAN-1 ISSUE 2 — cancelled gate: no message; no factor: the hint.
-  const abort = stepUpAbortKey(error);
-  if (abort !== undefined) return abort;
-  const message = (error as { message?: string } | null)?.message ?? "";
-  if (/step-up required/i.test(message)) return "admin.roles.error.stepUp";
-  if (/permission denied/i.test(message)) return "admin.roles.error.permission";
-  if (/system role/i.test(message)) return "admin.roles.error.systemLocked";
-  if (/core permission locked|core role permission/i.test(message)) {
-    return "admin.roles.error.coreLocked";
-  }
-  if (/not assignable to custom roles/i.test(message)) return "admin.roles.perm.notAssignable";
-  if (/role has members/i.test(message)) return "admin.roles.error.hasMembers";
-  if (/already taken|duplicate key/i.test(message)) return "admin.roles.error.nameTaken";
-  if (/role name is required/i.test(message)) return "admin.roles.error.nameRequired";
-  if (/role name must be/i.test(message)) return "admin.roles.error.nameFormat";
-  return fallback;
+export const ROLE_REFUSALS = {
+  words: {
+    permissionDenied: "admin.roles.error.permission",
+    systemRole: "admin.roles.error.systemLocked",
+    corePermission: "admin.roles.error.coreLocked",
+    permissionReserved: "admin.roles.perm.notAssignable",
+    hasDependents: "admin.roles.error.hasMembers",
+    duplicateKey: "admin.roles.error.nameTaken",
+    nameRequired: "admin.roles.error.nameRequired",
+    badSlug: "admin.roles.error.nameFormat",
+  },
+  sentences: [[/step-up required/i, "admin.roles.error.stepUp"]],
+} as const satisfies RefusalFamily;
+
+/**
+ * A role door's refusal as the key a screen draws, through the one reader;
+ * null when the person cancelled the step-up (nothing ran, nothing is said).
+ */
+export function roleRefusalKey(error: unknown, fallback: MessageKey): MessageKey | null {
+  const read = readRefusal(error, { ...ROLE_REFUSALS, generic: fallback });
+  return read.silent ? null : read.key;
 }
 
 /** `resource:action` — the same slug shape get_my_permissions() returns. */

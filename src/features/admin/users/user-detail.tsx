@@ -17,7 +17,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { needsAliasReason, profileEditErrorKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
+import { asksAliasReason, profileEditRefusalKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
 import {
   useAdminRoles,
   useAdminUser,
@@ -474,8 +474,8 @@ function AdminUserEditForm({
                   setReason("");
                 })
                 .catch((error: unknown) => {
-                  if (needsAliasReason(error)) setReasonAsked(true);
-                  setErrorKey(profileEditErrorKey(error));
+                  if (asksAliasReason(error)) setReasonAsked(true);
+                  setErrorKey(profileEditRefusalKey(error));
                 });
             }}
           >
