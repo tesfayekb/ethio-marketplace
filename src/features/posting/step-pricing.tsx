@@ -30,6 +30,7 @@ import { formatCommission, percentToBp, priceShapeFor } from "./price-basis";
 import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
 import { ownValue } from "@/lib/own-key";
 import { numberFormatter } from "@/lib/format";
+import { numberOf, parseNumber } from "@/lib/parse-input";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -630,8 +631,7 @@ export function StepPricing({
             onChange={(event) => {
               const raw = event.target.value;
               setPercentText(raw);
-              const parsed = raw.trim() === "" ? null : Number(raw);
-              onChange({ priceBp: percentToBp(parsed) }, false);
+              onChange({ priceBp: percentToBp(numberOf(parseNumber(raw))) }, false);
             }}
           />
         </Field>

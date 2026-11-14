@@ -201,6 +201,26 @@ function inTypedControlHandler(node: ts.Node): boolean {
   return false;
 }
 
+/** `name` is declared, in a block around `from`, from an expression that reads a `.value`. */
+function boundToValue(name: ts.Identifier, from: ts.Node): boolean {
+  for (let up: ts.Node | undefined = from.parent; up !== undefined; up = up.parent) {
+    if (!ts.isBlock(up)) continue;
+    for (const statement of up.statements) {
+      if (!ts.isVariableStatement(statement)) continue;
+      for (const declaration of statement.declarationList.declarations) {
+        if (
+          ts.isIdentifier(declaration.name) &&
+          declaration.name.text === name.text &&
+          declaration.initializer !== undefined &&
+          /\.value\b/.test(declaration.initializer.getText())
+        )
+          return true;
+      }
+    }
+  }
+  return false;
+}
+
 function isZero(node: ts.Expression): boolean {
   return (
     (ts.isStringLiteral(node) && node.text === "0") ||
@@ -290,7 +310,11 @@ export function formFindings(file: string, text?: string): FormFinding[] {
                 line: line(),
                 what: `${call}(… ? "0" : …) (a blank read as zero)`,
               });
-            else if (/\.value\b/.test(argument.getText()) && inTypedControlHandler(node))
+            else if (
+              (/\.value\b/.test(argument.getText()) ||
+                (ts.isIdentifier(inner) && boundToValue(inner, node))) &&
+              inTypedControlHandler(node)
+            )
               findings.push({
                 law: "CF-FORM-4",
                 file: path,

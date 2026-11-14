@@ -112,6 +112,7 @@ describe("the form kit's laws (DEC-339)", () => {
       "const c = Number(raw) ?? 0;",
       "export const A = () => <input onChange={(event) => set(Number(event.target.value))} />;",
       "export const B = () => <select onChange={(event) => set(Number(event.target.value))} />;",
+      "export const C = () => <input onChange={(event) => { const raw = event.target.value; set(Number(raw)); }} />;",
       "const d = Number(row.count);",
     ].join("\n");
     expect(planted("src/features/x/parse.tsx", text, "CF-FORM-4")).toBe(
@@ -121,6 +122,7 @@ describe("the form kit's laws (DEC-339)", () => {
         "src/features/x/parse.tsx:3 a parse defaulted to 0 (a sentinel)",
         "src/features/x/parse.tsx:4 a parse defaulted to 0 (a sentinel)",
         "src/features/x/parse.tsx:5 Number(<a typed control's value>) outside the one parser",
+        "src/features/x/parse.tsx:7 Number(<a typed control's value>) outside the one parser",
       ].join("\n"),
     );
     expect(
