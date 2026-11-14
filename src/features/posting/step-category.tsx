@@ -11,6 +11,7 @@ import {
   type CategoryNode,
   type CategoryTree,
 } from "@/features/categories/category-tree";
+import { controlClass } from "@/components/forms/control-class";
 import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
 import { entityName } from "@/i18n/entity";
 import { useI18n } from "@/i18n";
@@ -293,14 +294,12 @@ export function StepCategory({
         >
           <span>{t("post.category.filterLabel")}</span>
         </label>
+        {/* DEC-338 — a filter over the tree, not an answer: the leaf is the answer. */}
         <input
           id="post-category-search"
           data-testid="post-category-search"
-          className={
-            "min-h-11 w-full rounded-md border border-input bg-background px-3 text-base " +
-            "text-foreground placeholder:text-muted-foreground focus-visible:outline-none " +
-            "focus-visible:ring-2 focus-visible:ring-ring"
-          }
+          role="searchbox"
+          className={controlClass(false)}
           value={term}
           autoComplete="off"
           placeholder={t("post.category.searchPlaceholder")}

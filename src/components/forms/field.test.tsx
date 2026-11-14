@@ -168,4 +168,21 @@ describe("the one Field (DEC-339)", () => {
     expect(missing).toEqual(["title"]);
     expect(screen.getByLabelText(/Title/).id).toBe("post-title");
   });
+
+  it("FKF-8 a required answer whose mark clears once given: still required, never 'Optional'", () => {
+    const view = render(
+      <Field id="region" label="Region" required marked refusal={null}>
+        {(control) => <select {...control} />}
+      </Field>,
+    );
+    expect(screen.getByTestId("required-mark")).toBeTruthy();
+    view.rerender(
+      <Field id="region" label="Region" required marked={false} refusal={null}>
+        {(control) => <select {...control} />}
+      </Field>,
+    );
+    expect(screen.queryByTestId("required-mark")).toBeNull();
+    expect(screen.queryByText(en["post.optional"])).toBeNull();
+    expect(screen.getByLabelText(/Region/).getAttribute("aria-required")).toBe("true");
+  });
 });

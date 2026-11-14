@@ -9,8 +9,8 @@ import { entityName } from "@/i18n/entity";
 import { readerFailure, type ReaderFailure } from "@/lib/reader-failure";
 import type { MessageKey } from "@/i18n";
 
-import { RequiredMark } from "./field";
-import { controlClass } from "./field-refusals";
+import { Field } from "./field";
+import { controlClass } from "@/components/forms/control-class";
 import { PhoneNumberField } from "./phone-number-field";
 import { CHANNELS, channelOf, sameChannels, type Channel } from "./same-channels";
 import { loadPhoneLib, type PhoneLib } from "./phone-parse";
@@ -81,10 +81,6 @@ const CHANNEL_HINTS: Record<Channel, MessageKey> = {
   whatsapp: "post.who.channel.numberHint",
 };
 
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-
 const smallButtonClass =
   "inline-flex min-h-11 items-center rounded-md border border-input px-3 text-sm font-medium " +
   "text-foreground hover:bg-accent";
@@ -99,6 +95,22 @@ type AliasState = "idle" | "checking" | "ok" | "refused";
 function formatDay(value: string, lang: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : dateFormatter("day", lang).format(date);
+}
+
+/**
+ * U6-C1-R2 — what a named or dated refusal fills in: the name an alias
+ * imitates, so the seller can tell a coincidence from a rejection, or the day
+ * a change opens again.
+ */
+function refusalValuesOf(
+  refusal: Refusal | null,
+  lang: string,
+): Record<string, string> | undefined {
+  if (refusal === null) return undefined;
+  if (refusal.reason === "aliasImitatesBrand") return { name: refusal.detail ?? "" };
+  if (refusal.reason === "aliasTooSoon" || refusal.reason === "countryTooSoon")
+    return { date: formatDay(refusal.detail ?? "", lang) };
+  return undefined;
 }
 
 /** Bundle 2 Q3 — whether a draft's contact already holds a channel value. */
@@ -611,6 +623,11 @@ export function StepWho({
       : null;
   const countryRefusal =
     refusalFor(identityRefusals, "home_country_code") ?? refusalFor(refusals, "home_country_code");
+  /** A change the dialog was refused, else the door's word, else Next's mark while unchosen. */
+  const shownCountryRefusal: Refusal | null =
+    countryChangeRefusal ??
+    countryRefusal ??
+    (showRequired && !countryLocked ? { field: "home_country_code", reason: "required" } : null);
   /** The door names a channel refusal on the channel's own key. */
   const draftRefusalOf = (field: string) => refusalFor(refusals, field);
   /** What this screen saw on blur, in the doors' own words (U6-C1-R3a). */
@@ -707,27 +724,31 @@ export function StepWho({
               {t("post.who.typeLabel")}
             </legend>
             {(["person", "business"] as const).map((value) => (
-              <label
+              <Field
                 key={value}
-                className="flex min-h-11 items-center gap-2 text-sm text-foreground"
+                id={`post-who-type-${value}`}
+                label={value === "person" ? t("post.who.typePerson") : t("post.who.typeBusiness")}
+                required={false}
+                refusal={null}
+                layout="choice"
               >
-                <input
-                  type="radio"
-                  name="post-who-type"
-                  data-testid={`post-who-type-${value}`}
-                  checked={sellerType === value}
-                  onChange={() => {
-                    setSellerType(value);
-                    void commit({
-                      sellerType: value,
-                      ...(value === "business" && businessName !== "" ? { businessName } : {}),
-                    });
-                  }}
-                />
-                <span>
-                  {value === "person" ? t("post.who.typePerson") : t("post.who.typeBusiness")}
-                </span>
-              </label>
+                {(field) => (
+                  <input
+                    type="radio"
+                    {...field}
+                    name="post-who-type"
+                    data-testid={`post-who-type-${value}`}
+                    checked={sellerType === value}
+                    onChange={() => {
+                      setSellerType(value);
+                      void commit({
+                        sellerType: value,
+                        ...(value === "business" && businessName !== "" ? { businessName } : {}),
+                      });
+                    }}
+                  />
+                )}
+              </Field>
             ))}
             {typeRefusal !== null && (
               <p className="text-sm text-destructive" data-testid="post-who-type-refusal">
@@ -737,29 +758,27 @@ export function StepWho({
           </fieldset>
 
           {sellerType === "business" && (
-            <div className="space-y-1">
-              <label htmlFor="post-who-business" className="text-sm font-medium text-foreground">
-                {t("post.who.businessLabel")}
-                <RequiredMark />
-              </label>
-              <input
-                id="post-who-business"
-                data-testid="post-who-business"
-                className={controlClass(businessRefusal !== null, businessName.trim() === "")}
-                aria-invalid={businessRefusal !== null || undefined}
-                value={businessName}
-                onChange={(event) => setBusinessName(event.target.value)}
-                onBlur={() => {
-                  void commit({ sellerType: "business", businessName });
-                  askSuggestionsOnLeave();
-                }}
-              />
-              {businessRefusal !== null && (
-                <p className="text-sm text-destructive" data-testid="post-who-business-refusal">
-                  {t(draftRefusalKey(businessRefusal.reason))}
-                </p>
+            <Field
+              id="post-who-business"
+              label={t("post.who.businessLabel")}
+              required={true}
+              refusal={businessRefusal}
+              refusalTestId="post-who-business-refusal"
+            >
+              {(field) => (
+                <input
+                  {...field}
+                  data-testid="post-who-business"
+                  className={controlClass(businessRefusal !== null, businessName.trim() === "")}
+                  value={businessName}
+                  onChange={(event) => setBusinessName(event.target.value)}
+                  onBlur={() => {
+                    void commit({ sellerType: "business", businessName });
+                    askSuggestionsOnLeave();
+                  }}
+                />
               )}
-            </div>
+            </Field>
           )}
           {/*
            * D17 / M-MAINT-2 A — THE SELLER'S OWN NAME, now that the columns exist
@@ -774,60 +793,56 @@ export function StepWho({
            * the hint changes to say it.
            */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="post-who-names">
-            <div className="space-y-1">
-              <label htmlFor="post-who-first" className="text-sm font-medium text-foreground">
-                {t("post.who.firstNameLabel")}
-                {sellerType === "person" && <RequiredMark />}
-              </label>
-              <input
-                id="post-who-first"
-                data-testid="post-who-first"
-                className={controlClass(
-                  firstRefusal !== null,
-                  sellerType === "person" && firstName.trim() === "",
-                )}
-                aria-invalid={firstRefusal !== null || undefined}
-                value={firstName}
-                autoComplete="given-name"
-                onChange={(event) => setFirstName(event.target.value)}
-                onBlur={() => {
-                  void commit({ firstName });
-                  askSuggestionsOnLeave();
-                }}
-              />
-              {firstRefusal !== null && (
-                <p className="text-sm text-destructive" data-testid="post-who-first-refusal">
-                  {t(draftRefusalKey(firstRefusal.reason))}
-                </p>
+            <Field
+              id="post-who-first"
+              label={t("post.who.firstNameLabel")}
+              required={sellerType === "person"}
+              refusal={firstRefusal}
+              refusalTestId="post-who-first-refusal"
+            >
+              {(field) => (
+                <input
+                  {...field}
+                  data-testid="post-who-first"
+                  className={controlClass(
+                    firstRefusal !== null,
+                    sellerType === "person" && firstName.trim() === "",
+                  )}
+                  value={firstName}
+                  autoComplete="given-name"
+                  onChange={(event) => setFirstName(event.target.value)}
+                  onBlur={() => {
+                    void commit({ firstName });
+                    askSuggestionsOnLeave();
+                  }}
+                />
               )}
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="post-who-last" className="text-sm font-medium text-foreground">
-                {t("post.who.lastNameLabel")}
-                {sellerType === "person" && <RequiredMark />}
-              </label>
-              <input
-                id="post-who-last"
-                data-testid="post-who-last"
-                className={controlClass(
-                  lastRefusal !== null,
-                  sellerType === "person" && lastName.trim() === "",
-                )}
-                aria-invalid={lastRefusal !== null || undefined}
-                value={lastName}
-                autoComplete="family-name"
-                onChange={(event) => setLastName(event.target.value)}
-                onBlur={() => {
-                  void commit({ lastName });
-                  askSuggestionsOnLeave();
-                }}
-              />
-              {lastRefusal !== null && (
-                <p className="text-sm text-destructive" data-testid="post-who-last-refusal">
-                  {t(draftRefusalKey(lastRefusal.reason))}
-                </p>
+            </Field>
+            <Field
+              id="post-who-last"
+              label={t("post.who.lastNameLabel")}
+              required={sellerType === "person"}
+              refusal={lastRefusal}
+              refusalTestId="post-who-last-refusal"
+            >
+              {(field) => (
+                <input
+                  {...field}
+                  data-testid="post-who-last"
+                  className={controlClass(
+                    lastRefusal !== null,
+                    sellerType === "person" && lastName.trim() === "",
+                  )}
+                  value={lastName}
+                  autoComplete="family-name"
+                  onChange={(event) => setLastName(event.target.value)}
+                  onBlur={() => {
+                    void commit({ lastName });
+                    askSuggestionsOnLeave();
+                  }}
+                />
               )}
-            </div>
+            </Field>
             <p
               className="text-xs text-muted-foreground md:col-span-2"
               data-testid="post-who-name-hint"
@@ -838,66 +853,68 @@ export function StepWho({
 
           {/* --------------------------- the alias ---------------------------- */}
           <div className="space-y-1">
-            <label htmlFor="post-who-alias" className="text-sm font-medium text-foreground">
-              {t("post.who.aliasLabel")}
-              <RequiredMark />
-            </label>
-            <p className="text-xs text-muted-foreground" data-testid="post-who-alias-buyer-line">
-              {t("post.who.aliasBuyerLine")}
-            </p>
-            <input
-              id="post-who-alias"
-              data-testid="post-who-alias"
-              className={controlClass(shownAliasRefusal !== null, alias.trim() === "")}
-              aria-invalid={shownAliasRefusal !== null || undefined}
-              value={alias}
-              inputMode="text"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              onChange={(event) => {
-                const next = event.target.value.toLowerCase();
-                setAlias(next);
-                aliasBoxRef.current = next;
-                checkAlias(next);
-              }}
-              // Turn 8 item 6 — a saved name is offered nothing until the box is
-              // cleared; leaving it empty asks once (the names guard holds repeats).
-              onBlur={askSuggestionsOnLeave}
-            />
-            <p className="text-xs text-muted-foreground">{t("post.who.aliasRules")}</p>
-            {aliasState === "checking" && (
-              <p className="text-xs text-muted-foreground" data-testid="post-who-alias-checking">
-                {t("post.who.aliasChecking")}
-              </p>
-            )}
-            {aliasState === "ok" && (
-              <p className="text-xs text-foreground" data-testid="post-who-alias-ok">
-                {t("post.who.aliasAvailable")}
-              </p>
-            )}
             {/* Walk fix 4 — the Latin line IS the refusal for a non-Latin name,
                 shown in place of the general shape message. */}
-            {shownAliasRefusal?.reason === "aliasLatinOnly" && (
-              <p className="text-sm text-destructive" data-testid="post-who-alias-latin">
-                {t("post.who.aliasLatinOnly")}
-              </p>
-            )}
-            {shownAliasRefusal !== null && shownAliasRefusal.reason !== "aliasLatinOnly" && (
-              <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
-                {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
-                      so the seller can tell a coincidence from a rejection. */}
-                {shownAliasRefusal.reason === "aliasImitatesBrand"
-                  ? fill(t("post.refusal.aliasImitatesBrand"), {
-                      name: shownAliasRefusal.detail ?? "",
-                    })
-                  : shownAliasRefusal.reason === "aliasTooSoon"
-                    ? fill(t("post.refusal.aliasTooSoon"), {
-                        date: formatDay(shownAliasRefusal.detail ?? "", language),
-                      })
-                    : t(draftRefusalKey(shownAliasRefusal.reason))}
-              </p>
-            )}
+            <Field
+              id="post-who-alias"
+              label={t("post.who.aliasLabel")}
+              required={true}
+              refusal={shownAliasRefusal}
+              refusalValues={refusalValuesOf(shownAliasRefusal, language)}
+              refusalTestId={
+                shownAliasRefusal?.reason === "aliasLatinOnly"
+                  ? "post-who-alias-latin"
+                  : "post-who-alias-refusal"
+              }
+              hint={
+                <>
+                  <p className="text-xs text-muted-foreground">{t("post.who.aliasRules")}</p>
+                  {aliasState === "checking" && (
+                    <p
+                      className="text-xs text-muted-foreground"
+                      data-testid="post-who-alias-checking"
+                    >
+                      {t("post.who.aliasChecking")}
+                    </p>
+                  )}
+                  {aliasState === "ok" && (
+                    <p className="text-xs text-foreground" data-testid="post-who-alias-ok">
+                      {t("post.who.aliasAvailable")}
+                    </p>
+                  )}
+                </>
+              }
+            >
+              {(field) => (
+                <>
+                  <p
+                    className="text-xs text-muted-foreground"
+                    data-testid="post-who-alias-buyer-line"
+                  >
+                    {t("post.who.aliasBuyerLine")}
+                  </p>
+                  <input
+                    {...field}
+                    data-testid="post-who-alias"
+                    className={controlClass(shownAliasRefusal !== null, alias.trim() === "")}
+                    value={alias}
+                    inputMode="text"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    onChange={(event) => {
+                      const next = event.target.value.toLowerCase();
+                      setAlias(next);
+                      aliasBoxRef.current = next;
+                      checkAlias(next);
+                    }}
+                    // Turn 8 item 6 — a saved name is offered nothing until the box is
+                    // cleared; leaving it empty asks once (the names guard holds repeats).
+                    onBlur={askSuggestionsOnLeave}
+                  />
+                </>
+              )}
+            </Field>
             {/* Walk fix 3 — ONE STATE LINE under the name box: the change rule
                 in one of four states, from `my_seller_line()` (M4). */}
             <p className="text-xs text-muted-foreground" data-testid="post-who-alias-change-rule">
@@ -1025,201 +1042,207 @@ export function StepWho({
             null;
           return (
             <div key={channel} className="space-y-1" data-testid={`post-who-channel-${channel}`}>
-              <label
-                htmlFor={`post-who-value-${channel}`}
-                className="text-sm font-medium text-foreground"
-              >
-                {t(CHANNEL_LABELS[channel])}
-              </label>
               {/* U6-C1-R2 — ONE ROW PER CHANNEL: the number and the permission sit
                   side by side, so whether a buyer will see it is visible at a
-                  glance rather than a switch further down the screen. */}
-              {/* B2 — the group keeps the number box at least 160 px; when the row
+                  glance rather than a switch further down the screen.
+                  B2 — the group keeps the number box at least 160 px; when the row
                   cannot also hold the switch, the switch wraps to its own line. */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                {channel === "telegram" ? (
-                  /* Walk fix 7 — one shape, "@handle", as wide as the phone
-                     boxes; a pasted t.me/ link or bare handle is normalized as
-                     typed, and the box judges it as typed. */
-                  <input
-                    id={`post-who-value-${channel}`}
-                    data-testid={`post-who-value-${channel}`}
-                    className={`${controlClass(refusal !== null, current.show && current.value.trim() === "")} min-w-[16.5rem] grow basis-0`}
-                    aria-invalid={refusal !== null || undefined}
-                    value={current.value}
-                    inputMode="text"
-                    onBlur={(event) => leaveChannel(channel, event.target.value, current.show)}
-                    onChange={(event) => {
-                      const next = normalizeTelegram(event.target.value);
-                      setChannel(channel, { value: next });
-                      leaveChannel(channel, next, current.show);
-                    }}
-                  />
-                ) : (
-                  /* Bundle 2 Q1 — a country picker in front of the number. */
-                  <PhoneNumberField
-                    id={`post-who-value-${channel}`}
-                    testId={`post-who-value-${channel}`}
-                    value={current.value}
-                    defaultIso={
-                      channel === "phone2" && firstPhoneIso !== "" ? firstPhoneIso : defaultIso
-                    }
-                    openMarkets={openMarketCodes}
-                    onValue={(next) => setChannel(channel, { value: next })}
-                    onLeave={(next) => leaveChannel(channel, next, current.show)}
-                    onCountry={channel === "phone" ? setFirstPhoneIso : undefined}
-                    lib={phoneLib}
-                    refused={refusal !== null}
-                    requiredEmpty={current.show && current.value.trim() === ""}
-                    onPending={(pending) => setPhonePending(channel, pending)}
-                  />
+              <Field
+                id={`post-who-value-${channel}`}
+                label={t(CHANNEL_LABELS[channel])}
+                required={false}
+                refusal={refusal}
+                refusalTestId={`post-who-refusal-${channel}`}
+                hint={
+                  <>
+                    <p className="text-xs text-muted-foreground">{t(CHANNEL_HINTS[channel])}</p>
+                    {showRequired && phoneLibFailed && pendingPhones.includes(channel) && (
+                      <p
+                        className="flex flex-wrap items-center gap-2 text-sm text-destructive"
+                        data-testid={`post-who-unread-${channel}`}
+                      >
+                        <span>{t("post.who.phoneLibFailed")}</span>
+                        <Button type="button" variant="outline" size="touch" onClick={refreshPage}>
+                          {t("common.refreshPage")}
+                        </Button>
+                      </p>
+                    )}
+                  </>
+                }
+              >
+                {(field) => (
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    {channel === "telegram" ? (
+                      /* Walk fix 7 — one shape, "@handle", as wide as the phone
+                         boxes; a pasted t.me/ link or bare handle is normalized as
+                         typed, and the box judges it as typed. */
+                      <input
+                        {...field}
+                        data-testid={`post-who-value-${channel}`}
+                        className={`${controlClass(refusal !== null, current.show && current.value.trim() === "")} min-w-[16.5rem] grow basis-0`}
+                        value={current.value}
+                        inputMode="text"
+                        onBlur={(event) => leaveChannel(channel, event.target.value, current.show)}
+                        onChange={(event) => {
+                          const next = normalizeTelegram(event.target.value);
+                          setChannel(channel, { value: next });
+                          leaveChannel(channel, next, current.show);
+                        }}
+                      />
+                    ) : (
+                      /* Bundle 2 Q1 — a country picker in front of the number. */
+                      <PhoneNumberField
+                        id={field.id}
+                        describedBy={field["aria-describedby"]}
+                        testId={`post-who-value-${channel}`}
+                        value={current.value}
+                        defaultIso={
+                          channel === "phone2" && firstPhoneIso !== "" ? firstPhoneIso : defaultIso
+                        }
+                        openMarkets={openMarketCodes}
+                        onValue={(next) => setChannel(channel, { value: next })}
+                        onLeave={(next) => leaveChannel(channel, next, current.show)}
+                        onCountry={channel === "phone" ? setFirstPhoneIso : undefined}
+                        lib={phoneLib}
+                        refused={refusal !== null}
+                        requiredEmpty={current.show && current.value.trim() === ""}
+                        onPending={(pending) => setPhonePending(channel, pending)}
+                      />
+                    )}
+                    <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">
+                      <input
+                        type="checkbox"
+                        data-testid={`post-who-show-${channel}`}
+                        checked={current.show}
+                        onChange={(event) => setChannel(channel, { show: event.target.checked })}
+                      />
+                      <span>{t("post.who.showToSignedIn")}</span>
+                    </label>
+                  </div>
                 )}
-                <label className="flex min-h-11 shrink-0 items-center gap-2 text-xs text-foreground">
-                  <input
-                    type="checkbox"
-                    data-testid={`post-who-show-${channel}`}
-                    checked={current.show}
-                    onChange={(event) => setChannel(channel, { show: event.target.checked })}
-                  />
-                  <span>{t("post.who.showToSignedIn")}</span>
-                </label>
-              </div>
-              <p className="text-xs text-muted-foreground">{t(CHANNEL_HINTS[channel])}</p>
-              {showRequired && phoneLibFailed && pendingPhones.includes(channel) && (
-                <p
-                  className="flex flex-wrap items-center gap-2 text-sm text-destructive"
-                  data-testid={`post-who-unread-${channel}`}
-                >
-                  <span>{t("post.who.phoneLibFailed")}</span>
-                  <Button type="button" variant="outline" size="touch" onClick={refreshPage}>
-                    {t("common.refreshPage")}
-                  </Button>
-                </p>
-              )}
-              {refusal !== null && (
-                <p className="text-sm text-destructive" data-testid={`post-who-refusal-${channel}`}>
-                  {t(draftRefusalKey(refusal.reason))}
-                </p>
-              )}
+              </Field>
             </div>
           );
         })}
       </div>
 
       {/* --------------------------- the home country ------------------------- */}
-      <div className="space-y-1">
-        <label htmlFor="post-who-country" className="text-sm font-medium text-foreground">
-          {t("post.who.countryLabel")}
-          {!countryLocked && <RequiredMark />}
-        </label>
-        {/*
-         * Walk fix 5 — the confirmed box shows the country and a CHANGE button;
-         * choosing from the list only SELECTS; the confirm button opens the
-         * dialog, and only the dialog's Confirm saves. The line "Confirmed.
-         * Contact support to change it." is gone: a change is possible here,
-         * inside the 30-day rule the door enforces.
-         */}
-        <NativeSelect
-          look="form"
-          id="post-who-country"
-          data-testid="post-who-country"
-          className={controlClass(
-            countryRefusal !== null || (showRequired && !countryLocked),
-            !countryLocked,
-          )}
-          aria-invalid={countryRefusal !== null || (showRequired && !countryLocked) || undefined}
-          value={country}
-          disabled={identityPending || markets.isLoading || (countryLocked && !countryChanging)}
-          onChange={(event) => {
-            // Rulings 3 item 3 — choosing only selects; the dialog confirms.
-            setCountry(event.target.value);
-            setCountryChangeRefusal(null);
-          }}
-        >
-          <option value="">{t("post.who.countryNone")}</option>
-          {countries.map((market) => (
-            <option key={market.code} value={market.code}>
-              {market.anchorId === null
-                ? market.nameEn
-                : entityName(
-                    "location",
-                    { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
-                    entities,
-                  )}
-            </option>
-          ))}
-        </NativeSelect>
-        {countryLocked && !countryChanging && (
-          <button
-            type="button"
-            data-testid="post-who-country-change"
-            className={smallButtonClass}
-            onClick={() => {
-              setCountryChanging(true);
-              setCountryChangeRefusal(null);
-            }}
-          >
-            {t("post.who.countryChange")}
-          </button>
-        )}
-        {(!countryLocked || countryChanging) && country !== "" && !countryConfirming && (
-          <button
-            type="button"
-            data-testid="post-who-country-confirm"
-            className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground"
-            onClick={() => setCountryConfirming(true)}
-          >
-            {t("post.who.countryConfirm")}
-          </button>
-        )}
-        {countryConfirming && (
-          <div
-            className="space-y-2 rounded-md border border-border p-3"
-            data-testid="post-who-country-dialog"
-          >
-            <p className="text-sm text-foreground">
-              {fill(t("post.who.countryConfirmTitle"), { country: countryName })}
-            </p>
-            <div className="flex flex-wrap gap-2">
+      {/*
+       * Walk fix 5 — the confirmed box shows the country and a CHANGE button;
+       * choosing from the list only SELECTS; the confirm button opens the
+       * dialog, and only the dialog's Confirm saves. The line "Confirmed.
+       * Contact support to change it." is gone: a change is possible here,
+       * inside the 30-day rule the door enforces.
+       */}
+      <Field
+        id="post-who-country"
+        label={t("post.who.countryLabel")}
+        required={true}
+        marked={!countryLocked}
+        refusal={shownCountryRefusal}
+        refusalValues={refusalValuesOf(shownCountryRefusal, language)}
+        refusalTestId="post-who-country-refusal"
+        hint={
+          countryLocked ? undefined : (
+            <>
+              <p className="text-xs text-muted-foreground">{t("post.who.countryWhereHint")}</p>
+              {countryRefusal === null && !showRequired && (
+                <p
+                  className="text-sm text-muted-foreground"
+                  data-testid="post-who-country-required"
+                >
+                  {t("post.who.countryRequired")}
+                </p>
+              )}
+            </>
+          )
+        }
+      >
+        {(field) => (
+          <>
+            <NativeSelect
+              look="form"
+              {...field}
+              data-testid="post-who-country"
+              className={controlClass(
+                countryRefusal !== null || (showRequired && !countryLocked),
+                !countryLocked,
+              )}
+              value={country}
+              disabled={identityPending || markets.isLoading || (countryLocked && !countryChanging)}
+              onChange={(event) => {
+                // Rulings 3 item 3 — choosing only selects; the dialog confirms.
+                setCountry(event.target.value);
+                setCountryChangeRefusal(null);
+              }}
+            >
+              <option value="">{t("post.who.countryNone")}</option>
+              {countries.map((market) => (
+                <option key={market.code} value={market.code}>
+                  {market.anchorId === null
+                    ? market.nameEn
+                    : entityName(
+                        "location",
+                        { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+                        entities,
+                      )}
+                </option>
+              ))}
+            </NativeSelect>
+            {countryLocked && !countryChanging && (
               <button
                 type="button"
-                data-testid="post-who-country-yes"
-                className="min-h-11 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
-                onClick={() => void doConfirmCountry()}
-              >
-                {t("post.who.countryConfirmYes")}
-              </button>
-              <button
-                type="button"
-                data-testid="post-who-country-go"
+                data-testid="post-who-country-change"
                 className={smallButtonClass}
-                onClick={() => setCountryConfirming(false)}
+                onClick={() => {
+                  setCountryChanging(true);
+                  setCountryChangeRefusal(null);
+                }}
               >
-                {t("post.who.countryConfirmGo")}
+                {t("post.who.countryChange")}
               </button>
-            </div>
-          </div>
+            )}
+            {(!countryLocked || countryChanging) && country !== "" && !countryConfirming && (
+              <button
+                type="button"
+                data-testid="post-who-country-confirm"
+                className="min-h-11 rounded-md border border-input px-3 text-sm font-medium text-foreground"
+                onClick={() => setCountryConfirming(true)}
+              >
+                {t("post.who.countryConfirm")}
+              </button>
+            )}
+            {countryConfirming && (
+              <div
+                className="space-y-2 rounded-md border border-border p-3"
+                data-testid="post-who-country-dialog"
+              >
+                <p className="text-sm text-foreground">
+                  {fill(t("post.who.countryConfirmTitle"), { country: countryName })}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    data-testid="post-who-country-yes"
+                    className="min-h-11 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground"
+                    onClick={() => void doConfirmCountry()}
+                  >
+                    {t("post.who.countryConfirmYes")}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="post-who-country-go"
+                    className={smallButtonClass}
+                    onClick={() => setCountryConfirming(false)}
+                  >
+                    {t("post.who.countryConfirmGo")}
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
-        {!countryLocked && (
-          <p className="text-xs text-muted-foreground">{t("post.who.countryWhereHint")}</p>
-        )}
-        {!countryLocked && countryRefusal === null && !showRequired && (
-          <p className="text-sm text-muted-foreground" data-testid="post-who-country-required">
-            {t("post.who.countryRequired")}
-          </p>
-        )}
-        {(countryChangeRefusal !== null ||
-          countryRefusal !== null ||
-          (showRequired && !countryLocked)) && (
-          <p className="text-sm text-destructive" data-testid="post-who-country-refusal">
-            {(countryChangeRefusal ?? countryRefusal)?.reason === "countryTooSoon"
-              ? fill(t("post.refusal.countryTooSoon"), {
-                  date: formatDay((countryChangeRefusal ?? countryRefusal)?.detail ?? "", language),
-                })
-              : t(draftRefusalKey((countryChangeRefusal ?? countryRefusal)?.reason ?? "required"))}
-          </p>
-        )}
-      </div>
+      </Field>
       {saveFailed && (
         <p className="text-sm text-destructive" role="alert" data-testid="post-who-save-failed">
           {t("post.who.saveFailed")}

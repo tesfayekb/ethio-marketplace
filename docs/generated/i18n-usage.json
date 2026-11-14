@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 716,
-  "dynamicCallSites": 446,
+  "scanned": 724,
+  "dynamicCallSites": 440,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -7358,31 +7358,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.refusal.aliasImitatesBrand": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.refusal.aliasTooSoon": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
     "post.refusal.cityRequired": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.refusal.contactInNote": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.refusal.countryTooSoon": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",
@@ -7931,12 +7907,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.where.detailsTooLong": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
     "post.where.directionsHelp": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
@@ -7950,12 +7920,6 @@
       "/post/$listingId"
     ],
     "post.where.directionsSaved": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.where.directionsTooLong": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",
@@ -8172,12 +8136,6 @@
       "/post/$listingId"
     ],
     "post.who.aliasLabel": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.who.aliasLatinOnly": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",

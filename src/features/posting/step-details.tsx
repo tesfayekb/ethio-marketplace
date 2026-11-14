@@ -7,7 +7,7 @@ import { loadAttributeOptions, type AttrOption } from "./attribute-options";
 import { buildTitle } from "./build-title";
 import { useCatalogScope } from "./catalog-scope";
 import { Field } from "./field";
-import { controlClass } from "./field-refusals";
+import { controlClass } from "@/components/forms/control-class";
 import { peekAssist, requestAssist, type AttrDef } from "./posting-service";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import { ASSIST_TRIES, type Refusal } from "./types";

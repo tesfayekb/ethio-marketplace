@@ -38,6 +38,7 @@ export function Field({
   field = id,
   label,
   required,
+  marked = required,
   hint,
   refusal,
   family,
@@ -55,6 +56,8 @@ export function Field({
   field?: string;
   label: ReactNode;
   required: boolean;
+  /** W4 D1 — a required answer whose mark clears once it is given says so; never "Optional". */
+  marked?: boolean;
   hint?: ReactNode;
   /** The door's (or the gate's) refusal for this field, or `null`. */
   refusal: Refusal | null;
@@ -94,7 +97,7 @@ export function Field({
     "aria-required": required || undefined,
   };
   const drawn = typeof children === "function" ? children(control) : children;
-  const mark = required ? <RequiredMark testId={markTestId} /> : null;
+  const mark = required && marked ? <RequiredMark testId={markTestId} /> : null;
   const words = refusal === null ? "" : refusalText(readRefusal(refusal, family), t, refusalValues);
   const refusalLine = refused ? (
     <p
@@ -132,11 +135,11 @@ export function Field({
   const labelLine = (
     <label htmlFor={id} className="flex items-center gap-1 text-sm font-medium text-foreground">
       <span>{label}</span>
-      {layout === "stack"
-        ? (mark ?? (
-            <span className="text-xs font-normal text-muted-foreground">{t("post.optional")}</span>
-          ))
-        : mark}
+      {layout === "stack" && !required ? (
+        <span className="text-xs font-normal text-muted-foreground">{t("post.optional")}</span>
+      ) : (
+        mark
+      )}
     </label>
   );
   return (

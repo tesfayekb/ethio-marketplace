@@ -170,7 +170,7 @@ export function checkDate(field: string, value: string, required = false): Refus
 }
 
 /** Merge what this screen saw with what the door said — the door always wins. */
-export function mergeRefusals(door: Refusal[], local: Refusal[]): Refusal[] {
+export function mergeRefusals(door: Refusal[], local: readonly Refusal[]): Refusal[] {
   const named = new Set(door.map((entry) => entry.field));
   return [...door, ...local.filter((entry) => !named.has(entry.field))];
 }

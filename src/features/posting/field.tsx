@@ -1,91 +1,37 @@
-import type { ReactNode } from "react";
+import type { ComponentProps } from "react";
 
+import { Field as FormField } from "@/components/forms/field";
+import { RequiredMark as FormRequiredMark } from "@/components/forms/required-mark";
 import { useI18n } from "@/i18n";
 
-import { draftRefusalKey, fill } from "./refusal-text";
+import { DRAFT_REFUSALS, fill } from "./refusal-text";
 import { STEPS, type Refusal } from "./types";
 import { focusField, stepOfField, summaryLabel, summaryRefusals } from "./field-refusals";
 
 /**
- * U6-C1-R1 — THE REQUIRED-FIELD PRIMITIVE (B3: one shape, every step).
- *
- * Three promises, kept in one place so no step can keep them differently:
- *
- *  1 THE LABEL SAYS WHETHER THE ANSWER IS NEEDED. A required field carries an
- *    asterisk (with a screen-reader word beside it); an optional one says
- *    "Optional" in words rather than leaving the seller to guess.
- *  2 A REFUSAL IS ATTACHED TO THE CONTROL THAT EARNED IT: red border, the door's
- *    reason underneath, in the seller's language (D1/F4).
- *  3 NOTHING IS BLOCKED IN SILENCE. `RefusalSummary` gathers the refused fields
- *    by LABEL above Back/Next, so a seller on a 360-pixel screen who cannot see
- *    the offending control still learns its name and can jump to it. `Next` is
- *    never greyed without this summary on screen.
- */
-
-/**
- * D72 — THE ONE REQUIRED MARK. A visible asterisk (hidden from screen readers)
- * and the word "Required" for them. Every required control whose label a step
- * renders itself uses this, so the mark reads the same on every step.
+ * DEC-339 — the posting wizard's names for the one Field
+ * (`src/components/forms/field.tsx`): the draft door's refusal words, and the
+ * test ids the posting specs read (`post-field`, `post-field-refusal`,
+ * `post-required-mark`). The Field keeps the three promises; the summary below
+ * keeps the third for the wizard: NOTHING IS BLOCKED IN SILENCE.
  */
 export function RequiredMark() {
-  const { t } = useI18n();
-  return (
-    <span data-testid="post-required-mark">
-      <span className="text-destructive" aria-hidden="true">
-        *
-      </span>
-      <span className="sr-only">{t("post.field.required")}</span>
-    </span>
-  );
+  return <FormRequiredMark testId="post-required-mark" />;
 }
 
 export function Field({
-  id,
-  label,
-  required,
-  refusal,
-  hint,
+  family = DRAFT_REFUSALS,
   refusalTestId = "post-field-refusal",
-  refusalAttr,
-  children,
-}: {
-  /** The control's own `id`; the summary focuses it by this name. */
-  id: string;
-  label: string;
-  required: boolean;
-  /** The door's refusal for this field, or `null`. */
-  refusal: Refusal | null;
-  hint?: ReactNode;
-  /** Steps whose refusals carry their own anchor (the generated details) name it. */
-  refusalTestId?: string;
-  refusalAttr?: string;
-  children: ReactNode;
-}) {
-  const { t } = useI18n();
+  ...props
+}: Omit<ComponentProps<typeof FormField>, "testId" | "markTestId">) {
   return (
-    <div className="scroll-mt-20 space-y-1" data-testid="post-field" data-field={id}>
-      <label htmlFor={id} className="flex items-center gap-1 text-sm font-medium text-foreground">
-        <span>{label}</span>
-        {required ? (
-          <RequiredMark />
-        ) : (
-          <span className="text-xs font-normal text-muted-foreground">{t("post.optional")}</span>
-        )}
-      </label>
-      {children}
-      {hint}
-      {refusal !== null && (
-        <p
-          className="text-sm text-destructive"
-          data-testid={refusalTestId}
-          data-field={id}
-          data-attr={refusalAttr}
-          role="alert"
-        >
-          {t(draftRefusalKey(refusal.reason))}
-        </p>
-      )}
-    </div>
+    <FormField
+      {...props}
+      family={family}
+      testId="post-field"
+      refusalTestId={refusalTestId}
+      markTestId="post-required-mark"
+    />
   );
 }
 
@@ -134,20 +80,21 @@ export function RefusalSummary({
       <p className="text-sm font-medium text-destructive">{t("post.refusalSummary")}</p>
       <ul className="mt-1 flex flex-wrap gap-2">
         {named.map((entry) => {
-          const elsewhere = entry.owner !== null && entry.owner !== step;
+          const { owner } = entry;
+          const elsewhere = owner !== null && owner !== step;
           const stepName =
-            entry.owner === null ? "" : t(STEPS[entry.owner - 1]?.nameKey ?? "post.step.category");
+            owner === null ? "" : t(STEPS[owner - 1]?.nameKey ?? "post.step.category");
           return (
             <li key={entry.field}>
               <button
                 type="button"
                 data-testid="post-refusal-summary-field"
                 data-field={entry.field}
-                data-step={entry.owner ?? ""}
+                data-step={owner ?? ""}
                 className="min-h-11 text-sm font-medium text-destructive underline"
                 onClick={() => {
                   if (elsewhere && onGoTo !== undefined) {
-                    onGoTo(entry.owner!);
+                    onGoTo(owner);
                     return;
                   }
                   focusField(entry.field);

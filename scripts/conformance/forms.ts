@@ -42,6 +42,7 @@ export const CONTROL_TAGS = new Set([
   "RadioGroupItem",
   "InputOTP",
   "Slider",
+  "PhoneNumberField",
 ]);
 
 /** The kit: the one Field and its control kinds. */
@@ -60,6 +61,8 @@ export const CONTROL_PRIMITIVES = new Set([
   "src/components/ui/radio-group.tsx",
   "src/components/ui/input-otp.tsx",
   "src/components/ui/slider.tsx",
+  // The phone control (a calling-code picker and the number): a kind whose use sits in a Field.
+  "src/features/posting/phone-number-field.tsx",
 ]);
 
 /** DEC-338 — the table's own chrome: the `DataTable` primitive's files (ticks, page size, columns). */

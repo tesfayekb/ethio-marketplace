@@ -17,7 +17,8 @@ import {
 import { isColourKey, optionSwatch, type ColourSwatch } from "./colour-swatches";
 import { Field } from "./field";
 import { firstSentence } from "./spec-sentences";
-import { controlClass } from "./field-refusals";
+import { controlClass } from "@/components/forms/control-class";
+import { numberOf, parseNumber } from "@/lib/parse-input";
 import { readPostingSchemaAnswer, type AttrDef, type PostingSchema } from "./posting-service";
 import { contactRuleApplies, looksLikeContact } from "./contact-like";
 import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
@@ -1415,16 +1416,11 @@ export function StepSpecifications({
                   min={bound.min ?? undefined}
                   max={bound.max ?? undefined}
                   onChange={(event) => {
-                    const raw = event.target.value;
-                    const parsed = Number(raw);
-                    const next = raw === "" || !Number.isFinite(parsed) ? null : parsed;
+                    const next = numberOf(parseNumber(event.target.value));
                     judgeNumber(def, next);
                     write(def.attrKey, next === null ? undefined : next);
                   }}
-                  onBlur={(event) => {
-                    const parsed = Number(event.target.value);
-                    judgeNumber(def, Number.isFinite(parsed) ? parsed : null);
-                  }}
+                  onBlur={(event) => judgeNumber(def, numberOf(parseNumber(event.target.value)))}
                 />
                 {def.unit !== null && (
                   <span

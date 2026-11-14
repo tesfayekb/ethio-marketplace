@@ -235,11 +235,15 @@ A save is never sent below step 1 (INC-465). The door refuses a step below 1, an
   build keeps 30 so PR-7 can reach the ceiling). On a `rateLimited` refusal
   autosave waits until `resets_at` and says so in words — `Next` still works, so
   the seller is never in a dead end.
-- A required field carries its own primitive (`src/features/posting/field.tsx`):
-  an asterisk when required and "Optional" otherwise, a red border with the
-  message under the control on refusal, and a summary above Back/Next naming the
-  refused fields BY LABEL, each a link that focuses its control. `Next` is never
-  greyed out without that summary on screen.
+- Every answer sits in the one Field (`src/components/forms/field.tsx`, DEC-339;
+  `docs/features/forms.md`); `src/features/posting/field.tsx` re-exports it with
+  posting's ids (`post-field`, `post-field-refusal`, `post-required-mark`) and the
+  draft door's refusal family, beside posting's registry `POSTING_FIELDS`
+  (`field-refusals.ts`: each door field's label key and step). It draws an
+  asterisk when required and "Optional" otherwise, a red border with the message
+  under the control on refusal, and a summary above Back/Next naming the refused
+  fields BY LABEL, each a link that focuses its control. `Next` is never greyed
+  out without that summary on screen.
 
 Bundle 7 B4: an autosave the server failed on (`doorError`) shows "Not saved yet", keeps its step queued and retries after RETRY_MS, at most three times for the same answers; an edit starts the count again, and every other refusal of an autosave stays silent.
 
@@ -390,7 +394,7 @@ read, and its cover is the SERVER's first photo in the server's own order
 Publish calls `publish_listing`, which lands the listing in SCREENING and never
 live: live is only ever reached through the D1 gateway (still deferred). A refusal
 on any earlier answer is shown with a "Go to step N" button through one
-`FIELD_STEPS` map, so nothing refuses in a place the seller cannot reach. An
+registry (`POSTING_FIELDS`), so nothing refuses in a place the seller cannot reach. An
 unreachable publish keeps the answers and says so (F4). "In review" links to My
 Listings' own wording; the page itself arrives with E1, so the link goes to the
 feed until then.
@@ -1496,7 +1500,7 @@ The wizard now has two front doors over one shell (`WizardShell`): `PostingWizar
 
 ## Bundle 17 turn 5 — Next closed while a required answer is missing (D193, INC-658)
 
-Every step from 3 to 6 now mirrors the door's `required` rule on the client and reports what is still missing upward (`onMissing`, or the third argument of the specifications form's `onFields`): the drawn questions whose answer is required (the link's flag, or DEC-086's model rule) and empty, the price figure for a fixed price where a price is allowed and the rate for a commission (`price_amount`, `price_bp`), the basis on the price page (its deal rows are the same form), the title, and a city or sub-city as the item's own place (`coverage`). While the list is not empty the wizard's Next (the Edit's "Save changes") is DRAWN CLOSED — `data-closed="1"`, dimmed, with the line "Fill in what is needed to continue." underneath (`post-next-blocked`, `data-missing` naming the fields) — but it stays a button, never `disabled`: a tap marks the missing answers in red in the door's own words (`required`, under their controls and in the red summary) and moves to the first, and nothing is sent; the marks clear as the answers are given. With the mirror satisfied the step is sent and the door judges as before (F3; C5: the gate is "empty", never "valid"). Step 1 keeps `needsLeaf`; the contact step keeps its own gate (`whoQueue`); the currency stays the door's (it defaults from the home country). The spec's word was "disabled" — C18: a closed button that answers a tap was chosen over a dead one, so the seller is told which answer is missing (and the browser tests can press it). Tests: PW-191, PW-192 (the wizard), MLA-17 (the Edit's place, INC-658); PW-5, PW-16, PW-63, PW-80, PW-103, PW-138 and MLA-13 read the same marks they read from the door before.
+Every step from 3 to 6 now mirrors the door's `required` rule on the client and reports what is still missing upward (`onMissing`, or the third argument of the specifications form's `onFields`): the drawn questions whose answer is required (the link's flag, or DEC-086's model rule) and empty, the price figure for a fixed price where a price is allowed and the rate for a commission (`price_amount`, `price_bp`), the basis on the price page (its deal rows are the same form), the title, and a city or sub-city as the item's own place (`coverage`). While the list is not empty the wizard's Next (the Edit's "Save changes") is DRAWN CLOSED — `data-closed="1"`, dimmed, with the line "Fill in what is needed to continue." underneath (`post-next-blocked`, `data-missing` naming the fields) — but it stays a button, never `disabled`: a tap marks the missing answers in red in the door's own words (`required`, under their controls and in the red summary) and moves to the first, and nothing is sent; the marks clear as the answers are given. With the mirror satisfied the step is sent and the door judges as before (F3; C5: the gate is "empty", never "valid"). The mirror is the kit's gate (`useFormGate`, keyed by the step; forms-kit, DEC-339). Step 1 reports a missing leaf to it as `category_id`, and its Next stays `disabled` while no leaf is chosen (PW-1); the contact step keeps its own gate (`whoQueue`); the currency stays the door's (it defaults from the home country). The spec's word was "disabled" — C18: a closed button that answers a tap was chosen over a dead one, so the seller is told which answer is missing (and the browser tests can press it). Tests: PW-191, PW-192 (the wizard), MLA-17 (the Edit's place, INC-658); PW-5, PW-16, PW-63, PW-80, PW-103, PW-138 and MLA-13 read the same marks they read from the door before.
 
 Later word (bundle 17 turn 6, INC-671): the closed Next is drawn in the secondary tokens (`border-input`, `bg-secondary`, `text-secondary-foreground` — the Back-to-review button's set), not dimmed: a live button at 60 % opacity failed the colour-contrast audit (A11Y-2, DEC-084 gating) on run 963. The behaviour is unchanged. PW-162's part (d), which needed Next to send with the basis unanswered, now fills the price page first and simulates its transport failure on that send (INC-672).
 

@@ -5,6 +5,8 @@ import { callRoute } from "@/lib/route-client";
 import { resilientLazy } from "@/lib/resilient-lazy";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
+import { controlClass } from "@/components/forms/control-class";
+import type { RefusalFamily } from "@/lib/refusal";
 import type { ReactNode } from "react";
 
 import {
@@ -38,7 +40,7 @@ import {
   readPlaceFacts,
 } from "./posting-service";
 import { whereSeed, type PlaceFact, type WhereSeed } from "./where-seed";
-import { RequiredMark } from "./field";
+import { Field, RequiredMark } from "./field";
 import { looksLikeContact } from "./contact-like";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinPlace, PinValue } from "./map/map-pin-dropper";
@@ -150,9 +152,23 @@ const LEVEL_KEYS: Record<string, MessageKey> = {
   sub_city: "post.where.level.sub_city",
 };
 
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base text-foreground " +
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+type LineState = "idle" | "busy" | "saved" | "failed" | "long" | "contact" | "rateLimited";
+
+/**
+ * A place line's own refusal of what was typed, shown by its Field, or `null`.
+ * A save that failed is not a refusal of the answer: it is said beside the Field.
+ */
+function lineRefusal(field: string, state: LineState): Refusal | null {
+  return state === "long" || state === "contact" ? { field, reason: state } : null;
+}
+
+const DIRECTIONS_REFUSALS: RefusalFamily = {
+  words: { long: "post.where.directionsTooLong", contact: "post.refusal.contactInNote" },
+};
+
+const DETAILS_REFUSALS: RefusalFamily = {
+  words: { long: "post.where.detailsTooLong", contact: "post.refusal.contactInNote" },
+};
 
 const addClass =
   "inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm " +
@@ -348,18 +364,26 @@ export function CountryBox({
       data-key={row.key}
     >
       {/* W6b-1 R3 — the one tick, a radio group across every box. */}
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <input
-          type="radio"
-          name="post-where-item"
-          data-testid="post-where-item-tick"
-          data-key={row.key}
-          className="h-5 w-5 shrink-0 accent-primary"
-          checked={row.key === itemKey}
-          onChange={() => onTick(row.key)}
-        />
-        <span>{t("post.where.itemHere")}</span>
-      </label>
+      <Field
+        id={`post-where-item-${row.key}`}
+        label={t("post.where.itemHere")}
+        required={false}
+        refusal={null}
+        layout="choice"
+      >
+        {(field) => (
+          <input
+            type="radio"
+            {...field}
+            name="post-where-item"
+            data-testid="post-where-item-tick"
+            data-key={row.key}
+            className="h-5 w-5 shrink-0 accent-primary"
+            checked={row.key === itemKey}
+            onChange={() => onTick(row.key)}
+          />
+        )}
+      </Field>
       {onRemoveRow !== null && (
         <button
           type="button"
@@ -413,43 +437,46 @@ export function CountryBox({
               data-red={group.region === null ? "1" : "0"}
               className={boxClass(group.region === null, false, REGION_STEP)}
             >
-              <div className="space-y-1">
-                <label
-                  htmlFor={hasPrimary ? "post-where-region" : `post-where-region-${group.key}`}
-                  className="text-sm font-medium text-foreground"
-                >
-                  {t(LEVEL_KEYS["region"] ?? "post.where.level.region")}
-                  {group.region === null && <RequiredMark />}
-                </label>
-                <NativeSelect
-                  look="form"
-                  id={hasPrimary ? "post-where-region" : `post-where-region-${group.key}`}
-                  data-testid={hasPrimary ? "post-where-region" : "post-where-row-region"}
-                  className={fieldClass}
-                  value={group.region ?? ""}
-                  onChange={(event) =>
-                    onRegion(
-                      group.rows.map((row) => row.key),
-                      event.target.value || null,
-                    )
-                  }
-                >
-                  <option value="">{t("post.where.levelNone")}</option>
-                  {regionOptions.map((node) => (
-                    <option key={node.id} value={node.id}>
-                      {nameOf(node)}
-                    </option>
-                  ))}
-                </NativeSelect>
-                {regions.length === 0 && (
-                  <p
-                    className="text-xs text-muted-foreground"
-                    data-testid="post-where-region-empty"
+              <Field
+                id={hasPrimary ? "post-where-region" : `post-where-region-${group.key}`}
+                label={t(LEVEL_KEYS["region"] ?? "post.where.level.region")}
+                required={true}
+                marked={group.region === null}
+                refusal={null}
+                hint={
+                  regions.length === 0 ? (
+                    <p
+                      className="text-xs text-muted-foreground"
+                      data-testid="post-where-region-empty"
+                    >
+                      {t("post.where.noRegions")}
+                    </p>
+                  ) : undefined
+                }
+              >
+                {(field) => (
+                  <NativeSelect
+                    look="form"
+                    {...field}
+                    data-testid={hasPrimary ? "post-where-region" : "post-where-row-region"}
+                    className={controlClass(false)}
+                    value={group.region ?? ""}
+                    onChange={(event) =>
+                      onRegion(
+                        group.rows.map((row) => row.key),
+                        event.target.value || null,
+                      )
+                    }
                   >
-                    {t("post.where.noRegions")}
-                  </p>
+                    <option value="">{t("post.where.levelNone")}</option>
+                    {regionOptions.map((node) => (
+                      <option key={node.id} value={node.id}>
+                        {nameOf(node)}
+                      </option>
+                    ))}
+                  </NativeSelect>
                 )}
-              </div>
+              </Field>
 
               {/* W6b-1 R2 — a pending region box can be taken back out whole. */}
               {group.region === null && regions.length > 0 && canRemove && !hasPrimary && (
@@ -496,27 +523,31 @@ export function CountryBox({
                       {/* Bundle 2 P3 — the city line holds the city alone. */}
                       <div className="space-y-2">
                         {cities.length > 0 && (
-                          <div className="space-y-1">
-                            <label htmlFor={cityId} className="text-sm font-medium text-foreground">
-                              {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
-                              {placeOf(head) === null && <RequiredMark />}
-                            </label>
-                            <NativeSelect
-                              look="form"
-                              id={cityId}
-                              data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
-                              className={fieldClass}
-                              value={cityGroup.city ?? ""}
-                              onChange={(event) => onCity(keys, event.target.value || null)}
-                            >
-                              <option value="">{t("post.where.levelNone")}</option>
-                              {cityOptions.map((node) => (
-                                <option key={node.id} value={node.id}>
-                                  {nameOf(node)}
-                                </option>
-                              ))}
-                            </NativeSelect>
-                          </div>
+                          <Field
+                            id={cityId}
+                            label={t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
+                            required={true}
+                            marked={placeOf(head) === null}
+                            refusal={null}
+                          >
+                            {(field) => (
+                              <NativeSelect
+                                look="form"
+                                {...field}
+                                data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
+                                className={controlClass(false)}
+                                value={cityGroup.city ?? ""}
+                                onChange={(event) => onCity(keys, event.target.value || null)}
+                              >
+                                <option value="">{t("post.where.levelNone")}</option>
+                                {cityOptions.map((node) => (
+                                  <option key={node.id} value={node.id}>
+                                    {nameOf(node)}
+                                  </option>
+                                ))}
+                              </NativeSelect>
+                            )}
+                          </Field>
                         )}
                       </div>
                       {/* D19 — "All of <city>" is the CITY node offered beside its children.
@@ -527,35 +558,36 @@ export function CountryBox({
                           data-testid="post-where-subcity-box"
                           data-key={head.key}
                         >
-                          <label
-                            htmlFor={
-                              isPrimary ? "post-where-subcity" : `post-where-subcity-${head.key}`
-                            }
-                            className="text-sm font-medium text-foreground"
-                          >
-                            {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
-                          </label>
-                          <NativeSelect
-                            look="form"
+                          <Field
                             id={isPrimary ? "post-where-subcity" : `post-where-subcity-${head.key}`}
-                            data-testid={
-                              isPrimary ? "post-where-subcity" : "post-where-row-subcity"
-                            }
-                            className={fieldClass}
-                            value=""
-                            onChange={(event) =>
-                              onRow(head.key, { subCity: event.target.value || null })
-                            }
+                            label={t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
+                            required={false}
+                            refusal={null}
                           >
-                            <option value="" data-testid="post-where-allof">
-                              {fill(t("post.where.allOf"), { name: nameOf(cityNode) })}
-                            </option>
-                            {subCities.map((node) => (
-                              <option key={node.id} value={node.id}>
-                                {nameOf(node)}
-                              </option>
-                            ))}
-                          </NativeSelect>
+                            {(field) => (
+                              <NativeSelect
+                                look="form"
+                                {...field}
+                                data-testid={
+                                  isPrimary ? "post-where-subcity" : "post-where-row-subcity"
+                                }
+                                className={controlClass(false)}
+                                value=""
+                                onChange={(event) =>
+                                  onRow(head.key, { subCity: event.target.value || null })
+                                }
+                              >
+                                <option value="" data-testid="post-where-allof">
+                                  {fill(t("post.where.allOf"), { name: nameOf(cityNode) })}
+                                </option>
+                                {subCities.map((node) => (
+                                  <option key={node.id} value={node.id}>
+                                    {nameOf(node)}
+                                  </option>
+                                ))}
+                              </NativeSelect>
+                            )}
+                          </Field>
                         </div>
                       )}
                       {subMode &&
@@ -581,37 +613,40 @@ export function CountryBox({
                               data-key={row.key}
                               data-item={row.key === itemKey ? "1" : "0"}
                             >
-                              <label
-                                htmlFor={subId}
-                                className="text-sm font-medium text-foreground"
-                              >
-                                {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
-                              </label>
-                              <NativeSelect
-                                look="form"
+                              <Field
                                 id={subId}
-                                data-testid={
-                                  rowPrimary ? "post-where-subcity" : "post-where-row-subcity"
-                                }
-                                className={fieldClass}
-                                value={row.subCity ?? ""}
-                                onChange={(event) =>
-                                  onRow(row.key, { subCity: event.target.value || null })
-                                }
+                                label={t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
+                                required={false}
+                                refusal={null}
                               >
-                                {single ? (
-                                  <option value="" data-testid="post-where-allof">
-                                    {fill(t("post.where.allOf"), { name: nameOf(cityNode) })}
-                                  </option>
-                                ) : (
-                                  <option value="">{t("post.where.levelNone")}</option>
+                                {(field) => (
+                                  <NativeSelect
+                                    look="form"
+                                    {...field}
+                                    data-testid={
+                                      rowPrimary ? "post-where-subcity" : "post-where-row-subcity"
+                                    }
+                                    className={controlClass(false)}
+                                    value={row.subCity ?? ""}
+                                    onChange={(event) =>
+                                      onRow(row.key, { subCity: event.target.value || null })
+                                    }
+                                  >
+                                    {single ? (
+                                      <option value="" data-testid="post-where-allof">
+                                        {fill(t("post.where.allOf"), { name: nameOf(cityNode) })}
+                                      </option>
+                                    ) : (
+                                      <option value="">{t("post.where.levelNone")}</option>
+                                    )}
+                                    {options.map((node) => (
+                                      <option key={node.id} value={node.id}>
+                                        {nameOf(node)}
+                                      </option>
+                                    ))}
+                                  </NativeSelect>
                                 )}
-                                {options.map((node) => (
-                                  <option key={node.id} value={node.id}>
-                                    {nameOf(node)}
-                                  </option>
-                                ))}
-                              </NativeSelect>
+                              </Field>
                               {/* W6b-1 R3 — Remove only while the step holds more than one
                                   place; a lone sub-city is undone via "All of <city>". */}
                               {tickLine(row, canRemove ? () => onRemove(row.key) : null)}
@@ -684,40 +719,44 @@ function OtherCountryBox({
   );
   const id = `post-where-market-${rows[0]?.key ?? "x"}`;
   const market = (
-    <div className="space-y-1">
-      <label htmlFor={id} className="text-sm font-medium text-foreground">
-        {t("post.where.marketLabel")}
-        {code === null && <RequiredMark />}
-      </label>
-      <NativeSelect
-        look="form"
-        id={id}
-        data-testid="post-where-row-market"
-        className={fieldClass}
-        value={code ?? ""}
-        onChange={(event) =>
-          onCountry(
-            rows.map((row) => row.key),
-            event.target.value || null,
-          )
-        }
-      >
-        <option value="">{t("post.where.marketChoose")}</option>
-        {markets.markets
-          .filter((entry) => entry.code === code || !taken.includes(entry.code))
-          .map((entry) => (
-            <option key={entry.code} value={entry.code}>
-              {entry.anchorId === null
-                ? entry.nameEn
-                : entityName(
-                    "location",
-                    { id: entry.anchorId, nameEn: entry.nameEn, nameAm: null },
-                    entities,
-                  )}
-            </option>
-          ))}
-      </NativeSelect>
-    </div>
+    <Field
+      id={id}
+      label={t("post.where.marketLabel")}
+      required={true}
+      marked={code === null}
+      refusal={null}
+    >
+      {(field) => (
+        <NativeSelect
+          look="form"
+          {...field}
+          data-testid="post-where-row-market"
+          className={controlClass(false)}
+          value={code ?? ""}
+          onChange={(event) =>
+            onCountry(
+              rows.map((row) => row.key),
+              event.target.value || null,
+            )
+          }
+        >
+          <option value="">{t("post.where.marketChoose")}</option>
+          {markets.markets
+            .filter((entry) => entry.code === code || !taken.includes(entry.code))
+            .map((entry) => (
+              <option key={entry.code} value={entry.code}>
+                {entry.anchorId === null
+                  ? entry.nameEn
+                  : entityName(
+                      "location",
+                      { id: entry.anchorId, nameEn: entry.nameEn, nameAm: null },
+                      entities,
+                    )}
+              </option>
+            ))}
+        </NativeSelect>
+      )}
+    </Field>
   );
   return (
     <CountryBox primary={false} code={code} nodes={nodes} rows={rows} market={market} {...rest} />
@@ -794,9 +833,7 @@ export function StepWhere({
    * columns as they are. The door caps it at 200 and is the authority (F3).
    */
   const [note, setNote] = useState<string>(pin?.street ?? "");
-  const [noteState, setNoteState] = useState<
-    "idle" | "busy" | "saved" | "failed" | "long" | "contact" | "rateLimited"
-  >("idle");
+  const [noteState, setNoteState] = useState<LineState>("idle");
   const [pinState, setPinState] = useState<"idle" | "saved" | "removed" | "failed">("idle");
   /**
    * Bundle 2 step 10 (P4) — THE DIRECTIONS LINE (`listings.directions`): optional,
@@ -805,9 +842,7 @@ export function StepWhere({
    * call that left it out would clear it.
    */
   const [directions, setDirections] = useState<string>("");
-  const [dirState, setDirState] = useState<
-    "idle" | "busy" | "saved" | "failed" | "long" | "contact" | "rateLimited"
-  >("idle");
+  const [dirState, setDirState] = useState<LineState>("idle");
   /** The values the door last held, so a save of one line never clears the other. */
   const savedText = useRef<{ street: string | null; directions: string | null }>({
     street: pin?.street ?? null,
@@ -1512,58 +1547,65 @@ export function StepWhere({
 
   const primaryMarket = (
     <div className="space-y-1">
-      <label htmlFor="post-where-market" className="text-sm font-medium text-foreground">
-        {t("post.where.marketLabel")}
-        {country === null && <RequiredMark />}
-      </label>
-      {markets.isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("post.where.marketLoading")}</p>
-      ) : markets.failed ? (
-        <p className="text-sm text-destructive" data-testid="post-where-market-error">
-          {t("post.where.marketFailed")}
-        </p>
-      ) : (
-        <NativeSelect
-          look="form"
-          id="post-where-market"
-          data-testid="post-where-market"
-          className={fieldClass}
-          value={country ?? ""}
-          onChange={(event) => {
-            const code = event.target.value || null;
-            act();
-            // A new market invalidates the item's cascade and every place chosen
-            // in the old market; other countries' boxes keep their answers.
-            const old = country;
-            setCountry(code);
-            setPrefilled(false);
-            placeSeeded.current = code;
-            setRows((current) => [
-              { key: PRIMARY, country: code, region: null, city: null, subCity: null },
-              ...current.slice(1).filter((row) => row.country === null || row.country !== old),
-            ]);
-          }}
-        >
-          {/* INC-237 — the empty choice exists whenever nothing is chosen. */}
-          {country === null && <option value="">{t("post.where.marketChoose")}</option>}
-          {markets.markets
-            .filter(
-              (market) =>
-                market.code === country || !otherGroups.some((group) => group.code === market.code),
-            )
-            .map((market) => (
-              <option key={market.code} value={market.code}>
-                {market.anchorId === null
-                  ? market.nameEn
-                  : entityName(
-                      "location",
-                      { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
-                      entities,
-                    )}
-              </option>
-            ))}
-        </NativeSelect>
-      )}
+      <Field
+        id="post-where-market"
+        label={t("post.where.marketLabel")}
+        required={true}
+        marked={country === null}
+        refusal={null}
+      >
+        {(field) =>
+          markets.isLoading ? (
+            <p className="text-sm text-muted-foreground">{t("post.where.marketLoading")}</p>
+          ) : markets.failed ? (
+            <p className="text-sm text-destructive" data-testid="post-where-market-error">
+              {t("post.where.marketFailed")}
+            </p>
+          ) : (
+            <NativeSelect
+              look="form"
+              {...field}
+              data-testid="post-where-market"
+              className={controlClass(false)}
+              value={country ?? ""}
+              onChange={(event) => {
+                const code = event.target.value || null;
+                act();
+                // A new market invalidates the item's cascade and every place chosen
+                // in the old market; other countries' boxes keep their answers.
+                const old = country;
+                setCountry(code);
+                setPrefilled(false);
+                placeSeeded.current = code;
+                setRows((current) => [
+                  { key: PRIMARY, country: code, region: null, city: null, subCity: null },
+                  ...current.slice(1).filter((row) => row.country === null || row.country !== old),
+                ]);
+              }}
+            >
+              {/* INC-237 — the empty choice exists whenever nothing is chosen. */}
+              {country === null && <option value="">{t("post.where.marketChoose")}</option>}
+              {markets.markets
+                .filter(
+                  (market) =>
+                    market.code === country ||
+                    !otherGroups.some((group) => group.code === market.code),
+                )
+                .map((market) => (
+                  <option key={market.code} value={market.code}>
+                    {market.anchorId === null
+                      ? market.nameEn
+                      : entityName(
+                          "location",
+                          { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+                          entities,
+                        )}
+                  </option>
+                ))}
+            </NativeSelect>
+          )
+        }
+      </Field>
       {marketUnresolved && country === null && (
         <p className="text-xs text-muted-foreground" data-testid="post-where-market-unresolved">
           {t("post.where.marketUnresolved")}
@@ -1896,41 +1938,51 @@ export function StepWhere({
             )}
             {(pin !== null || note.trim() !== "") && sellerPlace !== undefined && (
               <div className="space-y-1">
-                <label className="flex min-h-11 items-center gap-3 text-sm text-foreground">
-                  <input
-                    type="checkbox"
-                    className="size-5"
-                    data-testid="post-where-shop"
-                    disabled={shopBusy}
-                    checked={
-                      sellerPlace !== null &&
-                      sellerPlace.locationId === itemPlace &&
-                      (sellerPlace.pin?.lat.toFixed(5) ?? null) === (pin?.lat.toFixed(5) ?? null) &&
-                      (sellerPlace.pin?.lng.toFixed(5) ?? null) === (pin?.lng.toFixed(5) ?? null) &&
-                      sellerPlace.street === savedText.current.street &&
-                      sellerPlace.directions === savedText.current.directions
-                    }
-                    onChange={(event) => {
-                      const on = event.target.checked;
-                      setShopBusy(true);
-                      setShopFailed(false);
-                      void (on ? saveSellerPlace(listingId) : clearSellerPlace())
-                        .then(async (ok) => {
-                          if (!ok) {
+                <Field
+                  id="post-where-shop"
+                  label={t("post.where.shopTick")}
+                  required={false}
+                  refusal={null}
+                  layout="choice"
+                >
+                  {(field) => (
+                    <input
+                      type="checkbox"
+                      {...field}
+                      className="size-5"
+                      data-testid="post-where-shop"
+                      disabled={shopBusy}
+                      checked={
+                        sellerPlace !== null &&
+                        sellerPlace.locationId === itemPlace &&
+                        (sellerPlace.pin?.lat.toFixed(5) ?? null) ===
+                          (pin?.lat.toFixed(5) ?? null) &&
+                        (sellerPlace.pin?.lng.toFixed(5) ?? null) ===
+                          (pin?.lng.toFixed(5) ?? null) &&
+                        sellerPlace.street === savedText.current.street &&
+                        sellerPlace.directions === savedText.current.directions
+                      }
+                      onChange={(event) => {
+                        const on = event.target.checked;
+                        setShopBusy(true);
+                        setShopFailed(false);
+                        void (on ? saveSellerPlace(listingId) : clearSellerPlace())
+                          .then(async (ok) => {
+                            if (!ok) {
+                              setShopFailed(true);
+                              return;
+                            }
+                            setSellerPlace(on ? await readSellerPlace() : null);
+                          })
+                          .catch((error: unknown) => {
+                            console.error("[seller-place] reread failed", error);
                             setShopFailed(true);
-                            return;
-                          }
-                          setSellerPlace(on ? await readSellerPlace() : null);
-                        })
-                        .catch((error: unknown) => {
-                          console.error("[seller-place] reread failed", error);
-                          setShopFailed(true);
-                        })
-                        .finally(() => setShopBusy(false));
-                    }}
-                  />
-                  {t("post.where.shopTick")}
-                </label>
+                          })
+                          .finally(() => setShopBusy(false));
+                      }}
+                    />
+                  )}
+                </Field>
                 {shopFailed && (
                   <p className="text-sm text-destructive" data-testid="post-where-shop-error">
                     {t("post.where.shopFailed")}
@@ -2000,87 +2052,78 @@ export function StepWhere({
 
         {/* Bundle 2 step 10 (P4) — the directions line, above the details. */}
         <div className="space-y-1">
-          <label htmlFor="post-where-directions" className="text-sm font-medium text-foreground">
-            {t("post.where.directionsLabel")}
-          </label>
-          <input
+          <Field
             id="post-where-directions"
-            data-testid="post-where-directions"
-            className={fieldClass}
-            aria-invalid={dirState === "contact" || dirState === "long" ? true : undefined}
-            value={directions}
-            disabled={listingId === null}
-            onChange={(event) => {
-              setDirections(event.target.value);
-              // Flagged as typed; the door stays the authority (F3).
-              setDirState(looksLikeContact(event.target.value) ? "contact" : "idle");
-              // Turn E2b — in form mode the typed line is the form's at once.
-              if (textMode === "form")
-                onTextChange?.({ street: note, directions: event.target.value });
-            }}
-            onBlur={() => {
-              if (listingId === null) return;
-              const clean = sanitizeDetails(directions);
-              if (clean.length > DETAILS_MAX) {
-                setDirState("long");
-                return;
-              }
-              if (looksLikeContact(clean)) {
-                setDirState("contact");
-                return;
-              }
-              if (textMode === "form") {
-                // Turn E2b — the tidied line rides the form's Save; nothing is written here.
-                onTextChange?.({ street: sanitizeDetails(note), directions: clean });
-                setDirState("idle");
-                return;
-              }
-              setDirState("busy");
-              void (async () => {
-                // INC-526 — the street and the pin it restates are read when its turn comes.
-                const outcome = await pinDoorQueue(listingId)(async () => {
-                  // INC-522 (A2) — read the text again while it is unknown.
-                  const wasUnknown = textUnknown.current;
-                  if (!(await ensureText())) return { answer: "failed" as const, directions: null };
-                  const own = clean === "" && wasUnknown ? savedText.current.directions : clean;
-                  const text = {
-                    street: savedText.current.street,
-                    directions: own === null || own === "" ? null : own,
-                  };
-                  const answer = await savePlaceText(listingId, text, pinNow.current);
-                  if (answer === "saved") {
-                    savedText.current = text;
-                    noteSaved();
+            label={t("post.where.directionsLabel")}
+            required={false}
+            refusal={lineRefusal("directions", dirState)}
+            family={DIRECTIONS_REFUSALS}
+            refusalValues={{ max: DETAILS_MAX }}
+            refusalTestId={`post-where-directions-${dirState}`}
+            hint={<p className="text-xs text-muted-foreground">{t("post.where.directionsHelp")}</p>}
+          >
+            {(field) => (
+              <input
+                {...field}
+                data-testid="post-where-directions"
+                className={controlClass(dirState === "contact" || dirState === "long")}
+                value={directions}
+                disabled={listingId === null}
+                onChange={(event) => {
+                  setDirections(event.target.value);
+                  // Flagged as typed; the door stays the authority (F3).
+                  setDirState(looksLikeContact(event.target.value) ? "contact" : "idle");
+                  // Turn E2b — in form mode the typed line is the form's at once.
+                  if (textMode === "form")
+                    onTextChange?.({ street: note, directions: event.target.value });
+                }}
+                onBlur={() => {
+                  if (listingId === null) return;
+                  const clean = sanitizeDetails(directions);
+                  if (clean.length > DETAILS_MAX) {
+                    setDirState("long");
+                    return;
                   }
-                  return { answer, directions: text.directions };
-                });
-                if (outcome.answer === "saved") onDirectionsSaved?.(outcome.directions);
-                setDirState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
-              })();
-            }}
-          />
-          <p className="text-xs text-muted-foreground">{t("post.where.directionsHelp")}</p>
+                  if (looksLikeContact(clean)) {
+                    setDirState("contact");
+                    return;
+                  }
+                  if (textMode === "form") {
+                    // Turn E2b — the tidied line rides the form's Save; nothing is written here.
+                    onTextChange?.({ street: sanitizeDetails(note), directions: clean });
+                    setDirState("idle");
+                    return;
+                  }
+                  setDirState("busy");
+                  void (async () => {
+                    // INC-526 — the street and the pin it restates are read when its turn comes.
+                    const outcome = await pinDoorQueue(listingId)(async () => {
+                      // INC-522 (A2) — read the text again while it is unknown.
+                      const wasUnknown = textUnknown.current;
+                      if (!(await ensureText()))
+                        return { answer: "failed" as const, directions: null };
+                      const own = clean === "" && wasUnknown ? savedText.current.directions : clean;
+                      const text = {
+                        street: savedText.current.street,
+                        directions: own === null || own === "" ? null : own,
+                      };
+                      const answer = await savePlaceText(listingId, text, pinNow.current);
+                      if (answer === "saved") {
+                        savedText.current = text;
+                        noteSaved();
+                      }
+                      return { answer, directions: text.directions };
+                    });
+                    if (outcome.answer === "saved") onDirectionsSaved?.(outcome.directions);
+                    setDirState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
+                  })();
+                }}
+              />
+            )}
+          </Field>
           {dirState === "saved" && (
             <p className="text-xs text-muted-foreground" data-testid="post-where-directions-saved">
               {t("post.where.directionsSaved")}
-            </p>
-          )}
-          {dirState === "long" && (
-            <p
-              className="text-xs text-destructive"
-              role="alert"
-              data-testid="post-where-directions-long"
-            >
-              {fill(t("post.where.directionsTooLong"), { max: DETAILS_MAX })}
-            </p>
-          )}
-          {dirState === "contact" && (
-            <p
-              className="text-xs text-destructive"
-              role="alert"
-              data-testid="post-where-directions-contact"
-            >
-              {t("post.refusal.contactInNote")}
             </p>
           )}
           {(dirState === "failed" || dirState === "rateLimited") && (
@@ -2100,90 +2143,81 @@ export function StepWhere({
 
         {/* W6b-2 B3 — the location details, for every category. */}
         <div className="space-y-1">
-          <label htmlFor="post-where-details" className="text-sm font-medium text-foreground">
-            {t("post.where.detailsLabel")}
-          </label>
-          <input
+          <Field
             id="post-where-details"
-            data-testid="post-where-details"
-            className={fieldClass}
-            aria-invalid={noteState === "contact" || noteState === "long" ? true : undefined}
-            value={note}
-            disabled={listingId === null}
-            onChange={(event) => {
-              setNote(event.target.value);
-              // Part D — flagged as typed; the door stays the authority (F3).
-              setNoteState(looksLikeContact(event.target.value) ? "contact" : "idle");
-              // Turn E2b — in form mode the typed line is the form's at once.
-              if (textMode === "form") onTextChange?.({ street: event.target.value, directions });
-            }}
-            onBlur={() => {
-              if (listingId === null) return;
-              const clean = sanitizeDetails(note);
-              if (clean.length > DETAILS_MAX) {
-                setNoteState("long");
-                return;
-              }
-              if (looksLikeContact(clean)) {
-                setNoteState("contact");
-                return;
-              }
-              if (textMode === "form") {
-                // Turn E2b — the tidied line rides the form's Save; nothing is written here.
-                onTextChange?.({ street: clean, directions: sanitizeDetails(directions) });
-                setNoteState("idle");
-                return;
-              }
-              setNoteState("busy");
-              void (async () => {
-                // INC-526 — the directions and the pin it restates are read when its turn comes.
-                const outcome = await pinDoorQueue(listingId)(async () => {
-                  // INC-522 (A2) — read the text again while it is unknown.
-                  const wasUnknown = textUnknown.current;
-                  if (!(await ensureText())) {
-                    return { answer: "failed" as const, street: null, pin: null };
+            label={t("post.where.detailsLabel")}
+            required={false}
+            refusal={lineRefusal("details", noteState)}
+            family={DETAILS_REFUSALS}
+            refusalValues={{ max: DETAILS_MAX }}
+            refusalTestId={`post-where-details-${noteState}`}
+            hint={<p className="text-xs text-muted-foreground">{t("post.where.detailsHelp")}</p>}
+          >
+            {(field) => (
+              <input
+                {...field}
+                data-testid="post-where-details"
+                className={controlClass(noteState === "contact" || noteState === "long")}
+                value={note}
+                disabled={listingId === null}
+                onChange={(event) => {
+                  setNote(event.target.value);
+                  // Part D — flagged as typed; the door stays the authority (F3).
+                  setNoteState(looksLikeContact(event.target.value) ? "contact" : "idle");
+                  // Turn E2b — in form mode the typed line is the form's at once.
+                  if (textMode === "form")
+                    onTextChange?.({ street: event.target.value, directions });
+                }}
+                onBlur={() => {
+                  if (listingId === null) return;
+                  const clean = sanitizeDetails(note);
+                  if (clean.length > DETAILS_MAX) {
+                    setNoteState("long");
+                    return;
                   }
-                  const own = clean === "" && wasUnknown ? savedText.current.street : clean;
-                  const street = own === null || own === "" ? null : own;
-                  const text = { street, directions: savedText.current.directions };
-                  const pinAtSend = pinNow.current;
-                  const answer = await savePlaceText(listingId, text, pinAtSend);
-                  if (answer === "saved") {
-                    savedText.current = text;
-                    if (pinAtSend !== null) pinNow.current = { ...pinAtSend, street };
-                    noteSaved();
+                  if (looksLikeContact(clean)) {
+                    setNoteState("contact");
+                    return;
                   }
-                  return { answer, street, pin: pinAtSend };
-                });
-                setNoteState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
-                if (outcome.answer === "saved" && outcome.pin !== null) {
-                  onPinSaved?.({ ...outcome.pin, street: outcome.street });
-                }
-              })();
-            }}
-          />
-          <p className="text-xs text-muted-foreground">{t("post.where.detailsHelp")}</p>
+                  if (textMode === "form") {
+                    // Turn E2b — the tidied line rides the form's Save; nothing is written here.
+                    onTextChange?.({ street: clean, directions: sanitizeDetails(directions) });
+                    setNoteState("idle");
+                    return;
+                  }
+                  setNoteState("busy");
+                  void (async () => {
+                    // INC-526 — the directions and the pin it restates are read when its turn comes.
+                    const outcome = await pinDoorQueue(listingId)(async () => {
+                      // INC-522 (A2) — read the text again while it is unknown.
+                      const wasUnknown = textUnknown.current;
+                      if (!(await ensureText())) {
+                        return { answer: "failed" as const, street: null, pin: null };
+                      }
+                      const own = clean === "" && wasUnknown ? savedText.current.street : clean;
+                      const street = own === null || own === "" ? null : own;
+                      const text = { street, directions: savedText.current.directions };
+                      const pinAtSend = pinNow.current;
+                      const answer = await savePlaceText(listingId, text, pinAtSend);
+                      if (answer === "saved") {
+                        savedText.current = text;
+                        if (pinAtSend !== null) pinNow.current = { ...pinAtSend, street };
+                        noteSaved();
+                      }
+                      return { answer, street, pin: pinAtSend };
+                    });
+                    setNoteState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
+                    if (outcome.answer === "saved" && outcome.pin !== null) {
+                      onPinSaved?.({ ...outcome.pin, street: outcome.street });
+                    }
+                  })();
+                }}
+              />
+            )}
+          </Field>
           {noteState === "saved" && (
             <p className="text-xs text-muted-foreground" data-testid="post-where-details-saved">
               {t("post.where.detailsSaved")}
-            </p>
-          )}
-          {noteState === "long" && (
-            <p
-              className="text-xs text-destructive"
-              role="alert"
-              data-testid="post-where-details-long"
-            >
-              {fill(t("post.where.detailsTooLong"), { max: DETAILS_MAX })}
-            </p>
-          )}
-          {noteState === "contact" && (
-            <p
-              className="text-xs text-destructive"
-              role="alert"
-              data-testid="post-where-details-contact"
-            >
-              {t("post.refusal.contactInNote")}
             </p>
           )}
           {(noteState === "failed" || noteState === "rateLimited") && (
