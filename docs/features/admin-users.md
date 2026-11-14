@@ -127,9 +127,9 @@ FIRST, then `require_step_up_if_needed('profiles','update')` (U1f law), writes
 only those three columns, and audits `user.profile_edit` with the changed
 fields as `old → new`. Validation is the profile's own constraints (alias
 format + case-insensitive uniqueness) plus "the country exists and is active";
-the duplicate alias is surfaced as the matchable message
-`seller alias already taken` (SQLSTATE 23505) and mapped to a translated inline
-error by `profileEditErrorKey`.
+the duplicate alias is refused `aliasTaken` (since F1-2, below) and drawn as a
+translated inline error through `readRefusal` with the editor's words
+(`PROFILE_EDIT_REFUSALS`).
 
 In-migration proofs: P1 base user → `permission denied` · P2 staff at `aal1` →
 `step-up required` · P3 staff at `aal2` → applied + audit row (scratch user,
@@ -168,3 +168,11 @@ re-anchored to the step-up world with the shared `enrollAndStepUp` /
 - **The footer** (`users-pagination`): the range, rows per page (10, 25, 50, 100, kept in this browser) and the pages; the server still pages the roster (`admin_list_users`, limit and offset).
 - Tests: AU-13 (new — the heading, the toolbar's order, the pills, the locked name, the page size kept across a reload); AU-2 (the status chosen by its pill).
 - **G2b (the CI red of G2a):** the cards give way to the table at md (768 px), as before G2a — G2a's lg broke the table law (e2e/shell-table-law.spec.ts holds this list's table at 768 px); "below lg" above reads "below md".
+
+## The user doors on the door mechanism (Foundations 1, turn F1-2; DEC-333, DEC-380)
+
+`admin_set_account_status` and `admin_update_profile` call `door_context('staff', profiles:update, staff_moderation, NULL, 'global')` first — the permission, then step-up, then the dial `staff_moderation` (INC-1038: `admin_update_profile` spent none before) — and take the shell: a refusal is a code (`code[:detail]`) with its 4xx, counted; each returns `{ ok:true }` (both returned void). The users family is GLOBAL until country staff is a product feature (DEC-380): `admin_update_profile`'s country argument is the row's new value, not the edited row's country, so it is not a scope — a country-scoped holder is refused every call (`permissionDenied:scope`); `admin_get_user` is global and `admin_list_users` keeps the filter. The target-row mode (`row:profiles.home_country_code`) for the three is a roadmap line. Migrations `20261114070600_76ce28de` (mark `20261114090200`) and `20261114070900_21a900de` (part 6, global; mark `20261114100000`); the readers `admin_list_users`, `admin_get_user`, `admin_user_activity` and `admin_list_roles` take `door_context`'s staff-reader form in `20261114070800_d66e79e1` (mark `20261114090400`).
+
+The codes: status — `badValue:status`, `required:reason`, `unknownUser`; profile — `nameRequired`, `unknownCountry`, `unknownUser`, `aliasShape`, `aliasTaken`, `aliasReserved:<rule>` (rules b–e without a reason of ten characters). The assignment doors are the roles guide's (`assign_role`, `revoke_role`).
+
+The client: `admin-users-service.ts` hands `PROFILE_EDIT_REFUSALS` (the codes' words, the step-up sentence and the alias index's race sentence) to `readRefusal` through `profileEditRefusalKey`; `asksAliasReason` reads `aliasReserved` through `doorCode`. `profileEditErrorKey`, `needsAliasReason` and their CF-FORM-3 allowlist line are gone. Unit tests: `alias-reason.test.ts`. E2E: AU-6 (`permissionDenied`) and AU-14 (`accountDeactivated` — door_context checks deactivation before the permission) read the code.

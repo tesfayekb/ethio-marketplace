@@ -4,10 +4,10 @@ import { useState } from "react";
 import { FormField, FormSection } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
+import { readRefusal } from "@/lib/refusal";
 
 import { useBeginImpersonation } from "./use-impersonation";
 
@@ -63,8 +63,8 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
                   });
                 })
                 .catch((failure: unknown) => {
-                  const abort = stepUpAbortKey(failure);
-                  setErrorKey(abort === undefined ? "impersonation.failed" : abort);
+                  const read = readRefusal(failure, { generic: "impersonation.failed" });
+                  setErrorKey(read.silent ? null : read.key);
                 });
             }}
           >

@@ -90,6 +90,26 @@ turn (DEC-349): P-2 (b) added the levels family's thirteen (`listingNotFound`, `
 (`signed-in-reader`, P-2 (b) M-2a) has its manifest line and its caller,
 src/features/my-listings/promote-service.ts.
 
+## The families on the door
+
+- **F1-2 — roles, users, impersonation and the audit log** (`docs/governance/briefs/f1-doors-2.md`;
+  six files `20261114070400` → `20261114070900`, marks `20261114090000` → `20261114090400` and
+  `20261114100000`): ten doors on `door_context` and the shell (`assign_role`, `revoke_role`,
+  `admin_create_role`, `admin_update_role`, `admin_delete_role`, `admin_set_role_permission`,
+  `admin_set_account_status`, `admin_update_profile`, `begin_impersonation`,
+  `end_impersonation`), nine staff readers and `get_active_impersonation` on its reader forms;
+  its client reads the codes through `readRefusal` with each family's words (`ROLE_REFUSALS`,
+  `PROFILE_EDIT_REFUSALS`), and a code without words reads as the screen's own generic line.
+  `DOOR_CODES` did not grow: the list sits in the entry, so a code on it moves every page's
+  first download, and none of this family's screens reads a code the words do not name.
+- **The manifest's grammar gained two rules (DEC-380)**: an `arg:` country names the country of
+  the row the door writes or creates — an argument that is a new value for an existing row's
+  country is not a scope, and such a door is `row:` or `global` (`admin_update_profile` is
+  `global`, INC-1151); a door that only closes what another door opened names a dial other than
+  its opener's (`end_impersonation` spends `account_pref`, INC-1152).
+- **The lint `impersonation_reach`** (`public.security_lints()`, ERROR, baseline 0; DEC-381)
+  holds `begin_impersonation`'s permission to `super_admin` alone on every push and every night.
+
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,

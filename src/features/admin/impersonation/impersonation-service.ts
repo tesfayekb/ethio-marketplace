@@ -45,6 +45,18 @@ export interface ImpersonatedListing {
   createdAt: string;
 }
 
+/** The door's success answer (DEC-333 shell): `{ ok: true, session_id, expires_at }`. */
+export function startedSession(data: unknown): { sessionId: string; expiresAt: string } | null {
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return null;
+  const answer = data as Record<string, unknown>;
+  const sessionId = answer["session_id"];
+  const expiresAt = answer["expires_at"];
+  if (answer["ok"] !== true || typeof sessionId !== "string" || typeof expiresAt !== "string") {
+    return null;
+  }
+  return { sessionId, expiresAt };
+}
+
 export async function beginImpersonation(input: {
   targetId: string;
   reason: string;
@@ -54,9 +66,9 @@ export async function beginImpersonation(input: {
     p_reason: input.reason,
   });
   if (error) throw error;
-  const row = (data ?? [])[0];
-  if (!row) throw new Error("begin_impersonation returned no session");
-  return { sessionId: row.session_id, expiresAt: row.expires_at };
+  const session = startedSession(data);
+  if (session === null) throw new Error("begin_impersonation returned no session");
+  return session;
 }
 
 export async function endImpersonation(sessionId: string): Promise<void> {

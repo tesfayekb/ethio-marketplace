@@ -31,10 +31,10 @@ authorization decision: every read and write is a definer RPC that re-checks
 | `admin_delete_role(id)`        | `roles:delete` + step-up | `role.delete`            |
 | `admin_set_role_permission(…)` | `roles:update` + step-up | `role.permission_change` |
 
-The RPCs raise clean, matchable messages (`system roles are immutable`,
-`role has members`, `core permission locked`) BEFORE the R1 triggers
-(`roles_system_lock`, `role_permissions_core_lock`) would raise their own. The
-triggers remain the authority — the RPC messages never weaken them.
+The RPCs refuse BEFORE the R1 triggers (`roles_system_lock`,
+`role_permissions_core_lock`) would raise their own — since F1-2 with codes
+(`systemRole`, `hasDependents`, `corePermission`; below). The triggers remain
+the authority — the doors' refusals never weaken them.
 
 **Proofs P1–P8** ran inside the migration with dynamically looked-up principals
 (INC-064) and a scratch role that is cleaned up: base user denied; admin lists;
@@ -45,16 +45,16 @@ with `requires_step_up = true` and zero role grants.
 
 ## Client
 
-| File                                             | Role                                                |
-| ------------------------------------------------ | --------------------------------------------------- |
-| `src/features/admin/roles/roles-service.ts`      | RPC seam + `roleErrorKey()` refusal→translation map |
-| `src/features/admin/roles/use-admin-roles.ts`    | Query/mutation hooks under `AUTH_DERIVED_ROOT`      |
-| `src/features/admin/roles/roles-list.tsx`        | DataTable list + create-role FormSection            |
-| `src/features/admin/roles/role-detail.tsx`       | Meta, members, danger zone                          |
-| `src/features/admin/roles/permission-matrix.tsx` | Matrix grouped by resource with the locks           |
-| `src/routes/admin.roles.tsx`                     | Section index                                       |
-| `src/routes/admin.roles_.$roleId.tsx`            | Detail route (flat `_` convention)                  |
-| `src/components/shell/breadcrumbs.tsx`           | `Roles & Permissions > <display name>` 4th segment  |
+| File                                             | Role                                               |
+| ------------------------------------------------ | -------------------------------------------------- |
+| `src/features/admin/roles/roles-service.ts`      | RPC seam + `ROLE_REFUSALS` words for `readRefusal` |
+| `src/features/admin/roles/use-admin-roles.ts`    | Query/mutation hooks under `AUTH_DERIVED_ROOT`     |
+| `src/features/admin/roles/roles-list.tsx`        | DataTable list + create-role FormSection           |
+| `src/features/admin/roles/role-detail.tsx`       | Meta, members, danger zone                         |
+| `src/features/admin/roles/permission-matrix.tsx` | Matrix grouped by resource with the locks          |
+| `src/routes/admin.roles.tsx`                     | Section index                                      |
+| `src/routes/admin.roles_.$roleId.tsx`            | Detail route (flat `_` convention)                 |
+| `src/components/shell/breadcrumbs.tsx`           | `Roles & Permissions > <display name>` 4th segment |
 
 Locks in the UI mirror the server: a system role replaces every control with a
 locked state; a granted `is_core` row is locked individually. Deletion is
@@ -96,7 +96,7 @@ The open question above is answered: `public.permissions` now carries
 `assignable boolean NOT NULL DEFAULT true`. `false` means the permission is an
 escalation vector reserved for system roles, and
 `admin_set_role_permission` refuses to GRANT it to a non-system role
-(`permission is not assignable to custom roles`). REVOKING an existing
+(`permissionReserved` since F1-2). REVOKING an existing
 non-assignable grant stays allowed — the cleanup path.
 
 Reserved set (18 rows, read-back asserted in the migration):
@@ -145,3 +145,11 @@ badge without a toggle; an ordinary row still toggles).
 ## The row's menu opens the role (bundle 11 turn C4; D142, the operator's walk of C2, 2026-10-12)
 
 The roles table's three-dots menu holds Open first (`role-actions-<name>-more-open`, the role's page — as the row itself opens it), then View members. The agreed tables' check gains T9: a row that opens its own page and carries a three-dots menu offers Open in it (scripts/admin-tables.ts; TBL-1). RP-16 reads the menu's order and opens the role through it.
+
+## The role doors on the door mechanism (Foundations 1, turn F1-2; DEC-333)
+
+The four role doors (`admin_create_role`, `admin_update_role`, `admin_delete_role`, `admin_set_role_permission`) and the two assignment doors (`assign_role`, `revoke_role`) call `door_context('staff', roles:<action>, …)` first — the permission, then step-up, then the dial `staff_config` — and take the shell: a refusal is `door_refuse(code[, detail])`, answered as `{ ok:false, code:'P0D01', message:'code[:detail]' }` with its 4xx, and counted (the dial and `door_refusals`). Each returns jsonb: `{ ok:true }`, and `admin_create_role` `{ ok:true, id }`. `assign_role` is scoped by its country argument (match); the rest are global. Migrations `20261114070400_7102c888` (assignment, mark `20261114090000`) and `20261114070500_49f4b94e` (definition, mark `20261114090100`); the readers `admin_list_roles_detailed` and `admin_get_role` take `door_context`'s staff-reader form in `20261114070800_d66e79e1` (mark `20261114090400`).
+
+The codes, by door: create — `nameRequired`, `badSlug`, `duplicateKey:name`; update — `unknownRole`, `systemRole`; delete — `unknownRole`, `systemRole`, `hasDependents`; permission — `unknownRole`, `systemRole`, `unknownPermission`, `permissionReserved`, `corePermission`; assign and revoke — `unknownRole`, `roleReserved:<role>`.
+
+The client: `roles-service.ts` hands `ROLE_REFUSALS` (the codes' words, and the step-up sentence — step-up stays P0009) to `readRefusal` through `roleRefusalKey(error, fallback)`; a code without words (`unknownRole`, `unknownPermission`, `roleReserved`, `rateLimited`) reads as the screen's generic; a cancelled step-up says nothing. `roleErrorKey` and its CF-FORM-3 allowlist line are gone. `createRole` reads `{ ok, id }` through a shape guard (`createdRoleId`). Unit tests: `roles-service.test.ts`. E2E: RP-4 (`systemRole`), RP-5 (`hasDependents`), RP-11 (`permissionReserved`) read the code.

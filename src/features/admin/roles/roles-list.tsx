@@ -23,7 +23,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { roleErrorKey, type RoleSummary } from "./roles-service";
+import { roleRefusalKey, type RoleSummary } from "./roles-service";
 import { useAdminRolesDetailed, useCreateRole } from "./use-admin-roles";
 
 const TABLE_ID = "admin-roles";
@@ -272,7 +272,7 @@ function CreateRoleForm({ onClose }: { onClose: () => void }) {
       });
       onClose();
       await navigate({ to: "/admin/roles/$roleId", params: { roleId: id } });
-    }).catch((cause: unknown) => setErrorKey(roleErrorKey(cause, "admin.roles.create.failed")));
+    }).catch((cause: unknown) => setErrorKey(roleRefusalKey(cause, "admin.roles.create.failed")));
   };
 
   return (

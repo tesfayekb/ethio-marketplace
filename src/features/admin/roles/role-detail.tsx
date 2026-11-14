@@ -13,7 +13,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
 import { PermissionMatrix } from "./permission-matrix";
-import { roleErrorKey, type RoleDetail } from "./roles-service";
+import { roleRefusalKey, type RoleDetail } from "./roles-service";
 import { useAdminRole, useDeleteRole, useUpdateRole } from "./use-admin-roles";
 
 /**
@@ -94,7 +94,7 @@ function RoleMetaCard({ role, mayUpdate }: { role: RoleDetail; mayUpdate: boolea
     setSaved(false);
     void guard(() => update.mutateAsync({ displayName, description }))
       .then(() => setSaved(true))
-      .catch((cause: unknown) => setErrorKey(roleErrorKey(cause, "admin.roles.meta.failed")));
+      .catch((cause: unknown) => setErrorKey(roleRefusalKey(cause, "admin.roles.meta.failed")));
   };
 
   if (!editable) {
@@ -219,7 +219,7 @@ function DangerCard({ role }: { role: RoleDetail }) {
     void guard(async () => {
       await remove.mutateAsync();
       await navigate({ to: "/admin/roles" });
-    }).catch((cause: unknown) => setErrorKey(roleErrorKey(cause, "admin.roles.danger.failed")));
+    }).catch((cause: unknown) => setErrorKey(roleRefusalKey(cause, "admin.roles.danger.failed")));
   };
 
   return (

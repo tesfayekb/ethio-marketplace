@@ -18,11 +18,16 @@
  * - `step-up` — `row` (the permission row decides), `none:<record>` (a recorded
  *   opt-out: DEC-336 allows the two of D129 and C2h, no third) or `-`.
  * - `dial` — the rate_dials action (every door has one, DEC-336) or `-` (a reader, a helper).
+ *   A door that only closes what another door opened names a dial other than
+ *   its opener's (DEC-380), so the exit is never rationed by the entry.
  * - `audit` — the audit action the door writes, or `-`.
  * - `country` — `arg:<argument>` (the door takes a country: scope mode match),
  *   `row:<table.column>` (its target row carries one: match), `filter` (a list
  *   reader narrows by the caller's scope), `global` (configuration: only a
  *   global grant passes) or `-` (owner, public, helper: no staff scope).
+ *   `arg:` names the country of the row the door writes or creates; an argument
+ *   that is a new value for an existing row's country is not a scope, and such
+ *   a door is `row:` or `global` (DEC-380).
  * - `acceptance` — the acceptance guard's class word (legal, account, staff,
  *   draft, signal, helper, guarded, takedown), `checks` for a door that names
  *   legal_acceptance_pending( or legal_certify( itself, or `-` (a reader).

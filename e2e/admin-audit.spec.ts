@@ -296,7 +296,7 @@ test.describe("U3 audit & security", () => {
           p_reason: "e2e self target",
         })
       ).error;
-      expect(self ?? "").toContain("cannot impersonate yourself");
+      expect(self).toBe("impersonateSelf");
 
       const other = await leaseUser();
       await grantRole(other.id, "super_admin");
@@ -306,7 +306,7 @@ test.describe("U3 audit & security", () => {
           p_reason: "e2e super target",
         })
       ).error;
-      expect(superTarget ?? "").toContain("cannot impersonate a super admin");
+      expect(superTarget).toBe("impersonateSuperAdmin");
     },
   );
 
@@ -331,7 +331,7 @@ test.describe("U3 audit & security", () => {
           p_reason: "e2e non-super caller",
         })
       ).error;
-      expect(refused ?? "").toContain("super-admin only");
+      expect(refused).toBe("permissionDenied");
     },
   );
 

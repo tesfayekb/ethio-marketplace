@@ -3,7 +3,7 @@
  * DEC-148 — the rule was frozen before the numbers existed).
  *
  * DEC-240: reads counts through REST or --tsv from CI's temporary backend.
- * Reads the five counts of public.security_lints() from ethio-staging through
+ * Reads the six counts of public.security_lints() from ethio-staging through
  * the service-role REST the global setup already uses (E2E_SUPABASE_URL,
  * E2E_SUPABASE_SERVICE_ROLE_KEY), prints `name level count` lines and compares
  * them with scripts/security-lints-baseline.json:

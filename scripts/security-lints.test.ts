@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -87,6 +90,34 @@ describe("compareLints", () => {
     expect(
       compareLints([...at(2, 3), { name: "c_new", level: "WARN", count: 0 }], base).failed,
     ).toBe(true);
+  });
+
+  it("SLB-9 the baseline holds the database's six names; one role reaching impersonation fails", () => {
+    const committed = JSON.parse(
+      readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), "security-lints-baseline.json"),
+        "utf8",
+      ),
+    ) as Record<string, number>;
+    expect(Object.keys(committed).sort()).toEqual([
+      "function_search_path_mutable",
+      "impersonation_reach",
+      "rls_disabled_in_public",
+      "security_definer_view",
+      "table_writable_by_client",
+    ]);
+    const live = (reach: number): LintCount[] => [
+      { name: "rls_disabled_in_public", level: "ERROR", count: 0 },
+      { name: "security_definer_view", level: "ERROR", count: 0 },
+      { name: "function_executable_by_anon", level: "ERROR", count: 0 },
+      { name: "function_search_path_mutable", level: "WARN", count: 0 },
+      { name: "table_writable_by_client", level: "WARN", count: 0 },
+      { name: "impersonation_reach", level: "ERROR", count: reach },
+    ];
+    expect(compareLints(live(0), committed).failed).toBe(false);
+    expect(compareLints(live(1), committed).lines).toContain(
+      "::error::impersonation_reach 1 is above its baseline 0",
+    );
   });
 });
 

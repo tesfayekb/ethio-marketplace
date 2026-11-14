@@ -359,7 +359,7 @@ test.describe("U1 admin users", () => {
         p_reason: "should never work",
       })
     ).error;
-    expect(message ?? "").toContain("permission denied");
+    expect(message).toBe("permissionDenied");
   });
   test("AU-9 edit: staff edits display name and alias, activity records it", async ({ page }) => {
     const staff = await leaseUser();
@@ -602,6 +602,6 @@ test.describe("D189 deactivated staff", () => {
       p_status: "deactivated",
       p_reason: "e2e",
     });
-    expect(error?.message ?? "").toMatch(/permission denied|account is deactivated/);
+    expect(error?.message).toBe("accountDeactivated");
   });
 });

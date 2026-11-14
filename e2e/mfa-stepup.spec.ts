@@ -190,7 +190,7 @@ test.describe("U1f step-up authentication", () => {
         p_reason: "MF-4",
       })
     ).error;
-    expect(baseError ?? "").toMatch(/permission denied/i);
+    expect(baseError).toBe("permissionDenied");
 
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
