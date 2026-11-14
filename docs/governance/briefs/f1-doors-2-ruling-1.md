@@ -1,0 +1,63 @@
+RULING — f1-doors-2, stop 1: the migration stop is CLEAN, the five files are on ethio-staging, the types patch, the eight decisions, and one further file (part 6) that corrects two lines of the manifest and adds a standing lint. Base: cursor/f1-doors-2 62e30aedc.
+
+The five files are accepted as pushed and are on ethio-staging. Continue with STEPS 3 to 7 of the task file; the task file is not rebuilt. Save this ruling by scripted copy, BARE, as `docs/governance/briefs/f1-doors-2-ruling-1.md` (sha256 as the operator's line gives it) in this ruling's first commit, and apply the types patch in that same commit. The next stop is the end of the turn: part 6 below is NOT a migration stop.
+
+PREVENTION (G70). Root causes, as classes:
+(1) Two cells of the manifest were filled at F1-1 from a function's SHAPE, not from what the cell MEANS for that door. `admin_update_profile` has a country argument, so its country cell became `arg:home_country_code`; but that argument is the NEW value of an existing row's country, not the country the row is in. `end_impersonation` belongs to the impersonation family, so its dial cell became `impersonation`; but it is the EXIT of the session that dial rations. Both lines are the supervisor's (the F1-1 plan), repeated by this turn's task file; you built them as written and named the first one's consequence in the census (item 2). Class: a plan cell grounded by signature. The check that reads the cell against the body cannot see this, because the body keeps the wrong promise faithfully.
+(2) "Super admin only" moved from a line of the body into permission rows, and the proof of it was a pre-check: true on the day of the apply and unread afterwards. Class: an invariant proven once. A rule that leaves code for data gets a check that runs on every push.
+Repository: part 6 (the two lines, the grammar's two rules in `scripts/doors/manifest.ts`'s header comment, the lint). Supervisor's side: the task-file template gains a census item for the next door families — for every `arg:` and `row:` line, one sentence naming the row the country belongs to; for every dial, whether the door opens or closes what the dial rations — and the supervisor reads it before ruling 1. Instructions v1.18: a plan's cell is grounded by meaning, and an invariant that leaves a body lands with its standing check. Cursor rules, Knowledge: not needed. Stops this turn: one, the planned one.
+
+0. THE READ-BACK (ethio-staging, by the supervisor's connector, from the pushed commit).
+   - Each file's sha256 on the lane equals your pairing line's; no file holds a carriage return.
+   - Marks 20261114090000, 20261114090100, 20261114090200, 20261114090300 and 20261114090400 are all present, read one by one.
+   - All twenty bodies read back with the new md5 of your table; the ten doors return jsonb; anon may execute none of the twenty; scratch users, countries, roles and resources: none left.
+   - The reference rows your proofs read were read on ethio-prod before anything is applied there: the newest mark, the three dials (impersonation 30 a day, staff_config and staff_moderation 600 an hour), no country XZ, XY or QM, no country-scoped role holder, no role but super_admin reaching impersonation:use or impersonation:manage, the nine permissions declared, the three alias rules. All as your proofs expect.
+   - CI on the migration commit 5e54ac8a6 (run 43572434121): every lane's temporary backend applied 442 of 442. The reds are the families you named, with one more consumer of `beginImpersonation` you did not name: D239-E6 in `e2e/i18n-sign-in-language.spec.ts`. It joins STEP 4's by-id run.
+
+1. THE TYPES PATCH — `f1-doors-2-types.patch` in the unzipped folder, beside this ruling. Apply it with `git apply` from the repository root; never retype it.
+   - It changes `src/integrations/supabase/types.ts` only: the `Returns` of the ten doors becomes `Json`. Nothing else in the file moves.
+   - How it was built (a departure from the plan's "regenerated from ethio-staging", named here): by script from the lane's own file, after reading on ethio-staging that the ten return types are jsonb and that no argument list changed. ethio-staging has taken no other migration since the last regeneration, so a full regeneration has nothing else to write. If the typecheck disagrees with the patch, that is a finding for §13, not something to edit by hand.
+
+2. AMHARIC — none owed: the files add no string. A string STEP 3 adds is listed in the report key by key with its English and its Amharic, and the supervisor reads it there.
+
+3. YOUR EIGHT DECISIONS.
+   1. Audit stays `log_audit` with each door's own meta — accepted.
+   2. `admin_list_roles` takes `profiles:view` alone — accepted. Its one caller is the users console (`src/features/admin/users/admin-users-service.ts`), and neither database has a holder of `roles:view` without `profiles:view`.
+   3. `begin_impersonation`'s super-admin rule is its permission — accepted, with the standing check of item 5.
+   4. The gate order is `door_context`'s — accepted for `begin_impersonation` (a refused begin is counted). NOT accepted for `end_impersonation`'s dial: item 4 (b).
+   5. The manifest's codes cells change in the migration's commit — accepted.
+   6. The seven public-surface lines as restated grants — accepted.
+   7. The deactivated caller of part 4's gate proof is not a super admin — accepted.
+   8. The scratch permission rows' names — accepted.
+
+4. PART 6 — ONE FURTHER FILE, written FIRST in the build so `db:proof` runs early. It redeclares two doors and one reader of counts, each WHOLE from its live body, by `CREATE OR REPLACE` (no signature or return type changes, so no DROP and no types change). It rides the turn's ONE push.
+   (a) `admin_update_profile` is GLOBAL: `door_context('staff', 'profiles', 'update', 'staff_moderation', NULL, 'global')`. Nothing else in its body changes.
+       Why: scoped by the argument, an honest country holder is always refused (the editor sends no country) while the scope says nothing about the row being edited. Global is the family's stricter reading and makes the three user doors agree (`admin_set_account_status`, `admin_get_user`). No country-scoped holder exists on either database, so no one loses a right they use.
+       The manifest's line: country `global`, with a reason cell that says the argument is a new value, not the row's country.
+       Proofs: the header and md5 facts; the gates; a country holder is refused every call — with no country, with another country and with its own (`permissionDenied:scope`), nothing written and no dial spent; a global holder changes a scratch user's country, with its row and audit line. The door's own codes are on lines this file does not change: cite part 3's proof in the header, and prove one of them again here with every earlier check cleared.
+   (b) `end_impersonation` spends `account_pref`, not `impersonation`: `door_context('owner', NULL, NULL, 'account_pref')` and `door_refused('end_impersonation', 'account_pref', SQLERRM)`. Nothing else in its body changes.
+       Why: with one dial for both, a caller at the ceiling could not end a live session by hand. An exit never spends what its entry rations.
+       The manifest's line: dial `account_pref`. The pre-check asserts the dial exists.
+       Proofs: a begin and two ends (one refused `noActiveSession`, one success) leave the `impersonation` count at the begin's alone and the `account_pref` count at the two ends; the session's row and audit line as part 4 proved them.
+   (c) The lint of item 5, in `public.security_lints()`.
+   The file's rules: stamped after part 5; its mark above 20261114090400 by rule 30's form; the pre-check asserts part 5's mark and the three live md5 — `admin_update_profile` e090d5a3debbf646f9df49911ef10b24 and `end_impersonation` a137b26ca25c398eef75a5f44b53b4dc (your table's new values, read back on ethio-staging), and `security_lints()` 5b28264e213bb814054a93d17ea118bb (read on both databases; no carriage return); the pre-stop scan, `bash scripts/check-migrations.sh` and `bun run db:proof --fresh` before the push, their lines in the report.
+   With it, in the same commit: the two manifest lines; `scripts/doors/manifest.ts`'s header comment gains the two rules — `arg:` names the country of the row the door writes or creates, and an argument that is a new value for an existing row's country is not a scope (such a door is `row:` or `global`); a door that only closes what another door opened names a dial other than its opener's; every comment, public-surface reason and `docs/features/` line that still says "match" for `admin_update_profile` or "dial impersonation" for `end_impersonation`.
+   The pairing line for the report's §9: "apply <part 6's fragment> → expect mark <its mark>". The supervisor applies it on ethio-staging when the final report arrives. Until then the final push's `E2E preflight` and the staging E2E job are red with STAGING BEHIND naming part 6: expected, named under §12 Limits, NOT a stop and not a reason for a second push. The lanes on temporary backends judge the turn.
+
+5. THE STANDING CHECK FOR DECISION 3 — a sixth lint in `public.security_lints()`.
+   - Name `impersonation_reach`, level ERROR. Its count is the number of roles other than `super_admin` that reach `impersonation:use` or `impersonation:manage` through `get_role_hierarchy` — part 4's pre-check, as a count.
+   - `scripts/security-lints-baseline.json` gains the name at 0; `scripts/security-lints.ts` and `scripts/security-lints.test.ts` wherever the lint names are listed; every other list the name must join is found by your own grep and named in §10.
+   - Proof in part 6: the count is 0; with `impersonation:use` granted to a scratch role inside the rolled-back block it is 1.
+   - The smoke lane and the nightly already run these lints, so no workflow changes.
+
+6. STEPS 3 TO 7 — as the task file says, in this order: part 6 and its commit; the client and the tests (STEPS 3 and 4); the docs; then the gate, the by-id browser check, the self-review, ONE push, and the report while CI runs.
+   - `get_active_impersonation` now refuses a caller who is signed out or deactivated instead of answering no rows. `src/features/admin/impersonation/impersonation-service.ts` throws on it. Say in §10 what a visitor sees in that case; it must be nothing — no notice, no error line.
+   - The users console needs no change for part 6: the codes are the same.
+
+7. THE NUMBERS AND THE RECORDS (report §14, word for word; DEC-346). The supervisor assigns these numbers here, so write them beside rule 60's plain labels; that rule's "no numbers" is about a number the executor would choose.
+   - DEC-380 — "The users family is global until country staff is a product feature: `admin_update_profile`, `admin_set_account_status` and `admin_get_user` take the global mode; `admin_list_users` keeps the filter. The target-row mode (`row:profiles.home_country_code`) for the three is a roadmap line. Two rules join the manifest's grammar: an `arg:` country names the row the door writes or creates, never a new value for an existing row; a door that only closes what another door opened spends a dial other than its opener's. `end_impersonation` spends `account_pref`."
+   - DEC-381 — "`begin_impersonation`'s super-admin rule is the permission `impersonation:use`, held by `super_admin` alone and assignable to no custom role; the lint `impersonation_reach` (ERROR, baseline 0) holds it on every push and every night. View-as v2 (DEC-373) decides who else may hold it, by changing the lint's baseline in a recorded decision."
+   - INC-1151 — "`admin_update_profile`'s country scope read the country ARGUMENT (the manifest's F1-1 line): the argument is the new value, so the scope did not bind the row being edited and refused an honest country holder. Found at the F1-2 migration stop, before any country-scoped holder existed; fixed in part 6 (global). Class: a manifest cell grounded by signature; the other `arg:` lines name the written row's country and are confirmed family by family in their own turns."
+   - INC-1152 — "`end_impersonation` spent the dial `impersonation` (the manifest's F1-1 line): at the ceiling a live session could not be ended by hand. Found at the F1-2 migration stop, before ethio-prod; fixed in part 6 (`account_pref`). Class: an exit rationed by its entry's dial."
+   - One roadmap line under the Ops phase: "The users console for country staff — the three user doors on `row:profiles.home_country_code`, with a second scope check when the country itself is changed (DEC-380)."
+   - Register row: the door mechanism's row gains this family; number none.

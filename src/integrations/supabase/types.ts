@@ -4287,7 +4287,7 @@ export type Database = {
           p_display_name?: string
           p_name: string
         }
-        Returns: string
+        Returns: Json
       }
       admin_delete_attribute: {
         Args: { p_confirm_key: string; p_id: string }
@@ -4302,7 +4302,7 @@ export type Database = {
         Args: { p_id: string; p_slug: string }
         Returns: undefined
       }
-      admin_delete_role: { Args: { p_role_id: string }; Returns: undefined }
+      admin_delete_role: { Args: { p_role_id: string }; Returns: Json }
       admin_discard_legal_draft: {
         Args: { p_version_id: string }
         Returns: Json
@@ -5077,7 +5077,7 @@ export type Database = {
       admin_screening_facts: { Args: { p_listing_id: string }; Returns: Json }
       admin_set_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_ai_feature: {
         Args: {
@@ -5181,7 +5181,7 @@ export type Database = {
       }
       admin_set_role_permission: {
         Args: { p_granted: boolean; p_permission_id: string; p_role_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_translation_status: {
         Args: { p_action: string; p_key: string; p_lang: string }
@@ -5250,7 +5250,7 @@ export type Database = {
           p_seller_alias?: string
           p_user_id: string
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_update_role: {
         Args: {
@@ -5258,7 +5258,7 @@ export type Database = {
           p_display_name?: string
           p_role_id: string
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_upsert_attribute: {
         Args: {
@@ -5377,7 +5377,7 @@ export type Database = {
           p_scope_country?: string
           p_target_user: string
         }
-        Returns: undefined
+        Returns: Json
       }
       attr_allowed_check: {
         Args: {
@@ -5480,10 +5480,7 @@ export type Database = {
       baseline_level_key: { Args: never; Returns: string }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
-        Returns: {
-          expires_at: string
-          session_id: string
-        }[]
+        Returns: Json
       }
       business_name_rule: { Args: { p_name: string }; Returns: string }
       business_reason: { Args: { p_rule: string }; Returns: string }
@@ -5687,7 +5684,7 @@ export type Database = {
           origin_id: string
         }[]
       }
-      end_impersonation: { Args: { p_session: string }; Returns: undefined }
+      end_impersonation: { Args: { p_session: string }; Returns: Json }
       entity_source_value: {
         Args: { p_field: string; p_id: string; p_type: string }
         Returns: string
@@ -6293,7 +6290,7 @@ export type Database = {
       reveal_listing_contact: { Args: { p_public_id: string }; Returns: Json }
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
-        Returns: undefined
+        Returns: Json
       }
       save_listing: { Args: { p_public_id: string }; Returns: Json }
       save_posting_identity: {
