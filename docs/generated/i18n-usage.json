@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 724,
-  "dynamicCallSites": 440,
+  "dynamicCallSites": 439,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -7368,10 +7368,6 @@
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/auth",
-      "/legal/accept",
-      "/my-listings",
-      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7380,10 +7376,6 @@
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
-      "/auth",
-      "/legal/accept",
-      "/my-listings",
-      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"

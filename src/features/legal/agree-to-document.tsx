@@ -1,10 +1,15 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { stateBorder } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { revealControl } from "@/components/forms/reveal-control";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RequiredMark } from "@/features/posting/field";
 import { useI18n, type MessageKey } from "@/i18n";
 import { safeHref } from "@/lib/safe-href";
 
 type DocumentRole = "terms" | "privacy" | "publishing";
+
+/** The tick's one refusal, read through the screen's own `message`. */
+const NOT_TICKED = "notTicked";
 
 /**
  * Bundle 22 turn 32 (D230, DEC-236, D231) — THE ONE AGREEMENT TO A DOCUMENT. A person ticks that they have
@@ -38,16 +43,10 @@ export function AgreeToDocument({
   required?: boolean;
 }) {
   const { t } = useI18n();
-  const row = useRef<HTMLDivElement>(null);
   const control = useRef<HTMLButtonElement>(null);
   const shown = refused && !checked;
   useEffect(() => {
-    if (!shown) return;
-    const reduced =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    row.current?.scrollIntoView?.({ block: "start", behavior: reduced ? "auto" : "smooth" });
-    control.current?.focus({ preventScroll: true });
+    if (shown && control.current !== null) revealControl(control.current);
   }, [shown]);
   const text = t(sentence);
   const parts: ReactNode[] = [];
@@ -77,45 +76,28 @@ export function AgreeToDocument({
     end = match.index + match[0].length;
   }
   parts.push(text.slice(end));
-  const messageId = `${id}-message`;
-  const border = shown
-    ? "border-destructive ring-1 ring-destructive"
-    : required && !checked
-      ? "border-destructive"
-      : "";
   return (
-    <div
-      ref={row}
-      data-testid="agree-to-document"
-      data-refused={shown ? "1" : undefined}
-      className="scroll-mt-20 space-y-2"
+    <Field
+      id={id}
+      label={parts}
+      required={required}
+      refusal={shown ? { field: id, reason: NOT_TICKED } : null}
+      family={{ words: { [NOT_TICKED]: message } }}
+      layout="choice"
+      testId="agree-to-document"
+      refusalTestId="agree-message"
+      markTestId="post-required-mark"
     >
-      {shown ? (
-        <p
-          id={messageId}
-          role="alert"
-          data-testid="agree-message"
-          className="text-sm text-destructive"
-        >
-          {t(message)}
-        </p>
-      ) : null}
-      <label htmlFor={id} className="flex min-h-11 items-start gap-3 text-sm text-foreground">
+      {(field) => (
         <Checkbox
           ref={control}
-          id={id}
+          {...field}
           data-testid={testId}
           checked={checked}
-          aria-required={required || undefined}
-          aria-invalid={shown || undefined}
-          aria-describedby={shown ? messageId : undefined}
           onCheckedChange={(value) => onCheckedChange(value === true)}
-          className={`mt-1 ${border}`.trim()}
+          className={`mt-1 ${stateBorder(shown, required && !checked)}`.trim()}
         />
-        <span>
-          {parts} {required ? <RequiredMark /> : null}
-        </span>
-      </label>
-    </div>
+      )}
+    </Field>
   );
 }

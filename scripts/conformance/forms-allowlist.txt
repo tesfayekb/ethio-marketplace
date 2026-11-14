@@ -45,7 +45,6 @@ CF-FORM-1 src/features/admin/translations/strings-page.tsx (2) | wave 3 — the 
 CF-FORM-1 src/features/admin/translations/translator-card.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin/users/user-detail.tsx (6) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/auth/mfa/step-up-dialog.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
-CF-FORM-1 src/features/legal/agree-to-document.tsx (1) | wave 2, with auth.tsx — on the Field it no longer carries posting's labels to /auth, and 24 post.* keys then move from the base strings layer to the member layer (CF-SL-1), a catalogue change outside this turn's one string | DEC-339
 CF-FORM-1 src/features/posting/map/map-pin-dropper.tsx (1) | no wave named by the plan — the pin's two precision radios, drawn as list rows (no Field layout in that look yet) | DEC-339
 CF-FORM-1 src/routes/auth.tsx (4) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-1 src/routes/auth_.reset.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339

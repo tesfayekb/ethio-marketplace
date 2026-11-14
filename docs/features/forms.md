@@ -83,7 +83,9 @@ count that rises is a new finding, a count that falls leaves its line stale.
 family, so its importers and the e2e ids do not move. The wizard's mirror of the
 door's `required` rule is the gate, keyed by the step; step 1 reports a missing
 leaf as `category_id` (its Next stays `disabled`, PW-1). Steps where, who,
-category, photos, pricing and review draw their answers in the Field; the
-precision radios of the map pin and the agreement tick (`agree-to-document.tsx`,
-wave 2 with `/auth`) remain allowlist lines. The dead `src/components/ui/form.tsx`
-was deleted.
+category, photos, pricing and review draw their answers in the Field, and so does
+the agreement tick (`agree-to-document.tsx`, a `choice` Field with its own family:
+`/auth` and `/legal/accept` no longer carry posting's field code, so the 24 `post.*`
+labels it named moved from the base strings layer to the member layer, byte for
+byte). The precision radios of the map pin remain an allowlist line. The dead
+`src/components/ui/form.tsx` was deleted.
