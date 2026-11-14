@@ -317,16 +317,18 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
 
   it("TRR-6 each writer refusal maps to its code, the text stays in the log and no reply carries it", async () => {
     const table: [string, string][] = [
-      ["permission denied", "permission"],
+      ["permissionDenied", "permission"],
       ["step-up required", "stepUp"],
       ["step-up required: no verified factor", "stepUp"],
       ["step-up required: verification expired", "stepUp"],
-      ["not assigned to this language", "scope"],
-      ["base language rows are sync-owned", "baseLocked"],
-      ["unknown translation key", "unknownTarget"],
-      ["unknown entity", "unknownTarget"],
-      ["unknown entity field", "unknownTarget"],
-      ["empty machine value", "emptyValue"],
+      ["permissionDenied:language", "scope"],
+      ["baseLocked", "baseLocked"],
+      ["unknownKey", "unknownTarget"],
+      ["unknownEntity", "unknownTarget"],
+      ["badValue:field", "unknownTarget"],
+      ["required:value", "emptyValue"],
+      ["rateLimited", "writerFailed"],
+      ["permission denied", "writerFailed"],
       ["duplicate key value violates unique constraint", "writerFailed"],
     ];
     const sent = items(table.length);
@@ -341,8 +343,8 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       },
     });
     const reply = JSON.stringify(answer.body);
-    for (const [message] of table) {
-      expect(reply).not.toContain(message);
+    for (const [message, code] of table) {
+      if (message !== code) expect(reply).not.toContain(message);
       expect(state.logs.some((line) => line.includes(message))).toBe(true);
     }
     // The entity writer's refusals take the same table.
@@ -351,8 +353,8 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       "0f0e0d0c-0b0a-4090-8000-000000000002",
       "0f0e0d0c-0b0a-4090-8000-000000000003",
     ];
-    state.writerErrors.set(entity[0] ?? "", "unknown entity field");
-    state.writerErrors.set(entity[1] ?? "", "empty machine value");
+    state.writerErrors.set(entity[0] ?? "", "badValue:field");
+    state.writerErrors.set(entity[1] ?? "", "required:value");
     const entityAnswer = await post({
       scope: "entity",
       target_lang: "am",

@@ -15,7 +15,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { serverMessage, translationErrorKey } from "./translations-service";
+import { serverMessage, translationRefusalKey } from "./translations-service";
 import { useApproveAllEntityTranslations, useApproveAllTranslations } from "./use-translations";
 
 /**
@@ -75,7 +75,7 @@ export function ApproveAllBar({
         if (box.result) setSummary(box.result);
       })
       .catch((failure: unknown) => {
-        setErrorKey(translationErrorKey(failure));
+        setErrorKey(translationRefusalKey(failure));
         setErrorDetail(serverMessage(failure));
       });
   };

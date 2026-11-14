@@ -16,7 +16,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
 import { PSEUDO_LANG, pseudoize } from "./pseudo";
-import { serverMessage, translationErrorKey, type LanguageRow } from "./translations-service";
+import { serverMessage, translationRefusalKey, type LanguageRow } from "./translations-service";
 import { usePseudoGenerate } from "./use-translations";
 
 /** INC-1137 — a run names at most this many of the keys it could not write. */
@@ -77,7 +77,7 @@ export function PseudoBar({
       setFailedKeys(result.failedKeys.slice(0, NAMED_FAILURES));
     })
       .catch((failure: unknown) => {
-        setErrorKey(translationErrorKey(failure));
+        setErrorKey(translationRefusalKey(failure));
         setErrorDetail(serverMessage(failure));
       })
       .finally(() => setProgress(null));

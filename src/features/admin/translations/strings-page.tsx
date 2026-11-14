@@ -38,7 +38,7 @@ import { TransferBar } from "./transfer-bar";
 import {
   pickEntityStats,
   serverMessage,
-  translationErrorKey,
+  translationRefusalKey,
   type LanguageRow,
   type TranslationRow,
 } from "./translations-service";
@@ -728,7 +728,7 @@ function StringEditor({
     void guard(action)
       .then(() => onSaved(true))
       .catch((failure: unknown) => {
-        setErrorKey(translationErrorKey(failure));
+        setErrorKey(translationRefusalKey(failure));
         setErrorDetail(serverMessage(failure));
       });
   };

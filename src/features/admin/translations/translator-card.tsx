@@ -11,7 +11,7 @@ import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 import { authKey } from "@/lib/query-keys";
 
-import { translationErrorKey } from "./translations-service";
+import { translationRefusalKey } from "./translations-service";
 import { useLanguages, useSetTranslatorLanguages } from "./use-translations";
 
 /**
@@ -159,7 +159,7 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
                     queryKey: authKey("admin", "translator-scope", userId),
                   });
                 })
-                .catch((failure: unknown) => setErrorKey(translationErrorKey(failure)));
+                .catch((failure: unknown) => setErrorKey(translationRefusalKey(failure)));
             }}
           >
             {t("admin.translations.translator.save")}

@@ -50,19 +50,24 @@ detail}]}` — supabase-js surfaces it as `error.message` = the code. A RAISE th
 - `manifest.txt` — one line per browser-callable function of schema public (265 at F1-1: 32
   owner, 91 staff, 1 public door, 22 public readers, 28 signed-in readers, 56 staff readers, 35
   helpers): `name(arg types) | class | roles | permission | step-up | dial | audit | country |
-acceptance | codes | reason`. `manifest.ts` is the grammar; `catalogue.ts` + `identity.ts` read
+acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_package_price`
+  is `row:package_prices.country_code` (its scope is F1-6's census). `manifest.ts` is the grammar; `catalogue.ts` + `identity.ts` read
   the migrations' last grant state and spell a function's identity as the live catalogue does.
-- `check-doors.ts` — the self-test runs FIRST in every mode (seven planted finding kinds —
+- `check-doors.ts` — the self-test runs FIRST in every mode (eight planted finding kinds —
   `missing-line`, `line-without-door`, `gate-missing-for-class`, `class-mismatch`,
-  `grant-unseen`, `grant-without-caller`, `scope-mode-missing` — each must fire, a clean pair
-  must fire nothing; `SELF_TEST=1` runs it alone). Static mode (the guards job of `ci.yml`)
+  `grant-unseen`, `grant-without-caller`, `scope-mode-missing`, `row-column-unknown` — each
+  must fire, a clean pair must fire nothing; `SELF_TEST=1` runs it alone). `row-column-unknown`
+  (F1-3): a line's `row:<table.column>` cell names a column the migrations declare —
+  `columns.ts` reads every `CREATE TABLE` column list, `ADD COLUMN` and `RENAME COLUMN … TO`,
+  comments and `DO` blocks blanked; both modes judge it, with no allowance. Static mode (the guards job of `ci.yml`)
   judges the tree; `--live <tsv>` (the smoke lane of `local-backend-proof.yml`, the TSV from
   `--live-query` through psql) judges the backend's catalogue. The live query is the file
   `scripts/doors/live-query.sql`, printed verbatim — never a string code assembles (INC-1070: the
   first build joined its clauses without their boundaries and the lane's psql refused it). `judge.ts` holds the kinds; a
   legacy body (no `door_context`) is judged by the old caller-gates rule, a shell body by the
   literals its manifest line promises. Allowances in `check-doors-allowlist.txt` (`<kind> <key>
-| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…7 (DOORS-5: the printed query's clauses; DOORS-6: the live mode
+| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…8 (DOORS-8: the column census on a planted
+  migration and every `row:` cell of the tree; DOORS-5: the printed query's clauses; DOORS-6: the live mode
   judges the tree census too — INC-1072: a `grant-without-caller` allowance the live mode never
   judged read as stale and killed the smoke lane's first live run; DOORS-7: a body the
   migrations hand over in chunks — `migration_text_parts` INSERTs assembled and EXECUTEd at
@@ -107,6 +112,23 @@ src/features/my-listings/promote-service.ts.
   country is not a scope, and such a door is `row:` or `global` (`admin_update_profile` is
   `global`, INC-1151); a door that only closes what another door opened names a dial other than
   its opener's (`end_impersonation` spends `account_pref`, INC-1152).
+- **F1-3 — translations, languages and the legal texts** (`docs/governance/briefs/f1-doors-3.md`;
+  twelve files `20261114113500` → `20261114114600`, marks `20261114130000` → `20261114131100`,
+  and `20261114130400`, mark `20261114150000`, which moves the two translation status doors onto
+  `staff_translation`): of the family's forty manifest lines, 24 doors sit on `door_context` and
+  the shell and 15 staff readers on its reader form; `translation_scope_ok` keeps its body for
+  F1-7. The first doors scoped by their target row's country: `row:legal_documents.country_code`.
+  Every void door answers `{ ok: true }`. The client reads the codes through `readRefusal` with
+  the family's words: `TRANSLATION_REFUSALS` / `translationRefusalKey` (translations-service.ts;
+  `permissionDenied:language` reads the scope line, `badValue:code` the code line; every code the
+  doors raise has words, so none is drawn raw; a screen extends the family with its own layer's
+  words — the languages page's `catalogEmpty` → the sync-first line) and `LEGAL_REFUSALS` /
+  `legalRefusalKey` / `legalRefusalName` (legal-service.ts). The import route's relay answers a
+  P0D01 refusal by its code, the shell's status and its detail (IMR-13); the translate route's
+  writer reasons read the machine doors' codes (TRR-6). `DOOR_CODES` did not grow. The
+  acceptance export passes the gate, spends `legal_export` and writes its audit line on every
+  page; the client asks pages of the door's maximum, 5000, so one hour reads at most 60 × 5000 =
+  300,000 acceptances, and a larger export is refused `rateLimited`, never cut short.
 - **The lint `impersonation_reach`** (`public.security_lints()`, ERROR, baseline 0; DEC-381)
   holds `begin_impersonation`'s permission to `super_admin` alone on every push and every night.
 

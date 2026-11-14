@@ -282,13 +282,13 @@ test.describe("Legal doors", () => {
       ["admin by role", asAdmin],
     ] as const) {
       const refused = await caller.rpc("admin_save_legal_draft", save);
-      expect(refused.error, `${who} is refused the draft door`).toContain("permission denied");
+      expect(refused.error, `${who} is refused the draft door`).toContain("permissionDenied");
       const publishRefused = await caller.rpc("admin_publish_legal_version", {
         p_version_id: fixture.publishedId,
         p_material: false,
       });
       expect(publishRefused.error, `${who} is refused the publish door`).toContain(
-        "permission denied",
+        "permissionDenied",
       );
     }
 
@@ -299,7 +299,7 @@ test.describe("Legal doors", () => {
       staleRefused.error,
       "the super admin without a fresh second factor gets the step-up refusal",
     ).not.toBeNull();
-    expect(staleRefused.error).not.toContain("permission denied");
+    expect(staleRefused.error).not.toContain("permissionDenied");
 
     // The permitted caller: pooled super admin with a fresh second factor (signInJobSuperAdmin).
     await signInJobSuperAdmin(page);
@@ -706,12 +706,12 @@ test.describe("Legal doors", () => {
       ["admin by role", asAdmin],
     ] as const) {
       const refused = await caller.rpc("admin_legal_settings");
-      expect(refused.error, `${who} is refused the settings read`).toContain("permission denied");
+      expect(refused.error, `${who} is refused the settings read`).toContain("permissionDenied");
       const writeRefused = await caller.rpc("admin_set_legal_settings", {
         p_settings: { notice_days: 14 },
       });
       expect(writeRefused.error, `${who} is refused the settings write`).toContain(
-        "permission denied",
+        "permissionDenied",
       );
     }
 
@@ -721,7 +721,7 @@ test.describe("Legal doors", () => {
       p_settings: { notice_days: 14 },
     });
     expect(staleRefused.error, "stale second factor").not.toBeNull();
-    expect(staleRefused.error).not.toContain("permission denied");
+    expect(staleRefused.error).not.toContain("permissionDenied");
 
     // Bad values, each named (D5): a bad e-mail, an out-of-range number, an unknown key.
     const badEmail = await staff.rpc("admin_set_legal_settings", {
@@ -811,7 +811,7 @@ test.describe("Legal doors", () => {
 
     const plainRefused = await caller.rpc("admin_user_legal_history", { p_user_id: person.id });
     expect(plainRefused.error, "a plain user is refused the staff history").toContain(
-      "permission denied",
+      "permissionDenied",
     );
     const asAdmin = await asPerson(admin);
     const adminHistory = await asAdmin.rpc("admin_user_legal_history", { p_user_id: person.id });
@@ -909,16 +909,14 @@ test.describe("Legal doors", () => {
     const plain = await leaseUser();
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    // Service execution has no person's JWT: exercise the missing-caller gate,
-    // without granting anonymous callers access to either staff function.
-    const missingList = await adminClient().rpc("admin_legal_documents");
-    expect(missingList.error?.message, "missing caller: staff list").toContain("not authenticated");
-    const missingVersion = await adminClient().rpc("admin_legal_version", {
+    // F1-3: the readers are on door_context, where a job (the service role) passes every gate;
+    // anonymous callers still hold no grant on either staff function.
+    const jobList = await adminClient().rpc("admin_legal_documents");
+    expect(jobList.error, "the service role reads the staff list").toBeNull();
+    const jobVersion = await adminClient().rpc("admin_legal_version", {
       p_version_id: fixture.publishedId,
     });
-    expect(missingVersion.error?.message, "missing caller: staff version").toContain(
-      "not authenticated",
-    );
+    expect(jobVersion.error, "the service role reads the staff version").toBeNull();
 
     const asPlain = await asPerson(plain);
     const asAdmin = await asPerson(admin);
@@ -927,11 +925,11 @@ test.describe("Legal doors", () => {
       ["admin by role", asAdmin],
     ] as const) {
       const list = await caller.rpc("admin_legal_documents");
-      expect(list.error, `${who}: staff list`).toContain("permission denied");
+      expect(list.error, `${who}: staff list`).toContain("permissionDenied");
       const version = await caller.rpc("admin_legal_version", {
         p_version_id: fixture.publishedId,
       });
-      expect(version.error, `${who}: staff version`).toContain("permission denied");
+      expect(version.error, `${who}: staff version`).toContain("permissionDenied");
     }
 
     await signInJobSuperAdmin(page);
@@ -1252,7 +1250,7 @@ test.describe("Legal doors", () => {
     expect(done.data).toEqual([]);
   });
 
-  test("LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row", async ({
+  test("LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row per page", async ({
     page,
   }) => {
     const kind = `${RUN_TAG}-y`;
@@ -1275,15 +1273,18 @@ test.describe("Legal doors", () => {
     }
     const args = { p_version_id: fixture.publishedId };
     const anon = await asAnonymous();
-    for (const caller of [anon, plainCaller, adminCaller]) {
+    expect((await anon.rpc("admin_export_legal_acceptances", args)).error).toContain(
+      "permission denied",
+    );
+    for (const caller of [plainCaller, adminCaller]) {
       expect((await caller.rpc("admin_export_legal_acceptances", args)).error).toContain(
-        "permission denied",
+        "permissionDenied",
       );
     }
     const stale = await asPerson(pooledSuperAdminCredentials());
     const staleAnswer = await stale.rpc("admin_export_legal_acceptances", args);
     expect(staleAnswer.error).not.toBeNull();
-    expect(staleAnswer.error).not.toContain("permission denied");
+    expect(staleAnswer.error).not.toContain("permissionDenied");
     await signInJobSuperAdmin(page);
     const staff = asBearer(await superAdminToken(page));
     for (const limit of [0, 5001]) {
@@ -1365,7 +1366,7 @@ test.describe("Legal doors", () => {
       .eq("action", "legal.acceptances_exported")
       .eq("entity_id", fixture.publishedId);
     expect(audit.error).toBeNull();
-    expect(audit.data).toHaveLength(1);
+    expect(audit.data).toHaveLength(3);
   });
   test(
     "LG-32 acceptance records the language actually shown, version by version",

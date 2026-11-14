@@ -11,8 +11,8 @@ import { LegalText } from "@/features/legal/legal-text";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import {
-  legalErrorKey,
-  legalErrorName,
+  legalRefusalKey,
+  legalRefusalName,
   FACT_KEYS,
   acceptancesCsv,
   exportLegalAcceptances,
@@ -425,8 +425,8 @@ export function LegalVersionView({
                               })
                               .catch((failure: unknown) => {
                                 console.error("[client-error] legal translation save", failure);
-                                setTranslationErrorName(legalErrorName(failure));
-                                setTranslationError(legalErrorKey(failure));
+                                setTranslationErrorName(legalRefusalName(failure));
+                                setTranslationError(legalRefusalKey(failure));
                               })
                               .finally(() => setTranslationSaving(false));
                           }}
