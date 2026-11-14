@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43592099375
-- Commit: `9c82af68702f96e3bb8823be78edc1109016d521`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43607584070
+- Commit: `d993b49105a40c9745bf162f5fc1d9ed24ef64b6`
 - Attempt: 1
-- Written (UTC): 2026-11-14T12:18:52.900Z
+- Written (UTC): 2026-11-14T15:17:42.735Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -20,54 +20,54 @@ No warning step ran in this run.
 ### Tail (last 60 lines)
 
 ```text
-  - 20261114114000_337ffc64-88cc-4dc7-91a4-bb8c9c004293.sql
-  - 20261114114100_c2dc755f-2fd5-4da6-acd2-d9bd4ee5193d.sql
-  - 20261114114200_0165890e-7570-4489-a6ca-c4799a469b3c.sql
-  - 20261114114300_a0caf727-f58a-419d-9480-1ff877dc1e67.sql
-  - 20261114114400_6eff6f7d-471f-4392-bb50-ae2dd53fa274.sql
-  - 20261114114500_fedfce7d-18b0-409e-9ba2-d7f465ce3d2b.sql
-  - 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql
-STAGING BEHIND: apply 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 21 of 28)
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 22 of 28)
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 23 of 28)
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 24 of 28)
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 25 of 28)
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
+[e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
+[e2e:preflight] missing migration file(s):
+  - 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
 [e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 26 of 28)
-STAGING BEHIND: apply 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql to ethio-staging before E2E can pass
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
 [e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
 [e2e:preflight] missing migration file(s):
-  - 20261114113500_1dd7586c-5155-4362-9ac6-c0dc51f5f822.sql
-  - 20261114113600_c0e4a4ff-376e-4a62-ab9a-25d6f2a8a0fb.sql
-  - 20261114113700_607adce0-991b-45c1-acef-22f458b534dc.sql
-  - 20261114113800_d7031bb9-7f2e-4fbb-bf54-6f5e5870ba13.sql
-  - 20261114113900_a501b0a5-9fcf-43c1-a389-d140de5bdf92.sql
-  - 20261114114000_337ffc64-88cc-4dc7-91a4-bb8c9c004293.sql
-  - 20261114114100_c2dc755f-2fd5-4da6-acd2-d9bd4ee5193d.sql
-  - 20261114114200_0165890e-7570-4489-a6ca-c4799a469b3c.sql
-  - 20261114114300_a0caf727-f58a-419d-9480-1ff877dc1e67.sql
-  - 20261114114400_6eff6f7d-471f-4392-bb50-ae2dd53fa274.sql
-  - 20261114114500_fedfce7d-18b0-409e-9ba2-d7f465ce3d2b.sql
-  - 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql
-STAGING BEHIND: apply 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql to ethio-staging before E2E can pass
+  - 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
 [e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 27 of 28)
-STAGING BEHIND: apply 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql to ethio-staging before E2E can pass
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
 [e2e:preflight] mechanism: public.e2e_migration_ledger() definer RPC (public.migration_marks)
 [e2e:preflight] missing migration file(s):
-  - 20261114113500_1dd7586c-5155-4362-9ac6-c0dc51f5f822.sql
-  - 20261114113600_c0e4a4ff-376e-4a62-ab9a-25d6f2a8a0fb.sql
-  - 20261114113700_607adce0-991b-45c1-acef-22f458b534dc.sql
-  - 20261114113800_d7031bb9-7f2e-4fbb-bf54-6f5e5870ba13.sql
-  - 20261114113900_a501b0a5-9fcf-43c1-a389-d140de5bdf92.sql
-  - 20261114114000_337ffc64-88cc-4dc7-91a4-bb8c9c004293.sql
-  - 20261114114100_c2dc755f-2fd5-4da6-acd2-d9bd4ee5193d.sql
-  - 20261114114200_0165890e-7570-4489-a6ca-c4799a469b3c.sql
-  - 20261114114300_a0caf727-f58a-419d-9480-1ff877dc1e67.sql
-  - 20261114114400_6eff6f7d-471f-4392-bb50-ae2dd53fa274.sql
-  - 20261114114500_fedfce7d-18b0-409e-9ba2-d7f465ce3d2b.sql
-  - 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql
-STAGING BEHIND: apply 20261114114600_c82190dd-d206-4a98-91c8-0d4d71d5a953.sql to ethio-staging before E2E can pass
+  - 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql
+STAGING BEHIND: apply 20261114130400_5624a06f-712b-40f7-9ee6-b54df2c85364.sql to ethio-staging before E2E can pass
 [e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt 28 of 28)
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/2cac0ca3-59b1-42f2-a210-a04795b64059' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/c32703fe-f7d1-4d51-80a9-58f88530c900' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -110,7 +110,7 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (19/19 source(s) with usable results, 24 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (20/20 source(s) with usable results, 10 context file(s) found).
 Verdict class: TESTS (e2e-verdict-class.txt).
 publish-evidence: published docs/tracking/branches/cursor/f1-doors-3/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
@@ -138,7 +138,7 @@ publish-evidence: published docs/tracking/branches/cursor/f1-doors-3/e2e-last-fa
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-5d4f49494191… (1 read)
+  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-8373de50f1e8… (0 read)
   EVIDENCE_REF: cursor/f1-doors-3
 ##[endgroup]
 lanes=failure
@@ -147,7 +147,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/661eed14-cd5c-424f-a7d0-c634474b4fbb' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/75af9bc2-b9de-4928-b7c9-e9ca4aaef7b7' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
