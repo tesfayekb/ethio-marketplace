@@ -249,20 +249,26 @@ describe("check-doors (CF-DOORS)", () => {
     expect(cells.filter((column) => !declared.has(column))).toEqual([]);
   });
 
-  it("DOORS-4 the repository's tree reconciles: every browser-callable function has its line, every line its door", () => {
-    const findings = allow(staticFindings(ROOT));
-    expect(findings.map((finding) => `${finding.kind} ${finding.key} — ${finding.what}`)).toEqual(
-      [],
-    );
-    const { rows } = staticRows(ROOT);
-    const doors = rows.filter((row) => !row.trigger && browserCallable(row));
-    const manifest = parseManifest(
-      readFileSync(join(ROOT, "scripts", "doors", "manifest.txt"), "utf8"),
-    );
-    expect(manifest.errors).toEqual([]);
-    expect(manifest.lines.size).toBe(doors.length);
-    console.log(
-      `[doors] ${manifest.lines.size} manifest lines, ${doors.length} browser-callable functions`,
-    );
-  });
+  // The static census reads every migration, then the rows once more: 4.1 s on CI's runner at
+  // 1350b00, 6.1 to 6.8 s once F1-4a's 19 files joined the tree, so the default 5 s cannot hold.
+  it(
+    "DOORS-4 the repository's tree reconciles: every browser-callable function has its line, every line its door",
+    { timeout: 20_000 },
+    () => {
+      const findings = allow(staticFindings(ROOT));
+      expect(findings.map((finding) => `${finding.kind} ${finding.key} — ${finding.what}`)).toEqual(
+        [],
+      );
+      const { rows } = staticRows(ROOT);
+      const doors = rows.filter((row) => !row.trigger && browserCallable(row));
+      const manifest = parseManifest(
+        readFileSync(join(ROOT, "scripts", "doors", "manifest.txt"), "utf8"),
+      );
+      expect(manifest.errors).toEqual([]);
+      expect(manifest.lines.size).toBe(doors.length);
+      console.log(
+        `[doors] ${manifest.lines.size} manifest lines, ${doors.length} browser-callable functions`,
+      );
+    },
+  );
 });
