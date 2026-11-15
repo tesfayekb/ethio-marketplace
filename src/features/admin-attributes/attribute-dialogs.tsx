@@ -15,6 +15,7 @@ import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
+import { readRefusal } from "@/lib/refusal";
 import { cn } from "@/lib/utils";
 
 import {
@@ -37,7 +38,7 @@ import {
   useUnlinkAttribute,
   useUpsertAttribute,
 } from "./use-attributes";
-import { useAttributeRefusal } from "./attribute-refusals";
+import { ATTRIBUTE_REFUSALS, useAttributeRefusal } from "./attribute-refusals";
 import { useAttributeLabel } from "./use-attribute-label";
 import { AttributeOptionRows } from "./components/attribute-option-rows";
 import {
@@ -541,21 +542,18 @@ export function DeleteAttributeDialog({
   );
 
   /**
-   * C3e — the linked-refusal (`admin.attributes.error.deleteHasLinks:<n>`) is
-   * not a generic error line: it re-states the BLAST RADIUS with the server's
-   * own count, in the same amber line the operator read before typing the key.
+   * C3e — the linked-refusal (`deleteHasLinks:<n>`, F1-4a) is not a generic
+   * error line: it re-states the BLAST RADIUS with the server's own count, in
+   * the same amber line the operator read before typing the key.
    */
   const failDelete = (error: unknown) => {
-    const raw =
-      typeof (error as { message?: unknown }).message === "string"
-        ? (error as { message: string }).message
-        : "";
-    const match = /^admin\.attributes\.error\.deleteHasLinks:(\d+)$/.exec(raw);
-    if (match !== null) {
+    const read = readRefusal(error, ATTRIBUTE_REFUSALS);
+    const count = read.tail ?? "";
+    if (read.key === ATTRIBUTE_REFUSALS.words.deleteHasLinks && /^\d+$/.test(count)) {
       // F4 / AT5-ONE-MESSAGE: clear the generic error state so the node is
       // removed entirely; only the amber blast-radius line renders.
       setMessage(null);
-      setBlastCount(Number(match[1]));
+      setBlastCount(Number(count));
       return;
     }
     setBlastCount(null);
