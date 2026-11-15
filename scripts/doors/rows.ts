@@ -6,6 +6,7 @@ import { codeOf, walkFiles } from "../conformance/kit";
 import { sqlCodeOf } from "../conformance/migration-reader";
 import { pattern } from "../lib/pattern";
 import { callableBy, readCatalogue, type UnseenGrant } from "./catalogue";
+import { readOnce, type OnceOptions } from "./once";
 
 /**
  * Foundations 1 (DEC-333) — THE ROWS check-doors judges, from either source:
@@ -37,7 +38,14 @@ export function browserCallable(row: Pick<DoorRow, "anon" | "authenticated">): b
   return row.anon || row.authenticated;
 }
 
-export function staticRows(root: string): { rows: DoorRow[]; unseen: UnseenGrant[] } {
+export function staticRows(
+  root: string,
+  options?: OnceOptions,
+): { rows: DoorRow[]; unseen: UnseenGrant[] } {
+  return readOnce("rows", root, () => readStaticRows(root), options);
+}
+
+function readStaticRows(root: string): { rows: DoorRow[]; unseen: UnseenGrant[] } {
   const catalogue = readCatalogue(root);
   const rows: DoorRow[] = [];
   for (const fn of catalogue.functions.values()) {
@@ -121,7 +129,28 @@ export function chunkBodiesOf(sql: string): Array<{ name: string; body: string }
  * a policy or CHECK naming it, or another function of public calling it (its
  * catalogue body, or a chunk of a body the migrations assemble at apply).
  */
-export function treeCallers(root: string, rows: DoorRow[]): (name: string) => boolean {
+export function treeCallers(
+  root: string,
+  rows: DoorRow[],
+  options?: OnceOptions,
+): (name: string) => boolean {
+  const { code, policies, chunks } = readOnce("tree", root, () => readTree(root), options);
+  const bodies = [...rows, ...chunks];
+  return (name: string) => {
+    const quoted = pattern`["']${name}["']`;
+    if (quoted.test(code)) return true;
+    const called = pattern`\\b${name}\\s*\\(`;
+    if (called.test(policies)) return true;
+    return bodies.some((body) => body.name !== name && called.test(body.body));
+  };
+}
+
+/** The tree's text the callers' judge reads: code, the policies' text and the assembled chunks. */
+function readTree(root: string): {
+  code: string;
+  policies: string;
+  chunks: Array<{ name: string; body: string }>;
+} {
   const code = walkFiles([join(root, "src"), join(root, "e2e")], { ext: ["ts", "tsx"] })
     .filter((file) => !file.includes("/integrations/"))
     .map((file) => codeOf(readFileSync(file, "utf8")))
@@ -133,12 +162,5 @@ export function treeCallers(root: string, rows: DoorRow[]): (name: string) => bo
     ...[...sql.matchAll(/\bCREATE\s+POLICY[\s\S]*?;/gi)].map((match) => match[0]),
     ...[...sql.matchAll(/\bCHECK\s*\([^;]*/gi)].map((match) => match[0]),
   ].join("\n");
-  const bodies = [...rows, ...chunkBodiesOf(sql)];
-  return (name: string) => {
-    const quoted = pattern`["']${name}["']`;
-    if (quoted.test(code)) return true;
-    const called = pattern`\\b${name}\\s*\\(`;
-    if (called.test(policies)) return true;
-    return bodies.some((body) => body.name !== name && called.test(body.body));
-  };
+  return { code, policies, chunks: chunkBodiesOf(sql) };
 }

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { walkFiles } from "../conformance/kit";
 import { functionCodeOf, tableCreatesOf } from "../conformance/migration-reader";
 import { splitTopLevel } from "./identity";
+import { readOnce, type OnceOptions } from "./once";
 
 /**
  * Foundations 1, turn F1-3 (ruling 1 item 5) — THE COLUMNS the migrations
@@ -65,9 +66,16 @@ export function columnsOf(sql: string): string[] {
 }
 
 /** Every `table.column` the repository's migrations declare. */
-export function declaredColumns(root: string): Set<string> {
-  const columns = new Set<string>();
-  for (const file of walkFiles([join(root, "supabase", "migrations")], { ext: ["sql"] }))
-    for (const column of columnsOf(readFileSync(file, "utf8"))) columns.add(column);
-  return columns;
+export function declaredColumns(root: string, options?: OnceOptions): Set<string> {
+  return readOnce(
+    "columns",
+    root,
+    () => {
+      const columns = new Set<string>();
+      for (const file of walkFiles([join(root, "supabase", "migrations")], { ext: ["sql"] }))
+        for (const column of columnsOf(readFileSync(file, "utf8"))) columns.add(column);
+      return columns;
+    },
+    options,
+  );
 }
