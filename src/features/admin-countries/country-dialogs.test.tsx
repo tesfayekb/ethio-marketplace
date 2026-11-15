@@ -45,7 +45,7 @@ describe("CountryFormFields (turn S6-2)", () => {
       const control = screen.getByTestId(`country-editor-${part}`);
       expect(control.id).toBe(`country-editor-${part}`);
       expect(boxes[index]?.contains(control)).toBe(true);
-      expect(screen.getByLabelText(new RegExp(`admin.countries.field.${part}$`))).toBe(control);
+      expect(screen.getByLabelText(new RegExp(`^admin.countries.field.${part}`))).toBe(control);
     }
     const marks = boxes.map((box) => box.querySelector("[data-testid='required-mark']") !== null);
     expect(marks).toEqual([true, false, false, true]);
