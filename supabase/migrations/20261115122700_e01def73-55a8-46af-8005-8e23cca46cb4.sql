@@ -144,11 +144,11 @@ END $function$;
 COMMENT ON FUNCTION public.admin_upsert_location(uuid, uuid, text, text, text, text, text[], integer, double precision, double precision) IS
   'F1-4b on the door shell (DEC-333): creates or edits a place behind door_context(staff, locations:create|update, staff_config, the place''s country, match); refuses badLevel / isoOnRegionsOnly / nameRequired / rootMustBeCountry / unknownCountry / parentMissing / locationMissing / useMoveDoor; audits location.create / location.update; answers {ok:true, id}.';
 REVOKE ALL ON FUNCTION public.admin_upsert_location(uuid, uuid, text, text, text, text, text[], integer, double precision, double precision) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.admin_upsert_location(uuid, uuid, text, text, text, text, text[], integer, double precision, double precision) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_upsert_location(uuid, uuid, text, text, text, text, text[], integer, double precision, double precision) TO authenticated, service_role;
 
 -- ------------------------------------------------------------ 2. PROOFS
--- (a) catalog facts: the door VOLATILE SECURITY DEFINER, RETURNS jsonb, EXECUTE for authenticated, never anon or
---     PUBLIC; its body this file's (md5).
+-- (a) catalog facts: the door VOLATILE SECURITY DEFINER, RETURNS jsonb, EXECUTE for authenticated and the
+--     service role, never anon or PUBLIC; its body this file's (md5).
 -- (b) the gates: accountDeactivated, permissionDenied (403), notSignedIn (401); a country holder refused
 --     permissionDenied:scope (403) for another country's place, for a parent or place that does not exist and for
 --     another country's anchor; none of them writes, audits or spends staff_config.
@@ -197,7 +197,8 @@ BEGIN
           FROM pg_proc WHERE oid = v_fn)
        OR EXISTS (SELECT 1 FROM aclexplode((SELECT proacl FROM pg_proc WHERE oid = v_fn)) a WHERE a.grantee = 0)
        OR has_function_privilege('anon', v_fn, 'EXECUTE')
-       OR NOT has_function_privilege('authenticated', v_fn, 'EXECUTE') THEN
+       OR NOT has_function_privilege('authenticated', v_fn, 'EXECUTE')
+       OR NOT has_function_privilege('service_role', v_fn, 'EXECUTE') THEN
       RAISE EXCEPTION 'F1-4b part 1 proof (a): the door %''s header, return type or grants differ', v_fn;
     END IF;
     IF (SELECT md5(replace(p.prosrc, chr(13), '')) FROM pg_proc p WHERE p.oid = v_fn) IS DISTINCT FROM v_pairs[i][2] THEN
@@ -410,4 +411,4 @@ BEGIN
 END;
 $proof$;
 
-INSERT INTO public.migration_marks (version) VALUES ('20261115140000') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20261115150000') ON CONFLICT DO NOTHING;

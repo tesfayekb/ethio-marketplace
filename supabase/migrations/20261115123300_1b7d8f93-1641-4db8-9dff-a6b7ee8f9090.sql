@@ -15,7 +15,7 @@ DECLARE
   v_md5   text;
   i       integer;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261115140500') THEN
+  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261115150500') THEN
     RAISE EXCEPTION 'F1-4b part 7: part 6 (e0edb9a7) must be applied first';
   END IF;
   IF to_regprocedure('public.door_context(text,text,text,text,character,text)') IS NULL
@@ -324,4 +324,4 @@ BEGIN
 END;
 $proof$;
 
-INSERT INTO public.migration_marks (version) VALUES ('20261115140600') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20261115150600') ON CONFLICT DO NOTHING;

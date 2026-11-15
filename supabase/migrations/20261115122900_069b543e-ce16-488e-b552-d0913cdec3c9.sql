@@ -17,7 +17,7 @@ DECLARE
   v_md5   text;
   i       integer;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261115140100') THEN
+  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261115150100') THEN
     RAISE EXCEPTION 'F1-4b part 3: part 2 (89eaa5c9) must be applied first';
   END IF;
   IF to_regprocedure('public.door_context(text,text,text,text,character,text)') IS NULL
@@ -73,6 +73,7 @@ COMMENT ON FUNCTION public.admin_reorder_locations(uuid, uuid[]) IS
   'F1-4b on the door shell (DEC-333): orders a place''s children behind door_context(staff, locations:update, staff_config, the parent''s country, match); refuses orderCountriesInProfile / notAChild; audits location.reorder; answers {ok:true}.';
 REVOKE ALL ON FUNCTION public.admin_reorder_locations(uuid, uuid[]) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_reorder_locations(uuid, uuid[]) TO authenticated;
+GRANT ALL ON FUNCTION public.admin_reorder_locations(uuid, uuid[]) TO service_role;
 
 -- ------------------------------------------------------------ 2. admin_set_location_active (whole from 20260915162505 :366; the gate on door_context with the place's country, the codes and the shell; jsonb)
 DROP FUNCTION public.admin_set_location_active(uuid, boolean);
@@ -108,10 +109,11 @@ COMMENT ON FUNCTION public.admin_set_location_active(uuid, boolean) IS
   'F1-4b on the door shell (DEC-333): activates or retires a place behind door_context(staff, locations:update, staff_config, the place''s country, match); refuses locationMissing; the ancestry trigger''s parentInactive passes unchanged; audits location.activate / location.retire; answers {ok:true}.';
 REVOKE ALL ON FUNCTION public.admin_set_location_active(uuid, boolean) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.admin_set_location_active(uuid, boolean) TO authenticated;
+GRANT ALL ON FUNCTION public.admin_set_location_active(uuid, boolean) TO service_role;
 
 -- ------------------------------------------------------------ 3. PROOFS
--- (a) catalog facts: the 2 doors VOLATILE SECURITY DEFINER, RETURNS jsonb, EXECUTE for authenticated, never anon
---     or PUBLIC; every body this file's (md5).
+-- (a) catalog facts: the 2 doors VOLATILE SECURITY DEFINER, RETURNS jsonb, EXECUTE for authenticated and the
+--     service role, never anon or PUBLIC; every body this file's (md5).
 -- (b) the gates: accountDeactivated, permissionDenied (403) for each door, notSignedIn (401); a country holder
 --     refused permissionDenied:scope (403) for another country's place, for a place that does not exist and for
 --     the countries' own order; none of them writes, audits or spends staff_config.
@@ -167,7 +169,8 @@ BEGIN
           FROM pg_proc WHERE oid = v_fn)
        OR EXISTS (SELECT 1 FROM aclexplode((SELECT proacl FROM pg_proc WHERE oid = v_fn)) a WHERE a.grantee = 0)
        OR has_function_privilege('anon', v_fn, 'EXECUTE')
-       OR NOT has_function_privilege('authenticated', v_fn, 'EXECUTE') THEN
+       OR NOT has_function_privilege('authenticated', v_fn, 'EXECUTE')
+       OR NOT has_function_privilege('service_role', v_fn, 'EXECUTE') THEN
       RAISE EXCEPTION 'F1-4b part 3 proof (a): the door %''s header, return type or grants differ', v_fn;
     END IF;
     IF (SELECT md5(replace(p.prosrc, chr(13), '')) FROM pg_proc p WHERE p.oid = v_fn) IS DISTINCT FROM v_pairs[i][2] THEN
@@ -368,4 +371,4 @@ BEGIN
 END;
 $proof$;
 
-INSERT INTO public.migration_marks (version) VALUES ('20261115140200') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20261115150200') ON CONFLICT DO NOTHING;
