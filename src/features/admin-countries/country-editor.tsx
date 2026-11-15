@@ -1,9 +1,12 @@
 import { useState, type ReactNode } from "react";
 
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { numberOf, parseNumber } from "@/lib/parse-input";
+import type { Refusal } from "@/lib/refusal";
 
 import {
   CountryDialogActions,
@@ -11,7 +14,6 @@ import {
   CountryFormFields,
   type CountryFormValues,
 } from "./country-dialogs";
-import { numberOrZero } from "./country-dialog-state";
 import { useCountryRefusal } from "./country-refusals";
 import type { CountryRow } from "./countries-service";
 import { useUpsertCountry } from "./use-countries";
@@ -41,7 +43,9 @@ export function CountryEditorDialog({
 }) {
   const { t } = useI18n();
   const upsert = useUpsertCountry();
-  const { message, clear, fail, render } = useCountryRefusal();
+  const { message, clear, fail } = useCountryRefusal();
+  const gate = useFormGate();
+  const [orderRefusal, setOrderRefusal] = useState<Refusal | null>(null);
   const [form, setForm] = useState<CountryFormValues>(() => ({
     nameEn: row.nameEn,
     unitSystem: row.unitSystem,
@@ -51,8 +55,13 @@ export function CountryEditorDialog({
 
   const submit = () => {
     clear();
-    if (form.nameEn.trim() === "") {
-      render("admin.countries.error.nameRequired");
+    setOrderRefusal(null);
+    // DEC-339: the gate first — a blank name is marked under its Field and nothing is sent.
+    if (!gate.try()) return;
+    // The one parser: a blank or unreadable order is refused in words, never sent as 0.
+    const order = numberOf(parseNumber(form.displayOrder, { integer: true }));
+    if (order === null) {
+      setOrderRefusal({ field: "displayOrder", reason: "badType" });
       return;
     }
     void guard(async () => {
@@ -62,7 +71,7 @@ export function CountryEditorDialog({
           nameEn: form.nameEn.trim(),
           unitSystem: form.unitSystem,
           currencyCode: form.currencyCode.trim() === "" ? null : form.currencyCode.trim(),
-          displayOrder: numberOrZero(form.displayOrder),
+          displayOrder: order,
         });
         onClose();
       } catch (error) {
@@ -94,6 +103,11 @@ export function CountryEditorDialog({
         idPrefix="country-editor"
         values={form}
         onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
+        gate={gate}
+        refusals={{
+          nameEn: gate.marks.find((mark) => mark.field === "nameEn"),
+          displayOrder: orderRefusal ?? undefined,
+        }}
       />
       <p className="text-sm text-muted-foreground">
         <a className="underline" data-testid="country-edit-translations" href="/admin/translations">

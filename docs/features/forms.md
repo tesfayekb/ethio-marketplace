@@ -91,3 +91,16 @@ the agreement tick (`agree-to-document.tsx`, a `choice` Field with its own famil
 labels it named moved from the base strings layer to the member layer, byte for
 byte). The precision radios of the map pin remain an allowlist line. The dead
 `src/components/ui/form.tsx` was deleted.
+
+## Markets console (wave 3)
+
+`src/features/admin-countries/country-dialogs.tsx` draws the editor's four
+answers in the one Field at the dialog density, ids and test ids unchanged: the
+name is required and reports its blank to the editor's gate; the unit system is
+required but always holds a value, so it carries no mark (`marked={false}`); the
+currency is optional with its hint; the order is required and read by
+`parseNumber(…, { integer: true })`, a blank or unreadable order refused under
+its Field (`PARSE_INVALID_KEY`) before the step-up or the door. The console's
+family `COUNTRY_REFUSALS` carries the kit's `required` and `badType` words; the
+door's `nameRequired` keeps its line. The sentinel `numberOrZero` was deleted.
+The next consoles of wave 3 follow this file.
