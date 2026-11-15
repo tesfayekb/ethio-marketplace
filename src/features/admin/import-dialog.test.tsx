@@ -48,7 +48,7 @@ function mount(refusals?: RefusalFamily) {
       title="Import"
       path={"/api/admin/import" as never}
       keyPrefix="admin.test.import"
-      files={[{ field: "csv", id: "imp-file", label: "File" } as never]}
+      files={[{ field: "csv", id: "imp-file", labelKey: "admin.test.import.file" as never }]}
       countFields={[]}
       reasonKeys={new Set()}
       family="test"
