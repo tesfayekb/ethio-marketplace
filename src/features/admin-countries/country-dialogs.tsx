@@ -1,11 +1,15 @@
-import { FormField } from "@/components/shell/form-section";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import type { FormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
+import type { Refusal } from "@/lib/refusal";
 
 import { UNIT_SYSTEMS } from "./countries-service";
+import { COUNTRY_REFUSALS } from "./country-refusals";
 
 /**
  * LOCATIONS ERA L2b-C1 — THE COUNTRIES WRITE SURFACE SHARED PIECES.
@@ -78,63 +82,113 @@ export interface CountryFormValues {
   displayOrder: string;
 }
 
-/** The profile fields, shared by create and the editor (B3, one definition). */
+/**
+ * The editor's profile fields (B3, one definition), each in the one Field (DEC-339) at the dialog
+ * density. The name reports its blank to the editor's gate; the unit always holds a value, so it
+ * carries no mark; the currency is optional; the order's parse refusal is drawn under it.
+ */
 export function CountryFormFields({
   idPrefix,
   values,
   onChange,
+  gate,
+  refusals = {},
 }: {
   idPrefix: string;
   values: CountryFormValues;
   onChange: (next: Partial<CountryFormValues>) => void;
+  gate?: FormGate;
+  /** Each field's refusal (the gate's mark or the parser's), by the field's name. */
+  refusals?: Partial<Record<keyof CountryFormValues, Refusal>>;
 }) {
   const { t } = useI18n();
+  const nameRefusal = refusals.nameEn ?? null;
+  const orderRefusal = refusals.displayOrder ?? null;
   return (
     <>
-      <FormField label={t("admin.countries.field.name")} htmlFor={`${idPrefix}-name`}>
-        <Input
-          id={`${idPrefix}-name`}
-          data-testid={`${idPrefix}-name`}
-          value={values.nameEn}
-          onChange={(event) => onChange({ nameEn: event.target.value })}
-        />
-      </FormField>
-      <FormField label={t("admin.countries.field.unit")} htmlFor={`${idPrefix}-unit`}>
-        <NativeSelect
-          id={`${idPrefix}-unit`}
-          data-testid={`${idPrefix}-unit`}
-          className="w-full"
-          value={values.unitSystem}
-          onChange={(event) => onChange({ unitSystem: event.target.value })}
-        >
-          {UNIT_SYSTEMS.map((name) => (
-            <option key={name} value={name}>
-              {t(`admin.countries.unit.${name}` as MessageKey)}
-            </option>
-          ))}
-        </NativeSelect>
-      </FormField>
-      <FormField
-        label={t("admin.countries.field.currency")}
-        htmlFor={`${idPrefix}-currency`}
-        help={t("admin.countries.field.currencyHint")}
+      <Field
+        id={`${idPrefix}-name`}
+        field="nameEn"
+        label={t("admin.countries.field.name")}
+        required
+        refusal={nameRefusal}
+        family={COUNTRY_REFUSALS}
+        gate={gate}
+        blank={values.nameEn.trim() === ""}
       >
-        <Input
-          id={`${idPrefix}-currency`}
-          data-testid={`${idPrefix}-currency`}
-          value={values.currencyCode}
-          onChange={(event) => onChange({ currencyCode: event.target.value.toUpperCase() })}
-        />
-      </FormField>
-      <FormField label={t("admin.countries.field.order")} htmlFor={`${idPrefix}-order`}>
-        <Input
-          id={`${idPrefix}-order`}
-          data-testid={`${idPrefix}-order`}
-          inputMode="numeric"
-          value={values.displayOrder}
-          onChange={(event) => onChange({ displayOrder: event.target.value })}
-        />
-      </FormField>
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${idPrefix}-name`}
+            className={controlClass(nameRefusal !== null, false, "dialog")}
+            value={values.nameEn}
+            onChange={(event) => onChange({ nameEn: event.target.value })}
+          />
+        )}
+      </Field>
+      <Field
+        id={`${idPrefix}-unit`}
+        field="unitSystem"
+        label={t("admin.countries.field.unit")}
+        required
+        marked={false}
+        refusal={null}
+      >
+        {(control) => (
+          <NativeSelect
+            {...control}
+            data-testid={`${idPrefix}-unit`}
+            className="w-full"
+            value={values.unitSystem}
+            onChange={(event) => onChange({ unitSystem: event.target.value })}
+          >
+            {UNIT_SYSTEMS.map((name) => (
+              <option key={name} value={name}>
+                {t(`admin.countries.unit.${name}` as MessageKey)}
+              </option>
+            ))}
+          </NativeSelect>
+        )}
+      </Field>
+      <Field
+        id={`${idPrefix}-currency`}
+        field="currencyCode"
+        label={t("admin.countries.field.currency")}
+        required={false}
+        hint={
+          <p className="text-xs text-muted-foreground">{t("admin.countries.field.currencyHint")}</p>
+        }
+        refusal={null}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${idPrefix}-currency`}
+            className={controlClass(false, false, "dialog")}
+            value={values.currencyCode}
+            onChange={(event) => onChange({ currencyCode: event.target.value.toUpperCase() })}
+          />
+        )}
+      </Field>
+      <Field
+        id={`${idPrefix}-order`}
+        field="displayOrder"
+        label={t("admin.countries.field.order")}
+        required
+        refusal={orderRefusal}
+        family={COUNTRY_REFUSALS}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${idPrefix}-order`}
+            inputMode="numeric"
+            className={controlClass(orderRefusal !== null, false, "dialog")}
+            value={values.displayOrder}
+            onChange={(event) => onChange({ displayOrder: event.target.value })}
+          />
+        )}
+      </Field>
     </>
   );
 }

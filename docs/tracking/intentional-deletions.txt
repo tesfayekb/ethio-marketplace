@@ -139,3 +139,5 @@ src/components/ui/form.tsx
 # through the one reader (category-refusals.ts, attribute-refusals.ts)
 src/features/admin-categories/category-submit-error.ts
 src/features/admin-attributes/attribute-error.ts
+# L2 forms-countries [intentional-delete] (DEC-339): the markets editor's sentinel parser leaves; the order is read by the one parser (src/lib/parse-input.ts)
+src/features/admin-countries/country-dialog-state.ts
