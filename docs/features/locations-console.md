@@ -130,17 +130,29 @@ Translations → Data (`location-edit-translations`): one writer per string (D3)
 
 ## How a refusal reads
 
-`locationErrorKey(message)` maps every refusal id the six doors speak to a key
-under `admin.locations.error.*`: `denied`, `stepUp`, `locationMissing`,
-`parentMissing`, `parentInactive`, `levelMismatch`, `crossCountry`, `badSlug`,
-`missingCoordinates`, `rootMustBeCountry`, `badLevel`, `isoOnRegionsOnly`,
-`nameRequired`, `unknownCountry`, `useMoveDoor`, `cannotMoveCountry`,
-`orderCountriesInProfile`, `notAChild`, `slugMismatch` and `retireInstead` with
-`hasChildren | hasListings | hasCoverage | hasProfileDefaults` rendered beside
-it. Anything the console does not recognise renders as
-`admin.locations.error.unknown` **with the server's raw message beneath it**
-(`location-dialog-error-reason`) — a failure is always shown, never swallowed
-and never mistaken for "no permission" (F4).
+Since F1-4b the six doors answer codes through the door shell (`code[:detail]`, SQLSTATE
+P0D01), and the console reads them through the one reader (`readRefusal`,
+`src/lib/refusal.ts`) with its own words, `LOCATION_REFUSALS`
+(`location-refusals.ts`); its hook `useLocationRefusal()` keeps the dialogs' state
+(`{ message, clear, fail, render }`; a cancelled step-up says nothing). The words hold
+every id the console spoke before — `locationMissing`, `parentMissing`, `parentInactive`,
+`levelMismatch`, `crossCountry`, `badSlug`, `missingCoordinates`, `rootMustBeCountry`,
+`badLevel`, `isoOnRegionsOnly`, `nameRequired`, `unknownCountry`, `useMoveDoor`,
+`cannotMoveCountry`, `orderCountriesInProfile`, `notAChild`, `slugMismatch` and
+`retireInstead` with `hasChildren | hasListings | hasCoverage | hasProfileDefaults`
+rendered beside it — under `admin.locations.error.*`; `permissionDenied` (with or without
+its `:scope`) reads `denied`, the gate's step-up sentence (SQLSTATE P0009) reads `stepUp`,
+and `rateLimited` the shared line. The seven ids the ancestry trigger still raises as
+plain sentences read their words too: the reader hears an error's `message` as its code,
+whatever the SQLSTATE. Anything else — a code with no words (`notSignedIn`,
+`accountDeactivated`), a sentence, a failed fetch — renders `admin.locations.error.unknown`
+and never the raw text (`location-dialog-error` carries the line). A failure is always shown,
+never swallowed and never mistaken for "no permission" (F4).
+
+The services call the doors through `rpc()` with `DoorArgs` (a NULL argument typed, never
+cast; CF-DOOR-ARGS); `admin_upsert_location` answers `{ok:true, id}` and `upsertLocation`
+reads the id through `answeredId`. The one paged read (`admin_list_locations`) keeps the
+client's query builder for its keyset and asserts only its required country argument.
 
 No dialog closes on a failure. Every write runs inside `guard(async () => …)`,
 so a server step-up demand surfaces as the same modal everywhere.

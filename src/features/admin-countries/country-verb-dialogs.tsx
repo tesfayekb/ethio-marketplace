@@ -9,8 +9,8 @@ import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
-import { CountryDialogActions, CountryErrorLine } from "./country-dialogs";
-import { useCountryError } from "./country-dialog-state";
+import { CountryDialogActions, CountryDialogAlert } from "./country-dialogs";
+import { useCountryRefusal } from "./country-refusals";
 import type { CountryRow } from "./countries-service";
 import {
   ROOT_CATEGORIES_KEY,
@@ -39,7 +39,7 @@ export function CountryActiveDialog({
 }) {
   const { t } = useI18n();
   const setActive = useSetCountryActive();
-  const { refusal, clear, fail } = useCountryError();
+  const { message, clear, fail } = useCountryRefusal();
   const [forced, setForced] = useState(false);
   const opening = !row.isActive;
 
@@ -69,7 +69,7 @@ export function CountryActiveDialog({
       <p className="text-sm text-muted-foreground">
         {t(opening ? "admin.countries.open.hint" : "admin.countries.close.hint")}
       </p>
-      <CountryErrorLine refusal={refusal} testid="country-verb-error" />
+      <CountryDialogAlert message={message} testid="country-verb-error" />
       {forced ? (
         <>
           <p
@@ -125,7 +125,7 @@ export function CountryRailOrderDialog({
   const { t } = useI18n();
   const roots = useRootCategories();
   const save = useSetCountryRootOrder();
-  const { refusal, clear, fail } = useCountryError();
+  const { message, clear, fail } = useCountryRefusal();
   const [order, setOrder] = useState<string[] | null>(null);
 
   /** The market's stored order first, then any root it does not name yet. */
@@ -227,7 +227,7 @@ export function CountryRailOrderDialog({
         ))}
       </ol>
 
-      <CountryErrorLine refusal={refusal} testid="country-verb-error" />
+      <CountryDialogAlert message={message} testid="country-verb-error" />
       <DialogFooter>
         <Button
           type="button"

@@ -1,9 +1,10 @@
 import { compareCodes } from "@/lib/reader-locale";
 import { supabase } from "@/integrations/supabase/client";
-import type { MessageKey } from "@/i18n";
+import { answeredId } from "@/features/admin-categories/categories-service";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { ownValue } from "@/lib/own-key";
 import { compareNames } from "@/lib/name-collator";
+import { rpc, type DoorArgs } from "@/lib/supabase-door";
 
 /**
  * LOCATIONS ERA L2a — THE LOCATIONS CONSOLE CLIENT SEAM.
@@ -15,7 +16,12 @@ import { compareNames } from "@/lib/name-collator";
  * is public reference data behind `countries_public_read`.
  *
  * Law F4 — no phantom success: every error is thrown, never swallowed, and
- * `locationErrorKey` turns the door's own refusal id into a translated key.
+ * `useLocationRefusal` (`location-refusals.ts`) reads the door's refusal through
+ * the one reader, with this console's own words.
+ *
+ * DEC-333 (F1-4b) — every write answers `{ ok: true, … }` and refuses by a code; a
+ * door's optional argument is passed as NULL through `DoorArgs` (`rpc()`,
+ * src/lib/supabase-door.ts), never by a cast.
  */
 
 export type LocationLevel = "country" | "region" | "city" | "sub_city";
@@ -88,17 +94,20 @@ export async function listLocations(
   // INC-459 — every page, asked for after the last id (locations.id is the
   // table's PRIMARY KEY), never by position: the all-countries scope passes
   // 1,000 rows.
+  // L2b-C1 — "" is the ALL-COUNTRIES scope: the door reads every market when its
+  // country argument is NULL (L2b-M re-declaration). The search, level and
+  // status arguments have their DEFAULT (NULL) and are left out. The keyset read
+  // needs the client's query builder, which `rpc()` does not return, so this is
+  // the one door call that asserts the NULL (the generated type declares the
+  // country non-null) — as a plain assertion of the one argument, never through
+  // `unknown`; the typed Result of every door call is F1-7's.
+  const args: DoorArgs<"admin_list_locations"> = {
+    p_country_code: countryCode === "" ? null : countryCode,
+  };
   const pages = await readAllPages(
     (after, limit) => {
       const query = supabase
-        .rpc("admin_list_locations", {
-          // L2b-C1 — "" is the ALL-COUNTRIES scope: the door reads every market
-          // when its country argument is NULL (L2b-M re-declaration).
-          p_country_code: (countryCode === "" ? null : countryCode) as unknown as string,
-          p_search: "",
-          p_level: null as unknown as string,
-          p_active: null as unknown as boolean,
-        })
+        .rpc("admin_list_locations", args as { p_country_code: string })
         .order("id")
         .limit(limit);
       return after === null ? query : query.gt("id", after);
@@ -154,24 +163,24 @@ export interface UpsertLocationInput {
 }
 
 export async function upsertLocation(input: UpsertLocationInput): Promise<string> {
-  const { data, error } = await supabase.rpc("admin_upsert_location", {
-    p_id: input.id as string,
-    p_parent_id: input.parentId as string,
-    p_level: input.level as string,
+  const { data, error } = await rpc("admin_upsert_location", {
+    p_id: input.id,
+    p_parent_id: input.parentId,
+    p_level: input.level,
     p_name_en: input.nameEn,
-    p_slug: input.slug as string,
-    p_iso_3166_2: input.iso as string,
+    p_slug: input.slug,
+    p_iso_3166_2: input.iso,
     p_aliases: input.aliases,
     p_display_order: input.displayOrder,
-    p_center_lat: input.centerLat as number,
-    p_center_lng: input.centerLng as number,
+    p_center_lat: input.centerLat,
+    p_center_lng: input.centerLng,
   });
   if (error) throw error;
-  return data as string;
+  return answeredId("admin_upsert_location", data);
 }
 
 export async function setLocationActive(input: { id: string; active: boolean }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_location_active", {
+  const { error } = await rpc("admin_set_location_active", {
     p_id: input.id,
     p_active: input.active,
   });
@@ -179,7 +188,7 @@ export async function setLocationActive(input: { id: string; active: boolean }):
 }
 
 export async function moveLocation(input: { id: string; newParentId: string }): Promise<void> {
-  const { error } = await supabase.rpc("admin_move_location", {
+  const { error } = await rpc("admin_move_location", {
     p_id: input.id,
     p_new_parent_id: input.newParentId,
   });
@@ -187,7 +196,7 @@ export async function moveLocation(input: { id: string; newParentId: string }): 
 }
 
 export async function reorderLocations(input: { parentId: string; ids: string[] }): Promise<void> {
-  const { error } = await supabase.rpc("admin_reorder_locations", {
+  const { error } = await rpc("admin_reorder_locations", {
     p_parent_id: input.parentId,
     p_ids: input.ids,
   });
@@ -195,7 +204,7 @@ export async function reorderLocations(input: { parentId: string; ids: string[] 
 }
 
 export async function deleteLocation(input: { id: string; slug: string }): Promise<void> {
-  const { error } = await supabase.rpc("admin_delete_location", {
+  const { error } = await rpc("admin_delete_location", {
     p_id: input.id,
     p_slug: input.slug,
   });
@@ -356,74 +365,6 @@ export function deriveLocationSlug(nameEn: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return base === "" ? "place" : base;
-}
-
-/* ------------------------------ refusals --------------------------------- */
-
-/**
- * F4 — EVERY REFUSAL IS RENDERED BY NAME. The doors raise their own vocabulary
- * (`parentInactive`, `useMoveDoor`, `retireInstead:hasChildren`, …); each id
- * maps to `admin.locations.error.<id>` and a `retireInstead` detail renders
- * beside it. Anything else is `unknown` with the raw message beneath, so an
- * unrecognised failure is still readable and pastable — never swallowed.
- */
-const REFUSAL_IDS = [
-  "locationMissing",
-  "parentMissing",
-  "parentInactive",
-  "levelMismatch",
-  "crossCountry",
-  "badSlug",
-  "missingCoordinates",
-  "rootMustBeCountry",
-  "badLevel",
-  "isoOnRegionsOnly",
-  "nameRequired",
-  "unknownCountry",
-  "useMoveDoor",
-  "cannotMoveCountry",
-  "orderCountriesInProfile",
-  "notAChild",
-  "slugMismatch",
-  "retireInstead",
-] as const;
-
-const DETAIL_IDS = ["hasChildren", "hasListings", "hasCoverage", "hasProfileDefaults"] as const;
-
-export interface LocationRefusal {
-  key: MessageKey;
-  /** A translated detail key when the door named one; else null. */
-  detailKey: MessageKey | null;
-  /** The raw server message, rendered only for `unknown`. */
-  raw: string | null;
-}
-
-export function locationErrorKey(message: string): LocationRefusal {
-  const raw = (message ?? "").trim();
-  if (/permission denied/i.test(raw)) {
-    return { key: "admin.locations.error.denied", detailKey: null, raw: null };
-  }
-  if (/step[ -]?up/i.test(raw)) {
-    return { key: "admin.locations.error.stepUp", detailKey: null, raw: null };
-  }
-  const colon = raw.indexOf(":");
-  const head = colon === -1 ? raw : raw.slice(0, colon);
-  const tail = colon === -1 ? "" : raw.slice(colon + 1).trim();
-  if ((REFUSAL_IDS as readonly string[]).includes(head)) {
-    const detail = (DETAIL_IDS as readonly string[]).includes(tail)
-      ? (`admin.locations.error.detail.${tail}` as MessageKey)
-      : null;
-    return {
-      key: `admin.locations.error.${head}` as MessageKey,
-      detailKey: detail,
-      raw: null,
-    };
-  }
-  return {
-    key: "admin.locations.error.unknown",
-    detailKey: null,
-    raw: raw === "" ? null : raw,
-  };
 }
 
 /**

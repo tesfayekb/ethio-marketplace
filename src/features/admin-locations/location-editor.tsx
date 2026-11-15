@@ -5,8 +5,9 @@ import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { LocationDialogActions, LocationErrorLine } from "./location-dialogs";
-import { numberOrNull, useLocationError } from "./location-dialog-state";
+import { LocationDialogActions, LocationDialogAlert } from "./location-dialogs";
+import { numberOrNull } from "./location-dialog-state";
+import { useLocationRefusal } from "./location-refusals";
 import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
 import { coordinatesRequired } from "./location-form-values";
 import type { LocationNode } from "./locations-service";
@@ -40,7 +41,7 @@ export function LocationEditorDialog({
 }) {
   const { t } = useI18n();
   const upsert = useUpsertLocation();
-  const { refusal, clear, fail, render } = useLocationError();
+  const { message, clear, fail, render } = useLocationRefusal();
   const [form, setForm] = useState<LocationFormValues>(() => ({
     nameEn: row.nameEn,
     slug: row.slug,
@@ -122,7 +123,7 @@ export function LocationEditorDialog({
           {t("admin.locations.edit.translationsLink")}
         </a>
       </p>
-      <LocationErrorLine refusal={refusal} />
+      <LocationDialogAlert message={message} />
       <LocationDialogActions
         onCancel={onClose}
         onSubmit={submit}

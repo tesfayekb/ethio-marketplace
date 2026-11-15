@@ -293,15 +293,28 @@ describe("defineImportRoute", () => {
     expect(state.refreshes).toEqual([]);
   });
 
-  it("IMR-8 a RAISE `unknownParent: shoes` answers 409 with the key and its detail", async () => {
-    state.answers["admin_commit_category_import"] = {
-      data: null,
-      error: { message: "unknownParent: shoes", details: "internal", hint: "secret" },
-    };
+  it("IMR-8 a RAISE of a sentence no door raises any more answers 500 with an incident and no text", async () => {
+    // F1-4b — the seven rows that read `permission denied`, `import already running`,
+    // `unknown import batch`, `batchAlreadyUndone`, `planHasRefusals`, `undoBlocked` and the
+    // `unknownParent: <slug>` key left with the last doors that raised them as sentences.
     const digest = await digestOf([CATEGORIES]);
-    const response = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
-    expect(response.status).toBe(409);
-    expect(await response.json()).toEqual({ error: "unknownParent", detail: "shoes" });
+    for (const message of [
+      "unknownParent: shoes",
+      "permission denied",
+      "import already running",
+      "planHasRefusals",
+    ]) {
+      state.answers["admin_commit_category_import"] = {
+        data: null,
+        error: { message, details: "internal", hint: "secret" },
+      };
+      const response = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
+      expect([message, response.status]).toEqual([message, 500]);
+      const text = await response.text();
+      expect(Object.keys(JSON.parse(text) as object).sort()).toEqual(["error", "incident"]);
+      expect(text).not.toMatch(/shoes|internal|secret/);
+    }
+    expect(state.refreshes).toEqual([]);
   });
 
   it("IMR-9 an undeclared RAISE answers 500 with an incident and no message text", async () => {
@@ -401,15 +414,65 @@ describe("defineImportRoute", () => {
     }
   });
 
+  it("IMR-15 the location import's codes (F1-4b) answer through the shell's envelope at its status, each with its detail", async () => {
+    const envelope = (message: string) => {
+      const colon = message.indexOf(":");
+      const reason = colon === -1 ? message : message.slice(0, colon);
+      const detail = colon === -1 ? undefined : message.slice(colon + 1);
+      return {
+        code: "P0D01",
+        message,
+        details: "pg detail",
+        hint: "secret",
+        refusals: [detail === undefined ? { reason } : { reason, detail }],
+      };
+    };
+    const digest = await digestOf([COUNTRIES, ""]);
+    const commits: [string, number, Record<string, string>][] = [
+      ["importRunning", 400, { error: "importRunning" }],
+      ["planHasRefusals", 400, { error: "planHasRefusals" }],
+      ["permissionDenied:scope", 403, { error: "permissionDenied", detail: "scope" }],
+      ["permissionDenied", 403, { error: "permissionDenied" }],
+    ];
+    for (const [message, status, body] of commits) {
+      state.answers["admin_commit_location_import"] = { data: null, error: envelope(message) };
+      const response = await send(locations, { mode: "commit", countries: COUNTRIES, digest });
+      expect([message, response.status]).toEqual([message, status]);
+      const text = await response.text();
+      expect(text).not.toMatch(/pg detail|secret/);
+      expect(JSON.parse(text)).toEqual(body);
+    }
+    expect(state.refreshes).toEqual([]);
+    const undos: [string, number, Record<string, string>][] = [
+      ["unknownBatch", 400, { error: "unknownBatch" }],
+      ["batchAlreadyUndone", 400, { error: "batchAlreadyUndone" }],
+      ["undoBlocked:hasRows", 400, { error: "undoBlocked", detail: "hasRows" }],
+      ["permissionDenied:scope", 403, { error: "permissionDenied", detail: "scope" }],
+    ];
+    for (const [message, status, body] of undos) {
+      state.answers["admin_undo_location_import"] = { data: null, error: envelope(message) };
+      const response = await send(locations, { mode: "undo", batchId: "b-1" });
+      expect([message, response.status]).toEqual([message, status]);
+      const text = await response.text();
+      expect(text).not.toMatch(/pg detail|secret/);
+      expect(JSON.parse(text)).toEqual(body);
+    }
+    expect(state.refreshes).toEqual([]);
+  });
+
   it("IMR-10 the refresh runs only after a successful commit, never after a refused one", async () => {
     const digest = await digestOf([CATEGORIES]);
     state.answers["admin_commit_category_import"] = {
       data: null,
-      error: { message: "import already running" },
+      error: {
+        code: "P0D01",
+        message: "importRunning",
+        refusals: [{ reason: "importRunning" }],
+      },
     };
     const refused = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
-    expect(refused.status).toBe(409);
-    expect(await refused.json()).toEqual({ error: "import already running" });
+    expect(refused.status).toBe(400);
+    expect(await refused.json()).toEqual({ error: "importRunning" });
     expect(state.refreshes).toEqual([]);
 
     state.answers["admin_commit_category_import"] = {

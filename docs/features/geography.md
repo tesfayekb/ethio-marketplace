@@ -142,7 +142,8 @@ The admin shell's Locations section now renders on `locations:view`.
 
 Every one is plpgsql SECURITY DEFINER with `search_path` pinned, follows the F5
 order (permission → step-up → scope → capture old → mutate → audit), refuses
-with `permission denied` when the right is missing, and has EXECUTE revoked from
+with `permission denied` when the right is missing (the locations and countries doors
+answer the code `permissionDenied` through the door shell since F1-4b), and has EXECUTE revoked from
 PUBLIC/`anon` and granted to `authenticated`.
 
 | Door                                                                                  | Right                        | Refusals                                                                                                            | Audit                                   |

@@ -454,11 +454,11 @@ unchanged 200 bodies (preview `{...plan, refusals, counts, digest}`, commit
 
 THE VOCABULARY (`IMPORT_REFUSALS`, `IMPORT_WORDS`; IMD-6 checks every answered
 word against them and that no `.message`/`.details`/`.hint` reaches an
-answer): `permission denied` → 403 `forbidden`; `step-up required[: …]` →
-`stepUpRequired()` (428 `{error:"step-up required", code:"P0009"}`); `import
-already running`, `batchAlreadyUndone`, `planHasRefusals`, `undoBlocked`
-(detail `hasRows`) → 409; `unknown category scope`, `unknown country scope`,
-`unknown import batch` → 404; `unknownParent: <slug>` → 409 `{error, detail}`;
+answer): `step-up required[: …]` →
+`stepUpRequired()` (428 `{error:"step-up required", code:"P0009"}`);
+`unknown category scope`, `unknown country scope` → 404; a gate's
+`permissionDenied` code answers 403 and the export reader's `forbidden` is its own
+word (`exportRefusal`, `csv.ts`);
 `p_items must be a json array` → 400; `too many rows
 (max 5000)` → 400 `tooManyRows`; `not assigned to this language`, `base
 language rows are sync-owned` → 403; a nested door's own translation key
@@ -468,9 +468,14 @@ Since F1-4a the categories and attributes doors answer codes through the
 shell, which the relay reads as it reads F1-3's (`importRunning`,
 `unknownParent:<slug>` and every core's code at the shell's 400, a gate's
 code at its own status); a detail that is not a plain value (the
-`rankInherited` diagnostic) arrives as the bare code. The sentence rows
-above that stay serve the location imports (F1-4b) and the planners'
-`unknown category scope` (F1-7). The import dialog reads a coded refusal
+`rankInherited` diagnostic) arrives as the bare code. Since F1-4b the location
+imports answer the same way (`importRunning`, `planHasRefusals`, `unknownBatch`,
+`batchAlreadyUndone`, `undoBlocked:hasRows`, `permissionDenied[:scope]`), and the
+sentence rows for them, the `unknownParent: <slug>` key row and the export reader's
+`permission denied` branch are gone — a grep over the last declarations found no
+function the routes call that still raises them. The rows that stay are the
+gate's step-up sentence and the planners' `unknown category scope` /
+`unknown country scope` (F1-7). The import dialog reads a coded refusal
 through the console family's words (`refusals`: `CATEGORY_REFUSALS`,
 `ATTRIBUTE_REFUSALS`), and `importRunning` draws its busy line.
 

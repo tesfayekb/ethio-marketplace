@@ -57,13 +57,17 @@ describe("toCsv", () => {
     }
   });
 
-  it("CSV-7 an export reader's gate code and its sentence are both forbidden; the scope sentence answers itself", () => {
+  it("CSV-7 an export reader's gate code is forbidden, with or without its scope; no sentence is; the scope sentence answers itself", () => {
     const scope = "unknown category scope" as const;
     expect(exportRefusal({ message: "permissionDenied" }, scope)).toBe("forbidden");
-    expect(exportRefusal({ message: "permission denied" }, "unknown country scope")).toBe(
+    expect(exportRefusal({ message: "permissionDenied:scope" }, "unknown country scope")).toBe(
       "forbidden",
     );
+    expect(exportRefusal({ message: "permission denied" }, "unknown country scope")).toBeNull();
     expect(exportRefusal({ message: "unknown category scope" }, scope)).toBe(scope);
+    expect(exportRefusal({ message: "unknown country scope" }, "unknown country scope")).toBe(
+      "unknown country scope",
+    );
     expect(exportRefusal({ message: "rateLimited" }, scope)).toBeNull();
     expect(exportRefusal({ message: "relation x does not exist" }, scope)).toBeNull();
   });

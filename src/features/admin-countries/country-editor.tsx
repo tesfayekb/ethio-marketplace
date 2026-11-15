@@ -7,11 +7,12 @@ import { useI18n } from "@/i18n";
 
 import {
   CountryDialogActions,
-  CountryErrorLine,
+  CountryDialogAlert,
   CountryFormFields,
   type CountryFormValues,
 } from "./country-dialogs";
-import { numberOrZero, useCountryError } from "./country-dialog-state";
+import { numberOrZero } from "./country-dialog-state";
+import { useCountryRefusal } from "./country-refusals";
 import type { CountryRow } from "./countries-service";
 import { useUpsertCountry } from "./use-countries";
 
@@ -40,7 +41,7 @@ export function CountryEditorDialog({
 }) {
   const { t } = useI18n();
   const upsert = useUpsertCountry();
-  const { refusal, clear, fail, render } = useCountryError();
+  const { message, clear, fail, render } = useCountryRefusal();
   const [form, setForm] = useState<CountryFormValues>(() => ({
     nameEn: row.nameEn,
     unitSystem: row.unitSystem,
@@ -99,7 +100,7 @@ export function CountryEditorDialog({
           {t("admin.countries.edit.translationsLink")}
         </a>
       </p>
-      <CountryErrorLine refusal={refusal} />
+      <CountryDialogAlert message={message} />
       <CountryDialogActions
         onCancel={onClose}
         onSubmit={submit}
