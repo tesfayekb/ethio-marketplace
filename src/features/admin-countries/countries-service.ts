@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { MessageKey } from "@/i18n";
+import { rpc } from "@/lib/supabase-door";
 
 /**
  * LOCATIONS ERA L2b-C1 — THE COUNTRIES CONSOLE CLIENT SEAM.
@@ -12,7 +12,12 @@ import type { MessageKey } from "@/i18n";
  * from the SQL declaration.
  *
  * Law F4 — no phantom success: every error is thrown, never swallowed, and
- * `countryErrorKey` turns the door's own refusal id into a translated key.
+ * `useCountryRefusal` (`country-refusals.ts`) reads the door's refusal through
+ * the one reader, with this console's own words.
+ *
+ * DEC-333 (F1-4b) — every write answers `{ ok: true }` and refuses by a code; a
+ * door's optional argument is passed as NULL through `DoorArgs` (`rpc()`,
+ * src/lib/supabase-door.ts), never by a cast.
  */
 
 export const UNIT_SYSTEMS = ["metric", "imperial"] as const;
@@ -66,11 +71,11 @@ export interface UpsertCountryInput {
 }
 
 export async function upsertCountry(input: UpsertCountryInput): Promise<void> {
-  const { error } = await supabase.rpc("admin_upsert_country", {
+  const { error } = await rpc("admin_upsert_country", {
     p_code: input.code,
     p_name_en: input.nameEn,
     p_unit_system: input.unitSystem,
-    p_currency_code: input.currencyCode as string,
+    p_currency_code: input.currencyCode,
     p_display_order: input.displayOrder,
   });
   if (error) throw error;
@@ -87,7 +92,7 @@ export async function setCountryActive(input: {
   active: boolean;
   forceHide?: boolean;
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_country_active", {
+  const { error } = await rpc("admin_set_country_active", {
     p_code: input.code,
     p_active: input.active,
     p_force_hide: input.forceHide === true,
@@ -100,45 +105,11 @@ export async function setCountryRootOrder(input: {
   code: string;
   categoryIds: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_country_root_order", {
+  const { error } = await rpc("admin_set_country_root_order", {
     p_code: input.code,
     p_category_ids: input.categoryIds,
   });
   if (error) throw error;
-}
-
-/* ------------------------------- refusals -------------------------------- */
-
-/** Every refusal id the four country doors raise, copied by name (E7). */
-export const COUNTRY_REFUSAL_IDS = [
-  "badCountryCode",
-  "badUnitSystem",
-  "badCurrency",
-  "nameRequired",
-  "unknownCountry",
-  "scopedRolesExist",
-  "duplicateCategory",
-  "notARoot",
-] as const;
-
-export interface CountryRefusal {
-  key: MessageKey;
-  raw: string | null;
-}
-
-export function countryErrorKey(message: string): CountryRefusal {
-  const raw = (message ?? "").trim();
-  if (/permission denied/i.test(raw)) {
-    return { key: "admin.countries.error.denied", raw: null };
-  }
-  if (/step[ -]?up/i.test(raw)) {
-    return { key: "admin.countries.error.stepUp", raw: null };
-  }
-  const head = raw.includes(":") ? raw.slice(0, raw.indexOf(":")) : raw;
-  if ((COUNTRY_REFUSAL_IDS as readonly string[]).includes(head)) {
-    return { key: `admin.countries.error.${head}` as MessageKey, raw: null };
-  }
-  return { key: "admin.countries.error.unknown", raw: raw === "" ? null : raw };
 }
 
 /* -------------------------------- sieve ---------------------------------- */

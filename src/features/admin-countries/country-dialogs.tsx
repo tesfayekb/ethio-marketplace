@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { UNIT_SYSTEMS, type CountryRefusal } from "./countries-service";
+import { UNIT_SYSTEMS } from "./countries-service";
 
 /**
  * LOCATIONS ERA L2b-C1 — THE COUNTRIES WRITE SURFACE SHARED PIECES.
@@ -17,29 +17,19 @@ import { UNIT_SYSTEMS, type CountryRefusal } from "./countries-service";
  * logical spacing only (C5).
  */
 
-export function CountryErrorLine({
-  refusal,
+/** The one line a markets dialog draws for a refusal it read (F4); nothing when there is none. */
+export function CountryDialogAlert({
+  message,
   testid = "country-dialog-error",
 }: {
-  refusal: CountryRefusal | null;
+  message: string | null;
   testid?: string;
 }) {
-  const { t } = useI18n();
-  if (refusal === null) return null;
+  if (message === null) return null;
   return (
-    <>
-      <p role="alert" data-testid={testid} className="text-sm text-destructive">
-        {t(refusal.key)}
-      </p>
-      {refusal.raw === null ? null : (
-        <p
-          className="text-sm break-words text-muted-foreground"
-          data-testid="country-dialog-error-reason"
-        >
-          {t("admin.countries.error.reason").replace("{reason}", refusal.raw)}
-        </p>
-      )}
-    </>
+    <p role="alert" data-testid={testid} className="text-sm text-destructive">
+      {message}
+    </p>
   );
 }
 

@@ -150,9 +150,12 @@ src/features/my-listings/promote-service.ts.
 - **A door's optional argument (INC-942)**: `DoorArgs<F>` (src/lib/supabase-door.ts), the type
   `rpc()` takes, lets every argument be NULL — the database's declaration answers which NULL it
   accepts (a NULL it refuses is the door's `badValue:<arg>`), and an omitted key takes the
-  argument's DEFAULT. CF-DOOR-ARGS (`scripts/conformance/door-args.test.ts`) finds the literal
-  `null` cast through `unknown` under src/; its allowlist holds the locations console's two lines
-  until F1-4b.
+  argument's DEFAULT. CF-DOOR-ARGS (`scripts/conformance/door-args.test.ts`) finds, under src/,
+  the literal `null` cast through `unknown` and (F1-4b) a door argument cast through `unknown` —
+  a `p_…` property, or an object of them cast whole; its allowlist holds the sites of families
+  not yet on the shell (the posting doors, F1-5a; the import gate's audit call) and no line of a
+  family already moved. F1-4b closed INC-942's own sites: the locations console calls its doors
+  through `rpc()`.
 - **The lint `impersonation_reach`** (`public.security_lints()`, ERROR, baseline 0; DEC-381)
   holds `begin_impersonation`'s permission to `super_admin` alone on every push and every night.
 

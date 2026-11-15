@@ -9,10 +9,11 @@ import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { childLevelOf, type LocationNode, type LocationRefusal } from "./locations-service";
+import { childLevelOf, type LocationNode } from "./locations-service";
 import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
 import { coordinatesRequired, emptyLocationForm } from "./location-form-values";
-import { numberOrNull, useLocationError } from "./location-dialog-state";
+import { numberOrNull } from "./location-dialog-state";
+import { useLocationRefusal } from "./location-refusals";
 import { useUpsertLocation } from "./use-locations";
 
 /**
@@ -25,24 +26,13 @@ import { useUpsertLocation } from "./use-locations";
  * logical spacing only (C5).
  */
 
-export function LocationErrorLine({ refusal }: { refusal: LocationRefusal | null }) {
-  const { t } = useI18n();
-  if (refusal === null) return null;
+/** The one line a places dialog draws for a refusal it read (F4); nothing when there is none. */
+export function LocationDialogAlert({ message }: { message: string | null }) {
+  if (message === null) return null;
   return (
-    <>
-      <p role="alert" data-testid="location-dialog-error" className="text-sm text-destructive">
-        {t(refusal.key)}
-        {refusal.detailKey === null ? null : ` — ${t(refusal.detailKey)}`}
-      </p>
-      {refusal.raw === null ? null : (
-        <p
-          className="text-sm break-words text-muted-foreground"
-          data-testid="location-dialog-error-reason"
-        >
-          {t("admin.locations.error.reason").replace("{reason}", refusal.raw)}
-        </p>
-      )}
-    </>
+    <p role="alert" data-testid="location-dialog-error" className="text-sm text-destructive">
+      {message}
+    </p>
   );
 }
 
@@ -117,7 +107,7 @@ export function LocationCreateDialog({
 }) {
   const { t } = useI18n();
   const upsert = useUpsertLocation();
-  const { refusal, clear, fail, render } = useLocationError();
+  const { message, clear, fail, render } = useLocationRefusal();
   const [chosen, setChosen] = useState(parentId);
   const [form, setForm] = useState<LocationFormValues>(emptyLocationForm);
   const [created, setCreated] = useState(false);
@@ -233,7 +223,7 @@ export function LocationCreateDialog({
             values={form}
             onChange={patch}
           />
-          <LocationErrorLine refusal={refusal} />
+          <LocationDialogAlert message={message} />
           <LocationDialogActions
             onCancel={onClose}
             onSubmit={submit}

@@ -82,7 +82,15 @@ this market's order — or the global order, said in words
 Rendered by name in `country-verb-error` / `country-dialog-error`, never as a
 tooltip or a toast alone: `badCountryCode`, `badUnitSystem`, `badCurrency`,
 `nameRequired`, `unknownCountry`, `scopedRolesExist`, `duplicateCategory`,
-`notARoot`, permission denied, step-up required.
+`notARoot`, permission denied, step-up required. Since F1-4b the doors answer codes
+through the door shell and the console reads them through the one reader
+(`readRefusal`) with its own words, `COUNTRY_REFUSALS` (`country-refusals.ts`;
+`useCountryRefusal()` keeps the state): each id above keeps its
+`admin.countries.error.*` line, `permissionDenied` (with or without `:scope`) reads
+`denied`, the gate's step-up sentence `stepUp`, and anything without words
+(`notSignedIn`, `accountDeactivated`, a sentence, a failed fetch) the generic
+`admin.countries.error.unknown`, never the raw text. The services call the doors
+through `rpc()`.
 
 ## Opening a country — the checklist
 

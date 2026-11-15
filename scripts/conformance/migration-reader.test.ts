@@ -196,8 +196,6 @@ describe("a body built at run time is computed (INC-1083)", () => {
         .map(([name]) => name)
         .sort(),
     ).toEqual([
-      "admin_commit_location_import",
-      "admin_undo_location_import",
       "attr_import_plan",
       "edit_my_listing",
       "public_listing_json",

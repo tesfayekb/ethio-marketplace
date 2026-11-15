@@ -36,6 +36,13 @@ import {
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
+// The tests that read the repository's own migration tree declare this limit (F1-4b, DOORS-6's
+// second occurrence): the first read walks every migration file, and the tree only grows — 4.1 s on
+// CI's runner at 1350b00, 6.1 to 6.8 s once F1-4a's files joined it — so the default 5 s cannot hold.
+// Later reads in the same process reuse it (scripts/doors/once.ts). A test that reads no tree keeps
+// the default.
+const TREE_READ_MS = 20_000;
+
 describe("check-doors (CF-DOORS)", () => {
   it("DOORS-1 every finding kind fires on its planted fixture; the clean pair fires nothing", () => {
     expect(selfTest()).toEqual([]);
@@ -109,74 +116,116 @@ describe("check-doors (CF-DOORS)", () => {
     expect(LIVE_QUERY).toContain("pg_get_functiondef");
   });
 
-  it("DOORS-6 the live mode judges the tree census too: the tree's own catalogue as a live TSV reconciles under the same allowlist (INC-1072)", () => {
-    // The repository's catalogue, spelt as psql -At -F tab would print it.
-    const { rows } = staticRows(ROOT);
-    const tsv = rows
-      .map((row) =>
-        [
-          row.key,
-          row.volatility,
-          row.definer ? "t" : "f",
-          row.anon ? "t" : "f",
-          row.authenticated ? "t" : "f",
-          row.trigger ? "t" : "f",
-          row.body.replace(/[\t\r\n]+/g, " "),
-        ].join("\t"),
-      )
-      .join("\n");
-    // One live pass over the tree's rows plus a planted browser grant nothing calls (ruling 7 §3:
-    // the tree census is walked once; on CI's runner two passes took 5841 ms).
-    const stray =
-      "e2e_planted_stray(uuid)\tv\tt\tf\tt\tf\tCREATE OR REPLACE FUNCTION public.e2e_planted_stray(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN PERFORM public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END $function$\n";
-    const live = liveFindings(`${tsv}\n${stray}`);
-    const isStray = (finding: { key: string }) => finding.key === "e2e_planted_stray(uuid)";
-    // The stray fires in live mode as it does in static mode.
-    expect(live.filter(isStray).map((finding) => finding.kind)).toContain("grant-without-caller");
-    // Every census allowance is a live finding too — none reads as stale (the kit throws), and
-    // nothing else fires; DOORS-4 proves the same of the static mode, so the two agree.
-    expect(
-      allow(live.filter((finding) => !isStray(finding))).map(
-        (finding) => `${finding.kind} ${finding.key}`,
-      ),
-    ).toEqual([]);
-  });
+  it(
+    "DOORS-6 the live mode judges the tree census too: the tree's own catalogue as a live TSV reconciles under the same allowlist (INC-1072)",
+    { timeout: TREE_READ_MS },
+    () => {
+      // The repository's catalogue, spelt as psql -At -F tab would print it.
+      const { rows } = staticRows(ROOT);
+      const tsv = rows
+        .map((row) =>
+          [
+            row.key,
+            row.volatility,
+            row.definer ? "t" : "f",
+            row.anon ? "t" : "f",
+            row.authenticated ? "t" : "f",
+            row.trigger ? "t" : "f",
+            row.body.replace(/[\t\r\n]+/g, " "),
+          ].join("\t"),
+        )
+        .join("\n");
+      // One live pass over the tree's rows plus a planted browser grant nothing calls (ruling 7 §3:
+      // the tree census is walked once; on CI's runner two passes took 5841 ms).
+      const stray =
+        "e2e_planted_stray(uuid)\tv\tt\tf\tt\tf\tCREATE OR REPLACE FUNCTION public.e2e_planted_stray(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN PERFORM public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END $function$\n";
+      const live = liveFindings(`${tsv}\n${stray}`);
+      const isStray = (finding: { key: string }) => finding.key === "e2e_planted_stray(uuid)";
+      // The stray fires in live mode as it does in static mode.
+      expect(live.filter(isStray).map((finding) => finding.kind)).toContain("grant-without-caller");
+      // Every census allowance is a live finding too — none reads as stale (the kit throws), and
+      // nothing else fires; DOORS-4 proves the same of the static mode, so the two agree.
+      expect(
+        allow(live.filter((finding) => !isStray(finding))).map(
+          (finding) => `${finding.kind} ${finding.key}`,
+        ),
+      ).toEqual([]);
+    },
+  );
 
-  it("DOORS-7 a body the migrations hand over in chunks (migration_text_parts) counts as a caller in the static census, as the live catalogue's assembled body does (INC-1072)", () => {
-    // The tree: attr_import_plan's chunk 2 calls attr_option_norm_v2 — a caller the static
-    // catalogue's single-chunk row never showed (the smoke lane's live mode read census line 4
-    // as stale on dc3a7162e).
-    const { rows } = staticRows(ROOT);
-    const callers = treeCallers(ROOT, rows);
-    expect(callers("attr_option_norm_v2")).toBe(true);
-    expect(
-      rows.some(
-        (row) => row.name !== "attr_option_norm_v2" && /\battr_option_norm_v2\s*\(/.test(row.body),
-      ),
-    ).toBe(false);
-    // Planted: a chunk whose code calls a function; a chunk that only names it in a comment.
-    const root = mkdtempSync(join(tmpdir(), "doors-chunk-"));
+  it(
+    "DOORS-7 a body the migrations hand over in chunks (migration_text_parts) counts as a caller in the static census, as the live catalogue's assembled body does (INC-1072)",
+    { timeout: TREE_READ_MS },
+    () => {
+      // The tree: attr_import_plan's chunk 2 calls attr_option_norm_v2 — a caller the static
+      // catalogue's single-chunk row never showed (the smoke lane's live mode read census line 4
+      // as stale on dc3a7162e).
+      const { rows } = staticRows(ROOT);
+      const callers = treeCallers(ROOT, rows);
+      expect(callers("attr_option_norm_v2")).toBe(true);
+      expect(
+        rows.some(
+          (row) =>
+            row.name !== "attr_option_norm_v2" && /\battr_option_norm_v2\s*\(/.test(row.body),
+        ),
+      ).toBe(false);
+      // Planted: a chunk whose code calls a function; a chunk that only names it in a comment.
+      const root = mkdtempSync(join(tmpdir(), "doors-chunk-"));
+      try {
+        for (const dir of ["src", "e2e", join("supabase", "migrations")])
+          mkdirSync(join(root, dir), { recursive: true });
+        writeFileSync(
+          join(root, "supabase", "migrations", "20990101000000_planted.sql"),
+          [
+            "INSERT INTO public.migration_text_parts (fn, seq, body) VALUES ('e2e_planted_assembled', 2, $chunk$",
+            "    -- e2e_planted_commented(x) is only named here",
+            "    v_out := public.e2e_planted_callee(v_in);",
+            "$chunk$);",
+          ].join("\n"),
+        );
+        const planted = treeCallers(root, [], { fresh: true });
+        expect(planted("e2e_planted_callee")).toBe(true);
+        expect(planted("e2e_planted_commented")).toBe(false);
+        expect(planted("e2e_planted_assembled")).toBe(false);
+        expect(
+          chunkBodiesOf(
+            readFileSync(
+              join(root, "supabase", "migrations", "20990101000000_planted.sql"),
+              "utf8",
+            ),
+          ).map((chunk) => chunk.name),
+        ).toEqual(["e2e_planted_assembled"]);
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it("DOORS-9 the tree is read once per root: a second read is the first's answer, and a fresh read sees a changed root (F1-4b)", () => {
+    const root = mkdtempSync(join(tmpdir(), "doors-once-"));
     try {
       for (const dir of ["src", "e2e", join("supabase", "migrations")])
         mkdirSync(join(root, dir), { recursive: true });
-      writeFileSync(
-        join(root, "supabase", "migrations", "20990101000000_planted.sql"),
+      const file = join(root, "supabase", "migrations", "20990101000000_planted.sql");
+      const part = (callee: string) =>
         [
           "INSERT INTO public.migration_text_parts (fn, seq, body) VALUES ('e2e_planted_assembled', 2, $chunk$",
-          "    -- e2e_planted_commented(x) is only named here",
-          "    v_out := public.e2e_planted_callee(v_in);",
+          `    v_out := public.${callee}(v_in);`,
           "$chunk$);",
-        ].join("\n"),
-      );
-      const planted = treeCallers(root, []);
-      expect(planted("e2e_planted_callee")).toBe(true);
-      expect(planted("e2e_planted_commented")).toBe(false);
-      expect(planted("e2e_planted_assembled")).toBe(false);
-      expect(
-        chunkBodiesOf(
-          readFileSync(join(root, "supabase", "migrations", "20990101000000_planted.sql"), "utf8"),
-        ).map((chunk) => chunk.name),
-      ).toEqual(["e2e_planted_assembled"]);
+        ].join("\n");
+      writeFileSync(file, part("e2e_planted_first"));
+      const first = treeCallers(root, []);
+      expect(first("e2e_planted_first")).toBe(true);
+      // The root changes; a plain read still answers from the first read (never a silent re-read).
+      writeFileSync(file, part("e2e_planted_second"));
+      expect(treeCallers(root, [])("e2e_planted_second")).toBe(false);
+      expect(treeCallers(root, [])("e2e_planted_first")).toBe(true);
+      // The explicit option asks for the changed tree, and is what later plain reads then see.
+      expect(treeCallers(root, [], { fresh: true })("e2e_planted_second")).toBe(true);
+      expect(treeCallers(root, [])("e2e_planted_first")).toBe(false);
+      expect(staticRows(root)).toBe(staticRows(root));
+      expect(staticRows(root, { fresh: true })).toBe(staticRows(root));
+      expect(declaredColumns(root)).toBe(declaredColumns(root));
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -200,60 +249,62 @@ describe("check-doors (CF-DOORS)", () => {
     expect(statement).toMatch(/^select [\s\S]*\nfrom pg_proc p\nwhere [\s\S]*\norder by 1;\n$/);
   });
 
-  it("DOORS-8 a row: cell names a column the migrations declare: the census reads tables, added and renamed columns, never a DO block's scratch table", () => {
-    const sql = [
-      "-- CREATE TABLE public.commented (ghost text);",
-      "CREATE TABLE public.e2e_planted_prices (",
-      "  id uuid PRIMARY KEY,",
-      "  country_code char(2) NOT NULL REFERENCES public.countries(code),",
-      "  amount numeric(12, 2),",
-      "  CONSTRAINT e2e_planted_prices_amount CHECK (amount > 0),",
-      "  UNIQUE (country_code, amount)",
-      ");",
-      "ALTER TABLE public.e2e_planted_prices ADD COLUMN IF NOT EXISTS ends_at timestamptz;",
-      "ALTER TABLE ONLY public.e2e_planted_prices RENAME COLUMN amount TO price;",
-      "DO $ BEGIN CREATE TEMP TABLE scratch (country text); END $;",
-    ].join("\n");
-    expect(columnsOf(sql).sort()).toEqual([
-      "e2e_planted_prices.amount",
-      "e2e_planted_prices.country_code",
-      "e2e_planted_prices.ends_at",
-      "e2e_planted_prices.id",
-      "e2e_planted_prices.price",
-    ]);
-    const line = (cell: string) =>
-      `e2e_planted_staff(uuid) | staff | authenticated | packages:update | row | staff_config | - | row:${cell} | staff | - | -`;
-    const columns = new Set(columnsOf(sql));
-    const fired = (cell: string) =>
-      judge([], parseManifest(line(cell)), { columns }).filter(
-        (finding) => finding.kind === "row-column-unknown",
-      );
-    expect(fired("e2e_planted_prices.country_code")).toEqual([]);
-    expect(fired("e2e_planted_prices.country").map((finding) => finding.what)).toEqual([
-      "row:e2e_planted_prices.country names a column no migration declares",
-    ]);
-    expect(fired("scratch.country")).toHaveLength(1);
-    expect(fired("commented.ghost")).toHaveLength(1);
-    // The tree: every row: cell of the manifest names a declared column.
-    const declared = declaredColumns(ROOT);
-    expect(declared.has("package_prices.country_code")).toBe(true);
-    expect(declared.has("package_prices.country")).toBe(false);
-    const cells = [
-      ...parseManifest(
-        readFileSync(join(ROOT, "scripts", "doors", "manifest.txt"), "utf8"),
-      ).lines.values(),
-    ]
-      .map((entry) => entry.country)
-      .flatMap((country) => (country?.kind === "row" ? [country.column] : []));
-    expect(cells.length).toBeGreaterThan(0);
-    expect(cells.filter((column) => !declared.has(column))).toEqual([]);
-  });
+  it(
+    "DOORS-8 a row: cell names a column the migrations declare: the census reads tables, added and renamed columns, never a DO block's scratch table",
+    { timeout: TREE_READ_MS },
+    () => {
+      const sql = [
+        "-- CREATE TABLE public.commented (ghost text);",
+        "CREATE TABLE public.e2e_planted_prices (",
+        "  id uuid PRIMARY KEY,",
+        "  country_code char(2) NOT NULL REFERENCES public.countries(code),",
+        "  amount numeric(12, 2),",
+        "  CONSTRAINT e2e_planted_prices_amount CHECK (amount > 0),",
+        "  UNIQUE (country_code, amount)",
+        ");",
+        "ALTER TABLE public.e2e_planted_prices ADD COLUMN IF NOT EXISTS ends_at timestamptz;",
+        "ALTER TABLE ONLY public.e2e_planted_prices RENAME COLUMN amount TO price;",
+        "DO $ BEGIN CREATE TEMP TABLE scratch (country text); END $;",
+      ].join("\n");
+      expect(columnsOf(sql).sort()).toEqual([
+        "e2e_planted_prices.amount",
+        "e2e_planted_prices.country_code",
+        "e2e_planted_prices.ends_at",
+        "e2e_planted_prices.id",
+        "e2e_planted_prices.price",
+      ]);
+      const line = (cell: string) =>
+        `e2e_planted_staff(uuid) | staff | authenticated | packages:update | row | staff_config | - | row:${cell} | staff | - | -`;
+      const columns = new Set(columnsOf(sql));
+      const fired = (cell: string) =>
+        judge([], parseManifest(line(cell)), { columns }).filter(
+          (finding) => finding.kind === "row-column-unknown",
+        );
+      expect(fired("e2e_planted_prices.country_code")).toEqual([]);
+      expect(fired("e2e_planted_prices.country").map((finding) => finding.what)).toEqual([
+        "row:e2e_planted_prices.country names a column no migration declares",
+      ]);
+      expect(fired("scratch.country")).toHaveLength(1);
+      expect(fired("commented.ghost")).toHaveLength(1);
+      // The tree: every row: cell of the manifest names a declared column.
+      const declared = declaredColumns(ROOT);
+      expect(declared.has("package_prices.country_code")).toBe(true);
+      expect(declared.has("package_prices.country")).toBe(false);
+      const cells = [
+        ...parseManifest(
+          readFileSync(join(ROOT, "scripts", "doors", "manifest.txt"), "utf8"),
+        ).lines.values(),
+      ]
+        .map((entry) => entry.country)
+        .flatMap((country) => (country?.kind === "row" ? [country.column] : []));
+      expect(cells.length).toBeGreaterThan(0);
+      expect(cells.filter((column) => !declared.has(column))).toEqual([]);
+    },
+  );
 
-  // The static census reads every migration, then the rows once more: 4.1 s on CI's runner at
-  // 1350b00, 6.1 to 6.8 s once F1-4a's 19 files joined the tree, so the default 5 s cannot hold.
   it(
     "DOORS-4 the repository's tree reconciles: every browser-callable function has its line, every line its door",
-    { timeout: 20_000 },
+    { timeout: TREE_READ_MS },
     () => {
       const findings = allow(staticFindings(ROOT));
       expect(findings.map((finding) => `${finding.kind} ${finding.key} — ${finding.what}`)).toEqual(

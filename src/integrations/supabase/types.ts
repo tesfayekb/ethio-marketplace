@@ -4304,7 +4304,7 @@ export type Database = {
       admin_delete_language: { Args: { p_code: string }; Returns: Json }
       admin_delete_location: {
         Args: { p_id: string; p_slug: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_delete_role: { Args: { p_role_id: string }; Returns: Json }
       admin_discard_legal_draft: {
@@ -4915,7 +4915,7 @@ export type Database = {
       }
       admin_move_location: {
         Args: { p_id: string; p_new_parent_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_name_check_clear: {
         Args: {
@@ -4982,7 +4982,7 @@ export type Database = {
       }
       admin_reorder_locations: {
         Args: { p_ids: string[]; p_parent_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_retire_category: {
         Args: { p_id: string; p_reassign_to: string }
@@ -5140,7 +5140,7 @@ export type Database = {
       }
       admin_set_country_active: {
         Args: { p_active: boolean; p_code: string; p_force_hide?: boolean }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_country_exclusions: {
         Args: { p_country_codes: string[]; p_id: string }
@@ -5152,7 +5152,7 @@ export type Database = {
       }
       admin_set_country_root_order: {
         Args: { p_category_ids: string[]; p_code: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_entity_translation_status: {
         Args: {
@@ -5201,7 +5201,7 @@ export type Database = {
       }
       admin_set_location_active: {
         Args: { p_active: boolean; p_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_primary_pointer: {
         Args: { p_pointer_id: string }
@@ -5326,7 +5326,7 @@ export type Database = {
           p_name_en: string
           p_unit_system: string
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_upsert_language: {
         Args: {
@@ -5351,7 +5351,7 @@ export type Database = {
           p_parent_id: string
           p_slug: string
         }
-        Returns: string
+        Returns: Json
       }
       admin_user_activity: {
         Args: { p_limit?: number; p_user_id: string }

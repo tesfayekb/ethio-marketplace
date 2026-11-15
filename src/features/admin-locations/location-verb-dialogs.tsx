@@ -11,8 +11,8 @@ import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
-import { LocationDialogActions, LocationErrorLine } from "./location-dialogs";
-import { useLocationError } from "./location-dialog-state";
+import { LocationDialogActions, LocationDialogAlert } from "./location-dialogs";
+import { useLocationRefusal } from "./location-refusals";
 import { levelRank, type LocationNode } from "./locations-service";
 import {
   ADMIN_LOCATIONS_KEY,
@@ -45,7 +45,7 @@ export function LocationActiveDialog({
 }) {
   const { t } = useI18n();
   const setActive = useSetLocationActive();
-  const { refusal, clear, fail } = useLocationError();
+  const { message, clear, fail } = useLocationRefusal();
   const activating = !row.isActive;
 
   const submit = () => {
@@ -77,7 +77,7 @@ export function LocationActiveDialog({
           activating ? "admin.locations.active.hintActivate" : "admin.locations.active.hintRetire",
         )}
       </p>
-      <LocationErrorLine refusal={refusal} />
+      <LocationDialogAlert message={message} />
       <LocationDialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -114,7 +114,7 @@ export function LocationMoveDialog({
 }) {
   const { t } = useI18n();
   const move = useMoveLocation();
-  const { refusal, clear, fail } = useLocationError();
+  const { message, clear, fail } = useLocationRefusal();
   const targets = useMemo(
     () =>
       roster.filter(
@@ -176,7 +176,7 @@ export function LocationMoveDialog({
           </NativeSelect>
         </FormField>
       )}
-      <LocationErrorLine refusal={refusal} />
+      <LocationDialogAlert message={message} />
       <LocationDialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -205,7 +205,7 @@ export function LocationReorderDialog({
 }) {
   const { t } = useI18n();
   const reorder = useReorderLocations();
-  const { refusal, clear, fail } = useLocationError();
+  const { message, clear, fail } = useLocationRefusal();
   const queryClient = useQueryClient();
   const [order, setOrder] = useState<LocationNode[] | null>(null);
 
@@ -292,7 +292,7 @@ export function LocationReorderDialog({
           </li>
         ))}
       </ol>
-      <LocationErrorLine refusal={refusal} />
+      <LocationDialogAlert message={message} />
       <LocationDialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -323,7 +323,7 @@ export function LocationDeleteDialog({
 }) {
   const { t } = useI18n();
   const remove = useDeleteLocation();
-  const { refusal, clear, fail, render } = useLocationError();
+  const { message, clear, fail, render } = useLocationRefusal();
   const [typed, setTyped] = useState("");
 
   const submit = () => {
@@ -361,7 +361,7 @@ export function LocationDeleteDialog({
           onChange={(event) => setTyped(event.target.value)}
         />
       </FormField>
-      <LocationErrorLine refusal={refusal} />
+      <LocationDialogAlert message={message} />
       <LocationDialogActions
         onCancel={onClose}
         onSubmit={submit}

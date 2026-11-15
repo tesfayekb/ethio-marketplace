@@ -44,36 +44,25 @@ type DoorError = {
 };
 
 /**
- * THE DOOR TABLE (CHANGE 4). `exact`: the whole message; `key`: the message is
- * `<match>: <tail>` and answers the key as `error`, the tail as `detail`;
- * `stepUp`: the message is `step-up required` or begins `step-up required:`.
- * A fixed sentence answers ITSELF (a server literal) unless `error` renames it.
- * The categories and attributes doors answer codes (F1-4a, read by `codedRefusal`); their
- * planners' `unknown category scope` is still a sentence (F1-7).
+ * THE DOOR TABLE (CHANGE 4). `exact`: the whole message; `stepUp`: the message is
+ * `step-up required` or begins `step-up required:`. A fixed sentence answers ITSELF (a server
+ * literal). Every door answers a code through the shell since F1-4b (read by `codedRefusal`);
+ * what stays is the gate's step-up sentence (SQLSTATE P0009, every family) and the planners'
+ * `unknown category scope` / `unknown country scope` (F1-7).
  */
-export type ImportRefusal = {
-  match: string;
-  kind: "exact" | "key" | "stepUp";
-  status: 400 | 403 | 404 | 409 | 428;
-  error?: string;
-  detail?: string;
-};
+export type ImportRefusal =
+  | { match: string; kind: "exact"; status: 404 }
+  | { match: string; kind: "stepUp"; status: 428 };
 
 export const IMPORT_REFUSALS: readonly ImportRefusal[] = [
-  { match: "permission denied", kind: "exact", status: 403, error: "forbidden" },
   { match: "step-up required", kind: "stepUp", status: 428 },
-  { match: "import already running", kind: "exact", status: 409 },
   { match: "unknown category scope", kind: "exact", status: 404 },
   { match: "unknown country scope", kind: "exact", status: 404 },
-  { match: "unknown import batch", kind: "exact", status: 404 },
-  { match: "batchAlreadyUndone", kind: "exact", status: 409 },
-  { match: "planHasRefusals", kind: "exact", status: 409 },
-  { match: "undoBlocked", kind: "exact", status: 409, detail: "hasRows" },
-  { match: "unknownParent", kind: "key", status: 409 },
 ];
 
 /** The factory's own words and the gate's file-law words — with the table, every word answered. */
 export const IMPORT_WORDS = [
+  "forbidden",
   "malformed body",
   "mode must be preview, commit or undo",
   "mode must be commit or undo",
@@ -133,10 +122,10 @@ function codedRefusal(error: DoorError): Response | null {
 }
 
 /**
- * ONE RELAY. A declared message answers its code; a nested door's own
- * translation key (`admin.<family>.error.<name>[:tail]`, DOOR_KEY — e.g. the
- * attribute commit's `parentAfterChild`) answers that key and its tail at 409;
- * anything else is a 500 with an incident and no text.
+ * ONE RELAY. A door's coded refusal answers its code; a declared message answers itself; a
+ * nested door's own translation key (`admin.<family>.error.<name>[:tail]`, DOOR_KEY — e.g. the
+ * attribute commit's `parentAfterChild`) answers that key and its tail at 409; anything else is
+ * a 500 with an incident and no text.
  */
 export function relay(path: string, what: string, error: DoorError): Response {
   const coded = codedRefusal(error);
@@ -147,22 +136,7 @@ export function relay(path: string, what: string, error: DoorError): Response {
       if (message === entry.match || message.startsWith(`${entry.match}:`)) return stepUpRequired();
       continue;
     }
-    if (entry.kind === "key") {
-      if (!message.startsWith(`${entry.match}:`)) continue;
-      const tail = message.slice(entry.match.length + 1).trim();
-      return clientError(
-        entry.error ?? entry.match,
-        409,
-        tail === "" ? undefined : { detail: tail },
-      );
-    }
-    if (message !== entry.match) continue;
-    const status = entry.status === 428 ? 409 : entry.status;
-    return clientError(
-      entry.error ?? entry.match,
-      status,
-      entry.detail === undefined ? undefined : { detail: entry.detail },
-    );
+    if (message === entry.match) return clientError(entry.match, entry.status);
   }
   const { key, tail } = splitRefusal(message);
   if (DOOR_KEY.test(key)) {
