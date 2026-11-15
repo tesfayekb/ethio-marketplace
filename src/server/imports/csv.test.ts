@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { exportColumns, exportFilename, toCsv } from "./csv";
+import { exportColumns, exportFilename, exportRefusal, toCsv } from "./csv";
 import { isFormulaCell, parseCsvGrid, unneutralize } from "./gate";
 import { familyOf, fileOf } from "./registry";
 
@@ -55,6 +55,17 @@ describe("toCsv", () => {
       expect(isFormulaCell(exported)).toBe(false);
       expect(unneutralize(exported)).toBe(cell);
     }
+  });
+
+  it("CSV-7 an export reader's gate code and its sentence are both forbidden; the scope sentence answers itself", () => {
+    const scope = "unknown category scope" as const;
+    expect(exportRefusal({ message: "permissionDenied" }, scope)).toBe("forbidden");
+    expect(exportRefusal({ message: "permission denied" }, "unknown country scope")).toBe(
+      "forbidden",
+    );
+    expect(exportRefusal({ message: "unknown category scope" }, scope)).toBe(scope);
+    expect(exportRefusal({ message: "rateLimited" }, scope)).toBeNull();
+    expect(exportRefusal({ message: "relation x does not exist" }, scope)).toBeNull();
   });
 
   it("CSV-4 exportColumns equals the literal lists the exports carried", () => {

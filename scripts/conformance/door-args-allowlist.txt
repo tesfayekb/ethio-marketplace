@@ -1,0 +1,5 @@
+# CF-DOOR-ARGS (scripts/conformance/door-args.test.ts, F1-4a, INC-942) — the literal null asserted through unknown
+# to another type, under src/; a door's NULL argument goes through rpc() with DoorArgs (src/lib/supabase-door.ts).
+# Grammar: <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
+src/features/admin-locations/locations-service.ts:99 | p_level: the locations console's door call moves onto rpc() with DoorArgs in F1-4b | INC-942
+src/features/admin-locations/locations-service.ts:100 | p_active: the locations console's door call moves onto rpc() with DoorArgs in F1-4b | INC-942

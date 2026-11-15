@@ -6,6 +6,8 @@ import type { Json } from "@/integrations/supabase/types";
 import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { compareNames } from "@/lib/name-collator";
+import { rpc } from "@/lib/supabase-door";
+import { answeredId } from "@/features/admin-categories/categories-service";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY client seam.
@@ -288,8 +290,8 @@ export function toOptionsJson(options: AttributeOption[]): unknown[] {
 }
 
 export async function upsertAttribute(input: UpsertAttributeInput): Promise<string> {
-  const { data, error } = await supabase.rpc("admin_upsert_attribute", {
-    p_id: input.id as string,
+  const { data, error } = await rpc("admin_upsert_attribute", {
+    p_id: input.id,
     p_attr_key: input.attrKey,
     p_name_en: input.nameEn,
     p_attr_type: input.attrType,
@@ -297,25 +299,24 @@ export async function upsertAttribute(input: UpsertAttributeInput): Promise<stri
       typeHasOptions(input.attrType) && input.options.length > 0
         ? (toOptionsJson(input.options) as never)
         : null,
-    p_help_text_en: input.helpTextEn.trim() === "" ? (null as unknown as string) : input.helpTextEn,
-    p_depends_on: input.dependsOnKey as string,
-    p_help_text_am:
-      input.helpTextAm.trim() === "" ? (null as unknown as string) : input.helpTextAm.trim(),
-    p_unit: input.unit as string,
-    p_unit_am: input.unitAm as string,
-    p_min_bound: input.minBound as string,
-    p_max_bound: input.maxBound as string,
-    p_decimals: input.decimals as number,
-    p_format: input.format as string,
-    p_preset: input.preset as string,
-    p_max_length: input.maxLength as number,
+    p_help_text_en: input.helpTextEn.trim() === "" ? null : input.helpTextEn,
+    p_depends_on: input.dependsOnKey,
+    p_help_text_am: input.helpTextAm.trim() === "" ? null : input.helpTextAm.trim(),
+    p_unit: input.unit,
+    p_unit_am: input.unitAm,
+    p_min_bound: input.minBound,
+    p_max_bound: input.maxBound,
+    p_decimals: input.decimals,
+    p_format: input.format,
+    p_preset: input.preset,
+    p_max_length: input.maxLength,
   });
   if (error) throw error;
-  return data as string;
+  return answeredId("admin_upsert_attribute", data);
 }
 
 export async function deleteAttribute(input: { id: string; confirmKey: string }): Promise<void> {
-  const { error } = await supabase.rpc("admin_delete_attribute", {
+  const { error } = await rpc("admin_delete_attribute", {
     p_id: input.id,
     p_confirm_key: input.confirmKey,
   });
@@ -427,18 +428,18 @@ export async function linkAttribute(input: {
   defaultValue?: unknown;
   visibleWhen?: VisibleWhen;
 }): Promise<string> {
-  const { data, error } = await supabase.rpc("admin_link_attribute", {
+  const { data, error } = await rpc("admin_link_attribute", {
     p_category_id: input.categoryId,
     p_attribute_id: input.attributeId,
     p_is_required: input.isRequired,
     p_is_filterable: input.isFilterable,
-    p_display_order: input.displayOrder as number,
-    p_allowed_options: input.allowedOptions ?? (null as unknown as string[]),
+    p_display_order: input.displayOrder,
+    p_allowed_options: input.allowedOptions ?? null,
     p_default_value: (input.defaultValue ?? null) as Json,
     p_visible_when: (input.visibleWhen ?? null) as Json,
   });
   if (error) throw error;
-  return data as string;
+  return answeredId("admin_link_attribute", data);
 }
 
 /**
@@ -458,14 +459,14 @@ export async function updateAttributeLink(input: {
   visibleWhen?: VisibleWhen;
   clearCells?: LinkCellName[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_update_attribute_link", {
+  const { error } = await rpc("admin_update_attribute_link", {
     p_link_id: input.linkId,
-    p_is_required: input.isRequired ?? (null as unknown as boolean),
-    p_is_filterable: input.isFilterable ?? (null as unknown as boolean),
-    p_allowed_options: input.allowedOptions ?? (null as unknown as string[]),
+    p_is_required: input.isRequired ?? null,
+    p_is_filterable: input.isFilterable ?? null,
+    p_allowed_options: input.allowedOptions ?? null,
     p_default_value: (input.defaultValue ?? null) as Json,
     p_visible_when: (input.visibleWhen ?? null) as Json,
-    p_clear_cells: input.clearCells ?? (null as unknown as string[]),
+    p_clear_cells: input.clearCells ?? null,
   });
   if (error) throw error;
 }
@@ -499,7 +500,7 @@ export async function readAttributeHolders(input: {
 }
 
 export async function unlinkAttribute(linkId: string): Promise<void> {
-  const { error } = await supabase.rpc("admin_unlink_attribute", { p_link_id: linkId });
+  const { error } = await rpc("admin_unlink_attribute", { p_link_id: linkId });
   if (error) throw error;
 }
 
@@ -507,7 +508,7 @@ export async function setFactAttributes(input: {
   categoryId: string;
   orderedAttributeIds: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_fact_attributes", {
+  const { error } = await rpc("admin_set_fact_attributes", {
     p_category_id: input.categoryId,
     p_ordered_attribute_ids: input.orderedAttributeIds,
   });
@@ -518,7 +519,7 @@ export async function setCardAttributes(input: {
   categoryId: string;
   orderedAttributeIds: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_card_attributes", {
+  const { error } = await rpc("admin_set_card_attributes", {
     p_category_id: input.categoryId,
     p_ordered_attribute_ids: input.orderedAttributeIds,
   });
@@ -551,7 +552,7 @@ export async function setAttributeLinkOrder(input: {
   categoryId: string;
   orderedLinkIds: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_attribute_link_order", {
+  const { error } = await rpc("admin_set_attribute_link_order", {
     p_category_id: input.categoryId,
     p_ordered_link_ids: input.orderedLinkIds,
   });

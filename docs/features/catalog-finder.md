@@ -24,7 +24,7 @@ The marketplace landing must consume the returned `leaf_id` plus `matches` attri
 
 ## Operations
 
-`catalog_find_rebuild()` is the administrative repair door. It forces a serialized rebuild. Normal freshness comes from the lazy rebuild on the first stale read; a rebuild never runs inside, or fails, a catalog save. Never wire an index rebuild into a write path.
+`catalog_find_rebuild()` is the administrative repair door. It forces a serialized rebuild. Since F1-4a it is a door on `door_context` (staff, `categories:import` with step-up, `staff_config`, global) and answers `{ ok: true, entries }`; the service role passes every gate. An operator at the SQL editor uses `catalog_find_refresh(true)`: `catalog_find_rebuild` from a bare SQL session now answers `notSignedIn`. Normal freshness comes from the lazy rebuild on the first stale read; a rebuild never runs inside, or fails, a catalog save. Never wire an index rebuild into a write path.
 
 ## S2 / S3 (2026-10-02)
 

@@ -1,3 +1,5 @@
+import { doorCode } from "@/lib/door-codes";
+
 import type { FileSpec } from "./registry";
 
 /**
@@ -54,11 +56,16 @@ export function exportFilename(fileId: string, scope: string | null, now = new D
   return `ethio-${scope === null ? "" : `${scope}-`}${fileId}-${day}.csv`;
 }
 
-/** The export RPCs' refusals, by their own words; anything else is the caller's read failure. */
+/**
+ * The export RPCs' refusals: a reader's gate code (`permissionDenied`, F1-4a's readers) or its
+ * sentence (the locations export until F1-4b), and the planner's scope sentence; anything else is
+ * the caller's read failure.
+ */
 export function exportRefusal(
   error: { message: string },
   unknownScope: "unknown category scope" | "unknown country scope",
 ): "forbidden" | typeof unknownScope | null {
+  if (doorCode(error).code === "permissionDenied") return "forbidden";
   if (error.message.includes("permission denied")) return "forbidden";
   if (error.message.includes(unknownScope)) return unknownScope;
   return null;

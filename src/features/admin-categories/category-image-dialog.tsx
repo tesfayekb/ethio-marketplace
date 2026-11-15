@@ -9,12 +9,11 @@ import { relativeTime } from "@/lib/relative-time";
 import { CategoryModal } from "./category-dialogs";
 import {
   acceptCategoryImage,
-  CategoryImageError,
   generateCategoryImage,
   type GeneratedAssets,
   loadCategoryImages,
 } from "./category-images-service";
-import { errorText } from "@/lib/error-text";
+import { useImageFailure } from "./use-image-failure";
 
 /**
  * C5b PART A — THE IMAGE SURFACE.
@@ -26,21 +25,6 @@ import { errorText } from "@/lib/error-text";
  * regenerated. There is no draft-asset state yet; it arrives when listings
  * consume category imagery.
  */
-
-function useImageFailure() {
-  const { t } = useI18n();
-  const [message, setMessage] = useState<string | null>(null);
-  const fail = (error: unknown) => {
-    if (error instanceof CategoryImageError) {
-      const stage =
-        error.stage === null ? "" : ` (${t("admin.categories.image.stageLabel")} ${error.stage})`;
-      setMessage(`${t("admin.categories.error.imageFailed")}${stage}: ${error.message}`);
-      return;
-    }
-    setMessage(t("admin.categories.error.imageFailed"));
-  };
-  return { message, setMessage, fail };
-}
 
 export function AssetsPreview({
   assets,
@@ -247,14 +231,7 @@ export function CategoryImagePanel({
       setDone(true);
       onAccepted?.();
     })
-      .catch((error: unknown) => {
-        const raw = error === null || error === undefined ? "" : errorText(error);
-        if (raw.startsWith("admin.categories.error.")) {
-          setMessage(t(raw as Parameters<typeof t>[0]));
-          return;
-        }
-        fail(error);
-      })
+      .catch(fail)
       .finally(() => {
         setBusy(false);
       });

@@ -15,6 +15,7 @@ import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
+import { readRefusal } from "@/lib/refusal";
 import { cn } from "@/lib/utils";
 
 import {
@@ -37,7 +38,7 @@ import {
   useUnlinkAttribute,
   useUpsertAttribute,
 } from "./use-attributes";
-import { useAttributeError } from "./attribute-error";
+import { ATTRIBUTE_REFUSALS, useAttributeRefusal } from "./attribute-refusals";
 import { useAttributeLabel } from "./use-attribute-label";
 import { AttributeOptionRows } from "./components/attribute-option-rows";
 import {
@@ -63,7 +64,7 @@ import {
  * translated line, never a silent no-op (F4). 360-first throughout.
  */
 
-export function AttributeErrorLine({ message }: { message: string | null }) {
+export function AttributeDialogAlert({ message }: { message: string | null }) {
   if (!message) return null;
   return (
     <p role="alert" data-testid="attribute-dialog-error" className="text-sm text-destructive">
@@ -135,7 +136,7 @@ export function AttributeEditorDialog({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   const upsert = useUpsertAttribute();
-  const { message, setMessage, fail } = useAttributeError();
+  const { message, setMessage, fail } = useAttributeRefusal();
   const [attrKey, setAttrKey] = useState(attribute?.attrKey ?? "");
   const [nameEn, setNameEn] = useState(attribute?.nameEn ?? "");
   const [attrType, setAttrType] = useState(attribute?.attrType ?? "text");
@@ -501,9 +502,9 @@ export function AttributeEditorDialog({
         </p>
       ) : null}
       {removedValues.length > 0 && removedHolders.failed ? (
-        <AttributeErrorLine message={t("admin.attributes.links.error")} />
+        <AttributeDialogAlert message={t("admin.attributes.links.error")} />
       ) : null}
-      <AttributeErrorLine message={message} />
+      <AttributeDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -533,7 +534,7 @@ export function DeleteAttributeDialog({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   const remove = useDeleteAttribute();
-  const { message, setMessage, fail } = useAttributeError();
+  const { message, setMessage, fail } = useAttributeRefusal();
   const [typed, setTyped] = useState("");
   /** The blast radius owns the single message slot whenever it is present. */
   const [blastCount, setBlastCount] = useState<number | null>(
@@ -541,21 +542,18 @@ export function DeleteAttributeDialog({
   );
 
   /**
-   * C3e — the linked-refusal (`admin.attributes.error.deleteHasLinks:<n>`) is
-   * not a generic error line: it re-states the BLAST RADIUS with the server's
-   * own count, in the same amber line the operator read before typing the key.
+   * C3e — the linked-refusal (`deleteHasLinks:<n>`, F1-4a) is not a generic
+   * error line: it re-states the BLAST RADIUS with the server's own count, in
+   * the same amber line the operator read before typing the key.
    */
   const failDelete = (error: unknown) => {
-    const raw =
-      typeof (error as { message?: unknown }).message === "string"
-        ? (error as { message: string }).message
-        : "";
-    const match = /^admin\.attributes\.error\.deleteHasLinks:(\d+)$/.exec(raw);
-    if (match !== null) {
+    const read = readRefusal(error, ATTRIBUTE_REFUSALS);
+    const count = read.tail ?? "";
+    if (read.key === ATTRIBUTE_REFUSALS.words.deleteHasLinks && /^\d+$/.test(count)) {
       // F4 / AT5-ONE-MESSAGE: clear the generic error state so the node is
       // removed entirely; only the amber blast-radius line renders.
       setMessage(null);
-      setBlastCount(Number(match[1]));
+      setBlastCount(Number(count));
       return;
     }
     setBlastCount(null);
@@ -602,7 +600,7 @@ export function DeleteAttributeDialog({
           onChange={(event) => setTyped(event.target.value)}
         />
       </FormField>
-      {blastCount === null ? <AttributeErrorLine message={message} /> : null}
+      {blastCount === null ? <AttributeDialogAlert message={message} /> : null}
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -634,7 +632,7 @@ export function MergeAttributesDialog({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   const merge = useMergeAttributes();
-  const { message, setMessage, fail } = useAttributeError();
+  const { message, setMessage, fail } = useAttributeRefusal();
   const [sourceIds, setSourceIds] = useState<string[]>([]);
   const [targetId, setTargetId] = useState("");
   const [counts, setCounts] = useState<MergeCounts | null>(null);
@@ -743,7 +741,7 @@ export function MergeAttributesDialog({
         </p>
       )}
 
-      <AttributeErrorLine message={message} />
+      <AttributeDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -782,7 +780,7 @@ export function AssignAttributeDialog({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   const link = useLinkAttribute();
-  const { message, setMessage, fail } = useAttributeError();
+  const { message, setMessage, fail } = useAttributeRefusal();
   const [needle, setNeedle] = useState("");
   const [categoryId, setCategoryId] = useState("");
 
@@ -846,7 +844,7 @@ export function AssignAttributeDialog({
           ))}
         </NativeSelect>
       </FormField>
-      <AttributeErrorLine message={message} />
+      <AttributeDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -882,7 +880,7 @@ export function RemoveAttributeCategoryDialog({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   const unlink = useUnlinkAttribute();
-  const { message, setMessage, fail } = useAttributeError();
+  const { message, setMessage, fail } = useAttributeRefusal();
   const [linkId, setLinkId] = useState(links.length === 1 ? (links[0]?.linkId ?? "") : "");
 
   const chosen = links.find((row) => row.linkId === linkId) ?? null;
@@ -952,11 +950,11 @@ export function RemoveAttributeCategoryDialog({
             </p>
           ) : null}
           {chosen !== null && holders.error ? (
-            <AttributeErrorLine message={t("admin.attributes.links.error")} />
+            <AttributeDialogAlert message={t("admin.attributes.links.error")} />
           ) : null}
         </>
       )}
-      <AttributeErrorLine message={message} />
+      <AttributeDialogAlert message={message} />
       {links.length === 0 ? null : (
         <DialogActions
           onCancel={onClose}

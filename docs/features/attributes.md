@@ -165,8 +165,8 @@ translatable today.
 A `categories:view`-only operator reads the library and sees no write verbs —
 no ⋯ menu, no Create. The server refuses independently:
 `admin_upsert_attribute` and `admin_link_attribute` need `categories:update`,
-`admin_delete_attribute` needs `categories:restructure`; each raises
-`permission denied` and writes nothing (F5).
+`admin_delete_attribute` needs `categories:restructure`; each refuses
+`permissionDenied` (`door_context`, F1-4a) and writes nothing (F5).
 
 E2E: AT-12 (approved `am` label renders, EN fallback returns) · AT-13 (a
 scratch definition is pending in the Data roster) · AT-14 (the three deny

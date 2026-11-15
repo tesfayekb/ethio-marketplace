@@ -12,8 +12,8 @@ import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
 
-import { AttributeErrorLine } from "./attribute-dialogs";
-import { useAttributeError } from "./attribute-error";
+import { AttributeDialogAlert } from "./attribute-dialogs";
+import { useAttributeRefusal } from "./attribute-refusals";
 import { AttributeLinkCells } from "./components/attribute-link-cells";
 import { useAttributeLabel } from "./use-attribute-label";
 import {
@@ -81,7 +81,7 @@ export function CategoryAttributesDialog({
    * second press never computes from the old list (and undoes the first).
    */
   const settling = useSettling(ADMIN_ATTRIBUTES_KEY);
-  const { message, setMessage, fail } = useAttributeError();
+  const { message, setMessage, fail } = useAttributeRefusal();
   const [picker, setPicker] = useState("");
   const [search, setSearch] = useState("");
 
@@ -552,7 +552,7 @@ export function CategoryAttributesDialog({
         </Button>
       </div>
 
-      <AttributeErrorLine message={message} />
+      <AttributeDialogAlert message={message} />
       {/* UX-2 PART 5 — there is nothing left to submit, so the footer says
           Done and states the law it obeys: every change is already written. */}
       <div className="flex flex-wrap items-center justify-between gap-2">

@@ -8,7 +8,8 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
-import { doorKeyText } from "@/lib/refusal-tail";
+import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
 
 /**
  * THE IMPORT DIALOG SHELL (IE-2, generalised by CAT-IE).
@@ -121,6 +122,8 @@ export interface ImportDialogProps {
   onClose: () => void;
   /** Called after a successful commit or undo, so the console refetches. */
   onWritten?: () => Promise<void> | void;
+  /** The console's own words for its doors' codes; the consoles' shared words otherwise. */
+  refusals?: RefusalFamily;
 }
 
 export function ImportDialog({
@@ -137,8 +140,9 @@ export function ImportDialog({
   guard,
   onClose,
   onWritten,
+  refusals = ADMIN_REFUSALS,
 }: ImportDialogProps) {
-  const { t } = useI18n();
+  const { t, has } = useI18n();
   const [texts, setTexts] = useState<Record<string, string>>({});
   /** IE-7 — the chosen filename, spoken beside its picker. */
   const [names, setNames] = useState<Record<string, string>>({});
@@ -219,20 +223,17 @@ export function ImportDialog({
   /**
    * Foundations turn 12 (CHANGE 4) — the door's declared code, resolved. The
    * route answers `error` (a machine code or a server literal, never database
-   * text) and an optional `detail`; a code that IS a door key
-   * (`admin.<family>.error.*`) renders translated with its detail as the tail,
-   * anything else renders as the code with the detail appended (F2: data).
+   * text) and an optional `detail`; a code the console's words name, or a door
+   * key (`admin.<family>.error.*`) the catalogue holds, renders translated
+   * through the one reader with its detail as the tail (F1-4a), anything else
+   * renders as the code with the detail appended (F2: data).
    */
   const reasonOf = (payload: { error?: string; detail?: string }): string | null => {
     const code = (payload.error ?? "").trim();
     if (code === "") return null;
     const detail = (payload.detail ?? "").trim();
-    // ES6 — a door key may carry a tail after its first colon ({count}, {detail}).
-    const words = doorKeyText(
-      detail === "" ? code : `${code}:${detail}`,
-      (key) => t(key as MessageKey) as string | undefined,
-    );
-    if (words !== null) return words;
+    const read = readRefusal(detail === "" ? code : `${code}:${detail}`, refusals, has);
+    if (read.branch === "family" || read.branch === "doorKey") return refusalText(read, t);
     return detail === "" ? code : `${code} — ${detail}`;
   };
 
@@ -243,7 +244,8 @@ export function ImportDialog({
     if (status === 428) return setError(t(key("error.stepUp")));
     if (named === "wrongFile") return setError(t(key("error.wrongFile")));
     if (status === 409 && named === "fileChanged") return setError(t(key("error.fileChanged")));
-    if (status === 409 && named === "import already running") return setError(t(key("error.busy")));
+    if (named === "importRunning" || (status === 409 && named === "import already running"))
+      return setError(t(key("error.busy")));
     if (status === 413 || named === "fileTooLarge") return setError(t(key("error.tooLarge")));
     if (named === "tooManyRows") return setError(t(key("error.tooManyRows")));
     if (named === "badHeader") return setError(t(key("error.badHeader")));

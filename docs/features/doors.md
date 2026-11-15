@@ -129,6 +129,30 @@ src/features/my-listings/promote-service.ts.
   acceptance export passes the gate, spends `legal_export` and writes its audit line on every
   page; the client asks pages of the door's maximum, 5000, so one hour reads at most 60 × 5000 =
   300,000 acceptances, and a larger export is refused `rateLimited`, never cut short.
+- **F1-4a — categories and attributes** (`docs/governance/briefs/f1-doors-4a.md`, ruling 1;
+  nineteen files `20261115021400` → `20261115023200`, marks `20261115040000` →
+  `20261115041800`): the family's 42 manifest lines (28 doors, 14 staff readers) sit on
+  `door_context` and the shell or the reader form, the four import doors and
+  `catalog_find_rebuild` among them. The doors the category imports call delegate to closed
+  SECURITY INVOKER cores, so a core's code raises through the import's own shell and the whole
+  file rolls back; a void door answers `{ ok: true }`, a create `{ ok: true, id }`, the picture
+  accept `{ ok: true, accepted_at }`. Every sentence and console key the bodies raised is a code
+  (`rankInherited` carries its diagnostic in the tail). The client reads them through
+  `readRefusal` with the family's words, `CATEGORY_REFUSALS` (category-refusals.ts) and
+  `ATTRIBUTE_REFUSALS` (attribute-refusals.ts): each code that replaced a console key reads that
+  key's words, and a code that never had words reads as the console's generic line. The
+  services call the doors through `rpc()` and read the answer through a shape guard
+  (`answeredId`). `DOOR_CODES` did not grow.
+- **DEC-380's exit rule is read narrowly (DEC-385)**: it binds a door that ends a live state its
+  opener's dial rations (a session, a hold); a door that deletes, retires or unlinks a catalogue
+  row is an edit and spends its family's dial (`admin_remove_category_pointer` and
+  `admin_unlink_attribute` spend `staff_config`).
+- **A door's optional argument (INC-942)**: `DoorArgs<F>` (src/lib/supabase-door.ts), the type
+  `rpc()` takes, lets every argument be NULL — the database's declaration answers which NULL it
+  accepts (a NULL it refuses is the door's `badValue:<arg>`), and an omitted key takes the
+  argument's DEFAULT. CF-DOOR-ARGS (`scripts/conformance/door-args.test.ts`) finds the literal
+  `null` cast through `unknown` under src/; its allowlist holds the locations console's two lines
+  until F1-4b.
 - **The lint `impersonation_reach`** (`public.security_lints()`, ERROR, baseline 0; DEC-381)
   holds `begin_impersonation`'s permission to `super_admin` alone on every push and every night.
 

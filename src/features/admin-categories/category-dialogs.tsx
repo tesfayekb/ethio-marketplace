@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import { suggestCategoryIcon } from "./category-images-service";
 import { CategoryFormFields, type CategoryFormValues } from "./category-form-fields";
 import { emptyCategoryForm } from "./category-form-values";
-import { useSubmitError } from "./category-submit-error";
+import { useCategoryRefusal } from "./category-refusals";
 
 import {
   activeParentOptions,
@@ -88,7 +88,7 @@ export function CategoryModal({
   );
 }
 
-function ErrorLine({ message }: { message: string | null }) {
+function CategoryDialogAlert({ message }: { message: string | null }) {
   if (!message) return null;
   return (
     <p role="alert" data-testid="category-dialog-error" className="text-sm text-destructive">
@@ -145,7 +145,7 @@ export function CategoryEditorDialog({
    * its Save sends the order it holds, so Save waits until the roster settles.
    */
   const settling = useSettling(ADMIN_CATEGORIES_KEY);
-  const { message, setMessage, fail } = useSubmitError();
+  const { message, setMessage, fail } = useCategoryRefusal();
   /** Set by a successful create — from here the SAME dialog is an editor. */
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -323,7 +323,7 @@ export function CategoryEditorDialog({
               patch(next);
             }}
           />
-          <ErrorLine message={message} />
+          <CategoryDialogAlert message={message} />
           <DialogActions
             onCancel={onClose}
             onSubmit={submit}
@@ -335,7 +335,7 @@ export function CategoryEditorDialog({
         /* C5m — the SAME dialog, now bound to the new id: Image in front. */
         <div data-testid="category-editor-image" className="space-y-3">
           <CategoryImagePanel categoryId={createdId} guard={guard} />
-          <ErrorLine message={message} />
+          <CategoryDialogAlert message={message} />
           <div className="flex justify-end">
             <Button
               type="button"
@@ -374,7 +374,7 @@ export function CategoryEditorDialog({
               </FormField>
             }
           />
-          <ErrorLine message={message} />
+          <CategoryDialogAlert message={message} />
           <DialogActions
             onCancel={onClose}
             onSubmit={submit}
@@ -465,7 +465,7 @@ export function CategoryWindowDialog({
 }) {
   const { t } = useI18n();
   const setWindow = useSetCategoryWindow();
-  const { message, setMessage, fail } = useSubmitError();
+  const { message, setMessage, fail } = useCategoryRefusal();
   const [from, setFrom] = useState(toLocalInput(category.visibleFrom));
   const [until, setUntil] = useState(toLocalInput(category.visibleUntil));
 
@@ -511,7 +511,7 @@ export function CategoryWindowDialog({
           onChange={(event) => setUntil(event.target.value)}
         />
       </FormField>
-      <ErrorLine message={message} />
+      <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -539,7 +539,7 @@ export function CategoryExclusionsDialog({
 }) {
   const { t } = useI18n();
   const setExclusions = useSetCountryExclusions();
-  const { message, setMessage, fail } = useSubmitError();
+  const { message, setMessage, fail } = useCategoryRefusal();
   const [codes, setCodes] = useState<string[]>(category.excludedCountryCodes);
 
   const toggle = (code: string, on: boolean) =>
@@ -583,7 +583,7 @@ export function CategoryExclusionsDialog({
           </label>
         ))}
       </div>
-      <ErrorLine message={message} />
+      <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -611,7 +611,7 @@ export function RetireCategoryDialog({
 }) {
   const { t } = useI18n();
   const retire = useRetireCategory();
-  const { message, setMessage, fail } = useSubmitError();
+  const { message, setMessage, fail } = useCategoryRefusal();
   const [reassignTo, setReassignTo] = useState("");
 
   /**
@@ -681,7 +681,7 @@ export function RetireCategoryDialog({
           {t("admin.categories.retire.noListings")}
         </p>
       )}
-      <ErrorLine message={message} />
+      <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -710,7 +710,7 @@ export function AddPointerDialog({
 }) {
   const { t } = useI18n();
   const addPointer = useAddCategoryPointer();
-  const { message, setMessage, fail } = useSubmitError();
+  const { message, setMessage, fail } = useCategoryRefusal();
   const [parentId, setParentId] = useState("");
 
   const submit = () => {
@@ -753,7 +753,7 @@ export function AddPointerDialog({
           ))}
         </NativeSelect>
       </FormField>
-      <ErrorLine message={message} />
+      <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}
@@ -791,7 +791,7 @@ export function CategoryPathsDialog({
   const removePointer = useRemoveCategoryPointer();
   const setPrimary = useSetPrimaryPointer();
   const addPointer = useAddCategoryPointer();
-  const { message, setMessage, fail } = useSubmitError();
+  const { message, setMessage, fail } = useCategoryRefusal();
   const [addParentId, setAddParentId] = useState("");
 
   /** C2c — active destinations only, each rendered with its whole path. */
@@ -930,7 +930,7 @@ export function CategoryPathsDialog({
           ))}
         </NativeSelect>
       </FormField>
-      <ErrorLine message={message} />
+      <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={() => {
@@ -972,7 +972,7 @@ export function DeleteCategoryDialog({
 }) {
   const { t } = useI18n();
   const remove = useDeleteCategory();
-  const { message, setMessage, fail } = useSubmitError();
+  const { message, setMessage, fail } = useCategoryRefusal();
   const [typed, setTyped] = useState("");
 
   const submit = () => {
@@ -1009,7 +1009,7 @@ export function DeleteCategoryDialog({
           onChange={(event) => setTyped(event.target.value)}
         />
       </FormField>
-      <ErrorLine message={message} />
+      <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={submit}

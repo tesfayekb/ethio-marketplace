@@ -62,7 +62,7 @@ import {
   DeleteCategoryDialog,
   RetireCategoryDialog,
 } from "./category-dialogs";
-import { useSubmitError } from "./category-submit-error";
+import { useCategoryRefusal } from "./category-refusals";
 import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
 import {
   ADMIN_CATEGORIES_KEY,
@@ -237,7 +237,7 @@ export function AdminCategoriesPage() {
     setDialog({ kind: "edit", id, sub: null, openedBy });
   };
   // UI-FIX-7 — the verb bar's own refusal line, filled by the shared runner.
-  const { message: verbError, setMessage: setVerbError, fail: failVerb } = useSubmitError();
+  const { message: verbError, setMessage: setVerbError, fail: failVerb } = useCategoryRefusal();
 
   const mayCreate = permissions.includes("categories:create");
   const mayUpdate = permissions.includes("categories:update");

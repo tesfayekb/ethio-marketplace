@@ -208,7 +208,13 @@ test.describe("C5a — category AI foundation routes", () => {
         { p_id: category.id },
       );
       expect(acceptError, JSON.stringify(acceptError)).toBeNull();
-      expect(accepted).not.toBeNull();
+      // F1-4a — the door answers `{ ok: true, accepted_at }`.
+      expect(accepted).toMatchObject({ ok: true });
+      const stamp =
+        typeof accepted === "object" && accepted !== null
+          ? Reflect.get(accepted, "accepted_at")
+          : null;
+      expect(typeof stamp, JSON.stringify(accepted)).toBe("string");
 
       // The reader is the dialog's source on reopen.
       const { data: rows, error: readError } = await caller.rpc("admin_get_category_images", {
@@ -219,7 +225,7 @@ test.describe("C5a — category AI foundation routes", () => {
       expect(row?.image_url).toBe(assets.imageUrl);
       expect(row?.image_thumb_url).toBe(assets.thumbUrl);
       expect(row?.og_image_url).toBe(assets.ogUrl);
-      expect(row?.image_accepted_at).toBe(accepted);
+      expect(row?.image_accepted_at).toBe(stamp);
 
       // DB TRUTH (J4) — the service client agrees with the gated reader.
       const { data: truth } = await adminClient()
@@ -227,7 +233,7 @@ test.describe("C5a — category AI foundation routes", () => {
         .select("image_accepted_at")
         .eq("id", category.id)
         .single();
-      expect(truth?.image_accepted_at).toBe(accepted);
+      expect(truth?.image_accepted_at).toBe(stamp);
     } finally {
       await cleanup(category.id);
     }

@@ -82,7 +82,7 @@ admin_upsert_language(text,text,text,boolean,text[]) | staff | Writes languages;
 admin_upsert_location(uuid,uuid,text,text,text,text,text[],integer,double precision,double precision) | staff | Writes locations; rejects callers lacking locations:create, locations:update before its mutations
 assign_role(uuid,text,character) | staff | Writes user_roles; rejects callers lacking roles:assign before its mutations
 begin_impersonation(uuid,text) | staff | Writes impersonation_sessions; rejects callers lacking super-admin before its mutations
-catalog_find_rebuild() | staff | Calls catalog_find_refresh(true) to rebuild catalogue search data; browser callers must have categories:import, categories:update or translations:update
+catalog_find_rebuild() | staff | Calls catalog_find_refresh(true) to rebuild catalogue search data; browser callers must have categories:import with step-up
 change_home_country(character) | account | Updates the caller’s declared home country in user_directory and profiles and records an audit event; account jurisdiction preference, not an ad place
 check_seller_alias(text) | helper | Writes only the alias_check rate meter and returns alias_verdict; does not assign an alias or alter public identity
 clear_seller_place() | account | Deletes only the caller’s seller_places reusable posting preset, read solely by my_seller_place for that caller; no public listing is changed

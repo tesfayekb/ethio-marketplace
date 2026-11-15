@@ -4,6 +4,7 @@ import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { ImportDialog } from "@/features/admin/import-dialog";
 
+import { CATEGORY_REFUSALS } from "./category-refusals";
 import { ADMIN_CATEGORIES_KEY } from "./use-categories";
 
 /**
@@ -82,6 +83,7 @@ export function ImportCategoriesDialog({
       countFields={COUNT_FIELDS}
       reasonKeys={REASON_KEYS}
       family="categories"
+      refusals={CATEGORY_REFUSALS}
       scope={scope}
       guard={guard}
       onClose={onClose}

@@ -249,7 +249,7 @@ import { errorText } from "../src/lib/error-text";
     const refusal = await supabase.rpc("assert_parent_not_catchall", {
       p_parent_id: catchall!.id,
     });
-    expect(refusal.error?.message ?? "").toContain("admin.categories.error.catchallParent");
+    expect(refusal.error?.message ?? "").toBe("catchallParent");
 
     await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/categories");
