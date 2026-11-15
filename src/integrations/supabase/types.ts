@@ -4172,10 +4172,10 @@ export type Database = {
         Returns: Json
       }
       account_is_deactivated: { Args: { p_user_id: string }; Returns: boolean }
-      admin_accept_category_image: { Args: { p_id: string }; Returns: string }
+      admin_accept_category_image: { Args: { p_id: string }; Returns: Json }
       admin_add_category_pointer: {
         Args: { p_child_id: string; p_parent_id: string }
-        Returns: string
+        Returns: Json
       }
       admin_add_category_pointer_core: {
         Args: { p_child_id: string; p_parent_id: string }
@@ -4265,7 +4265,7 @@ export type Database = {
           p_visible_from?: string
           p_visible_until?: string
         }
-        Returns: string
+        Returns: Json
       }
       admin_create_category_core: {
         Args: {
@@ -4291,9 +4291,13 @@ export type Database = {
       }
       admin_delete_attribute: {
         Args: { p_confirm_key: string; p_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_delete_category: {
+        Args: { p_confirm_slug: string; p_id: string }
+        Returns: Json
+      }
+      admin_delete_category_core: {
         Args: { p_confirm_slug: string; p_id: string }
         Returns: undefined
       }
@@ -4461,7 +4465,7 @@ export type Database = {
           p_is_required: boolean
           p_visible_when?: Json
         }
-        Returns: string
+        Returns: Json
       }
       admin_list_ai_calls: {
         Args: {
@@ -4885,6 +4889,10 @@ export type Database = {
       }
       admin_move_category_pointer: {
         Args: { p_new_parent_id: string; p_pointer_id: string }
+        Returns: Json
+      }
+      admin_move_category_pointer_core: {
+        Args: { p_new_parent_id: string; p_pointer_id: string }
         Returns: undefined
       }
       admin_move_listing: {
@@ -4951,12 +4959,24 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_reactivate_category: { Args: { p_id: string }; Returns: undefined }
+      admin_reactivate_category: { Args: { p_id: string }; Returns: Json }
+      admin_reactivate_category_core: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       admin_remove_category_pointer: {
+        Args: { p_pointer_id: string }
+        Returns: Json
+      }
+      admin_remove_category_pointer_core: {
         Args: { p_pointer_id: string }
         Returns: undefined
       }
       admin_reorder_categories: {
+        Args: { p_ordered_child_ids: string[]; p_parent_id: string }
+        Returns: Json
+      }
+      admin_reorder_categories_core: {
         Args: { p_ordered_child_ids: string[]; p_parent_id: string }
         Returns: undefined
       }
@@ -4965,6 +4985,10 @@ export type Database = {
         Returns: undefined
       }
       admin_retire_category: {
+        Args: { p_id: string; p_reassign_to: string }
+        Returns: Json
+      }
+      admin_retire_category_core: {
         Args: { p_id: string; p_reassign_to: string }
         Returns: undefined
       }
@@ -5090,11 +5114,11 @@ export type Database = {
       }
       admin_set_attribute_link_order: {
         Args: { p_category_id: string; p_ordered_link_ids: string[] }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_card_attributes: {
         Args: { p_category_id: string; p_ordered_attribute_ids: string[] }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_category_images: {
         Args: {
@@ -5104,9 +5128,13 @@ export type Database = {
           p_image_url: string
           p_og_image_url: string
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_category_window: {
+        Args: { p_id: string; p_visible_from: string; p_visible_until: string }
+        Returns: Json
+      }
+      admin_set_category_window_core: {
         Args: { p_id: string; p_visible_from: string; p_visible_until: string }
         Returns: undefined
       }
@@ -5116,7 +5144,7 @@ export type Database = {
       }
       admin_set_country_exclusions: {
         Args: { p_country_codes: string[]; p_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_country_exclusions_core: {
         Args: { p_country_codes: string[]; p_id: string }
@@ -5138,7 +5166,7 @@ export type Database = {
       }
       admin_set_fact_attributes: {
         Args: { p_category_id: string; p_ordered_attribute_ids: string[] }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_key_context: {
         Args: { p_context: string; p_key: string }
@@ -5177,7 +5205,7 @@ export type Database = {
       }
       admin_set_primary_pointer: {
         Args: { p_pointer_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_set_role_permission: {
         Args: { p_granted: boolean; p_permission_id: string; p_role_id: string }
@@ -5214,10 +5242,7 @@ export type Database = {
         Returns: Json
       }
       admin_undo_location_import: { Args: { p_batch: string }; Returns: Json }
-      admin_unlink_attribute: {
-        Args: { p_link_id: string }
-        Returns: undefined
-      }
+      admin_unlink_attribute: { Args: { p_link_id: string }; Returns: Json }
       admin_update_attribute_link: {
         Args: {
           p_allowed_options?: string[]
@@ -5228,9 +5253,21 @@ export type Database = {
           p_link_id: string
           p_visible_when?: Json
         }
-        Returns: undefined
+        Returns: Json
       }
       admin_update_category: {
+        Args: {
+          p_allow_listings: boolean
+          p_display_order: number
+          p_expiry_days: number
+          p_icon: string
+          p_id: string
+          p_name_en: string
+          p_price_enabled: boolean
+        }
+        Returns: Json
+      }
+      admin_update_category_core: {
         Args: {
           p_allow_listings: boolean
           p_display_order: number
@@ -5279,7 +5316,7 @@ export type Database = {
           p_unit?: string
           p_unit_am?: string
         }
-        Returns: string
+        Returns: Json
       }
       admin_upsert_country: {
         Args: {
@@ -5536,7 +5573,7 @@ export type Database = {
         Args: { p_id: string; p_lang: string }
         Returns: string[]
       }
-      catalog_find_rebuild: { Args: never; Returns: number }
+      catalog_find_rebuild: { Args: never; Returns: Json }
       catalog_find_refresh: { Args: { p_force: boolean }; Returns: number }
       catalog_find_sweep: { Args: never; Returns: number }
       catalog_find_version: { Args: never; Returns: string }
