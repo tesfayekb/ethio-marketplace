@@ -12,6 +12,19 @@ import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
 
 /**
+ * L1 import-reason-words — THE SHARED IMPORT WORDS. A refused commit or undo
+ * names its reason in words, the same way in every import dialog. Read after
+ * the consoles' shared words and before a dialog's own `refusals` (which win
+ * for their codes). A new shared import code is one more line here.
+ */
+export const IMPORT_REFUSAL_WORDS: Readonly<Record<string, MessageKey>> = {
+  planHasRefusals: "admin.import.reason.planHasRefusals",
+  batchAlreadyUndone: "admin.import.reason.batchAlreadyUndone",
+  undoBlocked: "admin.import.reason.undoBlocked",
+  unknownBatch: "admin.import.reason.unknownBatch",
+};
+
+/**
  * THE IMPORT DIALOG SHELL (IE-2, generalised by CAT-IE).
  *
  * One surface, two consumers: file pick → PREVIEW → Confirm / Discard, then
@@ -232,24 +245,36 @@ export function ImportDialog({
     const code = (payload.error ?? "").trim();
     if (code === "") return null;
     const detail = (payload.detail ?? "").trim();
-    const read = readRefusal(detail === "" ? code : `${code}:${detail}`, refusals, has);
+    const family: RefusalFamily = {
+      ...refusals,
+      words: { ...ADMIN_REFUSALS.words, ...IMPORT_REFUSAL_WORDS, ...refusals.words },
+    };
+    const read = readRefusal(detail === "" ? code : `${code}:${detail}`, family, has);
     if (read.branch === "family" || read.branch === "doorKey") return refusalText(read, t);
     return detail === "" ? code : `${code} — ${detail}`;
   };
 
+  /**
+   * A code or status whose error line already says why draws NO reason line;
+   * the reason is set only beneath the general failure line.
+   */
   const failed = (payload: { error?: string; detail?: string }, status: number) => {
     const named = payload.error ?? "";
-    setReason(reasonOf(payload));
-    if (status === 403) return setError(t(key("error.denied")));
-    if (status === 428) return setError(t(key("error.stepUp")));
-    if (named === "wrongFile") return setError(t(key("error.wrongFile")));
-    if (status === 409 && named === "fileChanged") return setError(t(key("error.fileChanged")));
+    const own = (suffix: string) => {
+      setReason(null);
+      setError(t(key(suffix)));
+    };
+    if (status === 403) return own("error.denied");
+    if (status === 428) return own("error.stepUp");
+    if (named === "wrongFile") return own("error.wrongFile");
+    if (status === 409 && named === "fileChanged") return own("error.fileChanged");
     if (named === "importRunning" || (status === 409 && named === "import already running"))
-      return setError(t(key("error.busy")));
-    if (status === 413 || named === "fileTooLarge") return setError(t(key("error.tooLarge")));
-    if (named === "tooManyRows") return setError(t(key("error.tooManyRows")));
-    if (named === "badHeader") return setError(t(key("error.badHeader")));
-    if (named === "emptyFile") return setError(t(key("error.emptyFile")));
+      return own("error.busy");
+    if (status === 413 || named === "fileTooLarge") return own("error.tooLarge");
+    if (named === "tooManyRows") return own("error.tooManyRows");
+    if (named === "badHeader") return own("error.badHeader");
+    if (named === "emptyFile") return own("error.emptyFile");
+    setReason(reasonOf(payload));
     return setError(t(key("error.failed")));
   };
 
