@@ -1695,6 +1695,10 @@ export const enAdmin = {
   "admin.locations.import.reason.alreadyRetired": "That place is already retired.",
   "admin.locations.import.reason.planHasRefusals":
     "Nothing was written: a file is applied whole or not at all.",
+  "admin.import.reason.planHasRefusals": "The file still has refused rows. Fix them and preview again.",
+  "admin.import.reason.batchAlreadyUndone": "That import has already been undone.",
+  "admin.import.reason.undoBlocked": "This import can no longer be undone: something added since depends on what it created.",
+  "admin.import.reason.unknownBatch": "That import is no longer on record.",
   "admin.locations.import.reason.batchAlreadyUndone": "That import has already been undone.",
   "admin.locations.import.reason.formula": "A cell starting with =, +, - or @ is not accepted.",
   "admin.locations.import.reason.badNumber": "That cell is not a number.",
