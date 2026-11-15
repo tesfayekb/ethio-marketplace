@@ -502,3 +502,14 @@ requires exact equality with every registry family's permission, with no extra
 families. The red first named translations:manage versus translations:update.
 Browser imports now use `callRoute` (route-client.md); server gates still alone
 authorize.
+
+## A refused commit or undo names its reason (L1 import-reason-words)
+
+The shared dialog (`src/features/admin/import-dialog.tsx`) owns one set of
+words, `IMPORT_REFUSAL_WORDS`, for the codes any import route answers on a
+refused commit or undo (`planHasRefusals`, `batchAlreadyUndone`, `undoBlocked`,
+`unknownBatch`). They are read through `readRefusal` after the consoles' shared
+words; a dialog's own `refusals` still wins for its codes. A code or status
+whose error line already says why (denied, step-up, wrong file, file changed,
+busy, too large, too many rows, bad header, empty file) draws no reason line;
+any other code draws as data (`code — detail`). Tests: IRW-1…7.

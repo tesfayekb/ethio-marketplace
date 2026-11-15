@@ -1579,6 +1579,11 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.locations.import.reason.alreadyActive": "ያ ቦታ አስቀድሞ ገባሪ ነው።",
   "admin.locations.import.reason.alreadyRetired": "ያ ቦታ አስቀድሞ ተቋርጧል።",
   "admin.locations.import.reason.planHasRefusals": "ምንም አልተጻፈም፦ ፋይል ሙሉ ለሙሉ ወይም በጭራሽ ይተገበራል።",
+  "admin.import.reason.planHasRefusals": "ፋይሉ አሁንም የተከለከሉ ረድፎች አሉት። አስተካክላቸውና እንደገና ቅድመ እይታ አድርግ።",
+  "admin.import.reason.batchAlreadyUndone": "ያ ማስገባት አስቀድሞ ተቀልብሷል።",
+  "admin.import.reason.undoBlocked":
+    "ይህ ማስገባት ከዚህ በኋላ ሊቀለበስ አይችልም፦ ከዚያ በኋላ የተጨመረ ነገር እሱ በፈጠረው ላይ ይመሠረታል።",
+  "admin.import.reason.unknownBatch": "ያ ማስገባት ከዚህ በኋላ በመዝገብ ላይ የለም።",
   "admin.locations.import.reason.batchAlreadyUndone": "ያ ማስገባት አስቀድሞ ተቀልብሷል።",
   "admin.locations.import.reason.formula": "በ=፣ +፣ - ወይም @ የሚጀምር ሕዋስ አይቀበልም።",
   "admin.locations.import.reason.badNumber": "ያ ሕዋስ ቁጥር አይደለም።",
