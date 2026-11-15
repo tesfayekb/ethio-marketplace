@@ -877,7 +877,8 @@ test.describe("C3 attributes console", () => {
    * scratch root holds a card attribute at rank 2, so its child INHERITS rank 2
    * (primary lineage, INH-1). The import refuses a direct link taking that rank
    * and names BOTH origins; a free rank is planned. The link-manager door
-   * carries the same rule and raises its own key.
+   * carries the same rule and refuses `rankInherited`, both origins in its
+   * detail (F1-4a).
    *
    * LIMITATION (honest): `admin_set_card_attributes` derives each rank from the
    * ORDERED position, so a rank cannot be requested in isolation — rank 3 is
@@ -1016,8 +1017,9 @@ test.describe("C3 attributes console", () => {
         },
         [child.id, attrFiller.id, attrDirect.id, attrInherited.id],
       );
-      expect(verdicts.clashing, "AT-46 the door tolerated an inherited rank").toContain(
-        "admin.attributes.error.rankInherited",
+      expect(verdicts.clashing, "AT-46 the door tolerated an inherited rank").toBe(
+        `rankInherited:category=${child.id} rank=2 attribute=${keyDirect} ` +
+          `inherited_from=${rootSlug} inherited_attribute=${keyInherited}`,
       );
       expect(verdicts.accepted, "AT-46 the door refused a free rank").toBe("NO ERROR");
 

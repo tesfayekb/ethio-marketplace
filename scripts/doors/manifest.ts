@@ -20,6 +20,10 @@
  * - `dial` — the rate_dials action (every door has one, DEC-336) or `-` (a reader, a helper).
  *   A door that only closes what another door opened names a dial other than
  *   its opener's (DEC-380), so the exit is never rationed by the entry.
+ *   The rule about a door that only closes what another opened is about a
+ *   live state (a session, a hold) whose opener's dial rations it; a door
+ *   that deletes, retires or unlinks a row of a catalogue is an edit and
+ *   spends its family's dial.
  * - `audit` — the audit action the door writes, or `-`.
  * - `country` — `arg:<argument>` (the door takes a country: scope mode match),
  *   `row:<table.column>` (its target row carries one: match), `filter` (a list

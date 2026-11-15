@@ -860,9 +860,9 @@ test.describe("C3 attributes console", () => {
         },
         [attributeId, key],
       );
-      expect(denials.upsert).toContain("permission denied");
-      expect(denials.link).toContain("permission denied");
-      expect(denials.del).toContain("permission denied");
+      expect(denials.upsert).toContain("permissionDenied");
+      expect(denials.link).toContain("permissionDenied");
+      expect(denials.del).toContain("permissionDenied");
 
       // A refused attempt leaves NO trace (F5).
       const { data: after } = await supabase
