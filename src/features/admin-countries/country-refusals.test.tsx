@@ -28,7 +28,7 @@ const IDS = [
 describe("the markets console's refusals (F1-4b, DEC-333)", () => {
   it("KRF-1 every id the console spoke keeps its own line; the words hold those and the two shared codes", () => {
     expect(Object.keys(COUNTRY_REFUSALS.words).sort()).toEqual(
-      [...IDS, "permissionDenied", "rateLimited"].sort(),
+      [...IDS, "permissionDenied", "rateLimited", "required", "badType"].sort(),
     );
     for (const id of IDS) {
       const read = readRefusal(refused(id), COUNTRY_REFUSALS);
@@ -41,6 +41,18 @@ describe("the markets console's refusals (F1-4b, DEC-333)", () => {
     }
     expect(readRefusal(refused("rateLimited"), COUNTRY_REFUSALS).key).toBe(
       "admin.error.rateLimited",
+    );
+  });
+
+  it("KFM-5 the editor's own Fields read the kit's words: required and badType; nameRequired keeps its line", () => {
+    expect(readRefusal({ field: "nameEn", reason: "required" }, COUNTRY_REFUSALS).key).toBe(
+      "post.refusal.required",
+    );
+    expect(readRefusal({ field: "displayOrder", reason: "badType" }, COUNTRY_REFUSALS).key).toBe(
+      "post.refusal.badType",
+    );
+    expect(readRefusal(refused("nameRequired"), COUNTRY_REFUSALS).key).toBe(
+      "admin.countries.error.nameRequired",
     );
   });
 

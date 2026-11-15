@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useI18n, type MessageKey } from "@/i18n";
+import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
@@ -23,6 +24,9 @@ export const COUNTRY_REFUSALS = {
     scopedRolesExist: "admin.countries.error.scopedRolesExist",
     duplicateCategory: "admin.countries.error.duplicateCategory",
     notARoot: "admin.countries.error.notARoot",
+    // DEC-339 — the editor's own Fields: the gate's blank and the parser's unreadable number.
+    required: "post.refusal.required",
+    badType: PARSE_INVALID_KEY,
   },
   sentences: [[/step[ -]?up/i, "admin.countries.error.stepUp"]],
   generic: "admin.countries.error.unknown",
