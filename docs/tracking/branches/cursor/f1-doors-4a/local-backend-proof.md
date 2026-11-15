@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `5895500bda368c4493474ca2a97fc0f4a03dc6e0`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43666982893
+- Commit: `acf43ebd3d6f4e01800831f941397f8311a3d73d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43667309422
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 342 | 59 | applied 475/475 | 27 | 0 | 0 | 5 | 32 |
-| email | 193 | 62 | applied 475/475 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 680 | 62 | applied 475/475 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 578 | 78 | applied 475/475 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 521 | 60 | applied 475/475 | 170 | 4 | 0 | 26 | 200 |
-| 3 | 516 | 61 | applied 475/475 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 568 | 62 | applied 475/475 | 133 | 4 | 0 | 5 | 142 |
-| 5 | 548 | 52 | applied 475/475 | 88 | 4 | 1 | 1 | 94 |
-| 6 | 614 | 77 | applied 475/475 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 552 | 63 | applied 475/475 | 147 | 0 | 0 | 77 | 224 |
-| 8 | 654 | 79 | applied 475/475 | 177 | 2 | 0 | 7 | 186 |
-| 9 | 596 | 73 | applied 475/475 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 560 | 64 | applied 475/475 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 533 | 51 | applied 475/475 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 526 | 61 | applied 475/475 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 451 | 61 | applied 475/475 | 157 | 0 | 0 | 9 | 166 |
-| 14 | 527 | 62 | applied 475/475 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 678 | 78 | applied 475/475 | 120 | 4 | 0 | 8 | 132 |
-| 16 | 583 | 69 | applied 475/475 | 172 | 0 | 0 | 48 | 220 |
+| smoke | 423 | 62 | applied 475/475 | 27 | 0 | 0 | 5 | 32 |
+| email | 178 | 56 | applied 475/475 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 602 | 60 | applied 475/475 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 585 | 79 | applied 475/475 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 533 | 62 | applied 475/475 | 170 | 4 | 0 | 26 | 200 |
+| 3 | 674 | 78 | applied 475/475 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 724 | 74 | applied 475/475 | 133 | 4 | 0 | 5 | 142 |
+| 5 | 547 | 61 | applied 475/475 | 89 | 4 | 0 | 1 | 94 |
+| 6 | 651 | 81 | applied 475/475 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 478 | 60 | applied 475/475 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 569 | 66 | applied 475/475 | 177 | 2 | 0 | 7 | 186 |
+| 9 | 611 | 79 | applied 475/475 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 630 | 78 | applied 475/475 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 502 | 58 | applied 475/475 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 595 | 64 | applied 475/475 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 456 | 61 | applied 475/475 | 156 | 0 | 1 | 9 | 166 |
+| 14 | 476 | 61 | applied 475/475 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 632 | 65 | applied 475/475 | 120 | 4 | 0 | 8 | 132 |
+| 16 | 483 | 60 | applied 475/475 | 172 | 0 | 0 | 48 | 220 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
 | TOTAL | — | — | — | 2527 | 18 | 1 | 360 | 2906 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: webkit 680 s
+- Slowest lane: 4 724 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 6, email 7, webkit 6, 1 10, 2 6, 3 6, 4 6, 5 5, 6 9, 7 7, 8 10, 9 9, 10 7, 11 5, 12 6, 13 6, 14 7, 15 10, 16 8, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/389, 2 641/373, 3 641/358, 4 640/410, 5 640/393, 6 641/421, 7 641/372, 8 641/459, 9 641/400, 10 643/367, 11 640/378, 12 641/371, 13 640/305, 14 641/354, 15 641/492, 16 641/386
+- Database session samples during each start (INC-944): smoke 7, email 6, webkit 6, 1 10, 2 6, 3 10, 4 9, 5 6, 6 10, 7 6, 8 7, 9 10, 10 10, 11 6, 12 7, 13 6, 14 6, 15 7, 16 6, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/383, 2 641/380, 3 641/484, 4 640/540, 5 640/399, 6 641/442, 7 641/325, 8 641/388, 9 641/409, 10 643/436, 11 640/354, 12 641/419, 13 640/305, 14 641/324, 15 641/454, 16 641/329
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43666982893-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 43666982893-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43666982893-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43666982893-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43666982893-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43666982893-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43666982893-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43666982893-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43666982893-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43666982893-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43666982893-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 43666982893-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43666982893-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43666982893-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43666982893-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43666982893-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43666982893-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 43666982893-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 43666982893-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43667309422-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 43667309422-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43667309422-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43667309422-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43667309422-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43667309422-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43667309422-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43667309422-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43667309422-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43667309422-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43667309422-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 43667309422-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43667309422-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43667309422-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43667309422-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43667309422-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43667309422-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 43667309422-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 43667309422-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -102,7 +102,6 @@ Step smoke: outcome failure
   
 - admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-74 a merge is refused while a listing holds a source's answer, and merges when none does / mobile-360 — Error: expect(locator).toHaveText(expected) failed
 - admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-74 a merge is refused while a listing holds a source's answer, and merges when none does / desktop-1280 — Error: expect(locator).toHaveText(expected) failed
-- admin-translations-data.spec.ts / U4b translations console / TR-26 the Data scope approves every machine-filled content name / desktop-1280 — Error: approve-all never approved scratch location [account id]
 - category-image-routes.spec.ts / C5a — category AI foundation routes / CI-4b stored truth: generate, accept, and the reader returns assets + stamp / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
 - category-image-routes.spec.ts / C5a — category AI foundation routes / CI-4b stored truth: generate, accept, and the reader returns assets + stamp / desktop-1280 — Error: expect(received).toBe(expected) // Object.is equality
 
@@ -112,6 +111,9 @@ Step smoke: outcome failure
   
 - admin-attributes-import.spec.ts / C3 attributes console / AT-46 a direct card rank equal to an inherited rank is refused by the import and by the door, naming both origins / mobile-360 — Error: AT-46 the door tolerated an inherited rank
 - admin-attributes-import.spec.ts / C3 attributes console / AT-46 a direct card rank equal to an inherited rank is refused by the import and by the door, naming both origins / desktop-1280 — Error: AT-46 the door tolerated an inherited rank
+
+## Lane 13
+- submenu-touch.spec.ts / SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, panel rows the rail's / desktop-1280 — Error: SMN-E3 a panel row is at most the rail's (D248)
 
 ## Lane 15
 - Step failure:
