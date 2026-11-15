@@ -459,11 +459,20 @@ answer): `permission denied` → 403 `forbidden`; `step-up required[: …]` →
 already running`, `batchAlreadyUndone`, `planHasRefusals`, `undoBlocked`
 (detail `hasRows`) → 409; `unknown category scope`, `unknown country scope`,
 `unknown import batch` → 404; `unknownParent: <slug>` → 409 `{error, detail}`;
-`batch id required`, `p_items must be a json array` → 400; `too many rows
+`p_items must be a json array` → 400; `too many rows
 (max 5000)` → 400 `tooManyRows`; `not assigned to this language`, `base
 language rows are sync-owned` → 403; a nested door's own translation key
 (`admin.<family>.error.<name>[:tail]`, e.g. `parentAfterChild`) → 409 with
 the key and its tail; anything else → `serverError` (an incident, no text).
+Since F1-4a the categories and attributes doors answer codes through the
+shell, which the relay reads as it reads F1-3's (`importRunning`,
+`unknownParent:<slug>` and every core's code at the shell's 400, a gate's
+code at its own status); a detail that is not a plain value (the
+`rankInherited` diagnostic) arrives as the bare code. The sentence rows
+above that stay serve the location imports (F1-4b) and the planners'
+`unknown category scope` (F1-7). The import dialog reads a coded refusal
+through the console family's words (`refusals`: `CATEGORY_REFUSALS`,
+`ATTRIBUTE_REFUSALS`), and `importRunning` draws its busy line.
 
 CHANGES: (1) every `defineRoute` JSON body is decoded strictly — invalid
 UTF-8 is 400 `invalidEncoding`; (2) the meter is the registry dial per
