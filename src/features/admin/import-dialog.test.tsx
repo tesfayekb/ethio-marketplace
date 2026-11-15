@@ -45,7 +45,7 @@ function mount(refusals?: RefusalFamily) {
     <ImportDialog
       testid="imp"
       idPrefix="imp"
-      title="Import"
+      title={t("admin.test.import.title")}
       path={"/api/admin/import" as never}
       keyPrefix="admin.test.import"
       files={[{ field: "csv", id: "imp-file", labelKey: "admin.test.import.file" as never }]}
