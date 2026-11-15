@@ -24,4 +24,36 @@ describe("CountryFormFields (turn S6-2)", () => {
       expect(unit).toHaveClass(cls);
     expect(unit).not.toHaveClass("bg-background");
   });
+
+  it("KFM-1 each answer sits in the one Field with its id and label; the marks follow their meaning", () => {
+    render(
+      <CountryFormFields
+        idPrefix="country-editor"
+        values={{ nameEn: "Kenya", unitSystem: "metric", currencyCode: "", displayOrder: "3" }}
+        onChange={() => {}}
+      />,
+    );
+    const boxes = screen.getAllByTestId("form-field");
+    expect(boxes.map((box) => box.getAttribute("data-field"))).toEqual([
+      "country-editor-name",
+      "country-editor-unit",
+      "country-editor-currency",
+      "country-editor-order",
+    ]);
+    const labels = ["name", "unit", "currency", "order"];
+    for (const [index, part] of labels.entries()) {
+      const control = screen.getByTestId(`country-editor-${part}`);
+      expect(control.id).toBe(`country-editor-${part}`);
+      expect(boxes[index]?.contains(control)).toBe(true);
+      expect(screen.getByLabelText(new RegExp(`admin.countries.field.${part}$`))).toBe(control);
+    }
+    const marks = boxes.map((box) => box.querySelector("[data-testid='required-mark']") !== null);
+    expect(marks).toEqual([true, false, false, true]);
+    expect(screen.getAllByText("post.optional")).toHaveLength(1);
+    expect(boxes[2]?.textContent).toContain("post.optional");
+    expect(screen.getByTestId("country-editor-currency").getAttribute("aria-describedby")).toBe(
+      "country-editor-currency-hint",
+    );
+    expect(screen.getByText("admin.countries.field.currencyHint")).toBeTruthy();
+  });
 });
