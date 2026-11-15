@@ -1,4 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
+
+import type { DoorArgs } from "./supabase-door";
 
 /**
  * DEC-261 (Foundations turn 34) — THE CLIENT'S DOOR. A signed-out visitor's page
@@ -326,5 +328,34 @@ describe("the client's door (DEC-261)", () => {
     expect(forgetStoredSession()).toBe(false);
     expect(window.localStorage.getItem(STORED)).toBe("{}");
     parent.mockRestore();
+  });
+
+  it("SBD-21 INC-942 — a door's argument may be NULL without a cast, and the NULL reaches the database as sent", async () => {
+    expectTypeOf<DoorArgs<"admin_retire_category">>().toEqualTypeOf<{
+      p_id: string | null;
+      p_reassign_to: string | null;
+    }>();
+    expectTypeOf<DoorArgs<"admin_list_categories">>().toBeNever();
+    fetchMock.mockImplementation(async () => new Response(null, { status: 204 }));
+    const { rpc } = await door();
+    await rpc("admin_retire_category", { p_id: "c-1", p_reassign_to: null });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, init] = fetchMock.mock.calls[0] ?? [];
+    expect(JSON.parse(String(Reflect.get(init ?? {}, "body")))).toEqual({
+      p_id: "c-1",
+      p_reassign_to: null,
+    });
+    window.localStorage.setItem(STORED, "{}");
+    const signedIn = await door();
+    await signedIn.rpc("admin_set_category_window", {
+      p_id: "c-1",
+      p_visible_from: null,
+      p_visible_until: "2026-12-01T00:00:00Z",
+    });
+    expect(state.rpc).toHaveBeenCalledWith("admin_set_category_window", {
+      p_id: "c-1",
+      p_visible_from: null,
+      p_visible_until: "2026-12-01T00:00:00Z",
+    });
   });
 });

@@ -56,11 +56,6 @@ CF-FORM-2 src/routes/auth.tsx (2) | wave 2 — sign-in, sign-up, reset, settings
 CF-FORM-2 src/routes/auth_.reset.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-2 src/routes/settings.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-3 src/features/admin-ai/ai-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-attributes/attribute-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-attributes/attribute-error.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-categories/category-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-categories/category-image-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-categories/category-submit-error.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-3 src/features/admin-countries/countries-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-3 src/features/admin-countries/country-dialog-state.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-3 src/features/admin-countries/country-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339

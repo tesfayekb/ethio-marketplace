@@ -32,9 +32,10 @@ async function handler(
   const { scope } = scoped;
   const supabase = ctx.supabase!;
 
-  const { data, error } = await supabase.rpc("admin_export_categories", {
-    p_scope: scope as unknown as string,
-  });
+  const { data, error } = await supabase.rpc(
+    "admin_export_categories",
+    scope === null ? {} : { p_scope: scope },
+  );
   if (error) {
     const refused = exportRefusal(error, "unknown category scope");
     if (refused !== null) return clientError(refused, refused === "forbidden" ? 403 : 404);

@@ -1,6 +1,7 @@
 import { compareNames } from "@/lib/name-collator";
 import { supabase } from "@/integrations/supabase/client";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
+import { rpc } from "@/lib/supabase-door";
 
 /**
  * C2-UI — the Categories console client seam.
@@ -13,7 +14,20 @@ import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
  * a `no client access` policy by design.
  *
  * Law F4 — no phantom success: every error is thrown, never swallowed.
+ *
+ * DEC-333 (F1-4a) — every door answers `{ ok: true, … }` and refuses by a code the screens read
+ * through the one reader (`category-refusals.ts`); a door's optional argument is passed as NULL
+ * through `DoorArgs` (`rpc()`, src/lib/supabase-door.ts), never by a cast.
  */
+
+/** A door's `{ ok: true, id }` answer: the id, or a thrown failure — never a phantom id. */
+export function answeredId(door: string, data: unknown): string {
+  if (typeof data === "object" && data !== null && Reflect.get(data, "ok") === true) {
+    const id: unknown = Reflect.get(data, "id");
+    if (typeof id === "string" && id !== "") return id;
+  }
+  throw new Error(`${door} answered without an id`);
+}
 
 export interface CategoryRow {
   id: string;
@@ -109,18 +123,18 @@ export async function createCategory(input: CreateCategoryInput): Promise<string
    * C5k — the same call now carries price, expiry and the visibility window;
    * every one of them is optional and defaults to the pre-C5k behavior.
    */
-  const { data, error } = await supabase.rpc("admin_create_category", {
+  const { data, error } = await rpc("admin_create_category", {
     p_name_en: input.nameEn,
     p_icon: input.icon,
-    p_parent_id: input.parentId as string,
+    p_parent_id: input.parentId,
     p_allow_listings: input.allowListings,
     p_price_enabled: input.priceEnabled ?? true,
-    p_expiry_days: (input.expiryDays ?? null) as number,
-    p_visible_from: (input.visibleFrom ?? null) as string,
-    p_visible_until: (input.visibleUntil ?? null) as string,
+    p_expiry_days: input.expiryDays ?? null,
+    p_visible_from: input.visibleFrom ?? null,
+    p_visible_until: input.visibleUntil ?? null,
   });
   if (error) throw error;
-  return data as string;
+  return answeredId("admin_create_category", data);
 }
 
 export interface UpdateCategoryInput {
@@ -135,14 +149,14 @@ export interface UpdateCategoryInput {
 }
 
 export async function updateCategory(input: UpdateCategoryInput): Promise<void> {
-  const { error } = await supabase.rpc("admin_update_category", {
+  const { error } = await rpc("admin_update_category", {
     p_id: input.id,
     p_name_en: input.nameEn,
     p_icon: input.icon,
     p_display_order: input.displayOrder,
     p_allow_listings: input.allowListings,
     p_price_enabled: input.priceEnabled,
-    p_expiry_days: input.expiryDays as number,
+    p_expiry_days: input.expiryDays,
   });
   if (error) throw error;
 }
@@ -152,10 +166,10 @@ export async function setCategoryWindow(input: {
   visibleFrom: string | null;
   visibleUntil: string | null;
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_category_window", {
+  const { error } = await rpc("admin_set_category_window", {
     p_id: input.id,
-    p_visible_from: input.visibleFrom as string,
-    p_visible_until: input.visibleUntil as string,
+    p_visible_from: input.visibleFrom,
+    p_visible_until: input.visibleUntil,
   });
   if (error) throw error;
 }
@@ -164,7 +178,7 @@ export async function setCountryExclusions(input: {
   id: string;
   countryCodes: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_country_exclusions", {
+  const { error } = await rpc("admin_set_country_exclusions", {
     p_id: input.id,
     p_country_codes: input.countryCodes,
   });
@@ -175,10 +189,10 @@ export async function retireCategory(input: {
   id: string;
   reassignTo: string | null;
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_retire_category", {
+  const { error } = await rpc("admin_retire_category", {
     p_id: input.id,
     p_reassign_to: input.reassignTo,
-  } as never); // The generated uuid type omits SQL NULL; the door accepts it (no listings to move).
+  });
   if (error) throw error;
 }
 
@@ -186,12 +200,12 @@ export async function addCategoryPointer(input: {
   parentId: string;
   childId: string;
 }): Promise<string> {
-  const { data, error } = await supabase.rpc("admin_add_category_pointer", {
+  const { data, error } = await rpc("admin_add_category_pointer", {
     p_parent_id: input.parentId,
     p_child_id: input.childId,
   });
   if (error) throw error;
-  return data as string;
+  return answeredId("admin_add_category_pointer", data);
 }
 
 export interface CategoryPointer {
@@ -224,21 +238,21 @@ export async function moveCategoryPointer(input: {
   pointerId: string;
   newParentId: string | null;
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_move_category_pointer", {
+  const { error } = await rpc("admin_move_category_pointer", {
     p_pointer_id: input.pointerId,
-    p_new_parent_id: input.newParentId as string,
+    p_new_parent_id: input.newParentId,
   });
   if (error) throw error;
 }
 
 /** ES5 — makes this edge the category's home path. */
 export async function setPrimaryPointer(pointerId: string): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_primary_pointer", { p_pointer_id: pointerId });
+  const { error } = await rpc("admin_set_primary_pointer", { p_pointer_id: pointerId });
   if (error) throw error;
 }
 
 export async function removeCategoryPointer(pointerId: string): Promise<void> {
-  const { error } = await supabase.rpc("admin_remove_category_pointer", {
+  const { error } = await rpc("admin_remove_category_pointer", {
     p_pointer_id: pointerId,
   });
   if (error) throw error;
@@ -248,8 +262,8 @@ export async function reorderCategories(input: {
   parentId: string | null;
   orderedChildIds: string[];
 }): Promise<void> {
-  const { error } = await supabase.rpc("admin_reorder_categories", {
-    p_parent_id: input.parentId as string,
+  const { error } = await rpc("admin_reorder_categories", {
+    p_parent_id: input.parentId,
     p_ordered_child_ids: input.orderedChildIds,
   });
   if (error) throw error;
@@ -334,12 +348,12 @@ export function activeParentOptions(roster: CategoryNode[], excludeId?: string):
  * the RPC; the console only carries the confirmation UX.
  */
 export async function reactivateCategory(input: { id: string }): Promise<void> {
-  const { error } = await supabase.rpc("admin_reactivate_category", { p_id: input.id });
+  const { error } = await rpc("admin_reactivate_category", { p_id: input.id });
   if (error) throw error;
 }
 
 export async function deleteCategory(input: { id: string; confirmSlug: string }): Promise<void> {
-  const { error } = await supabase.rpc("admin_delete_category", {
+  const { error } = await rpc("admin_delete_category", {
     p_id: input.id,
     p_confirm_slug: input.confirmSlug,
   });

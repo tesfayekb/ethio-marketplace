@@ -5,7 +5,7 @@ import { DIALOG_FIELD } from "@/components/ui/dialog-look";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => `T(${key})` }),
+  useI18n: () => ({ t: (key: string) => `T(${key})`, has: () => false }),
 }));
 
 const retire = vi.fn((input: { id: string; reassignTo: string | null }) =>
@@ -18,13 +18,13 @@ vi.mock("./use-categories", async (importOriginal) => ({
 
 import type { CategoryNode } from "./categories-service";
 import { RetireCategoryDialog } from "./category-dialogs";
-import { useSubmitError } from "./category-submit-error";
+import { useCategoryRefusal } from "./category-refusals";
 
-describe("category screen refusal (turn D1 stop 11, G0.2)", () => {
+describe("category screen refusal (turn D1 stop 11, G0.2; F1-4a)", () => {
   it("CDR-1: a save refused by a rate gate shows the shared admin.error.rateLimited", () => {
-    const { result } = renderHook(() => useSubmitError());
-    // PostgREST hands the door's RAISE EXCEPTION 'rateLimited' over as a plain object.
-    act(() => result.current.fail({ message: "rateLimited", code: "P0001" }));
+    const { result } = renderHook(() => useCategoryRefusal());
+    // The shell's refusal reaches the browser client as a plain object: `code` P0D01, `message` the code.
+    act(() => result.current.fail({ message: "rateLimited", code: "P0D01" }));
     expect(result.current.message).toBe("T(admin.error.rateLimited)");
   });
 });

@@ -43,6 +43,17 @@ type Client = SupabaseClient<Database>;
 type Functions = Database["public"]["Functions"];
 type FunctionName = keyof Functions & string;
 
+type Nullable<A> = { [K in keyof A]: A[K] | null };
+
+/**
+ * INC-942 (F1-4a) — A DOOR'S ARGUMENTS, each one nullable. The generated types declare every
+ * argument non-null, but SQL passes NULL to any of them; the database's declaration is the
+ * authority on which NULL it accepts (one it refuses is the door's `badValue:<arg>` code, never a
+ * compile error). Omitting a key — the DEFAULT applies — stays omitting it. CF-DOOR-ARGS
+ * (scripts/conformance/door-args.test.ts) refuses the cast this replaces.
+ */
+export type DoorArgs<F extends FunctionName> = Nullable<Functions[F]["Args"]>;
+
 /** supabase-js's error shape for a database call. */
 export interface RpcError {
   message: string;
@@ -297,7 +308,7 @@ async function anonymousRpc<T>(name: string, args: object): Promise<RpcAnswer<T>
 /** A database function, called as the caller the client would have been. */
 export async function rpc<F extends FunctionName>(
   name: F,
-  args?: Functions[F]["Args"],
+  args?: DoorArgs<F>,
 ): Promise<RpcAnswer<Functions[F]["Returns"]>> {
   const ready = door.ready();
   if (ready === null && !hasStoredSession())
@@ -310,7 +321,8 @@ export async function rpc<F extends FunctionName>(
     logLoadFailure(error);
     return { data: null, error: rpcError(null, `the client did not load: ${errorText(error)}`) };
   }
-  const { data, error } = await client.rpc(name, args);
+  // The client's own type is the generated, non-null one; the request carries the NULL as sent.
+  const { data, error } = await client.rpc(name, args as Functions[F]["Args"] | undefined);
   return { data, error: error === null ? null : rpcError(error, error.message) };
 }
 

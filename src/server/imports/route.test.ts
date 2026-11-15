@@ -357,6 +357,50 @@ describe("defineImportRoute", () => {
     }
   });
 
+  it("IMR-14 the catalogue imports' codes (F1-4a) answer through the shell's envelope, a diagnostic tail never", async () => {
+    const envelope = (message: string) => {
+      const colon = message.indexOf(":");
+      const reason = colon === -1 ? message : message.slice(0, colon);
+      const detail = colon === -1 ? undefined : message.slice(colon + 1);
+      return {
+        code: "P0D01",
+        message,
+        details: "pg detail",
+        hint: "secret",
+        refusals: [detail === undefined ? { reason } : { reason, detail }],
+      };
+    };
+    const digest = await digestOf([CATEGORIES]);
+    const commits: [string, Record<string, string>][] = [
+      ["importRunning", { error: "importRunning" }],
+      ["unknownParent:e2e-shoes", { error: "unknownParent", detail: "e2e-shoes" }],
+      ["catchallParent", { error: "catchallParent" }],
+      ["deleteHasChildren:2", { error: "deleteHasChildren", detail: "2" }],
+      [
+        "rankInherited:category=c-1 rank=2 attribute=size inherited_from=cars inherited_attribute=make",
+        { error: "rankInherited" },
+      ],
+    ];
+    for (const [message, body] of commits) {
+      state.answers["admin_commit_category_import"] = { data: null, error: envelope(message) };
+      const response = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
+      expect([message, response.status]).toEqual([message, 400]);
+      const text = await response.text();
+      expect(text).not.toMatch(/pg detail|secret/);
+      expect(JSON.parse(text)).toEqual(body);
+    }
+    expect(state.refreshes).toEqual([]);
+    for (const [message, body] of [
+      ["required:batch", { error: "required", detail: "batch" }],
+      ["unknownBatch", { error: "unknownBatch" }],
+    ] as const) {
+      state.answers["admin_undo_attribute_import"] = { data: null, error: envelope(message) };
+      const response = await send(attributes, { mode: "undo", batchId: "b-1" });
+      expect([message, response.status]).toEqual([message, 400]);
+      expect(await response.json()).toEqual(body);
+    }
+  });
+
   it("IMR-10 the refresh runs only after a successful commit, never after a refused one", async () => {
     const digest = await digestOf([CATEGORIES]);
     state.answers["admin_commit_category_import"] = {

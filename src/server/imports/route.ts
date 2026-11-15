@@ -48,6 +48,8 @@ type DoorError = {
  * `<match>: <tail>` and answers the key as `error`, the tail as `detail`;
  * `stepUp`: the message is `step-up required` or begins `step-up required:`.
  * A fixed sentence answers ITSELF (a server literal) unless `error` renames it.
+ * The categories and attributes doors answer codes (F1-4a, read by `codedRefusal`); their
+ * planners' `unknown category scope` is still a sentence (F1-7).
  */
 export type ImportRefusal = {
   match: string;
@@ -68,7 +70,6 @@ export const IMPORT_REFUSALS: readonly ImportRefusal[] = [
   { match: "planHasRefusals", kind: "exact", status: 409 },
   { match: "undoBlocked", kind: "exact", status: 409, detail: "hasRows" },
   { match: "unknownParent", kind: "key", status: 409 },
-  { match: "batch id required", kind: "exact", status: 400 },
 ];
 
 /** The factory's own words and the gate's file-law words — with the table, every word answered. */

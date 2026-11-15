@@ -135,3 +135,7 @@ src/features/posting/door-error.test.ts
 # forms-kit part C [intentional-delete] (DEC-339): the dead form file (no importer); the one Field is
 # src/components/forms/field.tsx
 src/components/ui/form.tsx
+# f1-doors-4a [intentional-delete] (DEC-333): the two consoles' refusal mappers leave; their screens read
+# through the one reader (category-refusals.ts, attribute-refusals.ts)
+src/features/admin-categories/category-submit-error.ts
+src/features/admin-attributes/attribute-error.ts

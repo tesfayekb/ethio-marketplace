@@ -4,6 +4,7 @@ import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { ImportDialog } from "@/features/admin/import-dialog";
 
+import { ATTRIBUTE_REFUSALS } from "./attribute-refusals";
 import { ADMIN_ATTRIBUTES_KEY } from "./use-attributes";
 
 /**
@@ -181,6 +182,7 @@ export function ImportAttributesDialog({
       countFields={COUNT_FIELDS}
       reasonKeys={REASON_KEYS}
       family="attributes"
+      refusals={ATTRIBUTE_REFUSALS}
       scope={scope}
       guard={guard}
       onClose={onClose}

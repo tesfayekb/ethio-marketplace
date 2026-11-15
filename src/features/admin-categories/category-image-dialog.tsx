@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Picture } from "@/components/ui/picture";
 import { useI18n } from "@/i18n";
 
+import { readRefusal, refusalText } from "@/lib/refusal";
 import { relativeTime } from "@/lib/relative-time";
 
 import { CategoryModal } from "./category-dialogs";
+import { CATEGORY_REFUSALS } from "./category-refusals";
 import {
   acceptCategoryImage,
   CategoryImageError,
@@ -14,7 +16,6 @@ import {
   type GeneratedAssets,
   loadCategoryImages,
 } from "./category-images-service";
-import { errorText } from "@/lib/error-text";
 
 /**
  * C5b PART A — THE IMAGE SURFACE.
@@ -27,17 +28,36 @@ import { errorText } from "@/lib/error-text";
  * consume category imagery.
  */
 
+/** A door's code, `code[:detail]`: never drawn as the step's own words. */
+const CODE_SHAPED = /^[a-z][A-Za-z]*(?::|$)/;
+
+/**
+ * The picture surface's failure line. A door's refusal reads the categories family's words
+ * through the one reader; anything else is the generation failure, naming the step that failed
+ * and, for a route or storage step, that step's own words.
+ */
 function useImageFailure() {
-  const { t } = useI18n();
+  const { t, has } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {
+    const read = readRefusal(error, CATEGORY_REFUSALS, has);
+    if (read.silent) {
+      setMessage(null);
+      return;
+    }
+    if (read.branch !== "generic" && read.branch !== "doorCode") {
+      setMessage(refusalText(read, t));
+      return;
+    }
+    const failed = t("admin.categories.error.imageFailed");
     if (error instanceof CategoryImageError) {
       const stage =
         error.stage === null ? "" : ` (${t("admin.categories.image.stageLabel")} ${error.stage})`;
-      setMessage(`${t("admin.categories.error.imageFailed")}${stage}: ${error.message}`);
+      const own = CODE_SHAPED.test(error.message) ? "" : `: ${error.message}`;
+      setMessage(`${failed}${stage}${own}`);
       return;
     }
-    setMessage(t("admin.categories.error.imageFailed"));
+    setMessage(failed);
   };
   return { message, setMessage, fail };
 }
@@ -247,14 +267,7 @@ export function CategoryImagePanel({
       setDone(true);
       onAccepted?.();
     })
-      .catch((error: unknown) => {
-        const raw = error === null || error === undefined ? "" : errorText(error);
-        if (raw.startsWith("admin.categories.error.")) {
-          setMessage(t(raw as Parameters<typeof t>[0]));
-          return;
-        }
-        fail(error);
-      })
+      .catch(fail)
       .finally(() => {
         setBusy(false);
       });

@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import { errorText } from "@/lib/error-text";
 import { callRoute, type RoutePath } from "@/lib/route-client";
+import { rpc } from "@/lib/supabase-door";
 
 /**
  * C5b — the client seam for the two FROZEN C5a routes.
@@ -150,13 +151,13 @@ export async function generateCategoryImage(input: {
   const ogUrl = storage.getPublicUrl(`${base}/${names.og}`).data.publicUrl;
 
   const prompt = payload.prompt ?? "";
-  const { error: persistError } = await supabase.rpc("admin_set_category_images", {
+  const { error: persistError } = await rpc("admin_set_category_images", {
     p_id: input.categoryId,
     p_image_url: imageUrl,
     p_image_thumb_url: thumbUrl,
     p_og_image_url: ogUrl,
     // C5c PART C.2 — the column records a CUSTOM prompt only (NULL otherwise).
-    p_generation_prompt: null as unknown as string,
+    p_generation_prompt: null,
   });
   if (persistError) throw new CategoryImageError(persistError.message, 0, "persist");
 
@@ -206,14 +207,18 @@ export async function suggestCategoryIcon(input: {
 /**
  * C5g PART C — ACCEPT. The gated definer RPC stamps `image_accepted_at` and
  * returns it; every later persist clears it again, so an accepted badge always
- * refers to the generation the operator actually looked at. Refusals raise the
- * RPC's message (a translation key for the domain refusals) — F4, never a
- * silent no-op.
+ * refers to the generation the operator actually looked at. A refusal is the
+ * door's code, thrown for the screen's reader (F1-4a) — F4, never a silent
+ * no-op; the answer `{ ok: true, accepted_at }` is read by its shape.
  */
 export async function acceptCategoryImage(categoryId: string): Promise<string> {
-  const { data, error } = await supabase.rpc("admin_accept_category_image", { p_id: categoryId });
-  if (error) throw new Error(error.message);
-  return data as string;
+  const { data, error } = await rpc("admin_accept_category_image", { p_id: categoryId });
+  if (error) throw error;
+  if (typeof data === "object" && data !== null && Reflect.get(data, "ok") === true) {
+    const at: unknown = Reflect.get(data, "accepted_at");
+    if (typeof at === "string" && at !== "") return at;
+  }
+  throw new Error("admin_accept_category_image answered without a stamp");
 }
 
 /**
