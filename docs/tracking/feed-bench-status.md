@@ -1,10 +1,10 @@
 # Feed bench (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42498922405
-- Commit: af50ca802c2b44974d3abe4d7f3fb68340bc4eaa
-- Timestamp (UTC): 2026-11-08T16:16:20.835Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43734443556
+- Commit: ece9eae77491d6ed641e3a7f956b1ae96347bbb4
+- Timestamp (UTC): 2026-11-15T16:16:34.304Z
 - Verdict: FAILED (insert listings: noFreeSlot)
-- Listings seeded: 0 · seed 51.3 s · cleanup 2.1 s · leftovers 0
+- Listings seeded: 0 · seed 55.1 s · cleanup 2.4 s · leftovers 0
 
 | Shape | Runs | p50 ms | p95 ms | Max ms | Cards |
 | --- | --- | --- | --- | --- | --- |
