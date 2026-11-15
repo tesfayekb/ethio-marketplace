@@ -17,7 +17,7 @@ import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
  * the consoles' shared words and before a dialog's own `refusals` (which win
  * for their codes). A new shared import code is one more line here.
  */
-export const IMPORT_REFUSAL_WORDS: Readonly<Record<string, MessageKey>> = {
+const IMPORT_REFUSAL_WORDS: Readonly<Record<string, MessageKey>> = {
   planHasRefusals: "admin.import.reason.planHasRefusals",
   batchAlreadyUndone: "admin.import.reason.batchAlreadyUndone",
   undoBlocked: "admin.import.reason.undoBlocked",
