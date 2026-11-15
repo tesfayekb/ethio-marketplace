@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { codeOf, walkFiles } from "../conformance/kit";
 import { sqlCodeOf } from "../conformance/migration-reader";
 import { pattern } from "../lib/pattern";
-import { callableBy, readCatalogue, type UnseenGrant } from "./catalogue";
+import { callableBy, readCatalogue, type DroppedGrant, type UnseenGrant } from "./catalogue";
 import { readOnce, type OnceOptions } from "./once";
 
 /**
@@ -38,14 +38,13 @@ export function browserCallable(row: Pick<DoorRow, "anon" | "authenticated">): b
   return row.anon || row.authenticated;
 }
 
-export function staticRows(
-  root: string,
-  options?: OnceOptions,
-): { rows: DoorRow[]; unseen: UnseenGrant[] } {
+type StaticRows = { rows: DoorRow[]; unseen: UnseenGrant[]; dropped: DroppedGrant[] };
+
+export function staticRows(root: string, options?: OnceOptions): StaticRows {
   return readOnce("rows", root, () => readStaticRows(root), options);
 }
 
-function readStaticRows(root: string): { rows: DoorRow[]; unseen: UnseenGrant[] } {
+function readStaticRows(root: string): StaticRows {
   const catalogue = readCatalogue(root);
   const rows: DoorRow[] = [];
   for (const fn of catalogue.functions.values()) {
@@ -61,7 +60,7 @@ function readStaticRows(root: string): { rows: DoorRow[]; unseen: UnseenGrant[] 
       where: `${fn.file}:${fn.line}`,
     });
   }
-  return { rows, unseen: catalogue.unseen };
+  return { rows, unseen: catalogue.unseen, dropped: catalogue.dropped };
 }
 
 /**

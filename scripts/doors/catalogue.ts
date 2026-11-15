@@ -70,9 +70,31 @@ export type CatalogueFunction = {
 
 export type UnseenGrant = { file: string; line: number; text: string };
 
+/**
+ * F1-5a (F1-4b ruling 1, PREVENTION (1); F1-5a ruling 2 §1) — the finding
+ * `grant-dropped`: a role a function held just before a file's `DROP FUNCTION`
+ * that the same file's re-creation of the name neither GRANTs nor REVOKEs by
+ * name. Two judges read it:
+ * - the result, over the whole history: no later file gives the role back by
+ *   the catalogue's end state;
+ * - the file, from GRANT_DROPPED_FLOOR (the date the per-file law began): the
+ *   file itself restates it, whatever a later file does.
+ * A drop with no re-creation in its file is not judged.
+ */
+export const GRANT_DROPPED_FLOOR = "20261115000000";
+
+export type DroppedGrant = {
+  key: string;
+  role: GrantRole;
+  file: string;
+  line: number;
+  judge: "file" | "result";
+};
+
 export type Catalogue = {
   functions: Map<string, CatalogueFunction>;
   unseen: UnseenGrant[];
+  dropped: DroppedGrant[];
 };
 
 /** A browser role may run the function when it, or PUBLIC, holds EXECUTE. */
@@ -257,12 +279,17 @@ function declared(declaration: Declaration, file: string): Omit<CatalogueFunctio
 export function catalogueOf(files: Array<{ file: string; sql: string }>): Catalogue {
   const functions = new Map<string, CatalogueFunction>();
   const unseen: UnseenGrant[] = [];
+  const lost: Array<Omit<DroppedGrant, "judge"> & { name: string; floor: boolean }> = [];
   const byName = (name: string) =>
     [...functions.keys()].filter((key) => key.startsWith(`${name}(`));
   const resolve = (target: string) => (target.includes("(") ? [target] : byName(target));
+  const nameOf = (target: string) => target.split("(")[0] ?? target;
   for (const { file, sql } of files) {
     const events: Array<{ offset: number; apply: () => void }> = [];
-    for (const declaration of declarationsOf(sql)) {
+    const declarations = declarationsOf(sql);
+    const grants = grantEventsOf(sql);
+    const drops: Array<{ offset: number; key: string; roles: GrantRole[] }> = [];
+    for (const declaration of declarations) {
       const replace = /\bOR\s+REPLACE\b/i.test(declaration.header.slice(0, 40));
       events.push({
         offset: declaration.offset,
@@ -279,11 +306,18 @@ export function catalogueOf(files: Array<{ file: string; sql: string }>): Catalo
         offset: drop.offset,
         apply: () => {
           for (const target of drop.targets)
-            for (const key of resolve(target)) functions.delete(key);
+            for (const key of resolve(target)) {
+              drops.push({
+                offset: drop.offset,
+                key,
+                roles: [...(functions.get(key)?.roles ?? [])],
+              });
+              functions.delete(key);
+            }
         },
       });
     }
-    for (const grant of grantEventsOf(sql)) {
+    for (const grant of grants) {
       events.push({
         offset: grant.offset,
         apply: () => {
@@ -305,8 +339,37 @@ export function catalogueOf(files: Array<{ file: string; sql: string }>): Catalo
       });
     }
     events.sort((a, b) => a.offset - b.offset).forEach((event) => event.apply());
+    const stamp = /(\d{14})_[^/]*$/.exec(file)?.[1] ?? "";
+    for (const drop of drops) {
+      const name = nameOf(drop.key);
+      if (!declarations.some((d) => d.fn === name && d.offset > drop.offset)) continue;
+      const named = new Set<GrantRole>();
+      for (const grant of grants)
+        if (grant.offset > drop.offset && grant.targets.some((target) => nameOf(target) === name))
+          for (const role of grant.roles) named.add(role);
+      for (const role of drop.roles)
+        if (!named.has(role))
+          lost.push({
+            key: drop.key,
+            role,
+            file,
+            line: lineOf(sql, drop.offset),
+            name,
+            floor: stamp >= GRANT_DROPPED_FLOOR,
+          });
+    }
   }
-  return { functions, unseen };
+  const dropped: DroppedGrant[] = [];
+  for (const { name, floor, ...loss } of lost) {
+    if (floor) {
+      dropped.push({ ...loss, judge: "file" });
+      continue;
+    }
+    const now = byName(name).map((key) => functions.get(key));
+    if (now.length > 0 && now.every((fn) => fn !== undefined && !fn.roles.has(loss.role)))
+      dropped.push({ ...loss, judge: "result" });
+  }
+  return { functions, unseen, dropped };
 }
 
 /** The catalogue of the repository's migrations under `root`. */

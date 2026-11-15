@@ -5,7 +5,16 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { allow, liveFindings, plantedCases, selfTest, staticFindings } from "./check-doors";
+import { GRANT_DROPPED_FLOOR, catalogueOf } from "./catalogue";
+import {
+  allow,
+  liveFindings,
+  plantedCases,
+  plantedDropHistory,
+  plantedGrant,
+  selfTest,
+  staticFindings,
+} from "./check-doors";
 import { columnsOf, declaredColumns } from "./columns";
 import { FINDING_KINDS, doorContextCall, judge } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
@@ -31,7 +40,8 @@ import {
  * the live judgement reads the same tree census as the static one, so the one
  * allowlist serves both modes (DOORS-6, INC-1072), and a body the migrations
  * hand over in chunks counts as a caller in both (DOORS-7, INC-1072); a `row:` cell names a
- * column the migrations declare (DOORS-8, F1-3).
+ * column the migrations declare (DOORS-8, F1-3); a DROP + CREATE restates every role the
+ * function held, judged by the file from the floor and by the result before it (DOORS-10, F1-5a).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -42,6 +52,17 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 // Later reads in the same process reuse it (scripts/doors/once.ts). A test that reads no tree keeps
 // the default.
 const TREE_READ_MS = 20_000;
+
+/** The losses of a history whose second file at `stamp` holds `sql` alone (no re-creation). */
+function catalogueDrop(stamp: string, sql: string) {
+  return catalogueOf([
+    {
+      file: "supabase/migrations/20260101000000_planted.sql",
+      sql: `CREATE FUNCTION public.e2e_planted_owner(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN RETURN '{}'::jsonb; END $function$;\n${plantedGrant("authenticated, service_role")}\n`,
+    },
+    { file: `supabase/migrations/${stamp}_planted.sql`, sql },
+  ]).dropped;
+}
 
 describe("check-doors (CF-DOORS)", () => {
   it("DOORS-1 every finding kind fires on its planted fixture; the clean pair fires nothing", () => {
@@ -229,6 +250,51 @@ describe("check-doors (CF-DOORS)", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it("DOORS-10 a DROP + CREATE restates every role the function held: the file from the floor, the result before it (F1-5a, ruling 2)", () => {
+    const fired = (history: ReturnType<typeof plantedDropHistory>) =>
+      history.map((loss) => `${loss.key} ${loss.role} ${loss.judge} ${loss.file}`);
+    const atFloor = `${GRANT_DROPPED_FLOOR.slice(0, 8)}120000`;
+    // The file's judge: a file at the floor restates authenticated only.
+    expect(fired(plantedDropHistory(atFloor, plantedGrant("authenticated")))).toEqual([
+      `e2e_planted_owner(uuid) service_role file supabase/migrations/${atFloor}_planted.sql`,
+    ]);
+    // A later file giving the role back does not excuse a file at the floor.
+    expect(
+      fired(
+        plantedDropHistory(atFloor, plantedGrant("authenticated"), [plantedGrant("service_role")]),
+      ),
+    ).toHaveLength(1);
+    // Good files: both roles restated; the lost role REVOKEd by name.
+    expect(plantedDropHistory(atFloor, plantedGrant("authenticated, service_role"))).toEqual([]);
+    expect(
+      plantedDropHistory(
+        atFloor,
+        `${plantedGrant("authenticated")}\nREVOKE ALL ON FUNCTION public.e2e_planted_owner(uuid) FROM service_role;`,
+      ),
+    ).toEqual([]);
+    // A drop with no re-creation in its file is not judged.
+    expect(catalogueDrop(atFloor, "DROP FUNCTION public.e2e_planted_owner(uuid);")).toEqual([]);
+    // The result's judge, below the floor: a loss nothing gives back fires; a loss a later
+    // file gives back fires nothing.
+    expect(fired(plantedDropHistory("20260601000000", plantedGrant("authenticated")))).toEqual([
+      "e2e_planted_owner(uuid) service_role result supabase/migrations/20260601000000_planted.sql",
+    ]);
+    expect(
+      plantedDropHistory("20260601000000", plantedGrant("authenticated"), [
+        plantedGrant("service_role"),
+      ]),
+    ).toEqual([]);
+    // The judge's finding names the role and the file.
+    const [planted] = plantedCases().filter((c) => c.kind === "grant-dropped");
+    expect(
+      judge(planted?.rows ?? [], parseManifest(planted?.manifest ?? ""), {
+        dropped: planted?.dropped,
+      }).map((finding) => `${finding.kind} ${finding.key} (${finding.where})`),
+    ).toEqual([
+      "grant-dropped e2e_planted_owner(uuid) service_role (supabase/migrations/20990101000000_planted.sql:1)",
+    ]);
   });
 
   it("DOORS-5 --live-query prints scripts/doors/live-query.sql as it is: whitespace-separated clauses ending in ; (INC-1070)", () => {
