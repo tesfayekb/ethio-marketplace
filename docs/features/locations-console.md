@@ -151,7 +151,7 @@ never swallowed and never mistaken for "no permission" (F4).
 
 The services call the doors through `rpc()` with `DoorArgs` (a NULL argument typed, never
 cast; CF-DOOR-ARGS); `admin_upsert_location` answers `{ok:true, id}` and `upsertLocation`
-reads the id through `answeredId`. The one paged read (`admin_list_locations`) keeps the
+reads the id through `answeredId` (`src/lib/answered-id.ts`). The one paged read (`admin_list_locations`) keeps the
 client's query builder for its keyset and asserts only its required country argument.
 
 No dialog closes on a failure. Every write runs inside `guard(async () => …)`,

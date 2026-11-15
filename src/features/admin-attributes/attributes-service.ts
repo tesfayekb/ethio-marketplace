@@ -7,7 +7,7 @@ import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { compareNames } from "@/lib/name-collator";
 import { rpc } from "@/lib/supabase-door";
-import { answeredId } from "@/features/admin-categories/categories-service";
+import { answeredId } from "@/lib/answered-id";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY client seam.

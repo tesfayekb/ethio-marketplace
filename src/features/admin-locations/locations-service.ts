@@ -1,6 +1,6 @@
 import { compareCodes } from "@/lib/reader-locale";
 import { supabase } from "@/integrations/supabase/client";
-import { answeredId } from "@/features/admin-categories/categories-service";
+import { answeredId } from "@/lib/answered-id";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { ownValue } from "@/lib/own-key";
 import { compareNames } from "@/lib/name-collator";

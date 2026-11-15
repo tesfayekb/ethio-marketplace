@@ -150,7 +150,7 @@ src/features/my-listings/promote-service.ts.
   `ATTRIBUTE_REFUSALS` (attribute-refusals.ts): each code that replaced a console key reads that
   key's words, and a code that never had words reads as the console's generic line. The
   services call the doors through `rpc()` and read the answer through a shape guard
-  (`answeredId`). `DOOR_CODES` did not grow.
+  (`answeredId`, in `src/lib/answered-id.ts` since F1-5a). `DOOR_CODES` did not grow.
 - **DEC-380's exit rule is read narrowly (DEC-385)**: it binds a door that ends a live state its
   opener's dial rations (a session, a hold); a door that deletes, retires or unlinks a catalogue
   row is an edit and spends its family's dial (`admin_remove_category_pointer` and
