@@ -6200,7 +6200,7 @@ Word for word from the reports of block S89 (DEC-346); each line names the findi
 
 - **INC-1104** (housekeeping turn 3b, docs/governance/reports/housekeeping-3b.report.md §14): INC-1104 — status line: FIXED (housekeeping turn 3b) — one scratch-prefix list read by the reaper and every helper that names a scratch row; CF-HELPERS-6; the specs' own literals LEFT (roadmap line).
 
-## INC-1105 — a code-scanning alert on the GO checker's own escape (2026-11-11; housekeeping turn 3)
+## INC-1105 — a code-scanning alert on the GO checker's own escape (2026-11-11; housekeeping turn 2)
 
 - **INC-1105** (housekeeping turn 2, docs/governance/reports/housekeeping-2.report.md §14): (new) CodeQL js/incomplete-sanitization on pull request #34: scripts/brief/go-laws.ts's option law escaped only `$` in a RegExp source; fixed in housekeeping turn 2 by one `escapeRegExp` in the module (a8c84e496).
 
@@ -6218,7 +6218,7 @@ Word for word from the reports of block S89 (DEC-346); each line names the findi
 
 - **INC-1108** (housekeeping turn 3c, docs/governance/reports/housekeeping-3c.report.md §14): INC-1107 — status line: FIXED (housekeeping turn 3c) — the `- Repeat:` head line; DEC-364 amended. INC-1108 — status line: FIXED (housekeeping turn 3c) — DEC-369; the judge's read-back at the records turn.
 
-## INC-1109 — scratch `listing_packages` rows are not reaped (2026-11-12; housekeeping turn 3c)
+## INC-1109 — scratch `listing_packages` rows are not reaped (2026-11-12; housekeeping turn 3b)
 
 - **INC-1109** (housekeeping turn 3b, docs/governance/reports/housekeeping-3b.report.md §14): (proposed by this report, §13) scratch reach rows are never swept: `e2e/helpers/reach-rows.ts` makes `listing_packages` rows named `e2e_lvl_r…` and no reaper step deletes them, so a run that dies before its own cleanup leaves them on ethio-staging; the spec's `e2e_mon_` packages (`e2e/admin-monetisation.spec.ts:54`) are likely the same. Named in CF-HELPERS-6's `UNSWEPT_KINDS` and `docs/features/e2e-harness.md`; a sweep needs its own design (`market_settings.included_reach` references catalogue rows).
 
@@ -6434,4 +6434,100 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1149** (the supervisor's record; records turn R14): the six lines of `scripts/conformance/shared-values-allowlist.txt` carry `INC-1136` as their expiry, the finding the same turn fixed; the guard does not judge an expiry INC's state. Open, minor. Class: an allowlist expiry that cannot lapse (G55). Placement (DEC-379): the before-launch list, tests and CI.
 
-Numbering: next free INC-1150.
+## INC-1150 — a label that says "(optional)" itself also gets the Field's "Optional" word (2026-11-14; the forms-kit verification)
+
+- **INC-1150** (the supervisor's record; records turn R15): with every posting step on the one Field, a label whose text already says "(optional)" draws the kit's "Optional" mark beside it — "Directions (optional) Optional" on the Place step (`post.where.directionsLabel`); the same doubling sits on `post.price.expiryLabel` ("Take it down on (optional)"), which was on posting's own Field before the kit. Confirmed by the operator's eye on the walk of 2026-11-14. Class: one fact said twice — the label's text and the mechanism's mark. Fix in the form kit's wave 2: the label texts lose their parenthesis (a renamed string is a new key, Knowledge D5) and the mark alone says it. Placement (DEC-379): the form kit, wave 2.
+
+## INC-1151 — `admin_update_profile`'s country scope read the country argument (2026-11-14; F1-2's migration stop)
+
+- **INC-1151** (turn F1-2, docs/governance/reports/f1-doors-2.report.md §14; ruling 1): `admin_update_profile`'s country scope read the country ARGUMENT (the manifest's F1-1 line): the argument is the new value, so the scope did not bind the row being edited and refused an honest country holder. Found at the F1-2 migration stop, before any country-scoped holder existed; fixed in part 6 (global). Class: a manifest cell grounded by signature; the other `arg:` lines name the written row's country and are confirmed family by family in their own turns.
+
+- **INC-1151** (later word, 2026-11-15; records turn R15): FIXED in F1-2 (DEC-380). The class recurred as INC-1158 (F1-3, F1-4a, F1-4b) and is held by G74 (2) — a cell is true by what it means — and the census item `cell-meaning`.
+
+## INC-1152 — `end_impersonation` spent its opener's dial (2026-11-14; F1-2's migration stop)
+
+- **INC-1152** (turn F1-2, docs/governance/reports/f1-doors-2.report.md §14; ruling 1): `end_impersonation` spent the dial `impersonation` (the manifest's F1-1 line): at the ceiling a live session could not be ended by hand. Found at the F1-2 migration stop, before ethio-prod; fixed in part 6 (`account_pref`). Class: an exit rationed by its entry's dial.
+
+- **INC-1152** (later word, 2026-11-15; records turn R15): FIXED in F1-2 (DEC-380's exit rule; narrowed by DEC-385).
+
+## INC-1153 — `DOOR_CODES` and the gate words sit in the entry chunk (2026-11-14; F1-2's findings)
+
+- **INC-1153** (the supervisor's record, from F1-2's report §13 findings 2 and 3; records turn R15): the client's shared door code list `DOOR_CODES` and the gate's words are in the entry chunk every page downloads, so each family that adds a code grows every page's first download by a few bytes, and F1-4b's rule "the client's shared code list does not grow" (G74 (7)) is the stopgap. Class: a staff-only table on the public first download (INC-1042's class). Placement (DEC-379): the form kit's wave 2 (the reader's words by family, the list off the entry).
+
+## INC-1154 — the entry's dependency map grows with every page (2026-11-14; F1-2's findings)
+
+- **INC-1154** (the supervisor's record, from F1-2's report §13 and §14 slip line; records turn R15): the bundler's entry carries a dependency map that names every route chunk, so a staff service's new chunk grows every page's first download (measured: +21 bytes gzip on every page at F1-2's refusal chunk; index.js +58 bytes at L2's four kit chunks). Class: a build-wide table on the first download. Placement (DEC-379): the before-launch performance list (the map's carriage — a manifest fetched on demand or trimmed per page class).
+
+## INC-1155 — the e2e helper `endActiveImpersonation` ignores its read's error (2026-11-14; F1-2's findings)
+
+- **INC-1155** (the supervisor's record, from F1-2's report §13; records turn R15): `e2e/helpers/impersonation.ts`'s `endActiveImpersonation` reads the active session through the service client and ends it, and does not read the error of its first call, so a failed read passes as "nothing to end". Class: a helper that treats a failed read as an empty one (J-laws; INC-1144's class on the test side). Placement (DEC-379): the tests and CI turn.
+
+## INC-1156 — `assign_role` with an unknown user answers a raw foreign-key error (2026-11-14; F1-2's findings)
+
+- **INC-1156** (the supervisor's record, from F1-2's report §13; records turn R15): `assign_role` with an unknown user id reaches its insert, and the caller reads Postgres's foreign-key message instead of `unknownUser`. Found by the lane's census; not changed in F1-2 (the family's codes were fixed by ruling 1). Class: a check the database makes before the door does (INC-1163's sibling). Placement (DEC-379): F1-7.
+
+## INC-1157 — SECURITY: the legal acceptances export metered and audited only its first page (2026-11-14; F1-3's census, fixed the same day)
+
+- **INC-1157** (the supervisor's record; fixed in F1-3 file 9, live on ethio-prod and published on 2026-11-14; the full text held back until then under G51; records turn R15): `admin_export_legal_acceptances` spent its dial and wrote its audit row only when the page cursor was empty — the first page — and the cursor is the caller's own argument, so a holder of `legal:export` could read every later page, or start at any later page, with no dial spent and no audit line. Exposure on the day: `legal:export` is held by the one super admin alone (read on ethio-prod); ethio-prod held 0 export audit rows and 10 acceptances; no sign of an unmetered read. Fix (F1-3, file 9 — DEC-383): every call passes `door_context` with the dial `legal_export` and writes its audit row with the page's cursor and row count; the lane's test asserts the audit row per call (G74 (4): an effect a door now has on every call is counted per call). Class: an effect keyed to a caller-controlled cursor — the gate and the audit must precede the read on every call, not on the first. Placement: closed; the class rule is G74 (4) and the F1-3 census item (every effect per call).
+
+## INC-1158 — manifest cells grounded by shape, family after family (2026-11-14; F1-3's census; F1-4a and F1-4b)
+
+- **INC-1158** (turn F1-3, docs/governance/reports/f1-doors-3.report.md §14): Six manifest cells of the translations, languages and legal family did not mean what they said: `admin_upsert_language`'s `row:` cell named a table that does not exist; three legal `row:` cells named the column `country` for `country_code`; the import and undo doors' dial cells named `staff_config` for `import_commit` and `import_undo`. Found by the census item `cell-meaning` before any body was written; fixed in F1-3. Class: a manifest cell grounded by signature (INC-1151, INC-1152) — third family, so `check-doors` gains the finding kind of ruling 1 item 5.
+
+- **INC-1158** (turn F1-4a, docs/governance/reports/f1-doors-4a.report.md §14 — status line): the same class in this family — [`admin_commit_category_import` and `admin_commit_attribute_import` `staff_config` → `import_commit`, `admin_undo_category_import` and `admin_undo_attribute_import` `staff_config` → `import_undo`: 'import_commit / import_undo (120 an hour each, the route's twin dial): one file applied or undone. A curator applies a handful of files an hour.'; `admin_remove_category_pointer` `staff_moderation` → `staff_config`: 'staff_config (600 an hour per person): one category or attribute save … a tree reshaped pointer by pointer; a curator does a few dozen of these an hour, at most low hundreds — under 600.']; found by the supervisor's read of the live bodies before the GO and by the census.
+
+- **INC-1158** (turn F1-4b, docs/governance/reports/f1-doors-4b.report.md §14 — status line): the same class in this family — the dial cells `admin_commit_location_import` staff_config → import_commit and `admin_undo_location_import` staff_config → import_undo (cell-meaning: "`import_commit` (120 an hour, the route's `importCommit` twin) rations one committed file…", "`import_undo` (120 an hour, the twin `importUndo`) rations one undone batch…"), and the country cells `admin_delete_location`, `admin_reorder_locations`, `admin_set_location_active` global → `row:locations.country_code`, `admin_commit_location_import` `row:locations.country_code` → `arg:scope`, `admin_preview_location_import` and `admin_export_locations` global → `arg:scope`; found by the supervisor's read of the live bodies and of the manifest before the GO and by the census.
+
+- **INC-1158** (later word, 2026-11-15; records turn R15): the F1-1 plan's cells for the F1-5a → F1-7 families are read by the supervisor on ethio-staging before each GO (G74 (2)); the class's guard is the census item `cell-meaning` and the row-cell guard (INC-1159); the manifest's dial cells of the remaining families stay open findings until their turns.
+
+## INC-1159 — a manifest `row:` cell named a column that does not exist (2026-11-14; F1-3's row-cell guard)
+
+- **INC-1159** (turn F1-3, docs/governance/reports/f1-doors-3.report.md §14): The manifest's line for `admin_end_package_price` named `row:package_prices.country`; the table's column is `country_code` (the F1-1 plan's line, written without reading the table). Found by the row-cell guard built in F1-3, before the door's own family turn; the cell is corrected in F1-3 and the guard lands with no exception. Class: a manifest cell not checked against the schema — third finding of the family, so the guard (a `row:` cell names a column the migrations declare) runs on every push.
+
+- **INC-1159** (later word, 2026-11-15; records turn R15): FIXED in F1-3; the guard `row-column-unknown` (`scripts/doors/columns.ts`) runs on every push (G74 (8)).
+
+## INC-1160 — the two translation status doors were given a dial their bodies never had (2026-11-14; F1-3's migration stop)
+
+- **INC-1160** (turn F1-3, docs/governance/reports/f1-doors-3.report.md §14): The two translation status doors were given the dial `staff_config` (the F1-1 plan's lines) where their old bodies had none: a reviewer's per-row work would have been capped at 600 an hour, shared with every settings door. Found at the F1-3 migration stop, on ethio-staging only; fixed in part 13 (`staff_translation`). Class: a dial cell grounded by family; the task file's `cell-meaning` census item gains the dial question.
+
+- **INC-1160** (later word, 2026-11-15; records turn R15): FIXED in F1-3 (file 13, mark 20261114150000); the dial question is asked of EVERY dial since F1-4a's GO (S621; G74 (2)).
+
+## INC-1161 — SMN-E3 flaky three times on 2026-11-14 (2026-11-14; F1-3's CI read of the flake ledger)
+
+- **INC-1161** (turn F1-3, docs/governance/reports/f1-doors-3.report.md §14): SMN-E3 (`e2e/submenu-touch.spec.ts`, `desktop-1280`) flaky three times on 2026-11-14 (runs 43572434121, 43572457160, 43609766468): a panel row measured 44.27 px against the rail's 42.5 (D248). Found by the F1-3 lane's CI read of the flake ledger; not caused by F1-3 (no shell, menu or style file changed). Class: a layout measurement flaky at desktop width; root cause to be found.
+
+- **INC-1161** (later word, 2026-11-15; records turn R15): open. Placement (DEC-379): the tests and CI turn (J8: three in seven days).
+
+## INC-1162 — `assert_parent_not_catchall` keeps EXECUTE for authenticated (2026-11-15; F1-4a's migration stop)
+
+- **INC-1162** (turn F1-4a, docs/governance/reports/f1-doors-4a.report.md §14; ruling 1): `assert_parent_not_catchall` keeps EXECUTE for authenticated although every caller it has runs as its owner (found at the F1-4a migration stop; it answers only whether a public category is a catch-all, so nothing is exposed). Class: a helper's grant that outlived its callers. Owner: F1-7, with the remaining readers and helpers.
+
+## INC-1163 — the country doors' code check is shadowed by a typed variable's own raise (2026-11-15; F1-4b's migration stop)
+
+- **INC-1163** (turn F1-4b, docs/governance/reports/f1-doors-4b.report.md §14; ruling 1): `admin_upsert_country`, `admin_set_country_active` and `admin_set_country_root_order` assign `upper(p_code)` to a `char(2)` variable AFTER the gate; a code longer than two characters raises 22001 there instead of `badCountryCode`, so that check answers only a short or non-letter value. Unchanged from the live bodies (found at the F1-4b migration stop); only a caller who passed the gate reads the raw error. Class: a code's check that a typed variable's own raise shadows. Owner: F1-7.
+
+## INC-1164 — a scope's own country row written through the places import (2026-11-15; F1-4b's verification)
+
+- **INC-1164** (the supervisor's record; its full text is held back under G51 until the fix is live; records turn R15): a defect in how one import right reaches a row another family's doors gate; scoped holders of that right on both databases: 0, so no one can exercise it today. Owner (DEC-379): F1-7 (the planner's country rows take the country right). The text enters this file at the records turn after F1-7 merges.
+
+## INC-1165 — the operator's mailbox in tracked files of the public repository (2026-11-15; Lovable's security scan, reviewed by the supervisor)
+
+- **INC-1165** (the supervisor's record; claude/security-review-2026-11-15-lovable-scan.md; records turn R15): the operator's e-mail address sits in three tracked files of the public repository, and one script prints it in its output. Not a hole (the address is the project's contact), but the repository is public until launch (DEC-116) and the address need not be in it. Owner (DEC-379): the tests and CI turn — the script reads it from the environment; the two docs are reworded; a guard refuses a mailbox literal in tracked text outside the legal texts; the landed migration that carries it stays as landed until the repository goes private at launch.
+
+## INC-1166 — dead `USING (true)` read rules and a legacy reader check (2026-11-15; Lovable's security scan, reviewed by the supervisor)
+
+- **INC-1166** (the supervisor's record; claude/security-review-2026-11-15-lovable-scan.md; records turn R15): the scan named nine tables with `USING (true)` read policies; on review two of them (`attributes`, `category_attribute_links`) are dead rules — the browser roles hold no grant on the table, so the policy admits nothing — and `category_attributes` keeps a legacy reader check beside the planner's. Not a hole; a posture debt: a census guard that lists every `USING (true)` rule with its grant and its reason, and the two dead rules dropped. Owner (DEC-379): the before-launch list (the RLS posture review of §9) with F1-7 for the drop.
+
+## INC-1167 — a signed photo link outlives the photo's removal (2026-11-15; Lovable's security scan, reviewed by the supervisor)
+
+- **INC-1167** (the supervisor's record; claude/security-review-2026-11-15-lovable-scan.md; records turn R15): a listing photo is served by a signed link valid for one hour; a photo removed by its seller or taken down by staff stays readable through a link issued before the removal, until the hour ends. Not a hole in v1 (the link is unguessable and short-lived), but a staff takedown should cut access at once: the storage object moves or is deleted at the takedown, not only unlinked. Owner (DEC-379): the before-launch list, with enforcement (F1-6).
+
+## INC-1168 — PLATFORM-ORIGIN drift on a Lovable branch (2026-11-15; L1 and L2)
+
+- **INC-1168** (the supervisor's record; records turn R15): on both Lovable turns the platform pushed commits of its own to the task's branch — a bump of its framework package (`@lovable.dev/vite-tanstack-config` 2.26.5 → 2.27.1), `bun.lock` rewritten with every `https://registry.npmjs.org` address stripped (DEC-363 undone; CF-LOCK-1 refused it on L2's wasted run), an edit to `src/integrations/supabase/previewAuthStorage.ts`, a regenerated `src/integrations/supabase/types.ts` (one entry collapsed to one line), and a `.lovable/north-star/north-star.md` note — and titled one of them with what had not happened ("Fixed i18n scan count stale"). Contained by the branch and pull request flow: nothing reaches dev without the supervisor's fresh-fetch diff, and each file was written back from the base (`git show <base>:<path> > <path>`) at the supervisor's ruling before the pull request was judged. Cost: three of L1's stops and L2's wasted CI run. Class: an executor platform that commits outside the task. Fix, in three parts: (a) Knowledge v3.14 — the sandbox's `edit/…` branch name is not a stop; the generic write-back of every path outside the task's files is every task's LAST step; the string scan and `bun run i18n:usage` join the touched-file checks; (b) a CI guard on `lovable/*` pull requests that refuses `package.json`, `bun.lock`, `supabase/**`, `src/integrations/supabase/**`, `.github/**`, `scripts/**` (beside the lines DEC-390 and the deletions manifest allow) — the tests and CI turn, with its DEC under G22; (c) later, a "carry" step that rebuilds the pull request from dev plus exactly the approved files. Placement (DEC-379): (a) with Knowledge v3.14; (b) the tests and CI turn.
+
+## INC-1169 — the weekly Feed bench has failed at its seed since 2026-11-08 (2026-11-15; the supervisor's read of the scheduled workflows)
+
+- **INC-1169** (the supervisor's record; records turn R15): the weekly Feed bench workflow fails at its seed — `feed-bench FAILED: insert listings: noFreeSlot` — since 2026-11-08: the free-slot cap (P-2 (c)) refuses the bench's scratch seller its listings, so the feed's speed at 100k listings has been unjudged since 2026-11-01. Unread for a week because the session ritual and the verifications read `ci-status.md`, the two failure files, the flake ledger and the nightly, not `feed-bench-status.md` (S630). Class: a scheduled job's red that no reading step covers (§9's ops invariant: a watchdog's artifact nobody reads). Fix: the bench's seed obeys the free-slot law as the browser tests do (register rows 113 and 114 — a scratch seller's counted baseline ads never exceed the market's free slots: enough scratch sellers, or ads outside the counted set) — never a bypass or a loosened guard; and every verification lists the newest run of every scheduled workflow (in force; v1.19 §2 B and §8). Owner (DEC-379): the tests and CI turn, FIRST item — performance is a fundamental (G69).
+
+Numbering: next free INC-1170.
