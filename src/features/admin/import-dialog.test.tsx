@@ -51,7 +51,7 @@ function mount(refusals?: RefusalFamily) {
       files={[{ field: "csv", id: "imp-file", labelKey: "admin.test.import.file" as never }]}
       countFields={[]}
       reasonKeys={new Set()}
-      family="test"
+      family={"test" as never}
       scope={null}
       guard={(async (run: () => Promise<void>) => run()) as never}
       onClose={() => {}}
