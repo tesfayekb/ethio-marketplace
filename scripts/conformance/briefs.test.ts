@@ -22,6 +22,7 @@ import {
   countCommandRefusal,
   countFindings,
   type Finding,
+  firstDownloadFindings,
   forbiddenScopeFindings,
   freeIdFindings,
   isTestId,
@@ -101,7 +102,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     expect(report(asReported(baseFindings(readFileSync(brief, "utf8"), brief)))).toBe("");
   });
 
-  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16, CF-BRIEF-18, CF-BRIEF-19 and CF-BRIEF-20 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited, each record's files inside SCOPE, each cited list's reader cited", () => {
+  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16, CF-BRIEF-18, CF-BRIEF-19, CF-BRIEF-20 and CF-BRIEF-21 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited, each record's files inside SCOPE, each cited list's reader cited, the first-download tolerance in DEC-355's words", () => {
     const { brief, rulings } = inForce();
     const findings: Finding[] = [];
     for (const file of [brief, ...rulings]) {
@@ -110,6 +111,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       findings.push(...settingDecisionFindings(text, file, process.cwd()));
       findings.push(...recordScopeFindings(text, file, process.cwd()));
       findings.push(...listReaderFindings(text, file, process.cwd()));
+      findings.push(...firstDownloadFindings(text, file, process.cwd()));
     }
     const keys = templateKeys(readFileSync(TEMPLATE, "utf8"));
     expect(new Set(keys).size, "the template's census items are unique").toBe(keys.length);
@@ -226,6 +228,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "- DEC-232 (planted) — 16 lanes, 1 worker each.",
         "- Turn 22 (planted, DEC-299) — E2E_WORKERS back to one.",
         "- DEC-240 (planted) — PLANT_RETRIES_MAX is a different name.",
+        "- DEC-355 (planted) — The tolerance: a page's first download grows only by a named cause the report lists chunk by chunk; an unexplained growth is a STOP; no bare number.",
         "",
       ].join("\n"),
     );
@@ -255,6 +258,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "Commit `planted: task saved`.",
       "`scripts/lib/other.ts` names INC-901 and stays outside SCOPE: it cites the fix as history.",
       "",
+      "TOLERANCES (G60). For the planted page: a page's first download grows only by a named cause the report lists chunk by chunk; an unexplained growth is a STOP; no bare number.",
+      "",
       "RECORDS (word for word)",
       "INC-901 — the planted defect; FIXED.",
       "",
@@ -277,6 +282,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "The lanes keep `E2E_WORKERS` as DEC-217 set it.",
       "The list `scripts/conformance/plant-allowlist.txt` gains a line.",
       "Commit `planted: a dictated commit title that runs well past the seventy-two characters kept`.",
+      "",
+      "TOLERANCES (G60). The first download may grow by 2 KiB.",
       "",
       "RECORDS (word for word)",
       "INC-901 — the planted defect; FIXED.",
@@ -338,6 +345,18 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(listReaderFindings(fresh, f, root).map((x) => x.text)).toEqual([
         "cites scripts/conformance/fresh.txt, which the tree does not hold, and no test to read it",
       ]);
+      expect(firstDownloadFindings(planted, f, root).map((x) => `${x.line} ${x.text}`)).toEqual([
+        `19 names a page's first download without DEC-355's sentence: "a page's first download grows only by a named cause the report lists chunk by chunk; an unexplained growth is a STOP; no bare number"`,
+        '19 a bare figure beside "first download": The first download may grow by 2 KiB.',
+      ]);
+      expect(
+        firstDownloadFindings("The first download stays 3% under its ceiling.", f, root),
+        "a percentage outside a TOLERANCES paragraph is a finding too",
+      ).toHaveLength(1);
+      expect(
+        firstDownloadFindings("TOLERANCES (G60). A red is a STOP.", f, root),
+        "a TOLERANCES paragraph that names no first download is not read",
+      ).toEqual([]);
       expect(
         listReaderFindings(
           `${fresh} Its census is \`scripts/conformance/plant.test.ts\`.`,
@@ -384,6 +403,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
           "CF-BRIEF-18",
           "CF-BRIEF-19",
           "CF-BRIEF-20",
+          "CF-BRIEF-21",
           "CF-BRIEF-3",
           "CF-BRIEF-5",
           "CF-BRIEF-6",
@@ -513,6 +533,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "CF-BRIEF-19",
         "CF-BRIEF-2",
         "CF-BRIEF-20",
+        "CF-BRIEF-21",
         "CF-BRIEF-3",
         "CF-BRIEF-5",
         "CF-BRIEF-6",

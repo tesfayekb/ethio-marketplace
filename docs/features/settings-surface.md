@@ -124,7 +124,7 @@ read outside the script with SQL on the connected project:
 
 ### State warning
 
-The operator's account (`tesfayekb@gmail.com`) is now **google-only**. Re-linking email
+The operator's account is now **google-only**. Re-linking email
 requires the operator to set a password via the reset flow or re-link through the
 settings surface. No automatic restore was attempted — the admin API cannot recreate an
 email identity without the password.

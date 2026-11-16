@@ -867,6 +867,7 @@ async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> 
 async function endActiveImpersonation(page: Page): Promise<void> {
   const ended = await inBrowserClient(page, async (client) => {
     const active = await client.rpc("get_active_impersonation");
+    if (active.error) return `error:get_active_impersonation: ${active.error.message}`;
     const rows = (active.data ?? []) as { id?: string }[];
     const id = Array.isArray(rows) ? rows[0]?.id : undefined;
     if (!id) return null;

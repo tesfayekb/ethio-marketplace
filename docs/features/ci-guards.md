@@ -760,6 +760,15 @@ remedy is exactly that bump.
 
 ## DEC-028 — global-state specs are serial-only and non-gating (2026-09-01)
 
+> Superseded (INC-1135, then DEC-393 and INC-1148 in the tests and CI turn,
+> 2026-11-16): the `@global-state` specs run, and gate, in the per-push serial
+> lane (`local-backend-proof.yml`, `--workers=1`). The nightly's serial `full`
+> run, the quarantine label, `isQuarantined` / `classifyFailures` and the
+> verdict file's `quarantined=` field are gone. The report header now reads
+> `- Gating failures: N · STAGING-SINK (INC-1175, still gating): M` and the
+> verdict file `gating=` / `silent=` / `flaky=` (docs/features/nightly-e2e.md).
+> What follows is the record of what was.
+
 Tests that mutate shared global state (`@global-state`) never run in CI's
 temporary-backend lanes; they run in the serial nightly only.
 Quarantined failures are reported, labeled, and non-gating until DEC-026
@@ -1282,3 +1291,74 @@ projects on that backend alone; a planted Chromium project with it, a WebKit pro
 that backend and a config-wide one are named, and the guard refuses them before `e2e:local`
 builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.
+
+## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394)
+
+`scripts/ci/lovable-branch-guard.sh` runs in `ci.yml`'s `scope` job, after its checkout, on a pull
+request from a `lovable/*` branch only (`if: github.event_name == 'pull_request' &&
+startsWith(github.head_ref, 'lovable/')`). The step pipes `gh api --paginate
+repos/<owner>/<repo>/pulls/<number>/files` — the files GitHub computes against the merge base, one
+JSON array per page — into the script with `GH_TOKEN: ${{ github.token }}`; the job's checkout
+stays shallow, since no git history is read. The script is pure over that JSON.
+
+- **The list** is Knowledge v3.14's ROLE paragraph (DEC-386), quoted word for word in the script's
+  comment: `supabase/**` and every `*.sql`; `src/features/auth/**`, `src/lib/supabase-door.ts`,
+  `src/server/**`, `src/routes/api/**`; `.github/**`; `scripts/**`; `e2e/helpers/**`,
+  `e2e/global-setup.ts`, `e2e/global-teardown.ts`, `e2e/fixtures.ts`; `package.json`, `bun.lock`;
+  `roadmap.md`; `docs/tracking/**`, `docs/governance/mechanisms.md`, `docs/_changelog.md`,
+  `docs/spec/**`; and the platform's own paths (INC-1168) `src/integrations/supabase/**` and
+  `.lovable/**`. One path rule per line, each with its DEC; a rename is judged by the path it
+  leaves too.
+- **The two DEC-390 exceptions, by content:** `docs/tracking/intentional-deletions.txt` takes
+  added lines only; every changed line of `scripts/route-budgets.mjs` must be a ceiling line (the
+  shape of its route lines: a quoted route key, `{ ceiling: <n>, public: <true|false> },` and a
+  `//` comment). A patch the API does not carry (a binary or a very large diff) under either
+  refuses.
+- **The verdict:** every offending change listed with its rule, exit 1; a pass names the file
+  count. Input that is not the API's JSON arrays (an empty answer, an error object) is exit 2,
+  never a pass.
+- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…10 on planted API answers —
+  every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
+  real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
+  across two pages, a missing patch, a rename away from a forbidden path, input that is not the
+  API's, and the `ci.yml` step itself. `scripts/conformance/wired.test.ts` finds the script's
+  basename in `ci.yml`.
+- **Left:** INC-1168 (c), a "carry" step that rebuilds the pull request from dev plus the approved
+  files. The endpoint answers without the `pull-requests` permission while the repository is
+  public; when it goes private the step fails loudly (the API's refusal is not JSON arrays) until
+  the scope job's token gains `pull-requests: read`.
+
+## No real person's mailbox in a tracked file — CF-MAIL (the tests and CI turn, INC-1165)
+
+The repository is public until launch (DEC-116). `scripts/conformance/mailbox.test.ts` reads every
+file `git ls-files` names for a mailbox at a public provider's domain (`gmail`, `yahoo`,
+`outlook`, `hotmail`, `icloud`, `proton`): a local part of two or more characters, not preceded by
+`/` or by another local-part character. So the hook tests' one-letter literal and the alias
+example (`ethio.com/` followed by the provider's domain) are left out by shape, with no
+allowlist line; the e2e sink's domain is no public provider. A hit fails by file and line, never
+by the address, unless `scripts/conformance/mailbox-allowlist.txt` holds it
+(`<file>:<line> | reason | until`, the kit's grammar; a stale or expired line fails). The two
+lines today are the landed first-admin migration of 2026-08-09 (`:469`, `:471`, append-only), until
+DEC-116. A file the scan cannot decode is named by path unless its extension is one of the
+tracked binaries (`.ico`, `.jpg`, `.png`, `.webp`).
+
+CF-MAIL-1 scans the tree; CF-MAIL-2 plants a mailbox among the shapes left out; CF-MAIL-3 holds an
+allowlisted line and fails a stale one; CF-MAIL-4 names an undecodable file and passes a
+declared binary; CF-MAIL-5 holds the test's own text clean (its planted mailboxes are built from
+parts at run time). The identity script `scripts/deny-tests/p1f-identity-unlink.ts` reads
+`OPERATOR_EMAIL` from its environment alone, prints "the operator account" instead of it and
+stops with its usage line (exit 2) before any network call when it is unset
+(`scripts/deny-tests/p1f-identity-unlink.test.ts`, P1F-1…3). The address stays in git history
+until the repository is private (DEC-116).
+
+## The first-download sentence — CF-BRIEF-21 (the tests and CI turn, G68's addendum)
+
+`scripts/brief/go-laws.ts`'s `firstDownloadFindings` reads DEC-355's sentence from its entry in
+`docs/spec/spec-ledger.md` ("a page's first download grows only by a named cause the report lists
+chunk by chunk; an unexplained growth is a STOP; no bare number"). A brief's TOLERANCES paragraph
+(its head line to the next blank line) that names a page's first download carries that sentence
+verbatim, and no sentence of the brief puts a KiB figure or a percentage beside "first download";
+a TOLERANCES paragraph that names no first download is not read for the first half. It runs as a
+tree law through `scripts/brief/check-go.ts` and on the brief in force in
+`scripts/conformance/briefs.test.ts`, whose planted brief (a TOLERANCES paragraph with a bare
+2 KiB) fails it by name and whose clean brief passes.

@@ -1,7 +1,9 @@
+import type { Locator } from "@playwright/test";
+
 import { expect, test } from "./fixtures";
 import { catalogueRows } from "./helpers/category-menu";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
-import { gotoReady, openRailScope } from "./helpers/ui";
+import { gotoReady, layoutBoxes, openRailScope } from "./helpers/ui";
 
 /**
  * SMN-E3 (DEC-288 items 7–8, turn R1b) — touch at 1024 px: a context with hasTouch and a
@@ -52,16 +54,26 @@ test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, 
   await expect(page).toHaveURL(/\/c\/electronics$/);
   const panel = page.getByTestId("submenu-panel");
   await expect(panel).toBeVisible();
-  const panelRows = await panel
-    .locator("[data-submenu-row]")
-    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
-  expect(panelRows.length, "SMN-E3 the panel has no rows").toBeGreaterThan(0);
+  const panelRows = panel.locator("[data-submenu-row]");
+  const rowCount = await panelRows.count();
+  expect(rowCount, "SMN-E3 the panel has no rows").toBeGreaterThan(0);
   // G38 — D248 replaces "a panel row is at least 44 px": a panel row is the rail's row (its
   // height at that moment), shrinking toward 32 px only when the panel outgrows the menu.
-  const railRow = await rail
-    .getByTestId("rail-category-electronics")
-    .evaluate((el) => (el.closest("li") ?? el).getBoundingClientRect().height);
-  for (const height of panelRows) {
+  // D322 — the rail's rows share its height again when a lane adds a root (G27); the panel
+  // follows, so the rail row and the panel's rows are read together once both are still.
+  const rowTargets = Object.fromEntries(
+    Array.from({ length: rowCount }, (_, index): [string, Locator] => [
+      `panel-${index}`,
+      panelRows.nth(index),
+    ]),
+  );
+  const { rail: railBox, ...panelBoxes } = await layoutBoxes<string>({
+    rail: rail.getByTestId("rail-category-electronics").locator("xpath=ancestor::li[1]"),
+    ...rowTargets,
+  });
+  if (!railBox) throw new Error("SMN-E3 the rail row's box was not read");
+  const railRow = railBox.height;
+  for (const height of Object.values(panelBoxes).map((box) => box.height)) {
     expect(height, "SMN-E3 a panel row is at most the rail's (D248)").toBeLessThanOrEqual(
       railRow + 1,
     );

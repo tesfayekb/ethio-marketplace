@@ -238,12 +238,31 @@ function Panel({
       window.removeEventListener("resize", resized);
     };
   }, [depth]);
+  // D322 — the opener's menu reflows without a window resize when its rows share the height
+  // again (D247: a category added while the page is open). The region keeps its size then and
+  // the opener's row changes, so one observer watches both; the panel changes neither (I3).
+  useEffect(() => {
+    if (depth !== 0) return;
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => setOwnTick((value) => value + 1));
+    });
+    observer.observe(opener.el.closest("li") ?? opener.el);
+    const region = opener.el.closest("[data-menu-region]");
+    if (region) observer.observe(region);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [depth, opener]);
   const childTick = depth === 0 ? ownTick : tick;
 
-  // D244 (INC-1008) — placed when it opens, and again on every window resize (`tick`, from
-  // the first panel's one listener, so a child follows its parent's new place). Rects are
-  // read on these events only (I3: nothing observed). D248 — the rows snap to the opener's
-  // menu: its row height, its row grid, never below its last row (snapToGrid).
+  // D244 (INC-1008) — placed when it opens, and again on every window resize or reflow of the
+  // opener's menu (`tick`, from the first panel, so a child follows its parent's new place).
+  // Rects are read on these events only, never from what the panel itself sizes (I3). D248 —
+  // the rows snap to the opener's menu: its row height, its row grid, never below its last
+  // row (snapToGrid).
   const count = level.items.length + (showHeader ? 1 : 0);
   useLayoutEffect(() => {
     const el = own.current;
@@ -285,12 +304,27 @@ function Panel({
       minTop: top,
     });
     setFloor(top);
-    setPlace({ left: placed.left, top: snap.top, height: snap.height, rowHeight: snap.rowHeight });
+    const next = {
+      left: placed.left,
+      top: snap.top,
+      height: snap.height,
+      rowHeight: snap.rowHeight,
+    };
+    setPlace((was) =>
+      was &&
+      was.left === next.left &&
+      was.top === next.top &&
+      was.height === next.height &&
+      was.rowHeight === next.rowHeight
+        ? was
+        : next,
+    );
   }, [opener, depth, edgeOf, floor, childTick, count]);
 
   useEffect(() => {
     if (!place || !opener.focus) return;
-    // Before placement the panel is transparent, never hidden: a hidden row cannot take focus.
+    // Placement runs before the first paint (useLayoutEffect), so the panel is never drawn
+    // unplaced; its unplaced style is transparent, never hidden: a hidden row cannot take focus.
     rowsOf(own.current)[0]?.focus();
   }, [place, opener]);
 

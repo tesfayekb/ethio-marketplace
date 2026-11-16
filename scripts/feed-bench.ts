@@ -1,12 +1,13 @@
 /**
  * Bundle 10 E3c — THE FEED ENGINE'S SPEED JUDGE (D101 §5, DEC-166).
  *
- * Seeds 100,500 scratch active listings on ethio-staging, times six page
- * shapes inside the database through public.feed_bench (service role only),
- * removes everything, and writes docs/tracking/feed-bench-status.md.
+ * Seeds 100,500 scratch active listings on ethio-staging in a scratch market of
+ * its own (scripts/feed-bench-market.ts, INC-1169), times six page shapes
+ * inside the database through public.feed_bench (service role only), removes
+ * everything, and writes docs/tracking/feed-bench-status.md.
  * Exit 0 on a pass, 1 otherwise. Refuses any project but ethio-staging.
- * Numbers and shape names only reach the log: never a row, an id, a slug or
- * an e-mail address.
+ * Numbers, shape names and the scratch market's code only reach the log: never
+ * a row, an id, a slug or an e-mail address.
  */
 
 import { randomBytes } from "node:crypto";
@@ -14,6 +15,22 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { chunkByLength } from "../e2e/helpers/chunk-by-length";
+import {
+  BENCH_PREFIX,
+  SELLERS,
+  SELLER_BATCH,
+  benchCountryCodes,
+  benchCountryName,
+  benchSellerEmail,
+  createMarket,
+  deleteMarketRows,
+  deletePlacesAndCountries,
+  freeScratchCode,
+  isBenchSellerEmail,
+  must,
+  runSellerStart,
+  seedPlan,
+} from "./feed-bench-market";
 import { describeRuns, gateEnv, waitForQuiet, yieldWatcher, YieldError } from "./staging-gate";
 import { errorText } from "../src/lib/error-text";
 
@@ -88,6 +105,10 @@ export interface StatusInput {
   seedSeconds: number;
   cleanupSeconds: number;
   leftovers: number;
+  /** The scratch market (INC-1169): its sellers, its code and its free number. */
+  sellers: number;
+  market: string;
+  free: number;
   shapes: ShapeResult[];
   bytes: number;
 }
@@ -109,7 +130,7 @@ export function renderStatus(input: StatusInput): string {
     `- Commit: ${input.runSha}`,
     `- Timestamp (UTC): ${input.timestamp}`,
     `- Verdict: ${shown}`,
-    `- Listings seeded: ${input.seeded} · seed ${input.seedSeconds.toFixed(1)} s · cleanup ${input.cleanupSeconds.toFixed(1)} s · leftovers ${input.leftovers}`,
+    `- Listings seeded: ${input.seeded} · seed ${input.seedSeconds.toFixed(1)} s · cleanup ${input.cleanupSeconds.toFixed(1)} s · leftovers ${input.leftovers} · sellers ${input.sellers} · market ${input.market} free ${input.free}`,
     "",
     "| Shape | Runs | p50 ms | p95 ms | Max ms | Cards |",
     "| --- | --- | --- | --- | --- | --- |",
@@ -124,7 +145,7 @@ export function renderStatus(input: StatusInput): string {
 
 // ---------------------------------------------------------------- runtime
 
-type Db = SupabaseClient;
+export type Db = SupabaseClient;
 
 function randomLetters(n: number): string {
   const a = "abcdefghijklmnopqrstuvwxyz";
@@ -148,6 +169,22 @@ function randomPassword(): string {
  * the baseline. A dictionary without a baseline row, or a malformed one, is refused.
  */
 export function levelMix(levels: unknown): (g: number) => string {
+  const { rows, baseline } = levelRows(levels);
+  const above = rows.filter((row) => !row.isBaseline).sort((a, b) => b.sort - a.sort);
+  const top = above[0]?.key ?? baseline;
+  const next = above[1]?.key ?? top;
+  return (g) => (g % 100 === 0 ? top : g % 25 === 0 ? next : baseline);
+}
+
+/** The baseline level's key in a feed answer's `levels` dictionary (the free-slot law counts it). */
+export function baselineLevel(levels: unknown): string {
+  return levelRows(levels).baseline;
+}
+
+function levelRows(levels: unknown): {
+  rows: { key: string; sort: number; isBaseline: boolean }[];
+  baseline: string;
+} {
   if (!Array.isArray(levels)) throw new Error("feed_page: no levels dictionary");
   const rows = levels.map((row: unknown) => {
     if (row === null || typeof row !== "object")
@@ -162,26 +199,17 @@ export function levelMix(levels: unknown): (g: number) => string {
   });
   const baseline = rows.find((row) => row.isBaseline);
   if (baseline === undefined) throw new Error("feed_page: no baseline level");
-  const above = rows.filter((row) => !row.isBaseline).sort((a, b) => b.sort - a.sort);
-  const top = above[0]?.key ?? baseline.key;
-  const next = above[1]?.key ?? top;
-  return (g) => (g % 100 === 0 ? top : g % 25 === 0 ? next : baseline.key);
+  return { rows, baseline: baseline.key };
 }
 
-function must<T>(res: { data: T; error: { message: string } | null }, what: string): T {
-  if (res.error) throw new Error(`${what}: ${res.error.message}`);
-  return res.data;
+/** Row `g`'s level: the mix over the seed's rows, the baseline for the hot rows after them. */
+export function benchTier(mix: (g: number) => string, g: number): string {
+  return g <= LISTINGS ? mix(g) : mix(1);
 }
 
-type ListingFilter = { column: "title"; prefix: string } | { column: "seller_id"; equals: string };
-
-async function deleteListingsWhere(db: Db, filter: ListingFilter): Promise<void> {
+async function deleteListingsLike(db: Db, prefix: string): Promise<void> {
   for (;;) {
-    const base = db.from("listings").select("id");
-    const query =
-      filter.column === "title"
-        ? base.like("title", `${filter.prefix}%`)
-        : base.eq("seller_id", filter.equals);
+    const query = db.from("listings").select("id").like("title", `${prefix}%`);
     const rows = must(await query.limit(1000), "read scratch listings") as { id: string }[];
     if (rows.length === 0) return;
     const ids = rows.map((r) => r.id);
@@ -189,11 +217,6 @@ async function deleteListingsWhere(db: Db, filter: ListingFilter): Promise<void>
       must(await db.from("listings").delete().in("id", part), "delete scratch listings");
     }
   }
-}
-
-async function deleteSeller(db: Db, sellerId: string): Promise<void> {
-  const del = await db.auth.admin.deleteUser(sellerId);
-  if (del.error) throw new Error(`delete seller: ${del.error.message}`);
 }
 
 async function deleteCategoriesLike(db: Db, prefix: string): Promise<void> {
@@ -224,6 +247,75 @@ async function deleteLocationsLike(db: Db, prefix: string): Promise<void> {
       `delete scratch ${level}s`,
     );
   }
+}
+
+/** The bench sellers (scripts/feed-bench-market.ts) whose address starts with `start`. */
+async function benchSellerIds(db: Db, start: string): Promise<string[]> {
+  const ids: string[] = [];
+  for (let page = 1; ; page++) {
+    if (page > 500) throw new Error("list users: more than 500 pages");
+    const res = await db.auth.admin.listUsers({ page, perPage: 200 });
+    if (res.error) throw new Error(`list users: ${res.error.message}`);
+    const users = res.data.users;
+    for (const user of users) {
+      if (isBenchSellerEmail(user.email) && user.email?.startsWith(start)) ids.push(user.id);
+    }
+    if (users.length < 200) return ids;
+  }
+}
+
+/** The run's sellers, SELLER_BATCH at a time; `created` holds each id as it lands. */
+async function createSellers(db: Db, run: string, created: string[]): Promise<void> {
+  for (let first = 1; first <= SELLERS; first += SELLER_BATCH) {
+    const indexes = Array.from(
+      { length: Math.min(SELLER_BATCH, SELLERS - first + 1) },
+      (_, k) => first + k,
+    );
+    const answers = await Promise.all(
+      indexes.map((i) =>
+        db.auth.admin.createUser({
+          email: benchSellerEmail(run, i),
+          password: randomPassword(),
+          email_confirm: true,
+        }),
+      ),
+    );
+    for (const answer of answers) if (answer.data.user) created.push(answer.data.user.id);
+    const refused = answers.find((answer) => answer.error !== null || answer.data.user === null);
+    if (refused) throw new Error(`create seller: ${refused.error?.message ?? "no user"}`);
+  }
+}
+
+async function deleteSellers(db: Db, ids: string[]): Promise<void> {
+  for (let first = 0; first < ids.length; first += SELLER_BATCH) {
+    const answers = await Promise.all(
+      ids.slice(first, first + SELLER_BATCH).map((id) => db.auth.admin.deleteUser(id)),
+    );
+    const refused = answers.find((answer) => answer.error !== null);
+    if (refused?.error) throw new Error(`delete seller: ${refused.error.message}`);
+  }
+}
+
+/**
+ * Every bench row under `prefix` (INC-1174; ruling 1 §2.2's order): the listings, the categories,
+ * the sellers (`run`'s own, or with no run every bench seller under both prefixes), the market
+ * rows, the places (the slug-named cities and regions, then each market's places and anchor), the
+ * countries. The pre-clean passes the bench's prefix; a run's cleanup passes its own.
+ */
+async function removeBench(db: Db, prefix: string, run?: string): Promise<void> {
+  await deleteListingsLike(db, prefix);
+  await deleteCategoriesLike(db, prefix);
+  await deleteSellers(db, await benchSellerIds(db, run === undefined ? "" : runSellerStart(run)));
+  const codes = await benchCountryCodes(db, prefix);
+  await deleteMarketRows(db, codes);
+  await deleteLocationsLike(db, prefix);
+  await deletePlacesAndCountries(db, codes);
+}
+
+/** Bench sellers and countries left under `prefix` (a country's market row and places count with it). */
+async function countSellersAndMarkets(db: Db, prefix: string, run?: string): Promise<number> {
+  const sellers = await benchSellerIds(db, run === undefined ? "" : runSellerStart(run));
+  return sellers.length + (await benchCountryCodes(db, prefix)).length;
 }
 
 async function countLeftovers(db: Db, prefix: string): Promise<number> {
@@ -282,6 +374,7 @@ async function insertPlace(
   level: "region" | "city",
   parent: string,
   regionId: string | null,
+  countryCode: string,
 ): Promise<string> {
   const row = must(
     await db
@@ -292,7 +385,7 @@ async function insertPlace(
         level,
         parent_id: parent,
         region_id: regionId,
-        country_code: "ET",
+        country_code: countryCode,
         is_active: true,
         source: "admin",
         ...(level === "city" ? { center_lat: 9.03, center_lng: 38.74 } : {}),
@@ -326,11 +419,12 @@ async function main(): Promise<number> {
     const cleaner = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const found = await countLeftovers(cleaner, "e2e-bench-");
-    await deleteListingsWhere(cleaner, { column: "title", prefix: "e2e-bench-" });
-    await deleteCategoriesLike(cleaner, "e2e-bench-");
-    await deleteLocationsLike(cleaner, "e2e-bench-");
-    const left = await countLeftovers(cleaner, "e2e-bench-");
+    const count = async () =>
+      (await countLeftovers(cleaner, BENCH_PREFIX)) +
+      (await countSellersAndMarkets(cleaner, BENCH_PREFIX));
+    const found = await count();
+    await removeBench(cleaner, BENCH_PREFIX);
+    const left = await count();
     console.log(`feed-bench --clean: found ${found} scratch rows; left ${left}`);
     return left === 0 ? 0 : 1;
   }
@@ -364,6 +458,9 @@ async function main(): Promise<number> {
           seedSeconds: 0,
           cleanupSeconds: 0,
           leftovers: 0,
+          sellers: 0,
+          market: "none",
+          free: 0,
           shapes: [],
           bytes: 0,
         }),
@@ -374,7 +471,8 @@ async function main(): Promise<number> {
     checkGate = yieldWatcher(gate);
   }
 
-  const P = `e2e-bench-${process.env["GITHUB_RUN_ID"] ?? "local"}-${randomLetters(6)}`;
+  const run = process.env["GITHUB_RUN_ID"] ?? "local";
+  const P = `${BENCH_PREFIX}${run}-${randomLetters(6)}`;
   const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
   let seeded = 0;
@@ -383,38 +481,42 @@ async function main(): Promise<number> {
   let leftovers = 0;
   let bytes = 0;
   const shapes: ShapeResult[] = [];
-  let sellerId: string | null = null;
+  const sellerIds: string[] = [];
+  let market = "none";
+  let free = 0;
   let failure: string | undefined;
   let yielded: string | undefined;
   let seedStart = 0;
 
   try {
-    // 3. Pre-clean an earlier run.
-    await deleteListingsWhere(db, { column: "title", prefix: "e2e-bench-" });
-    await deleteCategoriesLike(db, "e2e-bench-");
-    await deleteLocationsLike(db, "e2e-bench-");
+    // 3. Pre-clean every earlier run (INC-1174).
+    await removeBench(db, BENCH_PREFIX);
 
-    // 4. Seed.
+    // 4. Seed: the plan, the scratch market, its sellers, the tree and the rows.
     seedStart = Date.now();
-    const created = await db.auth.admin.createUser({
-      email: `${P}@ethio-e2e.invalid`,
-      password: randomPassword(),
-      email_confirm: true,
-    });
-    if (created.error || !created.data.user) {
-      throw new Error(`create seller: ${created.error?.message ?? "no user"}`);
-    }
-    sellerId = created.data.user.id;
-
-    const et = must(
-      await db
-        .from("locations")
-        .select("id")
-        .eq("level", "country")
-        .eq("country_code", "ET")
-        .single(),
-      "read Ethiopia",
-    ) as { id: string };
+    const levels = (
+      must(
+        await db.rpc("feed_page", {
+          p_category_id: null,
+          p_location_id: null,
+          p_after: null,
+          p_size: 1,
+        }),
+        "the level dictionary",
+      ) as { levels?: unknown }
+    ).levels;
+    const mix = levelMix(levels);
+    const tierOf = (g: number) => benchTier(mix, g);
+    const seeding = seedPlan(LISTINGS + HOT, SELLERS, tierOf, baselineLevel(levels));
+    free = seeding.free;
+    market = await freeScratchCode(db);
+    const anchor = await createMarket(db, market, benchCountryName(P), free);
+    await createSellers(db, run, sellerIds);
+    const sellerOf = (g: number): string => {
+      const id = sellerIds[seeding.sellerOf(g)];
+      if (id === undefined) throw new Error(`no seller for row ${g}`);
+      return id;
+    };
 
     const tops: string[] = [];
     const seconds: string[][] = [];
@@ -452,24 +554,24 @@ async function main(): Promise<number> {
     const cities: string[] = [];
     let emptyCity = "";
     for (let i = 1; i <= 10; i++) {
-      const r = await insertPlace(db, `${P}-r${i}`, "region", et.id, null);
+      const r = await insertPlace(db, `${P}-r${i}`, "region", anchor, null, market);
       for (let j = 1; j <= 10; j++) {
-        cities.push(await insertPlace(db, `${P}-c${i}-${j}`, "city", r, r));
+        cities.push(await insertPlace(db, `${P}-c${i}-${j}`, "city", r, r, market));
       }
-      if (i === 1) emptyCity = await insertPlace(db, `${P}-cempty`, "city", r, r);
+      if (i === 1) emptyCity = await insertPlace(db, `${P}-cempty`, "city", r, r, market);
     }
 
     const now = Date.now();
-    const row = (g: number, cat: string, loc: string, tier: string, minutesAgo: number) => ({
-      seller_id: sellerId,
+    const row = (g: number, cat: string, loc: string, minutesAgo: number) => ({
+      seller_id: sellerOf(g),
       category_id: cat,
       location_id: loc,
-      tier,
+      tier: tierOf(g),
       published_at: new Date(now - minutesAgo * 60000).toISOString(),
       title: `${P}-${g}`,
       description: "e2e bench listing",
       status: "active",
-      home_country_code: "ET",
+      home_country_code: market,
     });
     let batch: ReturnType<typeof row>[] = [];
     const flush = async () => {
@@ -487,26 +589,13 @@ async function main(): Promise<number> {
       seeded += batch.length;
       batch = [];
     };
-    const mix = levelMix(
-      (
-        must(
-          await db.rpc("feed_page", {
-            p_category_id: null,
-            p_location_id: null,
-            p_after: null,
-            p_size: 1,
-          }),
-          "the level dictionary",
-        ) as { levels?: unknown }
-      ).levels,
-    );
     for (let g = 1; g <= LISTINGS; g++) {
-      batch.push(row(g, leaves[(g * 7919) % 156]!, cities[(g * 104729) % 100]!, mix(g), g % 86400));
+      batch.push(row(g, leaves[(g * 7919) % 156]!, cities[(g * 104729) % 100]!, g % 86400));
       if (batch.length === BATCH) await flush();
     }
     await flush();
     for (let g = 1; g <= HOT; g++) {
-      batch.push(row(LISTINGS + g, leaves[0]!, cities[0]!, mix(1), g));
+      batch.push(row(LISTINGS + g, leaves[0]!, cities[0]!, g));
       if (batch.length === BATCH) await flush();
     }
     await flush();
@@ -529,11 +618,11 @@ async function main(): Promise<number> {
     }
     const plan: [string, string | null, string | null, unknown][] = [
       ["all, everywhere", null, null, null],
-      ["top, country", tops[4]!, et.id, null],
+      ["top, country", tops[4]!, anchor, null],
       ["leaf, city", leaves[0]!, cities[0]!, null],
       ["top, city, widening", tops[4]!, emptyCity, null],
       ["page 50 by cursor", null, null, after],
-      ["guest host, country", tops[2]!, et.id, null],
+      ["guest host, country", tops[2]!, anchor, null],
     ];
     for (const [name, cat, loc, cursor] of plan) {
       await checkGate();
@@ -557,15 +646,11 @@ async function main(): Promise<number> {
     // 6. Clean up, whatever happened.
     const cleanStart = Date.now();
     try {
-      if (sellerId) await deleteListingsWhere(db, { column: "seller_id", equals: sellerId });
-      await deleteListingsWhere(db, { column: "title", prefix: P });
-      await deleteCategoriesLike(db, P);
-      await deleteLocationsLike(db, P);
-      if (sellerId) await deleteSeller(db, sellerId);
-      leftovers = await countLeftovers(db, P);
+      await removeBench(db, P, run);
+      leftovers = (await countLeftovers(db, P)) + (await countSellersAndMarkets(db, P, run));
     } catch (error) {
-      const msg = errorText(error);
-      failure = failure ?? `cleanup: ${msg}`;
+      const cleanup = `cleanup: ${errorText(error)}`;
+      failure = failure === undefined ? cleanup : `${failure} — and ${cleanup}`;
       leftovers = Math.max(leftovers, 1);
     }
     cleanupSeconds = (Date.now() - cleanStart) / 1000;
@@ -594,6 +679,9 @@ async function main(): Promise<number> {
       seedSeconds,
       cleanupSeconds,
       leftovers,
+      sellers: sellerIds.length,
+      market,
+      free,
       shapes,
       bytes,
     }),

@@ -67,7 +67,7 @@ const LEVELS: Record<string, SubmenuLevel> = {
 
 function Harness() {
   return (
-    <aside>
+    <aside data-menu-region="">
       <button type="button" data-testid="opener" {...submenuTriggerProps("vehicles")}>
         Vehicles
       </button>
@@ -313,5 +313,57 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     });
     expect(panels()).toHaveLength(1);
     expect(panels()[0]?.className).toContain("motion-reduce:transition-none");
+  });
+
+  it("SMN-9 the first panel is placed again when its opener's row or region resizes (D322)", async () => {
+    const observers: Array<{ observed: Element[]; tell: () => void }> = [];
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observed: Element[] = [];
+        tell: () => void;
+        constructor(callback: () => void) {
+          this.tell = () => callback();
+          observers.push(this);
+        }
+        observe(el: Element) {
+          this.observed.push(el);
+        }
+        unobserve() {}
+        disconnect() {
+          this.observed = [];
+        }
+      },
+    );
+    try {
+      const opener = await mount();
+      const region = opener.closest("aside");
+      if (!region) throw new Error("SMN-9 the harness has no aside");
+      vi.spyOn(region, "getBoundingClientRect").mockReturnValue(
+        DOMRect.fromRect({ x: 0, y: 96, width: 256, height: 664 }),
+      );
+      // The rail's 15 rows share 664 px (44.27 px); a 16th root shares it again (41.5 px).
+      const row = vi
+        .spyOn(opener, "getBoundingClientRect")
+        .mockReturnValue(DOMRect.fromRect({ x: 0, y: 140, width: 256, height: 44 }));
+      opener.focus();
+      fireEvent.keyDown(opener, { key: "ArrowRight" });
+      act(() => vi.advanceTimersByTime(20));
+      const panel = panels()[0];
+      expect(panel?.style.getPropertyValue("--menu-row-h")).toBe("44px");
+      const watching = observers.find((observer) => observer.observed.length > 0);
+      expect(watching?.observed).toEqual([opener, region]);
+      // I3: the panel never observes what it sizes itself.
+      expect(watching?.observed).not.toContain(panel);
+      row.mockReturnValue(DOMRect.fromRect({ x: 0, y: 140, width: 256, height: 41.5 }));
+      act(() => {
+        watching?.tell();
+        vi.advanceTimersByTime(20);
+      });
+      expect(panels()[0]?.style.getPropertyValue("--menu-row-h")).toBe("41.5px");
+      expect(document.activeElement).toBe(screen.getByTestId("rail-category-cars"));
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

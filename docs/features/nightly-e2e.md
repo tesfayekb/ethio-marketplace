@@ -2,7 +2,14 @@
 
 ## What runs nightly, and why
 
-Only cases that require **real elapsed time**. Today that is exactly one case:
+Once a day, on ethio-staging: the cases that require **real elapsed time**, whose
+run also carries the maintenance pass (DEC-369, below); the database security
+lints (DEC-148); the heartbeat and its evidence on `ci-evidence`; and, in its own
+job, the Cloudflare parity smoke. The `@global-state` specs are not here: they
+run, and gate, in the per-push serial lane (`local-backend-proof.yml`, INC-1135).
+The serial full run that once carried them retired (DEC-393, below).
+
+The real-time cases are exactly one today:
 
 | ID  | Behaviour guarded                                         | Spec file                                    |
 | --- | --------------------------------------------------------- | -------------------------------------------- |
@@ -34,8 +41,9 @@ operator-ruled cooldown-on-click behaviour**; A-3 only adds the exhaustion tail.
 ## Heartbeat: `docs/tracking/nightly-status.md`
 
 The workflow writes that file with `if: always()` and commits it with `[skip ci]`.
-It records the conclusion (SUCCESS/FAILURE), the commit SHA, the UTC timestamp and
-the run URL.
+It records the conclusion (SUCCESS/FAILURE, a FAILURE followed by the reporter's
+STAGING-SINK line when a failure carried the mail sink's refusal — INC-1175), the
+gating failures, the lints, the commit SHA, the UTC timestamp and the run URL.
 
 This is the supervisor's read on every verification clone. **A timestamp older than
 ~48h does not mean "nothing changed" — it means the schedule stopped running.** A
@@ -95,7 +103,7 @@ One step after the suites, `if: always()`: `bun scripts/security-lints.ts`. It n
 ## The staging gate (DEC-168)
 
 - Before its tests the nightly waits, up to 60 minutes, until no CI, Guard Proof or Feed bench run is queued or running (`bun scripts/staging-gate.ts wait 60`); after that it runs anyway, with a warning. An unreadable gate is a warning, never a stop.
-- After the serial full run, `bun scripts/staging-gate.ts overlaps` writes a notice on the run page for every other staging run that overlapped this nightly, so a nightly red is read with that in hand (INC-487).
+- After the tests, `bun scripts/staging-gate.ts overlaps` writes a notice on the run page for every other staging run that overlapped this nightly, so a nightly red is read with that in hand (INC-487).
 - The job's token gains `actions: read` for these two steps; CI itself never waits.
 
 ## Flake check (DEC-184, bundle 18 turn 3)
@@ -116,4 +124,12 @@ The nightly installs Chromium's system libraries through `scripts/ci/install-bro
 
 ## Housekeeping turn 3c (INC-1108, DEC-369) — the nightly reaps ethio-staging
 
-The step "Run nightly E2E (real-elapsed-time cases)" sets `E2E_MAINTENANCE: "1"` in its own `env:`, so its global setup runs the maintenance pass against ethio-staging once a night: the reaper (every scratch prefix of `e2e/helpers/scratch.ts` older than the cutoff), the scratch roles, listings, categories and attribute definitions, the photo and category-asset storage sweeps, the audit prune and the tripwire (docs/features/e2e-harness.md). The serial full run that follows does not set it, so it skips the pass and the run near the job's ceiling is not lengthened. Before this turn the job's shard name (`nightly`) was never the owner's, so staging was never reaped. The "Sweep stale E2E users" step stays the one mechanism for users (the pass deletes none). CF-CID-7 (`scripts/conformance/ci-deadlines.test.ts`) holds the line to this step and to lane 1's proof step in `local-backend-proof.yml`, and refuses the variable anywhere else.
+The step "Run nightly E2E (real-elapsed-time cases)" sets `E2E_MAINTENANCE: "1"` in its own `env:`, so its global setup runs the maintenance pass against ethio-staging once a night: the reaper (every scratch prefix of `e2e/helpers/scratch.ts` older than the cutoff), the scratch roles, listings, categories and attribute definitions, the photo and category-asset storage sweeps, the audit prune and the tripwire (docs/features/e2e-harness.md). (The serial full run that then followed did not set it; it retired with DEC-393.) Before this turn the job's shard name (`nightly`) was never the owner's, so staging was never reaped. The "Sweep stale E2E users" step stays the one mechanism for users (the pass deletes none). CF-CID-7 (`scripts/conformance/ci-deadlines.test.ts`) holds the line to this step and to lane 1's proof step in `local-backend-proof.yml`, and refuses the variable anywhere else.
+
+## The tests and CI turn (DEC-393, INC-1148, INC-1175) — one run, a verdict inside the ceiling
+
+- **The serial full run retired (DEC-393).** The step that ran the whole suite with one worker on ethio-staging took longer than the job's 360-minute ceiling every night (cancelled 2026-11-08, -09, -10, -13 and -14; red after five hours on -11 and -15), so the nightly wrote "Sources without results: full" and no verdict (INC-1111). Its reason, DEC-028's — the `@global-state` specs ran nowhere else — no longer holds since the per-push serial lane runs them on every push (INC-1135). The step, the stash before it and the `full` source are gone: the evidence step copies `test-results/results.json` and `nightly.log` into the reporter's `nightly` source, `E2E_EXPECTED_SOURCES: nightly`, and `E2E_GREEN` reads the `run` step alone.
+- **The ceiling.** `timeout-minutes: 90` — the staging gate's own cap (60 minutes) plus the worst measured steps (about 9 minutes) plus margin, written on the line; never raised later without a DEC.
+- **`@global-state` is no quarantine (INC-1148).** The reporter's quarantine label, `isQuarantined`, `classifyFailures` and its self-test fixture retired with the run (no reader remained). Every failure gates; the verdict file is `gating=` / `silent=` / `flaky=`.
+- **The STAGING-SINK label (INC-1175).** A failed test whose own attempts printed a `[client-error]` line carrying `auth/v1/signup`, `HTTP 500` and "Error sending confirmation email" is labelled `STAGING-SINK (environment: the staging mail sink refused the send — INC-1175)` on its failure section, counted on the report's "Gating failures" line, and named on the heartbeat's conclusion line: the evidence step sets `E2E_VERDICT_CLASS_PATH`, the reporter writes the class on the file's first line (all `ci.yml` reads) and `STAGING-SINK <n> (environment: …)` on its second, and the heartbeat appends that second line to `- Conclusion: FAILURE`. The label names the cause; the failure still gates. The sink itself is the operator's SMTP setting on ethio-staging.
+- **Tests.** `scripts/e2e-failure-report.test.ts`: EFR-3 drives the reporter on `stagingSinkSample()` — the real `e2e-results-sample.json` with one splice made in memory, the 2026-11-15 nightly's captured sign-up line (`scripts/fixtures/e2e-staging-sink-line.txt`, verbatim) as CAP-1's attempt stdout; no tracked copy, so the sample's synthetic token shapes stay in the one path the secrets scan excludes — and on the unspliced sample (labelled and not); EFR-4 reads one `nightly` source whole ("Sources without results: none") and holds the workflow to one source, the `run` step's outcome and no serial run. The reporter's own self-test checks the label both ways on the same two captures.
