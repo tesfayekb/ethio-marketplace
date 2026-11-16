@@ -38,7 +38,22 @@ const SUPABASE_URL = process.env["SUPABASE_URL"];
 const SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 const PUBLISHABLE_KEY =
   process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
-const OPERATOR_EMAIL = process.env["OPERATOR_EMAIL"] ?? "tesfayekb@gmail.com";
+
+/**
+ * INC-1165 — the operator's address comes from the environment alone and is never printed: the
+ * repository is public, so the source holds no default and the log says "the operator account".
+ * Unset, the run stops with its usage line before any network call.
+ */
+function operatorEmail(): string {
+  const email = process.env["OPERATOR_EMAIL"];
+  if (!email) {
+    console.error(
+      "USAGE: OPERATOR_EMAIL=<the operator's address> bun run scripts/deny-tests/p1f-identity-unlink.ts --force | --recheck --phase 2",
+    );
+    process.exit(2);
+  }
+  return email;
+}
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY || !PUBLISHABLE_KEY) {
   console.error(
@@ -145,14 +160,15 @@ async function wrongPasswordProbe(email: string): Promise<{ code?: string; messa
 }
 
 async function main(): Promise<void> {
+  const OPERATOR_EMAIL = operatorEmail();
   console.log(`Target project host: ${new URL(SUPABASE_URL!).host}`);
-  console.log(`Operator account under test: ${OPERATOR_EMAIL}`);
+  console.log("Operator account under test: the operator account");
 
   // ---------------------------------------------------------------- U-2 VERIFY
   block("U-2 VERIFY — operator's UI unlink + OAuth re-link left both identities intact");
   const before = await findUserByEmail(OPERATOR_EMAIL);
   if (!before) {
-    console.log(`FAIL — operator user not found for ${OPERATOR_EMAIL}`);
+    console.log("FAIL — operator user not found for the operator account");
     process.exit(1);
   }
   console.log(`user id: ${before.id}`);
@@ -322,6 +338,7 @@ async function recheckPhase1(): Promise<void> {
 }
 
 async function recheckPhase2(): Promise<void> {
+  operatorEmail();
   const email = process.env["RECHECK_EMAIL"];
   const password = process.env["RECHECK_PASSWORD"];
   if (!email || !password) {
@@ -356,7 +373,8 @@ async function recheckPhase2(): Promise<void> {
   block("OPERATOR ACCOUNT READ-BACK (executor SQL, predicate documented in the header)");
   console.log(
     `select (encrypted_password is not null and encrypted_password <> '') as has_password\n` +
-      `from auth.users where email = '${OPERATOR_EMAIL}';   -- must be FALSE after the 1c correction`,
+      `from auth.users where email = '<OPERATOR_EMAIL>';   -- must be FALSE after the 1c correction\n` +
+      "-- substitute <OPERATOR_EMAIL> with the address this run was given",
   );
 
   block("RESULT (phase 2)");

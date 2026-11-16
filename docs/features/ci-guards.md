@@ -1327,3 +1327,26 @@ stays shallow, since no git history is read. The script is pure over that JSON.
   files. The endpoint answers without the `pull-requests` permission while the repository is
   public; when it goes private the step fails loudly (the API's refusal is not JSON arrays) until
   the scope job's token gains `pull-requests: read`.
+
+## No real person's mailbox in a tracked file — CF-MAIL (the tests and CI turn, INC-1165)
+
+The repository is public until launch (DEC-116). `scripts/conformance/mailbox.test.ts` reads every
+file `git ls-files` names for a mailbox at a public provider's domain (`gmail`, `yahoo`,
+`outlook`, `hotmail`, `icloud`, `proton`): a local part of two or more characters, not preceded by
+`/` or by another local-part character. So the hook tests' one-letter literal and the alias
+example (`ethio.com/` followed by the provider's domain) are left out by shape, with no
+allowlist line; the e2e sink's domain is no public provider. A hit fails by file and line, never
+by the address, unless `scripts/conformance/mailbox-allowlist.txt` holds it
+(`<file>:<line> | reason | until`, the kit's grammar; a stale or expired line fails). The two
+lines today are the landed first-admin migration of 2026-08-09 (`:469`, `:471`, append-only), until
+DEC-116. A file the scan cannot decode is named by path unless its extension is one of the
+tracked binaries (`.ico`, `.jpg`, `.png`, `.webp`).
+
+CF-MAIL-1 scans the tree; CF-MAIL-2 plants a mailbox among the shapes left out; CF-MAIL-3 holds an
+allowlisted line and fails a stale one; CF-MAIL-4 names an undecodable file and passes a
+declared binary; CF-MAIL-5 holds the test's own text clean (its planted mailboxes are built from
+parts at run time). The identity script `scripts/deny-tests/p1f-identity-unlink.ts` reads
+`OPERATOR_EMAIL` from its environment alone, prints "the operator account" instead of it and
+stops with its usage line (exit 2) before any network call when it is unset
+(`scripts/deny-tests/p1f-identity-unlink.test.ts`, P1F-1…3). The address stays in git history
+until the repository is private (DEC-116).
