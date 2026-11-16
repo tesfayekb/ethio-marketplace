@@ -156,6 +156,7 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
       ["rateLimited", "myListings.error.rateLimited"],
       ["accountDeactivated", "myListings.error.deactivated"],
       ["listingNotFound", "myListings.error.notYours"],
+      ["notYourListing", "myListings.error.notYours"],
       ["notLive", "myListings.promote.error.notLive"],
       ["sameLevel", "myListings.promote.error.sameLevel"],
       ["lowerLevel", "myListings.promote.error.lowerLevel"],
@@ -172,6 +173,10 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
     expect(promoteRefusalKey({ message: "account is deactivated" }, "level")).toBe("door.refused");
     expect(promoteRefusalKey({ message: "notSignedIn" }, "level")).toBe("door.refused");
     expect(promoteRefusalKey({ message: "toString" }, "level")).toBe("door.refused");
+    // The shell's `sameLevel:<until>` carries its tail; the words are the code's.
+    expect(promoteRefusalKey({ message: "sameLevel:2026-11-27T10:00:00+00:00" }, "level")).toBe(
+      "myListings.promote.error.sameLevel",
+    );
     expect(promoteRefusalKey(null, "level")).toBe("door.refused");
     const reach: Array<[string, string]> = [
       ...named.filter(([code]) => code !== "notOffered"),

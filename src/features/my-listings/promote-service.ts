@@ -1,7 +1,8 @@
 import type { MessageKey } from "@/i18n";
-import { DOOR_REFUSED_KEY, doorCode, type DoorCode } from "@/lib/door-codes";
+import { DOOR_REFUSED_KEY } from "@/lib/door-codes";
 import { ownValue } from "@/lib/own-key";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 import { rpc } from "@/lib/supabase-door";
 
 /**
@@ -13,8 +14,8 @@ import { rpc } from "@/lib/supabase-door";
  * country rule as `set_listing_level`. This module passes the door's numbers
  * through untouched — it computes no price, no days and no availability — and
  * reads the answer through a shape guard (the generated `Json` is not a shape).
- * `set_listing_level(listing, level)` sets the level; a refusal is read by
- * `doorCode` and named by `promoteRefusalKey`, never by its text.
+ * `set_listing_level(listing, level)` sets the level; a refusal is read by the one
+ * reader (`readRefusal`, F1-5a) and named by `promoteRefusalKey`, never by its text.
  *
  * P-2 (c) c3 (DEC-351, DEC-358) — the same answer carries the ad's reach and
  * the reach rows (the included and the ad's current one always among them);
@@ -176,9 +177,11 @@ export async function readPromoteOptions(listingId: string): Promise<PromoteOpti
   return options;
 }
 
-const REFUSAL_KEY: Partial<Record<DoorCode, MessageKey>> = {
+const REFUSAL_KEY: Readonly<Record<string, MessageKey>> = {
   rateLimited: "myListings.error.rateLimited",
   accountDeactivated: "myListings.error.deactivated",
+  // DEC-391 (F1-5a) — a row that is not the seller's answers `notYourListing`, found or not.
+  notYourListing: "myListings.error.notYours",
   listingNotFound: "myListings.error.notYours",
   notLive: "myListings.promote.error.notLive",
   sameLevel: "myListings.promote.error.sameLevel",
@@ -193,12 +196,19 @@ const REFUSAL_KEY: Partial<Record<DoorCode, MessageKey>> = {
 };
 
 /** The reach's own words; every other code reads the level's (REFUSAL_KEY). */
-const REACH_REFUSAL_KEY: Partial<Record<DoorCode, MessageKey>> = {
+const REACH_REFUSAL_KEY: Readonly<Record<string, MessageKey>> = {
   unknownReach: "myListings.promote.error.unknownReach",
   sameReach: "myListings.promote.error.sameReach",
   lowerReach: "myListings.promote.error.lowerReach",
   includedReach: "myListings.promote.error.includedReach",
   notOffered: "myListings.promote.error.reachNotOffered",
+};
+
+/** The two kinds' words for the one reader (DEC-339): a code without words is `door.refused`. */
+const LEVEL_REFUSALS: RefusalFamily = { words: REFUSAL_KEY, generic: DOOR_REFUSED_KEY };
+const REACH_REFUSALS: RefusalFamily = {
+  words: { ...REFUSAL_KEY, ...REACH_REFUSAL_KEY },
+  generic: DOOR_REFUSED_KEY,
 };
 
 function refusalKeyOf(code: string, kind: PromoteKind): MessageKey | undefined {
@@ -210,8 +220,7 @@ function refusalKeyOf(code: string, kind: PromoteKind): MessageKey | undefined {
 
 /** A door refusal in the seller's words; a code without words of its own is `door.refused`. */
 export function promoteRefusalKey(error: unknown, kind: PromoteKind): MessageKey {
-  const { code } = doorCode(error);
-  return (code === null ? undefined : refusalKeyOf(code, kind)) ?? DOOR_REFUSED_KEY;
+  return readRefusal(error, kind === "reach" ? REACH_REFUSALS : LEVEL_REFUSALS).key;
 }
 
 /** Why a row the ad cannot take is not offered (the door's availability, in words). */

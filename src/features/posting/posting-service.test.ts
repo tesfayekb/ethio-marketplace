@@ -15,6 +15,8 @@ const tables = vi.hoisted(() => ({
   selects: [] as Array<[string, string]>,
   /** The owner's door's answer beyond `contact_pref` (PSV-8's `caps`). */
   own: {} as Record<string, unknown>,
+  /** F1-5a — a door's answer in place of the owner's door's, for a test that reads another door. */
+  doorAnswer: null as { data: unknown; error: { message: string; code?: string } | null } | null,
 }));
 vi.mock("@/integrations/supabase/client", () => {
   const builderFor = (table: string) => {
@@ -35,10 +37,12 @@ vi.mock("@/integrations/supabase/client", () => {
     supabase: {
       from: builderFor,
       rpc: () =>
-        Promise.resolve({
-          data: { contact_pref: { messages: true }, ...tables.own },
-          error: null,
-        }),
+        Promise.resolve(
+          tables.doorAnswer ?? {
+            data: { contact_pref: { messages: true }, ...tables.own },
+            error: null,
+          },
+        ),
     },
   };
 });
@@ -48,6 +52,7 @@ import {
   mayResumePosting,
   publishListing,
   readDraft,
+  readPostingSchemaAnswer,
   removeBackground,
   SAVE_TIMEOUT_MS,
   saveDraft,
@@ -307,6 +312,36 @@ describe("the owner's draft read (turn T1)", () => {
     } finally {
       tables.rows = {};
       tables.own = {};
+    }
+  });
+
+  /**
+   * F1-5a — `get_posting_schema` is on the shell: its refusal is the call's error, `message` =
+   * `code[:detail]`; the details step's "too many reads" line reads it through the one reader.
+   */
+  it("PSV-9 the schema door's rate refusal is read by the one reader; any other refusal is a plain failure", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      tables.doorAnswer = { data: null, error: { message: "rateLimited", code: "P0D01" } };
+      expect(await readPostingSchemaAnswer("cat-1")).toEqual({ schema: null, rateLimited: true });
+      expect(logged).not.toHaveBeenCalled();
+      for (const message of [
+        "categoryNotFound",
+        "notSignedIn",
+        "accountDeactivated",
+        "a sentence that names rateLimited",
+        "",
+      ]) {
+        tables.doorAnswer = { data: null, error: { message, code: "P0D01" } };
+        expect(await readPostingSchemaAnswer("cat-1"), message).toEqual({
+          schema: null,
+          rateLimited: false,
+        });
+      }
+      expect(logged).toHaveBeenCalledTimes(5);
+    } finally {
+      tables.doorAnswer = null;
+      logged.mockRestore();
     }
   });
 });

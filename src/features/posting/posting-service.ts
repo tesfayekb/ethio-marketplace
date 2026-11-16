@@ -9,6 +9,7 @@ import type { Certification } from "@/features/my-listings/my-listing";
 
 import { createDoorQueue, type DoorQueue } from "./door-queue";
 import { readPin, type Pin, type PinPrecision } from "./map/pin";
+import { isRateRefusal } from "./refusal-text";
 import type { CategoryFacts, DoorAnswer } from "./types";
 import type { VisibleWhen } from "./visible-when";
 import { shapePlanCaps, shapePostingSchema } from "./schema-shape";
@@ -834,9 +835,10 @@ export async function readPostingSchema(categoryId: string): Promise<PostingSche
 }
 
 /**
- * INC-397 — the door counts schema reads (`rate_gate('schema_read')`) and raises
- * `rateLimited` past the dial; the details step says so in plain words instead
- * of "could not be loaded". `schema` is null on any failure.
+ * INC-397 — the door counts schema reads (`door_context`'s `schema_read` dial) and refuses
+ * `rateLimited` past it, as the shell's error (F1-5a); the details step says so in plain words
+ * instead of "could not be loaded", the refusal read by the one reader (`isRateRefusal`).
+ * `schema` is null on any failure.
  */
 export async function readPostingSchemaAnswer(
   categoryId: string,
@@ -845,7 +847,7 @@ export async function readPostingSchemaAnswer(
     p_category_id: categoryId,
   });
   if (error) {
-    const rateLimited = error.message.includes("rateLimited");
+    const rateLimited = isRateRefusal(error);
     if (!rateLimited) console.error("[posting] schema read failed:", error.message);
     return { schema: null, rateLimited };
   }

@@ -2,7 +2,4 @@
 # (a `p_…` property, or an object of them), asserted through unknown to another type, under src/; a door's argument goes
 # through rpc() with DoorArgs (src/lib/supabase-door.ts). No line of a family already moved onto the shell stays here.
 # Grammar: <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
-src/routes/api/listings/draft.ts:124 | p_request_country: the residency door's argument, cast by the draft route — the posting doors move in F1-5a | INC-942
-src/routes/api/listings/draft.ts:133 | the submit door's whole argument object, cast by the draft route — the posting doors move in F1-5a | INC-942
-src/routes/api/listings/identity.ts:188 | the posting identity door's whole argument object — the posting doors move in F1-5a | INC-942
 src/server/supabase/user-client.ts:318 | p_batch: the import gate's audit door, a server-only client call — no family owns it; F1-7 types every door call's Result | INC-942

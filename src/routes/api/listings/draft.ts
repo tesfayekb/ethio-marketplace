@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { doorErrorDetail } from "@/features/posting/door-error";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/types";
+import type { DoorArgs } from "@/lib/supabase-door";
 import type { Refusal } from "@/server/answer";
 import { doorCall } from "@/server/door";
 import { geoGuess } from "@/server/geo/guess";
@@ -16,8 +16,8 @@ import { logRouteError } from "@/server/supabase/user-client";
  *
  * THE ROUTE OWNS THREE THINGS AND NOTHING ELSE (F3 — the door is the authority):
  *
- *   1 the DIAL is the door's own (INC-396): `submit_listing` calls
- *     `rate_gate('draft')` first; the dial lives in `rate_dials`.
+ *   1 the DIAL is the door's own (INC-396): `submit_listing` is on the shell and
+ *     `door_context` spends the `draft` dial first (F1-5a); the dial lives in `rate_dials`.
  *   2 the RESIDENCY FACT (DEC-068): the country comes from the EDGE
  *     (`geoGuess(request)`), never from the body, and `residency_country_for`
  *     writes it once — a later call from another country cannot move it. A null
@@ -34,6 +34,7 @@ import { logRouteError } from "@/server/supabase/user-client";
 const PATH = "/api/listings/draft";
 
 type SubmitArgs = Database["public"]["Functions"]["submit_listing"]["Args"];
+type ResidencyArgs = Database["public"]["Functions"]["residency_country_for"]["Args"];
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value : null;
@@ -59,7 +60,7 @@ function idList(value: unknown): string[] | null {
   return ids.length === 0 ? null : ids;
 }
 
-function json(value: unknown): unknown {
+function json(value: Json | undefined): Json | null {
   return value === undefined ? null : value;
 }
 
@@ -77,7 +78,7 @@ export const DraftBody = z
     title: z.string().max(2000).nullable().optional(),
     description: z.string().max(20000).nullable().optional(),
     videoUrl: z.string().max(2048).nullable().optional(),
-    attributes: z.unknown().optional(),
+    attributes: z.json().optional(),
     priceMode: z.string().max(32).nullable().optional(),
     priceAmount: z.number().nullable().optional(),
     priceCurrency: z.string().max(8).nullable().optional(),
@@ -86,25 +87,27 @@ export const DraftBody = z
     priceNegotiable: z.boolean().optional(),
     posterExpiresAt: z.string().max(64).nullable().optional(),
     coverage: z.array(z.string().max(64)).nullable().optional(),
-    contactPref: z.unknown().optional(),
+    contactPref: z.json().optional(),
   })
   .strict();
 
 /**
  * The door's exceptions in the wizard's words. INC-301 — the commission range
  * constraint is a seller's mistake; INC-309 — a stored price type the door
- * refuses is a bad value; every other exception carries the constraint's name
- * as detail or nothing (INC-447 — the raw message stays in the log line).
+ * refuses is a bad value. EVERY OTHER MESSAGE ANSWERS NULL: the fallback is
+ * `doorCall`'s (`doorRefusal`), which keeps a door's code (`rateLimited`,
+ * `notYourListing`, `accountDeactivated`, …) as the refusal's reason and makes
+ * `doorError` of a sentence only, carrying the constraint's name as detail or
+ * nothing (INC-447 — the raw message stays in the log line).
  */
-function translate(message: string): Refusal {
+export function translate(message: string): Refusal | null {
   if (message.includes("listings_price_bp_check")) {
     return { field: "price_bp", reason: "commissionRange" };
   }
   if (message.includes("listings_price_mode_check")) {
     return { field: "price_mode", reason: "badValue" };
   }
-  const constraint = doorErrorDetail(message);
-  return { field: "door", reason: "doorError", ...(constraint ? { detail: constraint } : {}) };
+  return null;
 }
 
 export const Route = createFileRoute("/api/listings/draft")({
@@ -119,10 +122,15 @@ export const Route = createFileRoute("/api/listings/draft")({
           // INC-399 — closed to the browser roles; the server-only client writes it
           // with the VERIFIED caller's id, never an id from the body.
           const supabaseAdmin = await service();
-          const { error: residencyError } = await supabaseAdmin.rpc("residency_country_for", {
+          // A null country is the fact left unset (the door answers it); DoorArgs types it.
+          const residency: DoorArgs<"residency_country_for"> = {
             p_user_id: userId!,
-            p_request_country: geoGuess(request).country as unknown as string,
-          });
+            p_request_country: geoGuess(request).country,
+          };
+          const { error: residencyError } = await supabaseAdmin.rpc(
+            "residency_country_for",
+            residency as ResidencyArgs,
+          );
           if (residencyError) {
             // The fact could not be recorded; the door still decides. A silent
             // continue would be a phantom (F4), so the failure is logged and named.
@@ -130,7 +138,7 @@ export const Route = createFileRoute("/api/listings/draft")({
           }
 
           // 2 — the door (it counts the draft dial itself, INC-396).
-          const args = {
+          const args: DoorArgs<"submit_listing"> = {
             p_listing_id: text(body.listingId),
             p_step: step(body.step),
             p_category_id: text(body.categoryId),
@@ -148,10 +156,12 @@ export const Route = createFileRoute("/api/listings/draft")({
             p_price_bp: int(body.priceBp),
             // DEC-081 — Negotiable is a flag; only a literal true sets it.
             p_price_negotiable: body.priceNegotiable === true,
-          } as unknown as SubmitArgs;
+          };
 
           // INC-574 inside doorCall — the door never reached is a 503.
-          return doorCall(PATH, () => supabase!.rpc("submit_listing", args), { translate });
+          return doorCall(PATH, () => supabase!.rpc("submit_listing", args as SubmitArgs), {
+            translate,
+          });
         },
       }),
     },

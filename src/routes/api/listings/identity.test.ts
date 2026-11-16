@@ -23,6 +23,7 @@ const state = {
   markFails: false,
   markArgs: [] as unknown[],
   logs: [] as string[],
+  rpcAnswer: { data: { ok: true } as unknown, error: null as unknown, status: 200 },
 };
 
 vi.mock("@/server/supabase/user-client", () => {
@@ -40,7 +41,7 @@ vi.mock("@/server/supabase/user-client", () => {
       supabase: {
         rpc: async (name: string) => {
           state.rpcCalls.push(name);
-          return { data: { ok: true }, error: null, status: 200 };
+          return state.rpcAnswer;
         },
       },
       userId: "seller-1",
@@ -141,6 +142,7 @@ beforeEach(() => {
   state.markFails = false;
   state.markArgs = [];
   state.logs = [];
+  state.rpcAnswer = { data: { ok: true }, error: null, status: 200 };
   vi.stubEnv("GEMINI_API_KEY", "test-key");
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", async () => {
@@ -262,5 +264,35 @@ describe("POST /api/listings/identity on defineRoute (D1)", () => {
     expect(await response.json()).toMatchObject({ ok: true });
     expect(state.audits).toEqual(["name_check_mark"]);
     expect(state.logs).toEqual(["name_check_mark: mark write failure"]);
+  });
+
+  /**
+   * F1-5a — `save_posting_identity` is on the shell: a refusal is the door's error, and the
+   * route (through doorCall) keeps its code as the reason. The gate's `rateLimited` names no
+   * reset time (INC-1170), and a refused save marks nothing clean.
+   */
+  it("IDT-5 the door's shell refusals reach the client as their codes, and a refused save marks nothing clean", async () => {
+    state.modelAnswer = JSON.stringify({ imitates: false });
+    for (const [message, status] of [
+      ["rateLimited", 429],
+      ["accountDeactivated", 403],
+      ["notSignedIn", 401],
+    ] as const) {
+      state.rpcAnswer = { data: null, error: { message }, status };
+      state.audits = [];
+      const response = await post({ alias: "abebeshop" });
+      expect(response.status).toBe(200);
+      expect(await response.json(), message).toEqual({
+        ok: false,
+        refusals: [{ field: "door", reason: message }],
+      });
+      expect(state.audits, message).toEqual([]);
+    }
+    // A sentence is never the reason: `doorError`.
+    state.rpcAnswer = { data: null, error: { message: "an unexpected sentence" }, status: 400 };
+    expect(await (await post({ alias: "abebeshop" })).json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "doorError" }],
+    });
   });
 });

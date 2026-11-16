@@ -88,9 +88,11 @@ describe("the seller's edit and copy (turn R2)", () => {
     });
 
     const errors: [string, string][] = [
-      ["nothing changed", "myListings.editBox.nothing"],
-      ["an ad in review is edited once its review is done", "myListings.ad.waiting"],
+      ["nothingChanged", "myListings.editBox.nothing"],
+      ["inReview", "myListings.ad.waiting"],
       ["rateLimited", "myListings.error.rateLimited"],
+      ["notYourListing", "myListings.error.notYours"],
+      ["notEditable:category_id", "myListings.error.failed"],
       ["something else", "myListings.error.failed"],
     ];
     for (const [message, key] of errors) {
@@ -113,7 +115,8 @@ describe("the seller's edit and copy (turn R2)", () => {
     const errors: [string, string][] = [
       ["residencyUnknown", "post.refusal.residencyUnknown"],
       ["rateLimited", "myListings.error.rateLimited"],
-      ["a removed or refused listing is not copied", "myListings.error.failed"],
+      ["notCopied:removed", "myListings.error.failed"],
+      ["notYourListing", "myListings.error.notYours"],
     ];
     for (const [message, key] of errors) {
       rpc.mockResolvedValueOnce({ data: null, error: { message } });
