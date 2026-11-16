@@ -1,10 +1,10 @@
-import { splitTopLevel, type UnseenGrant } from "./catalogue";
+import { splitTopLevel, type DroppedGrant, type UnseenGrant } from "./catalogue";
 import { CONTEXT_CLASS, scopeModeOf, type Manifest, type ManifestLine } from "./manifest";
 import { browserCallable, type DoorRow } from "./rows";
 
 /**
  * Foundations 1 (DEC-333) — THE JUDGEMENT of the manifest against the rows.
- * Eight finding kinds, each planted in check-doors' self-test (DEC-334):
+ * Nine finding kinds, each planted in check-doors' self-test (DEC-334):
  *
  * - missing-line           a browser-callable function with no manifest line;
  * - line-without-door      a line whose function is absent or closed to the browser;
@@ -20,7 +20,9 @@ import { browserCallable, type DoorRow } from "./rows";
  * - scope-mode-missing     a staff body whose p_scope_mode (or country
  *                          argument) does not carry the line's country scope;
  * - row-column-unknown     a line's `row:<table.column>` cell names a column no
- *                          migration declares (F1-3, INC-1159's class).
+ *                          migration declares (F1-3, INC-1159's class);
+ * - grant-dropped          a DROP + CREATE that does not restate a role the
+ *                          function held (static only; catalogue.ts, F1-5a).
  *
  * A legacy body (no door_context yet) is judged by the old rule only; its line
  * is the promise its family's turn keeps (plan §5).
@@ -35,6 +37,7 @@ export const FINDING_KINDS = [
   "grant-without-caller",
   "scope-mode-missing",
   "row-column-unknown",
+  "grant-dropped",
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -163,6 +166,8 @@ function pairFindings(row: DoorRow, line: ManifestLine): Finding[] {
 export type Evidence = {
   /** The static reader's unresolved dynamic grants (static only). */
   unseen?: UnseenGrant[];
+  /** The static reader's roles a DROP + CREATE did not restate (static only). */
+  dropped?: DroppedGrant[];
   /** Whether the tree names a function (static only). */
   callers?: (name: string) => boolean;
   /** Every `table.column` the migrations declare (columns.ts). */
@@ -221,6 +226,16 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
       key: grant.text,
       what: "a dynamic grant the reader cannot resolve",
       where: `${grant.file}:${grant.line}`,
+    });
+  for (const loss of evidence.dropped ?? [])
+    found.push({
+      kind: "grant-dropped",
+      key: `${loss.key} ${loss.role}`,
+      what:
+        loss.judge === "file"
+          ? `dropped and re-created without restating ${loss.role} in the same file`
+          : `dropped and re-created without restating ${loss.role}, and no later file gives it back`,
+      where: `${loss.file}:${loss.line}`,
     });
   if (evidence.callers !== undefined)
     for (const row of rows) {

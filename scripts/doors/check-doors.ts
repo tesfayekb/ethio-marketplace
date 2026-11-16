@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { readAllowlist } from "../conformance/kit";
+import { catalogueOf, type DroppedGrant } from "./catalogue";
 import { declaredColumns } from "./columns";
 import { FINDING_KINDS, judge, type Finding, type FindingKind } from "./judge";
 import { parseManifest } from "./manifest";
@@ -18,7 +19,7 @@ import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./r
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the eight finding kinds must fire on its planted fixture
+ * process — each of the nine finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -48,6 +49,40 @@ const STAFF_LINE =
 const SHELL_BODY = (ctx: string) =>
   `BEGIN v_ctx := public.door_context(${ctx}); RETURN jsonb_build_object('ok', true); EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END`;
 
+const PLANTED_CREATE = [
+  "CREATE FUNCTION public.e2e_planted_owner(p_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER",
+  "SET search_path = public AS $function$ BEGIN RETURN '{}'::jsonb; END $function$;",
+].join("\n");
+export const plantedGrant = (roles: string) =>
+  `GRANT EXECUTE ON FUNCTION public.e2e_planted_owner(uuid) TO ${roles};`;
+
+/**
+ * The planted history of `grant-dropped` (F1-5a ruling 2 §1): a function held by
+ * authenticated and service_role, then a file at `stamp` that drops and re-creates it
+ * with `restated` as its only closer; `later` files follow.
+ */
+export function plantedDropHistory(
+  stamp: string,
+  restated: string,
+  later: string[] = [],
+): DroppedGrant[] {
+  const files = [
+    {
+      file: "supabase/migrations/20260101000000_planted.sql",
+      sql: `${PLANTED_CREATE}\n${plantedGrant("authenticated, service_role")}\n`,
+    },
+    {
+      file: `supabase/migrations/${stamp}_planted.sql`,
+      sql: `DROP FUNCTION public.e2e_planted_owner(uuid);\n${PLANTED_CREATE}\n${restated}\n`,
+    },
+    ...later.map((sql, index) => ({
+      file: `supabase/migrations/2099010200000${index}_planted.sql`,
+      sql,
+    })),
+  ];
+  return catalogueOf(files).dropped;
+}
+
 /** The planted fixtures: each kind on its own bypass, and a clean pair. */
 export function plantedCases(): Array<{
   kind: FindingKind | "clean";
@@ -55,6 +90,7 @@ export function plantedCases(): Array<{
   manifest: string;
   callers?: (name: string) => boolean;
   columns?: ReadonlySet<string>;
+  dropped?: DroppedGrant[];
 }> {
   return [
     {
@@ -142,6 +178,14 @@ export function plantedCases(): Array<{
       manifest: STAFF_LINE.replace("| global |", "| row:listings.country |"),
       columns: new Set(["listings.home_country_code"]),
     },
+    {
+      kind: "grant-dropped",
+      rows: [
+        row({ key: "e2e_planted_owner(uuid)", body: SHELL_BODY("'owner', NULL, NULL, 'draft'") }),
+      ],
+      manifest: OWNER_LINE,
+      dropped: plantedDropHistory("20990101000000", plantedGrant("authenticated")),
+    },
   ];
 }
 
@@ -161,7 +205,7 @@ export function selfTest(): string[] {
             ],
             callers: planted.callers,
           }
-        : { callers: planted.callers, columns: planted.columns };
+        : { callers: planted.callers, columns: planted.columns, dropped: planted.dropped };
     const findings = judge(planted.rows, parseManifest(planted.manifest), evidence);
     if (planted.kind === "clean") {
       if (findings.length > 0)
@@ -186,12 +230,13 @@ export function allow(findings: Finding[], allowlistPath = ALLOWLIST): Finding[]
 }
 
 export function staticFindings(root = ROOT): Finding[] {
-  const { rows, unseen } = staticRows(root);
+  const { rows, unseen, dropped } = staticRows(root);
   const manifest = parseManifest(
     readFileSync(join(root, "scripts", "doors", "manifest.txt"), "utf8"),
   );
   return judge(rows, manifest, {
     unseen,
+    dropped,
     callers: treeCallers(root, rows),
     columns: declaredColumns(root),
   });

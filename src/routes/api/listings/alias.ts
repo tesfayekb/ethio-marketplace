@@ -14,7 +14,8 @@ import { defineRoute } from "@/server/route";
  * Both doors write nothing to the profile and count `alias_check` themselves
  * (`rate_gate`); the name is claimed only when the contact step is saved, by
  * `save_posting_identity`. The route translates names and passes the door's
- * answer through `doorAnswer`, so a rate refusal reaches the client as `detail`.
+ * answer through `doorAnswer`; both doors are on the shell (F1-5a), so a refusal
+ * (the dial's `rateLimited` included) reaches the client as its code, through `doorCall`.
  * Foundations turn 3: on defineRoute.
  */
 const PATH = "/api/listings/alias";

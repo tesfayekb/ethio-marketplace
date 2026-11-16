@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { doorRefusal } from "@/features/posting/door-error";
 import type { Database } from "@/integrations/supabase/types";
+import type { DoorArgs } from "@/lib/supabase-door";
 import { ok, upstreamFailed, upstreamUnavailable, verdict } from "@/server/answer";
 import { doorCall, type DoorResult } from "@/server/door";
 import { DIALS } from "@/lib/dials";
@@ -113,7 +114,7 @@ export const IdentityBody = z
     firstName: z.string().max(200).nullable().optional(),
     lastName: z.string().max(200).nullable().optional(),
     homeCountryCode: z.string().max(8).nullable().optional(),
-    contactPref: z.unknown().optional(),
+    contactPref: z.json().optional(),
   })
   .strict();
 
@@ -185,7 +186,7 @@ async function handle(
     if (refusals.length > 0) return ok({ ok: false, refusals });
   }
 
-  const args = {
+  const args: DoorArgs<"save_posting_identity"> = {
     p_alias: text(body.alias),
     p_seller_type: text(body.sellerType),
     p_business_name: text(body.businessName),
@@ -195,12 +196,13 @@ async function handle(
     p_last_name: text(body.lastName),
     p_contact_pref: body.contactPref === undefined ? null : body.contactPref,
     p_home_country_code: text(body.homeCountryCode),
-  } as unknown as IdentityArgs;
+  };
 
   let saved: DoorResult | null = null;
-  // Rulings 5 item 2 — the door's rate refusal carries `resets_at`; the client reads `detail`.
+  // F1-5a — the door is on the shell: a refusal (the gate's `rateLimited` included, which names
+  // no reset time — INC-1170) reaches the client as its code, through doorCall.
   const answer = await doorCall(PATH, async () => {
-    saved = await supabase.rpc("save_posting_identity", args);
+    saved = await supabase.rpc("save_posting_identity", args as IdentityArgs);
     return saved;
   });
   const result = saved as DoorResult | null;

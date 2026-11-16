@@ -1,3 +1,4 @@
+import { answeredId } from "@/lib/answered-id";
 import { compareNames } from "@/lib/name-collator";
 import { supabase } from "@/integrations/supabase/client";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
@@ -19,16 +20,6 @@ import { rpc } from "@/lib/supabase-door";
  * through the one reader (`category-refusals.ts`); a door's optional argument is passed as NULL
  * through `DoorArgs` (`rpc()`, src/lib/supabase-door.ts), never by a cast.
  */
-
-/** A door's `{ ok: true, id }` answer: the id, or a thrown failure — never a phantom id. */
-export function answeredId(door: string, data: unknown): string {
-  if (typeof data === "object" && data !== null && Reflect.get(data, "ok") === true) {
-    const id: unknown = Reflect.get(data, "id");
-    if (typeof id === "string" && id !== "") return id;
-  }
-  throw new Error(`${door} answered without an id`);
-}
-
 export interface CategoryRow {
   id: string;
   parentId: string | null;

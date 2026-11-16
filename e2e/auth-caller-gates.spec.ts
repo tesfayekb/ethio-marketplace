@@ -171,12 +171,22 @@ test(
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
     );
-    for (const [fn, args] of [
-      ["set_cover_photo", { p_listing_id: listing.id, p_photo_id: photo.data.id }],
-      ["unsave_listing", { p_public_id: publicId }],
-      ["accept_legal", { p_version_ids: versionIds, p_language: "en", p_adult: true }],
+    // F1-5a: set_cover_photo now refuses on the shell with the code; the other two doors keep the
+    // sentence until their own families move.
+    for (const [fn, args, refusal] of [
+      [
+        "set_cover_photo",
+        { p_listing_id: listing.id, p_photo_id: photo.data.id },
+        "accountDeactivated",
+      ],
+      ["unsave_listing", { p_public_id: publicId }, "account is deactivated"],
+      [
+        "accept_legal",
+        { p_version_ids: versionIds, p_language: "en", p_adult: true },
+        "account is deactivated",
+      ],
     ] as const)
-      expect((await caller.rpc(fn, args)).error?.message).toContain("account is deactivated");
+      expect((await caller.rpc(fn, args)).error?.message).toContain(refusal);
     const after = await admin
       .from("listings")
       .select("cover_photo_id")

@@ -12,6 +12,7 @@ const state = {
   photo: { id: PHOTO, listing_id: "l-1", paths: {}, storage_path: null } as unknown,
   listing: { id: "l-1" } as unknown,
   deletes: 0,
+  rpcAnswer: { data: { ok: true } as unknown, error: null as unknown, status: 200 },
 };
 
 function builder(table: string) {
@@ -39,7 +40,7 @@ vi.mock("@/server/supabase/user-client", () => {
       supabase: {
         rpc: async (name: string) => {
           state.rpcCalls.push(name);
-          return { data: { ok: true }, error: null, status: 200 };
+          return state.rpcAnswer;
         },
         from: (table: string) => builder(table),
       },
@@ -95,6 +96,7 @@ beforeEach(() => {
   state.photo = { id: PHOTO, listing_id: "l-1", paths: {}, storage_path: null };
   state.listing = { id: "l-1" };
   state.deletes = 0;
+  state.rpcAnswer = { data: { ok: true }, error: null, status: 200 };
 });
 
 describe("/api/listings/photos/$id on defineRoute (D3)", () => {
@@ -143,5 +145,33 @@ describe("/api/listings/photos/$id on defineRoute (D3)", () => {
       refusals: [{ field: "position", reason: "badValue" }],
     });
     expect(state.rpcCalls).toEqual([]);
+  });
+
+  it("PHT-5 a door's shell refusal reaches the client as its code, and no storage object is touched", async () => {
+    for (const [message, status] of [
+      ["photoGone", 400],
+      ["notYourListing", 400],
+      ["rateLimited", 429],
+      ["accountDeactivated", 403],
+    ] as const) {
+      state.rpcAnswer = { data: null, error: { message }, status };
+      const expected = { ok: false, refusals: [{ field: "door", reason: message }] };
+      expect(await (await call("DELETE", PHOTO)).json(), `remove ${message}`).toEqual(expected);
+      expect(await (await call("POST", PHOTO, { action: "cover" })).json(), message).toEqual(
+        expected,
+      );
+      expect(
+        await (await call("POST", PHOTO, { action: "move", position: 1 })).json(),
+        message,
+      ).toEqual(expected);
+    }
+    expect(state.deletes).toBe(0);
+    expect(state.rpcCalls).toEqual(
+      Array.from({ length: 4 }, () => [
+        "remove_listing_photo",
+        "set_cover_photo",
+        "move_listing_photo",
+      ]).flat(),
+    );
   });
 });

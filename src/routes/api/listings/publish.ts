@@ -15,7 +15,8 @@ import { defineRoute } from "@/server/route";
  * path to `active`, and until it lands a published listing waits in screening.
  * That is a NAMED DEFERRAL, stated in docs/features/listings.md.
  *
- * INC-396 — the dial is the door's own: `publish_listing` calls `rate_gate('post')`.
+ * INC-396 — the dial is the door's own: `publish_listing` is on the shell and
+ * `door_context` spends the `post` dial (F1-5a).
  * Foundations turn 2: the first route on defineRoute.
  */
 

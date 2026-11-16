@@ -126,17 +126,40 @@ describe("my_listing answer", () => {
   });
 
   it("ML-U7 a door's refusal is said in words, and every word exists", () => {
-    expect(actionErrorKey("rateLimited")).toBe("myListings.error.rateLimited");
-    expect(actionErrorKey("account is deactivated")).toBe("myListings.error.deactivated");
-    expect(actionErrorKey("renewOff")).toBe("myListings.renewOff");
-    expect(actionErrorKey("not your listing")).toBe("myListings.error.notYours");
-    expect(actionErrorKey("illegal transition: sold -> closed")).toBe("myListings.error.changed");
-    expect(actionErrorKey("only a live listing is reserved")).toBe("myListings.error.changed");
-    expect(actionErrorKey("renewNeedsExpired")).toBe("myListings.error.changed");
-    expect(actionErrorKey("something else")).toBe("myListings.error.failed");
-    expect(
-      actionErrorKey("a listing rejected for a severe reason is removed by enforcement only"),
-    ).toBe("myListings.error.severe");
+    // F1-5a — the shell's codes (`code[:detail]`), each with the words the screen drew for its sentence.
+    const words: [string, string][] = [
+      ["rateLimited", "myListings.error.rateLimited"],
+      ["accountDeactivated", "myListings.error.deactivated"],
+      ["nothingChanged", "myListings.editBox.nothing"],
+      ["inReview", "myListings.ad.waiting"],
+      ["residencyUnknown", "post.refusal.residencyUnknown"],
+      ["noFreeSlot", "post.refusal.noFreeSlot"],
+      ["renewOff", "myListings.renewOff"],
+      ["severeRemove", "myListings.error.severe"],
+      ["notYourListing", "myListings.error.notYours"],
+      ["listingNotFound", "myListings.error.notYours"],
+      ["illegalTransition:sold-closed", "myListings.error.changed"],
+      ["notLive", "myListings.error.changed"],
+      ["ownerOnly:closed-active", "myListings.error.changed"],
+      ["renewNeedsExpired", "myListings.error.changed"],
+      ["notPaused", "myListings.error.changed"],
+    ];
+    for (const [code, key] of words) expect(actionErrorKey(code), code).toBe(key);
+    // A code no screen reads (no words yet), a sentence and an unknown message draw the generic line.
+    for (const message of [
+      "notCopied:draft",
+      "notEditable:category_id",
+      "draftNotEdited",
+      "renewFirst",
+      "listingNotEditable:sold",
+      "ownerDeleted",
+      "reviewerOnly:screening-active",
+      "something else",
+      "account is deactivated",
+      "not your listing",
+      "toString",
+    ])
+      expect(actionErrorKey(message), message).toBe("myListings.error.failed");
     const keys = [
       ...Object.values(ACTION_KEY),
       ...Object.values(DONE_KEY),

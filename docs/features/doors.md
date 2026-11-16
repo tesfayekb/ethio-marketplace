@@ -53,10 +53,18 @@ detail}]}` — supabase-js surfaces it as `error.message` = the code. A RAISE th
 acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_package_price`
   is `row:package_prices.country_code` (its scope is F1-6's census). `manifest.ts` is the grammar; `catalogue.ts` + `identity.ts` read
   the migrations' last grant state and spell a function's identity as the live catalogue does.
-- `check-doors.ts` — the self-test runs FIRST in every mode (eight planted finding kinds —
+- `check-doors.ts` — the self-test runs FIRST in every mode (nine planted finding kinds —
   `missing-line`, `line-without-door`, `gate-missing-for-class`, `class-mismatch`,
-  `grant-unseen`, `grant-without-caller`, `scope-mode-missing`, `row-column-unknown` — each
-  must fire, a clean pair must fire nothing; `SELF_TEST=1` runs it alone). `row-column-unknown`
+  `grant-unseen`, `grant-without-caller`, `scope-mode-missing`, `row-column-unknown`,
+  `grant-dropped` — each must fire, a clean pair must fire nothing; `SELF_TEST=1` runs it
+  alone). `grant-dropped` (F1-5a, rulings 1 and 2, static only): `catalogue.ts` records the
+  roles a function held just before each `DROP FUNCTION`; when the same file re-creates the
+  name, each role it neither GRANTs nor REVOKEs by name is a loss. A file stamped at or above
+  `GRANT_DROPPED_FLOOR` (`20261115000000`, the day the per-file law began) is judged by the file:
+  the loss fires whatever a later file does. An older file is judged by the result: the loss
+  fires only when no later file gives the role back by the catalogue's end state (the two older
+  losses still open at F1-5a, the service role on `admin_list_translations` and
+  `admin_upsert_language`, were restored by its first file, DEC-392). No allowance. `row-column-unknown`
   (F1-3): a line's `row:<table.column>` cell names a column the migrations declare —
   `columns.ts` reads every `CREATE TABLE` column list, `ADD COLUMN` and `RENAME COLUMN … TO`,
   comments and `DO` blocks blanked; both modes judge it, with no allowance. Static mode (the guards job of `ci.yml`)
@@ -66,7 +74,7 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   first build joined its clauses without their boundaries and the lane's psql refused it). `judge.ts` holds the kinds; a
   legacy body (no `door_context`) is judged by the old caller-gates rule, a shell body by the
   literals its manifest line promises. Allowances in `check-doors-allowlist.txt` (`<kind> <key>
-| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…8 (DOORS-8: the column census on a planted
+| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…10 (DOORS-10: the planted DROP + CREATE histories of `grant-dropped`; DOORS-8: the column census on a planted
   migration and every `row:` cell of the tree; DOORS-5: the printed query's clauses; DOORS-6: the live mode
   judges the tree census too — INC-1072: a `grant-without-caller` allowance the live mode never
   judged read as stale and killed the smoke lane's first live run; DOORS-7: a body the
@@ -142,7 +150,7 @@ src/features/my-listings/promote-service.ts.
   `ATTRIBUTE_REFUSALS` (attribute-refusals.ts): each code that replaced a console key reads that
   key's words, and a code that never had words reads as the console's generic line. The
   services call the doors through `rpc()` and read the answer through a shape guard
-  (`answeredId`). `DOOR_CODES` did not grow.
+  (`answeredId`, in `src/lib/answered-id.ts` since F1-5a). `DOOR_CODES` did not grow.
 - **DEC-380's exit rule is read narrowly (DEC-385)**: it binds a door that ends a live state its
   opener's dial rations (a session, a hold); a door that deletes, retires or unlinks a catalogue
   row is an edit and spends its family's dial (`admin_remove_category_pointer` and

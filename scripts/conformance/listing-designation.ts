@@ -11,7 +11,7 @@ import { blankLiterals, tokensOf, type Token } from "./proof-readers";
  * `reach`, `reach_until`, `reach_source` (the reach and its end and source) —
  * are written by exactly these bodies: the level and reach doors
  * (`set_listing_level`, `set_listing_reach`), staff's `admin_set_listing_tier`,
- * `transition_listing` (a removal clears them) and the sweep
+ * `transition_listing_core` (the state machine: a removal clears them) and the sweep
  * (`designation_sweep_core`, an end's fall back). Every function's LAST
  * declaration (the migration reader, the one sql-writes.ts reads; comments and
  * literals blanked, the DO-block tokenizer reused) is read for an
@@ -35,7 +35,7 @@ export const ADMITTED_WRITERS: readonly string[] = [
   "set_listing_level",
   "set_listing_reach",
   "admin_set_listing_tier",
-  "transition_listing",
+  "transition_listing_core",
   "designation_sweep_core",
 ];
 

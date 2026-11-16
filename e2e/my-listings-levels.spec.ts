@@ -412,7 +412,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     expect(await trace(raised), "the anonymous call left a trace").toEqual(untouched);
 
     const cases: Array<{ reason: string; id: string; key: string }> = [
-      { reason: "listingNotFound", id: theirs, key: level },
+      { reason: "notYourListing", id: theirs, key: level },
       { reason: "notLive", id: draft, key: level },
       { reason: "unknownLevel", id: raised, key: reach },
       { reason: "sameLevel", id: raised, key: level },

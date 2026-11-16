@@ -16,6 +16,7 @@ const state = {
   },
   rates: 0,
   logs: [] as string[],
+  country: "XX" as string | null,
 };
 
 vi.mock("@/server/supabase/user-client", () => {
@@ -60,7 +61,7 @@ vi.mock("@/server/catalog-find.server", () => ({
   clientAddress: () => "203.0.113.9",
   hashAddress: (address: string) => `hashed:${address}`,
 }));
-vi.mock("@/server/geo/guess", () => ({ geoGuess: () => ({ country: "XX" }) }));
+vi.mock("@/server/geo/guess", () => ({ geoGuess: () => ({ country: state.country }) }));
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     rpc: async (name: string, args: unknown) => {
@@ -70,7 +71,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-const { Route } = await import("@/routes/api/listings/draft");
+const { Route, translate } = await import("@/routes/api/listings/draft");
 
 async function post(body: unknown): Promise<Response> {
   const handlers = (
@@ -96,6 +97,7 @@ beforeEach(() => {
   state.rpcAnswer = { data: { ok: true, listing_id: "l-1" }, error: null, status: 200 };
   state.rates = 0;
   state.logs = [];
+  state.country = "XX";
 });
 
 describe("POST /api/listings/draft on defineRoute (C1)", () => {
@@ -146,5 +148,66 @@ describe("POST /api/listings/draft on defineRoute (C1)", () => {
       name: "submit_listing",
       args: { p_listing_id: null, p_step: 1, p_category_id: "cars", p_title: null },
     });
+  });
+
+  it("DRT-5 translate answers null for every message it does not map; the door's code reaches the client as its reason", async () => {
+    expect(translate("listings_price_bp_check")).toEqual({
+      field: "price_bp",
+      reason: "commissionRange",
+    });
+    expect(translate("listings_price_mode_check")).toEqual({
+      field: "price_mode",
+      reason: "badValue",
+    });
+    for (const message of [
+      "rateLimited",
+      "notYourListing",
+      "accountDeactivated",
+      "notSignedIn",
+      "badValue:step",
+      'duplicate key value violates unique constraint "listings_x_key"',
+      "a sentence",
+      "",
+    ])
+      expect(translate(message), message).toBeNull();
+
+    // F1-5a — the shell's refusals reach the wizard as their codes, never as `doorError`.
+    for (const [message, status] of [
+      ["rateLimited", 429],
+      ["notYourListing", 400],
+      ["accountDeactivated", 403],
+      ["notSignedIn", 401],
+      ["badValue:step", 400],
+    ] as const) {
+      state.rpcAnswer = { data: null, error: { message }, status };
+      const response = await post({ listingId: "l-1", step: 2 });
+      expect(response.status).toBe(200);
+      // `doorRefusal` keeps `code[:detail]` whole as the reason; the reader splits it.
+      expect(await response.json(), message).toEqual({
+        ok: false,
+        refusals: [{ field: "door", reason: message }],
+      });
+    }
+
+    // A sentence is a `doorError`, carrying the constraint's name when it names one (INC-447).
+    state.rpcAnswer = {
+      data: null,
+      error: { message: 'duplicate key value violates unique constraint "listings_x_key"' },
+      status: 409,
+    };
+    expect(await (await post({ listingId: "l-1", step: 2 })).json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "doorError", detail: "listings_x_key" }],
+    });
+  });
+
+  it("DRT-6 a country the edge cannot name reaches the residency door as null, and the draft still goes to its door", async () => {
+    state.country = null;
+    const response = await post({ listingId: null, step: 1 });
+    expect(await response.json()).toEqual({ ok: true, listing_id: "l-1" });
+    expect(state.adminCalls).toEqual([
+      { name: "residency_country_for", args: { p_user_id: "seller-1", p_request_country: null } },
+    ]);
+    expect(state.rpcCalls.map((call) => call.name)).toEqual(["submit_listing"]);
   });
 });

@@ -4,6 +4,7 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { ownValue } from "@/lib/own-key";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import {
   LISTING_GROUPS,
@@ -249,33 +250,37 @@ export function primaryAction(actions: ListingAction[]): ListingAction | null {
 /** The actions that cannot be undone ask first. */
 export const ASKS_FIRST: ReadonlySet<ListingAction> = new Set<ListingAction>(["sell", "delete"]);
 
-/** The door's refusal, in the seller's words. */
-export function actionErrorKey(message: string): MessageKey {
-  if (message.includes("rateLimited")) return "myListings.error.rateLimited";
-  // Bundle 16 turn R2 — the edit's and the copy's own refusals.
-  if (message.includes("nothing changed") || message.includes("nothing to change"))
-    return "myListings.editBox.nothing";
-  if (message.includes("an ad in review is edited")) return "myListings.ad.waiting";
-  if (message.includes("residencyUnknown")) return "post.refusal.residencyUnknown";
-  if (message.includes("noFreeSlot")) return "post.refusal.noFreeSlot";
-  if (message.includes("account is deactivated")) return "myListings.error.deactivated";
-  if (message.includes("renewOff")) return "myListings.renewOff";
-  if (message.includes("removed by enforcement only")) return "myListings.error.severe";
-  if (
-    message.includes("not your listing") ||
-    message.includes("listing not found") ||
-    message.includes("listingNotFound")
-  )
-    return "myListings.error.notYours";
-  if (
-    message.includes("illegal transition") ||
-    message.includes("only a live listing") ||
-    message.includes("owner only") ||
-    message.includes("renewNeedsExpired") ||
-    message.includes("notPaused")
-  )
-    return "myListings.error.changed";
-  return "myListings.error.failed";
+/**
+ * F1-5a — THE SELLER'S DOORS' WORDS, by code, for the one reader (DEC-339). The shell answers a
+ * refusal as `code[:detail]` (`illegalTransition:closed-reduced`); a code with no words here
+ * (`notCopied`, `notEditable`, `reviewerOnly`, …) draws the screen's generic line.
+ */
+const SELLER_DOOR_REFUSALS: RefusalFamily = {
+  words: {
+    rateLimited: "myListings.error.rateLimited",
+    accountDeactivated: "myListings.error.deactivated",
+    // Bundle 16 turn R2 — the edit's and the copy's own refusals.
+    nothingChanged: "myListings.editBox.nothing",
+    inReview: "myListings.ad.waiting",
+    residencyUnknown: "post.refusal.residencyUnknown",
+    noFreeSlot: "post.refusal.noFreeSlot",
+    renewOff: "myListings.renewOff",
+    severeRemove: "myListings.error.severe",
+    // DEC-391 — a row that is not the caller's answers `notYourListing`, found or not.
+    notYourListing: "myListings.error.notYours",
+    listingNotFound: "myListings.error.notYours",
+    illegalTransition: "myListings.error.changed",
+    notLive: "myListings.error.changed",
+    ownerOnly: "myListings.error.changed",
+    renewNeedsExpired: "myListings.error.changed",
+    notPaused: "myListings.error.changed",
+  },
+  generic: "myListings.error.failed",
+};
+
+/** The door's refusal (its error's message, or a returned reason), in the seller's words. */
+export function actionErrorKey(refusal: string): MessageKey {
+  return readRefusal(refusal, SELLER_DOOR_REFUSALS).key;
 }
 
 export type ActionOutcome = { ok: true } | { ok: false; key: MessageKey; reason?: LegalReason };

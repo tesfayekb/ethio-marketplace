@@ -617,7 +617,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
           p_new_status: "screening",
         })
       ).error,
-    ).toBe("enforcement only: removed -> screening");
+    ).toBe("enforcementOnly:removed-screening");
 
     const enforcerAccount = await leaseUser();
     await grantScratchRole(enforcerAccount.id, [["listings", "enforce"]], roles);
@@ -1972,7 +1972,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       p_listing_id: live.id,
       p_changes: { category_id: other.leaf.id },
     });
-    expect(asSeller).toMatchObject({ error: "not editable: category_id" });
+    expect(asSeller).toMatchObject({ error: "notEditable:category_id" });
     expect(await stored()).toEqual(kept);
 
     // Staff's door.

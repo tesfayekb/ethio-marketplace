@@ -5,12 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 const door = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: door.rpc }));
 
-import {
-  answeredId,
-  createCategory,
-  retireCategory,
-  ROSTER_COLUMN_PRIORITIES,
-} from "./categories-service";
+import { createCategory, retireCategory, ROSTER_COLUMN_PRIORITIES } from "./categories-service";
 
 describe("the categories doors' answers and arguments (F1-4a)", () => {
   it("CSD-1 a create answers the door's `{ ok: true, id }`; an answer without one is a failure, never a phantom id", async () => {
@@ -32,8 +27,6 @@ describe("the categories doors' answers and arguments (F1-4a)", () => {
     await expect(
       createCategory({ nameEn: "Probe", icon: "Package", parentId: null, allowListings: true }),
     ).rejects.toThrow("admin_create_category answered without an id");
-    for (const data of [null, "c-1", { ok: false, id: "c-1" }, { ok: true, id: "" }])
-      expect(() => answeredId("door", data)).toThrow("door answered without an id");
   });
 
   it("CSD-2 a retire with nothing to move sends NULL; a refusal is thrown as the door's own error", async () => {

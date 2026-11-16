@@ -172,6 +172,15 @@ export function draftRefusalKey(reason: string): MessageKey {
   return readRefusal(reason, DRAFT_REFUSALS).key;
 }
 
+/**
+ * F1-5a — A REFUSAL THAT IS THE DIAL'S: a door's error (the shell's `rateLimited`, or the
+ * message of a call that never became an envelope), read in the draft family's words by the
+ * one reader. The wizard's own reads (the schema door) ask it, never the message's text.
+ */
+export function isRateRefusal(refusal: unknown): boolean {
+  return readRefusal(refusal, DRAFT_REFUSALS).key === DRAFT_REASONS["rateLimited"];
+}
+
 /** An upload-route refusal, in the seller's language. */
 export function photoRefusalKey(reason: string): MessageKey {
   return readRefusal(reason, PHOTO_REFUSALS).key;

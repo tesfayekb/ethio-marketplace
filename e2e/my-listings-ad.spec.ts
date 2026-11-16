@@ -669,7 +669,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       p_listing_id: X,
       p_new_status: "screening",
     });
-    expect(restore.error?.message ?? null).toBe("a listing its owner deleted is not restored");
+    expect(restore.error?.message ?? null).toBe("ownerDeleted");
     expect((await deletionTruth(X))["status"]).toBe("removed");
   });
 

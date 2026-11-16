@@ -6455,7 +6455,11 @@ export type Database = {
       }
       transition_listing: {
         Args: { p_listing_id: string; p_new_status: string }
-        Returns: undefined
+        Returns: Json
+      }
+      transition_listing_core: {
+        Args: { p_listing_id: string; p_new_status: string }
+        Returns: Json
       }
       translation_placeholders: { Args: { p_text: string }; Returns: string[] }
       translation_scope_ok: { Args: { p_lang: string }; Returns: boolean }

@@ -106,6 +106,24 @@ describe("POST /api/listings/publish on defineRoute (D2)", () => {
     expect(state.rpcCalls).toEqual([{ name: "publish_listing", args: { p_listing_id: LISTING } }]);
   });
 
+  it("the shell's refusals reach the client as their codes — the dial's, the owner's, the gates'", async () => {
+    for (const [message, status] of [
+      ["rateLimited", 429],
+      ["notYourListing", 400],
+      ["illegalTransition:active-screening", 400],
+      ["accountDeactivated", 403],
+      ["notSignedIn", 401],
+    ] as const) {
+      state.rpcAnswer = { data: null, error: { message }, status };
+      const response = await post({ listingId: LISTING });
+      expect(response.status).toBe(200);
+      expect(await response.json(), message).toEqual({
+        ok: false,
+        refusals: [{ field: "door", reason: message }],
+      });
+    }
+  });
+
   it("success keeps the door's JSON, and the certification is passed on only when sent", async () => {
     const response = await post({ listingId: LISTING });
     expect(response.status).toBe(200);

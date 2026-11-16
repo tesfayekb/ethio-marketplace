@@ -111,3 +111,23 @@ it("ATO-6 rateLimited is not cached", async () => {
     state.rpc.mock.calls.filter(([name]) => name === "get_attribute_options_version"),
   ).toHaveLength(2);
 });
+it("ATO-7 the shell's refusals: attributeNotFound is a 404, rateLimited a 429 that is not cached, any other code a read failure", async () => {
+  const get = await reader();
+  const refuse = (message: string, status: number) =>
+    state.rpc.mockImplementation(async (name: string) => ({
+      data: name === "get_attribute_options_version" ? "v1" : null,
+      error: name === "get_attribute_options" ? { message } : null,
+      status,
+    }));
+  refuse("attributeNotFound", 400);
+  const missing = await get({ request: request(), params: { id: ID } });
+  expect(missing.status).toBe(404);
+  expect(await missing.json()).toEqual({ error: "unknown attribute" });
+  refuse("rateLimited", 429);
+  const limited = await get({ request: request(), params: { id: ID } });
+  expect(limited.status).toBe(429);
+  expect(await limited.json()).toEqual({ error: "rateLimited" });
+  refuse("accountDeactivated", 403);
+  const deactivated = await get({ request: request(), params: { id: ID } });
+  expect([404, 429]).not.toContain(deactivated.status);
+});

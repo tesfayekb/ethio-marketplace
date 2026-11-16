@@ -116,4 +116,27 @@ describe("POST /api/listings/alias on defineRoute (C2)", () => {
       refusals: [{ field: "alias", reason: "aliasTaken" }],
     });
   });
+
+  it("ALT-4 the shell's refusals reach the client as their codes, for both doors; a sentence is a doorError", async () => {
+    for (const body of [{ alias: "abebe" }, { suggest: true, firstName: "Abebe" }]) {
+      for (const [message, status] of [
+        ["rateLimited", 429],
+        ["accountDeactivated", 403],
+        ["notSignedIn", 401],
+      ] as const) {
+        state.rpcAnswer = { data: null, error: { message }, status };
+        const response = await post(body);
+        expect(response.status).toBe(200);
+        expect(await response.json(), message).toEqual({
+          ok: false,
+          refusals: [{ field: "door", reason: message }],
+        });
+      }
+    }
+    state.rpcAnswer = { data: null, error: { message: "an unexpected sentence" }, status: 400 };
+    expect(await (await post({ alias: "abebe" })).json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "doorError" }],
+    });
+  });
 });
