@@ -23,7 +23,7 @@ vi.mock("@/lib/route-client", () => ({ callRoute: (...args: unknown[]) => callRo
 
 vi.mock("@/features/auth/mfa/mfa-service", () => ({ stepUpAbortKey: () => undefined }));
 
-vi.mock("@/features/admin-categories/category-dialogs", () => ({
+vi.mock("@/components/ui/category-modal", () => ({
   CategoryModal: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 

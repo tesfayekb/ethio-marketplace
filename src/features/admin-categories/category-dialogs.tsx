@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
+import { CategoryModal } from "@/components/ui/category-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -61,37 +62,6 @@ import { CategoryImagePanel } from "./category-image-dialog";
  * server-side (F3), so a refusal here is a translated error, never a silent
  * no-op (F4). 360-first: full-width controls, ≥44px targets, logical spacing.
  */
-
-export function CategoryModal({
-  testid,
-  title,
-  openedBy,
-  onClose,
-  children,
-}: {
-  testid: string;
-  title: string;
-  /** C2-GHOST PART B — the confession channel: WHO opened this surface. */
-  openedBy: string;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <Dialog
-      open
-      onOpenChange={(next) => {
-        if (!next) onClose();
-      }}
-    >
-      <DialogContent data-testid={testid} data-opened-by={openedBy}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        <div className="min-w-0 space-y-3">{children}</div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function CategoryDialogAlert({ message }: { message: string | null }) {
   if (!message) return null;
