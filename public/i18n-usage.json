@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 727,
+  "scanned": 728,
   "dynamicCallSites": 425,
   "keys": {
     "account.deactivatedBanner": [
@@ -772,19 +772,11 @@
       "/admin/attributes",
       "/admin/categories"
     ],
-    "admin.attributes.error.keyRequired": [
-      "/admin/attributes",
-      "/admin/categories"
-    ],
     "admin.attributes.error.mergeNoSources": [
       "/admin/attributes",
       "/admin/categories"
     ],
     "admin.attributes.error.mergeNoTarget": [
-      "/admin/attributes",
-      "/admin/categories"
-    ],
-    "admin.attributes.error.nameRequired": [
       "/admin/attributes",
       "/admin/categories"
     ],
@@ -5927,6 +5919,7 @@
       "/post/$listingId"
     ],
     "post.field.required": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/listings/$listingId",
@@ -6050,6 +6043,7 @@
       "/post/$listingId"
     ],
     "post.optional": [
+      "/admin/attributes",
       "/admin/categories",
       "/admin/countries",
       "/admin/listings/$listingId",
