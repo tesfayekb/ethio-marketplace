@@ -822,7 +822,8 @@ keys read; a refused write and an empty source are named, the first twenty under
 - E2E (`e2e/admin-translations.spec.ts`): TR-29 exports real CSV bytes from the
   browser and imports an edited file, asserting per-key DB truth and that an
   unknown key is never invented; TR-30 fills `zxa` and proves the publication
-  refusal (`@global-state`, one project, INC-117 quarantine).
+  refusal (`@global-state`, one project; it runs, and gates, in the per-push
+  serial lane — INC-1148).
 - U4i-3: `io-formats.test.ts` adds the no-op law (untouched export re-import =
   `{changed: [], unchanged: N}`); TR-29's addendum approves the scratch row,
   re-imports the SAME file and asserts the approval survives with no new

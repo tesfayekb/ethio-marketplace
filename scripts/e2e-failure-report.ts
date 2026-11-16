@@ -53,6 +53,12 @@ const SINGLE_SOURCE_LABEL = process.env["E2E_SOURCE_LABEL"] ?? "all";
 const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 /** DEC-177 — a REAL captured results.json (Playwright 1.58.1): a flaky test whose first attempt printed `[client-error]` lines. */
 const FLAKY_STDOUT_FIXTURE = "scripts/fixtures/e2e-results-flaky-stdout.json";
+/**
+ * INC-1175 — a copy of FIXTURE with ONE splice: the 2026-11-15 nightly's captured
+ * `[client-error] HTTP 500 POST …/auth/v1/signup … "Error sending confirmation email"` line, verbatim
+ * from its evidence file, as CAP-1's attempt stdout. Nothing else differs (the DEC-030 precedent).
+ */
+export const STAGING_SINK_FIXTURE = "scripts/fixtures/e2e-results-staging-sink.json";
 /** DEC-083 — the quiet list; every entry names the test that provokes it. */
 const SSR_ALLOWLIST = "docs/tracking/ssr-error-allowlist.txt";
 /** DEC-083 — a REAL captured job log (local e2e run) for the census self-test. */
@@ -495,27 +501,47 @@ type Failure = {
    * name) is excluded: the slug already opens with the spec base.
    */
   titlePath: string[];
+  /** INC-1175 — the `[client-error]` lines its failed attempts printed (DEC-177's reading). */
+  clientErrors: string[];
 };
 
-/**
- * DEC-028 / INC-117 — QUARANTINE PREDICATE. A test tagged `@global-state`
- * mutates a surface shared by every concurrent project (the language roster,
- * the publication gate). Those specs run in the serial nightly ONLY; their
- * failures are reported and labeled, never gating, until the DEC-026
- * component-test layer covers their logic.
+/*
+ * INC-1148 — `@global-state` is no quarantine. A test so tagged mutates a surface every
+ * concurrent project shares (the language roster, the publication gate), so it runs in the
+ * per-push serial lane (`--workers=1` on the temporary backend) and its red gates the push like
+ * any other. The nightly's serial `runfull` run and its non-gating label retired with DEC-393.
  */
-export function isQuarantined(title: string): boolean {
-  return title.includes("@global-state");
+
+/** INC-1175 — the label a failure gets when the staging mail sink refused the send. */
+export const STAGING_SINK_LABEL =
+  "STAGING-SINK (environment: the staging mail sink refused the send — INC-1175)";
+
+/**
+ * INC-1175 — the sink's refusal, as the 2026-11-15 nightly captured it: the sign-up call answered
+ * HTTP 500 with the auth server's "Error sending confirmation email". All three parts must be on
+ * one client-error line; the label only names the cause, and the failure still gates.
+ */
+export function isStagingSinkRefusal(line: string): boolean {
+  return (
+    line.includes("auth/v1/signup") &&
+    line.includes("HTTP 500") &&
+    line.includes("Error sending confirmation email")
+  );
 }
 
-/** DEC-028 — the verdict split every consumer (nightly, operator) reads. */
-export function classifyFailures<T extends { title: string }>(
-  failures: T[],
-): { gating: T[]; quarantined: T[] } {
-  return {
-    gating: failures.filter((f) => !isQuarantined(f.title)),
-    quarantined: failures.filter((f) => isQuarantined(f.title)),
-  };
+/** INC-1175 — a failure whose own attempts carry the sink's refusal. */
+export function isStagingSinkFailure(failure: { clientErrors: string[] }): boolean {
+  return failure.clientErrors.some(isStagingSinkRefusal);
+}
+
+/** INC-1175 — the verdict-class file's second line, or nothing when no failure carries the refusal. */
+export function stagingSinkLine(sources: Source[]): string | null {
+  const count = sources
+    .flatMap((s) => (s.json ? collect(s.json).failures : []))
+    .filter(isStagingSinkFailure).length;
+  if (count === 0) return null;
+  const [word, ...rest] = STAGING_SINK_LABEL.split(" ");
+  return `${word} ${count} ${rest.join(" ")}`;
 }
 
 /**
@@ -625,6 +651,9 @@ export function collect(json: PwJson): {
           file: spec.file ?? suiteFile,
           specTitle,
           titlePath: [...path, specTitle],
+          clientErrors: (test.results ?? [])
+            .filter((r) => r.status && r.status !== "passed")
+            .flatMap(attemptClientErrors),
         });
       }
     }
@@ -1722,8 +1751,8 @@ export function renderSources(
     ...repeatLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
-    // DEC-028 — the verdict line: quarantined failures are excluded from it.
-    `- Gating failures: ${classifyFailures(failures).gating.length} · Quarantined (@global-state, INC-117, non-gating): ${classifyFailures(failures).quarantined.length}`,
+    // DEC-028 — the verdict line; every failure gates (INC-1148), a STAGING-SINK one included.
+    `- Gating failures: ${failures.length} · STAGING-SINK (INC-1175, still gating): ${failures.filter(isStagingSinkFailure).length}`,
     // DEC-030 — flaky tests are non-gating but never invisible.
     `- Flaky (passed on retry, DEC-030, non-gating): ${flaky.length}`,
     // DEC-059 — post-test errors are reported, never counted as failures.
@@ -1774,18 +1803,11 @@ export function renderSources(
   const candidates = [...contexts.keys()];
 
   for (const f of failures) {
-    // U4g-30 (INC-117) — QUARANTINE LABEL ONLY. A test tagged `@global-state`
-    // shares a single global surface (the language roster, the publication
-    // gate) with every concurrent project, so its red can be an artefact of a
-    // sibling's legitimate mutation. The reporter LABELS it; gating stays with
-    // the operator until the DEC-026 component-test layer covers the logic.
-    // DEC-028 makes that formal: the label ALSO removes the failure from the
-    // verdict (see classifyFailures + the verdict file written by main).
-    const quarantined = isQuarantined(f.title);
+    // INC-1175 — a LABEL only: it names the environment as the cause and the failure still gates.
     lines.push(
       `## ${f.title}`,
       "",
-      ...(quarantined ? ["- Class: **quarantined global-state** (INC-117, non-gating)", ""] : []),
+      ...(isStagingSinkFailure(f) ? [`- Class: **${STAGING_SINK_LABEL}**`, ""] : []),
       `- Source: \`${f.source}\``,
       `- Project: \`${f.project}\``,
       "",
@@ -2624,25 +2646,6 @@ async function main() {
       process.exit(1);
     }
 
-    // DEC-028 — THE VERDICT SPLIT, in both directions. A quarantined red must
-    // be rendered AND labeled AND excluded from `gating`; an ordinary red must
-    // still gate. A predicate that only ever returns one answer proves nothing.
-    const quarantinedFixture = {
-      title: "e2e/admin-translations.spec.ts › TR-17 @global-state roster",
-    };
-    const gatingFixture = { title: "e2e/shell.spec.ts › SH-1 rail renders" };
-    const split = classifyFailures([quarantinedFixture, gatingFixture]);
-    if (
-      split.gating.length !== 1 ||
-      split.quarantined.length !== 1 ||
-      split.gating[0] !== gatingFixture ||
-      !isQuarantined(quarantinedFixture.title) ||
-      isQuarantined(gatingFixture.title)
-    ) {
-      console.error("SELF-TEST FAILED — DEC-028 verdict split misclassified a failure.");
-      process.exit(1);
-    }
-
     // DEC-030 — THE FLAKE SPLIT, in both directions. A `flaky` test (failed,
     // then passed on retry) must leave the failure list, appear in the Flake
     // ledger section, and produce exactly one ledger line; an ordinary red must
@@ -2731,6 +2734,20 @@ async function main() {
       console.error(
         "SELF-TEST FAILED — DEC-177 a flaky attempt's client errors not carried exactly.",
       );
+      process.exit(1);
+    }
+    // INC-1175 — both directions: the spliced capture's first failure carries the sink's
+    // refusal and is labelled, its second is not; the unspliced capture labels none.
+    const sinkFailures = collect(
+      JSON.parse(readFileSync(STAGING_SINK_FIXTURE, "utf8")) as PwJson,
+    ).failures;
+    if (
+      sinkFailures.length !== 2 ||
+      !isStagingSinkFailure(sinkFailures[0] ?? { clientErrors: [] }) ||
+      isStagingSinkFailure(sinkFailures[1] ?? { clientErrors: [] }) ||
+      collect(fixture).failures.some(isStagingSinkFailure)
+    ) {
+      console.error("SELF-TEST FAILED — INC-1175 the STAGING-SINK label misread a failure.");
       process.exit(1);
     }
     // A second flip of 11 tests: 10 bodies, one "body omitted: cap" line.
@@ -3280,7 +3297,7 @@ async function main() {
     }
 
     console.log(
-      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).",
+      "Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), INC-1175 STAGING-SINK label (the spliced capture's failure labelled, its sibling and the unspliced capture not), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).",
     );
 
     return;
@@ -3429,8 +3446,7 @@ async function main() {
     // has to treat a missing verdict file as "probably green". The flaky count
     // is the real one (DEC-078 part 2).
     const greenVerdict = process.env["E2E_VERDICT_PATH"];
-    if (greenVerdict)
-      writeText(greenVerdict, `gating=0\nquarantined=0\nsilent=0\nflaky=${allFlaky.length}\n`);
+    if (greenVerdict) writeText(greenVerdict, `gating=0\nsilent=0\nflaky=${allFlaky.length}\n`);
     console.log(
       `Wrote ${OUT} (green run ${meta.runId}, ${postTestWarnings} post-test warning line(s), ${allFlaky.length} flaky, ${contexts.size} context file(s) found).`,
     );
@@ -3443,11 +3459,13 @@ async function main() {
       `Wrote ${OUT} (${found}/${sources.length} source(s) with usable results, ${contexts.size} context file(s) found).`,
     );
     // INC-1101 — the class the Verdict step names in its error (DEC-028: never its exit).
+    // INC-1175 — a second line names the STAGING-SINK failures; ci.yml reads the first line only.
     const classPath = process.env["E2E_VERDICT_CLASS_PATH"];
     if (classPath) {
       const verdict = verdictClass(sources);
-      writeText(classPath, `${verdict}\n`);
-      console.log(`Verdict class: ${verdict} (${classPath}).`);
+      const sink = stagingSinkLine(sources);
+      writeText(classPath, sink === null ? `${verdict}\n` : `${verdict}\n${sink}\n`);
+      console.log(`Verdict class: ${verdict}${sink === null ? "" : ` · ${sink}`} (${classPath}).`);
     }
   }
 
@@ -3465,24 +3483,22 @@ async function main() {
     );
   }
 
-  // DEC-028 — THE VERDICT FILE. The nightly (the only lane that runs
-  // `@global-state` specs) decides its heartbeat from THIS, not from the raw
-  // Playwright exit code, so a quarantined red is reported and labeled without
-  // flipping the conclusion. `gating=` is the only field a verdict may read.
+  // DEC-028 — THE VERDICT FILE. The nightly and the flake check decide their
+  // heartbeat from THIS, not from the raw Playwright exit code. `gating=` is
+  // the only field a verdict may read; every failure gates (INC-1148).
   const verdictPath = flakeOnly ? undefined : process.env["E2E_VERDICT_PATH"];
   if (verdictPath) {
     const all = sources.flatMap((s) => (s.json ? collect(s.json).failures : []));
-    const { gating, quarantined } = classifyFailures(all);
-    // A source that produced no results at all is NEVER quarantinable: the
-    // runner died, which is a gating condition of its own (law F4).
+    // A source that produced no results at all gates on its own: the runner
+    // died (law F4).
     const silentSources = sources.filter((s) => !s.json || countTests(s.json) === 0).length;
-    const gatingCount = gating.length + silentSources;
+    const gatingCount = all.length + silentSources;
     writeText(
       verdictPath,
-      `gating=${gatingCount}\nquarantined=${quarantined.length}\nsilent=${silentSources}\nflaky=${allFlaky.length}\n`,
+      `gating=${gatingCount}\nsilent=${silentSources}\nflaky=${allFlaky.length}\n`,
     );
     console.log(
-      `Verdict: gating=${gatingCount} quarantined=${quarantined.length} silent=${silentSources} flaky=${allFlaky.length} (${verdictPath}).`,
+      `Verdict: gating=${gatingCount} silent=${silentSources} flaky=${allFlaky.length} (${verdictPath}).`,
     );
   }
 }

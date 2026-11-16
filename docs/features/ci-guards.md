@@ -760,6 +760,15 @@ remedy is exactly that bump.
 
 ## DEC-028 — global-state specs are serial-only and non-gating (2026-09-01)
 
+> Superseded (INC-1135, then DEC-393 and INC-1148 in the tests and CI turn,
+> 2026-11-16): the `@global-state` specs run, and gate, in the per-push serial
+> lane (`local-backend-proof.yml`, `--workers=1`). The nightly's serial `full`
+> run, the quarantine label, `isQuarantined` / `classifyFailures` and the
+> verdict file's `quarantined=` field are gone. The report header now reads
+> `- Gating failures: N · STAGING-SINK (INC-1175, still gating): M` and the
+> verdict file `gating=` / `silent=` / `flaky=` (docs/features/nightly-e2e.md).
+> What follows is the record of what was.
+
 Tests that mutate shared global state (`@global-state`) never run in CI's
 temporary-backend lanes; they run in the serial nightly only.
 Quarantined failures are reported, labeled, and non-gating until DEC-026
