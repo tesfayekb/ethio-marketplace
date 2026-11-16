@@ -27,7 +27,6 @@ function defaultText(value: unknown): string {
       : String(value);
 }
 
-
 /**
  * U6-C1-R3b-3a STEP 3 — THE THREE CELLS SAY WHERE THEY STAND.
  *
@@ -97,6 +96,7 @@ export function AttributeLinkCells({
     setConditionValues(row.visibleWhen?.in ?? []);
     setAndKey(row.visibleWhen?.and?.key ?? "");
     setAndValues(row.visibleWhen?.and?.in ?? []);
+    setDefaultRefusal(null);
     setBaseline({
       allowed: stamp([...(row.allowedOptions ?? [])].sort()),
       default: defaultText(row.defaultValue),
@@ -259,14 +259,16 @@ export function AttributeLinkCells({
                 {...control}
                 className={controlClass(defaultRefusal !== null, false, "dialog")}
                 data-testid={`category-attribute-default-${row.attrKey}`}
-                type={row.attrType === "number" ? "number" : row.attrType === "date" ? "date" : "text"}
+                type={
+                  row.attrType === "number" ? "number" : row.attrType === "date" ? "date" : "text"
+                }
                 value={defaultValue}
                 onChange={(event) => {
                   setDefaultRefusal(null);
                   setDefaultValue(event.target.value);
                 }}
               />
-            )}
+            )
           }
         </Field>
         <Button
@@ -297,82 +299,118 @@ export function AttributeLinkCells({
         <legend className="text-xs font-medium text-foreground">
           {t("admin.attributes.link.visibleWhen")}
         </legend>
-        <NativeSelect
-          data-testid={`category-attribute-condition-key-${row.attrKey}`}
-          className="w-full"
-          value={conditionKey}
-          onChange={(event) => {
-            setConditionKey(event.target.value);
-            setConditionValues([]);
-            setAndKey("");
-            setAndValues([]);
-          }}
+        <Field
+          id={`condition-key-${row.linkId}`}
+          label={<span className="sr-only">{t("admin.attributes.link.visibleWhen")}</span>}
+          required={false}
+          layout="inline"
+          refusal={null}
+          family={ATTRIBUTE_REFUSALS}
         >
-          <option value="">{t("admin.attributes.link.alwaysVisible")}</option>
-          {conditionSiblings.map((sibling) => (
-            <option key={sibling.attrKey} value={sibling.attrKey}>
-              {sibling.nameEn}
-            </option>
-          ))}
-        </NativeSelect>
-        {conditionOptions.map((option) => (
-          <label key={option.value} className="flex min-h-11 items-center gap-2 text-xs">
-            <Checkbox
-              data-testid={`category-attribute-condition-${row.attrKey}-${option.value}`}
-              checked={conditionValues.includes(option.value)}
-              onCheckedChange={(checked) =>
-                setConditionValues((previous) =>
-                  checked === true
-                    ? [...previous, option.value]
-                    : previous.filter((value) => value !== option.value),
-                )
-              }
-            />
-            {optionLabel(option)}
-          </label>
-        ))}
-        {conditionKey === "" ? null : (
-          <>
-            <label
-              className="block pt-1 text-xs font-medium text-foreground"
-              htmlFor={`condition-and-${row.linkId}`}
-            >
-              {t("admin.attributes.link.andWhen")}
-            </label>
+          {(control) => (
             <NativeSelect
-              id={`condition-and-${row.linkId}`}
-              data-testid={`category-attribute-condition-and-key-${row.attrKey}`}
+              {...control}
+              data-testid={`category-attribute-condition-key-${row.attrKey}`}
               className="w-full"
-              value={andKey}
+              value={conditionKey}
               onChange={(event) => {
-                setAndKey(event.target.value);
+                setConditionKey(event.target.value);
+                setConditionValues([]);
+                setAndKey("");
                 setAndValues([]);
               }}
             >
-              <option value="">{t("admin.attributes.link.andNone")}</option>
-              {conditionSiblings
-                .filter((sibling) => sibling.attrKey !== conditionKey)
-                .map((sibling) => (
-                  <option key={sibling.attrKey} value={sibling.attrKey}>
-                    {sibling.nameEn}
-                  </option>
-                ))}
+              <option value="">{t("admin.attributes.link.alwaysVisible")}</option>
+              {conditionSiblings.map((sibling) => (
+                <option key={sibling.attrKey} value={sibling.attrKey}>
+                  {sibling.nameEn}
+                </option>
+              ))}
             </NativeSelect>
+          )}
+        </Field>
+        {conditionOptions.map((option) => (
+          <Field
+            key={option.value}
+            id={`condition-${row.linkId}-${option.value}`}
+            label={optionLabel(option)}
+            required={false}
+            layout="choice"
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
+          >
+            {(control) => (
+              <Checkbox
+                {...control}
+                data-testid={`category-attribute-condition-${row.attrKey}-${option.value}`}
+                checked={conditionValues.includes(option.value)}
+                onCheckedChange={(checked) =>
+                  setConditionValues((previous) =>
+                    checked === true
+                      ? [...previous, option.value]
+                      : previous.filter((value) => value !== option.value),
+                  )
+                }
+              />
+            )}
+          </Field>
+        ))}
+        {conditionKey === "" ? null : (
+          <>
+            <Field
+              id={`condition-and-${row.linkId}`}
+              label={t("admin.attributes.link.andWhen")}
+              required={false}
+              refusal={null}
+              family={ATTRIBUTE_REFUSALS}
+            >
+              {(control) => (
+                <NativeSelect
+                  {...control}
+                  data-testid={`category-attribute-condition-and-key-${row.attrKey}`}
+                  className="w-full"
+                  value={andKey}
+                  onChange={(event) => {
+                    setAndKey(event.target.value);
+                    setAndValues([]);
+                  }}
+                >
+                  <option value="">{t("admin.attributes.link.andNone")}</option>
+                  {conditionSiblings
+                    .filter((sibling) => sibling.attrKey !== conditionKey)
+                    .map((sibling) => (
+                      <option key={sibling.attrKey} value={sibling.attrKey}>
+                        {sibling.nameEn}
+                      </option>
+                    ))}
+                </NativeSelect>
+              )}
+            </Field>
             {andOptions.map((option) => (
-              <label key={option.value} className="flex min-h-11 items-center gap-2 text-xs">
-                <Checkbox
-                  data-testid={`category-attribute-condition-and-${row.attrKey}-${option.value}`}
-                  checked={andValues.includes(option.value)}
-                  onCheckedChange={(checked) =>
-                    setAndValues((previous) =>
-                      checked === true
-                        ? [...previous, option.value]
-                        : previous.filter((value) => value !== option.value),
-                    )
-                  }
-                />
-                {optionLabel(option)}
-              </label>
+              <Field
+                key={option.value}
+                id={`condition-and-${row.linkId}-${option.value}`}
+                label={optionLabel(option)}
+                required={false}
+                layout="choice"
+                refusal={null}
+                family={ATTRIBUTE_REFUSALS}
+              >
+                {(control) => (
+                  <Checkbox
+                    {...control}
+                    data-testid={`category-attribute-condition-and-${row.attrKey}-${option.value}`}
+                    checked={andValues.includes(option.value)}
+                    onCheckedChange={(checked) =>
+                      setAndValues((previous) =>
+                        checked === true
+                          ? [...previous, option.value]
+                          : previous.filter((value) => value !== option.value),
+                      )
+                    }
+                  />
+                )}
+              </Field>
             ))}
           </>
         )}
