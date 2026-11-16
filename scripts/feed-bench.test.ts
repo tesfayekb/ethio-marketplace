@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { SCRATCH_USER_DOMAIN } from "../e2e/helpers/scratch";
 import {
   BATCH,
   GATE_WAIT_MINUTES,
+  HOT,
+  LISTINGS,
+  baselineLevel,
+  benchTier,
   isStatementTimeout,
   levelMix,
   nearestRank,
@@ -11,6 +16,14 @@ import {
   verdict,
   type ShapeResult,
 } from "./feed-bench";
+import {
+  SELLERS,
+  benchCountryName,
+  benchSellerEmail,
+  isBenchCountry,
+  isBenchSellerEmail,
+  seedPlan,
+} from "./feed-bench-market";
 
 function six(): ShapeResult[] {
   return ["a", "b", "c", "d", "e", "f"].map((name) => ({
@@ -64,10 +77,14 @@ describe("feed-bench", () => {
       seedSeconds: 1,
       cleanupSeconds: 1,
       leftovers: 0,
+      sellers: 256,
+      market: "QM",
+      free: 379,
       shapes: six(),
       bytes: 10000,
     });
     expect(text).toContain("Verdict: PASS");
+    expect(text).toContain("leftovers 0 · sellers 256 · market QM free 379");
     for (const s of six()) expect(text).toContain(`| ${s.name} | 30 |`);
     expect(text).toContain("- Not measured here:");
   });
@@ -87,6 +104,9 @@ describe("feed-bench", () => {
       seedSeconds: 0,
       cleanupSeconds: 0,
       leftovers: 0,
+      sellers: 0,
+      market: "none",
+      free: 0,
       shapes: [],
       bytes: 0,
     };
@@ -115,5 +135,68 @@ describe("feed-bench", () => {
     expect(() => levelMix([row("lvl-a", 10)])).toThrow("no baseline level");
     expect(() => levelMix([{ key: "lvl-a" }])).toThrow("malformed");
     expect(() => levelMix(undefined)).toThrow("no levels dictionary");
+  });
+
+  it("FB-8 the seed's plan keeps every seller under the scratch market's free number", () => {
+    const row = (key: string, sort: number, is_baseline = false) => ({ key, sort, is_baseline });
+    const levels = [row("lvl-c", 30), row("lvl-base", 0, true), row("lvl-b", 20)];
+    const mix = levelMix(levels);
+    const tierOf = (g: number) => benchTier(mix, g);
+    const baseline = baselineLevel(levels);
+    expect(baseline).toBe("lvl-base");
+    expect([tierOf(LISTINGS), tierOf(LISTINGS + 1), tierOf(LISTINGS + HOT)]).toEqual([
+      "lvl-c",
+      "lvl-base",
+      "lvl-base",
+    ]);
+    const plan = seedPlan(LISTINGS + HOT, SELLERS, tierOf, baseline);
+    expect(SELLERS).toBe(256);
+    expect([Math.min(...plan.baselineRows), Math.max(...plan.baselineRows)]).toEqual([376, 378]);
+    expect(plan.free).toBe(379);
+
+    // The guard, replayed in insert order: a baseline row is refused when the seller's other
+    // live baseline rows already reach the free number.
+    const refusals = (free: number) => {
+      const live = new Array<number>(SELLERS).fill(0);
+      let refused = 0;
+      for (let g = 1; g <= LISTINGS + HOT; g++) {
+        if (tierOf(g) !== baseline) continue;
+        const seller = plan.sellerOf(g);
+        const others = live[seller] ?? 0;
+        if (others >= free) refused++;
+        else live[seller] = others + 1;
+      }
+      return refused;
+    };
+    expect(refusals(plan.free)).toBe(0);
+    // Planted: the default market's free number of three refuses the fourth row of every seller.
+    expect(refusals(3)).toBeGreaterThan(0);
+    // Planted: one seller holds every baseline row, so its free number is the whole seed's.
+    expect(seedPlan(LISTINGS + HOT, 1, tierOf, baseline).free).toBe(
+      plan.baselineRows.reduce((sum, rows) => sum + rows, 0) + 1,
+    );
+    expect(() => seedPlan(10, 0, tierOf, baseline)).toThrow("no sellers");
+  });
+
+  it("FB-9 the pre-clean's predicates match the bench's sellers and countries and no neighbour", () => {
+    expect(isBenchSellerEmail(benchSellerEmail("123", 7))).toBe(true);
+    expect(isBenchSellerEmail(`e2e-bench-123-abcdef${SCRATCH_USER_DOMAIN}`)).toBe(true);
+    for (const neighbour of [
+      `e2e+bench-123-s7@example.invalid`,
+      `e2e+benchmark${SCRATCH_USER_DOMAIN}`,
+      `e2e+abc-123-bench${SCRATCH_USER_DOMAIN}`,
+      `e2e-pool-3-1${SCRATCH_USER_DOMAIN}`,
+      `bench-123-s7${SCRATCH_USER_DOMAIN}`,
+      undefined,
+    ])
+      expect(isBenchSellerEmail(neighbour), String(neighbour)).toBe(false);
+
+    const name = benchCountryName("e2e-bench-123-abcdef");
+    expect(isBenchCountry("QM", name)).toBe(true);
+    expect(isBenchCountry("XZ", name)).toBe(true);
+    expect(isBenchCountry("ET", name)).toBe(false);
+    expect(isBenchCountry("QM", "E2E-Scratch-QM-local-0")).toBe(false);
+    expect(isBenchCountry("QN", "e2e-benchmark")).toBe(false);
+    expect(isBenchCountry("QL", name)).toBe(false);
   });
 });
