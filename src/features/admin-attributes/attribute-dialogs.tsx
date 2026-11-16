@@ -1,6 +1,8 @@
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { LIST_CHOICE_ON, LIST_ROW } from "@/components/shell/menu-row";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,6 +41,12 @@ import {
   useUpsertAttribute,
 } from "./use-attributes";
 import { ATTRIBUTE_REFUSALS, useAttributeRefusal } from "./attribute-refusals";
+import {
+  attributeRefusals,
+  readAttributeNumbers,
+  type AttributeFormField,
+  type AttributeFormRefusals,
+} from "./attribute-form-values";
 import { useAttributeLabel } from "./use-attribute-label";
 import { AttributeOptionRows } from "./components/attribute-option-rows";
 import {
@@ -63,6 +71,11 @@ import {
  * re-checks the permission AND the step-up server-side (F3), so a refusal is a
  * translated line, never a silent no-op (F4). 360-first throughout.
  */
+
+/** A Field's hint line, as the old field drew it. */
+function Hint({ children }: { children: string }) {
+  return <p className="min-w-0 break-words text-xs text-muted-foreground">{children}</p>;
+}
 
 export function AttributeDialogAlert({ message }: { message: string | null }) {
   if (!message) return null;
@@ -148,6 +161,11 @@ export function AttributeEditorDialog({
   const storedValues = (attribute?.options ?? []).map((option) => option.value);
   const [dependsOn, setDependsOn] = useState(attribute?.dependsOnKey ?? "");
   const [preview, setPreview] = useState("");
+  /** DEC-339 — the one gate (the key and the name) and the parser's refusals. */
+  const gate = useFormGate();
+  const [parsed, setParsed] = useState<AttributeFormRefusals>({});
+  const refusals = attributeRefusals(gate, parsed);
+  const refusalOf = (field: AttributeFormField) => refusals[field] ?? null;
 
   const [helpText, setHelpText] = useState(attribute?.helpTextEn ?? "");
   /**
@@ -255,26 +273,28 @@ export function AttributeEditorDialog({
       : storedValues;
   const removedHolders = useRemovedAnswerHolders(attribute?.id ?? null, removedValues);
 
-  /** Empty is null; a non-number for an integer cell is left to the door. */
+  /** Empty is null. */
   const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
-  const whole = (raw: string): number | null =>
-    raw.trim() === "" || !/^\d+$/.test(raw.trim()) ? null : Number(raw.trim());
   const isNumber = attrType === "number";
   const isText = attrType === "text";
 
   const submit = () => {
     setMessage(null);
     setBlankCount(0);
+    setParsed({});
     if (blankRows > 0) {
       setBlankCount(blankRows);
       return;
     }
-    if (attrKey.trim() === "") {
-      setMessage(t("admin.attributes.error.keyRequired"));
-      return;
-    }
-    if (nameEn.trim() === "") {
-      setMessage(t("admin.attributes.error.nameRequired"));
+    // DEC-339 — a blank key or name is the gate's, refused under its own Field.
+    if (!gate.try()) return;
+    // The one parser: blank is null to the door; an unreadable answer is refused here.
+    const numbers = readAttributeNumbers({
+      decimals: isNumber && numberFields.format !== "year" ? numberFields.decimals : "",
+      maxLength: isText ? textFields.maxLength : "",
+    });
+    if (!numbers.ok) {
+      setParsed(numbers.refusals);
       return;
     }
     void guard(async () => {
@@ -293,14 +313,10 @@ export function AttributeEditorDialog({
           unitAm: isNumber ? numberFields.unitAm.trim() : null,
           minBound: isNumber ? text(numberFields.min) : null,
           maxBound: isNumber ? text(numberFields.max) : null,
-          decimals: isNumber
-            ? numberFields.format === "year"
-              ? 0
-              : whole(numberFields.decimals)
-            : null,
+          decimals: isNumber ? (numberFields.format === "year" ? 0 : numbers.decimals) : null,
           format: isNumber ? text(numberFields.format) : null,
           preset: isText ? presetToken(textFields) : null,
-          maxLength: isText ? whole(textFields.maxLength) : null,
+          maxLength: isText ? numbers.maxLength : null,
         });
         onClose();
       } catch (error) {
@@ -500,14 +516,30 @@ export function AttributeEditorDialog({
       ) : null}
 
       {/* DEC-050 L3a — one group per type, mounted only for that type. */}
-      {isNumber ? <AttributeNumberFields value={numberFields} onChange={setNumberFields} /> : null}
-      {isText ? <AttributeTextFields value={textFields} onChange={setTextFields} /> : null}
+      {isNumber ? (
+        <AttributeNumberFields
+          value={numberFields}
+          onChange={setNumberFields}
+          decimalsRefusal={refusalOf("decimals")}
+        />
+      ) : null}
+      {isText ? (
+        <AttributeTextFields
+          value={textFields}
+          onChange={setTextFields}
+          maxLengthRefusal={refusalOf("maxLength")}
+        />
+      ) : null}
 
       <Field
         id="attribute-help"
         label={t("admin.attributes.field.help")}
         required={false}
-        hint={<Hint>{t("admin.attributes.field.helpCounter").replace("{count}", String(helpText.length))}</Hint>}
+        hint={
+          <Hint>
+            {t("admin.attributes.field.helpCounter").replace("{count}", String(helpText.length))}
+          </Hint>
+        }
         refusal={null}
         family={ATTRIBUTE_REFUSALS}
       >
@@ -526,7 +558,11 @@ export function AttributeEditorDialog({
         id="attribute-help-am"
         label={t("admin.attributes.field.helpAm")}
         required={false}
-        hint={<Hint>{t("admin.attributes.field.helpCounter").replace("{count}", String(helpTextAm.length))}</Hint>}
+        hint={
+          <Hint>
+            {t("admin.attributes.field.helpCounter").replace("{count}", String(helpTextAm.length))}
+          </Hint>
+        }
         refusal={null}
         family={ATTRIBUTE_REFUSALS}
       >
@@ -884,12 +920,25 @@ export function AssignAttributeDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.attributes.assign.hint")}</p>
-      <Input
-        data-testid="attribute-assign-search"
-        placeholder={t("admin.attributes.assign.searchPlaceholder")}
-        value={needle}
-        onChange={(event) => setNeedle(event.target.value)}
-      />
+      <Field
+        id="attribute-assign-search"
+        label={<span className="sr-only">{t("admin.attributes.assign.searchPlaceholder")}</span>}
+        required={false}
+        layout="inline"
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            className={controlClass(false, false, "dialog")}
+            data-testid="attribute-assign-search"
+            placeholder={t("admin.attributes.assign.searchPlaceholder")}
+            value={needle}
+            onChange={(event) => setNeedle(event.target.value)}
+          />
+        )}
+      </Field>
       <Field
         id="attribute-assign-picker"
         label={t("admin.attributes.assign.category")}
