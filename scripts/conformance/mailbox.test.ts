@@ -115,11 +115,19 @@ describe("no real person's mailbox in a tracked file (INC-1165, CF-MAIL)", () =>
   it("CF-MAIL-3 an allowlisted line passes; a stale line, whose mailbox is gone, fails", () => {
     const dir = "node_modules/.cache/mailbox-allow";
     mkdirSync(dir, { recursive: true });
+    const file = `${dir}/record.md`;
     const list = `${dir}/allow.txt`;
+    const keysOf = () => mailboxes([file]).map((f) => `${f.file}:${f.line}`);
     try {
-      writeFileSync(list, "docs/x.md:3 | a landed record | DEC-116\n");
-      expect(readAllowlist(list, ["docs/x.md:3"]).has("docs/x.md:3")).toBe(true);
-      expect(() => readAllowlist(list, [])).toThrow(/stale allowance/);
+      writeFileSync(file, ["# A record", "", `the owner ${planted("op", "gmail")}`, ""].join("\n"));
+      writeFileSync(list, `${file}:3 | a landed record | DEC-116\n`);
+      const found = keysOf();
+      expect(found).toEqual([`${file}:3`]);
+      expect(readAllowlist(list, found).has(`${file}:3`)).toBe(true);
+      writeFileSync(file, ["# A record", "", "the owner, by role", ""].join("\n"));
+      const keys = keysOf();
+      expect(keys).toEqual([]);
+      expect(() => readAllowlist(list, keys)).toThrow(/stale allowance/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
