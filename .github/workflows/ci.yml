@@ -62,7 +62,9 @@ jobs:
       - uses: actions/checkout@v5
         timeout-minutes: 5
       # DEC-394 — a lovable/* branch's pull request changes only screen files (CF-LVB): the files
-      # GitHub computes against the merge base, read from the API, judged by the script.
+      # GitHub computes against the merge base, read from the API, judged by the script. DEC-398: a
+      # file under an exception whose patch the API omits is read from git instead — the two commits
+      # below, fetched by the script itself (the checkout stays shallow).
       - name: Lovable branch guard (DEC-394)
         if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'lovable/')
         timeout-minutes: 3
@@ -70,6 +72,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -o pipefail
           gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" | bash scripts/ci/lovable-branch-guard.sh

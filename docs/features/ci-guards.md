@@ -1292,14 +1292,16 @@ that backend and a config-wide one are named, and the guard refuses them before 
 builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.
 
-## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396)
+## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396; a patchless exception file, DEC-398)
 
 `scripts/ci/lovable-branch-guard.sh` runs in `ci.yml`'s `scope` job, after its checkout, on a pull
 request from a `lovable/*` branch only (`if: github.event_name == 'pull_request' &&
 startsWith(github.head_ref, 'lovable/')`). The step pipes `gh api --paginate
 repos/<owner>/<repo>/pulls/<number>/files` — the files GitHub computes against the merge base, one
-JSON array per page — into the script with `GH_TOKEN: ${{ github.token }}`; the job's checkout
-stays shallow, since no git history is read. The script is pure over that JSON.
+JSON array per page — into the script with `GH_TOKEN: ${{ github.token }}`, and names the pull
+request's two commits in `PR_BASE_SHA` and `PR_HEAD_SHA` (`github.event.pull_request.base.sha` /
+`.head.sha`). The verdict is the JSON's, except for one reading of git (DEC-398, below); the job's
+checkout stays shallow.
 
 - **The list** is Knowledge v3.14's ROLE paragraph (DEC-386), quoted word for word in the script's
   comment: `supabase/**` and every `*.sql`; `src/features/auth/**`, `src/lib/supabase-door.ts`,
@@ -1318,12 +1320,25 @@ stays shallow, since no git history is read. The script is pure over that JSON.
   lines its own change makes stale, as pull request #48 did, and removing an allowance narrows,
   never widens. An added or changed line, a rename, a new or a deleted allowlist file refuses;
   `scripts/doors/manifest.txt`, `scripts/conformance/kit.ts` and every other file under `scripts/`
-  stay refused under `scripts/**`. A patch the API does not carry (a binary or a very large diff)
-  under any of the three refuses.
+  stay refused under `scripts/**`.
+- **A patchless exception file (DEC-398, INC-1185):** GitHub's files API leaves `patch` out of an
+  entry whose diff is too large to carry — pull request #55's nine changed ceiling lines of about
+  4 KB each — and out of a binary one (the REST page "List pull requests files" documents the
+  3000-file ceiling and shows `patch` in its example, but does not state the omission: it is
+  observed, in run 43861627088's log). For a file under one of the three exceptions the script
+  then fetches the two commits once (`git fetch --no-tags --depth=1 --filter=blob:none origin
+  <base> <head>`: the commits alone, about a second; git fetches the two blobs of the one file it
+  diffs) and judges the changed lines of `git diff --unified=0 <base> <head> -- <path>` by the
+  very rule it applies to an API patch. A side it cannot read — no shas or shas that are not forty
+  hex digits, a refused fetch, a failed diff, a binary file (no text hunk) — refuses, naming the
+  reason and the DEC; it is never a pass. A patchless file under no exception keeps its path rule
+  and git is not read for it. The two commits are the base branch's tip and the head, while the API
+  diffs against the merge base: a branch behind its base can be refused over the base's own lines
+  in the file (never passed over them), and "Update branch" clears it.
 - **The verdict:** every offending change listed with its rule, exit 1; a pass names the file
   count. Input that is not the API's JSON arrays (an empty answer, an error object) is exit 2,
   never a pass.
-- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…12 on planted API answers —
+- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…14 on planted API answers —
   every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
   real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
   across two pages, a missing patch, a rename away from a forbidden path, input that is not the
@@ -1331,8 +1346,13 @@ stays shallow, since no git history is read. The script is pure over that JSON.
   — every allowlist file of the tree, beside a screen file and the deletions line — against an
   added line, a changed line, a missing patch, a new, renamed or deleted allowlist, a nested path
   and `kit.ts` and `scripts/doors/manifest.txt` refusing, each case asserting the exit code and the
-  reason. `scripts/conformance/wired.test.ts` finds the script's
-  basename in `ci.yml`.
+  reason; and (CF-LVB-13, CF-LVB-14) a patchless ceilings file — nine long ceiling lines grown —
+  read from a planted remote and passing, and refused with DEC-390 named for one non-ceiling or
+  widened line, the ledger's and an allowlist's rules applied to git's lines, no or malformed
+  shas, a commit the remote lacks, a binary file refused, and a patchless file under no exception
+  keeping its path rule. These tests plant git repositories, so they run where git may write
+  `.git` (CI; locally outside a write-restricted sandbox).
+  `scripts/conformance/wired.test.ts` finds the script's basename in `ci.yml`.
 - **Left:** INC-1168 (c), a "carry" step that rebuilds the pull request from dev plus the approved
   files. The endpoint answers without the `pull-requests` permission while the repository is
   public; when it goes private the step fails loudly (the API's refusal is not JSON arrays) until
