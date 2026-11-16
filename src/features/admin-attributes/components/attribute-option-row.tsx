@@ -1,10 +1,12 @@
-import { FormField } from "@/components/shell/form-section";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
+import { ATTRIBUTE_REFUSALS } from "../attribute-refusals";
 import type { AttributeOption } from "../attributes-service";
 
 import { AttributeAllowedValues, type AllowedTarget } from "./attribute-allowed-values";
@@ -93,63 +95,99 @@ export function OptionRow({
           inputs; value is fractionally wider than each label. */}
       <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div className="min-w-0 overflow-hidden">
-          <FormField label={t("admin.attributes.options.value")} htmlFor={`option-value-${index}`}>
-            {locked ? (
-              <p
-                data-testid="option-value"
-                title={option.value}
-                className="min-h-11 w-full min-w-0 break-all py-2 text-sm font-medium"
-              >
-                {option.value}
-              </p>
-            ) : (
+          <Field
+            id={`option-value-${index}`}
+            label={t("admin.attributes.options.value")}
+            required={false}
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
+          >
+            {(control) => (
+              {locked ? (
+                <p
+                  data-testid="option-value"
+                  title={option.value}
+                  className="min-h-11 w-full min-w-0 break-all py-2 text-sm font-medium"
+                >
+                  {option.value}
+                </p>
+              ) : (
+                <div className="w-full min-w-0">
+                  <Input
+                    {...control}
+                    className={controlClass(false, false, "dialog")}
+                    data-testid="option-value"
+                    value={option.value}
+                    placeholder={t("admin.attributes.options.valuePlaceholder")}
+                    onChange={(event) => patch({ value: event.target.value })}
+                  />
+                </div>
+              )}
+            )}
+          </Field>
+        </div>
+        <div className="min-w-0 overflow-hidden">
+          <Field
+            id={`option-en-${index}`}
+            label={t("admin.attributes.options.labelEn")}
+            required={false}
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
+          >
+            {(control) => (
               <div className="w-full min-w-0">
                 <Input
-                  id={`option-value-${index}`}
-                  data-testid="option-value"
-                  value={option.value}
-                  placeholder={t("admin.attributes.options.valuePlaceholder")}
-                  onChange={(event) => patch({ value: event.target.value })}
+                  {...control}
+                  className={controlClass(false, false, "dialog")}
+                  data-testid="option-label-en"
+                  value={option.labelEn}
+                  onChange={(event) => patch({ labelEn: event.target.value })}
                 />
               </div>
             )}
-          </FormField>
+          </Field>
         </div>
         <div className="min-w-0 overflow-hidden">
-          <FormField label={t("admin.attributes.options.labelEn")} htmlFor={`option-en-${index}`}>
-            <div className="w-full min-w-0">
-              <Input
-                id={`option-en-${index}`}
-                data-testid="option-label-en"
-                value={option.labelEn}
-                onChange={(event) => patch({ labelEn: event.target.value })}
-              />
-            </div>
-          </FormField>
-        </div>
-        <div className="min-w-0 overflow-hidden">
-          <FormField label={t("admin.attributes.options.labelAm")} htmlFor={`option-am-${index}`}>
-            <div className="w-full min-w-0">
-              <Input
-                id={`option-am-${index}`}
-                data-testid="option-label-am"
-                value={option.labelAm}
-                onChange={(event) => patch({ labelAm: event.target.value })}
-              />
-            </div>
-          </FormField>
+          <Field
+            id={`option-am-${index}`}
+            label={t("admin.attributes.options.labelAm")}
+            required={false}
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
+          >
+            {(control) => (
+              <div className="w-full min-w-0">
+                <Input
+                  {...control}
+                  className={controlClass(false, false, "dialog")}
+                  data-testid="option-label-am"
+                  value={option.labelAm}
+                  onChange={(event) => patch({ labelAm: event.target.value })}
+                />
+              </div>
+            )}
+          </Field>
         </div>
       </div>
 
       <div className="flex min-h-11 flex-wrap items-center gap-2">
-        <label className="flex min-h-11 items-center gap-2 text-sm">
-          <Checkbox
-            data-testid="option-active"
-            checked={!inactive}
-            onCheckedChange={(checked) => patch({ active: checked === true ? true : false })}
-          />
-          {t("admin.attributes.options.active")}
-        </label>
+        <Field
+          id={`option-active-${index}`}
+          label={t("admin.attributes.options.active")}
+          required={false}
+          layout="choice"
+          refusal={null}
+          family={ATTRIBUTE_REFUSALS}
+        >
+          {(control) => (
+            <Checkbox
+              {...control}
+              data-testid="option-active"
+              checked={!inactive}
+              onCheckedChange={(checked) => patch({ active: checked === true ? true : false })}
+            />
+          )}
+        </Field>
         {inactive ? (
           <span data-testid="option-inactive-tag" className="text-xs text-muted-foreground">
             {t("admin.attributes.options.inactiveTag")}
@@ -172,14 +210,27 @@ export function OptionRow({
         <p className="text-xs text-muted-foreground">{t("admin.attributes.options.aliasesHelp")}</p>
         <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3">
           {[...aliases, ""].slice(0, ALIAS_MAX).map((alias, position) => (
-            <Input
+            <Field
               key={`alias-${position}`}
-              data-testid={`option-alias-${position}`}
-              maxLength={ALIAS_LENGTH_MAX}
-              value={alias}
-              placeholder={t("admin.attributes.options.aliasPlaceholder")}
-              onChange={(event) => setAlias(position, event.target.value)}
-            />
+              id={`option-alias-${index}-${position}`}
+              label={<span className="sr-only">{t("admin.attributes.options.aliasPlaceholder")}</span>}
+              required={false}
+              layout="inline"
+              refusal={null}
+              family={ATTRIBUTE_REFUSALS}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  className={controlClass(false, false, "dialog")}
+                  data-testid={`option-alias-${position}`}
+                  maxLength={ALIAS_LENGTH_MAX}
+                  value={alias}
+                  placeholder={t("admin.attributes.options.aliasPlaceholder")}
+                  onChange={(event) => setAlias(position, event.target.value)}
+                />
+              )}
+            </Field>
           ))}
         </div>
       </div>
@@ -191,18 +242,44 @@ export function OptionRow({
             <p className="min-h-11 py-2 text-sm" data-testid={`option-bounds-target-${target}`}>
               {target}
             </p>
-            <Input
-              data-testid={`option-bounds-min-${target}`}
-              value={bound.min ?? ""}
-              placeholder={t("admin.attributes.options.boundsMin")}
-              onChange={(event) => setBound(target, { min: event.target.value })}
-            />
-            <Input
-              data-testid={`option-bounds-max-${target}`}
-              value={bound.max ?? ""}
-              placeholder={t("admin.attributes.options.boundsMax")}
-              onChange={(event) => setBound(target, { max: event.target.value })}
-            />
+            <Field
+              id={`option-bounds-min-${index}-${target}`}
+              label={<span className="sr-only">{t("admin.attributes.options.boundsMin")}</span>}
+              required={false}
+              layout="inline"
+              refusal={null}
+              family={ATTRIBUTE_REFUSALS}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  className={controlClass(false, false, "dialog")}
+                  data-testid={`option-bounds-min-${target}`}
+                  value={bound.min ?? ""}
+                  placeholder={t("admin.attributes.options.boundsMin")}
+                  onChange={(event) => setBound(target, { min: event.target.value })}
+                />
+              )}
+            </Field>
+            <Field
+              id={`option-bounds-max-${index}-${target}`}
+              label={<span className="sr-only">{t("admin.attributes.options.boundsMax")}</span>}
+              required={false}
+              layout="inline"
+              refusal={null}
+              family={ATTRIBUTE_REFUSALS}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  className={controlClass(false, false, "dialog")}
+                  data-testid={`option-bounds-max-${target}`}
+                  value={bound.max ?? ""}
+                  placeholder={t("admin.attributes.options.boundsMax")}
+                  onChange={(event) => setBound(target, { max: event.target.value })}
+                />
+              )}
+            </Field>
             <Button
               type="button"
               variant="outline"
@@ -224,27 +301,40 @@ export function OptionRow({
             {t("admin.attributes.options.boundsNoTargets")}
           </p>
         ) : unusedTargets.length === 0 ? null : (
-          <NativeSelect
-            data-testid="option-bounds-add"
-            className="w-full"
-            value=""
-            onChange={(event) => {
-              if (event.target.value !== "") setBound(event.target.value, {});
-            }}
+          <Field
+            id={`option-bounds-add-${index}`}
+            label={<span className="sr-only">{t("admin.attributes.options.boundsAddExample")}</span>}
+            required={false}
+            layout="inline"
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
           >
-            <option value="">{t("admin.attributes.options.boundsAddExample")}</option>
-            {unusedTargets.map((target) => (
-              <option key={target.attrKey} value={target.attrKey}>
-                {target.label}
-              </option>
-            ))}
-          </NativeSelect>
+            {(control) => (
+              <NativeSelect
+                {...control}
+                data-testid="option-bounds-add"
+                className="w-full"
+                value=""
+                onChange={(event) => {
+                  if (event.target.value !== "") setBound(event.target.value, {});
+                }}
+              >
+                <option value="">{t("admin.attributes.options.boundsAddExample")}</option>
+                {unusedTargets.map((target) => (
+                  <option key={target.attrKey} value={target.attrKey}>
+                    {target.label}
+                  </option>
+                ))}
+              </NativeSelect>
+            )}
+          </Field>
         )}
       </div>
 
       {/* DEC-057 L3 — the allowed-values block, beside the bounds block. */}
       <AttributeAllowedValues
         option={option}
+        index={index}
         targets={allowedTargets}
         onChange={(part) => patch(part)}
       />

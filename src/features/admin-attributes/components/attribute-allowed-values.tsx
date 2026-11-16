@@ -1,8 +1,10 @@
+import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
+import { ATTRIBUTE_REFUSALS } from "../attribute-refusals";
 import type { AttributeOption } from "../attributes-service";
 
 /**
@@ -32,10 +34,13 @@ function allowedEntries(option: AttributeOption): [string, string[]][] {
 
 export function AttributeAllowedValues({
   option,
+  index,
   targets,
   onChange,
 }: {
   option: AttributeOption;
+  /** The row's place in the edited set: the controls' ids are unique per row. */
+  index: number;
   targets: AllowedTarget[];
   onChange: (part: Pick<AttributeOption, "allowed">) => void;
 }) {
@@ -105,27 +110,38 @@ export function AttributeAllowedValues({
               <ul className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2">
                 {offered.map((entry) => (
                   <li key={entry.value} className="min-w-0">
-                    <label
-                      className={`flex min-h-11 min-w-0 items-center gap-2 text-sm ${
-                        entry.active === false ? "text-muted-foreground" : ""
-                      }`}
-                    >
-                      <Checkbox
-                        data-testid={`option-allowed-value-${target}-${entry.value}`}
-                        checked={values.includes(entry.value)}
-                        onCheckedChange={(checked) =>
-                          toggleValue(target, entry.value, checked === true)
-                        }
-                      />
-                      <span className="min-w-0 break-all">
-                        {entry.labelEn.trim() === "" ? entry.value : entry.labelEn}
-                      </span>
-                      {entry.labelAm.trim() === "" ? null : (
-                        <span className="min-w-0 break-all text-xs text-muted-foreground">
-                          {entry.labelAm}
+                    <Field
+                      id={`option-allowed-value-${index}-${target}-${entry.value}`}
+                      label={
+                        <span
+                          className={`min-w-0 break-all ${
+                            entry.active === false ? "text-muted-foreground" : ""
+                          }`}
+                        >
+                          {entry.labelEn.trim() === "" ? entry.value : entry.labelEn}
+                          {entry.labelAm.trim() === "" ? null : (
+                            <span className="ms-2 text-xs text-muted-foreground">
+                              {entry.labelAm}
+                            </span>
+                          )}
                         </span>
+                      }
+                      required={false}
+                      layout="choice"
+                      refusal={null}
+                      family={ATTRIBUTE_REFUSALS}
+                    >
+                      {(control) => (
+                        <Checkbox
+                          {...control}
+                          data-testid={`option-allowed-value-${target}-${entry.value}`}
+                          checked={values.includes(entry.value)}
+                          onCheckedChange={(checked) =>
+                            toggleValue(target, entry.value, checked === true)
+                          }
+                        />
                       )}
-                    </label>
+                    </Field>
                   </li>
                 ))}
               </ul>
@@ -142,21 +158,33 @@ export function AttributeAllowedValues({
           {t("admin.attributes.options.allowedNoTargets")}
         </p>
       ) : unused.length === 0 || atCeiling ? null : (
-        <NativeSelect
-          data-testid="option-allowed-add"
-          className="w-full"
-          value=""
-          onChange={(event) => {
-            if (event.target.value !== "") addTarget(event.target.value);
-          }}
+        <Field
+          id={`option-allowed-add-${index}`}
+          label={<span className="sr-only">{t("admin.attributes.options.allowedAddExample")}</span>}
+          required={false}
+          layout="inline"
+          refusal={null}
+          family={ATTRIBUTE_REFUSALS}
         >
-          <option value="">{t("admin.attributes.options.allowedAddExample")}</option>
-          {unused.map((target) => (
-            <option key={target.attrKey} value={target.attrKey}>
-              {target.label}
-            </option>
-          ))}
-        </NativeSelect>
+          {(control) => (
+            <NativeSelect
+              {...control}
+              data-testid="option-allowed-add"
+              className="w-full"
+              value=""
+              onChange={(event) => {
+                if (event.target.value !== "") addTarget(event.target.value);
+              }}
+            >
+              <option value="">{t("admin.attributes.options.allowedAddExample")}</option>
+              {unused.map((target) => (
+                <option key={target.attrKey} value={target.attrKey}>
+                  {target.label}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </Field>
       )}
     </div>
   );
