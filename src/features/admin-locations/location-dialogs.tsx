@@ -175,32 +175,32 @@ export function LocationCreateDialog({
         refusal={null}
       >
         {(control) =>
-        {fixed ? (
-          <p {...control} data-testid="location-create-parent" className="text-sm">
-            {parent?.path ?? "—"}
-          </p>
-        ) : (
-          <NativeSelect
-            {...control}
-            data-testid="location-create-parent"
-            className="w-full"
-            value={chosen}
-            onChange={(event) => setChosen(event.target.value)}
-          >
-            {/* L2b-C1 — with every market in the roster the picker also offers
+          fixed ? (
+            <p {...control} data-testid="location-create-parent" className="text-sm">
+              {parent?.path ?? "—"}
+            </p>
+          ) : (
+            <NativeSelect
+              {...control}
+              data-testid="location-create-parent"
+              className="w-full"
+              value={chosen}
+              onChange={(event) => setChosen(event.target.value)}
+            >
+              {/* L2b-C1 — with every market in the roster the picker also offers
                 CLOSED countries' anchors, suffixed so the operator can see a
                 place is being prepared before its market opens. */}
-            {parents.map((row) => (
-              <option key={row.id} value={row.id}>
-                {row.level === "country"
-                  ? t("admin.locations.create.parentCountry").replace("{country}", row.nameEn)
-                  : row.isActive
-                    ? row.path
-                    : `${row.path} · ${t("admin.locations.filter.closedSuffix")}`}
-              </option>
-            ))}
-          </NativeSelect>
-        )
+              {parents.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.level === "country"
+                    ? t("admin.locations.create.parentCountry").replace("{country}", row.nameEn)
+                    : row.isActive
+                      ? row.path
+                      : `${row.path} · ${t("admin.locations.filter.closedSuffix")}`}
+                </option>
+              ))}
+            </NativeSelect>
+          )
         }
       </Field>
       <p className="text-sm text-muted-foreground" data-testid="location-create-level">
