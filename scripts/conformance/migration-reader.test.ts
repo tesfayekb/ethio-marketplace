@@ -195,11 +195,6 @@ describe("a body built at run time is computed (INC-1083)", () => {
         .filter(([, d]) => d.computed === true)
         .map(([name]) => name)
         .sort(),
-    ).toEqual([
-      "attr_import_plan",
-      "edit_my_listing",
-      "public_listing_json",
-      "validate_listing_draft",
-    ]);
+    ).toEqual(["attr_import_plan", "public_listing_json", "validate_listing_draft"]);
   });
 });

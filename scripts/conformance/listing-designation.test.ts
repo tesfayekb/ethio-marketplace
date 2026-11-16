@@ -18,7 +18,7 @@ import { lastDeclarations } from "./migration-reader";
  * P-2 (a) ruling 14 item 4 (CF-TIER-5) — the five designation columns of
  * public.listings (tier_until, tier_source, reach, reach_until, reach_source)
  * are written only by the level and reach doors, admin_set_listing_tier,
- * transition_listing and designation_sweep_core; src/ never writes them through
+ * transition_listing_core and designation_sweep_core; src/ never writes them through
  * the data API. Allowances (`<fn>:<file>:<line>` or `<file>:<line>` | reason |
  * until) in listing-designation-allowlist.txt; a stale or expired line fails.
  */
