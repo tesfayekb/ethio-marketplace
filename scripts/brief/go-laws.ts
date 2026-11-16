@@ -11,7 +11,8 @@
  * CF-BRIEF-15 census items, CF-BRIEF-16 a SCOPE path rule 00 forbids, CF-BRIEF-17 a ruling saved bare. Tree laws: CF-BRIEF-3's K1 clause (a "(new)" test whose name the tree
  * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
  * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision, CF-BRIEF-19 a
- * record's files inside SCOPE, CF-BRIEF-20 a cited list's reader. CF-BRIEF-4 and CF-BRIEF-14 are the
+ * record's files inside SCOPE, CF-BRIEF-20 a cited list's reader, CF-BRIEF-21 the first-download
+ * sentence (DEC-355's, read from the ledger). CF-BRIEF-4 and CF-BRIEF-14 are the
  * self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
  * is not a claim (laws 2, 7, 10; law 11 keeps code spans, the titles' own form), and a sentence
@@ -287,6 +288,62 @@ export function listReaderFindings(text: string, file: string, root: string): Fi
       text: `cites ${list}; no test it cites reads it by name${readers.length > 0 ? ` (the tree's: ${readers.join(", ")})` : ""}`,
     });
   }
+  return findings;
+}
+
+const TOLERANCES_HEAD = /^(?:\d+\.\s+)?TOLERANCES\b/;
+const FIRST_DOWNLOAD = /\bfirst[- ]download\b/i;
+const DEC_355_SENTENCE = /a page's first download grows only by a named cause[^.\n]*/;
+const BARE_FIGURE = /\b\d+(?:\.\d+)?\s*(?:KiB\b|%)/;
+
+/**
+ * CF-BRIEF-21 (the tests and CI turn, G68's addendum) — a brief's first-download tolerance is
+ * DEC-355's sentence word for word, read from that decision's `docs/spec/spec-ledger.md` entry: a
+ * TOLERANCES paragraph (its head line to the next blank line) that names a page's first download
+ * carries the sentence verbatim, and no sentence of the brief puts a KiB figure or a percentage
+ * beside "first download". A brief without a TOLERANCES paragraph is not read for the first half.
+ */
+export function firstDownloadFindings(text: string, file: string, root: string): Finding[] {
+  const ledger = join(root, LEDGER);
+  const entry = existsSync(ledger)
+    ? linesOf(readFileSync(ledger, "utf8")).find(
+        (line) => LEDGER_ENTRY.exec(line)?.[1] === "DEC-355",
+      )
+    : undefined;
+  const sentence = entry === undefined ? null : (DEC_355_SENTENCE.exec(entry)?.[0] ?? null);
+  const findings: Finding[] = [];
+  const lines = linesOf(text);
+  lines.forEach((content, index) => {
+    if (!TOLERANCES_HEAD.test(content)) return;
+    const end = lines.findIndex((line, at) => at > index && line.trim() === "");
+    const paragraph = lines.slice(index, end === -1 ? lines.length : end).join(" ");
+    if (!FIRST_DOWNLOAD.test(paragraph)) return;
+    if (sentence === null)
+      findings.push({
+        law: "CF-BRIEF-21",
+        file,
+        line: index + 1,
+        text: "names a page's first download; DEC-355's sentence is not in the spec ledger to read",
+      });
+    else if (!paragraph.includes(sentence))
+      findings.push({
+        law: "CF-BRIEF-21",
+        file,
+        line: index + 1,
+        text: `names a page's first download without DEC-355's sentence: "${sentence}"`,
+      });
+  });
+  lines.forEach((content, index) => {
+    for (const part of content.split(SENTENCE)) {
+      if (!FIRST_DOWNLOAD.test(part) || !BARE_FIGURE.test(part)) continue;
+      findings.push({
+        law: "CF-BRIEF-21",
+        file,
+        line: index + 1,
+        text: `a bare figure beside "first download": ${part.trim().slice(0, 80)}`,
+      });
+    }
+  });
   return findings;
 }
 
@@ -833,7 +890,7 @@ export function textFindings(text: string, file: string): Finding[] {
 }
 
 /**
- * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10, laws 18 → 20); a root the laws cannot
+ * Every tree law over one brief or ruling (law 3's K1 clause, laws 5 → 10, laws 18 → 21); a root the laws cannot
  * read fails each. `repository` (check-go's `--at`): where a COUNT that is a git read runs.
  */
 export function treeFindings(
@@ -855,12 +912,14 @@ export function treeFindings(
       "CF-BRIEF-18",
       "CF-BRIEF-19",
       "CF-BRIEF-20",
+      "CF-BRIEF-21",
     ].map((law) => ({ law, file, line: 1, text: problem }));
   return [
     ...newTestFindings(text, file, root),
     ...settingDecisionFindings(text, file, root),
     ...recordScopeFindings(text, file, root),
     ...listReaderFindings(text, file, root),
+    ...firstDownloadFindings(text, file, root),
     ...citedPathFindings(text, file, root),
     ...citedLineFindings(text, file, root),
     ...freeIdFindings(text, file, root),

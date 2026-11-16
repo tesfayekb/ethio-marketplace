@@ -1350,3 +1350,15 @@ parts at run time). The identity script `scripts/deny-tests/p1f-identity-unlink.
 stops with its usage line (exit 2) before any network call when it is unset
 (`scripts/deny-tests/p1f-identity-unlink.test.ts`, P1F-1…3). The address stays in git history
 until the repository is private (DEC-116).
+
+## The first-download sentence — CF-BRIEF-21 (the tests and CI turn, G68's addendum)
+
+`scripts/brief/go-laws.ts`'s `firstDownloadFindings` reads DEC-355's sentence from its entry in
+`docs/spec/spec-ledger.md` ("a page's first download grows only by a named cause the report lists
+chunk by chunk; an unexplained growth is a STOP; no bare number"). A brief's TOLERANCES paragraph
+(its head line to the next blank line) that names a page's first download carries that sentence
+verbatim, and no sentence of the brief puts a KiB figure or a percentage beside "first download";
+a TOLERANCES paragraph that names no first download is not read for the first half. It runs as a
+tree law through `scripts/brief/check-go.ts` and on the brief in force in
+`scripts/conformance/briefs.test.ts`, whose planted brief (a TOLERANCES paragraph with a bare
+2 KiB) fails it by name and whose clean brief passes.
