@@ -1,6 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { afterAll, describe, expect, it } from "vitest";
 import { walkFiles } from "../conformance/kit";
 
 /**
@@ -8,7 +10,8 @@ import { walkFiles } from "../conformance/kit";
  * a `lovable/*` branch changes only what Lovable may change (Knowledge v3.14's ROLE paragraph,
  * DEC-386; the two DEC-390 exceptions and the third, DEC-396, judged by content). Every case plants
  * the GitHub API's own shape — the pull request's files, one JSON array per page — on the script's
- * stdin.
+ * stdin. DEC-398 (CF-LVB-13, CF-LVB-14): a patchless exception file is read from a planted git
+ * history, the two sides fetched from a planted remote.
  */
 
 const SCRIPT = "scripts/ci/lovable-branch-guard.sh";
@@ -311,5 +314,224 @@ describe("a Lovable branch's pull request changes only screen files (DEC-394)", 
       expect(result.code, path).toBe(1);
       expect(result.out, path).toContain(`${path} — modified: ${scriptsRule}`);
     }
+  });
+});
+
+/**
+ * DEC-398 — the git the script reads for a patchless exception file. A planted remote holds a base
+ * commit and a head commit; the work tree the script runs in has it as `origin` and nothing else
+ * (a shallow checkout holds neither commit, as the scope job's does not).
+ */
+const SCRATCH = mkdtempSync(join(tmpdir(), "lvb-"));
+afterAll(() => rmSync(SCRATCH, { recursive: true, force: true }));
+
+const GIT_ENV = {
+  ...process.env,
+  GIT_AUTHOR_NAME: "planted",
+  GIT_AUTHOR_EMAIL: "planted@example.invalid",
+  GIT_COMMITTER_NAME: "planted",
+  GIT_COMMITTER_EMAIL: "planted@example.invalid",
+  GIT_CONFIG_GLOBAL: "/dev/null",
+  GIT_CONFIG_SYSTEM: "/dev/null",
+};
+
+function git(cwd: string, ...args: string[]): string {
+  const result = spawnSync("git", args, { cwd, encoding: "utf8", env: GIT_ENV, timeout: 20_000 });
+  if (result.status !== 0) throw new Error(`git ${args.join(" ")}: ${result.stderr}`);
+  return result.stdout.trim();
+}
+
+type Side = Record<string, string | Buffer>;
+let planted = 0;
+
+/** A remote with two commits (`base`, then `head`) holding `files`, and the work tree for it. */
+function plant(base: Side, head: Side) {
+  const root = join(SCRATCH, `case-${(planted += 1)}`);
+  const remote = join(root, "remote");
+  const work = join(root, "work");
+  mkdirSync(remote, { recursive: true });
+  mkdirSync(work, { recursive: true });
+  git(remote, "init", "--quiet", "--template=", "--initial-branch=main");
+  git(remote, "config", "uploadpack.allowAnySHA1InWant", "true");
+  git(remote, "config", "uploadpack.allowFilter", "true");
+  const commit = (files: Side, message: string) => {
+    for (const [path, body] of Object.entries(files)) {
+      mkdirSync(dirname(join(remote, path)), { recursive: true });
+      writeFileSync(join(remote, path), body);
+    }
+    git(remote, "add", "--all");
+    git(remote, "commit", "--quiet", "--allow-empty", "-m", message);
+    return git(remote, "rev-parse", "HEAD");
+  };
+  const baseSha = commit(base, "base");
+  const headSha = commit(head, "head");
+  git(work, "init", "--quiet", "--template=");
+  git(work, "remote", "add", "origin", `file://${remote}`);
+  return { work, baseSha, headSha };
+}
+
+function runInGit(
+  pages: Entry[][],
+  tree: { work: string; baseSha: string; headSha: string },
+  env: Record<string, string> = {},
+) {
+  const input = pages.map((p) => JSON.stringify(p)).join("");
+  const result = spawnSync("bash", [resolve(SCRIPT)], {
+    encoding: "utf8",
+    input,
+    cwd: tree.work,
+    timeout: 60_000,
+    env: { ...GIT_ENV, PR_BASE_SHA: tree.baseSha, PR_HEAD_SHA: tree.headSha, ...env },
+  });
+  return { code: result.status, out: `${result.stdout}${result.stderr}` };
+}
+
+const noPatch = (filename: string): Entry => ({ filename, status: "modified" });
+
+/** The real ceilings file, with `count` of its ceiling lines grown by one (each line about 4 KB). */
+const BUDGETS = "scripts/route-budgets.mjs";
+const budgetsText = readFileSync(BUDGETS, "utf8");
+function grown(count: number, extra?: (lines: string[]) => void): string {
+  const lines = budgetsText.split("\n");
+  let done = 0;
+  for (let i = 0; i < lines.length && done < count; i += 1) {
+    if (/^ {2}"[^"]+": \{ ceiling: \d+, public: (true|false) \}, \/\/ .+$/.test(lines[i] ?? "")) {
+      lines[i] = (lines[i] ?? "").replace(
+        /ceiling: (\d+)/,
+        (_, n: string) => `ceiling: ${Number(n) + 1}`,
+      );
+      done += 1;
+    }
+  }
+  if (done < count) throw new Error("route-budgets.mjs has too few ceiling lines");
+  extra?.(lines);
+  return lines.join("\n");
+}
+
+describe("a patchless exception file is read from git (DEC-398)", () => {
+  it("CF-LVB-13 a ceilings file the API carries no patch for passes when git's changed lines are ceiling lines; every unreadable side refuses", () => {
+    const tree = plant({ [BUDGETS]: budgetsText }, { [BUDGETS]: grown(9) });
+    const passes = runInGit([[noPatch(BUDGETS)]], tree);
+    expect(passes.code, passes.out).toBe(0);
+    expect(passes.out).toContain(
+      "lovable-branch-guard: 1 file(s), none outside what a Lovable branch may change (DEC-394).",
+    );
+
+    // Beside a screen file and a path-rule refusal: the verdict is per file, git read once.
+    const beside = runInGit(
+      [[modified("src/routes/index.tsx"), noPatch(BUDGETS), modified("package.json")]],
+      tree,
+    );
+    expect(beside.code).toBe(1);
+    expect(beside.out).toContain("1 change(s) outside what a Lovable branch may change (DEC-394)");
+    expect(beside.out).toContain("package.json — modified");
+    expect(beside.out).not.toContain(BUDGETS);
+
+    // The same two sides under the other exceptions: an added ledger line; an allowlist's removals.
+    const ledger = "docs/tracking/intentional-deletions.txt";
+    const lists = plant(
+      {
+        [ledger]: "src/a.tsx\n",
+        [FORMS_ALLOWLIST]: `${KEPT_A}\n${GONE_B}\n${GONE_C}\n${KEPT_D}\n`,
+      },
+      { [ledger]: "src/a.tsx\nsrc/c.tsx\n", [FORMS_ALLOWLIST]: `${KEPT_A}\n${KEPT_D}\n` },
+    );
+    const listed = runInGit([[noPatch(ledger), noPatch(FORMS_ALLOWLIST)]], lists);
+    expect(listed.code, listed.out).toBe(0);
+
+    // The two sides alike: no changed line, nothing to refuse.
+    const alike = runInGit([[noPatch(BUDGETS)]], plant({ [BUDGETS]: budgetsText }, {}));
+    expect(alike.code, alike.out).toBe(0);
+
+    // A side that cannot be read is a refusal, never a pass.
+    const unreadable = "its two sides could not be read from git";
+    const noShas = runInGit([[noPatch(BUDGETS)]], tree, { PR_BASE_SHA: "", PR_HEAD_SHA: "" });
+    expect(noShas.code).toBe(1);
+    expect(noShas.out).toContain(`${BUDGETS} — the API carries no patch for it`);
+    expect(noShas.out).toContain(unreadable);
+    expect(noShas.out).toContain("not both a commit's forty hex digits");
+    const malformed = runInGit([[noPatch(BUDGETS)]], tree, { PR_HEAD_SHA: "--upload-pack=x" });
+    expect(malformed.code).toBe(1);
+    expect(malformed.out).toContain("not both a commit's forty hex digits");
+    const absent = runInGit([[noPatch(BUDGETS)]], tree, { PR_HEAD_SHA: "0".repeat(40) });
+    expect(absent.code).toBe(1);
+    expect(absent.out).toContain("git fetch of the base and head commits failed");
+    expect(absent.out).toContain("DEC-390's exception cannot be read");
+    const binary = runInGit(
+      [[noPatch(BUDGETS)]],
+      plant({ [BUDGETS]: Buffer.from([0, 1, 2, 3]) }, { [BUDGETS]: Buffer.from([0, 1, 2, 4]) }),
+    );
+    expect(binary.code).toBe(1);
+    expect(binary.out).toContain("git holds no text hunk for it (a binary file)");
+
+    // A patchless file under no exception keeps its path rule, and git is not read for it.
+    const plain = runInGit([[noPatch("src/routes/index.tsx"), noPatch("package.json")]], tree, {
+      PR_BASE_SHA: "",
+      PR_HEAD_SHA: "",
+    });
+    expect(plain.code).toBe(1);
+    expect(plain.out).toContain("1 change(s) outside what a Lovable branch may change (DEC-394)");
+    expect(plain.out).toContain("package.json — modified: package.json — dependencies (DEC-386)");
+    expect(plain.out).not.toContain("src/routes/index.tsx");
+
+    // The step names the two commits and the guard reads nothing else of the pull request's git.
+    const ci = readFileSync(".github/workflows/ci.yml", "utf8");
+    const step = ci.slice(ci.indexOf("- name: Lovable branch guard (DEC-394)"));
+    const env = step.slice(0, step.indexOf("        run: |"));
+    expect(env).toContain("PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}");
+    expect(env).toContain("PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}");
+  });
+
+  it("CF-LVB-14 the same file with one changed line that is not a ceiling line refuses with DEC-390 named", () => {
+    const other = plant(
+      { [BUDGETS]: budgetsText },
+      { [BUDGETS]: grown(9, (lines) => lines.push("export const LOOSE = true;")) },
+    );
+    const refused = runInGit([[noPatch(BUDGETS)]], other);
+    expect(refused.code).toBe(1);
+    expect(refused.out).toContain(
+      `${BUDGETS} — a changed line that is not a ceiling line; DEC-390 allows ceiling lines only`,
+    );
+    expect(refused.out).toContain("1 change(s) outside what a Lovable branch may change (DEC-394)");
+
+    // A ceiling line widened with a key is no ceiling line.
+    const widened = plant(
+      { [BUDGETS]: budgetsText },
+      {
+        [BUDGETS]: grown(1, (lines) => {
+          const at = lines.findIndex((l) => l.includes(" }, // "));
+          lines[at] = (lines[at] ?? "").replace(" }, //", ", extra: 1 }, //");
+        }),
+      },
+    );
+    const wide = runInGit([[noPatch(BUDGETS)]], widened);
+    expect(wide.code).toBe(1);
+    expect(wide.out).toContain("DEC-390 allows ceiling lines only");
+
+    // The other exceptions judge git's lines as they judge the API's: a removed ledger line, an
+    // allowlist's added line, and a new allowlist file refuse.
+    const ledger = "docs/tracking/intentional-deletions.txt";
+    const lists = plant(
+      {
+        [ledger]: "src/a.tsx\nsrc/b.tsx\n",
+        [FORMS_ALLOWLIST]: `${KEPT_A}\n${KEPT_D}\n`,
+      },
+      { [ledger]: "src/a.tsx\n", [FORMS_ALLOWLIST]: `${KEPT_A}\n${GONE_B}\n${KEPT_D}\n` },
+    );
+    const bad = runInGit([[noPatch(ledger), noPatch(FORMS_ALLOWLIST)]], lists);
+    expect(bad.code).toBe(1);
+    expect(bad.out).toContain(
+      `${ledger} — a removed or changed line; DEC-390 allows added lines only`,
+    );
+    expect(bad.out).toContain(NOT_REMOVAL(FORMS_ALLOWLIST));
+    const fresh = plant({}, { "scripts/conformance/new-allowlist.txt": `${KEPT_A}\n` });
+    const added = runInGit(
+      [[{ filename: "scripts/conformance/new-allowlist.txt", status: "added" }]],
+      fresh,
+    );
+    expect(added.code).toBe(1);
+    expect(added.out).toContain(
+      "scripts/conformance/new-allowlist.txt — added; a Lovable branch may only remove lines of an existing allowlist — DEC-396",
+    );
   });
 });
