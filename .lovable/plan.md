@@ -1,59 +1,77 @@
-# L3 forms-locations — plan (A0, nothing changed)
+# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
 
-Branch: `lovable/forms-locations` (sandbox `edit/edt-1c880d1d-4339-4a6c-b6b9-560033f2fbf8`), HEAD `dde51203bae0669601ef5ebb033b1e22abb69b86` = base.
+(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
 
-## (a) Files
-- `src/features/admin-locations/location-form-fields.tsx` — 7 controls onto Field; takes `gate` + `refusals` props (L2's `CountryFormFields` shape).
-- `location-dialogs.tsx` — create dialog: parent onto Field; `useFormGate` + `gate.try()` first; parser for lat/lng/order.
-- `location-editor.tsx` — same submit order as `country-editor.tsx` (it shares the form fields, so it must pass the gate; not in the census but needed — listed for the ruling).
-- `location-verb-dialogs.tsx` — move parent + delete confirm onto Field.
-- `location-dialog-state.ts` — DELETED (`numberOrNull` replaced by `parseNumber`/`numberOf`); its line + comment appended to `docs/tracking/intentional-deletions.txt` (text as the supervisor supplies, as in L2).
-- `location-refusals.ts` — family gains `required: "post.refusal.required"`, `badType: PARSE_INVALID_KEY` (L2's conflict-2 ruling); `location-refusals.test.tsx` keys list updated.
-- Tests: `location-verb-dialogs.test.tsx` (extended: move/delete Field ids, aria), new `location-form-fields.test.tsx` and `location-editor.test.tsx` (KFL-1…n); `locations-service.test.ts` unchanged (no service change, E2).
-- `scripts/conformance/forms-allowlist.txt` — lines 21, 22, 23 leave (DEC-396); line 24 stays.
-- `docs/features/forms.md` — "Places console (wave 3)" paragraph.
-- i18n-usage maps regenerated (a key-using file is deleted? no — `location-dialog-state.ts` uses no keys; maps regenerated only if the diff shows it).
+## CI first
+- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
+- No completed run on 836d1030 yet. Read again before the build turn's push.
 
-## (b) Controls (all `layout="stack"`, `controlClass(refused,false,"dialog")`)
-| file:line | old | Field | parse |
-|---|---|---|---|
-| form-fields:62 name | FormField+Input | required, gate, blank | text, trimmed |
-| form-fields:82 slug | FormField+Input, help | optional, hint=slugHint | — |
-| form-fields:98 iso (region only) | FormField+Input | optional | — |
-| form-fields:108 centre lat | FormField+Input, help | required at city/sub_city (`coordinatesRequired`), else optional; hint kept | `parseNumber(raw,{min:-90,max:90})`; blank → null (or gate when required); invalid → badType |
-| form-fields:125 centre lng | FormField+Input | same rule as lat | `parseNumber(raw,{min:-180,max:180})` |
-| form-fields:135 aliases (typed alias Input + add/chips) | FormField+Input | optional, hint=aliasesHint; Field wraps the row | — |
-| form-fields:184 order (country only) | FormField+Input | required, prefilled | `parseNumber(raw,{integer:true})`; null → badType, never `?? 0` |
-| dialogs:163 create parent | FormField+NativeSelect / read-only p | required, `marked={false}` (always holds a value) | — |
-| verb-dialogs:158 move parent | FormField+NativeSelect | required, `marked={false}` | — |
-| verb-dialogs:356 delete confirm | FormField+Input | required, gate, blank; slugMismatch stays the door/client check via the family | — |
+## What the operator will see
+Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
 
-Question for the ruling: the lat/lng min/max bounds are new client mirrors; if unwanted I use no bounds (parser only decides blank/invalid/value).
-Field ids = the door's field names via `field=` (`nameEn`, `slug`, `iso`, `centerLat`, `centerLng`, `aliases`, `displayOrder`, `parentId`, `confirm`); DOM `id` stays `${p}-name` etc.
+## Census (836d1030; build turn pastes full file:line)
+Primitive consumers — "uses the primitive":
+- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
+- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
+- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
+- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
+- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
 
-## (c) Mechanisms read (K1)
-`Field` (field.tsx: required/marked/hint/refusal/gate/blank/layout), `useFormGate` (report/register/try/marks), `parse-input.ts` (`parseNumber`, `numberOf`, `PARSE_INVALID_KEY`), `control-class.ts` (`controlClass`, dialog density), `location-refusals.ts` (`useLocationRefusal`, `LOCATION_REFUSALS`), the required mark inside Field. Local checks `nameRequired` and `missingCoordinates` leave as client pre-checks (gate replaces them); their keys stay in the family for the door's codes.
+"Draws its own":
+- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
+- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
+- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
+- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
 
-## (d) data-testid kept (all, unchanged)
-location-create-{name,slug,iso,lat,lng,alias,order,parent,level,slug-preview,dialog,submit,close,retired}, location-edit-{name,slug,iso,lat,lng,alias,order}, location-alias-{add,list,chip-N,remove-N}, location-move-{parent,path,empty,dialog,submit}, location-delete-{confirm,path,dialog,submit}, location-dialog-{error,cancel}, location-editor-save. Field's own `form-field`/`form-field-refusal` ids are added by the kit.
+Own classes on dialog parts outside the primitive:
+- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
 
-## (e) New English strings
-None.
+Unused primitives:
+- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
+- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
 
-## (f) First download today
-Not measured: plan mode forbids running the build. Ceiling line today: `/admin/places` 329 (route-budgets.mjs:51). Before/after measured in the build turn; expected growth small (field.tsx, use-form-gate.ts, parse-input.ts, control-class.ts may already be in the admin chunk set — confirmed by the measurement).
+Allowlists:
+- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
+- look-values-allowlist :3 (drawer) goes with drawer.tsx.
 
-## (g) Conflicts with Knowledge
-1. `location-editor.tsx` is outside the three census files but shares the form; needs a ruling to include it.
-2. Deletion line in `docs/tracking/intentional-deletions.txt` needs the supervisor's exact text.
-3. Family additions `required`/`badType` (precedent L2) — confirm.
-4. `CategoryModal` borrowed from the categories console — K2 only.
+## Mechanism
+1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
+   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
+2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
+3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
+4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
+5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
+6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
 
-## (h) Cannot run in sandbox
-`bun run checks` whole; the first-download measurement if the build cannot finish; browser tests (CI only). Will run A6's list: string scan, i18n:usage + diff, check-deletions, prettier, eslint, vitest on touched tests + forms.test.ts.
+## Guard
+- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
+- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
 
-## K2 siblings
-`locations-toolbar.tsx` filter (DEC-338, stays); other wave-3 consoles still on their allowlist lines.
+## Tests
+- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
+- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
+- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
+- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
+- DLG-E6 reduced motion: no transition.
+- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
+- Touched specs whole, both projects, retries 0.
 
-## Last step
-`git diff --name-only dde51203b`; write back every non-task path from base; list it.
+## G38 list (build turn greps and names old → new)
+- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
+
+## Growth
+- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
+- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
+
+## Turns
+- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
+- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
+- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
+
+## Open points for the ruling
+1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
+2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
+3. Map pin dropper on the Radix dialog, or allowlisted.
+
+## Technical scope (build)
+src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.

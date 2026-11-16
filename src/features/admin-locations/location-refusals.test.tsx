@@ -55,7 +55,7 @@ const TRIGGER_IDS = [
 describe("the places console's refusals (F1-4b, DEC-333)", () => {
   it("LRF-1 every id the console spoke keeps its own line; the words hold those and the two shared codes", () => {
     expect(Object.keys(LOCATION_REFUSALS.words).sort()).toEqual(
-      [...IDS, "permissionDenied", "rateLimited"].sort(),
+      [...IDS, "permissionDenied", "rateLimited", "required", "badType"].sort(),
     );
     for (const id of IDS) {
       const read = readRefusal(refused(id), LOCATION_REFUSALS);

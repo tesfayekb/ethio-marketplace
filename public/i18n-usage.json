@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 727,
+  "scanned": 726,
   "dynamicCallSites": 425,
   "keys": {
     "account.deactivatedBanner": [
@@ -6542,6 +6542,7 @@
       "/admin/countries",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/places",
       "/admin/screening",
       "/auth",
       "/legal/accept",
@@ -6663,6 +6664,7 @@
       "/admin/countries",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/places",
       "/admin/screening",
       "/auth",
       "/legal/accept",

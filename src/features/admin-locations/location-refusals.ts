@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
@@ -37,6 +38,9 @@ export const LOCATION_REFUSALS = {
     notAChild: "admin.locations.error.notAChild",
     slugMismatch: "admin.locations.error.slugMismatch",
     retireInstead: "admin.locations.error.retireInstead",
+    // DEC-339 — the one gate's blank and the one parser's unreadable answer, under their Field.
+    required: "post.refusal.required",
+    badType: PARSE_INVALID_KEY,
   },
   sentences: [[/step[ -]?up/i, "admin.locations.error.stepUp"]],
   generic: "admin.locations.error.unknown",
