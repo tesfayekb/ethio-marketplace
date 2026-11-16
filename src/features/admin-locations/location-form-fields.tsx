@@ -1,12 +1,15 @@
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import type { FormGate } from "@/components/forms/use-form-gate";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
 
-import { coordinatesRequired } from "./location-form-values";
+import { coordinatesRequired, type LocationFormRefusals } from "./location-form-values";
+import { LOCATION_REFUSALS } from "./location-refusals";
 import { deriveLocationSlug, type LocationLevel } from "./locations-service";
 
 /**
@@ -34,19 +37,27 @@ export interface LocationFormValues {
   centerLng: string;
 }
 
+const hintLine = (text: string) => <p className="text-xs text-muted-foreground">{text}</p>;
+
 export function LocationFormFields({
   mode,
   level,
   values,
   onChange,
+  gate,
+  refusals = {},
 }: {
   mode: "create" | "edit";
   /** The level the row IS (edit) or will be born at (create). */
   level: LocationLevel | string;
   values: LocationFormValues;
   onChange: (patch: Partial<LocationFormValues>) => void;
+  gate?: FormGate;
+  refusals?: LocationFormRefusals;
 }) {
   const { t } = useI18n();
+  const coordsRequired = coordinatesRequired(level);
+  const refusalOf = (field: keyof LocationFormValues) => refusals[field] ?? null;
   const p = mode === "create" ? "location-create" : "location-edit";
   const [alias, setAlias] = useState("");
 
@@ -59,14 +70,26 @@ export function LocationFormFields({
 
   return (
     <>
-      <FormField label={t("admin.locations.field.name")} htmlFor={`${p}-name`}>
-        <Input
-          id={`${p}-name`}
-          data-testid={`${p}-name`}
-          value={values.nameEn}
-          onChange={(event) => onChange({ nameEn: event.target.value })}
-        />
-      </FormField>
+      <Field
+        id={`${p}-name`}
+        field="nameEn"
+        label={t("admin.locations.field.name")}
+        required
+        refusal={refusalOf("nameEn")}
+        family={LOCATION_REFUSALS}
+        gate={gate}
+        blank={values.nameEn.trim() === ""}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${p}-name`}
+            className={controlClass(refusalOf("nameEn") !== null, false, "dialog")}
+            value={values.nameEn}
+            onChange={(event) => onChange({ nameEn: event.target.value })}
+          />
+        )}
+      </Field>
 
       {mode === "create" ? (
         <p className="text-sm text-muted-foreground">
@@ -79,101 +102,147 @@ export function LocationFormFields({
         </p>
       ) : null}
 
-      <FormField
+      <Field
+        id={`${p}-slug`}
+        field="slug"
         label={t("admin.locations.field.slug")}
-        htmlFor={`${p}-slug`}
-        help={t("admin.locations.field.slugHint")}
+        required={false}
+        hint={hintLine(t("admin.locations.field.slugHint"))}
+        refusal={refusalOf("slug")}
+        family={LOCATION_REFUSALS}
       >
-        <Input
-          id={`${p}-slug`}
-          data-testid={`${p}-slug`}
-          value={values.slug}
-          onChange={(event) => onChange({ slug: event.target.value })}
-        />
-      </FormField>
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${p}-slug`}
+            className={controlClass(refusalOf("slug") !== null, false, "dialog")}
+            value={values.slug}
+            onChange={(event) => onChange({ slug: event.target.value })}
+          />
+        )}
+      </Field>
 
       {/* The door refuses `isoOnRegionsOnly` anywhere else, so the field only
           exists where it is legal. */}
       {level === "region" ? (
-        <FormField label={t("admin.locations.field.iso")} htmlFor={`${p}-iso`}>
-          <Input
-            id={`${p}-iso`}
-            data-testid={`${p}-iso`}
-            value={values.iso}
-            onChange={(event) => onChange({ iso: event.target.value })}
-          />
-        </FormField>
+        <Field
+          id={`${p}-iso`}
+          field="iso"
+          label={t("admin.locations.field.iso")}
+          required={false}
+          refusal={refusalOf("iso")}
+          family={LOCATION_REFUSALS}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              data-testid={`${p}-iso`}
+              className={controlClass(refusalOf("iso") !== null, false, "dialog")}
+              value={values.iso}
+              onChange={(event) => onChange({ iso: event.target.value })}
+            />
+          )}
+        </Field>
       ) : null}
 
-      <FormField
+      <Field
+        id={`${p}-lat`}
+        field="centerLat"
         label={t("admin.locations.field.centerLat")}
-        htmlFor={`${p}-lat`}
-        help={
-          coordinatesRequired(level)
+        required={coordsRequired}
+        hint={hintLine(
+          coordsRequired
             ? t("admin.locations.field.centerRequired")
-            : t("admin.locations.field.centerOptional")
-        }
+            : t("admin.locations.field.centerOptional"),
+        )}
+        refusal={refusalOf("centerLat")}
+        family={LOCATION_REFUSALS}
+        gate={gate}
+        blank={coordsRequired && values.centerLat.trim() === ""}
       >
-        <Input
-          id={`${p}-lat`}
-          data-testid={`${p}-lat`}
-          inputMode="decimal"
-          value={values.centerLat}
-          onChange={(event) => onChange({ centerLat: event.target.value })}
-        />
-      </FormField>
-      <FormField label={t("admin.locations.field.centerLng")} htmlFor={`${p}-lng`}>
-        <Input
-          id={`${p}-lng`}
-          data-testid={`${p}-lng`}
-          inputMode="decimal"
-          value={values.centerLng}
-          onChange={(event) => onChange({ centerLng: event.target.value })}
-        />
-      </FormField>
-
-      <FormField
-        label={t("admin.locations.field.aliases")}
-        htmlFor={`${p}-alias`}
-        help={t("admin.locations.field.aliasesHint")}
-      >
-        <span className="flex flex-wrap items-center gap-2">
+        {(control) => (
           <Input
-            id={`${p}-alias`}
-            data-testid={`${p}-alias`}
-            className="md:w-56"
-            value={alias}
-            onChange={(event) => setAlias(event.target.value)}
+            {...control}
+            data-testid={`${p}-lat`}
+            inputMode="decimal"
+            className={controlClass(refusalOf("centerLat") !== null, false, "dialog")}
+            value={values.centerLat}
+            onChange={(event) => onChange({ centerLat: event.target.value })}
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid="location-alias-add"
-            onClick={addAlias}
-          >
-            {t("admin.locations.field.aliasAdd")}
-          </Button>
-        </span>
-        <span className="flex flex-wrap gap-1" data-testid="location-alias-list">
-          {values.aliases.map((entry, index) => (
-            <Badge key={entry} variant="outline" data-testid={`location-alias-chip-${index}`}>
-              <span className="min-w-0 break-words">{entry}</span>
-              <button
+        )}
+      </Field>
+      <Field
+        id={`${p}-lng`}
+        field="centerLng"
+        label={t("admin.locations.field.centerLng")}
+        required={coordsRequired}
+        refusal={refusalOf("centerLng")}
+        family={LOCATION_REFUSALS}
+        gate={gate}
+        blank={coordsRequired && values.centerLng.trim() === ""}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${p}-lng`}
+            inputMode="decimal"
+            className={controlClass(refusalOf("centerLng") !== null, false, "dialog")}
+            value={values.centerLng}
+            onChange={(event) => onChange({ centerLng: event.target.value })}
+          />
+        )}
+      </Field>
+
+      <Field
+        id={`${p}-alias`}
+        field="aliases"
+        label={t("admin.locations.field.aliases")}
+        required={false}
+        hint={hintLine(t("admin.locations.field.aliasesHint"))}
+        refusal={refusalOf("aliases")}
+        family={LOCATION_REFUSALS}
+      >
+        {(control) => (
+          <>
+            <span className="flex flex-wrap items-center gap-2">
+              <Input
+                {...control}
+                data-testid={`${p}-alias`}
+                className={`${controlClass(refusalOf("aliases") !== null, false, "dialog")} md:w-56`}
+                value={alias}
+                onChange={(event) => setAlias(event.target.value)}
+              />
+              <Button
                 type="button"
-                className="ms-1"
-                aria-label={t("admin.locations.field.aliasRemove")}
-                data-testid={`location-alias-remove-${index}`}
-                onClick={() =>
-                  onChange({ aliases: values.aliases.filter((peer) => peer !== entry) })
-                }
+                variant="outline"
+                size="touch"
+                data-testid="location-alias-add"
+                onClick={addAlias}
               >
-                {"\u00d7"}
-              </button>
-            </Badge>
-          ))}
-        </span>
-      </FormField>
+                {t("admin.locations.field.aliasAdd")}
+              </Button>
+            </span>
+            <span className="flex flex-wrap gap-1" data-testid="location-alias-list">
+              {values.aliases.map((entry, index) => (
+                <Badge key={entry} variant="outline" data-testid={`location-alias-chip-${index}`}>
+                  <span className="min-w-0 break-words">{entry}</span>
+                  <button
+                    type="button"
+                    className="ms-1"
+                    aria-label={t("admin.locations.field.aliasRemove")}
+                    data-testid={`location-alias-remove-${index}`}
+                    onClick={() =>
+                      onChange({ aliases: values.aliases.filter((peer) => peer !== entry) })
+                    }
+                  >
+                    {"\u00d7"}
+                  </button>
+                </Badge>
+              ))}
+            </span>
+          </>
+        )}
+      </Field>
 
       {/*
        * Bundle 3 Part D — regions, cities and sub-cities are listed A to Z by
@@ -181,15 +250,25 @@ export function LocationFormFields({
        * round-trips unchanged (INC-188). A country row keeps it.
        */}
       {level === "country" ? (
-        <FormField label={t("admin.locations.field.order")} htmlFor={`${p}-order`}>
-          <Input
-            id={`${p}-order`}
-            data-testid={`${p}-order`}
-            inputMode="numeric"
-            value={values.displayOrder}
-            onChange={(event) => onChange({ displayOrder: event.target.value })}
-          />
-        </FormField>
+        <Field
+          id={`${p}-order`}
+          field="displayOrder"
+          label={t("admin.locations.field.order")}
+          required
+          refusal={refusalOf("displayOrder")}
+          family={LOCATION_REFUSALS}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              data-testid={`${p}-order`}
+              inputMode="numeric"
+              className={controlClass(refusalOf("displayOrder") !== null, false, "dialog")}
+              value={values.displayOrder}
+              onChange={(event) => onChange({ displayOrder: event.target.value })}
+            />
+          )}
+        </Field>
       ) : null}
     </>
   );

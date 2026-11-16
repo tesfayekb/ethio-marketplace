@@ -7,8 +7,12 @@ import { DIALOG_FIELD } from "@/components/ui/dialog-look";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 import type { LocationNode } from "./locations-service";
-import { listLocations, reorderLocations } from "./locations-service";
-import { LocationMoveDialog, LocationReorderDialog } from "./location-verb-dialogs";
+import { deleteLocation, listLocations, reorderLocations } from "./locations-service";
+import {
+  LocationDeleteDialog,
+  LocationMoveDialog,
+  LocationReorderDialog,
+} from "./location-verb-dialogs";
 import { useAdminLocations } from "./use-locations";
 
 vi.mock("@/i18n", () => ({
@@ -30,6 +34,7 @@ vi.mock("./locations-service", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./locations-service")>()),
   listLocations: vi.fn(),
   reorderLocations: vi.fn(),
+  deleteLocation: vi.fn(),
 }));
 
 const guard: GuardFn = (action) => Promise.resolve(action());
@@ -122,5 +127,36 @@ describe("LocationMoveDialog (turn S6-2)", () => {
       expect(parent).toHaveClass(cls);
     expect(parent).not.toHaveClass("bg-background");
     expect(screen.getByRole("option", { name: region.path })).toBeInTheDocument();
+  });
+});
+
+describe("the move and delete dialogs on the one Field and gate (L3, DEC-339)", () => {
+  it("KFP-6 the move's parent sits in the one Field under its label, with no required mark", () => {
+    const city = place("loc-a", "adama", 1);
+    const region = { ...place("loc-r", "oromia", 1), level: "region" };
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <LocationMoveDialog row={city} roster={[city, region]} guard={guard} onClose={() => {}} />
+      </QueryClientProvider>,
+    );
+    const parent = screen.getByTestId("location-move-parent");
+    expect(parent).toHaveAttribute("id", "location-move-parent");
+    expect(screen.getByLabelText(/admin\.locations\.move\.parent/)).toBe(parent);
+    expect(parent.getAttribute("aria-describedby")).toBeTruthy();
+  });
+
+  it("KFP-7 a blank delete confirmation is marked by the gate under its Field and nothing is sent", async () => {
+    vi.mocked(deleteLocation).mockReset();
+    const city = place("loc-a", "adama", 1);
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <LocationDeleteDialog row={city} guard={guard} onClose={() => {}} />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(screen.getByTestId("location-delete-submit"));
+    const confirm = screen.getByTestId("location-delete-confirm");
+    await waitFor(() => expect(confirm).toHaveAttribute("aria-invalid", "true"));
+    expect(screen.getByTestId("form-field-refusal")).toHaveTextContent("post.refusal.required");
+    expect(vi.mocked(deleteLocation)).not.toHaveBeenCalled();
   });
 });

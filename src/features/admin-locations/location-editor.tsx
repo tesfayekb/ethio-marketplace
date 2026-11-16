@@ -1,15 +1,19 @@
 import { useState, type ReactNode } from "react";
 
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { LocationDialogActions, LocationDialogAlert } from "./location-dialogs";
-import { numberOrNull } from "./location-dialog-state";
 import { useLocationRefusal } from "./location-refusals";
 import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
-import { coordinatesRequired } from "./location-form-values";
+import {
+  locationRefusals,
+  readLocationNumbers,
+  type LocationFormRefusals,
+} from "./location-form-values";
 import type { LocationNode } from "./locations-service";
 import { useUpsertLocation } from "./use-locations";
 
@@ -41,7 +45,9 @@ export function LocationEditorDialog({
 }) {
   const { t } = useI18n();
   const upsert = useUpsertLocation();
-  const { message, clear, fail, render } = useLocationRefusal();
+  const { message, clear, fail } = useLocationRefusal();
+  const gate = useFormGate();
+  const [parsed, setParsed] = useState<LocationFormRefusals>({});
   const [form, setForm] = useState<LocationFormValues>(() => ({
     nameEn: row.nameEn,
     slug: row.slug,
@@ -55,14 +61,12 @@ export function LocationEditorDialog({
 
   const submit = () => {
     clear();
-    if (form.nameEn.trim() === "") {
-      render("admin.locations.error.nameRequired");
-      return;
-    }
-    const lat = numberOrNull(form.centerLat);
-    const lng = numberOrNull(form.centerLng);
-    if (coordinatesRequired(row.level) && (lat === null || lng === null)) {
-      render("admin.locations.error.missingCoordinates");
+    setParsed({});
+    // DEC-339: the gate first, then the one parser; nothing is sent while either refuses.
+    if (!gate.try()) return;
+    const numbers = readLocationNumbers(form);
+    if (!numbers.ok) {
+      setParsed(numbers.refusals);
       return;
     }
     void guard(async () => {
@@ -77,9 +81,9 @@ export function LocationEditorDialog({
           slug: form.slug.trim() === "" ? null : form.slug.trim(),
           iso: row.level === "region" && form.iso.trim() !== "" ? form.iso.trim() : null,
           aliases: form.aliases,
-          displayOrder: numberOrNull(form.displayOrder) ?? row.displayOrder,
-          centerLat: lat,
-          centerLng: lng,
+          displayOrder: numbers.displayOrder,
+          centerLat: numbers.centerLat,
+          centerLng: numbers.centerLng,
         });
         onClose();
       } catch (error) {
@@ -113,7 +117,14 @@ export function LocationEditorDialog({
         />
       </div>
 
-      <LocationFormFields mode="edit" level={row.level} values={form} onChange={patch} />
+      <LocationFormFields
+        mode="edit"
+        level={row.level}
+        values={form}
+        onChange={patch}
+        gate={gate}
+        refusals={locationRefusals(gate, parsed)}
+      />
       <p className="text-sm text-muted-foreground">
         <a
           className="underline"
