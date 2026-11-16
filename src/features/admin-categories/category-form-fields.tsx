@@ -1,7 +1,9 @@
 import { type ReactNode } from "react";
 
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import type { FormGate } from "@/components/forms/use-form-gate";
 import { categoryGlyph, isKnownCategoryIcon } from "@/components/shell/category-glyphs";
-import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -9,6 +11,8 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
 import { activeParentOptions, deriveSlugPreview, type CategoryNode } from "./categories-service";
+import type { CategoryFormRefusals } from "./category-form-values";
+import { CATEGORY_REFUSALS } from "./category-refusals";
 
 /**
  * C5k PART B — THE SHARED CATEGORY FORM.
@@ -77,6 +81,8 @@ export function CategoryFormFields({
   positionEndLabel,
   positionCaption,
   extra,
+  gate,
+  refusals = {},
 }: {
   mode: "create" | "edit";
   values: CategoryFormValues;
@@ -99,8 +105,13 @@ export function CategoryFormFields({
   positionCaption?: string;
   /** Edit only: the live read-only display-order field. */
   extra?: ReactNode;
+  /** DEC-339 — the dialog's one gate: the name reports its blank here. */
+  gate?: FormGate;
+  /** The gate's marks and the parser's refusals, by the door's field name. */
+  refusals?: CategoryFormRefusals;
 }) {
   const { t } = useI18n();
+  const refusalOf = (field: keyof CategoryFormValues) => refusals[field] ?? null;
   const p = mode === "create" ? "category-create" : "category-edit";
   const showIconInput = mode === "edit" || iconOpen === true;
   const toggleCode = (code: string, on: boolean) =>
@@ -112,15 +123,27 @@ export function CategoryFormFields({
 
   return (
     <>
-      <FormField label={t("admin.categories.field.name")} htmlFor={`${p}-name`}>
-        <Input
-          id={`${p}-name`}
-          data-testid={`${p}-name`}
-          value={values.nameEn}
-          onChange={(event) => onChange({ nameEn: event.target.value })}
-          onBlur={(event) => onNameBlur?.(event.target.value)}
-        />
-      </FormField>
+      <Field
+        id={`${p}-name`}
+        field="nameEn"
+        label={t("admin.categories.field.name")}
+        required
+        refusal={refusalOf("nameEn")}
+        family={CATEGORY_REFUSALS}
+        gate={gate}
+        blank={values.nameEn.trim() === ""}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${p}-name`}
+            className={controlClass(refusalOf("nameEn") !== null, false, "dialog")}
+            value={values.nameEn}
+            onChange={(event) => onChange({ nameEn: event.target.value })}
+            onBlur={(event) => onNameBlur?.(event.target.value)}
+          />
+        )}
+      </Field>
 
       {mode === "create" ? (
         /* C2c — the slug is derived by the SERVER; this is only a preview. */
@@ -134,173 +157,260 @@ export function CategoryFormFields({
 
       {/* C5l PART B — EMPTY UNTIL NAMED: no icon yet shows the hint, not a
           prefilled Package; the suggestion (or Change) fills the glyph. */}
-      <FormField label={t("admin.categories.field.icon")} htmlFor={`${p}-icon`}>
-        <span className="flex items-center gap-2">
-          {values.icon.trim() === "" && !showIconInput ? (
-            <span data-testid={`${p}-icon-hint`} className="text-sm text-muted-foreground italic">
-              {t("admin.categories.field.iconHint")}
-            </span>
-          ) : (
-            <IconPreview name={values.icon} testid={`${p}-icon-preview`} />
-          )}
-          {showIconInput ? (
-            <Input
-              id={`${p}-icon`}
-              data-testid={`${p}-icon`}
-              value={values.icon}
-              onChange={(event) => onChange({ icon: event.target.value })}
-            />
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-11"
-              data-testid={`${p}-icon-change`}
-              onClick={() => onIconOpen?.()}
-            >
-              {t("admin.categories.field.iconChange")}
-            </Button>
-          )}
-        </span>
-        {iconFallback === true && (
-          <p className="text-sm text-muted-foreground" data-testid={`${p}-icon-fallback`}>
-            {t("admin.categories.field.iconFallbackNote")}
-          </p>
+      <Field
+        id={`${p}-icon`}
+        field="icon"
+        label={t("admin.categories.field.icon")}
+        required={false}
+        hint={
+          iconFallback === true ? (
+            <p className="text-sm text-muted-foreground" data-testid={`${p}-icon-fallback`}>
+              {t("admin.categories.field.iconFallbackNote")}
+            </p>
+          ) : undefined
+        }
+        refusal={refusalOf("icon")}
+        family={CATEGORY_REFUSALS}
+      >
+        {(control) => (
+          <span className="flex items-center gap-2">
+            {values.icon.trim() === "" && !showIconInput ? (
+              <span data-testid={`${p}-icon-hint`} className="text-sm text-muted-foreground italic">
+                {t("admin.categories.field.iconHint")}
+              </span>
+            ) : (
+              <IconPreview name={values.icon} testid={`${p}-icon-preview`} />
+            )}
+            {showIconInput ? (
+              <Input
+                {...control}
+                data-testid={`${p}-icon`}
+                className={controlClass(refusalOf("icon") !== null, false, "dialog")}
+                value={values.icon}
+                onChange={(event) => onChange({ icon: event.target.value })}
+              />
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11"
+                data-testid={`${p}-icon-change`}
+                onClick={() => onIconOpen?.()}
+              >
+                {t("admin.categories.field.iconChange")}
+              </Button>
+            )}
+          </span>
         )}
-      </FormField>
+      </Field>
 
       {mode === "create" ? (
-        <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
-          <NativeSelect
-            id="category-create-parent"
-            data-testid="category-create-parent"
-            className="w-full"
-            value={values.parentId}
-            onChange={(event) => onChange({ parentId: event.target.value, positionBefore: "" })}
-          >
-            <option value="">{t("admin.categories.create.parentRoot")}</option>
-            {activeParentOptions(parents ?? []).map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </FormField>
+        <Field
+          id="category-create-parent"
+          field="parentId"
+          label={t("admin.categories.create.parent")}
+          required={false}
+          refusal={refusalOf("parentId")}
+          family={CATEGORY_REFUSALS}
+        >
+          {(control) => (
+            <NativeSelect
+              {...control}
+              data-testid="category-create-parent"
+              className="w-full"
+              value={values.parentId}
+              onChange={(event) => onChange({ parentId: event.target.value, positionBefore: "" })}
+            >
+              <option value="">{t("admin.categories.create.parentRoot")}</option>
+              {activeParentOptions(parents ?? []).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </Field>
       ) : null}
 
       {mode === "create" && positionOptions !== undefined ? (
         /* C5l PARTS A+C — POSITION: "At the end" by default, or before a
            chosen ACTIVE sibling; placement rides admin_reorder_categories
            post-create (no RPC change). */
-        <FormField label={t("admin.categories.create.position")} htmlFor="category-create-position">
-          <NativeSelect
-            id="category-create-position"
-            data-testid="category-create-position"
-            className="w-full"
-            value={values.positionBefore}
-            onChange={(event) => onChange({ positionBefore: event.target.value })}
-          >
-            <option value="">{positionEndLabel ?? ""}</option>
-            {positionOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
-          <p
-            data-testid="category-create-position-caption"
-            className="text-xs text-muted-foreground"
-          >
-            {positionCaption}
-          </p>
-        </FormField>
+        <Field
+          id="category-create-position"
+          field="positionBefore"
+          label={t("admin.categories.create.position")}
+          required={false}
+          hint={
+            <p
+              data-testid="category-create-position-caption"
+              className="text-xs text-muted-foreground"
+            >
+              {positionCaption}
+            </p>
+          }
+          refusal={refusalOf("positionBefore")}
+          family={CATEGORY_REFUSALS}
+        >
+          {(control) => (
+            <NativeSelect
+              {...control}
+              data-testid="category-create-position"
+              className="w-full"
+              value={values.positionBefore}
+              onChange={(event) => onChange({ positionBefore: event.target.value })}
+            >
+              <option value="">{positionEndLabel ?? ""}</option>
+              {positionOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </Field>
       ) : null}
 
       {extra}
 
-      <FormField label={t("admin.categories.field.lifetimeDays")} htmlFor={`${p}-expiry`}>
-        <Input
-          id={`${p}-expiry`}
-          data-testid={`${p}-expiry`}
-          inputMode="numeric"
-          placeholder={t("admin.categories.field.lifetimeNone")}
-          value={values.expiryDays}
-          onChange={(event) => onChange({ expiryDays: event.target.value })}
-        />
-      </FormField>
+      <Field
+        id={`${p}-expiry`}
+        field="expiryDays"
+        label={t("admin.categories.field.lifetimeDays")}
+        required={false}
+        refusal={refusalOf("expiryDays")}
+        family={CATEGORY_REFUSALS}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${p}-expiry`}
+            inputMode="numeric"
+            className={controlClass(refusalOf("expiryDays") !== null, false, "dialog")}
+            placeholder={t("admin.categories.field.lifetimeNone")}
+            value={values.expiryDays}
+            onChange={(event) => onChange({ expiryDays: event.target.value })}
+          />
+        )}
+      </Field>
 
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid={`${p}-allow`}
-          checked={values.allowListings}
-          onCheckedChange={(checked) => onChange({ allowListings: checked === true })}
-        />
-        {t("admin.categories.field.allowListings")}
-      </label>
-      <label className="flex min-h-11 items-center gap-2 text-sm text-foreground">
-        <Checkbox
-          data-testid={`${p}-price`}
-          checked={values.priceEnabled}
-          onCheckedChange={(checked) => onChange({ priceEnabled: checked === true })}
-        />
-        {t("admin.categories.field.priceEnabled")}
-      </label>
+      <Field
+        id={`${p}-allow`}
+        field="allowListings"
+        label={t("admin.categories.field.allowListings")}
+        required={false}
+        layout="choice"
+        refusal={refusalOf("allowListings")}
+        family={CATEGORY_REFUSALS}
+      >
+        {(control) => (
+          <Checkbox
+            {...control}
+            data-testid={`${p}-allow`}
+            checked={values.allowListings}
+            onCheckedChange={(checked) => onChange({ allowListings: checked === true })}
+          />
+        )}
+      </Field>
+      <Field
+        id={`${p}-price`}
+        field="priceEnabled"
+        label={t("admin.categories.field.priceEnabled")}
+        required={false}
+        layout="choice"
+        refusal={refusalOf("priceEnabled")}
+        family={CATEGORY_REFUSALS}
+      >
+        {(control) => (
+          <Checkbox
+            {...control}
+            data-testid={`${p}-price`}
+            checked={values.priceEnabled}
+            onCheckedChange={(checked) => onChange({ priceEnabled: checked === true })}
+          />
+        )}
+      </Field>
 
       {mode === "create" ? (
         <>
           <p className="text-sm text-muted-foreground">{t("admin.categories.window.hint")}</p>
-          <FormField
+          <Field
+            id="category-create-visible-from"
+            field="visibleFrom"
             label={t("admin.categories.window.from")}
-            htmlFor="category-create-visible-from"
+            required={false}
+            refusal={refusalOf("visibleFrom")}
+            family={CATEGORY_REFUSALS}
           >
-            <Input
-              id="category-create-visible-from"
-              data-testid="category-create-visible-from"
-              type="datetime-local"
-              value={values.visibleFrom}
-              onChange={(event) => onChange({ visibleFrom: event.target.value })}
-            />
-          </FormField>
-          <FormField
+            {(control) => (
+              <Input
+                {...control}
+                data-testid="category-create-visible-from"
+                type="datetime-local"
+                className={controlClass(refusalOf("visibleFrom") !== null, false, "dialog")}
+                value={values.visibleFrom}
+                onChange={(event) => onChange({ visibleFrom: event.target.value })}
+              />
+            )}
+          </Field>
+          <Field
+            id="category-create-visible-until"
+            field="visibleUntil"
             label={t("admin.categories.window.until")}
-            htmlFor="category-create-visible-until"
+            required={false}
+            refusal={refusalOf("visibleUntil")}
+            family={CATEGORY_REFUSALS}
           >
-            <Input
-              id="category-create-visible-until"
-              data-testid="category-create-visible-until"
-              type="datetime-local"
-              value={values.visibleUntil}
-              onChange={(event) => onChange({ visibleUntil: event.target.value })}
-            />
-          </FormField>
+            {(control) => (
+              <Input
+                {...control}
+                data-testid="category-create-visible-until"
+                type="datetime-local"
+                className={controlClass(refusalOf("visibleUntil") !== null, false, "dialog")}
+                value={values.visibleUntil}
+                onChange={(event) => onChange({ visibleUntil: event.target.value })}
+              />
+            )}
+          </Field>
           {countries !== undefined ? (
             /* C5l PART A — INLINE COUNTRIES: the same exclusion set the editor's
                Countries verb manages, chained after the create call. */
-            <FormField
+            <Field
+              id="category-create-countries"
+              field="excludedCodes"
               label={t("admin.categories.create.countries")}
-              htmlFor="category-create-countries"
-              help={t("admin.categories.create.countriesHint")}
+              required={false}
+              hint={
+                <p className="min-w-0 break-words text-xs text-muted-foreground">
+                  {t("admin.categories.create.countriesHint")}
+                </p>
+              }
+              refusal={refusalOf("excludedCodes")}
+              family={CATEGORY_REFUSALS}
             >
-              <div
-                id="category-create-countries"
-                data-testid="category-create-countries"
-                className="grid max-h-48 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2"
-              >
-                {countries.map((country) => (
-                  <label
-                    key={country.code}
-                    className="flex min-h-11 items-center gap-2 text-sm text-foreground"
-                  >
-                    <Checkbox
-                      data-testid={`category-create-exclusion-${country.code}`}
-                      checked={values.excludedCodes.includes(country.code)}
-                      onCheckedChange={(checked) => toggleCode(country.code, checked === true)}
-                    />
-                    <span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>
-                  </label>
-                ))}
-              </div>
-            </FormField>
+              {(control) => (
+                <div
+                  id={control.id}
+                  aria-describedby={control["aria-describedby"]}
+                  data-testid="category-create-countries"
+                  className="grid max-h-48 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2"
+                >
+                  {countries.map((country) => (
+                    <label
+                      key={country.code}
+                      className="flex min-h-11 items-center gap-2 text-sm text-foreground"
+                    >
+                      <Checkbox
+                        data-testid={`category-create-exclusion-${country.code}`}
+                        checked={values.excludedCodes.includes(country.code)}
+                        onCheckedChange={(checked) => toggleCode(country.code, checked === true)}
+                      />
+                      <span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </Field>
           ) : null}
         </>
       ) : null}
