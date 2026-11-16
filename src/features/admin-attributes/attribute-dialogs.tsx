@@ -3,7 +3,6 @@ import { useState } from "react";
 import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
-import { LIST_CHOICE_ON, LIST_ROW } from "@/components/shell/menu-row";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -18,7 +17,6 @@ import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
 import { readRefusal } from "@/lib/refusal";
-import { cn } from "@/lib/utils";
 
 import {
   ATTRIBUTE_TYPES,
