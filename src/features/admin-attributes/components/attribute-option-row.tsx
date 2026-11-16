@@ -98,12 +98,12 @@ export function OptionRow({
           <Field
             id={`option-value-${index}`}
             label={t("admin.attributes.options.value")}
-            required={false}
+            required={!locked}
             refusal={null}
             family={ATTRIBUTE_REFUSALS}
           >
-            {(control) => (
-              {locked ? (
+            {(control) =>
+              locked ? (
                 <p
                   data-testid="option-value"
                   title={option.value}
@@ -122,8 +122,8 @@ export function OptionRow({
                     onChange={(event) => patch({ value: event.target.value })}
                   />
                 </div>
-              )}
-            )}
+              )
+            }
           </Field>
         </div>
         <div className="min-w-0 overflow-hidden">
@@ -213,7 +213,9 @@ export function OptionRow({
             <Field
               key={`alias-${position}`}
               id={`option-alias-${index}-${position}`}
-              label={<span className="sr-only">{t("admin.attributes.options.aliasPlaceholder")}</span>}
+              label={
+                <span className="sr-only">{t("admin.attributes.options.aliasPlaceholder")}</span>
+              }
               required={false}
               layout="inline"
               refusal={null}
@@ -303,7 +305,9 @@ export function OptionRow({
         ) : unusedTargets.length === 0 ? null : (
           <Field
             id={`option-bounds-add-${index}`}
-            label={<span className="sr-only">{t("admin.attributes.options.boundsAddExample")}</span>}
+            label={
+              <span className="sr-only">{t("admin.attributes.options.boundsAddExample")}</span>
+            }
             required={false}
             layout="inline"
             refusal={null}
