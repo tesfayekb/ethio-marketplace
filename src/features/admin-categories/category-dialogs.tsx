@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,8 +23,13 @@ import { cn } from "@/lib/utils";
 
 import { suggestCategoryIcon } from "./category-images-service";
 import { CategoryFormFields, type CategoryFormValues } from "./category-form-fields";
-import { emptyCategoryForm } from "./category-form-values";
-import { useCategoryRefusal } from "./category-refusals";
+import {
+  categoryRefusals,
+  emptyCategoryForm,
+  readCategoryNumbers,
+  type CategoryFormRefusals,
+} from "./category-form-values";
+import { CATEGORY_REFUSALS, useCategoryRefusal } from "./category-refusals";
 
 import {
   activeParentOptions,
@@ -146,6 +153,8 @@ export function CategoryEditorDialog({
    */
   const settling = useSettling(ADMIN_CATEGORIES_KEY);
   const { message, setMessage, fail } = useCategoryRefusal();
+  const gate = useFormGate();
+  const [parsed, setParsed] = useState<CategoryFormRefusals>({});
   /** Set by a successful create — from here the SAME dialog is an editor. */
   const [createdId, setCreatedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -223,7 +232,7 @@ export function CategoryEditorDialog({
     }, 300);
   };
 
-  const submitCreate = () => {
+  const submitCreate = (expiryDays: number | null) => {
     setBusy(true);
     void guard(async () => {
       const id = await create.mutateAsync({
@@ -233,7 +242,7 @@ export function CategoryEditorDialog({
         parentId,
         allowListings: form.allowListings,
         priceEnabled: form.priceEnabled,
-        expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
+        expiryDays,
         visibleFrom: fromLocalInput(form.visibleFrom),
         visibleUntil: fromLocalInput(form.visibleUntil),
       });
@@ -261,7 +270,7 @@ export function CategoryEditorDialog({
       .finally(() => setBusy(false));
   };
 
-  const submitEdit = (row: CategoryRow) => {
+  const submitEdit = (row: CategoryRow, expiryDays: number | null) => {
     void guard(async () => {
       try {
         await update.mutateAsync({
@@ -272,7 +281,7 @@ export function CategoryEditorDialog({
           displayOrder: row.displayOrder,
           allowListings: form.allowListings,
           priceEnabled: form.priceEnabled,
-          expiryDays: form.expiryDays.trim() === "" ? null : Number(form.expiryDays),
+          expiryDays,
         });
         onClose();
       } catch (error) {
@@ -283,15 +292,19 @@ export function CategoryEditorDialog({
 
   const submit = () => {
     setMessage(null);
-    if (form.nameEn.trim().length === 0) {
-      setMessage(t("admin.categories.error.nameRequired"));
+    setParsed({});
+    // DEC-339: the gate first, then the one parser; nothing is sent while either refuses.
+    if (!gate.try()) return;
+    const numbers = readCategoryNumbers(form);
+    if (!numbers.ok) {
+      setParsed(numbers.refusals);
       return;
     }
     if (creating) {
-      submitCreate();
+      submitCreate(numbers.expiryDays);
       return;
     }
-    if (category !== null) submitEdit(category);
+    if (category !== null) submitEdit(category, numbers.expiryDays);
   };
 
   return (
@@ -315,6 +328,8 @@ export function CategoryEditorDialog({
             positionOptions={positionOptions}
             positionEndLabel={positionEndLabel}
             positionCaption={positionCaption}
+            gate={gate}
+            refusals={categoryRefusals(gate, parsed)}
             onChange={(next) => {
               if (next.icon !== undefined) {
                 iconTouched.current = true;
@@ -354,24 +369,40 @@ export function CategoryEditorDialog({
             mode="edit"
             values={form}
             onChange={patch}
+            gate={gate}
+            refusals={categoryRefusals(gate, parsed)}
             extra={
               /**
                * C2-CLOSE Part C — DISPLAY ORDER IS LIVE, NOT TYPED. The field
-               * mirrors the LIVE roster row (INC-142).
+               * mirrors the LIVE roster row (INC-142); it is drawn only where
+               * that row is loaded, so the stored order is always there.
                */
-              <FormField
-                label={t("admin.categories.field.order")}
-                htmlFor="category-edit-order"
-                help={t("admin.categories.field.orderManaged")}
-              >
-                <Input
+              category !== null ? (
+                <Field
                   id="category-edit-order"
-                  data-testid="category-edit-order"
-                  inputMode="numeric"
-                  readOnly
-                  value={String(category?.displayOrder ?? 0)}
-                />
-              </FormField>
+                  field="displayOrder"
+                  label={t("admin.categories.field.order")}
+                  required={false}
+                  hint={
+                    <p className="min-w-0 break-words text-xs text-muted-foreground">
+                      {t("admin.categories.field.orderManaged")}
+                    </p>
+                  }
+                  refusal={null}
+                  family={CATEGORY_REFUSALS}
+                >
+                  {(control) => (
+                    <Input
+                      {...control}
+                      data-testid="category-edit-order"
+                      inputMode="numeric"
+                      readOnly
+                      className={controlClass(false, false, "dialog")}
+                      value={String(category.displayOrder)}
+                    />
+                  )}
+                </Field>
+              ) : null
             }
           />
           <CategoryDialogAlert message={message} />
@@ -493,24 +524,44 @@ export function CategoryWindowDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.categories.window.hint")}</p>
-      <FormField label={t("admin.categories.window.from")} htmlFor="category-window-from">
-        <Input
-          id="category-window-from"
-          data-testid="category-window-from"
-          type="datetime-local"
-          value={from}
-          onChange={(event) => setFrom(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.categories.window.until")} htmlFor="category-window-until">
-        <Input
-          id="category-window-until"
-          data-testid="category-window-until"
-          type="datetime-local"
-          value={until}
-          onChange={(event) => setUntil(event.target.value)}
-        />
-      </FormField>
+      <Field
+        id="category-window-from"
+        field="visibleFrom"
+        label={t("admin.categories.window.from")}
+        required={false}
+        refusal={null}
+        family={CATEGORY_REFUSALS}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid="category-window-from"
+            type="datetime-local"
+            className={controlClass(false, false, "dialog")}
+            value={from}
+            onChange={(event) => setFrom(event.target.value)}
+          />
+        )}
+      </Field>
+      <Field
+        id="category-window-until"
+        field="visibleUntil"
+        label={t("admin.categories.window.until")}
+        required={false}
+        refusal={null}
+        family={CATEGORY_REFUSALS}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid="category-window-until"
+            type="datetime-local"
+            className={controlClass(false, false, "dialog")}
+            value={until}
+            onChange={(event) => setUntil(event.target.value)}
+          />
+        )}
+      </Field>
       <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
@@ -570,17 +621,25 @@ export function CategoryExclusionsDialog({
       </p>
       <div className="grid max-h-64 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2">
         {countries.map((country) => (
-          <label
+          <Field
             key={country.code}
-            className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
+            id={`category-exclusion-${country.code}`}
+            field="excludedCodes"
+            label={<span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>}
+            required={false}
+            layout="choice"
+            refusal={null}
+            family={CATEGORY_REFUSALS}
           >
-            <Checkbox
-              data-testid={`category-exclusion-${country.code}`}
-              checked={codes.includes(country.code)}
-              onCheckedChange={(checked) => toggle(country.code, checked === true)}
-            />
-            <span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>
-          </label>
+            {(control) => (
+              <Checkbox
+                {...control}
+                data-testid={`category-exclusion-${country.code}`}
+                checked={codes.includes(country.code)}
+                onCheckedChange={(checked) => toggle(country.code, checked === true)}
+              />
+            )}
+          </Field>
         ))}
       </div>
       <CategoryDialogAlert message={message} />
@@ -613,6 +672,7 @@ export function RetireCategoryDialog({
   const retire = useRetireCategory();
   const { message, setMessage, fail } = useCategoryRefusal();
   const [reassignTo, setReassignTo] = useState("");
+  const gate = useFormGate();
 
   /**
    * C2h — RETIRE DIALOG CLARITY. A category with no active listings has
@@ -626,10 +686,8 @@ export function RetireCategoryDialog({
 
   const submit = () => {
     setMessage(null);
-    if (hasListings && reassignTo === "") {
-      setMessage(t("admin.categories.error.reassignRequired"));
-      return;
-    }
+    // DEC-339: a blank target, where listings must move, is the gate's to stop.
+    if (!gate.try()) return;
     void guard(async () => {
       try {
         await retire.mutateAsync({
@@ -652,15 +710,22 @@ export function RetireCategoryDialog({
     >
       <p className="text-sm text-muted-foreground">{t("admin.categories.retire.hint")}</p>
       {hasListings ? (
-        <FormField
+        <Field
+          id="category-retire-target"
+          field="reassignTo"
           label={t("admin.categories.retire.reassignCount").replace(
             "{count}",
             String(listingCount),
           )}
-          htmlFor="category-retire-target"
+          required
+          refusal={gate.marks.find((mark) => mark.field === "reassignTo") ?? null}
+          family={CATEGORY_REFUSALS}
+          gate={gate}
+          blank={reassignTo === ""}
         >
+          {(control) => (
           <NativeSelect
-            id="category-retire-target"
+            {...control}
             data-testid="category-retire-target"
             className="w-full"
             value={reassignTo}
@@ -675,7 +740,8 @@ export function RetireCategoryDialog({
                 </option>
               ))}
           </NativeSelect>
-        </FormField>
+          )}
+        </Field>
       ) : (
         <p className="text-sm text-muted-foreground" data-testid="category-retire-no-listings">
           {t("admin.categories.retire.noListings")}
@@ -712,13 +778,12 @@ export function AddPointerDialog({
   const addPointer = useAddCategoryPointer();
   const { message, setMessage, fail } = useCategoryRefusal();
   const [parentId, setParentId] = useState("");
+  const gate = useFormGate();
 
   const submit = () => {
     setMessage(null);
-    if (parentId === "") {
-      setMessage(t("admin.categories.error.parentRequired"));
-      return;
-    }
+    // DEC-339: a blank parent is the gate's to stop.
+    if (!gate.try()) return;
     void guard(async () => {
       try {
         await addPointer.mutateAsync({ parentId, childId: category.id });
@@ -737,22 +802,33 @@ export function AddPointerDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.categories.pointer.hint")}</p>
-      <FormField label={t("admin.categories.pointer.parent")} htmlFor="category-pointer-parent">
-        <NativeSelect
-          id="category-pointer-parent"
-          data-testid="category-pointer-parent"
-          className="w-full"
-          value={parentId}
-          onChange={(event) => setParentId(event.target.value)}
-        >
-          <option value="">{t("admin.categories.pointer.parentPlaceholder")}</option>
-          {activeParentOptions(parents, category.id).map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
-      </FormField>
+      <Field
+        id="category-pointer-parent"
+        field="parentId"
+        label={t("admin.categories.pointer.parent")}
+        required
+        refusal={gate.marks.find((mark) => mark.field === "parentId") ?? null}
+        family={CATEGORY_REFUSALS}
+        gate={gate}
+        blank={parentId === ""}
+      >
+        {(control) => (
+          <NativeSelect
+            {...control}
+            data-testid="category-pointer-parent"
+            className="w-full"
+            value={parentId}
+            onChange={(event) => setParentId(event.target.value)}
+          >
+            <option value="">{t("admin.categories.pointer.parentPlaceholder")}</option>
+            {activeParentOptions(parents, category.id).map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </NativeSelect>
+        )}
+      </Field>
       <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
@@ -793,6 +869,9 @@ export function CategoryPathsDialog({
   const addPointer = useAddCategoryPointer();
   const { message, setMessage, fail } = useCategoryRefusal();
   const [addParentId, setAddParentId] = useState("");
+  /** Each added path starts a fresh round, so the emptied picker is not marked again. */
+  const [addRound, setAddRound] = useState(0);
+  const gate = useFormGate(addRound);
 
   /** C2c — active destinations only, each rendered with its whole path. */
   const candidates = activeParentOptions(parents, category.id);
@@ -863,8 +942,18 @@ export function CategoryPathsDialog({
                 ) : null}
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
+                <Field
+                  id={`category-path-move-${pointer.pointerId}`}
+                  field="newParentId"
+                  label={<span className="sr-only">{t("admin.categories.paths.moveTo")}</span>}
+                  required={false}
+                  layout="inline"
+                  refusal={null}
+                  family={CATEGORY_REFUSALS}
+                >
+                  {(control) => (
                 <NativeSelect
-                  aria-label={t("admin.categories.paths.moveTo")}
+                  {...control}
                   data-testid={`category-path-move-${pointer.pointerId}`}
                   className="w-full"
                   value={pointer.parentId ?? ""}
@@ -883,6 +972,8 @@ export function CategoryPathsDialog({
                     </option>
                   ))}
                 </NativeSelect>
+                  )}
+                </Field>
                 {/* Bundle 11 B3 (G29) — it removes the path at once: a destructive
                     act is red on the button that performs it. */}
                 <Button
@@ -913,9 +1004,19 @@ export function CategoryPathsDialog({
         </ul>
       )}
 
-      <FormField label={t("admin.categories.paths.add")} htmlFor="category-paths-add">
+      <Field
+        id="category-paths-add"
+        field="parentId"
+        label={t("admin.categories.paths.add")}
+        required
+        refusal={gate.marks.find((mark) => mark.field === "parentId") ?? null}
+        family={CATEGORY_REFUSALS}
+        gate={gate}
+        blank={addParentId === ""}
+      >
+        {(control) => (
         <NativeSelect
-          id="category-paths-add"
+          {...control}
           data-testid="category-paths-add"
           className="w-full"
           value={addParentId}
@@ -929,18 +1030,19 @@ export function CategoryPathsDialog({
             </option>
           ))}
         </NativeSelect>
-      </FormField>
+        )}
+      </Field>
       <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
         onSubmit={() => {
-          if (addParentId === "") {
-            setMessage(t("admin.categories.error.parentRequired"));
-            return;
-          }
+          setMessage(null);
+          // DEC-339: a blank parent is the gate's to stop.
+          if (!gate.try()) return;
           run(async () => {
             await addPointer.mutateAsync({ parentId: addParentId, childId: category.id });
             setAddParentId("");
+            setAddRound((round) => round + 1);
           });
         }}
         busy={busy}
@@ -974,9 +1076,12 @@ export function DeleteCategoryDialog({
   const remove = useDeleteCategory();
   const { message, setMessage, fail } = useCategoryRefusal();
   const [typed, setTyped] = useState("");
+  const gate = useFormGate();
 
   const submit = () => {
     setMessage(null);
+    // DEC-339: a blank confirmation is the gate's; a wrong one stays the dialog's own words.
+    if (!gate.try()) return;
     if (typed !== category.slug) {
       setMessage(t("admin.categories.delete.mismatch"));
       return;
@@ -999,16 +1104,31 @@ export function DeleteCategoryDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.categories.delete.hint")}</p>
-      <FormField label={t("admin.categories.delete.confirmLabel")} htmlFor="category-delete-slug">
-        <Input
-          id="category-delete-slug"
-          data-testid="category-delete-slug"
-          className="h-11"
-          value={typed}
-          placeholder={category.slug}
-          onChange={(event) => setTyped(event.target.value)}
-        />
-      </FormField>
+      <Field
+        id="category-delete-slug"
+        field="confirmSlug"
+        label={t("admin.categories.delete.confirmLabel")}
+        required
+        refusal={gate.marks.find((mark) => mark.field === "confirmSlug") ?? null}
+        family={CATEGORY_REFUSALS}
+        gate={gate}
+        blank={typed.trim() === ""}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid="category-delete-slug"
+            className={controlClass(
+              gate.marks.some((mark) => mark.field === "confirmSlug"),
+              false,
+              "dialog",
+            )}
+            value={typed}
+            placeholder={category.slug}
+            onChange={(event) => setTyped(event.target.value)}
+          />
+        )}
+      </Field>
       <CategoryDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
