@@ -1291,3 +1291,39 @@ projects on that backend alone; a planted Chromium project with it, a WebKit pro
 that backend and a config-wide one are named, and the guard refuses them before `e2e:local`
 builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.
+
+## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394)
+
+`scripts/ci/lovable-branch-guard.sh` runs in `ci.yml`'s `scope` job, after its checkout, on a pull
+request from a `lovable/*` branch only (`if: github.event_name == 'pull_request' &&
+startsWith(github.head_ref, 'lovable/')`). The step pipes `gh api --paginate
+repos/<owner>/<repo>/pulls/<number>/files` — the files GitHub computes against the merge base, one
+JSON array per page — into the script with `GH_TOKEN: ${{ github.token }}`; the job's checkout
+stays shallow, since no git history is read. The script is pure over that JSON.
+
+- **The list** is Knowledge v3.14's ROLE paragraph (DEC-386), quoted word for word in the script's
+  comment: `supabase/**` and every `*.sql`; `src/features/auth/**`, `src/lib/supabase-door.ts`,
+  `src/server/**`, `src/routes/api/**`; `.github/**`; `scripts/**`; `e2e/helpers/**`,
+  `e2e/global-setup.ts`, `e2e/global-teardown.ts`, `e2e/fixtures.ts`; `package.json`, `bun.lock`;
+  `roadmap.md`; `docs/tracking/**`, `docs/governance/mechanisms.md`, `docs/_changelog.md`,
+  `docs/spec/**`; and the platform's own paths (INC-1168) `src/integrations/supabase/**` and
+  `.lovable/**`. One path rule per line, each with its DEC; a rename is judged by the path it
+  leaves too.
+- **The two DEC-390 exceptions, by content:** `docs/tracking/intentional-deletions.txt` takes
+  added lines only; every changed line of `scripts/route-budgets.mjs` must be a ceiling line (the
+  shape of its route lines: a quoted route key, `{ ceiling: <n>, public: <true|false> },` and a
+  `//` comment). A patch the API does not carry (a binary or a very large diff) under either
+  refuses.
+- **The verdict:** every offending change listed with its rule, exit 1; a pass names the file
+  count. Input that is not the API's JSON arrays (an empty answer, an error object) is exit 2,
+  never a pass.
+- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…10 on planted API answers —
+  every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
+  real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
+  across two pages, a missing patch, a rename away from a forbidden path, input that is not the
+  API's, and the `ci.yml` step itself. `scripts/conformance/wired.test.ts` finds the script's
+  basename in `ci.yml`.
+- **Left:** INC-1168 (c), a "carry" step that rebuilds the pull request from dev plus the approved
+  files. The endpoint answers without the `pull-requests` permission while the repository is
+  public; when it goes private the step fails loudly (the API's refusal is not JSON arrays) until
+  the scope job's token gains `pull-requests: read`.
