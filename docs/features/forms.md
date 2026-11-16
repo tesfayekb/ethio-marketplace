@@ -104,3 +104,21 @@ its Field (`PARSE_INVALID_KEY`) before the step-up or the door. The console's
 family `COUNTRY_REFUSALS` carries the kit's `required` and `badType` words; the
 door's `nameRequired` keeps its line. The sentinel `numberOrZero` was deleted.
 The next consoles of wave 3 follow this file.
+
+## Places console (wave 3)
+
+`src/features/admin-locations/location-form-fields.tsx` draws the create and
+edit dialogs' seven answers in the one Field at the dialog density, ids and test
+ids unchanged: the name is required and reports its blank to the dialog's gate;
+the centre latitude and longitude are required at city and sub-city level (their
+blanks reported to the gate) and optional elsewhere; the slug, ISO code and
+aliases are optional with their hints; the order (country rows only) is
+required. `readLocationNumbers` reads the typed numbers through the one parser:
+latitude `{ min: -90, max: 90 }`, longitude `{ min: -180, max: 180 }`, order
+`{ integer: true }`; an unreadable answer is refused under its Field
+(`PARSE_INVALID_KEY`) before the step-up or the door, never sent as a guess. The
+create and move dialogs' parent pickers sit in the Field with no mark
+(`marked={false}`); the delete confirmation is required through the gate, its
+mismatch still the dialog's own line. `LOCATION_REFUSALS` carries the kit's
+`required` and `badType` words; the doors' `nameRequired` and
+`missingCoordinates` keep their lines. The sentinel `numberOrNull` was deleted.
