@@ -19,7 +19,7 @@ const save = vi.hoisted(() => vi.fn());
 vi.mock("./use-ai-features", () => ({
   useSetAiFeature: () => ({ mutateAsync: save, isPending: false }),
 }));
-vi.mock("@/features/admin-categories/category-dialogs", () => ({
+vi.mock("@/components/ui/category-modal", () => ({
   CategoryModal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 

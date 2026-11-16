@@ -7,7 +7,7 @@ import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Picture } from "@/components/ui/picture";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import {
   allowListingPhoto,
   photoAllowErrorKey,

@@ -11,7 +11,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import type { CategoryNode } from "@/features/admin-categories/categories-service";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";

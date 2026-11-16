@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { DialogFooter } from "@/components/ui/dialog";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { ADMIN_REFUSALS } from "@/lib/refusal-tail";

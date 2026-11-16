@@ -7,7 +7,7 @@ import { useFormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";

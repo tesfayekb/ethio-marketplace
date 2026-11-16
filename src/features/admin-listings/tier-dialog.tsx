@@ -5,7 +5,7 @@ import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import { levelNameOf } from "@/features/levels/level-fields";
 import { useLevelRows } from "@/features/levels/use-level-rows";
 import { useI18n, type MessageKey } from "@/i18n";

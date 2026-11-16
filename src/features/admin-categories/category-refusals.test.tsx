@@ -29,6 +29,8 @@ describe("the categories console's refusals (F1-4a, DEC-333)", () => {
       ["deleteHasListings", "admin.categories.error.delete_has_listings"],
       ["deleteHasChildren", "admin.categories.error.delete_has_children"],
       ["acceptNoImage", "admin.categories.error.acceptNoImage"],
+      ["required", "post.refusal.required"],
+      ["badType", "post.refusal.badType"],
     ];
     expect(Object.keys(CATEGORY_REFUSALS.words).sort()).toEqual(words.map(([code]) => code).sort());
     for (const [code, key] of words) {

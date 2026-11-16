@@ -12,8 +12,6 @@ CF-FORM-1 src/features/admin-attributes/components/attribute-link-cells.tsx (7) 
 CF-FORM-1 src/features/admin-attributes/components/attribute-option-row.tsx (8) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-attributes/components/attribute-option-rows.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-attributes/components/attribute-v2-fields.tsx (11) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin-categories/category-dialogs.tsx (9) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin-categories/category-form-fields.tsx (10) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-listings/listing-settings.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-listings/reason-note.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-listings/tier-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339

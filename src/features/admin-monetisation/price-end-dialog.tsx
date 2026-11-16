@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DateField } from "@/components/shell/date-field";
 import { todayIso } from "@/components/shell/date-day";
 import { FormField } from "@/components/shell/form-section";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 

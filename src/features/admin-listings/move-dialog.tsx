@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { MOVE_LABEL, MOVE_REASONS, moveProblem, type MoveKind } from "./move-reasons";

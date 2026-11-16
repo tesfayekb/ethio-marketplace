@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { TipBadge } from "@/components/shell/tip-badge";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 

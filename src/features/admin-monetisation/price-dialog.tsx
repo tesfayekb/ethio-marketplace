@@ -5,7 +5,7 @@ import { todayIso } from "@/components/shell/date-day";
 import { FormField } from "@/components/shell/form-section";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { currencyText, orderCurrencies, useCurrencies } from "@/features/posting/pricing-data";
 import { useI18n } from "@/i18n";

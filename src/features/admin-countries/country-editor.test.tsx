@@ -9,7 +9,7 @@ const mutateAsync = vi.fn();
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, has: () => false, language: "en" }),
 }));
-vi.mock("@/features/admin-categories/category-dialogs", () => ({
+vi.mock("@/components/ui/category-modal", () => ({
   CategoryModal: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 vi.mock("./use-countries", () => ({
