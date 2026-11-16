@@ -800,19 +800,31 @@ export function MergeAttributesDialog({
           {attributes
             .filter((row) => row.id !== targetId)
             .map((row) => (
-              <label key={row.id} className={cn(LIST_ROW, LIST_CHOICE_ON, "cursor-pointer gap-3")}>
-                <Checkbox
-                  data-testid={`attribute-merge-source-${row.attrKey}`}
-                  checked={sourceIds.includes(row.id)}
-                  onCheckedChange={(next) => toggle(row.id, next === true)}
-                />
-                {/* D104 (bundle 11 B3) — a cut name keeps its first five characters. */}
-                <span className="min-w-0">
-                  <CutText
-                    text={`${attributeLabel(row.id, row.nameEn)} (${row.attrKey}) · ${row.usageCount}`}
+              <Field
+                key={row.id}
+                id={`attribute-merge-source-${row.attrKey}`}
+                label={
+                  /* D104 (bundle 11 B3) — a cut name keeps its first five characters. */
+                  <span className="min-w-0">
+                    <CutText
+                      text={`${attributeLabel(row.id, row.nameEn)} (${row.attrKey}) · ${row.usageCount}`}
+                    />
+                  </span>
+                }
+                required={false}
+                layout="choice"
+                refusal={null}
+                family={ATTRIBUTE_REFUSALS}
+              >
+                {(control) => (
+                  <Checkbox
+                    {...control}
+                    data-testid={`attribute-merge-source-${row.attrKey}`}
+                    checked={sourceIds.includes(row.id)}
+                    onCheckedChange={(next) => toggle(row.id, next === true)}
                   />
-                </span>
-              </label>
+                )}
+              </Field>
             ))}
         </div>
       </fieldset>
