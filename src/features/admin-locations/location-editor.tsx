@@ -8,13 +8,12 @@ import { useI18n, type MessageKey } from "@/i18n";
 
 import { LocationDialogActions, LocationDialogAlert } from "./location-dialogs";
 import { useLocationRefusal } from "./location-refusals";
+import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
 import {
-  LocationFormFields,
   locationRefusals,
   readLocationNumbers,
   type LocationFormRefusals,
-  type LocationFormValues,
-} from "./location-form-fields";
+} from "./location-form-values";
 import type { LocationNode } from "./locations-service";
 import { useUpsertLocation } from "./use-locations";
 
