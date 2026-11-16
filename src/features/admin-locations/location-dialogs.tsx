@@ -11,14 +11,13 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { childLevelOf, type LocationNode } from "./locations-service";
+import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
 import {
-  LocationFormFields,
+  emptyLocationForm,
   locationRefusals,
   readLocationNumbers,
   type LocationFormRefusals,
-  type LocationFormValues,
-} from "./location-form-fields";
-import { emptyLocationForm } from "./location-form-values";
+} from "./location-form-values";
 import { useLocationRefusal } from "./location-refusals";
 import { useUpsertLocation } from "./use-locations";
 
