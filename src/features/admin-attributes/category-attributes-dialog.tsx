@@ -1,6 +1,8 @@
 import { collatorFor } from "@/lib/reader-locale";
 import { useState } from "react";
 
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CutText } from "@/components/ui/cut-text";
@@ -13,7 +15,7 @@ import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
 
 import { AttributeDialogAlert } from "./attribute-dialogs";
-import { useAttributeRefusal } from "./attribute-refusals";
+import { ATTRIBUTE_REFUSALS, useAttributeRefusal } from "./attribute-refusals";
 import { AttributeLinkCells } from "./components/attribute-link-cells";
 import { useAttributeLabel } from "./use-attribute-label";
 import {
@@ -280,84 +282,138 @@ export function CategoryAttributesDialog({
                 <span className="text-xs text-muted-foreground">{row.attrKey}</span>
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <label className="flex min-h-11 items-center gap-2 text-sm">
-                  <Checkbox
-                    data-testid={`category-attribute-required-${row.attrKey}`}
-                    checked={row.isRequired}
-                    onCheckedChange={(next) =>
-                      // FIX-SCAN-1 ISSUE 1 — one atomic write: card_rank and
-                      // display_order survive, and a failure cannot lose the link.
-                      runToggle(`required:${row.attrKey}`, () =>
-                        updateLink.mutateAsync({
-                          linkId: row.linkId,
-                          isRequired: next === true,
-                        }),
-                      )
-                    }
-                  />
-                  {t("admin.attributes.links.required")}
-                  {savedTag === `required:${row.attrKey}` ? (
-                    <span
-                      role="status"
-                      aria-live="polite"
-                      data-testid={`category-attribute-required-saved-${row.attrKey}`}
-                      className="text-xs text-muted-foreground"
-                    >
-                      {t("admin.attributes.links.saved")}
-                    </span>
-                  ) : null}
-                </label>
-                <label className="flex min-h-11 items-center gap-2 text-sm">
-                  <Checkbox
-                    data-testid={`category-attribute-filterable-${row.attrKey}`}
-                    checked={row.isFilterable}
-                    onCheckedChange={(next) =>
-                      runToggle(`filterable:${row.attrKey}`, () =>
-                        updateLink.mutateAsync({
-                          linkId: row.linkId,
-                          isFilterable: next === true,
-                        }),
-                      )
-                    }
-                  />
-                  {t("admin.attributes.links.filterable")}
-                  {savedTag === `filterable:${row.attrKey}` ? (
-                    <span
-                      role="status"
-                      aria-live="polite"
-                      data-testid={`category-attribute-filterable-saved-${row.attrKey}`}
-                      className="text-xs text-muted-foreground"
-                    >
-                      {t("admin.attributes.links.saved")}
-                    </span>
-                  ) : null}
-                </label>
-                <label className="flex min-h-11 items-center gap-2 text-sm">
-                  <Checkbox
-                    data-testid={`category-attribute-card-${row.attrKey}`}
-                    checked={row.cardRank !== null}
-                    disabled={
-                      settling || (row.cardRank === null && carded.length >= CARD_ATTRIBUTE_MAXIMUM)
-                    }
-                    onCheckedChange={(next) => toggleCard(row.attributeId, next === true)}
-                  />
-                  {row.cardRank === null
-                    ? t("admin.attributes.card.rankNone")
-                    : t("admin.attributes.card.rank").replace("{rank}", String(row.cardRank))}
-                </label>
-                <label className="flex min-h-11 items-center gap-2 text-sm">
-                  <Checkbox
-                    data-testid={`category-attribute-fact-${row.attrKey}`}
-                    checked={row.factRank !== null}
-                    disabled={
-                      settling || (row.factRank === null && facted.length >= FACT_ATTRIBUTE_MAXIMUM)
-                    }
-                    onCheckedChange={(next) => toggleFact(row.attributeId, next === true)}
-                  />
-                  {row.factRank === null
-                    ? t("admin.attributes.fact.rankNone")
-                    : t("admin.attributes.fact.rank").replace("{rank}", String(row.factRank))}
-                </label>
+                <Field
+                  id={`category-attribute-required-${row.linkId}`}
+                  label={
+                    <>
+                      {t("admin.attributes.links.required")}
+                      {savedTag === `required:${row.attrKey}` ? (
+                        <span
+                          role="status"
+                          aria-live="polite"
+                          data-testid={`category-attribute-required-saved-${row.attrKey}`}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {t("admin.attributes.links.saved")}
+                        </span>
+                      ) : null}
+                    </>
+                  }
+                  required={false}
+                  layout="choice"
+                  refusal={null}
+                  family={ATTRIBUTE_REFUSALS}
+                >
+                  {(control) => (
+                    <Checkbox
+                      {...control}
+                      data-testid={`category-attribute-required-${row.attrKey}`}
+                      checked={row.isRequired}
+                      onCheckedChange={(next) =>
+                        // FIX-SCAN-1 ISSUE 1 — one atomic write: card_rank and
+                        // display_order survive, and a failure cannot lose the link.
+                        runToggle(`required:${row.attrKey}`, () =>
+                          updateLink.mutateAsync({
+                            linkId: row.linkId,
+                            isRequired: next === true,
+                          }),
+                        )
+                      }
+                    />
+                  )}
+                </Field>
+                <Field
+                  id={`category-attribute-filterable-${row.linkId}`}
+                  label={
+                    <>
+                      {t("admin.attributes.links.filterable")}
+                      {savedTag === `filterable:${row.attrKey}` ? (
+                        <span
+                          role="status"
+                          aria-live="polite"
+                          data-testid={`category-attribute-filterable-saved-${row.attrKey}`}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {t("admin.attributes.links.saved")}
+                        </span>
+                      ) : null}
+                    </>
+                  }
+                  required={false}
+                  layout="choice"
+                  refusal={null}
+                  family={ATTRIBUTE_REFUSALS}
+                >
+                  {(control) => (
+                    <Checkbox
+                      {...control}
+                      data-testid={`category-attribute-filterable-${row.attrKey}`}
+                      checked={row.isFilterable}
+                      onCheckedChange={(next) =>
+                        runToggle(`filterable:${row.attrKey}`, () =>
+                          updateLink.mutateAsync({
+                            linkId: row.linkId,
+                            isFilterable: next === true,
+                          }),
+                        )
+                      }
+                    />
+                  )}
+                </Field>
+                <Field
+                  id={`category-attribute-card-${row.linkId}`}
+                  label={
+                    <>
+                      {row.cardRank === null
+                        ? t("admin.attributes.card.rankNone")
+                        : t("admin.attributes.card.rank").replace("{rank}", String(row.cardRank))}
+                    </>
+                  }
+                  required={false}
+                  layout="choice"
+                  refusal={null}
+                  family={ATTRIBUTE_REFUSALS}
+                >
+                  {(control) => (
+                    <Checkbox
+                      {...control}
+                      data-testid={`category-attribute-card-${row.attrKey}`}
+                      checked={row.cardRank !== null}
+                      disabled={
+                        settling ||
+                        (row.cardRank === null && carded.length >= CARD_ATTRIBUTE_MAXIMUM)
+                      }
+                      onCheckedChange={(next) => toggleCard(row.attributeId, next === true)}
+                    />
+                  )}
+                </Field>
+                <Field
+                  id={`category-attribute-fact-${row.linkId}`}
+                  label={
+                    <>
+                      {row.factRank === null
+                        ? t("admin.attributes.fact.rankNone")
+                        : t("admin.attributes.fact.rank").replace("{rank}", String(row.factRank))}
+                    </>
+                  }
+                  required={false}
+                  layout="choice"
+                  refusal={null}
+                  family={ATTRIBUTE_REFUSALS}
+                >
+                  {(control) => (
+                    <Checkbox
+                      {...control}
+                      data-testid={`category-attribute-fact-${row.attrKey}`}
+                      checked={row.factRank !== null}
+                      disabled={
+                        settling ||
+                        (row.factRank === null && facted.length >= FACT_ATTRIBUTE_MAXIMUM)
+                      }
+                      onCheckedChange={(next) => toggleFact(row.attributeId, next === true)}
+                    />
+                  )}
+                </Field>
               </div>
               <AttributeLinkCells
                 row={row}
@@ -456,22 +512,33 @@ export function CategoryAttributesDialog({
                     .replace("{parent}", parentLabel)
                     .replace("{child}", childLabel)}
                 </p>
-                <NativeSelect
-                  aria-label={parentLabel}
-                  data-testid={`category-attribute-cascade-parent-${child.attrKey}`}
-                  className="w-full"
-                  value={chosen[child.attrKey] ?? ""}
-                  onChange={(event) =>
-                    setChosen((prev) => ({ ...prev, [child.attrKey]: event.target.value }))
-                  }
+                <Field
+                  id={`category-attribute-cascade-parent-${child.linkId}`}
+                  label={<span className="sr-only">{parentLabel}</span>}
+                  required={false}
+                  layout="inline"
+                  refusal={null}
+                  family={ATTRIBUTE_REFUSALS}
                 >
-                  <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
-                  {parentValues.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  {(control) => (
+                    <NativeSelect
+                      {...control}
+                      data-testid={`category-attribute-cascade-parent-${child.attrKey}`}
+                      className="w-full"
+                      value={chosen[child.attrKey] ?? ""}
+                      onChange={(event) =>
+                        setChosen((prev) => ({ ...prev, [child.attrKey]: event.target.value }))
+                      }
+                    >
+                      <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
+                      {parentValues.map((value) => (
+                        <option key={value} value={value}>
+                          {value}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  )}
+                </Field>
                 <p
                   className="text-xs text-muted-foreground"
                   data-testid={`category-attribute-cascade-caption-${child.attrKey}`}
@@ -509,26 +576,50 @@ export function CategoryAttributesDialog({
 
       {/* ADD: a searchable picker over the library, linked names excluded. */}
       <div className="space-y-2 border-t border-border pt-3">
-        <Input
-          data-testid="category-attribute-search"
-          placeholder={t("admin.attributes.links.searchPlaceholder")}
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-        <NativeSelect
-          aria-label={t("admin.attributes.links.add")}
-          data-testid="category-attribute-picker"
-          className="w-full"
-          value={picker}
-          onChange={(event) => setPicker(event.target.value)}
+        <Field
+          id="category-attribute-search"
+          label={<span className="sr-only">{t("admin.attributes.links.searchPlaceholder")}</span>}
+          required={false}
+          layout="inline"
+          refusal={null}
+          family={ATTRIBUTE_REFUSALS}
         >
-          <option value="">{t("admin.attributes.links.pickNone")}</option>
-          {candidates.map((row) => (
-            <option key={row.id} value={row.id}>
-              {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
-            </option>
-          ))}
-        </NativeSelect>
+          {(control) => (
+            <Input
+              {...control}
+              className={controlClass(false, false, "dialog")}
+              data-testid="category-attribute-search"
+              placeholder={t("admin.attributes.links.searchPlaceholder")}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          )}
+        </Field>
+        <Field
+          id="category-attribute-picker"
+          label={<span className="sr-only">{t("admin.attributes.links.add")}</span>}
+          required={false}
+          layout="inline"
+          refusal={null}
+          family={ATTRIBUTE_REFUSALS}
+        >
+          {(control) => (
+            <NativeSelect
+              {...control}
+              data-testid="category-attribute-picker"
+              className="w-full"
+              value={picker}
+              onChange={(event) => setPicker(event.target.value)}
+            >
+              <option value="">{t("admin.attributes.links.pickNone")}</option>
+              {candidates.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </Field>
         <Button
           type="button"
           size="touch"
