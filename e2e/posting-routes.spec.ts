@@ -559,9 +559,9 @@ test.describe("POSTING ROUTES", () => {
         string,
         unknown
       >;
-      expect(entry["field"]).toBe("rate");
-      // The refusal names WHEN it lifts, so a client can say so (C4/F4).
-      expect(String(entry["detail"] ?? ""), JSON.stringify(refusal)).not.toBe("");
+      expect(entry["field"]).toBe("door");
+      expect(entry["reason"]).toBe("rateLimited");
+      // INC-1170: the gate's rateLimited names no reset time until F1-7; it restores the detail assertion here.
     } finally {
       const removed = await admin
         .from("rate_overrides")

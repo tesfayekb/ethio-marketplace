@@ -272,10 +272,8 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     });
     expect(closed["kept_remaining"]).not.toBeNull();
 
-    expect((await reserve(me, ad.id, true)).error).toBe("only a live listing is reserved");
-    expect((await reopen(me, ad.id, "reduced")).error).toBe(
-      "illegal transition: closed -> reduced",
-    );
+    expect((await reserve(me, ad.id, true)).error).toBe("notLive");
+    expect((await reopen(me, ad.id, "reduced")).error).toBe("illegalTransition:closed-reduced");
 
     const viewerAccount = await leaseUser();
     await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
@@ -329,19 +327,17 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const y = await seed(sellerA, "screening");
     const yBefore = await snapshot(y.id);
 
-    expect((await close(b, x.id)).error).toBe("not your listing");
-    expect((await reserve(b, x.id, true)).error).toBe("not your listing");
-    expect((await price(b, x.id, 90)).error).toBe("not your listing");
+    expect((await close(b, x.id)).error).toBe("notYourListing");
+    expect((await reserve(b, x.id, true)).error).toBe("notYourListing");
+    expect((await price(b, x.id, 90)).error).toBe("notYourListing");
     expect((await b.rpc("listing_history", { p_listing_id: x.id })).error).toBe("not your listing");
     expect((await b.rpc("listing_history", { p_listing_id: crypto.randomUUID() })).error).toBe(
       "not your listing",
     );
 
-    expect((await close(a, y.id)).error).toBe("illegal transition: screening -> closed");
-    expect((await price(a, y.id, 90)).error).toBe(
-      "an ad in review is edited once its review is done",
-    );
-    expect((await reserve(a, y.id, true)).error).toBe("only a live listing is reserved");
+    expect((await close(a, y.id)).error).toBe("illegalTransition:screening-closed");
+    expect((await price(a, y.id, 90)).error).toBe("inReview");
+    expect((await reserve(a, y.id, true)).error).toBe("notLive");
 
     expect((await close(a, x.id)).error).toBeNull();
     const kept = (await listingTruth(x.id))["kept_remaining"];
@@ -354,12 +350,12 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       ],
       roles,
     );
-    expect((await reopen(b, x.id)).error).toBe("owner only: closed -> active");
+    expect((await reopen(b, x.id)).error).toBe("ownerOnly:closed-active");
     const service = await adminClient().rpc("transition_listing", {
       p_listing_id: x.id,
       p_new_status: "active",
     });
-    expect(service.error?.message ?? null).toBe("owner only: closed -> active");
+    expect(service.error?.message ?? null).toBe("ownerOnly:closed-active");
 
     expect(await listingTruth(x.id)).toMatchObject({
       status: "closed",
@@ -405,7 +401,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     const review = await seed(seller, "screening");
     const before = await snapshot(review.id);
-    expect((await reserve(me, review.id, true)).error).toBe("only a live listing is reserved");
+    expect((await reserve(me, review.id, true)).error).toBe("notLive");
     expect(await snapshot(review.id)).toEqual(before);
   });
 
@@ -552,9 +548,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     const g = await seed(seller, "expired", { expiresAt: -10, publishedAt: -40 });
     const gBefore = await snapshot(g.id);
-    expect((await editTitle(me, g.id)).error).toBe(
-      "an expired listing is renewed before it is edited",
-    );
+    expect((await editTitle(me, g.id)).error).toBe("renewFirst");
     expect(await snapshot(g.id)).toEqual(gBefore);
   });
 
@@ -868,26 +862,18 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const me = await asPerson(a);
 
     const cases: Array<[Row & { id: string }, Row, string]> = [
-      [X, {}, "nothing to change"],
-      [X, { category_id: a.parentId }, "not editable: category_id"],
-      [X, { poster_expires_at: new Date().toISOString() }, "not editable: poster_expires_at"],
-      [X, { coverage: "x" }, "coverage must be a list"],
-      [X, { contact_pref: [] }, "contact_pref must be an object"],
-      [D, { title: `E2E new words ${token()}` }, "a draft is written in the posting form"],
-      [
-        S,
-        { title: `E2E new words ${token()}` },
-        "an ad in review is edited once its review is done",
-      ],
-      [
-        E,
-        { title: `E2E new words ${token()}` },
-        "an expired listing is renewed before it is edited",
-      ],
-      [O, { title: `E2E new words ${token()}` }, "this listing is not edited"],
-      [G, { title: `E2E new words ${token()}` }, "listing not found"],
-      [Q, { title: `E2E new words ${token()}` }, "not your listing"],
-      [X, { title: X.title }, "nothing changed"],
+      [X, {}, "nothingChanged"],
+      [X, { category_id: a.parentId }, "notEditable:category_id"],
+      [X, { poster_expires_at: new Date().toISOString() }, "notEditable:poster_expires_at"],
+      [X, { coverage: "x" }, "badShape:coverage"],
+      [X, { contact_pref: [] }, "badShape:contact_pref"],
+      [D, { title: `E2E new words ${token()}` }, "draftNotEdited"],
+      [S, { title: `E2E new words ${token()}` }, "inReview"],
+      [E, { title: `E2E new words ${token()}` }, "renewFirst"],
+      [O, { title: `E2E new words ${token()}` }, "listingNotEditable:sold"],
+      [G, { title: `E2E new words ${token()}` }, "listingNotFound"],
+      [Q, { title: `E2E new words ${token()}` }, "notYourListing"],
+      [X, { title: X.title }, "nothingChanged"],
     ];
     // INC-634 — every ad's snapshot and revision count read once before the
     // ten calls and once after them.
@@ -1018,10 +1004,10 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect((created[0]?.["after"] as Row | null)?.["copied_from"]).toBe(X.id);
 
     const copy = (id: string) => me.rpc("copy_my_listing", { p_listing_id: id });
-    expect((await copy(D.id)).error).toBe("a draft is not copied");
-    expect((await copy(M.id)).error).toBe("a removed or refused listing is not copied");
-    expect((await copy(R.id)).error).toBe("a removed or refused listing is not copied");
-    expect((await copy(Q.id)).error).toBe("not your listing");
+    expect((await copy(D.id)).error).toBe("notCopied:draft");
+    expect((await copy(M.id)).error).toBe("notCopied:removed");
+    expect((await copy(R.id)).error).toBe("notCopied:rejected");
+    expect((await copy(Q.id)).error).toBe("notYourListing");
   });
 
   test("ML-14 edit_my_listing: places and contact apply at once, the first place the ad's own; the written directions go to review (D187)", async () => {

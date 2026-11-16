@@ -343,7 +343,7 @@ test.describe("U1 admin users", () => {
       p_coverage: null,
       p_contact_pref: null,
     });
-    expect(error?.message ?? "").toContain("account is deactivated");
+    expect(error?.message ?? "").toContain("accountDeactivated");
   });
 
   test("AU-6 negative: a base user cannot call the status RPC", async ({ page }) => {
