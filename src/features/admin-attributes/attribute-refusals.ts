@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useI18n } from "@/i18n";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
+import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 
 /**
  * DEC-333 (F1-4a) — the attribute library's own words for its doors' codes. Each code that
@@ -15,7 +16,10 @@ import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 export const ATTRIBUTE_REFUSALS = {
   words: {
     rateLimited: RATE_LIMITED_KEY,
-    required: "admin.attributes.error.keyRequired",
+    /** DEC-339 — the one gate's words for a blank required answer (and the door's). */
+    required: "post.refusal.required",
+    /** DEC-339 — the one parser's words for an answer it could not read. */
+    badType: PARSE_INVALID_KEY,
     duplicateKey: "admin.attributes.error.keyTaken",
     unknownAttribute: "admin.attributes.error.notFound",
     unknownLink: "admin.attributes.error.linkNotFound",
