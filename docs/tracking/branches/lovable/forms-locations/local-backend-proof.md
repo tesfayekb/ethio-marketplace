@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `57da63859d78c30e1f7e3f5b7c40d7dd4f1f3b1b`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43846036222
+- Commit: `8bdfe235751ddf6cf38bd9827d85c3ed347930c6`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/43849416511
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 393 | 61 | applied 499/499 | 27 | 0 | 0 | 5 | 32 |
-| email | 215 | 69 | applied 499/499 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 667 | 60 | applied 499/499 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 626 | 83 | applied 499/499 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 493 | 62 | applied 499/499 | 174 | 0 | 0 | 26 | 200 |
-| 3 | 504 | 62 | applied 499/499 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 565 | 62 | applied 499/499 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 559 | 63 | applied 499/499 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 549 | 63 | applied 499/499 | 151 | 2 | 0 | 41 | 194 |
-| 7 | 644 | 79 | applied 499/499 | 147 | 0 | 0 | 77 | 224 |
-| 8 | 493 | 61 | applied 499/499 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 514 | 54 | applied 499/499 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 493 | 63 | applied 499/499 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 651 | 80 | applied 499/499 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 636 | 68 | applied 499/499 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 591 | 68 | applied 499/499 | 157 | 0 | 0 | 9 | 166 |
-| 14 | 467 | 62 | applied 499/499 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 561 | 61 | applied 499/499 | 124 | 0 | 0 | 8 | 132 |
-| 16 | 656 | 80 | applied 499/499 | 172 | 0 | 0 | 48 | 220 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2544 | 2 | 0 | 360 | 2906 |
+| smoke | 377 | 60 | applied 499/499 | 27 | 0 | 0 | 5 | 32 |
+| email | 209 | 66 | applied 499/499 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 775 | 71 | applied 499/499 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 522 | 62 | applied 499/499 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 505 | 61 | applied 499/499 | 174 | 0 | 0 | 26 | 200 |
+| 3 | 523 | 62 | applied 499/499 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 506 | 53 | applied 499/499 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 550 | 63 | applied 499/499 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 480 | 51 | applied 499/499 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 487 | 60 | applied 499/499 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 506 | 63 | applied 499/499 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 505 | 63 | applied 499/499 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 472 | 61 | applied 499/499 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 611 | 69 | applied 499/499 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 502 | 61 | applied 499/499 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 470 | 62 | applied 499/499 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 522 | 63 | applied 499/499 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 559 | 61 | applied 499/499 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 642 | 80 | applied 499/499 | 172 | 0 | 0 | 48 | 220 |
+| repeat | 980 | 81 | applied 499/499 | 92 | 0 | 0 | 22 | 114 |
+| TOTAL | — | — | — | 2638 | 0 | 0 | 382 | 3020 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: webkit 667 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 6, email 8, webkit 6, 1 10, 2 6, 3 6, 4 6, 5 6, 6 6, 7 10, 8 6, 9 5, 10 6, 11 10, 12 8, 13 8, 14 6, 15 6, 16 10, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/404, 2 641/323, 3 641/346, 4 640/382, 5 640/377, 6 641/375, 7 641/444, 8 641/334, 9 641/347, 10 643/320, 11 640/452, 12 641/450, 13 640/372, 14 641/326, 15 641/378, 16 641/450
+- Slowest lane: repeat 980 s
+- Repeat lane (DEC-283): Repeat: each 3 on both projects; 19 tests selected, 19 repeated; budget 643 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-10 tones: retired is destructive, active is secondary, a level badge is outline / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-11 one read per country: filtering costs no request, switching the market costs exactly one / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-12 transfer scope: exports and the import title follow the selected country / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-13 all countries: the picker opens on every market, the roster spans them, and the transfer group carries no scope / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-14 market state and whole-country parent follow the selected market / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-15 an imported place name is in the name table after commit and gone after undo / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-16 the row's actions: Edit, a red Delete and the menu's verbs open the editor's own dialogs / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-4 path rule: retiring a scratch region hides its active descendants from the public tree / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-5 delete guard: a parent is refused, then the chain deletes deepest-first with the typed address / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-6 step-up: an unproven factor cannot move a row; once proven the move carries the descendants / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-7b the editor round-trips a row without dropping a stored field / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-8 verb reachability: every verb and the save button are inside the viewport (CT-8 mirror) / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-9a roster shape, table twin: the edit icon sits in the end column with pagination / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / LT-9b roster shape, card twin: the edit icon sits inline beside the path line / desktop-1280; Not repeated (time cap): admin-locations.spec.ts / L2a locations console / OV-1 overview totals, links and group breadcrumbs / desktop-1280
+- Database session samples during each start (INC-944): smoke 6, email 7, webkit 8, 1 6, 2 6, 3 6, 4 5, 5 6, 6 5, 7 6, 8 6, 9 6, 10 6, 11 7, 12 6, 13 6, 14 7, 15 6, 16 10, repeat 10
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/330, 2 641/329, 3 641/342, 4 640/352, 5 640/372, 6 641/333, 7 641/318, 8 641/346, 9 641/346, 10 643/321, 11 640/413, 12 641/351, 13 640/301, 14 641/353, 15 641/382, 16 641/443
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43846036222-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 43846036222-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43846036222-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43846036222-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43846036222-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43846036222-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43846036222-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43846036222-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43846036222-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43846036222-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43846036222-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 43846036222-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43846036222-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43846036222-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43846036222-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43846036222-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43846036222-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 43846036222-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 43846036222-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 43849416511-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 43849416511-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 43849416511-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 43849416511-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 43849416511-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 43849416511-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 43849416511-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 43849416511-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 43849416511-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 43849416511-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 43849416511-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 43849416511-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 43849416511-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 43849416511-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 43849416511-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 43849416511-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 43849416511-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 43849416511-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 43849416511-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -78,11 +78,8 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 6
-- Step failure:
-Step smoke: outcome failure
-  
-- admin-locations.spec.ts / L2a locations console / LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down / desktop-1280 — Error: expect(locator).toBeVisible() failed
+## Lane repeat
+- Outside test — Timed out waiting 763s for the test suite to run
+- Outside test — Timed out waiting 763s for the teardown for test suite to run
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
