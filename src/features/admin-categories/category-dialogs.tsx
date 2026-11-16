@@ -722,6 +722,7 @@ export function RetireCategoryDialog({
           family={CATEGORY_REFUSALS}
           gate={gate}
           blank={reassignTo === ""}
+          marked={false}
         >
           {(control) => (
             <NativeSelect
@@ -811,6 +812,7 @@ export function AddPointerDialog({
         family={CATEGORY_REFUSALS}
         gate={gate}
         blank={parentId === ""}
+        marked={false}
       >
         {(control) => (
           <NativeSelect
@@ -1016,6 +1018,7 @@ export function CategoryPathsDialog({
         family={CATEGORY_REFUSALS}
         gate={gate}
         blank={addParentId === ""}
+        marked={false}
       >
         {(control) => (
           <NativeSelect
