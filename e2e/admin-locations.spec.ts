@@ -279,7 +279,12 @@ test.describe("L2a locations console", () => {
       await expect(page.getByTestId("location-create-dialog")).toBeVisible({ timeout: 20000 });
       await page.getByTestId("location-create-name").fill(citySlug);
       await page.getByTestId("location-create-submit").click();
-      await expect(page.getByTestId("location-dialog-error")).toBeVisible({ timeout: 20000 });
+      await expect(
+        page.locator('[data-testid="form-field-refusal"][data-field="location-create-lat"]'),
+      ).toBeVisible({ timeout: 20000 });
+      await expect(
+        page.locator('[data-testid="form-field-refusal"][data-field="location-create-lng"]'),
+      ).toBeVisible();
       expect(await readLocation(citySlug)).toBeNull();
 
       await page.getByTestId("location-create-lat").fill("9.03");
