@@ -143,3 +143,24 @@ dialog's gate (the pickers with no mark); a wrong delete confirmation stays the
 dialog's own `admin.categories.delete.mismatch` line, and door refusals stay in
 `category-dialog-error`. `CATEGORY_REFUSALS` carries the kit's `required` and
 `badType` words; the door's `reassignRequired` keeps its line.
+
+## Attributes console (wave 3)
+
+Every control of `src/features/admin-attributes/` sits in the one Field at the
+dialog density, ids and test ids unchanged: the definition editor, the delete,
+merge, assign and remove dialogs, the option rows (value, labels, the offered
+tick, aliases, bounds, the allowed-values ticks and both add pickers), the v2
+number and text groups, the per-category link manager and its three link cells.
+A control with no visible label of its own (a search box, an alias, a bound, an
+add picker) carries the words it already showed as a screen-reader label in the
+`inline` layout; ticks use the `choice` layout. The editor's key and name are
+required through its gate (`post.refusal.required` under each Field; the old
+dialog-level `keyRequired` / `nameRequired` lines are gone). `readAttributeNumbers`
+(attribute-form-values.ts) reads the decimals and the longest length through the
+one parser, `{ integer: true, min: 0 }`: blank is null to the door, an
+unreadable answer is refused under its Field (`PARSE_INVALID_KEY`) before the
+step-up or the door. `readLinkDefault` reads a number attribute's default through
+`parseNumber`; an unreadable default is refused under the default's Field and
+nothing is sent. The blank-option-rows count (`option-blank-message`) stays its
+own row-level line. Door refusals stay in `attribute-dialog-error`.
+`ATTRIBUTE_REFUSALS` carries the kit's `required` and `badType` words.
