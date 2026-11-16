@@ -175,10 +175,7 @@ export function CategoryFormFields({
         {(control) => (
           <span className="flex items-center gap-2">
             {values.icon.trim() === "" && !showIconInput ? (
-              <span
-                data-testid={`${p}-icon-hint`}
-                className="text-sm text-muted-foreground italic"
-              >
+              <span data-testid={`${p}-icon-hint`} className="text-sm text-muted-foreground italic">
                 {t("admin.categories.field.iconHint")}
               </span>
             ) : (

@@ -3,7 +3,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
-import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,7 +18,6 @@ import { NativeSelect } from "@/components/ui/native-select";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
-import { cn } from "@/lib/utils";
 
 import { suggestCategoryIcon } from "./category-images-service";
 import { CategoryFormFields, type CategoryFormValues } from "./category-form-fields";
@@ -625,7 +623,9 @@ export function CategoryExclusionsDialog({
             key={country.code}
             id={`category-exclusion-${country.code}`}
             field="excludedCodes"
-            label={<span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>}
+            label={
+              <span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>
+            }
             required={false}
             layout="choice"
             refusal={null}
@@ -724,22 +724,22 @@ export function RetireCategoryDialog({
           blank={reassignTo === ""}
         >
           {(control) => (
-          <NativeSelect
-            {...control}
-            data-testid="category-retire-target"
-            className="w-full"
-            value={reassignTo}
-            onChange={(event) => setReassignTo(event.target.value)}
-          >
-            <option value="">{t("admin.categories.retire.reassignPlaceholder")}</option>
-            {targets
-              .filter((row) => row.id !== category.id)
-              .map((row) => (
-                <option key={row.id} value={row.id}>
-                  {`${"— ".repeat(row.depth)}${row.nameEn}`}
-                </option>
-              ))}
-          </NativeSelect>
+            <NativeSelect
+              {...control}
+              data-testid="category-retire-target"
+              className="w-full"
+              value={reassignTo}
+              onChange={(event) => setReassignTo(event.target.value)}
+            >
+              <option value="">{t("admin.categories.retire.reassignPlaceholder")}</option>
+              {targets
+                .filter((row) => row.id !== category.id)
+                .map((row) => (
+                  <option key={row.id} value={row.id}>
+                    {`${"— ".repeat(row.depth)}${row.nameEn}`}
+                  </option>
+                ))}
+            </NativeSelect>
           )}
         </Field>
       ) : (
@@ -952,26 +952,29 @@ export function CategoryPathsDialog({
                   family={CATEGORY_REFUSALS}
                 >
                   {(control) => (
-                <NativeSelect
-                  {...control}
-                  data-testid={`category-path-move-${pointer.pointerId}`}
-                  className="w-full"
-                  value={pointer.parentId ?? ""}
-                  disabled={busy}
-                  onChange={(event) => {
-                    const next = event.target.value === "" ? null : event.target.value;
-                    run(() =>
-                      movePointer.mutateAsync({ pointerId: pointer.pointerId, newParentId: next }),
-                    );
-                  }}
-                >
-                  <option value="">{t("admin.categories.paths.root")}</option>
-                  {candidates.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                    <NativeSelect
+                      {...control}
+                      data-testid={`category-path-move-${pointer.pointerId}`}
+                      className="w-full"
+                      value={pointer.parentId ?? ""}
+                      disabled={busy}
+                      onChange={(event) => {
+                        const next = event.target.value === "" ? null : event.target.value;
+                        run(() =>
+                          movePointer.mutateAsync({
+                            pointerId: pointer.pointerId,
+                            newParentId: next,
+                          }),
+                        );
+                      }}
+                    >
+                      <option value="">{t("admin.categories.paths.root")}</option>
+                      {candidates.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </NativeSelect>
                   )}
                 </Field>
                 {/* Bundle 11 B3 (G29) — it removes the path at once: a destructive
@@ -1015,21 +1018,21 @@ export function CategoryPathsDialog({
         blank={addParentId === ""}
       >
         {(control) => (
-        <NativeSelect
-          {...control}
-          data-testid="category-paths-add"
-          className="w-full"
-          value={addParentId}
-          disabled={busy}
-          onChange={(event) => setAddParentId(event.target.value)}
-        >
-          <option value="">{t("admin.categories.pointer.parentPlaceholder")}</option>
-          {candidates.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
+          <NativeSelect
+            {...control}
+            data-testid="category-paths-add"
+            className="w-full"
+            value={addParentId}
+            disabled={busy}
+            onChange={(event) => setAddParentId(event.target.value)}
+          >
+            <option value="">{t("admin.categories.pointer.parentPlaceholder")}</option>
+            {candidates.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </NativeSelect>
         )}
       </Field>
       <CategoryDialogAlert message={message} />
