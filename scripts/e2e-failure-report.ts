@@ -54,11 +54,23 @@ const FIXTURE = "scripts/fixtures/e2e-results-sample.json";
 /** DEC-177 — a REAL captured results.json (Playwright 1.58.1): a flaky test whose first attempt printed `[client-error]` lines. */
 const FLAKY_STDOUT_FIXTURE = "scripts/fixtures/e2e-results-flaky-stdout.json";
 /**
- * INC-1175 — a copy of FIXTURE with ONE splice: the 2026-11-15 nightly's captured
- * `[client-error] HTTP 500 POST …/auth/v1/signup … "Error sending confirmation email"` line, verbatim
- * from its evidence file, as CAP-1's attempt stdout. Nothing else differs (the DEC-030 precedent).
+ * INC-1175 — the 2026-11-15 nightly's captured `[client-error] HTTP 500 POST …/auth/v1/signup …
+ * "Error sending confirmation email"` line, verbatim from its evidence file.
  */
-export const STAGING_SINK_FIXTURE = "scripts/fixtures/e2e-results-staging-sink.json";
+const STAGING_SINK_LINE = "scripts/fixtures/e2e-staging-sink-line.txt";
+
+/**
+ * INC-1175 — FIXTURE with ONE splice: the captured sink line as CAP-1's first attempt's stdout;
+ * nothing else differs (the DEC-030 precedent). Spliced in memory: a tracked copy would carry
+ * FIXTURE's synthetic token shapes outside the one path the secrets scan excludes.
+ */
+export function stagingSinkSample(): PwJson {
+  const sample = JSON.parse(readFileSync(FIXTURE, "utf8")) as PwJson;
+  const first = sample.suites?.[0]?.specs?.[0]?.tests?.[0]?.results?.[0];
+  if (!first) throw new Error("INC-1175: the captured sample has no first attempt");
+  first.stdout = [{ text: readFileSync(STAGING_SINK_LINE, "utf8") }];
+  return sample;
+}
 /** DEC-083 — the quiet list; every entry names the test that provokes it. */
 const SSR_ALLOWLIST = "docs/tracking/ssr-error-allowlist.txt";
 /** DEC-083 — a REAL captured job log (local e2e run) for the census self-test. */
@@ -2738,9 +2750,7 @@ async function main() {
     }
     // INC-1175 — both directions: the spliced capture's first failure carries the sink's
     // refusal and is labelled, its second is not; the unspliced capture labels none.
-    const sinkFailures = collect(
-      JSON.parse(readFileSync(STAGING_SINK_FIXTURE, "utf8")) as PwJson,
-    ).failures;
+    const sinkFailures = collect(stagingSinkSample()).failures;
     if (
       sinkFailures.length !== 2 ||
       !isStagingSinkFailure(sinkFailures[0] ?? { clientErrors: [] }) ||

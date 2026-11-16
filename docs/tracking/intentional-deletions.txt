@@ -141,3 +141,5 @@ src/features/admin-categories/category-submit-error.ts
 src/features/admin-attributes/attribute-error.ts
 # L2 forms-countries [intentional-delete] (DEC-339): the markets editor's sentinel parser leaves; the order is read by the one parser (src/lib/parse-input.ts)
 src/features/admin-countries/country-dialog-state.ts
+# the tests and CI turn [intentional-delete] (INC-1175): the sink sample is spliced in memory (stagingSinkSample); a tracked copy carried the sample's synthetic token shapes outside the secrets scan's one excluded path
+scripts/fixtures/e2e-results-staging-sink.json
