@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useI18n } from "@/i18n";
+import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
@@ -20,6 +21,9 @@ export const CATEGORY_REFUSALS = {
     deleteHasListings: "admin.categories.error.delete_has_listings",
     deleteHasChildren: "admin.categories.error.delete_has_children",
     acceptNoImage: "admin.categories.error.acceptNoImage",
+    // DEC-339 — the console's own Fields: the gate's blank and the parser's unreadable number.
+    required: "post.refusal.required",
+    badType: PARSE_INVALID_KEY,
   },
   generic: "admin.categories.error.saveFailed",
 } as const satisfies RefusalFamily;
