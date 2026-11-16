@@ -18,9 +18,6 @@ CF-FORM-1 src/features/admin-listings/listing-settings.tsx (2) | wave 3 — the 
 CF-FORM-1 src/features/admin-listings/reason-note.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-listings/tier-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-listings/undo-dialog.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin-locations/location-dialogs.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin-locations/location-form-fields.tsx (7) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin-locations/location-verb-dialogs.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin-locations/locations-toolbar.tsx (1) | wave 3 — a list filter drawn apart from its toolbar's file (DEC-338 by kind unseen) | DEC-339
 CF-FORM-1 src/features/admin-monetisation/market-dialog.tsx (2) | wave 4 — the monetisation dialogs | DEC-339
 CF-FORM-1 src/features/admin-monetisation/monetisation-dialogs.tsx (4) | wave 4 — the monetisation dialogs | DEC-339

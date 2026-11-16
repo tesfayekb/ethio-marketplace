@@ -143,3 +143,5 @@ src/features/admin-attributes/attribute-error.ts
 src/features/admin-countries/country-dialog-state.ts
 # the tests and CI turn [intentional-delete] (INC-1175): the sink sample is spliced in memory (stagingSinkSample); a tracked copy carried the sample's synthetic token shapes outside the secrets scan's one excluded path
 scripts/fixtures/e2e-results-staging-sink.json
+# L3 forms-locations [intentional-delete] (DEC-339): the places editor's sentinel parser leaves; latitude, longitude and order are read by the one parser (src/lib/parse-input.ts)
+src/features/admin-locations/location-dialog-state.ts

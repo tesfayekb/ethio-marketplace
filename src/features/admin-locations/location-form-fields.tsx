@@ -65,11 +65,19 @@ export function readLocationNumbers(
     refusals.displayOrder = { field: "displayOrder", reason: "badType" };
   }
   if (order.kind !== "number" || Object.keys(refusals).length > 0) return { ok: false, refusals };
-  return { ok: true, centerLat: answered(lat), centerLng: answered(lng), displayOrder: order.value };
+  return {
+    ok: true,
+    centerLat: answered(lat),
+    centerLng: answered(lng),
+    displayOrder: order.value,
+  };
 }
 
 /** The gate's marks and the parser's refusals, one per field (the parser's wins once tried). */
-export function locationRefusals(gate: FormGate, parsed: LocationFormRefusals): LocationFormRefusals {
+export function locationRefusals(
+  gate: FormGate,
+  parsed: LocationFormRefusals,
+): LocationFormRefusals {
   const marked: LocationFormRefusals = {};
   for (const mark of gate.marks) {
     if (mark.field in EMPTY_VALUES) marked[mark.field as keyof LocationFormValues] = mark;
@@ -253,44 +261,44 @@ export function LocationFormFields({
         family={LOCATION_REFUSALS}
       >
         {(control) => (
-        <>
-        <span className="flex flex-wrap items-center gap-2">
-          <Input
-            {...control}
-            data-testid={`${p}-alias`}
-            className={`${controlClass(refusalOf("aliases") !== null, false, "dialog")} md:w-56`}
-            value={alias}
-            onChange={(event) => setAlias(event.target.value)}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid="location-alias-add"
-            onClick={addAlias}
-          >
-            {t("admin.locations.field.aliasAdd")}
-          </Button>
-        </span>
-        <span className="flex flex-wrap gap-1" data-testid="location-alias-list">
-          {values.aliases.map((entry, index) => (
-            <Badge key={entry} variant="outline" data-testid={`location-alias-chip-${index}`}>
-              <span className="min-w-0 break-words">{entry}</span>
-              <button
+          <>
+            <span className="flex flex-wrap items-center gap-2">
+              <Input
+                {...control}
+                data-testid={`${p}-alias`}
+                className={`${controlClass(refusalOf("aliases") !== null, false, "dialog")} md:w-56`}
+                value={alias}
+                onChange={(event) => setAlias(event.target.value)}
+              />
+              <Button
                 type="button"
-                className="ms-1"
-                aria-label={t("admin.locations.field.aliasRemove")}
-                data-testid={`location-alias-remove-${index}`}
-                onClick={() =>
-                  onChange({ aliases: values.aliases.filter((peer) => peer !== entry) })
-                }
+                variant="outline"
+                size="touch"
+                data-testid="location-alias-add"
+                onClick={addAlias}
               >
-                {"\u00d7"}
-              </button>
-            </Badge>
-          ))}
-        </span>
-        </>
+                {t("admin.locations.field.aliasAdd")}
+              </Button>
+            </span>
+            <span className="flex flex-wrap gap-1" data-testid="location-alias-list">
+              {values.aliases.map((entry, index) => (
+                <Badge key={entry} variant="outline" data-testid={`location-alias-chip-${index}`}>
+                  <span className="min-w-0 break-words">{entry}</span>
+                  <button
+                    type="button"
+                    className="ms-1"
+                    aria-label={t("admin.locations.field.aliasRemove")}
+                    data-testid={`location-alias-remove-${index}`}
+                    onClick={() =>
+                      onChange({ aliases: values.aliases.filter((peer) => peer !== entry) })
+                    }
+                  >
+                    {"\u00d7"}
+                  </button>
+                </Badge>
+              ))}
+            </span>
+          </>
         )}
       </Field>
 

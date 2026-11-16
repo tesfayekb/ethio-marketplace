@@ -1,7 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -12,7 +14,7 @@ import { errorText } from "@/lib/error-text";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { LocationDialogActions, LocationDialogAlert } from "./location-dialogs";
-import { useLocationRefusal } from "./location-refusals";
+import { LOCATION_REFUSALS, useLocationRefusal } from "./location-refusals";
 import { levelRank, type LocationNode } from "./locations-service";
 import {
   ADMIN_LOCATIONS_KEY,
@@ -155,26 +157,32 @@ export function LocationMoveDialog({
           {t("admin.locations.move.noTargets")}
         </p>
       ) : (
-        <FormField
+        <Field
+          id="location-move-parent"
+          field="newParentId"
           label={t("admin.locations.move.parent")}
-          htmlFor="location-move-parent"
-          help={t("admin.locations.move.hint")}
+          required
+          marked={false}
+          hint={<p className="text-xs text-muted-foreground">{t("admin.locations.move.hint")}</p>}
+          refusal={null}
         >
-          <NativeSelect
-            id="location-move-parent"
-            data-testid="location-move-parent"
-            className="w-full"
-            value={parentId}
-            onChange={(event) => setParentId(event.target.value)}
-          >
-            <option value="">{"—"}</option>
-            {targets.map((target) => (
-              <option key={target.id} value={target.id}>
-                {target.path}
-              </option>
-            ))}
-          </NativeSelect>
-        </FormField>
+          {(control) => (
+            <NativeSelect
+              {...control}
+              data-testid="location-move-parent"
+              className="w-full"
+              value={parentId}
+              onChange={(event) => setParentId(event.target.value)}
+            >
+              <option value="">{"—"}</option>
+              {targets.map((target) => (
+                <option key={target.id} value={target.id}>
+                  {target.path}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </Field>
       )}
       <LocationDialogAlert message={message} />
       <LocationDialogActions
@@ -325,9 +333,12 @@ export function LocationDeleteDialog({
   const remove = useDeleteLocation();
   const { message, clear, fail, render } = useLocationRefusal();
   const [typed, setTyped] = useState("");
+  const gate = useFormGate();
+  const confirmRefusal = gate.marks.find((mark) => mark.field === "slug") ?? null;
 
   const submit = () => {
     clear();
+    if (!gate.try()) return;
     if (typed.trim() !== row.slug) {
       render("admin.locations.delete.mismatch");
       return;
@@ -353,14 +364,26 @@ export function LocationDeleteDialog({
         {row.path}
       </p>
       <p className="text-sm text-muted-foreground">{t("admin.locations.delete.hint")}</p>
-      <FormField label={t("admin.locations.delete.confirmLabel")} htmlFor="location-delete-confirm">
-        <Input
-          id="location-delete-confirm"
-          data-testid="location-delete-confirm"
-          value={typed}
-          onChange={(event) => setTyped(event.target.value)}
-        />
-      </FormField>
+      <Field
+        id="location-delete-confirm"
+        field="slug"
+        label={t("admin.locations.delete.confirmLabel")}
+        required
+        refusal={confirmRefusal}
+        family={LOCATION_REFUSALS}
+        gate={gate}
+        blank={typed.trim() === ""}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid="location-delete-confirm"
+            className={controlClass(confirmRefusal !== null, false, "dialog")}
+            value={typed}
+            onChange={(event) => setTyped(event.target.value)}
+          />
+        )}
+      </Field>
       <LocationDialogAlert message={message} />
       <LocationDialogActions
         onCancel={onClose}

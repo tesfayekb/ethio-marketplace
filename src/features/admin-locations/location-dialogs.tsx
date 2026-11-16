@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,9 +11,14 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { childLevelOf, type LocationNode } from "./locations-service";
-import { LocationFormFields, type LocationFormValues } from "./location-form-fields";
-import { coordinatesRequired, emptyLocationForm } from "./location-form-values";
-import { numberOrNull } from "./location-dialog-state";
+import {
+  LocationFormFields,
+  locationRefusals,
+  readLocationNumbers,
+  type LocationFormRefusals,
+  type LocationFormValues,
+} from "./location-form-fields";
+import { emptyLocationForm } from "./location-form-values";
 import { useLocationRefusal } from "./location-refusals";
 import { useUpsertLocation } from "./use-locations";
 
@@ -111,25 +117,25 @@ export function LocationCreateDialog({
   const [chosen, setChosen] = useState(parentId);
   const [form, setForm] = useState<LocationFormValues>(emptyLocationForm);
   const [created, setCreated] = useState(false);
+  const gate = useFormGate();
+  const [parsed, setParsed] = useState<LocationFormRefusals>({});
   const parent = parents.find((row) => row.id === chosen) ?? null;
   const level = parent === null ? null : childLevelOf(parent.level);
   const patch = (next: Partial<LocationFormValues>) => setForm((prev) => ({ ...prev, ...next }));
 
   const submit = () => {
     clear();
+    setParsed({});
     if (parent === null || level === null) {
       render("admin.locations.error.badLevel");
       return;
     }
-    if (form.nameEn.trim() === "") {
-      render("admin.locations.error.nameRequired");
-      return;
-    }
-    const lat = numberOrNull(form.centerLat);
-    const lng = numberOrNull(form.centerLng);
-    // A client MIRROR of the guard's law; the door remains the authority.
-    if (coordinatesRequired(level) && (lat === null || lng === null)) {
-      render("admin.locations.error.missingCoordinates");
+    // DEC-339: the gate first — a blank name (and a blank coordinate the level requires) is
+    // marked under its Field and nothing is sent; the door remains the authority (F3).
+    if (!gate.try()) return;
+    const numbers = readLocationNumbers(form);
+    if (!numbers.ok) {
+      setParsed(numbers.refusals);
       return;
     }
     void guard(async () => {
@@ -142,9 +148,9 @@ export function LocationCreateDialog({
           slug: form.slug.trim() === "" ? null : form.slug.trim(),
           iso: level === "region" && form.iso.trim() !== "" ? form.iso.trim() : null,
           aliases: form.aliases,
-          displayOrder: numberOrNull(form.displayOrder) ?? 0,
-          centerLat: lat,
-          centerLng: lng,
+          displayOrder: numbers.displayOrder,
+          centerLat: numbers.centerLat,
+          centerLng: numbers.centerLng,
         });
         setCreated(true);
       } catch (error) {
@@ -160,14 +166,22 @@ export function LocationCreateDialog({
       title={t("admin.locations.create.title")}
       onClose={onClose}
     >
-      <FormField label={t("admin.locations.create.parent")} htmlFor="location-create-parent">
+      <Field
+        id="location-create-parent"
+        field="parentId"
+        label={t("admin.locations.create.parent")}
+        required
+        marked={false}
+        refusal={null}
+      >
+        {(control) =>
         {fixed ? (
-          <p id="location-create-parent" data-testid="location-create-parent" className="text-sm">
+          <p {...control} data-testid="location-create-parent" className="text-sm">
             {parent?.path ?? "—"}
           </p>
         ) : (
           <NativeSelect
-            id="location-create-parent"
+            {...control}
             data-testid="location-create-parent"
             className="w-full"
             value={chosen}
@@ -186,8 +200,9 @@ export function LocationCreateDialog({
               </option>
             ))}
           </NativeSelect>
-        )}
-      </FormField>
+        )
+        }
+      </Field>
       <p className="text-sm text-muted-foreground" data-testid="location-create-level">
         {t("admin.locations.create.level").replace(
           "{level}",
@@ -222,6 +237,8 @@ export function LocationCreateDialog({
             level={level ?? parent?.level ?? "region"}
             values={form}
             onChange={patch}
+            gate={gate}
+            refusals={locationRefusals(gate, parsed)}
           />
           <LocationDialogAlert message={message} />
           <LocationDialogActions
