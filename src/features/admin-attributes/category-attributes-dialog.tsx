@@ -292,7 +292,7 @@ export function CategoryAttributesDialog({
                           role="status"
                           aria-live="polite"
                           data-testid={`category-attribute-required-saved-${row.attrKey}`}
-                          className="text-xs text-muted-foreground"
+                          className="ms-2 text-xs text-muted-foreground"
                         >
                           {t("admin.attributes.links.saved")}
                         </span>
@@ -332,7 +332,7 @@ export function CategoryAttributesDialog({
                           role="status"
                           aria-live="polite"
                           data-testid={`category-attribute-filterable-saved-${row.attrKey}`}
-                          className="text-xs text-muted-foreground"
+                          className="ms-2 text-xs text-muted-foreground"
                         >
                           {t("admin.attributes.links.saved")}
                         </span>
