@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
+import type { Refusal } from "@/lib/refusal";
+
+import { readLinkDefault } from "../attribute-form-values";
+import { ATTRIBUTE_REFUSALS } from "../attribute-refusals";
 
 import {
   optionLabel,
@@ -21,12 +27,6 @@ function defaultText(value: unknown): string {
       : String(value);
 }
 
-function typedDefault(type: string, raw: string): unknown {
-  if (type === "number") return Number(raw);
-  if (type === "boolean") return raw === "true";
-  if (type === "multi_select") return raw.split("|").filter(Boolean);
-  return raw;
-}
 
 /**
  * U6-C1-R3b-3a STEP 3 — THE THREE CELLS SAY WHERE THEY STAND.
@@ -77,6 +77,8 @@ export function AttributeLinkCells({
   const [andKey, setAndKey] = useState(row.visibleWhen?.and?.key ?? "");
   const [andValues, setAndValues] = useState<string[]>(row.visibleWhen?.and?.in ?? []);
   const [states, setStates] = useState<Record<Cell, CellState>>(IDLE_STATES);
+  /** DEC-339 — the parser's refusal of a typed default, under its Field; nothing is sent. */
+  const [defaultRefusal, setDefaultRefusal] = useState<Refusal | null>(null);
   /**
    * WHAT IS STORED, as this editor last saw it: the row when it arrived, and the
    * accepted value after each write. Dirtiness is measured against THIS, so a
@@ -171,20 +173,30 @@ export function AttributeLinkCells({
           {t("admin.attributes.link.allowedOptions")}
         </legend>
         {row.options.map((option) => (
-          <label key={option.value} className="flex min-h-11 items-center gap-2 text-xs">
-            <Checkbox
-              data-testid={`category-attribute-allowed-${row.attrKey}-${option.value}`}
-              checked={allowed.includes(option.value)}
-              onCheckedChange={(checked) =>
-                setAllowed((previous) =>
-                  checked === true
-                    ? [...previous, option.value]
-                    : previous.filter((value) => value !== option.value),
-                )
-              }
-            />
-            {optionLabel(option)}
-          </label>
+          <Field
+            key={option.value}
+            id={`allowed-${row.linkId}-${option.value}`}
+            label={optionLabel(option)}
+            required={false}
+            layout="choice"
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
+          >
+            {(control) => (
+              <Checkbox
+                {...control}
+                data-testid={`category-attribute-allowed-${row.attrKey}-${option.value}`}
+                checked={allowed.includes(option.value)}
+                onCheckedChange={(checked) =>
+                  setAllowed((previous) =>
+                    checked === true
+                      ? [...previous, option.value]
+                      : previous.filter((value) => value !== option.value),
+                  )
+                }
+              />
+            )}
+          </Field>
         ))}
         <Button
           type="button"
@@ -208,55 +220,73 @@ export function AttributeLinkCells({
       </fieldset>
 
       <div className="space-y-1">
-        <label className="text-xs font-medium text-foreground" htmlFor={`default-${row.linkId}`}>
-          {t("admin.attributes.link.defaultValue")}
-        </label>
-        {row.attrType === "single_select" || row.attrType === "boolean" ? (
-          <NativeSelect
-            id={`default-${row.linkId}`}
-            data-testid={`category-attribute-default-${row.attrKey}`}
-            className="w-full"
-            value={defaultValue}
-            onChange={(event) => setDefaultValue(event.target.value)}
-          >
-            <option value="">{t("admin.attributes.link.none")}</option>
-            {row.attrType === "boolean" ? (
-              <>
-                <option value="true">{t("post.review.yes")}</option>
-                <option value="false">{t("post.review.no")}</option>
-              </>
+        <Field
+          id={`default-${row.linkId}`}
+          field="defaultValue"
+          label={t("admin.attributes.link.defaultValue")}
+          required={false}
+          refusal={defaultRefusal}
+          family={ATTRIBUTE_REFUSALS}
+        >
+          {(control) =>
+            row.attrType === "single_select" || row.attrType === "boolean" ? (
+              <NativeSelect
+                {...control}
+                data-testid={`category-attribute-default-${row.attrKey}`}
+                className="w-full"
+                value={defaultValue}
+                onChange={(event) => {
+                  setDefaultRefusal(null);
+                  setDefaultValue(event.target.value);
+                }}
+              >
+                <option value="">{t("admin.attributes.link.none")}</option>
+                {row.attrType === "boolean" ? (
+                  <>
+                    <option value="true">{t("post.review.yes")}</option>
+                    <option value="false">{t("post.review.no")}</option>
+                  </>
+                ) : (
+                  effectiveOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {optionLabel(option)}
+                    </option>
+                  ))
+                )}
+              </NativeSelect>
             ) : (
-              effectiveOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {optionLabel(option)}
-                </option>
-              ))
+              <Input
+                {...control}
+                className={controlClass(defaultRefusal !== null, false, "dialog")}
+                data-testid={`category-attribute-default-${row.attrKey}`}
+                type={row.attrType === "number" ? "number" : row.attrType === "date" ? "date" : "text"}
+                value={defaultValue}
+                onChange={(event) => {
+                  setDefaultRefusal(null);
+                  setDefaultValue(event.target.value);
+                }}
+              />
             )}
-          </NativeSelect>
-        ) : (
-          <Input
-            id={`default-${row.linkId}`}
-            data-testid={`category-attribute-default-${row.attrKey}`}
-            type={row.attrType === "number" ? "number" : row.attrType === "date" ? "date" : "text"}
-            value={defaultValue}
-            onChange={(event) => setDefaultValue(event.target.value)}
-          />
-        )}
+          }
+        </Field>
         <Button
           type="button"
           variant="outline"
           size="touch"
           data-testid={`category-attribute-save-default-${row.attrKey}`}
           disabled={!dirty.default || states.default === "saving"}
-          onClick={() =>
-            save(
-              "default",
-              defaultValue === ""
-                ? { clearCells: ["default_value"] }
-                : { defaultValue: typedDefault(row.attrType, defaultValue) },
-              { default: defaultValue },
-            )
-          }
+          onClick={() => {
+            if (defaultValue === "") {
+              save("default", { clearCells: ["default_value"] }, { default: defaultValue });
+              return;
+            }
+            const typed = readLinkDefault(row.attrType, defaultValue);
+            if (!typed.ok) {
+              setDefaultRefusal(typed.refusal);
+              return;
+            }
+            save("default", { defaultValue: typed.value }, { default: defaultValue });
+          }}
         >
           {t("common.save")}
         </Button>
