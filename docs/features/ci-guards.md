@@ -1292,7 +1292,7 @@ that backend and a config-wide one are named, and the guard refuses them before 
 builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.
 
-## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394)
+## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396)
 
 `scripts/ci/lovable-branch-guard.sh` runs in `ci.yml`'s `scope` job, after its checkout, on a pull
 request from a `lovable/*` branch only (`if: github.event_name == 'pull_request' &&
@@ -1309,19 +1309,29 @@ stays shallow, since no git history is read. The script is pure over that JSON.
   `docs/spec/**`; and the platform's own paths (INC-1168) `src/integrations/supabase/**` and
   `.lovable/**`. One path rule per line, each with its DEC; a rename is judged by the path it
   leaves too.
-- **The two DEC-390 exceptions, by content:** `docs/tracking/intentional-deletions.txt` takes
+- **The three exceptions, by content:** `docs/tracking/intentional-deletions.txt` takes
   added lines only; every changed line of `scripts/route-budgets.mjs` must be a ceiling line (the
   shape of its route lines: a quoted route key, `{ ceiling: <n>, public: <true|false> },` and a
-  `//` comment). A patch the API does not carry (a binary or a very large diff) under either
-  refuses.
+  `//` comment) (DEC-390); and a conformance allowlist, `scripts/conformance/<name>-allowlist.txt`
+  directly under that folder (a glob in `is_allowlist`, a nested path ruled out beside it), takes
+  removed lines only (DEC-396, which amends DEC-390): the form kit's wave 3 retires the CF-FORM-1
+  lines its own change makes stale, as pull request #48 did, and removing an allowance narrows,
+  never widens. An added or changed line, a rename, a new or a deleted allowlist file refuses;
+  `scripts/doors/manifest.txt`, `scripts/conformance/kit.ts` and every other file under `scripts/`
+  stay refused under `scripts/**`. A patch the API does not carry (a binary or a very large diff)
+  under any of the three refuses.
 - **The verdict:** every offending change listed with its rule, exit 1; a pass names the file
   count. Input that is not the API's JSON arrays (an empty answer, an error object) is exit 2,
   never a pass.
-- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…10 on planted API answers —
+- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…12 on planted API answers —
   every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
   real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
   across two pages, a missing patch, a rename away from a forbidden path, input that is not the
-  API's, and the `ci.yml` step itself. `scripts/conformance/wired.test.ts` finds the script's
+  API's, the `ci.yml` step itself, and (CF-LVB-11, CF-LVB-12) an allowlist's removed lines passing
+  — every allowlist file of the tree, beside a screen file and the deletions line — against an
+  added line, a changed line, a missing patch, a new, renamed or deleted allowlist, a nested path
+  and `kit.ts` and `scripts/doors/manifest.txt` refusing, each case asserting the exit code and the
+  reason. `scripts/conformance/wired.test.ts` finds the script's
   basename in `ci.yml`.
 - **Left:** INC-1168 (c), a "carry" step that rebuilds the pull request from dev plus the approved
   files. The endpoint answers without the `pull-requests` permission while the repository is

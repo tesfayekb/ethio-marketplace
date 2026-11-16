@@ -16,16 +16,32 @@
 #   scripts/route-budgets.mjs your change grows (DEC-390)."
 # and the platform's own paths (INC-1168): src/integrations/supabase/**, .lovable/**.
 #
-# Every offending path is listed with its rule; then exit 1. The two DEC-390 exceptions are judged
-# by content: the deletions file takes added lines only; every changed line of the ceilings file is
-# a ceiling line. A patch the API does not carry (a binary or a very large diff) under either
-# exception refuses. Input that is not the API's JSON arrays is an error (exit 2), never a pass.
+# A third exception, DEC-396 (amends DEC-390): a conformance allowlist (scripts/conformance/
+# <name>-allowlist.txt, directly under that folder) may LOSE lines — the form kit's wave 3 retires the
+# CF-FORM-1 lines its own change makes stale. Removing an allowance narrows, never widens, so only
+# `-` lines pass; an added or changed line, a rename, a new or deleted allowlist file refuses, and so
+# does any other file under scripts/ (kit.ts, scripts/doors/manifest.txt, …).
+#
+# Every offending path is listed with its rule; then exit 1. The three exceptions are judged by
+# content: the deletions file takes added lines only; every changed line of the ceilings file is a
+# ceiling line; an allowlist takes removed lines only. A patch the API does not carry (a binary or a
+# very large diff) under any exception refuses. Input that is not the API's JSON arrays is an error
+# (exit 2), never a pass.
 set -euo pipefail
 
 readonly DELETIONS="docs/tracking/intentional-deletions.txt"
 readonly CEILINGS="scripts/route-budgets.mjs"
 # The shape of every route line of scripts/route-budgets.mjs, read from the file.
 readonly CEILING_LINE='^  "[^"]+": \{ ceiling: [0-9]+, public: (true|false) \}, // .+$'
+
+# A conformance allowlist (DEC-396): `scripts/conformance/` + one name ending `-allowlist.txt`. The
+# `case` glob alone would let `*` cross a slash, so a nested path is ruled out beside it.
+is_allowlist() {
+  case "$1" in
+    scripts/conformance/*-allowlist.txt) [[ "${1#scripts/conformance/}" != */* ]] ;;
+    *) return 1 ;;
+  esac
+}
 
 # One path rule per line: the path's pattern, then the rule and its DEC.
 rule_for() {
@@ -38,7 +54,7 @@ rule_for() {
     src/routes/api/*) echo "src/routes/api/** — server routes (DEC-386)" ;;
     src/integrations/supabase/*) echo "src/integrations/supabase/** — the platform's client (INC-1168, DEC-386)" ;;
     .github/*) echo ".github/** — workflows (DEC-386)" ;;
-    scripts/*) echo "scripts/** — the guards and tools (DEC-386; the one exception: a ceiling line, DEC-390)" ;;
+    scripts/*) echo "scripts/** — the guards and tools (DEC-386; the two exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396)" ;;
     e2e/helpers/*) echo "e2e/helpers/** — e2e helpers (DEC-386)" ;;
     e2e/global-setup.ts | e2e/global-teardown.ts | e2e/fixtures.ts) echo "$1 — e2e global setup (DEC-386)" ;;
     package.json | bun.lock) echo "$1 — dependencies (DEC-386)" ;;
@@ -61,16 +77,27 @@ changed_lines() {
   done <<<"$1"
 }
 
-# An exception's verdict: empty when its patch holds only what DEC-390 allows, else the reason.
+# An exception's verdict: empty when its patch holds only what DEC-390 or DEC-396 allows, else the
+# reason.
 exception_refusal() {
-  local path="$1" has_patch="$2" patch="$3" line
+  local path="$1" has_patch="$2" patch="$3" status="$4" line dec="DEC-390"
+  if is_allowlist "$path"; then dec="DEC-396"; fi
   if [ "$has_patch" != "1" ]; then
-    echo "${path} — the API carries no patch for it (a binary or a very large diff), so DEC-390's exception cannot be read"
+    echo "${path} — the API carries no patch for it (a binary or a very large diff), so ${dec}'s exception cannot be read"
+    return
+  fi
+  if is_allowlist "$path" && [ "$status" != "modified" ]; then
+    echo "${path} — ${status}; a Lovable branch may only remove lines of an existing allowlist — DEC-396; a new, renamed or deleted allowlist is refused"
     return
   fi
   while IFS= read -r line; do
     if [ -z "$line" ]; then continue; fi
-    if [ "$path" = "$DELETIONS" ]; then
+    if is_allowlist "$path"; then
+      if [ "${line:0:1}" != "-" ]; then
+        echo "${path} — a Lovable branch may only remove an allowance — DEC-396; an added or changed line is refused"
+        return
+      fi
+    elif [ "$path" = "$DELETIONS" ]; then
       if [ "${line:0:1}" = "-" ]; then
         echo "${path} — a removed or changed line; DEC-390 allows added lines only"
         return
@@ -93,9 +120,9 @@ count=0
 # Fields joined by the unit separator: a tab is whitespace to `read`, so an empty field would shift.
 while IFS=$'\x1f' read -r filename previous status has_patch; do
   count=$((count + 1))
-  if [ "$filename" = "$DELETIONS" ] || [ "$filename" = "$CEILINGS" ]; then
+  if [ "$filename" = "$DELETIONS" ] || [ "$filename" = "$CEILINGS" ] || is_allowlist "$filename"; then
     patch="$(jq -r --arg f "$filename" '.[] | select(.filename == $f) | .patch // ""' <<<"$input")"
-    reason="$(exception_refusal "$filename" "$has_patch" "$patch")"
+    reason="$(exception_refusal "$filename" "$has_patch" "$patch" "$status")"
     if [ -n "$reason" ]; then refusals+=("$reason"); fi
   else
     rule="$(rule_for "$filename")"

@@ -1,12 +1,14 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { walkFiles } from "../conformance/kit";
 
 /**
  * DEC-394 (the tests and CI turn, Part C) — scripts/ci/lovable-branch-guard.sh: a pull request from
  * a `lovable/*` branch changes only what Lovable may change (Knowledge v3.14's ROLE paragraph,
- * DEC-386; the two DEC-390 exceptions judged by content). Every case plants the GitHub API's own
- * shape — the pull request's files, one JSON array per page — on the script's stdin.
+ * DEC-386; the two DEC-390 exceptions and the third, DEC-396, judged by content). Every case plants
+ * the GitHub API's own shape — the pull request's files, one JSON array per page — on the script's
+ * stdin.
  */
 
 const SCRIPT = "scripts/ci/lovable-branch-guard.sh";
@@ -34,6 +36,19 @@ const CEILING = (() => {
   const grown = line.replace(/ceiling: (\d+)/, (_, n: string) => `ceiling: ${Number(n) + 1}`);
   return { line, grown };
 })();
+
+/** Real lines of a real allowlist: the file wave 3's pull request removed two lines from. */
+const FORMS_ALLOWLIST = "scripts/conformance/forms-allowlist.txt";
+const ALLOWLIST_LINES = readFileSync(FORMS_ALLOWLIST, "utf8")
+  .split("\n")
+  .filter((l) => l.startsWith("CF-FORM-1 src/"));
+if (ALLOWLIST_LINES.length < 4)
+  throw new Error("forms-allowlist.txt has fewer than 4 CF-FORM-1 lines");
+const [KEPT_A, GONE_B, GONE_C, KEPT_D] = ALLOWLIST_LINES;
+/** The API's patch for a removal of two lines between two kept ones: `-` lines only. */
+const REMOVED_ONLY = `@@ -14,4 +14,2 @@\n ${KEPT_A}\n-${GONE_B}\n-${GONE_C}\n ${KEPT_D}`;
+const NOT_REMOVAL = (path: string) =>
+  `${path} — a Lovable branch may only remove an allowance — DEC-396; an added or changed line is refused`;
 
 describe("a Lovable branch's pull request changes only screen files (DEC-394)", () => {
   it("CF-LVB-1 every forbidden path refuses with its rule and DEC", () => {
@@ -213,5 +228,88 @@ describe("a Lovable branch's pull request changes only screen files (DEC-394)", 
       'gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" | bash scripts/ci/lovable-branch-guard.sh',
     );
     expect(scope).not.toContain("fetch-depth");
+  });
+
+  it("CF-LVB-11 an allowlist under scripts/conformance/ may lose lines: removed lines only pass (DEC-396)", () => {
+    const removed = run([[modified(FORMS_ALLOWLIST, REMOVED_ONLY)]]);
+    expect(removed.code).toBe(0);
+    expect(removed.out).toContain(
+      "lovable-branch-guard: 1 file(s), none outside what a Lovable branch may change (DEC-394).",
+    );
+    // Beside the other two exceptions and a screen file, as wave 3's own pull request ships it.
+    const wave = run([
+      [
+        modified("src/features/admin-countries/country-dialogs.tsx"),
+        modified(FORMS_ALLOWLIST, REMOVED_ONLY),
+        modified(
+          "docs/tracking/intentional-deletions.txt",
+          "@@ -10 +10,2 @@\n src/a.tsx\n+src/c.tsx",
+        ),
+      ],
+    ]);
+    expect(wave.code).toBe(0);
+    // Every allowlist file of the tree takes the exception, not only the forms one.
+    const paths = walkFiles(["scripts/conformance"], { ext: ["txt"] }).filter(
+      (f) => f.endsWith("-allowlist.txt") && f.split("/").length === 3,
+    );
+    expect(paths.length).toBeGreaterThan(1);
+    const every = run([paths.map((path) => modified(path, REMOVED_ONLY))]);
+    expect(every.code, every.out).toBe(0);
+  });
+
+  it("CF-LVB-12 an allowlist's added or changed line, a rename, a new file or no patch refuses, and nothing else under scripts/ gains the exception (DEC-396)", () => {
+    const added = run([
+      [modified(FORMS_ALLOWLIST, `@@ -14,2 +14,3 @@\n ${KEPT_A}\n+${GONE_B}\n ${KEPT_D}`)],
+    ]);
+    expect(added.code).toBe(1);
+    expect(added.out).toContain(NOT_REMOVAL(FORMS_ALLOWLIST));
+    const changed = run([
+      [modified(FORMS_ALLOWLIST, `@@ -14 +14 @@\n-${GONE_B}\n+${GONE_B.replace("(", "(9")}`)],
+    ]);
+    expect(changed.code).toBe(1);
+    expect(changed.out).toContain(NOT_REMOVAL(FORMS_ALLOWLIST));
+    const mixed = run([[modified(FORMS_ALLOWLIST, `${REMOVED_ONLY}\n+${GONE_B}`)]]);
+    expect(mixed.code).toBe(1);
+    expect(mixed.out).toContain(NOT_REMOVAL(FORMS_ALLOWLIST));
+
+    const noPatch = run([[{ filename: FORMS_ALLOWLIST, status: "modified" }]]);
+    expect(noPatch.code).toBe(1);
+    expect(noPatch.out).toContain(`${FORMS_ALLOWLIST} — the API carries no patch for it`);
+    expect(noPatch.out).toContain("DEC-396's exception cannot be read");
+
+    // A new, renamed or deleted allowlist is not "a line removed": refused, whatever its patch.
+    for (const status of ["added", "renamed", "removed"]) {
+      const result = run([
+        [{ filename: "scripts/conformance/new-allowlist.txt", status, patch: REMOVED_ONLY }],
+      ]);
+      expect(result.code, status).toBe(1);
+      expect(result.out, status).toContain(
+        `scripts/conformance/new-allowlist.txt — ${status}; a Lovable branch may only remove lines of an existing allowlist — DEC-396`,
+      );
+    }
+    // A rename away from an allowlist reads the old path under the scripts/** rule.
+    const renamedAway = run([
+      [{ filename: "docs/old-list.txt", previous_filename: FORMS_ALLOWLIST, status: "renamed" }],
+    ]);
+    expect(renamedAway.code).toBe(1);
+    expect(renamedAway.out).toContain(
+      `${FORMS_ALLOWLIST} — renamed to docs/old-list.txt: scripts/** — the guards and tools (DEC-386; the two exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396)`,
+    );
+
+    // Nothing else under scripts/ takes the exception, with a removal-only patch or not.
+    const scriptsRule =
+      "scripts/** — the guards and tools (DEC-386; the two exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396)";
+    for (const path of [
+      "scripts/conformance/kit.ts",
+      "scripts/doors/manifest.txt",
+      "scripts/conformance/nested/x-allowlist.txt",
+      "scripts/conformance/forms-allowlist.txt.bak",
+      "scripts/conformance/allowlist.txt",
+      "scripts/forms-allowlist.txt",
+    ]) {
+      const result = run([[modified(path, REMOVED_ONLY)]]);
+      expect(result.code, path).toBe(1);
+      expect(result.out, path).toContain(`${path} — modified: ${scriptsRule}`);
+    }
   });
 });
