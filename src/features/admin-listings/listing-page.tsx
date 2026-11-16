@@ -10,7 +10,7 @@ import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { useScreeningPhotos, useScreeningSchema } from "@/features/admin-screening/use-screening";

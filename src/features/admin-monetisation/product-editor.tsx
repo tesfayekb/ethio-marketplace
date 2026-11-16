@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { Input } from "@/components/ui/input";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 

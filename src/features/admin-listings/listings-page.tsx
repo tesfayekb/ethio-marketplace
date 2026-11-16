@@ -26,7 +26,7 @@ import { ActionMessage } from "@/components/ui/action-message";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useWarnedListings } from "@/features/admin-screening/use-photo-changes";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";

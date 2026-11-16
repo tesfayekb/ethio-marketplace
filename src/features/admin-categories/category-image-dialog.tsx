@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n";
 
 import { relativeTime } from "@/lib/relative-time";
 
-import { CategoryModal } from "./category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import {
   acceptCategoryImage,
   generateCategoryImage,

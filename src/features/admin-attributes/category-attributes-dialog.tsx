@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n } from "@/i18n";

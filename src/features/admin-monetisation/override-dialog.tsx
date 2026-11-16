@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { NativeSelect } from "@/components/ui/native-select";
-import { CategoryModal } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { rootsOf } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
