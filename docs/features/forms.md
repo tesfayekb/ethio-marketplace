@@ -122,3 +122,24 @@ create and move dialogs' parent pickers sit in the Field with no mark
 mismatch still the dialog's own line. `LOCATION_REFUSALS` carries the kit's
 `required` and `badType` words; the doors' `nameRequired` and
 `missingCoordinates` keep their lines. The sentinel `numberOrNull` was deleted.
+
+## Categories console (wave 3)
+
+`src/features/admin-categories/category-form-fields.tsx` draws the create and
+edit dialogs' answers in the one Field at the dialog density, ids and test ids
+unchanged: the name is required and reports its blank to the editor's gate; the
+icon, parent, position (its caption the Field's hint), expiry, visibility window
+and countries are optional; the two ticks sit in the Field's `choice` layout.
+`readCategoryNumbers` (category-form-values.ts) reads the expiry through the one
+parser, `{ integer: true, min: 1 }` (the table's `expiry_days IS NULL OR
+expiry_days > 0`); blank is no expiry (null); an unreadable answer is refused
+under its Field (`PARSE_INVALID_KEY`) before the step-up or the door (INC-1180).
+The edit dialog's order box is read-only (Move up/down owns the order) and is
+drawn only where the loaded row is, showing its stored order. In
+category-dialogs.tsx the window, exclusion ticks and each path's move picker sit
+in the Field; the retire target (when listings must move), the pointer parent,
+the add-path parent and the delete confirmation are required through each
+dialog's gate (the pickers with no mark); a wrong delete confirmation stays the
+dialog's own `admin.categories.delete.mismatch` line, and door refusals stay in
+`category-dialog-error`. `CATEGORY_REFUSALS` carries the kit's `required` and
+`badType` words; the door's `reassignRequired` keeps its line.

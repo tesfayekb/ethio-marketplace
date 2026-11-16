@@ -1595,39 +1595,6 @@
       "/admin/places",
       "/admin/screening"
     ],
-    "admin.categories.error.nameRequired": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/screening"
-    ],
-    "admin.categories.error.parentRequired": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/screening"
-    ],
-    "admin.categories.error.reassignRequired": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/screening"
-    ],
     "admin.categories.exclusions.current": [
       "/admin/ai",
       "/admin/attributes",
@@ -6539,9 +6506,14 @@
       "/post/$listingId"
     ],
     "post.field.required": [
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/categories",
       "/admin/countries",
+      "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/monetisation",
       "/admin/places",
       "/admin/screening",
       "/auth",
@@ -6661,9 +6633,14 @@
       "/post/$listingId"
     ],
     "post.optional": [
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/categories",
       "/admin/countries",
+      "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/monetisation",
       "/admin/places",
       "/admin/screening",
       "/auth",
