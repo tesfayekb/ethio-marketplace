@@ -1,11 +1,6 @@
 import type { ReactNode } from "react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /**
  * The staff consoles' one dialog shell (B3): a title, the opener's mark and a
