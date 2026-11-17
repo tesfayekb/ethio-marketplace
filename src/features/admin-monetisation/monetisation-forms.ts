@@ -1,5 +1,5 @@
 import type { MessageKey } from "@/i18n";
-import { wholeNumber } from "@/lib/whole-number";
+import { numberOf, parseNumber } from "@/lib/parse-input";
 
 import {
   PLACEMENTS,
@@ -104,8 +104,8 @@ function capText(cap: number | null): string {
 /** A place limit's field (DEC-356): blank = no limit (null), else a whole number of 1 or more. */
 export function capOf(text: string): { ok: true; cap: number | null } | { ok: false } {
   if (text.trim() === "") return { ok: true, cap: null };
-  const cap = wholeNumber(text);
-  return cap === null || cap < 1 ? { ok: false } : { ok: true, cap };
+  const cap = numberOf(parseNumber(text, { integer: true, min: 1 }));
+  return cap === null ? { ok: false } : { ok: true, cap };
 }
 
 export function productFormInput(kind: ProductKind, values: ProductFormValues): ProductFormOutcome {
@@ -116,14 +116,14 @@ export function productFormInput(kind: ProductKind, values: ProductFormValues): 
   if (nameEn === "" || nameEn.length > PRODUCT_NAME_MAX || nameAm.length > PRODUCT_NAME_MAX) {
     return { ok: false, key: "admin.monetisation.error.badName" };
   }
-  const days = wholeNumber(values.days);
-  if (days === null || days < 1) return { ok: false, key: "admin.packages.error.badDays" };
+  const days = numberOf(parseNumber(values.days, { integer: true, min: 1 }));
+  if (days === null) return { ok: false, key: "admin.packages.error.badDays" };
   let maxPhotos: number | null = null;
   let placement: string | null = null;
   let badge: boolean | null = null;
   if (kind === "level") {
-    maxPhotos = wholeNumber(values.maxPhotos);
-    if (maxPhotos === null || maxPhotos < 0 || maxPhotos > 30) {
+    maxPhotos = numberOf(parseNumber(values.maxPhotos, { integer: true, min: 0, max: 30 }));
+    if (maxPhotos === null) {
       return { ok: false, key: "admin.monetisation.error.badPhotos" };
     }
     if (!isPlacement(values.placement)) {
@@ -143,7 +143,8 @@ export function productFormInput(kind: ProductKind, values: ProductFormValues): 
     caps = { maxCities: cities.cap, maxRegions: regions.cap, maxCountries: countries.cap };
   }
   // The field admits digits only, so a non-blank sort is always a whole number.
-  const sort = values.sort.trim() === "" ? null : wholeNumber(values.sort);
+  const sort =
+    values.sort.trim() === "" ? null : numberOf(parseNumber(values.sort, { integer: true }));
   return {
     ok: true,
     input: {
@@ -210,13 +211,13 @@ export function overrideFormInput(values: OverrideFormValues): OverrideFormOutco
   if (values.levelKey === "") return { ok: false, key: "admin.monetisation.error.unknownLevel" };
   let days: number | null = null;
   if (values.days.trim() !== "") {
-    days = wholeNumber(values.days);
-    if (days === null || days < 1) return { ok: false, key: "admin.packages.error.badDays" };
+    days = numberOf(parseNumber(values.days, { integer: true, min: 1 }));
+    if (days === null) return { ok: false, key: "admin.packages.error.badDays" };
   }
   let maxPhotos: number | null = null;
   if (values.maxPhotos.trim() !== "") {
-    maxPhotos = wholeNumber(values.maxPhotos);
-    if (maxPhotos === null || maxPhotos < 0 || maxPhotos > 30) {
+    maxPhotos = numberOf(parseNumber(values.maxPhotos, { integer: true, min: 0, max: 30 }));
+    if (maxPhotos === null) {
       return { ok: false, key: "admin.monetisation.error.badPhotos" };
     }
   }
@@ -282,16 +283,16 @@ export type MarketFormOutcome =
   | { ok: false; key: MessageKey };
 
 export function marketFormInput(values: MarketFormValues): MarketFormOutcome {
-  const freeRegularAds = wholeNumber(values.freeRegularAds);
-  if (freeRegularAds === null || freeRegularAds < 0) {
+  const freeRegularAds = numberOf(parseNumber(values.freeRegularAds, { integer: true, min: 0 }));
+  if (freeRegularAds === null) {
     return { ok: false, key: "admin.monetisation.error.badFreeAds" };
   }
   if (values.includedReach === "")
     return { ok: false, key: "admin.monetisation.error.unknownReach" };
   const bundle = (raw: string): number | null | false => {
     if (raw.trim() === "") return null;
-    const parsed = wholeNumber(raw);
-    return parsed === null || parsed < 1 ? false : parsed;
+    const parsed = numberOf(parseNumber(raw, { integer: true, min: 1 }));
+    return parsed === null ? false : parsed;
   };
   const launchCredits = bundle(values.launchCredits);
   const launchDays = bundle(values.launchDays);

@@ -211,3 +211,21 @@ The primitives and style specimens draw answer controls through Field, including
 choice radios; the primitives table search and style list filters stay bare
 (DEC-338). Seven CF-FORM-1 allowances are removed. Tests: KFL-1 onward and the
 legal unit tests, forms census, and admin-tables guard.
+
+## Monetisation console (wave 3)
+
+Every control of `src/features/admin-monetisation/`'s five dialogs (market,
+override, price, product editor and their shared pieces in
+`monetisation-dialogs.tsx`) sits in the one Field, ids and test ids unchanged,
+the door's answer name as each Field's `field`. Required single answers report
+their blanks to each dialog's gate (`useFormGate`): the price's product, amount
+and credit cost; the product's key, English name, days and (a level's) photos;
+the market's free ads. Pickers that always hold a value carry no mark
+(`marked={false}`); the ticks sit in the `choice` layout. The judges
+(`monetisation-forms.ts`, `price-forms.ts`) read every whole number through
+`parseNumber(…, { integer: true, min, max })` with each check's own bounds and
+words; a price's amount stays a money answer read by `AMOUNT_PATTERN`. A single
+field's own bad answer is drawn under its Field (`monetisation-refusals.ts`,
+family `MONETISATION_REFUSALS`: the kit's `required` and each judge key read as
+itself); a rule across fields (`emptyOverride`, `launchRequired`) and every door
+refusal stay in the dialog's `<prefix>-error` line. Tests: KMO-1…8.
