@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 const calls = vi.hoisted(() => ({ write: vi.fn() }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
@@ -25,7 +26,8 @@ import { ListingSettings } from "./listing-settings";
 describe("settings field rules", () => {
   it("KFC2-5 refused days hold the write; corrected days reach the existing door", async () => {
     calls.write.mockResolvedValue({ error: null });
-    const guard = vi.fn(async (run: () => Promise<void>) => run());
+    const invoke: GuardFn = async (run) => run();
+    const guard = vi.fn(invoke);
     const onSaved = vi.fn();
     render(
       <QueryClientProvider

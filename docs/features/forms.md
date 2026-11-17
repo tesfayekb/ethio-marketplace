@@ -164,3 +164,28 @@ step-up or the door. `readLinkDefault` reads a number attribute's default throug
 nothing is sent. The blank-option-rows count (`option-blank-message`) stays its
 own row-level line. Door refusals stay in `attribute-dialog-error`.
 `ATTRIBUTE_REFUSALS` carries the kit's `required` and `badType` words.
+
+## AI, listings, name-checks and translations consoles (wave 3)
+
+The thirteen L6 control files draw through the one Field, retaining their test
+ids. AI's budget keeps the existing dollars-to-cents parser (including its dollar
+sign and grouped commas); its unreadable-budget refusal is attached to the budget
+Field through the refusal reader. The required unit price reports its blank to
+the shared gate. Nonblank price-rule and door refusals keep `ai-editor-error`.
+
+Listings' renewal days read `parseNumber` with `{ integer: true, min: 1, max: 365 }`;
+tier days use `{ integer: true, min: 1, max: TIER_DAYS_MAX }`, with blank still
+open-ended null and invalid undefined. Their existing cross-field problem lines
+and words stay in their dialogs; affected controls name those lines and carry
+`aria-invalid`. The reason/note block remains one shared piece across move, tier
+and photo removal. Optional Undo and name-check notes remain optional.
+
+Translations' code and both names report blanks to the shared gate; a nonblank
+bad code and door failures retain `translations-add-error`. Typed deletion stays
+disarmed until its confirmation matches and also checks the gate before sending.
+The translations family's `required` word is now the kit's existing key, including
+door required refusals. Search controls carry their existing words as hidden
+labels; switches and per-country/per-language ticks use inline/choice Fields.
+Translation values and context remain optional so existing clear/save behavior
+is unchanged. No new catalog key or Amharic text is introduced. Tests: KFC2-1–8
+and the four consoles' existing tests; all thirteen CF-FORM-1 allowances are removed.
