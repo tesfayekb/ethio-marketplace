@@ -5180,10 +5180,7 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_set_language_order: {
-        Args: { p_codes: string[] }
-        Returns: Json
-      }
+      admin_set_language_order: { Args: { p_codes: string[] }; Returns: Json }
       admin_set_legal_settings: { Args: { p_settings: Json }; Returns: Json }
       admin_set_listing_policy: {
         Args: { p_renew_allowed: boolean; p_renew_days: number }
