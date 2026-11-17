@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 730,
-  "dynamicCallSites": 425,
+  "scanned": 731,
+  "dynamicCallSites": 426,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3073,9 +3073,6 @@
     "admin.packages.prices.field.amount": [
       "/admin/monetisation"
     ],
-    "admin.packages.prices.field.amountHint": [
-      "/admin/monetisation"
-    ],
     "admin.packages.prices.field.category": [
       "/admin/monetisation"
     ],
@@ -3089,9 +3086,6 @@
       "/admin/monetisation"
     ],
     "admin.packages.prices.field.to": [
-      "/admin/monetisation"
-    ],
-    "admin.packages.prices.field.toHint": [
       "/admin/monetisation"
     ],
     "admin.packages.prices.free": [
@@ -5929,6 +5923,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/monetisation",
       "/admin/places",
       "/admin/screening",
       "/admin/translations",
@@ -6063,6 +6058,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/monetisation",
       "/admin/places",
       "/admin/screening",
       "/admin/translations",
