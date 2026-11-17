@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `0dc9123532df4a1c688f1e68b5f1258d6741f281`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44051590383
+- Commit: `ed0b4ed6c71e132043bcfef24c7e39d6279ffbb2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44054528246
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 377 | 60 | applied 499/499 | 27 | 0 | 0 | 5 | 32 |
-| email | 201 | 63 | applied 499/499 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 717 | 68 | applied 499/499 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 509 | 61 | applied 499/499 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 482 | 60 | applied 499/499 | 173 | 0 | 1 | 26 | 200 |
-| 3 | 636 | 72 | applied 499/499 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 547 | 56 | applied 499/499 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 543 | 62 | applied 499/499 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 632 | 75 | applied 499/499 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 744 | 81 | applied 499/499 | 146 | 0 | 1 | 77 | 224 |
-| 8 | 629 | 78 | applied 499/499 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 478 | 52 | applied 499/499 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 525 | 63 | applied 499/499 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 536 | 62 | applied 499/499 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 534 | 60 | applied 499/499 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 587 | 78 | applied 499/499 | 157 | 0 | 0 | 9 | 166 |
-| 14 | 495 | 62 | applied 499/499 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 531 | 60 | applied 499/499 | 124 | 0 | 0 | 8 | 132 |
-| 16 | 515 | 61 | applied 499/499 | 172 | 0 | 0 | 48 | 220 |
+| smoke | 403 | 62 | applied 499/499 | 27 | 0 | 0 | 5 | 32 |
+| email | 197 | 62 | applied 499/499 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 724 | 64 | applied 499/499 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 568 | 71 | applied 499/499 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 577 | 69 | applied 499/499 | 174 | 0 | 0 | 26 | 200 |
+| 3 | 606 | 69 | applied 499/499 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 503 | 62 | applied 499/499 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 550 | 62 | applied 499/499 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 584 | 67 | applied 499/499 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 489 | 61 | applied 499/499 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 534 | 61 | applied 499/499 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 496 | 61 | applied 499/499 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 645 | 80 | applied 499/499 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 569 | 63 | applied 499/499 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 532 | 62 | applied 499/499 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 513 | 63 | applied 499/499 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 589 | 69 | applied 499/499 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 534 | 63 | applied 499/499 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 675 | 79 | applied 499/499 | 172 | 0 | 0 | 48 | 220 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2544 | 0 | 2 | 360 | 2906 |
+| TOTAL | — | — | — | 2546 | 0 | 0 | 360 | 2906 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 7 744 s
+- Slowest lane: webkit 724 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 6, email 6, webkit 8, 1 6, 2 6, 3 9, 4 6, 5 6, 6 9, 7 10, 8 10, 9 5, 10 6, 11 6, 12 6, 13 10, 14 6, 15 6, 16 6, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/334, 2 641/327, 3 641/447, 4 640/384, 5 640/371, 6 641/421, 7 641/521, 8 641/438, 9 641/325, 10 643/332, 11 640/363, 12 641/351, 13 640/393, 14 641/324, 15 641/376, 16 641/335
+- Database session samples during each start (INC-944): smoke 6, email 6, webkit 7, 1 8, 2 8, 3 8, 4 6, 5 6, 6 8, 7 6, 8 7, 9 6, 10 10, 11 7, 12 6, 13 7, 14 8, 15 6, 16 10, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/375, 2 641/381, 3 641/413, 4 640/322, 5 640/372, 6 641/385, 7 641/328, 8 641/357, 9 641/333, 10 643/438, 11 640/392, 12 641/355, 13 640/339, 14 641/401, 15 641/377, 16 641/473
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44051590383-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 44051590383-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44051590383-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44051590383-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44051590383-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44051590383-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44051590383-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44051590383-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44051590383-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44051590383-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44051590383-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44051590383-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44051590383-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44051590383-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44051590383-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44051590383-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44051590383-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44051590383-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44051590383-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44054528246-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 44054528246-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44054528246-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44054528246-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44054528246-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44054528246-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44054528246-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44054528246-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44054528246-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44054528246-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44054528246-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44054528246-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44054528246-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44054528246-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44054528246-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44054528246-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44054528246-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44054528246-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44054528246-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -77,11 +77,5 @@ Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
-
-## Lane 2
-- submenu-look.spec.ts / D248 a side panel is the main menu / SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254) / desktop-1280 — Error: SMN-E13 the panel scrolls
-
-## Lane 7
-- choice-lists.spec.ts / choice lists at 360, light / CL-E10 the account menu's parts equal the other lists' (360, light) / mobile-360 — Error: expect(locator).toBeHidden() failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
