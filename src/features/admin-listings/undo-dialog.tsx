@@ -1,6 +1,6 @@
+import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -42,20 +42,27 @@ export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogPro
     >
       <div className="min-w-0 space-y-3">
         <p className="text-sm text-muted-foreground">{t("admin.listings.undo.hint")}</p>
-        <FormField
+        <Field
+          id={"listing-undo-note"}
+          field="note"
           label={t("admin.listings.move.note")}
-          htmlFor="listing-undo-note"
-          testid="listing-undo-note-field"
+          required={false}
+          refusal={null}
+          testId={"listing-undo-note-field"}
         >
-          <Textarea
-            id="listing-undo-note"
-            data-testid="listing-undo-note"
-            value={note}
-            maxLength={NOTE_MAX}
-            rows={3}
-            onChange={(event) => setNote(event.target.value)}
-          />
-        </FormField>
+          {(control) => (
+            <>
+              <Textarea
+                {...control}
+                data-testid="listing-undo-note"
+                value={note}
+                maxLength={NOTE_MAX}
+                rows={3}
+                onChange={(event) => setNote(event.target.value)}
+              />
+            </>
+          )}
+        </Field>
         {problem !== null ? (
           <p role="alert" data-testid="listing-undo-problem" className="text-sm text-destructive">
             {problem}

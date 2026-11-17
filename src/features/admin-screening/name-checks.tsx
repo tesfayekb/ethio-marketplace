@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -297,17 +297,25 @@ export function NameChecks({
           <AlertDialogTitle>{t("admin.screening.names.clear.title")}</AlertDialogTitle>
           <AlertDialogDescription>{t("admin.screening.names.clear.body")}</AlertDialogDescription>
           <div className="space-y-1">
-            <Label htmlFor="admin-name-check-reason">
-              {t("admin.screening.names.clear.reason")}
-            </Label>
-            <Textarea
-              id="admin-name-check-reason"
-              data-testid="admin-name-check-allow-reason"
-              maxLength={500}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              aria-describedby="admin-name-check-reason-help"
-            />
+            <Field
+              id={"admin-name-check-reason"}
+              field="reason"
+              label={<>{t("admin.screening.names.clear.reason")}</>}
+              required={false}
+              refusal={null}
+              layout="stack"
+            >
+              {(control) => (
+                <Textarea
+                  {...control}
+                  data-testid="admin-name-check-allow-reason"
+                  maxLength={500}
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
+                  aria-describedby="admin-name-check-reason-help"
+                />
+              )}
+            </Field>
             <p id="admin-name-check-reason-help" className="text-xs text-muted-foreground">
               {t("admin.screening.names.clear.reasonHelp")}
             </p>
