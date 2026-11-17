@@ -464,11 +464,9 @@ function AdminUserEditForm({
   const [reason, setReason] = useState("");
   const gate = useFormGate();
   const nameMark = gate.marks.find((mark) => mark.field === "display_name") ?? null;
-  /** The edit-error line names the control its refusal is about (the line itself stays). */
+  /** Whether the edit-error line's refusal is about a control (the line itself stays). */
   const lineNames = (keys: readonly MessageKey[]) =>
-    errorKey !== null && keys.includes(errorKey)
-      ? { "aria-invalid": true as const, "aria-describedby": "edit-error" }
-      : null;
+    errorKey !== null && keys.includes(errorKey) ? true : false;
   const aliasLine = lineNames([
     "admin.users.edit.errorAliasTaken",
     "admin.users.edit.errorAliasFormat",
@@ -565,7 +563,12 @@ function AdminUserEditForm({
         {(control) => (
           <Input
             {...control}
-            {...aliasLine}
+            aria-invalid={aliasLine ? true : control["aria-invalid"]}
+            aria-describedby={
+              aliasLine
+                ? [control["aria-describedby"], "edit-error"].filter(Boolean).join(" ")
+                : control["aria-describedby"]
+            }
             data-testid="edit-seller-alias"
             value={alias}
             onChange={(event) => {
@@ -593,7 +596,12 @@ function AdminUserEditForm({
           {(control) => (
             <Input
               {...control}
-              {...reasonLine}
+              aria-invalid={reasonLine ? true : control["aria-invalid"]}
+              aria-describedby={
+                reasonLine
+                  ? [control["aria-describedby"], "edit-error"].filter(Boolean).join(" ")
+                  : control["aria-describedby"]
+              }
               data-testid="edit-alias-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
@@ -612,7 +620,12 @@ function AdminUserEditForm({
         {(control) => (
           <NativeSelect
             {...control}
-            {...countryLine}
+            aria-invalid={countryLine ? true : control["aria-invalid"]}
+            aria-describedby={
+              countryLine
+                ? [control["aria-describedby"], "edit-error"].filter(Boolean).join(" ")
+                : control["aria-describedby"]
+            }
             data-testid="edit-country"
             className="w-full"
             value={country}
