@@ -351,6 +351,7 @@ const ANY = "Any";
  *  from existing keys; e2e/dialogs.spec.ts measures them. */
 function DialogSpecimens() {
   const { t } = useI18n();
+  const [selectedReason, setSelectedReason] = useState("spam");
   return (
     <>
       <Dialog>
@@ -364,12 +365,14 @@ function DialogSpecimens() {
             <DialogTitle>{t("adPage.report.open")}</DialogTitle>
             <DialogDescription>{t("adPage.report.question")}</DialogDescription>
           </DialogHeader>
-          <RadioGroup defaultValue="spam" className="gap-1">
+          <RadioGroup value={selectedReason} onValueChange={setSelectedReason} className="gap-1">
             {SPECIMEN_REASONS.map((reason) => (
               <div
                 key={reason}
                 data-testid={`style-dialog-choice-${reason}`}
                 className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
+                role="presentation"
+                onClick={() => setSelectedReason(reason)}
               >
                 <Field
                   id={`style-dialog-reason-${reason}`}
