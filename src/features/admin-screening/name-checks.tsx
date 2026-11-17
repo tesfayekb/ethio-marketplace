@@ -299,6 +299,7 @@ export function NameChecks({
           <div className="space-y-1">
             <Field
               id={"admin-name-check-reason"}
+              field="reason"
               label={<>{t("admin.screening.names.clear.reason")}</>}
               required={false}
               refusal={null}

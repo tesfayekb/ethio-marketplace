@@ -44,6 +44,7 @@ export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogPro
         <p className="text-sm text-muted-foreground">{t("admin.listings.undo.hint")}</p>
         <Field
           id={"listing-undo-note"}
+          field="note"
           label={t("admin.listings.move.note")}
           required={false}
           refusal={null}

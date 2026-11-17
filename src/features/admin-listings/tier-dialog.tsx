@@ -67,6 +67,8 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
     >
       <div className="min-w-0 space-y-3">
         <p className="text-sm text-muted-foreground">{t("admin.listings.level.hint")}</p>
+        <Field id="listings-tier-pick" field="tier" label={<span className="sr-only">{t("admin.listings.filter.level")}</span>} required marked={false} refusal={null} layout="inline">
+        {(control) => <div {...control} role="group" aria-invalid={problem === "admin.listings.level.error.same" || problem === "admin.listings.level.error.unknown" || undefined} aria-describedby={problem === "admin.listings.level.error.same" || problem === "admin.listings.level.error.unknown" ? "listings-tier-problem" : undefined}>
         <FilterChoices
           testid="listings-tier-pick"
           label={t("admin.listings.filter.level")}
@@ -80,6 +82,8 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
             label: levelNameOf(row, language) ?? t("admin.listings.level.unknown"),
           }))}
         />
+        </div>}
+        </Field>
         {levels.isLoading ? (
           <p data-testid="listings-tier-levels-loading" className="text-sm text-muted-foreground">
             {t("common.loading")}
@@ -95,6 +99,7 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
         ) : null}
         <Field
           id={"listings-tier-days"}
+          field="days"
           label={t("admin.listings.level.days")}
           required={false}
           refusal={null}
@@ -112,7 +117,7 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
                 value={days}
                 maxLength={4}
                 aria-invalid={daysRefused ? true : undefined}
-                aria-describedby={daysRefused ? "listings-tier-problem" : undefined}
+                aria-describedby={daysRefused ? "listings-tier-problem" : control["aria-describedby"]}
                 onChange={(event) => {
                   setDays(event.target.value);
                   setProblem(null);
@@ -126,6 +131,7 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
           reasons={TIER_REASONS}
           reason={reason}
           note={note}
+          problem={problem}
           onReason={(value) => {
             setReason(value);
             setProblem(null);

@@ -22,6 +22,7 @@ export function ReasonNote({
   note,
   onReason,
   onNote,
+  problem = null,
 }: {
   testid: string;
   reasons: readonly string[];
@@ -29,10 +30,14 @@ export function ReasonNote({
   note: string;
   onReason: (reason: string) => void;
   onNote: (note: string) => void;
+  /** Cross-field rules keep their dialog line; the affected answer names it. */
+  problem?: MessageKey | null;
 }) {
   const { t } = useI18n();
   return (
     <>
+      <Field id={`${testid}-reason`} field="reason" label={<span className="sr-only">{t("admin.listings.move.reason")}</span>} required marked={false} refusal={null} layout="inline">
+      {(control) => <div {...control} role="group" aria-invalid={problem === "admin.listings.move.pickReason" || undefined} aria-describedby={problem === "admin.listings.move.pickReason" ? `${testid}-problem` : undefined}>
       <FilterChoices
         testid={`${testid}-reason`}
         label={t("admin.listings.move.reason")}
@@ -43,10 +48,13 @@ export function ReasonNote({
           label: t(`admin.listings.reason.${value}` as MessageKey),
         }))}
       />
+      </div>}
+      </Field>
       <Field
         id={`${testid}-note`}
+        field="note"
         label={t("admin.listings.move.note")}
-        required={false}
+        required={reason === "other"}
         refusal={null}
         hint={<p className="text-xs text-muted-foreground">{t("admin.listings.move.noteHint")}</p>}
         testId={`${testid}-note-field`}
@@ -59,6 +67,8 @@ export function ReasonNote({
               value={note}
               maxLength={NOTE_MAX}
               rows={3}
+              aria-invalid={problem === "admin.listings.move.noteRequired" || problem === "admin.listings.move.noteTooLong" || undefined}
+              aria-describedby={problem === "admin.listings.move.noteRequired" || problem === "admin.listings.move.noteTooLong" ? `${testid}-note-hint ${testid}-problem` : control["aria-describedby"]}
               onChange={(event) => onNote(event.target.value)}
             />
           </>

@@ -335,6 +335,7 @@ function RemoveDialog({
           reasons={PHOTO_REASONS}
           reason={reason}
           note={note}
+          problem={problem}
           onReason={(value) => {
             setReason(value);
             setProblem(null);
@@ -347,6 +348,7 @@ function RemoveDialog({
         {problem !== null || refusal !== null ? (
           <p
             role="alert"
+            id="listing-photo-remove-problem"
             data-testid="listing-photo-remove-problem"
             className="text-sm text-destructive"
           >
