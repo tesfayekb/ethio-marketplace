@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Field } from "@/components/forms/field";
+import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
+import { cn } from "@/lib/utils";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
@@ -11,7 +14,6 @@ import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
-import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { RowActions } from "@/components/shell/row-actions";
 import {
   AlertDialog,
@@ -60,7 +62,6 @@ import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import type { ThemeName } from "@/lib/theme-resolver";
 import type { THEMES } from "@/lib/themes";
-import { cn } from "@/lib/utils";
 
 const SPECIMEN_REASONS = ["spam", "scam", "copyright"] as const;
 
@@ -350,6 +351,7 @@ const ANY = "Any";
  *  from existing keys; e2e/dialogs.spec.ts measures them. */
 function DialogSpecimens() {
   const { t } = useI18n();
+  const [selectedReason, setSelectedReason] = useState("spam");
   return (
     <>
       <Dialog>
@@ -363,19 +365,44 @@ function DialogSpecimens() {
             <DialogTitle>{t("adPage.report.open")}</DialogTitle>
             <DialogDescription>{t("adPage.report.question")}</DialogDescription>
           </DialogHeader>
-          <RadioGroup defaultValue="spam" className="gap-1">
+          <RadioGroup value={selectedReason} onValueChange={setSelectedReason} className="gap-1">
             {SPECIMEN_REASONS.map((reason) => (
-              <label
+              <div
                 key={reason}
                 data-testid={`style-dialog-choice-${reason}`}
                 className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
+                role="presentation"
+                onClick={() => setSelectedReason(reason)}
               >
-                <RadioGroupItem value={reason} />
-                <span>{t(`adPage.report.reason.${reason}`)}</span>
-              </label>
+                <Field
+                  id={`style-dialog-reason-${reason}`}
+                  field="reason"
+                  label={t(`adPage.report.reason.${reason}`)}
+                  required
+                  marked={false}
+                  refusal={null}
+                  layout="choice"
+                >
+                  {(control) => <RadioGroupItem {...control} value={reason} />}
+                </Field>
+              </div>
             ))}
           </RadioGroup>
-          <Textarea data-testid="style-dialog-field" aria-label={t("adPage.report.note")} />
+          <Field
+            id="style-dialog-field"
+            field="note"
+            label={t("adPage.report.note")}
+            required={false}
+            refusal={null}
+          >
+            {(control) => (
+              <Textarea
+                {...control}
+                data-testid="style-dialog-field"
+                aria-label={t("adPage.report.note")}
+              />
+            )}
+          </Field>
           <DialogFooter data-testid="style-dialog-footer">
             <DialogClose asChild>
               <Button variant="outline" size="touch">
@@ -421,7 +448,20 @@ function DialogSpecimens() {
               <SheetTitle>{t("adPage.share.title")}</SheetTitle>
               <SheetDescription>{t("adPage.share.qrHint")}</SheetDescription>
             </SheetHeader>
-            <Input data-testid={`style-sheet-${side}-field`} aria-label={t("adPage.share.title")} />
+            <Field
+              id={`style-sheet-${side}-field`}
+              label={t("adPage.share.title")}
+              required={false}
+              refusal={null}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  data-testid={`style-sheet-${side}-field`}
+                  aria-label={t("adPage.share.title")}
+                />
+              )}
+            </Field>
           </SheetContent>
         </Sheet>
       ))}

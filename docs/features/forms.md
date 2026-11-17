@@ -189,3 +189,25 @@ labels; switches and per-country/per-language ticks use inline/choice Fields.
 Translation values and context remain optional so existing clear/save behavior
 is unchanged. No new catalog key or Amharic text is introduced. Tests: KFC2-1–8
 and the four consoles' existing tests; all thirteen CF-FORM-1 allowances are removed.
+
+## Legal console and dev specimens (wave 3)
+
+The five legal control files draw through Field with their original test ids and
+the door field names. The draft label reports its blank to the shared gate;
+draft bodies and changelog remain optional until publication. Translation
+language and body, and the material publication date, report blanks through
+the gate while their existing disabled-submit behavior remains unchanged.
+Legal review uses the gate but retains the blank-note and door refusal in
+`legal-review-error`, linked to the note control: LGA-16 reads that line.
+
+Facts retain `validateLegalFacts` as their sole check and keep each fact error
+under its box with its original range/retention words and test id. The control
+names that error via `aria-describedby`. Bounded facts use
+`parseNumber(value, { integer: true, min, max })`; the account/claims comparison
+and save payload read parsed integer numbers. No new refusal mapper or catalog
+key is introduced. `LEGAL_REFUSALS` adds only the existing required kit word.
+
+The primitives and style specimens draw answer controls through Field, including
+choice radios; the primitives table search and style list filters stay bare
+(DEC-338). Seven CF-FORM-1 allowances are removed. Tests: KFL-1 onward and the
+legal unit tests, forms census, and admin-tables guard.

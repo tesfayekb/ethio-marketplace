@@ -10,11 +10,6 @@ CF-FORM-1 src/features/admin-monetisation/override-dialog.tsx (3) | wave 4 — t
 CF-FORM-1 src/features/admin-monetisation/price-dialog.tsx (5) | wave 4 — the monetisation dialogs | DEC-339
 CF-FORM-1 src/features/admin-monetisation/product-editor.tsx (3) | wave 4 — the monetisation dialogs | DEC-339
 CF-FORM-1 src/features/admin/impersonation/impersonation-starter.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin/legal/legal-editor-form.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin/legal/legal-facts-card.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin/legal/legal-page.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin/legal/legal-publish-dialog.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-1 src/features/admin/legal/legal-version-view.tsx (2) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin/roles/role-detail.tsx (4) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin/roles/roles-list.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin/users/user-detail.tsx (6) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
@@ -22,8 +17,6 @@ CF-FORM-1 src/features/auth/mfa/step-up-dialog.tsx (1) | wave 2 — sign-in, sig
 CF-FORM-1 src/features/posting/map/map-pin-dropper.tsx (1) | no wave named by the plan — the pin's two precision radios, drawn as list rows (no Field layout in that look yet) | DEC-339
 CF-FORM-1 src/routes/auth.tsx (4) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-1 src/routes/auth_.reset.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
-CF-FORM-1 src/routes/dev.primitives.tsx (1) | no wave named by the plan — the dev sample pages | DEC-339
-CF-FORM-1 src/routes/dev.style.tsx (3) | no wave named by the plan — the dev sample pages | DEC-339
 CF-FORM-1 src/routes/settings.tsx (9) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-2 src/components/shell/app-header.tsx (2) | no wave named by the plan — the header's two search forms (DEC-338: noValidate still) | DEC-339
 CF-FORM-2 src/routes/auth.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
