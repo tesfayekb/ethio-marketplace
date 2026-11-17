@@ -245,7 +245,13 @@ export function BadgeSelect({
 }) {
   const { t } = useI18n();
   return (
-    <Field id={id} field="badge" label={t("admin.monetisation.col.badge")} required={false} refusal={null}>
+    <Field
+      id={id}
+      field="badge"
+      label={t("admin.monetisation.col.badge")}
+      required={false}
+      refusal={null}
+    >
       {(control) => (
         <NativeSelect
           {...control}

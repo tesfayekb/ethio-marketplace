@@ -115,22 +115,22 @@ export function MarketDialog({
           refusal={null}
         >
           {(control) => (
-          <NativeSelect
-            {...control}
-            data-testid={`${prefix}-market`}
-            className="w-full"
-            value={form.countryCode}
-            onChange={(event) => change({ countryCode: event.target.value })}
-          >
-            {taken.includes(null) ? null : (
-              <option value="">{t("admin.monetisation.defaultMarket")}</option>
-            )}
-            {open.map((market) => (
-              <option key={market.code} value={market.code}>
-                {marketName(market.code, "countryAny")}
-              </option>
-            ))}
-          </NativeSelect>
+            <NativeSelect
+              {...control}
+              data-testid={`${prefix}-market`}
+              className="w-full"
+              value={form.countryCode}
+              onChange={(event) => change({ countryCode: event.target.value })}
+            >
+              {taken.includes(null) ? null : (
+                <option value="">{t("admin.monetisation.defaultMarket")}</option>
+              )}
+              {open.map((market) => (
+                <option key={market.code} value={market.code}>
+                  {marketName(market.code, "countryAny")}
+                </option>
+              ))}
+            </NativeSelect>
           )}
         </Field>
       ) : (
@@ -159,19 +159,19 @@ export function MarketDialog({
         refusal={null}
       >
         {(control) => (
-        <NativeSelect
-          {...control}
-          data-testid={`${prefix}-reach`}
-          className="w-full"
-          value={form.includedReach}
-          onChange={(event) => change({ includedReach: event.target.value })}
-        >
-          {reaches.map((product) => (
-            <option key={product.key} value={product.key}>
-              {productName(product.key)}
-            </option>
-          ))}
-        </NativeSelect>
+          <NativeSelect
+            {...control}
+            data-testid={`${prefix}-reach`}
+            className="w-full"
+            value={form.includedReach}
+            onChange={(event) => change({ includedReach: event.target.value })}
+          >
+            {reaches.map((product) => (
+              <option key={product.key} value={product.key}>
+                {productName(product.key)}
+              </option>
+            ))}
+          </NativeSelect>
         )}
       </Field>
       <Toggle

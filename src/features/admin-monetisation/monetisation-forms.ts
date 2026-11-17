@@ -143,7 +143,8 @@ export function productFormInput(kind: ProductKind, values: ProductFormValues): 
     caps = { maxCities: cities.cap, maxRegions: regions.cap, maxCountries: countries.cap };
   }
   // The field admits digits only, so a non-blank sort is always a whole number.
-  const sort = values.sort.trim() === "" ? null : numberOf(parseNumber(values.sort, { integer: true }));
+  const sort =
+    values.sort.trim() === "" ? null : numberOf(parseNumber(values.sort, { integer: true }));
   return {
     ok: true,
     input: {

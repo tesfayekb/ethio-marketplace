@@ -142,19 +142,19 @@ export function OverrideDialog({
               refusal={null}
             >
               {(control) => (
-              <NativeSelect
-                {...control}
-                data-testid={`${prefix}-level`}
-                className="w-full"
-                value={form.levelKey}
-                onChange={(event) => change({ levelKey: event.target.value })}
-              >
-                {levels.map((level) => (
-                  <option key={level.key} value={level.key}>
-                    {productName(level.key)}
-                  </option>
-                ))}
-              </NativeSelect>
+                <NativeSelect
+                  {...control}
+                  data-testid={`${prefix}-level`}
+                  className="w-full"
+                  value={form.levelKey}
+                  onChange={(event) => change({ levelKey: event.target.value })}
+                >
+                  {levels.map((level) => (
+                    <option key={level.key} value={level.key}>
+                      {productName(level.key)}
+                    </option>
+                  ))}
+                </NativeSelect>
               )}
             </Field>
           ) : (
@@ -176,20 +176,20 @@ export function OverrideDialog({
             refusal={null}
           >
             {(control) => (
-            <NativeSelect
-              {...control}
-              data-testid={`${prefix}-category`}
-              className="w-full"
-              value={form.categoryId}
-              onChange={(event) => change({ categoryId: event.target.value })}
-            >
-              <option value="">{t("admin.monetisation.mainCategoryAny")}</option>
-              {rootsOf(tree).map((node) => (
-                <option key={node.id} value={node.id}>
-                  {categoryName(node.id, "mainCategoryAny")}
-                </option>
-              ))}
-            </NativeSelect>
+              <NativeSelect
+                {...control}
+                data-testid={`${prefix}-category`}
+                className="w-full"
+                value={form.categoryId}
+                onChange={(event) => change({ categoryId: event.target.value })}
+              >
+                <option value="">{t("admin.monetisation.mainCategoryAny")}</option>
+                {rootsOf(tree).map((node) => (
+                  <option key={node.id} value={node.id}>
+                    {categoryName(node.id, "mainCategoryAny")}
+                  </option>
+                ))}
+              </NativeSelect>
             )}
           </Field>
           <Field
@@ -201,20 +201,20 @@ export function OverrideDialog({
             refusal={null}
           >
             {(control) => (
-            <NativeSelect
-              {...control}
-              data-testid={`${prefix}-country`}
-              className="w-full"
-              value={form.countryCode}
-              onChange={(event) => change({ countryCode: event.target.value })}
-            >
-              <option value="">{t("admin.monetisation.countryAny")}</option>
-              {markets.map((market) => (
-                <option key={market.code} value={market.code}>
-                  {marketName(market.code, "countryAny")}
-                </option>
-              ))}
-            </NativeSelect>
+              <NativeSelect
+                {...control}
+                data-testid={`${prefix}-country`}
+                className="w-full"
+                value={form.countryCode}
+                onChange={(event) => change({ countryCode: event.target.value })}
+              >
+                <option value="">{t("admin.monetisation.countryAny")}</option>
+                {markets.map((market) => (
+                  <option key={market.code} value={market.code}>
+                    {marketName(market.code, "countryAny")}
+                  </option>
+                ))}
+              </NativeSelect>
             )}
           </Field>
         </>

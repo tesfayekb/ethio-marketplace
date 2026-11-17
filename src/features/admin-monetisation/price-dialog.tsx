@@ -133,20 +133,20 @@ export function PriceDialog({
           family={MONETISATION_REFUSALS}
         >
           {(control) => (
-          <NativeSelect
-            {...control}
-            data-testid={`${prefix}-product`}
-            className="w-full"
-            value={form.packageKey}
-            onChange={(event) => change({ packageKey: event.target.value })}
-          >
-            {creating ? <option value="" /> : null}
-            {offered.map((product) => (
-              <option key={product.key} value={product.key}>
-                {productName(product.key)}
-              </option>
-            ))}
-          </NativeSelect>
+            <NativeSelect
+              {...control}
+              data-testid={`${prefix}-product`}
+              className="w-full"
+              value={form.packageKey}
+              onChange={(event) => change({ packageKey: event.target.value })}
+            >
+              {creating ? <option value="" /> : null}
+              {offered.map((product) => (
+                <option key={product.key} value={product.key}>
+                  {productName(product.key)}
+                </option>
+              ))}
+            </NativeSelect>
           )}
         </Field>
       ) : (
@@ -168,20 +168,20 @@ export function PriceDialog({
         refusal={null}
       >
         {(control) => (
-        <NativeSelect
-          {...control}
-          data-testid={`${prefix}-market`}
-          className="w-full"
-          value={form.countryCode}
-          onChange={(event) => change({ countryCode: event.target.value })}
-        >
-          <option value="">{t("admin.packages.prices.everyMarket")}</option>
-          {markets.map((market) => (
-            <option key={market.code} value={market.code}>
-              {marketName(market.code, "everyMarket")}
-            </option>
-          ))}
-        </NativeSelect>
+          <NativeSelect
+            {...control}
+            data-testid={`${prefix}-market`}
+            className="w-full"
+            value={form.countryCode}
+            onChange={(event) => change({ countryCode: event.target.value })}
+          >
+            <option value="">{t("admin.packages.prices.everyMarket")}</option>
+            {markets.map((market) => (
+              <option key={market.code} value={market.code}>
+                {marketName(market.code, "everyMarket")}
+              </option>
+            ))}
+          </NativeSelect>
         )}
       </Field>
       <Field
@@ -193,20 +193,20 @@ export function PriceDialog({
         refusal={null}
       >
         {(control) => (
-        <NativeSelect
-          {...control}
-          data-testid={`${prefix}-category`}
-          className="w-full"
-          value={form.categoryId}
-          onChange={(event) => change({ categoryId: event.target.value })}
-        >
-          <option value="">{t("admin.packages.prices.everyCategory")}</option>
-          {flattenTree(tree).map(({ node, depth }) => (
-            <option key={node.id} value={node.id}>
-              {`${"\u00a0\u00a0".repeat(depth)}${categoryName(node.id, "everyCategory")}`}
-            </option>
-          ))}
-        </NativeSelect>
+          <NativeSelect
+            {...control}
+            data-testid={`${prefix}-category`}
+            className="w-full"
+            value={form.categoryId}
+            onChange={(event) => change({ categoryId: event.target.value })}
+          >
+            <option value="">{t("admin.packages.prices.everyCategory")}</option>
+            {flattenTree(tree).map(({ node, depth }) => (
+              <option key={node.id} value={node.id}>
+                {`${"\u00a0\u00a0".repeat(depth)}${categoryName(node.id, "everyCategory")}`}
+              </option>
+            ))}
+          </NativeSelect>
         )}
       </Field>
       <Field
@@ -239,19 +239,19 @@ export function PriceDialog({
         refusal={null}
       >
         {(control) => (
-        <NativeSelect
-          {...control}
-          data-testid={`${prefix}-currency`}
-          className="w-full"
-          value={currency}
-          onChange={(event) => change({ currency: event.target.value })}
-        >
-          {ordered.map((entry) => (
-            <option key={entry.code} value={entry.code}>
-              {currencyText(entry)}
-            </option>
-          ))}
-        </NativeSelect>
+          <NativeSelect
+            {...control}
+            data-testid={`${prefix}-currency`}
+            className="w-full"
+            value={currency}
+            onChange={(event) => change({ currency: event.target.value })}
+          >
+            {ordered.map((entry) => (
+              <option key={entry.code} value={entry.code}>
+                {currencyText(entry)}
+              </option>
+            ))}
+          </NativeSelect>
         )}
       </Field>
       <NumberField
