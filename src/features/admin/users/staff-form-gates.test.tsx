@@ -116,7 +116,7 @@ describe("staff consoles — the one Field and gate (L9)", () => {
   });
 
   it("KFS-3 a taken alias stays in edit-error, and the alias box names that line", async () => {
-    calls.profile.mockRejectedValueOnce(Object.assign(new Error("aliasTaken"), { code: "P0001" }));
+    calls.profile.mockRejectedValueOnce({ message: "aliasTaken" });
     render(<AdminUserDetailPage userId="scratch-user" />);
     fireEvent.change(screen.getByTestId("edit-seller-alias"), { target: { value: "scratch" } });
     fireEvent.click(screen.getByTestId("edit-save"));
@@ -129,11 +129,11 @@ describe("staff consoles — the one Field and gate (L9)", () => {
     });
     const line = await screen.findByTestId("edit-error");
     expect(line.id).toBe("edit-error");
-    if (line.textContent === "admin.users.edit.errorAliasTaken") {
-      const alias = screen.getByTestId("edit-seller-alias");
-      expect(alias.getAttribute("aria-invalid")).toBe("true");
-      expect(alias.getAttribute("aria-describedby")).toContain("edit-error");
-    }
+    expect(line.textContent).toBe("admin.users.edit.errorAliasTaken");
+    const alias = screen.getByTestId("edit-seller-alias");
+    expect(alias.getAttribute("aria-invalid")).toBe("true");
+    expect(alias.getAttribute("aria-describedby")).toBe("edit-seller-alias-hint edit-error");
+    expect(screen.getByTestId("edit-display-name").getAttribute("aria-invalid")).toBeNull();
   });
 
   it("KFS-4 a blank view-as reason is held by the gate; a short one keeps impersonation-error", async () => {
