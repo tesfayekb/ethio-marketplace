@@ -344,24 +344,13 @@ export function AdminTranslationsStringsPage({
                 status="all"
                 query={query}
                 search={
-                  <Field
-                    id={"data-search"}
-                    label={<span className="sr-only">{t("admin.translations.filter.search")}</span>}
-                    required={false}
-                    refusal={null}
-                    layout="inline"
-                  >
-                    {(control) => (
-                      <Input
-                        {...control}
-                        data-testid="data-search"
-                        value={searchDraft}
-                        aria-label={t("admin.translations.filter.search")}
-                        placeholder={t("admin.translations.filter.search")}
-                        onChange={(event) => setSearchDraft(event.target.value)}
-                      />
-                    )}
-                  </Field>
+                  <Input
+                    data-testid="data-search"
+                    value={searchDraft}
+                    aria-label={t("admin.translations.filter.search")}
+                    placeholder={t("admin.translations.filter.search")}
+                    onChange={(event) => setSearchDraft(event.target.value)}
+                  />
                 }
                 mayUpdate={mayUpdate}
                 mayApprove={mayApprove && !(known?.isBase ?? false)}
@@ -428,26 +417,13 @@ export function AdminTranslationsStringsPage({
                     <TableToolbar
                       testid="strings-toolbar"
                       search={
-                        <Field
-                          id={"strings-search"}
-                          label={
-                            <span className="sr-only">{t("admin.translations.filter.search")}</span>
-                          }
-                          required={false}
-                          refusal={null}
-                          layout="inline"
-                        >
-                          {(control) => (
-                            <Input
-                              {...control}
-                              data-testid="strings-search"
-                              value={searchDraft}
-                              aria-label={t("admin.translations.filter.search")}
-                              placeholder={t("admin.translations.filter.search")}
-                              onChange={(event) => setSearchDraft(event.target.value)}
-                            />
-                          )}
-                        </Field>
+                        <Input
+                          data-testid="strings-search"
+                          value={searchDraft}
+                          aria-label={t("admin.translations.filter.search")}
+                          placeholder={t("admin.translations.filter.search")}
+                          onChange={(event) => setSearchDraft(event.target.value)}
+                        />
                       }
                       filters={
                         <FiltersButton
