@@ -1,10 +1,12 @@
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { Input } from "@/components/ui/input";
 import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
+import type { Refusal } from "@/lib/refusal";
 
 import {
   MonetisationDialogActions,
@@ -15,10 +17,12 @@ import {
 } from "./monetisation-dialogs";
 import {
   NEW_PRODUCT_FORM,
+  capOf,
   productFormInput,
   productFormOf,
   type ProductFormValues,
 } from "./monetisation-forms";
+import { MONETISATION_REFUSALS, ownRefusals, refusalFor } from "./monetisation-refusals";
 import { PRODUCT_NAME_MAX, type ProductKind, type ProductRow } from "./monetisation-service";
 import { useSaveProduct } from "./use-monetisation";
 import { useMonetisationError } from "./use-monetisation-error";
@@ -26,13 +30,26 @@ import { useMonetisationError } from "./use-monetisation-error";
 /** A reach row's three place limits (DEC-356), in the table's column order. */
 const CAP_FIELDS: ReadonlyArray<{
   field: "maxCities" | "maxRegions" | "maxCountries";
+  /** The door's name for the answer. */
+  door: string;
   suffix: string;
   labelKey: MessageKey;
 }> = [
-  { field: "maxCities", suffix: "cities", labelKey: "admin.monetisation.reach.field.cities" },
-  { field: "maxRegions", suffix: "regions", labelKey: "admin.monetisation.reach.field.regions" },
+  {
+    field: "maxCities",
+    door: "max_cities",
+    suffix: "cities",
+    labelKey: "admin.monetisation.reach.field.cities",
+  },
+  {
+    field: "maxRegions",
+    door: "max_regions",
+    suffix: "regions",
+    labelKey: "admin.monetisation.reach.field.regions",
+  },
   {
     field: "maxCountries",
+    door: "max_countries",
     suffix: "countries",
     labelKey: "admin.monetisation.reach.field.countries",
   },
@@ -71,6 +88,20 @@ export function ProductEditorDialog({
     row === null ? NEW_PRODUCT_FORM : productFormOf(row),
   );
   const prefix = `monetisation-${kind}-${creating ? "create" : "edit"}`;
+  const gate = useFormGate();
+  const [own, setOwn] = useState<Refusal[]>([]);
+  const refused = (field: string) => refusalFor(field, gate.marks, own);
+  const ownFields: Readonly<Partial<Record<MessageKey, readonly string[]>>> = {
+    "admin.packages.error.badKey": creating ? ["key"] : [],
+    "admin.monetisation.error.badName": [
+      form.nameAm.trim().length > PRODUCT_NAME_MAX ? "name_am" : "name_en",
+    ],
+    "admin.packages.error.badDays": ["days"],
+    "admin.monetisation.error.badPhotos": ["max_photos"],
+    "admin.monetisation.error.badCaps": CAP_FIELDS.filter(
+      ({ field }) => !capOf(form[field]).ok,
+    ).map(({ door }) => door),
+  };
   const change = (next: Partial<ProductFormValues>) =>
     setForm((prev) => ({
       ...prev,
@@ -80,9 +111,13 @@ export function ProductEditorDialog({
 
   const submit = () => {
     clear();
+    setOwn([]);
+    if (!gate.try()) return;
     const judged = productFormInput(kind, form);
     if (!judged.ok) {
-      render(judged.key);
+      const mine = ownRefusals(judged.key, ownFields);
+      if (mine === null) render(judged.key);
+      else setOwn(mine);
       return;
     }
     void guard(async () => {
@@ -95,16 +130,33 @@ export function ProductEditorDialog({
     }).catch(fail);
   };
 
-  const name = (field: "nameEn" | "nameAm", label: MessageKey, suffix: string) => (
-    <FormField label={t(label)} htmlFor={`${prefix}-${suffix}`}>
-      <Input
-        id={`${prefix}-${suffix}`}
-        data-testid={`${prefix}-${suffix}`}
-        value={form[field]}
-        maxLength={PRODUCT_NAME_MAX}
-        onChange={(event) => change({ [field]: event.target.value })}
-      />
-    </FormField>
+  const name = (
+    field: "nameEn" | "nameAm",
+    door: string,
+    required: boolean,
+    label: MessageKey,
+    suffix: string,
+  ) => (
+    <Field
+      id={`${prefix}-${suffix}`}
+      field={door}
+      label={t(label)}
+      required={required}
+      gate={gate}
+      blank={form[field].trim() === ""}
+      refusal={refused(door)}
+      family={MONETISATION_REFUSALS}
+    >
+      {(control) => (
+        <Input
+          {...control}
+          data-testid={`${prefix}-${suffix}`}
+          value={form[field]}
+          maxLength={PRODUCT_NAME_MAX}
+          onChange={(event) => change({ [field]: event.target.value })}
+        />
+      )}
+    </Field>
   );
 
   const title: MessageKey = creating
@@ -116,29 +168,45 @@ export function ProductEditorDialog({
   return (
     <CategoryModal testid={prefix} openedBy={openedBy} title={t(title)} onClose={onClose}>
       {creating ? (
-        <FormField
+        <Field
+          id={`${prefix}-key`}
+          field="key"
           label={t("admin.packages.field.key")}
-          htmlFor={`${prefix}-key`}
-          help={t("admin.packages.field.keyHint")}
+          required
+          gate={gate}
+          blank={form.key.trim() === ""}
+          refusal={refused("key")}
+          family={MONETISATION_REFUSALS}
+          hint={
+            <p className="min-w-0 break-words text-xs text-muted-foreground">
+              {t("admin.packages.field.keyHint")}
+            </p>
+          }
         >
-          <Input
-            id={`${prefix}-key`}
-            data-testid={`${prefix}-key`}
-            value={form.key}
-            maxLength={32}
-            autoCapitalize="none"
-            onChange={(event) => change({ key: event.target.value })}
-          />
-        </FormField>
+          {(control) => (
+            <Input
+              {...control}
+              data-testid={`${prefix}-key`}
+              value={form.key}
+              maxLength={32}
+              autoCapitalize="none"
+              onChange={(event) => change({ key: event.target.value })}
+            />
+          )}
+        </Field>
       ) : (
         <p className="min-w-0 break-all text-sm" data-testid={`${prefix}-key`}>
           {form.key}
         </p>
       )}
-      {name("nameEn", "admin.monetisation.field.nameEn", "name-en")}
-      {name("nameAm", "admin.monetisation.field.nameAm", "name-am")}
+      {name("nameEn", "name_en", true, "admin.monetisation.field.nameEn", "name-en")}
+      {name("nameAm", "name_am", false, "admin.monetisation.field.nameAm", "name-am")}
       <NumberField
         id={`${prefix}-days`}
+        field="days"
+        required
+        gate={gate}
+        refusal={refused("days")}
         labelKey={
           kind === "level" ? "admin.monetisation.col.defaultDays" : "admin.packages.field.days"
         }
@@ -149,6 +217,10 @@ export function ProductEditorDialog({
         <>
           <NumberField
             id={`${prefix}-photos`}
+            field="max_photos"
+            required
+            gate={gate}
+            refusal={refused("max_photos")}
             labelKey="admin.monetisation.col.photos"
             helpKey="admin.monetisation.field.photosHint"
             value={form.maxPhotos}
@@ -161,6 +233,7 @@ export function ProductEditorDialog({
           />
           <Toggle
             id={`${prefix}-badge`}
+            field="badge"
             labelKey="admin.monetisation.col.badge"
             checked={form.badge}
             onChange={(next) => change({ badge: next })}
@@ -168,10 +241,12 @@ export function ProductEditorDialog({
         </>
       ) : (
         <>
-          {CAP_FIELDS.map(({ field, suffix, labelKey }) => (
+          {CAP_FIELDS.map(({ field, door, suffix, labelKey }) => (
             <NumberField
               key={field}
               id={`${prefix}-${suffix}`}
+              field={door}
+              refusal={refused(door)}
               labelKey={labelKey}
               placeholderKey="admin.monetisation.reach.field.unlimited"
               value={form[field]}
@@ -185,35 +260,46 @@ export function ProductEditorDialog({
       )}
       <Toggle
         id={`${prefix}-enabled`}
+        field="enabled"
         labelKey="admin.packages.field.enabled"
         checked={form.enabled}
         onChange={(next) => change({ enabled: next })}
       />
       <Toggle
         id={`${prefix}-self-serve`}
+        field="self_serve"
         labelKey="admin.packages.field.selfServe"
         checked={form.selfServe}
         onChange={(next) => change({ selfServe: next })}
       />
       <Toggle
         id={`${prefix}-extends`}
+        field="extends_lifetime"
         labelKey="admin.packages.field.extends"
         checked={form.extendsLifetime}
         onChange={(next) => change({ extendsLifetime: next })}
       />
-      <FormField label={t("admin.packages.field.sort")} htmlFor={`${prefix}-sort`}>
-        <Input
-          id={`${prefix}-sort`}
-          data-testid={`${prefix}-sort`}
-          inputMode="numeric"
-          value={form.sort}
-          onChange={(event) => {
-            // Digits only: the order has no refusal of its own, so none can be typed.
-            const next = event.target.value;
-            if (/^\d*$/.test(next)) change({ sort: next });
-          }}
-        />
-      </FormField>
+      <Field
+        id={`${prefix}-sort`}
+        field="sort"
+        label={t("admin.packages.field.sort")}
+        required={false}
+        refusal={null}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid={`${prefix}-sort`}
+            inputMode="numeric"
+            value={form.sort}
+            onChange={(event) => {
+              // Digits only: the order has no refusal of its own, so none can be typed.
+              const next = event.target.value;
+              if (/^\d*$/.test(next)) change({ sort: next });
+            }}
+          />
+        )}
+      </Field>
       <p className="text-sm text-muted-foreground">{t("admin.packages.noDelete")}</p>
       <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
       <MonetisationDialogActions

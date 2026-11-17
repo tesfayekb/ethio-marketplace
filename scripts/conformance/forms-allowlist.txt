@@ -4,11 +4,6 @@
 # wave that moves the file onto the kit. <key> | <reason> | <until>
 CF-FORM-1 src/features/ad-page/report-ad.tsx (2) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339
 CF-FORM-1 src/features/admin-locations/locations-toolbar.tsx (1) | wave 3 — a list filter drawn apart from its toolbar's file (DEC-338 by kind unseen) | DEC-339
-CF-FORM-1 src/features/admin-monetisation/market-dialog.tsx (2) | wave 4 — the monetisation dialogs | DEC-339
-CF-FORM-1 src/features/admin-monetisation/monetisation-dialogs.tsx (4) | wave 4 — the monetisation dialogs | DEC-339
-CF-FORM-1 src/features/admin-monetisation/override-dialog.tsx (3) | wave 4 — the monetisation dialogs | DEC-339
-CF-FORM-1 src/features/admin-monetisation/price-dialog.tsx (5) | wave 4 — the monetisation dialogs | DEC-339
-CF-FORM-1 src/features/admin-monetisation/product-editor.tsx (3) | wave 4 — the monetisation dialogs | DEC-339
 CF-FORM-1 src/features/admin/impersonation/impersonation-starter.tsx (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin/roles/role-detail.tsx (4) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-1 src/features/admin/roles/roles-list.tsx (3) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339

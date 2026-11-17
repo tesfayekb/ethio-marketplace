@@ -5,7 +5,7 @@ import {
   type CategoryTree,
 } from "@/features/categories/category-tree";
 import type { MessageKey } from "@/i18n";
-import { wholeNumber } from "@/lib/whole-number";
+import { numberOf, parseNumber } from "@/lib/parse-input";
 
 import type { PriceRow, SavePriceInput } from "./monetisation-service";
 
@@ -108,8 +108,8 @@ export function priceFormInput(
   if (values.packageKey === "") return { ok: false, key: "admin.packages.error.unknownPackage" };
   const amount = values.amount.trim();
   if (!AMOUNT_PATTERN.test(amount)) return { ok: false, key: "admin.packages.error.badAmount" };
-  const creditCost = wholeNumber(values.creditCost);
-  if (creditCost === null || creditCost < 0) {
+  const creditCost = numberOf(parseNumber(values.creditCost, { integer: true, min: 0 }));
+  if (creditCost === null) {
     return { ok: false, key: "admin.monetisation.error.badCreditCost" };
   }
   if (values.currency.trim() === "") {
