@@ -26,8 +26,11 @@ import { ListingSettings } from "./listing-settings";
 describe("settings field rules", () => {
   it("KFC2-5 refused days hold the write; corrected days reach the existing door", async () => {
     calls.write.mockResolvedValue({ error: null });
-    const invoke: GuardFn = async (run) => run();
-    const guard = vi.fn(invoke);
+    const invoked = vi.fn();
+    const guard: GuardFn = async (run) => {
+      invoked();
+      return run();
+    };
     const onSaved = vi.fn();
     render(
       <QueryClientProvider
@@ -40,7 +43,7 @@ describe("settings field rules", () => {
     const days = await screen.findByTestId("listings-settings-days");
     fireEvent.change(days, { target: { value: "0" } });
     fireEvent.click(screen.getByTestId("listings-settings-save"));
-    expect(guard).not.toHaveBeenCalled();
+    expect(invoked).not.toHaveBeenCalled();
     expect(calls.write).not.toHaveBeenCalled();
     expect(days.getAttribute("aria-invalid")).toBe("true");
     expect(days.getAttribute("aria-describedby")?.split(" ")).toContain(
