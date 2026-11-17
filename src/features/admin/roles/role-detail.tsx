@@ -259,6 +259,11 @@ function DangerCard({ role }: { role: RoleDetail }) {
               {t("admin.roles.danger.hasMembers")}
             </p>
           ) : (
+            /*
+              U2a / INC-084(a) — the expected key renders VERBATIM in the
+              field's hint. The compare stays trim-exact against role.name, so
+              what the operator reads is exactly what arms the button.
+            */
             <Field
               id="role-delete-confirm"
               field="confirm"

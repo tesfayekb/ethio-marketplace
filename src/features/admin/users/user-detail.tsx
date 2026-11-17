@@ -132,11 +132,11 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               {t("admin.users.detail.identity")}
             </h2>
             <dl className="grid gap-2 text-sm sm:grid-cols-2">
-              <Field label={t("admin.users.col.email")} value={user.email} testid="user-email" />
-              <Field label={t("admin.users.detail.alias")} value={user.sellerAlias ?? "—"} />
-              <Field label={t("admin.users.col.country")} value={user.homeCountryCode ?? "—"} />
-              <Field label={t("admin.users.detail.joined")} value={when(user.createdAt)} />
-              <Field
+              <InfoRow label={t("admin.users.col.email")} value={user.email} testid="user-email" />
+              <InfoRow label={t("admin.users.detail.alias")} value={user.sellerAlias ?? "—"} />
+              <InfoRow label={t("admin.users.col.country")} value={user.homeCountryCode ?? "—"} />
+              <InfoRow label={t("admin.users.detail.joined")} value={when(user.createdAt)} />
+              <InfoRow
                 label={t("admin.users.detail.lastSignIn")}
                 value={user.lastSignInAt ? when(user.lastSignInAt) : t("admin.users.detail.never")}
               />
@@ -562,7 +562,7 @@ function AdminUserEditForm({
   );
 }
 
-function Field({ label, value, testid }: { label: string; value: string; testid?: string }) {
+function InfoRow({ label, value, testid }: { label: string; value: string; testid?: string }) {
   return (
     <div className="min-w-0">
       <dt className="text-xs text-muted-foreground">{label}</dt>

@@ -1,17 +1,25 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { FormField, FormSection } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
+import { FormSection } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
-import { readRefusal } from "@/lib/refusal";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { useBeginImpersonation } from "./use-impersonation";
 
 const MIN_REASON = 5;
+
+/** L9 (DEC-339) — the reason field's words for the one Field: the kit's blank mark. */
+const REASON_REFUSALS: RefusalFamily = {
+  words: { required: "post.refusal.required" },
+  generic: "impersonation.failed",
+};
 
 /**
  * U3 / DEC-016 — the ONLY entry point into an impersonation session.
@@ -27,6 +35,9 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
   const begin = useBeginImpersonation();
   const [reason, setReason] = useState("");
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  const gate = useFormGate();
+  const blankMark = gate.marks.find((mark) => mark.field === "reason") ?? null;
+  const tooShort = errorKey === "impersonation.reasonTooShort";
 
   return (
     <FormSection
@@ -42,6 +53,7 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
             data-testid="impersonation-begin"
             disabled={begin.isPending}
             onClick={() => {
+              if (!gate.try()) return;
               if (reason.trim().length < MIN_REASON) {
                 setErrorKey("impersonation.reasonTooShort");
                 return;
@@ -71,25 +83,42 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
             {t("impersonation.start")}
           </Button>
           {errorKey ? (
-            <p role="alert" data-testid="impersonation-error" className="text-sm text-destructive">
+            <p
+              id="impersonation-error"
+              role="alert"
+              data-testid="impersonation-error"
+              className="text-sm text-destructive">
               {t(errorKey)}
             </p>
           ) : null}
         </>
       }
     >
-      <FormField label={t("impersonation.reasonLabel")} htmlFor="impersonation-reason">
-        <Input
-          id="impersonation-reason"
-          data-testid="impersonation-reason"
-          value={reason}
-          placeholder={t("impersonation.reasonPlaceholder")}
-          onChange={(event) => {
-            setReason(event.target.value);
-            setErrorKey(null);
-          }}
-        />
-      </FormField>
+      <Field
+        id="impersonation-reason"
+        field="reason"
+        label={t("impersonation.reasonLabel")}
+        required
+        gate={gate}
+        blank={reason.trim() === ""}
+        refusal={blankMark}
+        family={REASON_REFUSALS}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            aria-invalid={control["aria-invalid"] ?? (tooShort || undefined)}
+            aria-describedby={tooShort ? "impersonation-error" : control["aria-describedby"]}
+            data-testid="impersonation-reason"
+            value={reason}
+            placeholder={t("impersonation.reasonPlaceholder")}
+            onChange={(event) => {
+              setReason(event.target.value);
+              setErrorKey(null);
+            }}
+          />
+        )}
+      </Field>
     </FormSection>
   );
 }
