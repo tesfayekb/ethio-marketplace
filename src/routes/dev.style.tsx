@@ -12,7 +12,6 @@ import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
-import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { RowActions } from "@/components/shell/row-actions";
 import {
   AlertDialog,
@@ -61,7 +60,6 @@ import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import type { ThemeName } from "@/lib/theme-resolver";
 import type { THEMES } from "@/lib/themes";
-import { cn } from "@/lib/utils";
 
 const SPECIMEN_REASONS = ["spam", "scam", "copyright"] as const;
 
@@ -371,16 +369,35 @@ function DialogSpecimens() {
                 id={`style-dialog-reason-${reason}`}
                 field="reason"
                 label={t(`adPage.report.reason.${reason}`)}
-                required marked={false} refusal={null} layout="choice"
+                required
+                marked={false}
+                refusal={null}
+                layout="choice"
               >
-                {(control) => <RadioGroupItem {...control}
-                data-testid={`style-dialog-choice-${reason}`}
-                value={reason} />}
+                {(control) => (
+                  <RadioGroupItem
+                    {...control}
+                    data-testid={`style-dialog-choice-${reason}`}
+                    value={reason}
+                  />
+                )}
               </Field>
             ))}
           </RadioGroup>
-          <Field id="style-dialog-field" field="note" label={t("adPage.report.note")} required={false} refusal={null}>
-            {(control) => <Textarea {...control} data-testid="style-dialog-field" aria-label={t("adPage.report.note")} />}
+          <Field
+            id="style-dialog-field"
+            field="note"
+            label={t("adPage.report.note")}
+            required={false}
+            refusal={null}
+          >
+            {(control) => (
+              <Textarea
+                {...control}
+                data-testid="style-dialog-field"
+                aria-label={t("adPage.report.note")}
+              />
+            )}
           </Field>
           <DialogFooter data-testid="style-dialog-footer">
             <DialogClose asChild>
@@ -427,8 +444,19 @@ function DialogSpecimens() {
               <SheetTitle>{t("adPage.share.title")}</SheetTitle>
               <SheetDescription>{t("adPage.share.qrHint")}</SheetDescription>
             </SheetHeader>
-            <Field id={`style-sheet-${side}-field`} label={t("adPage.share.title")} required={false} refusal={null}>
-              {(control) => <Input {...control} data-testid={`style-sheet-${side}-field`} aria-label={t("adPage.share.title")} />}
+            <Field
+              id={`style-sheet-${side}-field`}
+              label={t("adPage.share.title")}
+              required={false}
+              refusal={null}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  data-testid={`style-sheet-${side}-field`}
+                  aria-label={t("adPage.share.title")}
+                />
+              )}
             </Field>
           </SheetContent>
         </Sheet>

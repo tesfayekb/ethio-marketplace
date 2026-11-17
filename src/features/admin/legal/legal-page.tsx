@@ -342,26 +342,35 @@ export function LegalPage() {
                 ) : null}
                 {mayEdit ? (
                   <div className="space-y-2">
-                    <label className="block text-sm" htmlFor={`legal-country-${kind}`}>
-                      {t("admin.legal.addCountry.label")}
-                    </label>
                     <div className="flex flex-wrap gap-2">
-                      <NativeSelect
+                      <Field
                         id={`legal-country-${kind}`}
-                        data-testid="legal-add-country-select"
-                        className="grow"
-                        value={picked}
-                        onChange={(e) =>
-                          setSelected((prev) => ({ ...prev, [kind]: e.target.value }))
-                        }
+                        field="country"
+                        label={t("admin.legal.addCountry.label")}
+                        required
+                        marked={false}
+                        refusal={null}
+                        hint={t("admin.legal.addCountry.help")}
                       >
-                        <option value="">—</option>
-                        {available.map((c) => (
-                          <option key={c.code} value={c.code}>
-                            {c.nameEn}
-                          </option>
-                        ))}
-                      </NativeSelect>
+                        {(control) => (
+                          <NativeSelect
+                            {...control}
+                            data-testid="legal-add-country-select"
+                            className="grow"
+                            value={picked}
+                            onChange={(e) =>
+                              setSelected((prev) => ({ ...prev, [kind]: e.target.value }))
+                            }
+                          >
+                            <option value="">—</option>
+                            {available.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.nameEn}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        )}
+                      </Field>
                       <Button
                         asChild
                         disabled={!picked}
@@ -380,9 +389,6 @@ export function LegalPage() {
                         </Link>
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("admin.legal.addCountry.help")}
-                    </p>
                   </div>
                 ) : null}
               </PageCard>
@@ -416,17 +422,38 @@ export function LegalPage() {
                   )}
                 </DialogDescription>
               </DialogHeader>
-              <Field id="legal-review-note" field="note" label={<>
-                {t("admin.legal.review.noteLabel")}
-              </>} required gate={reviewGate} blank={!reviewNote.trim()} refusal={null}>{(control) => (<Textarea
-                {...control} aria-invalid={reviewError === "admin.legal.error.noteRequired" || undefined} aria-describedby={reviewError === "admin.legal.error.noteRequired" ? "legal-review-error" : control["aria-describedby"]}
-                data-testid="legal-review-note"
-                maxLength={2000}
-                value={reviewNote}
-                onChange={(e) => setReviewNote(e.target.value)}
-              />)}</Field>
+              <Field
+                id="legal-review-note"
+                field="note"
+                label={<>{t("admin.legal.review.noteLabel")}</>}
+                required
+                gate={reviewGate}
+                blank={!reviewNote.trim()}
+                refusal={null}
+              >
+                {(control) => (
+                  <Textarea
+                    {...control}
+                    aria-invalid={reviewError === "admin.legal.error.noteRequired" || undefined}
+                    aria-describedby={
+                      reviewError === "admin.legal.error.noteRequired"
+                        ? "legal-review-error"
+                        : control["aria-describedby"]
+                    }
+                    data-testid="legal-review-note"
+                    maxLength={2000}
+                    value={reviewNote}
+                    onChange={(e) => setReviewNote(e.target.value)}
+                  />
+                )}
+              </Field>
               {reviewError ? (
-                <p role="alert" id="legal-review-error" data-testid="legal-review-error" className="text-destructive">
+                <p
+                  role="alert"
+                  id="legal-review-error"
+                  data-testid="legal-review-error"
+                  className="text-destructive"
+                >
                   {t(reviewError)}
                 </p>
               ) : null}

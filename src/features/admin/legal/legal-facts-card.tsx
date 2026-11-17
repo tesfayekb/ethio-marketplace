@@ -50,19 +50,47 @@ export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: 
           };
           return (
             <div key={key} className="min-w-0 space-y-1">
-              {!editing ? <dt>
-                <label
-                  htmlFor={editing ? fieldProps.id : undefined}
-                  className="text-sm font-medium"
-                >
-                  {label(key)}
-                </label>
-              </dt> : null}
+              {!editing ? (
+                <dt>
+                  <label
+                    htmlFor={editing ? fieldProps.id : undefined}
+                    className="text-sm font-medium"
+                  >
+                    {label(key)}
+                  </label>
+                </dt>
+              ) : null}
               <dd>
                 {editing ? (
                   <>
-                    <Field id={fieldProps.id} field={key} label={label(key)} required={!OPTIONAL_FACTS.includes(key)} refusal={null}>
-                      {(control) => multiline ? <Textarea {...fieldProps} {...control} aria-invalid={Boolean(fieldError)} aria-describedby={fieldError ? `legal-fact-error-${key}` : control["aria-describedby"]} /> : <Input {...fieldProps} {...control} aria-invalid={Boolean(fieldError)} aria-describedby={fieldError ? `legal-fact-error-${key}` : control["aria-describedby"]} />}
+                    <Field
+                      id={fieldProps.id}
+                      field={key}
+                      label={label(key)}
+                      required={!OPTIONAL_FACTS.includes(key)}
+                      refusal={null}
+                    >
+                      {(control) =>
+                        multiline ? (
+                          <Textarea
+                            {...fieldProps}
+                            {...control}
+                            aria-invalid={Boolean(fieldError)}
+                            aria-describedby={
+                              fieldError ? `legal-fact-error-${key}` : control["aria-describedby"]
+                            }
+                          />
+                        ) : (
+                          <Input
+                            {...fieldProps}
+                            {...control}
+                            aria-invalid={Boolean(fieldError)}
+                            aria-describedby={
+                              fieldError ? `legal-fact-error-${key}` : control["aria-describedby"]
+                            }
+                          />
+                        )
+                      }
                     </Field>
                     {fieldError ? (
                       <p

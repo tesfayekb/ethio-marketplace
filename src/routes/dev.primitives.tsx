@@ -369,7 +369,13 @@ function PrimitivesFixture() {
         >
           {FIELDS.map((field, index) => (
             <div key={field} className={index === FIELDS.length - 1 ? "md:col-span-2" : undefined}>
-              <Field id={`prim-field-${index}`} label={field} required={false} hint={index === 0 ? LONG_HELP : undefined} refusal={index === 1 ? { field: `prim-field-${index}`, reason: "badType" } : null}>
+              <Field
+                id={`prim-field-${index}`}
+                label={field}
+                required={false}
+                hint={index === 0 ? LONG_HELP : undefined}
+                refusal={index === 1 ? { field: `prim-field-${index}`, reason: "badType" } : null}
+              >
                 {(control) => <Input {...control} defaultValue={""} />}
               </Field>
             </div>

@@ -303,47 +303,83 @@ export function LegalVersionView({
                     </Button>
                     {addingTranslation ? (
                       <div data-testid="legal-translation-panel" className="min-w-0 space-y-3">
-                        <Field id="legal-translation-language" field="language" label={<>{t("language.label")}</>} required marked={false} gate={translationGate} blank={!translationLanguage} refusal={translationGate.marks.find((mark) => mark.field === "language") ?? null} family={LEGAL_REFUSALS}>{(control) => (<NativeSelect
-                          ref={languageSelect}
-                          {...control}
-                          data-testid="legal-translation-language"
-                          className="w-full"
-                          value={translationLanguage}
-                          disabled={translationSaving}
-                          onChange={(e) => {
-                            setTranslationLanguage(e.target.value);
-                            setTranslationSaved(false);
-                            setTranslationError(null);
-                          }}
+                        <Field
+                          id="legal-translation-language"
+                          field="language"
+                          label={<>{t("language.label")}</>}
+                          required
+                          marked={false}
+                          gate={translationGate}
+                          blank={!translationLanguage}
+                          refusal={
+                            translationGate.marks.find((mark) => mark.field === "language") ?? null
+                          }
+                          family={LEGAL_REFUSALS}
                         >
-                          <option value="">{t("language.label")}</option>
-                          {availableLanguages.map((l) => (
-                            <option key={l.code} value={l.code}>
-                              {l.name_en}
-                            </option>
-                          ))}
-                        </NativeSelect>)}</Field>
-                        <Field id="legal-translation-body" field="body" label={<>
-                          {t("admin.legal.field.textOptional").replace(
-                            "{language}",
-                            languageName(translationLanguage),
+                          {(control) => (
+                            <NativeSelect
+                              ref={languageSelect}
+                              {...control}
+                              data-testid="legal-translation-language"
+                              className="w-full"
+                              value={translationLanguage}
+                              disabled={translationSaving}
+                              onChange={(e) => {
+                                setTranslationLanguage(e.target.value);
+                                setTranslationSaved(false);
+                                setTranslationError(null);
+                              }}
+                            >
+                              <option value="">{t("language.label")}</option>
+                              {availableLanguages.map((l) => (
+                                <option key={l.code} value={l.code}>
+                                  {l.name_en}
+                                </option>
+                              ))}
+                            </NativeSelect>
                           )}
-                        </>} required gate={translationGate} blank={!translationBody.trim()} refusal={translationGate.marks.find((mark) => mark.field === "body") ?? null} family={LEGAL_REFUSALS} hint={<p className="text-sm text-muted-foreground">
-                          {t("admin.legal.count")
-                            .replace("{count}", String(translationBody.length))
-                            .replace("{max}", "200000")}
-                        </p>}>{(control) => (<Textarea
-                          {...control}
-                          data-testid="legal-translation-body"
-                          className="min-h-72 text-base"
-                          value={translationBody}
-                          disabled={translationSaving}
-                          onChange={(e) => {
-                            setTranslationBody(e.target.value);
-                            setTranslationSaved(false);
-                            setTranslationError(null);
-                          }}
-                        />)}</Field>
+                        </Field>
+                        <Field
+                          id="legal-translation-body"
+                          field="body"
+                          label={
+                            <>
+                              {t("admin.legal.field.textOptional").replace(
+                                "{language}",
+                                languageName(translationLanguage),
+                              )}
+                            </>
+                          }
+                          required
+                          gate={translationGate}
+                          blank={!translationBody.trim()}
+                          refusal={
+                            translationGate.marks.find((mark) => mark.field === "body") ?? null
+                          }
+                          family={LEGAL_REFUSALS}
+                          hint={
+                            <p className="text-sm text-muted-foreground">
+                              {t("admin.legal.count")
+                                .replace("{count}", String(translationBody.length))
+                                .replace("{max}", "200000")}
+                            </p>
+                          }
+                        >
+                          {(control) => (
+                            <Textarea
+                              {...control}
+                              data-testid="legal-translation-body"
+                              className="min-h-72 text-base"
+                              value={translationBody}
+                              disabled={translationSaving}
+                              onChange={(e) => {
+                                setTranslationBody(e.target.value);
+                                setTranslationSaved(false);
+                                setTranslationError(null);
+                              }}
+                            />
+                          )}
+                        </Field>
                         <label htmlFor="legal-translation-import" className="block text-sm">
                           {t("admin.legal.import.label")}
                         </label>

@@ -50,9 +50,19 @@ export function validateLegalFacts(
     else if (value.length > 2000 && !EMAIL_FACTS.includes(key))
       errors[key] = { type: "tooLong", max: 2000 };
   }
-  const accountMonths = parseNumber(ownValue(values, "account_keep_months") ?? "", { integer: true });
-  const claimsMonths = parseNumber(ownValue(values, "claims_limit_months") ?? "", { integer: true });
-  if (!errors.account_keep_months && !errors.claims_limit_months && accountMonths.kind === "number" && claimsMonths.kind === "number" && accountMonths.value < claimsMonths.value)
+  const accountMonths = parseNumber(ownValue(values, "account_keep_months") ?? "", {
+    integer: true,
+  });
+  const claimsMonths = parseNumber(ownValue(values, "claims_limit_months") ?? "", {
+    integer: true,
+  });
+  if (
+    !errors.account_keep_months &&
+    !errors.claims_limit_months &&
+    accountMonths.kind === "number" &&
+    claimsMonths.kind === "number" &&
+    accountMonths.value < claimsMonths.value
+  )
     errors.account_keep_months = { type: "shorterThanClaims", min: claimsMonths.value };
   return errors;
 }
