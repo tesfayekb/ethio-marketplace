@@ -11,7 +11,6 @@ vi.mock("./legal-reader", async (original) => ({
   myLegalStatus: (k: string[]) => status(k),
   acceptLegal: (i: unknown) => accept(i),
   myLegalVersion: (id: string) => version(id),
-  legalRefusal: (e: { message?: string }) => (e?.message ?? "").split(":")[0],
 }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => navigate }));
 vi.mock("@/components/shell-context", () => ({ useShell: () => ({ requestSignOut: vi.fn() }) }));

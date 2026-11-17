@@ -26,11 +26,25 @@ describe("reportListing", () => {
     rpc.mockResolvedValue({ data: { ok: true }, error: null });
     expect(await reportListing("2345678923", "spam", "")).toEqual({ ok: true });
   });
-  it.each(["alreadyReported", "rateLimited", "ownListing"])("RD-3 passes %s", async (reason) => {
-    rpc.mockResolvedValue({ data: { ok: false, reason }, error: null });
-    expect(await reportListing("2345678923", "spam", "")).toEqual({ ok: false, reason });
-  });
+  it.each(["alreadyReported", "rateLimited", "ownListing"])(
+    "RD-3 reads the shell's %s code",
+    async (reason) => {
+      rpc.mockResolvedValue({ data: null, error: { message: reason } });
+      expect(await reportListing("2345678923", "spam", "")).toEqual({ ok: false, reason });
+    },
+  );
+  it.each(["badReason", "noteTooLong", "listingNotAvailable", "notSignedIn", "accountDeactivated"])(
+    "RD-3 reads the shell's %s code as the generic line",
+    async (message) => {
+      rpc.mockResolvedValue({ data: null, error: { message } });
+      expect(await reportListing("2345678923", "spam", "")).toEqual({
+        ok: false,
+        reason: "failed",
+      });
+    },
+  );
   it.each([
+    { ok: false, reason: "alreadyReported" },
     { ok: false, reason: "badReason" },
     { ok: false, reason: "noteTooLong" },
     {},

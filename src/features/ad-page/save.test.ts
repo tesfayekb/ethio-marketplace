@@ -15,15 +15,19 @@ describe("Save answers", () => {
     expect(await unsaveListing("abc")).toEqual({ ok: true, saved: false, count: 2 });
     expect(rpc).toHaveBeenLastCalledWith("unsave_listing", { p_public_id: "abc" });
   });
-  it("SAVE-2 (SV-2) ownListing and rateLimited pass through", async () => {
+  it("SAVE-2 (SV-2) the shell's ownListing and rateLimited codes are read as errors", async () => {
     for (const reason of ["ownListing", "rateLimited"]) {
-      rpc.mockResolvedValueOnce({ data: { ok: false, reason }, error: null });
+      rpc.mockResolvedValueOnce({ data: null, error: { message: reason } });
       expect(await saveListing("abc")).toEqual({ ok: false, reason });
     }
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "rateLimited" } });
+    expect(await unsaveListing("abc")).toEqual({ ok: false, reason: "rateLimited" });
   });
   it("SAVE-3 (SV-3) unavailable errors map, other errors and malformed answers fail", async () => {
     for (const [message, reason] of [
       ["listingNotAvailable", "listingNotAvailable"],
+      ["notSignedIn", "failed"],
+      ["accountDeactivated", "failed"],
       ["boom", "failed"],
     ]) {
       rpc.mockResolvedValueOnce({ data: null, error: { message } });
@@ -36,6 +40,9 @@ describe("Save answers", () => {
       { ok: true, saved: true, count: -1 },
       { ok: true, saved: true, count: 0.5 },
       { ok: false, reason: "unexpected" },
+      // The shell refuses with an error now; a returned refusal is not an answer of the door.
+      { ok: false, reason: "ownListing" },
+      { ok: false, reason: "rateLimited" },
     ]) {
       rpc.mockResolvedValueOnce({ data, error: null });
       expect(await saveListing("abc")).toEqual({ ok: false, reason: "failed" });

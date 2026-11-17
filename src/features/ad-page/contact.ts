@@ -1,5 +1,6 @@
 import { safeHref, type SafeHref } from "@/lib/safe-href";
 import { rpc } from "@/lib/supabase-door";
+import { contactRefusal, type ContactRefusal } from "./ad-page-refusals";
 
 /**
  * Bundle 19 turn 11 (D201 §6) — THE BUYER'S CONTACT REVEAL. The values never
@@ -17,20 +18,12 @@ export type ContactState =
   | { kind: "revealed"; channels: Partial<Record<ContactChannel, string>> }
   | {
       kind: "refused";
-      reason: "sellersCapReached" | "rateLimited" | "listingNotAvailable" | "failed";
+      reason: Exclude<ContactRefusal, "acceptanceRequired">;
     };
 
 export type RevealAnswer =
   | { ok: true; channels: Partial<Record<ContactChannel, string>> }
-  | {
-      ok: false;
-      reason:
-        | "sellersCapReached"
-        | "rateLimited"
-        | "listingNotAvailable"
-        | "acceptanceRequired"
-        | "failed";
-    };
+  | { ok: false; reason: ContactRefusal };
 
 const CHANNELS: readonly ContactChannel[] = ["phone", "phone2", "telegram", "whatsapp"];
 
@@ -38,26 +31,13 @@ export async function revealContact(publicId: string): Promise<RevealAnswer> {
   const { data, error } = await rpc("reveal_listing_contact", {
     p_public_id: publicId,
   } as never);
-  if (error) {
-    return {
-      ok: false,
-      reason: error.message.includes("listingNotAvailable") ? "listingNotAvailable" : "failed",
-    };
-  }
+  // F1-5b — the shell's refusals (`listingNotAvailable`, `acceptanceRequired`, the gate's
+  // `rateLimited`) arrive as an error whose message is the code; the body's own two ceilings
+  // (`sellersCapReached`, the new-account `rateLimited`) stay a returned answer (D3).
+  if (error) return { ok: false, reason: contactRefusal(error) };
   if (data === null || typeof data !== "object") return { ok: false, reason: "failed" };
   const answer = data as Record<string, unknown>;
-  if (answer["ok"] !== true) {
-    const reason = answer["reason"];
-    return {
-      ok: false,
-      reason:
-        reason === "sellersCapReached" ||
-        reason === "rateLimited" ||
-        reason === "acceptanceRequired"
-          ? reason
-          : "failed",
-    };
-  }
+  if (answer["ok"] !== true) return { ok: false, reason: contactRefusal(answer) };
   const source = answer["channels"];
   const channels: Partial<Record<ContactChannel, string>> = {};
   if (source !== null && typeof source === "object") {
