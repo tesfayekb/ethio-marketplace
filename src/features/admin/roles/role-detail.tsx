@@ -272,24 +272,24 @@ function DangerCard({ role }: { role: RoleDetail }) {
               marked={false}
               refusal={null}
               hint={
-                  <p className="text-sm text-muted-foreground">
-                    {t("admin.roles.danger.confirmHint")
-                      .split("{key}")
-                      .flatMap((part, index) =>
-                        index === 0
-                          ? [<span key="p0">{part}</span>]
-                          : [
-                              <code
-                                key="key"
-                                data-testid="role-delete-key"
-                                className="break-all font-mono text-foreground"
-                              >
-                                {role.name}
-                              </code>,
-                              <span key={`p${index}`}>{part}</span>,
-                            ],
-                      )}
-                  </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("admin.roles.danger.confirmHint")
+                    .split("{key}")
+                    .flatMap((part, index) =>
+                      index === 0
+                        ? [<span key="p0">{part}</span>]
+                        : [
+                            <code
+                              key="key"
+                              data-testid="role-delete-key"
+                              className="break-all font-mono text-foreground"
+                            >
+                              {role.name}
+                            </code>,
+                            <span key={`p${index}`}>{part}</span>,
+                          ],
+                    )}
+                </p>
               }
             >
               {(control) => (

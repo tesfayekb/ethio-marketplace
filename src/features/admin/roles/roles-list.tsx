@@ -328,7 +328,9 @@ function CreateRoleForm({ onClose }: { onClose: () => void }) {
             blank={name.trim().length === 0}
             refusal={refusalOf("name")}
             family={ROLE_REFUSALS}
-            hint={<p className="text-xs text-muted-foreground">{t("admin.roles.create.nameHelp")}</p>}
+            hint={
+              <p className="text-xs text-muted-foreground">{t("admin.roles.create.nameHelp")}</p>
+            }
           >
             {(control) => (
               <Input

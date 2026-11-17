@@ -87,7 +87,8 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
               id="impersonation-error"
               role="alert"
               data-testid="impersonation-error"
-              className="text-sm text-destructive">
+              className="text-sm text-destructive"
+            >
               {t(errorKey)}
             </p>
           ) : null}

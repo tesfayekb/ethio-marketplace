@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { FormField, FormSection } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
+import { FormSection } from "@/components/shell/form-section";
 import { UserLegalCard } from "@/features/admin/legal/user-legal-card";
 import { TranslatorLanguagesCard } from "@/features/admin/translations/translator-card";
 import { PageCard } from "@/components/shell/page-card";
@@ -17,7 +19,12 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { asksAliasReason, profileEditRefusalKey, UNASSIGNABLE_ROLES } from "./admin-users-service";
+import {
+  asksAliasReason,
+  PROFILE_EDIT_REFUSALS,
+  profileEditRefusalKey,
+  UNASSIGNABLE_ROLES,
+} from "./admin-users-service";
 import {
   useAdminRoles,
   useAdminUser,
@@ -51,6 +58,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
 
   const [reason, setReason] = useState("");
   const [reasonError, setReasonError] = useState(false);
+  const reasonGate = useFormGate();
   const [selectedRole, setSelectedRole] = useState("");
 
   const fmt = dateFormatter("dayTime", language);
@@ -192,24 +200,33 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               <div className="space-y-2">
                 {!deactivated ? (
                   <>
-                    <label
-                      className="block text-sm font-medium text-foreground"
-                      htmlFor="deactivate-reason"
-                    >
-                      {t("admin.users.status.reasonLabel")}
-                    </label>
-                    <Input
+                    <Field
                       id="deactivate-reason"
-                      data-testid="deactivate-reason"
-                      value={reason}
-                      placeholder={t("admin.users.status.reasonPlaceholder")}
-                      onChange={(event) => {
-                        setReason(event.target.value);
-                        setReasonError(false);
-                      }}
-                    />
+                      field="reason"
+                      label={t("admin.users.status.reasonLabel")}
+                      required
+                      gate={reasonGate}
+                      blank={reason.trim() === ""}
+                      refusal={null}
+                    >
+                      {(control) => (
+                        <Input
+                          {...control}
+                          aria-invalid={reasonError || undefined}
+                          aria-describedby={reasonError ? "reason-error" : undefined}
+                          data-testid="deactivate-reason"
+                          value={reason}
+                          placeholder={t("admin.users.status.reasonPlaceholder")}
+                          onChange={(event) => {
+                            setReason(event.target.value);
+                            setReasonError(false);
+                          }}
+                        />
+                      )}
+                    </Field>
                     {reasonError ? (
                       <p
+                        id="reason-error"
                         role="alert"
                         data-testid="reason-error"
                         className="text-sm text-destructive"
@@ -223,7 +240,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                       data-testid="deactivate-user"
                       disabled={status.isPending}
                       onClick={() => {
-                        if (reason.trim() === "") {
+                        if (!reasonGate.try()) {
                           setReasonError(true);
                           return;
                         }
@@ -303,26 +320,31 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
             {mayAssign ? (
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <div className="grow">
-                  <label
-                    className="block text-sm font-medium text-foreground"
-                    htmlFor="assign-role"
-                  >
-                    {t("admin.users.roles.assign")}
-                  </label>
-                  <NativeSelect
+                  <Field
                     id="assign-role"
-                    data-testid="assign-role-select"
-                    className="mt-1 w-full"
-                    value={selectedRole}
-                    onChange={(event) => setSelectedRole(event.target.value)}
+                    field="role_name"
+                    label={t("admin.users.roles.assign")}
+                    required
+                    marked={false}
+                    refusal={null}
                   >
-                    <option value="">—</option>
-                    {assignable.map((role) => (
-                      <option key={role.name} value={role.name}>
-                        {role.displayName ?? role.name}
-                      </option>
-                    ))}
-                  </NativeSelect>
+                    {(control) => (
+                      <NativeSelect
+                        {...control}
+                        data-testid="assign-role-select"
+                        className="w-full"
+                        value={selectedRole}
+                        onChange={(event) => setSelectedRole(event.target.value)}
+                      >
+                        <option value="">—</option>
+                        {assignable.map((role) => (
+                          <option key={role.name} value={role.name}>
+                            {role.displayName ?? role.name}
+                          </option>
+                        ))}
+                      </NativeSelect>
+                    )}
+                  </Field>
                 </div>
                 <Button
                   className="min-h-11"
@@ -440,6 +462,19 @@ function AdminUserEditForm({
   // name for want of one; changing the name withdraws the question.
   const [reasonAsked, setReasonAsked] = useState(false);
   const [reason, setReason] = useState("");
+  const gate = useFormGate();
+  const nameMark = gate.marks.find((mark) => mark.field === "display_name") ?? null;
+  /** The edit-error line names the control its refusal is about (the line itself stays). */
+  const lineNames = (keys: readonly MessageKey[]) =>
+    errorKey !== null && keys.includes(errorKey)
+      ? { "aria-invalid": true as const, "aria-describedby": "edit-error" }
+      : null;
+  const aliasLine = lineNames([
+    "admin.users.edit.errorAliasTaken",
+    "admin.users.edit.errorAliasFormat",
+  ]);
+  const reasonLine = lineNames(["admin.users.edit.errorAliasReason"]);
+  const countryLine = lineNames(["admin.users.edit.errorCountry"]);
 
   return (
     <FormSection
@@ -455,11 +490,8 @@ function AdminUserEditForm({
             disabled={save.isPending}
             onClick={() => {
               setSaved(false);
-              if (name.trim() === "") {
-                setErrorKey("admin.users.edit.errorNameRequired");
-                return;
-              }
               setErrorKey(null);
+              if (!gate.try()) return;
               void guard(() =>
                 save.mutateAsync({
                   displayName: name.trim(),
@@ -487,77 +519,117 @@ function AdminUserEditForm({
             </p>
           ) : null}
           {errorKey ? (
-            <p data-testid="edit-error" role="alert" className="text-sm text-destructive">
+            <p
+              id="edit-error"
+              data-testid="edit-error"
+              role="alert"
+              className="text-sm text-destructive"
+            >
               {t(errorKey)}
             </p>
           ) : null}
         </>
       }
     >
-      <FormField label={t("admin.users.edit.displayName")} htmlFor="edit-display-name">
-        <Input
-          id="edit-display-name"
-          data-testid="edit-display-name"
-          value={name}
-          onChange={(event) => {
-            setName(event.target.value);
-            setSaved(false);
-          }}
-        />
-      </FormField>
-
-      <FormField
-        label={t("admin.users.edit.alias")}
-        htmlFor="edit-seller-alias"
-        help={t("admin.users.edit.aliasHelp")}
+      <Field
+        id="edit-display-name"
+        field="display_name"
+        label={t("admin.users.edit.displayName")}
+        required
+        gate={gate}
+        blank={name.trim() === ""}
+        refusal={nameMark}
+        family={PROFILE_EDIT_REFUSALS}
       >
-        <Input
-          id="edit-seller-alias"
-          data-testid="edit-seller-alias"
-          value={alias}
-          onChange={(event) => {
-            setAlias(event.target.value);
-            setSaved(false);
-            setReasonAsked(false);
-            setReason("");
-          }}
-        />
-      </FormField>
+        {(control) => (
+          <Input
+            {...control}
+            data-testid="edit-display-name"
+            value={name}
+            onChange={(event) => {
+              setName(event.target.value);
+              setSaved(false);
+            }}
+          />
+        )}
+      </Field>
+
+      <Field
+        id="edit-seller-alias"
+        field="seller_alias"
+        label={t("admin.users.edit.alias")}
+        required={false}
+        refusal={null}
+        hint={<p className="text-xs text-muted-foreground">{t("admin.users.edit.aliasHelp")}</p>}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            {...aliasLine}
+            data-testid="edit-seller-alias"
+            value={alias}
+            onChange={(event) => {
+              setAlias(event.target.value);
+              setSaved(false);
+              setReasonAsked(false);
+              setReason("");
+            }}
+          />
+        )}
+      </Field>
 
       {reasonAsked ? (
-        <FormField
+        <Field
+          id="edit-alias-reason"
+          field="reason"
           label={t("admin.users.edit.aliasReason")}
-          htmlFor="edit-alias-reason"
-          help={t("admin.users.edit.aliasReasonHelp")}
+          required
+          marked={false}
+          refusal={null}
+          hint={
+            <p className="text-xs text-muted-foreground">{t("admin.users.edit.aliasReasonHelp")}</p>
+          }
         >
-          <Input
-            id="edit-alias-reason"
-            data-testid="edit-alias-reason"
-            value={reason}
-            onChange={(event) => setReason(event.target.value)}
-          />
-        </FormField>
+          {(control) => (
+            <Input
+              {...control}
+              {...reasonLine}
+              data-testid="edit-alias-reason"
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          )}
+        </Field>
       ) : null}
 
-      <FormField label={t("admin.users.edit.country")} htmlFor="edit-country">
-        <NativeSelect
-          id="edit-country"
-          data-testid="edit-country"
-          className="w-full"
-          value={country}
-          onChange={(event) => {
-            setCountry(event.target.value);
-            setSaved(false);
-          }}
-        >
-          <option value="">{t("admin.users.edit.countryNone")}</option>
-          {(countries.data ?? []).map((option) => (
-            <option key={option.code} value={option.code}>
-              {option.nameEn}
-            </option>
-          ))}
-        </NativeSelect>
-      </FormField>
+      <Field
+        id="edit-country"
+        field="home_country_code"
+        label={t("admin.users.edit.country")}
+        required={false}
+        refusal={null}
+      >
+        {(control) => (
+          <NativeSelect
+            {...control}
+            {...countryLine}
+            data-testid="edit-country"
+            className="w-full"
+            value={country}
+            onChange={(event) => {
+              setCountry(event.target.value);
+              setSaved(false);
+            }}
+          >
+            <option value="">{t("admin.users.edit.countryNone")}</option>
+            {(countries.data ?? []).map((option) => (
+              <option key={option.code} value={option.code}>
+                {option.nameEn}
+              </option>
+            ))}
+          </NativeSelect>
+        )}
+      </Field>
     </FormSection>
   );
 }
