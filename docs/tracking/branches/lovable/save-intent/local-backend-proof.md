@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `41836919d4961cc67c7dc8218469f578ebed2eec`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44194618990
+- Commit: `2df46d96a052ff4d907b50f6665ca506b7888d10`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44196773583
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 370 | 54 | applied 505/505 | 27 | 0 | 0 | 5 | 32 |
-| email | 554 | 63 | applied 505/505 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 1493 | 60 | applied 505/505 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 806 | 62 | applied 505/505 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 546 | 63 | applied 505/505 | 174 | 0 | 0 | 26 | 200 |
-| 3 | 611 | 63 | applied 505/505 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 626 | 62 | applied 505/505 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 569 | 73 | applied 505/505 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 550 | 63 | applied 505/505 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 657 | 75 | applied 505/505 | 145 | 0 | 2 | 77 | 224 |
-| 8 | 883 | 61 | applied 505/505 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 662 | 63 | applied 505/505 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 559 | 64 | applied 505/505 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 725 | 61 | applied 505/505 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 816 | 61 | applied 505/505 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 971 | 63 | applied 505/505 | 157 | 0 | 0 | 9 | 166 |
-| 14 | 666 | 82 | applied 505/505 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 950 | 62 | applied 505/505 | 124 | 0 | 0 | 8 | 132 |
-| 16 | 714 | 61 | applied 505/505 | 172 | 0 | 0 | 48 | 220 |
+| smoke | 735 | 62 | applied 505/505 | 27 | 0 | 0 | 5 | 32 |
+| email | 651 | 61 | applied 505/505 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 802 | 78 | applied 505/505 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 556 | 69 | applied 505/505 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 575 | 70 | applied 505/505 | 174 | 0 | 0 | 26 | 200 |
+| 3 | 1059 | 62 | applied 505/505 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 571 | 72 | applied 505/505 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 565 | 61 | applied 505/505 | 92 | 0 | 1 | 1 | 94 |
+| 6 | 716 | 61 | applied 505/505 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 762 | 62 | applied 505/505 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 483 | 53 | applied 505/505 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 881 | 59 | applied 505/505 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 568 | 69 | applied 505/505 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 571 | 65 | applied 505/505 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 611 | 64 | applied 505/505 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 588 | 78 | applied 505/505 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 800 | 64 | applied 505/505 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 579 | 62 | applied 505/505 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 638 | 79 | applied 505/505 | 172 | 0 | 0 | 48 | 220 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 52 | 52 |
-| TOTAL | — | — | — | 2544 | 0 | 2 | 412 | 2958 |
+| TOTAL | — | — | — | 2545 | 0 | 1 | 412 | 2958 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: webkit 1493 s
+- Slowest lane: 3 1059 s
 - Repeat lane (DEC-283): Not repeated: e2e/ad-page.spec.ts (52 tests); Repeat: each 2 on both projects; 52 tests selected, 0 repeated; budget 643 s at 4.7 s a test; directly changed: 0 of 1 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 5, email 6, webkit 6, 1 6, 2 7, 3 7, 4 6, 5 9, 6 7, 7 9, 8 6, 9 6, 10 7, 11 6, 12 6, 13 6, 14 10, 15 6, 16 6, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/336, 2 641/363, 3 641/410, 4 640/333, 5 640/392, 6 641/378, 7 641/462, 8 641/341, 9 641/331, 10 643/370, 11 640/353, 12 641/354, 13 640/326, 14 641/449, 15 641/377, 16 641/323
+- Database session samples during each start (INC-944): smoke 6, email 6, webkit 10, 1 8, 2 8, 3 6, 4 8, 5 6, 6 6, 7 6, 8 5, 9 6, 10 8, 11 7, 12 7, 13 10, 14 6, 15 6, 16 10, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/368, 2 641/380, 3 641/366, 4 640/369, 5 640/388, 6 641/347, 7 641/320, 8 641/331, 9 641/337, 10 643/370, 11 640/393, 12 641/423, 13 640/389, 14 641/311, 15 641/373, 16 641/438
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44194618990-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 44194618990-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44194618990-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44194618990-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44194618990-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44194618990-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44194618990-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44194618990-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44194618990-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44194618990-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44194618990-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44194618990-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44194618990-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44194618990-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44194618990-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44194618990-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44194618990-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44194618990-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44194618990-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44196773583-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 44196773583-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44196773583-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44196773583-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44196773583-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44196773583-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44196773583-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44196773583-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44196773583-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44196773583-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44196773583-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44196773583-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44196773583-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44196773583-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44196773583-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44196773583-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44196773583-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44196773583-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44196773583-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -78,8 +78,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 7
-- choice-lists.spec.ts / choice lists at 360, light / CL-E10 the account menu's parts equal the other lists' (360, light) / mobile-360 — Error: expect(locator).toBeHidden() failed
-- choice-lists.spec.ts / choice lists at 360, dark / CL-E10 the account menu's parts equal the other lists' (360, dark) / mobile-360 — Error: expect(locator).toBeHidden() failed
+## Lane 5
+- admin-translations-data.spec.ts / U4b translations console / TR-14 the Data scope edits and approves a location name / desktop-1280 — Error: expect(locator).toBeVisible() failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
