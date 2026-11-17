@@ -21,7 +21,8 @@ describe("the attribute library's refusals (F1-4a, DEC-333)", () => {
   it("ARF-1 each code that replaced a console key reads that key's words", () => {
     const words: Array<[string, string]> = [
       ["rateLimited", "admin.error.rateLimited"],
-      ["required", "admin.attributes.error.keyRequired"],
+      ["required", "post.refusal.required"],
+      ["badType", "post.refusal.badType"],
       ["duplicateKey", "admin.attributes.error.keyTaken"],
       ["unknownAttribute", "admin.attributes.error.notFound"],
       ["unknownLink", "admin.attributes.error.linkNotFound"],

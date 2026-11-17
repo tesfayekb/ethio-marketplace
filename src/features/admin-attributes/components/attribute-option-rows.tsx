@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
+import { ATTRIBUTE_REFUSALS } from "../attribute-refusals";
 import type { AttributeOption } from "../attributes-service";
 
 import type { AllowedTarget } from "./attribute-allowed-values";
@@ -119,35 +121,49 @@ export function AttributeOptionRows({
 
       {/* C3-UX-7 — the operator's walk through a long list. */}
       <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-2">
-        <FormField label={t("admin.attributes.options.search")} htmlFor="option-search">
-          <Input
-            id="option-search"
-            data-testid="option-search"
-            value={needleInput}
-            placeholder={t("admin.attributes.options.searchPlaceholder")}
-            onChange={(event) => setNeedleInput(event.target.value)}
-          />
-        </FormField>
+        <Field
+          id="option-search"
+          label={t("admin.attributes.options.search")}
+          required={false}
+          refusal={null}
+          family={ATTRIBUTE_REFUSALS}
+        >
+          {(control) => (
+            <Input
+              {...control}
+              className={controlClass(false, false, "dialog")}
+              data-testid="option-search"
+              value={needleInput}
+              placeholder={t("admin.attributes.options.searchPlaceholder")}
+              onChange={(event) => setNeedleInput(event.target.value)}
+            />
+          )}
+        </Field>
         {dependent ? (
-          <FormField
+          <Field
+            id="option-parent-filter"
             label={t("admin.attributes.options.parentFilter")}
-            htmlFor="option-parent-filter"
+            required={false}
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
           >
-            <NativeSelect
-              id="option-parent-filter"
-              data-testid="option-parent-filter"
-              className="w-full"
-              value={parentFilter}
-              onChange={(event) => setParentFilter(event.target.value)}
-            >
-              <option value="">{t("admin.attributes.options.parentFilterAll")}</option>
-              {parentValues.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </NativeSelect>
-          </FormField>
+            {(control) => (
+              <NativeSelect
+                {...control}
+                data-testid="option-parent-filter"
+                className="w-full"
+                value={parentFilter}
+                onChange={(event) => setParentFilter(event.target.value)}
+              >
+                <option value="">{t("admin.attributes.options.parentFilterAll")}</option>
+                {parentValues.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </NativeSelect>
+            )}
+          </Field>
         ) : null}
       </div>
       <p className="text-xs text-muted-foreground" data-testid="option-count">

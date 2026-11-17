@@ -1,7 +1,8 @@
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
-import { LIST_CHOICE_ON, LIST_ROW } from "@/components/shell/menu-row";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -16,7 +17,6 @@ import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
 import { readRefusal } from "@/lib/refusal";
-import { cn } from "@/lib/utils";
 
 import {
   ATTRIBUTE_TYPES,
@@ -39,6 +39,12 @@ import {
   useUpsertAttribute,
 } from "./use-attributes";
 import { ATTRIBUTE_REFUSALS, useAttributeRefusal } from "./attribute-refusals";
+import {
+  attributeRefusals,
+  readAttributeNumbers,
+  type AttributeFormField,
+  type AttributeFormRefusals,
+} from "./attribute-form-values";
 import { useAttributeLabel } from "./use-attribute-label";
 import { AttributeOptionRows } from "./components/attribute-option-rows";
 import {
@@ -63,6 +69,11 @@ import {
  * re-checks the permission AND the step-up server-side (F3), so a refusal is a
  * translated line, never a silent no-op (F4). 360-first throughout.
  */
+
+/** A Field's hint line, as the old field drew it. */
+function Hint({ children }: { children: string }) {
+  return <p className="min-w-0 break-words text-xs text-muted-foreground">{children}</p>;
+}
 
 export function AttributeDialogAlert({ message }: { message: string | null }) {
   if (!message) return null;
@@ -148,6 +159,11 @@ export function AttributeEditorDialog({
   const storedValues = (attribute?.options ?? []).map((option) => option.value);
   const [dependsOn, setDependsOn] = useState(attribute?.dependsOnKey ?? "");
   const [preview, setPreview] = useState("");
+  /** DEC-339 — the one gate (the key and the name) and the parser's refusals. */
+  const gate = useFormGate();
+  const [parsed, setParsed] = useState<AttributeFormRefusals>({});
+  const refusals = attributeRefusals(gate, parsed);
+  const refusalOf = (field: AttributeFormField) => refusals[field] ?? null;
 
   const [helpText, setHelpText] = useState(attribute?.helpTextEn ?? "");
   /**
@@ -255,26 +271,28 @@ export function AttributeEditorDialog({
       : storedValues;
   const removedHolders = useRemovedAnswerHolders(attribute?.id ?? null, removedValues);
 
-  /** Empty is null; a non-number for an integer cell is left to the door. */
+  /** Empty is null. */
   const text = (raw: string): string | null => (raw.trim() === "" ? null : raw.trim());
-  const whole = (raw: string): number | null =>
-    raw.trim() === "" || !/^\d+$/.test(raw.trim()) ? null : Number(raw.trim());
   const isNumber = attrType === "number";
   const isText = attrType === "text";
 
   const submit = () => {
     setMessage(null);
     setBlankCount(0);
+    setParsed({});
     if (blankRows > 0) {
       setBlankCount(blankRows);
       return;
     }
-    if (attrKey.trim() === "") {
-      setMessage(t("admin.attributes.error.keyRequired"));
-      return;
-    }
-    if (nameEn.trim() === "") {
-      setMessage(t("admin.attributes.error.nameRequired"));
+    // DEC-339 — a blank key or name is the gate's, refused under its own Field.
+    if (!gate.try()) return;
+    // The one parser: blank is null to the door; an unreadable answer is refused here.
+    const numbers = readAttributeNumbers({
+      decimals: isNumber && numberFields.format !== "year" ? numberFields.decimals : "",
+      maxLength: isText ? textFields.maxLength : "",
+    });
+    if (!numbers.ok) {
+      setParsed(numbers.refusals);
       return;
     }
     void guard(async () => {
@@ -293,14 +311,10 @@ export function AttributeEditorDialog({
           unitAm: isNumber ? numberFields.unitAm.trim() : null,
           minBound: isNumber ? text(numberFields.min) : null,
           maxBound: isNumber ? text(numberFields.max) : null,
-          decimals: isNumber
-            ? numberFields.format === "year"
-              ? 0
-              : whole(numberFields.decimals)
-            : null,
+          decimals: isNumber ? (numberFields.format === "year" ? 0 : numbers.decimals) : null,
           format: isNumber ? text(numberFields.format) : null,
           preset: isText ? presetToken(textFields) : null,
-          maxLength: isText ? whole(textFields.maxLength) : null,
+          maxLength: isText ? numbers.maxLength : null,
         });
         onClose();
       } catch (error) {
@@ -320,77 +334,108 @@ export function AttributeEditorDialog({
     >
       {/* UX-2 PART 4 — key and name are different KINDS of thing, and the form
           now says which is which before an operator guesses. */}
-      <FormField
+      <Field
+        id="attribute-key"
+        field="attrKey"
         label={t("admin.attributes.field.key")}
-        htmlFor="attribute-key"
-        help={t("admin.attributes.field.keyHelp")}
+        required
+        hint={<Hint>{t("admin.attributes.field.keyHelp")}</Hint>}
+        refusal={refusalOf("attrKey")}
+        family={ATTRIBUTE_REFUSALS}
+        gate={gate}
+        blank={attrKey.trim() === ""}
       >
-        <Input
-          id="attribute-key"
-          data-testid="attribute-key"
-          value={attrKey}
-          onChange={(event) => setAttrKey(event.target.value)}
-        />
-      </FormField>
-      <FormField
+        {(control) => (
+          <Input
+            {...control}
+            className={controlClass(refusalOf("attrKey") !== null, false, "dialog")}
+            data-testid="attribute-key"
+            value={attrKey}
+            onChange={(event) => setAttrKey(event.target.value)}
+          />
+        )}
+      </Field>
+      <Field
+        id="attribute-name"
+        field="nameEn"
         label={t("admin.attributes.field.name")}
-        htmlFor="attribute-name"
-        help={t("admin.attributes.field.nameHelp")}
+        required
+        hint={<Hint>{t("admin.attributes.field.nameHelp")}</Hint>}
+        refusal={refusalOf("nameEn")}
+        family={ATTRIBUTE_REFUSALS}
+        gate={gate}
+        blank={nameEn.trim() === ""}
       >
-        <Input
-          id="attribute-name"
-          data-testid="attribute-name"
-          value={nameEn}
-          onChange={(event) => setNameEn(event.target.value)}
-        />
-      </FormField>
-      <FormField label={t("admin.attributes.field.type")} htmlFor="attribute-type">
-        <NativeSelect
-          id="attribute-type"
-          data-testid="attribute-type"
-          className="w-full"
-          value={attrType}
-          onChange={(event) => {
-            const next = event.target.value;
-            setAttrType(next);
-            // DEC-050 L3a — a group that no longer applies leaves no residue.
-            if (next !== "number") setNumberFields(EMPTY_NUMBER_FIELDS);
-            if (next !== "text") setTextFields(EMPTY_TEXT_FIELDS);
-          }}
-        >
-          {ATTRIBUTE_TYPES.map((option) => (
-            <option key={option} value={option}>
-              {t(`admin.attributes.type.${option}` as MessageKey)}
-            </option>
-          ))}
-        </NativeSelect>
-      </FormField>
-
-      {/* DEC-045 — the dependency picker; hidden without the write permission. */}
-      {mayDepend && typeHasOptions(attrType) ? (
-        <FormField
-          label={t("admin.attributes.field.dependsOn")}
-          htmlFor="attribute-depends-on"
-          help={t("admin.attributes.field.dependsOnHelp")}
-        >
+        {(control) => (
+          <Input
+            {...control}
+            className={controlClass(refusalOf("nameEn") !== null, false, "dialog")}
+            data-testid="attribute-name"
+            value={nameEn}
+            onChange={(event) => setNameEn(event.target.value)}
+          />
+        )}
+      </Field>
+      <Field
+        id="attribute-type"
+        label={t("admin.attributes.field.type")}
+        required
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
+      >
+        {(control) => (
           <NativeSelect
-            id="attribute-depends-on"
-            data-testid="attribute-depends-on"
+            {...control}
+            data-testid="attribute-type"
             className="w-full"
-            value={dependsOn}
+            value={attrType}
             onChange={(event) => {
-              setDependsOn(event.target.value);
-              setPreview("");
+              const next = event.target.value;
+              setAttrType(next);
+              // DEC-050 L3a — a group that no longer applies leaves no residue.
+              if (next !== "number") setNumberFields(EMPTY_NUMBER_FIELDS);
+              if (next !== "text") setTextFields(EMPTY_TEXT_FIELDS);
             }}
           >
-            <option value="">{t("admin.attributes.dependsOn.none")}</option>
-            {parents.map((row) => (
-              <option key={row.id} value={row.attrKey}>
-                {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
+            {ATTRIBUTE_TYPES.map((option) => (
+              <option key={option} value={option}>
+                {t(`admin.attributes.type.${option}` as MessageKey)}
               </option>
             ))}
           </NativeSelect>
-        </FormField>
+        )}
+      </Field>
+
+      {/* DEC-045 — the dependency picker; hidden without the write permission. */}
+      {mayDepend && typeHasOptions(attrType) ? (
+        <Field
+          id="attribute-depends-on"
+          label={t("admin.attributes.field.dependsOn")}
+          required={false}
+          hint={<Hint>{t("admin.attributes.field.dependsOnHelp")}</Hint>}
+          refusal={null}
+          family={ATTRIBUTE_REFUSALS}
+        >
+          {(control) => (
+            <NativeSelect
+              {...control}
+              data-testid="attribute-depends-on"
+              className="w-full"
+              value={dependsOn}
+              onChange={(event) => {
+                setDependsOn(event.target.value);
+                setPreview("");
+              }}
+            >
+              <option value="">{t("admin.attributes.dependsOn.none")}</option>
+              {parents.map((row) => (
+                <option key={row.id} value={row.attrKey}>
+                  {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </Field>
       ) : null}
 
       {/* DEC-050 L3b — ONE ROW PER OPTION, flat or grouped by parent value. */}
@@ -419,25 +464,30 @@ export function AttributeEditorDialog({
           {/* THE CASCADE, previewed where it is authored. */}
           {dependent ? (
             <>
-              <FormField
+              <Field
+                id="attribute-cascade-parent"
                 label={t("admin.attributes.dependsOn.previewLabel")}
-                htmlFor="attribute-cascade-parent"
+                required={false}
+                refusal={null}
+                family={ATTRIBUTE_REFUSALS}
               >
-                <NativeSelect
-                  id="attribute-cascade-parent"
-                  data-testid="attribute-cascade-parent"
-                  className="w-full"
-                  value={preview}
-                  onChange={(event) => setPreview(event.target.value)}
-                >
-                  <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
-                  {parentValues.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </FormField>
+                {(control) => (
+                  <NativeSelect
+                    {...control}
+                    data-testid="attribute-cascade-parent"
+                    className="w-full"
+                    value={preview}
+                    onChange={(event) => setPreview(event.target.value)}
+                  >
+                    <option value="">{t("admin.attributes.dependsOn.previewNone")}</option>
+                    {parentValues.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                )}
+              </Field>
               <ul data-testid="attribute-cascade-child" className="space-y-1">
                 {optionRows
                   .filter(
@@ -464,35 +514,67 @@ export function AttributeEditorDialog({
       ) : null}
 
       {/* DEC-050 L3a — one group per type, mounted only for that type. */}
-      {isNumber ? <AttributeNumberFields value={numberFields} onChange={setNumberFields} /> : null}
-      {isText ? <AttributeTextFields value={textFields} onChange={setTextFields} /> : null}
+      {isNumber ? (
+        <AttributeNumberFields
+          value={numberFields}
+          onChange={setNumberFields}
+          decimalsRefusal={refusalOf("decimals")}
+        />
+      ) : null}
+      {isText ? (
+        <AttributeTextFields
+          value={textFields}
+          onChange={setTextFields}
+          maxLengthRefusal={refusalOf("maxLength")}
+        />
+      ) : null}
 
-      <FormField
+      <Field
+        id="attribute-help"
         label={t("admin.attributes.field.help")}
-        htmlFor="attribute-help"
-        help={t("admin.attributes.field.helpCounter").replace("{count}", String(helpText.length))}
+        required={false}
+        hint={
+          <Hint>
+            {t("admin.attributes.field.helpCounter").replace("{count}", String(helpText.length))}
+          </Hint>
+        }
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
       >
-        <Input
-          id="attribute-help"
-          data-testid="attribute-help"
-          maxLength={HELP_TEXT_MAX}
-          value={helpText}
-          onChange={(event) => setHelpText(event.target.value)}
-        />
-      </FormField>
-      <FormField
+        {(control) => (
+          <Input
+            {...control}
+            className={controlClass(false, false, "dialog")}
+            data-testid="attribute-help"
+            maxLength={HELP_TEXT_MAX}
+            value={helpText}
+            onChange={(event) => setHelpText(event.target.value)}
+          />
+        )}
+      </Field>
+      <Field
+        id="attribute-help-am"
         label={t("admin.attributes.field.helpAm")}
-        htmlFor="attribute-help-am"
-        help={t("admin.attributes.field.helpCounter").replace("{count}", String(helpTextAm.length))}
+        required={false}
+        hint={
+          <Hint>
+            {t("admin.attributes.field.helpCounter").replace("{count}", String(helpTextAm.length))}
+          </Hint>
+        }
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
       >
-        <Input
-          id="attribute-help-am"
-          data-testid="attribute-help-am"
-          maxLength={HELP_TEXT_MAX}
-          value={helpTextAm}
-          onChange={(event) => setHelpTextAm(event.target.value)}
-        />
-      </FormField>
+        {(control) => (
+          <Input
+            {...control}
+            className={controlClass(false, false, "dialog")}
+            data-testid="attribute-help-am"
+            maxLength={HELP_TEXT_MAX}
+            value={helpTextAm}
+            onChange={(event) => setHelpTextAm(event.target.value)}
+          />
+        )}
+      </Field>
       {removedValues.length > 0 && removedHolders.known && removedHolders.total > 0 ? (
         <p data-testid="attribute-edit-removed-holders" className="text-sm text-foreground">
           {t("admin.attributes.edit.removedHolders").replace(
@@ -589,17 +671,23 @@ export function DeleteAttributeDialog({
           {t("admin.attributes.delete.blastRadius").replace("{count}", String(blastCount))}
         </p>
       ) : null}
-      <FormField
+      <Field
+        id="attribute-delete-confirm"
         label={t("admin.attributes.delete.confirmLabel").replace("{key}", attribute.attrKey)}
-        htmlFor="attribute-delete-confirm"
+        required
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
       >
-        <Input
-          id="attribute-delete-confirm"
-          data-testid="attribute-delete-confirm"
-          value={typed}
-          onChange={(event) => setTyped(event.target.value)}
-        />
-      </FormField>
+        {(control) => (
+          <Input
+            {...control}
+            className={controlClass(false, false, "dialog")}
+            data-testid="attribute-delete-confirm"
+            value={typed}
+            onChange={(event) => setTyped(event.target.value)}
+          />
+        )}
+      </Field>
       {blastCount === null ? <AttributeDialogAlert message={message} /> : null}
       <DialogActions
         onCancel={onClose}
@@ -677,22 +765,30 @@ export function MergeAttributesDialog({
     >
       <p className="text-sm text-muted-foreground">{t("admin.attributes.merge.hint")}</p>
 
-      <FormField label={t("admin.attributes.merge.target")} htmlFor="attribute-merge-target">
-        <NativeSelect
-          id="attribute-merge-target"
-          data-testid="attribute-merge-target"
-          className="w-full"
-          value={targetId}
-          onChange={(event) => setTargetId(event.target.value)}
-        >
-          <option value="">{t("admin.attributes.merge.targetNone")}</option>
-          {attributes.map((row) => (
-            <option key={row.id} value={row.id}>
-              {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
-            </option>
-          ))}
-        </NativeSelect>
-      </FormField>
+      <Field
+        id="attribute-merge-target"
+        label={t("admin.attributes.merge.target")}
+        required
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
+      >
+        {(control) => (
+          <NativeSelect
+            {...control}
+            data-testid="attribute-merge-target"
+            className="w-full"
+            value={targetId}
+            onChange={(event) => setTargetId(event.target.value)}
+          >
+            <option value="">{t("admin.attributes.merge.targetNone")}</option>
+            {attributes.map((row) => (
+              <option key={row.id} value={row.id}>
+                {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
+              </option>
+            ))}
+          </NativeSelect>
+        )}
+      </Field>
 
       <fieldset className="space-y-2">
         <legend className="text-sm font-medium text-foreground">
@@ -702,19 +798,31 @@ export function MergeAttributesDialog({
           {attributes
             .filter((row) => row.id !== targetId)
             .map((row) => (
-              <label key={row.id} className={cn(LIST_ROW, LIST_CHOICE_ON, "cursor-pointer gap-3")}>
-                <Checkbox
-                  data-testid={`attribute-merge-source-${row.attrKey}`}
-                  checked={sourceIds.includes(row.id)}
-                  onCheckedChange={(next) => toggle(row.id, next === true)}
-                />
-                {/* D104 (bundle 11 B3) — a cut name keeps its first five characters. */}
-                <span className="min-w-0">
-                  <CutText
-                    text={`${attributeLabel(row.id, row.nameEn)} (${row.attrKey}) · ${row.usageCount}`}
+              <Field
+                key={row.id}
+                id={`attribute-merge-source-${row.attrKey}`}
+                label={
+                  /* D104 (bundle 11 B3) — a cut name keeps its first five characters. */
+                  <span className="min-w-0">
+                    <CutText
+                      text={`${attributeLabel(row.id, row.nameEn)} (${row.attrKey}) · ${row.usageCount}`}
+                    />
+                  </span>
+                }
+                required={false}
+                layout="choice"
+                refusal={null}
+                family={ATTRIBUTE_REFUSALS}
+              >
+                {(control) => (
+                  <Checkbox
+                    {...control}
+                    data-testid={`attribute-merge-source-${row.attrKey}`}
+                    checked={sourceIds.includes(row.id)}
+                    onCheckedChange={(next) => toggle(row.id, next === true)}
                   />
-                </span>
-              </label>
+                )}
+              </Field>
             ))}
         </div>
       </fieldset>
@@ -822,28 +930,49 @@ export function AssignAttributeDialog({
       onClose={onClose}
     >
       <p className="text-sm text-muted-foreground">{t("admin.attributes.assign.hint")}</p>
-      <Input
-        data-testid="attribute-assign-search"
-        placeholder={t("admin.attributes.assign.searchPlaceholder")}
-        value={needle}
-        onChange={(event) => setNeedle(event.target.value)}
-      />
-      <FormField label={t("admin.attributes.assign.category")} htmlFor="attribute-assign-picker">
-        <NativeSelect
-          id="attribute-assign-picker"
-          data-testid="attribute-assign-picker"
-          className="w-full"
-          value={categoryId}
-          onChange={(event) => setCategoryId(event.target.value)}
-        >
-          <option value="">{t("admin.attributes.assign.pickNone")}</option>
-          {options.map((row) => (
-            <option key={row.id} value={row.id}>
-              {`${"\u00b7 ".repeat(row.depth)}${row.nameEn} (${row.slug})`}
-            </option>
-          ))}
-        </NativeSelect>
-      </FormField>
+      <Field
+        id="attribute-assign-search"
+        label={<span className="sr-only">{t("admin.attributes.assign.searchPlaceholder")}</span>}
+        required={false}
+        layout="inline"
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
+      >
+        {(control) => (
+          <Input
+            {...control}
+            className={controlClass(false, false, "dialog")}
+            data-testid="attribute-assign-search"
+            placeholder={t("admin.attributes.assign.searchPlaceholder")}
+            value={needle}
+            onChange={(event) => setNeedle(event.target.value)}
+          />
+        )}
+      </Field>
+      <Field
+        id="attribute-assign-picker"
+        label={t("admin.attributes.assign.category")}
+        required
+        refusal={null}
+        family={ATTRIBUTE_REFUSALS}
+      >
+        {(control) => (
+          <NativeSelect
+            {...control}
+            data-testid="attribute-assign-picker"
+            className="w-full"
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
+          >
+            <option value="">{t("admin.attributes.assign.pickNone")}</option>
+            {options.map((row) => (
+              <option key={row.id} value={row.id}>
+                {`${"\u00b7 ".repeat(row.depth)}${row.nameEn} (${row.slug})`}
+              </option>
+            ))}
+          </NativeSelect>
+        )}
+      </Field>
       <AttributeDialogAlert message={message} />
       <DialogActions
         onCancel={onClose}
@@ -918,25 +1047,30 @@ export function RemoveAttributeCategoryDialog({
       ) : (
         <>
           <p className="text-sm text-muted-foreground">{t("admin.attributes.remove.hint")}</p>
-          <FormField
+          <Field
+            id="attribute-remove-picker"
             label={t("admin.attributes.remove.category")}
-            htmlFor="attribute-remove-picker"
+            required
+            refusal={null}
+            family={ATTRIBUTE_REFUSALS}
           >
-            <NativeSelect
-              id="attribute-remove-picker"
-              data-testid="attribute-remove-picker"
-              className="w-full"
-              value={linkId}
-              onChange={(event) => setLinkId(event.target.value)}
-            >
-              <option value="">{t("admin.attributes.remove.pickNone")}</option>
-              {links.map((row) => (
-                <option key={row.linkId} value={row.linkId}>
-                  {`${row.nameEn} (${row.categorySlug})`}
-                </option>
-              ))}
-            </NativeSelect>
-          </FormField>
+            {(control) => (
+              <NativeSelect
+                {...control}
+                data-testid="attribute-remove-picker"
+                className="w-full"
+                value={linkId}
+                onChange={(event) => setLinkId(event.target.value)}
+              >
+                <option value="">{t("admin.attributes.remove.pickNone")}</option>
+                {links.map((row) => (
+                  <option key={row.linkId} value={row.linkId}>
+                    {`${row.nameEn} (${row.categorySlug})`}
+                  </option>
+                ))}
+              </NativeSelect>
+            )}
+          </Field>
           {chosen === null ? null : (
             <p data-testid="attribute-remove-confirm" className="text-sm text-foreground">
               {t("admin.attributes.remove.confirm")
