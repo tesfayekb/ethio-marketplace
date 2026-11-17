@@ -783,8 +783,9 @@ test.describe("Legal certification", () => {
     expect((first.data as Row)["ok"]).toBe(true);
     await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
     const refused = await buyer.rpc("reveal_listing_contact", args);
-    expect(refused.error).toBeNull();
-    expect(refused.data).toEqual({ ok: false, reason: "acceptanceRequired" });
+    // F1-5b — the refusal is the shell's code, the transport's error, with no data.
+    expect(refused.error).toBe("acceptanceRequired");
+    expect(refused.data).toBeNull();
     const owner = await (await asPerson(seller)).rpc("reveal_listing_contact", args);
     expect(owner.error).toBeNull();
     expect((owner.data as Row)["ok"]).toBe(true);

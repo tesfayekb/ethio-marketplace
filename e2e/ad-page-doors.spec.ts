@@ -607,8 +607,9 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
 
     const owner = await asPerson(seller);
     const own = await owner.rpc("save_listing", { p_public_id: idA });
-    expect(own.error).toBeNull();
-    expect(own.data).toMatchObject({ ok: false, reason: "ownListing" });
+    // F1-5b — a refusal after the gate is the shell's code, the transport's error, with no data.
+    expect(own.error).toBe("ownListing");
+    expect(own.data).toBeNull();
 
     for (const id of [idB, idC]) {
       const saved = await buyer.rpc("save_listing", { p_public_id: id });
@@ -687,7 +688,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect((ownerCounts.data as Row)["saves"]).toBe(1);
   });
 
-  test("AP-25 no client reads or writes saved_listings; the save dial counts new rows only (D201 §8)", async () => {
+  test("AP-25 no client reads or writes saved_listings; the save dial counts every signed-in attempt, a repeat save included (D201 §8, F1-5b)", async () => {
     const seller = await scratchSeller();
     const adA = await seed(seller);
     const adB = await seed(seller);
@@ -746,15 +747,15 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       const secondAd = await buyer.rpc("save_listing", { p_public_id: idB });
       expect(secondAd.error).toBeNull();
       expect(secondAd.data).toMatchObject({ ok: true, saved: true });
+      // F1-5b (D2) — the dial is spent in the gate, before the row is read: a repeat save counts.
       const repeat = await buyer.rpc("save_listing", { p_public_id: idB });
-      expect(repeat.error).toBeNull();
-      expect(repeat.data).toMatchObject({ ok: true, saved: true });
+      expect(repeat.error).toBe("rateLimited");
+      expect(repeat.data).toBeNull();
       const adC = await seed(seller);
       const third = await buyer.rpc("save_listing", { p_public_id: await publicIdOf(adC.id) });
-      expect(third.error).toBeNull();
-      expect((third.data as Row)["ok"]).toBe(false);
-      expect((third.data as Row)["reason"]).toBe("rateLimited");
-      expect(Number.isNaN(Date.parse(String((third.data as Row)["resets_at"])))).toBe(false);
+      expect(third.error).toBe("rateLimited");
+      expect(third.data).toBeNull();
+      // INC-1170: the gate's refusal carries no reset time until F1-7 gives it one.
     } finally {
       const overrideGone = await adminClient()
         .from("rate_overrides")
@@ -772,7 +773,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     }
   });
 
-  test("AP-27 Report by public id: a buyer reports once with a reason and a note; the owner cannot report his own ad; a reason outside the list and a note over 500 characters are refused; a second open report by the same buyer is alreadyReported; a sold ad within its 30 days can be reported; a draft, an unknown or a malformed id cannot; the report dial counts written rows only", async () => {
+  test("AP-27 Report by public id: a buyer reports once with a reason and a note; the owner cannot report his own ad; a reason outside the list and a note over 500 characters are refused; a second open report by the same buyer is alreadyReported; a sold ad within its 30 days can be reported; a draft, an unknown or a malformed id cannot; the report dial counts every signed-in attempt, a refused one included", async () => {
     const seller = await scratchSeller();
     const adA = await seed(seller);
     const adB = await seed(seller);
@@ -816,19 +817,20 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         home_country_code: home.data?.home_country_code,
       });
       const repeat = await report(idA);
-      expect(repeat.error).toBeNull();
-      expect(repeat.data).toEqual({ ok: false, reason: "alreadyReported" });
+      // F1-5b — every refusal after the gate is the shell's code, the transport's error, with no data.
+      expect(repeat.error).toBe("alreadyReported");
+      expect(repeat.data).toBeNull();
       expect(await truth()).toHaveLength(1);
       const owner = await asPerson(seller);
       const own = await owner.rpc("report_listing", { p_public_id: idA, p_reason: "scam" });
-      expect(own.error).toBeNull();
-      expect(own.data).toEqual({ ok: false, reason: "ownListing" });
+      expect(own.error).toBe("ownListing");
+      expect(own.data).toBeNull();
       const badReason = await report(idC, "nonsense");
-      expect(badReason.error).toBeNull();
-      expect(badReason.data).toEqual({ ok: false, reason: "badReason" });
+      expect(badReason.error).toBe("badReason");
+      expect(badReason.data).toBeNull();
       const longNote = await report(idC, "other", "x".repeat(501));
-      expect(longNote.error).toBeNull();
-      expect(longNote.data).toEqual({ ok: false, reason: "noteTooLong" });
+      expect(longNote.error).toBe("noteTooLong");
+      expect(longNote.data).toBeNull();
       await updateListingRow(
         adB.id,
         { status: "sold", sold_at: new Date().toISOString() },
@@ -850,15 +852,13 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         .insert({ user_id: buyerPerson.id, action: "report", max_count: 2 });
       expect(override.error).toBeNull();
       const limited = await report(idC);
-      expect(limited.error).toBeNull();
-      expect(limited.data).toMatchObject({ ok: false, reason: "rateLimited" });
-      const reset = (limited.data as Row)["resets_at"];
-      expect(typeof reset).toBe("string");
-      expect(String(reset)).toMatch(/^\d{4}-\d{2}-\d{2}T/);
-      expect(Number.isNaN(Date.parse(String(reset)))).toBe(false);
+      expect(limited.error).toBe("rateLimited");
+      expect(limited.data).toBeNull();
+      // INC-1170: the gate's refusal carries no reset time until F1-7 gives it one.
+      // The dial answers before the open-report check (the law order), so a duplicate is the dial's.
       const duplicate = await report(idA);
-      expect(duplicate.error).toBeNull();
-      expect(duplicate.data).toEqual({ ok: false, reason: "alreadyReported" });
+      expect(duplicate.error).toBe("rateLimited");
+      expect(duplicate.data).toBeNull();
       expect(await truth()).toHaveLength(2);
       const meters = await adminClient()
         .from("rate_limits")
@@ -866,8 +866,10 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         .eq("key", buyerPerson.id)
         .eq("action", "report");
       expect(meters.error).toBeNull();
-      // rate_gate meters the third (rate-limited) attempt; duplicate and validation refusals never reach it.
-      expect(meters.data).toEqual([{ count: 3 }]);
+      // F1-5b (D2) — every signed-in attempt counts once, a refusal after the gate included: the first
+      // report, the repeat, the bad reason, the long note, the sold report and the three ads that are
+      // not there (8), then the two the ceiling of 2 refused.
+      expect(meters.data).toEqual([{ count: 10 }]);
     } finally {
       const removed = await adminClient()
         .from("rate_overrides")

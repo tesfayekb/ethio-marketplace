@@ -171,19 +171,18 @@ test(
       en["admin.users.status.deactivated"],
       { timeout: 15000 },
     );
-    // F1-5a: set_cover_photo now refuses on the shell with the code; the other two doors keep the
-    // sentence until their own families move.
+    // F1-5a and F1-5b: these doors refuse on the shell with the code.
     for (const [fn, args, refusal] of [
       [
         "set_cover_photo",
         { p_listing_id: listing.id, p_photo_id: photo.data.id },
         "accountDeactivated",
       ],
-      ["unsave_listing", { p_public_id: publicId }, "account is deactivated"],
+      ["unsave_listing", { p_public_id: publicId }, "accountDeactivated"],
       [
         "accept_legal",
         { p_version_ids: versionIds, p_language: "en", p_adult: true },
-        "account is deactivated",
+        "accountDeactivated",
       ],
     ] as const)
       expect((await caller.rpc(fn, args)).error?.message).toContain(refusal);

@@ -88,6 +88,14 @@ test.describe("VIEWING PLACE — the account doors (D106)", () => {
     return data as Answer;
   }
 
+  /** F1-5b — a refusal after the gate is the shell's code: the transport's error, with no data. */
+  async function refusedPlace(own: SupabaseClient, id: string | null): Promise<string> {
+    const { data, error } = await own.rpc("user_set_viewing_location", { p_location: id });
+    expect(data).toBeNull();
+    expect(error).not.toBeNull();
+    return error?.message ?? "";
+  }
+
   async function readPlace(own: SupabaseClient): Promise<Answer> {
     const { data, error } = await own.rpc("my_viewing_location");
     expect(error, JSON.stringify(error)).toBeNull();
@@ -134,7 +142,7 @@ test.describe("VIEWING PLACE — the account doors (D106)", () => {
     expect(region.error).toBeNull();
 
     for (const place of [retired.subCity.id, underRetired.city.id, crypto.randomUUID()]) {
-      expect(await setPlace(own, place), place).toEqual({ ok: false, reason: "placeNotOpen" });
+      expect(await refusedPlace(own, place), place).toBe("placeNotOpen");
     }
     expect(await stored(id)).toEqual(before);
   });
@@ -172,9 +180,8 @@ test.describe("VIEWING PLACE — the account doors (D106)", () => {
     await inOneWindow(3600, 20_000, "VP-4");
     expect(await setPlace(own, c.region.id)).toMatchObject({ ok: true });
     expect(await setPlace(own, c.city.id)).toMatchObject({ ok: true });
-    const third = await setPlace(own, c.subCity.id);
-    expect(third).toMatchObject({ ok: false, reason: "rateLimited" });
-    expect(typeof third["resets_at"]).toBe("string");
+    // INC-1170: the gate's refusal carries no reset time until F1-7 gives it one.
+    expect(await refusedPlace(own, c.subCity.id)).toBe("rateLimited");
     expect((await stored(id)).viewing_location_id).toBe(c.city.id);
   });
 
