@@ -149,7 +149,7 @@ describe("AiFeatureForm (D158)", () => {
     );
     fireEvent.change(screen.getByTestId("ai-editor-budget"), { target: { value: "-5" } });
     fireEvent.click(screen.getByTestId("ai-editor-save"));
-    expect(screen.getByTestId("ai-editor-error").textContent).toBe("admin.ai.error.badBudget");
+    expect(screen.getByTestId("form-field-refusal").textContent).toBe("admin.ai.error.badBudget");
     fireEvent.change(screen.getByTestId("ai-editor-budget"), { target: { value: "5" } });
     fireEvent.change(screen.getByTestId("ai-editor-price"), { target: { value: "11" } });
     fireEvent.click(screen.getByTestId("ai-editor-save"));
