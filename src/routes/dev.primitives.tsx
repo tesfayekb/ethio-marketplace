@@ -8,7 +8,8 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
-import { FormField, FormSection } from "@/components/shell/form-section";
+import { FormSection } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
 import { PageCard } from "@/components/shell/page-card";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { Badge } from "@/components/ui/badge";
@@ -367,16 +368,17 @@ function PrimitivesFixture() {
           }
         >
           {FIELDS.map((field, index) => (
-            <FormField
-              key={field}
-              label={field}
-              htmlFor={`prim-field-${index}`}
-              help={index === 0 ? LONG_HELP : undefined}
-              error={index === 1 ? "This alias is already taken." : undefined}
-              full={index === FIELDS.length - 1}
-            >
-              <Input id={`prim-field-${index}`} defaultValue={""} />
-            </FormField>
+            <div key={field} className={index === FIELDS.length - 1 ? "md:col-span-2" : undefined}>
+              <Field
+                id={`prim-field-${index}`}
+                label={field}
+                required={false}
+                hint={index === 0 ? LONG_HELP : undefined}
+                refusal={index === 1 ? { field: `prim-field-${index}`, reason: "badType" } : null}
+              >
+                {(control) => <Input {...control} defaultValue={""} />}
+              </Field>
+            </div>
           ))}
         </FormSection>
       </div>

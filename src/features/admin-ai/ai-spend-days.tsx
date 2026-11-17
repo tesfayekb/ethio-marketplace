@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useId, useState } from "react";
 
 import { PageCard } from "@/components/shell/page-card";
@@ -49,23 +50,30 @@ export function AiSpendDays() {
       </div>
 
       <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <label htmlFor={pickerId} className="text-sm text-foreground">
-          {t("admin.ai.col.feature")}
-        </label>
-        <NativeSelect
+        <Field
           id={pickerId}
-          data-testid="ai-days-feature"
-          className="max-w-full"
-          value={feature}
-          onChange={(event) => setFeature(event.target.value)}
+          label={<>{t("admin.ai.col.feature")}</>}
+          required={false}
+          refusal={null}
+          layout="inline"
         >
-          <option value="">{t("admin.ai.days.all")}</option>
-          {AI_FEATURE_ORDER.map((id) => (
-            <option key={id} value={id}>
-              {nameOf(id)}
-            </option>
-          ))}
-        </NativeSelect>
+          {(control) => (
+            <NativeSelect
+              {...control}
+              data-testid="ai-days-feature"
+              className="max-w-full"
+              value={feature}
+              onChange={(event) => setFeature(event.target.value)}
+            >
+              <option value="">{t("admin.ai.days.all")}</option>
+              {AI_FEATURE_ORDER.map((id) => (
+                <option key={id} value={id}>
+                  {nameOf(id)}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+        </Field>
       </div>
 
       {query.isLoading ? <p className="text-sm">{t("common.loading")}</p> : null}

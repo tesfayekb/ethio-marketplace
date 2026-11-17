@@ -1,3 +1,5 @@
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { compareCodes } from "@/lib/reader-locale";
 import { useNavigate } from "@tanstack/react-router";
@@ -11,7 +13,7 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { FormField, FormSection } from "@/components/shell/form-section";
+import { FormSection } from "@/components/shell/form-section";
 import { RowActions } from "@/components/shell/row-actions";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { TableActions } from "@/components/shell/table-actions";
@@ -480,13 +482,24 @@ function LanguagesTable({
           <span className="text-xs font-normal text-muted-foreground xl:hidden">
             {t("admin.translations.col.admin")}
           </span>
-          <Switch
-            data-testid={`lang-admin-${row.code}`}
-            aria-label={t("admin.translations.switch.admin")}
-            checked={row.enabledAdmin}
-            disabled={!mayManage || row.isBase || flags.isPending}
-            onCheckedChange={(checked) => apply(row, { admin: checked })}
-          />
+          <Field
+            id={`lang-admin-${row.code}`}
+            label={t("admin.translations.switch.admin")}
+            required={false}
+            refusal={null}
+            layout="inline"
+          >
+            {(control) => (
+              <Switch
+                {...control}
+                data-testid={`lang-admin-${row.code}`}
+                aria-label={t("admin.translations.switch.admin")}
+                checked={row.enabledAdmin}
+                disabled={!mayManage || row.isBase || flags.isPending}
+                onCheckedChange={(checked) => apply(row, { admin: checked })}
+              />
+            )}
+          </Field>
         </span>
       ),
     },
@@ -524,13 +537,24 @@ function LanguagesTable({
             <span className="text-xs font-normal text-muted-foreground xl:hidden">
               {t("admin.translations.col.public")}
             </span>
-            <Switch
-              data-testid={`lang-public-${row.code}`}
-              aria-label={t("admin.translations.switch.public")}
-              checked={row.enabledPublic}
-              disabled={!mayManage || row.isBase || blocked || flags.isPending}
-              onCheckedChange={(checked) => apply(row, { public: checked })}
-            />
+            <Field
+              id={`lang-public-${row.code}`}
+              label={t("admin.translations.switch.public")}
+              required={false}
+              refusal={null}
+              layout="inline"
+            >
+              {(control) => (
+                <Switch
+                  {...control}
+                  data-testid={`lang-public-${row.code}`}
+                  aria-label={t("admin.translations.switch.public")}
+                  checked={row.enabledPublic}
+                  disabled={!mayManage || row.isBase || blocked || flags.isPending}
+                  onCheckedChange={(checked) => apply(row, { public: checked })}
+                />
+              )}
+            </Field>
             {blocked ? (
               <span
                 data-testid={`lang-public-gate-${row.code}`}
@@ -809,6 +833,7 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
     );
 
   const showForm = manual || picked !== null;
+  const gate = useFormGate(showForm ? 1 : 0);
 
   return (
     <FormSection
@@ -825,12 +850,10 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
               disabled={upsert.isPending}
               onClick={() => {
                 setSaved(false);
+                setErrorKey(null);
+                if (!gate.try()) return;
                 const slug = code.trim().toLowerCase();
-                if (
-                  !LANGUAGE_CODE_RE.test(slug) ||
-                  nameEn.trim() === "" ||
-                  nameNative.trim() === ""
-                ) {
+                if (!LANGUAGE_CODE_RE.test(slug)) {
                   setErrorKey("admin.translations.error.codeInvalid");
                   return;
                 }
@@ -897,9 +920,10 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
       }
     >
       {showForm ? null : (
-        <FormField label={t("admin.translations.add.pick")} full>
+        <div className="sm:col-span-2 space-y-1">
+          <p className="text-sm font-medium">{t("admin.translations.add.pick")}</p>
           <LanguagePicker onSelect={select} onManual={() => setManual(true)} />
-        </FormField>
+        </div>
       )}
 
       {showForm ? (
@@ -909,77 +933,147 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
               {t("admin.translations.add.pickSelected").replace("{language}", picked.name)}
             </p>
           ) : null}
-          <FormField label={t("admin.translations.add.code")} htmlFor="add-language-code">
-            <Input
-              id="add-language-code"
-              data-testid="translations-add-code"
-              value={code}
-              placeholder={t("admin.translations.add.codePlaceholder")}
-              onChange={(event) => setCode(event.target.value)}
-            />
-          </FormField>
-          <FormField label={t("admin.translations.add.nameEn")} htmlFor="add-language-name-en">
-            <Input
-              id="add-language-name-en"
-              data-testid="translations-add-name-en"
-              value={nameEn}
-              onChange={(event) => setNameEn(event.target.value)}
-            />
-          </FormField>
-          <FormField
-            label={t("admin.translations.add.nameNative")}
-            htmlFor="add-language-name-native"
+          <Field
+            id={"add-language-code"}
+            field="code"
+            label={t("admin.translations.add.code")}
+            required
+            gate={gate}
+            blank={code.trim() === ""}
+            refusal={gate.marks.find((mark) => mark.field === "code") ?? null}
+            family={TRANSLATION_REFUSALS}
           >
-            <Input
-              id="add-language-name-native"
-              data-testid="translations-add-name-native"
-              value={nameNative}
-              onChange={(event) => setNameNative(event.target.value)}
-            />
-          </FormField>
-          <FormField label={t("admin.translations.add.rtl")} htmlFor="add-language-rtl">
-            <Switch
-              id="add-language-rtl"
-              data-testid="translations-add-rtl"
-              checked={rtl}
-              aria-label={t("admin.translations.add.rtl")}
-              onCheckedChange={setRtl}
-            />
-          </FormField>
-          <FormField
-            full
-            label={t("admin.translations.add.countries")}
-            help={t("admin.translations.add.countriesHint")}
-            htmlFor="translations-add-countries"
-          >
-            {countries.isLoading ? (
-              <p className="text-sm text-muted-foreground">
-                {t("admin.translations.add.countriesLoading")}
-              </p>
-            ) : (
-              <div
-                id="translations-add-countries"
-                data-testid="translations-add-countries"
-                className="max-h-48 min-w-0 space-y-1 overflow-y-auto"
-              >
-                {(countries.data ?? []).map((country) => (
-                  <label
-                    key={country.code}
-                    className="flex min-h-11 min-w-0 items-center gap-2 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      data-testid={`translations-add-country-${country.code}`}
-                      checked={countryCodes.includes(country.code)}
-                      onChange={() => toggleCountry(country.code)}
-                    />
-                    <span className="truncate">{country.nameEn}</span>
-                    <span className="font-mono text-xs text-muted-foreground">{country.code}</span>
-                  </label>
-                ))}
-              </div>
+            {(control) => (
+              <>
+                <Input
+                  {...control}
+                  data-testid="translations-add-code"
+                  value={code}
+                  placeholder={t("admin.translations.add.codePlaceholder")}
+                  onChange={(event) => setCode(event.target.value)}
+                />
+              </>
             )}
-          </FormField>
+          </Field>
+          <Field
+            id={"add-language-name-en"}
+            field="nameEn"
+            label={t("admin.translations.add.nameEn")}
+            required
+            gate={gate}
+            blank={nameEn.trim() === ""}
+            refusal={gate.marks.find((mark) => mark.field === "nameEn") ?? null}
+            family={TRANSLATION_REFUSALS}
+          >
+            {(control) => (
+              <>
+                <Input
+                  {...control}
+                  data-testid="translations-add-name-en"
+                  value={nameEn}
+                  onChange={(event) => setNameEn(event.target.value)}
+                />
+              </>
+            )}
+          </Field>
+          <Field
+            id={"add-language-name-native"}
+            field="nameNative"
+            label={t("admin.translations.add.nameNative")}
+            required
+            gate={gate}
+            blank={nameNative.trim() === ""}
+            refusal={gate.marks.find((mark) => mark.field === "nameNative") ?? null}
+            family={TRANSLATION_REFUSALS}
+          >
+            {(control) => (
+              <>
+                <Input
+                  {...control}
+                  data-testid="translations-add-name-native"
+                  value={nameNative}
+                  onChange={(event) => setNameNative(event.target.value)}
+                />
+              </>
+            )}
+          </Field>
+          <Field
+            id={"add-language-rtl"}
+            field="rtl"
+            label={t("admin.translations.add.rtl")}
+            required={false}
+            refusal={null}
+            layout="inline"
+          >
+            {(control) => (
+              <>
+                <Switch
+                  {...control}
+                  data-testid="translations-add-rtl"
+                  checked={rtl}
+                  aria-label={t("admin.translations.add.rtl")}
+                  onCheckedChange={setRtl}
+                />
+              </>
+            )}
+          </Field>
+          <Field
+            id={"translations-add-countries"}
+            field="countryCodes"
+            label={t("admin.translations.add.countries")}
+            required={false}
+            refusal={null}
+            hint={
+              <p className="text-xs text-muted-foreground">
+                {t("admin.translations.add.countriesHint")}
+              </p>
+            }
+          >
+            {(control) => (
+              <>
+                {countries.isLoading ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("admin.translations.add.countriesLoading")}
+                  </p>
+                ) : (
+                  <div
+                    {...control}
+                    data-testid="translations-add-countries"
+                    className="max-h-48 min-w-0 space-y-1 overflow-y-auto"
+                  >
+                    {(countries.data ?? []).map((country) => (
+                      <Field
+                        key={country.code}
+                        id={`translations-add-country-${country.code}`}
+                        field="countryCodes"
+                        label={
+                          <>
+                            <span className="truncate">{country.nameEn}</span>
+                            <span className="ms-2 font-mono text-xs text-muted-foreground">
+                              {country.code}
+                            </span>
+                          </>
+                        }
+                        required={false}
+                        refusal={null}
+                        layout="choice"
+                      >
+                        {(control) => (
+                          <input
+                            {...control}
+                            type="checkbox"
+                            data-testid={`translations-add-country-${country.code}`}
+                            checked={countryCodes.includes(country.code)}
+                            onChange={() => toggleCountry(country.code)}
+                          />
+                        )}
+                      </Field>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </Field>
         </>
       ) : null}
     </FormSection>

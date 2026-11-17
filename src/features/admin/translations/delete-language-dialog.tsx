@@ -1,3 +1,5 @@
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { useState } from "react";
 
 import {
@@ -15,7 +17,12 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { serverMessage, translationRefusalKey, type LanguageRow } from "./translations-service";
+import {
+  serverMessage,
+  translationRefusalKey,
+  TRANSLATION_REFUSALS,
+  type LanguageRow,
+} from "./translations-service";
 import { useDeleteLanguage, useLanguageDeletePreview } from "./use-translations";
 
 /**
@@ -48,6 +55,7 @@ export function DeleteLanguageDialog({
 }) {
   const { t } = useI18n();
   const [typed, setTyped] = useState("");
+  const gate = useFormGate();
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
@@ -57,6 +65,7 @@ export function DeleteLanguageDialog({
   const armed = typed.trim().toLowerCase() === row.code.toLowerCase();
 
   const run = () => {
+    if (!gate.try() || !armed) return;
     setErrorKey(null);
     setErrorDetail(null);
     void guard(async () => {
@@ -105,16 +114,32 @@ export function DeleteLanguageDialog({
                   .replace("{assignments}", String(preview.data.assignments))}
         </p>
 
-        <label className="flex flex-col gap-1 text-sm text-foreground">
-          <span>{t("admin.translations.delete.confirmLabel").replace("{code}", row.code)}</span>
-          <Input
-            value={typed}
-            data-testid={`lang-delete-confirm-${row.code}`}
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(event) => setTyped(event.target.value)}
-          />
-        </label>
+        <Field
+          id={`lang-delete-confirm-${row.code}`}
+          field="code"
+          label={
+            <>
+              <span>{t("admin.translations.delete.confirmLabel").replace("{code}", row.code)}</span>
+            </>
+          }
+          required
+          gate={gate}
+          blank={typed.trim() === ""}
+          refusal={gate.marks.find((mark) => mark.field === "code") ?? null}
+          family={TRANSLATION_REFUSALS}
+          layout="stack"
+        >
+          {(control) => (
+            <Input
+              {...control}
+              value={typed}
+              data-testid={`lang-delete-confirm-${row.code}`}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(event) => setTyped(event.target.value)}
+            />
+          )}
+        </Field>
 
         {errorKey ? (
           <p

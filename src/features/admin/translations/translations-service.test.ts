@@ -198,7 +198,7 @@ describe("the family's doors on codes (DEC-333, F1-3)", () => {
       ["emptyList", "admin.translations.error.generic"],
       ["nameRequired", "admin.translations.error.generic"],
       ["pseudoLanguage", "admin.translations.error.generic"],
-      ["required:value", "admin.translations.error.generic"],
+      ["required:value", "post.refusal.required"],
       ["tooLong:context", "admin.translations.error.generic"],
       ["unknownBatch", "admin.translations.error.generic"],
       ["unknownEntity", "admin.translations.error.generic"],

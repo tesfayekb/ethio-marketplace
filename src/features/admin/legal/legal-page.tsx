@@ -1,3 +1,5 @@
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { compareCodes } from "@/lib/reader-locale";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
@@ -70,6 +72,7 @@ export function LegalPage() {
   // Bundle 22 turn 20 (DEC-219) — the one review dialog: the document under review, the note, the error line.
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState("");
+  const reviewGate = useFormGate(reviewing ?? "");
   const [reviewError, setReviewError] = useState<MessageKey | null>(null);
   const [reviewSaved, setReviewSaved] = useState(false);
   const now = Date.now();
@@ -339,26 +342,35 @@ export function LegalPage() {
                 ) : null}
                 {mayEdit ? (
                   <div className="space-y-2">
-                    <label className="block text-sm" htmlFor={`legal-country-${kind}`}>
-                      {t("admin.legal.addCountry.label")}
-                    </label>
                     <div className="flex flex-wrap gap-2">
-                      <NativeSelect
+                      <Field
                         id={`legal-country-${kind}`}
-                        data-testid="legal-add-country-select"
-                        className="grow"
-                        value={picked}
-                        onChange={(e) =>
-                          setSelected((prev) => ({ ...prev, [kind]: e.target.value }))
-                        }
+                        field="country"
+                        label={t("admin.legal.addCountry.label")}
+                        required
+                        marked={false}
+                        refusal={null}
+                        hint={t("admin.legal.addCountry.help")}
                       >
-                        <option value="">—</option>
-                        {available.map((c) => (
-                          <option key={c.code} value={c.code}>
-                            {c.nameEn}
-                          </option>
-                        ))}
-                      </NativeSelect>
+                        {(control) => (
+                          <NativeSelect
+                            {...control}
+                            data-testid="legal-add-country-select"
+                            className="grow"
+                            value={picked}
+                            onChange={(e) =>
+                              setSelected((prev) => ({ ...prev, [kind]: e.target.value }))
+                            }
+                          >
+                            <option value="">—</option>
+                            {available.map((c) => (
+                              <option key={c.code} value={c.code}>
+                                {c.nameEn}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        )}
+                      </Field>
                       <Button
                         asChild
                         disabled={!picked}
@@ -377,9 +389,6 @@ export function LegalPage() {
                         </Link>
                       </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("admin.legal.addCountry.help")}
-                    </p>
                   </div>
                 ) : null}
               </PageCard>
@@ -413,18 +422,38 @@ export function LegalPage() {
                   )}
                 </DialogDescription>
               </DialogHeader>
-              <label className="block text-sm font-medium" htmlFor="legal-review-note">
-                {t("admin.legal.review.noteLabel")}
-              </label>
-              <Textarea
+              <Field
                 id="legal-review-note"
-                data-testid="legal-review-note"
-                maxLength={2000}
-                value={reviewNote}
-                onChange={(e) => setReviewNote(e.target.value)}
-              />
+                field="note"
+                label={<>{t("admin.legal.review.noteLabel")}</>}
+                required
+                gate={reviewGate}
+                blank={!reviewNote.trim()}
+                refusal={null}
+              >
+                {(control) => (
+                  <Textarea
+                    {...control}
+                    aria-invalid={reviewError === "admin.legal.error.noteRequired" || undefined}
+                    aria-describedby={
+                      reviewError === "admin.legal.error.noteRequired"
+                        ? "legal-review-error"
+                        : control["aria-describedby"]
+                    }
+                    data-testid="legal-review-note"
+                    maxLength={2000}
+                    value={reviewNote}
+                    onChange={(e) => setReviewNote(e.target.value)}
+                  />
+                )}
+              </Field>
               {reviewError ? (
-                <p role="alert" data-testid="legal-review-error" className="text-destructive">
+                <p
+                  role="alert"
+                  id="legal-review-error"
+                  data-testid="legal-review-error"
+                  className="text-destructive"
+                >
                   {t(reviewError)}
                 </p>
               ) : null}
@@ -445,7 +474,7 @@ export function LegalPage() {
                     const note = reviewNote.trim();
                     const documentId = reviewing;
                     if (!documentId) return;
-                    if (!note) {
+                    if (!reviewGate.try()) {
                       setReviewError("admin.legal.error.noteRequired");
                       return;
                     }

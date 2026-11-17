@@ -123,6 +123,7 @@ export function kindKey(kind: string): MessageKey | null {
  */
 export const LEGAL_REFUSALS = {
   words: {
+    required: "post.refusal.required",
     labelRequired: "admin.legal.error.labelRequired",
     labelTaken: "admin.legal.error.labelTaken",
     bothLanguages: "admin.legal.error.bothLanguages",

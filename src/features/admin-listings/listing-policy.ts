@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import { parseNumber } from "@/lib/parse-input";
 import { authKey } from "@/lib/query-keys";
 
 /**
@@ -27,10 +28,8 @@ export function parsePolicy(value: unknown): ListingPolicy | null {
 
 /** The days the box holds: a whole number from 1 to 365, or null. */
 export function daysOf(text: string): number | null {
-  const trimmed = text.trim();
-  if (!/^\d{1,3}$/.test(trimmed)) return null;
-  const days = Number(trimmed);
-  return days >= 1 && days <= 365 ? days : null;
+  const parsed = parseNumber(text, { integer: true, min: 1, max: 365 });
+  return parsed.kind === "number" ? parsed.value : null;
 }
 
 /** The door's refusal, in the admin's words. */

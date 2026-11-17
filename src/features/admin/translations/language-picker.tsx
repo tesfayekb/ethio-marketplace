@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -45,13 +46,24 @@ export function LanguagePicker({
 
   return (
     <div className="min-w-0 space-y-2" data-testid="translations-add-picker">
-      <Input
-        data-testid="translations-add-search"
-        value={query}
-        aria-label={t("admin.translations.add.pickPlaceholder")}
-        placeholder={t("admin.translations.add.pickPlaceholder")}
-        onChange={(event) => setQuery(event.target.value)}
-      />
+      <Field
+        id={"translations-add-search"}
+        label={<span className="sr-only">{t("admin.translations.add.pickPlaceholder")}</span>}
+        required={false}
+        refusal={null}
+        layout="inline"
+      >
+        {(control) => (
+          <Input
+            {...control}
+            data-testid="translations-add-search"
+            value={query}
+            aria-label={t("admin.translations.add.pickPlaceholder")}
+            placeholder={t("admin.translations.add.pickPlaceholder")}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        )}
+      </Field>
 
       {list.isLoading ? (
         <p className="text-sm text-muted-foreground" data-testid="translations-add-picker-loading">

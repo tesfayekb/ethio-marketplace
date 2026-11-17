@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
-import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +13,9 @@ import {
 import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
-import { cn } from "@/lib/utils";
-import { legalRefusalKey, legalRefusalName } from "./legal-service";
+import { LEGAL_REFUSALS, legalRefusalKey, legalRefusalName } from "./legal-service";
 import { earliestLegalDate, legalPublishDate } from "./publish-date";
 import { useLegalWrites } from "./use-legal";
-
-/** A choice row holds a radio and a two-line label: aligned to the first line. */
-const CHOICE = "cursor-pointer items-start gap-3";
 
 export function LegalPublishDialog({
   id,
@@ -47,6 +44,7 @@ export function LegalPublishDialog({
   const [date, setDate] = useState(earliest);
   const [error, setError] = useState<MessageKey | null>(null);
   const [errorName, setErrorName] = useState("");
+  const gate = useFormGate(choice ?? "");
   const request = legalPublishDate(first, choice, date, now, noticeDays);
   return (
     <Dialog
@@ -69,53 +67,85 @@ export function LegalPublishDialog({
         ) : (
           <fieldset className="space-y-3">
             <legend className="mb-2 font-medium">{t("admin.legal.publish.question")}</legend>
-            <label className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, CHOICE)}>
-              <input
-                type="radio"
-                name="legal-change"
-                data-testid="legal-publish-material"
-                checked={choice === "material"}
-                onChange={() => setChoice("material")}
-                className="mt-1 size-5 accent-primary"
-              />
-              <span>
-                <span className="block font-medium">{t("admin.legal.change.material")}</span>
-                <span className="text-sm text-muted-foreground">
-                  {t("admin.legal.publish.materialHelp").replace("{days}", String(noticeDays))}
+            <Field
+              id="legal-change-material"
+              field="material"
+              label={
+                <span>
+                  <span className="block font-medium">{t("admin.legal.change.material")}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("admin.legal.publish.materialHelp").replace("{days}", String(noticeDays))}
+                  </span>
                 </span>
-              </span>
-            </label>
-            <label className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, CHOICE)}>
-              <input
-                type="radio"
-                name="legal-change"
-                data-testid="legal-publish-correction"
-                checked={choice === "correction"}
-                onChange={() => setChoice("correction")}
-                className="mt-1 size-5 accent-primary"
-              />
-              <span>
-                <span className="block font-medium">{t("admin.legal.change.correction")}</span>
-                <span className="text-sm text-muted-foreground">
-                  {t("admin.legal.publish.correctionHelp")}
-                </span>
-              </span>
-            </label>
-            {choice === "material" ? (
-              <div className="space-y-2">
-                <label htmlFor="legal-effective-date">{t("admin.legal.publish.effective")}</label>
-                <Input
-                  id="legal-effective-date"
-                  data-testid="legal-publish-date"
-                  type="date"
-                  min={earliest}
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
+              }
+              required
+              marked={false}
+              refusal={null}
+              layout="choice"
+            >
+              {(control) => (
+                <input
+                  {...control}
+                  type="radio"
+                  name="legal-change"
+                  data-testid="legal-publish-material"
+                  checked={choice === "material"}
+                  onChange={() => setChoice("material")}
+                  className="mt-1 size-5 accent-primary"
                 />
-                <p className="text-sm text-muted-foreground">
-                  {t("admin.legal.publish.earliest").replace("{date}", earliest)}
-                </p>
-              </div>
+              )}
+            </Field>
+            <Field
+              id="legal-change-correction"
+              field="material"
+              label={
+                <span>
+                  <span className="block font-medium">{t("admin.legal.change.correction")}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("admin.legal.publish.correctionHelp")}
+                  </span>
+                </span>
+              }
+              required
+              marked={false}
+              refusal={null}
+              layout="choice"
+            >
+              {(control) => (
+                <input
+                  {...control}
+                  type="radio"
+                  name="legal-change"
+                  data-testid="legal-publish-correction"
+                  checked={choice === "correction"}
+                  onChange={() => setChoice("correction")}
+                  className="mt-1 size-5 accent-primary"
+                />
+              )}
+            </Field>
+            {choice === "material" ? (
+              <Field
+                id="legal-effective-date"
+                field="effective_at"
+                label={t("admin.legal.publish.effective")}
+                required
+                gate={gate}
+                blank={!date}
+                refusal={gate.marks.find((mark) => mark.field === "effective_at") ?? null}
+                family={LEGAL_REFUSALS}
+                hint={t("admin.legal.publish.earliest").replace("{date}", earliest)}
+              >
+                {(control) => (
+                  <Input
+                    {...control}
+                    data-testid="legal-publish-date"
+                    type="date"
+                    min={earliest}
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                  />
+                )}
+              </Field>
             ) : null}
           </fieldset>
         )}
@@ -133,7 +163,7 @@ export function LegalPublishDialog({
             data-testid="legal-publish-confirm"
             disabled={!request || publish.isPending}
             onClick={() => {
-              if (!request) return;
+              if (!gate.try() || !request) return;
               setError(null);
               void guard(() => publish.mutateAsync({ id, ...request }))
                 .then(onPublished)

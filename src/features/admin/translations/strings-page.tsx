@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
@@ -772,14 +773,24 @@ function StringEditor({
         </p>
         {mayManage ? (
           <div className="flex min-w-0 flex-col gap-2 pt-1">
-            <Input
+            <Field
               id={`string-context-${id}`}
-              data-testid={`string-context-${id}`}
-              value={contextDraft}
-              aria-label={t("admin.translations.editor.context")}
-              placeholder={t("admin.translations.editor.contextPlaceholder")}
-              onChange={(event) => setContextDraft(event.target.value)}
-            />
+              label={<span className="sr-only">{t("admin.translations.editor.context")}</span>}
+              required={false}
+              refusal={null}
+              layout="inline"
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  data-testid={`string-context-${id}`}
+                  value={contextDraft}
+                  aria-label={t("admin.translations.editor.context")}
+                  placeholder={t("admin.translations.editor.contextPlaceholder")}
+                  onChange={(event) => setContextDraft(event.target.value)}
+                />
+              )}
+            </Field>
             <Button
               type="button"
               variant="outline"
@@ -820,17 +831,24 @@ function StringEditor({
         </p>
       ) : null}
 
-      <label className="block text-sm font-medium text-foreground" htmlFor={`string-input-${id}`}>
-        {t("admin.translations.editor.label")}
-      </label>
-      <Textarea
+      <Field
         id={`string-input-${id}`}
-        data-testid={`string-input-${id}`}
-        dir={rtl ? "rtl" : undefined}
-        rows={3}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-      />
+        label={<>{t("admin.translations.editor.label")}</>}
+        required={false}
+        refusal={null}
+        layout="stack"
+      >
+        {(control) => (
+          <Textarea
+            {...control}
+            data-testid={`string-input-${id}`}
+            dir={rtl ? "rtl" : undefined}
+            rows={3}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+        )}
+      </Field>
 
       {/**
        * U4i ③ — LENGTH WARNING. Advisory only: never a flag, never a block —

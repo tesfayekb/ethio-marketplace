@@ -1,5 +1,5 @@
+import { Field } from "@/components/forms/field";
 import { FilterChoices } from "@/components/shell/filter-choices";
-import { FormField } from "@/components/shell/form-section";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -22,6 +22,7 @@ export function ReasonNote({
   note,
   onReason,
   onNote,
+  problem = null,
 }: {
   testid: string;
   reasons: readonly string[];
@@ -29,35 +30,76 @@ export function ReasonNote({
   note: string;
   onReason: (reason: string) => void;
   onNote: (note: string) => void;
+  /** Cross-field rules keep their dialog line; the affected answer names it. */
+  problem?: MessageKey | null;
 }) {
   const { t } = useI18n();
   return (
     <>
-      <FilterChoices
-        testid={`${testid}-reason`}
-        label={t("admin.listings.move.reason")}
-        value={reason}
-        onChange={onReason}
-        options={reasons.map((value) => ({
-          value,
-          label: t(`admin.listings.reason.${value}` as MessageKey),
-        }))}
-      />
-      <FormField
-        label={t("admin.listings.move.note")}
-        htmlFor={`${testid}-note`}
-        help={t("admin.listings.move.noteHint")}
-        testid={`${testid}-note-field`}
+      <Field
+        id={`${testid}-reason`}
+        field="reason"
+        label={<span className="sr-only">{t("admin.listings.move.reason")}</span>}
+        required
+        marked={false}
+        refusal={null}
+        layout="inline"
       >
-        <Textarea
-          id={`${testid}-note`}
-          data-testid={`${testid}-note`}
-          value={note}
-          maxLength={NOTE_MAX}
-          rows={3}
-          onChange={(event) => onNote(event.target.value)}
-        />
-      </FormField>
+        {(control) => (
+          <div
+            {...control}
+            role="group"
+            aria-invalid={problem === "admin.listings.move.pickReason" || undefined}
+            aria-describedby={
+              problem === "admin.listings.move.pickReason" ? `${testid}-problem` : undefined
+            }
+          >
+            <FilterChoices
+              testid={`${testid}-reason`}
+              label={t("admin.listings.move.reason")}
+              value={reason}
+              onChange={onReason}
+              options={reasons.map((value) => ({
+                value,
+                label: t(`admin.listings.reason.${value}` as MessageKey),
+              }))}
+            />
+          </div>
+        )}
+      </Field>
+      <Field
+        id={`${testid}-note`}
+        field="note"
+        label={t("admin.listings.move.note")}
+        required={reason === "other"}
+        refusal={null}
+        hint={<p className="text-xs text-muted-foreground">{t("admin.listings.move.noteHint")}</p>}
+        testId={`${testid}-note-field`}
+      >
+        {(control) => (
+          <>
+            <Textarea
+              {...control}
+              data-testid={`${testid}-note`}
+              value={note}
+              maxLength={NOTE_MAX}
+              rows={3}
+              aria-invalid={
+                problem === "admin.listings.move.noteRequired" ||
+                problem === "admin.listings.move.noteTooLong" ||
+                undefined
+              }
+              aria-describedby={
+                problem === "admin.listings.move.noteRequired" ||
+                problem === "admin.listings.move.noteTooLong"
+                  ? `${testid}-note-hint ${testid}-problem`
+                  : control["aria-describedby"]
+              }
+              onChange={(event) => onNote(event.target.value)}
+            />
+          </>
+        )}
+      </Field>
     </>
   );
 }
