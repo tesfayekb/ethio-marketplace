@@ -257,13 +257,12 @@ function CreateRoleForm({ onClose }: { onClose: () => void }) {
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  const gate = useFormGate();
+  const refusalOf = (field: string) => gate.marks.find((mark) => mark.field === field) ?? null;
 
   const submit = (guard: GuardFn) => {
     setErrorKey(null);
-    if (name.trim().length === 0) {
-      setErrorKey("admin.roles.error.nameRequired");
-      return;
-    }
+    if (!gate.try()) return;
     void guard(async () => {
       const id = await create.mutateAsync({
         name: name.trim(),
@@ -318,38 +317,60 @@ function CreateRoleForm({ onClose }: { onClose: () => void }) {
             </>
           }
         >
-          <FormField
+          <Field
+            id="role-name"
+            field="name"
             label={t("admin.roles.create.name")}
-            htmlFor="role-name"
-            help={t("admin.roles.create.nameHelp")}
+            required
+            gate={gate}
+            blank={name.trim().length === 0}
+            refusal={refusalOf("name")}
+            family={ROLE_REFUSALS}
+            hint={<p className="text-xs text-muted-foreground">{t("admin.roles.create.nameHelp")}</p>}
           >
-            <Input
-              id="role-name"
-              data-testid="role-create-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </FormField>
-          <FormField label={t("admin.roles.create.displayName")} htmlFor="role-display">
-            <Input
-              id="role-display"
-              data-testid="role-create-display"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-            />
-          </FormField>
-          <FormField
-            label={t("admin.roles.create.descriptionField")}
-            htmlFor="role-description"
-            full
+            {(control) => (
+              <Input
+                {...control}
+                data-testid="role-create-name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            )}
+          </Field>
+          <Field
+            id="role-display"
+            field="display_name"
+            label={t("admin.roles.create.displayName")}
+            required={false}
+            refusal={null}
           >
-            <Input
+            {(control) => (
+              <Input
+                {...control}
+                data-testid="role-create-display"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+              />
+            )}
+          </Field>
+          <div className="min-w-0 md:col-span-2">
+            <Field
               id="role-description"
-              data-testid="role-create-description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </FormField>
+              field="description"
+              label={t("admin.roles.create.descriptionField")}
+              required={false}
+              refusal={null}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  data-testid="role-create-description"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              )}
+            </Field>
+          </div>
         </FormSection>
       )}
     </StepUpGate>
