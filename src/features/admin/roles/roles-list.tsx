@@ -2,6 +2,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { Plus, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
@@ -9,7 +11,7 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { FormField, FormSection } from "@/components/shell/form-section";
+import { FormSection } from "@/components/shell/form-section";
 import { RowActions } from "@/components/shell/row-actions";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
@@ -23,7 +25,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { roleRefusalKey, type RoleSummary } from "./roles-service";
+import { ROLE_REFUSALS, roleRefusalKey, type RoleSummary } from "./roles-service";
 import { useAdminRolesDetailed, useCreateRole } from "./use-admin-roles";
 
 const TABLE_ID = "admin-roles";
