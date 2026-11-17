@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Settings } from "lucide-react";
 import { useState } from "react";
@@ -144,41 +145,51 @@ export function ListingSettings({
             ) : (
               <>
                 <div className="flex min-h-11 items-center justify-between gap-3">
-                  <label
-                    htmlFor="listings-settings-renew"
-                    className="text-sm font-medium text-foreground"
+                  <Field
+                    id={"listings-settings-renew"}
+                    label={<>{t("admin.listings.settings.renewAllowed")}</>}
+                    required={false}
+                    refusal={null}
+                    layout="inline"
+                    field="renewAllowed"
                   >
-                    {t("admin.listings.settings.renewAllowed")}
-                  </label>
-                  <Switch
-                    id="listings-settings-renew"
-                    data-testid="listings-settings-renew"
-                    checked={renewAllowed}
-                    onCheckedChange={(checked) => {
-                      setRenewAllowed(checked);
-                      setProblem(null);
-                    }}
-                  />
+                    {(control) => (
+                      <Switch
+                        {...control}
+                        data-testid="listings-settings-renew"
+                        checked={renewAllowed}
+                        onCheckedChange={(checked) => {
+                          setRenewAllowed(checked);
+                          setProblem(null);
+                        }}
+                      />
+                    )}
+                  </Field>
                 </div>
                 <div className="flex min-w-0 flex-col gap-2">
-                  <label
-                    htmlFor="listings-settings-days"
-                    className="text-sm font-medium text-foreground"
+                  <Field
+                    id={"listings-settings-days"}
+                    label={<>{t("admin.listings.settings.renewDays")}</>}
+                    required={false}
+                    refusal={null}
+                    layout="stack"
+                    field="renewDays"
                   >
-                    {t("admin.listings.settings.renewDays")}
-                  </label>
-                  <Input
-                    id="listings-settings-days"
-                    data-testid="listings-settings-days"
-                    inputMode="numeric"
-                    value={days}
-                    maxLength={3}
-                    aria-describedby="listings-settings-days-help"
-                    onChange={(event) => {
-                      setDays(event.target.value);
-                      setProblem(null);
-                    }}
-                  />
+                    {(control) => (
+                      <Input
+                        {...control}
+                        data-testid="listings-settings-days"
+                        inputMode="numeric"
+                        value={days}
+                        maxLength={3}
+                        aria-describedby="listings-settings-days-help"
+                        onChange={(event) => {
+                          setDays(event.target.value);
+                          setProblem(null);
+                        }}
+                      />
+                    )}
+                  </Field>
                   <p id="listings-settings-days-help" className="text-xs text-muted-foreground">
                     {t("admin.listings.settings.daysHelp")}
                   </p>

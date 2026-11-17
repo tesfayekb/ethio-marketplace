@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
 import {
@@ -105,16 +106,28 @@ export function DeleteLanguageDialog({
                   .replace("{assignments}", String(preview.data.assignments))}
         </p>
 
-        <label className="flex flex-col gap-1 text-sm text-foreground">
-          <span>{t("admin.translations.delete.confirmLabel").replace("{code}", row.code)}</span>
-          <Input
-            value={typed}
-            data-testid={`lang-delete-confirm-${row.code}`}
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(event) => setTyped(event.target.value)}
-          />
-        </label>
+        <Field
+          id={`lang-delete-confirm-${row.code}`}
+          label={
+            <>
+              <span>{t("admin.translations.delete.confirmLabel").replace("{code}", row.code)}</span>
+            </>
+          }
+          required={false}
+          refusal={null}
+          layout="stack"
+        >
+          {(control) => (
+            <Input
+              {...control}
+              value={typed}
+              data-testid={`lang-delete-confirm-${row.code}`}
+              autoComplete="off"
+              spellCheck={false}
+              onChange={(event) => setTyped(event.target.value)}
+            />
+          )}
+        </Field>
 
         {errorKey ? (
           <p

@@ -42,16 +42,26 @@ export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogPro
     >
       <div className="min-w-0 space-y-3">
         <p className="text-sm text-muted-foreground">{t("admin.listings.undo.hint")}</p>
-        <Field id={"listing-undo-note"} label={t("admin.listings.move.note")} required={false} refusal={null} testId={"listing-undo-note-field"}>{(control) => (<>
-          <Textarea
-            {...control}
-            data-testid="listing-undo-note"
-            value={note}
-            maxLength={NOTE_MAX}
-            rows={3}
-            onChange={(event) => setNote(event.target.value)}
-          />
-        </>)}</Field>
+        <Field
+          id={"listing-undo-note"}
+          label={t("admin.listings.move.note")}
+          required={false}
+          refusal={null}
+          testId={"listing-undo-note-field"}
+        >
+          {(control) => (
+            <>
+              <Textarea
+                {...control}
+                data-testid="listing-undo-note"
+                value={note}
+                maxLength={NOTE_MAX}
+                rows={3}
+                onChange={(event) => setNote(event.target.value)}
+              />
+            </>
+          )}
+        </Field>
         {problem !== null ? (
           <p role="alert" data-testid="listing-undo-problem" className="text-sm text-destructive">
             {problem}

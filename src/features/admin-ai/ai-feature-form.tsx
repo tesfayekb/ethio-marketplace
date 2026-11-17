@@ -77,39 +77,71 @@ export function AiFeatureForm({
       <p className="min-w-0 break-words text-sm font-medium" data-testid="ai-editor-feature">
         {name}
       </p>
-      <label className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          className="size-5"
-          data-testid="ai-editor-on"
-          checked={enabled}
-          onChange={(event) => setEnabled(event.target.checked)}
-        />
-        <span>{t("admin.ai.field.on")}</span>
-      </label>
+      <Field
+        id={"ai-editor-on"}
+        label={
+          <>
+            <span>{t("admin.ai.field.on")}</span>
+          </>
+        }
+        required={false}
+        refusal={null}
+        layout="choice"
+      >
+        {(control) => (
+          <input
+            {...control}
+            type="checkbox"
+            className="size-5"
+            data-testid="ai-editor-on"
+            checked={enabled}
+            onChange={(event) => setEnabled(event.target.checked)}
+          />
+        )}
+      </Field>
       {screening ? (
         <p className="text-sm text-muted-foreground" data-testid="ai-editor-screening-note">
           {t("admin.ai.field.screeningOffNote")}
         </p>
       ) : null}
-      <Field id={"ai-editor-budget"} label={t("admin.ai.field.budget")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.budgetHint")}</p>}>{(control) => (<>
-        <Input
-          {...control}
-          data-testid="ai-editor-budget"
-          inputMode="decimal"
-          value={budget}
-          onChange={(event) => setBudget(event.target.value)}
-        />
-      </>)}</Field>
-      <Field id={"ai-editor-price"} label={t(row.unit === "call" ? "admin.ai.field.priceCall" : "admin.ai.field.priceMillion")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.priceHint")}</p>}>{(control) => (<>
-        <Input
-          {...control}
-          data-testid="ai-editor-price"
-          inputMode="decimal"
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-        />
-      </>)}</Field>
+      <Field
+        id={"ai-editor-budget"}
+        label={t("admin.ai.field.budget")}
+        required={false}
+        refusal={null}
+        hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.budgetHint")}</p>}
+      >
+        {(control) => (
+          <>
+            <Input
+              {...control}
+              data-testid="ai-editor-budget"
+              inputMode="decimal"
+              value={budget}
+              onChange={(event) => setBudget(event.target.value)}
+            />
+          </>
+        )}
+      </Field>
+      <Field
+        id={"ai-editor-price"}
+        label={t(row.unit === "call" ? "admin.ai.field.priceCall" : "admin.ai.field.priceMillion")}
+        required={false}
+        refusal={null}
+        hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.priceHint")}</p>}
+      >
+        {(control) => (
+          <>
+            <Input
+              {...control}
+              data-testid="ai-editor-price"
+              inputMode="decimal"
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+            />
+          </>
+        )}
+      </Field>
       {shown === null ? null : (
         <>
           <p role="alert" data-testid="ai-editor-error" className="text-sm text-destructive">

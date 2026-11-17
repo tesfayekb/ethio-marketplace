@@ -93,21 +93,34 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
             {t("common.error")}
           </p>
         ) : null}
-        <Field id={"listings-tier-days"} label={t("admin.listings.level.days")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.listings.level.daysHelp")}</p>} testId={"listings-tier-days-field"}>{(control) => (<>
-          <Input
-            {...control}
-            data-testid="listings-tier-days"
-            inputMode="numeric"
-            value={days}
-            maxLength={4}
-            aria-invalid={daysRefused ? true : undefined}
-            aria-describedby={daysRefused ? "listings-tier-problem" : undefined}
-            onChange={(event) => {
-              setDays(event.target.value);
-              setProblem(null);
-            }}
-          />
-        </>)}</Field>
+        <Field
+          id={"listings-tier-days"}
+          label={t("admin.listings.level.days")}
+          required={false}
+          refusal={null}
+          hint={
+            <p className="text-xs text-muted-foreground">{t("admin.listings.level.daysHelp")}</p>
+          }
+          testId={"listings-tier-days-field"}
+        >
+          {(control) => (
+            <>
+              <Input
+                {...control}
+                data-testid="listings-tier-days"
+                inputMode="numeric"
+                value={days}
+                maxLength={4}
+                aria-invalid={daysRefused ? true : undefined}
+                aria-describedby={daysRefused ? "listings-tier-problem" : undefined}
+                onChange={(event) => {
+                  setDays(event.target.value);
+                  setProblem(null);
+                }}
+              />
+            </>
+          )}
+        </Field>
         <ReasonNote
           testid="listings-tier"
           reasons={TIER_REASONS}

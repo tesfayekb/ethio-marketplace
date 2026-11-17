@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useState, type ReactNode } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -472,17 +473,15 @@ function EntityEditor({
         </p>
       </div>
 
-      <label className="block text-sm font-medium text-foreground" htmlFor={`entity-input-${id}`}>
-        {t("admin.translations.editor.label")}
-      </label>
-      <Textarea
-        id={`entity-input-${id}`}
+      
+      <Field id={`entity-input-${id}`} label={<>{t("admin.translations.editor.label")}</>} required={false} refusal={null} layout="stack">{(control) => (<Textarea
+        {...control}`}
         data-testid={`entity-input-${id}`}
         dir={rtl ? "rtl" : undefined}
         rows={2}
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
-      />
+      />)}</Field>
 
       <div className="flex min-w-0 flex-wrap gap-2">
         {mayUpdate ? (
