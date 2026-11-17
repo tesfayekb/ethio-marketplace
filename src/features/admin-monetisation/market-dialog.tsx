@@ -1,10 +1,13 @@
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
+import { parseNumber } from "@/lib/parse-input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { useI18n } from "@/i18n";
+import { useI18n, type MessageKey } from "@/i18n";
+import type { Refusal } from "@/lib/refusal";
 
 import {
   MonetisationDialogActions,
@@ -18,6 +21,7 @@ import {
   marketFormOf,
   type MarketFormValues,
 } from "./monetisation-forms";
+import { ownRefusals, refusalFor } from "./monetisation-refusals";
 import type { MarketRow, ProductRow } from "./monetisation-service";
 import { useSaveMarket } from "./use-monetisation";
 import { useMonetisationError } from "./use-monetisation-error";
@@ -58,13 +62,30 @@ export function MarketDialog({
     row === null ? { ...NEW_MARKET_FORM, includedReach: reaches[0]?.key ?? "" } : marketFormOf(row),
   );
   const change = (next: Partial<MarketFormValues>) => setForm((prev) => ({ ...prev, ...next }));
+  const gate = useFormGate();
+  const [own, setOwn] = useState<Refusal[]>([]);
+  const refused = (field: string) => refusalFor(field, gate.marks, own);
+  /** A launch answer the judge refuses: typed, and not a whole number of 1 or more. */
+  const badLaunch = (raw: string) =>
+    raw.trim() !== "" && parseNumber(raw, { integer: true, min: 1 }).kind !== "number";
+  const ownFields: Readonly<Partial<Record<MessageKey, readonly string[]>>> = {
+    "admin.monetisation.error.badFreeAds": ["free_regular_ads"],
+    "admin.monetisation.error.badLaunch": [
+      ...(badLaunch(form.launchCredits) ? ["launch_credits"] : []),
+      ...(badLaunch(form.launchDays) ? ["launch_days"] : []),
+    ],
+  };
   const open = markets.filter((market) => !taken.includes(market.code));
 
   const submit = () => {
     clear();
+    setOwn([]);
+    if (!gate.try()) return;
     const judged = marketFormInput(form);
     if (!judged.ok) {
-      render(judged.key);
+      const mine = ownRefusals(judged.key, ownFields);
+      if (mine === null) render(judged.key);
+      else setOwn(mine);
       return;
     }
     void guard(async () => {
@@ -85,9 +106,17 @@ export function MarketDialog({
       onClose={onClose}
     >
       {creating ? (
-        <FormField label={t("admin.monetisation.col.market")} htmlFor={`${prefix}-market`}>
+        <Field
+          id={`${prefix}-market`}
+          field="country_code"
+          label={t("admin.monetisation.col.market")}
+          required
+          marked={false}
+          refusal={null}
+        >
+          {(control) => (
           <NativeSelect
-            id={`${prefix}-market`}
+            {...control}
             data-testid={`${prefix}-market`}
             className="w-full"
             value={form.countryCode}
@@ -102,7 +131,8 @@ export function MarketDialog({
               </option>
             ))}
           </NativeSelect>
-        </FormField>
+          )}
+        </Field>
       ) : (
         <p className="min-w-0 break-words text-sm" data-testid={`${prefix}-market`}>
           {row.countryCode === null
@@ -112,13 +142,25 @@ export function MarketDialog({
       )}
       <NumberField
         id={`${prefix}-free-ads`}
+        field="free_regular_ads"
+        required
+        gate={gate}
+        refusal={refused("free_regular_ads")}
         labelKey="admin.monetisation.col.freeAds"
         value={form.freeRegularAds}
         onChange={(next) => change({ freeRegularAds: next })}
       />
-      <FormField label={t("admin.monetisation.col.includedReach")} htmlFor={`${prefix}-reach`}>
+      <Field
+        id={`${prefix}-reach`}
+        field="included_reach"
+        label={t("admin.monetisation.col.includedReach")}
+        required
+        marked={false}
+        refusal={null}
+      >
+        {(control) => (
         <NativeSelect
-          id={`${prefix}-reach`}
+          {...control}
           data-testid={`${prefix}-reach`}
           className="w-full"
           value={form.includedReach}
@@ -130,21 +172,27 @@ export function MarketDialog({
             </option>
           ))}
         </NativeSelect>
-      </FormField>
+        )}
+      </Field>
       <Toggle
         id={`${prefix}-paid-levels`}
+        field="paid_levels"
         labelKey="admin.monetisation.col.paidLevels"
         checked={form.paidLevels}
         onChange={(next) => change({ paidLevels: next })}
       />
       <NumberField
         id={`${prefix}-launch-credits`}
+        field="launch_credits"
+        refusal={refused("launch_credits")}
         labelKey="admin.monetisation.field.launchCredits"
         value={form.launchCredits}
         onChange={(next) => change({ launchCredits: next })}
       />
       <NumberField
         id={`${prefix}-launch-days`}
+        field="launch_days"
+        refusal={refused("launch_days")}
         labelKey="admin.monetisation.field.launchDays"
         value={form.launchDays}
         onChange={(next) => change({ launchDays: next })}
