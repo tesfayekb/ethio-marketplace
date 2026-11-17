@@ -6,17 +6,13 @@ import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { useShell } from "@/components/shell-context";
 import { useI18n, type MessageKey } from "@/i18n";
+import { errorText } from "@/lib/error-text";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { safeReturnPath } from "@/lib/return-path";
 import { AgreeToDocument } from "./agree-to-document";
 import { legalDocName, legalRole, tickKey } from "./legal-kinds";
-import {
-  acceptLegal,
-  legalTextFor,
-  legalRefusal,
-  myLegalStatus,
-  myLegalVersion,
-} from "./legal-reader";
+import { acceptLegal, legalTextFor, myLegalStatus, myLegalVersion } from "./legal-reader";
+import { acceptRefusalKey, LEGAL_ACCEPT_CHANGED_KEY } from "./legal-accept-refusals";
 import { LegalText } from "./legal-text";
 import { legalStatusKey } from "./use-legal-gate";
 
@@ -189,12 +185,13 @@ export function LegalAcceptScreen({
                         leave();
                       })
                       .catch(async (failure: unknown) => {
-                        console.error("[client-error] accept_legal", legalRefusal(failure));
-                        if (legalRefusal(failure) === "notInForce") {
+                        console.error("[client-error] accept_legal", errorText(failure));
+                        const key = acceptRefusalKey(failure);
+                        setError(key);
+                        if (key === LEGAL_ACCEPT_CHANGED_KEY) {
                           setAgreed(false);
-                          setError("legal.accept.changed");
                           await status.refetch();
-                        } else setError("legal.accept.error");
+                        }
                       })
                       .finally(() => setBusy(false));
                   }}

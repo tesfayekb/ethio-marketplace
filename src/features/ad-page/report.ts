@@ -1,5 +1,6 @@
 import { rpc } from "@/lib/supabase-door";
 import { ownValue } from "@/lib/own-key";
+import { reportRefusal, type ReportRefusal } from "./ad-page-refusals";
 
 export const REPORT_REASONS = [
   "spam",
@@ -13,9 +14,7 @@ export const REPORT_REASONS = [
   "other",
 ] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
-export type ReportAnswer =
-  | { ok: true }
-  | { ok: false; reason: "alreadyReported" | "rateLimited" | "ownListing" | "failed" };
+export type ReportAnswer = { ok: true } | { ok: false; reason: ReportRefusal };
 
 export async function reportListing(
   publicId: string,
@@ -30,18 +29,12 @@ export async function reportListing(
     } as never); // The generated optional text type omits SQL NULL; the door accepts it.
     if (error) {
       console.error("[report-listing]", error.message);
-      return { ok: false, reason: "failed" };
+      // F1-5b — the shell's refusal is a code (`alreadyReported`, `ownListing`, `rateLimited`, ...).
+      return { ok: false, reason: reportRefusal(error) };
     }
     if (data === null || typeof data !== "object" || Array.isArray(data))
       return { ok: false, reason: "failed" };
-    const answer = data as Record<string, unknown>;
-    if (ownValue(answer, "ok") === true) return { ok: true };
-    const refused = ownValue(answer, "reason");
-    if (
-      ownValue(answer, "ok") === false &&
-      (refused === "alreadyReported" || refused === "rateLimited" || refused === "ownListing")
-    )
-      return { ok: false, reason: refused };
+    if (ownValue(data, "ok") === true) return { ok: true };
     return { ok: false, reason: "failed" };
   } catch (error) {
     console.error("[report-listing]", error);

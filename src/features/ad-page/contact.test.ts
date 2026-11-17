@@ -51,22 +51,37 @@ describe("revealContact's parser (bundle 19 turn 11)", () => {
     expect(await revealContact("abc")).toEqual({ ok: true, channels: { phone: "+251911000001" } });
   });
 
-  it("passes a known refusal reason through", async () => {
-    rpc.mockResolvedValueOnce({ data: { ok: false, reason: "sellersCapReached" }, error: null });
+  it("passes the body's two returned ceilings through", async () => {
+    rpc.mockResolvedValueOnce({
+      data: { ok: false, reason: "sellersCapReached", resets_at: "2026-11-18T00:00:00Z" },
+      error: null,
+    });
     expect(await revealContact("abc")).toEqual({ ok: false, reason: "sellersCapReached" });
+    rpc.mockResolvedValueOnce({
+      data: { ok: false, reason: "rateLimited", resets_at: "2026-11-18T00:00:00Z" },
+      error: null,
+    });
+    expect(await revealContact("abc")).toEqual({ ok: false, reason: "rateLimited" });
   });
 
-  it("maps the listingNotAvailable error and any other error to failed", async () => {
+  it("reads the shell's codes as errors: listingNotAvailable and the gate's rateLimited", async () => {
     rpc.mockResolvedValueOnce({ data: null, error: { message: "listingNotAvailable" } });
     expect(await revealContact("abc")).toEqual({ ok: false, reason: "listingNotAvailable" });
-    rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
-    expect(await revealContact("abc")).toEqual({ ok: false, reason: "failed" });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "rateLimited" } });
+    expect(await revealContact("abc")).toEqual({ ok: false, reason: "rateLimited" });
+  });
+
+  it("maps any other error to failed", async () => {
+    for (const message of ["notSignedIn", "accountDeactivated", "boom"]) {
+      rpc.mockResolvedValueOnce({ data: null, error: { message } });
+      expect(await revealContact("abc")).toEqual({ ok: false, reason: "failed" });
+    }
   });
 });
 
 describe("contact acceptance (bundle 22 turn 6)", () => {
-  it("passes acceptanceRequired through", async () => {
-    rpc.mockResolvedValueOnce({ data: { ok: false, reason: "acceptanceRequired" }, error: null });
+  it("reads acceptanceRequired, now the shell's code, as an error", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "acceptanceRequired" } });
     expect(await revealContact("abc")).toEqual({ ok: false, reason: "acceptanceRequired" });
   });
   it("still refuses an unknown reason as failed", async () => {
