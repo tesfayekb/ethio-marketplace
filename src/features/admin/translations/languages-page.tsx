@@ -1046,19 +1046,26 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
                         key={country.code}
                         id={`translations-add-country-${country.code}`}
                         field="countryCodes"
-                        label={<><span className="truncate">{country.nameEn}</span><span className="ms-2 font-mono text-xs text-muted-foreground">{country.code}</span></>}
+                        label={
+                          <>
+                            <span className="truncate">{country.nameEn}</span>
+                            <span className="ms-2 font-mono text-xs text-muted-foreground">
+                              {country.code}
+                            </span>
+                          </>
+                        }
                         required={false}
                         refusal={null}
                         layout="choice"
                       >
                         {(control) => (
-                        <input
-                          {...control}
-                          type="checkbox"
-                          data-testid={`translations-add-country-${country.code}`}
-                          checked={countryCodes.includes(country.code)}
-                          onChange={() => toggleCountry(country.code)}
-                        />
+                          <input
+                            {...control}
+                            type="checkbox"
+                            data-testid={`translations-add-country-${country.code}`}
+                            checked={countryCodes.includes(country.code)}
+                            onChange={() => toggleCountry(country.code)}
+                          />
                         )}
                       </Field>
                     ))}

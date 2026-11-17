@@ -216,7 +216,16 @@ describe("AiEditorDialog refusals", () => {
 describe("console form kit", () => {
   it("KFC2-3 an unreadable budget refuses before Save and clears when corrected", () => {
     const onSave = vi.fn();
-    render(<AiFeatureForm row={ROW} name="Writing help" busy={false} refusal={null} onCancel={vi.fn()} onSave={onSave} />);
+    render(
+      <AiFeatureForm
+        row={ROW}
+        name="Writing help"
+        busy={false}
+        refusal={null}
+        onCancel={vi.fn()}
+        onSave={onSave}
+      />,
+    );
     const budget = screen.getByTestId("ai-editor-budget");
     fireEvent.change(budget, { target: { value: "1e2" } });
     fireEvent.click(screen.getByTestId("ai-editor-save"));
@@ -233,7 +242,16 @@ describe("console form kit", () => {
 
   it("KFC2-4 a blank required price holds Save until answered", () => {
     const onSave = vi.fn();
-    render(<AiFeatureForm row={ROW} name="Writing help" busy={false} refusal={null} onCancel={vi.fn()} onSave={onSave} />);
+    render(
+      <AiFeatureForm
+        row={ROW}
+        name="Writing help"
+        busy={false}
+        refusal={null}
+        onCancel={vi.fn()}
+        onSave={onSave}
+      />,
+    );
     const price = screen.getByTestId("ai-editor-price");
     fireEvent.change(price, { target: { value: " " } });
     fireEvent.click(screen.getByTestId("ai-editor-save"));
