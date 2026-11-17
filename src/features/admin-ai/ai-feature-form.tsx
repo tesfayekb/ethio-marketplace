@@ -1,6 +1,6 @@
+import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -92,32 +92,24 @@ export function AiFeatureForm({
           {t("admin.ai.field.screeningOffNote")}
         </p>
       ) : null}
-      <FormField
-        label={t("admin.ai.field.budget")}
-        htmlFor="ai-editor-budget"
-        help={t("admin.ai.field.budgetHint")}
-      >
+      <Field id={"ai-editor-budget"} label={t("admin.ai.field.budget")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.budgetHint")}</p>}>{(control) => (<>
         <Input
-          id="ai-editor-budget"
+          {...control}
           data-testid="ai-editor-budget"
           inputMode="decimal"
           value={budget}
           onChange={(event) => setBudget(event.target.value)}
         />
-      </FormField>
-      <FormField
-        label={t(row.unit === "call" ? "admin.ai.field.priceCall" : "admin.ai.field.priceMillion")}
-        htmlFor="ai-editor-price"
-        help={t("admin.ai.field.priceHint")}
-      >
+      </>)}</Field>
+      <Field id={"ai-editor-price"} label={t(row.unit === "call" ? "admin.ai.field.priceCall" : "admin.ai.field.priceMillion")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.priceHint")}</p>}>{(control) => (<>
         <Input
-          id="ai-editor-price"
+          {...control}
           data-testid="ai-editor-price"
           inputMode="decimal"
           value={price}
           onChange={(event) => setPrice(event.target.value)}
         />
-      </FormField>
+      </>)}</Field>
       {shown === null ? null : (
         <>
           <p role="alert" data-testid="ai-editor-error" className="text-sm text-destructive">

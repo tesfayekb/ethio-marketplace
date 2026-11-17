@@ -1,7 +1,7 @@
+import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
 import { FilterChoices } from "@/components/shell/filter-choices";
-import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -93,14 +93,9 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
             {t("common.error")}
           </p>
         ) : null}
-        <FormField
-          label={t("admin.listings.level.days")}
-          htmlFor="listings-tier-days"
-          help={t("admin.listings.level.daysHelp")}
-          testid="listings-tier-days-field"
-        >
+        <Field id={"listings-tier-days"} label={t("admin.listings.level.days")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.listings.level.daysHelp")}</p>} testId={"listings-tier-days-field"}>{(control) => (<>
           <Input
-            id="listings-tier-days"
+            {...control}
             data-testid="listings-tier-days"
             inputMode="numeric"
             value={days}
@@ -112,7 +107,7 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
               setProblem(null);
             }}
           />
-        </FormField>
+        </>)}</Field>
         <ReasonNote
           testid="listings-tier"
           reasons={TIER_REASONS}

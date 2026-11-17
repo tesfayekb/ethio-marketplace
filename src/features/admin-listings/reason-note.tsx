@@ -1,5 +1,5 @@
+import { Field } from "@/components/forms/field";
 import { FilterChoices } from "@/components/shell/filter-choices";
-import { FormField } from "@/components/shell/form-section";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -43,21 +43,16 @@ export function ReasonNote({
           label: t(`admin.listings.reason.${value}` as MessageKey),
         }))}
       />
-      <FormField
-        label={t("admin.listings.move.note")}
-        htmlFor={`${testid}-note`}
-        help={t("admin.listings.move.noteHint")}
-        testid={`${testid}-note-field`}
-      >
+      <Field id={`${testid}-note`} label={t("admin.listings.move.note")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.listings.move.noteHint")}</p>} testId={`${testid}-note-field`}>{(control) => (<>
         <Textarea
-          id={`${testid}-note`}
+          {...control}-note`}
           data-testid={`${testid}-note`}
           value={note}
           maxLength={NOTE_MAX}
           rows={3}
           onChange={(event) => onNote(event.target.value)}
         />
-      </FormField>
+      </>)}</Field>
     </>
   );
 }

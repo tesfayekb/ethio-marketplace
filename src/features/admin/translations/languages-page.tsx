@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { compareCodes } from "@/lib/reader-locale";
 import { useNavigate } from "@tanstack/react-router";
@@ -11,7 +12,7 @@ import {
   DataTablePagination,
   type DataTableColumn,
 } from "@/components/shell/data-table";
-import { FormField, FormSection } from "@/components/shell/form-section";
+import { FormSection } from "@/components/shell/form-section";
 import { RowActions } from "@/components/shell/row-actions";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { TableActions } from "@/components/shell/table-actions";
@@ -909,56 +910,48 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
               {t("admin.translations.add.pickSelected").replace("{language}", picked.name)}
             </p>
           ) : null}
-          <FormField label={t("admin.translations.add.code")} htmlFor="add-language-code">
+          <Field id={"add-language-code"} label={t("admin.translations.add.code")} required={false} refusal={null}>{(control) => (<>
             <Input
-              id="add-language-code"
+              {...control}
               data-testid="translations-add-code"
               value={code}
               placeholder={t("admin.translations.add.codePlaceholder")}
               onChange={(event) => setCode(event.target.value)}
             />
-          </FormField>
-          <FormField label={t("admin.translations.add.nameEn")} htmlFor="add-language-name-en">
+          </>)}</Field>
+          <Field id={"add-language-name-en"} label={t("admin.translations.add.nameEn")} required={false} refusal={null}>{(control) => (<>
             <Input
-              id="add-language-name-en"
+              {...control}
               data-testid="translations-add-name-en"
               value={nameEn}
               onChange={(event) => setNameEn(event.target.value)}
             />
-          </FormField>
-          <FormField
-            label={t("admin.translations.add.nameNative")}
-            htmlFor="add-language-name-native"
-          >
+          </>)}</Field>
+          <Field id={"add-language-name-native"} label={t("admin.translations.add.nameNative")} required={false} refusal={null}>{(control) => (<>
             <Input
-              id="add-language-name-native"
+              {...control}
               data-testid="translations-add-name-native"
               value={nameNative}
               onChange={(event) => setNameNative(event.target.value)}
             />
-          </FormField>
-          <FormField label={t("admin.translations.add.rtl")} htmlFor="add-language-rtl">
+          </>)}</Field>
+          <Field id={"add-language-rtl"} label={t("admin.translations.add.rtl")} required={false} refusal={null}>{(control) => (<>
             <Switch
-              id="add-language-rtl"
+              {...control}
               data-testid="translations-add-rtl"
               checked={rtl}
               aria-label={t("admin.translations.add.rtl")}
               onCheckedChange={setRtl}
             />
-          </FormField>
-          <FormField
-            full
-            label={t("admin.translations.add.countries")}
-            help={t("admin.translations.add.countriesHint")}
-            htmlFor="translations-add-countries"
-          >
+          </>)}</Field>
+          <Field id={"translations-add-countries"} label={t("admin.translations.add.countries")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.translations.add.countriesHint")}</p>}>{(control) => (<>
             {countries.isLoading ? (
               <p className="text-sm text-muted-foreground">
                 {t("admin.translations.add.countriesLoading")}
               </p>
             ) : (
               <div
-                id="translations-add-countries"
+                {...control}
                 data-testid="translations-add-countries"
                 className="max-h-48 min-w-0 space-y-1 overflow-y-auto"
               >
@@ -979,7 +972,7 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
                 ))}
               </div>
             )}
-          </FormField>
+          </>)}</Field>
         </>
       ) : null}
     </FormSection>
