@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Field } from "@/components/forms/field";
+import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
+import { cn } from "@/lib/utils";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
@@ -364,8 +366,8 @@ function DialogSpecimens() {
           </DialogHeader>
           <RadioGroup defaultValue="spam" className="gap-1">
             {SPECIMEN_REASONS.map((reason) => (
+              <div key={reason} data-testid={`style-dialog-choice-${reason}`} className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}>
               <Field
-                key={reason}
                 id={`style-dialog-reason-${reason}`}
                 field="reason"
                 label={t(`adPage.report.reason.${reason}`)}
@@ -377,11 +379,11 @@ function DialogSpecimens() {
                 {(control) => (
                   <RadioGroupItem
                     {...control}
-                    data-testid={`style-dialog-choice-${reason}`}
                     value={reason}
                   />
                 )}
               </Field>
+              </div>
             ))}
           </RadioGroup>
           <Field
