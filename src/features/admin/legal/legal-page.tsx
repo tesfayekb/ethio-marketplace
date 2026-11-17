@@ -1,3 +1,5 @@
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { compareCodes } from "@/lib/reader-locale";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
@@ -70,6 +72,7 @@ export function LegalPage() {
   // Bundle 22 turn 20 (DEC-219) — the one review dialog: the document under review, the note, the error line.
   const [reviewing, setReviewing] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState("");
+  const reviewGate = useFormGate(reviewing ?? "");
   const [reviewError, setReviewError] = useState<MessageKey | null>(null);
   const [reviewSaved, setReviewSaved] = useState(false);
   const now = Date.now();
@@ -413,18 +416,17 @@ export function LegalPage() {
                   )}
                 </DialogDescription>
               </DialogHeader>
-              <label className="block text-sm font-medium" htmlFor="legal-review-note">
+              <Field id="legal-review-note" field="note" label={<>
                 {t("admin.legal.review.noteLabel")}
-              </label>
-              <Textarea
-                id="legal-review-note"
+              </>} required gate={reviewGate} blank={!reviewNote.trim()} refusal={null}>{(control) => (<Textarea
+                {...control} aria-invalid={reviewError === "admin.legal.error.noteRequired" || undefined} aria-describedby={reviewError === "admin.legal.error.noteRequired" ? "legal-review-error" : control["aria-describedby"]}
                 data-testid="legal-review-note"
                 maxLength={2000}
                 value={reviewNote}
                 onChange={(e) => setReviewNote(e.target.value)}
-              />
+              />)}</Field>
               {reviewError ? (
-                <p role="alert" data-testid="legal-review-error" className="text-destructive">
+                <p role="alert" id="legal-review-error" data-testid="legal-review-error" className="text-destructive">
                   {t(reviewError)}
                 </p>
               ) : null}
@@ -445,7 +447,7 @@ export function LegalPage() {
                     const note = reviewNote.trim();
                     const documentId = reviewing;
                     if (!documentId) return;
-                    if (!note) {
+                    if (!reviewGate.try()) {
                       setReviewError("admin.legal.error.noteRequired");
                       return;
                     }

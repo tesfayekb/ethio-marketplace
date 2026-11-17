@@ -1,3 +1,5 @@
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,7 @@ import { LegalText } from "@/features/legal/legal-text";
 import { unknownTokens } from "@/features/legal/legal-markdown";
 import { ownValue } from "@/lib/own-key";
 import {
+  LEGAL_REFUSALS,
   kindKey,
   legalRefusalKey,
   type DraftInput,
@@ -64,6 +67,7 @@ export function LegalEditorForm({
     changelog: draft ? (source?.changelog ?? "") : "",
   };
   const [values, setValues] = useState(initial);
+  const gate = useFormGate();
   const [savedValues, setSavedValues] = useState<DraftInput | null>(draft ? initial : null);
   const [savedId, setSavedId] = useState(draft ? source?.version_id : undefined);
   const [version, setVersion] = useState(
@@ -117,9 +121,8 @@ export function LegalEditorForm({
             </p>
           ) : null}
           <div className="space-y-2">
-            <label htmlFor="legal-label">{t("admin.legal.field.label")}</label>
-            <Input
-              id="legal-label"
+            <Field id="legal-label" field="label" label={<>{t("admin.legal.field.label")}</>} required gate={gate} blank={!values.label.trim()} refusal={gate.marks.find((mark) => mark.field === "label") ?? null} family={LEGAL_REFUSALS} hint={<p className="text-sm text-muted-foreground">{t("admin.legal.field.labelHelp")}</p>}>{(control) => (<Input
+              {...control}
               data-testid="legal-field-label"
               value={values.label}
               disabled={!mayEdit || saving || writes.save.isPending}
@@ -127,8 +130,7 @@ export function LegalEditorForm({
                 setValues((v) => ({ ...v, label: e.target.value }));
                 setSaved(false);
               }}
-            />
-            <p className="text-sm text-muted-foreground">{t("admin.legal.field.labelHelp")}</p>
+            />)}</Field>
           </div>
           {languages.error ? (
             <p role="alert" className="text-destructive">
@@ -168,16 +170,15 @@ export function LegalEditorForm({
             <>
               {languageCodes.map((l) => (
                 <div key={l} hidden={lang !== l} className="space-y-2">
-                  <label htmlFor={`legal-body-${l}`}>
+                  <Field id={`legal-body-${l}`} field={l === "en" ? "body_en" : l === "am" ? "body_am" : `texts.${l}`} label={<>
                     {l === "en" || l === "am"
                       ? t(l === "en" ? "admin.legal.field.bodyEn" : "admin.legal.field.bodyAm")
                       : t("admin.legal.field.textOptional").replace(
                           "{language}",
                           extraLanguages.find((language) => language.code === l)?.name_en ?? l,
                         )}
-                  </label>
-                  <Textarea
-                    id={`legal-body-${l}`}
+                  </>} required={false} refusal={null} hint={<p className="text-sm text-muted-foreground">{count(bodyFor(l), 200000)}</p>}>{(control) => (<Textarea
+                    {...control}
                     data-testid={`legal-field-body-${l}`}
                     className="min-h-72 text-base"
                     value={bodyFor(l)}
@@ -186,8 +187,7 @@ export function LegalEditorForm({
                       setValues((v) => updateBody(v, l, e.target.value));
                       setSaved(false);
                     }}
-                  />
-                  <p className="text-sm text-muted-foreground">{count(bodyFor(l), 200000)}</p>
+                  />)}</Field>
                   {mayEdit ? (
                     <div className="space-y-1">
                       <label htmlFor={`legal-import-${l}`} className="block text-sm">
@@ -253,9 +253,8 @@ export function LegalEditorForm({
             </div>
           )}
           <div className="space-y-2">
-            <label htmlFor="legal-changelog">{t("admin.legal.field.changelog")}</label>
-            <Textarea
-              id="legal-changelog"
+            <Field id="legal-changelog" field="changelog" label={<>{t("admin.legal.field.changelog")}</>} required={false} refusal={null} hint={<p className="text-sm text-muted-foreground">{t("admin.legal.field.changelogHelp")}</p>}>{(control) => (<Textarea
+              {...control}
               data-testid="legal-field-changelog"
               value={values.changelog}
               disabled={!mayEdit || saving || writes.save.isPending}
@@ -263,8 +262,7 @@ export function LegalEditorForm({
                 setValues((v) => ({ ...v, changelog: e.target.value }));
                 setSaved(false);
               }}
-            />
-            <p className="text-sm text-muted-foreground">{t("admin.legal.field.changelogHelp")}</p>
+            />)}</Field>
           </div>
           <div className="flex flex-wrap gap-2">
             {mayEdit ? (
@@ -280,6 +278,7 @@ export function LegalEditorForm({
                   onClick={() => {
                     setError(null);
                     setSaved(false);
+                    if (!gate.try()) return;
                     const exceeded =
                       values.label.length > 60
                         ? 60

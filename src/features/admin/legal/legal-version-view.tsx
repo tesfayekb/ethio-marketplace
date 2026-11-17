@@ -1,3 +1,5 @@
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -11,6 +13,7 @@ import { LegalText } from "@/features/legal/legal-text";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import {
+  LEGAL_REFUSALS,
   legalRefusalKey,
   legalRefusalName,
   FACT_KEYS,
@@ -126,6 +129,7 @@ export function LegalVersionView({
   const [addingTranslation, setAddingTranslation] = useState(openTranslation);
   const [translationLanguage, setTranslationLanguage] = useState("");
   const [translationBody, setTranslationBody] = useState("");
+  const translationGate = useFormGate(addingTranslation ? 1 : 0);
   const [translationError, setTranslationError] = useState<MessageKey | null>(null);
   const [translationErrorName, setTranslationErrorName] = useState("");
   const [translationSaved, setTranslationSaved] = useState(false);
@@ -299,10 +303,9 @@ export function LegalVersionView({
                     </Button>
                     {addingTranslation ? (
                       <div data-testid="legal-translation-panel" className="min-w-0 space-y-3">
-                        <label htmlFor="legal-translation-language">{t("language.label")}</label>
-                        <NativeSelect
+                        <Field id="legal-translation-language" field="language" label={<>{t("language.label")}</>} required marked={false} gate={translationGate} blank={!translationLanguage} refusal={translationGate.marks.find((mark) => mark.field === "language") ?? null} family={LEGAL_REFUSALS}>{(control) => (<NativeSelect
                           ref={languageSelect}
-                          id="legal-translation-language"
+                          {...control}
                           data-testid="legal-translation-language"
                           className="w-full"
                           value={translationLanguage}
@@ -319,15 +322,18 @@ export function LegalVersionView({
                               {l.name_en}
                             </option>
                           ))}
-                        </NativeSelect>
-                        <label htmlFor="legal-translation-body">
+                        </NativeSelect>)}</Field>
+                        <Field id="legal-translation-body" field="body" label={<>
                           {t("admin.legal.field.textOptional").replace(
                             "{language}",
                             languageName(translationLanguage),
                           )}
-                        </label>
-                        <Textarea
-                          id="legal-translation-body"
+                        </>} required gate={translationGate} blank={!translationBody.trim()} refusal={translationGate.marks.find((mark) => mark.field === "body") ?? null} family={LEGAL_REFUSALS} hint={<p className="text-sm text-muted-foreground">
+                          {t("admin.legal.count")
+                            .replace("{count}", String(translationBody.length))
+                            .replace("{max}", "200000")}
+                        </p>}>{(control) => (<Textarea
+                          {...control}
                           data-testid="legal-translation-body"
                           className="min-h-72 text-base"
                           value={translationBody}
@@ -337,12 +343,7 @@ export function LegalVersionView({
                             setTranslationSaved(false);
                             setTranslationError(null);
                           }}
-                        />
-                        <p className="text-sm text-muted-foreground">
-                          {t("admin.legal.count")
-                            .replace("{count}", String(translationBody.length))
-                            .replace("{max}", "200000")}
-                        </p>
+                        />)}</Field>
                         <label htmlFor="legal-translation-import" className="block text-sm">
                           {t("admin.legal.import.label")}
                         </label>
@@ -404,6 +405,7 @@ export function LegalVersionView({
                           onClick={() => {
                             setTranslationError(null);
                             setTranslationSaved(false);
+                            if (!translationGate.try()) return;
                             if (translationBody.length > 200000) {
                               setTranslationError("admin.legal.error.tooLong");
                               return;
