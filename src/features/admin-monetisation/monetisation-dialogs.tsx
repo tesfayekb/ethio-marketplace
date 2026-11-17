@@ -1,10 +1,13 @@
-import { FormField } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
+import type { FormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
+import type { Refusal } from "@/lib/refusal";
 
 import { PLACEMENT_LABEL } from "./monetisation-forms";
+import { MONETISATION_REFUSALS } from "./monetisation-refusals";
 import { PLACEMENTS, type MonetisationRefusal } from "./monetisation-service";
 
 /**
@@ -82,16 +85,29 @@ export function MonetisationDialogActions({
   );
 }
 
+/** What a control of this console hands the one Field (DEC-339, L8). */
+export type FieldPart = {
+  /** The door's name for the answer. */
+  field: string;
+  required?: boolean;
+  refusal?: Refusal | null;
+  gate?: FormGate;
+};
+
 /** A whole-number field as typed (the judges parse it; blank is never 0). */
 export function NumberField({
   id,
+  field,
+  required = false,
+  refusal = null,
+  gate,
   labelKey,
   helpKey,
   placeholderKey,
   value,
   onChange,
   disabled = false,
-}: {
+}: FieldPart & {
   id: string;
   labelKey: MessageKey;
   helpKey?: MessageKey;
@@ -103,47 +119,70 @@ export function NumberField({
 }) {
   const { t } = useI18n();
   return (
-    <FormField
+    <Field
+      id={id}
+      field={field}
       label={t(labelKey)}
-      htmlFor={id}
-      help={helpKey === undefined ? undefined : t(helpKey)}
+      required={required}
+      gate={gate}
+      blank={value.trim() === ""}
+      refusal={refusal}
+      family={MONETISATION_REFUSALS}
+      hint={
+        helpKey === undefined ? undefined : (
+          <p className="text-sm text-muted-foreground">{t(helpKey)}</p>
+        )
+      }
     >
-      <Input
-        id={id}
-        data-testid={id}
-        inputMode="numeric"
-        value={value}
-        placeholder={placeholderKey === undefined ? undefined : t(placeholderKey)}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    </FormField>
+      {(control) => (
+        <Input
+          {...control}
+          data-testid={id}
+          inputMode="numeric"
+          value={value}
+          placeholder={placeholderKey === undefined ? undefined : t(placeholderKey)}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      )}
+    </Field>
   );
 }
 
 export function Toggle({
   id,
+  field,
   labelKey,
   checked,
   onChange,
 }: {
   id: string;
+  field: string;
   labelKey: MessageKey;
   checked: boolean;
   onChange: (next: boolean) => void;
 }) {
   const { t } = useI18n();
   return (
-    <label className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        className="size-5"
-        data-testid={id}
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      <span>{t(labelKey)}</span>
-    </label>
+    <Field
+      id={id}
+      field={field}
+      label={t(labelKey)}
+      required={false}
+      refusal={null}
+      layout="choice"
+    >
+      {(control) => (
+        <input
+          {...control}
+          type="checkbox"
+          className="size-5"
+          data-testid={id}
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+        />
+      )}
+    </Field>
   );
 }
 
@@ -165,22 +204,31 @@ export function PlacementSelect({
 }) {
   const { t } = useI18n();
   return (
-    <FormField label={t("admin.monetisation.col.placement")} htmlFor={id}>
-      <NativeSelect
-        id={id}
-        data-testid={id}
-        className="w-full"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        {blank ? <option value="" /> : null}
-        {PLACEMENTS.map((placement) => (
-          <option key={placement} value={placement}>
-            {t(PLACEMENT_LABEL[placement])}
-          </option>
-        ))}
-      </NativeSelect>
-    </FormField>
+    <Field
+      id={id}
+      field="placement"
+      label={t("admin.monetisation.col.placement")}
+      required={!blank}
+      marked={false}
+      refusal={null}
+    >
+      {(control) => (
+        <NativeSelect
+          {...control}
+          data-testid={id}
+          className="w-full"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          {blank ? <option value="" /> : null}
+          {PLACEMENTS.map((placement) => (
+            <option key={placement} value={placement}>
+              {t(PLACEMENT_LABEL[placement])}
+            </option>
+          ))}
+        </NativeSelect>
+      )}
+    </Field>
   );
 }
 
@@ -197,21 +245,23 @@ export function BadgeSelect({
 }) {
   const { t } = useI18n();
   return (
-    <FormField label={t("admin.monetisation.col.badge")} htmlFor={id}>
-      <NativeSelect
-        id={id}
-        data-testid={id}
-        className="w-full"
-        value={value}
-        onChange={(event) => {
-          const next = event.target.value;
-          onChange(next === "yes" ? "yes" : next === "no" ? "no" : "");
-        }}
-      >
-        <option value="" />
-        <option value="yes">{t("admin.monetisation.everywhere.yes")}</option>
-        <option value="no">{t("admin.monetisation.everywhere.no")}</option>
-      </NativeSelect>
-    </FormField>
+    <Field id={id} field="badge" label={t("admin.monetisation.col.badge")} required={false} refusal={null}>
+      {(control) => (
+        <NativeSelect
+          {...control}
+          data-testid={id}
+          className="w-full"
+          value={value}
+          onChange={(event) => {
+            const next = event.target.value;
+            onChange(next === "yes" ? "yes" : next === "no" ? "no" : "");
+          }}
+        >
+          <option value="" />
+          <option value="yes">{t("admin.monetisation.everywhere.yes")}</option>
+          <option value="no">{t("admin.monetisation.everywhere.no")}</option>
+        </NativeSelect>
+      )}
+    </Field>
   );
 }
