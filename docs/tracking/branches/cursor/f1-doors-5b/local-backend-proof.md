@@ -1,58 +1,58 @@
 # Local backend proof (non-gating)
 
-- Commit: `d519d8d5ff7b69ae081c0739c55cec75a6e04be1`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44017605815
+- Commit: `9d3da88fe90afd90207c66bc0d0c5c0f494f7ba2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44056980617
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 411 | 64 | applied 505/505 | 27 | 0 | 0 | 5 | 32 |
-| email | 226 | 79 | applied 505/505 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 555 | 52 | applied 505/505 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 512 | 63 | applied 505/505 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 588 | 72 | applied 505/505 | 174 | 0 | 0 | 26 | 200 |
-| 3 | 657 | 78 | applied 505/505 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 550 | 61 | applied 505/505 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 537 | 60 | applied 505/505 | 91 | 2 | 0 | 1 | 94 |
-| 6 | 487 | 52 | applied 505/505 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 471 | 62 | applied 505/505 | 147 | 0 | 0 | 77 | 224 |
-| 8 | 517 | 62 | applied 505/505 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 498 | 59 | applied 505/505 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 521 | 63 | applied 505/505 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 517 | 62 | applied 505/505 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 501 | 62 | applied 505/505 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 630 | 70 | applied 505/505 | 153 | 4 | 0 | 9 | 166 |
-| 14 | 504 | 64 | applied 505/505 | 175 | 8 | 0 | 5 | 188 |
-| 15 | 574 | 62 | applied 505/505 | 120 | 4 | 0 | 8 | 132 |
-| 16 | 595 | 67 | applied 505/505 | 172 | 0 | 0 | 48 | 220 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2528 | 18 | 0 | 360 | 2906 |
+| smoke | 379 | 62 | applied 505/505 | 27 | 0 | 0 | 5 | 32 |
+| email | 194 | 64 | applied 505/505 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 741 | 66 | applied 505/505 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 523 | 63 | applied 505/505 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 464 | 60 | applied 505/505 | 173 | 0 | 1 | 26 | 200 |
+| 3 | 546 | 60 | applied 505/505 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 473 | 60 | applied 505/505 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 520 | 60 | applied 505/505 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 574 | 66 | applied 505/505 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 494 | 62 | applied 505/505 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 519 | 55 | applied 505/505 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 505 | 63 | applied 505/505 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 637 | 81 | applied 505/505 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 620 | 78 | applied 505/505 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 544 | 63 | applied 505/505 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 484 | 60 | applied 505/505 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 538 | 61 | applied 505/505 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 664 | 80 | applied 505/505 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 558 | 65 | applied 505/505 | 172 | 0 | 0 | 48 | 220 |
+| repeat | 738 | 59 | applied 505/505 | 120 | 0 | 0 | 0 | 120 |
+| TOTAL | — | — | — | 2665 | 0 | 1 | 360 | 3026 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 3 657 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 6, email 10, webkit 5, 1 6, 2 9, 3 10, 4 6, 5 6, 6 5, 7 6, 8 6, 9 6, 10 7, 11 6, 12 6, 13 8, 14 6, 15 6, 16 7, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/335, 2 641/402, 3 641/466, 4 640/379, 5 640/382, 6 641/335, 7 641/320, 8 641/339, 9 641/328, 10 643/354, 11 640/346, 12 641/353, 13 640/435, 14 641/349, 15 641/392, 16 641/388
+- Slowest lane: webkit 741 s
+- Repeat lane (DEC-283): Not repeated: e2e/legal-certify.spec.ts (22 tests); Repeat: each 2 on both projects; 52 tests selected, 30 repeated; budget 643 s at 4.7 s a test; directly changed: 3 of 4 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390
+- Database session samples during each start (INC-944): smoke 6, email 7, webkit 7, 1 7, 2 6, 3 6, 4 6, 5 6, 6 7, 7 6, 8 5, 9 6, 10 10, 11 10, 12 6, 13 6, 14 7, 15 10, 16 7, repeat 6
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/351, 2 641/313, 3 641/369, 4 640/323, 5 640/371, 6 641/386, 7 641/323, 8 641/362, 9 641/334, 10 643/439, 11 640/434, 12 641/361, 13 640/305, 14 641/363, 15 641/475, 16 641/372
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44017605815-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 44017605815-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44017605815-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44017605815-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44017605815-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44017605815-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44017605815-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44017605815-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44017605815-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44017605815-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44017605815-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44017605815-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44017605815-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44017605815-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44017605815-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44017605815-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44017605815-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44017605815-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44017605815-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44056980617-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 44056980617-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44056980617-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44056980617-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44056980617-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44056980617-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44056980617-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44056980617-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44056980617-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44056980617-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44056980617-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44056980617-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44056980617-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44056980617-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44056980617-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44056980617-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44056980617-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44056980617-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44056980617-local-16
+  - repeat: [e2e:teardown] deleted 18 user(s) owned by process 44056980617-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -78,42 +78,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 5
-- Step failure:
-Step smoke: outcome failure
-  
-- auth-caller-gates.spec.ts / CG-1 a deactivated account is refused at the doors that had no gate / mobile-360 — Error: expect(received).toContain(expected) // indexOf
-- auth-caller-gates.spec.ts / CG-1 a deactivated account is refused at the doors that had no gate / desktop-1280 — Error: expect(received).toContain(expected) // indexOf
-
-## Lane 13
-- Step failure:
-Step smoke: outcome failure
-  
-- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-26 the heart: signed out sign-in return; signed in saves and unsaves with counts; owner sees saves and no heart / mobile-360 — Error: expect(locator).toHaveCount(expected) failed
-- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-29 Report on the buyer's page: signed out, the link signs in and comes back to #report; signed in, the dialog sends a reason and a note once and thanks; a second report says already reported; the owner's page has no Report / mobile-360 — Error: expect(locator).toHaveAttribute(expected) failed
-- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-26 the heart: signed out sign-in return; signed in saves and unsaves with counts; owner sees saves and no heart / desktop-1280 — Error: expect(locator).toHaveCount(expected) failed
-- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-29 Report on the buyer's page: signed out, the link signs in and comes back to #report; signed in, the dialog sends a reason and a note once and thanks; a second report says already reported; the owner's page has no Report / desktop-1280 — Error: expect(locator).toHaveAttribute(expected) failed
-
-## Lane 14
-- Step failure:
-Step smoke: outcome failure
-  
-- ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-24 Save by public id: a buyer saves once and the count says so; the owner cannot save his own ad; unsave; a sold ad within its 30 days can be saved; anything not public cannot; my_saved_listings lists newest first and greys an ad that left the public (D201 §8) / mobile-360 — Error: expect(received).toBeNull()
-- ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-25 no client reads or writes saved_listings; the save dial counts new rows only (D201 §8) / mobile-360 — Error: expect(received).toBeNull()
-- ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-27 Report by public id: a buyer reports once with a reason and a note; the owner cannot report his own ad; a reason outside the list and a note over 500 characters are refused; a second open report by the same buyer is alreadyReported; a sold ad within its 30 days can be reported; a draft, an unknown or a malformed id cannot; the report dial counts written rows only / mobile-360 — Error: expect(received).toBeNull()
-- ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-24 Save by public id: a buyer saves once and the count says so; the owner cannot save his own ad; unsave; a sold ad within its 30 days can be saved; anything not public cannot; my_saved_listings lists newest first and greys an ad that left the public (D201 §8) / desktop-1280 — Error: expect(received).toBeNull()
-- ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-25 no client reads or writes saved_listings; the save dial counts new rows only (D201 §8) / desktop-1280 — Error: expect(received).toBeNull()
-- ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-27 Report by public id: a buyer reports once with a reason and a note; the owner cannot report his own ad; a reason outside the list and a note over 500 characters are refused; a second open report by the same buyer is alreadyReported; a sold ad within its 30 days can be reported; a draft, an unknown or a malformed id cannot; the report dial counts written rows only / desktop-1280 — Error: expect(received).toBeNull()
-- legal-certify.spec.ts / Legal certification / LG-20 the contact reveal answers acceptanceRequired to a viewer who owes an acceptance; the owner still sees his own / mobile-360 — Error: expect(received).toBeNull()
-- legal-certify.spec.ts / Legal certification / LG-20 the contact reveal answers acceptanceRequired to a viewer who owes an acceptance; the owner still sees his own / desktop-1280 — Error: expect(received).toBeNull()
-
-## Lane 15
-- Step failure:
-Step smoke: outcome failure
-  
-- viewing-place.spec.ts / VIEWING PLACE — the account doors (D106) / VP-2 a place that is not shown is refused, and the saved place stays / mobile-360 — Error: {"ok":false,"code":"P0D01","hint":null,"details":null,"message":"placeNotOpen","refusals":[{"reason":"placeNotOpen"}]}
-- viewing-place.spec.ts / VIEWING PLACE — the account doors (D106) / VP-4 the viewing_place dial refuses the call past the account's limit / mobile-360 — Error: {"ok":false,"code":"P0D01","hint":null,"details":null,"message":"rateLimited","refusals":[{"reason":"rateLimited"}]}
-- viewing-place.spec.ts / VIEWING PLACE — the account doors (D106) / VP-2 a place that is not shown is refused, and the saved place stays / desktop-1280 — Error: {"ok":false,"code":"P0D01","hint":null,"details":null,"message":"placeNotOpen","refusals":[{"reason":"placeNotOpen"}]}
-- viewing-place.spec.ts / VIEWING PLACE — the account doors (D106) / VP-4 the viewing_place dial refuses the call past the account's limit / desktop-1280 — Error: {"ok":false,"code":"P0D01","hint":null,"details":null,"message":"rateLimited","refusals":[{"reason":"rateLimited"}]}
+## Lane 2
+- submenu-look.spec.ts / D248 a side panel is the main menu / SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254) / desktop-1280 — Error: SMN-E13 the panel scrolls
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
