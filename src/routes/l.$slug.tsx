@@ -1,6 +1,7 @@
 import { pageHead } from "@/lib/page-head";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
+import { saveIntentStep } from "@/features/ad-page/save-intent";
 import { ShareAd } from "@/features/ad-page/share-ad";
 import { sharePriceText } from "@/features/ad-page/share-price-text";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
@@ -167,6 +168,26 @@ function AdPage() {
       })
       .finally(() => setSaveBusy(false));
   };
+  // INC-1192 — a Save tapped signed out returns with #save; consumed once per arrival.
+  const saveIntent = useRef(false);
+  useEffect(() => {
+    let step = saveIntentStep({
+      hash: window.location.hash,
+      pending: saveIntent.current,
+      viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
+      saved,
+      busy: saveBusy,
+    });
+    if (step === "clear") {
+      const { pathname, search } = window.location;
+      window.history.replaceState(window.history.state, "", pathname + search);
+      saveIntent.current = true;
+      step = saveIntentStep({ hash: "", pending: true, viewer: "signedIn", saved, busy: saveBusy });
+    }
+    if (step === "wait") return;
+    if (step === "save") onToggle();
+    saveIntent.current = false;
+  });
   // N1b-2c (INC-977, R3) — the owner's own ad page tells them their name is held; the
   // public read already shows them the neutral label. Asked only of the owner; a failed
   // read is logged and the notice is not drawn (the page never claims "not held").
@@ -292,7 +313,7 @@ function AdPage() {
                 count: saveCount,
                 busy: saveBusy,
                 refusal: saveRefusal,
-                signInTo: { to: "/auth", search: { return: canonical } },
+                signInTo: { to: "/auth", search: { return: `${canonical}#save` } },
                 onToggle,
               }
         }
