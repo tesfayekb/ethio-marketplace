@@ -111,13 +111,28 @@ it("no longer checks the providers fact", () => {
 });
 it("KFL-1 blank, unreadable, and out-of-range notice days retain the range verdict", () => {
   for (const value of ["", " ", "1e2", "0x10", "1.0", "NaN", "-1", "366"]) {
-    expect(validateLegalFacts({ ...valid, notice_days: value }).notice_days).toEqual({ type: "range", min: 0, max: 365 });
+    expect(validateLegalFacts({ ...valid, notice_days: value }).notice_days).toEqual({
+      type: "range",
+      min: 0,
+      max: 365,
+    });
   }
   expect(validateLegalFacts({ ...valid, notice_days: " 365 " })).toEqual({});
 });
 it("KFL-2 claims comparison runs only after both ranges pass and retains the 24-month floor", () => {
-  expect(validateLegalFacts({ ...valid, account_keep_months: "12", claims_limit_months: "24" }).account_keep_months).toEqual({ type: "shorterThanClaims", min: 24 });
-  expect(validateLegalFacts({ ...valid, account_keep_months: "24", claims_limit_months: "24" })).toEqual({});
-  expect(validateLegalFacts({ ...valid, account_keep_months: "", claims_limit_months: "24" }).account_keep_months).toEqual({ type: "range", min: 1, max: 120 });
-  expect(validateLegalFacts({ ...valid, account_keep_months: "12", claims_limit_months: "1e2" }).account_keep_months).toBeUndefined();
+  expect(
+    validateLegalFacts({ ...valid, account_keep_months: "12", claims_limit_months: "24" })
+      .account_keep_months,
+  ).toEqual({ type: "shorterThanClaims", min: 24 });
+  expect(
+    validateLegalFacts({ ...valid, account_keep_months: "24", claims_limit_months: "24" }),
+  ).toEqual({});
+  expect(
+    validateLegalFacts({ ...valid, account_keep_months: "", claims_limit_months: "24" })
+      .account_keep_months,
+  ).toEqual({ type: "range", min: 1, max: 120 });
+  expect(
+    validateLegalFacts({ ...valid, account_keep_months: "12", claims_limit_months: "1e2" })
+      .account_keep_months,
+  ).toBeUndefined();
 });

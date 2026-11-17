@@ -366,23 +366,22 @@ function DialogSpecimens() {
           </DialogHeader>
           <RadioGroup defaultValue="spam" className="gap-1">
             {SPECIMEN_REASONS.map((reason) => (
-              <div key={reason} data-testid={`style-dialog-choice-${reason}`} className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}>
-              <Field
-                id={`style-dialog-reason-${reason}`}
-                field="reason"
-                label={t(`adPage.report.reason.${reason}`)}
-                required
-                marked={false}
-                refusal={null}
-                layout="choice"
+              <div
+                key={reason}
+                data-testid={`style-dialog-choice-${reason}`}
+                className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
               >
-                {(control) => (
-                  <RadioGroupItem
-                    {...control}
-                    value={reason}
-                  />
-                )}
-              </Field>
+                <Field
+                  id={`style-dialog-reason-${reason}`}
+                  field="reason"
+                  label={t(`adPage.report.reason.${reason}`)}
+                  required
+                  marked={false}
+                  refusal={null}
+                  layout="choice"
+                >
+                  {(control) => <RadioGroupItem {...control} value={reason} />}
+                </Field>
               </div>
             ))}
           </RadioGroup>
