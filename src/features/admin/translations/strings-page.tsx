@@ -344,13 +344,24 @@ export function AdminTranslationsStringsPage({
                 status="all"
                 query={query}
                 search={
-                  <Field id={"data-search"} label={<span className="sr-only">{t("admin.translations.filter.search")}</span>} required={false} refusal={null} layout="inline">{(control) => (<Input {...control}
-                    data-testid="data-search"
-                    value={searchDraft}
-                    aria-label={t("admin.translations.filter.search")}
-                    placeholder={t("admin.translations.filter.search")}
-                    onChange={(event) => setSearchDraft(event.target.value)}
-                  />)}</Field>
+                  <Field
+                    id={"data-search"}
+                    label={<span className="sr-only">{t("admin.translations.filter.search")}</span>}
+                    required={false}
+                    refusal={null}
+                    layout="inline"
+                  >
+                    {(control) => (
+                      <Input
+                        {...control}
+                        data-testid="data-search"
+                        value={searchDraft}
+                        aria-label={t("admin.translations.filter.search")}
+                        placeholder={t("admin.translations.filter.search")}
+                        onChange={(event) => setSearchDraft(event.target.value)}
+                      />
+                    )}
+                  </Field>
                 }
                 mayUpdate={mayUpdate}
                 mayApprove={mayApprove && !(known?.isBase ?? false)}
@@ -417,13 +428,26 @@ export function AdminTranslationsStringsPage({
                     <TableToolbar
                       testid="strings-toolbar"
                       search={
-                        <Field id={"strings-search"} label={<span className="sr-only">{t("admin.translations.filter.search")}</span>} required={false} refusal={null} layout="inline">{(control) => (<Input {...control}
-                          data-testid="strings-search"
-                          value={searchDraft}
-                          aria-label={t("admin.translations.filter.search")}
-                          placeholder={t("admin.translations.filter.search")}
-                          onChange={(event) => setSearchDraft(event.target.value)}
-                        />)}</Field>
+                        <Field
+                          id={"strings-search"}
+                          label={
+                            <span className="sr-only">{t("admin.translations.filter.search")}</span>
+                          }
+                          required={false}
+                          refusal={null}
+                          layout="inline"
+                        >
+                          {(control) => (
+                            <Input
+                              {...control}
+                              data-testid="strings-search"
+                              value={searchDraft}
+                              aria-label={t("admin.translations.filter.search")}
+                              placeholder={t("admin.translations.filter.search")}
+                              onChange={(event) => setSearchDraft(event.target.value)}
+                            />
+                          )}
+                        </Field>
                       }
                       filters={
                         <FiltersButton
@@ -773,14 +797,24 @@ function StringEditor({
         </p>
         {mayManage ? (
           <div className="flex min-w-0 flex-col gap-2 pt-1">
-            <Field id={`string-context-${id}`} label={<span className="sr-only">{t("admin.translations.editor.context")}</span>} required={false} refusal={null} layout="inline">{(control) => (<Input
-              {...control}`}
-              data-testid={`string-context-${id}`}
-              value={contextDraft}
-              aria-label={t("admin.translations.editor.context")}
-              placeholder={t("admin.translations.editor.contextPlaceholder")}
-              onChange={(event) => setContextDraft(event.target.value)}
-            />)}</Field>
+            <Field
+              id={`string-context-${id}`}
+              label={<span className="sr-only">{t("admin.translations.editor.context")}</span>}
+              required={false}
+              refusal={null}
+              layout="inline"
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  data-testid={`string-context-${id}`}
+                  value={contextDraft}
+                  aria-label={t("admin.translations.editor.context")}
+                  placeholder={t("admin.translations.editor.contextPlaceholder")}
+                  onChange={(event) => setContextDraft(event.target.value)}
+                />
+              )}
+            </Field>
             <Button
               type="button"
               variant="outline"
@@ -821,15 +855,24 @@ function StringEditor({
         </p>
       ) : null}
 
-      
-      <Field id={`string-input-${id}`} label={<>{t("admin.translations.editor.label")}</>} required={false} refusal={null} layout="stack">{(control) => (<Textarea
-        {...control}`}
-        data-testid={`string-input-${id}`}
-        dir={rtl ? "rtl" : undefined}
-        rows={3}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-      />)}</Field>
+      <Field
+        id={`string-input-${id}`}
+        label={<>{t("admin.translations.editor.label")}</>}
+        required={false}
+        refusal={null}
+        layout="stack"
+      >
+        {(control) => (
+          <Textarea
+            {...control}
+            data-testid={`string-input-${id}`}
+            dir={rtl ? "rtl" : undefined}
+            rows={3}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+        )}
+      </Field>
 
       {/**
        * U4i ③ — LENGTH WARNING. Advisory only: never a flag, never a block —

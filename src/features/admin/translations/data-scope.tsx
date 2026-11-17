@@ -473,15 +473,24 @@ function EntityEditor({
         </p>
       </div>
 
-      
-      <Field id={`entity-input-${id}`} label={<>{t("admin.translations.editor.label")}</>} required={false} refusal={null} layout="stack">{(control) => (<Textarea
-        {...control}`}
-        data-testid={`entity-input-${id}`}
-        dir={rtl ? "rtl" : undefined}
-        rows={2}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-      />)}</Field>
+      <Field
+        id={`entity-input-${id}`}
+        label={<>{t("admin.translations.editor.label")}</>}
+        required={false}
+        refusal={null}
+        layout="stack"
+      >
+        {(control) => (
+          <Textarea
+            {...control}
+            data-testid={`entity-input-${id}`}
+            dir={rtl ? "rtl" : undefined}
+            rows={2}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+          />
+        )}
+      </Field>
 
       <div className="flex min-w-0 flex-wrap gap-2">
         {mayUpdate ? (

@@ -920,9 +920,10 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
       }
     >
       {showForm ? null : (
-        <FormField label={t("admin.translations.add.pick")} full>
+        <div className="sm:col-span-2 space-y-1">
+          <p className="text-sm font-medium">{t("admin.translations.add.pick")}</p>
           <LanguagePicker onSelect={select} onManual={() => setManual(true)} />
-        </FormField>
+        </div>
       )}
 
       {showForm ? (

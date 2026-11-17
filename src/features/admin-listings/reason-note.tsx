@@ -43,16 +43,27 @@ export function ReasonNote({
           label: t(`admin.listings.reason.${value}` as MessageKey),
         }))}
       />
-      <Field id={`${testid}-note`} label={t("admin.listings.move.note")} required={false} refusal={null} hint={<p className="text-xs text-muted-foreground">{t("admin.listings.move.noteHint")}</p>} testId={`${testid}-note-field`}>{(control) => (<>
-        <Textarea
-          {...control}-note`}
-          data-testid={`${testid}-note`}
-          value={note}
-          maxLength={NOTE_MAX}
-          rows={3}
-          onChange={(event) => onNote(event.target.value)}
-        />
-      </>)}</Field>
+      <Field
+        id={`${testid}-note`}
+        label={t("admin.listings.move.note")}
+        required={false}
+        refusal={null}
+        hint={<p className="text-xs text-muted-foreground">{t("admin.listings.move.noteHint")}</p>}
+        testId={`${testid}-note-field`}
+      >
+        {(control) => (
+          <>
+            <Textarea
+              {...control}
+              data-testid={`${testid}-note`}
+              value={note}
+              maxLength={NOTE_MAX}
+              rows={3}
+              onChange={(event) => onNote(event.target.value)}
+            />
+          </>
+        )}
+      </Field>
     </>
   );
 }
