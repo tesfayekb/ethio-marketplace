@@ -1,50 +1,50 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `d021b8296d487d8515963d8e63fce6357b524036` (short `d021b82`)
+- Commit: `1e926e094cedf5cb8689cdc7504f90da25c88686` (short `1e926e0`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-17T09:53:16Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44056980617
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-0bd138af1258… (0 read)
+- Completed (UTC): 2026-11-17T10:07:31Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44058639204
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-2819d84d19ad… (0 read)
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | Component tests | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Migration linter (with self-test) | success |
-| Gitleaks secrets scan | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| Scope (docs-only push, DEC-365) | success |
 | Listing-write seam guard (with self-test) | success |
-| Import gate guard (with self-test) | success |
-| i18n used-on map is fresh (U4i ②) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
 | Build, typecheck, lint | success |
+| Migration linter (with self-test) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| i18n used-on map is fresh (U4i ②) | success |
+| Scope (docs-only push, DEC-365) | success |
+| Gitleaks secrets scan | success |
 | Semgrep (enforcing on ERROR) | success |
-| Hardcoded string scan (enforcing) | success |
 | E2E preflight (migration parity, staging) | success |
-| E2E lanes / Backend images (DEC-309) | success |
+| Hardcoded string scan (enforcing) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Import gate guard (with self-test) | success |
 | First-paint bundle budget (gzipped ceiling) | success |
-| E2E lanes / Lane webkit on temporary Supabase | success |
-| E2E lanes / Lane 16 on temporary Supabase | success |
-| E2E lanes / Lane smoke on temporary Supabase | success |
-| E2E lanes / Lane 8 on temporary Supabase | success |
-| E2E lanes / Lane 6 on temporary Supabase | success |
+| E2E lanes / Backend images (DEC-309) | success |
 | E2E lanes / Lane email on temporary Supabase | success |
-| E2E lanes / Lane 14 on temporary Supabase | success |
-| E2E lanes / Lane 5 on temporary Supabase | success |
-| E2E lanes / Lane 13 on temporary Supabase | success |
-| E2E lanes / Lane 15 on temporary Supabase | success |
-| E2E lanes / Lane repeat on temporary Supabase | success |
-| E2E lanes / Lane 12 on temporary Supabase | success |
-| E2E lanes / Lane 3 on temporary Supabase | success |
-| E2E lanes / Lane 9 on temporary Supabase | success |
+| E2E lanes / Lane webkit on temporary Supabase | success |
+| E2E lanes / Lane smoke on temporary Supabase | success |
+| E2E lanes / Lane 6 on temporary Supabase | success |
 | E2E lanes / Lane 1 on temporary Supabase | success |
-| E2E lanes / Lane 11 on temporary Supabase | success |
 | E2E lanes / Lane 2 on temporary Supabase | success |
-| E2E lanes / Lane 7 on temporary Supabase | success |
+| E2E lanes / Lane 12 on temporary Supabase | success |
+| E2E lanes / Lane 5 on temporary Supabase | success |
+| E2E lanes / Lane 8 on temporary Supabase | success |
+| E2E lanes / Lane 11 on temporary Supabase | success |
 | E2E lanes / Lane 4 on temporary Supabase | success |
+| E2E lanes / Lane 13 on temporary Supabase | success |
+| E2E lanes / Lane 7 on temporary Supabase | success |
+| E2E lanes / Lane 16 on temporary Supabase | success |
+| E2E lanes / Lane 14 on temporary Supabase | success |
+| E2E lanes / Lane 15 on temporary Supabase | success |
+| E2E lanes / Lane 9 on temporary Supabase | success |
+| E2E lanes / Lane 3 on temporary Supabase | success |
+| E2E lanes / Lane repeat on temporary Supabase | success |
 | E2E lanes / Lane 10 on temporary Supabase | success |
 | E2E lanes / Summarize temporary backend lanes | success |
 | E2E (Playwright, ethio-staging) | success |
