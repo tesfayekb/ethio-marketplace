@@ -1,7 +1,7 @@
 # F1-5b — the buyer's doors onto the door mechanism — report
 
-Base: 157d28bbd (Ruling A; the brief's own `Base: dev 68b360fa1`) · Final commit: 3405164a5 · Brief: docs/governance/briefs/f1-doors-5b.md (sha256: the brief states none) · Ruling 1: docs/governance/briefs/f1-doors-5b-ruling-1.md (sha256 776aac13bdc0d4139ea8c0f533413db56d4cade0772c10f70c8c8603f421f95c, equal to the value in the message, `cmp` identical to the carrier)
-Review: READY · 0 BLOCKER · 0 MAJOR · 2 MINOR · on 3405164
+Base: 157d28bbd (Ruling A; the brief's own `Base: dev 68b360fa1`) · Final commit: 307637aab · Brief: docs/governance/briefs/f1-doors-5b.md (sha256: the brief states none) · Ruling 1: docs/governance/briefs/f1-doors-5b-ruling-1.md (sha256 776aac13bdc0d4139ea8c0f533413db56d4cade0772c10f70c8c8603f421f95c, equal to the value in the message, `cmp` identical to the carrier)
+Review: READY · 0 BLOCKER · 0 MAJOR · 2 MINOR · on 307637a
 
 Two chats wrote this turn. The first chat (Opus) wrote STEPS 0 to 2 (the census, the six migration
 files, stop 1). This chat (Sonnet) wrote STEPS 3 to 7 after the supervisor's ruling, stopped once
@@ -25,7 +25,10 @@ what the review judged; the Lovable files of #58 and #60 are theirs.
 - The ceilings: `256cce723` moved three lines 404 → 405 on the old base; on the merged tree they
   read 403.2 to 403.3 KiB, so `3405164a5` puts them back to 404 (their form on that tree). Net
   change of `scripts/route-budgets.mjs` against dev `3c2bf65c3`: none.
-- STEP 6: the push once (`3405164a5`), the watch. STEP 7: this report.
+- STEP 6: the push once (`3405164a5`), the watch. After the operator's second merge of dev
+  (`d7c242641`, merge commit `5cd147362`) CI run 44069383485 failed in the budget job only, on
+  `/admin/users_/$userId` (stop 3's ruling): one further code commit `307637aab` sets its ceiling
+  291 → 292 (section 5). STEP 7: this report.
 - Not done: the server's ad read (`src/server/ad-page.ts`, `src/server/ad-photo.ts`) and the place
   carry (`src/components/shell/place-carry-service.ts`) are NOT moved onto the reader; section 10.
 
@@ -191,6 +194,21 @@ same words as before). Nothing else differs from the base by this turn's change.
   the same two lines print on dev `3c2bf65c3` with none of my change (`bundle-base3.log`), so they
   are #58's and #60's lines, left as the ruling says; `bun run checks`' own bundle job passed.
 
+- Stop 3's measurement, on `5cd147362` against dev `d7c242641` (my scratch copy `base4`, two lock-exact
+  builds, `closure-diff4.mjs`): `/admin/users_/$userId` reads 290.7 KiB on both builds (local, of
+  291), so the page sat inside the NEAR band on dev itself; this lane adds +33 B gzip to its closure:
+  `index.js` +24 B (its dependency map names the lane's chunk), `dialog-look.js` +5 B,
+  `impersonation-starter.js` +3 B, `refusal.js` +2 B, `admin.users_._userId.js` −3 B, the rest ±1 to
+  ±2 B. My figures differ from the supervisor's (+32 B; `index.js` +23, `dialog-look.js` +4,
+  `impersonation-starter.js` +3) by 1 B on three chunks and add `refusal.js` +2 B. I did not read
+  why `dialog-look.js` and `impersonation-starter.js` move. Ceiling 291 → 292 by
+  `ceilingForLocal(290.7)`, the cause written on the line. `bun run checks` on `307637aab`: fast line
+  `PASS     laws-first › scripts/ tests first (INC-1030)  (94s)`; budget job lines
+  `PASS     bundle-budget › Check the first-paint budget  (0s)` and
+  `PASS     bundle-budget › the NEAR band (R4)  (0s) — 1 NEAR (DEC-296's one band; NOTE lines above)`
+  (the one NOTE is `/admin/translations` 305.7 / 306 KiB, which CI judges and passed); last line
+  `checks: 35 PASS · 0 FAIL · 26 NOT RUN · 504s`.
+
 ## 6. K2 — siblings that bypass the mechanism
 
 Greps run: `rg -n "message\.includes\(" src --glob '!*.test.*'` (section 4), `rg -n
@@ -279,6 +297,8 @@ generic line for a refusal of this family (brief's tolerance): expected, not a r
   lane"); `docs/features/doors.md` gains an F1-5b paragraph (standing allowance).
 - The i18n usage maps: the scanned count only.
 - AP-26 and AP-29 are in no spec change: they turn green with the client (stop 1, decision 4).
+- Stop 3: the user page's ceiling `/admin/users_/$userId` 291 → 292 in `307637aab`, by the
+  supervisor's ruling 3 and DEC-296's form (the page was at the band's edge on dev itself).
 - Ceilings: `256cce723` raised three lines 404 → 405 on the old base by DEC-296's form; on the merged
   tree the sizes fell under the band and `3405164a5` returns them to 404 (net zero against dev).
 - STOP 2 and its ruling: `origin/dev` moved (`157d28bbd` → `0e51207b8` → `3c2bf65c3`, #58 and #60,
@@ -345,7 +365,7 @@ generic line for a refusal of this family (brief's tolerance): expected, not a r
 - F3 — three readings of a code's head: `refusalCode` (`src/features/ad-page/ad-page-refusals.ts`),
   `legalReasonOf` (`src/features/my-listings/my-listing.ts:593`) and `legalRefusal`
   (`src/features/legal/legal-reader.ts:98`): one `refusalCode` in `src/lib/refusal.ts` would serve them.
-- F4 — `bun run build && node scripts/check-bundle-size.mjs` called directly prints a NEAR band
+- F4 (updated by stop 3; INC-1190 is the supervisor's) — `bun run build && node scripts/check-bundle-size.mjs` called directly prints a NEAR band
   failure for `/admin/translations` (305.7 of 306) and `/admin/users_/$userId` (290.7 of 291) on dev
   `3c2bf65c3` itself (local reading with its 0.1 allowance); `bun run checks`' bundle job passes.
   Lovable's lines; reported, not touched.
