@@ -45,7 +45,7 @@ vi.mock("./use-monetisation-names", () => ({
     categoryName: (id: string | null) => id ?? "every",
     productName: (key: string) => key,
     markets: [],
-    tree: { roots: [], byId: new Map() },
+    tree: { nodes: [], parentOf: new Map(), childrenOf: new Map(), byId: new Map() },
   }),
 }));
 
