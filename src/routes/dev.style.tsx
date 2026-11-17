@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Field } from "@/components/forms/field";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
@@ -365,17 +366,22 @@ function DialogSpecimens() {
           </DialogHeader>
           <RadioGroup defaultValue="spam" className="gap-1">
             {SPECIMEN_REASONS.map((reason) => (
-              <label
+              <Field
                 key={reason}
-                data-testid={`style-dialog-choice-${reason}`}
-                className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
+                id={`style-dialog-reason-${reason}`}
+                field="reason"
+                label={t(`adPage.report.reason.${reason}`)}
+                required marked={false} refusal={null} layout="choice"
               >
-                <RadioGroupItem value={reason} />
-                <span>{t(`adPage.report.reason.${reason}`)}</span>
-              </label>
+                {(control) => <RadioGroupItem {...control}
+                data-testid={`style-dialog-choice-${reason}`}
+                value={reason} />}
+              </Field>
             ))}
           </RadioGroup>
-          <Textarea data-testid="style-dialog-field" aria-label={t("adPage.report.note")} />
+          <Field id="style-dialog-field" field="note" label={t("adPage.report.note")} required={false} refusal={null}>
+            {(control) => <Textarea {...control} data-testid="style-dialog-field" aria-label={t("adPage.report.note")} />}
+          </Field>
           <DialogFooter data-testid="style-dialog-footer">
             <DialogClose asChild>
               <Button variant="outline" size="touch">
@@ -421,7 +427,9 @@ function DialogSpecimens() {
               <SheetTitle>{t("adPage.share.title")}</SheetTitle>
               <SheetDescription>{t("adPage.share.qrHint")}</SheetDescription>
             </SheetHeader>
-            <Input data-testid={`style-sheet-${side}-field`} aria-label={t("adPage.share.title")} />
+            <Field id={`style-sheet-${side}-field`} label={t("adPage.share.title")} required={false} refusal={null}>
+              {(control) => <Input {...control} data-testid={`style-sheet-${side}-field`} aria-label={t("adPage.share.title")} />}
+            </Field>
           </SheetContent>
         </Sheet>
       ))}

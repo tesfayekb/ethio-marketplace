@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Field } from "@/components/forms/field";
+import { numberOf, parseNumber } from "@/lib/parse-input";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +10,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { FACT_KEYS, legalRefusalKey, type FactKey, type LegalSettings } from "./legal-service";
-import { FACT_BOUNDS, validateLegalFacts } from "./facts-validation";
+import { FACT_BOUNDS, OPTIONAL_FACTS, validateLegalFacts } from "./facts-validation";
 import { useLegalWrites } from "./use-legal";
 
 export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: GuardFn }) {
@@ -48,21 +50,24 @@ export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: 
           };
           return (
             <div key={key} className="min-w-0 space-y-1">
-              <dt>
+              {!editing ? <dt>
                 <label
                   htmlFor={editing ? fieldProps.id : undefined}
                   className="text-sm font-medium"
                 >
                   {label(key)}
                 </label>
-              </dt>
+              </dt> : null}
               <dd>
                 {editing ? (
                   <>
-                    {multiline ? <Textarea {...fieldProps} /> : <Input {...fieldProps} />}
+                    <Field id={fieldProps.id} field={key} label={label(key)} required={!OPTIONAL_FACTS.includes(key)} refusal={null}>
+                      {(control) => multiline ? <Textarea {...fieldProps} {...control} aria-invalid={Boolean(fieldError)} aria-describedby={fieldError ? `legal-fact-error-${key}` : control["aria-describedby"]} /> : <Input {...fieldProps} {...control} aria-invalid={Boolean(fieldError)} aria-describedby={fieldError ? `legal-fact-error-${key}` : control["aria-describedby"]} />}
+                    </Field>
                     {fieldError ? (
                       <p
                         role="alert"
+                        id={`legal-fact-error-${key}`}
                         data-testid={`legal-fact-error-${key}`}
                         className="text-sm text-destructive"
                       >
@@ -108,7 +113,7 @@ export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: 
                 FACT_KEYS.map((key) => [
                   key,
                   ownValue(FACT_BOUNDS, key)
-                    ? Number(ownValue(values, key))
+                    ? numberOf(parseNumber(ownValue(values, key) ?? "", { integer: true }))
                     : (ownValue(values, key) ?? ""),
                 ]),
               );

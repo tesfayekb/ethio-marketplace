@@ -1,4 +1,5 @@
 import { ownValue } from "@/lib/own-key";
+import { parseNumber } from "@/lib/parse-input";
 import { FACT_KEYS, type FactKey } from "./legal-service";
 export const FACT_BOUNDS: Partial<Record<FactKey, readonly [number, number]>> = {
   liability_limit_usd: [0, 1_000_000],
@@ -39,12 +40,7 @@ export function validateLegalFacts(
     const bounds = ownValue(FACT_BOUNDS, key);
     if (bounds) {
       const [min, max] = bounds;
-      if (
-        !/^\d+$/.test(value) ||
-        !Number.isSafeInteger(Number(value)) ||
-        Number(value) < min ||
-        Number(value) > max
-      )
+      if (parseNumber(value, { integer: true, min, max }).kind !== "number")
         errors[key] = { type: "range", min, max };
     } else if (!OPTIONAL_FACTS.includes(key) && !value.trim()) errors[key] = { type: "required" };
     else if (EMAIL_FACTS.includes(key) && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value))
@@ -54,9 +50,9 @@ export function validateLegalFacts(
     else if (value.length > 2000 && !EMAIL_FACTS.includes(key))
       errors[key] = { type: "tooLong", max: 2000 };
   }
-  const accountMonths = Number(ownValue(values, "account_keep_months"));
-  const claimsMonths = Number(ownValue(values, "claims_limit_months"));
-  if (!errors.account_keep_months && !errors.claims_limit_months && accountMonths < claimsMonths)
-    errors.account_keep_months = { type: "shorterThanClaims", min: claimsMonths };
+  const accountMonths = parseNumber(ownValue(values, "account_keep_months") ?? "", { integer: true });
+  const claimsMonths = parseNumber(ownValue(values, "claims_limit_months") ?? "", { integer: true });
+  if (!errors.account_keep_months && !errors.claims_limit_months && accountMonths.kind === "number" && claimsMonths.kind === "number" && accountMonths.value < claimsMonths.value)
+    errors.account_keep_months = { type: "shorterThanClaims", min: claimsMonths.value };
   return errors;
 }
