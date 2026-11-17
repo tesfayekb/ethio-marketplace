@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { FormField, FormSection } from "@/components/shell/form-section";
+import { Field } from "@/components/forms/field";
+import { FormSection } from "@/components/shell/form-section";
 import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -155,29 +156,52 @@ function RoleMetaCard({ role, mayUpdate }: { role: RoleDetail; mayUpdate: boolea
             </>
           }
         >
-          <FormField label={t("admin.roles.col.name")} htmlFor="role-key">
-            <Input id="role-key" data-testid="role-key" value={role.name} readOnly disabled />
-          </FormField>
-          <FormField label={t("admin.roles.create.displayName")} htmlFor="role-display-edit">
-            <Input
-              id="role-display-edit"
-              data-testid="role-meta-display"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-            />
-          </FormField>
-          <FormField
-            label={t("admin.roles.create.descriptionField")}
-            htmlFor="role-description-edit"
-            full
+          <Field
+            id="role-key"
+            field="name"
+            label={t("admin.roles.col.name")}
+            required
+            marked={false}
+            refusal={null}
           >
-            <Input
+            {(control) => (
+              <Input {...control} data-testid="role-key" value={role.name} readOnly disabled />
+            )}
+          </Field>
+          <Field
+            id="role-display-edit"
+            field="display_name"
+            label={t("admin.roles.create.displayName")}
+            required={false}
+            refusal={null}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                data-testid="role-meta-display"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+              />
+            )}
+          </Field>
+          <div className="min-w-0 md:col-span-2">
+            <Field
               id="role-description-edit"
-              data-testid="role-meta-description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </FormField>
+              field="description"
+              label={t("admin.roles.create.descriptionField")}
+              required={false}
+              refusal={null}
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  data-testid="role-meta-description"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+              )}
+            </Field>
+          </div>
         </FormSection>
       )}
     </StepUpGate>
@@ -235,43 +259,48 @@ function DangerCard({ role }: { role: RoleDetail }) {
               {t("admin.roles.danger.hasMembers")}
             </p>
           ) : (
-            <div className="min-w-0 space-y-1">
-              <label
-                className="block text-sm font-medium text-foreground"
-                htmlFor="role-delete-confirm"
-              >
-                {t("admin.roles.danger.confirmLabel")}
-              </label>
-              {/*
-                U2a / INC-084(a) — the expected key renders VERBATIM next to the
-                field. The compare stays trim-exact against role.name, so what
-                the operator reads is exactly what arms the button.
-              */}
-              <p className="text-sm text-muted-foreground">
-                {t("admin.roles.danger.confirmHint")
-                  .split("{key}")
-                  .flatMap((part, index) =>
-                    index === 0
-                      ? [<span key="p0">{part}</span>]
-                      : [
-                          <code
-                            key="key"
-                            data-testid="role-delete-key"
-                            className="break-all font-mono text-foreground"
-                          >
-                            {role.name}
-                          </code>,
-                          <span key={`p${index}`}>{part}</span>,
-                        ],
-                  )}
-              </p>
-              <Input
-                id="role-delete-confirm"
-                data-testid="role-delete-confirm"
-                value={confirm}
-                onChange={(event) => setConfirm(event.target.value)}
-              />
-            </div>
+            /*
+              U2a / INC-084(a) — the expected key renders VERBATIM in the
+              field's hint. The compare stays trim-exact against role.name, so
+              what the operator reads is exactly what arms the button.
+            */
+            <Field
+              id="role-delete-confirm"
+              field="confirm"
+              label={t("admin.roles.danger.confirmLabel")}
+              required
+              marked={false}
+              refusal={null}
+              hint={
+                <p className="text-sm text-muted-foreground">
+                  {t("admin.roles.danger.confirmHint")
+                    .split("{key}")
+                    .flatMap((part, index) =>
+                      index === 0
+                        ? [<span key="p0">{part}</span>]
+                        : [
+                            <code
+                              key="key"
+                              data-testid="role-delete-key"
+                              className="break-all font-mono text-foreground"
+                            >
+                              {role.name}
+                            </code>,
+                            <span key={`p${index}`}>{part}</span>,
+                          ],
+                    )}
+                </p>
+              }
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  data-testid="role-delete-confirm"
+                  value={confirm}
+                  onChange={(event) => setConfirm(event.target.value)}
+                />
+              )}
+            </Field>
           )}
           <Button
             type="button"

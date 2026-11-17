@@ -252,6 +252,7 @@ export const PROFILE_EDIT_REFUSALS = {
     aliasShape: "admin.users.edit.errorAliasFormat",
     aliasTaken: "admin.users.edit.errorAliasTaken",
     aliasReserved: "admin.users.edit.errorAliasReason",
+    required: "post.refusal.required",
   },
   sentences: [
     [/step-up required/i, "admin.users.edit.errorStepUp"],

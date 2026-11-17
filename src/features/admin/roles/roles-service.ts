@@ -162,6 +162,7 @@ export const ROLE_REFUSALS = {
     duplicateKey: "admin.roles.error.nameTaken",
     nameRequired: "admin.roles.error.nameRequired",
     badSlug: "admin.roles.error.nameFormat",
+    required: "post.refusal.required",
   },
   sentences: [[/step-up required/i, "admin.roles.error.stepUp"]],
 } as const satisfies RefusalFamily;
