@@ -36,19 +36,36 @@ export function ReasonNote({
   const { t } = useI18n();
   return (
     <>
-      <Field id={`${testid}-reason`} field="reason" label={<span className="sr-only">{t("admin.listings.move.reason")}</span>} required marked={false} refusal={null} layout="inline">
-      {(control) => <div {...control} role="group" aria-invalid={problem === "admin.listings.move.pickReason" || undefined} aria-describedby={problem === "admin.listings.move.pickReason" ? `${testid}-problem` : undefined}>
-      <FilterChoices
-        testid={`${testid}-reason`}
-        label={t("admin.listings.move.reason")}
-        value={reason}
-        onChange={onReason}
-        options={reasons.map((value) => ({
-          value,
-          label: t(`admin.listings.reason.${value}` as MessageKey),
-        }))}
-      />
-      </div>}
+      <Field
+        id={`${testid}-reason`}
+        field="reason"
+        label={<span className="sr-only">{t("admin.listings.move.reason")}</span>}
+        required
+        marked={false}
+        refusal={null}
+        layout="inline"
+      >
+        {(control) => (
+          <div
+            {...control}
+            role="group"
+            aria-invalid={problem === "admin.listings.move.pickReason" || undefined}
+            aria-describedby={
+              problem === "admin.listings.move.pickReason" ? `${testid}-problem` : undefined
+            }
+          >
+            <FilterChoices
+              testid={`${testid}-reason`}
+              label={t("admin.listings.move.reason")}
+              value={reason}
+              onChange={onReason}
+              options={reasons.map((value) => ({
+                value,
+                label: t(`admin.listings.reason.${value}` as MessageKey),
+              }))}
+            />
+          </div>
+        )}
       </Field>
       <Field
         id={`${testid}-note`}
@@ -67,8 +84,17 @@ export function ReasonNote({
               value={note}
               maxLength={NOTE_MAX}
               rows={3}
-              aria-invalid={problem === "admin.listings.move.noteRequired" || problem === "admin.listings.move.noteTooLong" || undefined}
-              aria-describedby={problem === "admin.listings.move.noteRequired" || problem === "admin.listings.move.noteTooLong" ? `${testid}-note-hint ${testid}-problem` : control["aria-describedby"]}
+              aria-invalid={
+                problem === "admin.listings.move.noteRequired" ||
+                problem === "admin.listings.move.noteTooLong" ||
+                undefined
+              }
+              aria-describedby={
+                problem === "admin.listings.move.noteRequired" ||
+                problem === "admin.listings.move.noteTooLong"
+                  ? `${testid}-note-hint ${testid}-problem`
+                  : control["aria-describedby"]
+              }
               onChange={(event) => onNote(event.target.value)}
             />
           </>

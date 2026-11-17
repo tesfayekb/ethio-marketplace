@@ -87,7 +87,12 @@ export function MoveDialog({ kind, count, busy, refusal, onCancel, onConfirm }: 
           }}
         />
         {problem !== null || refusal !== null ? (
-          <p role="alert" id="listings-move-problem" data-testid="listings-move-problem" className="text-sm text-destructive">
+          <p
+            role="alert"
+            id="listings-move-problem"
+            data-testid="listings-move-problem"
+            className="text-sm text-destructive"
+          >
             {problem !== null ? t(problem) : refusal}
           </p>
         ) : null}

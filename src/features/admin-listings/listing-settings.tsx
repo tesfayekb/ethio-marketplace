@@ -187,7 +187,11 @@ export function ListingSettings({
                         value={days}
                         maxLength={3}
                         aria-invalid={daysRefused || undefined}
-                        aria-describedby={daysRefused ? "listings-settings-days-help listings-settings-problem" : "listings-settings-days-help"}
+                        aria-describedby={
+                          daysRefused
+                            ? "listings-settings-days-help listings-settings-problem"
+                            : "listings-settings-days-help"
+                        }
                         onChange={(event) => {
                           setDays(event.target.value);
                           setProblem(null);

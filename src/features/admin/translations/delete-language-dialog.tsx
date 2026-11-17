@@ -17,7 +17,12 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
-import { serverMessage, translationRefusalKey, TRANSLATION_REFUSALS, type LanguageRow } from "./translations-service";
+import {
+  serverMessage,
+  translationRefusalKey,
+  TRANSLATION_REFUSALS,
+  type LanguageRow,
+} from "./translations-service";
 import { useDeleteLanguage, useLanguageDeletePreview } from "./use-translations";
 
 /**
