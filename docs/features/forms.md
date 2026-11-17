@@ -229,3 +229,10 @@ field's own bad answer is drawn under its Field (`monetisation-refusals.ts`,
 family `MONETISATION_REFUSALS`: the kit's `required` and each judge key read as
 itself); a rule across fields (`emptyOverride`, `launchRequired`) and every door
 refusal stay in the dialog's `<prefix>-error` line. Tests: KMO-1…8.
+
+## Staff consoles: roles, users and view-as (wave 3, L9)
+
+- Roles: the create form's key is a required answer through the shared gate (`post.refusal.required` under its box, via `ROLE_REFUSALS.words.required`); display name and description are optional. The role page's key box is shown read-only; the delete confirmation sits in a Field whose hint carries the key to type, and the button stays armed only by the exact key.
+- Users: the deactivation reason is held by the gate, and its blank keeps the `reason-error` line (read by the browser tests), named by the box's `aria-describedby`. The profile editor's display name goes through the gate (`PROFILE_EDIT_REFUSALS.words.required`); every door refusal stays in the `edit-error` line, and the alias, alias-reason or country box it is about carries `aria-invalid` and names that line. The local list's helper rows are `InfoRow`, so the tag `Field` means only the kit.
+- View-as: a blank reason is held by the gate under its box; the too-short reason and every door refusal stay in `impersonation-error`, named by the box.
+- The two list searches stay bare inputs in their toolbars (DEC-338, T2b). Tests: KFS-1…5 (`src/features/admin/users/staff-form-gates.test.tsx`).
