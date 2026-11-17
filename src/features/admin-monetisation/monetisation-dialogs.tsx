@@ -130,7 +130,7 @@ export function NumberField({
       family={MONETISATION_REFUSALS}
       hint={
         helpKey === undefined ? undefined : (
-          <p className="text-sm text-muted-foreground">{t(helpKey)}</p>
+          <p className="min-w-0 break-words text-xs text-muted-foreground">{t(helpKey)}</p>
         )
       }
     >
