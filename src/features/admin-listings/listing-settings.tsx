@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Settings } from "lucide-react";
 import { useState } from "react";
@@ -62,6 +63,7 @@ export function ListingSettings({
   const [days, setDays] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [daysRefused, setDaysRefused] = useState(false);
 
   const query = useQuery({ queryKey: POLICY_KEY, queryFn: readPolicy, enabled: open });
   const [shown, setShown] = useState<ListingPolicy | null>(null);
@@ -76,15 +78,18 @@ export function ListingSettings({
     setOpen(false);
     setShown(null);
     setProblem(null);
+    setDaysRefused(false);
   };
 
   const save = async () => {
     const value = daysOf(days);
     if (value === null) {
+      setDaysRefused(true);
       setProblem(t("admin.listings.settings.daysHelp"));
       return;
     }
     setBusy(true);
+    setDaysRefused(false);
     setProblem(null);
     try {
       await guard(async () => {
@@ -144,41 +149,57 @@ export function ListingSettings({
             ) : (
               <>
                 <div className="flex min-h-11 items-center justify-between gap-3">
-                  <label
-                    htmlFor="listings-settings-renew"
-                    className="text-sm font-medium text-foreground"
+                  <Field
+                    id={"listings-settings-renew"}
+                    label={<>{t("admin.listings.settings.renewAllowed")}</>}
+                    required={false}
+                    refusal={null}
+                    layout="inline"
+                    field="renewAllowed"
                   >
-                    {t("admin.listings.settings.renewAllowed")}
-                  </label>
-                  <Switch
-                    id="listings-settings-renew"
-                    data-testid="listings-settings-renew"
-                    checked={renewAllowed}
-                    onCheckedChange={(checked) => {
-                      setRenewAllowed(checked);
-                      setProblem(null);
-                    }}
-                  />
+                    {(control) => (
+                      <Switch
+                        {...control}
+                        data-testid="listings-settings-renew"
+                        checked={renewAllowed}
+                        onCheckedChange={(checked) => {
+                          setRenewAllowed(checked);
+                          setProblem(null);
+                        }}
+                      />
+                    )}
+                  </Field>
                 </div>
                 <div className="flex min-w-0 flex-col gap-2">
-                  <label
-                    htmlFor="listings-settings-days"
-                    className="text-sm font-medium text-foreground"
+                  <Field
+                    id={"listings-settings-days"}
+                    label={<>{t("admin.listings.settings.renewDays")}</>}
+                    required={false}
+                    refusal={null}
+                    layout="stack"
+                    field="renewDays"
                   >
-                    {t("admin.listings.settings.renewDays")}
-                  </label>
-                  <Input
-                    id="listings-settings-days"
-                    data-testid="listings-settings-days"
-                    inputMode="numeric"
-                    value={days}
-                    maxLength={3}
-                    aria-describedby="listings-settings-days-help"
-                    onChange={(event) => {
-                      setDays(event.target.value);
-                      setProblem(null);
-                    }}
-                  />
+                    {(control) => (
+                      <Input
+                        {...control}
+                        data-testid="listings-settings-days"
+                        inputMode="numeric"
+                        value={days}
+                        maxLength={3}
+                        aria-invalid={daysRefused || undefined}
+                        aria-describedby={
+                          daysRefused
+                            ? "listings-settings-days-help listings-settings-problem"
+                            : "listings-settings-days-help"
+                        }
+                        onChange={(event) => {
+                          setDays(event.target.value);
+                          setProblem(null);
+                          setDaysRefused(false);
+                        }}
+                      />
+                    )}
+                  </Field>
                   <p id="listings-settings-days-help" className="text-xs text-muted-foreground">
                     {t("admin.listings.settings.daysHelp")}
                   </p>
@@ -188,6 +209,7 @@ export function ListingSettings({
             {problem !== null ? (
               <p
                 role="alert"
+                id="listings-settings-problem"
                 data-testid="listings-settings-problem"
                 className="text-sm text-destructive"
               >

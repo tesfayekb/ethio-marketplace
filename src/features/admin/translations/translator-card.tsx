@@ -1,3 +1,4 @@
+import { Field } from "@/components/forms/field";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -127,15 +128,22 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
           <ul className="flex flex-wrap gap-3">
             {assignable.map((row) => (
               <li key={row.code} className="flex min-h-11 items-center gap-2">
-                <Checkbox
+                <Field
                   id={`translator-lang-${row.code}`}
-                  data-testid={`translator-lang-${row.code}`}
-                  checked={selected.includes(row.code)}
-                  onCheckedChange={(checked) => toggle(row.code, checked === true)}
-                />
-                <label className="text-sm text-foreground" htmlFor={`translator-lang-${row.code}`}>
-                  {`${row.nameNative} (${row.code})`}
-                </label>
+                  label={<>{`${row.nameNative} (${row.code})`}</>}
+                  required={false}
+                  refusal={null}
+                  layout="choice"
+                >
+                  {(control) => (
+                    <Checkbox
+                      {...control}
+                      data-testid={`translator-lang-${row.code}`}
+                      checked={selected.includes(row.code)}
+                      onCheckedChange={(checked) => toggle(row.code, checked === true)}
+                    />
+                  )}
+                </Field>
               </li>
             ))}
           </ul>

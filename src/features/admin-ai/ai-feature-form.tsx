@@ -1,6 +1,8 @@
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
+import { controlClass } from "@/components/forms/control-class";
 import { useState } from "react";
 
-import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -15,6 +17,10 @@ import {
   type AiRefusal,
   type SetAiFeatureInput,
 } from "./ai-service";
+
+const AI_FORM_REFUSALS = {
+  words: { required: "post.refusal.required", badBudget: "admin.ai.error.badBudget" },
+} as const;
 
 /**
  * Bundle 13 turn 5 (D158) — ONE FEATURE'S SWITCH, BUDGET AND PRICE.
@@ -49,12 +55,16 @@ export function AiFeatureForm({
   const [budget, setBudget] = useState(() => budgetField(row.monthlyBudgetCents));
   const [price, setPrice] = useState(() => priceField(row.unit, row.unitCostMicrousd));
   const [local, setLocal] = useState<MessageKey | null>(null);
+  const [budgetRefused, setBudgetRefused] = useState(false);
+  const gate = useFormGate();
 
   const submit = () => {
     setLocal(null);
+    setBudgetRefused(false);
+    if (!gate.try()) return;
     const cents = budgetCentsOf(budget);
     if (!cents.ok) {
-      setLocal("admin.ai.error.badBudget");
+      setBudgetRefused(true);
       return;
     }
     const micro = unitCostOf(row.unit, price);
@@ -77,47 +87,83 @@ export function AiFeatureForm({
       <p className="min-w-0 break-words text-sm font-medium" data-testid="ai-editor-feature">
         {name}
       </p>
-      <label className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          className="size-5"
-          data-testid="ai-editor-on"
-          checked={enabled}
-          onChange={(event) => setEnabled(event.target.checked)}
-        />
-        <span>{t("admin.ai.field.on")}</span>
-      </label>
+      <Field
+        id={"ai-editor-on"}
+        field="enabled"
+        label={
+          <>
+            <span>{t("admin.ai.field.on")}</span>
+          </>
+        }
+        required={false}
+        refusal={null}
+        layout="choice"
+      >
+        {(control) => (
+          <input
+            {...control}
+            type="checkbox"
+            className="size-5"
+            data-testid="ai-editor-on"
+            checked={enabled}
+            onChange={(event) => setEnabled(event.target.checked)}
+          />
+        )}
+      </Field>
       {screening ? (
         <p className="text-sm text-muted-foreground" data-testid="ai-editor-screening-note">
           {t("admin.ai.field.screeningOffNote")}
         </p>
       ) : null}
-      <FormField
+      <Field
+        id={"ai-editor-budget"}
+        field="monthlyBudgetCents"
         label={t("admin.ai.field.budget")}
-        htmlFor="ai-editor-budget"
-        help={t("admin.ai.field.budgetHint")}
+        required={false}
+        refusal={budgetRefused ? { field: "monthlyBudgetCents", reason: "badBudget" } : null}
+        family={AI_FORM_REFUSALS}
+        hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.budgetHint")}</p>}
       >
-        <Input
-          id="ai-editor-budget"
-          data-testid="ai-editor-budget"
-          inputMode="decimal"
-          value={budget}
-          onChange={(event) => setBudget(event.target.value)}
-        />
-      </FormField>
-      <FormField
+        {(control) => (
+          <>
+            <Input
+              {...control}
+              data-testid="ai-editor-budget"
+              inputMode="decimal"
+              className={controlClass(budgetRefused, false, "dialog")}
+              value={budget}
+              onChange={(event) => {
+                setBudget(event.target.value);
+                setBudgetRefused(false);
+              }}
+            />
+          </>
+        )}
+      </Field>
+      <Field
+        id={"ai-editor-price"}
+        field="unitCostMicrousd"
         label={t(row.unit === "call" ? "admin.ai.field.priceCall" : "admin.ai.field.priceMillion")}
-        htmlFor="ai-editor-price"
-        help={t("admin.ai.field.priceHint")}
+        required
+        gate={gate}
+        blank={price.trim() === ""}
+        refusal={gate.marks.find((mark) => mark.field === "unitCostMicrousd") ?? null}
+        family={AI_FORM_REFUSALS}
+        hint={<p className="text-xs text-muted-foreground">{t("admin.ai.field.priceHint")}</p>}
       >
-        <Input
-          id="ai-editor-price"
-          data-testid="ai-editor-price"
-          inputMode="decimal"
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-        />
-      </FormField>
+        {(control) => (
+          <>
+            <Input
+              {...control}
+              data-testid="ai-editor-price"
+              inputMode="decimal"
+              className={controlClass(gate.marks.length > 0, false, "dialog")}
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+            />
+          </>
+        )}
+      </Field>
       {shown === null ? null : (
         <>
           <p role="alert" data-testid="ai-editor-error" className="text-sm text-destructive">

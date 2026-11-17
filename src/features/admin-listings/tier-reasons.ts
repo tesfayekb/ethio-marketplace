@@ -1,7 +1,7 @@
 import { levelNameOf } from "@/features/levels/level-fields";
 import { exactLevel, type LevelRow } from "@/features/levels/levels-store";
 import type { MessageKey } from "@/i18n";
-import { wholeNumber } from "@/lib/whole-number";
+import { parseNumber } from "@/lib/parse-input";
 
 import { NOTE_MAX } from "./move-reasons";
 
@@ -58,9 +58,9 @@ export const TIER_DAYS_MAX = 3650;
  * to 3650 is that many days; anything else is undefined (refused, never a default).
  */
 export function tierDays(raw: string): number | null | undefined {
-  if (raw.trim() === "") return null;
-  const days = wholeNumber(raw);
-  return days !== null && days >= 1 && days <= TIER_DAYS_MAX ? days : undefined;
+  const parsed = parseNumber(raw, { integer: true, min: 1, max: TIER_DAYS_MAX });
+  if (parsed.kind === "blank") return null;
+  return parsed.kind === "number" ? parsed.value : undefined;
 }
 
 /** What is still missing before the change can be sent; null when nothing is. */

@@ -149,7 +149,7 @@ describe("AiFeatureForm (D158)", () => {
     );
     fireEvent.change(screen.getByTestId("ai-editor-budget"), { target: { value: "-5" } });
     fireEvent.click(screen.getByTestId("ai-editor-save"));
-    expect(screen.getByTestId("ai-editor-error").textContent).toBe("admin.ai.error.badBudget");
+    expect(screen.getByTestId("form-field-refusal").textContent).toBe("admin.ai.error.badBudget");
     fireEvent.change(screen.getByTestId("ai-editor-budget"), { target: { value: "5" } });
     fireEvent.change(screen.getByTestId("ai-editor-price"), { target: { value: "11" } });
     fireEvent.click(screen.getByTestId("ai-editor-save"));
@@ -210,5 +210,55 @@ describe("AiEditorDialog refusals", () => {
       expect(document.body.textContent).not.toContain("[object Object]");
       view.unmount();
     }
+  });
+});
+
+describe("console form kit", () => {
+  it("KFC2-3 an unreadable budget refuses before Save and clears when corrected", () => {
+    const onSave = vi.fn();
+    render(
+      <AiFeatureForm
+        row={ROW}
+        name="Writing help"
+        busy={false}
+        refusal={null}
+        onCancel={vi.fn()}
+        onSave={onSave}
+      />,
+    );
+    const budget = screen.getByTestId("ai-editor-budget");
+    fireEvent.change(budget, { target: { value: "1e2" } });
+    fireEvent.click(screen.getByTestId("ai-editor-save"));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(budget.getAttribute("aria-invalid")).toBe("true");
+    const anchor = budget.getAttribute("aria-describedby")?.split(" ").at(-1);
+    expect(anchor && document.getElementById(anchor)).toBeTruthy();
+    expect(screen.queryByTestId("ai-editor-error")).toBeNull();
+    fireEvent.change(budget, { target: { value: "$1,200.50" } });
+    fireEvent.click(screen.getByTestId("ai-editor-save"));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ monthlyBudgetCents: 120050 }));
+    expect(budget.getAttribute("aria-invalid")).toBeNull();
+  });
+
+  it("KFC2-4 a blank required price holds Save until answered", () => {
+    const onSave = vi.fn();
+    render(
+      <AiFeatureForm
+        row={ROW}
+        name="Writing help"
+        busy={false}
+        refusal={null}
+        onCancel={vi.fn()}
+        onSave={onSave}
+      />,
+    );
+    const price = screen.getByTestId("ai-editor-price");
+    fireEvent.change(price, { target: { value: " " } });
+    fireEvent.click(screen.getByTestId("ai-editor-save"));
+    expect(onSave).not.toHaveBeenCalled();
+    expect(price.getAttribute("aria-invalid")).toBe("true");
+    fireEvent.change(price, { target: { value: "0.003" } });
+    fireEvent.click(screen.getByTestId("ai-editor-save"));
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ unitCostMicrousd: 3000 }));
   });
 });

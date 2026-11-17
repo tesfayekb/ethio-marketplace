@@ -423,7 +423,7 @@ export const TRANSLATION_REFUSALS = {
     emptyList: GENERIC,
     nameRequired: GENERIC,
     pseudoLanguage: GENERIC,
-    required: GENERIC,
+    required: "post.refusal.required",
     tooLong: GENERIC,
     unknownBatch: GENERIC,
     unknownEntity: GENERIC,
