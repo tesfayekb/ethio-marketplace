@@ -63,6 +63,7 @@ export function ListingSettings({
   const [days, setDays] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+  const [daysRefused, setDaysRefused] = useState(false);
 
   const query = useQuery({ queryKey: POLICY_KEY, queryFn: readPolicy, enabled: open });
   const [shown, setShown] = useState<ListingPolicy | null>(null);
@@ -77,15 +78,18 @@ export function ListingSettings({
     setOpen(false);
     setShown(null);
     setProblem(null);
+    setDaysRefused(false);
   };
 
   const save = async () => {
     const value = daysOf(days);
     if (value === null) {
+      setDaysRefused(true);
       setProblem(t("admin.listings.settings.daysHelp"));
       return;
     }
     setBusy(true);
+    setDaysRefused(false);
     setProblem(null);
     try {
       await guard(async () => {
@@ -182,10 +186,12 @@ export function ListingSettings({
                         inputMode="numeric"
                         value={days}
                         maxLength={3}
-                        aria-describedby="listings-settings-days-help"
+                        aria-invalid={daysRefused || undefined}
+                        aria-describedby={daysRefused ? "listings-settings-days-help listings-settings-problem" : "listings-settings-days-help"}
                         onChange={(event) => {
                           setDays(event.target.value);
                           setProblem(null);
+                          setDaysRefused(false);
                         }}
                       />
                     )}
@@ -199,6 +205,7 @@ export function ListingSettings({
             {problem !== null ? (
               <p
                 role="alert"
+                id="listings-settings-problem"
                 data-testid="listings-settings-problem"
                 className="text-sm text-destructive"
               >

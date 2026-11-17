@@ -1,4 +1,5 @@
 import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { compareCodes } from "@/lib/reader-locale";
 import { useNavigate } from "@tanstack/react-router";
@@ -832,6 +833,7 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
     );
 
   const showForm = manual || picked !== null;
+  const gate = useFormGate(showForm ? 1 : 0);
 
   return (
     <FormSection
@@ -848,12 +850,10 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
               disabled={upsert.isPending}
               onClick={() => {
                 setSaved(false);
+                setErrorKey(null);
+                if (!gate.try()) return;
                 const slug = code.trim().toLowerCase();
-                if (
-                  !LANGUAGE_CODE_RE.test(slug) ||
-                  nameEn.trim() === "" ||
-                  nameNative.trim() === ""
-                ) {
+                if (!LANGUAGE_CODE_RE.test(slug)) {
                   setErrorKey("admin.translations.error.codeInvalid");
                   return;
                 }
@@ -935,9 +935,13 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
           ) : null}
           <Field
             id={"add-language-code"}
+            field="code"
             label={t("admin.translations.add.code")}
-            required={false}
-            refusal={null}
+            required
+            gate={gate}
+            blank={code.trim() === ""}
+            refusal={gate.marks.find((mark) => mark.field === "code") ?? null}
+            family={TRANSLATION_REFUSALS}
           >
             {(control) => (
               <>
@@ -953,9 +957,13 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
           </Field>
           <Field
             id={"add-language-name-en"}
+            field="nameEn"
             label={t("admin.translations.add.nameEn")}
-            required={false}
-            refusal={null}
+            required
+            gate={gate}
+            blank={nameEn.trim() === ""}
+            refusal={gate.marks.find((mark) => mark.field === "nameEn") ?? null}
+            family={TRANSLATION_REFUSALS}
           >
             {(control) => (
               <>
@@ -970,9 +978,13 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
           </Field>
           <Field
             id={"add-language-name-native"}
+            field="nameNative"
             label={t("admin.translations.add.nameNative")}
-            required={false}
-            refusal={null}
+            required
+            gate={gate}
+            blank={nameNative.trim() === ""}
+            refusal={gate.marks.find((mark) => mark.field === "nameNative") ?? null}
+            family={TRANSLATION_REFUSALS}
           >
             {(control) => (
               <>
@@ -987,9 +999,11 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
           </Field>
           <Field
             id={"add-language-rtl"}
+            field="rtl"
             label={t("admin.translations.add.rtl")}
             required={false}
             refusal={null}
+            layout="inline"
           >
             {(control) => (
               <>
@@ -1005,6 +1019,7 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
           </Field>
           <Field
             id={"translations-add-countries"}
+            field="countryCodes"
             label={t("admin.translations.add.countries")}
             required={false}
             refusal={null}
