@@ -9,6 +9,7 @@ const calls = vi.hoisted(() => ({
   review: vi.fn(),
   translation: vi.fn(),
   publish: vi.fn(),
+  discard: vi.fn(),
 }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
