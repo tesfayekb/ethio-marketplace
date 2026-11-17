@@ -2,10 +2,11 @@ import { levelsOf, parseCard, type FeedListing } from "@/features/feed/feed-page
 import { seedLevelRows, type LevelRow } from "@/features/levels/levels-store";
 import { rpc } from "@/lib/supabase-door";
 import type { Json } from "@/integrations/supabase/types";
+import { saveRefusal, type SaveRefusal } from "./ad-page-refusals";
 
 export type SaveAnswer =
   | { ok: true; saved: boolean; count: number }
-  | { ok: false; reason: "rateLimited" | "ownListing" | "listingNotAvailable" | "failed" };
+  | { ok: false; reason: SaveRefusal };
 
 async function toggle(
   publicId: string,
@@ -15,10 +16,8 @@ async function toggle(
     const { data, error } = await rpc(door, { p_public_id: publicId });
     if (error) {
       console.error(`[save-error] ${door}`, error.message);
-      return {
-        ok: false,
-        reason: error.message.includes("listingNotAvailable") ? "listingNotAvailable" : "failed",
-      };
+      // F1-5b — the shell's refusal is a code (`ownListing`, `rateLimited`, ...), read by the one reader.
+      return { ok: false, reason: saveRefusal(error) };
     }
     if (data !== null && typeof data === "object" && !Array.isArray(data)) {
       if (
@@ -29,8 +28,6 @@ async function toggle(
         data.count >= 0
       )
         return { ok: true, saved: data.saved, count: data.count };
-      if (data.ok === false && (data.reason === "rateLimited" || data.reason === "ownListing"))
-        return { ok: false, reason: data.reason };
     }
     console.error(`[save-error] ${door}: malformed answer`);
     return { ok: false, reason: "failed" };

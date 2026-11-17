@@ -151,6 +151,25 @@ src/features/my-listings/promote-service.ts.
   key's words, and a code that never had words reads as the console's generic line. The
   services call the doors through `rpc()` and read the answer through a shape guard
   (`answeredId`, in `src/lib/answered-id.ts` since F1-5a). `DOOR_CODES` did not grow.
+- **F1-5b — the buyer's doors** (`docs/governance/briefs/f1-doors-5b.md`, rulings in
+  `f1-doors-5b-ruling-1.md`; six files `20261117040300` → `20261117040800`, marks
+  `20261117060000` → `20261117060500`): `save_listing`, `unsave_listing`, `report_listing`,
+  `reveal_listing_contact`, `user_set_viewing_location`, `accept_legal` and the public door
+  `public_listing` sit on `door_context` and the shell. Every call spends its line's dial in the
+  gate, before the row is read (a repeat save, a refused report, every reveal tap and an unsave
+  count: DEC-333's status line names it); a refusal after the gate counts once (INC-844). A
+  refusal that was a returned `{ ok: false, reason }` is the shell's code (`ownListing`,
+  `alreadyReported`, `badReason`, `noteTooLong`, `acceptanceRequired`, `placeNotOpen`); the reveal
+  keeps two answers returned at 200 (`sellersCapReached`, whose flag must commit, and the
+  new-account five with its reset time). The gate's `rateLimited` carries no reset time until
+  F1-7 (INC-1170). The counters, `save_listing`, `report_listing`, `reveal_listing_contact` and
+  `register_listing_photo` read their listing `FOR KEY SHARE` before the row keyed to it, so an
+  ad deleted in between is the quiet answer, never a 23503 (INC-786, INC-821).
+  `listing_reveal_count` holds no browser grant. The client reads the codes through `readRefusal`
+  with the families' words: `SAVE_REFUSALS`, `REPORT_REFUSALS` and `CONTACT_REFUSALS`
+  (`src/features/ad-page/ad-page-refusals.ts`, with the one reading of the code a screen branches
+  on) and `LEGAL_ACCEPT_REFUSALS` (`src/features/legal/legal-accept-refusals.ts`, beside the
+  screen: `legal-reader.ts` is on the shell's first download). `DOOR_CODES` did not grow.
 - **DEC-380's exit rule is read narrowly (DEC-385)**: it binds a door that ends a live state its
   opener's dial rations (a session, a hold); a door that deletes, retires or unlinks a catalogue
   row is an edit and spends its family's dial (`admin_remove_category_pointer` and

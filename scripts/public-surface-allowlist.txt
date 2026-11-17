@@ -183,7 +183,6 @@ has_password | authenticated | restated grant (not a new surface); the caller's 
 get_my_permissions | authenticated | restated grant (not a new surface); the caller's own permission list, a STABLE signed-in reader behind door_context(reader) (F1-1 M-F1a part 4, DEC-333)
 get_my_translator_languages | authenticated | restated grant (not a new surface); the caller's own translator languages, a STABLE signed-in reader behind door_context(reader) (F1-1 M-F1a part 4, DEC-333)
 promote_options | authenticated | P-2 (b) M-2a (DEC-349): the seller's Promote sheet — a STABLE signed-in reader behind door_context(reader); the caller's own ad only (else listingNotFound), the location's country only (listingNotPlaced), the market row through market_settings_for (marketNotSet); answers every enabled self-serve level with its days, amount and availability by set_listing_level's own reads; writes nothing
-listing_reveal_count | authenticated | INC-443: an older browser grant the list lacked — a signed-in-reader (scripts/doors/manifest.txt), last granted in 20261003215007
 cat_primary_pointer | authenticated | INC-443: an older browser grant the list lacked — a helper (scripts/doors/manifest.txt), last granted in 20260928002133
 cat_primary_parent | authenticated | INC-443: an older browser grant the list lacked — a helper (scripts/doors/manifest.txt), last granted in 20260928002133
 admin_list_categories | authenticated | INC-443: an older browser grant the list lacked — a staff-reader categories:view (scripts/doors/manifest.txt), last granted in 20260928002133
