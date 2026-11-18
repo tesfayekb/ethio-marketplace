@@ -7,14 +7,30 @@
 # gate now RETRIES the transport — three attempts, 20s apart — and only calls
 # the service unreachable after the third. A real high/critical finding still
 # fails immediately: retries never soften a verdict, only a transport error.
+# DEC-405 — THE EXCEPTION LIST. An advisory this gate does not fail on is a line of
+# scripts/audit-exceptions.txt (its GHSA id, reason, expiry and DEC), read by
+# scripts/audit-exceptions.ts before the audit: an expired, malformed or undecided line
+# fails the gate here, and each valid line becomes one `--ignore=ID` and a warning.
+# Any finding that is not listed still fails at once.
 set -uo pipefail
 
 ATTEMPTS=3
 BACKOFF=20
 OUT=/tmp/audit.txt
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+EXCEPTIONS_FILE="${AUDIT_EXCEPTIONS_FILE:-$ROOT/scripts/audit-exceptions.txt}"
+
+if ! IGNORE_IDS="$(bun "$ROOT/scripts/audit-exceptions.ts" "$EXCEPTIONS_FILE")"; then
+  echo "::error::The audit exception list is not valid; this gate did NOT run. See above."
+  exit 1
+fi
+IGNORES=()
+for id in $IGNORE_IDS; do
+  IGNORES+=("--ignore=$id")
+done
 
 for attempt in $(seq 1 "$ATTEMPTS"); do
-  bun audit --audit-level=high >"$OUT" 2>&1
+  bun audit --audit-level=high ${IGNORES[@]+"${IGNORES[@]}"} >"$OUT" 2>&1
   STATUS=$?
   cat "$OUT"
 
@@ -35,7 +51,11 @@ for attempt in $(seq 1 "$ATTEMPTS"); do
     exit 1
   fi
 
-  echo "No high or critical advisories."
+  if [ "${#IGNORES[@]}" -gt 0 ]; then
+    echo "No high or critical advisories beyond the recorded exceptions."
+  else
+    echo "No high or critical advisories."
+  fi
   exit 0
 done
 

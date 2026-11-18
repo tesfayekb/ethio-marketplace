@@ -511,7 +511,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, canonical);
     const heart = page.getByTestId("listing-save");
     await expect(heart).toHaveAttribute("data-state", "signedOut");
-    await expect(heart).toHaveAttribute("href", `/auth?return=${encodeURIComponent(canonical)}`);
+    await expect(heart).toHaveAttribute(
+      "href",
+      `/auth?return=${encodeURIComponent(`${canonical}#save`)}`,
+    );
     await expect(page.getByTestId("listing-save-count")).toHaveCount(0);
     await heart.click();
     await waitForHydration(page);
@@ -520,7 +523,6 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await fields.password.fill(buyer.password);
     await fields.submit.click();
     await expect.poll(() => new URL(page.url()).pathname).toBe(canonical);
-    await expect(heart).toHaveAttribute("data-state", "unsaved");
     const savedRows = async () => {
       const { data, error } = await adminClient()
         .from("saved_listings")
@@ -530,11 +532,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       if (error) throw new Error(`AP-26 read: ${error.message}`);
       return data;
     };
-    await heart.click();
     await expect(heart).toHaveAttribute("data-state", "saved");
     await expect(heart).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByTestId("listing-save-count")).toHaveText("Saved by 1");
     expect(await savedRows()).toEqual([{ listing_id: ad.id }]);
+    expect(new URL(page.url()).hash).toBe("");
     await page.reload();
     await expect(heart).toHaveAttribute("data-state", "saved");
     await expect(page.getByTestId("listing-save-count")).toHaveText("Saved by 1");
