@@ -138,9 +138,11 @@ next: { to: <route> } | { section } }` (or a conditional of such constants —
   table in CF-GUIDE-1's allowlist would not be asked (`check(sources,
 guideOwed)` reads that ONE allowlist) — none is since turn (c); TBL-6 proves
   the refusal on a planted strip of one table's `guide=`.
-- `holds-its-box` (INC-940): `guide-sheet.tsx#BlockGuideSheet` and
-  `page-guide.tsx#PageGuideSheet` are allowlisted — the sheet draws in a portal
-  on the top layer; the page has no box of it.
+- `holds-its-box` (INC-940, INC-1200): `page-guide.tsx#PageGuideSheet` passes
+  by kind — its places draw nothing and its component draws a `Sheet`, a
+  top-layer overlay (`OVERLAY_ROOTS`), so the page has no box of it.
+  `guide-sheet.tsx#BlockGuideSheet` stays allowlisted: it is the sheet's body
+  inside `SheetContent`, and its places draw a spinner and a word.
 - `block-guide.test.tsx` BG-6/BG-7: the two forms share one accessible name,
   icon and dialog contract, and neither imports the other (`guide-spec.ts`).
 

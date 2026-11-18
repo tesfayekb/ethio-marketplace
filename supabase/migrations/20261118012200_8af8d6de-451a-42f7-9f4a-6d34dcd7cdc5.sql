@@ -158,7 +158,7 @@ BEGIN
     RAISE EXCEPTION 'F1-6a part 2 proof (a): admin_undo_listing_edit''s body differs from this file';
   END IF;
 
-  v_tag := 'e2e-mig-f16a2-' || substr(v_hex, 1, 10);
+  v_tag := 'e2e-mig-f16a2-' || translate(substr(v_hex, 1, 10), '0123456789', 'ghijkmnopr');
   v_r0 := 'e2e_mig_r0_' || substr(v_hex, 11, 8);
   v_cs := json_build_object('sub', v_s::text, 'role', 'authenticated', 'aal', 'aal2', 'session_id', v_sess::text)::text;
   BEGIN

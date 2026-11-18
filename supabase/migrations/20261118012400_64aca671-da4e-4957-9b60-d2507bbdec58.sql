@@ -138,7 +138,7 @@ BEGIN
     RAISE EXCEPTION 'F1-6a part 4 proof (a): a door''s body differs from this file';
   END IF;
 
-  v_tag := 'e2e-mig-f16a4-' || substr(v_hex, 1, 10);
+  v_tag := 'e2e-mig-f16a4-' || translate(substr(v_hex, 1, 10), '0123456789', 'ghijkmnopr');
   v_r0 := 'e2e_mig_r0_' || substr(v_hex, 11, 8);
   v_title := jsonb_build_object('title', v_tag || ' edited ad');
   v_cs := json_build_object('sub', v_s::text, 'role', 'authenticated', 'aal', 'aal2', 'session_id', v_sess::text)::text;

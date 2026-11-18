@@ -1,0 +1,11 @@
+RULING — tci-overlay-guards, stop 1: the new guard's parser lives in the migration reader. Base: cursor/tci-overlay-guards 8511223a8
+
+PREVENTION (G70): the class — a GO that names the home of a new guard without reading the register row that owns that kind of guard (row 125 in `docs/governance/mechanisms.md`: the guards read a migration file through one reader). The supervisor wrote "in `scripts/check-migrations.sh`" from the script's name, not from the register (S664). Repository: changed in this turn — the guard lands in the reader, as the row says. Instructions: in force now — a GO that asks for a new guard over migration files names `scripts/conformance/migration-reader.ts` as the parser's home and cites row 125; more generally, the home of any new guard is read from the register row of its concern before the GO is written (G0.9). Cursor rules: not needed (you stopped on the register, as rule 00 says). Knowledge: not needed.
+
+THE DECISION — option 1, your recommendation. The pattern is one parser function in `scripts/conformance/migration-reader.ts`, with its tests in `scripts/conformance/migration-reader.test.ts` (the next free MGR id, on your planted statements: the four bad ones refused, the good one passed). `scripts/check-migrations.sh` only sets the floor, calls the reader and runs the fixture self-test, in the form of the spanning-literal guard at :891–:902. `scripts/conformance/wired.test.ts` names the caller. The perl candidate is not committed anywhere; its two fixtures and both proofs carry over.
+
+SCOPE is widened by this ruling to `scripts/conformance/migration-reader.ts`, `scripts/conformance/migration-reader.test.ts` and `scripts/conformance/wired.test.ts`. The brief's `scripts/check-migrations.test.ts` (new) is dropped: the reader's test and the script's fixture self-test are the guard's proof.
+
+THE PROOFS TO PASTE, as you listed them, on the reader's form: the planted fixture (four refused, one passed); a planted copy of 012400's old proof text through the whole script, exit 1; 012200's old text refused; both corrected files pass; at floor 0 the guard names no migration in the tree.
+
+RECORDS: register row 125's text gains the new function's name at the records turn (your Records section carries the sentence). Parts A and B and Part C's proof text stand as committed. Then STEPS 4 to 6 as the brief says.
