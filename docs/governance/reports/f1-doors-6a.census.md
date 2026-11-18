@@ -1914,3 +1914,64 @@ scripts/doors/manifest.txt:264:transition_listing(uuid,text) | owner | authentic
 scripts/conformance/listing-designation.ts:14: * `transition_listing_core` (the state machine: a removal clears them) and the sweep
 scripts/conformance/listing-designation.ts:38:  "transition_listing_core",
 ````
+
+## Appendix E — ruling 1's census additions (after stop 1)
+
+### E.1 §3: no browser caller sends an enforcement transition through `transition_listing`
+
+The command, at `b5b847f44` (the base's tree for every file it reads):
+
+```
+rg -n "transition_listing\b|\"transition_listing\"|'transition_listing'" src e2e --glob '!src/integrations/supabase/types.ts'
+```
+
+Its 29 hits, each with its caller and its target status (read from the lines around each hit):
+
+| Hit | Caller | To |
+| --- | --- | --- |
+| `src/features/my-listings/my-listing.ts:315` | the owner (close) | `closed` |
+| `src/features/my-listings/my-listing.ts:322` | the owner (reopen) | the ad's `resumeStatus` |
+| `src/features/my-listings/my-listing.ts:340` | the owner (delete) | `removed` |
+| `src/features/admin-screening/use-screening.ts:242` | the reviewer (`decideListing`; callers `screening-page.tsx:441`, `admin.listings_.$listingId_.edit.tsx:88`) | `active` / `rejected` (its type) |
+| `src/routes/admin.screening.tsx:10`, `src/routes/admin.listings_.$listingId_.edit.tsx:41`, `src/features/admin-screening/screening-page.tsx:77` | comments | — |
+| `e2e/admin-screening.spec.ts:287` SC-4 | a pool user with no role (refused) | `active` |
+| `e2e/admin-screening.spec.ts:306` SC-16 | a reviewer without a fresh factor (refused) | `active` |
+| `e2e/admin-screening.spec.ts:853` SC-19 | the service role | `active` |
+| `e2e/admin-listings.spec.ts:615` AL-8 | the owner | — (owner path) |
+| `e2e/admin-listings.spec.ts:2378` ATR-5 | the seller on his own page (owner delete) | `removed` |
+| `e2e/admin-listings.spec.ts:2389` ATR-5 | the seller (owner) | `sold` |
+| `e2e/my-listings-levels.spec.ts:530` | the seller (owner delete) | `removed` |
+| `e2e/my-listings-ad.spec.ts:280` MLA-1 | the owner | `closed` |
+| `e2e/my-listings-ad.spec.ts:664` MLA-8 | the owner who also holds `listings:enforce` (owner delete) | `removed` |
+| `e2e/my-listings-ad.spec.ts:668` MLA-8 | the service role (refused `ownerDeleted`) | `screening` |
+| `e2e/my-listings-doors.spec.ts:222`, `:224` | the owner (close / reopen helpers) | `closed` / reopen |
+| `e2e/my-listings-doors.spec.ts:354`, `:525`, `:540` | the service role | `active` |
+| `e2e/my-listings-page.spec.ts:201` | the owner | `closed` |
+| `e2e/legal-certify.spec.ts:1043`, `:1050` LG-28 | the owner (`me`) | `closed` / `active` |
+| `e2e/legal-certify.spec.ts:1153`, `:1159` LG-29 | the owner (`me.rpc` at `:1166`) | `closed` / `removed` |
+| `e2e/feed-index.spec.ts:397` FE-12 | the service role | — |
+| `e2e/posting-routes.spec.ts:1050`, `:1063` | the service role | — |
+| `e2e/posting-routes-dials.spec.ts:126` PR-28 | the seller (`sellerWithDraft`) | `screening` |
+
+Every staff sender is the reviewer (`decideListing`, SC-4, SC-16), and every one sends `active` or
+`rejected` from `screening`. Every `removed` is an owner's delete of his own ad; every
+`removed → screening` is the service role's. No browser caller sends an ENFORCE transition
+(to `removed` as staff, or `removed → screening`) through `transition_listing`, so
+`admin_enforce_listing` is not built (ruling 1 §3). The only SQL reference outside the core's own
+callers is `my_listing`'s comment (§ above, F1-5a census).
+
+### E.2 §1: the roles screen draws one key per action
+
+`admin.roles.perm.action.<action>` is read per action (CF-PERM-1,
+`scripts/conformance/perm-vocabulary.ts`: an `INSERT INTO public.permissions` action literal needs its
+key in `en-admin.ts` and `am-admin.ts`). The new action `reveal` therefore owes
+`admin.roles.perm.action.reveal` (English "Reveal", ruling 1 §1); its Amharic arrives with the
+supervisor's answer at the migration stop.
+
+### E.3 Part A: the step-up census on the real tree
+
+`scripts/doors/step-ups.ts` (`declaredStepUps`) at `b5b847f44`: `listings:review` true,
+`listings:enforce` true, `listings:view` false, `categories:update` false, `profiles:update` true
+(the local proof stack's #PERMS readings agree). Its one finding on the tree is the reveal's
+`none:D129` over `listings:review` (`manifest.txt:101`), held by one dated allowance until the
+migration moves the line to `listings:reveal`.
