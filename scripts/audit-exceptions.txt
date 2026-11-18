@@ -1,0 +1,9 @@
+# The audit exception list (DEC-405; scripts/audit-exceptions.ts, read by scripts/audit-gate.sh).
+# An advisory the dependency gate does not fail on is a recorded, expiring decision, never a silent ignore.
+# One line per advisory, four cells: GHSA id | reason | until YYYY-MM-DD | DEC-n
+#   - the id is the advisory's GHSA id and nothing else (never a package, never a severity);
+#   - `until` is at most 14 days after the day the gate runs; an expired line fails the gate;
+#   - the DEC is the operator's decision; a line without one fails the gate;
+#   - a malformed line fails the gate; a renewal is a new line under a new DEC.
+# The line is removed in the package turn that applies the patch.
+GHSA-fc5q-39xc-vjpf | picomatch <= 4.0.7: ReDoS through single-branch repeated extglobs; no patched version; a build and test tool only, reading patterns the repository writes; not in the built app | until 2026-12-02 | DEC-405

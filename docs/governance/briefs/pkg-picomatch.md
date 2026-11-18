@@ -1,0 +1,37 @@
+THE PICOMATCH ADVISORY — a package turn of its own (G42): `bun audit` reports a HIGH advisory for `picomatch` (GHSA-fc5q-39xc-vjpf, "picomatch vulnerable to ReDoS through single-branch repeated extglobs"), and the CI job "Dependency vulnerability audit (enforcing on high/critical)" is red on every branch from 2026-11-17 (run 44194618990 on pull request #63 is the first). Base: dev 143027fac
+
+Stem: `pkg-picomatch` (brief `docs/governance/briefs/pkg-picomatch.md` (new); report `docs/governance/reports/pkg-picomatch.report.md` (new)). Tier B (a build tool's transitive dependency; no runtime code of the app imports it). FLAGS: no-migration, no-new-string, no-agents-change. A SECOND LANE, run while `cursor/f1-doors-6a` waits at its migration stop (everything of that lane committed and pushed; one working tree, one chat at a time — DEC-346: disjoint files, this lane writes only `package.json`, `bun.lock` and its records). No stop planned: STEP 1 is a census that does not STOP; a premise found wrong is a STOP.
+
+BASELINE: dev 143027fac — CI on it SUCCESS before the advisory was published; the audit job reads the advisory service live, so dev's next run is red on the same job.
+
+PREVENTION (G70): the class — an advisory published after a commit was judged reds every lane at once. Repository: this turn (the override). Instructions: in force — an audit red that names a package no lane changed is a dev-wide red, fixed by its own package turn the same day, and every open lane's report names it under Limits. Cursor rules: not needed. Knowledge: not needed.
+
+THE SYSTEM (G0)
+CONCERN: every dependency the build installs is free of known high or critical advisories, judged by `bun audit` in CI.
+MECHANISM: `scripts/audit-gate.sh` (`bun audit --audit-level=high`, its retry on transport) in CI's audit job; the version pins in `package.json` (`overrides`, read by bun when it resolves `bun.lock`); `scripts/conformance/lockfile-hosts.test.ts` (CF-LOCK-1 — every `bun.lock` address is the public registry's).
+CONSUMERS: `picomatch` in `bun.lock` at 4.0.7 (`bun.lock` :1088), required by `@tanstack/start-plugin-core` (`^4.0.7`), `@tanstack/devtools-vite` (`^4.0.3`), `tinyglobby` (`^4.0.4`) and as an optional peer of `fdir`; the census lists every other copy and requirer (`bun pm ls --all` or the lockfile read).
+COVERED HERE: picomatch raised to the first version the advisory names as patched, by an `overrides` entry. LEFT: none.
+CONFORMANCE GUARD: the audit job itself; CF-LOCK-1.
+EXCEPTIONS: none — no advisory is ignored or allowlisted.
+FIVE LENSES — security: the patched version, no ignore list · performance: none at runtime (a build tool) · failure modes: if no patched version exists yet, STOP and say so (never an ignore line) · consistency: one override form, as the eleven entries already in `package.json` · future growth: none.
+FORWARD-SCAN: every open lane (`cursor/f1-doors-6a`, `lovable/save-intent`) turns green on that job once this lands and the lane takes dev. REGISTER: none.
+
+SCOPE, by area: `package.json` (one `overrides` entry); `bun.lock` (as `bun install` writes it, registry addresses kept — read by `scripts/conformance/lockfile-hosts.test.ts`); `roadmap.md` line 3; the turn's own brief and report; `scripts/conformance/briefs-allowlist.txt` (read by `scripts/conformance/briefs.test.ts`). Never a path rule 00 forbids.
+
+THE TURN, IN THIS ORDER
+STEP 0 — in a NEW chat, only when the F1-6a lane is at its migration stop with nothing uncommitted: `git status --short` empty (if it is not, STOP and say so — never stash or discard the other lane's work); `git fetch origin && git switch -c cursor/pkg-picomatch origin/dev`. This chat ends on its own branch; the F1-6a second half starts in its own new chat by returning to its lane. Save this brief byte for byte as `docs/governance/briefs/pkg-picomatch.md` (new) (scripted copy; its sha256 equal to the value the carrier gives). Roadmap line 3: `The brief in force: docs/governance/briefs/pkg-picomatch.md (the picomatch advisory, a package turn). Previous: ` + the line as it stands after "The brief in force: ". Remove from `scripts/conformance/briefs-allowlist.txt` every line keyed to another brief. `bun scripts/brief/check-go.ts docs/governance/briefs/pkg-picomatch.md`, output pasted. Commit `pkg-picomatch: task saved`; not pushed alone.
+STEP 1 — THE CENSUS (no STOP; answers in the report's §4): consumers — `bun audit --audit-level=high` output pasted whole; the advisory's affected and patched ranges as `bun audit` or the registry prints them (cite the command and its output; if no patched version exists, STOP); every requirer of picomatch and the range each accepts; definition, tests, lists, old-file-readers, second-readers, chunk-graph, environments, first-download, callee-codes — CENSUS-ITEM each: not applicable — a build tool's dependency, no source file; mechanisms (the audit gate, the overrides, CF-LOCK-1); premises; findings; queued (`rg -n 'picomatch' docs/governance roadmap.md`).
+STEP 2 — one `overrides` entry `"picomatch": "^<patched>"` (or the exact form the census shows every requirer accepts); `bun install`; `bun audit --audit-level=high` prints no high or critical (pasted); `git diff --stat bun.lock` and the picomatch lines of `bun.lock` before and after pasted; CF-LOCK-1 green. Commit `pkg-picomatch: picomatch raised past GHSA-fc5q-39xc-vjpf`.
+STEP 3 — `bun run typecheck`; `bun run lint`; `bun run build`; `bunx vitest run scripts/conformance/lockfile-hosts.test.ts`; `bun run checks`; `bun scripts/brief/check-go.ts docs/governance/briefs/pkg-picomatch.md --at 143027fac` (output pasted). The self-review before the push.
+STEP 4 — ONE push; `gh pr create --base dev` (title "The picomatch advisory: an override past GHSA-fc5q-39xc-vjpf"); `gh pr checks <number> --watch --interval 60`; green → the comment per rule 00.
+STEP 5 — the report while CI runs: rule 60's fourteen headings; §14 Records word for word; its push changes records only.
+
+DECIDE-AND-NAME: the override's exact range; whether a requirer's own update would serve better than an override (named, not done — the override is this turn's form).
+
+RECORDS (the report's §14, word for word; the executor fills the bracketed parts): INC — a high advisory for picomatch (GHSA-fc5q-39xc-vjpf, ReDoS through single-branch repeated extglobs), published after dev 143027fac was judged, redded the audit job on every branch on 2026-11-17; a build tool's transitive dependency (the TanStack Start plugin, its devtools, tinyglobby); closed by this turn — picomatch [old] → [new] by an override. DEC — the override `"picomatch": "[range]"` in `package.json`, the twelfth entry of the overrides list; removed when every requirer requires the patched range itself. Changelog: one line.
+
+TOLERANCES (G60), by defect: a CI red whose failure names `package.json`, `bun.lock` or the audit is a STOP; a red elsewhere is named under Limits and CI judges. First download (DEC-355, word for word): a page's first download grows only by a named cause the report lists chunk by chunk; an unexplained growth is a STOP; no bare number (a build tool's change should not reach the client at all).
+
+FINDINGS (G64): anything major beyond this task goes in §13 with file:line; a security hole is a STOP at once, described in the chat only.
+
+LIMITS TO STATE: `bun audit` reads the advisory service live; the run that judges is CI's audit job on this lane.

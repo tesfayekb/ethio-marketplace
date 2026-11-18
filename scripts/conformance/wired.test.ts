@@ -387,6 +387,13 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/e2e-failure-report.test.ts"), "utf8")).toContain(
       "EFR-1",
     );
+    // audit-gate.test.ts AGX-1…10 (the picomatch advisory, DEC-405) is discovered by test:unit's
+    // scripts/**/*.test.ts; ci.yml's dependency-audit job runs scripts/audit-gate.sh, which reads
+    // scripts/audit-exceptions.txt through scripts/audit-exceptions.ts.
+    expect(readFileSync(join(ROOT, "scripts/audit-gate.test.ts"), "utf8")).toContain("AGX-10");
+    expect(readFileSync(join(ROOT, "scripts/audit-gate.sh"), "utf8")).toContain(
+      "scripts/audit-exceptions.ts",
+    );
     // publish-evidence.test.ts CF-PUBLISH-1…3 (housekeeping turn 3 Part C, DEC-321) is discovered
     // by test:unit's scripts/**/*.test.ts; ci-deadlines.test.ts CF-CID-5/6 holds every publisher
     // call to its EVIDENCE_REF.
