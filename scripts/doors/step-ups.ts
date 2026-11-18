@@ -31,8 +31,10 @@ export type StepUpWrite = { resource: string; action: string | null; value: bool
 
 const STATEMENT = /\b(insert\s+into|update)\s+public\.permissions\b/gi;
 const RESOURCE = /\b\w+\.name\s*=\s*'([a-z][a-z0-9_]*)'/i;
+// Each pair eats the white space after it and one optional comma with its own, so no run of
+// white space can be split between two readings of the loop (no backtracking blow-up).
 const PAIRS =
-  /\(\s*\w+\.name\s*,\s*\w+\.action\s*\)\s*in\s*\(((?:\s*\(\s*'[^']*'\s*,\s*'[^']*'\s*\)\s*,?)+)\)/i;
+  /\(\s*\w+\.name\s*,\s*\w+\.action\s*\)\s*in\s*\(\s*((?:\(\s*'[^']*'\s*,\s*'[^']*'\s*\)\s*(?:,\s*)?)+)\)/i;
 const PAIR = /\(\s*'([a-z][a-z0-9_]*)'\s*,\s*'([a-z][a-z0-9_]*)'\s*\)/gi;
 const ACTION_ONE = /\b\w+\.action\s*=\s*'([a-z][a-z0-9_]*)'/gi;
 const ACTION_LIST = /\b\w+\.action\s+in\s*\(([^)]*)\)/gi;

@@ -341,7 +341,8 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     expect((await close(a, x.id)).error).toBeNull();
     const kept = (await listingTruth(x.id))["kept_remaining"];
-    // Seller B, refused above as a stranger, now holds listings:view and listings:review (DEC-174).
+    // Seller B, refused above as a stranger, now holds listings:view and listings:review (DEC-174):
+    // transition_listing is the owner's door alone (DEC-402), so a reviewer is still no owner.
     await grantScratchRole(
       sellerB.id,
       [
@@ -350,7 +351,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       ],
       roles,
     );
-    expect((await reopen(b, x.id)).error).toBe("ownerOnly:closed-active");
+    expect((await reopen(b, x.id)).error).toBe("notYourListing");
     const service = await adminClient().rpc("transition_listing", {
       p_listing_id: x.id,
       p_new_status: "active",

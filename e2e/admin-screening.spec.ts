@@ -706,6 +706,8 @@ test.describe("ADMIN SCREENING", () => {
         ["admin_panel", "access"],
         ["listings", "view"],
         ["listings", "review"],
+        // F1-6a (DEC-400): showing a number is its own permission, no second factor asked.
+        ["listings", "reveal"],
       ],
       roles,
     );

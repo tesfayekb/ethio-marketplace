@@ -544,7 +544,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         p_changes: { remove_photos: [first!.id] },
         p_reason: "photo",
       }),
-    ).toMatchObject({ error: "photo not found on this listing" });
+    ).toMatchObject({ error: "photoNotFound" });
   });
 
   test("AL-7 Remove, then Restore: back to Waiting, never straight to live; each move logged and told", async ({
@@ -1978,7 +1978,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         p_changes: { category_id: other.leaf.id },
         p_reason: "misleading",
       }),
-    ).toMatchObject({ error: "the category of a posted listing is not changed" });
+    ).toMatchObject({ error: "categoryFixed" });
     expect(await stored()).toEqual(kept);
     expect(await revisionRows(live.id, "edit")).toEqual([]);
     expect(await noticeRows(live.id)).toEqual([]);
