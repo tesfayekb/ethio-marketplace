@@ -113,7 +113,7 @@ describe("ListingPhotos (D154 B4)", () => {
   });
 
   it("LP-5 the door's refusal stays in the dialog, which stays open", async () => {
-    door.edit.mockRejectedValueOnce({ message: "photo not found on this listing" });
+    door.edit.mockRejectedValueOnce({ message: "photoNotFound" });
     const { onRemoved } = mount(true);
     fireEvent.click(screen.getAllByTestId("listing-photos-remove")[0]!);
     const dialog = await screen.findByTestId("listing-photo-remove-dialog");

@@ -284,12 +284,12 @@ test.describe("ADMIN SCREENING", () => {
     await switchUser(page, plain.email, plain.password);
     await gotoReady(page, "/");
     const deniedPlain = (
-      await pageDoor(page, "transition_listing", {
+      await pageDoor(page, "admin_review_listing", {
         p_listing_id: ad.id,
         p_new_status: "active",
       })
     ).error;
-    expect(deniedPlain).not.toBeNull();
+    expect(deniedPlain).toBe("permissionDenied");
     expect((await listingTruth(ad.id)).status).toBe("screening");
   });
 
@@ -303,12 +303,12 @@ test.describe("ADMIN SCREENING", () => {
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
     const deniedReviewer = (
-      await pageDoor(page, "transition_listing", {
+      await pageDoor(page, "admin_review_listing", {
         p_listing_id: ad.id,
         p_new_status: "active",
       })
     ).error;
-    expect(deniedReviewer).toMatch(/no verified factor|step-up required/i);
+    expect(deniedReviewer).toBe("step-up required: no verified factor");
     expect((await listingTruth(ad.id)).status).toBe("screening");
   });
 
@@ -396,12 +396,12 @@ test.describe("ADMIN SCREENING", () => {
     await switchUser(page, plain.email, plain.password);
     await gotoReady(page, "/");
     const facts = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
-    expect(facts.error).toBe("permission denied");
+    expect(facts.error).toBe("permissionDenied");
     const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
-    expect(shown.error).toBe("permission denied");
+    expect(shown.error).toBe("permissionDenied");
     expect(await revealRows(ad.id), "SC-8: a refused reveal wrote a row").toHaveLength(0);
   });
 
@@ -412,7 +412,15 @@ test.describe("ADMIN SCREENING", () => {
     const ad = await seedWaiting({ contactPref: PREF });
 
     const reviewer = await leaseUser();
-    await grantScratchRole(reviewer.id, [["listings", "review"]], roles);
+    // F1-6a (DEC-400): showing a number is its own permission, no second factor asked.
+    await grantScratchRole(
+      reviewer.id,
+      [
+        ["listings", "review"],
+        ["listings", "reveal"],
+      ],
+      roles,
+    );
     await switchUser(page, reviewer.email, reviewer.password);
     await gotoReady(page, "/");
     const read = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
@@ -457,7 +465,7 @@ test.describe("ADMIN SCREENING", () => {
       p_listing_id: ad.id,
       p_channel: "telegram",
     });
-    expect(handle.error).toBe("unknown channel");
+    expect(handle.error).toBe("badValue:channel");
     expect(await revealRows(ad.id), "SC-9: a refused reveal wrote a row").toHaveLength(1);
   });
 
@@ -465,12 +473,12 @@ test.describe("ADMIN SCREENING", () => {
     const ad = await seedWaiting({ contactPref: PREF, status: "active" });
     await signInJobSuperAdmin(page);
     const facts = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
-    expect(facts.error).toBe("listing not found");
+    expect(facts.error).toBe("listingNotFound");
     const shown = await pageDoor(page, "admin_reveal_listing_contact", {
       p_listing_id: ad.id,
       p_channel: "phone",
     });
-    expect(shown.error).toBe("listing not found");
+    expect(shown.error).toBe("listingNotFound");
     expect(await revealRows(ad.id)).toHaveLength(0);
   });
 
@@ -698,6 +706,8 @@ test.describe("ADMIN SCREENING", () => {
         ["admin_panel", "access"],
         ["listings", "view"],
         ["listings", "review"],
+        // F1-6a (DEC-400): showing a number is its own permission, no second factor asked.
+        ["listings", "reveal"],
       ],
       roles,
     );
@@ -850,7 +860,7 @@ test.describe("ADMIN SCREENING", () => {
     const ad = await seedWaiting();
     const photos = await seedHeldPhotos(ad.id);
     // The service, not a person (the screening gateway's seat): the photo stays held.
-    const moved = await adminClient().rpc("transition_listing", {
+    const moved = await adminClient().rpc("admin_review_listing", {
       p_listing_id: ad.id,
       p_new_status: "active",
     });
@@ -1007,7 +1017,7 @@ test.describe("ADMIN SCREENING", () => {
         ["removed", warnedId, null, []],
       ]);
 
-      await signInJobSuperAdmin(page);
+      const { secret } = await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/screening");
       const section = page.getByTestId("admin-photo-changes");
       const mine = section.locator(
@@ -1038,6 +1048,8 @@ test.describe("ADMIN SCREENING", () => {
       // Mark reviewed: the removal leaves the list, the door wrote who and when, and an audit row.
       const removal = truth[3]!;
       await mine.nth(3).getByTestId("admin-photo-change-review").click();
+      // DEC-401: Mark reviewed asks the second factor like the other review doors.
+      await stepUpIfPrompted(page, secret);
       await expect(mine).toHaveCount(3, { timeout: 20000 });
       await expect(section.locator(`[data-change-id="${removal.id}"]`)).toHaveCount(0);
       const after = await changesOf(ad.id);
@@ -1197,7 +1209,7 @@ test.describe("ADMIN SCREENING", () => {
     if (signedIn.error)
       throw new Error(`[e2e:sc] signing in the seller failed: ${signedIn.error.message}`);
     const allowed = await sellerClient.rpc("admin_allow_listing_photo", { p_photo_id: failed });
-    expect(allowed.error?.message).toBe("permission denied");
+    expect(allowed.error?.message).toBe("permissionDenied");
     expect(await heldTruth(failed), "SC-23: the seller's call showed the photo").toBe(true);
   });
 

@@ -34,6 +34,11 @@ describe("photo warnings and photo changes (D154 B3, B5)", () => {
 
   it("PCH-2 the door's refusal reads as already reviewed; anything else as the common error", () => {
     expect(photoChangeErrorKey("changeGone")).toBe("admin.screening.changes.gone");
+    expect(photoChangeErrorKey({ message: "changeGone", code: "P0D01" })).toBe(
+      "admin.screening.changes.gone",
+    );
+    expect(photoChangeErrorKey("permissionDenied")).toBe("common.error");
+    expect(photoChangeErrorKey("stepUpRequired")).toBe("common.error");
     expect(photoChangeErrorKey("forbidden")).toBe("common.error");
   });
 

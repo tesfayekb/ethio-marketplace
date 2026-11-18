@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
 
@@ -92,9 +93,15 @@ export async function reviewPhotoChange(changeId: string): Promise<void> {
   if (error) throw error;
 }
 
-/** B5 — a refusal of the door, in words. */
-export function photoChangeErrorKey(message: string): MessageKey {
-  return message.includes("changeGone") ? "admin.screening.changes.gone" : "common.error";
+/** The review door's words: a change already reviewed. */
+const PHOTO_CHANGE_REFUSALS = {
+  words: { changeGone: "admin.screening.changes.gone" },
+  generic: "common.error",
+} as const satisfies RefusalFamily;
+
+/** B5 — a refusal of the door (`code[:detail]`), in words. */
+export function photoChangeErrorKey(refusal: unknown): MessageKey {
+  return readRefusal(refusal, PHOTO_CHANGE_REFUSALS).key;
 }
 
 /** B3 — of these ads, the ones holding a photo the screen warned `not_relevant` about. */

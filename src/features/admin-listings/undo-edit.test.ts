@@ -36,17 +36,15 @@ describe("undo an admin's edit (turn L4d)", () => {
   });
 
   it("UE-2 the door's refusals in words", () => {
-    expect(undoErrorKey("the listing has changed since this edit")).toBe(
-      "admin.listings.undo.changed",
-    );
-    expect(undoErrorKey("nothing to undo")).toBe("admin.listings.undo.changed");
-    expect(undoErrorKey("a removed listing is not edited")).toBe(
-      "admin.listings.edit.error.removed",
-    );
-    expect(undoErrorKey("permission denied")).toBe("admin.listings.move.error.denied");
-    expect(undoErrorKey("listing not found")).toBe("admin.listings.move.error.notFound");
-    expect(undoErrorKey("the note is too long")).toBe("admin.listings.move.noteTooLong");
-    expect(undoErrorKey("a photo removal is not undone")).toBe("common.error");
+    expect(undoErrorKey("listingChanged")).toBe("admin.listings.undo.changed");
+    expect(undoErrorKey("nothingToUndo")).toBe("admin.listings.undo.changed");
+    expect(undoErrorKey("listingRemoved")).toBe("admin.listings.edit.error.removed");
+    expect(undoErrorKey("permissionDenied")).toBe("admin.listings.move.error.denied");
+    expect(undoErrorKey("listingNotFound")).toBe("admin.listings.move.error.notFound");
+    expect(undoErrorKey("noteTooLong")).toBe("admin.listings.move.noteTooLong");
+    expect(undoErrorKey("badValue:reason")).toBe("admin.listings.move.pickReason");
+    expect(undoErrorKey("photoRemovalFinal")).toBe("common.error");
+    expect(undoErrorKey("notSignedIn")).toBe("common.error");
   });
 
   it("UE-3 the rules the before-values break, as groups; an answer's key reads as Specifications", () => {

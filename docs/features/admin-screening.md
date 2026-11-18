@@ -108,3 +108,17 @@ The operator (2026-10-16): the staff's Edit is the "same review page as the firs
 
 - From Screening (`?from=screening`), for listings:review, the wizard's Review carries **Approve** (`post-edit-approve`) and **Reject** (`post-edit-reject`, destructive) beside Done (`post-edit-actions`). Each asks first with the queue's own words (`post-edit-confirm`, `post-edit-confirm-go`; Cancel keeps the Review), decides through `transition_listing` under the step-up gate (`decideListing`, one ad), and returns to `/admin/screening?decided=active|rejected`, where the page says "Approved" / "Rejected" (`admin-screening-notice`'s line, as a decision from the queue says it) and drops the parameter. A cancelled second factor leaves the Review as it was; a refusal is said under the actions (`post-edit-decide-problem`).
 - Tests: E2E SC-25 extended (approve from the Review after the edit), per the turn's brief.
+
+## F1-6a — the decision and the number go through the staff shell (DEC-400, DEC-401, DEC-402)
+
+- Approve, Reject and the bulk and Edit-Review decisions call `admin_review_listing` (staff,
+  `listings:review`, step-up on the row, dial `staff_moderation`); `transition_listing` is the
+  owner's and the service's door only. A refused call answers a code (`permissionDenied`,
+  `illegalTransition:<from>-<to>`, `ownListing`, `rateLimited`, …) and the page words it through
+  the family's table.
+- "Show number" is its own permission, `listings:reveal` (`admin.roles.perm.action.reveal`),
+  asked without a second factor; a reviewer who may decide may not see numbers unless the role
+  also holds it. A raised `rateLimited` is worded as the reveal's own line.
+- Marking a photo change reviewed asks the second factor (`guard` + `stepUpAbortKey`): a
+  cancelled prompt is silent, a missing factor says so.
+- Tests: SF-8, SF-9, PCH-7; e2e SC-4, SC-8, SC-9, SC-10, SC-16, SC-17, SC-19, SC-21, SC-23.

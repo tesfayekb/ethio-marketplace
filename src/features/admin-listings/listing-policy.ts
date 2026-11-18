@@ -1,6 +1,9 @@
 import type { MessageKey } from "@/i18n";
 import { parseNumber } from "@/lib/parse-input";
 import { authKey } from "@/lib/query-keys";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+
+import { badValueWords } from "./listing-refusals";
 
 /**
  * Bundle 16 turn R2 (D174 3, D175 2) — THE RENEW SETTINGS as `listing_policy` holds
@@ -32,8 +35,17 @@ export function daysOf(text: string): number | null {
   return parsed.kind === "number" ? parsed.value : null;
 }
 
-/** The door's refusal, in the admin's words. */
-export function settingsErrorKey(message: string): MessageKey {
-  if (message.includes("renew days are 1 to 365")) return "admin.listings.settings.daysHelp";
-  return "admin.listings.settings.failed";
+/** The renew settings' words: the days box's line for a bad day count, else "failed". */
+const POLICY_REFUSALS = {
+  words: {},
+  generic: "admin.listings.settings.failed",
+} as const satisfies RefusalFamily;
+
+const POLICY_BAD_VALUES = {
+  renew_days: "admin.listings.settings.daysHelp",
+} as const satisfies Record<string, MessageKey>;
+
+/** The door's refusal (`code[:detail]`), in the admin's words. */
+export function settingsErrorKey(refusal: unknown): MessageKey {
+  return badValueWords(refusal, POLICY_BAD_VALUES) ?? readRefusal(refusal, POLICY_REFUSALS).key;
 }

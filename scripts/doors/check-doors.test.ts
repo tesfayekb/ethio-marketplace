@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 
 import { GRANT_DROPPED_FLOOR, catalogueOf } from "./catalogue";
 import {
+  PLANTED_STEP_UPS,
   allow,
   liveFindings,
   plantedCases,
@@ -27,6 +28,7 @@ import {
   staticRows,
   treeCallers,
 } from "./rows";
+import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
@@ -41,7 +43,8 @@ import {
  * allowlist serves both modes (DOORS-6, INC-1072), and a body the migrations
  * hand over in chunks counts as a caller in both (DOORS-7, INC-1072); a `row:` cell names a
  * column the migrations declare (DOORS-8, F1-3); a DROP + CREATE restates every role the
- * function held, judged by the file from the floor and by the result before it (DOORS-10, F1-5a).
+ * function held, judged by the file from the floor and by the result before it (DOORS-10, F1-5a); a
+ * `none:` step-up cell names a permission the migrations declare without step-up (DOORS-11, F1-6a).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -365,6 +368,54 @@ describe("check-doors (CF-DOORS)", () => {
         .flatMap((country) => (country?.kind === "row" ? [country.column] : []));
       expect(cells.length).toBeGreaterThan(0);
       expect(cells.filter((column) => !declared.has(column))).toEqual([]);
+    },
+  );
+
+  it(
+    "DOORS-11 a none: step-up cell holds only over a permission declared without step-up: fires over listings:review, not over listings:reveal (F1-6a ruling 1, Part A)",
+    { timeout: TREE_READ_MS },
+    () => {
+      const planted = stepUpsOf([
+        { file: "supabase/migrations/20260101000000_a.sql", sql: PLANTED_STEP_UPS },
+        {
+          file: "supabase/migrations/20260102000000_b.sql",
+          sql: [
+            "UPDATE public.permissions p SET requires_step_up = true FROM public.resources r",
+            "WHERE r.id = p.resource_id AND (r.name, p.action) IN (('profiles', 'update'), ('roles', 'assign'));",
+            "DO $ BEGIN UPDATE public.permissions p SET requires_step_up = v_saved FROM public.resources r",
+            "WHERE r.id = p.resource_id AND r.name = 'roles' AND p.action IN ('assign'); END $;",
+          ].join("\n"),
+        },
+      ]);
+      expect(planted("listings:review")).toBe(true);
+      expect(planted("listings:reveal")).toBe(false);
+      expect(planted("listings:view")).toBe(false);
+      expect(planted("profiles:update")).toBe(true);
+      expect(planted("roles:assign")).toBeNull();
+      expect(planted("listings:enforce")).toBeUndefined();
+      const line = (permission: string, stepUp: string) =>
+        `e2e_planted_staff(uuid) | staff | authenticated | ${permission} | ${stepUp} | staff_moderation | - | global | staff | - | -`;
+      const fired = (permission: string, stepUp = "none:D129") =>
+        judge([], parseManifest(line(permission, stepUp)), { stepUps: planted })
+          .filter((finding) => finding.kind === "opt-out-over-step-up")
+          .map((finding) => finding.what);
+      expect(fired("listings:review")).toEqual([
+        "none:D129 over listings:review, whose declared requires_step_up is true",
+      ]);
+      expect(fired("listings:reveal")).toEqual([]);
+      expect(fired("roles:assign")).toEqual([
+        "none:D129 over roles:assign, whose declared requires_step_up is unreadable",
+      ]);
+      expect(fired("listings:enforce")).toHaveLength(1);
+      expect(fired("listings:review", "row")).toEqual([]);
+      // The tree: the flags the local proof stack reads (F1-6a census, #PERMS).
+      const tree = declaredStepUps(ROOT);
+      expect(tree("listings:review")).toBe(true);
+      expect(tree("listings:reveal")).toBe(false);
+      expect(tree("listings:enforce")).toBe(true);
+      expect(tree("listings:view")).toBe(false);
+      expect(tree("categories:update")).toBe(false);
+      expect(tree("profiles:update")).toBe(true);
     },
   );
 

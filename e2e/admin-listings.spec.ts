@@ -284,7 +284,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await ids({ p_from: tomorrow })).toEqual([]);
     const page1 = await list(page, { p_seller: seller.alias, p_limit: 2, p_offset: 0 });
     expect((page1.data as Row[]).map((row) => row.total_count)).toEqual([5, 5]);
-    expect((await list(page, { p_view: "bogus" })).error).toBe("unknown view");
+    expect((await list(page, { p_view: "bogus" })).error).toBe("badValue:view");
   });
 
   /**
@@ -327,12 +327,12 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   }
 
   test("AL-3 An account with no listing right: All listings, the listing's page and Edit refuse it; nothing is written", async () => {
-    await refusedEdit(await leaseUser(), "permission denied", async (person, listingId) => {
+    await refusedEdit(await leaseUser(), "permissionDenied", async (person, listingId) => {
       expect((await person.rpc("admin_list_listings", { p_search: listingId })).error).toBe(
-        "permission denied",
+        "permissionDenied",
       );
       expect((await person.rpc("admin_listing_detail", { p_listing_id: listingId })).error).toBe(
-        "permission denied",
+        "permissionDenied",
       );
     });
   });
@@ -347,7 +347,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ],
       roles,
     );
-    await refusedEdit(holder, "permission denied");
+    await refusedEdit(holder, "permissionDenied");
   });
 
   test("AL-25 Edit refuses an enforcer without a second factor, and writes nothing", async () => {
@@ -373,15 +373,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
 
     const { user } = await signInJobSuperAdmin(page);
     const own = await seed({ ...seller, id: user.id }, "active", { own: true });
-    expect((await edit(own.id, { title: "My own" })).error).toBe(
-      "your own listing is edited the seller's way",
-    );
-    expect((await edit(draft.id, { title: "A draft" })).error).toBe("listing not found");
-    expect((await edit(removed.id, { title: "Removed" })).error).toBe(
-      "a removed listing is not edited",
-    );
-    expect((await edit(target.id, { seller_id: user.id })).error).toBe("not editable: seller_id");
-    expect((await edit(target.id, { title: "Other" }, "other")).error).toBe("a note is required");
+    expect((await edit(own.id, { title: "My own" })).error).toBe("ownListing");
+    expect((await edit(draft.id, { title: "A draft" })).error).toBe("listingNotFound");
+    expect((await edit(removed.id, { title: "Removed" })).error).toBe("listingRemoved");
+    expect((await edit(target.id, { seller_id: user.id })).error).toBe("badValue:seller_id");
+    expect((await edit(target.id, { title: "Other" }, "other")).error).toBe("noteRequired");
 
     for (const id of [target.id, draft.id, removed.id, own.id]) {
       expect(await auditRows(id)).toEqual([]);
@@ -463,7 +459,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       p_changes: { title },
       p_reason: "misleading",
     });
-    expect(again.error).toBe("nothing changed");
+    expect(again.error).toBe("nothingChanged");
     expect(await revisionRows(target.id, "edit")).toHaveLength(1);
   });
 
@@ -548,7 +544,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         p_changes: { remove_photos: [first!.id] },
         p_reason: "photo",
       }),
-    ).toMatchObject({ error: "photo not found on this listing" });
+    ).toMatchObject({ error: "photoNotFound" });
   });
 
   test("AL-7 Remove, then Restore: back to Waiting, never straight to live; each move logged and told", async ({
@@ -564,14 +560,14 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         p_reason: reason,
       });
 
-    expect((await move("removed", "removed_in_error")).error).toBe("unknown reason");
+    expect((await move("removed", "removed_in_error")).error).toBe("badValue:reason");
     expect((await move("removed", "prohibited")).data).toEqual({
       ok: true,
       kind: "admin_remove",
       status: "removed",
     });
     expect((await listingTruth(target.id))?.["status"]).toBe("removed");
-    expect((await move("removed", "rules")).error).toBe("illegal move: removed -> removed");
+    expect((await move("removed", "rules")).error).toBe("illegalTransition:removed-removed");
     expect((await move("screening", "removed_in_error")).data).toEqual({
       ok: true,
       kind: "admin_restore",
@@ -628,10 +624,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         p_to: "screening",
         p_reason: "appeal_accepted",
       });
+    // The door asks the second factor before it reads the move (ruling 1 §7), so an enforcer
+    // without one is refused the same way for a severe removal: the severe rule answers a
+    // holder who has a fresh factor, and only the job's super admin has one here.
     expect((await restoreAs(plainRemoved.id)).error).toBe("step-up required: no verified factor");
-    expect((await restoreAs(severe.id)).error).toBe(
-      "a listing removed for a severe reason is restored by a super admin only",
-    );
+    expect((await restoreAs(severe.id)).error).toBe("step-up required: no verified factor");
 
     await signInJobSuperAdmin(page);
     expect((await restore(severe.id)).data).toMatchObject({ ok: true, status: "screening" });
@@ -659,7 +656,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       kind: "admin_send_back",
       status: "screening",
     });
-    expect((await sendBack(sold.id)).error).toBe("illegal move: sold -> screening");
+    expect((await sendBack(sold.id)).error).toBe("illegalTransition:sold-screening");
 
     const notices = `seller_notices?select=kind,reason&listing_id=eq.${live.id}`;
     const owner = await asPerson(seller);
@@ -1064,7 +1061,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
     const viewer = await asPerson(viewerAccount);
     expect((await viewer.rpc("admin_listing_detail", { p_listing_id: draft.id })).error).toBe(
-      "listing not found",
+      "listingNotFound",
     );
     const seen = await viewer.rpc("admin_listing_detail", { p_listing_id: live.id });
     expect(seen.error).toBeNull();
@@ -1740,13 +1737,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       pageDoor(page, "admin_undo_listing_edit", { p_listing_id: listingId, p_at: at });
 
     // Nothing to undo yet; "undo" is not an edit reason; nothing is written.
-    expect((await undo(live.id, new Date().toISOString())).error).toBe("nothing to undo");
+    expect((await undo(live.id, new Date().toISOString())).error).toBe("nothingToUndo");
     const asReason = await pageDoor(page, "admin_edit_listing", {
       p_listing_id: live.id,
       p_changes: { title: `Corrected listing ${token()}` },
       p_reason: "undo",
     });
-    expect(asReason.error).toBe("unknown reason");
+    expect(asReason.error).toBe("badValue:reason");
     expect(await revisionRows(live.id, "edit")).toHaveLength(0);
 
     // An edit; a line that is not the newest is refused.
@@ -1760,9 +1757,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         })
       ).error,
     ).toBeNull();
-    expect((await undo(live.id, "2000-01-01T00:00:00+00:00")).error).toBe(
-      "the listing has changed since this edit",
-    );
+    expect((await undo(live.id, "2000-01-01T00:00:00+00:00")).error).toBe("listingChanged");
 
     // The listing changed since the edit (this test's own row): refused; put back, the undo lands.
     const changed = await adminClient()
@@ -1771,7 +1766,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       .eq("id", live.id);
     if (changed.error) throw new Error(`[e2e:al] change failed: ${changed.error.message}`);
     const at = await newestRevisionAt(live.id);
-    expect((await undo(live.id, at)).error).toBe("the listing has changed since this edit");
+    expect((await undo(live.id, at)).error).toBe("listingChanged");
     const putBack = await adminClient().from("listings").update({ title }).eq("id", live.id);
     if (putBack.error) throw new Error(`[e2e:al] put back failed: ${putBack.error.message}`);
     const undone = await undo(live.id, at);
@@ -1780,7 +1775,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await listingTruth(live.id)).toMatchObject({ status: "active", title: live.title });
 
     // The undo is not undone again.
-    expect((await undo(live.id, await newestRevisionAt(live.id))).error).toBe("nothing to undo");
+    expect((await undo(live.id, await newestRevisionAt(live.id))).error).toBe("nothingToUndo");
 
     // The seller's own line is the newest (a scratch revision of this listing): nothing to undo.
     const own = await adminClient()
@@ -1794,7 +1789,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         after: { description: "after" },
       });
     if (own.error) throw new Error(`[e2e:al] revision seed failed: ${own.error.message}`);
-    expect((await undo(live.id, await newestRevisionAt(live.id))).error).toBe("nothing to undo");
+    expect((await undo(live.id, await newestRevisionAt(live.id))).error).toBe("nothingToUndo");
     expect((await noticeRows(live.id)).map((row) => `${String(row["reason"])}`).sort()).toEqual([
       "misleading",
       "undo",
@@ -1983,7 +1978,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         p_changes: { category_id: other.leaf.id },
         p_reason: "misleading",
       }),
-    ).toMatchObject({ error: "the category of a posted listing is not changed" });
+    ).toMatchObject({ error: "categoryFixed" });
     expect(await stored()).toEqual(kept);
     expect(await revisionRows(live.id, "edit")).toEqual([]);
     expect(await noticeRows(live.id)).toEqual([]);
@@ -2294,7 +2289,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       p_tier: "premium",
       p_reason: "promotion",
     });
-    expect(refused.error).toBe("a removed listing takes no tier");
+    expect(refused.error).toBe("listingRemoved");
     expect((await tierTruth(gone.id))?.["tier"]).toBe("regular");
     expect(await tierAudits(gone.id)).toHaveLength(0);
 
@@ -2326,7 +2321,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       p_tier: "premium",
       p_reason: "promotion",
     });
-    expect(denied.error).toBe("permission denied");
+    expect(denied.error).toBe("permissionDenied");
 
     await gotoReady(page, `/admin/listings/${ad.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(ad.title, { timeout: 20000 });
@@ -2521,7 +2516,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       p_tier: "premium",
       p_reason: "promotion",
     });
-    expect(denied.error).toBe("permission denied");
+    expect(denied.error).toBe("permissionDenied");
     expect((await tierTruth(ad.id))?.["tier"]).toBe("regular");
     expect(await tierAudits(ad.id)).toHaveLength(0);
     expect(await revisionRows(ad.id, "edit")).toHaveLength(0);

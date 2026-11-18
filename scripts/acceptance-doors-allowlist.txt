@@ -38,7 +38,8 @@ admin_remove_category_pointer(uuid) | staff | Writes category_tree_pointers; rej
 admin_reorder_categories(uuid,uuid[]) | staff | Writes category_tree_pointers; rejects callers lacking categories:update before its mutations
 admin_reorder_locations(uuid,uuid[]) | staff | Writes locations; rejects callers lacking locations:update before its mutations
 admin_retire_category(uuid,uuid) | staff | Writes listings, categories; rejects callers lacking categories:restructure before its mutations
-admin_reveal_listing_contact(uuid,text) | staff | Writes audit_log; rejects callers lacking listings:review before its mutations
+admin_reveal_listing_contact(uuid,text) | staff | Writes audit_log; rejects callers lacking listings:reveal before its mutations
+admin_review_listing(uuid,text) | staff | Screening decisions through transition_listing_core, whose status writes pass acceptance_guard; listings:review with a fresh second factor, and never the caller's own ad (DEC-402, DEC-403)
 admin_review_photo_change(uuid) | staff | Writes listing_photo_changes, audit_log; rejects callers lacking listings:review before its mutations
 admin_save_entity_translation(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:update before its mutations
 admin_save_legal_draft(text,character,text,text,text,text,jsonb) | staff | Writes legal_documents, legal_versions, legal_version_texts, audit_log; rejects callers lacking legal:edit before its mutations

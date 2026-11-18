@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import { StepUpCancelled, StepUpUnavailable, type GuardFn } from "@/features/auth/mfa/use-step-up";
 
 import { PhotoChanges } from "./photo-changes";
 
@@ -69,11 +69,19 @@ vi.mock("./use-photo-changes", async (importOriginal) => ({
   reviewPhotoChange: (...args: unknown[]) => reads.review(...args),
 }));
 
-function mount(options: { mayReview: boolean }) {
-  const guard = vi.fn() as unknown as GuardFn;
+/** Mark reviewed on the first change in the list. */
+function clickFirstReview() {
+  const [button] = screen.getAllByTestId("admin-photo-change-review");
+  if (button === undefined) throw new Error("no change to review");
+  fireEvent.click(button);
+}
+
+function mount(options: { mayReview: boolean; guard?: GuardFn }) {
+  const passThrough: GuardFn = (run) => Promise.resolve(run());
+  const guard = options.guard ?? passThrough;
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <PhotoChanges {...options} guard={guard} />
+      <PhotoChanges mayReview={options.mayReview} guard={guard} />
     </QueryClientProvider>,
   );
   // INC-995 — the section's own outcome line, beside its own list.
@@ -119,6 +127,26 @@ describe("PhotoChanges (D154 B5)", () => {
     reads.review.mockRejectedValueOnce({ message: "changeGone" });
     fireEvent.click(within(items[1]!).getByTestId("admin-photo-change-review"));
     await waitFor(() => expect(notice()).toBe("admin.screening.changes.gone"));
+  });
+
+  it("PCH-7 Mark reviewed asks the second factor first (DEC-401): a cancel says nothing and runs nothing; no factor says the hint", async () => {
+    reads.review.mockClear();
+    let asked = 0;
+    const cancelled: GuardFn = () => {
+      asked += 1;
+      return Promise.reject(new StepUpCancelled());
+    };
+    const first = mount({ mayReview: true, guard: cancelled });
+    clickFirstReview();
+    await waitFor(() => expect(asked).toBe(1));
+    expect(first.notice()).toBe("");
+    expect(reads.review).not.toHaveBeenCalled();
+    cleanup();
+    const unavailable: GuardFn = () => Promise.reject(new StepUpUnavailable());
+    const second = mount({ mayReview: true, guard: unavailable });
+    clickFirstReview();
+    await waitFor(() => expect(second.notice()).toBe("mfa.stepUpUnavailableHint"));
+    expect(reads.review).not.toHaveBeenCalled();
   });
 
   it("PCH-5 Show photos opens the ad's photos view-only: a photo is removed in Edit on the ad's page (D169)", () => {

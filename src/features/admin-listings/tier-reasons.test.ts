@@ -28,8 +28,17 @@ const LEVELS =
  * file does not follow is a red here, not a refusal in front of an admin.
  */
 const M1 = "supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql";
-/** P-2 M-1c part 9 — the door's last declaration, with `p_days`. */
-const LAST = "supabase/migrations/20261105080112_4bb8208e-a951-4014-9c42-93d005a2f289.sql";
+/** F1-6a — the door's last declaration: on the shell, its refusals are `door_refuse` codes. */
+const LAST = "supabase/migrations/20261118012500_f28efa6b-af25-4885-a95e-c9651318213a.sql";
+
+/** The codes the tier door refuses with (`code` or `code:detail`), read from its last body. */
+function refusedCodes(sql: string): string[] {
+  const start = sql.indexOf("FUNCTION public.admin_set_listing_tier(");
+  const end = sql.indexOf("FUNCTION public.admin_set_listing_policy(");
+  return [...sql.slice(start, end).matchAll(/door_refuse\('([A-Za-z]+)'(?:, '([^']*)')?\)/g)].map(
+    (m) => (m[2] === undefined ? (m[1] ?? "") : `${m[1]}:${m[2]}`),
+  );
+}
 
 function doorList(sql: string, column: string): string[] {
   const match = new RegExp(`${column} NOT IN \\(([^)]*)\\)`).exec(sql);
@@ -96,37 +105,36 @@ describe("the listing tier (turn T1)", () => {
   });
 
   it("TIR-4 each refusal of the door has its own words; an unknown one is the common error", () => {
-    expect(tierErrorKey("listing not found")).toBe("admin.listings.move.error.notFound");
-    expect(tierErrorKey("your own listing is changed the seller's way")).toBe(
-      "admin.listings.move.error.own",
-    );
-    expect(tierErrorKey("a removed listing takes no tier")).toBe(
-      "admin.listings.level.error.removed",
-    );
-    expect(tierErrorKey("nothing changed")).toBe("admin.listings.level.error.same");
-    expect(tierErrorKey("unknown tier")).toBe("admin.listings.level.error.unknown");
-    expect(tierErrorKey("unknown reason")).toBe("admin.listings.move.pickReason");
+    expect(tierErrorKey("listingNotFound")).toBe("admin.listings.move.error.notFound");
+    expect(tierErrorKey("ownListing")).toBe("admin.listings.move.error.own");
+    expect(tierErrorKey("listingRemoved")).toBe("admin.listings.level.error.removed");
+    expect(tierErrorKey("nothingChanged")).toBe("admin.listings.level.error.same");
+    expect(tierErrorKey("badValue:tier")).toBe("admin.listings.level.error.unknown");
+    expect(tierErrorKey("badValue:reason")).toBe("admin.listings.move.pickReason");
     expect(tierErrorKey("rateLimited")).toBe("admin.listings.move.error.rateLimited");
-    expect(tierErrorKey("permission denied")).toBe("admin.listings.move.error.denied");
-    expect(tierErrorKey("a note is required")).toBe("admin.listings.move.noteRequired");
-    expect(tierErrorKey("the note is too long")).toBe("admin.listings.move.noteTooLong");
+    expect(tierErrorKey("permissionDenied")).toBe("admin.listings.move.error.denied");
+    expect(tierErrorKey("permissionDenied:scope")).toBe("admin.listings.move.error.denied");
+    expect(tierErrorKey("noteRequired")).toBe("admin.listings.move.noteRequired");
+    expect(tierErrorKey("noteTooLong")).toBe("admin.listings.move.noteTooLong");
+    expect(tierErrorKey("badDays")).toBe("admin.listings.level.error.days");
+    // A gate code with no words of its own, a field with none, a step-up and a sentence: the generic.
+    expect(tierErrorKey("notSignedIn")).toBe("common.error");
+    expect(tierErrorKey("accountDeactivated")).toBe("common.error");
+    expect(tierErrorKey("badValue:other")).toBe("common.error");
     expect(tierErrorKey("step-up required: listings:enforce")).toBe("common.error");
+    expect(tierErrorKey({ message: "listingNotFound", code: "P0D01" })).toBe(
+      "admin.listings.move.error.notFound",
+    );
   });
 
   it("TIR-6 a move to the baseline the free-slot law refuses (noFreeSlot) reads as the seller's slots being in use", () => {
     expect(tierErrorKey("noFreeSlot")).toBe("admin.listings.error.noFreeSlot");
   });
 
-  it("TIR-5 the door's messages in M1 are the ones this file knows", () => {
-    const sql = readFileSync(M1, "utf8");
-    const body = sql.slice(sql.indexOf("AS $function$"), sql.indexOf("$function$;"));
-    const raised = [...body.matchAll(/RAISE EXCEPTION '((?:[^']|'')*)'/g)].map((m) =>
-      (m[1] ?? "").replace(/''/g, "'"),
-    );
-    const known = raised.filter(
-      (message) => message !== "not signed in" && message !== "account is deactivated",
-    );
-    for (const message of known) expect(tierErrorKey(message)).not.toBe("common.error");
+  it("TIR-5 every code the tier door's last body refuses with has words in this file", () => {
+    const codes = refusedCodes(readFileSync(LAST, "utf8"));
+    expect(codes).toContain("badValue:tier");
+    for (const code of codes) expect(tierErrorKey(code), code).not.toBe("common.error");
   });
 
   it("TIR-7 Days: blank is open-ended, 1…3650 whole days, none on the baseline; the door's last declaration raises nothing this file does not know (P-2 (b))", () => {
@@ -146,14 +154,6 @@ describe("the listing tier (turn T1)", () => {
     expect(tierProblem("lvl-a", null, "promotion", "", "", LEVELS)).toBeNull();
     const sql = readFileSync(LAST, "utf8");
     expect(sql).toContain(`p_days > ${TIER_DAYS_MAX}`);
-    const body = sql.slice(sql.indexOf("AS $function$"), sql.indexOf("$function$;"));
-    const raised = [...body.matchAll(/RAISE EXCEPTION '((?:[^']|'')*)'/g)].map((m) =>
-      (m[1] ?? "").replace(/''/g, "'"),
-    );
-    expect(raised).toContain("badDays");
-    const known = raised.filter(
-      (message) => message !== "not signed in" && message !== "account is deactivated",
-    );
-    for (const message of known) expect(tierErrorKey(message), message).not.toBe("common.error");
+    expect(refusedCodes(sql)).toContain("badDays");
   });
 });

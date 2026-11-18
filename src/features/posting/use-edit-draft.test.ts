@@ -275,7 +275,7 @@ describe("useEditDraft (staff)", () => {
     expect(result.current.outcome).toEqual({ kind: "saved", nonce: 1 });
 
     // The door's own refusal, in the console's words; a cancelled second factor says nothing.
-    editAdminListing.mockRejectedValueOnce(new Error("nothing changed"));
+    editAdminListing.mockRejectedValueOnce(new Error("nothingChanged"));
     act(() => result.current.change({ description: "Other words" }, false));
     await act(async () => expect(await result.current.saveAt(5)).toBe(false));
     expect(result.current.problem).toBe("admin.listings.edit.nothing");
