@@ -411,6 +411,7 @@ describe("check-doors (CF-DOORS)", () => {
       // The tree: the flags the local proof stack reads (F1-6a census, #PERMS).
       const tree = declaredStepUps(ROOT);
       expect(tree("listings:review")).toBe(true);
+      expect(tree("listings:reveal")).toBe(false);
       expect(tree("listings:enforce")).toBe(true);
       expect(tree("listings:view")).toBe(false);
       expect(tree("categories:update")).toBe(false);
