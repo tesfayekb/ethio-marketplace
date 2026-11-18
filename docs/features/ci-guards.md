@@ -99,6 +99,18 @@ Details: `docs/features/security-scanning.md`.
   reason; a hand-listed name the reader can read again fails MGR-6. A census of
   bodies skips a computed function by name with its reason; the seller-name law
   judges it live on the smoke lane (DEC-359, `docs/features/hidden-seller-name.md`).
+- Random-text guard (INC-1202, DEC-406, floor `RANDOM_TEXT_FLOOR=20261118160000`):
+  the reader's `randomTexts` (MGR-8), run as `migration-reader.ts --random-text`,
+  refuses a proof line that sends a random draw's digits through a door as a
+  title, a description or a name — a `jsonb_build_object` pair keyed `'title'`,
+  `'description'` or `'name'`, or a named `p_title` / `p_description` / `p_name =>`,
+  whose value holds `gen_random_uuid()`, `uuid_generate_v4()`, `md5(…)`,
+  `random()`, `gen_random_bytes(…)`, `to_hex(…)` or a variable assigned by `:=`
+  from one; `translate(…, '0123456789', '<no digit>')` maps the digits away.
+  Not judged: positional arguments, `SELECT … INTO`, a bare `=`. Self-test
+  fixtures: `scripts/fixtures/bad-random-text-proof-example.sql` (four lines
+  refused) and `good-random-text-proof-example.sql` (passes); the law is
+  `docs/governance/migrations.md` 15.
 - Inline size ceiling (D1 stop-14 ruling): a migration the tool applies inline
   stays at or under about 25 KB; one over that is split by concern before it is
   written, never after a cut-off.
@@ -1353,6 +1365,11 @@ checkout stays shallow.
   keeping its path rule. These tests plant git repositories, so they run where git may write
   `.git` (CI; locally outside a write-restricted sandbox).
   `scripts/conformance/wired.test.ts` finds the script's basename in `ci.yml`.
+- **Its fixtures are its own (INC-1201):** the four `CF-FORM-1` lines and the ceiling line the
+  tests remove, keep and grow are written in the test (invented paths in
+  `scripts/conformance/forms-allowlist.txt`'s line form; a `/fixture-page` line in DEC-296's form
+  that matches the guard's ceiling pattern), so no test depends on how many lines a live allowlist
+  or the ceilings file holds — the form-kit turns that shrink `forms-allowlist.txt` never redden it.
 - **Left:** INC-1168 (c), a "carry" step that rebuilds the pull request from dev plus the approved
   files. The endpoint answers without the `pull-requests` permission while the repository is
   public; when it goes private the step fails loudly (the API's refusal is not JSON arrays) until
