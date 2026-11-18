@@ -59,4 +59,16 @@ describe("the one form gate (DEC-339)", () => {
     act(() => result.current.report("who", ["alias"]));
     expect(result.current.missing).toEqual(["alias"]);
   });
+
+  it("FKG-5 a blank reported in the same act as the submit closes the gate", () => {
+    const { result } = renderHook(() => useFormGate(2));
+    let open = true;
+    act(() => {
+      result.current.register("password", true);
+      open = result.current.try();
+    });
+    expect(open).toBe(false);
+    expect(result.current.tried).toBe(true);
+    expect(result.current.marks).toEqual([{ field: "password", reason: "required" }]);
+  });
 });
