@@ -4,7 +4,7 @@ import { browserCallable, type DoorRow } from "./rows";
 
 /**
  * Foundations 1 (DEC-333) — THE JUDGEMENT of the manifest against the rows.
- * Nine finding kinds, each planted in check-doors' self-test (DEC-334):
+ * Ten finding kinds, each planted in check-doors' self-test (DEC-334):
  *
  * - missing-line           a browser-callable function with no manifest line;
  * - line-without-door      a line whose function is absent or closed to the browser;
@@ -22,7 +22,12 @@ import { browserCallable, type DoorRow } from "./rows";
  * - row-column-unknown     a line's `row:<table.column>` cell names a column no
  *                          migration declares (F1-3, INC-1159's class);
  * - grant-dropped          a DROP + CREATE that does not restate a role the
- *                          function held (static only; catalogue.ts, F1-5a).
+ *                          function held (static only; catalogue.ts, F1-5a);
+ * - opt-out-over-step-up   a staff line whose step-up cell is `none:<DEC>`
+ *                          over a permission whose newest declared
+ *                          `requires_step_up` is not false (step-ups.ts,
+ *                          F1-6a ruling 1 Part A): door_context's staff
+ *                          form would ask the second factor anyway.
  *
  * A legacy body (no door_context yet) is judged by the old rule only; its line
  * is the promise its family's turn keeps (plan §5).
@@ -38,6 +43,7 @@ export const FINDING_KINDS = [
   "scope-mode-missing",
   "row-column-unknown",
   "grant-dropped",
+  "opt-out-over-step-up",
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -172,6 +178,8 @@ export type Evidence = {
   callers?: (name: string) => boolean;
   /** Every `table.column` the migrations declare (columns.ts). */
   columns?: ReadonlySet<string>;
+  /** A permission's newest declared `requires_step_up` (step-ups.ts): null unreadable, undefined unwritten. */
+  stepUps?: (permission: string) => boolean | null | undefined;
 };
 
 /** Every finding of the rows against the manifest. */
@@ -217,6 +225,20 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
         kind: "row-column-unknown",
         key: line.key,
         what: `row:${line.country.column} names a column no migration declares`,
+        where: `manifest.txt:${line.line}`,
+      });
+    }
+  const stepUps = evidence.stepUps;
+  if (stepUps !== undefined)
+    for (const line of manifest.lines.values()) {
+      if (!isStaff(line) || line.stepUp === null || line.stepUp === "row") continue;
+      const permission = `${line.permission?.resource}:${line.permission?.action}`;
+      const flag = stepUps(permission);
+      if (flag === false) continue;
+      found.push({
+        kind: "opt-out-over-step-up",
+        key: line.key,
+        what: `none:${line.stepUp.none} over ${permission}, whose declared requires_step_up is ${flag === null ? "unreadable" : String(flag ?? "never written")}`,
         where: `manifest.txt:${line.line}`,
       });
     }

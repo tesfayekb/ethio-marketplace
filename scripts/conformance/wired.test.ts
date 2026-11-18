@@ -281,10 +281,16 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // check-doors.test.ts CF-DOORS DOORS-1…6 (F1-1, DEC-333; DOORS-5 INC-1070; DOORS-6 INC-1072) is discovered by
     // test:unit's scripts/**/*.test.ts; check-doors.ts itself runs in ci.yml (self-test + static)
     // and local-backend-proof.yml (--live, DEC-334) with the query of scripts/doors/live-query.sql.
+    // DOORS-11 (F1-6a ruling 1, Part A): scripts/doors/step-ups.ts is read by check-doors.ts in both
+    // modes (`opt-out-over-step-up`).
     const doorsTests = readFileSync(join(ROOT, "scripts/doors/check-doors.test.ts"), "utf8");
     expect(doorsTests).toContain("DOORS-4");
     expect(doorsTests).toContain("DOORS-5");
     expect(doorsTests).toContain("DOORS-6");
+    expect(doorsTests).toContain("DOORS-11");
+    expect(readFileSync(join(ROOT, "scripts/doors/check-doors.ts"), "utf8")).toContain(
+      "stepUps: declaredStepUps(root)",
+    );
     expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain(
       "bun scripts/doors/check-doors.ts",
     );

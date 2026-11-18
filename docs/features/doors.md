@@ -53,11 +53,18 @@ detail}]}` — supabase-js surfaces it as `error.message` = the code. A RAISE th
 acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_package_price`
   is `row:package_prices.country_code` (its scope is F1-6's census). `manifest.ts` is the grammar; `catalogue.ts` + `identity.ts` read
   the migrations' last grant state and spell a function's identity as the live catalogue does.
-- `check-doors.ts` — the self-test runs FIRST in every mode (nine planted finding kinds —
+- `check-doors.ts` — the self-test runs FIRST in every mode (ten planted finding kinds —
   `missing-line`, `line-without-door`, `gate-missing-for-class`, `class-mismatch`,
   `grant-unseen`, `grant-without-caller`, `scope-mode-missing`, `row-column-unknown`,
-  `grant-dropped` — each must fire, a clean pair must fire nothing; `SELF_TEST=1` runs it
-  alone). `grant-dropped` (F1-5a, rulings 1 and 2, static only): `catalogue.ts` records the
+  `grant-dropped`, `opt-out-over-step-up` — each must fire, a clean pair must fire nothing; `SELF_TEST=1` runs it
+  alone). `opt-out-over-step-up` (F1-6a ruling 1, Part A; INC-1195's class): a staff line whose
+  step-up cell is `none:<DEC>` holds only when the permission it names is declared
+  `requires_step_up = false` — `door_context`'s staff form asks the second factor whenever the row
+  says so, so an opt-out over a step-up permission is a promise the door cannot keep.
+  `step-ups.ts` reads each permission's newest declared flag from the migrations (`INSERT INTO
+  public.permissions` rows with the flag before `assignable`, `UPDATE … SET requires_step_up` by
+  `r.name = '<resource>'` with `p.action = …` / `IN (…)`, or `(r.name, p.action) IN (…)`); a
+  value it cannot read, or a permission never written, fires. Both modes judge it. `grant-dropped` (F1-5a, rulings 1 and 2, static only): `catalogue.ts` records the
   roles a function held just before each `DROP FUNCTION`; when the same file re-creates the
   name, each role it neither GRANTs nor REVOKEs by name is a loss. A file stamped at or above
   `GRANT_DROPPED_FLOOR` (`20261115000000`, the day the per-file law began) is judged by the file:
@@ -74,7 +81,7 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   first build joined its clauses without their boundaries and the lane's psql refused it). `judge.ts` holds the kinds; a
   legacy body (no `door_context`) is judged by the old caller-gates rule, a shell body by the
   literals its manifest line promises. Allowances in `check-doors-allowlist.txt` (`<kind> <key>
-| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…10 (DOORS-10: the planted DROP + CREATE histories of `grant-dropped`; DOORS-8: the column census on a planted
+| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…11 (DOORS-11: the planted permission rows of `opt-out-over-step-up` — fires over `listings:review`, not over `listings:reveal` — and the tree's flags; DOORS-10: the planted DROP + CREATE histories of `grant-dropped`; DOORS-8: the column census on a planted
   migration and every `row:` cell of the tree; DOORS-5: the printed query's clauses; DOORS-6: the live mode
   judges the tree census too — INC-1072: a `grant-without-caller` allowance the live mode never
   judged read as stale and killed the smoke lane's first live run; DOORS-7: a body the
