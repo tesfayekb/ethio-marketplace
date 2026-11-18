@@ -30,24 +30,30 @@ const modified = (filename: string, patch = "@@ -1 +1 @@\n-a\n+b"): Entry => ({
   patch,
 });
 
-/** A real ceiling line of the file, and the same line with its ceiling one higher. */
-const CEILING = (() => {
-  const line = readFileSync("scripts/route-budgets.mjs", "utf8")
-    .split("\n")
-    .find((l) => l.startsWith('  "/account": { ceiling: '));
-  if (line === undefined) throw new Error("route-budgets.mjs has no /account line");
-  const grown = line.replace(/ceiling: (\d+)/, (_, n: string) => `ceiling: ${Number(n) + 1}`);
-  return { line, grown };
-})();
+/**
+ * A ceiling line in DEC-296's form (an invented route), and the same line with its ceiling one
+ * higher. INC-1201: written here, never read from the live file a ceilings turn rewrites.
+ */
+const CEILING_LINE =
+  '  "/fixture-page": { ceiling: 268, public: false }, // DEC-296 (fixture turn): local 266.6 KiB; 270 → 268 = ceilingForLocal(266.6); was 270.';
+const CEILING = {
+  line: CEILING_LINE,
+  grown: CEILING_LINE.replace("ceiling: 268,", "ceiling: 269,"),
+};
 
-/** Real lines of a real allowlist: the file wave 3's pull request removed two lines from. */
+/**
+ * Four allowance lines in the allowlist's form (invented paths): two kept around two removed.
+ * INC-1201: written here, never read from the live allowlist the form-kit turns shrink.
+ */
 const FORMS_ALLOWLIST = "scripts/conformance/forms-allowlist.txt";
-const ALLOWLIST_LINES = readFileSync(FORMS_ALLOWLIST, "utf8")
-  .split("\n")
-  .filter((l) => l.startsWith("CF-FORM-1 src/"));
-if (ALLOWLIST_LINES.length < 4)
-  throw new Error("forms-allowlist.txt has fewer than 4 CF-FORM-1 lines");
-const [KEPT_A, GONE_B, GONE_C, KEPT_D] = ALLOWLIST_LINES;
+const KEPT_A =
+  "CF-FORM-1 src/features/fixture-a/fixture-a.tsx (1) | fixture: a kept line | DEC-339";
+const GONE_B =
+  "CF-FORM-1 src/features/fixture-b/fixture-b.tsx (2) | fixture: a removed line | DEC-339";
+const GONE_C =
+  "CF-FORM-1 src/features/fixture-c/fixture-c.tsx (1) | fixture: a removed line | DEC-339";
+const KEPT_D =
+  "CF-FORM-1 src/features/fixture-d/fixture-d.tsx (1) | fixture: a kept line | DEC-339";
 /** The API's patch for a removal of two lines between two kept ones: `-` lines only. */
 const REMOVED_ONLY = `@@ -14,4 +14,2 @@\n ${KEPT_A}\n-${GONE_B}\n-${GONE_C}\n ${KEPT_D}`;
 const NOT_REMOVAL = (path: string) =>
