@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { tierOf } from "@/components/marketplace/card-tier";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ReaderError } from "@/lib/reader-failure";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
  * Bundle 10 E3a — THE SCREENING QUEUE READ (D109).
@@ -237,9 +238,13 @@ export function useScreeningPhotos(listingId: string | null) {
   });
 }
 
-/** The door, as the signed-in reviewer (F3: it re-checks everything). */
+/**
+ * The reviewer's decision: the staff door `admin_review_listing` (DEC-402;
+ * listings:review with a fresh second factor, the staff dial, the ad's own
+ * country). `transition_listing` is the seller's and the service's alone.
+ */
 export async function decideListing(listingId: string, next: "active" | "rejected") {
-  const { error } = await supabase.rpc("transition_listing", {
+  const { error } = await supabase.rpc("admin_review_listing", {
     p_listing_id: listingId,
     p_new_status: next,
   });
@@ -347,6 +352,12 @@ export function revealProblemKey(reason: "notShown" | "rateLimited") {
     : ("admin.screening.revealNotShown" as const);
 }
 
+/** The reveal's one refusal with a line of its own: the dial. The gate raises it as a code. */
+const REVEAL_REFUSALS = {
+  words: { rateLimited: "admin.screening.revealLimited" },
+  generic: "common.error",
+} as const satisfies RefusalFamily;
+
 export async function revealContact(
   listingId: string,
   channel: "phone" | "phone2" | "whatsapp",
@@ -355,7 +366,14 @@ export async function revealContact(
     p_listing_id: listingId,
     p_channel: channel,
   });
-  if (error) throw error;
+  if (error) {
+    // INC-1170: the gate raises the dial's refusal as the code `rateLimited` (no reset time
+    // until F1-7); the screen's line for it is the one the returned answer drew before.
+    if (readRefusal(error, REVEAL_REFUSALS).key === revealProblemKey("rateLimited")) {
+      return { ok: false, reason: "rateLimited" };
+    }
+    throw error;
+  }
   const payload = (data ?? {}) as Record<string, unknown>;
   if (payload["ok"] === true && typeof payload["value"] === "string") {
     return { ok: true, value: payload["value"] };

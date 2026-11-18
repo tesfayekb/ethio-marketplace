@@ -2,7 +2,9 @@ import { levelNameOf } from "@/features/levels/level-fields";
 import { exactLevel, type LevelRow } from "@/features/levels/levels-store";
 import type { MessageKey } from "@/i18n";
 import { parseNumber } from "@/lib/parse-input";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
+import { badValueWords, SHARED_REFUSAL_WORDS } from "./listing-refusals";
 import { NOTE_MAX } from "./move-reasons";
 
 /**
@@ -84,19 +86,23 @@ export function tierProblem(
   return null;
 }
 
-/** The door's refusal, as the person reads it. */
-export function tierErrorKey(message: string): MessageKey {
-  if (message === "listing not found") return "admin.listings.move.error.notFound";
-  if (message.startsWith("your own listing")) return "admin.listings.move.error.own";
-  if (message === "a removed listing takes no tier") return "admin.listings.level.error.removed";
-  if (message === "nothing changed") return "admin.listings.level.error.same";
-  if (message === "unknown tier") return "admin.listings.level.error.unknown";
-  if (message === "noFreeSlot") return "admin.listings.error.noFreeSlot";
-  if (message === "unknown reason") return "admin.listings.move.pickReason";
-  if (message === "rateLimited") return "admin.listings.move.error.rateLimited";
-  if (message === "permission denied") return "admin.listings.move.error.denied";
-  if (message === "a note is required") return "admin.listings.move.noteRequired";
-  if (message === "the note is too long") return "admin.listings.move.noteTooLong";
-  if (message === "badDays") return "admin.listings.level.error.days";
-  return "common.error";
+/** The tier door's words: the shared ones, and its own for the same, the removed and the days. */
+const TIER_REFUSALS = {
+  words: {
+    ...SHARED_REFUSAL_WORDS,
+    listingRemoved: "admin.listings.level.error.removed",
+    nothingChanged: "admin.listings.level.error.same",
+    badDays: "admin.listings.level.error.days",
+  },
+  generic: "common.error",
+} as const satisfies RefusalFamily;
+
+const TIER_BAD_VALUES = {
+  reason: "admin.listings.move.pickReason",
+  tier: "admin.listings.level.error.unknown",
+} as const satisfies Record<string, MessageKey>;
+
+/** The door's refusal (`code[:detail]`), as the person reads it. */
+export function tierErrorKey(refusal: unknown): MessageKey {
+  return badValueWords(refusal, TIER_BAD_VALUES) ?? readRefusal(refusal, TIER_REFUSALS).key;
 }

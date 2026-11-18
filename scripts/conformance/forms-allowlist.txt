@@ -14,17 +14,9 @@ CF-FORM-2 src/routes/auth.tsx (2) | wave 2 — sign-in, sign-up, reset, settings
 CF-FORM-2 src/routes/auth_.reset.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-2 src/routes/settings.tsx (2) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-3 src/features/admin-ai/ai-service.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-listings/edit-listing.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-listings/listing-policy.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-listings/move-reasons.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-listings/photo-remove.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-listings/tier-reasons.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-listings/undo-edit.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-3 src/features/admin-monetisation/monetisation-dialogs.tsx (1) | wave 4 — the monetisation dialogs | DEC-339
 CF-FORM-3 src/features/admin-monetisation/monetisation-service.ts (1) | wave 4 — the monetisation dialogs | DEC-339
 CF-FORM-3 src/features/admin-monetisation/use-monetisation-error.ts (1) | wave 4 — the monetisation dialogs | DEC-339
-CF-FORM-3 src/features/admin-screening/use-photo-changes.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
-CF-FORM-3 src/features/admin-screening/use-photo-reviews.ts (1) | wave 3 — the admin consoles' forms and per-family mappers | DEC-339
 CF-FORM-3 src/features/auth/auth-error-key.ts (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-3 src/features/auth/mfa/mfa-service.ts (2) | wave 2 — the two-factor service's own mappers (INC-1147 class 1) | INC-1147
 CF-FORM-3 src/features/my-listings/promote-sheet.tsx (1) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339

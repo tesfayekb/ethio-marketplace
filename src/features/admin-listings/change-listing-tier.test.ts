@@ -64,7 +64,7 @@ describe("changeListingTier (P-1 W4)", () => {
 
     rpc.mockResolvedValueOnce({
       data: null,
-      error: { message: "a removed listing takes no tier" },
+      error: { message: "listingRemoved" },
     });
     expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "", null)).toEqual({
       ok: false,

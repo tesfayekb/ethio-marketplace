@@ -4,4 +4,3 @@
 grant-without-caller get_browse_tree(text) | census F1-1: a public reader no code names; family F1-7 (the public readers) revokes or names its caller | 2026-12-31
 grant-without-caller get_category_attributes(uuid,boolean) | census F1-1: a public reader no code names; family F1-7 (the public readers) revokes or names its caller | 2026-12-31
 grant-without-caller package_price_for(uuid,text) | census F1-1: a monetisation reader no code names (scripts/conformance/package-price.ts reads its SQL, not the door); family F1-6 revokes or names its caller | 2026-12-31
-grant-without-caller admin_review_listing(uuid,text) | F1-6a ruling 1 §3 (DEC-402): the reviewer's new door lands at the migration stop; the screening console moves to it in this turn's STEP 3 and the line goes with it | 2026-11-30

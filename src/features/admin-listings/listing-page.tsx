@@ -52,6 +52,7 @@ import {
   type AdminListingHistoryEntry,
 } from "./use-admin-listing";
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
+import { doorCode } from "@/lib/door-codes";
 import { errorText } from "@/lib/error-text";
 import { catalogText, entityName } from "@/i18n/entity";
 import { languageRowName } from "@/lib/format-locale";
@@ -211,7 +212,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     );
   }
   if (query.error || detail === null) {
-    const missing = query.error != null && errorText(query.error) === "listing not found";
+    const missing =
+      query.error != null && doorCode(errorText(query.error)).code === "listingNotFound";
     return (
       <div data-testid="admin-listing-detail" className="space-y-3">
         <BackLink />

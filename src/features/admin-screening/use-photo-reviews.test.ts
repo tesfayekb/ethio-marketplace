@@ -40,10 +40,13 @@ describe("photo reviews (D178)", () => {
 
   it("PRV-2 the door's refusals in words; a not-right photo's reason is the warning's own line", () => {
     expect(photoAllowErrorKey("reviewGone")).toBe("admin.listings.photos.allowGone");
-    expect(photoAllowErrorKey("your own listing is changed the seller's way")).toBe(
-      "admin.listings.move.error.own",
+    expect(photoAllowErrorKey("ownListing")).toBe("admin.listings.move.error.own");
+    expect(photoAllowErrorKey("permissionDenied")).toBe("common.error");
+    expect(photoAllowErrorKey("notSignedIn")).toBe("common.error");
+    expect(photoAllowErrorKey("step-up required: listings:review")).toBe("common.error");
+    expect(photoAllowErrorKey({ message: "reviewGone", code: "P0D01" })).toBe(
+      "admin.listings.photos.allowGone",
     );
-    expect(photoAllowErrorKey("permission denied")).toBe("common.error");
     expect(REVIEW_LABEL_KEY.not_right).toBe("admin.listings.photos.notRelevant");
   });
 

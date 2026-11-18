@@ -12,13 +12,13 @@ describe("removing one photo (D154 B4)", () => {
     expect([...PHOTO_REASONS]).toEqual(["photo", "misleading", "rules", "other"]);
   });
 
-  it("LP-2 the door's refusals read as sentences", () => {
-    expect(photoRemoveErrorKey("photo not found on this listing")).toBe(
-      "admin.listings.photos.error.gone",
-    );
-    expect(photoRemoveErrorKey("a removed listing is not edited")).toBe(
-      "admin.listings.edit.error.removed",
-    );
-    expect(photoRemoveErrorKey("listing not found")).toBe("admin.listings.move.error.notFound");
+  it("LP-2 the door's refusals read as codes", () => {
+    expect(photoRemoveErrorKey("photoNotFound")).toBe("admin.listings.photos.error.gone");
+    expect(photoRemoveErrorKey("listingRemoved")).toBe("admin.listings.edit.error.removed");
+    expect(photoRemoveErrorKey("listingNotFound")).toBe("admin.listings.move.error.notFound");
+    expect(photoRemoveErrorKey("ownListing")).toBe("admin.listings.move.error.own");
+    expect(photoRemoveErrorKey("badValue:reason")).toBe("admin.listings.move.pickReason");
+    expect(photoRemoveErrorKey("badValue:remove_photos")).toBe("common.error");
+    expect(photoRemoveErrorKey("notSignedIn")).toBe("common.error");
   });
 });

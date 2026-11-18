@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { PHOTO_REVIEW_LABELS, type PhotoReviewLabel } from "@/features/posting/posting-service";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
 
@@ -88,11 +89,18 @@ export async function allowListingPhoto(photoId: string): Promise<void> {
   if (error) throw error;
 }
 
-/** The door's refusal, as staff read it. */
-export function photoAllowErrorKey(message: string): MessageKey {
-  if (message.includes("reviewGone")) return "admin.listings.photos.allowGone";
-  if (message.includes("your own listing")) return "admin.listings.move.error.own";
-  return "common.error";
+/** The allow door's words: a photo already decided, and an ad that is the caller's own. */
+const PHOTO_ALLOW_REFUSALS = {
+  words: {
+    reviewGone: "admin.listings.photos.allowGone",
+    ownListing: "admin.listings.move.error.own",
+  },
+  generic: "common.error",
+} as const satisfies RefusalFamily;
+
+/** The door's refusal (`code[:detail]`), as staff read it. */
+export function photoAllowErrorKey(refusal: unknown): MessageKey {
+  return readRefusal(refusal, PHOTO_ALLOW_REFUSALS).key;
 }
 
 /** The reason line staff read for a label (a not-right photo says so in its warning line). */

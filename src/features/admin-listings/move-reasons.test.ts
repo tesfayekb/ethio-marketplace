@@ -46,20 +46,27 @@ describe("the listing moves (turn L2b)", () => {
     );
   });
 
-  it("MR-4 the door's refusals read as sentences", () => {
-    expect(moveErrorKey("listing not found")).toBe("admin.listings.move.error.notFound");
-    expect(moveErrorKey("your own listing is changed the seller's way")).toBe(
-      "admin.listings.move.error.own",
-    );
-    expect(moveErrorKey("illegal move: removed -> removed")).toBe(
+  it("MR-4 the door's refusals read as codes", () => {
+    expect(moveErrorKey("listingNotFound")).toBe("admin.listings.move.error.notFound");
+    expect(moveErrorKey("ownListing")).toBe("admin.listings.move.error.own");
+    expect(moveErrorKey("illegalTransition:removed-removed")).toBe(
       "admin.listings.move.error.illegal",
     );
-    expect(
-      moveErrorKey("a listing removed for a severe reason is restored by a super admin only"),
-    ).toBe("admin.listings.move.error.severe");
+    expect(moveErrorKey("severeRestore")).toBe("admin.listings.move.error.severe");
     expect(moveErrorKey("rateLimited")).toBe("admin.listings.move.error.rateLimited");
-    expect(moveErrorKey("permission denied")).toBe("admin.listings.move.error.denied");
+    expect(moveErrorKey("permissionDenied")).toBe("admin.listings.move.error.denied");
+    expect(moveErrorKey("permissionDenied:scope")).toBe("admin.listings.move.error.denied");
+    expect(moveErrorKey("noteRequired")).toBe("admin.listings.move.noteRequired");
+    expect(moveErrorKey("noteTooLong")).toBe("admin.listings.move.noteTooLong");
+    // The gate codes with no words of their own, a bad value, a step-up and a sentence: the generic.
+    expect(moveErrorKey("notSignedIn")).toBe("common.error");
+    expect(moveErrorKey("accountDeactivated")).toBe("common.error");
+    expect(moveErrorKey("badValue:to")).toBe("common.error");
+    expect(moveErrorKey("step-up required: listings:enforce")).toBe("common.error");
     expect(moveErrorKey("something else")).toBe("common.error");
+    expect(moveErrorKey({ message: "severeRestore", code: "P0D01" })).toBe(
+      "admin.listings.move.error.severe",
+    );
   });
 
   it("MR-5 a restore the free-slot law refuses (noFreeSlot) reads as the seller's slots being in use", () => {

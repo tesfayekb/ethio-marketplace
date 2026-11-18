@@ -7,7 +7,7 @@ import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { Picture } from "@/components/ui/picture";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
-import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import { stepUpAbortKey, type GuardFn } from "@/features/auth/mfa/use-step-up";
 import { photoUrl } from "@/features/posting/photo-links";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
 import { SectionNotice } from "@/components/ui/section-notice";
@@ -62,14 +62,15 @@ export function PhotoChanges({ mayReview, guard }: { mayReview: boolean; guard: 
   const review = async (row: PhotoChange) => {
     setBusy(row.id);
     try {
-      await reviewPhotoChange(row.id);
+      // DEC-401: the review asks the reviewer's second factor, as the other review doors do.
+      await guard(() => reviewPhotoChange(row.id));
     } catch (error) {
-      const message =
-        error !== null && typeof error === "object" && "message" in error
-          ? String((error as { message: unknown }).message)
-          : "";
-      console.error("[screening] review of a photo change failed", error);
-      onNotice(photoChangeErrorKey(message), "error");
+      const abort = stepUpAbortKey(error);
+      // A cancelled second factor changes nothing and says nothing.
+      if (abort !== null) {
+        console.error("[screening] review of a photo change failed", error);
+        onNotice(abort ?? photoChangeErrorKey(error), "error");
+      }
     } finally {
       setBusy(null);
       await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });

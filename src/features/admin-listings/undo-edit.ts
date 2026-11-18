@@ -1,8 +1,9 @@
 import type { Refusal } from "@/features/posting/types";
 import type { MessageKey } from "@/i18n";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
-import { editErrorKey } from "./edit-listing";
 import { groupOf, groupsOf, type FieldGroup } from "./history";
+import { badValueWords, EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
 import type { AdminListingHistoryEntry } from "./use-admin-listing";
 
 /**
@@ -28,12 +29,19 @@ export function mayUndo(entry: AdminListingHistoryEntry, index: number): boolean
   );
 }
 
-/** The undo door's refusal, as the person reads it. */
-export function undoErrorKey(message: string): MessageKey {
-  if (message === "the listing has changed since this edit" || message === "nothing to undo") {
-    return "admin.listings.undo.changed";
-  }
-  return editErrorKey(message);
+/** The words of a refused undo: the edit's, and the one line for a listing that moved on. */
+const UNDO_REFUSALS = {
+  words: {
+    ...EDIT_REFUSALS.words,
+    listingChanged: "admin.listings.undo.changed",
+    nothingToUndo: "admin.listings.undo.changed",
+  },
+  generic: "common.error",
+} as const satisfies RefusalFamily;
+
+/** The undo door's refusal (`code[:detail]`), as the person reads it. */
+export function undoErrorKey(refusal: unknown): MessageKey {
+  return badValueWords(refusal, EDIT_BAD_VALUES) ?? readRefusal(refusal, UNDO_REFUSALS).key;
 }
 
 /** Refusal fields that are not a specification's key, and not a listing column either. */

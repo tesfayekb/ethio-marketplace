@@ -191,6 +191,7 @@ export const enAdmin = {
   "admin.roles.perm.action.manage": "Manage",
   "admin.roles.perm.action.publish": "Publish",
   "admin.roles.perm.action.restructure": "Restructure",
+  "admin.roles.perm.action.reveal": "Reveal",
   "admin.roles.perm.action.review": "Review",
   "admin.roles.perm.action.update": "Update",
   "admin.roles.perm.action.use": "Use",
