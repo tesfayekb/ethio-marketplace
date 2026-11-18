@@ -937,12 +937,14 @@ random_texts() {
   bun "$SCRIPT_DIR/conformance/migration-reader.ts" --random-text "$@"
 }
 
-if [ "$(random_texts "$FIXTURE_DIR/bad-random-text-proof-example.sql" | grep -c .)" -ne 4 ]; then
+if ! random_text_bad="$(random_texts "$FIXTURE_DIR/bad-random-text-proof-example.sql")" ||
+  [ "$(grep -c . <<<"$random_text_bad")" -ne 4 ]; then
   echo "Random-text guard self-test FAILED: the bad fixture's four lines were not all refused."
   exit 1
 fi
-if [ -n "$(random_texts "$FIXTURE_DIR/good-random-text-proof-example.sql")" ]; then
-  echo "Random-text guard self-test FAILED: the good fixture was refused."
+if ! random_text_good="$(random_texts "$FIXTURE_DIR/good-random-text-proof-example.sql")" ||
+  [ -n "$random_text_good" ]; then
+  echo "Random-text guard self-test FAILED: the good fixture was refused, or the reader did not finish."
   exit 1
 fi
 echo "Random-text guard self-test OK (the bad fixture's four lines are refused, the good one passes)."
@@ -958,8 +960,10 @@ while IFS= read -r -d '' file; do
 done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
 
 random_text_found=""
-if [ "${#random_text_files[@]}" -gt 0 ]; then
-  random_text_found="$(random_texts "${random_text_files[@]}")"
+if [ "${#random_text_files[@]}" -gt 0 ] &&
+  ! random_text_found="$(random_texts "${random_text_files[@]}")"; then
+  echo "Random-text guard FAILED: the reader did not finish."
+  exit 1
 fi
 if [ -n "$random_text_found" ]; then
   echo "Random-text guard FAILED:"
