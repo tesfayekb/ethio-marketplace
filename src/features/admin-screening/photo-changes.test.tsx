@@ -77,8 +77,8 @@ function clickFirstReview() {
 }
 
 function mount(options: { mayReview: boolean; guard?: GuardFn }) {
-  const guard =
-    options.guard ?? (vi.fn(async (run: () => Promise<unknown>) => run()) as unknown as GuardFn);
+  const passThrough: GuardFn = (run) => Promise.resolve(run());
+  const guard = options.guard ?? passThrough;
   render(
     <QueryClientProvider client={new QueryClient()}>
       <PhotoChanges mayReview={options.mayReview} guard={guard} />
@@ -131,14 +131,18 @@ describe("PhotoChanges (D154 B5)", () => {
 
   it("PCH-7 Mark reviewed asks the second factor first (DEC-401): a cancel says nothing and runs nothing; no factor says the hint", async () => {
     reads.review.mockClear();
-    const cancelled = vi.fn().mockRejectedValue(new StepUpCancelled()) as unknown as GuardFn;
+    let asked = 0;
+    const cancelled: GuardFn = () => {
+      asked += 1;
+      return Promise.reject(new StepUpCancelled());
+    };
     const first = mount({ mayReview: true, guard: cancelled });
     clickFirstReview();
-    await waitFor(() => expect(cancelled).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(asked).toBe(1));
     expect(first.notice()).toBe("");
     expect(reads.review).not.toHaveBeenCalled();
     cleanup();
-    const unavailable = vi.fn().mockRejectedValue(new StepUpUnavailable()) as unknown as GuardFn;
+    const unavailable: GuardFn = () => Promise.reject(new StepUpUnavailable());
     const second = mount({ mayReview: true, guard: unavailable });
     clickFirstReview();
     await waitFor(() => expect(second.notice()).toBe("mfa.stepUpUnavailableHint"));
