@@ -198,4 +198,32 @@ describe("Settings — each outcome beside its control (INC-570)", () => {
       expect(within(devices).getByRole("status")).toHaveTextContent("settings.signOutOthersDone"),
     );
   });
+
+  it("KAU-7: a blank Change email is refused under its field and nothing is sent", async () => {
+    const { emailForm } = await renderSettings();
+    expect((emailForm as HTMLFormElement).noValidate).toBe(true);
+    fireEvent.submit(emailForm);
+    await waitFor(() =>
+      expect(document.getElementById("new-email")).toHaveAttribute("aria-invalid", "true"),
+    );
+    expect(document.getElementById("new-email")).toHaveAttribute(
+      "aria-describedby",
+      "new-email-refusal",
+    );
+    expect(within(emailForm).getByRole("alert")).toHaveTextContent("post.refusal.required");
+    expect(service.changeEmail).not.toHaveBeenCalled();
+  });
+
+  it("KAU-8: a blank current password is refused under its field and nothing is sent", async () => {
+    const { passwordForm } = await renderSettings();
+    type("new-password", "new-password-1");
+    type("new-password-confirm", "new-password-1");
+    fireEvent.submit(passwordForm);
+    await waitFor(() =>
+      expect(document.getElementById("current-password")).toHaveAttribute("aria-invalid", "true"),
+    );
+    expect(within(passwordForm).getAllByRole("alert")).toHaveLength(1);
+    expect(document.getElementById("new-password")).not.toHaveAttribute("aria-invalid");
+    expect(service.changePassword).not.toHaveBeenCalled();
+  });
 });

@@ -47,6 +47,7 @@ export function SearchRow({ onClose }: { onClose: () => void }) {
 
   return (
     <form
+      noValidate
       role="search"
       data-testid="search-row"
       className="border-b border-border bg-card px-2 py-2 md:hidden"
@@ -159,6 +160,7 @@ export function AppHeader() {
             42rem; the controls are a non-shrinking sibling, so it can never grow
             into them (INC-049). */}
         <form
+          noValidate
           role="search"
           data-testid="search-inline"
           className="hidden min-w-0 md:block md:flex-[6] md:max-w-2xl"
