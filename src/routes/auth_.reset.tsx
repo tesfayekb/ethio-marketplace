@@ -5,11 +5,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { completePasswordReset, sessionRehydration } from "@/features/auth/auth-service";
 import { landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
+import type { Refusal, RefusalFamily } from "@/lib/refusal";
 
 /**
  * P1-g — the landing page of a password-reset link.
@@ -41,9 +45,13 @@ export const Route = createFileRoute("/auth_/reset")({
   component: ResetScreen,
 });
 
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground " +
-  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+/**
+ * L11 (DEC-339) — the reset form's own words for a field's refusal: a blank
+ * required answer (the shared gate) and a new password under the length.
+ */
+const RESET_REFUSALS: RefusalFamily = {
+  words: { required: "post.refusal.required", tooShort: "auth.errorPasswordTooShort" },
+};
 
 const primaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +
@@ -68,6 +76,14 @@ function ResetScreen() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  /** L11 — the too-short refusal belongs to the password field, not the form. */
+  const [tooShort, setTooShort] = useState(false);
+  const gate = useFormGate();
+  const markOf = (field: string): Refusal | null =>
+    gate.marks.find((mark) => mark.field === field) ?? null;
+  const passwordRefusal: Refusal | null =
+    markOf("password") ?? (tooShort ? { field: "password", reason: "tooShort" } : null);
+  const againRefusal = markOf("password_again");
 
   useEffect(() => {
     let active = true;
@@ -92,8 +108,10 @@ function ResetScreen() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorKey(null);
+    setTooShort(false);
+    if (!gate.try()) return;
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setErrorKey("auth.errorPasswordTooShort");
+      setTooShort(true);
       return;
     }
     const mismatch = passwordPairProblem(password, passwordAgain);
@@ -174,41 +192,60 @@ function ResetScreen() {
       <h1 className="text-xl font-semibold text-foreground">{t("auth.resetNewTitle")}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetNewBody")}</p>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="reset-password" className="text-sm font-medium text-foreground">
-            {t("settings.newPassword")}
-          </label>
-          <PasswordInput
-            id="reset-password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            minLength={MIN_PASSWORD_LENGTH}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t("auth.passwordPlaceholder")}
-            className={fieldClass}
-          />
-        </div>
+      <form noValidate onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+        <Field
+          id="reset-password"
+          field="password"
+          label={t("settings.newPassword")}
+          required
+          refusal={passwordRefusal}
+          family={RESET_REFUSALS}
+          gate={gate}
+          blank={password === ""}
+        >
+          {(control) => (
+            <PasswordInput
+              {...control}
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              minLength={MIN_PASSWORD_LENGTH}
+              required
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setTooShort(false);
+              }}
+              placeholder={t("auth.passwordPlaceholder")}
+              className={controlClass(passwordRefusal !== null)}
+            />
+          )}
+        </Field>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="reset-password-confirm" className="text-sm font-medium text-foreground">
-            {t("settings.newPasswordConfirm")}
-          </label>
-          <PasswordInput
-            id="reset-password-confirm"
-            name="password-confirm"
-            type="password"
-            autoComplete="new-password"
-            minLength={MIN_PASSWORD_LENGTH}
-            required
-            value={passwordAgain}
-            onChange={(e) => setPasswordAgain(e.target.value)}
-            className={fieldClass}
-          />
-        </div>
+        <Field
+          id="reset-password-confirm"
+          field="password_again"
+          label={t("settings.newPasswordConfirm")}
+          required
+          refusal={againRefusal}
+          family={RESET_REFUSALS}
+          gate={gate}
+          blank={passwordAgain === ""}
+        >
+          {(control) => (
+            <PasswordInput
+              {...control}
+              name="password-confirm"
+              type="password"
+              autoComplete="new-password"
+              minLength={MIN_PASSWORD_LENGTH}
+              required
+              value={passwordAgain}
+              onChange={(e) => setPasswordAgain(e.target.value)}
+              className={controlClass(againRefusal !== null)}
+            />
+          )}
+        </Field>
 
         {errorKey ? (
           <p role="alert" className="text-sm text-destructive">

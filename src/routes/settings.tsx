@@ -6,6 +6,9 @@ import { passwordPairProblem } from "@/features/auth/password-pair";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { ActionMessage } from "@/components/ui/action-message";
 import { PageHeader } from "@/components/layout/page-header";
@@ -28,6 +31,7 @@ import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
 import { requireSignedIn } from "@/lib/signed-in-route";
+import type { Refusal, RefusalFamily } from "@/lib/refusal";
 import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 import { currentSession, getSupabase } from "@/lib/supabase-door";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
@@ -82,9 +86,12 @@ export const Route = createFileRoute("/settings")({
   component: SettingsScreen,
 });
 
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground " +
-  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+/** L11 (DEC-339) — a blank required answer's words, under its own field (the shared gate). */
+const SETTINGS_FORM_REFUSALS: RefusalFamily = { words: { required: "post.refusal.required" } };
+
+function markOf(marks: readonly Refusal[], field: string): Refusal | null {
+  return marks.find((mark) => mark.field === field) ?? null;
+}
 
 const primaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +
@@ -153,6 +160,9 @@ function SettingsScreen() {
   const [enrollCode, setEnrollCode] = useState("");
   const [removeCode, setRemoveCode] = useState("");
   const [removingFactorId, setRemovingFactorId] = useState<string | null>(null);
+  /** L11 — one gate per form: Change password, Change email. */
+  const passwordGate = useFormGate();
+  const emailGate = useFormGate();
 
   /**
    * U0j (INC-072) — LIVE guard. useAuth subscribes to onAuthStateChange, so
@@ -337,6 +347,7 @@ function SettingsScreen() {
 
   async function handleChangePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!passwordGate.try()) return;
     if (newPassword.length < MIN_PASSWORD_LENGTH) {
       refuse("password", "auth.errorPasswordTooShort");
       return;
@@ -361,10 +372,7 @@ function SettingsScreen() {
   async function handleChangeEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const address = newEmail.trim();
-    if (!address) {
-      refuse("email", "auth.errorMissingFields");
-      return;
-    }
+    if (!emailGate.try()) return;
     const ok = await run(() => changeEmail(address), "settings.emailChangeSent", "email");
     if (ok) setNewEmail("");
   }
@@ -551,18 +559,26 @@ function SettingsScreen() {
               className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3"
             >
               <p className="text-sm text-foreground">{t("settings.removePasswordConfirm")}</p>
-              <label htmlFor="remove-password-current" className="text-sm text-muted-foreground">
-                {t("settings.removePasswordAsk")}
-              </label>
-              <PasswordInput
+              <Field
                 id="remove-password-current"
-                type="password"
-                autoComplete="current-password"
+                field="password"
+                label={t("settings.removePasswordAsk")}
                 required
-                value={removePasswordCurrent}
-                onChange={(e) => setRemovePasswordCurrent(e.target.value)}
-                className={fieldClass}
-              />
+                marked={false}
+                refusal={null}
+              >
+                {(control) => (
+                  <PasswordInput
+                    {...control}
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={removePasswordCurrent}
+                    onChange={(e) => setRemovePasswordCurrent(e.target.value)}
+                    className={controlClass(false)}
+                  />
+                )}
+              </Field>
               {messageAt("removePassword")}
               <button
                 type="button"
@@ -673,20 +689,28 @@ function SettingsScreen() {
           {removingFactorId ? (
             <div className="mt-3 flex flex-col gap-3 rounded-md border border-border p-3">
               <p className="text-sm text-foreground">{t("mfa.removeConfirm")}</p>
-              <label htmlFor="mfa-remove-code" className="text-sm text-muted-foreground">
-                {t("mfa.codeLabel")}
-              </label>
-              <input
+              <Field
                 id="mfa-remove-code"
-                data-testid="mfa-remove-code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                placeholder={t("mfa.codePlaceholder")}
-                value={removeCode}
-                onChange={(e) => setRemoveCode(e.target.value)}
-                className={fieldClass}
-              />
+                field="code"
+                label={t("mfa.codeLabel")}
+                required
+                marked={false}
+                refusal={null}
+              >
+                {(control) => (
+                  <input
+                    {...control}
+                    data-testid="mfa-remove-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder={t("mfa.codePlaceholder")}
+                    value={removeCode}
+                    onChange={(e) => setRemoveCode(e.target.value)}
+                    className={controlClass(false)}
+                  />
+                )}
+              </Field>
               <button
                 type="button"
                 data-testid="mfa-remove-confirm"
@@ -740,31 +764,47 @@ function SettingsScreen() {
                 className="h-[200px] w-[200px] self-start rounded-md border border-border bg-background"
                 imgClassName="p-2"
               />
-              <label htmlFor="mfa-secret" className="text-sm text-muted-foreground">
-                {t("mfa.secretLabel")}
-              </label>
-              <input
+              <Field
                 id="mfa-secret"
-                data-testid="mfa-secret"
-                readOnly
-                value={mfa.pending.secret}
-                className={fieldClass}
-              />
+                field="secret"
+                label={t("mfa.secretLabel")}
+                required
+                marked={false}
+                refusal={null}
+              >
+                {(control) => (
+                  <input
+                    {...control}
+                    data-testid="mfa-secret"
+                    readOnly
+                    value={mfa.pending?.secret ?? ""}
+                    className={controlClass(false)}
+                  />
+                )}
+              </Field>
               <p className="text-sm text-foreground">{t("mfa.step2")}</p>
-              <label htmlFor="mfa-code" className="text-sm text-muted-foreground">
-                {t("mfa.codeLabel")}
-              </label>
-              <input
+              <Field
                 id="mfa-code"
-                data-testid="mfa-code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                placeholder={t("mfa.codePlaceholder")}
-                value={enrollCode}
-                onChange={(e) => setEnrollCode(e.target.value)}
-                className={fieldClass}
-              />
+                field="code"
+                label={t("mfa.codeLabel")}
+                required
+                marked={false}
+                refusal={null}
+              >
+                {(control) => (
+                  <input
+                    {...control}
+                    data-testid="mfa-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder={t("mfa.codePlaceholder")}
+                    value={enrollCode}
+                    onChange={(e) => setEnrollCode(e.target.value)}
+                    className={controlClass(false)}
+                  />
+                )}
+              </Field>
               <button
                 type="button"
                 data-testid="mfa-verify"
@@ -809,80 +849,113 @@ function SettingsScreen() {
           ) : null}
 
           <form
+            noValidate
             onSubmit={handleChangePassword}
             hidden={passwordPresent === false}
             className="mt-4 flex flex-col gap-3"
           >
             <h3 className="text-sm font-medium text-foreground">{t("settings.changePassword")}</h3>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="current-password" className="text-sm text-muted-foreground">
-                {t("settings.currentPassword")}
-              </label>
-              <PasswordInput
-                id="current-password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                className={fieldClass}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-password" className="text-sm text-muted-foreground">
-                {t("settings.newPassword")}
-              </label>
-              <PasswordInput
-                id="new-password"
-                type="password"
-                autoComplete="new-password"
-                minLength={MIN_PASSWORD_LENGTH}
-                required
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={t("auth.passwordPlaceholder")}
-                className={fieldClass}
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-password-confirm" className="text-sm text-muted-foreground">
-                {t("settings.newPasswordConfirm")}
-              </label>
-              <PasswordInput
-                id="new-password-confirm"
-                type="password"
-                autoComplete="new-password"
-                minLength={MIN_PASSWORD_LENGTH}
-                required
-                value={newPasswordAgain}
-                onChange={(e) => setNewPasswordAgain(e.target.value)}
-                className={fieldClass}
-              />
-            </div>
+            <Field
+              id="current-password"
+              field="current_password"
+              label={t("settings.currentPassword")}
+              required
+              refusal={markOf(passwordGate.marks, "current_password")}
+              family={SETTINGS_FORM_REFUSALS}
+              gate={passwordGate}
+              blank={currentPassword === ""}
+            >
+              {(control) => (
+                <PasswordInput
+                  {...control}
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className={controlClass(markOf(passwordGate.marks, "current_password") !== null)}
+                />
+              )}
+            </Field>
+            <Field
+              id="new-password"
+              field="password"
+              label={t("settings.newPassword")}
+              required
+              refusal={markOf(passwordGate.marks, "password")}
+              family={SETTINGS_FORM_REFUSALS}
+              gate={passwordGate}
+              blank={newPassword === ""}
+            >
+              {(control) => (
+                <PasswordInput
+                  {...control}
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={MIN_PASSWORD_LENGTH}
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder={t("auth.passwordPlaceholder")}
+                  className={controlClass(markOf(passwordGate.marks, "password") !== null)}
+                />
+              )}
+            </Field>
+            <Field
+              id="new-password-confirm"
+              field="password_again"
+              label={t("settings.newPasswordConfirm")}
+              required
+              refusal={markOf(passwordGate.marks, "password_again")}
+              family={SETTINGS_FORM_REFUSALS}
+              gate={passwordGate}
+              blank={newPasswordAgain === ""}
+            >
+              {(control) => (
+                <PasswordInput
+                  {...control}
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={MIN_PASSWORD_LENGTH}
+                  required
+                  value={newPasswordAgain}
+                  onChange={(e) => setNewPasswordAgain(e.target.value)}
+                  className={controlClass(markOf(passwordGate.marks, "password_again") !== null)}
+                />
+              )}
+            </Field>
             {messageAt("password")}
             <button type="submit" disabled={busy} className={primaryButtonClass}>
               {busy ? t("auth.working") : t("settings.changePassword")}
             </button>
           </form>
 
-          <form onSubmit={handleChangeEmail} className="mt-8 flex flex-col gap-3">
+          <form noValidate onSubmit={handleChangeEmail} className="mt-8 flex flex-col gap-3">
             <h3 className="text-sm font-medium text-foreground">{t("settings.changeEmail")}</h3>
-            <div className="flex flex-col gap-1">
-              <label htmlFor="new-email" className="text-sm text-muted-foreground">
-                {t("settings.newEmail")}
-              </label>
-              <input
-                id="new-email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                required
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                placeholder={t("auth.emailPlaceholder")}
-                className={fieldClass}
-              />
-            </div>
+            <Field
+              id="new-email"
+              field="email"
+              label={t("settings.newEmail")}
+              required
+              refusal={markOf(emailGate.marks, "email")}
+              family={SETTINGS_FORM_REFUSALS}
+              gate={emailGate}
+              blank={newEmail.trim() === ""}
+            >
+              {(control) => (
+                <input
+                  {...control}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  required
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder={t("auth.emailPlaceholder")}
+                  className={controlClass(markOf(emailGate.marks, "email") !== null)}
+                />
+              )}
+            </Field>
             {messageAt("email")}
             <button type="submit" disabled={busy} className={secondaryButtonClass}>
               {busy ? t("auth.working") : t("settings.changeEmail")}
@@ -953,22 +1026,25 @@ function ThisDeviceSection() {
       <h2 id="settings-this-device" className="text-base font-semibold text-foreground">
         {t("settings.thisDevice.title")}
       </h2>
-      <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
-        <div className="min-w-0">
-          <label htmlFor="settings-tap-tick" className="text-sm font-medium text-foreground">
-            {t("settings.tapTick.label")}
-          </label>
-          <p id="settings-tap-tick-help" className="text-sm text-muted-foreground">
-            {t("settings.tapTick.help")}
-          </p>
-        </div>
-        <Switch
+      <div className="mt-3">
+        <Field
           id="settings-tap-tick"
-          data-testid="settings-tap-tick"
-          aria-describedby="settings-tap-tick-help"
-          checked={on}
-          onCheckedChange={setTapTick}
-        />
+          field="tap_tick"
+          label={t("settings.tapTick.label")}
+          required={false}
+          layout="inline"
+          refusal={null}
+          hint={<p className="text-sm text-muted-foreground">{t("settings.tapTick.help")}</p>}
+        >
+          {(control) => (
+            <Switch
+              {...control}
+              data-testid="settings-tap-tick"
+              checked={on}
+              onCheckedChange={setTapTick}
+            />
+          )}
+        </Field>
       </div>
     </Section>
   );

@@ -13,6 +13,9 @@ import {
   signInWithPassword,
   signUp,
 } from "@/features/auth/auth-service";
+import { controlClass } from "@/components/forms/control-class";
+import { Field } from "@/components/forms/field";
+import { useFormGate } from "@/components/forms/use-form-gate";
 import { AgreeToDocument } from "@/features/legal/agree-to-document";
 import { legalInForceIds } from "@/features/legal/legal-reader";
 import { currentGateKinds, landAfterSignIn } from "@/features/legal/use-legal-gate";
@@ -25,6 +28,7 @@ import { PageCard } from "@/components/shell/page-card";
 
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
+import type { Refusal, RefusalFamily } from "@/lib/refusal";
 
 /**
  * BUG 2b/2c: the view lives in the URL, never in hidden local state.
@@ -80,9 +84,8 @@ export const Route = createFileRoute("/auth")({
   component: AuthScreen,
 });
 
-const fieldClass =
-  "min-h-11 w-full rounded-md border border-input bg-background px-3 text-base text-foreground " +
-  "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+/** L11 (DEC-339) — a blank required answer's words, under its own field (the shared gate). */
+const AUTH_FORM_REFUSALS: RefusalFamily = { words: { required: "post.refusal.required" } };
 
 const primaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +
@@ -128,6 +131,10 @@ function AuthScreen() {
   const [resendCount, setResendCount] = useState(0);
   // INC-005c: same-browser confirmation while this screen is open.
   const [confirmed, setConfirmed] = useState(false);
+  /** L11 — one gate per view: switching views starts its blanks afresh. */
+  const gate = useFormGate(view ?? "sign-in");
+  const markOf = (field: string): Refusal | null =>
+    gate.marks.find((mark) => mark.field === field) ?? null;
   // D-004: read-only, session-scoped sign-up email.
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   // INC-017: guards against concurrent resend submits (see handleResend).
@@ -272,10 +279,7 @@ function AuthScreen() {
       setAgreeTried(true);
       return;
     }
-    if (!email.trim() || !password) {
-      setErrorKey("auth.errorMissingFields");
-      return;
-    }
+    if (!gate.try()) return;
     if (!isSignIn) {
       const mismatch = passwordPairProblem(password, passwordAgain);
       if (mismatch !== null) {
@@ -322,7 +326,8 @@ function AuthScreen() {
     setErrorKey(null);
     setResendSent(false);
     if (!address) {
-      setErrorKey("auth.errorMissingFields");
+      // L11 — a blank address is the email field's own refusal (the shared gate).
+      gate.try();
       return;
     }
     if (cooldown > 0 || resendCount >= MAX_RESENDS_PER_VISIT) return;
@@ -392,10 +397,7 @@ function AuthScreen() {
     event.preventDefault();
     setErrorKey(null);
     const address = email.trim();
-    if (!address) {
-      setErrorKey("auth.errorMissingFields");
-      return;
-    }
+    if (!gate.try()) return;
     if (busy) return;
     // INC-025: the resubmit carries the same throttle apparatus as the sign-up
     // resend — one shared cooldown timer, one shared per-visit cap, both engaged
@@ -435,24 +437,32 @@ function AuthScreen() {
           <h1 className="text-xl font-semibold text-foreground">{t("auth.resetTitle")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("auth.resetBody")}</p>
 
-          <form onSubmit={handleForgotSubmit} className="mt-6 flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <label htmlFor="reset-email" className="text-sm font-medium text-foreground">
-                {t("auth.email")}
-              </label>
-              <input
-                id="reset-email"
-                name="email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("auth.emailPlaceholder")}
-                className={fieldClass}
-              />
-            </div>
+          <form noValidate onSubmit={handleForgotSubmit} className="mt-6 flex flex-col gap-4">
+            <Field
+              id="reset-email"
+              field="email"
+              label={t("auth.email")}
+              required
+              refusal={markOf("email")}
+              family={AUTH_FORM_REFUSALS}
+              gate={gate}
+              blank={email.trim() === ""}
+            >
+              {(control) => (
+                <input
+                  {...control}
+                  name="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("auth.emailPlaceholder")}
+                  className={controlClass(markOf("email") !== null)}
+                />
+              )}
+            </Field>
 
             {errorKey ? (
               <p role="alert" data-testid="auth-reset-error" className="text-sm text-destructive">
@@ -614,62 +624,83 @@ function AuthScreen() {
           </p>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="auth-email" className="text-sm font-medium text-foreground">
-              {t("auth.email")}
-            </label>
-            <input
-              id="auth-email"
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              autoFocus
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t("auth.emailPlaceholder")}
-              className={fieldClass}
-            />
-          </div>
+        <form noValidate onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+          <Field
+            id="auth-email"
+            field="email"
+            label={t("auth.email")}
+            required
+            refusal={markOf("email")}
+            family={AUTH_FORM_REFUSALS}
+            gate={gate}
+            blank={email.trim() === ""}
+          >
+            {(control) => (
+              <input
+                {...control}
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                autoFocus
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t("auth.emailPlaceholder")}
+                className={controlClass(markOf("email") !== null)}
+              />
+            )}
+          </Field>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor="auth-password" className="text-sm font-medium text-foreground">
-              {t("auth.password")}
-            </label>
-            <PasswordInput
-              id="auth-password"
-              name="password"
-              type="password"
-              autoComplete={isSignIn ? "current-password" : "new-password"}
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("auth.passwordPlaceholder")}
-              className={fieldClass}
-            />
-          </div>
+          <Field
+            id="auth-password"
+            field="password"
+            label={t("auth.password")}
+            required
+            refusal={markOf("password")}
+            family={AUTH_FORM_REFUSALS}
+            gate={gate}
+            blank={password === ""}
+          >
+            {(control) => (
+              <PasswordInput
+                {...control}
+                name="password"
+                type="password"
+                autoComplete={isSignIn ? "current-password" : "new-password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("auth.passwordPlaceholder")}
+                className={controlClass(markOf("password") !== null)}
+              />
+            )}
+          </Field>
 
           {isSignIn ? null : (
-            <div className="flex flex-col gap-1">
-              <label
-                htmlFor="auth-password-confirm"
-                className="text-sm font-medium text-foreground"
-              >
-                {t("auth.passwordConfirm")}
-              </label>
-              <PasswordInput
-                id="auth-password-confirm"
-                name="password-confirm"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={passwordAgain}
-                onChange={(e) => setPasswordAgain(e.target.value)}
-                className={fieldClass}
-              />
-            </div>
+            <Field
+              id="auth-password-confirm"
+              field="password_again"
+              label={t("auth.passwordConfirm")}
+              required
+              refusal={markOf("password_again")}
+              family={AUTH_FORM_REFUSALS}
+              gate={gate}
+              blank={passwordAgain === ""}
+            >
+              {(control) => (
+                <PasswordInput
+                  {...control}
+                  name="password-confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={passwordAgain}
+                  onChange={(e) => setPasswordAgain(e.target.value)}
+                  className={controlClass(markOf("password_again") !== null)}
+                />
+              )}
+            </Field>
           )}
 
           {!isSignIn ? (
