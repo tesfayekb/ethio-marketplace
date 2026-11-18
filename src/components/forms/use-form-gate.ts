@@ -44,16 +44,20 @@ export function useFormGate(
   const revealRef = useRef(reveal);
   revealRef.current = reveal;
   const [lists, setLists] = useState<Lists>({ scope, by: {} });
+  // INC-1199: the blanks reported so far, written in the same call as the state,
+  // so `try()` never judges from the last render's copy.
+  const listsRef = useRef<Lists>(lists);
   const report = useCallback((source: string, fields: readonly string[]) => {
     const at = scopeRef.current;
-    setLists((prev) => {
-      if (prev.scope === at && sameList(prev.by[source], fields)) return prev;
-      const list = [...fields];
-      return {
-        scope: at,
-        by: prev.scope === at ? { ...prev.by, [source]: list } : { [source]: list },
-      };
-    });
+    const prev = listsRef.current;
+    if (prev.scope === at && sameList(prev.by[source], fields)) return;
+    const list = [...fields];
+    const next: Lists = {
+      scope: at,
+      by: prev.scope === at ? { ...prev.by, [source]: list } : { [source]: list },
+    };
+    listsRef.current = next;
+    setLists(next);
   }, []);
   const register = useCallback(
     (field: string, blank: boolean) => report(`field:${field}`, blank ? [field] : NONE),
@@ -73,11 +77,13 @@ export function useFormGate(
     [tried, missing],
   );
   const tryGate = useCallback(() => {
-    if (missing.length === 0) return true;
+    const held = listsRef.current;
+    const now = held.scope === scopeRef.current ? Object.values(held.by).flat() : NONE;
+    if (now.length === 0) return true;
     setTried(true);
-    revealRef.current?.(missing);
+    revealRef.current?.(now);
     return false;
-  }, [missing]);
+  }, []);
   return useMemo(
     () => ({ missing, tried, marks, report, register, try: tryGate }),
     [missing, tried, marks, report, register, tryGate],
