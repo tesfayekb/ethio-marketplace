@@ -8,6 +8,7 @@ import { declaredColumns } from "./columns";
 import { FINDING_KINDS, judge, type Finding, type FindingKind } from "./judge";
 import { parseManifest } from "./manifest";
 import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./rows";
+import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
  * Foundations 1 (DEC-333 / DEC-334) — THE DOOR GUARD. Judges
@@ -19,7 +20,7 @@ import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./r
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the nine finding kinds must fire on its planted fixture
+ * process — each of the ten finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -83,6 +84,20 @@ export function plantedDropHistory(
   return catalogueOf(files).dropped;
 }
 
+/**
+ * The planted permission rows of `opt-out-over-step-up` (F1-6a ruling 1, Part A), in the two forms the
+ * migrations seed: listings:review declared with step-up, listings:reveal without.
+ */
+export const PLANTED_STEP_UPS = [
+  "INSERT INTO public.permissions (resource_id, action, description, requires_step_up, assignable)",
+  "SELECT r.id, v.action, v.descr, v.step_up, true FROM public.resources r",
+  "CROSS JOIN (VALUES ('view', 'See listings', false), ('review', 'Review a listing (held)', true)) AS v(action, descr, step_up)",
+  "WHERE r.name = 'listings';",
+  "INSERT INTO public.permissions (resource_id, action, description, requires_step_up, assignable)",
+  "SELECT r.id, 'reveal', 'Show a seller''s number (D129)', false, true FROM public.resources r",
+  "WHERE r.name = 'listings';",
+].join("\n");
+
 /** The planted fixtures: each kind on its own bypass, and a clean pair. */
 export function plantedCases(): Array<{
   kind: FindingKind | "clean";
@@ -91,6 +106,7 @@ export function plantedCases(): Array<{
   callers?: (name: string) => boolean;
   columns?: ReadonlySet<string>;
   dropped?: DroppedGrant[];
+  stepUps?: (permission: string) => boolean | null | undefined;
 }> {
   return [
     {
@@ -186,6 +202,17 @@ export function plantedCases(): Array<{
       manifest: OWNER_LINE,
       dropped: plantedDropHistory("20990101000000", plantedGrant("authenticated")),
     },
+    {
+      kind: "opt-out-over-step-up",
+      rows: [
+        row({
+          key: "e2e_planted_staff(uuid)",
+          body: SHELL_BODY("'staff', 'listings', 'review', 'staff_moderation', NULL, 'global'"),
+        }),
+      ],
+      manifest: STAFF_LINE.replace("| row |", "| none:D129 |"),
+      stepUps: stepUpsOf([{ file: "planted.sql", sql: PLANTED_STEP_UPS }]),
+    },
   ];
 }
 
@@ -205,7 +232,12 @@ export function selfTest(): string[] {
             ],
             callers: planted.callers,
           }
-        : { callers: planted.callers, columns: planted.columns, dropped: planted.dropped };
+        : {
+            callers: planted.callers,
+            columns: planted.columns,
+            dropped: planted.dropped,
+            stepUps: planted.stepUps,
+          };
     const findings = judge(planted.rows, parseManifest(planted.manifest), evidence);
     if (planted.kind === "clean") {
       if (findings.length > 0)
@@ -239,6 +271,7 @@ export function staticFindings(root = ROOT): Finding[] {
     dropped,
     callers: treeCallers(root, rows),
     columns: declaredColumns(root),
+    stepUps: declaredStepUps(root),
   });
 }
 
@@ -253,6 +286,7 @@ export function liveFindings(tsv: string, root = ROOT): Finding[] {
   return judge(rows, manifest, {
     callers: treeCallers(root, rows),
     columns: declaredColumns(root),
+    stepUps: declaredStepUps(root),
   });
 }
 

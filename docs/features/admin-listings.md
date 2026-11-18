@@ -181,3 +181,19 @@ Bundle 19 turn 13b — for listings:review, the row shows "Reports: N" (open rep
 - The words are the `admin.listings.level.*` keys (Set level, Level set to {level}., …); the
   `admin.listings.tier.*`, `filter.tier` and `action.tier` keys are retired.
 - Tests: TIR-1…8, TD-1…8, CLT-3, SF-6; e2e ATR-1…7 and SC-27 read each level's name from its row.
+
+## F1-6a — the staff's listing doors read their refusals as codes (DEC-333, DEC-402, DEC-403)
+
+- The console's doors (move, edit, tier, remove a photo, undo an edit, the renew settings) now
+  refuse with the shell's `code[:detail]`, not a sentence. Each console mapper (`moveErrorKey`,
+  `editErrorKey`, `photoRemoveErrorKey`, `undoErrorKey`, `tierErrorKey`, `settingsErrorKey`)
+  calls `readRefusal` itself over its own table; the words the doors share live once in
+  `listing-refusals.ts` (`SHARED_REFUSAL_WORDS`, `MOVE_REFUSALS`, `EDIT_REFUSALS`), and a
+  `badValue:<field>` detail is worded by `badValueWords`. Problem lines keep their words; a code
+  the table does not hold shows `common.error`.
+- A reviewer or enforcer cannot decide, restore or remove their own ad through a staff door
+  (`ownListing`, DEC-403); the owner's own paths are unchanged. The review door's scope matches
+  the ad's `home_country_code` (DEC-404).
+- Restoring a removed ad asks the second factor before the move is read, so an enforcer without a
+  fresh factor is refused with the step-up answer even for a severe removal.
+- Tests: each mapper's unit test file reads codes; e2e AL-8, AP-28, ML-10.

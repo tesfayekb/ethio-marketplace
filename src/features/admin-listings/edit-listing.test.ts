@@ -141,16 +141,22 @@ describe("an admin's edit (turn L4a)", () => {
       ],
     });
     expect(refusalsOf(null)).toEqual([]);
-    expect(editErrorKey("nothing changed")).toBe("admin.listings.edit.nothing");
-    expect(editErrorKey("a removed listing is not edited")).toBe(
-      "admin.listings.edit.error.removed",
-    );
-    expect(editErrorKey("your own listing is edited the seller's way")).toBe(
+    expect(editErrorKey("nothingChanged")).toBe("admin.listings.edit.nothing");
+    expect(editErrorKey("listingRemoved")).toBe("admin.listings.edit.error.removed");
+    expect(editErrorKey("ownListing")).toBe("admin.listings.move.error.own");
+    expect(editErrorKey("listingNotFound")).toBe("admin.listings.move.error.notFound");
+    expect(editErrorKey("permissionDenied")).toBe("admin.listings.move.error.denied");
+    expect(editErrorKey("badValue:reason")).toBe("admin.listings.move.pickReason");
+    expect(editErrorKey("noteRequired")).toBe("admin.listings.move.noteRequired");
+    expect(editErrorKey("rateLimited")).toBe("admin.listings.move.error.rateLimited");
+    // A field the edit may not change, the gate codes with no words of their own, a sentence: the generic.
+    expect(editErrorKey("badValue:seller_id")).toBe("common.error");
+    expect(editErrorKey("notSignedIn")).toBe("common.error");
+    expect(editErrorKey("categoryFixed")).toBe("common.error");
+    expect(editErrorKey("something else")).toBe("common.error");
+    expect(editErrorKey({ message: "ownListing", code: "P0D01" })).toBe(
       "admin.listings.move.error.own",
     );
-    expect(editErrorKey("listing not found")).toBe("admin.listings.move.error.notFound");
-    expect(editErrorKey("permission denied")).toBe("admin.listings.move.error.denied");
-    expect(editErrorKey("something else")).toBe("common.error");
   });
 
   it("LE-6 a category change sends the leaf and the answers; answers travel only when the admin worked in them", () => {

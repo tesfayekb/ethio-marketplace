@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
-import { editErrorKey } from "./edit-listing";
+import { badValueWords, EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
 
 /**
  * Bundle 13 turn 8 (D154 B4) — WHAT STAFF GIVE WHEN THEY REMOVE ONE PHOTO.
@@ -18,8 +19,13 @@ import { editErrorKey } from "./edit-listing";
  */
 export const PHOTO_REASONS = ["photo", "misleading", "rules", "other"] as const;
 
-/** The door's refusal, as the person reads it. */
-export function photoRemoveErrorKey(message: string): MessageKey {
-  if (message === "photo not found on this listing") return "admin.listings.photos.error.gone";
-  return editErrorKey(message);
+/** The words of a refused photo removal: the edit's, and its own for a photo that is gone. */
+const PHOTO_REMOVE_REFUSALS = {
+  words: { ...EDIT_REFUSALS.words, photoNotFound: "admin.listings.photos.error.gone" },
+  generic: "common.error",
+} as const satisfies RefusalFamily;
+
+/** The door's refusal (`code[:detail]`), as the person reads it. */
+export function photoRemoveErrorKey(refusal: unknown): MessageKey {
+  return badValueWords(refusal, EDIT_BAD_VALUES) ?? readRefusal(refusal, PHOTO_REMOVE_REFUSALS).key;
 }

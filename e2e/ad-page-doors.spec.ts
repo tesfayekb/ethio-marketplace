@@ -935,10 +935,10 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       });
       expect(insert.error).toContain("permission denied");
       expect((await x.rpc("admin_listing_reports", { p_listing_id: ad.id })).error).toContain(
-        "permission denied",
+        "permissionDenied",
       );
       expect((await x.rpc("admin_open_report_counts", { p_listing_ids: [ad.id] })).error).toContain(
-        "permission denied",
+        "permissionDenied",
       );
       // X's plain-account checks finish before this held account gains the staff role.
       await grantScratchRole(

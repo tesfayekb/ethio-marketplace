@@ -4,6 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 const calls = vi.hoisted(() => [] as Array<[string, unknown[]]>);
 /** Turn E3 — the rows the mocked read answers with (empty unless a test fills it). */
 const answer = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
+/** F1-6a — the doors' calls and what the mocked `rpc` answers with. */
+const doors = vi.hoisted(() => ({
+  calls: [] as Array<[string, unknown]>,
+  answer: { data: null, error: null } as { data: unknown; error: { message: string } | null },
+}));
 
 vi.mock("@/integrations/supabase/client", () => {
   const builder: Record<string, (...args: unknown[]) => unknown> = {};
@@ -19,6 +24,10 @@ vi.mock("@/integrations/supabase/client", () => {
   }
   return {
     supabase: {
+      rpc: (name: string, args: unknown) => {
+        doors.calls.push([name, args]);
+        return Promise.resolve(doors.answer);
+      },
       from: (table: string) => {
         calls.push(["from", [table]]);
         return builder;
@@ -28,10 +37,12 @@ vi.mock("@/integrations/supabase/client", () => {
 });
 
 import {
+  decideListing,
   listScreening,
   nameCheckSummaryOf,
   parseScreeningFacts,
   readScreeningRow,
+  revealContact,
   revealProblemKey,
 } from "./use-screening";
 
@@ -165,6 +176,54 @@ describe("revealProblemKey", () => {
   it("SF-3 names the hour's limit and a method the seller does not show", () => {
     expect(revealProblemKey("rateLimited")).toBe("admin.screening.revealLimited");
     expect(revealProblemKey("notShown")).toBe("admin.screening.revealNotShown");
+  });
+});
+
+/** F1-6a — the reviewer's decision goes through the staff door, never `transition_listing` (DEC-402). */
+describe("decideListing", () => {
+  it("SF-8 calls admin_review_listing with the ad and the status; a refusal is thrown as it came", async () => {
+    doors.calls.length = 0;
+    doors.answer = { data: { ok: true, status: "active" }, error: null };
+    await decideListing("l-1", "active");
+    expect(doors.calls).toEqual([
+      ["admin_review_listing", { p_listing_id: "l-1", p_new_status: "active" }],
+    ]);
+    doors.answer = { data: null, error: { message: "ownListing" } };
+    await expect(decideListing("l-1", "rejected")).rejects.toMatchObject({ message: "ownListing" });
+  });
+});
+
+/** F1-6a — the reveal's dial refusal is a raised code now; the screen's line for it is unchanged. */
+describe("revealContact", () => {
+  it("SF-9 a raised rateLimited is the returned reason the screen words; any other refusal is thrown", async () => {
+    doors.calls.length = 0;
+    doors.answer = { data: { ok: true, value: "+251911000000" }, error: null };
+    await expect(revealContact("l-1", "phone")).resolves.toEqual({
+      ok: true,
+      value: "+251911000000",
+    });
+    expect(doors.calls[0]).toEqual([
+      "admin_reveal_listing_contact",
+      { p_listing_id: "l-1", p_channel: "phone" },
+    ]);
+    doors.answer = { data: { ok: false, reason: "notShown" }, error: null };
+    await expect(revealContact("l-1", "phone")).resolves.toEqual({
+      ok: false,
+      reason: "notShown",
+    });
+    doors.answer = { data: null, error: { message: "rateLimited" } };
+    await expect(revealContact("l-1", "phone")).resolves.toEqual({
+      ok: false,
+      reason: "rateLimited",
+    });
+    doors.answer = { data: null, error: { message: "permissionDenied" } };
+    await expect(revealContact("l-1", "phone")).rejects.toMatchObject({
+      message: "permissionDenied",
+    });
+    doors.answer = { data: null, error: { message: "badValue:channel" } };
+    await expect(revealContact("l-1", "phone")).rejects.toMatchObject({
+      message: "badValue:channel",
+    });
   });
 });
 

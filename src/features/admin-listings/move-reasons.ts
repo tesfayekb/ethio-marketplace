@@ -1,4 +1,7 @@
 import type { MessageKey } from "@/i18n";
+import { readRefusal } from "@/lib/refusal";
+
+import { MOVE_REFUSALS } from "./listing-refusals";
 
 /**
  * Bundle 11, the Listings console, turn L2b (D136 4, D137) — what an admin's
@@ -52,17 +55,7 @@ export function moveProblem(reason: string, note: string): MessageKey | null {
   return null;
 }
 
-/** The door's refusal, as the person reads it. */
-export function moveErrorKey(message: string): MessageKey {
-  if (message === "listing not found") return "admin.listings.move.error.notFound";
-  if (message.startsWith("your own listing")) return "admin.listings.move.error.own";
-  if (message.startsWith("illegal move")) return "admin.listings.move.error.illegal";
-  if (message.startsWith("a listing removed for a severe reason"))
-    return "admin.listings.move.error.severe";
-  if (message === "rateLimited") return "admin.listings.move.error.rateLimited";
-  if (message === "permission denied") return "admin.listings.move.error.denied";
-  if (message === "a note is required") return "admin.listings.move.noteRequired";
-  if (message === "the note is too long") return "admin.listings.move.noteTooLong";
-  if (message === "noFreeSlot") return "admin.listings.error.noFreeSlot";
-  return "common.error";
+/** The door's refusal (`code[:detail]`), as the person reads it. */
+export function moveErrorKey(refusal: unknown): MessageKey {
+  return readRefusal(refusal, MOVE_REFUSALS).key;
 }

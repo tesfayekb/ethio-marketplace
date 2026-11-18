@@ -5,6 +5,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Package } from "lucide-react";
 import { useRef, useState } from "react";
 
+import { doorCode } from "@/lib/door-codes";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -313,7 +314,7 @@ export function AdminListingsPage() {
                 ? String((error as { message: unknown }).message)
                 : "";
             refused.push(t(moveErrorKey(message)));
-            if (message === "rateLimited") break;
+            if (doorCode(message).code === "rateLimited") break;
           }
         }
       });

@@ -341,7 +341,8 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     expect((await close(a, x.id)).error).toBeNull();
     const kept = (await listingTruth(x.id))["kept_remaining"];
-    // Seller B, refused above as a stranger, now holds listings:view and listings:review (DEC-174).
+    // Seller B, refused above as a stranger, now holds listings:view and listings:review (DEC-174):
+    // transition_listing is the owner's door alone (DEC-402), so a reviewer is still no owner.
     await grantScratchRole(
       sellerB.id,
       [
@@ -350,7 +351,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       ],
       roles,
     );
-    expect((await reopen(b, x.id)).error).toBe("ownerOnly:closed-active");
+    expect((await reopen(b, x.id)).error).toBe("notYourListing");
     const service = await adminClient().rpc("transition_listing", {
       p_listing_id: x.id,
       p_new_status: "active",
@@ -718,7 +719,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     const set = (person: Person, allowed: boolean | null, n: number) =>
       person.rpc("admin_set_listing_policy", { p_renew_allowed: allowed, p_renew_days: n });
-    expect((await set(me, true, 30)).error).toBe("permission denied");
+    expect((await set(me, true, 30)).error).toBe("permissionDenied");
     // The same seller, now holding listings:view and listings:review (DEC-174).
     await grantScratchRole(
       seller.id,
@@ -728,7 +729,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       ],
       roles,
     );
-    expect((await set(me, true, 30)).error).toBe("permission denied");
+    expect((await set(me, true, 30)).error).toBe("permissionDenied");
     const enforcerAccount = await leaseUser();
     await grantScratchRole(enforcerAccount.id, [["listings", "enforce"]], roles);
     const enforcer = await asPerson(enforcerAccount);
@@ -745,7 +746,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
         p_renew_days: n,
       });
       expect(refused.error, `admin_set_listing_policy(${allowed}, ${n})`).toBe(
-        "renew days are 1 to 365",
+        "badValue:renew_days",
       );
     }
 

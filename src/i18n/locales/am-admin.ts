@@ -187,6 +187,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.roles.perm.action.manage": "ማስተዳደር",
   "admin.roles.perm.action.publish": "ማተም",
   "admin.roles.perm.action.restructure": "መልሶ ማዋቀር",
+  "admin.roles.perm.action.reveal": "ማሳየት",
   "admin.roles.perm.action.review": "መገምገም",
   "admin.roles.perm.action.update": "ማዘመን",
   "admin.roles.perm.action.use": "መጠቀም",

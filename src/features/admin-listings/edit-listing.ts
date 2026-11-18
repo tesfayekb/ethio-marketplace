@@ -1,8 +1,10 @@
 import type { MessageKey } from "@/i18n";
 import type { PricingValues } from "@/features/posting/step-pricing";
 import { sameChannels } from "@/features/posting/same-channels";
+import { readRefusal } from "@/lib/refusal";
 
-import { moveErrorKey, moveProblem } from "./move-reasons";
+import { badValueWords, EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
+import { moveProblem } from "./move-reasons";
 import type { AdminListingDetail } from "./use-admin-listing";
 
 /**
@@ -252,12 +254,7 @@ export function editProblem(
   return moveProblem(reason, note);
 }
 
-/** The door's refusal, as the person reads it. */
-export function editErrorKey(message: string): MessageKey {
-  if (message === "nothing changed" || message === "nothing to change") {
-    return "admin.listings.edit.nothing";
-  }
-  if (message === "a removed listing is not edited") return "admin.listings.edit.error.removed";
-  if (message === "unknown reason") return "admin.listings.move.pickReason";
-  return moveErrorKey(message);
+/** The door's refusal (`code[:detail]`), as the person reads it. */
+export function editErrorKey(refusal: unknown): MessageKey {
+  return badValueWords(refusal, EDIT_BAD_VALUES) ?? readRefusal(refusal, EDIT_REFUSALS).key;
 }

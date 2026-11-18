@@ -43,8 +43,11 @@ describe("the renew settings (turn R2)", () => {
   });
 
   it("RS-3 the door's refusal in the admin's words", () => {
-    expect(settingsErrorKey("renew days are 1 to 365")).toBe("admin.listings.settings.daysHelp");
-    expect(settingsErrorKey("permission denied")).toBe("admin.listings.settings.failed");
+    expect(settingsErrorKey("badValue:renew_days")).toBe("admin.listings.settings.daysHelp");
+    expect(settingsErrorKey("permissionDenied")).toBe("admin.listings.settings.failed");
+    expect(settingsErrorKey("accountDeactivated")).toBe("admin.listings.settings.failed");
+    expect(settingsErrorKey("badValue:other")).toBe("admin.listings.settings.failed");
+    expect(settingsErrorKey("renew days are 1 to 365")).toBe("admin.listings.settings.failed");
     for (const key of [
       "admin.listings.settings.open",
       "admin.listings.settings.title",
