@@ -16,7 +16,9 @@ import { walkFiles } from "./kit";
  * later `DROP FUNCTION` removes without redeclaring. It also answers every
  * function or table whose last event is a drop (`droppedObjects`, for the
  * public-surface judge, DEC-357) and every string literal that spans a line
- * break (`spanningLiterals`, for the migration guard, INC-1089).
+ * break (`spanningLiterals`, for the migration guard, INC-1089), and every
+ * proof line that sends a random draw through a door as text (`randomTexts`,
+ * for the migration guard, INC-1202).
  *
  * What it reads of computed text (INC-1083): a `DO` block's `format('CREATE …
  * FUNCTION public.<fn>(…', …)` — or `public.%I(` with the name as its first
@@ -90,6 +92,122 @@ const TABLE_NAME = /^(?:public\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?$/i;
 export function functionCodeOf(sql: string): string {
   const blank = (s: string) => s.replace(/[^\n]/g, " ");
   return sqlCodeOf(sql).replace(DO_BLOCK, blank);
+}
+
+/** The arguments of the call whose `(` is at `open`: each argument's range, and the offset after `)`. */
+function argumentsAt(code: string, open: number): { args: Array<[number, number]>; end: number } {
+  const args: Array<[number, number]> = [];
+  let depth = 0;
+  let from = open + 1;
+  for (let at = open; at < code.length; at += 1) {
+    const ch = code[at];
+    if (ch === "(") depth += 1;
+    else if (ch === ")") {
+      depth -= 1;
+      if (depth === 0) {
+        args.push([from, at]);
+        return { args, end: at + 1 };
+      }
+    } else if (ch === "," && depth === 1) {
+      args.push([from, at]);
+      from = at + 1;
+    }
+  }
+  args.push([from, code.length]);
+  return { args, end: code.length };
+}
+
+const KEPT_LITERAL = /^'(?:0123456789|title|description|name)'$/i;
+const RANDOM_DRAW =
+  /\bgen_random_uuid\s*\(\s*\)|\buuid_generate_v4\s*\(\s*\)|\bmd5\s*\(|\brandom\s*\(\s*\)|\bgen_random_bytes\s*\(|\bto_hex\s*\(/i;
+const ASSIGNED = /([A-Za-z_][A-Za-z0-9_]*)(?:\s*\[\s*\])?\s*:=([\s\S]*)$/;
+const DECLARED_NAME = /^\s*(?:DO\s+\$[A-Za-z0-9_]*\$\s*)?(?:DECLARE\s+)?([A-Za-z_][A-Za-z0-9_]*)/i;
+const TYPE_WORD =
+  /^(?:text|varchar|varying|character|char|jsonb|json|uuid|integer|int|int4|int8|bigint|smallint|numeric|boolean|bool|date|timestamptz|timestamp|time|zone|interval|regprocedure|regclass|record|bytea|constant|type|rowtype)$/i;
+const DOOR_TEXT_KEY = /^'(?:title|description|name)'$/i;
+const DOOR_TEXT_ARGUMENT = /\bp_(?:title|description|name)\s*=>/gi;
+const LETTERS_ONLY = /^'[^0-9']*'$/;
+
+/**
+ * Every line where a `DO` block (a proof) sends a random draw's digits through
+ * a call as a title, a description or a name (INC-1202): a door's content
+ * rules read the text, so a proof's verdict would depend on its draw.
+ *
+ * Judged: a `jsonb_build_object` pair keyed `'title'`, `'description'` or
+ * `'name'`, and a named argument `p_title`, `p_description` or `p_name =>`,
+ * whose value holds a draw — `gen_random_uuid()`, `uuid_generate_v4()`,
+ * `md5(…)`, `random()`, `gen_random_bytes(…)`, `to_hex(…)` — or a variable
+ * assigned by `:=` (declared or in the body) from one, followed to a fixed
+ * point. A `translate(…, '0123456789', '<no digit>')` maps the digits to
+ * letters, and its value is no draw. Not judged: positional arguments (the
+ * file cannot name their parameter), `SELECT … INTO`, and a bare `=`.
+ */
+export function randomTexts(sql: string): Array<{ line: number }> {
+  const code = sqlCodeOf(sql);
+  const lines = new Set<number>();
+  for (const block of code.matchAll(DO_BLOCK)) {
+    const original = block[0];
+    const masked = original
+      .replace(EVERY_ONE_LINE_LITERAL, (literal) =>
+        KEPT_LITERAL.test(literal) ? literal : `'${" ".repeat(literal.length - 2)}'`,
+      )
+      .split("");
+    for (const call of masked.join("").matchAll(/\btranslate\s*\(/gi)) {
+      const open = (call.index ?? 0) + call[0].length - 1;
+      if (masked[open] !== "(") continue;
+      const { args, end } = argumentsAt(masked.join(""), open);
+      const [, digits, letters] = args.map(([from, to]) => original.slice(from, to).trim());
+      if (digits !== "'0123456789'" || letters === undefined || !LETTERS_ONLY.test(letters))
+        continue;
+      masked.fill(" ", call.index ?? 0, end);
+    }
+    const text = masked.join("");
+    const statements: Array<{ from: number; text: string }> = [];
+    let from = 0;
+    for (const part of text.split(";")) {
+      statements.push({ from, text: part });
+      from += part.length + 1;
+    }
+    const drawn = new Set<string>();
+    const holdsDraw = (value: string) =>
+      RANDOM_DRAW.test(value) ||
+      [...drawn].some((name) => flaggedPattern("i")`\\b${name}\\b`.test(value));
+    for (let grew = true; grew; ) {
+      grew = false;
+      for (const statement of statements) {
+        const assigned = ASSIGNED.exec(statement.text);
+        if (assigned === null) continue;
+        let name = assigned[1] ?? "";
+        if (TYPE_WORD.test(name)) name = DECLARED_NAME.exec(statement.text)?.[1] ?? "";
+        name = name.toLowerCase();
+        if (name === "" || drawn.has(name) || !holdsDraw(assigned[2] ?? "")) continue;
+        drawn.add(name);
+        grew = true;
+      }
+    }
+    const lineAt = (at: number) => code.slice(0, (block.index ?? 0) + at).split("\n").length;
+    for (const statement of statements) {
+      const at = (offset: number) => statement.from + offset;
+      for (const call of statement.text.matchAll(/\bjsonb_build_object\s*\(/gi)) {
+        const { args } = argumentsAt(statement.text, (call.index ?? 0) + call[0].length - 1);
+        for (let i = 0; i + 1 < args.length; i += 2) {
+          const [keyFrom, keyTo] = args[i] ?? [0, 0];
+          const [valueFrom, valueTo] = args[i + 1] ?? [0, 0];
+          if (
+            DOOR_TEXT_KEY.test(statement.text.slice(keyFrom, keyTo).trim()) &&
+            holdsDraw(statement.text.slice(valueFrom, valueTo))
+          )
+            lines.add(lineAt(at(keyFrom)));
+        }
+      }
+      for (const named of statement.text.matchAll(DOOR_TEXT_ARGUMENT)) {
+        const tail = `(${statement.text.slice((named.index ?? 0) + named[0].length)}`;
+        const [valueFrom, valueTo] = argumentsAt(tail, 0).args[0] ?? [0, 0];
+        if (holdsDraw(tail.slice(valueFrom, valueTo))) lines.add(lineAt(at(named.index ?? 0)));
+      }
+    }
+  }
+  return [...lines].sort((a, b) => a - b).map((line) => ({ line }));
 }
 
 export type Declaration = {
@@ -343,14 +461,25 @@ export function staleComputedByHand(
   return stale;
 }
 
-/** `--spanning <file>…`: one line per spanning literal, for scripts/check-migrations.sh. */
+/**
+ * `--spanning <file>…`: one line per spanning literal; `--random-text <file>…`:
+ * one line per random draw sent as a door's text — for scripts/check-migrations.sh.
+ */
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const [mode, ...files] = process.argv.slice(2);
-  if (mode !== "--spanning" || files.length === 0)
-    throw new Error("migration reader: use --spanning <file>…");
-  for (const file of files)
-    for (const { line } of spanningLiterals(readFileSync(file, "utf8")))
-      console.log(
-        `${file}:${line}: a string literal spans a line break — write chr(10) or E'\\n' (INC-1089)`,
-      );
+  if ((mode !== "--spanning" && mode !== "--random-text") || files.length === 0)
+    throw new Error("migration reader: use --spanning <file>… or --random-text <file>…");
+  for (const file of files) {
+    const sql = readFileSync(file, "utf8");
+    if (mode === "--spanning")
+      for (const { line } of spanningLiterals(sql))
+        console.log(
+          `${file}:${line}: a string literal spans a line break — write chr(10) or E'\\n' (INC-1089)`,
+        );
+    else
+      for (const { line } of randomTexts(sql))
+        console.log(
+          `${file}:${line}: a proof sends a random draw's digits through a door as a title, a description or a name — map them: translate(…, '0123456789', 'ghijkmnopr') (INC-1202)`,
+        );
+  }
 }

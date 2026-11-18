@@ -926,4 +926,46 @@ if [ -n "$spanning_found" ]; then
 fi
 echo "Spanning-literal guard OK (floor $SPANNING_LITERAL_FLOOR)."
 
+# INC-1202 — a proof's verdict never depends on its random draw. A door's content
+# rules read the text a proof sends (ten digits read as a phone number), so in a
+# migration at or after RANDOM_TEXT_FLOOR no proof sends a random draw's digits
+# through a door as a title, a description or a name
+# (scripts/conformance/migration-reader.ts randomTexts).
+RANDOM_TEXT_FLOOR="${RANDOM_TEXT_FLOOR:-20261118160000}"
+
+random_texts() {
+  bun "$SCRIPT_DIR/conformance/migration-reader.ts" --random-text "$@"
+}
+
+if [ "$(random_texts "$FIXTURE_DIR/bad-random-text-proof-example.sql" | grep -c .)" -ne 4 ]; then
+  echo "Random-text guard self-test FAILED: the bad fixture's four lines were not all refused."
+  exit 1
+fi
+if [ -n "$(random_texts "$FIXTURE_DIR/good-random-text-proof-example.sql")" ]; then
+  echo "Random-text guard self-test FAILED: the good fixture was refused."
+  exit 1
+fi
+echo "Random-text guard self-test OK (the bad fixture's four lines are refused, the good one passes)."
+
+random_text_files=()
+while IFS= read -r -d '' file; do
+  base="$(basename "$file")"
+  stamp="${base%%_*}"
+  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$RANDOM_TEXT_FLOOR" ]]; then
+    continue
+  fi
+  random_text_files+=("$file")
+done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
+
+random_text_found=""
+if [ "${#random_text_files[@]}" -gt 0 ]; then
+  random_text_found="$(random_texts "${random_text_files[@]}")"
+fi
+if [ -n "$random_text_found" ]; then
+  echo "Random-text guard FAILED:"
+  printf '%s\n' "$random_text_found"
+  exit 1
+fi
+echo "Random-text guard OK (floor $RANDOM_TEXT_FLOOR)."
+
 echo "Migration guard OK."

@@ -9,6 +9,7 @@ import {
   droppedObjects,
   dropsOf,
   lastDeclarations,
+  randomTexts,
   spanningLiterals,
   sqlCodeOf,
   staleComputedByHand,
@@ -106,6 +107,37 @@ describe("a compared literal never spans a line break (INC-1089)", () => {
       "END $proof$;\n" +
       "COMMENT ON TABLE public.t IS $c$over\ntwo lines$c$;\n";
     expect(spanningLiterals(clean)).toEqual([]);
+  });
+});
+
+describe("a proof sends no random digits through a door as text (INC-1202)", () => {
+  const fixture = (name: string) => readFileSync(join("scripts/fixtures", name), "utf8");
+
+  it("MGR-8 a draw reaching a title, a description or a name is found on its line; letters, other keys, comments and positional arguments are not", () => {
+    expect(randomTexts(fixture("bad-random-text-proof-example.sql"))).toEqual([
+      { line: 18 },
+      { line: 19 },
+      { line: 20 },
+      { line: 21 },
+    ]);
+    expect(randomTexts(fixture("good-random-text-proof-example.sql"))).toEqual([]);
+    const proof = (body: string) =>
+      `DO $proof$\nDECLARE\n  v_hex text := md5(random()::text);\n  v_l uuid := gen_random_uuid();\nBEGIN\n${body}\nEND $proof$;\n`;
+    expect(
+      randomTexts(
+        proof(
+          "  PERFORM public.d(v_l, jsonb_build_object('title', translate(v_hex, '0123456789', '9876543210')));",
+        ),
+      ),
+    ).toEqual([{ line: 6 }]);
+    expect(
+      randomTexts(
+        proof("  PERFORM public.d(v_l, 'e2e ' || v_hex, jsonb_build_object('note', v_hex));"),
+      ),
+    ).toEqual([]);
+    expect(
+      randomTexts("SELECT jsonb_build_object('title', md5(random()::text));\n" + proof("  NULL;")),
+    ).toEqual([]);
   });
 });
 
