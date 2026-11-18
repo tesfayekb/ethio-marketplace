@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 733,
+  "scanned": 735,
   "dynamicCallSites": 426,
   "keys": {
     "account.deactivatedBanner": [
@@ -5935,6 +5935,7 @@
       "/auth/reset",
       "/dev/primitives",
       "/dev/style",
+      "/l/$slug",
       "/legal/accept",
       "/my-listings",
       "/my-listings/$listingId",
@@ -6074,6 +6075,7 @@
       "/auth/reset",
       "/dev/primitives",
       "/dev/style",
+      "/l/$slug",
       "/legal/accept",
       "/my-listings",
       "/my-listings/$listingId",
