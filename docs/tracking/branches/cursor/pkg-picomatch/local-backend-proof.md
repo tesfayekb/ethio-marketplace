@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `5ce698ebe11cda26be91b8ac74ed67529418e6c1`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44280551332
+- Commit: `e8d992b6c6092629bd7840f97a2a4c4cde0a1583`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44285456312
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 727 | 62 | applied 505/505 | 27 | 0 | 0 | 5 | 32 |
-| email | 216 | 80 | applied 505/505 | 6 | 0 | 0 | 0 | 6 |
-| webkit | not run | 64 | applied 505/505 | 0 | 0 | 0 | 0 | 0 |
-| 1 | 573 | 72 | applied 505/505 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 566 | 65 | applied 505/505 | 174 | 0 | 0 | 26 | 200 |
-| 3 | 582 | 63 | applied 505/505 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 703 | 61 | applied 505/505 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 695 | 59 | applied 505/505 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 786 | 62 | applied 505/505 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 649 | 79 | applied 505/505 | 147 | 0 | 0 | 77 | 224 |
-| 8 | 719 | 62 | applied 505/505 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 709 | 63 | applied 505/505 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 597 | 74 | applied 505/505 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 622 | 70 | applied 505/505 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 688 | 80 | applied 505/505 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 506 | 63 | applied 505/505 | 157 | 0 | 0 | 9 | 166 |
-| 14 | 550 | 63 | applied 505/505 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 601 | 63 | applied 505/505 | 124 | 0 | 0 | 8 | 132 |
-| 16 | 784 | 62 | applied 505/505 | 172 | 0 | 0 | 48 | 220 |
+| smoke | 544 | 62 | applied 505/505 | 27 | 0 | 0 | 5 | 32 |
+| email | 411 | 59 | applied 505/505 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 834 | 79 | applied 505/505 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 1023 | 62 | applied 505/505 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 913 | 62 | applied 505/505 | 174 | 0 | 0 | 26 | 200 |
+| 3 | 655 | 76 | applied 505/505 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 579 | 67 | applied 505/505 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 565 | 59 | applied 505/505 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 520 | 55 | applied 505/505 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 647 | 81 | applied 505/505 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 569 | 66 | applied 505/505 | 178 | 0 | 1 | 7 | 186 |
+| 9 | 516 | 54 | applied 505/505 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 574 | 66 | applied 505/505 | 160 | 0 | 0 | 2 | 162 |
+| 11 | 624 | 78 | applied 505/505 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 593 | 64 | applied 505/505 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 584 | 79 | applied 505/505 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 625 | 62 | applied 505/505 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 584 | 54 | applied 505/505 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 757 | 61 | applied 505/505 | 172 | 0 | 0 | 48 | 220 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 52 | 52 |
-| TOTAL | — | — | — | 2476 | 0 | 0 | 388 | 2864 |
+| TOTAL | — | — | — | 2545 | 0 | 1 | 412 | 2958 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 6 786 s
+- Slowest lane: 1 1023 s
 - Repeat lane (DEC-283): Not repeated: e2e/ad-page.spec.ts (52 tests); Repeat: each 2 on both projects; 52 tests selected, 0 repeated; budget 643 s at 4.7 s a test; directly changed: 0 of 1 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 6, email 10, webkit 6, 1 8, 2 7, 3 7, 4 6, 5 6, 6 6, 7 10, 8 6, 9 6, 10 9, 11 8, 12 10, 13 7, 14 7, 15 7, 16 6, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/374, 2 641/380, 3 641/411, 4 640/323, 5 640/369, 6 641/348, 7 641/446, 8 641/344, 9 641/335, 10 643/414, 11 640/424, 12 641/488, 13 640/331, 14 641/369, 15 641/407, 16 641/323
+- Database session samples during each start (INC-944): smoke 6, email 6, webkit 10, 1 6, 2 6, 3 9, 4 7, 5 6, 6 5, 7 10, 8 7, 9 5, 10 7, 11 10, 12 7, 13 10, 14 6, 15 5, 16 6, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/333, 2 641/319, 3 641/456, 4 640/387, 5 640/376, 6 641/357, 7 641/452, 8 641/382, 9 641/345, 10 643/370, 11 640/436, 12 641/408, 13 640/394, 14 641/318, 15 641/385, 16 641/359
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44280551332-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 44280551332-local-email
-  - webkit: not found
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44280551332-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44280551332-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44280551332-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44280551332-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44280551332-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44280551332-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44280551332-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44280551332-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44280551332-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44280551332-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44280551332-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44280551332-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44280551332-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44280551332-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44280551332-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44280551332-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44285456312-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 44285456312-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44285456312-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44285456312-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44285456312-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44285456312-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44285456312-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44285456312-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44285456312-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44285456312-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44285456312-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44285456312-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44285456312-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44285456312-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44285456312-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44285456312-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44285456312-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44285456312-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44285456312-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -78,29 +78,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane webkit
-- Step failure:
-Step install-chromium-s-system-libraries: outcome failure
-  Get:161 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libopenni2-0 amd64 2.2.0.33+dfsg-18 [370 kB]
-  Get:162 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libqrencode4 amd64 4.1.1-1build2 [25.0 kB]
-  Get:163 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libsecret-common all 0.21.4-1build3 [4962 B]
-  Get:164 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libsecret-1-0 amd64 0.21.4-1build3 [116 kB]
-  Get:165 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libsndio7.0 amd64 1.9.0-0.3build3 [29.6 kB]
-  Get:166 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libsoundtouch1 amd64 2.3.2+ds1-1build1 [60.5 kB]
-  Get:167 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libspandsp2t64 amd64 0.0.6+dfsg-2.1build1 [311 kB]
-  Get:168 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libsrtp2-1 amd64 2.5.0-3build1 [41.9 kB]
-  Get:169 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libwayland-server0 amd64 1.22.0-2.1build1 [33.9 kB]
-  Get:170 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libwildmidi2 amd64 0.4.3-1build3 [68.5 kB]
-  Get:171 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libwoff1 amd64 1.0.2-2build1 [45.3 kB]
-  Get:172 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libxcb-xkb1 amd64 1.15-1ubuntu2 [32.3 kB]
-  Get:173 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libxkbcommon-x11-0 amd64 1.6.0-1build1 [14.5 kB]
-  Get:174 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libzbar0t64 amd64 0.23.93-4build3 [123 kB]
-  Get:175 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libzxing3 amd64 2.2.1-3 [583 kB]
-  Get:176 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-encodings all 1:1.0.5-0ubuntu2 [578 kB]
-  Get:177 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-utils amd64 1:7.7+6build3 [94.4 kB]
-  Get:178 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 xfonts-cyrillic all 1:1.0.5+nmu1 [384 kB]
-  Get:179 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 xfonts-scalable all 1:1.0.3-1.3 [304 kB]
-  ::error title=ci-deadline::bash scripts/ci/install-browser-deps.sh webkit ran past its 1500s deadline on try 1 of 1
-- No JSON results; smoke skipped
+## Lane 8
+- one-line-slots.spec.ts / OLS-4 a category heading beside the star stays one line / mobile-360 — Error: the switcher lists the public languages
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
