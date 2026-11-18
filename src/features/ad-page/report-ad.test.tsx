@@ -24,6 +24,11 @@ vi.mock("@tanstack/react-router", () => ({
     </a>
   ),
 }));
+const dialogLoaded = vi.fn();
+vi.mock("./report-ad-dialog", async (original) => {
+  dialogLoaded();
+  return original<typeof import("./report-ad-dialog")>();
+});
 const { ReportAd } = await import("./report-ad");
 const props = {
   publicId: "2345678923",
@@ -54,7 +59,7 @@ describe("RD-5 Report dialog", () => {
       );
       render(<ReportAd {...props} viewer="signedIn" />);
       fireEvent.click(screen.getByTestId("listing-report-open"));
-      expect(screen.getByTestId("listing-report-send")).toBeDisabled();
+      expect(await screen.findByTestId("listing-report-send")).toBeDisabled();
       const reasons = within(screen.getByTestId("listing-report-reasons")).getAllByRole("radio");
       expect(reasons.map((node) => node.getAttribute("data-testid"))).toEqual(
         [
@@ -99,10 +104,53 @@ describe("RD-5 Report dialog", () => {
             })[0] as HTMLElement,
           );
           fireEvent.click(screen.getByTestId("listing-report-open"));
+          expect(await screen.findByTestId("listing-report-send")).toBeDisabled();
           expect(screen.queryByTestId("listing-report-status")).toBeNull();
-          expect(screen.getByTestId("listing-report-send")).toBeDisabled();
         }
       }
     },
   );
+});
+
+describe("KRA Report dialog on demand", () => {
+  it("KRA-1 nothing of the dialog module loads before the tap; it arrives after", async () => {
+    vi.resetModules();
+    dialogLoaded.mockReset();
+    vi.doMock("./report-ad-dialog", async (original) => {
+      dialogLoaded();
+      return original<typeof import("./report-ad-dialog")>();
+    });
+    const fresh = await import("./report-ad");
+    render(<fresh.ReportAd {...props} viewer="signedIn" />);
+    expect(dialogLoaded).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByTestId("listing-report-reasons")).toBeNull();
+    fireEvent.click(screen.getByTestId("listing-report-open"));
+    expect(await screen.findByTestId("listing-report-reasons")).toBeInTheDocument();
+    expect(dialogLoaded).toHaveBeenCalledTimes(1);
+  });
+  it("KRA-2 both controls sit inside a Field with their ids; reasons are required", async () => {
+    render(<ReportAd {...props} viewer="signedIn" />);
+    fireEvent.click(screen.getByTestId("listing-report-open"));
+    const note = await screen.findByTestId("listing-report-note");
+    const noteBox = note.closest("[data-form-field]");
+    expect(noteBox).not.toBeNull();
+    expect(noteBox?.getAttribute("data-field")).toBe(note.id);
+    expect(note).not.toHaveAttribute("aria-required");
+    expect(noteBox).toHaveTextContent(en["post.optional"]);
+    const spam = screen.getByTestId("listing-report-reason-spam");
+    const spamBox = spam.closest("[data-form-field]");
+    expect(spamBox?.getAttribute("data-field")).toBe(spam.id);
+    expect(spam).toHaveAttribute("aria-required", "true");
+    expect(spam).toHaveAttribute("type", "radio");
+  });
+  it("KRA-3 the send stays disabled with no reason and sends nothing", async () => {
+    render(<ReportAd {...props} viewer="signedIn" />);
+    fireEvent.click(screen.getByTestId("listing-report-open"));
+    const send = await screen.findByTestId("listing-report-send");
+    fireEvent.change(screen.getByTestId("listing-report-note"), { target: { value: "x" } });
+    expect(send).toBeDisabled();
+    fireEvent.click(send);
+    expect(reportListing).not.toHaveBeenCalled();
+  });
 });

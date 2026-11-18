@@ -2,7 +2,6 @@
 # One line per law and file, keyed `<law> <file> (<findings>)`: a count that rises is a new finding, and a
 # count that falls leaves its line stale until it is rewritten — the list only falls. The reason names the
 # wave that moves the file onto the kit. <key> | <reason> | <until>
-CF-FORM-1 src/features/ad-page/report-ad.tsx (2) | wave 4 — the forward-scan consumers (Promote, Report this ad) | DEC-339
 CF-FORM-1 src/features/admin-locations/locations-toolbar.tsx (1) | wave 3 — a list filter drawn apart from its toolbar's file (DEC-338 by kind unseen) | DEC-339
 CF-FORM-1 src/features/auth/mfa/step-up-dialog.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
 CF-FORM-1 src/features/posting/map/map-pin-dropper.tsx (1) | no wave named by the plan — the pin's two precision radios, drawn as list rows (no Field layout in that look yet) | DEC-339
