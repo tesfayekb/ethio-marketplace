@@ -156,3 +156,14 @@ the runtime tree.
 - Resolved: `zod@4.6.7`, `undici@8.12.3` in `bun.lock`. The nested `@tanstack/router-generator/zod` entry is deduplicated onto the root `zod` entry, as are the other two TanStack consumers. The lockfile resolves to the platform's cache (INC-420).
 - Rule (DEC-243, frozen before the run): keep when this commit's CI passes — build, unit and component tests, every lane; revert the whole turn when a failure's body names zod, the router generator, the start plugin, jsdom or the build.
 - The clean-audit verdict comes from CI's `dependency-audit` job (the build sandbox cannot reach the advisory service).
+
+## 2026-11-18 — the exception list (DEC-405), GHSA-fc5q-39xc-vjpf (picomatch)
+
+- Advisory: GHSA-fc5q-39xc-vjpf, `picomatch` <= 4.0.7 (ReDoS through single-branch repeated extglobs), high. GitHub's record has no first patched version and the registry's newest release is 4.0.7, so an `overrides` entry cannot clear it (INC-1194).
+- Path: a build and test tool only (vite, vitest, the TanStack Start plugin, unplugin, tinyglobby, the devtools); it reads patterns the repository writes and is not in the built app.
+- Mechanism: `scripts/audit-exceptions.txt`, read by `scripts/audit-exceptions.ts`, called by `scripts/audit-gate.sh` (the `dependency-audit` job runs the gate; `ci.yml` is unchanged). Proven by `scripts/audit-gate.test.ts` (AGX-1…10) on planted lines.
+- Form: one line per advisory, four cells — `GHSA-xxxx-xxxx-xxxx | reason | until YYYY-MM-DD | DEC-n`. The id is the advisory's GHSA id and nothing else (never a package, never a severity).
+- What the gate does: each valid line becomes one `--ignore=<id>` on the `bun audit` call and one `::warning::` naming the advisory, its expiry and its DEC. A line that is expired (its date is before today, UTC), malformed (not four cells, an id not shaped as above, a date that is not a calendar day written ISO), undecided (no `DEC-n` cell), a duplicate, or dated more than 14 days after the day the gate runs fails the gate by naming itself, before any audit. A finding that is not listed fails at once, as before; the transport retry is unchanged.
+- Ceiling and renewal: an exception is the operator's decision (a security trade-off), recorded as a DEC, for at most 14 days. A longer date fails the gate; a renewal is a new line under a new DEC, never an edited date.
+- Ending: the line is removed in the package turn that applies the patch. `bun audit --json` reports each advisory's id, severity and vulnerable range but no patched version, so the tool cannot end a line early when a patch appears: the expiry alone governs, and the package turn watches the registry.
+- This entry supersedes nothing above: the 2026-09-01 "Ruling mechanism" (a dated ruling with a re-check date) now has its enforcing form in the list.
