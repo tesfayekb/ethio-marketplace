@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44552590552
-- Commit: `782180b95f69b938dbbd55481062e73fc88212f5`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44593520490
+- Commit: `c6f661c83d2f895446e4342fd354d64212b8eaff`
 - Attempt: 1
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-9a1c9ddd62ad… (0 read)
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-9a1c9ddd62ad… (1 read)
 - Repeat: nothing to repeat
-- Written (UTC): 2026-11-19T16:09:40.404Z
+- Written (UTC): 2026-11-19T19:50:14.302Z
 - Passed: 2347 · Skipped: 360 · Failed: 199
 - Gating failures: 199 · STAGING-SINK (INC-1175, still gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -21,13 +21,13 @@ None: no results file lists one and no log's summary names one (19 of 19 results
 
 Logs read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16 · unavailable: none
 
-1108 line(s), 32 message(s): 5 off the allowlist, 27 allowlisted.
+1104 line(s), 32 message(s): 5 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
 | `[incident [account id]] ReaderError: permission denied for function get_attribute_options_version` | 922 | shard 2, shard 3, shard 4, shard 6, shard 7, shard 8, shard 10, shard 11, shard 12, shard 14 |
-| `[incident [account id]] [object Object]` | 44 | shard 5, shard 8 |
-| `translation scope: permission denied for function translation_scope_ok` | 44 | shard 5, shard 8 |
+| `[incident [account id]] [object Object]` | 42 | shard 5, shard 8 |
+| `translation scope: permission denied for function translation_scope_ok` | 42 | shard 5, shard 8 |
 | `permission denied for function listing_contact_refusals` | 28 | shard 2, shard 3, shard 11, shard 12 |
 | `rateLimited:<n>-<n>-<n>T<n>:<n>:<n>+<n>:<n>` | 8 | shard 2 |
 | `categories badHeader` (quiet) | 4 | shard 4, shard 15 |
@@ -65,7 +65,7 @@ Off the allowlist:
 ### [incident [account id]] ReaderError: permission denied for function get_attribute_options_version
 
 - Count: 922 · Sources: shard 2, shard 3, shard 4, shard 6, shard 7, shard 8, shard 10, shard 11, shard 12, shard 14
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-166 a prefill the seller left goes with the old choice; one the seller change ×34 · PW-174 a parent's move whose new option carries no fact leaves D on another pare ×31 · PW-21 a child detail shows only the chosen parent's options and clears on change ×31 · PW-188 a list that hangs under another answer offers its shared Other last under ×28 · PW-76 a detail the model pins to one value is filled and hidden, and still revie ×26 · PW-104 a unit settled by the type is held by the price page's unit ×25
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-21 a child detail shows only the chosen parent's options and clears on change ×36 · PW-166 a prefill the seller left goes with the old choice; one the seller change ×35 · PW-174 a parent's move whose new option carries no fact leaves D on another pare ×34 · PW-88 a step-3 answer's fact and narrowing reach the unit asked on the price pag ×30 · PW-25 an inherited year picker is bounded by the model chosen three levels down, ×29 · PW-188 a list that hangs under another answer offers its shared Other last under ×28
 
 ```text
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version
@@ -73,8 +73,8 @@ Off the allowlist:
 
 ### [incident [account id]] [object Object]
 
-- Count: 44 · Sources: shard 5, shard 8
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-55 a commission basis asks a percentage, stores basis points, and reads it ba ×6 · PW-57 a per-quintal basis keeps the period once and reviews as a price per quint ×6 · FS-10 nothing anywhere: the invitation card comes first, with the category and t ×4 · TR-12 bulk AI fill translates every untranslated scratch key ×4 · TR-12 bulk AI fill translates every untranslated scratch key (retry #1) ×4 · TR-23 machine translation keeps placeholders, and the editor repairs a mangled o ×4
+- Count: 42 · Sources: shard 5, shard 8
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-55 a commission basis asks a percentage, stores basis points, and reads it ba ×5 · PW-58 a commission outside 0.01–100 % is refused in words, and a valid one advan ×5 · PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it ×4 · PW-57 a per-quintal basis keeps the period once and reviews as a price per quint ×4 · TR-12 bulk AI fill translates every untranslated scratch key ×4 · TR-12 bulk AI fill translates every untranslated scratch key (retry #1) ×4
 
 ```text
 [WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
@@ -82,8 +82,8 @@ Off the allowlist:
 
 ### translation scope: permission denied for function translation_scope_ok
 
-- Count: 44 · Sources: shard 5, shard 8
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-55 a commission basis asks a percentage, stores basis points, and reads it ba ×6 · PW-57 a per-quintal basis keeps the period once and reviews as a price per quint ×6 · FS-10 nothing anywhere: the invitation card comes first, with the category and t ×4 · TR-12 bulk AI fill translates every untranslated scratch key ×4 · TR-12 bulk AI fill translates every untranslated scratch key (retry #1) ×4 · TR-23 machine translation keeps placeholders, and the editor repairs a mangled o ×4
+- Count: 42 · Sources: shard 5, shard 8
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-55 a commission basis asks a percentage, stores basis points, and reads it ba ×5 · PW-58 a commission outside 0.01–100 % is refused in words, and a valid one advan ×5 · PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it ×4 · PW-57 a per-quintal basis keeps the period once and reviews as a price per quint ×4 · TR-12 bulk AI fill translates every untranslated scratch key ×4 · TR-12 bulk AI fill translates every untranslated scratch key (retry #1) ×4
 
 ```text
 [WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
@@ -92,7 +92,7 @@ Off the allowlist:
 ### permission denied for function listing_contact_refusals
 
 - Count: 28 · Sources: shard 2, shard 3, shard 11, shard 12
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-144 leaving the contact step makes one identity call, or none when nothing ch ×6 · PW-185 a Next pressed while the contact step is still reading waits for it, then ×6 · PW-12 who: the alias is checked against the door, messages cannot be switched of ×5 · MLA-15 Edit, complete: a second city and a channel apply at once from the Place  ×4 · PR-4 identity: the alias is saved, and a second seller cannot take it (retry #1) ×4 · PW-149 a save refused for another reason shows a message at Next and can be retr ×3
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PW-144 leaving the contact step makes one identity call, or none when nothing ch ×6 · PW-12 who: the alias is checked against the door, messages cannot be switched of ×5 · PW-185 a Next pressed while the contact step is still reading waits for it, then ×5 · MLA-15 Edit, complete: a second city and a channel apply at once from the Place  ×4 · PW-149 a save refused for another reason shows a message at Next and can be retr ×4 · PR-4 identity: the alias is saved, and a second seller cannot take it (retry #1) ×3
 
 ```text
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals
@@ -101,10 +101,10 @@ Off the allowlist:
 ### rateLimited:<n>-<n>-<n>T<n>:<n>:<n>+<n>:<n>
 
 - Count: 8 · Sources: shard 2
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PR-7 the draft dial refuses by name once the ceiling is reached (retry #1) ×8 · PR-7 the draft dial refuses by name once the ceiling is reached ×4 · PR-8 no bearer is 401 on every posting route ×4
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PR-7 the draft dial refuses by name once the ceiling is reached (retry #1) ×8 · PR-7 the draft dial refuses by name once the ceiling is reached ×4 · AT-6 merge: links move to the survivor and the sources disappear ×2 · PR-8 no bearer is 401 on every posting route ×2
 
 ```text
-[WebServer] [ssr-error] /api/listings/draft rateLimited:2026-11-19T16:00:00+00:00
+[WebServer] [ssr-error] /api/listings/draft rateLimited:2026-11-19T20:00:00+00:00
 ```
 
 ## Accessibility (DEC-084, gating)
@@ -119,143 +119,143 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-19T15:18:54.040Z | 4.5 min |
-| email | 2026-11-19T15:25:55.393Z | 0.3 min |
-| webkit | 2026-11-19T15:31:28.658Z | 8.3 min |
-| shard 1 | 2026-11-19T15:23:24.638Z | 5.5 min |
-| shard 2 | 2026-11-19T15:19:35.924Z | 5.5 min |
-| shard 3 | 2026-11-19T15:19:31.820Z | 29.4 min |
-| shard 4 | 2026-11-19T15:19:43.913Z | 5.5 min |
-| shard 5 | 2026-11-19T15:21:34.186Z | 7.1 min |
-| shard 6 | 2026-11-19T15:23:50.837Z | 5.7 min |
-| shard 7 | 2026-11-19T15:19:00.983Z | 7.1 min |
-| shard 8 | 2026-11-19T15:19:59.230Z | 43.7 min |
-| shard 9 | 2026-11-19T15:21:04.379Z | 5.4 min |
-| shard 10 | 2026-11-19T15:24:58.737Z | 5.8 min |
-| shard 11 | 2026-11-19T15:24:34.304Z | 18.0 min |
-| shard 12 | 2026-11-19T15:22:35.920Z | 46.2 min |
-| shard 13 | 2026-11-19T15:23:51.931Z | 6.0 min |
-| shard 14 | 2026-11-19T15:19:19.750Z | 14.9 min |
-| shard 15 | 2026-11-19T15:19:53.685Z | 7.9 min |
-| shard 16 | 2026-11-19T15:23:46.987Z | 5.4 min |
+| smoke | 2026-11-19T19:04:11.093Z | 4.3 min |
+| email | 2026-11-19T19:03:36.991Z | 0.4 min |
+| webkit | 2026-11-19T19:02:47.444Z | 7.2 min |
+| shard 1 | 2026-11-19T19:07:30.077Z | 5.5 min |
+| shard 2 | 2026-11-19T19:03:20.206Z | 6.4 min |
+| shard 3 | 2026-11-19T19:03:10.115Z | 30.2 min |
+| shard 4 | 2026-11-19T19:06:52.297Z | 6.2 min |
+| shard 5 | 2026-11-19T19:03:44.047Z | 7.4 min |
+| shard 6 | 2026-11-19T19:04:35.996Z | 5.9 min |
+| shard 7 | 2026-11-19T19:03:56.034Z | 7.3 min |
+| shard 8 | 2026-11-19T19:03:15.783Z | 44.8 min |
+| shard 9 | 2026-11-19T19:06:32.550Z | 5.5 min |
+| shard 10 | 2026-11-19T19:05:49.076Z | 5.3 min |
+| shard 11 | 2026-11-19T19:05:37.426Z | 17.8 min |
+| shard 12 | 2026-11-19T19:02:54.967Z | 46.1 min |
+| shard 13 | 2026-11-19T19:03:45.809Z | 6.7 min |
+| shard 14 | 2026-11-19T19:03:18.673Z | 13.9 min |
+| shard 15 | 2026-11-19T19:07:20.501Z | 6.3 min |
+| shard 16 | 2026-11-19T19:03:28.223Z | 7.2 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
 | `post-wizard-specs.spec.ts` | 82 | 74.8 min | shard 12 |
-| `post-wizard-pricing.spec.ts` | 52 | 50.9 min | shard 8 |
-| `post-wizard-resets.spec.ts` | 34 | 31.8 min | shard 3 |
-| `post-wizard-place.spec.ts` | 40 | 24.5 min | shard 11 |
-| `admin-translations-console.spec.ts` | 46 | 16.3 min | smoke, shard 8 |
-| `post-wizard-details.spec.ts` | 8 | 11.2 min | shard 14 |
-| `post-wizard-bundle2.spec.ts` | 70 | 10.5 min | shard 3 |
-| `shell.spec.ts` | 234 | 9.5 min | shard 1 |
+| `post-wizard-pricing.spec.ts` | 52 | 51.3 min | shard 8 |
+| `post-wizard-resets.spec.ts` | 34 | 32.1 min | shard 3 |
+| `post-wizard-place.spec.ts` | 40 | 24.4 min | shard 11 |
+| `admin-translations-console.spec.ts` | 46 | 16.8 min | smoke, shard 8 |
+| `post-wizard-details.spec.ts` | 8 | 11.1 min | shard 14 |
+| `post-wizard-bundle2.spec.ts` | 70 | 11.0 min | shard 3 |
+| `shell.spec.ts` | 234 | 9.6 min | shard 1 |
 | `my-listings-ad.spec.ts` | 38 | 7.0 min | shard 12 |
-| `post-wizard-where.spec.ts` | 32 | 6.9 min | shard 11 |
+| `post-wizard-where.spec.ts` | 32 | 6.8 min | shard 11 |
+| `admin-attributes-library.spec.ts` | 42 | 6.1 min | shard 2 |
+| `ad-page.spec.ts` | 104 | 6.0 min | webkit, shard 13 |
 | `admin-translations-data.spec.ts` | 10 | 5.9 min | shard 5 |
-| `ad-page.spec.ts` | 104 | 5.5 min | webkit, shard 13 |
-| `admin-categories-console.spec.ts` | 34 | 5.5 min | shard 7 |
-| `admin-screening.spec.ts` | 58 | 5.5 min | webkit, shard 14 |
-| `admin-attributes-library.spec.ts` | 42 | 5.5 min | shard 2 |
-| `admin-listings.spec.ts` | 78 | 5.3 min | webkit, shard 10 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 4.9 min | shard 15 |
-| `feed-screens.spec.ts` | 40 | 4.8 min | webkit, shard 5 |
+| `import-security.spec.ts` | 36 | 5.7 min | shard 4 |
+| `admin-categories-console.spec.ts` | 34 | 5.6 min | shard 7 |
+| `photo-pipeline.spec.ts` | 74 | 5.5 min | webkit, shard 16 |
+| `feed-screens.spec.ts` | 40 | 5.1 min | webkit, shard 5 |
+| `admin-listings.spec.ts` | 78 | 5.0 min | webkit, shard 10 |
+| `admin-screening.spec.ts` | 58 | 4.9 min | webkit, shard 14 |
+| `admin-attributes-links.spec.ts` | 34 | 4.7 min | shard 13 |
+| `admin-users.spec.ts` | 28 | 4.7 min | shard 16 |
 | `admin-locations.spec.ts` | 38 | 4.5 min | shard 6 |
-| `import-security.spec.ts` | 36 | 4.4 min | shard 4 |
 | `admin-roles.spec.ts` | 28 | 4.4 min | shard 9 |
-| `admin-attributes-links.spec.ts` | 34 | 4.3 min | shard 13 |
-| `viewing-place.spec.ts` | 22 | 4.2 min | shard 15 |
-| `admin-monetisation.spec.ts` | 34 | 4.1 min | smoke, shard 10 |
-| `photo-pipeline.spec.ts` | 74 | 3.9 min | webkit, shard 16 |
-| `admin-attributes-editor.spec.ts` | 36 | 3.8 min | shard 14 |
-| `admin-users.spec.ts` | 28 | 3.7 min | shard 16 |
-| `choice-lists.spec.ts` | 96 | 3.7 min | shard 7 |
-| `post-wizard-category.spec.ts` | 52 | 3.6 min | webkit, shard 4 |
-| `admin-translations-governance.spec.ts` | 20 | 3.4 min | smoke, shard 16 |
+| `viewing-place.spec.ts` | 22 | 3.9 min | shard 15 |
+| `choice-lists.spec.ts` | 96 | 3.8 min | shard 7 |
+| `admin-translations-governance.spec.ts` | 20 | 3.5 min | smoke, shard 16 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 3.4 min | shard 15 |
+| `post-wizard-category.spec.ts` | 52 | 3.4 min | webkit, shard 4 |
+| `admin-attributes-editor.spec.ts` | 36 | 3.4 min | shard 14 |
+| `admin-monetisation.spec.ts` | 34 | 3.3 min | smoke, shard 10 |
 | `auth-signout.spec.ts` | 36 | 3.1 min | shard 9 |
-| `legal-admin.spec.ts` | 44 | 2.7 min | shard 7 |
-| `dialogs.spec.ts` | 20 | 2.7 min | webkit, shard 10 |
-| `mfa-stepup.spec.ts` | 22 | 2.4 min | webkit, shard 15 |
-| `sage-bands.spec.ts` | 76 | 2.4 min | shard 6 |
-| `admin-attributes-safety.spec.ts` | 18 | 2.3 min | shard 5 |
-| `posting-routes.spec.ts` | 80 | 2.3 min | shard 2 |
+| `posting-routes.spec.ts` | 80 | 2.9 min | shard 2 |
+| `legal-admin.spec.ts` | 44 | 2.8 min | shard 7 |
+| `admin-attributes-safety.spec.ts` | 18 | 2.7 min | shard 5 |
+| `sage-bands.spec.ts` | 76 | 2.5 min | shard 6 |
+| `dialogs.spec.ts` | 20 | 2.5 min | webkit, shard 10 |
 | `admin-countries.spec.ts` | 18 | 2.2 min | shard 6 |
-| `legal-certify.spec.ts` | 44 | 2.1 min | shard 14 |
-| `sage-ad-page.spec.ts` | 30 | 1.9 min | webkit, shard 11 |
-| `post-wizard-units.spec.ts` | 4 | 1.7 min | shard 3 |
-| `admin-categories-home.spec.ts` | 10 | 1.7 min | shard 4 |
+| `admin-attributes-import.spec.ts` | 40 | 1.8 min | shard 8 |
+| `sage-tiers.spec.ts` | 52 | 1.8 min | webkit, shard 2 |
+| `legal-certify.spec.ts` | 44 | 1.8 min | shard 14 |
+| `mfa-stepup.spec.ts` | 22 | 1.7 min | webkit, shard 15 |
+| `sage-ad-page.spec.ts` | 30 | 1.7 min | webkit, shard 11 |
+| `admin-categories-home.spec.ts` | 10 | 1.6 min | shard 4 |
+| `post-wizard-units.spec.ts` | 4 | 1.6 min | shard 3 |
 | `admin-audit.spec.ts` | 16 | 1.6 min | shard 9 |
-| `admin-categories-images.spec.ts` | 6 | 1.5 min | smoke, webkit, shard 12 |
-| `admin-attributes-import.spec.ts` | 40 | 1.4 min | shard 8 |
-| `sage-tiers.spec.ts` | 52 | 1.4 min | webkit, shard 2 |
-| `my-listings-page.spec.ts` | 20 | 1.2 min | webkit, shard 10 |
-| `i18n-sign-in-language.spec.ts` | 12 | 1.1 min | shard 15 |
-| `one-line-slots-admin.spec.ts` | 10 | 1.1 min | shard 3 |
+| `admin-categories-images.spec.ts` | 6 | 1.4 min | smoke, webkit, shard 12 |
+| `one-line-slots-admin.spec.ts` | 10 | 1.2 min | shard 3 |
+| `admin-shell.spec.ts` | 12 | 1.1 min | shard 2 |
+| `admin-guides.spec.ts` | 14 | 1.1 min | shard 3 |
+| `user-guides.spec.ts` | 18 | 1.1 min | shard 13 |
+| `sage-shell.spec.ts` | 80 | 1.1 min | shard 16 |
 | `post-wizard-finder.spec.ts` | 8 | 1.0 min | shard 6 |
 | `my-listings-promote.spec.ts` | 10 | 1.0 min | shard 11 |
-| `user-guides.spec.ts` | 18 | 1.0 min | shard 13 |
-| `admin-guides.spec.ts` | 14 | 1.0 min | shard 3 |
-| `phone-frame.spec.ts` | 18 | 1.0 min | shard 12 |
-| `admin-shell.spec.ts` | 12 | 0.9 min | shard 2 |
-| `sage-cards.spec.ts` | 40 | 0.9 min | webkit, shard 7 |
-| `name-check-queue.spec.ts` | 8 | 0.9 min | smoke, shard 9 |
+| `my-listings-page.spec.ts` | 20 | 1.0 min | webkit, shard 10 |
+| `phone-frame.spec.ts` | 18 | 0.9 min | shard 12 |
 | `locations-tree.spec.ts` | 8 | 0.9 min | shard 13 |
+| `name-check-queue.spec.ts` | 8 | 0.9 min | smoke, shard 9 |
+| `sage-cards.spec.ts` | 40 | 0.9 min | webkit, shard 7 |
 | `press.spec.ts` | 22 | 0.9 min | shard 12 |
 | `post-wizard-removed.spec.ts` | 4 | 0.8 min | shard 7 |
-| `ad-page-doors.spec.ts` | 30 | 0.8 min | shard 14 |
-| `sage-shell.spec.ts` | 80 | 0.7 min | shard 16 |
-| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 4 |
+| `i18n-sign-in-language.spec.ts` | 12 | 0.8 min | shard 15 |
+| `ad-page-doors.spec.ts` | 30 | 0.7 min | shard 14 |
+| `legal-doors.spec.ts` | 34 | 0.6 min | smoke, shard 8 |
+| `my-listings-doors.spec.ts` | 28 | 0.6 min | shard 3 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
-| `my-listings-doors.spec.ts` | 28 | 0.5 min | shard 3 |
-| `legal-doors.spec.ts` | 34 | 0.5 min | smoke, shard 8 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
+| `primitives-law.spec.ts` | 24 | 0.6 min | shard 16 |
+| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 4 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.6 min | shard 6 |
 | `supabase-door.spec.ts` | 12 | 0.5 min | shard 13 |
-| `house-style.spec.ts` | 12 | 0.4 min | shard 11 |
-| `layout.spec.ts` | 18 | 0.4 min | webkit, shard 10 |
-| `submenu.spec.ts` | 14 | 0.4 min | shard 15 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 16 |
-| `legal-accept.spec.ts` | 12 | 0.4 min | shard 2 |
 | `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 5 |
+| `house-style.spec.ts` | 12 | 0.4 min | shard 11 |
+| `legal-accept.spec.ts` | 12 | 0.4 min | shard 2 |
+| `layout.spec.ts` | 18 | 0.4 min | webkit, shard 10 |
+| `one-line-slots.spec.ts` | 10 | 0.3 min | shard 8 |
+| `legal-history.spec.ts` | 6 | 0.3 min | shard 16 |
+| `auth-signup.spec.ts` | 6 | 0.3 min | email |
 | `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4 |
 | `a11y.spec.ts` | 4 | 0.3 min | smoke |
-| `settings.spec.ts` | 9 | 0.3 min | shard 1 |
-| `one-line-slots.spec.ts` | 10 | 0.3 min | shard 8 |
-| `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 10 |
 | `posting-routes-dials.spec.ts` | 14 | 0.3 min | shard 9 |
-| `admin-services.spec.ts` | 10 | 0.3 min | shard 1 |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
+| `settings.spec.ts` | 9 | 0.3 min | shard 1 |
 | `page-head.spec.ts` | 4 | 0.3 min | shard 13 |
+| `admin-services.spec.ts` | 10 | 0.3 min | shard 1 |
+| `submenu.spec.ts` | 14 | 0.3 min | shard 15 |
+| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
+| `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
+| `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
+| `breadcrumbs.spec.ts` | 6 | 0.2 min | shard 10 |
+| `shell-bands.spec.ts` | 16 | 0.2 min | shard 12 |
+| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
+| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
+| `door-refusals.spec.ts` | 12 | 0.2 min | shard 7 |
+| `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
+| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
+| `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
 | `overlays.spec.ts` | 8 | 0.2 min | shard 15 |
 | `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
-| `shell-bands.spec.ts` | 16 | 0.2 min | shard 12 |
-| `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
-| `auth-signup.spec.ts` | 6 | 0.2 min | email |
-| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
-| `legal-history.spec.ts` | 6 | 0.2 min | shard 16 |
-| `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
-| `account-saved.spec.ts` | 4 | 0.2 min | shard 4 |
-| `door-refusals.spec.ts` | 12 | 0.2 min | shard 7 |
-| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
-| `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
-| `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
+| `account-saved.spec.ts` | 4 | 0.1 min | shard 4 |
 | `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
-| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
+| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
+| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
 | `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
-| `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
-| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
-| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
-| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
+| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
+| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
+| `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
+| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
+| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
 | `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
+| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `fonts.spec.ts` | 2 | 0.0 min | shard 1 |
-| `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
+| `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 3 |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 11 |
 
@@ -263,21 +263,21 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | mobile-360 | 344.7 s |
-| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | desktop-1280 | 344.6 s |
-| `post-wizard-details.spec.ts` › PW-103 required text, optional text and a list's Other text each save; an empty required text is refused by name | mobile-360 | 121.2 s |
-| `post-wizard-details.spec.ts` › PW-102 a type that leaves only Other shows that question's text box, and the typed text saves | mobile-360 | 120.9 s |
-| `post-wizard-details.spec.ts` › PW-102 a type that leaves only Other shows that question's text box, and the typed text saves | desktop-1280 | 120.9 s |
-| `post-wizard-details.spec.ts` › PW-103 required text, optional text and a list's Other text each save; an empty required text is refused by name | desktop-1280 | 120.9 s |
-| `post-wizard-place.spec.ts` › PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085) | desktop-1280 | 120.7 s |
-| `post-wizard-resets.spec.ts` › PW-32 model-dependent details reset on a model change, seller-only details survive, and Undo restores | desktop-1280 | 120.7 s |
-| `post-wizard-specs.spec.ts` › PW-49 a prefill-only fact keeps its input while a settled one does not | desktop-1280 | 120.7 s |
-| `post-wizard-place.spec.ts` › PW-78 a big model list shows its required mark once the brand is chosen (INC-336) | desktop-1280 | 120.6 s |
-| `post-wizard-resets.spec.ts` › PW-152 a two-pair condition shows its row only when both answers match | desktop-1280 | 120.6 s |
-| `post-wizard-specs.spec.ts` › PW-69 a lazy model list shows its stored answer on re-entry with no tap (INC-320) | mobile-360 | 120.6 s |
-| `post-wizard-resets.spec.ts` › PW-60 a non-identity fold owner change clears only its fold child; an identity change clears nothing it does not hold | mobile-360 | 120.6 s |
-| `post-wizard-specs.spec.ts` › PW-74 a step-3 round trip keeps every answer (INC-329, big model list) | desktop-1280 | 120.6 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | desktop-1280 | 120.6 s |
+| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | desktop-1280 | 344.5 s |
+| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | mobile-360 | 344.5 s |
+| `post-wizard-pricing.spec.ts` › PW-138 a required unit left empty is refused on the price page's Next, not on the specifications page's (bundle 4 step 9) | desktop-1280 | 120.9 s |
+| `post-wizard-resets.spec.ts` › PW-60 a non-identity fold owner change clears only its fold child; an identity change clears nothing it does not hold | mobile-360 | 120.9 s |
+| `post-wizard-details.spec.ts` › PW-102 a type that leaves only Other shows that question's text box, and the typed text saves | desktop-1280 | 120.8 s |
+| `post-wizard-pricing.spec.ts` › PW-64 the negotiable toggle stores the flag, shows a badge on review, and a contact price clears it (DEC-081) | desktop-1280 | 120.8 s |
+| `post-wizard-pricing.spec.ts` › PW-58 a commission outside 0.01–100 % is refused in words, and a valid one advances (INC-301) | desktop-1280 | 120.8 s |
+| `post-wizard-pricing.spec.ts` › PW-56 an hourly basis fixes the period to the hour, and a changed basis moves it | desktop-1280 | 120.7 s |
+| `post-wizard-pricing.spec.ts` › PW-63 the pricing basis is asked on the price step, refused there when empty, and still shapes the period (D62-2) | desktop-1280 | 120.7 s |
+| `post-wizard-pricing.spec.ts` › PW-162 a refusal left on the price page never stands on specifications, and names the question (INC-455) | desktop-1280 | 120.7 s |
+| `post-wizard-details.spec.ts` › PW-103 required text, optional text and a list's Other text each save; an empty required text is refused by name | desktop-1280 | 120.7 s |
+| `post-wizard-pricing.spec.ts` › PW-55 a commission basis asks a percentage, stores basis points, and reads it back in both languages | desktop-1280 | 120.7 s |
+| `post-wizard-resets.spec.ts` › PW-60 a non-identity fold owner change clears only its fold child; an identity change clears nothing it does not hold | desktop-1280 | 120.7 s |
+| `post-wizard-pricing.spec.ts` › PW-138 a required unit left empty is refused on the price page's Next, not on the specifications page's (bundle 4 step 9) | mobile-360 | 120.7 s |
+| `post-wizard-pricing.spec.ts` › PW-67 a commission basis chosen on step 5 is stored on the draft before the percentage is typed (INC-312) | desktop-1280 | 120.7 s |
 
 ## Post-test errors: smoke
 
@@ -286,7 +286,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 44552590552-localproof
+[e2e:teardown] deleted 2 user(s) owned by process 44593520490-localproof
 ```
 
 ## Post-test errors: email
@@ -296,7 +296,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-email
+[e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-email
 ```
 
 ## Post-test errors: webkit
@@ -306,7 +306,7 @@ webkit: every test's verdict stands — these lines were printed OUTSIDE any tes
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 44552590552-local-webkit
+[e2e:teardown] deleted 4 user(s) owned by process 44593520490-local-webkit
 ```
 
 ## Post-test errors: shard 1
@@ -316,7 +316,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-1
+[e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-1
 ```
 
 ## Post-test errors: shard 2
@@ -326,7 +326,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 9 user(s) owned by process 44552590552-local-2
+[e2e:teardown] deleted 9 user(s) owned by process 44593520490-local-2
 ```
 
 ## Post-test errors: shard 3
@@ -336,7 +336,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 44552590552-local-3
+[e2e:teardown] deleted 5 user(s) owned by process 44593520490-local-3
 ```
 
 ## Post-test errors: shard 4
@@ -346,7 +346,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 28 (pool 4, fresh 24)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 25 user(s) owned by process 44552590552-local-4
+[e2e:teardown] deleted 25 user(s) owned by process 44593520490-local-4
 ```
 
 ## Post-test errors: shard 5
@@ -356,7 +356,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 15 user(s) owned by process 44552590552-local-5
+[e2e:teardown] deleted 15 user(s) owned by process 44593520490-local-5
 ```
 
 ## Post-test errors: shard 6
@@ -366,7 +366,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-6
+[e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-6
 ```
 
 ## Post-test errors: shard 7
@@ -376,7 +376,7 @@ shard 7: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-7
+[e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-7
 ```
 
 ## Post-test errors: shard 8
@@ -386,7 +386,7 @@ shard 8: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 44552590552-local-8
+[e2e:teardown] deleted 8 user(s) owned by process 44593520490-local-8
 ```
 
 ## Post-test errors: shard 9
@@ -396,7 +396,7 @@ shard 9: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 16 (pool 4, fresh 12)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 13 user(s) owned by process 44552590552-local-9
+[e2e:teardown] deleted 13 user(s) owned by process 44593520490-local-9
 ```
 
 ## Post-test errors: shard 10
@@ -406,7 +406,7 @@ shard 10: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 7 user(s) owned by process 44552590552-local-10
+[e2e:teardown] deleted 7 user(s) owned by process 44593520490-local-10
 ```
 
 ## Post-test errors: shard 11
@@ -416,7 +416,7 @@ shard 11: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-11
+[e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-11
 ```
 
 ## Post-test errors: shard 12
@@ -426,7 +426,7 @@ shard 12: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 3, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 44552590552-local-12
+[e2e:teardown] deleted 5 user(s) owned by process 44593520490-local-12
 ```
 
 ## Post-test errors: shard 13
@@ -434,9 +434,9 @@ shard 12: every test's verdict stands — these lines were printed OUTSIDE any t
 shard 13: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 5 (pool 3, fresh 2)
+[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-13
+[e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-13
 ```
 
 ## Post-test errors: shard 14
@@ -446,7 +446,7 @@ shard 14: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 44552590552-local-14
+[e2e:teardown] deleted 11 user(s) owned by process 44593520490-local-14
 ```
 
 ## Post-test errors: shard 15
@@ -456,7 +456,7 @@ shard 15: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 28 (pool 2, fresh 26)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 43 user(s) owned by process 44552590552-local-15
+[e2e:teardown] deleted 43 user(s) owned by process 44593520490-local-15
 ```
 
 ## Post-test errors: shard 16
@@ -466,7 +466,7 @@ shard 16: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 23 user(s) owned by process 44552590552-local-16
+[e2e:teardown] deleted 23 user(s) owned by process 44593520490-local-16
 ```
 
 ## posting-routes.spec.ts › POSTING ROUTES › PR-4 identity: the alias is saved, and a second seller cannot take it
@@ -1293,33 +1293,33 @@ Context: context file not found for `post-wizard-bundle2-POSTING-WIZARD-bundle-2
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_1cotje_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_c2ixfj_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_1cotje_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_1cotje_select" id="post-attr-e2e_post_local-3_3_1cotje_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_c2ixfj_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_c2ixfj_select" id="post-attr-e2e_post_local-3_3_c2ixfj_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_1cotje_select" id="post-attr-e2e_post_local-3_3_1cotje_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_c2ixfj_select" id="post-attr-e2e_post_local-3_3_c2ixfj_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_1cotje_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_c2ixfj_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_1cotje_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_1cotje_select" id="post-attr-e2e_post_local-3_3_1cotje_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_3_c2ixfj_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_c2ixfj_select" id="post-attr-e2e_post_local-3_3_c2ixfj_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_1cotje_select" id="post-attr-e2e_post_local-3_3_1cotje_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_3_c2ixfj_select" id="post-attr-e2e_post_local-3_3_c2ixfj_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1339,33 +1339,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-26-a-c
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_760724_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_5o0ljm_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_760724_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_760724_select" id="post-attr-e2e_post_local-3_5_760724_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_5o0ljm_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_5o0ljm_select" id="post-attr-e2e_post_local-3_5_5o0ljm_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_760724_select" id="post-attr-e2e_post_local-3_5_760724_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_5o0ljm_select" id="post-attr-e2e_post_local-3_5_5o0ljm_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_760724_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_5o0ljm_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_760724_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_760724_select" id="post-attr-e2e_post_local-3_5_760724_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_5_5o0ljm_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_5o0ljm_select" id="post-attr-e2e_post_local-3_5_5o0ljm_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_760724_select" id="post-attr-e2e_post_local-3_5_760724_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_5_5o0ljm_select" id="post-attr-e2e_post_local-3_5_5o0ljm_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1385,33 +1385,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-61-a-c
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_l7ipp4_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_ln248i_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_l7ipp4_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_l7ipp4_select" id="post-attr-e2e_post_local-3_9_l7ipp4_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_ln248i_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_ln248i_select" id="post-attr-e2e_post_local-3_9_ln248i_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_l7ipp4_select" id="post-attr-e2e_post_local-3_9_l7ipp4_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_ln248i_select" id="post-attr-e2e_post_local-3_9_ln248i_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_l7ipp4_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_ln248i_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_l7ipp4_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_l7ipp4_select" id="post-attr-e2e_post_local-3_9_l7ipp4_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_9_ln248i_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_ln248i_select" id="post-attr-e2e_post_local-3_9_ln248i_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_l7ipp4_select" id="post-attr-e2e_post_local-3_9_l7ipp4_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_9_ln248i_select" id="post-attr-e2e_post_local-3_9_ln248i_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1433,8 +1433,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_idn_1795101826225_4jsrzz_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_idn_1795101826225_4jsrzz_idn" id="post-attr-e2e_idn_1795101826225_4jsrzz_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_idn_1795115259255_ozzlhx_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_idn_1795115259255_ozzlhx_idn" id="post-attr-e2e_idn_1795115259255_ozzlhx_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -1444,12 +1444,12 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    113 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
+    - waiting for element to be visible and enabled
   - element was detached from the DOM, retrying
-
 
 ```
 
@@ -1463,33 +1463,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-59-a-c
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795101948795_wf2c6p_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795115382519_k36oex_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795101948795_wf2c6p_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795101948795_wf2c6p_idn" id="post-attr-e2e_first_1795101948795_wf2c6p_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795115382519_k36oex_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795115382519_k36oex_idn" id="post-attr-e2e_first_1795115382519_k36oex_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795101948795_wf2c6p_idn" id="post-attr-e2e_first_1795101948795_wf2c6p_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795115382519_k36oex_idn" id="post-attr-e2e_first_1795115382519_k36oex_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795101948795_wf2c6p_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795115382519_k36oex_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795101948795_wf2c6p_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795101948795_wf2c6p_idn" id="post-attr-e2e_first_1795101948795_wf2c6p_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795115382519_k36oex_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795115382519_k36oex_idn" id="post-attr-e2e_first_1795115382519_k36oex_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795101948795_wf2c6p_idn" id="post-attr-e2e_first_1795101948795_wf2c6p_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795115382519_k36oex_idn" id="post-attr-e2e_first_1795115382519_k36oex_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -1511,8 +1511,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_sys_1795102001710_8852eo_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_sys_1795102001710_8852eo_idn" id="post-attr-e2e_sys_1795102001710_8852eo_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_sys_1795115437307_krtwau_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_sys_1795115437307_krtwau_idn" id="post-attr-e2e_sys_1795115437307_krtwau_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -1522,7 +1522,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    114 × waiting for element to be visible and enabled
+    113 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -1543,8 +1543,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_shift_local-3_27_nqalcd_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_shift_local-3_27_nqalcd_make" id="post-attr-e2e_shift_local-3_27_nqalcd_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_shift_local-3_27_rjceow_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_shift_local-3_27_rjceow_make" id="post-attr-e2e_shift_local-3_27_rjceow_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -1554,7 +1554,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    113 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -1575,8 +1575,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_and_1795102249838_zap0eo_k1"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_and_1795102249838_zap0eo_k1" id="post-attr-e2e_and_1795102249838_zap0eo_k1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_and_1795115687494_rouwdc_k1"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_and_1795115687494_rouwdc_k1" id="post-attr-e2e_and_1795115687494_rouwdc_k1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -1586,7 +1586,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -1605,33 +1605,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-152-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795102372682_4e2ua6_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795115810642_u0tcmx_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795102372682_4e2ua6_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795102372682_4e2ua6_idn" id="post-attr-e2e_r164_1795102372682_4e2ua6_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795115810642_u0tcmx_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795115810642_u0tcmx_idn" id="post-attr-e2e_r164_1795115810642_u0tcmx_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795102372682_4e2ua6_idn" id="post-attr-e2e_r164_1795102372682_4e2ua6_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795115810642_u0tcmx_idn" id="post-attr-e2e_r164_1795115810642_u0tcmx_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795102372682_4e2ua6_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795115810642_u0tcmx_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795102372682_4e2ua6_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795102372682_4e2ua6_idn" id="post-attr-e2e_r164_1795102372682_4e2ua6_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795115810642_u0tcmx_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795115810642_u0tcmx_idn" id="post-attr-e2e_r164_1795115810642_u0tcmx_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795102372682_4e2ua6_idn" id="post-attr-e2e_r164_1795102372682_4e2ua6_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795115810642_u0tcmx_idn" id="post-attr-e2e_r164_1795115810642_u0tcmx_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -1651,29 +1651,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-164-an
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795102418493_umdvfz_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795115859440_riqypx_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795102418493_umdvfz_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795102418493_umdvfz_p1" id="post-attr-e2e_r165_1795102418493_umdvfz_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795115859440_riqypx_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795115859440_riqypx_p1" id="post-attr-e2e_r165_1795115859440_riqypx_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795102418493_umdvfz_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795115859440_riqypx_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795102418493_umdvfz_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795102418493_umdvfz_p1" id="post-attr-e2e_r165_1795102418493_umdvfz_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795115859440_riqypx_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795115859440_riqypx_p1" id="post-attr-e2e_r165_1795115859440_riqypx_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1695,29 +1695,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-165-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795102464599_tubri6_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795115906590_adejmz_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795102464599_tubri6_model"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795102464599_tubri6_model" id="post-attr-e2e_r166_1795102464599_tubri6_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795115906590_adejmz_model"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795115906590_adejmz_model" id="post-attr-e2e_r166_1795115906590_adejmz_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795102464599_tubri6_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795115906590_adejmz_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795102464599_tubri6_model"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795102464599_tubri6_model" id="post-attr-e2e_r166_1795102464599_tubri6_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795115906590_adejmz_model"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795115906590_adejmz_model" id="post-attr-e2e_r166_1795115906590_adejmz_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1739,33 +1739,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-166-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795102516013_f7oz1s_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795115958793_qwzvuk_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795102516013_f7oz1s_model"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795102516013_f7oz1s_model" id="post-attr-e2e_r167_1795102516013_f7oz1s_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795115958793_qwzvuk_model"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795115958793_qwzvuk_model" id="post-attr-e2e_r167_1795115958793_qwzvuk_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795102516013_f7oz1s_model" id="post-attr-e2e_r167_1795102516013_f7oz1s_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795115958793_qwzvuk_model" id="post-attr-e2e_r167_1795115958793_qwzvuk_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795102516013_f7oz1s_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795115958793_qwzvuk_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795102516013_f7oz1s_model"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795102516013_f7oz1s_model" id="post-attr-e2e_r167_1795102516013_f7oz1s_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795115958793_qwzvuk_model"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795115958793_qwzvuk_model" id="post-attr-e2e_r167_1795115958793_qwzvuk_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795102516013_f7oz1s_model" id="post-attr-e2e_r167_1795102516013_f7oz1s_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795115958793_qwzvuk_model" id="post-attr-e2e_r167_1795115958793_qwzvuk_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1785,29 +1785,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-167-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795102561866_mvo05g_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116005725_5oz37j_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795102561866_mvo05g_brand"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795102561866_mvo05g_brand" id="post-attr-e2e_r168_1795102561866_mvo05g_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116005725_5oz37j_brand"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795116005725_5oz37j_brand" id="post-attr-e2e_r168_1795116005725_5oz37j_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795102561866_mvo05g_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116005725_5oz37j_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795102561866_mvo05g_brand"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795102561866_mvo05g_brand" id="post-attr-e2e_r168_1795102561866_mvo05g_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116005725_5oz37j_brand"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795116005725_5oz37j_brand" id="post-attr-e2e_r168_1795116005725_5oz37j_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1829,29 +1829,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-168-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795102607888_se432b_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116053163_yhqnki_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795102607888_se432b_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795102607888_se432b_p1" id="post-attr-e2e_r174_1795102607888_se432b_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116053163_yhqnki_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795116053163_yhqnki_p1" id="post-attr-e2e_r174_1795116053163_yhqnki_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795102607888_se432b_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116053163_yhqnki_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795102607888_se432b_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795102607888_se432b_p1" id="post-attr-e2e_r174_1795102607888_se432b_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116053163_yhqnki_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795116053163_yhqnki_p1" id="post-attr-e2e_r174_1795116053163_yhqnki_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1873,33 +1873,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-174-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_38_2ps6ew_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_39_xn7cjb_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_38_2ps6ew_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_38_2ps6ew_select" id="post-attr-e2e_post_local-3_38_2ps6ew_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_39_xn7cjb_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_39_xn7cjb_select" id="post-attr-e2e_post_local-3_39_xn7cjb_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_38_2ps6ew_select" id="post-attr-e2e_post_local-3_38_2ps6ew_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_39_xn7cjb_select" id="post-attr-e2e_post_local-3_39_xn7cjb_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_38_2ps6ew_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_39_xn7cjb_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_38_2ps6ew_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_38_2ps6ew_select" id="post-attr-e2e_post_local-3_38_2ps6ew_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_39_xn7cjb_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_39_xn7cjb_select" id="post-attr-e2e_post_local-3_39_xn7cjb_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_38_2ps6ew_select" id="post-attr-e2e_post_local-3_38_2ps6ew_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_39_xn7cjb_select" id="post-attr-e2e_post_local-3_39_xn7cjb_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1919,33 +1919,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-26-a-c
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_42_wffd7e_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_43_509dgd_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_42_wffd7e_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_42_wffd7e_select" id="post-attr-e2e_post_local-3_42_wffd7e_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_43_509dgd_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_43_509dgd_select" id="post-attr-e2e_post_local-3_43_509dgd_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_42_wffd7e_select" id="post-attr-e2e_post_local-3_42_wffd7e_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_43_509dgd_select" id="post-attr-e2e_post_local-3_43_509dgd_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_42_wffd7e_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_43_509dgd_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_42_wffd7e_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_42_wffd7e_select" id="post-attr-e2e_post_local-3_42_wffd7e_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_43_509dgd_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_43_509dgd_select" id="post-attr-e2e_post_local-3_43_509dgd_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_42_wffd7e_select" id="post-attr-e2e_post_local-3_42_wffd7e_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_43_509dgd_select" id="post-attr-e2e_post_local-3_43_509dgd_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -1965,33 +1965,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-61-a-c
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_46_o4li7b_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_47_7qu7jv_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_46_o4li7b_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_46_o4li7b_select" id="post-attr-e2e_post_local-3_46_o4li7b_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_47_7qu7jv_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_47_7qu7jv_select" id="post-attr-e2e_post_local-3_47_7qu7jv_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_46_o4li7b_select" id="post-attr-e2e_post_local-3_46_o4li7b_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_47_7qu7jv_select" id="post-attr-e2e_post_local-3_47_7qu7jv_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_46_o4li7b_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_47_7qu7jv_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_46_o4li7b_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_46_o4li7b_select" id="post-attr-e2e_post_local-3_46_o4li7b_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-3_47_7qu7jv_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-3_47_7qu7jv_select" id="post-attr-e2e_post_local-3_47_7qu7jv_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_46_o4li7b_select" id="post-attr-e2e_post_local-3_46_o4li7b_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-3_47_7qu7jv_select" id="post-attr-e2e_post_local-3_47_7qu7jv_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -2013,8 +2013,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_idn_1795102504895_4acdz0_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_idn_1795102504895_4acdz0_idn" id="post-attr-e2e_idn_1795102504895_4acdz0_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_idn_1795115964939_2b2xq0_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_idn_1795115964939_2b2xq0_idn" id="post-attr-e2e_idn_1795115964939_2b2xq0_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -2043,33 +2043,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-59-a-c
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795102627442_q6a3gt_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795116087924_nzojpu_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795102627442_q6a3gt_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795102627442_q6a3gt_idn" id="post-attr-e2e_first_1795102627442_q6a3gt_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795116087924_nzojpu_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795116087924_nzojpu_idn" id="post-attr-e2e_first_1795116087924_nzojpu_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795102627442_q6a3gt_idn" id="post-attr-e2e_first_1795102627442_q6a3gt_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795116087924_nzojpu_idn" id="post-attr-e2e_first_1795116087924_nzojpu_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795102627442_q6a3gt_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795116087924_nzojpu_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795102627442_q6a3gt_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795102627442_q6a3gt_idn" id="post-attr-e2e_first_1795102627442_q6a3gt_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_first_1795116087924_nzojpu_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_first_1795116087924_nzojpu_idn" id="post-attr-e2e_first_1795116087924_nzojpu_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795102627442_q6a3gt_idn" id="post-attr-e2e_first_1795102627442_q6a3gt_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_first_1795116087924_nzojpu_idn" id="post-attr-e2e_first_1795116087924_nzojpu_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -2091,8 +2091,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_sys_1795102679160_bxhqjt_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_sys_1795102679160_bxhqjt_idn" id="post-attr-e2e_sys_1795102679160_bxhqjt_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_sys_1795116141318_k300mh_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_sys_1795116141318_k300mh_idn" id="post-attr-e2e_sys_1795116141318_k300mh_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -2123,8 +2123,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_shift_local-3_64_6x5v2c_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_shift_local-3_64_6x5v2c_make" id="post-attr-e2e_shift_local-3_64_6x5v2c_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_shift_local-3_64_y1gg3h_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_shift_local-3_64_y1gg3h_make" id="post-attr-e2e_shift_local-3_64_y1gg3h_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -2155,8 +2155,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_and_1795102927215_mxsdiy_k1"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_and_1795102927215_mxsdiy_k1" id="post-attr-e2e_and_1795102927215_mxsdiy_k1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_and_1795116390280_hbt734_k1"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_and_1795116390280_hbt734_k1" id="post-attr-e2e_and_1795116390280_hbt734_k1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -2185,33 +2185,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-152-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795103050189_1ag6k7_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795116513724_eobd6q_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795103050189_1ag6k7_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795103050189_1ag6k7_idn" id="post-attr-e2e_r164_1795103050189_1ag6k7_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795116513724_eobd6q_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795116513724_eobd6q_idn" id="post-attr-e2e_r164_1795116513724_eobd6q_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795103050189_1ag6k7_idn" id="post-attr-e2e_r164_1795103050189_1ag6k7_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795116513724_eobd6q_idn" id="post-attr-e2e_r164_1795116513724_eobd6q_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795103050189_1ag6k7_idn"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795116513724_eobd6q_idn"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795103050189_1ag6k7_idn"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795103050189_1ag6k7_idn" id="post-attr-e2e_r164_1795103050189_1ag6k7_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r164_1795116513724_eobd6q_idn"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r164_1795116513724_eobd6q_idn" id="post-attr-e2e_r164_1795116513724_eobd6q_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795103050189_1ag6k7_idn" id="post-attr-e2e_r164_1795103050189_1ag6k7_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r164_1795116513724_eobd6q_idn" id="post-attr-e2e_r164_1795116513724_eobd6q_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -2231,29 +2231,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-164-an
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795103096613_r8rme9_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795116560847_eg8kar_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795103096613_r8rme9_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795103096613_r8rme9_p1" id="post-attr-e2e_r165_1795103096613_r8rme9_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795116560847_eg8kar_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795116560847_eg8kar_p1" id="post-attr-e2e_r165_1795116560847_eg8kar_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795103096613_r8rme9_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795116560847_eg8kar_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795103096613_r8rme9_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795103096613_r8rme9_p1" id="post-attr-e2e_r165_1795103096613_r8rme9_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r165_1795116560847_eg8kar_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r165_1795116560847_eg8kar_p1" id="post-attr-e2e_r165_1795116560847_eg8kar_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -2275,29 +2275,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-165-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795103142797_rbbdqc_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795116607875_guzp0w_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795103142797_rbbdqc_model"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795103142797_rbbdqc_model" id="post-attr-e2e_r166_1795103142797_rbbdqc_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795116607875_guzp0w_model"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795116607875_guzp0w_model" id="post-attr-e2e_r166_1795116607875_guzp0w_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795103142797_rbbdqc_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795116607875_guzp0w_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795103142797_rbbdqc_model"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795103142797_rbbdqc_model" id="post-attr-e2e_r166_1795103142797_rbbdqc_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r166_1795116607875_guzp0w_model"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r166_1795116607875_guzp0w_model" id="post-attr-e2e_r166_1795116607875_guzp0w_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -2319,33 +2319,33 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-166-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795103194510_qem8zz_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795116657681_xrujxr_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795103194510_qem8zz_model"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795103194510_qem8zz_model" id="post-attr-e2e_r167_1795103194510_qem8zz_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795116657681_xrujxr_model"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795116657681_xrujxr_model" id="post-attr-e2e_r167_1795116657681_xrujxr_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795103194510_qem8zz_model" id="post-attr-e2e_r167_1795103194510_qem8zz_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795116657681_xrujxr_model" id="post-attr-e2e_r167_1795116657681_xrujxr_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795103194510_qem8zz_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795116657681_xrujxr_model"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795103194510_qem8zz_model"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795103194510_qem8zz_model" id="post-attr-e2e_r167_1795103194510_qem8zz_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r167_1795116657681_xrujxr_model"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_r167_1795116657681_xrujxr_model" id="post-attr-e2e_r167_1795116657681_xrujxr_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795103194510_qem8zz_model" id="post-attr-e2e_r167_1795103194510_qem8zz_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r167_1795116657681_xrujxr_model" id="post-attr-e2e_r167_1795116657681_xrujxr_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -2365,29 +2365,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-167-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795103240835_58ekuf_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116704620_uwbmym_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795103240835_58ekuf_brand"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795103240835_58ekuf_brand" id="post-attr-e2e_r168_1795103240835_58ekuf_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116704620_uwbmym_brand"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795116704620_uwbmym_brand" id="post-attr-e2e_r168_1795116704620_uwbmym_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795103240835_58ekuf_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116704620_uwbmym_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795103240835_58ekuf_brand"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795103240835_58ekuf_brand" id="post-attr-e2e_r168_1795103240835_58ekuf_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r168_1795116704620_uwbmym_brand"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r168_1795116704620_uwbmym_brand" id="post-attr-e2e_r168_1795116704620_uwbmym_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -2409,29 +2409,29 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-168-a-
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795103286967_wqgwxs_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116751507_h4ghwf_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795103286967_wqgwxs_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795103286967_wqgwxs_p1" id="post-attr-e2e_r174_1795103286967_wqgwxs_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116751507_h4ghwf_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795116751507_h4ghwf_p1" id="post-attr-e2e_r174_1795116751507_h4ghwf_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795103286967_wqgwxs_p1"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116751507_h4ghwf_p1"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795103286967_wqgwxs_p1"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795103286967_wqgwxs_p1" id="post-attr-e2e_r174_1795103286967_wqgwxs_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_r174_1795116751507_h4ghwf_p1"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_r174_1795116751507_h4ghwf_p1" id="post-attr-e2e_r174_1795116751507_h4ghwf_p1" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -2453,28 +2453,28 @@ Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-174-a-
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpcl751j4oyx_type"]').locator('option[value="e2e_mwnpcl751j4oyx_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxcm618kaqmd_type"]').locator('option[value="e2e_mwnxcm618kaqmd_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpcl751j4oyx_type"]').locator('option[value="e2e_mwnpcl751j4oyx_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxcm618kaqmd_type"]').locator('option[value="e2e_mwnxcm618kaqmd_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpcl751j4oyx_type"]').locator('option[value="e2e_mwnpcl751j4oyx_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxcm618kaqmd_type"]').locator('option[value="e2e_mwnxcm618kaqmd_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpcl751j4oyx_type"]').locator('option[value="e2e_mwnpcl751j4oyx_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxcm618kaqmd_type"]').locator('option[value="e2e_mwnxcm618kaqmd_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -2497,28 +2497,28 @@ Context: context file not found for `post-wizard-units-POSTING-WIZARD-UNITS-PW-1
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpryg5vovnm1_type"]').locator('option[value="e2e_mwnpryg5vovnm1_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxs5uqtjd8mt_type"]').locator('option[value="e2e_mwnxs5uqtjd8mt_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpryg5vovnm1_type"]').locator('option[value="e2e_mwnpryg5vovnm1_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxs5uqtjd8mt_type"]').locator('option[value="e2e_mwnxs5uqtjd8mt_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpryg5vovnm1_type"]').locator('option[value="e2e_mwnpryg5vovnm1_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxs5uqtjd8mt_type"]').locator('option[value="e2e_mwnxs5uqtjd8mt_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpryg5vovnm1_type"]').locator('option[value="e2e_mwnpryg5vovnm1_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxs5uqtjd8mt_type"]').locator('option[value="e2e_mwnxs5uqtjd8mt_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -2543,15 +2543,15 @@ Error: PW-44: the child picker was open before its parent
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_cnafvb_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_2oqkr3_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-44: the child picker was open before its parent with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_cnafvb_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_1_cnafvb_model" id="post-attr-e2e_surf_local-4_1_cnafvb_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_2oqkr3_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_1_2oqkr3_model" id="post-attr-e2e_surf_local-4_1_2oqkr3_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 --- further error 1 ---
@@ -2559,15 +2559,15 @@ Error: PW-44: the child picker was open before its parent
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_cnafvb_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_2oqkr3_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-44: the child picker was open before its parent with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_cnafvb_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_1_cnafvb_model" id="post-attr-e2e_surf_local-4_1_cnafvb_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_1_2oqkr3_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_1_2oqkr3_model" id="post-attr-e2e_surf_local-4_1_2oqkr3_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 
@@ -2589,15 +2589,15 @@ Error: PW-44: the child picker was open before its parent
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_2_t1yagg_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_4_90h1ej_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-44: the child picker was open before its parent with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_2_t1yagg_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_2_t1yagg_model" id="post-attr-e2e_surf_local-4_2_t1yagg_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_4_90h1ej_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_4_90h1ej_model" id="post-attr-e2e_surf_local-4_4_90h1ej_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 --- further error 1 ---
@@ -2605,15 +2605,15 @@ Error: PW-44: the child picker was open before its parent
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_2_t1yagg_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_4_90h1ej_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-44: the child picker was open before its parent with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_2_t1yagg_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_2_t1yagg_model" id="post-attr-e2e_surf_local-4_2_t1yagg_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_surf_local-4_4_90h1ej_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_surf_local-4_4_90h1ej_model" id="post-attr-e2e_surf_local-4_4_90h1ej_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 
@@ -2822,58 +2822,58 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: bulk entity AI never reached scratch location [account id]
+Error: the filtered Data bulk bar never counted exactly two untranslated rows
 
 expect(received).toBe(expected) // Object.is equality
 
-Expected: "machine"
-Received: "missing"
+Expected: "2"
+Received: "0"
 
 Call Log:
-- Timeout 30000ms exceeded while waiting on the predicate
+- Timeout 20000ms exceeded while waiting on the predicate
 --- further error 1 ---
-Error: bulk entity AI never reached scratch location [account id]
+Error: the filtered Data bulk bar never counted exactly two untranslated rows
 
 expect(received).toBe(expected) // Object.is equality
 
-Expected: "machine"
-Received: "missing"
+Expected: "2"
+Received: "0"
 
 Call Log:
-- Timeout 30000ms exceeded while waiting on the predicate
+- Timeout 20000ms exceeded while waiting on the predicate
 
-  504 |       await expect(page.getByTestId("ai-bulk-summary")).toBeVisible({ timeout: 90000 });
-  505 |       for (const anchor of [one, two]) {
-> 506 |         await expect
-      |         ^
-  507 |           .poll(() => statusOf(anchor.id), {
-  508 |             timeout: 30000,
-  509 |             message: `bulk entity AI never reached scratch location ${anchor.id}`,
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-translations-data.spec.ts:506:9
+  492 |       await expect(fillButton).toHaveAttribute("data-scope", "filtered", { timeout: 20000 });
+  493 |       await expect(fillButton).toHaveAttribute("data-count-state", "success", { timeout: 20000 });
+> 494 |       await expect
+      |       ^
+  495 |         .poll(async () => (await fillButton.innerText()).replace(/[^0-9]/g, ""), {
+  496 |           timeout: 20000,
+  497 |           message: "the filtered Data bulk bar never counted exactly two untranslated rows",
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-translations-data.spec.ts:494:7
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e380]:
-            - generic [ref=e381]: About
-          - listitem [ref=e382]:
-            - generic [ref=e383]: Contact
-      - navigation "Help" [ref=e384]:
-        - heading "Help" [level=2] [ref=e385]
-        - list [ref=e386]:
-          - listitem [ref=e387]:
-            - generic [ref=e388]: Safety
-      - navigation "Legal" [ref=e389]:
-        - heading "Legal" [level=2] [ref=e390]
-        - list [ref=e391]:
-          - listitem [ref=e392]:
-            - link "Terms" [ref=e393] [cursor=pointer]:
+          - listitem [ref=e311]:
+            - generic [ref=e312]: About
+          - listitem [ref=e313]:
+            - generic [ref=e314]: Contact
+      - navigation "Help" [ref=e315]:
+        - heading "Help" [level=2] [ref=e316]
+        - list [ref=e317]:
+          - listitem [ref=e318]:
+            - generic [ref=e319]: Safety
+      - navigation "Legal" [ref=e320]:
+        - heading "Legal" [level=2] [ref=e321]
+        - list [ref=e322]:
+          - listitem [ref=e323]:
+            - link "Terms" [ref=e324] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e394]:
-            - link "Privacy" [ref=e395] [cursor=pointer]:
+          - listitem [ref=e325]:
+            - link "Privacy" [ref=e326] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e397]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e328]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -2883,31 +2883,31 @@ Context:
 - Project: `mobile-360`
 
 ```text
-Error: PW-85: "e2eflabeldlwhwivacgus" listed the leaf without the match line
+Error: PW-85: "e2eflabelbksampdcp" listed the leaf without the match line
 
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
-Expected substring: "e2eflabeldlwhwivacgus"
+Expected substring: "e2eflabelbksampdcp"
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
-  - PW-85: "e2eflabeldlwhwivacgus" listed the leaf without the match line with timeout 10000ms
+  - PW-85: "e2eflabelbksampdcp" listed the leaf without the match line with timeout 10000ms
   - waiting for locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
 
 --- further error 1 ---
-Error: PW-85: "e2eflabeldlwhwivacgus" listed the leaf without the match line
+Error: PW-85: "e2eflabelbksampdcp" listed the leaf without the match line
 
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
-Expected substring: "e2eflabeldlwhwivacgus"
+Expected substring: "e2eflabelbksampdcp"
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
-  - PW-85: "e2eflabeldlwhwivacgus" listed the leaf without the match line with timeout 10000ms
+  - PW-85: "e2eflabelbksampdcp" listed the leaf without the match line with timeout 10000ms
   - waiting for locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
 
 
@@ -2927,31 +2927,31 @@ Context: context file not found for `post-wizard-finder-POSTING-WIZARD-the-categ
 - Project: `desktop-1280`
 
 ```text
-Error: PW-85: "e2eflabelefuscvpjhg" listed the leaf without the match line
+Error: PW-85: "e2eflabelikguksrnlbtt" listed the leaf without the match line
 
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
-Expected substring: "e2eflabelefuscvpjhg"
+Expected substring: "e2eflabelikguksrnlbtt"
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
-  - PW-85: "e2eflabelefuscvpjhg" listed the leaf without the match line with timeout 10000ms
+  - PW-85: "e2eflabelikguksrnlbtt" listed the leaf without the match line with timeout 10000ms
   - waiting for locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
 
 --- further error 1 ---
-Error: PW-85: "e2eflabelefuscvpjhg" listed the leaf without the match line
+Error: PW-85: "e2eflabelikguksrnlbtt" listed the leaf without the match line
 
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
-Expected substring: "e2eflabelefuscvpjhg"
+Expected substring: "e2eflabelikguksrnlbtt"
 Timeout: 10000ms
 Error: element(s) not found
 
 Call log:
-  - PW-85: "e2eflabelefuscvpjhg" listed the leaf without the match line with timeout 10000ms
+  - PW-85: "e2eflabelikguksrnlbtt" listed the leaf without the match line with timeout 10000ms
   - waiting for locator('[data-testid="post-category-hit"][data-category="[account id]"]').getByTestId('post-category-hit-match')
 
 
@@ -2973,33 +2973,33 @@ Context: context file not found for `post-wizard-finder-POSTING-WIZARD-the-categ
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-1-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:21:09.940716+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:21:09.940716+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-1-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:04:31.644693+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:04:31.644693+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-1-tr11')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-1-tr11')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-1-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:21:09.940716+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:21:09.940716+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-1-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:04:31.644693+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:04:31.644693+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3039,7 +3039,7 @@ Context:
 - Project: `mobile-360`
 
 ```text
-Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44552590552-local-8-local-8-mobile-360-3-tr12-b1 in scope zxx-mo (expected machine|true|true)
+Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44593520490-local-8-local-8-mobile-360-3-tr12-b1 in scope zxx-mo (expected machine|true|true)
 
 expect(received).toBe(expected) // Object.is equality
 
@@ -3049,7 +3049,7 @@ Received: "untranslated|false|false"
 Call Log:
 - Timeout 20000ms exceeded while waiting on the predicate
 --- further error 1 ---
-Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44552590552-local-8-local-8-mobile-360-3-tr12-b1 in scope zxx-mo (expected machine|true|true)
+Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44593520490-local-8-local-8-mobile-360-3-tr12-b1 in scope zxx-mo (expected machine|true|true)
 
 expect(received).toBe(expected) // Object.is equality
 
@@ -3102,33 +3102,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-6-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:23:15.241534+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:23:15.241534+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-6-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:06:40.944765+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:06:40.944765+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-6-tr13-break')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-6-tr13-break')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-6-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:23:15.241534+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:23:15.241534+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-6-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:06:40.944765+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:06:40.944765+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3170,33 +3170,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-9-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:24:31.903706+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:24:31.903706+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-9-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:07:59.361554+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:07:59.361554+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-9-tr35')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-9-tr35')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-9-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:24:31.903706+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:24:31.903706+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-9-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:07:59.361554+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:07:59.361554+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3238,33 +3238,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-13-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:25:48.937721+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:25:48.937721+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-12-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:09:16.871764+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:09:16.871764+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-13-tr23-kept')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-12-tr23-kept')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-13-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:25:48.937721+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:25:48.937721+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-12-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:09:16.871764+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:09:16.871764+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3357,33 +3357,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-18-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:27:11.612498+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:27:11.612498+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-18-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:10:40.736521+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:10:40.736521+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16')
+Locator: getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-mobile-360-18-tr16')
+  - waiting for getByTestId('data-table-cards').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-mobile-360-18-tr16')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-mobile-360-18-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:27:11.612498+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:27:11.612498+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-mobile-360-18-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:10:40.736521+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:10:40.736521+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3425,33 +3425,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-22-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:30:10.173452+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:30:10.173452+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-22-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:13:58.017073+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:13:58.017073+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-22-tr11')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-22-tr11')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-22-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:30:10.173452+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:30:10.173452+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-22-tr11","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:13:58.017073+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:13:58.017073+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3491,7 +3491,7 @@ Context:
 - Project: `desktop-1280`
 
 ```text
-Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44552590552-local-8-local-8-desktop-1280-27-tr12-b1 in scope zxx-de (expected machine|true|true)
+Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44593520490-local-8-local-8-desktop-1280-27-tr12-b1 in scope zxx-de (expected machine|true|true)
 
 expect(received).toBe(expected) // Object.is equality
 
@@ -3501,7 +3501,7 @@ Received: "untranslated|false|false"
 Call Log:
 - Timeout 20000ms exceeded while waiting on the predicate
 --- further error 1 ---
-Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44552590552-local-8-local-8-desktop-1280-27-tr12-b1 in scope zxx-de (expected machine|true|true)
+Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44593520490-local-8-local-8-desktop-1280-27-tr12-b1 in scope zxx-de (expected machine|true|true)
 
 expect(received).toBe(expected) // Object.is equality
 
@@ -3554,33 +3554,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-30-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:32:15.175382+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:32:15.175382+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-30-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:16:05.950879+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:16:05.950879+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-30-tr13-break')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-30-tr13-break')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-30-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:32:15.175382+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:32:15.175382+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-30-tr13-break","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:16:05.950879+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:16:05.950879+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3622,33 +3622,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-33-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:33:31.864507+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:33:31.864507+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-33-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:17:23.317588+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:17:23.317588+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-33-tr35')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-33-tr35')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-33-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:33:31.864507+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:33:31.864507+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-33-tr35","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:17:23.317588+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:17:23.317588+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3690,33 +3690,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-36-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:34:48.516768+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:34:48.516768+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-37-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:18:40.52753+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:18:40.52753+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-36-tr23-kept')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-37-tr23-kept')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-36-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:34:48.516768+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:34:48.516768+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-37-tr23-kept","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:18:40.52753+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:18:40.52753+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3809,33 +3809,33 @@ Context:
 ```text
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-42-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:36:10.827423+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:36:10.827423+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-42-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:20:05.450672+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:20:05.450672+00:00","orphaned":false,"origin":"manual","context":null}
 --- further error 1 ---
 Error: expect(locator).toBeVisible() failed
 
-Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16')
+Locator: getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16')
 Expected: visible
 Timeout: 30000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 30000ms
-  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44552590552-local-8-local-8-desktop-1280-42-tr16')
+  - waiting for getByRole('table').getByTestId('string-editor-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16').getByTestId('string-saved-e2e-scratch-44593520490-local-8-local-8-desktop-1280-42-tr16')
 
 [e2e:l4c] route /api/translate → 500 {"error":"server error","incident":"[account id]"}
 pooled user [account id]
-DB row: {"key":"e2e.scratch.44552590552-local-8-local-8-desktop-1280-42-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T15:36:10.827423+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T15:36:10.827423+00:00","orphaned":false,"origin":"manual","context":null}
+DB row: {"key":"e2e.scratch.44593520490-local-8-local-8-desktop-1280-42-tr16","lang_code":"am","value":null,"status":"untranslated","machine":false,"flagged":false,"flag_note":null,"updated_by":null,"updated_at":"2026-11-19T19:20:05.450672+00:00","approved_by":null,"approved_at":null,"created_at":"2026-11-19T19:20:05.450672+00:00","orphaned":false,"origin":"manual","context":null}
 
    95 |     await assertion();
    96 |   } catch (error) {
@@ -3879,8 +3879,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnp7evqt4qirz_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnp7evqt4qirz_idn" id="post-attr-e2e_mwnp7evqt4qirz_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnx6vouspju9a_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnx6vouspju9a_idn" id="post-attr-e2e_mwnx6vouspju9a_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -3890,7 +3890,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -3911,8 +3911,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpa1ilaoyx5b_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpa1ilaoyx5b_idn" id="post-attr-e2e_mwnpa1ilaoyx5b_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnx9j5y2gkl1r_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnx9j5y2gkl1r_idn" id="post-attr-e2e_mwnx9j5y2gkl1r_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -3922,7 +3922,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -3943,8 +3943,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpco4rs6gbkr_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpco4rs6gbkr_idn" id="post-attr-e2e_mwnpco4rs6gbkr_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxc5vm03q65e_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxc5vm03q65e_idn" id="post-attr-e2e_mwnxc5vm03q65e_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -3975,8 +3975,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpfaxjbm92gg_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpfaxjbm92gg_idn" id="post-attr-e2e_mwnpfaxjbm92gg_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxesl8g36mep_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxesl8g36mep_idn" id="post-attr-e2e_mwnxesl8g36mep_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -3986,7 +3986,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    114 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4007,8 +4007,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnphyz781v11l_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnphyz781v11l_idn" id="post-attr-e2e_mwnphyz781v11l_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxhifbm6p5s0_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxhifbm6p5s0_idn" id="post-attr-e2e_mwnxhifbm6p5s0_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4018,7 +4018,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4039,8 +4039,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpklepcq6glu_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpklepcq6glu_idn" id="post-attr-e2e_mwnpklepcq6glu_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxk52iao7ocx_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxk52iao7ocx_idn" id="post-attr-e2e_mwnxk52iao7ocx_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4050,7 +4050,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4071,8 +4071,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpn7v48uuymq_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpn7v48uuymq_idn" id="post-attr-e2e_mwnpn7v48uuymq_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxmrvwqxjym8_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxmrvwqxjym8_idn" id="post-attr-e2e_mwnxmrvwqxjym8_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4082,7 +4082,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4103,8 +4103,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnppubt8eqxi0_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnppubt8eqxi0_idn" id="post-attr-e2e_mwnppubt8eqxi0_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxpepcniub6q_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxpepcniub6q_idn" id="post-attr-e2e_mwnxpepcniub6q_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4114,7 +4114,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4135,8 +4135,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpslsuq8b5k4_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpslsuq8b5k4_idn" id="post-attr-e2e_mwnpslsuq8b5k4_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxs9sp44gvo4_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxs9sp44gvo4_idn" id="post-attr-e2e_mwnxs9sp44gvo4_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4146,7 +4146,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4167,8 +4167,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpvaiq1yup1r_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpvaiq1yup1r_idn" id="post-attr-e2e_mwnpvaiq1yup1r_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxv0cyy2tkde_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxv0cyy2tkde_idn" id="post-attr-e2e_mwnxv0cyy2tkde_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4178,7 +4178,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4197,28 +4197,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpxz4tdqhkmk_type"]').locator('option[value="e2e_mwnpxz4tdqhkmk_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxxprowjr9gt_type"]').locator('option[value="e2e_mwnxxprowjr9gt_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpxz4tdqhkmk_type"]').locator('option[value="e2e_mwnpxz4tdqhkmk_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxxprowjr9gt_type"]').locator('option[value="e2e_mwnxxprowjr9gt_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpxz4tdqhkmk_type"]').locator('option[value="e2e_mwnpxz4tdqhkmk_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxxprowjr9gt_type"]').locator('option[value="e2e_mwnxxprowjr9gt_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpxz4tdqhkmk_type"]').locator('option[value="e2e_mwnpxz4tdqhkmk_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxxprowjr9gt_type"]').locator('option[value="e2e_mwnxxprowjr9gt_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -4241,28 +4241,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-136-a
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpyybsbypwwj_type"]').locator('option[value="e2e_mwnpyybsbypwwj_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxyq3z32lgli_type"]').locator('option[value="e2e_mwnxyq3z32lgli_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpyybsbypwwj_type"]').locator('option[value="e2e_mwnpyybsbypwwj_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxyq3z32lgli_type"]').locator('option[value="e2e_mwnxyq3z32lgli_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpyybsbypwwj_type"]').locator('option[value="e2e_mwnpyybsbypwwj_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxyq3z32lgli_type"]').locator('option[value="e2e_mwnxyq3z32lgli_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpyybsbypwwj_type"]').locator('option[value="e2e_mwnpyybsbypwwj_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxyq3z32lgli_type"]').locator('option[value="e2e_mwnxyq3z32lgli_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -4287,8 +4287,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpzxjvn28ipp_type"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpzxjvn28ipp_type" id="post-attr-e2e_mwnpzxjvn28ipp_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxzqm1xaoqvg_type"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxzqm1xaoqvg_type" id="post-attr-e2e_mwnxzqm1xaoqvg_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4298,12 +4298,12 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
+    - waiting for element to be visible and enabled
   - element was detached from the DOM, retrying
-
 
 ```
 
@@ -4317,28 +4317,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-138-a
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq2opn8kyxqw_type"]').locator('option[value="e2e_mwnq2opn8kyxqw_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwny2ig2cizacq_type"]').locator('option[value="e2e_mwny2ig2cizacq_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq2opn8kyxqw_type"]').locator('option[value="e2e_mwnq2opn8kyxqw_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny2ig2cizacq_type"]').locator('option[value="e2e_mwny2ig2cizacq_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq2opn8kyxqw_type"]').locator('option[value="e2e_mwnq2opn8kyxqw_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwny2ig2cizacq_type"]').locator('option[value="e2e_mwny2ig2cizacq_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq2opn8kyxqw_type"]').locator('option[value="e2e_mwnq2opn8kyxqw_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny2ig2cizacq_type"]').locator('option[value="e2e_mwny2ig2cizacq_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -4361,28 +4361,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-140-t
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq3o4w36xxbc_type"]').locator('option[value="e2e_mwnq3o4w36xxbc_open"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwny3irxw520ph_type"]').locator('option[value="e2e_mwny3irxw520ph_open"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq3o4w36xxbc_type"]').locator('option[value="e2e_mwnq3o4w36xxbc_open"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny3irxw520ph_type"]').locator('option[value="e2e_mwny3irxw520ph_open"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq3o4w36xxbc_type"]').locator('option[value="e2e_mwnq3o4w36xxbc_open"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwny3irxw520ph_type"]').locator('option[value="e2e_mwny3irxw520ph_open"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq3o4w36xxbc_type"]').locator('option[value="e2e_mwnq3o4w36xxbc_open"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny3irxw520ph_type"]').locator('option[value="e2e_mwny3irxw520ph_open"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -4407,8 +4407,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnps40tot2k6e_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnps40tot2k6e_idn" id="post-attr-e2e_mwnps40tot2k6e_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxs8yr1ojy1r_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxs8yr1ojy1r_idn" id="post-attr-e2e_mwnxs8yr1ojy1r_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4418,7 +4418,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4439,8 +4439,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpuqp92eyg2c_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpuqp92eyg2c_idn" id="post-attr-e2e_mwnpuqp92eyg2c_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxuwjej4zkdz_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxuwjej4zkdz_idn" id="post-attr-e2e_mwnxuwjej4zkdz_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4450,7 +4450,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    113 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4471,8 +4471,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpxd8faiv4go_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpxd8faiv4go_idn" id="post-attr-e2e_mwnpxd8faiv4go_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxxjcy19wx16_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnxxjcy19wx16_idn" id="post-attr-e2e_mwnxxjcy19wx16_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4482,7 +4482,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4503,8 +4503,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpzzrvplyggl_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnpzzrvplyggl_idn" id="post-attr-e2e_mwnpzzrvplyggl_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny06b6ht1jmk_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwny06b6ht1jmk_idn" id="post-attr-e2e_mwny06b6ht1jmk_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4514,7 +4514,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4535,8 +4535,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq2ohopdt3dc_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnq2ohopdt3dc_idn" id="post-attr-e2e_mwnq2ohopdt3dc_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny2uusow8gl4_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwny2uusow8gl4_idn" id="post-attr-e2e_mwny2uusow8gl4_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4567,8 +4567,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq5aw54slld6_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnq5aw54slld6_idn" id="post-attr-e2e_mwnq5aw54slld6_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny5hsqdtwpr9_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwny5hsqdtwpr9_idn" id="post-attr-e2e_mwny5hsqdtwpr9_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4578,7 +4578,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4599,8 +4599,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnq7xf019l126_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnq7xf019l126_idn" id="post-attr-e2e_mwnq7xf019l126_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwny84st4rkekh_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwny84st4rkekh_idn" id="post-attr-e2e_mwny84st4rkekh_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4610,7 +4610,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4631,8 +4631,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqajz030ebbz_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnqajz030ebbz_idn" id="post-attr-e2e_mwnqajz030ebbz_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyarxgbyk3ol_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnyarxgbyk3ol_idn" id="post-attr-e2e_mwnyarxgbyk3ol_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4642,7 +4642,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4663,8 +4663,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqdbmwou5jp9_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnqdbmwou5jp9_idn" id="post-attr-e2e_mwnqdbmwou5jp9_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnydkwli2wtut_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnydkwli2wtut_idn" id="post-attr-e2e_mwnydkwli2wtut_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4674,7 +4674,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4695,8 +4695,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqg0o3ql8n57_idn"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnqg0o3ql8n57_idn" id="post-attr-e2e_mwnqg0o3ql8n57_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnygarafif9lm_idn"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnygarafif9lm_idn" id="post-attr-e2e_mwnygarafif9lm_idn" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4706,7 +4706,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4725,28 +4725,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-162-a
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqipim5feit7_type"]').locator('option[value="e2e_mwnqipim5feit7_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyj0ip25uovm_type"]').locator('option[value="e2e_mwnyj0ip25uovm_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqipim5feit7_type"]').locator('option[value="e2e_mwnqipim5feit7_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyj0ip25uovm_type"]').locator('option[value="e2e_mwnyj0ip25uovm_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqipim5feit7_type"]').locator('option[value="e2e_mwnqipim5feit7_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyj0ip25uovm_type"]').locator('option[value="e2e_mwnyj0ip25uovm_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqipim5feit7_type"]').locator('option[value="e2e_mwnqipim5feit7_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyj0ip25uovm_type"]').locator('option[value="e2e_mwnyj0ip25uovm_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -4769,28 +4769,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-136-a
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqjouyufyp0b_type"]').locator('option[value="e2e_mwnqjouyufyp0b_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyk0zz01nbae_type"]').locator('option[value="e2e_mwnyk0zz01nbae_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqjouyufyp0b_type"]').locator('option[value="e2e_mwnqjouyufyp0b_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyk0zz01nbae_type"]').locator('option[value="e2e_mwnyk0zz01nbae_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqjouyufyp0b_type"]').locator('option[value="e2e_mwnqjouyufyp0b_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyk0zz01nbae_type"]').locator('option[value="e2e_mwnyk0zz01nbae_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqjouyufyp0b_type"]').locator('option[value="e2e_mwnqjouyufyp0b_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyk0zz01nbae_type"]').locator('option[value="e2e_mwnyk0zz01nbae_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -4815,8 +4815,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqko8gn0icb1_type"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnqko8gn0icb1_type" id="post-attr-e2e_mwnqko8gn0icb1_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyl1j7lf1r6m_type"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_mwnyl1j7lf1r6m_type" id="post-attr-e2e_mwnyl1j7lf1r6m_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -4826,7 +4826,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -4845,28 +4845,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-138-a
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqnezkk1ijk4_type"]').locator('option[value="e2e_mwnqnezkk1ijk4_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyntisfx0f2k_type"]').locator('option[value="e2e_mwnyntisfx0f2k_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqnezkk1ijk4_type"]').locator('option[value="e2e_mwnqnezkk1ijk4_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyntisfx0f2k_type"]').locator('option[value="e2e_mwnyntisfx0f2k_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqnezkk1ijk4_type"]').locator('option[value="e2e_mwnqnezkk1ijk4_narrow"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyntisfx0f2k_type"]').locator('option[value="e2e_mwnyntisfx0f2k_narrow"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqnezkk1ijk4_type"]').locator('option[value="e2e_mwnqnezkk1ijk4_narrow"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyntisfx0f2k_type"]').locator('option[value="e2e_mwnyntisfx0f2k_narrow"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -4889,28 +4889,28 @@ Context: context file not found for `post-wizard-pricing-POSTING-WIZARD-PW-140-t
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqoecjn5wft1_type"]').locator('option[value="e2e_mwnqoecjn5wft1_open"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyou1am83x4l_type"]').locator('option[value="e2e_mwnyou1am83x4l_open"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqoecjn5wft1_type"]').locator('option[value="e2e_mwnqoecjn5wft1_open"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyou1am83x4l_type"]').locator('option[value="e2e_mwnyou1am83x4l_open"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqoecjn5wft1_type"]').locator('option[value="e2e_mwnqoecjn5wft1_open"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyou1am83x4l_type"]').locator('option[value="e2e_mwnyou1am83x4l_open"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnqoecjn5wft1_type"]').locator('option[value="e2e_mwnqoecjn5wft1_open"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnyou1am83x4l_type"]').locator('option[value="e2e_mwnyou1am83x4l_open"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -5043,9 +5043,9 @@ Context: context file not found for `my-listings-page-MY-LISTINGS-the-list-page-
 - Project: `mobile-360`
 
 ```text
-Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 84 ms, ok=true | identity 200 after 133 ms, ok=false (door:doorError). Refusal lines shown: none.
+Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 59 ms, ok=true | identity 200 after 106 ms, ok=false (door:doorError). Refusal lines shown: none.
 --- further error 1 ---
-Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 84 ms, ok=true | identity 200 after 133 ms, ok=false (door:doorError). Refusal lines shown: none.
+Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 59 ms, ok=true | identity 200 after 106 ms, ok=false (door:doorError). Refusal lines shown: none.
 
    at helpers/posting.ts:2841
 
@@ -5079,8 +5079,8 @@ Test timeout of 172000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 172000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-11_3_cagloy_select"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-11_3_cagloy_select" id="post-attr-e2e_post_local-11_3_cagloy_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-11_3_3rzv0h_select"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-11_3_3rzv0h_select" id="post-attr-e2e_post_local-11_3_3rzv0h_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -5111,8 +5111,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_pin_mobile360_12_1795102397576_brand"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_pin_mobile360_12_1795102397576_brand" id="post-attr-e2e_pin_mobile360_12_1795102397576_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_pin_mobile360_12_1795115655808_brand"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_pin_mobile360_12_1795115655808_brand" id="post-attr-e2e_pin_mobile360_12_1795115655808_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -5122,7 +5122,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    116 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -5143,8 +5143,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_big_mobile360_15_1795102520511_brand"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_big_mobile360_15_1795102520511_brand" id="post-attr-e2e_big_mobile360_15_1795102520511_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_big_mobile360_15_1795115778510_brand"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_big_mobile360_15_1795115778510_brand" id="post-attr-e2e_big_mobile360_15_1795115778510_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -5171,9 +5171,9 @@ Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-78-a-bi
 - Project: `desktop-1280`
 
 ```text
-Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 48 ms, ok=true | identity 200 after 125 ms, ok=false (door:doorError). Refusal lines shown: none.
+Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 63 ms, ok=true | identity 200 after 90 ms, ok=false (door:doorError). Refusal lines shown: none.
 --- further error 1 ---
-Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 48 ms, ok=true | identity 200 after 125 ms, ok=false (door:doorError). Refusal lines shown: none.
+Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 63 ms, ok=true | identity 200 after 90 ms, ok=false (door:doorError). Refusal lines shown: none.
 
    at helpers/posting.ts:2841
 
@@ -5207,8 +5207,8 @@ Test timeout of 172000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 172000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-11_11_wke76b_select"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-11_11_wke76b_select" id="post-attr-e2e_post_local-11_11_wke76b_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-11_11_5ku2uy_select"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-11_11_5ku2uy_select" id="post-attr-e2e_post_local-11_11_5ku2uy_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -5239,8 +5239,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_pin_desktop1280_17_1795102708333_brand"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_pin_desktop1280_17_1795102708333_brand" id="post-attr-e2e_pin_desktop1280_17_1795102708333_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_pin_desktop1280_17_1795115959493_brand"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_pin_desktop1280_17_1795115959493_brand" id="post-attr-e2e_pin_desktop1280_17_1795115959493_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -5250,7 +5250,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    114 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -5271,8 +5271,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_big_desktop1280_24_1795102832099_brand"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_big_desktop1280_24_1795102832099_brand" id="post-attr-e2e_big_desktop1280_24_1795102832099_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_big_desktop1280_24_1795116082737_brand"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_big_desktop1280_24_1795116082737_brand" id="post-attr-e2e_big_desktop1280_24_1795116082737_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -5286,8 +5286,8 @@ Call log:
         - did not find some options
       - retrying select option action
         - waiting 500ms
+    - waiting for element to be visible and enabled
   - element was detached from the DOM, retrying
-
 
 ```
 
@@ -5301,28 +5301,28 @@ Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-78-a-bi
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpd65rqjsa1f_type"]').locator('option[value="e2e_mwnpd65rqjsa1f_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnx9dgho24lg7_type"]').locator('option[value="e2e_mwnx9dgho24lg7_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpd65rqjsa1f_type"]').locator('option[value="e2e_mwnpd65rqjsa1f_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnx9dgho24lg7_type"]').locator('option[value="e2e_mwnx9dgho24lg7_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpd65rqjsa1f_type"]').locator('option[value="e2e_mwnpd65rqjsa1f_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnx9dgho24lg7_type"]').locator('option[value="e2e_mwnx9dgho24lg7_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpd65rqjsa1f_type"]').locator('option[value="e2e_mwnpd65rqjsa1f_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnx9dgho24lg7_type"]').locator('option[value="e2e_mwnx9dgho24lg7_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -5345,28 +5345,28 @@ Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpe5ph4akijz_type"]').locator('option[value="e2e_mwnpe5ph4akijz_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxacpn5rble6_type"]').locator('option[value="e2e_mwnxacpn5rble6_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpe5ph4akijz_type"]').locator('option[value="e2e_mwnpe5ph4akijz_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxacpn5rble6_type"]').locator('option[value="e2e_mwnxacpn5rble6_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpe5ph4akijz_type"]').locator('option[value="e2e_mwnpe5ph4akijz_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxacpn5rble6_type"]').locator('option[value="e2e_mwnxacpn5rble6_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpe5ph4akijz_type"]').locator('option[value="e2e_mwnpe5ph4akijz_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxacpn5rble6_type"]').locator('option[value="e2e_mwnxacpn5rble6_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -5389,28 +5389,28 @@ Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpshzikgntwb_type"]').locator('option[value="e2e_mwnpshzikgntwb_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxojt6lym3jl_type"]').locator('option[value="e2e_mwnxojt6lym3jl_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpshzikgntwb_type"]').locator('option[value="e2e_mwnpshzikgntwb_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxojt6lym3jl_type"]').locator('option[value="e2e_mwnxojt6lym3jl_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpshzikgntwb_type"]').locator('option[value="e2e_mwnpshzikgntwb_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxojt6lym3jl_type"]').locator('option[value="e2e_mwnxojt6lym3jl_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnpshzikgntwb_type"]').locator('option[value="e2e_mwnpshzikgntwb_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxojt6lym3jl_type"]').locator('option[value="e2e_mwnxojt6lym3jl_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -5433,28 +5433,28 @@ Context: context file not found for `post-wizard-where-POSTING-WIZARD-where-the-
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnptididzz18r_type"]').locator('option[value="e2e_mwnptididzz18r_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxpjezzv37hq_type"]').locator('option[value="e2e_mwnxpjezzv37hq_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnptididzz18r_type"]').locator('option[value="e2e_mwnptididzz18r_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxpjezzv37hq_type"]').locator('option[value="e2e_mwnxpjezzv37hq_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnptididzz18r_type"]').locator('option[value="e2e_mwnptididzz18r_milk"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxpjezzv37hq_type"]').locator('option[value="e2e_mwnxpjezzv37hq_milk"]')
 Expected: 1
 Received: 0
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnptididzz18r_type"]').locator('option[value="e2e_mwnptididzz18r_milk"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_mwnxpjezzv37hq_type"]').locator('option[value="e2e_mwnxpjezzv37hq_milk"]')
     24 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -5495,7 +5495,7 @@ Received: "notYourListing"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-ad.spec.ts:313:29
 ```
 
-Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-1-my_listing-the-seller-s-own-ad-with-the-list-s-row-its-group-the-status-it-reopens-to-and-the-renew-setting-nobody-else-s-mobile-360` — Playwright's name `my-listings-ad-MY-LISTINGS-8dfb1-renew-setting-nobody-else-s-mobile-360`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`
+Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-1-my_listing-the-seller-s-own-ad-with-the-list-s-row-its-group-the-status-it-reopens-to-and-the-renew-setting-nobody-else-s-mobile-360` — Playwright's name `my-listings-ad-MY-LISTINGS-8dfb1-renew-setting-nobody-else-s-mobile-360`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`
 
 ## my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-2 listing_history says which way a Reserved change went
 
@@ -5523,7 +5523,7 @@ Received: "notYourListing"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-ad.spec.ts:345:27
 ```
 
-Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-2-listing_history-says-which-way-a-Reserved-change-went-mobile-360` — Playwright's name `my-listings-ad-MY-LISTINGS-d6a42--way-a-Reserved-change-went-mobile-360`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`
+Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-2-listing_history-says-which-way-a-Reserved-change-went-mobile-360` — Playwright's name `my-listings-ad-MY-LISTINGS-d6a42--way-a-Reserved-change-went-mobile-360`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`
 
 ## my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-6 Renew an expired ad; a draft continues; an ad in review waits; another seller's ad and a signed-out visit
 
@@ -5732,7 +5732,7 @@ Received: "notYourListing"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-ad.spec.ts:313:29
 ```
 
-Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-1-my_listing-the-seller-s-own-ad-with-the-list-s-row-its-group-the-status-it-reopens-to-and-the-renew-setting-nobody-else-s-desktop-1280` — Playwright's name `my-listings-ad-MY-LISTINGS-8dfb1-renew-setting-nobody-else-s-desktop-1280`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`
+Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-1-my_listing-the-seller-s-own-ad-with-the-list-s-row-its-group-the-status-it-reopens-to-and-the-renew-setting-nobody-else-s-desktop-1280` — Playwright's name `my-listings-ad-MY-LISTINGS-8dfb1-renew-setting-nobody-else-s-desktop-1280`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`
 
 ## my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-2 listing_history says which way a Reserved change went
 
@@ -5760,7 +5760,7 @@ Received: "notYourListing"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/my-listings-ad.spec.ts:345:27
 ```
 
-Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-2-listing_history-says-which-way-a-Reserved-change-went-desktop-1280` — Playwright's name `my-listings-ad-MY-LISTINGS-d6a42--way-a-Reserved-change-went-desktop-1280`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`
+Context: context file not found for `my-listings-ad-MY-LISTINGS-one-ad-s-page-bundle-16-turn-3-MLA-2-listing_history-says-which-way-a-Reserved-change-went-desktop-1280` — Playwright's name `my-listings-ad-MY-LISTINGS-d6a42--way-a-Reserved-change-went-desktop-1280`; this run carried 76 context file(s); of the same spec: `my-listings-ad-MY-LISTINGS-9d729-s-ad-and-a-signed-out-visit-desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--mobile-360`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--desktop-1280-retry1`, `my-listings-ad-MY-LISTINGS-84178--the-new-city-D194-INC-659--mobile-360`, `my-listings-ad-MY-LISTINGS-c3506-y-listings-for-good-call-F--desktop-1280`
 
 ## my-listings-ad.spec.ts › MY LISTINGS — one ad's page (bundle 16 turn 3) › MLA-6 Renew an expired ad; a draft continues; an ad in review waits; another seller's ad and a signed-out visit
 
@@ -5951,29 +5951,29 @@ Context:
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_drysub_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_h2je78_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_drysub_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_0_drysub_select" id="post-attr-e2e_post_local-12_0_drysub_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_h2je78_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_0_h2je78_select" id="post-attr-e2e_post_local-12_0_h2je78_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_drysub_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_h2je78_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_drysub_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_0_drysub_select" id="post-attr-e2e_post_local-12_0_drysub_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_0_h2je78_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_0_h2je78_select" id="post-attr-e2e_post_local-12_0_h2je78_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -5995,33 +5995,33 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-5-the-s
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_deqmn2_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_oi2ogs_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_deqmn2_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_deqmn2_select" id="post-attr-e2e_post_local-12_8_deqmn2_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_oi2ogs_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_oi2ogs_select" id="post-attr-e2e_post_local-12_8_oi2ogs_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_deqmn2_select" id="post-attr-e2e_post_local-12_8_deqmn2_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_oi2ogs_select" id="post-attr-e2e_post_local-12_8_oi2ogs_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_deqmn2_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_oi2ogs_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_deqmn2_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_deqmn2_select" id="post-attr-e2e_post_local-12_8_deqmn2_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_8_oi2ogs_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_oi2ogs_select" id="post-attr-e2e_post_local-12_8_oi2ogs_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_deqmn2_select" id="post-attr-e2e_post_local-12_8_deqmn2_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_8_oi2ogs_select" id="post-attr-e2e_post_local-12_8_oi2ogs_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -6043,8 +6043,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_mobile360_13_1795101878221_one"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_mobile360_13_1795101878221_one" id="post-attr-e2e_oth_mobile360_13_1795101878221_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_mobile360_13_1795115094799_one"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_mobile360_13_1795115094799_one" id="post-attr-e2e_oth_mobile360_13_1795115094799_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6075,8 +6075,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_mobile360_17_1795102001425_one"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_mobile360_17_1795102001425_one" id="post-attr-e2e_oth_mobile360_17_1795102001425_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_mobile360_17_1795115218034_one"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_mobile360_17_1795115218034_one" id="post-attr-e2e_oth_mobile360_17_1795115218034_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6107,7 +6107,7 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.check: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-checks"][data-attr="e2e_oth_mobile360_28_1795102124768_many"]').locator('[data-testid="post-attr-check"][data-value="e2e_oth_mobile360_28_1795102124768_a"]')
+  - waiting for locator('[data-testid="post-attr-checks"][data-attr="e2e_oth_mobile360_28_1795115341183_many"]').locator('[data-testid="post-attr-check"][data-value="e2e_oth_mobile360_28_1795115341183_a"]')
 
 
   662 |     await checks
@@ -6132,8 +6132,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_lazy_mobile360_32_1795102247585_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_lazy_mobile360_32_1795102247585_make" id="post-attr-e2e_lazy_mobile360_32_1795102247585_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_lazy_mobile360_32_1795115463590_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_lazy_mobile360_32_1795115463590_make" id="post-attr-e2e_lazy_mobile360_32_1795115463590_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6164,8 +6164,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_mobile360_38_1795102382845_identity"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_mobile360_38_1795102382845_identity" id="post-attr-e2e_trip_mobile360_38_1795102382845_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_mobile360_38_1795115597980_identity"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_mobile360_38_1795115597980_identity" id="post-attr-e2e_trip_mobile360_38_1795115597980_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6175,7 +6175,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    116 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -6196,8 +6196,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_mobile360_42_1795102505482_identity"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_mobile360_42_1795102505482_identity" id="post-attr-e2e_trip_mobile360_42_1795102505482_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_mobile360_42_1795115720566_identity"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_mobile360_42_1795115720566_identity" id="post-attr-e2e_trip_mobile360_42_1795115720566_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6228,8 +6228,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_46_izbppp_select"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_46_izbppp_select" id="post-attr-e2e_post_local-12_46_izbppp_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_46_ywfj2c_select"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_46_ywfj2c_select" id="post-attr-e2e_post_local-12_46_ywfj2c_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6260,15 +6260,15 @@ Error: PW-21: the child was open with no parent chosen
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_z7uw8o_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_1c52n6_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-21: the child was open with no parent chosen with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_z7uw8o_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_50_z7uw8o_model" id="post-attr-e2e_fold_local-12_50_z7uw8o_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_1c52n6_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_50_1c52n6_model" id="post-attr-e2e_fold_local-12_50_1c52n6_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 --- further error 1 ---
@@ -6276,15 +6276,15 @@ Error: PW-21: the child was open with no parent chosen
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_z7uw8o_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_1c52n6_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-21: the child was open with no parent chosen with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_z7uw8o_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_50_z7uw8o_model" id="post-attr-e2e_fold_local-12_50_z7uw8o_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_50_1c52n6_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_50_1c52n6_model" id="post-attr-e2e_fold_local-12_50_1c52n6_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 
@@ -6306,8 +6306,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_52_nxnzdh_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_52_nxnzdh_make" id="post-attr-e2e_fold_local-12_52_nxnzdh_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_52_hvhaot_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_52_hvhaot_make" id="post-attr-e2e_fold_local-12_52_hvhaot_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6317,7 +6317,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    110 × waiting for element to be visible and enabled
+    111 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -6338,15 +6338,15 @@ Error: PW-22: the link's default did not prefill
 
 expect(locator).toHaveValue(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_uaczu2_unit"]')
-Expected: "e2e_fold_local-12_56_uaczu2_pc"
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_5014xh_unit"]')
+Expected: "e2e_fold_local-12_56_5014xh_pc"
 Received: ""
 Timeout:  20000ms
 
 Call log:
   - PW-22: the link's default did not prefill with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_uaczu2_unit"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_56_uaczu2_unit" id="post-attr-e2e_fold_local-12_56_uaczu2_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_5014xh_unit"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_56_5014xh_unit" id="post-attr-e2e_fold_local-12_56_5014xh_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value ""
 
 --- further error 1 ---
@@ -6354,15 +6354,15 @@ Error: PW-22: the link's default did not prefill
 
 expect(locator).toHaveValue(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_uaczu2_unit"]')
-Expected: "e2e_fold_local-12_56_uaczu2_pc"
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_5014xh_unit"]')
+Expected: "e2e_fold_local-12_56_5014xh_pc"
 Received: ""
 Timeout:  20000ms
 
 Call log:
   - PW-22: the link's default did not prefill with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_uaczu2_unit"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_56_uaczu2_unit" id="post-attr-e2e_fold_local-12_56_uaczu2_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_56_5014xh_unit"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_56_5014xh_unit" id="post-attr-e2e_fold_local-12_56_5014xh_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value ""
 
 
@@ -6384,8 +6384,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_59_ezmzt5_fuel"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_59_ezmzt5_fuel" id="post-attr-e2e_cond_local-12_59_ezmzt5_fuel" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_59_5w6g6q_fuel"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_59_5w6g6q_fuel" id="post-attr-e2e_cond_local-12_59_5w6g6q_fuel" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6416,8 +6416,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_63_xaaus8_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_63_xaaus8_make" id="post-attr-e2e_fold_local-12_63_xaaus8_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_63_awlhko_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_63_awlhko_make" id="post-attr-e2e_fold_local-12_63_awlhko_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6444,39 +6444,39 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-9-an-op
 - Project: `mobile-360`
 
 ```text
-Error: PW-25: e2e_deep_local-12_67_08n3vv_brand never loaded its options
+Error: PW-25: e2e_deep_local-12_67_qpo1ch_brand never loaded its options
 
 expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_08n3vv_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_qpo1ch_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
-  - PW-25: e2e_deep_local-12_67_08n3vv_brand never loaded its options with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_08n3vv_brand"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_08n3vv_brand" id="post-attr-e2e_deep_local-12_67_08n3vv_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - PW-25: e2e_deep_local-12_67_qpo1ch_brand never loaded its options with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_qpo1ch_brand"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_qpo1ch_brand" id="post-attr-e2e_deep_local-12_67_qpo1ch_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_08n3vv_brand" id="post-attr-e2e_deep_local-12_67_08n3vv_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_qpo1ch_brand" id="post-attr-e2e_deep_local-12_67_qpo1ch_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
-Error: PW-25: e2e_deep_local-12_67_08n3vv_brand never loaded its options
+Error: PW-25: e2e_deep_local-12_67_qpo1ch_brand never loaded its options
 
 expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_08n3vv_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_qpo1ch_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
-  - PW-25: e2e_deep_local-12_67_08n3vv_brand never loaded its options with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_08n3vv_brand"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_08n3vv_brand" id="post-attr-e2e_deep_local-12_67_08n3vv_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - PW-25: e2e_deep_local-12_67_qpo1ch_brand never loaded its options with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_67_qpo1ch_brand"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_qpo1ch_brand" id="post-attr-e2e_deep_local-12_67_qpo1ch_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_08n3vv_brand" id="post-attr-e2e_deep_local-12_67_08n3vv_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_67_qpo1ch_brand" id="post-attr-e2e_deep_local-12_67_qpo1ch_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -6496,8 +6496,40 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_listfact_1795103260214_m55sl8_food"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_listfact_1795103260214_m55sl8_food" id="post-attr-e2e_listfact_1795103260214_m55sl8_food" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_listfact_1795116471542_als2c6_food"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_listfact_1795116471542_als2c6_food" id="post-attr-e2e_listfact_1795116471542_als2c6_food" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - attempting select option action
+    2 × waiting for element to be visible and enabled
+      - did not find some options
+    - retrying select option action
+    - waiting 20ms
+    2 × waiting for element to be visible and enabled
+      - did not find some options
+    - retrying select option action
+      - waiting 100ms
+    114 × waiting for element to be visible and enabled
+        - did not find some options
+      - retrying select option action
+        - waiting 500ms
+    - waiting for element to be visible and enabled
+  - element was detached from the DOM, retrying
+
+```
+
+Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-159-a-list-fact-ticks-its-tick-list-once-and-the-seller-s-untick-stays-mobile-360` — Playwright's name `post-wizard-specs-POSTING--3d2b2-d-the-seller-s-untick-stays-mobile-360`; this run carried 76 context file(s); of the same spec: none
+
+## post-wizard-specs.spec.ts › POSTING WIZARD › PW-153 a settled range hides its number and the review and buyer sheet show the range
+
+- Source: `shard 12`
+- Project: `mobile-360`
+
+```text
+Test timeout of 60000ms exceeded.
+--- further error 1 ---
+Error: locator.selectOption: Test timeout of 60000ms exceeded.
+Call log:
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_settle_1795116593579_l8z4ew_model"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_settle_1795116593579_l8z4ew_model" id="post-attr-e2e_settle_1795116593579_l8z4ew_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6516,38 +6548,6 @@ Call log:
 
 ```
 
-Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-159-a-list-fact-ticks-its-tick-list-once-and-the-seller-s-untick-stays-mobile-360` — Playwright's name `post-wizard-specs-POSTING--3d2b2-d-the-seller-s-untick-stays-mobile-360`; this run carried 76 context file(s); of the same spec: none
-
-## post-wizard-specs.spec.ts › POSTING WIZARD › PW-153 a settled range hides its number and the review and buyer sheet show the range
-
-- Source: `shard 12`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.selectOption: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_settle_1795103382785_6zoo02_model"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_settle_1795103382785_6zoo02_model" id="post-attr-e2e_settle_1795103382785_6zoo02_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
-  - attempting select option action
-    2 × waiting for element to be visible and enabled
-      - did not find some options
-    - retrying select option action
-    - waiting 20ms
-    2 × waiting for element to be visible and enabled
-      - did not find some options
-    - retrying select option action
-      - waiting 100ms
-    115 × waiting for element to be visible and enabled
-        - did not find some options
-      - retrying select option action
-        - waiting 500ms
-    - waiting for element to be visible and enabled
-  - element was detached from the DOM, retrying
-
-```
-
 Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-153-a-settled-range-hides-its-number-and-the-review-and-buyer-sheet-show-the-range-mobile-360` — Playwright's name `post-wizard-specs-POSTING--26bb2--buyer-sheet-show-the-range-mobile-360`; this run carried 76 context file(s); of the same spec: none
 
 ## post-wizard-specs.spec.ts › POSTING WIZARD › PW-34 a colour detail offers stemmed swatches, and an unmapped list shows no tray
@@ -6560,28 +6560,28 @@ Error: PW-34: the colour option carries no swatch
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_8vfc6t_colour"][data-value="black"]')
+Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_bhljf3_colour"][data-value="black"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-34: the colour option carries no swatch with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_8vfc6t_colour"][data-value="black"]')
+  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_bhljf3_colour"][data-value="black"]')
 
 --- further error 1 ---
 Error: PW-34: the colour option carries no swatch
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_8vfc6t_colour"][data-value="black"]')
+Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_bhljf3_colour"][data-value="black"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-34: the colour option carries no swatch with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_8vfc6t_colour"][data-value="black"]')
+  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_80_bhljf3_colour"][data-value="black"]')
 
 
   1985 |         `[data-testid="post-attr-swatch"][data-attr="${set.colour.attrKey}"][data-value="${value}"]`,
@@ -6604,28 +6604,28 @@ Error: PW-45: the declared swatch tray never rendered
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_y7adnx_colour"]')
+Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_fp88tt_colour"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-45: the declared swatch tray never rendered with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_y7adnx_colour"]')
+  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_fp88tt_colour"]')
 
 --- further error 1 ---
 Error: PW-45: the declared swatch tray never rendered
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_y7adnx_colour"]')
+Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_fp88tt_colour"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-45: the declared swatch tray never rendered with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_y7adnx_colour"]')
+  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_83_fp88tt_colour"]')
 
 
   2058 |       tray.locator(`[data-testid="post-attr-swatch"][data-value="${value}"]`);
@@ -6646,28 +6646,28 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-45-a-de
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_67wht8_fuel"]').locator('option[value="e2e_allow_local-12_86_67wht8_petrol"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_y7fkn6_fuel"]').locator('option[value="e2e_allow_local-12_86_y7fkn6_petrol"]')
 Expected: 1
 Received: 0
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_67wht8_fuel"]').locator('option[value="e2e_allow_local-12_86_67wht8_petrol"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_y7fkn6_fuel"]').locator('option[value="e2e_allow_local-12_86_y7fkn6_petrol"]')
     14 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_67wht8_fuel"]').locator('option[value="e2e_allow_local-12_86_67wht8_petrol"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_y7fkn6_fuel"]').locator('option[value="e2e_allow_local-12_86_y7fkn6_petrol"]')
 Expected: 1
 Received: 0
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_67wht8_fuel"]').locator('option[value="e2e_allow_local-12_86_67wht8_petrol"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_86_y7fkn6_fuel"]').locator('option[value="e2e_allow_local-12_86_y7fkn6_petrol"]')
     14 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -6690,29 +6690,29 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-35-a-mo
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_50wggz_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_kthwkt_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_50wggz_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_88_50wggz_select" id="post-attr-e2e_post_local-12_88_50wggz_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_kthwkt_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_88_kthwkt_select" id="post-attr-e2e_post_local-12_88_kthwkt_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_50wggz_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_kthwkt_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_50wggz_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_88_50wggz_select" id="post-attr-e2e_post_local-12_88_50wggz_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_88_kthwkt_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_88_kthwkt_select" id="post-attr-e2e_post_local-12_88_kthwkt_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -6736,8 +6736,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_unhide_local-12_91_f81itw_type"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_unhide_local-12_91_f81itw_type" id="post-attr-e2e_unhide_local-12_91_f81itw_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_unhide_local-12_91_i6u1ig_type"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_unhide_local-12_91_i6u1ig_type" id="post-attr-e2e_unhide_local-12_91_i6u1ig_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6747,7 +6747,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    116 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -6768,8 +6768,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_96_sy5x34_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_96_sy5x34_make" id="post-attr-e2e_fold_local-12_96_sy5x34_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_96_9dfs1i_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_96_9dfs1i_make" id="post-attr-e2e_fold_local-12_96_9dfs1i_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6800,8 +6800,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_phone_local-12_100_kwdwdd_brand"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_phone_local-12_100_kwdwdd_brand" id="post-attr-e2e_phone_local-12_100_kwdwdd_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_phone_local-12_100_bxyzda_brand"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_phone_local-12_100_bxyzda_brand" id="post-attr-e2e_phone_local-12_100_bxyzda_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6811,7 +6811,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    116 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -6832,8 +6832,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_104_3y3epp_region"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_104_3y3epp_region" id="post-attr-e2e_cond_local-12_104_3y3epp_region" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_104_fqbxtc_region"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_104_fqbxtc_region" id="post-attr-e2e_cond_local-12_104_fqbxtc_region" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6843,7 +6843,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    116 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -6862,29 +6862,29 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-51-a-de
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_axrshe_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_hloh1a_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_axrshe_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_31_axrshe_select" id="post-attr-e2e_post_local-12_31_axrshe_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_hloh1a_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_31_hloh1a_select" id="post-attr-e2e_post_local-12_31_hloh1a_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_axrshe_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_hloh1a_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_axrshe_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_31_axrshe_select" id="post-attr-e2e_post_local-12_31_axrshe_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_31_hloh1a_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_31_hloh1a_select" id="post-attr-e2e_post_local-12_31_hloh1a_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -6906,33 +6906,33 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-5-the-s
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_ns3qm3_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_a0tits_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_ns3qm3_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_ns3qm3_select" id="post-attr-e2e_post_local-12_35_ns3qm3_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_a0tits_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_a0tits_select" id="post-attr-e2e_post_local-12_35_a0tits_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_ns3qm3_select" id="post-attr-e2e_post_local-12_35_ns3qm3_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_a0tits_select" id="post-attr-e2e_post_local-12_35_a0tits_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_ns3qm3_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_a0tits_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_ns3qm3_select"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_ns3qm3_select" id="post-attr-e2e_post_local-12_35_ns3qm3_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_35_a0tits_select"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_a0tits_select" id="post-attr-e2e_post_local-12_35_a0tits_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_ns3qm3_select" id="post-attr-e2e_post_local-12_35_ns3qm3_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_35_a0tits_select" id="post-attr-e2e_post_local-12_35_a0tits_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -6954,8 +6954,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_desktop1280_37_1795102376683_one"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_desktop1280_37_1795102376683_one" id="post-attr-e2e_oth_desktop1280_37_1795102376683_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_desktop1280_37_1795115591710_one"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_desktop1280_37_1795115591710_one" id="post-attr-e2e_oth_desktop1280_37_1795115591710_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6986,8 +6986,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_desktop1280_41_1795102499599_one"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_desktop1280_41_1795102499599_one" id="post-attr-e2e_oth_desktop1280_41_1795102499599_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_oth_desktop1280_41_1795115714442_one"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_oth_desktop1280_41_1795115714442_one" id="post-attr-e2e_oth_desktop1280_41_1795115714442_one" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -6997,7 +6997,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    116 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -7018,7 +7018,7 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.check: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-checks"][data-attr="e2e_oth_desktop1280_45_1795102622188_many"]').locator('[data-testid="post-attr-check"][data-value="e2e_oth_desktop1280_45_1795102622188_a"]')
+  - waiting for locator('[data-testid="post-attr-checks"][data-attr="e2e_oth_desktop1280_45_1795115836966_many"]').locator('[data-testid="post-attr-check"][data-value="e2e_oth_desktop1280_45_1795115836966_a"]')
 
 
   662 |     await checks
@@ -7043,8 +7043,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_lazy_desktop1280_49_1795102744760_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_lazy_desktop1280_49_1795102744760_make" id="post-attr-e2e_lazy_desktop1280_49_1795102744760_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_lazy_desktop1280_49_1795115959525_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_lazy_desktop1280_49_1795115959525_make" id="post-attr-e2e_lazy_desktop1280_49_1795115959525_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7054,7 +7054,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    116 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -7075,8 +7075,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_55_1795102878646_identity"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_desktop1280_55_1795102878646_identity" id="post-attr-e2e_trip_desktop1280_55_1795102878646_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_55_1795116093328_identity"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_desktop1280_55_1795116093328_identity" id="post-attr-e2e_trip_desktop1280_55_1795116093328_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7107,8 +7107,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_60_1795103001688_identity"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_desktop1280_60_1795103001688_identity" id="post-attr-e2e_trip_desktop1280_60_1795103001688_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_trip_desktop1280_60_1795116215793_identity"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_trip_desktop1280_60_1795116215793_identity" id="post-attr-e2e_trip_desktop1280_60_1795116215793_identity" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7139,8 +7139,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_64_ovhjoi_select"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_64_ovhjoi_select" id="post-attr-e2e_post_local-12_64_ovhjoi_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_64_5rth0i_select"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_post_local-12_64_5rth0i_select" id="post-attr-e2e_post_local-12_64_5rth0i_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7171,15 +7171,15 @@ Error: PW-21: the child was open with no parent chosen
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_7gq60z_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_whkddr_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-21: the child was open with no parent chosen with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_7gq60z_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_69_7gq60z_model" id="post-attr-e2e_fold_local-12_69_7gq60z_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_whkddr_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_69_whkddr_model" id="post-attr-e2e_fold_local-12_69_whkddr_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 --- further error 1 ---
@@ -7187,15 +7187,15 @@ Error: PW-21: the child was open with no parent chosen
 
 expect(locator).toBeDisabled() failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_7gq60z_model"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_whkddr_model"]')
 Expected: disabled
 Received: enabled
 Timeout:  10000ms
 
 Call log:
   - PW-21: the child was open with no parent chosen with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_7gq60z_model"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_69_7gq60z_model" id="post-attr-e2e_fold_local-12_69_7gq60z_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_69_whkddr_model"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_69_whkddr_model" id="post-attr-e2e_fold_local-12_69_whkddr_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "enabled"
 
 
@@ -7217,8 +7217,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_72_l8gwdp_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_72_l8gwdp_make" id="post-attr-e2e_fold_local-12_72_l8gwdp_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_72_ir69oq_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_72_ir69oq_make" id="post-attr-e2e_fold_local-12_72_ir69oq_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7249,15 +7249,15 @@ Error: PW-22: the link's default did not prefill
 
 expect(locator).toHaveValue(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_vga8m8_unit"]')
-Expected: "e2e_fold_local-12_76_vga8m8_pc"
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_ie1o7i_unit"]')
+Expected: "e2e_fold_local-12_76_ie1o7i_pc"
 Received: ""
 Timeout:  20000ms
 
 Call log:
   - PW-22: the link's default did not prefill with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_vga8m8_unit"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_76_vga8m8_unit" id="post-attr-e2e_fold_local-12_76_vga8m8_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_ie1o7i_unit"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_76_ie1o7i_unit" id="post-attr-e2e_fold_local-12_76_ie1o7i_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value ""
 
 --- further error 1 ---
@@ -7265,15 +7265,15 @@ Error: PW-22: the link's default did not prefill
 
 expect(locator).toHaveValue(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_vga8m8_unit"]')
-Expected: "e2e_fold_local-12_76_vga8m8_pc"
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_ie1o7i_unit"]')
+Expected: "e2e_fold_local-12_76_ie1o7i_pc"
 Received: ""
 Timeout:  20000ms
 
 Call log:
   - PW-22: the link's default did not prefill with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_vga8m8_unit"]')
-    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_76_vga8m8_unit" id="post-attr-e2e_fold_local-12_76_vga8m8_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_76_ie1o7i_unit"]')
+    24 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_76_ie1o7i_unit" id="post-attr-e2e_fold_local-12_76_ie1o7i_unit" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value ""
 
 
@@ -7295,8 +7295,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_79_iwsghu_fuel"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_79_iwsghu_fuel" id="post-attr-e2e_cond_local-12_79_iwsghu_fuel" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_79_lgwhgi_fuel"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_79_lgwhgi_fuel" id="post-attr-e2e_cond_local-12_79_lgwhgi_fuel" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7306,12 +7306,12 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    115 × waiting for element to be visible and enabled
+    116 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
-    - waiting for element to be visible and enabled
   - element was detached from the DOM, retrying
+
 
 ```
 
@@ -7327,8 +7327,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_85_4nzqhp_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_85_4nzqhp_make" id="post-attr-e2e_fold_local-12_85_4nzqhp_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_85_fbr2tv_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_85_fbr2tv_make" id="post-attr-e2e_fold_local-12_85_fbr2tv_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7355,39 +7355,39 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-9-an-op
 - Project: `desktop-1280`
 
 ```text
-Error: PW-25: e2e_deep_local-12_92_iaiu11_brand never loaded its options
+Error: PW-25: e2e_deep_local-12_92_75zu08_brand never loaded its options
 
 expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_iaiu11_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_75zu08_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
-  - PW-25: e2e_deep_local-12_92_iaiu11_brand never loaded its options with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_iaiu11_brand"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_iaiu11_brand" id="post-attr-e2e_deep_local-12_92_iaiu11_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - PW-25: e2e_deep_local-12_92_75zu08_brand never loaded its options with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_75zu08_brand"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_75zu08_brand" id="post-attr-e2e_deep_local-12_92_75zu08_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_iaiu11_brand" id="post-attr-e2e_deep_local-12_92_iaiu11_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_75zu08_brand" id="post-attr-e2e_deep_local-12_92_75zu08_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
-Error: PW-25: e2e_deep_local-12_92_iaiu11_brand never loaded its options
+Error: PW-25: e2e_deep_local-12_92_75zu08_brand never loaded its options
 
 expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_iaiu11_brand"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_75zu08_brand"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
-  - PW-25: e2e_deep_local-12_92_iaiu11_brand never loaded its options with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_iaiu11_brand"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_iaiu11_brand" id="post-attr-e2e_deep_local-12_92_iaiu11_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - PW-25: e2e_deep_local-12_92_75zu08_brand never loaded its options with timeout 20000ms
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_deep_local-12_92_75zu08_brand"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_75zu08_brand" id="post-attr-e2e_deep_local-12_92_75zu08_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_iaiu11_brand" id="post-attr-e2e_deep_local-12_92_iaiu11_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_deep_local-12_92_75zu08_brand" id="post-attr-e2e_deep_local-12_92_75zu08_brand" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -7407,8 +7407,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_listfact_1795103756166_fk0i19_food"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_listfact_1795103756166_fk0i19_food" id="post-attr-e2e_listfact_1795103756166_fk0i19_food" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_listfact_1795116971940_8ouxyp_food"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_listfact_1795116971940_8ouxyp_food" id="post-attr-e2e_listfact_1795116971940_8ouxyp_food" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7439,8 +7439,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_settle_1795103878950_d3042v_model"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_settle_1795103878950_d3042v_model" id="post-attr-e2e_settle_1795103878950_d3042v_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_settle_1795117094637_g7pdbb_model"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_settle_1795117094637_g7pdbb_model" id="post-attr-e2e_settle_1795117094637_g7pdbb_model" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7471,28 +7471,28 @@ Error: PW-34: the colour option carries no swatch
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_qwqjwg_colour"][data-value="black"]')
+Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_xjwhvn_colour"][data-value="black"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-34: the colour option carries no swatch with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_qwqjwg_colour"][data-value="black"]')
+  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_xjwhvn_colour"][data-value="black"]')
 
 --- further error 1 ---
 Error: PW-34: the colour option carries no swatch
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_qwqjwg_colour"][data-value="black"]')
+Locator: locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_xjwhvn_colour"][data-value="black"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-34: the colour option carries no swatch with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_qwqjwg_colour"][data-value="black"]')
+  - waiting for locator('[data-testid="post-attr-swatch"][data-attr="e2e_colour_local-12_103_xjwhvn_colour"][data-value="black"]')
 
 
   1985 |         `[data-testid="post-attr-swatch"][data-attr="${set.colour.attrKey}"][data-value="${value}"]`,
@@ -7515,28 +7515,28 @@ Error: PW-45: the declared swatch tray never rendered
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_f8gg6y_colour"]')
+Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_kx0wyi_colour"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-45: the declared swatch tray never rendered with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_f8gg6y_colour"]')
+  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_kx0wyi_colour"]')
 
 --- further error 1 ---
 Error: PW-45: the declared swatch tray never rendered
 
 expect(locator).toBeVisible() failed
 
-Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_f8gg6y_colour"]')
+Locator: locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_kx0wyi_colour"]')
 Expected: visible
 Timeout: 20000ms
 Error: element(s) not found
 
 Call log:
   - PW-45: the declared swatch tray never rendered with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_f8gg6y_colour"]')
+  - waiting for locator('[data-testid="post-attr-swatches"][data-attr="e2e_swatch_local-12_106_kx0wyi_colour"]')
 
 
   2058 |       tray.locator(`[data-testid="post-attr-swatch"][data-value="${value}"]`);
@@ -7557,28 +7557,28 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-45-a-de
 ```text
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_13syet_fuel"]').locator('option[value="e2e_allow_local-12_109_13syet_petrol"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_3vhmoz_fuel"]').locator('option[value="e2e_allow_local-12_109_3vhmoz_petrol"]')
 Expected: 1
 Received: 0
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_13syet_fuel"]').locator('option[value="e2e_allow_local-12_109_13syet_petrol"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_3vhmoz_fuel"]').locator('option[value="e2e_allow_local-12_109_3vhmoz_petrol"]')
     14 × locator resolved to 0 elements
        - unexpected value "0"
 
 --- further error 1 ---
 Error: expect(locator).toHaveCount(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_13syet_fuel"]').locator('option[value="e2e_allow_local-12_109_13syet_petrol"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_3vhmoz_fuel"]').locator('option[value="e2e_allow_local-12_109_3vhmoz_petrol"]')
 Expected: 1
 Received: 0
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveCount" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_13syet_fuel"]').locator('option[value="e2e_allow_local-12_109_13syet_petrol"]')
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_allow_local-12_109_3vhmoz_fuel"]').locator('option[value="e2e_allow_local-12_109_3vhmoz_petrol"]')
     14 × locator resolved to 0 elements
        - unexpected value "0"
 
@@ -7601,29 +7601,29 @@ Context: context file not found for `post-wizard-specs-POSTING-WIZARD-PW-35-a-mo
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_ubyigz_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_k9m70c_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_ubyigz_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_111_ubyigz_select" id="post-attr-e2e_post_local-12_111_ubyigz_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_k9m70c_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_111_k9m70c_select" id="post-attr-e2e_post_local-12_111_k9m70c_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_ubyigz_select"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_k9m70c_select"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  10000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 10000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_ubyigz_select"]')
-    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_111_ubyigz_select" id="post-attr-e2e_post_local-12_111_ubyigz_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_post_local-12_111_k9m70c_select"]')
+    14 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_post_local-12_111_k9m70c_select" id="post-attr-e2e_post_local-12_111_k9m70c_select" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
        - unexpected value "failed"
 
 
@@ -7647,8 +7647,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_unhide_local-12_114_0eqp0z_type"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_unhide_local-12_114_0eqp0z_type" id="post-attr-e2e_unhide_local-12_114_0eqp0z_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_unhide_local-12_114_w0eac0_type"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_unhide_local-12_114_w0eac0_type" id="post-attr-e2e_unhide_local-12_114_w0eac0_type" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7679,8 +7679,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_117_5y91k6_make"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_117_5y91k6_make" id="post-attr-e2e_fold_local-12_117_5y91k6_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_fold_local-12_117_uyf2ut_make"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_fold_local-12_117_uyf2ut_make" id="post-attr-e2e_fold_local-12_117_uyf2ut_make" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7711,8 +7711,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_119_miyyvb_region"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_119_miyyvb_region" id="post-attr-e2e_cond_local-12_119_miyyvb_region" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_cond_local-12_119_tnd85s_region"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_cond_local-12_119_tnd85s_region" id="post-attr-e2e_cond_local-12_119_tnd85s_region" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-input">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -7845,25 +7845,25 @@ Call log:
 Context:
 
 ```text
-          - listitem [ref=e378]:
-            - generic [ref=e379]: About
-          - listitem [ref=e380]:
-            - generic [ref=e381]: Contact
-      - navigation "Help" [ref=e382]:
-        - heading "Help" [level=2] [ref=e383]
-        - list [ref=e384]:
-          - listitem [ref=e385]:
-            - generic [ref=e386]: Safety
-      - navigation "Legal" [ref=e387]:
-        - heading "Legal" [level=2] [ref=e388]
-        - list [ref=e389]:
-          - listitem [ref=e390]:
-            - link "Terms" [ref=e391] [cursor=pointer]:
+          - listitem [ref=e386]:
+            - generic [ref=e387]: About
+          - listitem [ref=e388]:
+            - generic [ref=e389]: Contact
+      - navigation "Help" [ref=e390]:
+        - heading "Help" [level=2] [ref=e391]
+        - list [ref=e392]:
+          - listitem [ref=e393]:
+            - generic [ref=e394]: Safety
+      - navigation "Legal" [ref=e395]:
+        - heading "Legal" [level=2] [ref=e396]
+        - list [ref=e397]:
+          - listitem [ref=e398]:
+            - link "Terms" [ref=e399] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e392]:
-            - link "Privacy" [ref=e393] [cursor=pointer]:
+          - listitem [ref=e400]:
+            - link "Privacy" [ref=e401] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e395]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e403]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -8168,7 +8168,7 @@ Received: 500
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-certify.spec.ts:1341:34
 ```
 
-Context: context file not found for `legal-certify-Legal-certification-LGC-6-a-publishing-statement-is-for-signed-in-people-the-doors-refuse-a-visitor-the-page-sends-one-to-sign-in-and-a-seller-reads-the-global-statement-and-the-country-s-D236-M24-mobile-360` — Playwright's name `legal-certify-Legal-certif-64657-and-the-country-s-D236-M24--mobile-360`; this run carried 76 context file(s); of the same spec: `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360-retry1`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280-retry1`
+Context: context file not found for `legal-certify-Legal-certification-LGC-6-a-publishing-statement-is-for-signed-in-people-the-doors-refuse-a-visitor-the-page-sends-one-to-sign-in-and-a-seller-reads-the-global-statement-and-the-country-s-D236-M24-mobile-360` — Playwright's name `legal-certify-Legal-certif-64657-and-the-country-s-D236-M24--mobile-360`; this run carried 76 context file(s); of the same spec: `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360-retry1`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280-retry1`
 
 ## legal-certify.spec.ts › Legal certification › LG-15 my_listing_certification lists the statements for all countries and the ad's countries, never another country's; another seller is refused
 
@@ -8199,25 +8199,25 @@ Received string:    "notYourListing"
 Context:
 
 ```text
-          - listitem [ref=e326]:
-            - generic [ref=e327]: About
-          - listitem [ref=e328]:
-            - generic [ref=e329]: Contact
-      - navigation "Help" [ref=e330]:
-        - heading "Help" [level=2] [ref=e331]
-        - list [ref=e332]:
-          - listitem [ref=e333]:
-            - generic [ref=e334]: Safety
-      - navigation "Legal" [ref=e335]:
-        - heading "Legal" [level=2] [ref=e336]
-        - list [ref=e337]:
-          - listitem [ref=e338]:
-            - link "Terms" [ref=e339] [cursor=pointer]:
+          - listitem [ref=e334]:
+            - generic [ref=e335]: About
+          - listitem [ref=e336]:
+            - generic [ref=e337]: Contact
+      - navigation "Help" [ref=e338]:
+        - heading "Help" [level=2] [ref=e339]
+        - list [ref=e340]:
+          - listitem [ref=e341]:
+            - generic [ref=e342]: Safety
+      - navigation "Legal" [ref=e343]:
+        - heading "Legal" [level=2] [ref=e344]
+        - list [ref=e345]:
+          - listitem [ref=e346]:
+            - link "Terms" [ref=e347] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e340]:
-            - link "Privacy" [ref=e341] [cursor=pointer]:
+          - listitem [ref=e348]:
+            - link "Privacy" [ref=e349] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e343]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e351]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -8251,7 +8251,7 @@ Received: 500
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-certify.spec.ts:1341:34
 ```
 
-Context: context file not found for `legal-certify-Legal-certification-LGC-6-a-publishing-statement-is-for-signed-in-people-the-doors-refuse-a-visitor-the-page-sends-one-to-sign-in-and-a-seller-reads-the-global-statement-and-the-country-s-D236-M24-desktop-1280` — Playwright's name `legal-certify-Legal-certif-64657-and-the-country-s-D236-M24--desktop-1280`; this run carried 76 context file(s); of the same spec: `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360-retry1`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280-retry1`
+Context: context file not found for `legal-certify-Legal-certification-LGC-6-a-publishing-statement-is-for-signed-in-people-the-doors-refuse-a-visitor-the-page-sends-one-to-sign-in-and-a-seller-reads-the-global-statement-and-the-country-s-D236-M24-desktop-1280` — Playwright's name `legal-certify-Legal-certif-64657-and-the-country-s-D236-M24--desktop-1280`; this run carried 76 context file(s); of the same spec: `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-mobile-360-retry1`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280`, `legal-certify-Legal-certif-8aac0-s-another-seller-is-refused-desktop-1280-retry1`
 
 ## post-wizard-details.spec.ts › POSTING WIZARD — WRITE-IN DETAILS › PW-102 a type that leaves only Other shows that question's text box, and the typed text saves
 
@@ -8263,8 +8263,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_13_ejnem1_kind"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_13_ejnem1_kind" id="post-attr-e2e_wri_local-14_13_ejnem1_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_13_0age16_kind"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_13_0age16_kind" id="post-attr-e2e_wri_local-14_13_0age16_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -8274,12 +8274,12 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    113 × waiting for element to be visible and enabled
+    114 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
-    - waiting for element to be visible and enabled
   - element was detached from the DOM, retrying
+
 
 ```
 
@@ -8295,8 +8295,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_25_kt0j5q_kind"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_25_kt0j5q_kind" id="post-attr-e2e_wri_local-14_25_kt0j5q_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_25_qapgpb_kind"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_25_qapgpb_kind" id="post-attr-e2e_wri_local-14_25_qapgpb_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -8325,33 +8325,33 @@ Context: context file not found for `post-wizard-details-POSTING-WIZARD-WRITE-IN
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_i19xno_kind"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_w9kqk4_kind"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_i19xno_kind"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_i19xno_kind" id="post-attr-e2e_b7t_local-14_27_i19xno_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_w9kqk4_kind"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_w9kqk4_kind" id="post-attr-e2e_b7t_local-14_27_w9kqk4_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_i19xno_kind" id="post-attr-e2e_b7t_local-14_27_i19xno_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_w9kqk4_kind" id="post-attr-e2e_b7t_local-14_27_w9kqk4_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_i19xno_kind"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_w9kqk4_kind"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_i19xno_kind"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_i19xno_kind" id="post-attr-e2e_b7t_local-14_27_i19xno_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_27_w9kqk4_kind"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_w9kqk4_kind" id="post-attr-e2e_b7t_local-14_27_w9kqk4_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_i19xno_kind" id="post-attr-e2e_b7t_local-14_27_i19xno_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_27_w9kqk4_kind" id="post-attr-e2e_b7t_local-14_27_w9kqk4_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -8374,15 +8374,15 @@ Error: PW-172: Review prints the stored value
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-review-section"][data-step="3"]')
-Expected substring: "e2e_post_local-14_29_4ur56g_a label"
-Received string:    "Specificationse2e_post_local-14_29_4ur56g text: e2e held textEdit"
+Expected substring: "e2e_post_local-14_31_73hi1j_a label"
+Received string:    "Specificationse2e_post_local-14_31_73hi1j text: e2e held textEdit"
 Timeout: 20000ms
 
 Call log:
   - PW-172: Review prints the stored value with timeout 20000ms
   - waiting for locator('[data-testid="post-review-section"][data-step="3"]')
     24 × locator resolved to <div data-step="3" data-testid="post-review-section" class="flex items-start justify-between gap-3 p-3">…</div>
-       - unexpected value "Specificationse2e_post_local-14_29_4ur56g text: e2e held textEdit"
+       - unexpected value "Specificationse2e_post_local-14_31_73hi1j text: e2e held textEdit"
 
 --- further error 1 ---
 Error: PW-172: Review prints the stored value
@@ -8390,15 +8390,15 @@ Error: PW-172: Review prints the stored value
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-review-section"][data-step="3"]')
-Expected substring: "e2e_post_local-14_29_4ur56g_a label"
-Received string:    "Specificationse2e_post_local-14_29_4ur56g text: e2e held textEdit"
+Expected substring: "e2e_post_local-14_31_73hi1j_a label"
+Received string:    "Specificationse2e_post_local-14_31_73hi1j text: e2e held textEdit"
 Timeout: 20000ms
 
 Call log:
   - PW-172: Review prints the stored value with timeout 20000ms
   - waiting for locator('[data-testid="post-review-section"][data-step="3"]')
     24 × locator resolved to <div data-step="3" data-testid="post-review-section" class="flex items-start justify-between gap-3 p-3">…</div>
-       - unexpected value "Specificationse2e_post_local-14_29_4ur56g text: e2e held textEdit"
+       - unexpected value "Specificationse2e_post_local-14_31_73hi1j text: e2e held textEdit"
 
 
   286 |       page.locator('[data-testid="post-review-section"][data-step="3"]'),
@@ -8419,8 +8419,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_33_svoupe_kind"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_33_svoupe_kind" id="post-attr-e2e_wri_local-14_33_svoupe_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_34_ps4baj_kind"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_34_ps4baj_kind" id="post-attr-e2e_wri_local-14_34_ps4baj_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -8430,7 +8430,7 @@ Call log:
       - did not find some options
     - retrying select option action
       - waiting 100ms
-    112 × waiting for element to be visible and enabled
+    115 × waiting for element to be visible and enabled
         - did not find some options
       - retrying select option action
         - waiting 500ms
@@ -8451,8 +8451,8 @@ Test timeout of 60000ms exceeded.
 --- further error 1 ---
 Error: locator.selectOption: Test timeout of 60000ms exceeded.
 Call log:
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_38_wwp6dr_kind"]')
-    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_38_wwp6dr_kind" id="post-attr-e2e_wri_local-14_38_wwp6dr_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_wri_local-14_38_7kr3bk_kind"]')
+    - locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_wri_local-14_38_7kr3bk_kind" id="post-attr-e2e_wri_local-14_38_7kr3bk_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
   - attempting select option action
     2 × waiting for element to be visible and enabled
       - did not find some options
@@ -8481,33 +8481,33 @@ Context: context file not found for `post-wizard-details-POSTING-WIZARD-WRITE-IN
 ```text
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_mh2w5i_kind"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_9odrj2_kind"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_mh2w5i_kind"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_mh2w5i_kind" id="post-attr-e2e_b7t_local-14_40_mh2w5i_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_9odrj2_kind"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_9odrj2_kind" id="post-attr-e2e_b7t_local-14_40_9odrj2_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_mh2w5i_kind" id="post-attr-e2e_b7t_local-14_40_mh2w5i_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_9odrj2_kind" id="post-attr-e2e_b7t_local-14_40_9odrj2_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 --- further error 1 ---
 Error: expect(locator).toHaveAttribute(expected) failed
 
-Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_mh2w5i_kind"]')
+Locator:  locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_9odrj2_kind"]')
 Expected: "ready"
 Received: "failed"
 Timeout:  20000ms
 
 Call log:
   - Expect "toHaveAttribute" with timeout 20000ms
-  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_mh2w5i_kind"]')
-    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_mh2w5i_kind" id="post-attr-e2e_b7t_local-14_40_mh2w5i_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+  - waiting for locator('[data-testid="post-attr-control"][data-attr="e2e_b7t_local-14_40_9odrj2_kind"]')
+    2 × locator resolved to <select data-locked="0" data-waiting="0" data-options="loading" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_9odrj2_kind" id="post-attr-e2e_b7t_local-14_40_9odrj2_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
       - unexpected value "loading"
-    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_mh2w5i_kind" id="post-attr-e2e_b7t_local-14_40_mh2w5i_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
+    22 × locator resolved to <select data-locked="0" data-waiting="0" data-options="failed" data-testid="post-attr-control" data-attr="e2e_b7t_local-14_40_9odrj2_kind" id="post-attr-e2e_b7t_local-14_40_9odrj2_kind" class="min-h-11 w-full rounded-md border bg-background px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border-destructive">…</select>
        - unexpected value "failed"
 
 
@@ -8530,15 +8530,15 @@ Error: PW-172: Review prints the stored value
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-review-section"][data-step="3"]')
-Expected substring: "e2e_post_local-14_42_sgbv69_a label"
-Received string:    "Specificationse2e_post_local-14_42_sgbv69 text: e2e held textEdit"
+Expected substring: "e2e_post_local-14_42_jn3exs_a label"
+Received string:    "Specificationse2e_post_local-14_42_jn3exs text: e2e held textEdit"
 Timeout: 20000ms
 
 Call log:
   - PW-172: Review prints the stored value with timeout 20000ms
   - waiting for locator('[data-testid="post-review-section"][data-step="3"]')
     24 × locator resolved to <div data-step="3" data-testid="post-review-section" class="flex items-start justify-between gap-3 p-3">…</div>
-       - unexpected value "Specificationse2e_post_local-14_42_sgbv69 text: e2e held textEdit"
+       - unexpected value "Specificationse2e_post_local-14_42_jn3exs text: e2e held textEdit"
 
 --- further error 1 ---
 Error: PW-172: Review prints the stored value
@@ -8546,15 +8546,15 @@ Error: PW-172: Review prints the stored value
 expect(locator).toContainText(expected) failed
 
 Locator: locator('[data-testid="post-review-section"][data-step="3"]')
-Expected substring: "e2e_post_local-14_42_sgbv69_a label"
-Received string:    "Specificationse2e_post_local-14_42_sgbv69 text: e2e held textEdit"
+Expected substring: "e2e_post_local-14_42_jn3exs_a label"
+Received string:    "Specificationse2e_post_local-14_42_jn3exs text: e2e held textEdit"
 Timeout: 20000ms
 
 Call log:
   - PW-172: Review prints the stored value with timeout 20000ms
   - waiting for locator('[data-testid="post-review-section"][data-step="3"]')
     24 × locator resolved to <div data-step="3" data-testid="post-review-section" class="flex items-start justify-between gap-3 p-3">…</div>
-       - unexpected value "Specificationse2e_post_local-14_42_sgbv69 text: e2e held textEdit"
+       - unexpected value "Specificationse2e_post_local-14_42_jn3exs text: e2e held textEdit"
 
 
   286 |       page.locator('[data-testid="post-review-section"][data-step="3"]'),
@@ -8574,12 +8574,12 @@ Context: context file not found for `post-wizard-details-POSTING-WIZARD-WRITE-IN
 Error: expect(received).toBe(expected) // Object.is equality
 
 Expected: "rateLimited"
-Received: "rateLimited:2026-11-19T16:00:00+00:00"
+Received: "rateLimited:2026-11-19T20:00:00+00:00"
 --- further error 1 ---
 Error: expect(received).toBe(expected) // Object.is equality
 
 Expected: "rateLimited"
-Received: "rateLimited:2026-11-19T16:00:00+00:00"
+Received: "rateLimited:2026-11-19T20:00:00+00:00"
 
   182 |     expect(await setPlace(own, c.city.id)).toMatchObject({ ok: true });
   183 |     // INC-1170: the gate's refusal carries no reset time until F1-7 gives it one.
@@ -8625,12 +8625,12 @@ Context:
 Error: expect(received).toBe(expected) // Object.is equality
 
 Expected: "rateLimited"
-Received: "rateLimited:2026-11-19T16:00:00+00:00"
+Received: "rateLimited:2026-11-19T20:00:00+00:00"
 --- further error 1 ---
 Error: expect(received).toBe(expected) // Object.is equality
 
 Expected: "rateLimited"
-Received: "rateLimited:2026-11-19T16:00:00+00:00"
+Received: "rateLimited:2026-11-19T20:00:00+00:00"
 
   182 |     expect(await setPlace(own, c.city.id)).toMatchObject({ ok: true });
   183 |     // INC-1170: the gate's refusal carries no reset time until F1-7 gives it one.
@@ -8672,10 +8672,10 @@ Context:
 ```text
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×2
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×2
-[WebServer] [ssr-error] /api/listings/draft rateLimited:2026-11-19T16:00:00+00:00 ×4
+[WebServer] [ssr-error] /api/listings/draft rateLimited:2026-11-19T20:00:00+00:00 ×4
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×2
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×2
-[WebServer] [ssr-error] /api/listings/draft rateLimited:2026-11-19T16:00:00+00:00 ×4
+[WebServer] [ssr-error] /api/listings/draft rateLimited:2026-11-19T20:00:00+00:00 ×4
 ```
 
 ## Client errors: shard 2
@@ -8685,49 +8685,46 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 ## Server errors: shard 3
 
 ```text
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×6
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×2
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×9
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals
-[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
-[WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×5
+[WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×3
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×2
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×2
-[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×2
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×23
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×2
-[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×20
-[WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals
-[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
-[WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×2
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×2
 [WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×3
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×2
-[WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals
+[WebServer] [ssr-error] /api/listings/identity permission denied for function listing_contact_refusals ×2
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×132
 ```
 
 ## Client errors: shard 3
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
+[client-error] console.error: [attr-options] read refused [account id] 500
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×4
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×4
 [client-error] console.error: [attr-options] read refused [account id] 500 ×4
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
 [client-error] console.error: [attr-options] read refused [account id] 500 ×4
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×4
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×4
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
 [client-error] console.error: [attr-options] read refused [account id] 500 ×5
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×4
 [client-error] console.error: [attr-options] read refused [account id] 500 ×5
 ```
@@ -8735,25 +8732,25 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 ## Server errors: shard 4
 
 ```text
-[WebServer] [ssr-error] /api/admin/categories/import categories file too large
 [WebServer] [ssr-error] /api/admin/categories/import categories nulByte
 [WebServer] [ssr-error] /api/admin/translations/import strings badHeader
 [WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
 [WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
 [WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
 [WebServer] [ssr-error] /api/admin/locations/import countries badHeader
 [WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
 [WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
 [WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
 [WebServer] [ssr-error] /api/admin/locations/import countries nulByte
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
 [WebServer] [ssr-error] /api/admin/locations/import locations badHeader
 [WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
 [WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×6
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
 ```
 
@@ -8763,15 +8760,13 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
 [client-error] console.error: [attr-options] read refused [account id] 500 ×3
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
 [client-error] console.error: [attr-options] read refused [account id] 500 ×3
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
 [client-error] console.error: [attr-options] read refused [account id] 500 ×3
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
@@ -8854,12 +8849,6 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 ## Server errors: shard 8
 
 ```text
-[WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
-[WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
-[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
-[WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
-[WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
-[WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
 [WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
 [WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
 [WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
@@ -8869,22 +8858,28 @@ No `[client-error]` lines in the `shard 2` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
 [WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
 [WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
 [WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
 [WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
 [WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
 [WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
-[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×135
+[WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
+[WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×3
+[WebServer] [ssr-error] /api/translate translation scope: permission denied for function translation_scope_ok
+[WebServer] [ssr-error] /api/translate [incident [account id]] [object Object]
+[WebServer] [ssr-error] /api/attributes/$id/options [incident [account id]] ReaderError: permission denied for function get_attribute_options_version ×132
 ```
 
 ## Client errors: shard 8
 
 ```text
+[client-error] console.error: [attr-options] read refused [account id] 500 ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
 [client-error] console.error: [attr-options] read refused [account id] 500
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
 [client-error] console.error: [attr-options] read refused [account id] 500 ×2
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
@@ -8923,16 +8918,16 @@ No `[client-error]` lines in the `shard 10` log (or no log was uploaded).
 ## Client errors: shard 11
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×5
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×5
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×4
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×4
 [client-error] console.error: [attr-options] read refused [account id] 500 ×5
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
 [client-error] console.error: [attr-options] read refused [account id] 500
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
 [client-error] console.error: [attr-options] read refused [account id] 500 ×4
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×5
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×5
@@ -8960,19 +8955,19 @@ No `[client-error]` lines in the `shard 10` log (or no log was uploaded).
 ## Client errors: shard 12
 
 ```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
-[client-error] console.error: [attr-options] read refused [account id] 500 ×3
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
 [client-error] console.error: [attr-options] read refused [account id] 500 ×3
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×5
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×5
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
 [client-error] console.error: [attr-options] read refused [account id] 500 ×5
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×4
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×4
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×3
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
 [client-error] console.error: [attr-options] read refused [account id] 500 ×5
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
@@ -9012,7 +9007,9 @@ No `[ssr-error]` lines in the `shard 13` log (or no log was uploaded).
 ## Client errors: shard 14
 
 ```text
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×3
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
 [client-error] console.error: [attr-options] read refused [account id] 500 ×3
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
@@ -9027,10 +9024,8 @@ No `[ssr-error]` lines in the `shard 13` log (or no log was uploaded).
 [client-error] console.error: [attr-options] read refused [account id] 500 ×3
 [client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
 [client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"})
+[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error) ×2
+[client-error] HTTP 500 GET http://127.0.0.1:4173/api/attributes/[account id]/options ({"error":"server error","incident":"[account id]"}) ×2
 [client-error] console.error: [attr-options] read refused [account id] 500 ×3
 ```
 
