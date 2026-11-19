@@ -57,3 +57,23 @@ describe("OrderStrip (D313)", () => {
     expect(screen.getByTestId("strip-prices-detail").textContent).toBe("No price yet");
   });
 });
+
+/** L16 (ACT-024) — one line when every step is set, only when the console asks. */
+describe("OrderStrip one line (L16)", () => {
+  it("OS-4 every step set and asked: one line, every step's id, state and words kept; one undone step or not asked: the grid", () => {
+    const done = STEPS.map((step) => ({ ...step, state: "set" as const }));
+    const { unmount } = render(<OrderStrip testid="o" steps={done} oneLineWhenDone />);
+    expect(screen.getByTestId("o").getAttribute("data-layout")).toBe("line");
+    for (const step of done) {
+      expect(screen.getByTestId(`o-${step.id}`).getAttribute("data-state")).toBe("set");
+      expect(screen.getByTestId(`o-${step.id}-state`).textContent).toBe("prim.orderStrip.set");
+    }
+    expect(screen.getByTestId("o-markets-detail").textContent).toBe("Paid levels on: ET");
+    unmount();
+    const { unmount: second } = render(<OrderStrip testid="o" steps={STEPS} oneLineWhenDone />);
+    expect(screen.getByTestId("o").getAttribute("data-layout")).toBe("grid");
+    second();
+    render(<OrderStrip testid="o" steps={done} />);
+    expect(screen.getByTestId("o").getAttribute("data-layout")).toBe("grid");
+  });
+});

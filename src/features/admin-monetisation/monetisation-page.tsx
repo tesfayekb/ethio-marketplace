@@ -67,7 +67,9 @@ export function AdminMonetisationPage() {
           <h1 className="text-lg font-semibold text-foreground" data-testid="monetisation-header">
             {t("admin.section.monetisation.title")}
           </h1>
-          {steps === null ? null : <OrderStrip testid="monetisation-order" steps={steps} />}
+          {steps === null ? null : (
+            <OrderStrip testid="monetisation-order" steps={steps} oneLineWhenDone />
+          )}
           <MarketsSection rows={query.data?.markets ?? []} guard={guard} {...shared} />
           <ProductsSection
             kind="level"

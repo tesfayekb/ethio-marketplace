@@ -18,7 +18,13 @@ import { useI18n } from "@/i18n";
 import { dateFormatter, moneyText } from "@/lib/format";
 
 import { attributionColumns } from "./monetisation-columns";
-import { productAnchor } from "./monetisation-order";
+import {
+  isStandardPrice,
+  priceGroupOf,
+  priceGroups,
+  productAnchor,
+  type PriceGroup,
+} from "./monetisation-order";
 import type { PriceRow, ProductRow } from "./monetisation-service";
 import { PriceDialog } from "./price-dialog";
 import { PriceEndDialog } from "./price-end-dialog";
@@ -32,6 +38,10 @@ import { useMonetisationNames } from "./use-monetisation-names";
  * (`used_count = 0`) and live, and End (red) while live. The search sieves by
  * market, category and currency. Every cell is the stored row shown as data —
  * nothing here computes a price (CF-PRICE-1). Frame id `product-<key>-prices`.
+ *
+ * L16 (ACT-024) — the rows read in order: Now (the standard price first, then
+ * the exceptions), Scheduled, then the ended rows; each says under its scope
+ * whether it is the standard price or an exception, and Now or Scheduled.
  */
 const LOCKED = ["scope", "amount"];
 
@@ -69,10 +79,18 @@ export function ProductPricesTable({
   const scopeOf = (row: PriceRow) =>
     `${marketName(row.countryCode, "everyMarket")} · ${categoryName(row.categoryId, "everyCategory")}`;
   const needle = search.trim().toLowerCase();
+  const ordered = priceGroups(rows, nowIso);
   const found =
     needle === ""
-      ? rows
-      : rows.filter((row) => `${scopeOf(row)} ${row.currency}`.toLowerCase().includes(needle));
+      ? ordered
+      : ordered.filter((row) => `${scopeOf(row)} ${row.currency}`.toLowerCase().includes(needle));
+  const GROUP_KEY: Record<
+    Exclude<PriceGroup, "ended">,
+    "admin.monetisation.price.group.now" | "admin.monetisation.price.group.scheduled"
+  > = {
+    now: "admin.monetisation.price.group.now",
+    scheduled: "admin.monetisation.price.group.scheduled",
+  };
   const chosen =
     dialog.kind === "edit" || dialog.kind === "end"
       ? (rows.find((row) => row.id === dialog.id) ?? null)
@@ -85,8 +103,27 @@ export function ProductPricesTable({
       priority: "primary",
       card: "title",
       cell: (row) => (
-        <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-title`}>
-          {scopeOf(row)}
+        <span className="flex min-w-0 flex-col gap-0.5">
+          <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-title`}>
+            {scopeOf(row)}
+          </span>
+          <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+            <span data-testid={`${idOf(row)}-kind`}>
+              {t(
+                isStandardPrice(row)
+                  ? "admin.monetisation.price.kind.standard"
+                  : "admin.monetisation.price.kind.exception",
+              )}
+            </span>
+            {(() => {
+              const group = priceGroupOf(row, nowIso);
+              return group === "ended" ? null : (
+                <span data-testid={`${idOf(row)}-group`} data-group={group}>
+                  {t(GROUP_KEY[group])}
+                </span>
+              );
+            })()}
+          </span>
         </span>
       ),
     },
@@ -191,7 +228,11 @@ export function ProductPricesTable({
           }}
           emptyState={
             <p className="text-sm text-muted-foreground" data-testid={`${anchor}-empty`}>
-              {t("admin.monetisation.empty.prices")}
+              {t(
+                needle === ""
+                  ? "admin.monetisation.empty.pricesWhy"
+                  : "admin.monetisation.empty.prices",
+              )}
             </p>
           }
           toolbar={

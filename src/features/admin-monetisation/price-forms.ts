@@ -80,6 +80,24 @@ export const AMOUNT_PATTERN = /^\d{1,10}(\.\d{1,2})?$/;
  * = now, so the window never opens before the save), "Valid until" is the end
  * of that day — the start of the next one, exclusive, as the door reads it.
  */
+/**
+ * L16 (ACT-024) — WHAT THE FORM WILL SAVE, as the one sentence's parts: the
+ * amount once it reads as an amount, the first day (blank = today) and the last
+ * day (blank = none). The dialog writes it with moneyText and the date formatter.
+ */
+export function priceSummaryOf(
+  values: PriceFormValues,
+  today: string,
+): { amount: number; fromDay: string; toDay: string | null } | null {
+  const amount = values.amount.trim();
+  if (!AMOUNT_PATTERN.test(amount)) return null;
+  return {
+    amount: Number(amount),
+    fromDay: values.validFrom === "" ? today : values.validFrom,
+    toDay: values.validTo === "" ? null : values.validTo,
+  };
+}
+
 export function dayStart(day: string, today: string): string | null {
   if (day === "" || day === today) return null;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);

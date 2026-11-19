@@ -110,6 +110,28 @@ vi.mock("./use-monetisation-names", () => ({
   }),
 }));
 
+// L16 — the editor stands in by a button that reports a saved new product.
+vi.mock("./product-editor", () => ({
+  ProductEditorDialog: ({
+    kind,
+    onCreated,
+    onClose,
+  }: {
+    kind: string;
+    onCreated?: (key: string) => void;
+    onClose: () => void;
+  }) => (
+    <button
+      type="button"
+      data-testid={`stub-${kind}-created`}
+      onClick={() => {
+        onCreated?.("featured");
+        onClose();
+      }}
+    />
+  ),
+}));
+
 const { AdminMonetisationPage } = await import("./monetisation-page");
 
 describe("AdminMonetisationPage (D313)", () => {
@@ -152,5 +174,51 @@ describe("AdminMonetisationPage (D313)", () => {
     expect(document.getElementById("product-featured-perks")).not.toBeNull();
     expect(document.getElementById("product-featured-prices")).not.toBeNull();
     expect(screen.getAllByTestId("product-featured-prices-guide").length).toBeGreaterThan(0);
+  });
+});
+
+/** L16 (ACT-024) — the path to a price: on the row, by a named button, and after Add. */
+describe("the price path on the page (L16)", () => {
+  it("MNS-11 a product with no price that holds now says so on its row, as a warning", () => {
+    render(<AdminMonetisationPage />);
+    const cell = screen.getAllByTestId("product-featured-price")[0] as HTMLElement;
+    expect(cell).toHaveTextContent("admin.monetisation.price.none");
+    expect(screen.getAllByTestId("product-country-price")[0]).toHaveTextContent(
+      "admin.monetisation.price.none",
+    );
+  });
+
+  it("MNS-12 the opener is a named button after the name, its words the same open or closed; a level says prices and perks, a reach says prices", () => {
+    render(<AdminMonetisationPage />);
+    const level = screen.getAllByTestId("product-featured-open")[0] as HTMLElement;
+    const reach = screen.getAllByTestId("product-country-open")[0] as HTMLElement;
+    expect(level.tagName).toBe("BUTTON");
+    expect(level).toHaveTextContent("admin.monetisation.product.openPricesPerks");
+    expect(reach).toHaveTextContent("admin.monetisation.product.openPrices");
+    expect(level.contains(screen.getAllByTestId("product-featured-name")[0] as HTMLElement)).toBe(
+      false,
+    );
+    expect(level.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(level);
+    expect(level.getAttribute("aria-expanded")).toBe("true");
+    expect(level).toHaveTextContent("admin.monetisation.product.openPricesPerks");
+    // Prices first, then the level's perks.
+    const prices = document.getElementById("product-featured-prices") as HTMLElement;
+    const perks = document.getElementById("product-featured-perks") as HTMLElement;
+    expect(prices.compareDocumentPosition(perks) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("MNS-13 a product just added opens at its prices and focus lands on its Add price, with no dialog opened", () => {
+    render(<AdminMonetisationPage />);
+    fireEvent.click(screen.getByTestId("monetisation-level-add"));
+    fireEvent.click(screen.getByTestId("stub-level-created"));
+    expect(
+      (screen.getAllByTestId("product-featured-open")[0] as HTMLElement).getAttribute(
+        "aria-expanded",
+      ),
+    ).toBe("true");
+    const add = screen.getAllByTestId("product-featured-price-add");
+    expect(add).toContain(document.activeElement);
+    expect(screen.queryByTestId("monetisation-price-create")).toBeNull();
   });
 });

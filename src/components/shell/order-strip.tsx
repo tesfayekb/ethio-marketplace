@@ -32,13 +32,28 @@ const STATE_KEY = {
   needsRow: "prim.orderStrip.needsRow",
 } as const;
 
-export function OrderStrip({ testid, steps }: { testid: string; steps: readonly OrderStep[] }) {
+export function OrderStrip({
+  testid,
+  steps,
+  oneLineWhenDone = false,
+}: {
+  testid: string;
+  steps: readonly OrderStep[];
+  /** L16 (ACT-024) — when every step is set, the strip takes one line (default: the grid). */
+  oneLineWhenDone?: boolean;
+}) {
   const { t } = useI18n();
+  const oneLine = oneLineWhenDone && steps.every((step) => step.state === "set");
   return (
     <ol
       data-testid={testid}
+      data-layout={oneLine ? "line" : "grid"}
       aria-label={t("prim.orderStrip.label")}
-      className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
+      className={
+        oneLine
+          ? "flex min-w-0 flex-wrap items-center gap-2"
+          : "grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4"
+      }
     >
       {steps.map((step, index) => (
         <li key={step.id} className="min-w-0">
@@ -50,6 +65,7 @@ export function OrderStrip({ testid, steps }: { testid: string; steps: readonly 
             className={cn(
               CARD_SURFACE,
               "flex min-h-11 min-w-0 items-start gap-3 px-3 py-2.5 text-start no-underline",
+              oneLine && "items-center py-1.5",
             )}
           >
             <span

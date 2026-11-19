@@ -6,8 +6,8 @@ import { ProductPricesTable } from "./product-prices-table";
 
 /**
  * P-1c (D313) — SETTINGS ABOUT ONE THING SIT TOGETHER. A product's expanded row
- * holds what belongs to that product and nothing else: a level's per-category
- * perks and its prices, a reach's prices. Each inner table is its own block
+ * holds what belongs to that product and nothing else: its prices first (L16,
+ * ACT-024), then a level's per-category perks. Each inner table is its own block
  * (its header, its Guide, its frame id), fed from the page's one read.
  */
 export function ProductDetails({
@@ -32,6 +32,11 @@ export function ProductDetails({
   const shared = { products, mayUpdate, settling, guard };
   return (
     <div id={`product-${product.key}-details`} className="min-w-0 space-y-6 py-2">
+      <ProductPricesTable
+        product={product}
+        rows={prices.filter((row) => row.packageKey === product.key)}
+        {...shared}
+      />
       {product.kind === "level" ? (
         <LevelOverridesTable
           level={product}
@@ -39,11 +44,6 @@ export function ProductDetails({
           {...shared}
         />
       ) : null}
-      <ProductPricesTable
-        product={product}
-        rows={prices.filter((row) => row.packageKey === product.key)}
-        {...shared}
-      />
     </div>
   );
 }
