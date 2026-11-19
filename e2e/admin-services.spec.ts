@@ -122,10 +122,10 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
     await gotoReady(page, "/");
 
     const list = await pageDoor(page, "admin_ai_features", {});
-    expect(list.error).toBe("permission denied");
+    expect(list.error).toBe("permissionDenied");
     // Bundle 13 turn 14 — nor the spend by day.
     const days = await pageDoor(page, "admin_ai_spend_days", { p_days: 30 });
-    expect(days.error).toBe("permission denied");
+    expect(days.error).toBe("permissionDenied");
 
     const set = await pageDoor(page, "admin_set_ai_feature", {
       p_feature: "writing_helper",
@@ -133,7 +133,7 @@ test.describe("ADMIN › SERVICES — the AI switches and meter (D158)", () => {
       p_monthly_budget_cents: null,
       p_unit_cost_microusd: 3000,
     });
-    expect(set.error).toBe("permission denied");
+    expect(set.error).toBe("permissionDenied");
 
     // The meter's doors are the service role's alone: not executable for a browser role.
     const gate = await pageDoor(page, "ai_feature_gate", { p_feature: "writing_helper" });

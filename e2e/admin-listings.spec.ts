@@ -17,6 +17,7 @@ import { asPerson, pageDoor } from "./helpers/door-callers";
 import { totpStep } from "./helpers/totp";
 import {
   afterTotpStep,
+  enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
   isMobile,
@@ -592,50 +593,73 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     ]);
   });
 
-  test("AL-8 Restore: not by the owner, not without a second factor; a severe removal by a super admin only", async ({
-    page,
-  }) => {
-    const seller = await scratchSeller();
-    const plainRemoved = await seed(seller, "removed");
-    const severe = await seed(seller, "removed", { screening: { severe: true } });
-    const restore = (id: string) =>
-      pageDoor(page, "admin_move_listing", {
-        p_listing_id: id,
-        p_to: "screening",
-        p_reason: "appeal_accepted",
+  // INC-1197: the enforcer enrols a factor on its own leased account, so the test declares
+  // @private-identity, as the identity-tag guard requires (its super admin is a private mint).
+  test(
+    "AL-8 Restore: not by the owner, not without a second factor; a severe removal by a super admin only",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const seller = await scratchSeller();
+      const plainRemoved = await seed(seller, "removed");
+      const severe = await seed(seller, "removed", { screening: { severe: true } });
+      const restore = (id: string) =>
+        pageDoor(page, "admin_move_listing", {
+          p_listing_id: id,
+          p_to: "screening",
+          p_reason: "appeal_accepted",
+        });
+
+      const owner = await asPerson(seller);
+      expect(
+        (
+          await owner.rpc("transition_listing", {
+            p_listing_id: plainRemoved.id,
+            p_new_status: "screening",
+          })
+        ).error,
+      ).toBe("enforcementOnly:removed-screening");
+
+      const enforcerAccount = await leaseUser();
+      await grantScratchRole(enforcerAccount.id, [["listings", "enforce"]], roles);
+      const enforcer = await asPerson(enforcerAccount);
+      const restoreAs = (id: string) =>
+        enforcer.rpc("admin_move_listing", {
+          p_listing_id: id,
+          p_to: "screening",
+          p_reason: "appeal_accepted",
+        });
+      // The door asks the second factor before it reads the move (ruling 1 §7), so an enforcer
+      // without one is refused the same way for a severe removal: the severe rule answers a
+      // holder who has a fresh factor, and only the job's super admin has one here.
+      expect((await restoreAs(plainRemoved.id)).error).toBe("step-up required: no verified factor");
+      expect((await restoreAs(severe.id)).error).toBe("step-up required: no verified factor");
+
+      // INC-1197 — the case the title promises: the enforcer with a fresh second factor, signed in
+      // on its own page, is refused the severe restore by the door's own code (no detail), and may
+      // restore the ad that is not severe.
+      await signInViaSession(page, enforcerAccount.email, enforcerAccount.password);
+      await enrollAndStepUp(page);
+      expect((await restore(severe.id)).error).toBe("severeRestore");
+      expect((await listingTruth(severe.id))?.["status"]).toBe("removed");
+      expect((await restore(plainRemoved.id)).data).toEqual({
+        ok: true,
+        kind: "admin_restore",
+        status: "screening",
       });
+      expect((await listingTruth(plainRemoved.id))?.["status"]).toBe("screening");
+      expect(await auditRows(plainRemoved.id)).toEqual([
+        {
+          actor_id: enforcerAccount.id,
+          action: "listing.admin_restore",
+          meta: { from: "removed", to: "screening", reason: "appeal_accepted" },
+        },
+      ]);
 
-    const owner = await asPerson(seller);
-    expect(
-      (
-        await owner.rpc("transition_listing", {
-          p_listing_id: plainRemoved.id,
-          p_new_status: "screening",
-        })
-      ).error,
-    ).toBe("enforcementOnly:removed-screening");
-
-    const enforcerAccount = await leaseUser();
-    await grantScratchRole(enforcerAccount.id, [["listings", "enforce"]], roles);
-    const enforcer = await asPerson(enforcerAccount);
-    const restoreAs = (id: string) =>
-      enforcer.rpc("admin_move_listing", {
-        p_listing_id: id,
-        p_to: "screening",
-        p_reason: "appeal_accepted",
-      });
-    // The door asks the second factor before it reads the move (ruling 1 §7), so an enforcer
-    // without one is refused the same way for a severe removal: the severe rule answers a
-    // holder who has a fresh factor, and only the job's super admin has one here.
-    expect((await restoreAs(plainRemoved.id)).error).toBe("step-up required: no verified factor");
-    expect((await restoreAs(severe.id)).error).toBe("step-up required: no verified factor");
-
-    await signInJobSuperAdmin(page);
-    expect((await restore(severe.id)).data).toMatchObject({ ok: true, status: "screening" });
-    expect((await listingTruth(severe.id))?.["status"]).toBe("screening");
-    expect((await listingTruth(plainRemoved.id))?.["status"]).toBe("removed");
-    expect(await auditRows(plainRemoved.id)).toEqual([]);
-  });
+      await signInJobSuperAdmin(page);
+      expect((await restore(severe.id)).data).toMatchObject({ ok: true, status: "screening" });
+      expect((await listingTruth(severe.id))?.["status"]).toBe("screening");
+    },
+  );
 
   test("AL-9 Send back to review; the seller reads their own notices and no one else's", async ({
     page,
