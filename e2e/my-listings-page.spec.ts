@@ -298,9 +298,10 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     }
 
     const unknown = await myListings(s.a, "paused");
-    expect(unknown.error).toBe("unknown group");
+    // F1-7a — the reader is on the gate: a bad argument is `badValue` and names the argument.
+    expect(unknown.error).toBe("badValue:group");
     const badPage = await myListings(s.a, "live", 101, 0);
-    expect(badPage.error).toBe("bad page");
+    expect(badPage.error).toBe("badValue:page");
 
     const anonymous = await (
       await asAnonymous()
@@ -565,14 +566,14 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       p_offset: 0,
       p_search: "a".repeat(101),
     });
-    expect(long.error).toBe("bad search");
+    expect(long.error).toBe("badValue:search");
     const gone = await a.rpc("my_listings", {
       p_group: "live",
       p_limit: 50,
       p_offset: 0,
       p_mark: "gone",
     });
-    expect(gone.error).toBe("unknown mark");
+    expect(gone.error).toBe("badValue:mark");
   });
 
   test("MLP-6 My listings on the table blocks: the header, the search, Filters with chips, Columns and each row's actions (D181)", async ({

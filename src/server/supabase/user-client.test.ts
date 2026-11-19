@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { callerHasPermission } from "@/server/supabase/user-client";
+import { callerHasPermission, doorAnswer } from "@/server/supabase/user-client";
 
 /**
  * Foundations turn 11 (DEC-237) — THE ONE STAFF CHECK (PRM-1…3): the split,
@@ -50,6 +50,29 @@ describe("callerHasPermission", () => {
         "malformed permission",
       );
       expect(spy.calls).toEqual([]);
+    }
+  });
+});
+
+/**
+ * F1-7a (INC-1170) — the `resets_at → detail` mapping is retired: a door's answer reaches the
+ * route's answer as it is. The reset time of a gate refusal travels in the refusal's own detail
+ * (`rateLimited:<instant>`, read by `doorRefusal`), never in a `resets_at` field this rewrites.
+ */
+describe("doorAnswer (the mapping retired)", () => {
+  it("DAN-1 an answer is returned as it is: a refusal entry's resets_at is not rewritten, a detail is kept", () => {
+    const withTime = {
+      ok: false,
+      refusals: [{ field: "door", reason: "rateLimited", resets_at: "2026-11-19T20:05:12+00:00" }],
+    };
+    expect(doorAnswer(withTime)).toBe(withTime);
+    const withDetail = {
+      ok: false,
+      refusals: [{ field: "door", reason: "rateLimited", detail: "2026-11-19T20:05:12+00:00" }],
+    };
+    expect(doorAnswer(withDetail)).toBe(withDetail);
+    for (const plain of [null, undefined, "x", 3, [], { ok: true }]) {
+      expect(doorAnswer(plain)).toBe(plain);
     }
   });
 });

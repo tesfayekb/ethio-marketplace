@@ -27,8 +27,8 @@ import { logRouteError } from "@/server/supabase/user-client";
  * POST — the order:
  *   defineRoute     the byte ceiling, the caller with translations:machine,
  *                   JSON, strict UTF-8, the body schema (today's words)
- *   the scope door  translation_scope_ok(target) as the caller — it already
- *                   ORs translations:manage; before any provider call or spend
+ *   the scope door  translation_scope_ok_read(target) as the caller — the check
+ *                   already ORs translations:manage; before any provider call or spend
  *   the targets     translationLanguages() unless the stand-in: an unsupported
  *                   target is 422 with nothing spent
  *   the chunks      100 texts per aiCall("translation") — gate, key, audit row,
@@ -102,14 +102,17 @@ export const Route = createFileRoute("/api/translate")({
           const { scope, target, items } = body;
 
           // ---- THE SCOPE (before any provider call or spend) ----------
-          const { data: inScope, error: scopeError } = await supabase.rpc("translation_scope_ok", {
-            p_lang: target,
-          });
+          // F1-7a (DEC-409) — the browser's reader on the gate (`translation_scope_ok` keeps its
+          // body for the SQL callers and is closed to the browser).
+          const { data: inScope, error: scopeError } = await supabase.rpc(
+            "translation_scope_ok_read",
+            { p_lang: target },
+          );
           if (scopeError) {
             // A failed gate read: the one read-failure answer (503 when not reached, else 500
             // with its incident), the text in the log only.
             logRouteError(PATH, `translation scope: ${scopeError.message}`);
-            return readFailure(PATH, "translation_scope_ok", scopeError);
+            return readFailure(PATH, "translation_scope_ok_read", scopeError);
           }
           if (inScope !== true) {
             return clientError("not assigned to this language", 403);

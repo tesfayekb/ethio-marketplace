@@ -310,7 +310,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       [b, X],
     ] as const) {
       const refused = await person.rpc("my_listing", { p_listing_id: id });
-      expect(refused.error).toBe("not your listing");
+      // F1-7a — the reader is on the gate: the code.
+      expect(refused.error).toBe("notYourListing");
       expect(refused.data).toBeNull();
     }
 
@@ -342,7 +343,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     }
 
     const refused = await s.rpc("listing_history", { p_listing_id: randomId() });
-    expect(refused.error).toBe("not your listing");
+    expect(refused.error).toBe("notYourListing");
   });
 
   test("MLA-3 The ad's page: Open from the list, the status and dates, Reserved on and off (D173)", async ({
@@ -620,7 +621,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
       if (group === "live") expect(answer.counts["live"]).toBe(0);
     }
     const gone = await s.rpc("my_listing", { p_listing_id: X });
-    expect(gone.error).toBe("not your listing");
+    expect(gone.error).toBe("notYourListing");
     await openAd(page, X);
     await expect(page.getByTestId("my-listing-not-found")).toHaveText(
       en["myListings.ad.notFound"],

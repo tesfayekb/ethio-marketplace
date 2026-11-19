@@ -268,8 +268,8 @@ describe("POST /api/listings/identity on defineRoute (D1)", () => {
 
   /**
    * F1-5a — `save_posting_identity` is on the shell: a refusal is the door's error, and the
-   * route (through doorCall) keeps its code as the reason. The gate's `rateLimited` names no
-   * reset time (INC-1170), and a refused save marks nothing clean.
+   * route (through doorCall) keeps its code as the reason. The gate's `rateLimited` carries the
+   * dial's reset instant as its detail (INC-1170, F1-7a), and a refused save marks nothing clean.
    */
   it("IDT-5 the door's shell refusals reach the client as their codes, and a refused save marks nothing clean", async () => {
     state.modelAnswer = JSON.stringify({ imitates: false });
@@ -288,6 +288,15 @@ describe("POST /api/listings/identity on defineRoute (D1)", () => {
       });
       expect(state.audits, message).toEqual([]);
     }
+    // F1-7a — the gate's rateLimited names WHEN the dial resets: the code, and the instant as its detail.
+    const instant = "2026-11-19T20:05:12.123456+00:00";
+    state.rpcAnswer = { data: null, error: { message: `rateLimited:${instant}` }, status: 429 };
+    state.audits = [];
+    expect(await (await post({ alias: "abebeshop" })).json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "rateLimited", detail: instant }],
+    });
+    expect(state.audits).toEqual([]);
     // A sentence is never the reason: `doorError`.
     state.rpcAnswer = { data: null, error: { message: "an unexpected sentence" }, status: 400 };
     expect(await (await post({ alias: "abebeshop" })).json()).toEqual({

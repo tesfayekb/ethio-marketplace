@@ -3,6 +3,7 @@ import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
+import { splitRefusal } from "../src/lib/refusal";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { bearerOf } from "./helpers/posting";
 import { gotoReady, signInViaSession, signOutViaUi } from "./helpers/ui";
@@ -180,8 +181,10 @@ test.describe("VIEWING PLACE — the account doors (D106)", () => {
     await inOneWindow(3600, 20_000, "VP-4");
     expect(await setPlace(own, c.region.id)).toMatchObject({ ok: true });
     expect(await setPlace(own, c.city.id)).toMatchObject({ ok: true });
-    // INC-1170: the gate's refusal carries no reset time until F1-7 gives it one.
-    expect(await refusedPlace(own, c.subCity.id)).toBe("rateLimited");
+    // INC-1170 (F1-7a) — the gate's refusal names the reset: the code, and an instant still to come.
+    const refused = splitRefusal(await refusedPlace(own, c.subCity.id));
+    expect(refused.key).toBe("rateLimited");
+    expect(Date.parse(refused.tail ?? "")).toBeGreaterThan(Date.now());
     expect((await stored(id)).viewing_location_id).toBe(c.city.id);
   });
 

@@ -53,11 +53,22 @@ detail}]}` — supabase-js surfaces it as `error.message` = the code. A RAISE th
 acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_package_price`
   is `row:package_prices.country_code` (held by F1-6b's census: the row's own market is the scope its overlap check touches). `manifest.ts` is the grammar; `catalogue.ts` + `identity.ts` read
   the migrations' last grant state and spell a function's identity as the live catalogue does.
-- `check-doors.ts` — the self-test runs FIRST in every mode (ten planted finding kinds —
+- `check-doors.ts` — the self-test runs FIRST in every mode (twelve planted finding kinds —
   `missing-line`, `line-without-door`, `gate-missing-for-class`, `class-mismatch`,
   `grant-unseen`, `grant-without-caller`, `scope-mode-missing`, `row-column-unknown`,
-  `grant-dropped`, `opt-out-over-step-up` — each must fire, a clean pair must fire nothing; `SELF_TEST=1` runs it
-  alone). `opt-out-over-step-up` (F1-6a ruling 1, Part A; INC-1195's class): a staff line whose
+  `grant-dropped`, `opt-out-over-step-up`, `reader-off-gate`, `helper-reason-unproven` — each must
+  fire, a clean pair must fire nothing; `SELF_TEST=1` runs it alone). `reader-off-gate` (F1-7a
+  ruling 1, decisions 4 and 9; DEC-408): a reader line whose body takes no `door_context` — a
+  `signed-in-reader` or `staff-reader` always, a `public-reader` unless its reason is
+  `public-data`, and a `public-data` reader whose body, or any function of schema public it names
+  (followed through their bodies), reads its caller (`auth.uid()`, `auth.role()`, `auth.jwt()`, a
+  `request.` setting). Both modes judge it. `helper-reason-unproven` (F1-7a ruling 1, decision 7;
+  INC-1212): a `helper` line whose reason is `policy <name>, <name>, …` holds only when each named
+  policy stands after the migrations and its text calls the function; a bare `policy` fires.
+  `policies.ts` reads the migrations statically in apply order (`CREATE POLICY` sets a policy's
+  text, `DROP POLICY` removes it; no migration alters one; a policy built by dynamic SQL is not
+  read), and both modes use that reading. A helper may name `anon` (`sold_cutoff`: the three
+  public-read policies run for visitors). `opt-out-over-step-up` (F1-6a ruling 1, Part A; INC-1195's class): a staff line whose
   step-up cell is `none:<DEC>` holds only when the permission it names is declared
   `requires_step_up = false` — `door_context`'s staff form asks the second factor whenever the row
   says so, so an opt-out over a step-up permission is a promise the door cannot keep.
@@ -81,7 +92,9 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   first build joined its clauses without their boundaries and the lane's psql refused it). `judge.ts` holds the kinds; a
   legacy body (no `door_context`) is judged by the old caller-gates rule, a shell body by the
   literals its manifest line promises. Allowances in `check-doors-allowlist.txt` (`<kind> <key>
-| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…11 (DOORS-11: the planted permission rows of `opt-out-over-step-up` — fires over `listings:review`, not over `listings:reveal` — and the tree's flags; DOORS-10: the planted DROP + CREATE histories of `grant-dropped`; DOORS-8: the column census on a planted
+| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…13 (DOORS-13: the planted
+  policies of `helper-reason-unproven` — created, dropped, not calling — and the tree's two helper
+  lines; DOORS-12: every path of `reader-off-gate`, a caller read two calls deep included; DOORS-11: the planted permission rows of `opt-out-over-step-up` — fires over `listings:review`, not over `listings:reveal` — and the tree's flags; DOORS-10: the planted DROP + CREATE histories of `grant-dropped`; DOORS-8: the column census on a planted
   migration and every `row:` cell of the tree; DOORS-5: the printed query's clauses; DOORS-6: the live mode
   judges the tree census too — INC-1072: a `grant-without-caller` allowance the live mode never
   judged read as stale and killed the smoke lane's first live run; DOORS-7: a body the
@@ -168,8 +181,8 @@ src/features/my-listings/promote-service.ts.
   refusal that was a returned `{ ok: false, reason }` is the shell's code (`ownListing`,
   `alreadyReported`, `badReason`, `noteTooLong`, `acceptanceRequired`, `placeNotOpen`); the reveal
   keeps two answers returned at 200 (`sellersCapReached`, whose flag must commit, and the
-  new-account five with its reset time). The gate's `rateLimited` carries no reset time until
-  F1-7 (INC-1170). The counters, `save_listing`, `report_listing`, `reveal_listing_contact` and
+  new-account five with its reset time). The gate's `rateLimited` carried no reset time until
+  F1-7a (INC-1170). The counters, `save_listing`, `report_listing`, `reveal_listing_contact` and
   `register_listing_photo` read their listing `FOR KEY SHARE` before the row keyed to it, so an
   ad deleted in between is the quiet answer, never a 23503 (INC-786, INC-821).
   `listing_reveal_count` holds no browser grant. The client reads the codes through `readRefusal`
@@ -192,6 +205,22 @@ src/features/my-listings/promote-service.ts.
   through `rpc()`.
 - **The lint `impersonation_reach`** (`public.security_lints()`, ERROR, baseline 0; DEC-381)
   holds `begin_impersonation`'s permission to `super_admin` alone on every push and every night.
+- **F1-7a — the shell's rate limit and the readers** (`docs/governance/briefs/f1-doors-7a.md`,
+  ruling `f1-doors-7a-ruling-1.md`; ten files `20261119150000` → `20261119150900`, marks
+  `20261119170000` → `20261119170900`): `door_context`'s `rateLimited`
+  carries the reset instant (`rateLimited:<resets_at>`, INC-1170) and `door_refused` no longer
+  counts a `rateLimited` refusal a second time (INC-1196). Fifteen signed-in readers, the two
+  impersonation readers and the two legal readers (`legal_in_force`, `legal_scheduled`, on the
+  gate's `public` form: a signed-in-only kind refuses `notSignedIn`) take `door_context` first;
+  their sentences are codes (`notSignedIn`, `notYourListing`, `notYours`,
+  `badValue:group|page|search|mark|cursor`, `badSize`). `get_attribute_options_version`,
+  `listing_contact_refusals` and `translation_scope_ok` keep their bodies for their SQL callers
+  and close to the browser; the browser reads `<name>_read`, a reader on the gate.
+  `listing_viewer_state(text)` answers the caller's own `{saved, owner}` for one ad (INC-1191) and
+  `listing_saved` is dropped. Seven readers no person's code calls and thirty-one helpers close to
+  the browser roles (DEC-407's form, each file's chain proof: every SQL caller runs as its owner
+  or is itself closed). Eleven public readers stay off the gate as `public-data` (DEC-408); the
+  helper lines left are `has_permission` and `sold_cutoff`, each by its policies (INC-1212).
 
 ## Tests
 

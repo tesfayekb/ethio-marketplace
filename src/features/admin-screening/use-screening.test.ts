@@ -230,6 +230,15 @@ describe("revealContact", () => {
       ok: false,
       reason: "rateLimited",
     });
+    // F1-7a — the gate's rateLimited names its reset instant (`:` and `+` in the detail): the same reason.
+    doors.answer = {
+      data: null,
+      error: { message: "rateLimited:2026-11-19T20:05:12.123456+00:00" },
+    };
+    await expect(revealContact("l-1", "phone")).resolves.toEqual({
+      ok: false,
+      reason: "rateLimited",
+    });
     doors.answer = { data: null, error: { message: "permissionDenied" } };
     await expect(revealContact("l-1", "phone")).rejects.toMatchObject({
       message: "permissionDenied",

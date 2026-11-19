@@ -30,7 +30,9 @@ export { identityKey, normaliseType, parseArgument, splitTopLevel } from "./iden
  *   holds — a `FOREACH f IN ARRAY ARRAY['public.a(uuid)', …] LOOP EXECUTE
  *   format('GRANT … %s … TO role', f)` loop over a literal array (INC-443);
  * - any other `EXECUTE format('GRANT|REVOKE … ON FUNCTION …')` whose target the
- *   reader cannot resolve is kept as `unseen` — the finding `grant-unseen`.
+ *   reader cannot resolve is kept as `unseen` — the finding `grant-unseen` —
+ *   except a target whose literal text opens on `pg_temp.`: a proof's session
+ *   copy, which no grant of schema public can be (F1-7a).
  *
  * Trigger and event-trigger functions stay in the catalogue (the live guards
  * exclude them; `check-doors` reads their grants for the stray-grant finding).
@@ -231,6 +233,7 @@ export function grantEventsOf(sql: string): GrantEvent[] {
   for (const grant of code.matchAll(FORMAT_GRANT)) {
     const at = grant.index ?? 0;
     if (resolvedFormat.has(at)) continue;
+    if (/^pg_temp\./i.test((grant[2] ?? "").trim())) continue;
     events.push({
       offset: at,
       verb: (grant[1] ?? "grant").toLowerCase() as "grant" | "revoke",

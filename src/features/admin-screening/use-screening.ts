@@ -381,8 +381,9 @@ export async function revealContact(
     p_channel: channel,
   });
   if (error) {
-    // INC-1170: the gate raises the dial's refusal as the code `rateLimited` (no reset time
-    // until F1-7); the screen's line for it is the one the returned answer drew before.
+    // INC-1170 (F1-7a): the gate raises the dial's refusal as `rateLimited:<instant>`, the code with
+    // the reset time after its first colon; the one reader reads the code, and the screen's line for
+    // it is the one the returned answer drew before (the words that draw the time are F1-7c's).
     if (readRefusal(error, REVEAL_REFUSALS).key === revealProblemKey("rateLimited")) {
       return { ok: false, reason: "rateLimited" };
     }

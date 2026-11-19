@@ -330,9 +330,10 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect((await close(b, x.id)).error).toBe("notYourListing");
     expect((await reserve(b, x.id, true)).error).toBe("notYourListing");
     expect((await price(b, x.id, 90)).error).toBe("notYourListing");
-    expect((await b.rpc("listing_history", { p_listing_id: x.id })).error).toBe("not your listing");
+    // F1-7a — the history reader is on the gate: the code, for another seller's ad and an unknown id alike.
+    expect((await b.rpc("listing_history", { p_listing_id: x.id })).error).toBe("notYourListing");
     expect((await b.rpc("listing_history", { p_listing_id: crypto.randomUUID() })).error).toBe(
-      "not your listing",
+      "notYourListing",
     );
 
     expect((await close(a, y.id)).error).toBe("illegalTransition:screening-closed");

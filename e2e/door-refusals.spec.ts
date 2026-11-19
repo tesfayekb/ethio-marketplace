@@ -1,7 +1,9 @@
 import { expect, test } from "./fixtures";
 import { scratchCountryCode } from "./helpers/countries";
+import { inOneWindow } from "./helpers/rate-window";
 import { bearerClient, passwordGrant } from "./helpers/session";
 import { adminClient, createUser, grantRole, leaseUser } from "./helpers/users";
+import { splitRefusal } from "../src/lib/refusal";
 
 /**
  * F1-1 (DEC-333) — THE DOOR MECHANISM'S REFUSALS, proven at the doors M-F1a
@@ -23,6 +25,10 @@ import { adminClient, createUser, grantRole, leaseUser } from "./helpers/users";
  *  DRF-6  INC-834: scope mode `global` refuses a country grant (`scope`);
  *        `filter` narrows a country grant to its countries and leaves a
  *        global grant unbounded.
+ *  DR-RL-1 F1-7a (INC-1170, INC-1196): the gate's `rateLimited` is the code, a
+ *        colon and the instant the dial resets (still to come); the call over
+ *        the limit leaves the dial's count where it was and is metered once in
+ *        `door_refusals`, however often it is repeated.
  *
  * DEC-241/242: scratch targets only; pooled accounts are consumers whose
  * roles the pool reaper resets, and this file removes what it granted.
@@ -106,6 +112,8 @@ test.afterEach(async () => {
   for (const id of [...freshIds, ...leasedIds]) {
     const meters = await admin.from("rate_limits").delete().eq("key", id);
     if (meters.error) throw new Error(`[DRF] rate cleanup: ${meters.error.message}`);
+    const overrides = await admin.from("rate_overrides").delete().eq("user_id", id);
+    if (overrides.error) throw new Error(`[DRF] dial override cleanup: ${overrides.error.message}`);
   }
   for (const id of freshIds) {
     const deleted = await admin.auth.admin.deleteUser(id);
@@ -275,4 +283,50 @@ test("DRF-6 scope mode global refuses a country grant; filter narrows it and lea
   expect(unknownMode.error?.message, "an unknown mode is an error, never a pass").toContain(
     "unknown scope mode",
   );
+});
+
+test("DR-RL-1 a call over its dial refuses rateLimited with the reset instant, leaves the dial's count, and is metered once a call", async () => {
+  const user = await fresh();
+  const first = await passwordGrant(user.email, user.password, { fresh: true });
+  await passwordGrant(user.email, user.password, { fresh: true });
+  const caller = bearerClient(first.access_token);
+  const admin = adminClient();
+  // The dial counts in clock-hour windows (INC-617): every call below is made in one.
+  await inOneWindow(3600, 20_000, "DR-RL-1");
+  const lowered = await admin
+    .from("rate_overrides")
+    .insert({ user_id: user.id, action: "password_remove", max_count: 1 });
+  if (lowered.error) throw new Error(`[DRF] dial override: ${lowered.error.message}`);
+  const limitedBefore = await refusalCount("remove_own_password", "rateLimited");
+  expect(await dialCount(user.id, "password_remove")).toBe(0);
+
+  // The one call the dial allows: the door's own refusal counts once, as DRF-4 proves.
+  const allowed = await caller.rpc("remove_own_password");
+  expect(allowed.error?.message, "the call inside the limit reaches the door's own check").toBe(
+    "lastSignInMethod",
+  );
+  expect(await dialCount(user.id, "password_remove"), "the allowed call counted once").toBe(1);
+
+  for (const call of [1, 2]) {
+    const over = await caller.rpc("remove_own_password");
+    expect(over.data).toBeNull();
+    expect(over.error?.code, `call ${call}: the shell's envelope`).toBe(DOOR_CODE_STATE);
+    const { key, tail } = splitRefusal(over.error?.message ?? "");
+    expect(key, `call ${call}: the code leads`).toBe("rateLimited");
+    expect(tail, `call ${call}: the detail is the reset instant`).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(
+      Date.parse(tail ?? ""),
+      `call ${call}: the reset is still to come (${tail})`,
+    ).toBeGreaterThan(Date.now());
+    expect(
+      await dialCount(user.id, "password_remove"),
+      `call ${call}: a call refused for its rate limit spends nothing more`,
+    ).toBe(1);
+  }
+  // door_refusals has no person column: the other project running this test moves the same row, so
+  // the proof is "at least our two" (as DRF-4); the exact count is the per-user dial above.
+  expect(
+    (await refusalCount("remove_own_password", "rateLimited")) - limitedBefore,
+    "each refused call is metered",
+  ).toBeGreaterThanOrEqual(2);
 });

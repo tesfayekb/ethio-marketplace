@@ -1,6 +1,6 @@
 import { errorText } from "@/lib/error-text";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
-import { refusalsOf } from "@/lib/refusal";
+import { refusalsOf, splitRefusal } from "@/lib/refusal";
 import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
 import { tierOf } from "@/components/marketplace/card-tier";
@@ -350,7 +350,8 @@ function numOrNull(value: unknown): number | null {
 async function readOwnPrivate(listingId: string): Promise<Record<string, unknown> | null> {
   const { data, error } = await supabase.rpc("my_listing_private", { p_listing_id: listingId });
   if (error) {
-    if (error.message.includes("not your listing")) return null;
+    // F1-7a — the gate's code, cut at its first colon (the one reader's cut), not the old sentence.
+    if (splitRefusal(error.message.trim()).key === "notYourListing") return null;
     throw new Error(error.message);
   }
   return data !== null && typeof data === "object" && !Array.isArray(data)

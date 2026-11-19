@@ -138,18 +138,23 @@ function AdPage() {
   const [contactState, setContactState] = useState<ContactState>({ kind: "idle" });
   const {
     saved,
+    owner: viewerOwns,
     count: saveCount,
     beginWrite,
   } = useSavedState(user?.id ?? null, doc.public_id, doc.counts.saves);
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveRefusal, setSaveRefusal] = useState<"rateLimited" | "failed" | null>(null);
+  // INC-1191 (F1-7a) — the seller is known from the signed-in read of the viewer's state
+  // (`viewerOwns`, also true after a reload); `ownAd` stays for a refusal that proved it first
+  // (a Save or Report the door refused as the ad's own), so the page never offers either twice.
   const [ownAd, setOwnAd] = useState(false);
+  const ownsAd = ownAd || viewerOwns;
   useEffect(() => {
     setOwnAd(false);
     setSaveRefusal(null);
   }, [user?.id, doc.public_id, doc.counts.saves]);
   const onToggle = () => {
-    if (saveBusy || saved === null || user === null) return;
+    if (saveBusy || saved === null || user === null || ownsAd) return;
     setSaveBusy(true);
     setSaveRefusal(null);
     const applyWrite = beginWrite();
@@ -186,7 +191,7 @@ function AdPage() {
   // public read already shows them the neutral label. Asked only of the owner; a failed
   // read is logged and the notice is not drawn (the page never claims "not held").
   const [underReview, setUnderReview] = useState(false);
-  const owner = user !== null && (doc.viewer.owner || ownAd);
+  const owner = user !== null && (doc.viewer.owner || ownsAd);
   useEffect(() => {
     setUnderReview(false);
     if (!owner) return;
@@ -299,7 +304,7 @@ function AdPage() {
         ribbon={ribbonKey ? t(ribbonKey) : null}
         soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
         save={
-          ownAd
+          ownsAd
             ? undefined
             : {
                 viewer: authLoading ? "unknown" : user === null ? "signedOut" : "signedIn",
@@ -312,7 +317,7 @@ function AdPage() {
               }
         }
         report={
-          ownAd ? undefined : (
+          ownsAd ? undefined : (
             <ReportAd
               publicId={doc.public_id}
               viewer={authLoading ? "unknown" : user === null ? "signedOut" : "signedIn"}
@@ -335,7 +340,7 @@ function AdPage() {
           document carries no internal listing id, so the ad is excluded by its
           public id. INC-704: the component draws its own card frame, only when
           it has cards. */}
-      {!doc.is_sold && !doc.viewer.owner && !ownAd && doc.category !== null ? (
+      {!doc.is_sold && !doc.viewer.owner && !ownsAd && doc.category !== null ? (
         <SimilarAds
           categoryId={doc.category.id}
           placeId={doc.places.location_id}

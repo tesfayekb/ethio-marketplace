@@ -4,7 +4,7 @@ const rpc = vi.fn();
 vi.mock("@/lib/supabase-door", () => ({
   rpc: (...args: unknown[]) => rpc(...args),
 }));
-const { saveListing, unsaveListing, listingSaved, mySaved } = await import("./save");
+const { saveListing, unsaveListing, listingViewerState, mySaved } = await import("./save");
 beforeEach(() => rpc.mockReset());
 describe("Save answers", () => {
   it("SAVE-1 (SV-1) the ok shape for saving and removing", async () => {
@@ -50,15 +50,42 @@ describe("Save answers", () => {
     rpc.mockRejectedValueOnce(new Error("transport"));
     expect(await unsaveListing("abc")).toEqual({ ok: false, reason: "failed" });
   });
-  it("SAVE-4 (SV-4) listingSaved returns null on error and preserves booleans", async () => {
-    rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
-    expect(await listingSaved("abc")).toBeNull();
-    for (const data of [false, true]) {
-      rpc.mockResolvedValueOnce({ data, error: null });
-      expect(await listingSaved("abc")).toBe(data);
+  it("SAVE-4 (SV-4) listingViewerState returns null on error and a malformed answer, and preserves both booleans", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      // Every refusal of the gate and a failure of the read are unknown, never "not the seller".
+      for (const message of ["notSignedIn", "accountDeactivated", "boom"]) {
+        rpc.mockResolvedValueOnce({ data: null, error: { message } });
+        expect(await listingViewerState("abc"), message).toBeNull();
+      }
+      for (const data of [
+        null,
+        true,
+        [],
+        {},
+        { saved: true },
+        { owner: true },
+        { saved: "yes", owner: false },
+        { saved: false, owner: 1 },
+      ]) {
+        rpc.mockResolvedValueOnce({ data, error: null });
+        expect(await listingViewerState("abc"), JSON.stringify(data)).toBeNull();
+      }
+      rpc.mockRejectedValueOnce(new Error("transport"));
+      expect(await listingViewerState("abc")).toBeNull();
+      expect(logged).toHaveBeenCalledTimes(12);
+    } finally {
+      logged.mockRestore();
     }
-    rpc.mockRejectedValueOnce(new Error("transport"));
-    expect(await listingSaved("abc")).toBeNull();
+    for (const state of [
+      { saved: false, owner: false },
+      { saved: true, owner: false },
+      { saved: false, owner: true },
+    ]) {
+      rpc.mockResolvedValueOnce({ data: { ...state, extra: 1 }, error: null });
+      expect(await listingViewerState("abc")).toEqual(state);
+    }
+    expect(rpc).toHaveBeenLastCalledWith("listing_viewer_state", { p_public_id: "abc" });
   });
   it("mySaved preserves unavailable cards and cursor and throws on error", async () => {
     const cards = [

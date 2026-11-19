@@ -4,7 +4,7 @@ import { browserCallable, type DoorRow } from "./rows";
 
 /**
  * Foundations 1 (DEC-333) — THE JUDGEMENT of the manifest against the rows.
- * Ten finding kinds, each planted in check-doors' self-test (DEC-334):
+ * Twelve finding kinds, each planted in check-doors' self-test (DEC-334):
  *
  * - missing-line           a browser-callable function with no manifest line;
  * - line-without-door      a line whose function is absent or closed to the browser;
@@ -27,7 +27,17 @@ import { browserCallable, type DoorRow } from "./rows";
  *                          over a permission whose newest declared
  *                          `requires_step_up` is not false (step-ups.ts,
  *                          F1-6a ruling 1 Part A): door_context's staff
- *                          form would ask the second factor anyway.
+ *                          form would ask the second factor anyway;
+ * - reader-off-gate        a reader line whose body takes no door_context: a
+ *                          signed-in or staff reader (always), a public reader
+ *                          without the reason `public-data`, or a `public-data`
+ *                          reader whose body — or a function of schema public it
+ *                          names, followed through their bodies — reads its
+ *                          caller (`auth.uid()`, `auth.role()`, `auth.jwt()`, a
+ *                          `request.` setting) (F1-7a ruling 1, decisions 4, 9);
+ * - helper-reason-unproven a helper line whose reason is `policy` and names no
+ *                          standing policy that calls the function (policies.ts,
+ *                          F1-7a ruling 1 decision 7, INC-1212).
  *
  * A legacy body (no door_context yet) is judged by the old rule only; its line
  * is the promise its family's turn keeps (plan §5).
@@ -44,6 +54,8 @@ export const FINDING_KINDS = [
   "row-column-unknown",
   "grant-dropped",
   "opt-out-over-step-up",
+  "reader-off-gate",
+  "helper-reason-unproven",
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -180,7 +192,63 @@ export type Evidence = {
   columns?: ReadonlySet<string>;
   /** A permission's newest declared `requires_step_up` (step-ups.ts): null unreadable, undefined unwritten. */
   stepUps?: (permission: string) => boolean | null | undefined;
+  /** Whether a standing policy of that name calls the function (policies.ts). */
+  policies?: (policy: string, fn: string) => boolean;
 };
+
+/** A body's read of its caller: an `auth.` identity call or a `request.` setting. */
+const CALLER_READ = /\bauth\s*\.\s*(?:uid|role|jwt)\s*\(|'request\./i;
+const CALLED_NAME = /\b([a-z_][a-z0-9_]*)\s*\(/gi;
+
+/**
+ * The first function, from `row` through every function of schema public its body names (and
+ * theirs), whose body reads its caller; null when none does. Each name is followed once.
+ */
+export function callerReadIn(row: DoorRow, rows: readonly DoorRow[]): string | null {
+  const byName = new Map<string, DoorRow[]>();
+  for (const other of rows) byName.set(other.name, [...(byName.get(other.name) ?? []), other]);
+  const seen = new Set<string>([row.name]);
+  const queue: DoorRow[] = [row];
+  for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
+    if (CALLER_READ.test(next.body)) return next.key;
+    for (const match of next.body.matchAll(CALLED_NAME)) {
+      const name = (match[1] ?? "").toLowerCase();
+      if (seen.has(name)) continue;
+      seen.add(name);
+      queue.push(...(byName.get(name) ?? []));
+    }
+  }
+  return null;
+}
+
+const PUBLIC_DATA = "public-data";
+
+function isReader(line: ManifestLine): boolean {
+  return (
+    line.class === "public-reader" ||
+    line.class === "signed-in-reader" ||
+    line.class === "staff-reader"
+  );
+}
+
+/** A reader line off the gate (F1-7a ruling 1, decisions 4 and 9). */
+function offGateFinding(row: DoorRow, line: ManifestLine, rows: readonly DoorRow[]): string | null {
+  if (!isReader(line) || doorContextCall(row.body) !== null) return null;
+  if (line.class !== "public-reader") return `a ${line.class} takes door_context`;
+  if (line.reason.split(/\s/)[0] !== PUBLIC_DATA)
+    return `a public reader off the gate carries the reason ${PUBLIC_DATA}`;
+  const reader = callerReadIn(row, rows);
+  return reader === null ? null : `${PUBLIC_DATA}, yet ${reader} reads its caller`;
+}
+
+/** The policies a helper's `policy <name>, …` reason names (empty for a bare `policy`). */
+export function reasonPolicies(reason: string): string[] {
+  return reason
+    .replace(/^policy\b/, "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name !== "");
+}
 
 /** Every finding of the rows against the manifest. */
 export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = {}): Finding[] {
@@ -206,7 +274,27 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
       continue;
     }
     found.push(...pairFindings(row, line));
+    const offGate = offGateFinding(row, line, rows);
+    if (offGate !== null)
+      found.push({ kind: "reader-off-gate", key: row.key, what: offGate, where: row.where });
   }
+  const policies = evidence.policies;
+  if (policies !== undefined)
+    for (const line of manifest.lines.values()) {
+      if (line.class !== "helper" || line.reason.split(/[\s:]/)[0] !== "policy") continue;
+      const named = reasonPolicies(line.reason);
+      const unproven = named.filter((policy) => !policies(policy, line.name));
+      if (named.length > 0 && unproven.length === 0) continue;
+      found.push({
+        kind: "helper-reason-unproven",
+        key: line.key,
+        what:
+          named.length === 0
+            ? "the reason policy names no policy"
+            : `no standing policy ${unproven.join(", ")} calls ${line.name}`,
+        where: `manifest.txt:${line.line}`,
+      });
+    }
   for (const line of manifest.lines.values()) {
     const row = byKey.get(line.key);
     if (row === undefined || row.trigger || !browserCallable(row))

@@ -564,11 +564,16 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       expect(result.data).toMatchObject({ ok: true, saved: true, count: 1 });
       await owner.reload();
       await expect(count).toHaveText("1 saves");
+      // F1-7a (INC-1191) — the page asks the viewer's state once, and the seller's own answer takes
+      // the heart away on load: no Save is offered to a seller, no refused write is the way to learn it.
+      const viewerRead = owner.waitForResponse(
+        (response) =>
+          response.url().includes("/rpc/listing_viewer_state") &&
+          response.request().method() === "POST",
+      );
       await gotoReady(owner, canonical);
-      const ownHeart = owner.getByTestId("listing-save");
-      await expect(ownHeart).toHaveAttribute("data-state", "unsaved");
-      await ownHeart.click();
-      await expect(ownHeart).toHaveCount(0);
+      expect(await (await viewerRead).json()).toEqual({ saved: false, owner: true });
+      await expect(owner.getByTestId("listing-save")).toHaveCount(0);
     } finally {
       await context.close();
     }

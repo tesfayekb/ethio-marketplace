@@ -13,7 +13,8 @@
  * - `name(arg types)` — the key as `regprocedure::text` prints it.
  * - `class` — owner | staff | public-door | public-reader | signed-in-reader |
  *   staff-reader | helper. The class fixes the gates owed.
- * - `roles` — `anon,authenticated` (public-door, public-reader) or `authenticated`.
+ * - `roles` — `anon,authenticated` (public-door, public-reader; a helper a visitor's row
+ *   policy calls) or `authenticated`.
  * - `permission` — `resource:action` (staff, staff-reader) or `-`.
  * - `step-up` — `row` (the permission row decides), `none:<record>` (a recorded
  *   opt-out: DEC-336 allows the two of D129 and C2h, no third) or `-`.
@@ -38,7 +39,9 @@
  * - `codes` — the door's OWN refusal codes besides the shared gate codes,
  *   comma-separated, or `-`.
  * - `reason` — free text; required for `helper` (policy | invoker-chain | none |
- *   caller:<where>) and for every `none:` step-up.
+ *   caller:<where>) and for every `none:` step-up. A helper's `policy <name>, <name>, …` names
+ *   the standing row policies that call it (judge.ts: helper-reason-unproven). A reader off the
+ *   gate is a `public-reader` whose reason is `public-data` (judge.ts: reader-off-gate).
  */
 
 export const DOOR_CLASSES = [
@@ -214,7 +217,8 @@ export function lineRuleErrors(line: ManifestLine): string[] {
   const errors: string[] = [];
   const isPublic = line.class === "public-door" || line.class === "public-reader";
   if (isPublic && !line.roles.includes("anon")) errors.push("a public line names anon");
-  if (!isPublic && line.roles.includes("anon")) errors.push("only a public line names anon");
+  if (!isPublic && line.class !== "helper" && line.roles.includes("anon"))
+    errors.push("only a public line or a helper names anon");
   const isStaff = line.class === "staff" || line.class === "staff-reader";
   if (isStaff && line.permission === null) errors.push("a staff line names its permission");
   if (!isStaff && line.permission !== null) errors.push("only a staff line names a permission");

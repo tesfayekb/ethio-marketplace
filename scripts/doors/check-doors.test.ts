@@ -7,18 +7,23 @@ import { describe, expect, it } from "vitest";
 
 import { GRANT_DROPPED_FLOOR, catalogueOf } from "./catalogue";
 import {
+  PLANTED_HELPER_LINE,
+  PLANTED_POLICIES,
+  PLANTED_PUBLIC_DATA_LINE,
   PLANTED_STEP_UPS,
   allow,
   liveFindings,
   plantedCases,
   plantedDropHistory,
   plantedGrant,
+  plantedReaders,
   selfTest,
   staticFindings,
 } from "./check-doors";
 import { columnsOf, declaredColumns } from "./columns";
-import { FINDING_KINDS, doorContextCall, judge } from "./judge";
+import { FINDING_KINDS, doorContextCall, judge, reasonPolicies } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
+import { declaredPolicyCalls, policyCallsOf } from "./policies";
 import {
   LIVE_QUERY,
   LIVE_QUERY_FILE,
@@ -32,7 +37,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
- * the eight finding kinds each fire on their planted bypass and a clean pair
+ * the twelve finding kinds each fire on their planted bypass and a clean pair
  * fires nothing (DOORS-1); the manifest's grammar refuses what it must
  * (DOORS-2); the live reader answers the same rows the judge reads and refuses
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
@@ -44,7 +49,10 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  * hand over in chunks counts as a caller in both (DOORS-7, INC-1072); a `row:` cell names a
  * column the migrations declare (DOORS-8, F1-3); a DROP + CREATE restates every role the
  * function held, judged by the file from the floor and by the result before it (DOORS-10, F1-5a); a
- * `none:` step-up cell names a permission the migrations declare without step-up (DOORS-11, F1-6a).
+ * `none:` step-up cell names a permission the migrations declare without step-up (DOORS-11, F1-6a);
+ * a reader off the gate is a public reader whose `public-data` holds through every body it names
+ * (DOORS-12, F1-7a); a helper's `policy` reason names standing policies that call it (DOORS-13,
+ * F1-7a, INC-1212); a dynamic grant on a proof's pg_temp copy is no public grant (DOORS-14, F1-7a).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -104,6 +112,10 @@ describe("check-doors (CF-DOORS)", () => {
         key,
       ).toEqual([`malformed key ${key}`]);
     expect(parseManifest("x(uuid,text[],timestamp with time zone)" + rest).errors).toEqual([]);
+    expect(
+      parseManifest("x() | helper | anon,authenticated | - | - | - | - | - | - | - | policy p_read")
+        .errors,
+    ).toEqual([]);
     const good = parseManifest(
       "y(uuid,text) | staff | authenticated | listings:review | row | staff_moderation | listing.reviewed | row:listings.home_country_code | staff | notFound,alreadyDone | -",
     );
@@ -300,6 +312,29 @@ describe("check-doors (CF-DOORS)", () => {
     ]);
   });
 
+  it("DOORS-14 a dynamic grant on a proof's pg_temp copy is no public grant; any other unresolved target stays unseen (F1-7a)", () => {
+    const unseenOf = (statement: string) =>
+      catalogueOf([
+        {
+          file: "supabase/migrations/20990101000000_planted.sql",
+          sql: `DO $$ DECLARE v_r record; BEGIN FOR v_r IN SELECT 'a' AS name, 'uuid' AS def LOOP ${statement}; END LOOP; END $$;\n`,
+        },
+      ]).unseen.map((grant) => grant.text);
+    expect(
+      unseenOf(
+        "EXECUTE format('REVOKE ALL ON FUNCTION pg_temp.f17a_old_%s(%s) FROM PUBLIC', v_r.name, v_r.def)",
+      ),
+    ).toEqual([]);
+    expect(
+      unseenOf(
+        "EXECUTE format('REVOKE ALL ON FUNCTION public.%s(%s) FROM PUBLIC', v_r.name, v_r.def)",
+      ),
+    ).toHaveLength(1);
+    expect(
+      unseenOf("EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO anon', v_r.name)"),
+    ).toHaveLength(1);
+  });
+
   it("DOORS-5 --live-query prints scripts/doors/live-query.sql as it is: whitespace-separated clauses ending in ; (INC-1070)", () => {
     const printed = execFileSync("bun", ["scripts/doors/check-doors.ts", "--live-query"], {
       cwd: ROOT,
@@ -416,6 +451,105 @@ describe("check-doors (CF-DOORS)", () => {
       expect(tree("listings:view")).toBe(false);
       expect(tree("categories:update")).toBe(false);
       expect(tree("profiles:update")).toBe(true);
+    },
+  );
+
+  it("DOORS-12 a reader off the gate is refused unless it is a public reader whose reason public-data holds through every body it names (F1-7a ruling 1, decisions 4 and 9)", () => {
+    const fired = (manifest: string, rows: ReturnType<typeof plantedReaders>) =>
+      judge(rows, parseManifest(manifest))
+        .filter((finding) => finding.kind === "reader-off-gate")
+        .map((finding) => `${finding.key} — ${finding.what}`);
+    const reads = [
+      "BEGIN RETURN auth.uid()::text; END",
+      "SELECT auth.role()",
+      "SELECT auth . jwt() ->> 'sub'",
+      "SELECT current_setting('request.jwt.claims', true)",
+    ];
+    for (const body of reads)
+      expect(fired(PLANTED_PUBLIC_DATA_LINE, plantedReaders(body)), body).toEqual([
+        "e2e_planted_public(text) — public-data, yet e2e_planted_inner(text) reads its caller",
+      ]);
+    expect(fired(PLANTED_PUBLIC_DATA_LINE, plantedReaders("SELECT p_lang"))).toEqual([]);
+    const deeper = [
+      ...plantedReaders("SELECT public.e2e_planted_deep(p_lang)"),
+      ...plantedReaders("SELECT 1")
+        .slice(1)
+        .map((inner) => ({
+          ...inner,
+          key: "e2e_planted_deep(text)",
+          name: "e2e_planted_deep",
+          body: "SELECT auth.uid()",
+        })),
+    ];
+    expect(fired(PLANTED_PUBLIC_DATA_LINE, deeper)).toEqual([
+      "e2e_planted_public(text) — public-data, yet e2e_planted_deep(text) reads its caller",
+    ]);
+    expect(
+      fired(PLANTED_PUBLIC_DATA_LINE.replace("public-data", "-"), plantedReaders("SELECT p_lang")),
+    ).toEqual([
+      "e2e_planted_public(text) — a public reader off the gate carries the reason public-data",
+    ]);
+    const signedIn = plantedReaders("SELECT p_lang").map((planted) => ({
+      ...planted,
+      anon: false,
+    }));
+    const signedInLine = (cls: string, cells: string) =>
+      `e2e_planted_public(text) | ${cls} | authenticated | ${cells} | - | - | public-data`;
+    expect(fired(signedInLine("signed-in-reader", "- | - | - | - | -"), signedIn)).toEqual([
+      "e2e_planted_public(text) — a signed-in-reader takes door_context",
+    ]);
+    expect(
+      fired(signedInLine("staff-reader", "translations:manage | - | - | - | global"), signedIn),
+    ).toEqual(["e2e_planted_public(text) — a staff-reader takes door_context"]);
+    const gated = plantedReaders("SELECT auth.uid()").map((planted, index) =>
+      index === 0
+        ? { ...planted, body: "BEGIN v_ctx := public.door_context('public'); RETURN 1; END" }
+        : planted,
+    );
+    expect(fired(PLANTED_PUBLIC_DATA_LINE.replace("public-data", "-"), gated)).toEqual([]);
+  });
+
+  it(
+    "DOORS-13 a helper's policy reason names standing policies that call it: created, not dropped, calling by name (F1-7a ruling 1 decision 7, INC-1212)",
+    { timeout: TREE_READ_MS },
+    () => {
+      const calls = policyCallsOf(PLANTED_POLICIES);
+      expect(calls("e2e_planted_read", "e2e_planted_helper")).toBe(true);
+      expect(calls("e2e_planted_other", "e2e_planted_helper")).toBe(false);
+      expect(calls("e2e_planted_gone", "e2e_planted_helper")).toBe(false);
+      expect(calls("e2e_planted_missing", "e2e_planted_helper")).toBe(false);
+      const fired = (reason: string) =>
+        judge(
+          [
+            {
+              key: "e2e_planted_helper(uuid)",
+              name: "e2e_planted_helper",
+              volatility: "s",
+              definer: true,
+              anon: false,
+              authenticated: true,
+              trigger: false,
+              body: "SELECT true",
+              where: "planted",
+            },
+          ],
+          parseManifest(PLANTED_HELPER_LINE(reason)),
+          { policies: calls },
+        )
+          .filter((finding) => finding.kind === "helper-reason-unproven")
+          .map((finding) => finding.what);
+      expect(fired("policy e2e_planted_read")).toEqual([]);
+      expect(fired("policy")).toEqual(["the reason policy names no policy"]);
+      expect(fired("policy e2e_planted_read, e2e_planted_gone, e2e_planted_other")).toEqual([
+        "no standing policy e2e_planted_gone, e2e_planted_other calls e2e_planted_helper",
+      ]);
+      expect(fired("invoker-chain")).toEqual([]);
+      expect(reasonPolicies("policy a_read, b_read")).toEqual(["a_read", "b_read"]);
+      // The tree: the two helper lines left after F1-7a hold by their policies.
+      const tree = declaredPolicyCalls(ROOT);
+      expect(tree("listings_public_read", "sold_cutoff")).toBe(true);
+      expect(tree("user_roles_read", "has_permission")).toBe(true);
+      expect(tree("listings_public_read", "has_permission")).toBe(false);
     },
   );
 

@@ -561,7 +561,12 @@ test.describe("POSTING ROUTES", () => {
       >;
       expect(entry["field"]).toBe("door");
       expect(entry["reason"]).toBe("rateLimited");
-      // INC-1170: the gate's rateLimited names no reset time until F1-7; it restores the detail assertion here.
+      // INC-1170 (F1-7a) — the refusal names WHEN it lifts, so a client can say so (C4/F4): the
+      // gate's detail is an instant still to come.
+      expect(
+        Date.parse(String(entry["detail"] ?? "")),
+        `PR-7: the reset time — ${JSON.stringify(refusal)}`,
+      ).toBeGreaterThan(Date.now());
     } finally {
       const removed = await admin
         .from("rate_overrides")
@@ -961,7 +966,8 @@ test.describe("POSTING ROUTES", () => {
         token: second.token,
         body: { p_listing_id: listingId },
       });
-      expect(JSON.stringify(foreign.body)).toContain("not your listing");
+      // F1-7a — the reader is on the gate: another seller's ad is the code `notYourListing`.
+      expect(JSON.stringify(foreign.body)).toContain("notYourListing");
     } finally {
       await other.close();
     }
