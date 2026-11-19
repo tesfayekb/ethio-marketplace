@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/features/admin/admin-context";
-import { decideListing } from "@/features/admin-screening/use-screening";
+import { decideListing, decisionRefusalKey } from "@/features/admin-screening/use-screening";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -93,7 +93,7 @@ function AdminListingEditRoute() {
       // Cancelled: nothing ran, nothing said. No factor: the hint. Else the door's refusal.
       if (abort === null) return;
       console.error("[screening] decision failed", error);
-      setProblem(abort ?? "common.error");
+      setProblem(abort ?? decisionRefusalKey(error));
       return;
     }
     setBusy(false);

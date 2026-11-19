@@ -216,7 +216,7 @@ export const enBase = {
   "adPage.report.reason.under18": "Someone in it appears to be under 18",
   "adPage.report.reason.copyright": "Copyright or stolen photos",
   "adPage.report.reason.other": "Something else",
-  "adPage.report.note": "Anything else we should know? (optional)",
+  "adPage.report.note": "Anything else we should know?",
   "adPage.report.send": "Send report",
   "adPage.report.thanks": "Thank you — we will look at it.",
   "adPage.report.already": "You have already reported this ad. We will look at it.",

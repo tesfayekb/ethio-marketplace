@@ -54,6 +54,7 @@ import {
   SCREENING_PAGE_SIZE,
   SCREENING_PAGE_SIZES,
   decideListing,
+  decisionRefusalKey,
   readScreeningRow,
   revealContact,
   revealProblemKey,
@@ -146,8 +147,13 @@ export function AdminScreeningPage({
   );
   const [selected, setSelected] = useState<string[]>([]);
   const [decision, setDecision] = useState<Decision>(null);
+  const [decisionProblem, setDecisionProblem] = useState<MessageKey | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  const askDecision = (next: NonNullable<Decision>) => {
+    setDecisionProblem(null);
+    setDecision(next);
+  };
   const [previewRow, setPreviewRow] = useState<ScreeningRow | null>(null);
   const [revealed, setRevealed] = useState<Partial<Record<RevealChannel, string>>>({});
   const [revealProblems, setRevealProblems] = useState<Partial<Record<RevealChannel, MessageKey>>>(
@@ -381,13 +387,13 @@ export function AdminScreeningPage({
               {
                 key: "approve",
                 label: t("admin.screening.approve"),
-                onSelect: () => setDecision({ ids: [row.id], next: "active" }),
+                onSelect: () => askDecision({ ids: [row.id], next: "active" }),
               },
               {
                 key: "reject",
                 label: t("admin.screening.reject"),
                 tone: "danger" as const,
-                onSelect: () => setDecision({ ids: [row.id], next: "rejected" }),
+                onSelect: () => askDecision({ ids: [row.id], next: "rejected" }),
               },
             ]
           : []),
@@ -435,10 +441,16 @@ export function AdminScreeningPage({
           const { ids, next } = decision;
           setBusy(true);
           setNotice(null);
+          setDecisionProblem(null);
+          // Confirmed prefix: retries and selection contain only the undecided suffix.
+          let decidedCount = 0;
           try {
             // One step-up for the whole set; the door judges each ad on its own.
             await guard(async () => {
-              for (const id of ids) await decideListing(id, next);
+              for (const id of ids) {
+                await decideListing(id, next);
+                decidedCount += 1;
+              }
             });
             setDecision(null);
             setSelected([]);
@@ -447,11 +459,15 @@ export function AdminScreeningPage({
               tone: "ok",
             });
           } catch (error) {
-            setDecision(null);
             const abort = stepUpAbortKey(error);
+            const remaining = ids.slice(decidedCount);
+            setDecision({ ids: remaining, next });
+            setSelected((current) =>
+              current.filter((id) => !ids.slice(0, decidedCount).includes(id)),
+            );
             if (abort === null) return;
             console.error("[screening] decision failed", error);
-            setNotice({ key: abort ?? "common.error", tone: "error" });
+            setDecisionProblem(abort ?? decisionRefusalKey(error));
           } finally {
             setBusy(false);
             await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
@@ -636,7 +652,7 @@ export function AdminScreeningPage({
                       type="button"
                       size="sm"
                       data-testid="admin-screening-bulk-approve"
-                      onClick={() => setDecision({ ids: selected, next: "active" })}
+                      onClick={() => askDecision({ ids: selected, next: "active" })}
                     >
                       {t("admin.screening.approve")}
                     </Button>
@@ -645,7 +661,7 @@ export function AdminScreeningPage({
                       size="sm"
                       variant="destructive"
                       data-testid="admin-screening-bulk-reject"
-                      onClick={() => setDecision({ ids: selected, next: "rejected" })}
+                      onClick={() => askDecision({ ids: selected, next: "rejected" })}
                     >
                       {t("admin.screening.reject")}
                     </Button>
@@ -713,6 +729,11 @@ export function AdminScreeningPage({
                       ? t("admin.screening.confirmReject")
                       : t("admin.screening.confirmApprove")}
                 </AlertDialogTitle>
+                <ActionMessage
+                  tone="error"
+                  testid="admin-screening-confirm-problem"
+                  text={decisionProblem === null ? null : t(decisionProblem)}
+                />
                 <AlertDialogFooter>
                   <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
                   <Button
@@ -799,7 +820,7 @@ export function AdminScreeningPage({
                             className="min-h-11"
                             data-testid="admin-screening-preview-approve"
                             onClick={() => {
-                              setDecision({ ids: [previewRow.id], next: "active" });
+                              askDecision({ ids: [previewRow.id], next: "active" });
                               closePreview();
                             }}
                           >
@@ -811,7 +832,7 @@ export function AdminScreeningPage({
                             className="min-h-11"
                             data-testid="admin-screening-preview-reject"
                             onClick={() => {
-                              setDecision({ ids: [previewRow.id], next: "rejected" });
+                              askDecision({ ids: [previewRow.id], next: "rejected" });
                               closePreview();
                             }}
                           >

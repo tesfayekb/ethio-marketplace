@@ -38,6 +38,7 @@ vi.mock("@/integrations/supabase/client", () => {
 
 import {
   decideListing,
+  decisionRefusalKey,
   listScreening,
   nameCheckSummaryOf,
   parseScreeningFacts,
@@ -190,6 +191,19 @@ describe("decideListing", () => {
     ]);
     doors.answer = { data: null, error: { message: "ownListing" } };
     await expect(decideListing("l-1", "rejected")).rejects.toMatchObject({ message: "ownListing" });
+  });
+});
+
+describe("decision refusal words", () => {
+  it.each([
+    ["SDR-1", "ownListing", "admin.screening.error.ownListing"],
+    ["SDR-2", "permissionDenied:scope", "admin.listings.move.error.denied"],
+    ["SDR-3", "rateLimited", "admin.listings.move.error.rateLimited"],
+    ["SDR-4", "listingNotFound", "admin.listings.move.error.notFound"],
+    ["SDR-5", "illegalTransition:screening-active", "admin.listings.move.error.illegal"],
+    ["SDR-6", "unrecognised", "common.error"],
+  ])("%s reads %s through the listings family", (_id, code, key) => {
+    expect(decisionRefusalKey({ message: code })).toBe(key);
   });
 });
 

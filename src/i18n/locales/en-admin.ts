@@ -533,6 +533,8 @@ export const enAdmin = {
   "admin.screening.confirmRejectMany": "Reject {count} ads? They stay off the site.",
   "admin.screening.revealLimited": "You have shown many numbers in the last hour. Try again later.",
   "admin.screening.revealNotShown": "The seller does not show this number.",
+  "admin.screening.error.ownListing":
+    "This is your own ad. Another reviewer must approve or reject it.",
   "admin.translations.title": "Translations",
   "admin.translations.subtitle": "Languages, coverage and the strings editor.",
   "admin.translations.loading": "Loading languages…",

@@ -197,7 +197,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "adPage.report.reason.under18": "በውስጡ ያለ ሰው ከ18 ዓመት በታች ይመስላል",
   "adPage.report.reason.copyright": "የቅጂ መብት ጥሰት ወይም የተሰረቁ ፎቶዎች",
   "adPage.report.reason.other": "ሌላ ምክንያት",
-  "adPage.report.note": "ልናውቀው የሚገባ ሌላ ነገር አለ? (አማራጭ)",
+  "adPage.report.note": "ልናውቀው የሚገባ ሌላ ነገር አለ?",
   "adPage.report.send": "ሪፖርቱን ላክ",
   "adPage.report.thanks": "እናመሰግናለን — እንመለከተዋለን።",
   "adPage.report.already": "ይህን ማስታወቂያ አስቀድመው ሪፖርት አድርገዋል። እንመለከተዋለን።",
