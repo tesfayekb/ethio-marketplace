@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44491473327
-- Commit: `7c75ac5005617eb89e380c11929326455407910a`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44498442026
+- Commit: `b7ec92ec24d680dc01957648ccb5b02f85d3a3f5`
 - Attempt: 1
-- Written (UTC): 2026-11-19T09:40:00.364Z
+- Written (UTC): 2026-11-19T10:00:01.474Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -20,16 +20,13 @@ No warning step ran in this run.
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), INC-1175 STAGING-SINK label (the spliced capture's failure labelled, its sibling and the unspliced capture not), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
 [36;1m      echo "::error::E2E: ${lanes} lane(s) died in infrastructure before any test (${steps}) — re-run the failed jobs"[0m
 [36;1m      echo "::error::E2E failed — see ${evidence}"[0m
-##[error]E2E failed — see docs/tracking/branches/cursor/f1-doors-6b/e2e-last-failure.md
+##[error]E2E: 1 lane(s) died in infrastructure before any test (install-chromium-s-system-libraries) — re-run the failed jobs
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-  layout OK — merged flat: 1 context file(s), report rendered.
-  layout OK — zero artifacts: 0 context file(s), report rendered.
-  layout OK — missing directory: 0 context file(s), report rendered.
 DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
 DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
 ok — R1a census names the missing log
@@ -37,8 +34,11 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), INC-1175 STAGING-SINK label (the spliced capture's failure labelled, its sibling and the unspliced capture not), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (18/19 source(s) with usable results, 16 context file(s) found).
-Verdict class: TESTS (e2e-verdict-class.txt).
+context download: 0 context files found.
+  glob: shard-contexts/**/error-context.md
+  searched: shard-contexts (unreadable or absent)
+Wrote docs/tracking/e2e-last-failure.md (19/20 source(s) with usable results, 0 context file(s) found).
+Verdict class: INFRA 1 install-chromium-s-system-libraries (e2e-verdict-class.txt).
 publish-evidence: published docs/tracking/branches/cursor/f1-doors-6b/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
 [36;1mecho "lanes=failure"[0m
@@ -65,16 +65,16 @@ publish-evidence: published docs/tracking/branches/cursor/f1-doors-6b/e2e-last-f
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-c1fcdf96fa99… (0 read)
+  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-de66f9ecdd86… (0 read)
   EVIDENCE_REF: cursor/f1-doors-6b
 ##[endgroup]
 lanes=failure
-##[error]E2E failed — see docs/tracking/branches/cursor/f1-doors-6b/e2e-last-failure.md
+##[error]E2E: 1 lane(s) died in infrastructure before any test (install-chromium-s-system-libraries) — re-run the failed jobs
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/f51a0f97-b007-43b3-9312-677fdba02732' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/c16f360b-edd8-4242-b5fd-b5543107ea4e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
