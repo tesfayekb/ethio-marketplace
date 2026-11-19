@@ -82,30 +82,23 @@ export type CardPlace = "title" | "sub" | "meta" | "badge" | "foot" | "hide";
 
 /**
  * L17 (ACT-023) — the one closed set of column sizes, by the content a column
- * holds. The fixed layout gives each its width; `text` has none and takes the
- * room left (several `text` columns share it equally), its wrapping lines held
- * to a readable measure inside the cell. A table with NO `text` column leaves
- * the width off its FIRST `name` column (column order), which absorbs the rest.
+ * holds. Fixed-layout header widths share the row in proportion to these
+ * weights, including columns hidden at a breakpoint. Wrapping text keeps its
+ * readable measure inside the cell. Min-width tables keep auto layout.
  * A sixth size is refused until a real column needs it.
  */
 export const COLUMN_SIZE = {
-  control: "w-20",
-  short: "w-24",
-  date: "w-36",
-  name: "w-48",
-  text: "",
+  control: 2,
+  short: 3,
+  date: 3,
+  name: 4,
+  text: 7,
 } as const;
 
 export type ColumnSize = keyof typeof COLUMN_SIZE;
 
 /** The readable measure a `text` cell's content wraps at. */
 export const TEXT_MEASURE = "max-w-[60ch]";
-
-/** The key of the column that absorbs the leftover room, or null (L17). */
-function absorbingColumnKey(columns: readonly { key: string; size?: ColumnSize }[]) {
-  if (columns.some((column) => column.size === "text")) return null;
-  return columns.find((column) => column.size === "name")?.key ?? null;
-}
 
 export interface DataTableColumn<T> {
   key: string;
@@ -276,7 +269,6 @@ const ACTIONS_WIDTH_CLASS = {
 function cellClass(
   column: DataTableColumn<unknown>,
   sticky: false | "start-0" | "start-10" = false,
-  absorbs = false,
 ) {
   return cn(
     "p-3 align-top",
@@ -290,7 +282,7 @@ function cellClass(
     // column's own width (w-10 → start-10); pinning both at 0 made the first
     // data column jump 40px left on the first scroll tick (L11 drift).
     sticky !== false && cn("sticky z-10 bg-card", sticky),
-    column.size ? (absorbs ? undefined : COLUMN_SIZE[column.size] || undefined) : column.width,
+    column.size ? undefined : column.width,
     column.minWidth,
   );
 }
@@ -555,7 +547,17 @@ export function DataTable<T>({
 
   /** Any declared min-width switches the table off fixed layout (C7). */
   const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
-  const absorbKey = absorbingColumnKey(columns);
+  const usesShares = !hasMinWidths && columns.some((column) => column.size !== undefined);
+  // Selection and actions are control columns too; reserve their shares so
+  // the sized headers never consume the space those controls need.
+  const totalWeight =
+    columns.reduce((sum, column) => sum + COLUMN_SIZE[column.size ?? "name"], 0) +
+    (selection ? COLUMN_SIZE.control : 0) +
+    (rowActions ? COLUMN_SIZE.control : 0);
+  const shareStyle = (size: ColumnSize | undefined) =>
+    usesShares && size !== undefined
+      ? { width: `${(COLUMN_SIZE[size] / totalWeight) * 100}%` }
+      : undefined;
   /** U1d: the FIRST primary column carries the row link inside the table. */
 
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
@@ -932,9 +934,11 @@ export function DataTable<T>({
                   <th
                     scope="col"
                     className={cn(
-                      "w-10 p-3 align-top",
+                      !usesShares && "w-10",
+                      "p-3 align-top",
                       stickyFirstColumn && "sticky start-0 z-10 bg-card",
                     )}
+                    style={shareStyle("control")}
                   >
                     <Checkbox
                       aria-label={t("prim.table.selectAll")}
@@ -950,13 +954,10 @@ export function DataTable<T>({
                     data-testid={`data-table-col-${column.key}`}
                     scope="col"
                     className={cn(
-                      cellClass(
-                        column as DataTableColumn<unknown>,
-                        stickyFor(index),
-                        column.key === absorbKey,
-                      ),
+                      cellClass(column as DataTableColumn<unknown>, stickyFor(index)),
                       "font-semibold",
                     )}
+                    style={shareStyle(column.size)}
                     aria-sort={
                       sortKey === column.key
                         ? sortDirection === "desc"
@@ -983,9 +984,10 @@ export function DataTable<T>({
                     scope="col"
                     data-testid="data-table-col-actions"
                     className={cn(
-                      ACTIONS_WIDTH_CLASS[actionsWidth],
+                      !usesShares && ACTIONS_WIDTH_CLASS[actionsWidth],
                       "p-3 text-end align-top font-semibold",
                     )}
+                    style={shareStyle("control")}
                   >
                     {t("prim.table.actions")}
                   </th>
@@ -1049,7 +1051,6 @@ export function DataTable<T>({
                           className={cellClass(
                             column as DataTableColumn<unknown>,
                             stickyFor(index),
-                            column.key === absorbKey,
                           )}
                         >
                           {href && column.key === linkColumnKey ? (

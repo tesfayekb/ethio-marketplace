@@ -622,32 +622,35 @@ describe("DataTable V2 card and frame (D132)", () => {
     return td;
   }
 
-  it("DTK-2 each size draws its own width on the header and the body cell", () => {
+  it("DTK-2 column shares follow their weights and add up to 100%", () => {
     renderTable({
-      columns: sized({ a: "control", b: "short", c: "date", d: "name", e: "text" }),
+      columns: sized({ t: "text", n: "name", s: "short" }),
     });
-    for (const [key, size] of [
-      ["a", "control"],
-      ["b", "short"],
-      ["c", "date"],
-      ["d", "name"],
+    let total = 0;
+    for (const [key, weight] of [
+      ["t", 7],
+      ["n", 4],
+      ["s", 3],
     ] as const) {
-      expect(screen.getByTestId(`data-table-col-${key}`).className).toContain(COLUMN_SIZE[size]);
-      expect(bodyCell(key).className).toContain(COLUMN_SIZE[size]);
+      const header = screen.getByTestId(`data-table-col-${key}`);
+      expect(header.style.width).toContain("%");
+      const share = Number.parseFloat(header.style.width);
+      expect(share).toBeCloseTo((weight / 14) * 100);
+      total += share;
     }
+    expect(total).toBeCloseTo(100);
     expect(COLUMN_SIZE).toEqual({
-      control: "w-20",
-      short: "w-24",
-      date: "w-36",
-      name: "w-48",
-      text: "",
+      control: 2,
+      short: 3,
+      date: 3,
+      name: 4,
+      text: 7,
     });
   });
 
-  it("DTK-3 a text column has no width and its content wraps at the measure", () => {
+  it("DTK-3 a text cell's content wraps at the measure", () => {
     renderTable({ columns: sized({ n: "name", t: "text", u: "text" }) });
     for (const key of ["t", "u"]) {
-      expect(screen.getByTestId(`data-table-col-${key}`).className).not.toMatch(/\bw-/);
       const wrap = bodyCell(key).firstElementChild;
       expect(wrap?.className).toContain(TEXT_MEASURE);
     }
@@ -655,11 +658,16 @@ describe("DataTable V2 card and frame (D132)", () => {
     expect(TEXT_MEASURE).toBe("max-w-[60ch]");
   });
 
-  it("DTK-4 with no text column the first name column absorbs the rest", () => {
+  it("DTK-4 short and name columns fill 100% with no zero-width column", () => {
     renderTable({ columns: sized({ s: "short", first: "name", second: "name" }) });
-    expect(screen.getByTestId("data-table-col-first").className).not.toMatch(/\bw-/);
-    expect(screen.getByTestId("data-table-col-second").className).toContain("w-48");
-    expect(bodyCell("first").className).not.toMatch(/\bw-/);
+    const shares = ["s", "first", "second"].map((key) =>
+      Number.parseFloat(screen.getByTestId(`data-table-col-${key}`).style.width),
+    );
+    expect(shares[0]).toBeCloseTo((3 / 11) * 100);
+    expect(shares[1]).toBeCloseTo((4 / 11) * 100);
+    expect(shares[2]).toBeCloseTo((4 / 11) * 100);
+    expect(shares.every((share) => share > 0)).toBe(true);
+    expect(shares.reduce((sum, share) => sum + share, 0)).toBeCloseTo(100);
   });
 
   it("DTK-5 a min-width table keeps auto layout and scrolls, never table-fixed", () => {
@@ -672,5 +680,9 @@ describe("DataTable V2 card and frame (D132)", () => {
     const table = document.querySelector("table");
     expect(table?.className).toContain("min-w-max");
     expect(table?.className).not.toContain("table-fixed");
+    for (const key of ["n", "t"]) {
+      expect(screen.getByTestId(`data-table-col-${key}`).style.width).toBe("");
+      expect(bodyCell(key).className).toContain("min-w-40");
+    }
   });
 });
