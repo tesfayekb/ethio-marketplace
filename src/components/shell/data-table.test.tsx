@@ -1,7 +1,14 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { DataTable, DataTablePagination, type DataTableColumn } from "./data-table";
+import {
+  COLUMN_SIZE,
+  DataTable,
+  DataTablePagination,
+  TEXT_MEASURE,
+  type ColumnSize,
+  type DataTableColumn,
+} from "./data-table";
 import { RowActions } from "./row-actions";
 
 /**
@@ -596,6 +603,95 @@ describe("DataTable V2 card and frame (D132)", () => {
       expect(cards[0]?.tagName).toBe("DIV");
     } finally {
       globalThis.ResizeObserver = Real;
+    }
+  });
+
+  function sized(sizes: Record<string, ColumnSize>): DataTableColumn<Row>[] {
+    return Object.entries(sizes).map(([key, size], index) => ({
+      key,
+      header: key,
+      priority: index === 0 ? "primary" : "secondary",
+      size,
+      cell: (row: Row) => <span data-cell={key}>{`${key}-${row.id}`}</span>,
+    }));
+  }
+
+  function bodyCell(key: string) {
+    const td = document.querySelector(`table [data-cell="${key}"]`)?.closest("td");
+    if (!td) throw new Error(`no body cell for ${key}`);
+    return td;
+  }
+
+  it("DTK-2 column shares follow their weights and add up to 100%", () => {
+    renderTable({
+      columns: sized({ t: "text", n: "name", s: "short" }),
+      selection: { selectedKeys: [], onToggleRow: vi.fn(), onToggleAll: vi.fn() },
+      rowActions: () => <span />,
+      actionsWidth: "w-44",
+    });
+    const tickHeader = screen.getByTestId("data-table-select-all").closest("th");
+    expect(tickHeader).toHaveClass("w-10");
+    expect(tickHeader?.style.width).toBe("");
+    const actionsHeader = screen.getByTestId("data-table-col-actions");
+    expect(actionsHeader).toHaveClass("w-44", "md:pointer-fine:w-36");
+    expect(actionsHeader.style.width).toBe("");
+    let total = 0;
+    for (const [key, weight] of [
+      ["t", 7],
+      ["n", 4],
+      ["s", 3],
+    ] as const) {
+      const header = screen.getByTestId(`data-table-col-${key}`);
+      expect(header.style.width).toContain("%");
+      const share = Number.parseFloat(header.style.width);
+      expect(share).toBeCloseTo((weight / 14) * 100);
+      total += share;
+    }
+    expect(total).toBeCloseTo(100);
+    expect(COLUMN_SIZE).toEqual({
+      control: 2,
+      short: 3,
+      date: 3,
+      name: 4,
+      text: 7,
+    });
+  });
+
+  it("DTK-3 a text cell's content wraps at the measure", () => {
+    renderTable({ columns: sized({ n: "name", t: "text", u: "text" }) });
+    for (const key of ["t", "u"]) {
+      const wrap = bodyCell(key).firstElementChild;
+      expect(wrap?.className).toContain(TEXT_MEASURE);
+    }
+    expect(bodyCell("n").firstElementChild?.className).not.toContain(TEXT_MEASURE);
+    expect(TEXT_MEASURE).toBe("max-w-[60ch]");
+  });
+
+  it("DTK-4 short and name columns fill 100% with no zero-width column", () => {
+    renderTable({ columns: sized({ s: "short", first: "name", second: "name" }) });
+    const shares = ["s", "first", "second"].map((key) =>
+      Number.parseFloat(screen.getByTestId(`data-table-col-${key}`).style.width),
+    );
+    expect(shares[0]).toBeCloseTo((3 / 11) * 100);
+    expect(shares[1]).toBeCloseTo((4 / 11) * 100);
+    expect(shares[2]).toBeCloseTo((4 / 11) * 100);
+    expect(shares.every((share) => share > 0)).toBe(true);
+    expect(shares.reduce((sum, share) => sum + share, 0)).toBeCloseTo(100);
+  });
+
+  it("DTK-5 a min-width table keeps auto layout and scrolls, never table-fixed", () => {
+    renderTable({
+      columns: sized({ n: "name", t: "text" }).map((column) => ({
+        ...column,
+        minWidth: "min-w-40", // C7-dense: DTK-5 proves the min-width contract (auto layout, scroll)
+      })),
+    });
+    const table = document.querySelector("table");
+    expect(table?.className).toContain("min-w-max");
+    expect(table?.className).not.toContain("table-fixed");
+    for (const key of ["n", "t"]) {
+      expect(screen.getByTestId(`data-table-col-${key}`).style.width).toBe("");
+      expect(bodyCell(key).className).toContain("min-w-40");
     }
   });
 });

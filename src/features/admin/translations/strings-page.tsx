@@ -575,7 +575,7 @@ function stringColumns(
       header: t("admin.translations.col.key"),
       priority: "primary",
       card: "title",
-      width: "w-[26%]",
+      size: "name",
       cell: (row) => (
         <span className="block truncate font-mono text-xs text-foreground" title={row.key}>
           {row.key}
@@ -587,7 +587,7 @@ function stringColumns(
       header: t("admin.translations.col.source"),
       priority: "secondary",
       card: "sub",
-      width: "w-[26%]",
+      size: "text",
       cell: (row) => (
         <span className="block truncate text-muted-foreground" title={row.sourceValue ?? undefined}>
           {row.sourceValue ?? "—"}
@@ -599,7 +599,7 @@ function stringColumns(
       header: t("admin.translations.col.value"),
       priority: "primary",
       card: "meta",
-      width: "w-[26%]",
+      size: "text",
       cell: (row) => (
         <span
           dir={rtl ? "rtl" : undefined}
@@ -615,7 +615,7 @@ function stringColumns(
       header: t("admin.translations.col.status"),
       priority: "primary",
       card: "badge",
-      width: "w-[12%]",
+      size: "short",
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
           <Badge variant="outline" data-testid={`string-status-${slug(row.key)}`}>
@@ -634,7 +634,7 @@ function stringColumns(
       header: t("admin.translations.col.provenance"),
       priority: "detail",
       card: "foot",
-      width: "w-[10%]",
+      size: "short",
       /**
        * U4g-24 (INC-115) — PROVENANCE IS THE TEXT'S ORIGIN, NEVER ITS REVIEW
        * STATE. `machine=true` reads "Machine" even once the row is approved;

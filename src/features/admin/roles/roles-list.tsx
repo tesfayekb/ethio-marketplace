@@ -72,7 +72,7 @@ export function AdminRolesList() {
       key: "name",
       header: t("admin.roles.col.name"),
       priority: "primary",
-      width: "w-[26%]",
+      size: "name",
       card: "title",
       cell: (role) => (
         <span className="block truncate font-medium text-foreground" title={role.name}>
@@ -84,7 +84,7 @@ export function AdminRolesList() {
       key: "display",
       header: t("admin.roles.col.display"),
       priority: "primary",
-      width: "w-[30%]",
+      size: "text",
       card: "sub",
       cell: (role) => (
         <span className="block truncate text-muted-foreground">{role.displayName ?? "—"}</span>
@@ -94,7 +94,7 @@ export function AdminRolesList() {
       key: "kind",
       header: t("admin.roles.col.kind"),
       priority: "secondary",
-      width: "w-[16%]",
+      size: "short",
       card: "badge",
       cell: (role) => (
         // Bundle 11 G2a (D132) — a classification: the soft grey pill.
@@ -107,7 +107,7 @@ export function AdminRolesList() {
       key: "members",
       header: t("admin.roles.col.members"),
       priority: "secondary",
-      width: "w-[14%]",
+      size: "short",
       card: "meta",
       cell: (role) => (
         <span className="block tabular-nums text-muted-foreground">{role.memberCount}</span>
@@ -117,7 +117,7 @@ export function AdminRolesList() {
       key: "permissions",
       header: t("admin.roles.col.permissions"),
       priority: "detail",
-      width: "w-[14%]",
+      size: "short",
       card: "meta",
       cell: (role) => (
         <span className="block tabular-nums text-muted-foreground">{role.permissionCount}</span>

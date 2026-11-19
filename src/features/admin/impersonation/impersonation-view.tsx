@@ -92,7 +92,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       key: "title",
       header: t("impersonation.listings.title"),
       priority: "primary",
-      width: "w-[46%]",
+      size: "text",
       card: "title",
       cell: (row) => (
         <span className="block truncate text-foreground" title={row.title}>
@@ -104,7 +104,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       key: "status",
       header: t("impersonation.listings.status"),
       priority: "primary",
-      width: "w-[18%]",
+      size: "short",
       card: "badge",
       cell: (row) => (
         // D132 — a state as a soft pill; the stored status word, as before.
@@ -117,7 +117,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       key: "price",
       header: t("impersonation.listings.price"),
       priority: "secondary",
-      width: "w-[18%]",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="flex flex-wrap items-center gap-2 tabular-nums text-muted-foreground">
@@ -136,7 +136,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       key: "created",
       header: t("impersonation.listings.created"),
       priority: "detail",
-      width: "w-[18%]",
+      size: "date",
       card: "meta",
       cell: (row) => (
         <span className="block text-muted-foreground">{fmt.format(new Date(row.createdAt))}</span>

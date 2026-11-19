@@ -80,13 +80,35 @@ export type CardUntil = "md" | "lg" | "xl";
  */
 export type CardPlace = "title" | "sub" | "meta" | "badge" | "foot" | "hide";
 
+/**
+ * L17 (ACT-023) — the one closed set of column sizes, by the content a column
+ * holds. Fixed-layout header widths share the row in proportion to these
+ * weights, including columns hidden at a breakpoint. Wrapping text keeps its
+ * readable measure inside the cell. Min-width tables keep auto layout.
+ * A sixth size is refused until a real column needs it.
+ */
+export const COLUMN_SIZE = {
+  control: 2,
+  short: 3,
+  date: 3,
+  name: 4,
+  text: 7,
+} as const;
+
+export type ColumnSize = keyof typeof COLUMN_SIZE;
+
+/** The readable measure a `text` cell's content wraps at. */
+export const TEXT_MEASURE = "max-w-[60ch]";
+
 export interface DataTableColumn<T> {
   key: string;
   header: ReactNode;
   cell: (row: T) => ReactNode;
   priority: ColumnPriority;
   align?: "start" | "end";
-  /** Optional fixed/max width utility class for the table cell. */
+  /** L17 — the kind of content the column holds; the table gives the width. */
+  size?: ColumnSize;
+  /** Free width class: leaves the type in L18; use `size`. */
   width?: string;
   /**
    * C7 / INC-130 — MIN-WIDTH CONTRACT. A design-token min-width utility class
@@ -260,7 +282,7 @@ function cellClass(
     // column's own width (w-10 → start-10); pinning both at 0 made the first
     // data column jump 40px left on the first scroll tick (L11 drift).
     sticky !== false && cn("sticky z-10 bg-card", sticky),
-    column.width,
+    column.size ? undefined : column.width,
     column.minWidth,
   );
 }
@@ -525,6 +547,13 @@ export function DataTable<T>({
 
   /** Any declared min-width switches the table off fixed layout (C7). */
   const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
+  const usesShares = !hasMinWidths && columns.some((column) => column.size !== undefined);
+  // Data columns share the room left by the fixed selection and actions columns.
+  const totalWeight = columns.reduce((sum, column) => sum + COLUMN_SIZE[column.size ?? "name"], 0);
+  const shareStyle = (size: ColumnSize | undefined) =>
+    usesShares && size !== undefined
+      ? { width: `${(COLUMN_SIZE[size] / totalWeight) * 100}%` }
+      : undefined;
   /** U1d: the FIRST primary column carries the row link inside the table. */
 
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
@@ -922,6 +951,7 @@ export function DataTable<T>({
                       cellClass(column as DataTableColumn<unknown>, stickyFor(index)),
                       "font-semibold",
                     )}
+                    style={shareStyle(column.size)}
                     aria-sort={
                       sortKey === column.key
                         ? sortDirection === "desc"
@@ -1020,13 +1050,23 @@ export function DataTable<T>({
                             <Link
                               {...href}
                               data-testid={`${rowTestId(row)}-link`}
-                              className="block min-w-0 break-words"
+                              className={cn(
+                                "block min-w-0 break-words",
+                                column.size === "text" && TEXT_MEASURE,
+                              )}
                               onClick={(event) => event.stopPropagation()}
                             >
                               {column.cell(row)}
                             </Link>
                           ) : (
-                            <span className="block min-w-0 break-words">{column.cell(row)}</span>
+                            <span
+                              className={cn(
+                                "block min-w-0 break-words",
+                                column.size === "text" && TEXT_MEASURE,
+                              )}
+                            >
+                              {column.cell(row)}
+                            </span>
                           )}
                         </td>
                       ))}

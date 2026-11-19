@@ -328,7 +328,7 @@ function dataColumns(
       header: t("admin.translations.col.entity"),
       priority: "primary",
       card: "title",
-      width: "w-[30%]",
+      size: "text",
       cell: (row) => (
         <span className="block min-w-0">
           <span className="block truncate text-foreground" title={row.label}>
@@ -358,7 +358,7 @@ function dataColumns(
       header: t("admin.translations.col.entityType"),
       priority: "detail",
       card: "sub",
-      width: "w-[14%]",
+      size: "name",
       cell: (row) => (
         <span className="block truncate text-xs text-muted-foreground">
           {t(
@@ -374,7 +374,7 @@ function dataColumns(
       header: t("admin.translations.col.source"),
       priority: "secondary",
       card: "meta",
-      width: "w-[22%]",
+      size: "text",
       cell: (row) => (
         <span className="block truncate text-muted-foreground" title={row.sourceValue ?? undefined}>
           {row.sourceValue ?? "—"}
@@ -386,7 +386,7 @@ function dataColumns(
       header: t("admin.translations.col.value"),
       priority: "primary",
       card: "meta",
-      width: "w-[22%]",
+      size: "text",
       cell: (row) => (
         <span
           dir={rtl ? "rtl" : undefined}
@@ -402,7 +402,7 @@ function dataColumns(
       header: t("admin.translations.col.status"),
       priority: "primary",
       card: "badge",
-      width: "w-[12%]",
+      size: "short",
       cell: (row) => (
         <Badge variant="outline" data-testid={`entity-status-${entityRowSlug(row)}`}>
           {t(ownValue(STATUS_LABELS, row.status) ?? "admin.translations.status.untranslated")}

@@ -164,7 +164,7 @@ function PrimitivesFixture() {
       key: "name",
       header: "Name",
       priority: "primary",
-      width: "w-[16%]",
+      size: "name",
       cell: (row) => (
         <span className="block truncate font-medium text-foreground" title={row.name}>
           {row.name}
@@ -175,7 +175,7 @@ function PrimitivesFixture() {
       key: "email",
       header: "Email",
       priority: "primary",
-      width: "w-[20%]",
+      size: "text",
       cell: (row) => (
         <span className="block break-all text-muted-foreground" title={row.email}>
           {row.email}
@@ -186,7 +186,7 @@ function PrimitivesFixture() {
       key: "description",
       header: "Description",
       priority: "secondary",
-      width: "w-[18%]",
+      size: "text",
       cell: (row) => (
         <span className="block truncate text-muted-foreground" title={row.description}>
           {row.description}
@@ -197,7 +197,7 @@ function PrimitivesFixture() {
       key: "chips",
       header: "Tags",
       priority: "secondary",
-      width: "w-[14%]",
+      size: "name",
       cell: () => (
         <span className="flex flex-wrap gap-1">
           {CHIPS.map((chip) => (
@@ -212,14 +212,14 @@ function PrimitivesFixture() {
       key: "country",
       header: "Country",
       priority: "secondary",
-      width: "w-[6%]",
+      size: "short",
       cell: (row) => <span className="block text-muted-foreground">{row.country}</span>,
     },
     {
       key: "status",
       header: "Status",
       priority: "secondary",
-      width: "w-[8%]",
+      size: "short",
       cell: (row) => (
         <Badge variant={row.status === "deactivated" ? "destructive" : "secondary"}>
           {row.status}
@@ -231,7 +231,7 @@ function PrimitivesFixture() {
       header: "Roles",
       priority: "secondary",
       sortable: true,
-      width: "w-[10%]",
+      size: "name",
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
           {row.roles.map((role) => (
@@ -247,7 +247,7 @@ function PrimitivesFixture() {
       header: "Listings",
       priority: "detail",
       align: "end",
-      width: "w-[6%]",
+      size: "short",
       cell: (row) => <span className="block tabular-nums">{row.listings}</span>,
     },
     {
@@ -255,14 +255,14 @@ function PrimitivesFixture() {
       header: "Views",
       priority: "detail",
       align: "end",
-      width: "w-[6%]",
+      size: "short",
       cell: (row) => <span className="block tabular-nums">{row.views}</span>,
     },
     {
       key: "handle",
       header: "Storefront",
       priority: "detail",
-      width: "w-[10%]",
+      size: "name",
       cell: (row) => <span className="block break-all text-muted-foreground">{row.handle}</span>,
     },
     {
@@ -270,14 +270,14 @@ function PrimitivesFixture() {
       header: "Joined",
       priority: "detail",
       sortable: true,
-      width: "w-[8%]",
+      size: "date",
       cell: (row) => <span className="block tabular-nums">{row.joined}</span>,
     },
     {
       key: "updated",
       header: "Updated",
       priority: "detail",
-      width: "w-[8%]",
+      size: "date",
       cell: (row) => <span className="block tabular-nums">{row.updated}</span>,
     },
   ];
@@ -289,7 +289,7 @@ function PrimitivesFixture() {
    */
   const denseColumns: DataTableColumn<FixtureRow>[] = columns.map((column) => ({
     ...column,
-    width: undefined,
+    size: undefined,
     minWidth: column.priority === "primary" ? "min-w-56" : "min-w-40",
     priority: column.key === "views" || column.key === "updated" ? "wide" : column.priority,
   }));
