@@ -34,12 +34,68 @@ export type OrderNames = {
   productName: (key: string) => string;
 };
 
+/** The one date rule: a row holds at `nowIso` when it has started and not ended. */
+export function priceHoldsNow(price: PriceRow, nowIso: string): boolean {
+  if (price.validFrom > nowIso) return false;
+  return price.validTo === null || price.validTo > nowIso;
+}
+
 /** True when `price` pays for `product` in `market` at `nowIso`. */
 function priceHolds(price: PriceRow, product: ProductRow, market: MarketRow, nowIso: string) {
   if (price.packageKey !== product.key) return false;
   if (price.countryCode !== null && price.countryCode !== market.countryCode) return false;
-  if (price.validFrom > nowIso) return false;
-  return price.validTo === null || price.validTo > nowIso;
+  return priceHoldsNow(price, nowIso);
+}
+
+/** A standard row applies to every market and every category. */
+export function isStandardPrice(price: PriceRow): boolean {
+  return price.countryCode === null && price.categoryId === null;
+}
+
+/**
+ * L16 (ACT-024) — WHAT A PRODUCT'S ROW SAYS ABOUT ITS PRICE: its standard rows
+ * that hold now (one per currency, as stored) and how many exceptions hold now.
+ * Rows as they are — nothing is picked or computed (CF-PRICE-1).
+ */
+export function rowPrice(
+  prices: readonly PriceRow[],
+  productKey: string,
+  nowIso: string,
+): { standard: PriceRow[]; exceptions: number } {
+  const holding = prices.filter(
+    (price) => price.packageKey === productKey && priceHoldsNow(price, nowIso),
+  );
+  return {
+    standard: holding.filter(isStandardPrice),
+    exceptions: holding.filter((price) => !isStandardPrice(price)).length,
+  };
+}
+
+export type PriceGroup = "now" | "scheduled" | "ended";
+
+/** Each group's word, drawn on every price row (ended rows included). */
+export const PRICE_GROUP_KEY = {
+  now: "admin.monetisation.price.group.now",
+  scheduled: "admin.monetisation.price.group.scheduled",
+  ended: "admin.monetisation.price.group.ended",
+} as const satisfies Record<PriceGroup, string>;
+
+export function priceGroupOf(price: PriceRow, nowIso: string): PriceGroup {
+  if (price.validFrom > nowIso) return "scheduled";
+  return priceHoldsNow(price, nowIso) ? "now" : "ended";
+}
+
+/** The prices in reading order: Now (standard first), then Scheduled, then Ended; stable within. */
+export function priceGroups(rows: readonly PriceRow[], nowIso: string): PriceRow[] {
+  const rank = (price: PriceRow) => {
+    const group = priceGroupOf(price, nowIso);
+    if (group === "now") return isStandardPrice(price) ? 0 : 1;
+    return group === "scheduled" ? 2 : 3;
+  };
+  return rows
+    .map((price, index) => ({ price, index }))
+    .sort((a, b) => rank(a.price) - rank(b.price) || a.index - b.index)
+    .map(({ price }) => price);
 }
 
 /** The first (product, market) pair a seller could buy but cannot pay for, or null. */
@@ -85,7 +141,8 @@ export function monetisationSteps(
       id: "products",
       label: t("admin.monetisation.step.products"),
       state: hasLevel && hasReach ? "set" : "needsRow",
-      hash: MONETISATION_ANCHORS.level,
+      // The exact place: the reach block when only reach is missing.
+      hash: hasLevel && !hasReach ? MONETISATION_ANCHORS.reach : MONETISATION_ANCHORS.level,
     },
     unpriced === null
       ? {

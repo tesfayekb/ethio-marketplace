@@ -33,6 +33,8 @@ export const enGuide = {
   "admin.monetisation.level.guide.what":
     "The levels an ad can have — Regular, Featured, Premium and any you add. A level sets how long an ad runs, how many photos it may carry, where it is placed and whether it wears a badge. Open a level to set its per-category perks and its prices.",
   "admin.monetisation.level.guide.col.name": "The name sellers see, in each language.",
+  "admin.monetisation.level.guide.col.price":
+    'The level\'s price now: its standard price and how many specific prices are in force. "No price yet" means sellers cannot buy it.',
   "admin.monetisation.level.guide.col.key":
     "The level's fixed identity in the system; it never changes once saved.",
   "admin.monetisation.level.guide.col.days": "How many days the level runs by default.",
@@ -60,6 +62,8 @@ export const enGuide = {
   "admin.monetisation.reach.guide.what":
     "The reach products — how far an ad is seen: its city, the whole country or worldwide. A reach only has a duration; its perks come from the ad's level. Open a reach to set its prices.",
   "admin.monetisation.reach.guide.col.name": "The name sellers see, in each language.",
+  "admin.monetisation.reach.guide.col.price":
+    'The reach\'s price now: its standard price and how many specific prices are in force. "No price yet" means sellers cannot buy it.',
   "admin.monetisation.reach.guide.col.key":
     "The reach's fixed identity in the system; it never changes once saved.",
   "admin.monetisation.reach.guide.col.days": "How many days the reach runs.",

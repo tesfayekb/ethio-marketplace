@@ -178,7 +178,7 @@ export function MarketsSection({
           }
           emptyState={
             <p className="text-sm text-muted-foreground" data-testid="monetisation-markets-empty">
-              {t("admin.monetisation.empty.markets")}
+              {t("admin.monetisation.empty.marketsWhy")}
             </p>
           }
           toolbar={

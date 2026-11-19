@@ -24,6 +24,7 @@ import type { OverrideRow, PriceRow, ProductKind, ProductRow } from "./monetisat
 import { ProductDetails } from "./product-details";
 import { ProductEditorDialog } from "./product-editor";
 import { ProductNameToggle } from "./product-name-toggle";
+import { ProductPriceCell } from "./product-price-cell";
 import { useMonetisationNames } from "./use-monetisation-names";
 
 /**
@@ -33,6 +34,10 @@ import { useMonetisationNames } from "./use-monetisation-names";
  * One block shape, the kind choosing the title, the perk or cap columns and
  * the editor's fields. The row's one verb is Edit; the header
  * adds a product of this kind. A product is switched off, never removed.
+ *
+ * L16 (ACT-024) — each row shows its price (product-price-cell.tsx); a named
+ * button after the name opens the row at its prices; a product just added
+ * opens there with focus on its Add price.
  *
  * P-1c (D313) — a product's name opens its row: a level's per-category perks
  * and its prices, a reach's prices (product-details.tsx), each from the page's
@@ -99,6 +104,23 @@ export function ProductsSection({
     frame.scrollIntoView({ block: "start" });
     frame.focus({ preventScroll: true });
   }, [hash, hashedOpen]);
+  // L16 — a product just added opens at its prices; focus moves to its Add price once drawn.
+  const [focusAdd, setFocusAdd] = useState<string | null>(null);
+  const created = (key: string) => {
+    setOpen((current) => (current.includes(key) ? current : [...current, key]));
+    setFocusAdd(key);
+  };
+  const createdShown = focusAdd !== null && rows.some((row) => row.key === focusAdd);
+  useEffect(() => {
+    if (!createdShown || focusAdd === null) return;
+    const button = document.querySelector<HTMLElement>(
+      `[data-testid="product-${CSS.escape(focusAdd)}-price-add"]`,
+    );
+    if (button === null) return;
+    button.focus();
+    setFocusAdd(null);
+  }, [createdShown, focusAdd]);
+  const nowIso = new Date().toISOString();
   const toggle = (key: string) =>
     setOpen((current) =>
       current.includes(key) ? current.filter((one) => one !== key) : [...current, key],
@@ -180,10 +202,18 @@ export function ProductsSection({
         <ProductNameToggle
           id={idOf(row)}
           name={productName(row.key)}
+          level={isLevel}
           open={open.includes(row.key)}
           onToggle={() => toggle(row.key)}
         />
       ),
+    },
+    {
+      key: "price",
+      header: t("admin.monetisation.col.price"),
+      priority: "primary",
+      card: "meta",
+      cell: (row) => <ProductPriceCell productKey={row.key} prices={prices} nowIso={nowIso} />,
     },
     {
       key: "key",
@@ -314,7 +344,11 @@ export function ProductsSection({
               className="text-sm text-muted-foreground"
               data-testid={`monetisation-${blockId}-empty`}
             >
-              {t(isLevel ? "admin.monetisation.empty.levels" : "admin.monetisation.empty.reach")}
+              {t(
+                isLevel
+                  ? "admin.monetisation.empty.levelsWhy"
+                  : "admin.monetisation.empty.reachWhy",
+              )}
             </p>
           }
           toolbar={
@@ -374,6 +408,7 @@ export function ProductsSection({
           guard={guard}
           openedBy={dialog.openedBy}
           onClose={() => setDialog({ kind: "none" })}
+          onCreated={created}
         />
       ) : null}
       {editing !== null && dialog.kind === "edit" ? (

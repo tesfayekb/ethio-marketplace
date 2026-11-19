@@ -24,6 +24,8 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.level.guide.what":
     "ማስታወቂያ ሊኖረው የሚችለው ደረጃዎች — መደበኛ፣ የተለየ፣ ፕሪሚየም እና እርስዎ የሚጨምሩት ማንኛውም። ደረጃ ማስታወቂያ ምን ያህል እንደሚቆይ፣ ስንት ፎቶ እንደሚይዝ፣ የት እንደሚቀመጥ እና ምልክት እንደሚኖረው ይወስናል። የምድብ ጥቅሞቹን እና ዋጋዎቹን ለማስቀመጥ ደረጃውን ይክፈቱ።",
   "admin.monetisation.level.guide.col.name": "ሻጮች በየቋንቋው የሚያዩት ስም።",
+  "admin.monetisation.level.guide.col.price":
+    "የደረጃው የአሁን ዋጋ፦ አጠቃላይ ዋጋው፣ እና በሥራ ላይ ያሉ ልዩ ዋጋዎች ብዛት። «እስካሁን ዋጋ የለም» ማለት ሻጮች ሊገዙት አይችሉም ማለት ነው።",
   "admin.monetisation.level.guide.col.key":
     "የደረጃው በስርዓቱ ውስጥ ያለው ቋሚ መለያ፤ አንዴ ከተቀመጠ በኋላ በፍጹም አይቀየርም።",
   "admin.monetisation.level.guide.col.days": "ደረጃው በነባሪነት ስንት ቀን እንደሚቆይ።",
@@ -48,6 +50,8 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.reach.guide.what":
     "የተደራሽነት ምርቶች — ማስታወቂያ እስከ የት እንደሚታይ፦ ከተማው፣ መላው ሀገር ወይም ዓለም አቀፍ። ተደራሽነት ቆይታ ብቻ አለው፤ ጥቅሞቹ ከማስታወቂያው ደረጃ ይመጣሉ። ዋጋዎቹን ለማስቀመጥ ተደራሽነቱን ይክፈቱ።",
   "admin.monetisation.reach.guide.col.name": "ሻጮች በየቋንቋው የሚያዩት ስም።",
+  "admin.monetisation.reach.guide.col.price":
+    "የተደራሽነቱ የአሁን ዋጋ፦ አጠቃላይ ዋጋው፣ እና በሥራ ላይ ያሉ ልዩ ዋጋዎች ብዛት። «እስካሁን ዋጋ የለም» ማለት ሻጮች ሊገዙት አይችሉም ማለት ነው።",
   "admin.monetisation.reach.guide.col.key":
     "የተደራሽነቱ በስርዓቱ ውስጥ ያለው ቋሚ መለያ፤ አንዴ ከተቀመጠ በኋላ በፍጹም አይቀየርም።",
   "admin.monetisation.reach.guide.col.days": "ተደራሽነቱ ስንት ቀን እንደሚቆይ።",

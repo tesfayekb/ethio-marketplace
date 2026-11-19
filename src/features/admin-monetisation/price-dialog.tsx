@@ -9,7 +9,9 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { currencyText, orderCurrencies, useCurrencies } from "@/features/posting/pricing-data";
+import { fill } from "@/features/posting/refusal-text";
 import { useI18n, type MessageKey } from "@/i18n";
+import { dateFormatter, moneyText } from "@/lib/format";
 import type { Refusal } from "@/lib/refusal";
 
 import {
@@ -24,6 +26,7 @@ import {
   flattenTree,
   priceFormInput,
   priceFormOf,
+  priceSummaryOf,
   type PriceFormValues,
 } from "./price-forms";
 import { useEditPrice, useSavePrice } from "./use-monetisation";
@@ -65,7 +68,7 @@ export function PriceDialog({
   openedBy: string;
   onClose: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const save = useSavePrice();
   const edit = useEditPrice();
   const { refusal, clear, fail, render } = useMonetisationError();
@@ -296,6 +299,39 @@ export function PriceDialog({
           onChange={(next) => change({ validTo: next })}
         />
       </Field>
+      {(() => {
+        const summary = priceSummaryOf({ ...form, currency }, today);
+        if (summary === null || form.packageKey === "") return null;
+        const date = dateFormatter("day", language);
+        const day = (value: string) => date.format(new Date(`${value}T00:00:00`));
+        const where = `${marketName(form.countryCode === "" ? null : form.countryCode, "everyMarket")} · ${categoryName(form.categoryId === "" ? null : form.categoryId, "everyCategory")}`;
+        const amount =
+          summary.amount === 0
+            ? t("admin.packages.prices.free")
+            : moneyText(summary.amount, currency, language, "exact");
+        return (
+          <p
+            className="min-w-0 break-words text-sm text-foreground"
+            data-testid={`${prefix}-summary`}
+            aria-live="polite"
+          >
+            {fill(
+              t(
+                summary.toDay === null
+                  ? "admin.monetisation.price.summary"
+                  : "admin.monetisation.price.summaryUntil",
+              ),
+              {
+                product: productName(form.packageKey),
+                where,
+                amount,
+                from: day(summary.fromDay),
+                to: summary.toDay === null ? "" : day(summary.toDay),
+              },
+            )}
+          </p>
+        );
+      })()}
       <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
       <MonetisationDialogActions
         onCancel={onClose}
