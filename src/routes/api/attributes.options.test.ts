@@ -15,7 +15,8 @@ beforeEach(() => {
     message: "",
   });
   state.rpc.mockImplementation(async (name: string) => ({
-    data: name === "get_attribute_options_version" ? "v1" : { options: ["one"], version: "v1" },
+    data:
+      name === "get_attribute_options_version_read" ? "v1" : { options: ["one"], version: "v1" },
     error: null,
     status: 200,
   }));
@@ -92,13 +93,13 @@ it("ATO-5 TTL hit skips version but checks caller twice", async () => {
   expect((await get({ request: request(), params: { id: ID } })).status).toBe(200);
   expect(state.caller).toHaveBeenCalledTimes(2);
   expect(
-    state.rpc.mock.calls.filter(([name]) => name === "get_attribute_options_version"),
+    state.rpc.mock.calls.filter(([name]) => name === "get_attribute_options_version_read"),
   ).toHaveLength(1);
 });
 it("ATO-6 rateLimited is not cached", async () => {
   const get = await reader();
   state.rpc.mockImplementation(async (name: string) => ({
-    data: name === "get_attribute_options_version" ? "v1" : null,
+    data: name === "get_attribute_options_version_read" ? "v1" : null,
     error: name === "get_attribute_options" ? { message: "rateLimited" } : null,
     status: 400,
   }));
@@ -108,14 +109,14 @@ it("ATO-6 rateLimited is not cached", async () => {
     expect(await response.json()).toEqual({ error: "rateLimited" });
   }
   expect(
-    state.rpc.mock.calls.filter(([name]) => name === "get_attribute_options_version"),
+    state.rpc.mock.calls.filter(([name]) => name === "get_attribute_options_version_read"),
   ).toHaveLength(2);
 });
 it("ATO-7 the shell's refusals: attributeNotFound is a 404, rateLimited a 429 that is not cached, any other code a read failure", async () => {
   const get = await reader();
   const refuse = (message: string, status: number) =>
     state.rpc.mockImplementation(async (name: string) => ({
-      data: name === "get_attribute_options_version" ? "v1" : null,
+      data: name === "get_attribute_options_version_read" ? "v1" : null,
       error: name === "get_attribute_options" ? { message } : null,
       status,
     }));
@@ -127,6 +128,11 @@ it("ATO-7 the shell's refusals: attributeNotFound is a 404, rateLimited a 429 th
   const limited = await get({ request: request(), params: { id: ID } });
   expect(limited.status).toBe(429);
   expect(await limited.json()).toEqual({ error: "rateLimited" });
+  // F1-7a — the gate's rateLimited carries the dial's reset instant; the route still answers 429.
+  refuse("rateLimited:2026-11-19T20:05:12.123456+00:00", 429);
+  const limitedWithTime = await get({ request: request(), params: { id: ID } });
+  expect(limitedWithTime.status).toBe(429);
+  expect(await limitedWithTime.json()).toEqual({ error: "rateLimited" });
   refuse("accountDeactivated", 403);
   const deactivated = await get({ request: request(), params: { id: ID } });
   expect([404, 429]).not.toContain(deactivated.status);

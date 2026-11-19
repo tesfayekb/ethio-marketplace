@@ -316,6 +316,30 @@ describe("the owner's draft read (turn T1)", () => {
   });
 
   /**
+   * F1-7a — `my_listing_private` is on the gate: another seller's ad answers the code `notYourListing`
+   * (the old sentence is gone), and the draft read says "not this account's" by null; any other
+   * refusal is a failure the caller sees, never a null.
+   */
+  it("PSV-10 readDraft: the gate's notYourListing is a null draft; any other refusal throws", async () => {
+    tables.rows = {
+      listings: { id: "psv-10", draft_step: 1, status: "draft", attributes: {}, tier: null },
+      listing_photos: [],
+      listing_locations: [],
+    };
+    try {
+      tables.doorAnswer = { data: null, error: { message: "notYourListing", code: "P0D01" } };
+      expect(await readDraft("psv-10")).toBeNull();
+      for (const message of ["notSignedIn", "accountDeactivated", "not your listing", "boom"]) {
+        tables.doorAnswer = { data: null, error: { message, code: "P0D01" } };
+        await expect(readDraft("psv-10"), message).rejects.toThrow(message);
+      }
+    } finally {
+      tables.rows = {};
+      tables.doorAnswer = null;
+    }
+  });
+
+  /**
    * F1-5a — `get_posting_schema` is on the shell: its refusal is the call's error, `message` =
    * `code[:detail]`; the details step's "too many reads" line reads it through the one reader.
    */

@@ -4,7 +4,7 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { ownValue } from "@/lib/own-key";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, splitRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import {
   LISTING_GROUPS,
@@ -78,7 +78,8 @@ export function parseMyListing(value: unknown): MyListing | null {
 export async function readMyListing(listingId: string): Promise<MyListing | "notYours"> {
   const { data, error } = await supabase.rpc("my_listing", { p_listing_id: listingId });
   if (error) {
-    if (error.message.includes("not your listing")) return "notYours";
+    // F1-7a — the gate's code, cut at its first colon (the one reader's cut), not the old sentence.
+    if (splitRefusal(error.message.trim()).key === "notYourListing") return "notYours";
     throw new Error(error.message);
   }
   const parsed = parseMyListing(data);

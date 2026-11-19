@@ -165,6 +165,7 @@ async function handle(
    * U6-C1-R3a / STEP 8 — THE CONTACT SHAPE IS JUDGED BEFORE THE PROFILE IS
    * TOUCHED. `listing_contact_refusals` is the same validator the door and the
    * draft use (F3: one authority, asked earlier); its answer is a refusal list.
+   * F1-7a (DEC-409): the route asks its reader on the gate, `listing_contact_refusals_read`.
    */
   const pref = body.contactPref;
   if (pref !== undefined && pref !== null) {
@@ -172,10 +173,10 @@ async function handle(
       data: found,
       error: checkError,
       status: checkStatus,
-    } = await supabase.rpc("listing_contact_refusals", { p_pref: pref as never });
+    } = await supabase.rpc("listing_contact_refusals_read", { p_pref: pref as never });
     // INC-574 — the validator was never reached: 503, not a refusal.
     if (upstreamFailed(checkError, checkStatus)) {
-      return upstreamUnavailable(PATH, "listing_contact_refusals", checkStatus);
+      return upstreamUnavailable(PATH, "listing_contact_refusals_read", checkStatus);
     }
     if (checkError) {
       logRouteError(PATH, checkError.message);
@@ -199,8 +200,9 @@ async function handle(
   };
 
   let saved: DoorResult | null = null;
-  // F1-5a — the door is on the shell: a refusal (the gate's `rateLimited` included, which names
-  // no reset time — INC-1170) reaches the client as its code, through doorCall.
+  // F1-5a — the door is on the shell: a refusal reaches the client as its code, through doorCall.
+  // F1-7a (INC-1170) — the gate's `rateLimited` carries the dial's reset instant (`rateLimited:<instant>`);
+  // `doorRefusal` reads it as the code `rateLimited` with the instant as its `detail`.
   const answer = await doorCall(PATH, async () => {
     saved = await supabase.rpc("save_posting_identity", args as IdentityArgs);
     return saved;

@@ -5791,6 +5791,10 @@ export type Database = {
         Args: { p_attribute_id: string }
         Returns: string
       }
+      get_attribute_options_version_read: {
+        Args: { p_attribute_id: string }
+        Returns: string
+      }
       get_browse_tree: {
         Args: { p_country_code: string }
         Returns: {
@@ -6043,6 +6047,7 @@ export type Database = {
         Returns: Json
       }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
+      listing_contact_refusals_read: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
       listing_effective_reach: {
         Args: { p_country?: string; p_listing: string }
@@ -6057,7 +6062,7 @@ export type Database = {
       }
       listing_places_trim: { Args: { p_listing_id: string }; Returns: string[] }
       listing_reveal_count: { Args: { p_listing_id: string }; Returns: number }
-      listing_saved: { Args: { p_public_id: string }; Returns: boolean }
+      listing_viewer_state: { Args: { p_public_id: string }; Returns: Json }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
       loc_id_of_key: { Args: { p_key: string }; Returns: string }
       loc_import_plan: {
@@ -6467,6 +6472,7 @@ export type Database = {
       }
       translation_placeholders: { Args: { p_text: string }; Returns: string[] }
       translation_scope_ok: { Args: { p_lang: string }; Returns: boolean }
+      translation_scope_ok_read: { Args: { p_lang: string }; Returns: boolean }
       ui_sync_mark_orphans: { Args: { p_en: Json }; Returns: Json }
       ui_text_written: {
         Args: { p_key: string; p_lang: string }

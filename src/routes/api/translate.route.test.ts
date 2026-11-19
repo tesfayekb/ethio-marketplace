@@ -47,7 +47,7 @@ vi.mock("@/server/supabase/user-client", async (original) => {
   const client = {
     rpc: async (name: string, args: Record<string, unknown>) => {
       state.calls.push({ name, args });
-      if (name === "translation_scope_ok") {
+      if (name === "translation_scope_ok_read") {
         return state.scopeError === null
           ? { data: state.scopeOk, error: null, status: 200 }
           : { data: null, error: { message: state.scopeError }, status: 500 };
@@ -220,7 +220,7 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       status: 403,
       body: { error: "not assigned to this language" },
     });
-    expect(state.calls).toEqual([{ name: "translation_scope_ok", args: { p_lang: "om" } }]);
+    expect(state.calls).toEqual([{ name: "translation_scope_ok_read", args: { p_lang: "om" } }]);
     expect(state.translateRequests + state.languageRequests).toBe(0);
     expect(state.spends).toEqual([]);
     expect(state.audits).toEqual([]);
@@ -502,7 +502,7 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       items: [{ key: "k", source: "s", context: "a note", type: "anything" }],
     });
     expect(accepted).toEqual({ status: 200, body: { done: 1, flagged: 0, failed: [] } });
-    expect(state.calls[0]).toEqual({ name: "translation_scope_ok", args: { p_lang: "am" } });
+    expect(state.calls[0]).toEqual({ name: "translation_scope_ok_read", args: { p_lang: "am" } });
   });
 
   it("TRR-9 a first-chunk provider network failure answers 200 with only that chunk's keys providerUnavailable and the second chunk written", async () => {

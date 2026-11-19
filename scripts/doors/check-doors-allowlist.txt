@@ -1,9 +1,5 @@
 # check-doors allowances (DEC-333): `<kind> <key> | reason | until` — kit grammar; stale or expired lines fail.
 # F1-1 census (plan §1.2): browser grants nothing in the tree calls by name — src/e2e code literal, policy, CHECK or
 # another body. Each is revoked, or its caller found, in its family's turn (plan §5); the line goes with it.
-# F1-7a (ruling 1, decisions 1 and 12): the new readers' app callers move in the turn's STEP 3, after the supervisor's
-# client types patch names them; each line leaves with its caller.
-grant-without-caller get_attribute_options_version_read(uuid) | F1-7a: src/routes/api/attributes.$id.options.ts calls it at STEP 3 (types patch first) | 2026-12-31
-grant-without-caller listing_contact_refusals_read(jsonb) | F1-7a: src/routes/api/listings/identity.ts calls it at STEP 3 (types patch first) | 2026-12-31
-grant-without-caller listing_viewer_state(text) | F1-7a: the ad page's viewer state (INC-1191) calls it at STEP 3 (types patch first) | 2026-12-31
-grant-without-caller translation_scope_ok_read(text) | F1-7a: src/routes/api/translate.ts calls it at STEP 3 (types patch first) | 2026-12-31
+# F1-7a (STEP 3): the four lines the new readers held until their callers moved left with the callers
+# (the three `_read` routes and the ad page's viewer state); none is in the tree.

@@ -42,20 +42,37 @@ export const saveListing = (publicId: string): Promise<SaveAnswer> =>
 export const unsaveListing = (publicId: string): Promise<SaveAnswer> =>
   toggle(publicId, "unsave_listing");
 
-export async function listingSaved(publicId: string): Promise<boolean | null> {
+/** INC-1191 — what a signed-in viewer is to one ad: has saved it, and is its seller. */
+export type ViewerState = { saved: boolean; owner: boolean };
+
+/** The viewer's state answer's shape guard: exactly two booleans, nothing narrowed by a cast. */
+function viewerStateOf(data: unknown): ViewerState | null {
+  if (data === null || typeof data !== "object" || Array.isArray(data)) return null;
+  const { saved, owner } = data as Record<string, unknown>;
+  return typeof saved === "boolean" && typeof owner === "boolean" ? { saved, owner } : null;
+}
+
+/**
+ * INC-1191 (F1-7a) — THE VIEWER'S STATE, ONE SIGNED-IN READ. `listing_viewer_state` (a reader on
+ * the gate) answers `{ saved, owner }` for an ad by its public id; the anonymous public read
+ * cannot know the viewer, so the ad page asks this once a person is signed in. `null` is
+ * unknown (a refusal, a malformed answer, a transport failure — logged), never "not the owner".
+ */
+export async function listingViewerState(publicId: string): Promise<ViewerState | null> {
   try {
-    const { data, error } = await rpc("listing_saved", { p_public_id: publicId });
+    const { data, error } = await rpc("listing_viewer_state", { p_public_id: publicId });
     if (error) {
-      console.error("[save-error] listing_saved", error.message);
+      console.error("[save-error] listing_viewer_state", error.message);
       return null;
     }
-    if (typeof data !== "boolean") {
-      console.error("[save-error] listing_saved: malformed answer");
+    const state = viewerStateOf(data);
+    if (state === null) {
+      console.error("[save-error] listing_viewer_state: malformed answer");
       return null;
     }
-    return data;
+    return state;
   } catch (error) {
-    console.error("[save-error] listing_saved", error);
+    console.error("[save-error] listing_viewer_state", error);
     return null;
   }
 }

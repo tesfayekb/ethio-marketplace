@@ -17,17 +17,17 @@ import { currencyText, orderCurrencies, type CurrencyRow } from "./pricing-data"
  */
 function sqlShapeTable(): Record<string, { forcedMode: string | null; period: string | null }> {
   const dir = join(process.cwd(), "supabase", "migrations");
-  // D62-2 — the NEWEST declaration is the law (247a3ed0 re-declared it for DEC-081).
+  // D62-2 — the NEWEST declaration is the law (247a3ed0 re-declared it for DEC-081). F1-7a: a
+  // DECLARATION, not any mention — a later file that only REVOKEs the function names it too.
+  const declaration = /CREATE (?:OR REPLACE )?FUNCTION public\.price_shape_for_basis\b/;
   const file = readdirSync(dir)
     .filter((name) => name.endsWith(".sql"))
     .sort()
-    .filter((name) =>
-      readFileSync(join(dir, name), "utf8").includes("FUNCTION public.price_shape_for_basis"),
-    )
+    .filter((name) => declaration.test(readFileSync(join(dir, name), "utf8")))
     .pop();
   if (file === undefined) throw new Error("no migration declares price_shape_for_basis");
   const sql = readFileSync(join(dir, file), "utf8");
-  const start = sql.indexOf("FUNCTION public.price_shape_for_basis");
+  const start = sql.search(declaration);
   const body = sql.slice(start, sql.indexOf("$$;", start));
   const cases = [...body.matchAll(/CASE p_value([\s\S]*?)END/g)].map((match) => match[1]);
   if (cases.length !== 2) throw new Error(`expected two CASE arms, found ${cases.length}`);

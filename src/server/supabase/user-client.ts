@@ -354,21 +354,21 @@ export async function peekRate(
 }
 
 /**
- * INC-396 — the doors count for themselves (`rate_gate`) and name the reset as
- * `resets_at`; the client has always read a route refusal's `detail`. This keeps
- * what the client receives unchanged.
+ * INC-396 → INC-1170 (F1-7a) — THE `resets_at → detail` MAPPING IS RETIRED.
+ *
+ * It turned a door's RETURNED refusal `{ reason: "rateLimited", resets_at }` into the
+ * route refusal's `detail`. Its producers were the posting family's doors, which
+ * returned that envelope until they moved onto the shell (F1-5a); a scan of every
+ * function's last declaration finds none left (the only body naming both
+ * `rateLimited` and `resets_at` besides the gate is `reveal_listing_contact`'s flat
+ * `{ ok, reason, resets_at }`, which is no `refusals` entry and is read by the ad
+ * page itself). The shell now raises `rateLimited:<resets_at>`, and `doorRefusal`
+ * (`src/lib/door-error.ts`) reads it as the code with its detail — the one form the
+ * routes' own dial refusals carry (`src/server/route.ts`).
+ *
+ * Left as the identity: `doorCall` (`src/server/door.ts`) and `answer.ts` call it, and
+ * both files are F1-7c's (every door call's `Result` typed); the call goes with them.
  */
 export function doorAnswer(data: unknown): unknown {
-  if (data === null || typeof data !== "object") return data;
-  const refusals = (data as { refusals?: unknown }).refusals;
-  if (!Array.isArray(refusals)) return data;
-  return {
-    ...(data as Record<string, unknown>),
-    refusals: refusals.map((entry: unknown) => {
-      if (entry === null || typeof entry !== "object") return entry;
-      const { resets_at: resetsAt, ...rest } = entry as Record<string, unknown>;
-      if (rest["reason"] !== "rateLimited") return entry;
-      return typeof resetsAt === "string" ? { ...rest, detail: resetsAt } : rest;
-    }),
-  };
+  return data;
 }

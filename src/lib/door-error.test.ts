@@ -20,6 +20,47 @@ describe("doorRefusal (INC-447)", () => {
     expect(doorRefusal("rateLimited")).toEqual({ field: "door", reason: "rateLimited" });
   });
 
+  // F1-7a (ruling 2, decision 11) — the gate's rateLimited carries its reset instant, which holds `:` and `+`.
+  it("DE-1 a code with an instant as its detail is the code and its detail", () => {
+    for (const instant of [
+      "2026-11-19T20:05:12.123456+00:00",
+      "2026-11-19T20:05:12+00:00",
+      "2026-11-19T20:05:12Z",
+    ]) {
+      expect(doorRefusal(`rateLimited:${instant}`), instant).toEqual({
+        field: "door",
+        reason: "rateLimited",
+        detail: instant,
+      });
+    }
+  });
+
+  it("DE-2 the code is cut at the FIRST colon: a detail may hold colons, plus signs and spaces", () => {
+    expect(doorRefusal("notReady:a:b + c")).toEqual({
+      field: "door",
+      reason: "notReady",
+      detail: "a:b + c",
+    });
+    // The surrounding whitespace is not part of the refusal.
+    expect(doorRefusal("  rateLimited:2026-11-19T20:05:12+00:00\n")).toEqual({
+      field: "door",
+      reason: "rateLimited",
+      detail: "2026-11-19T20:05:12+00:00",
+    });
+  });
+
+  it("DE-3 the code keeps its strict pattern: a head that is not a bare camelCase code is a sentence", () => {
+    for (const message of [
+      "illegal transition: draft -> sold",
+      "my_saved_listings: badSize",
+      "Rate:limited",
+      "2fast:soon",
+      ":2026-11-19T20:05:12+00:00",
+    ]) {
+      expect(doorRefusal(message).reason, message).toBe("doorError");
+    }
+  });
+
   it("never sends raw text: doorError with the constraint or nothing", () => {
     expect(doorRefusal('violates check constraint "listings_place_unless_draft"')).toEqual({
       field: "door",

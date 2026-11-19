@@ -28,7 +28,8 @@ async function handler(ctx: RouteContext<unknown, z.infer<typeof Params>>): Prom
     const held = await OPTIONS.get(
       id,
       async () => {
-        const { data, error, status } = await supabase.rpc("get_attribute_options_version", {
+        // F1-7a (DEC-409) — the browser's reader on the gate; the old name serves the SQL callers only.
+        const { data, error, status } = await supabase.rpc("get_attribute_options_version_read", {
           p_attribute_id: id,
         });
         if (error) throw readFailed(error, status);
