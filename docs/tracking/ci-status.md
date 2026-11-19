@@ -1,30 +1,30 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `8ac9908f829fd3733371bec2e25ae7b79797ae5b` (short `8ac9908`)
+- Commit: `6c53e506229c46b54bcc9ea424ab373658217d86` (short `6c53e50`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-19T13:59:59Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44538132946
-- Lanes: skipped — the code tree was proven by run 44525972035 (pull_request, lovable/admin-menu-ai, head e6a144a)
+- Completed (UTC): 2026-11-19T19:27:51Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44597601729
+- Lanes: skipped — the code tree was proven by run 44561243305 (pull_request, lovable/monetisation-price-path, head 6a19edd)
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Migration linter (with self-test) | success |
+| i18n used-on map is fresh (U4i ②) | success |
+| Build, typecheck, lint | success |
+| Scope (docs-only push, DEC-365) | success |
 | Import gate guard (with self-test) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | Component tests | success |
 | E2E preflight (migration parity, staging) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| Build, typecheck, lint | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| Hardcoded string scan (enforcing) | success |
-| i18n used-on map is fresh (U4i ②) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | Gitleaks secrets scan | success |
-| Scope (docs-only push, DEC-365) | success |
-| Listing-write seam guard (with self-test) | success |
 | Semgrep (enforcing on ERROR) | success |
+| Migration linter (with self-test) | success |
+| Hardcoded string scan (enforcing) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Listing-write seam guard (with self-test) | success |
 | E2E (Playwright, ethio-staging) | success |
-| First-paint bundle budget (gzipped ceiling) | skipped (proven tree) |
 | E2E lanes | skipped (proven tree) |
+| First-paint bundle budget (gzipped ceiling) | skipped (proven tree) |
 | Promote to main (fast-forward on green) | success |
