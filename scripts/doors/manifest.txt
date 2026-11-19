@@ -149,93 +149,57 @@ admin_upsert_language(text,text,text,boolean,text[]) | staff | authenticated | t
 admin_upsert_location(uuid,uuid,text,text,text,text,text[],integer,double precision,double precision) | staff | authenticated | locations:create | row | staff_config | location.create | row:locations.country_code | staff | badLevel,isoOnRegionsOnly,locationMissing,nameRequired,parentMissing,rootMustBeCountry,unknownCountry,useMoveDoor | -
 admin_user_activity(uuid,integer) | staff-reader | authenticated | profiles:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_user_legal_history(uuid) | staff-reader | authenticated | profiles:view | - | - | - | global | - | unknownUser | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-assert_parent_not_catchall(uuid) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 assign_role(uuid,text,character) | staff | authenticated | roles:assign | row | staff_config | role.assign | arg:scope_country | staff | roleReserved,unknownRole | -
-attr_allowed_check(text,jsonb,jsonb,jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_answer_other_text(jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_answer_tokens(jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_bound_ok(text) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_bound_value(text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_bounds_targets(jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_cats_expand(uuid[]) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_cell_check(text,text,text,text,integer,text,text,integer,text,text,text) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_contact_like(text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_export_payload(text) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_inherited_ranks(uuid,jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_link_cells_refusal(uuid,uuid,text[],jsonb,jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_option_norm_v2(jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_option_shape(text,jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_postplan_cats(text,jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_preset_ok(text) | helper | authenticated | - | - | - | - | - | - | - | policy
-attr_rank_conflict(uuid,integer,text,jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_split_option_cell(text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_visible_when_met(jsonb,jsonb,jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-attr_visible_when_ok(jsonb) | helper | authenticated | - | - | - | - | - | - | - | policy
 base_languages() | staff-reader | authenticated | legal:edit | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 begin_impersonation(uuid,text) | staff | authenticated | impersonation:use | row | impersonation | impersonation.start | global | staff | badLength,impersonateSelf,impersonateSuperAdmin,sessionActive,unknownUser | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-cat_primary_parent(uuid) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-cat_primary_pointer(uuid) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-catalog_find_norm(text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 catalog_find_rebuild() | staff | authenticated | categories:import | row | staff_config | - | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-catalog_find_version() | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-category_slug_candidate(text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
 change_home_country(character) | owner | authenticated | - | - | identity | user.home_country_changed | - | account | - | its field-level envelope answers (unknownCountry, countryTooSoon) are business answers at 200, not door_refuse codes (F1-1)
 check_seller_alias(text) | owner | authenticated | - | - | alias_check | - | - | helper | - | -
 clear_seller_place() | owner | authenticated | - | - | draft | - | - | account | - | -
 copy_my_listing(uuid) | owner | authenticated | - | - | draft | - | - | draft | listingNotFound,notCopied,notYourListing,residencyUnknown | -
 edit_my_listing(uuid,jsonb,uuid[],text) | owner | authenticated | - | - | revise | - | - | checks | badShape,contactInNote,directionsTooLong,draftNotEdited,inReview,listingNotEditable,listingNotFound,notEditable,notYourListing,nothingChanged,renewFirst,streetTooLong | -
 end_impersonation(uuid) | owner | authenticated | - | - | account_pref | impersonation.end | - | account | noActiveSession | -
-entity_source_value(text,uuid,text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-feed_page(uuid,uuid,jsonb,integer) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+feed_page(uuid,uuid,jsonb,integer) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 get_active_impersonation() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-get_attribute_options_version(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
+get_attribute_options_version_read(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 get_attribute_options(uuid) | owner | authenticated | - | - | options_read | - | - | helper | attributeNotFound | a signed-in read that spends options_read: owner class for the dial it already spends (acceptance helper: it writes only the meter)
-get_browse_tree(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-get_category_attributes(uuid,boolean) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-get_category_tree_version() | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-get_entity_bundle(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-get_location_tree_version(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-get_location_tree(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+get_category_tree_version() | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
+get_entity_bundle(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
+get_location_tree_version(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
+get_location_tree(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 get_my_permissions() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 get_my_translator_languages() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-get_open_countries() | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+get_open_countries() | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 get_posting_schema(uuid) | owner | authenticated | - | - | schema_read | - | - | helper | categoryInactive,categoryNotFound,categoryNotPostable | -
-get_ui_bundle_parts(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-get_ui_bundle_version(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-get_ui_bundle(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+get_ui_bundle_parts(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
+get_ui_bundle_version(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 has_password() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-has_permission(uuid,text,text) | signed-in-reader | authenticated | - | - | - | - | - | - | - | invoker-chain (policies and definer bodies); a direct call about another person answers false (INC-409, F1-1)
+has_permission(uuid,text,text) | helper | authenticated | - | - | - | - | - | - | - | policy audit_log_read, category_assets_assets_delete, category_assets_assets_insert, category_assets_assets_update, category_assets_public_read, listing_locations_admin_read, listing_packages_staff_read, listing_photo_changes_admin_read, listing_photo_reviews_admin_read, listing_photo_warnings_admin_read, listing_photos_admin_read, listing_reports_staff_read, listings_admin_read, listings_admin_update, package_prices_staff_read, permissions_rbac_select, profiles_admin_read, resources_rbac_select, reveal_flags_staff_read, role_permissions_rbac_select, roles_rbac_select, user_roles_read
 impersonated_get_profile(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 impersonated_list_listings(uuid,integer,integer) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-impersonation_target(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-import_norm_text(text) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-import_sanitize(jsonb) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
-legal_in_force(text,character) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+legal_in_force(text,character) | public-reader | anon,authenticated | - | - | - | - | - | - | notSignedIn | -
 legal_review_overdue() | staff-reader | authenticated | legal:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-legal_scheduled(text,character) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-level_perks_for(text,uuid,character) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-listing_contact_refusals(jsonb) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-listing_counts(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-listing_history(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-listing_saved(text) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-location_slug_candidate(text,uuid) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
+legal_scheduled(text,character) | public-reader | anon,authenticated | - | - | - | - | - | - | notSignedIn | -
+listing_contact_refusals_read(jsonb) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
+listing_counts(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
+listing_history(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
+listing_viewer_state(text) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 mark_sold(uuid) | owner | authenticated | - | - | revise | - | - | takedown | illegalTransition,notYourListing | -
 move_listing_photo(uuid,uuid,integer) | owner | authenticated | - | - | revise | - | - | guarded | badValue,notYourListing,photoGone | -
-my_last_listing_private(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_legal_history() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_legal_status(text[]) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_legal_version(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_listing_certification(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_listing_private(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_listing(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_listings(text,integer,integer,text,uuid,text) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_recent_categories() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_saved_listings(jsonb,integer) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_seller_line() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_seller_place() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-my_viewing_location() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-price_shape_for_basis(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-price_unit_labels() | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+my_last_listing_private(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
+my_legal_history() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
+my_legal_status(text[]) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
+my_legal_version(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYours | -
+my_listing_certification(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
+my_listing_private(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
+my_listing(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
+my_listings(text,integer,integer,text,uuid,text) | signed-in-reader | authenticated | - | - | - | - | - | - | badValue,notSignedIn | -
+my_recent_categories() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
+my_saved_listings(jsonb,integer) | signed-in-reader | authenticated | - | - | - | - | - | - | badSize,badValue,notSignedIn | -
+my_seller_line() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
+my_seller_place() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
+my_viewing_location() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
+price_unit_labels() | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 promote_options(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | listingNotFound,listingNotPlaced,marketNotSet | P-2 (b) M-2a (DEC-349): the seller's Promote sheet in one read — every candidate level's availability by set_listing_level's own reads and country rule
 public_listing(text) | public-door | anon,authenticated | - | - | listing_read | - | - | helper | - | -
 publish_listing(uuid,uuid[],text) | owner | authenticated | - | - | post | - | - | checks | illegalTransition,listingNotPlaced,notYourListing | -
@@ -249,21 +213,19 @@ revoke_role(uuid,text) | staff | authenticated | roles:assign | row | staff_conf
 save_listing(text) | owner | authenticated | - | - | save | - | - | signal | listingNotAvailable,ownListing | -
 save_posting_identity(text,text,text,text,text,jsonb,character) | owner | authenticated | - | - | identity | - | - | guarded | - | -
 save_seller_place(uuid) | owner | authenticated | - | - | draft | - | - | account | notYourListing | -
-seller_feed_page(text,jsonb,integer) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+seller_feed_page(text,jsonb,integer) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 set_cover_photo(uuid,uuid) | owner | authenticated | - | - | revise | - | - | guarded | notYourListing,photoGone | -
 set_listing_level(uuid,text) | owner | authenticated | - | - | promote | manual | - | guarded | creditsNotAvailable,levelNotAvailable,listingNotPlaced,lowerLevel,notLive,notOffered,notYourListing,sameLevel,seasonEnded,unknownLevel | -
 set_listing_photos_soon(uuid,boolean) | owner | authenticated | - | - | draft | - | - | guarded | notYourListing,photosSoonNotEditable | -
 set_listing_pin(uuid,numeric,numeric,text,text,smallint,text) | owner | authenticated | - | - | revise | - | - | guarded | badLatitude,badLongitude,badPrecision,badZoom,contactInNote,directionsTooLong,notYourListing,pinNotEditable,streetTooLong | -
 set_listing_reach(uuid,text) | owner | authenticated | - | - | promote | manual | - | guarded | creditsNotAvailable,includedReach,listingNotPlaced,lowerReach,notLive,notOffered,notYourListing,sameReach,unknownReach | -
 set_listing_reserved(uuid,boolean) | owner | authenticated | - | - | revise | - | - | guarded | badValue,notLive,notYourListing | -
-sold_cutoff() | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
-sold_visible_days() | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+sold_cutoff() | helper | anon,authenticated | - | - | - | - | - | - | - | policy listing_locations_public_read, listing_photos_public_read, listings_public_read
+sold_visible_days() | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 submit_listing(uuid,smallint,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | owner | authenticated | - | - | draft | - | - | draft | badValue,listingNotFound,notADraft,notYourListing | -
 suggest_seller_aliases(text,text,text,uuid) | owner | authenticated | - | - | alias_check | - | - | helper | - | -
 transition_listing(uuid,text) | owner | authenticated | - | - | revise | - | - | guarded | notYourListing | the status door (F1-5a, ruling 1 §3): door_context's owner form (signed in, active, revise), then the caller's own ad only (DEC-402: a reviewer decides through admin_review_listing); the core transition_listing_core keeps its owner, reviewer and enforcer rules and their codes
-translation_scope_ok(text) | staff-reader | authenticated | translations:manage | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-ui_translation_reviewable(text,boolean,boolean) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain
+translation_scope_ok_read(text) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 unsave_listing(text) | owner | authenticated | - | - | save | - | - | signal | listingNotAvailable | -
 user_set_preferred_language(text) | owner | authenticated | - | - | account_pref | profile.preferred_language | - | account | languageNotPublished,noProfile | -
 user_set_viewing_location(uuid) | owner | authenticated | - | - | viewing_place | - | - | account | noProfile,placeNotOpen | -
-validate_listing_attributes(uuid,jsonb,jsonb,text[]) | helper | authenticated | - | - | - | - | - | - | - | invoker-chain

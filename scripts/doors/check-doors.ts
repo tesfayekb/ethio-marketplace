@@ -7,6 +7,7 @@ import { catalogueOf, type DroppedGrant } from "./catalogue";
 import { declaredColumns } from "./columns";
 import { FINDING_KINDS, judge, type Finding, type FindingKind } from "./judge";
 import { parseManifest } from "./manifest";
+import { declaredPolicyCalls, policyCallsOf } from "./policies";
 import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./rows";
 import { declaredStepUps, stepUpsOf } from "./step-ups";
 
@@ -20,7 +21,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the ten finding kinds must fire on its planted fixture
+ * process — each of the twelve finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -98,6 +99,43 @@ export const PLANTED_STEP_UPS = [
   "WHERE r.name = 'listings';",
 ].join("\n");
 
+/**
+ * The planted readers of `reader-off-gate` (F1-7a ruling 1, decisions 4 and 9): a public reader
+ * whose body names a function that reads its caller, and that function.
+ */
+export const PLANTED_PUBLIC_DATA_LINE =
+  "e2e_planted_public(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data";
+export const plantedReaders = (innerBody: string): DoorRow[] => [
+  row({
+    key: "e2e_planted_public(text)",
+    body: "BEGIN RETURN public.e2e_planted_inner(p_lang); END",
+    volatility: "s",
+    anon: true,
+  }),
+  row({ key: "e2e_planted_inner(text)", body: innerBody, volatility: "s", authenticated: false }),
+];
+
+/**
+ * The planted policies of `helper-reason-unproven` (F1-7a ruling 1, decision 7; INC-1212): one that
+ * calls the helper, one that does not, and one that calls it but is dropped by a later file.
+ */
+export const PLANTED_POLICIES = [
+  {
+    file: "supabase/migrations/20260101000000_a.sql",
+    sql: [
+      "CREATE POLICY e2e_planted_read ON public.listings FOR SELECT USING (public.e2e_planted_helper(id));",
+      "CREATE POLICY e2e_planted_other ON public.listings FOR SELECT USING (true);",
+      'CREATE POLICY "e2e_planted_gone" ON public.listings FOR SELECT USING (public.e2e_planted_helper(id));',
+    ].join("\n"),
+  },
+  {
+    file: "supabase/migrations/20260102000000_b.sql",
+    sql: 'DROP POLICY IF EXISTS "e2e_planted_gone" ON public.listings;',
+  },
+];
+export const PLANTED_HELPER_LINE = (reason: string) =>
+  `e2e_planted_helper(uuid) | helper | authenticated | - | - | - | - | - | - | - | ${reason}`;
+
 /** The planted fixtures: each kind on its own bypass, and a clean pair. */
 export function plantedCases(): Array<{
   kind: FindingKind | "clean";
@@ -107,6 +145,7 @@ export function plantedCases(): Array<{
   columns?: ReadonlySet<string>;
   dropped?: DroppedGrant[];
   stepUps?: (permission: string) => boolean | null | undefined;
+  policies?: (policy: string, fn: string) => boolean;
 }> {
   return [
     {
@@ -213,6 +252,17 @@ export function plantedCases(): Array<{
       manifest: STAFF_LINE.replace("| row |", "| none:D129 |"),
       stepUps: stepUpsOf([{ file: "planted.sql", sql: PLANTED_STEP_UPS }]),
     },
+    {
+      kind: "reader-off-gate",
+      rows: plantedReaders("BEGIN RETURN auth.uid()::text; END"),
+      manifest: PLANTED_PUBLIC_DATA_LINE,
+    },
+    {
+      kind: "helper-reason-unproven",
+      rows: [row({ key: "e2e_planted_helper(uuid)", body: "SELECT true", volatility: "s" })],
+      manifest: PLANTED_HELPER_LINE("policy e2e_planted_gone"),
+      policies: policyCallsOf(PLANTED_POLICIES),
+    },
   ];
 }
 
@@ -237,6 +287,7 @@ export function selfTest(): string[] {
             columns: planted.columns,
             dropped: planted.dropped,
             stepUps: planted.stepUps,
+            policies: planted.policies,
           };
     const findings = judge(planted.rows, parseManifest(planted.manifest), evidence);
     if (planted.kind === "clean") {
@@ -272,6 +323,7 @@ export function staticFindings(root = ROOT): Finding[] {
     callers: treeCallers(root, rows),
     columns: declaredColumns(root),
     stepUps: declaredStepUps(root),
+    policies: declaredPolicyCalls(root),
   });
 }
 
@@ -287,6 +339,7 @@ export function liveFindings(tsv: string, root = ROOT): Finding[] {
     callers: treeCallers(root, rows),
     columns: declaredColumns(root),
     stepUps: declaredStepUps(root),
+    policies: declaredPolicyCalls(root),
   });
 }
 
