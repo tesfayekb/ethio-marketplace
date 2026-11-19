@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44613326890
-- Commit: `659a88df1ab983357eec017e8801c365daafa634`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44621854262
+- Commit: `2048b251554cc129e30eb072a0e0c6cc73a93796`
 - Attempt: 1
-- Written (UTC): 2026-11-19T21:25:07.817Z
+- Written (UTC): 2026-11-19T22:05:30.236Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -65,7 +65,7 @@ publish-evidence: published docs/tracking/branches/lovable/table-widths/e2e-last
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-ae8b6f1ad7fd… (0 read)
+  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-9b07a43d0d62… (0 read)
   EVIDENCE_REF: lovable/table-widths
 ##[endgroup]
 lanes=failure
@@ -74,7 +74,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/2582568d-4fba-4897-a18a-17e6f0ab629d' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/6ae05f58-3229-4997-89cb-81fd7782f65f' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
