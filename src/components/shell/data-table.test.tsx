@@ -1,7 +1,14 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { DataTable, DataTablePagination, type DataTableColumn } from "./data-table";
+import {
+  COLUMN_SIZE,
+  DataTable,
+  DataTablePagination,
+  TEXT_MEASURE,
+  type ColumnSize,
+  type DataTableColumn,
+} from "./data-table";
 import { RowActions } from "./row-actions";
 
 /**
@@ -597,5 +604,73 @@ describe("DataTable V2 card and frame (D132)", () => {
     } finally {
       globalThis.ResizeObserver = Real;
     }
+  });
+
+  function sized(sizes: Record<string, ColumnSize>): DataTableColumn<Row>[] {
+    return Object.entries(sizes).map(([key, size], index) => ({
+      key,
+      header: key,
+      priority: index === 0 ? "primary" : "secondary",
+      size,
+      cell: (row: Row) => <span data-cell={key}>{`${key}-${row.id}`}</span>,
+    }));
+  }
+
+  function bodyCell(key: string) {
+    const td = document.querySelector(`table [data-cell="${key}"]`)?.closest("td");
+    if (!td) throw new Error(`no body cell for ${key}`);
+    return td;
+  }
+
+  it("DTK-2 each size draws its own width on the header and the body cell", () => {
+    renderTable({
+      columns: sized({ a: "control", b: "short", c: "date", d: "name", e: "text" }),
+    });
+    for (const [key, size] of [
+      ["a", "control"],
+      ["b", "short"],
+      ["c", "date"],
+      ["d", "name"],
+    ] as const) {
+      expect(screen.getByTestId(`data-table-col-${key}`).className).toContain(COLUMN_SIZE[size]);
+      expect(bodyCell(key).className).toContain(COLUMN_SIZE[size]);
+    }
+    expect(COLUMN_SIZE).toEqual({
+      control: "w-20",
+      short: "w-24",
+      date: "w-36",
+      name: "w-48",
+      text: "",
+    });
+  });
+
+  it("DTK-3 a text column has no width and its content wraps at the measure", () => {
+    renderTable({ columns: sized({ n: "name", t: "text", u: "text" }) });
+    for (const key of ["t", "u"]) {
+      expect(screen.getByTestId(`data-table-col-${key}`).className).not.toMatch(/\bw-/);
+      const wrap = bodyCell(key).firstElementChild;
+      expect(wrap?.className).toContain(TEXT_MEASURE);
+    }
+    expect(bodyCell("n").firstElementChild?.className).not.toContain(TEXT_MEASURE);
+    expect(TEXT_MEASURE).toBe("max-w-[60ch]");
+  });
+
+  it("DTK-4 with no text column the first name column absorbs the rest", () => {
+    renderTable({ columns: sized({ s: "short", first: "name", second: "name" }) });
+    expect(screen.getByTestId("data-table-col-first").className).not.toMatch(/\bw-/);
+    expect(screen.getByTestId("data-table-col-second").className).toContain("w-48");
+    expect(bodyCell("first").className).not.toMatch(/\bw-/);
+  });
+
+  it("DTK-5 a min-width table keeps auto layout and scrolls, never table-fixed", () => {
+    renderTable({
+      columns: sized({ n: "name", t: "text" }).map((column) => ({
+        ...column,
+        minWidth: "min-w-40",
+      })),
+    });
+    const table = document.querySelector("table");
+    expect(table?.className).toContain("min-w-max");
+    expect(table?.className).not.toContain("table-fixed");
   });
 });

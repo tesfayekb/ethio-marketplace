@@ -245,7 +245,7 @@ export function AdminAttributesPage() {
       header: t("admin.attributes.col.name"),
       priority: "primary",
       card: "title",
-      width: "w-[32%]",
+      size: "name",
       cell: (row) => (
         <span className="block min-w-0">
           {/* D104 — a cut name keeps its first five characters (CutText). */}
@@ -280,7 +280,7 @@ export function AdminAttributesPage() {
       header: t("admin.attributes.col.type"),
       priority: "secondary",
       card: "sub",
-      width: "w-[14%]",
+      size: "short",
       cell: (row) => (
         <span className="block break-words text-muted-foreground">
           {t(`admin.attributes.type.${row.attrType}` as MessageKey)}
@@ -295,7 +295,7 @@ export function AdminAttributesPage() {
          expansion still carry the option list at every width. */
       priority: "wide",
       align: "end",
-      width: "w-16",
+      size: "short",
       cell: (row) => (
         <span className="block tabular-nums" data-testid={`attribute-options-${row.attrKey}`}>
           {typeHasOptions(row.attrType) ? row.options.length : "—"}
@@ -308,7 +308,7 @@ export function AdminAttributesPage() {
       /* C7 — the least load-bearing read folds away first (detail tier). */
       priority: "detail",
       align: "end",
-      width: "w-20",
+      size: "short",
       cell: (row) => {
         if (!typeHasOptions(row.attrType)) {
           return <span className="block text-muted-foreground">—</span>;
@@ -338,6 +338,7 @@ export function AdminAttributesPage() {
       key: "usage",
       header: t("admin.attributes.col.usage"),
       priority: "secondary",
+      size: "text",
       card: "meta",
       // The card's count already says "Used by …": no label above it.
       cardLabel: false,

@@ -421,7 +421,7 @@ export function AdminCategoriesPage() {
       priority: ROSTER_COLUMN_PRIORITIES.name,
       // Bundle 11 B3 (INC-542) — the name keeps a fifth of the table, so the
       // wider actions column never crushes it to its floor at the tablet band.
-      width: "w-[22%]",
+      size: "name",
       cell: (row) => {
         // C5i PART B.1 — the row's chosen glyph, rendered before the name in
         // BOTH twins. An unknown/missing icon resolves to Package.
@@ -468,6 +468,7 @@ export function AdminCategoriesPage() {
       // line ("Parent —" for a root), not a line of its own.
       card: "meta",
       priority: ROSTER_COLUMN_PRIORITIES.parent,
+      size: "name",
       /**
        * C3c PART D — THE PRIMARY/SECONDARY PARENT CELL. Line 1 is the parent
        * the category is filed under, chipped "Primary"; line 2 names the other
@@ -507,6 +508,7 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.status"),
       card: "badge",
       priority: ROSTER_COLUMN_PRIORITIES.status,
+      size: "short",
       cell: (row) => {
         if (!row.isActive) {
           return tipBadge(
@@ -541,6 +543,7 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.flags"),
       card: "badge",
       priority: ROSTER_COLUMN_PRIORITIES.flags,
+      size: "name",
       cell: (row) => (
         <span className="flex flex-wrap gap-1">
           {row.isCatchall
@@ -615,6 +618,7 @@ export function AdminCategoriesPage() {
       card: "foot",
       // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
       priority: ROSTER_COLUMN_PRIORITIES.order,
+      size: "short",
       align: "end",
       cell: (row) => <span className="block tabular-nums">{row.displayOrder}</span>,
     },
@@ -624,6 +628,7 @@ export function AdminCategoriesPage() {
       card: "meta",
       // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
       priority: ROSTER_COLUMN_PRIORITIES.listings,
+      size: "short",
       align: "end",
       cell: (row) => <span className="block tabular-nums">{row.listingCount}</span>,
     },
@@ -632,6 +637,7 @@ export function AdminCategoriesPage() {
       header: t("admin.categories.col.exclusions"),
       // C2-UI-FIX-5 — numeric tail: reference, not an action; a detail column.
       priority: ROSTER_COLUMN_PRIORITIES.exclusions,
+      size: "text",
       align: "end",
       cell: (row) => <span className="block tabular-nums">{row.exclusionCount}</span>,
     },

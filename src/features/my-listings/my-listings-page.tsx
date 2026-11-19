@@ -547,7 +547,7 @@ export function MyListingsPage() {
       key: "photo",
       header: t("myListings.col.photo"),
       priority: "primary",
-      width: "w-24",
+      size: "short",
       card: "hide",
       cell: (row) => picture(row),
     },
@@ -555,6 +555,7 @@ export function MyListingsPage() {
       key: "title",
       header: t("admin.listings.col.title"),
       priority: "primary",
+      size: "text",
       card: "title",
       cell: (row) => (
         <span className="block min-w-0" data-testid={`my-listing-${row.id}-title`}>
@@ -567,6 +568,7 @@ export function MyListingsPage() {
       key: "price",
       header: t("admin.listings.col.price"),
       priority: "secondary",
+      size: "short",
       card: "sub",
       cell: (row) => (
         <span
@@ -582,6 +584,7 @@ export function MyListingsPage() {
       key: "state",
       header: t("myListings.groupLabel"),
       priority: "primary",
+      size: "name",
       card: "meta",
       cell: (row) => (
         <span className="block text-muted-foreground" data-testid={`my-listing-${row.id}-state`}>
@@ -593,14 +596,14 @@ export function MyListingsPage() {
       key: "posted",
       header: t("admin.listings.col.posted"),
       priority: "detail",
-      width: "w-[11%]",
+      size: "date",
       cell: (row) => tableDay(row.publishedFirstAt),
     },
     {
       key: "expires",
       header: t("admin.listings.col.expires"),
       priority: "detail",
-      width: "w-[11%]",
+      size: "date",
       cell: (row) =>
         row.status === "active" || row.status === "reduced"
           ? tableDay(row.expiresAt)
