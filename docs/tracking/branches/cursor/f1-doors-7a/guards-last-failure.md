@@ -1,13 +1,148 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44552590552
-- Commit: `a45b433781e052460026abd032a6a59042b98bfe`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44593520490
+- Commit: `6013d44155e4ea0d3ad6f98d67f2557d7e1bb048`
 - Attempt: 1
-- Written (UTC): 2026-11-19T16:10:07.523Z
+- Written (UTC): 2026-11-19T19:50:35.672Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
+
+## Component tests — failure
+
+### Evidence lines
+
+```text
+[90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
+     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 520[2mms[22m[39m
+     [33m[2m✓[22m[39m TCK-12 the Typecheck step runs CI's own `bun run typecheck` (both projects): a planted failing scripts project is FAIL (housekeeping turn 3c) [33m 2038[2mms[22m[39m
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
+[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mRFL-2 a flag read-back that fails answers flagged null with flagRead failed, logged — never 0, the writes reported
+[90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
+[90mstdout[2m | src/routes/api/listings/identity.test.ts[2m > [22m[2mPOST /api/listings/identity on defineRoute (D1)[2m > [22m[2mAIV-1 an imitation verdict whose audit row failed is not acted on
+[90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
+[90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
+[22m[39m[session-reads] currentSession() calls: 19; without failed: 0
+     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1312[2mms[22m[39m
+[90mstderr[2m | src/features/admin-listings/tier-dialog.test.tsx[2m > [22m[2mTierDialog (turn T1)[2m > [22m[2mTD-8 while the level rows load, the dialog says so and sends nothing; a failed read is its error (P-2 (c) c2a)
+[90mstderr[2m | src/features/admin-listings/tier-dialog.test.tsx[2m > [22m[2mTierDialog (turn T1)[2m > [22m[2mTD-8 while the level rows load, the dialog says so and sends nothing; a failed read is its error (P-2 (c) c2a)
+[22m[39m[feed-links] /api/feed signing failed
+[22m[39m[ssr-error] /api/feed [incident ce0408bf-f3c9-40c0-aed9-54a4dcbe2e53] ReaderError: feed_page: marker-text-that-must-not-travel
+[22m[39m[ssr-error] /api/feed [incident f911843a-1997-4435-8d71-8a551661fb92] Error: feed_page returned no page
+[90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
+[22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
+[22m[39m[screening] review of a photo change failed StepUpUnavailable: step-up unavailable: no verified factor
+[90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
+[22m[39m[screening] decision failed { message: [32m'ownListing'[39m }
+[22m[39m[screening] decision failed { message: [32m'rateLimited'[39m }
+[22m[39m[screening] decision failed StepUpUnavailable: step-up unavailable: no verified factor
+[22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
+Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
+[22m[39m[ssr-error] /api/attributes/$id/options [incident 2e65385b-da12-4eb2-9610-718614a0e81b] ReaderError: accountDeactivated
+ [31m❯[39m src/features/posting/price-basis.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 86[2mms[22m[39m
+ [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 353[2mms[22m[39m
+[22m[39m[save-error] unsave_listing Error: transport
+[22m[39m[save-error] listing_saved Error: transport
+     [33m[2m✓[22m[39m IMPN-1 a failed download of the banner's module shows the notice in its place [33m 322[2mms[22m[39m
+[22m[39m[ssr-error] /api/seller [incident cb4f1224-f860-4f13-a0cf-718afd2d15d3] Error: seller_feed_page returned no page
+     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 305[2mms[22m[39m
+[90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
+[41m[1m FAIL [22m[49m src/features/posting/price-basis.test.ts[2m > [22mprice basis[2m > [22mmirrors price_shape_for_basis exactly
+[41m[1m FAIL [22m[49m src/features/posting/price-basis.test.ts[2m > [22mprice basis[2m > [22mreads negotiable as a flag, not a forced mode (DEC-081)
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m528 passed[39m[22m[90m (529)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m3450 passed[39m[22m[90m (3452)[39m
+##[error]Error: expected two CASE arms, found 0
+##[error]Error: expected two CASE arms, found 0
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+[36m [2m❯[22m sqlShapeTable src/features/posting/price-basis.test.ts:[2m33:33[22m[39m
+    [90m 31|[39m   [35mconst[39m body [33m=[39m sql[33m.[39m[34mslice[39m(start[33m,[39m sql[33m.[39m[34mindexOf[39m([32m"$$;"[39m[33m,[39m start))[33m;[39m
+    [90m 32|[39m   const cases = [...body.matchAll(/CASE p_value([\s\S]*?)END/g)].map((…
+    [90m 33|[39m   if (cases.length !== 2) throw new Error(`expected two CASE arms, fou…
+    [90m   |[39m                                 [31m^[39m
+    [90m 34|[39m   [35mconst[39m arms [33m=[39m (text[33m:[39m string) [33m=>[39m
+    [90m 35|[39m     [35mnew[39m [33mMap[39m(
+[90m [2m❯[22m src/features/posting/price-basis.test.ts:[2m59:28[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+
+[41m[1m FAIL [22m[49m src/features/posting/price-basis.test.ts[2m > [22mprice basis[2m > [22mreads negotiable as a flag, not a forced mode (DEC-081)
+[31m[1mError[22m: expected two CASE arms, found 0[39m
+[36m [2m❯[22m sqlShapeTable src/features/posting/price-basis.test.ts:[2m33:33[22m[39m
+    [90m 31|[39m   [35mconst[39m body [33m=[39m sql[33m.[39m[34mslice[39m(start[33m,[39m sql[33m.[39m[34mindexOf[39m([32m"$$;"[39m[33m,[39m start))[33m;[39m
+    [90m 32|[39m   const cases = [...body.matchAll(/CASE p_value([\s\S]*?)END/g)].map((…
+    [90m 33|[39m   if (cases.length !== 2) throw new Error(`expected two CASE arms, fou…
+    [90m   |[39m                                 [31m^[39m
+    [90m 34|[39m   [35mconst[39m arms [33m=[39m (text[33m:[39m string) [33m=>[39m
+    [90m 35|[39m     [35mnew[39m [33mMap[39m(
+[90m [2m❯[22m src/features/posting/price-basis.test.ts:[2m68:12[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m528 passed[39m[22m[90m (529)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m3450 passed[39m[22m[90m (3452)[39m
+[2m   Start at [22m 18:59:30
+[2m   Duration [22m 294.85s[2m (transform 11.08s, setup 190.85s, import 97.71s, tests 191.90s, environment 331.43s)[22m
+
+
+##[error]Error: expected two CASE arms, found 0
+ ❯ sqlShapeTable src/features/posting/price-basis.test.ts:33:33
+ ❯ src/features/posting/price-basis.test.ts:59:28
+
+
+
+##[error]Error: expected two CASE arms, found 0
+ ❯ sqlShapeTable src/features/posting/price-basis.test.ts:33:33
+ ❯ src/features/posting/price-basis.test.ts:68:12
+
+
+error: script "test:unit" exited with code 1
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.1
+Temporarily overriding HOME='/home/runner/work/_temp/5d20af5b-84c6-42dd-95cf-17b2a22a4e4d' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
 
 ## E2E preflight (migration parity, staging) — failure
 
@@ -67,142 +202,7 @@ STAGING BEHIND: apply 20261119150900_3e96e1ab-64c5-47f3-8232-30f8fa1d2007.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/ec5bda2d-4c12-47d3-a321-fa46d1cb3633' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## Component tests — failure
-
-### Evidence lines
-
-```text
-[90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
-     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 657[2mms[22m[39m
-     [33m[2m✓[22m[39m TCK-12 the Typecheck step runs CI's own `bun run typecheck` (both projects): a planted failing scripts project is FAIL (housekeeping turn 3c) [33m 2015[2mms[22m[39m
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
-[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mRFL-2 a flag read-back that fails answers flagged null with flagRead failed, logged — never 0, the writes reported
-[90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
-[90mstdout[2m | src/routes/api/listings/identity.test.ts[2m > [22m[2mPOST /api/listings/identity on defineRoute (D1)[2m > [22m[2mAIV-1 an imitation verdict whose audit row failed is not acted on
-[90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
-[90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
-[22m[39m[session-reads] currentSession() calls: 19; without failed: 0
-     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1227[2mms[22m[39m
-[90mstderr[2m | src/features/admin-listings/tier-dialog.test.tsx[2m > [22m[2mTierDialog (turn T1)[2m > [22m[2mTD-8 while the level rows load, the dialog says so and sends nothing; a failed read is its error (P-2 (c) c2a)
-[90mstderr[2m | src/features/admin-listings/tier-dialog.test.tsx[2m > [22m[2mTierDialog (turn T1)[2m > [22m[2mTD-8 while the level rows load, the dialog says so and sends nothing; a failed read is its error (P-2 (c) c2a)
-[22m[39m[feed-links] /api/feed signing failed
-[22m[39m[ssr-error] /api/feed [incident 0b58d1a4-b038-450f-97e6-a20d4501fee4] ReaderError: feed_page: marker-text-that-must-not-travel
-[22m[39m[ssr-error] /api/feed [incident 467bc672-c8ed-4877-80d0-6824a3034981] Error: feed_page returned no page
-[90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
-[22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
-[22m[39m[screening] review of a photo change failed StepUpUnavailable: step-up unavailable: no verified factor
-[90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
-[22m[39m[screening] decision failed { message: [32m'ownListing'[39m }
-[22m[39m[screening] decision failed { message: [32m'rateLimited'[39m }
-[22m[39m[screening] decision failed StepUpUnavailable: step-up unavailable: no verified factor
-[22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
-Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
-[22m[39m[ssr-error] /api/attributes/$id/options [incident 9ac08d9e-b57e-4408-bf30-5fcfb997b830] ReaderError: accountDeactivated
- [31m❯[39m src/features/posting/price-basis.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 70[2mms[22m[39m
- [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 352[2mms[22m[39m
-[22m[39m[save-error] unsave_listing Error: transport
-[22m[39m[save-error] listing_saved Error: transport
-     [33m[2m✓[22m[39m IMPN-1 a failed download of the banner's module shows the notice in its place [33m 321[2mms[22m[39m
-[22m[39m[ssr-error] /api/seller [incident f528681b-b510-4433-914e-6ea9266c8115] Error: seller_feed_page returned no page
-     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 305[2mms[22m[39m
-[90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
-[41m[1m FAIL [22m[49m src/features/posting/price-basis.test.ts[2m > [22mprice basis[2m > [22mmirrors price_shape_for_basis exactly
-[41m[1m FAIL [22m[49m src/features/posting/price-basis.test.ts[2m > [22mprice basis[2m > [22mreads negotiable as a flag, not a forced mode (DEC-081)
-[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m528 passed[39m[22m[90m (529)[39m
-[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m3450 passed[39m[22m[90m (3452)[39m
-##[error]Error: expected two CASE arms, found 0
-##[error]Error: expected two CASE arms, found 0
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-[36m [2m❯[22m sqlShapeTable src/features/posting/price-basis.test.ts:[2m33:33[22m[39m
-    [90m 31|[39m   [35mconst[39m body [33m=[39m sql[33m.[39m[34mslice[39m(start[33m,[39m sql[33m.[39m[34mindexOf[39m([32m"$$;"[39m[33m,[39m start))[33m;[39m
-    [90m 32|[39m   const cases = [...body.matchAll(/CASE p_value([\s\S]*?)END/g)].map((…
-    [90m 33|[39m   if (cases.length !== 2) throw new Error(`expected two CASE arms, fou…
-    [90m   |[39m                                 [31m^[39m
-    [90m 34|[39m   [35mconst[39m arms [33m=[39m (text[33m:[39m string) [33m=>[39m
-    [90m 35|[39m     [35mnew[39m [33mMap[39m(
-[90m [2m❯[22m src/features/posting/price-basis.test.ts:[2m59:28[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
-
-[41m[1m FAIL [22m[49m src/features/posting/price-basis.test.ts[2m > [22mprice basis[2m > [22mreads negotiable as a flag, not a forced mode (DEC-081)
-[31m[1mError[22m: expected two CASE arms, found 0[39m
-[36m [2m❯[22m sqlShapeTable src/features/posting/price-basis.test.ts:[2m33:33[22m[39m
-    [90m 31|[39m   [35mconst[39m body [33m=[39m sql[33m.[39m[34mslice[39m(start[33m,[39m sql[33m.[39m[34mindexOf[39m([32m"$$;"[39m[33m,[39m start))[33m;[39m
-    [90m 32|[39m   const cases = [...body.matchAll(/CASE p_value([\s\S]*?)END/g)].map((…
-    [90m 33|[39m   if (cases.length !== 2) throw new Error(`expected two CASE arms, fou…
-    [90m   |[39m                                 [31m^[39m
-    [90m 34|[39m   [35mconst[39m arms [33m=[39m (text[33m:[39m string) [33m=>[39m
-    [90m 35|[39m     [35mnew[39m [33mMap[39m(
-[90m [2m❯[22m src/features/posting/price-basis.test.ts:[2m68:12[22m[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
-
-
-[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m528 passed[39m[22m[90m (529)[39m
-[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m3450 passed[39m[22m[90m (3452)[39m
-[2m   Start at [22m 15:15:04
-[2m   Duration [22m 295.67s[2m (transform 11.50s, setup 190.58s, import 98.34s, tests 191.51s, environment 332.80s)[22m
-
-
-##[error]Error: expected two CASE arms, found 0
- ❯ sqlShapeTable src/features/posting/price-basis.test.ts:33:33
- ❯ src/features/posting/price-basis.test.ts:59:28
-
-
-
-##[error]Error: expected two CASE arms, found 0
- ❯ sqlShapeTable src/features/posting/price-basis.test.ts:33:33
- ❯ src/features/posting/price-basis.test.ts:68:12
-
-
-error: script "test:unit" exited with code 1
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/424f9428-2c54-43e1-8a1d-ff71d405b456' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/018b9cc6-3e83-48da-a922-8ab556a5aed6' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -273,7 +273,7 @@ publish-evidence: published docs/tracking/branches/cursor/f1-doors-7a/e2e-last-f
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-9a1c9ddd62ad… (0 read)
+  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-9a1c9ddd62ad… (1 read)
   EVIDENCE_REF: cursor/f1-doors-7a
 ##[endgroup]
 lanes=failure
@@ -282,7 +282,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/b353d14e-2079-4621-a6ba-37b828b99cb2' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/0df9b15c-4024-455a-a572-47d0e73587fa' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
