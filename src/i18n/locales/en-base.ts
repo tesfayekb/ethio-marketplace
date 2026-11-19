@@ -465,7 +465,7 @@ export const enBase = {
     "Ads waiting for review. Approve puts an ad on the site; Reject keeps it off.",
   "admin.nav.group.listings": "Listings",
   "admin.nav.group.monetisation": "Monetisation",
-  "admin.nav.group.services": "Services",
+  "admin.nav.group.services": "AI & services",
   "admin.section.ai.title": "AI",
   "admin.section.ai.body": "Each AI feature's switch, monthly budget and spend.",
   "admin.section.listings.title": "All listings",
