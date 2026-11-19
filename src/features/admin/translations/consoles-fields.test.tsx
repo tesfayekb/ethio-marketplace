@@ -2,10 +2,31 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
+import type { DataTableColumn } from "@/components/shell/data-table";
+import type { LanguageRow } from "./translations-service";
 
-const calls = vi.hoisted(() => ({ upsert: vi.fn(), remove: vi.fn() }));
+const { calls, row } = vi.hoisted(() => ({
+  calls: { upsert: vi.fn(), remove: vi.fn() },
+  row: {
+    code: "zxy-l6",
+    nameEn: "Scratch language",
+    nameNative: "Scratch name",
+    rtl: false,
+    isBase: false,
+    enabledAdmin: false,
+    enabledPublic: false,
+    sort: 0,
+  },
+}));
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => key, language: "en" }),
+  useI18n: () => ({
+    t: (key: string) => {
+      if (key === "admin.translations.switch.admin") return "Available to staff";
+      if (key === "admin.translations.switch.public") return "Published to visitors";
+      return key;
+    },
+    language: "en",
+  }),
   shippedCatalogues: vi.fn(),
 }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn() }));
@@ -23,12 +44,30 @@ vi.mock("@/features/auth/mfa/step-up-gate", () => ({
   }) => children(async (run) => run()),
 }));
 vi.mock("@/components/shell/data-table", () => ({
-  DataTable: () => null,
+  DataTable: ({
+    columns,
+    rows,
+  }: {
+    columns: DataTableColumn<LanguageRow>[];
+    rows: LanguageRow[];
+  }) => (
+    <table>
+      <tbody>
+        {rows.map((entry) => (
+          <tr key={entry.code} data-testid={`lang-row-${entry.code}`}>
+            {columns.map((column) => (
+              <td key={column.key}>{column.cell(entry)}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ),
   DataTablePagination: () => null,
 }));
 vi.mock("./pseudo-bar", () => ({ PseudoBar: () => null }));
 vi.mock("./use-translations", () => ({
-  useLanguages: () => ({ data: [], isLoading: false, error: null }),
+  useLanguages: () => ({ data: [row], isLoading: false, error: null }),
   useTranslationStats: () => ({ data: [], isLoading: false }),
   useEntityTranslationStats: () => ({ data: [], isLoading: false }),
   useSetLanguageFlags: () => ({ mutateAsync: vi.fn(), isPending: false }),
@@ -57,6 +96,29 @@ const open = () => {
 };
 
 describe("language form gates", () => {
+  it.each([
+    ["LTC-1", "admin", "Available to staff"],
+    ["LTC-2", "public", "Published to visitors"],
+  ])(
+    "%s the %s switch retains its accessible name without a visible duplicate",
+    (_id, flag, name) => {
+      render(
+        <QueryClientProvider client={new QueryClient()}>
+          <AdminTranslationsLanguagesPage />
+        </QueryClientProvider>,
+      );
+      const control = screen.getByRole("switch", { name });
+      expect(control).toBe(screen.getByTestId(`lang-${flag}-${row.code}`));
+      expect(control.id).toBe(`lang-${flag}-${row.code}`);
+      const field = control.closest("[data-form-field]");
+      expect(field?.querySelector("label .sr-only")?.textContent).toBe(name);
+      expect(screen.getByTestId(`lang-row-${row.code}`)).toContainElement(control);
+      expect(screen.getByTestId(`lang-public-gate-${row.code}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`lang-coverage-${row.code}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`lang-data-coverage-${row.code}`)).toBeInTheDocument();
+    },
+  );
+
   it("KFC2-6 blank language names hold the write until both are answered", async () => {
     calls.upsert.mockResolvedValue(undefined);
     open();

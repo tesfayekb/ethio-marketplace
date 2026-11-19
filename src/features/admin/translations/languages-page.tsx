@@ -336,7 +336,7 @@ function LanguagesTable({
       header: t("admin.translations.col.language"),
       priority: "primary",
       card: "title",
-      width: "w-fit max-w-40",
+      width: "w-52",
       cell: (row) => (
         <span className="flex min-w-0 flex-nowrap items-center gap-1.5">
           <span className="min-w-0 truncate font-medium text-foreground" title={row.nameNative}>
@@ -361,9 +361,9 @@ function LanguagesTable({
       header: t("admin.translations.col.nameEn"),
       priority: "detail",
       card: "sub",
-      width: "w-fit max-w-32",
+      width: "w-40",
       cell: (row) => (
-        <span className="block max-w-28 truncate text-muted-foreground" title={row.nameEn}>
+        <span className="block min-w-0 break-words text-muted-foreground" title={row.nameEn}>
           {row.nameEn}
         </span>
       ),
@@ -476,7 +476,7 @@ function LanguagesTable({
       ),
       priority: "secondary",
       card: "meta",
-      width: "w-16",
+      width: "w-20",
       cell: (row) => (
         <span className="inline-flex min-w-0 items-center gap-2 xl:block">
           <span className="text-xs font-normal text-muted-foreground xl:hidden">
@@ -484,7 +484,7 @@ function LanguagesTable({
           </span>
           <Field
             id={`lang-admin-${row.code}`}
-            label={t("admin.translations.switch.admin")}
+            label={<span className="sr-only">{t("admin.translations.switch.admin")}</span>}
             required={false}
             refusal={null}
             layout="inline"
@@ -513,7 +513,7 @@ function LanguagesTable({
       priority: "secondary",
       card: "meta",
       // Bundle 11 G3d — room for the gate's line under the switch (it broke inside words at w-16).
-      width: "w-36",
+      width: "w-48",
       cell: (row) => {
         const { total, remaining } = coverageAgainstBase(
           statsByLang.get(row.code),
@@ -539,7 +539,7 @@ function LanguagesTable({
             </span>
             <Field
               id={`lang-public-${row.code}`}
-              label={t("admin.translations.switch.public")}
+              label={<span className="sr-only">{t("admin.translations.switch.public")}</span>}
               required={false}
               refusal={null}
               layout="inline"
