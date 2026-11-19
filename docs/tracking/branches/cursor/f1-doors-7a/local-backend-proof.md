@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `782180b95f69b938dbbd55481062e73fc88212f5`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44552590552
+- Commit: `c6f661c83d2f895446e4342fd354d64212b8eaff`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44593520490
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 473 | 86 | applied 532/532 | 27 | 0 | 0 | 5 | 32 |
-| email | 640 | 67 | applied 532/532 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 1446 | 66 | applied 532/532 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 799 | 67 | applied 532/532 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 576 | 65 | applied 532/532 | 166 | 8 | 0 | 26 | 200 |
-| 3 | 1940 | 61 | applied 532/532 | 129 | 40 | 0 | 5 | 174 |
-| 4 | 581 | 66 | applied 532/532 | 135 | 2 | 0 | 5 | 142 |
-| 5 | 786 | 64 | applied 532/532 | 89 | 4 | 0 | 1 | 94 |
-| 6 | 843 | 64 | applied 532/532 | 151 | 2 | 0 | 41 | 194 |
-| 7 | 637 | 85 | applied 532/532 | 147 | 0 | 0 | 77 | 224 |
-| 8 | 2882 | 67 | applied 532/532 | 135 | 44 | 0 | 7 | 186 |
-| 9 | 607 | 63 | applied 532/532 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 912 | 68 | applied 532/532 | 156 | 4 | 0 | 2 | 162 |
-| 11 | 1620 | 69 | applied 532/532 | 108 | 12 | 0 | 8 | 128 |
-| 12 | 3194 | 66 | applied 532/532 | 105 | 59 | 0 | 19 | 183 |
-| 13 | 581 | 75 | applied 532/532 | 155 | 2 | 0 | 9 | 166 |
-| 14 | 1126 | 86 | applied 532/532 | 163 | 20 | 0 | 5 | 188 |
-| 15 | 721 | 87 | applied 532/532 | 122 | 2 | 0 | 8 | 132 |
-| 16 | 646 | 66 | applied 532/532 | 172 | 0 | 0 | 48 | 220 |
+| smoke | 474 | 78 | applied 532/532 | 27 | 0 | 0 | 5 | 32 |
+| email | 239 | 86 | applied 532/532 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 600 | 57 | applied 532/532 | 70 | 0 | 0 | 24 | 94 |
+| 1 | 512 | 67 | applied 532/532 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 586 | 69 | applied 532/532 | 166 | 8 | 0 | 26 | 200 |
+| 3 | 2003 | 69 | applied 532/532 | 129 | 40 | 0 | 5 | 174 |
+| 4 | 750 | 64 | applied 532/532 | 135 | 2 | 0 | 5 | 142 |
+| 5 | 665 | 86 | applied 532/532 | 89 | 4 | 0 | 1 | 94 |
+| 6 | 626 | 66 | applied 532/532 | 151 | 2 | 0 | 41 | 194 |
+| 7 | 671 | 86 | applied 532/532 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 2880 | 68 | applied 532/532 | 135 | 44 | 0 | 7 | 186 |
+| 9 | 562 | 65 | applied 532/532 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 658 | 67 | applied 532/532 | 156 | 4 | 0 | 2 | 162 |
+| 11 | 1335 | 65 | applied 532/532 | 108 | 12 | 0 | 8 | 128 |
+| 12 | 2942 | 58 | applied 532/532 | 105 | 59 | 0 | 19 | 183 |
+| 13 | 625 | 80 | applied 532/532 | 155 | 2 | 0 | 9 | 166 |
+| 14 | 1035 | 69 | applied 532/532 | 163 | 20 | 0 | 5 | 188 |
+| 15 | 815 | 66 | applied 532/532 | 122 | 2 | 0 | 8 | 132 |
+| 16 | 640 | 85 | applied 532/532 | 172 | 0 | 0 | 48 | 220 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
 | TOTAL | — | — | — | 2347 | 199 | 0 | 360 | 2906 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 12 3194 s
+- Slowest lane: 12 2942 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 11, email 7, webkit 7, 1 7, 2 7, 3 7, 4 7, 5 7, 6 7, 7 11, 8 7, 9 7, 10 7, 11 7, 12 7, 13 9, 14 11, 15 11, 16 7, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/336, 2 641/338, 3 641/1772, 4 640/339, 5 640/431, 6 641/351, 7 641/436, 8 641/2631, 9 641/332, 10 643/354, 11 640/1087, 12 641/2779, 13 640/367, 14 641/908, 15 641/483, 16 641/331
+- Database session samples during each start (INC-944): smoke 10, email 11, webkit 6, 1 7, 2 8, 3 8, 4 7, 5 11, 6 7, 7 11, 8 8, 9 7, 10 7, 11 7, 12 6, 13 10, 14 8, 15 7, 16 11, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/336, 2 641/394, 3 641/1820, 4 640/381, 5 640/453, 6 641/360, 7 641/446, 8 641/2695, 9 641/335, 10 643/326, 11 640/1073, 12 641/2774, 13 640/409, 14 641/845, 15 641/383, 16 641/441
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44552590552-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44552590552-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44552590552-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44552590552-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44552590552-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44552590552-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44552590552-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44552590552-local-9
-  - 10: [e2e:teardown] deleted 7 user(s) owned by process 44552590552-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44552590552-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44552590552-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44552590552-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44552590552-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44552590552-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44593520490-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44593520490-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44593520490-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44593520490-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44593520490-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44593520490-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44593520490-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44593520490-local-9
+  - 10: [e2e:teardown] deleted 7 user(s) owned by process 44593520490-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44593520490-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44593520490-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44593520490-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44593520490-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44593520490-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -150,28 +150,28 @@ Step smoke: outcome failure
 - admin-translations-data.spec.ts / U4b translations console / TR-24 the Data scope machine-translates one row and then every untranslated one / mobile-360 — Error: expect(locator).toBeVisible() failed
 - admin-translations-data.spec.ts / U4b translations console / TR-26 the Data scope approves every machine-filled content name / mobile-360 — Error: bulk entity AI never reached scratch location [account id]
 - admin-translations-data.spec.ts / U4b translations console / TR-24 the Data scope machine-translates one row and then every untranslated one / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-translations-data.spec.ts / U4b translations console / TR-26 the Data scope approves every machine-filled content name / desktop-1280 — Error: bulk entity AI never reached scratch location [account id]
+- admin-translations-data.spec.ts / U4b translations console / TR-26 the Data scope approves every machine-filled content name / desktop-1280 — Error: the filtered Data bulk bar never counted exactly two untranslated rows
 
 ## Lane 6
 - Step failure:
 Step smoke: outcome failure
   
-- post-wizard-finder.spec.ts / POSTING WIZARD — the category finder (W7) / PW-85 an option label, an alias and an Amharic alias each find the leaf, and the choice prefills the option / mobile-360 — Error: PW-85: "e2eflabeldlwhwivacgus" listed the leaf without the match line
-- post-wizard-finder.spec.ts / POSTING WIZARD — the category finder (W7) / PW-85 an option label, an alias and an Amharic alias each find the leaf, and the choice prefills the option / desktop-1280 — Error: PW-85: "e2eflabelefuscvpjhg" listed the leaf without the match line
+- post-wizard-finder.spec.ts / POSTING WIZARD — the category finder (W7) / PW-85 an option label, an alias and an Amharic alias each find the leaf, and the choice prefills the option / mobile-360 — Error: PW-85: "e2eflabelbksampdcp" listed the leaf without the match line
+- post-wizard-finder.spec.ts / POSTING WIZARD — the category finder (W7) / PW-85 an option label, an alias and an Amharic alias each find the leaf, and the choice prefills the option / desktop-1280 — Error: PW-85: "e2eflabelikguksrnlbtt" listed the leaf without the match line
 
 ## Lane 8
 - Step failure:
 Step smoke: outcome failure
   
 - admin-translations-console.spec.ts / U4b translations console / TR-11 per-row AI translate writes a machine row and captures a revision / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-translations-console.spec.ts / U4b translations console / TR-12 bulk AI fill translates every untranslated scratch key / mobile-360 — Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44552590552-local-8-local-8-mobile-360-3-tr12-b1 in scope zxx-mo (expected machine|true|true)
+- admin-translations-console.spec.ts / U4b translations console / TR-12 bulk AI fill translates every untranslated scratch key / mobile-360 — Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44593520490-local-8-local-8-mobile-360-3-tr12-b1 in scope zxx-mo (expected machine|true|true)
 - admin-translations-console.spec.ts / U4b translations console / TR-13 the placeholder validator flags a machine write too / mobile-360 — Error: expect(locator).toBeVisible() failed
 - admin-translations-console.spec.ts / U4b translations console / TR-35 machine translation keeps the {country} token / mobile-360 — Error: expect(locator).toBeVisible() failed
 - admin-translations-console.spec.ts / U4b translations console / TR-23 machine translation keeps placeholders, and the editor repairs a mangled one / mobile-360 — Error: expect(locator).toBeVisible() failed
 - admin-translations-console.spec.ts / U4b translations console / TR-scope AI: a translator outside the language gets the structured refusal / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
 - admin-translations-console.spec.ts / U4b translations console / TR-16 the History drawer lists revisions and restores one as a new edit / mobile-360 — Error: expect(locator).toBeVisible() failed
 - admin-translations-console.spec.ts / U4b translations console / TR-11 per-row AI translate writes a machine row and captures a revision / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-translations-console.spec.ts / U4b translations console / TR-12 bulk AI fill translates every untranslated scratch key / desktop-1280 — Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44552590552-local-8-local-8-desktop-1280-27-tr12-b1 in scope zxx-de (expected machine|true|true)
+- admin-translations-console.spec.ts / U4b translations console / TR-12 bulk AI fill translates every untranslated scratch key / desktop-1280 — Error: TR-12 step 4: bulk AI never landed the machine row for e2e.scratch.44593520490-local-8-local-8-desktop-1280-27-tr12-b1 in scope zxx-de (expected machine|true|true)
 - admin-translations-console.spec.ts / U4b translations console / TR-13 the placeholder validator flags a machine write too / desktop-1280 — Error: expect(locator).toBeVisible() failed
 - admin-translations-console.spec.ts / U4b translations console / TR-35 machine translation keeps the {country} token / desktop-1280 — Error: expect(locator).toBeVisible() failed
 - admin-translations-console.spec.ts / U4b translations console / TR-23 machine translation keeps placeholders, and the editor repairs a mangled one / desktop-1280 — Error: expect(locator).toBeVisible() failed
@@ -221,11 +221,11 @@ Step smoke: outcome failure
 - Step failure:
 Step smoke: outcome failure
   
-- post-wizard-place.spec.ts / POSTING WIZARD / PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored / mobile-360 — Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 84 ms, ok=true | identity 200 after 133 ms, ok=false (door:doorError). Refusal lines shown: none.
+- post-wizard-place.spec.ts / POSTING WIZARD / PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored / mobile-360 — Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 59 ms, ok=true | identity 200 after 106 ms, ok=false (door:doorError). Refusal lines shown: none.
 - post-wizard-place.spec.ts / POSTING WIZARD / PW-30 review and buyer preview render option labels, units, multi-values and booleans / mobile-360 — Test timeout of 172000ms exceeded.
 - post-wizard-place.spec.ts / POSTING WIZARD / PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085) / mobile-360 — Test timeout of 60000ms exceeded.
 - post-wizard-place.spec.ts / POSTING WIZARD / PW-78 a big model list shows its required mark once the brand is chosen (INC-336) / mobile-360 — Test timeout of 60000ms exceeded.
-- post-wizard-place.spec.ts / POSTING WIZARD / PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored / desktop-1280 — Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 48 ms, ok=true | identity 200 after 125 ms, ok=false (door:doorError). Refusal lines shown: none.
+- post-wizard-place.spec.ts / POSTING WIZARD / PW-12 who: the alias is checked against the door, messages cannot be switched off, and a shown channel is stored / desktop-1280 — Error: [INC-562] step 8 did not come after Next. Saves (draft, identity): draft 200 after 63 ms, ok=true | identity 200 after 90 ms, ok=false (door:doorError). Refusal lines shown: none.
 - post-wizard-place.spec.ts / POSTING WIZARD / PW-30 review and buyer preview render option labels, units, multi-values and booleans / desktop-1280 — Test timeout of 172000ms exceeded.
 - post-wizard-place.spec.ts / POSTING WIZARD / PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085) / desktop-1280 — Test timeout of 60000ms exceeded.
 - post-wizard-place.spec.ts / POSTING WIZARD / PW-78 a big model list shows its required mark once the brand is chosen (INC-336) / desktop-1280 — Test timeout of 60000ms exceeded.
@@ -262,7 +262,7 @@ Step smoke: outcome failure
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-22 a link's allowed options narrow the picker and its default prefills / mobile-360 — Error: PW-22: the link's default did not prefill
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-28 a conditional detail appears only when its condition is met / mobile-360 — Test timeout of 60000ms exceeded.
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-9 an option's facts prefill the siblings they name / mobile-360 — Test timeout of 60000ms exceeded.
-- post-wizard-specs.spec.ts / POSTING WIZARD / PW-25 an inherited year picker is bounded by the model chosen three levels down, and relative bounds resolve as the door does (INC-288) / mobile-360 — Error: PW-25: e2e_deep_local-12_67_08n3vv_brand never loaded its options
+- post-wizard-specs.spec.ts / POSTING WIZARD / PW-25 an inherited year picker is bounded by the model chosen three levels down, and relative bounds resolve as the door does (INC-288) / mobile-360 — Error: PW-25: e2e_deep_local-12_67_qpo1ch_brand never loaded its options
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-159 a list fact ticks its tick list once, and the seller's untick stays / mobile-360 — Test timeout of 60000ms exceeded.
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-153 a settled range hides its number and the review and buyer sheet show the range / mobile-360 — Test timeout of 60000ms exceeded.
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-34 a colour detail offers stemmed swatches, and an unmapped list shows no tray / mobile-360 — Error: PW-34: the colour option carries no swatch
@@ -287,7 +287,7 @@ Step smoke: outcome failure
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-22 a link's allowed options narrow the picker and its default prefills / desktop-1280 — Error: PW-22: the link's default did not prefill
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-28 a conditional detail appears only when its condition is met / desktop-1280 — Test timeout of 60000ms exceeded.
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-9 an option's facts prefill the siblings they name / desktop-1280 — Test timeout of 60000ms exceeded.
-- post-wizard-specs.spec.ts / POSTING WIZARD / PW-25 an inherited year picker is bounded by the model chosen three levels down, and relative bounds resolve as the door does (INC-288) / desktop-1280 — Error: PW-25: e2e_deep_local-12_92_iaiu11_brand never loaded its options
+- post-wizard-specs.spec.ts / POSTING WIZARD / PW-25 an inherited year picker is bounded by the model chosen three levels down, and relative bounds resolve as the door does (INC-288) / desktop-1280 — Error: PW-25: e2e_deep_local-12_92_75zu08_brand never loaded its options
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-159 a list fact ticks its tick list once, and the seller's untick stays / desktop-1280 — Test timeout of 60000ms exceeded.
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-153 a settled range hides its number and the review and buyer sheet show the range / desktop-1280 — Test timeout of 60000ms exceeded.
 - post-wizard-specs.spec.ts / POSTING WIZARD / PW-34 a colour detail offers stemmed swatches, and an unmapped list shows no tray / desktop-1280 — Error: PW-34: the colour option carries no swatch
