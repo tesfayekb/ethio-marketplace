@@ -96,9 +96,9 @@ package is chosen); footer `packages-prices-pagination`. The empty caption
 | Add price       | `packages-price-create`                        | `admin_save_package_price`   | `packages:update` |
 | End price (red) | `packages-price-end` (a day; today = now)      | `admin_end_package_price`    | `packages:update` |
 
-Every door re-checks the permission, the second factor
-(`require_step_up_if_needed('packages','update')`) and the `staff_config` dial
-before any side effect, and writes an audit row: `package.saved` (old → new),
+Every door re-checks, in the shell's one order (`door_context`, F1-6b), the caller, the
+permission in its country, the second factor and the `staff_config` dial before any side
+effect, refuses by a code, and writes an audit row: `package.saved` (old → new),
 `package_price.saved`, `package_price.ended`. The gates in the console are
 convenience only (F3).
 

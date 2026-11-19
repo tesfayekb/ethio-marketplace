@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n, type MessageKey } from "@/i18n";
 
+import type { AiRefusal } from "./ai-refusals";
 import {
   budgetCentsOf,
   budgetField,
@@ -14,7 +15,6 @@ import {
   priceField,
   unitCostOf,
   type AiFeatureRow,
-  type AiRefusal,
   type SetAiFeatureInput,
 } from "./ai-service";
 

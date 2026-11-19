@@ -13,7 +13,7 @@ import type { Refusal } from "@/lib/refusal";
 import {
   BadgeSelect,
   MonetisationDialogActions,
-  MonetisationErrorLine,
+  MonetisationProblemLine,
   NumberField,
   PlacementSelect,
 } from "./monetisation-dialogs";
@@ -253,7 +253,7 @@ export function OverrideDialog({
           />
         </>
       )}
-      <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
+      <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
       <MonetisationDialogActions
         onCancel={onClose}
         onSubmit={submit}

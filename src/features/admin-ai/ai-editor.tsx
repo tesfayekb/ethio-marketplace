@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { errorText } from "@/lib/error-text";
 
 import { CategoryModal } from "@/components/ui/category-modal";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
@@ -7,12 +6,8 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { AiFeatureForm } from "./ai-feature-form";
-import {
-  aiErrorKey,
-  type AiFeatureRow,
-  type AiRefusal,
-  type SetAiFeatureInput,
-} from "./ai-service";
+import { aiRefusalOf, type AiRefusal } from "./ai-refusals";
+import type { AiFeatureRow, SetAiFeatureInput } from "./ai-service";
 import { useSetAiFeature } from "./use-ai-features";
 
 /**
@@ -45,7 +40,7 @@ export function AiEditorDialog({
       setRefusal(abort === null ? null : { key: abort as MessageKey, raw: null });
       return;
     }
-    setRefusal(aiErrorKey(error === null || error === undefined ? "" : errorText(error)));
+    setRefusal(aiRefusalOf(error));
   };
 
   const submit = (input: SetAiFeatureInput) => {

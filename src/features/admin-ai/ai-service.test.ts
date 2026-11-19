@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { aiRefusalOf } from "./ai-refusals";
 import {
-  aiErrorKey,
   aiCallsOf,
   aiFeatureOf,
   aiFeaturesOf,
@@ -154,24 +154,37 @@ describe("the AI console's seam (D158)", () => {
     expect(priceField("character", 20)).toBe("20");
   });
 
-  it("AIS-5 every refusal of the door is a sentence; anything else keeps its reason", () => {
-    expect(aiErrorKey("permission denied")).toEqual({ key: "admin.ai.error.denied", raw: null });
-    expect(aiErrorKey("step-up required: no verified factor").key).toBe("admin.ai.error.stepUp");
+  it("AIS-5 every code of the door has words of its own; anything else keeps its code beneath the generic line", () => {
+    for (const gate of ["notSignedIn", "permissionDenied", "accountDeactivated"]) {
+      expect(aiRefusalOf(gate)).toEqual({ key: "admin.ai.error.denied", raw: null });
+    }
+    // A scoped refusal is read by its head.
+    expect(aiRefusalOf("permissionDenied:scope")).toEqual({
+      key: "admin.ai.error.denied",
+      raw: null,
+    });
+    expect(aiRefusalOf("step-up required: no verified factor").key).toBe("admin.ai.error.stepUp");
+    expect(aiRefusalOf({ message: "", code: "P0009" }).key).toBe("admin.ai.error.stepUp");
+    expect(aiRefusalOf("rateLimited")).toEqual({ key: "admin.error.rateLimited", raw: null });
     // Bundle 13 turn 6 — the door no longer refuses photo screening off.
-    expect(aiErrorKey("screeningStaysOn")).toEqual({
+    expect(aiRefusalOf("screeningStaysOn")).toEqual({
       key: "admin.ai.error.unknown",
       raw: "screeningStaysOn",
     });
-    expect(aiErrorKey("overBudget").key).toBe("admin.ai.error.overBudget");
-    expect(aiErrorKey("unknownFeature").key).toBe("admin.ai.error.unknownFeature");
-    expect(aiErrorKey("badValue:budget").key).toBe("admin.ai.error.badBudget");
-    expect(aiErrorKey("badValue:unitCost").key).toBe("admin.ai.error.badPriceDoor");
-    expect(aiErrorKey("badValue:enabled")).toEqual({
+    expect(aiRefusalOf("overBudget").key).toBe("admin.ai.error.overBudget");
+    expect(aiRefusalOf("unknownFeature").key).toBe("admin.ai.error.unknownFeature");
+    expect(aiRefusalOf("badValue:budget").key).toBe("admin.ai.error.badBudget");
+    expect(aiRefusalOf("badValue:unitCost").key).toBe("admin.ai.error.badPriceDoor");
+    expect(aiRefusalOf("badValue:enabled")).toEqual({
       key: "admin.ai.error.unknown",
       raw: "badValue:enabled",
     });
-    expect(aiErrorKey("boom")).toEqual({ key: "admin.ai.error.unknown", raw: "boom" });
-    expect(aiErrorKey("")).toEqual({ key: "admin.ai.error.unknown", raw: null });
+    expect(aiRefusalOf({ message: "overBudget", code: "P0D01" }).key).toBe(
+      "admin.ai.error.overBudget",
+    );
+    expect(aiRefusalOf("boom")).toEqual({ key: "admin.ai.error.unknown", raw: "boom" });
+    expect(aiRefusalOf("")).toEqual({ key: "admin.ai.error.unknown", raw: null });
+    expect(aiRefusalOf(undefined)).toEqual({ key: "admin.ai.error.unknown", raw: null });
   });
 
   /** Bundle 13 turn 14 — the spend of each day, read from its door and summed for the page. */

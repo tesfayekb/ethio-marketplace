@@ -7,19 +7,19 @@ import { useI18n, type MessageKey } from "@/i18n";
 import type { Refusal } from "@/lib/refusal";
 
 import { PLACEMENT_LABEL } from "./monetisation-forms";
-import { MONETISATION_REFUSALS } from "./monetisation-refusals";
-import { PLACEMENTS, type MonetisationRefusal } from "./monetisation-service";
+import { MONETISATION_REFUSALS, type MonetisationRefusal } from "./monetisation-refusals";
+import { PLACEMENTS } from "./monetisation-service";
 
 /**
  * P-1b — ADMIN › MONETISATION: the pieces every write surface shares (the P-1
  * packages console's shape). Every submit runs through the page's step-up
  * `guard`; the door behind it re-checks the permission AND the step-up
- * server-side (F3), so a refusal here is a translated sentence naming the
- * door's own message, never a silent no-op (F4). Nothing closes on failure.
+ * server-side (F3), so a refusal here is a translated line for the
+ * door's own code, never a silent no-op (F4). Nothing closes on failure.
  * The refusal state is `useMonetisationError`.
  */
 
-export function MonetisationErrorLine({
+export function MonetisationProblemLine({
   refusal,
   testid,
 }: {

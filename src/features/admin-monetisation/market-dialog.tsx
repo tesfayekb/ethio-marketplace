@@ -11,7 +11,7 @@ import type { Refusal } from "@/lib/refusal";
 
 import {
   MonetisationDialogActions,
-  MonetisationErrorLine,
+  MonetisationProblemLine,
   NumberField,
   Toggle,
 } from "./monetisation-dialogs";
@@ -197,7 +197,7 @@ export function MarketDialog({
         value={form.launchDays}
         onChange={(next) => change({ launchDays: next })}
       />
-      <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
+      <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
       <MonetisationDialogActions
         onCancel={onClose}
         onSubmit={submit}
