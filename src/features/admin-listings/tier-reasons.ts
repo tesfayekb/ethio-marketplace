@@ -2,9 +2,10 @@ import { levelNameOf } from "@/features/levels/level-fields";
 import { exactLevel, type LevelRow } from "@/features/levels/levels-store";
 import type { MessageKey } from "@/i18n";
 import { parseNumber } from "@/lib/parse-input";
+import { badValueWords } from "@/lib/bad-value-words";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
-import { badValueWords, SHARED_REFUSAL_WORDS } from "./listing-refusals";
+import { SHARED_REFUSAL_WORDS } from "./listing-refusals";
 import { NOTE_MAX } from "./move-reasons";
 
 /**

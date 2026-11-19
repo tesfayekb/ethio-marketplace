@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReaderError } from "@/lib/reader-failure";
+import { readRefusal } from "@/lib/refusal";
 
 /** The doors' answers, set per test; the client the seam opens is this stub. */
 const door = {
@@ -23,32 +24,33 @@ import {
   editPrice,
   endPrice,
   listMonetisation,
-  monetisationErrorKey,
   saveMarket,
   saveOverride,
   savePrice,
   saveProduct,
 } from "./monetisation-service";
+import { MONETISATION_DOOR_REFUSALS } from "./monetisation-refusals";
 
 /**
- * P-1b M-a, M-b and M-c — the doors, read for the messages they RAISE (TIR-5's
- * shape); the product door from its last declaration, P-2 (c) M-3c-b part 2.
+ * P-1b M-a, M-b and M-c, then F1-6b — the doors, read for the codes they
+ * refuse with (TIR-5's shape): each door's body in the migration that put it on
+ * the shell, its `door_refuse` codes read from the text.
  */
 const MIGRATIONS = {
-  "supabase/migrations/20261109044934_b2f1fad4-455f-48bd-b1ce-15aa1048a75f.sql": [
-    "admin_save_listing_package",
+  "supabase/migrations/20261119030500_302ae04a-edb0-4e52-95fd-98f8f7184799.sql": [
+    "admin_save_package_price",
   ],
-  "supabase/migrations/20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql": [
+  "supabase/migrations/20261119030600_5cdaa8d4-b7f3-44b4-983f-e621b954d059.sql": [
+    "admin_edit_package_price",
+    "admin_end_package_price",
+  ],
+  "supabase/migrations/20261119030700_eacb4fad-dd6e-41ad-908a-6412ceca2a87.sql": [
     "admin_save_level_override",
     "admin_clear_level_override",
   ],
-  "supabase/migrations/20261103040806_3f552dc1-73ac-4377-a5ea-c01e1725dfea.sql": [
-    "admin_save_package_price",
-    "admin_edit_package_price",
-  ],
-  "supabase/migrations/20261103040807_0cdc612d-5dd2-4bf0-a0da-78f8131a70cf.sql": [
+  "supabase/migrations/20261119030800_cccdea6a-654a-4df4-8ec9-a595a9aff987.sql": [
+    "admin_save_listing_package",
     "admin_save_market_settings",
-    "admin_list_monetisation",
   ],
 } as const;
 
@@ -182,7 +184,7 @@ describe("the monetisation console's seam (P-1b)", () => {
   });
 
   it("MNS-2 a refused or malformed read is a typed ReaderError, never an empty console", async () => {
-    door.rpc = rpcError("denied", "P0001");
+    door.rpc = rpcError("permissionDenied", "P0D01");
     await expect(listMonetisation()).rejects.toBeInstanceOf(ReaderError);
     door.rpc = null;
     door.answer = { ...CONSOLE, products: [{ ...CONSOLE.products[0], kind: "gold" }] };
@@ -354,60 +356,64 @@ describe("the monetisation console's seam (P-1b)", () => {
       message: "step-up required",
       code: "P0009",
     });
-    door.rpc = rpcError("price in use");
+    door.rpc = rpcError("priceInUse", "P0D01");
     await expect(endPrice("6d1f1c2e-0000-4000-8000-000000000001", null)).rejects.toBeInstanceOf(
       MonetisationDoorError,
     );
   });
 
-  it("MNS-6 every message the seven doors and the reader RAISE has a key of its own — the cleared override's `not found` included; the step-up state and the fallback too", () => {
-    const raised = new Set<string>();
+  it("MNS-6 every code the seven doors refuse with has words of its own — the gates' codes, the step-up state and the generic fallback too", () => {
+    const refused = new Set<string>();
     for (const [file, doors] of Object.entries(MIGRATIONS)) {
       const sql = readFileSync(file, "utf8");
       for (const name of doors) {
-        const start = sql.indexOf(`CREATE FUNCTION public.${name}(`);
+        const start = sql.indexOf(`CREATE OR REPLACE FUNCTION public.${name}(`);
         expect(start, `${name} is declared in ${file}`).toBeGreaterThan(-1);
         const body = sql.slice(start, sql.indexOf("$function$;", start));
-        for (const match of body.matchAll(/RAISE EXCEPTION '((?:[^']|'')*)'/g)) {
-          raised.add((match[1] ?? "").replace(/''/g, "'"));
+        for (const match of body.matchAll(/door_refuse\('([A-Za-z]+)'/g)) {
+          refused.add(match[1] ?? "");
         }
       }
     }
-    expect(raised.size).toBeGreaterThanOrEqual(30);
-    expect(raised.has("not found")).toBe(true);
-    for (const message of raised) {
-      const { key, raw } = monetisationErrorKey(message);
-      expect(key, message).not.toBe("admin.packages.error.unknown");
-      expect(raw).toBeNull();
+    expect(refused.size).toBeGreaterThanOrEqual(30);
+    expect(refused.has("overrideNotFound")).toBe(true);
+    // The gates every door shares (door_context), which the bodies do not spell.
+    for (const gate of ["notSignedIn", "accountDeactivated", "rateLimited"]) refused.add(gate);
+    for (const code of refused) {
+      const read = readRefusal(code, MONETISATION_DOOR_REFUSALS);
+      expect(read.branch, code).toBe("family");
+      expect(read.key, code).not.toBe("admin.packages.error.unknown");
     }
-    expect(monetisationErrorKey("not found")).toEqual({
-      key: "admin.monetisation.error.overrideNotFound",
-      raw: null,
-    });
-    expect(monetisationErrorKey("", "P0009")).toEqual({
-      key: "admin.packages.error.stepUp",
-      raw: null,
-    });
-    expect(monetisationErrorKey("price in use")).toEqual({
-      key: "admin.monetisation.error.priceInUse",
-      raw: null,
-    });
-    expect(monetisationErrorKey("something new")).toEqual({
+    expect(readRefusal("overrideNotFound", MONETISATION_DOOR_REFUSALS).key).toBe(
+      "admin.monetisation.error.overrideNotFound",
+    );
+    expect(readRefusal("priceInUse", MONETISATION_DOOR_REFUSALS).key).toBe(
+      "admin.monetisation.error.priceInUse",
+    );
+    // A scoped refusal is read by its head: the country detail changes no words.
+    expect(readRefusal("permissionDenied:scope", MONETISATION_DOOR_REFUSALS).key).toBe(
+      "admin.packages.error.denied",
+    );
+    expect(
+      readRefusal("step-up required: no verified factor", MONETISATION_DOOR_REFUSALS).key,
+    ).toBe("admin.packages.error.stepUp");
+    expect(readRefusal({ message: "", code: "P0009" }, MONETISATION_DOOR_REFUSALS).key).toBe(
+      "admin.packages.error.stepUp",
+    );
+    expect(readRefusal("something new", MONETISATION_DOOR_REFUSALS)).toMatchObject({
       key: "admin.packages.error.unknown",
-      raw: "something new",
+      branch: "generic",
     });
-    expect(monetisationErrorKey("")).toEqual({ key: "admin.packages.error.unknown", raw: null });
+    expect(readRefusal("", MONETISATION_DOOR_REFUSALS).key).toBe("admin.packages.error.unknown");
   });
 
   it("MNS-7 the product door's caps refusals have keys of their own; a reach row's caps are read, a null cap as no limit", async () => {
-    expect(monetisationErrorKey("bad caps")).toEqual({
-      key: "admin.monetisation.error.badCaps",
-      raw: null,
-    });
-    expect(monetisationErrorKey("caps on level")).toEqual({
-      key: "admin.monetisation.error.capsOnLevel",
-      raw: null,
-    });
+    expect(readRefusal("badCaps", MONETISATION_DOOR_REFUSALS).key).toBe(
+      "admin.monetisation.error.badCaps",
+    );
+    expect(readRefusal("capsOnLevel", MONETISATION_DOOR_REFUSALS).key).toBe(
+      "admin.monetisation.error.capsOnLevel",
+    );
     const reach = {
       ...CONSOLE.products[0],
       key: "regional",

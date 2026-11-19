@@ -1,9 +1,8 @@
 import type { MessageKey } from "@/i18n";
+import { badValueWords } from "@/lib/bad-value-words";
 import { parseNumber } from "@/lib/parse-input";
 import { authKey } from "@/lib/query-keys";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
-
-import { badValueWords } from "./listing-refusals";
 
 /**
  * Bundle 16 turn R2 (D174 3, D175 2) — THE RENEW SETTINGS as `listing_policy` holds

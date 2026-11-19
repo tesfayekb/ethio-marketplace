@@ -7,7 +7,7 @@ import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
-import { MonetisationDialogActions, MonetisationErrorLine } from "./monetisation-dialogs";
+import { MonetisationDialogActions, MonetisationProblemLine } from "./monetisation-dialogs";
 import type { PriceRow } from "./monetisation-service";
 import { dayEnd } from "./price-forms";
 import { useEndPrice } from "./use-monetisation";
@@ -70,7 +70,7 @@ export function PriceEndDialog({
           onChange={setDay}
         />
       </FormField>
-      <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
+      <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
       <MonetisationDialogActions
         onCancel={onClose}
         onSubmit={submit}

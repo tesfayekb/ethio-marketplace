@@ -14,7 +14,7 @@ import type { Refusal } from "@/lib/refusal";
 
 import {
   MonetisationDialogActions,
-  MonetisationErrorLine,
+  MonetisationProblemLine,
   NumberField,
 } from "./monetisation-dialogs";
 import { MONETISATION_REFUSALS, ownRefusals, refusalFor } from "./monetisation-refusals";
@@ -42,7 +42,7 @@ const OWN_FIELDS: Readonly<Partial<Record<MessageKey, readonly string[]>>> = {
  * market), the category (a root or any branch beneath it; or every category),
  * the amount (0 = free) with its currency, the credit cost and the window.
  * Edit stands while the row is unused and live; the door refuses otherwise
- * (`price in use`, `price already ended`) and a window overlapping another
+ * (`priceInUse`, `priceEnded`) and a window overlapping another
  * row of the same scope.
  *
  * P-1c (D313) — opened from inside a product's own prices table, the product is
@@ -296,7 +296,7 @@ export function PriceDialog({
           onChange={(next) => change({ validTo: next })}
         />
       </Field>
-      <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
+      <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
       <MonetisationDialogActions
         onCancel={onClose}
         onSubmit={submit}

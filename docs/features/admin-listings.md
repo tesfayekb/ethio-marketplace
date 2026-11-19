@@ -189,7 +189,7 @@ Bundle 19 turn 13b — for listings:review, the row shows "Reports: N" (open rep
   `editErrorKey`, `photoRemoveErrorKey`, `undoErrorKey`, `tierErrorKey`, `settingsErrorKey`)
   calls `readRefusal` itself over its own table; the words the doors share live once in
   `listing-refusals.ts` (`SHARED_REFUSAL_WORDS`, `MOVE_REFUSALS`, `EDIT_REFUSALS`), and a
-  `badValue:<field>` detail is worded by `badValueWords`. Problem lines keep their words; a code
+  `badValue:<field>` detail is worded by `badValueWords` (`src/lib/bad-value-words.ts`, moved there by F1-6b; it holds no string). Problem lines keep their words; a code
   the table does not hold shows `common.error`.
 - A reviewer or enforcer cannot decide, restore or remove their own ad through a staff door
   (`ownListing`, DEC-403); the owner's own paths are unchanged. The review door's scope matches

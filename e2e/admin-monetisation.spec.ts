@@ -587,8 +587,8 @@ test.describe("P-1b Admin › Monetisation", () => {
           p_extends_lifetime: true,
         })
       ).error,
-    ).toBe("permission denied");
-    expect((await pageDoor(page, "admin_list_monetisation", {})).error).toBe("denied");
+    ).toBe("permissionDenied");
+    expect((await pageDoor(page, "admin_list_monetisation", {})).error).toBe("permissionDenied");
 
     const viewer = await leaseUser();
     await grantScratchRole(
@@ -626,7 +626,7 @@ test.describe("P-1b Admin › Monetisation", () => {
           p_paid_levels: false,
         })
       ).error,
-    ).toBe("permission denied");
+    ).toBe("permissionDenied");
     expect(await readProduct(key)).toBeNull();
     expect(await audits("listing_package", key, "package.saved", since)).toHaveLength(0);
   });
@@ -812,7 +812,7 @@ test.describe("P-1b Admin › Monetisation", () => {
           p_max_photos: 5,
         })
       ).error,
-    ).toBe("perks on reach");
+    ).toBe("perksOnReach");
     expect((await readProduct(key))?.max_photos).toBeNull();
   });
 
@@ -1247,7 +1247,7 @@ test.describe("P-1b Admin › Monetisation", () => {
           p_country_code: market.code,
         })
       ).error,
-    ).toBe("launch bundle required");
+    ).toBe("launchRequired");
     expect(await readMarket(market.code)).toBeNull();
 
     await create.getByTestId("monetisation-market-create-launch-credits").fill("10");
@@ -1386,10 +1386,18 @@ test.describe("P-1b Admin › Monetisation", () => {
         marketAuthor.error?.code,
         `MON-13 ${who}: market_settings.created_by was readable`,
       ).toBe("42501");
+      // F1-6b: anon is refused by the grant (the platform's own words); a signed-in person
+      // without the permission is refused by the door's code.
       const console = await client.rpc("admin_list_monetisation");
-      expect(console.error?.message, `MON-13 ${who}: the console rpc answered`).toMatch(
-        /denied|not signed in|permission denied/,
-      );
+      if (who === "anon") {
+        expect(console.error?.message, `MON-13 ${who}: the console rpc answered`).toContain(
+          "permission denied for function admin_list_monetisation",
+        );
+      } else {
+        expect(console.error?.message, `MON-13 ${who}: the console rpc answered`).toBe(
+          "permissionDenied",
+        );
+      }
     }
     await signedIn.auth.signOut();
   });

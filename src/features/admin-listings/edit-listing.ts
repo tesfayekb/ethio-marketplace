@@ -1,9 +1,10 @@
 import type { MessageKey } from "@/i18n";
 import type { PricingValues } from "@/features/posting/step-pricing";
 import { sameChannels } from "@/features/posting/same-channels";
+import { badValueWords } from "@/lib/bad-value-words";
 import { readRefusal } from "@/lib/refusal";
 
-import { badValueWords, EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
+import { EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
 import { moveProblem } from "./move-reasons";
 import type { AdminListingDetail } from "./use-admin-listing";
 

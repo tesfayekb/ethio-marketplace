@@ -19,8 +19,8 @@ import { ReaderError, readerFailure } from "@/lib/reader-failure";
  * character.
  *
  * Law F4 — a row the door answers in another shape is refused, never shown with
- * invented numbers; every error is thrown, and `aiErrorKey` turns the door's
- * own refusal into a translated sentence.
+ * invented numbers; every error is thrown, and the editor reads the door's
+ * refusal through `readRefusal` (`ai-refusals.ts`, F1-6b).
  */
 
 export type AiUnit = "call" | "character";
@@ -422,33 +422,6 @@ export function priceField(unit: AiUnit, microusd: number): string {
 /** The price ceiling in the form's own terms, for the refusal's sentence. */
 export function priceCeilingText(unit: AiUnit): string {
   return priceText(unit, MAX_UNIT_COST_MICROUSD);
-}
-
-/* -------------------------------- refusals -------------------------------- */
-
-/** Every refusal the door raises, by name (E7). */
-export const AI_REFUSAL_IDS = ["overBudget", "unknownFeature", "badValue"] as const;
-
-export interface AiRefusal {
-  key: MessageKey;
-  raw: string | null;
-}
-
-export function aiErrorKey(message: string): AiRefusal {
-  const raw = (message ?? "").trim();
-  if (/permission denied/i.test(raw)) return { key: "admin.ai.error.denied", raw: null };
-  if (/step[ -]?up/i.test(raw)) return { key: "admin.ai.error.stepUp", raw: null };
-  const head = raw.includes(":") ? raw.slice(0, raw.indexOf(":")) : raw;
-  if (head === "badValue") {
-    const field = raw.slice(raw.indexOf(":") + 1);
-    if (field === "budget") return { key: "admin.ai.error.badBudget", raw: null };
-    if (field === "unitCost") return { key: "admin.ai.error.badPriceDoor", raw: null };
-    return { key: "admin.ai.error.unknown", raw };
-  }
-  if ((AI_REFUSAL_IDS as readonly string[]).includes(head)) {
-    return { key: `admin.ai.error.${head}` as MessageKey, raw: null };
-  }
-  return { key: "admin.ai.error.unknown", raw: raw === "" ? null : raw };
 }
 
 export const AI_COLUMN_PRIORITIES = {

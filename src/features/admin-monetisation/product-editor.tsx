@@ -10,7 +10,7 @@ import type { Refusal } from "@/lib/refusal";
 
 import {
   MonetisationDialogActions,
-  MonetisationErrorLine,
+  MonetisationProblemLine,
   NumberField,
   PlacementSelect,
   Toggle,
@@ -301,7 +301,7 @@ export function ProductEditorDialog({
         )}
       </Field>
       <p className="text-sm text-muted-foreground">{t("admin.packages.noDelete")}</p>
-      <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
+      <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
       <MonetisationDialogActions
         onCancel={onClose}
         onSubmit={submit}

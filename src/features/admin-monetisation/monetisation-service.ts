@@ -1,5 +1,3 @@
-import type { MessageKey } from "@/i18n";
-import { ownValue } from "@/lib/own-key";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { rpc } from "@/lib/supabase-door";
 
@@ -35,8 +33,8 @@ import {
  * `admin_save_market_settings`.
  *
  * Law F4 — no phantom success: every door error is thrown; a failed read is a
- * typed `ReaderError`; `monetisationErrorKey` turns the door's own RAISE
- * message into a translated key. Every call goes through the Supabase door
+ * typed `ReaderError`; `useMonetisationError` reads the door's refusal code
+ * through `readRefusal` over `MONETISATION_DOOR_REFUSALS` (F1-6b). Every call goes through the Supabase door
  * (DEC-261).
  */
 
@@ -241,78 +239,9 @@ export async function saveMarket(input: SaveMarketInput): Promise<void> {
   refused(error);
 }
 
-/* ------------------------------- refusals -------------------------------- */
-
-/**
- * Every message the seven doors RAISE, by name, plus the step-up state
- * (SQLSTATE P0009) and the fallback. `monetisation-service.test.ts` reads the
- * migrations and proves no message falls to the fallback but the one named
- * departure (`not found`, the cleared override: no key of its own this turn).
- */
-const DOOR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
-  "not signed in": "admin.packages.error.denied",
-  "permission denied": "admin.packages.error.denied",
-  denied: "admin.packages.error.denied",
-  rateLimited: "admin.packages.error.rateLimited",
-  // admin_save_listing_package
-  "bad key": "admin.packages.error.badKey",
-  "unknown kind": "admin.monetisation.error.unknownKind",
-  "kind change": "admin.monetisation.error.kindChange",
-  "bad name": "admin.monetisation.error.badName",
-  "bad days": "admin.packages.error.badDays",
-  "bad photos": "admin.monetisation.error.badPhotos",
-  "unknown placement": "admin.monetisation.error.unknownPlacement",
-  "perks on reach": "admin.monetisation.error.perksOnReach",
-  "caps on level": "admin.monetisation.error.capsOnLevel",
-  "bad caps": "admin.monetisation.error.badCaps",
-  // admin_save_level_override / admin_clear_level_override
-  "unknown level": "admin.monetisation.error.unknownLevel",
-  "not a main category": "admin.monetisation.error.notMainCategory",
-  "unknown country": "admin.packages.error.unknownCountry",
-  "empty override": "admin.monetisation.error.emptyOverride",
-  "not found": "admin.monetisation.error.overrideNotFound",
-  // admin_save_package_price / admin_edit_package_price / admin_end_package_price
-  "unknown package": "admin.packages.error.unknownPackage",
-  "bad amount": "admin.packages.error.badAmount",
-  "bad credit cost": "admin.monetisation.error.badCreditCost",
-  "unknown currency": "admin.packages.error.unknownCurrency",
-  "unknown category": "admin.packages.error.unknownCategory",
-  "bad window": "admin.packages.error.badWindow",
-  "overlapping window": "admin.packages.error.overlap",
-  "price not found": "admin.packages.error.notFound",
-  "price in use": "admin.monetisation.error.priceInUse",
-  "price already ended": "admin.packages.error.alreadyEnded",
-  // admin_save_market_settings
-  "unknown reach": "admin.monetisation.error.unknownReach",
-  "bad free ads": "admin.monetisation.error.badFreeAds",
-  "launch bundle required": "admin.monetisation.error.launchRequired",
-  "bad launch bundle": "admin.monetisation.error.badLaunch",
-};
-
-export interface MonetisationRefusal {
-  key: MessageKey;
-  /** The door's own words when no key names them (shown as a reason line). */
-  raw: string | null;
-}
-
-export function monetisationErrorKey(
-  message: string,
-  code: string | null = null,
-): MonetisationRefusal {
-  const raw = (message ?? "").trim();
-  if (code === "P0009" || /step-up required/i.test(raw)) {
-    return { key: "admin.packages.error.stepUp", raw: null };
-  }
-  const head = raw.includes(":") ? raw.slice(0, raw.indexOf(":")).trim() : raw;
-  // The head comes from the database's message: an own-key read (H1), never map[key].
-  const known = ownValue(DOOR_MESSAGE_KEYS, head);
-  if (known !== undefined) return { key: known, raw: null };
-  return { key: "admin.packages.error.unknown", raw: raw === "" ? null : raw };
-}
-
 /* ------------------------------- the shapes ------------------------------- */
 
 /** The door's key shape (`listing_packages_key_check`), so the form refuses before the round trip. */
 export const PRODUCT_KEY_PATTERN = /^[a-z][a-z0-9_]{1,31}$/;
-/** The door's name bound (`bad name`): required English, 80 characters at most. */
+/** The door's name bound (`badName`): required English, 80 characters at most. */
 export const PRODUCT_NAME_MAX = 80;

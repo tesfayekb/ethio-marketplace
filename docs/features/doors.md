@@ -51,7 +51,7 @@ detail}]}` — supabase-js surfaces it as `error.message` = the code. A RAISE th
   owner, 91 staff, 1 public door, 22 public readers, 28 signed-in readers, 56 staff readers, 35
   helpers): `name(arg types) | class | roles | permission | step-up | dial | audit | country |
 acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_package_price`
-  is `row:package_prices.country_code` (its scope is F1-6's census). `manifest.ts` is the grammar; `catalogue.ts` + `identity.ts` read
+  is `row:package_prices.country_code` (held by F1-6b's census: the row's own market is the scope its overlap check touches). `manifest.ts` is the grammar; `catalogue.ts` + `identity.ts` read
   the migrations' last grant state and spell a function's identity as the live catalogue does.
 - `check-doors.ts` — the self-test runs FIRST in every mode (ten planted finding kinds —
   `missing-line`, `line-without-door`, `gate-missing-for-class`, `class-mismatch`,

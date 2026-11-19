@@ -176,12 +176,22 @@ describe("AiFeatureForm (D158)", () => {
 });
 
 describe("AiEditorDialog refusals", () => {
-  it("AIF-4 reads a database refusal object by its own message", async () => {
+  it("AIF-4 reads a database refusal object by its own code", async () => {
     const guard: GuardFn = async (run) => run();
     const cases = [
       [
         { message: "overBudget", code: "P0001", details: null, hint: null },
         "admin.ai.error.overBudget",
+        false,
+      ],
+      [
+        { message: "overBudget", code: "P0D01", details: null, hint: null },
+        "admin.ai.error.overBudget",
+        false,
+      ],
+      [
+        { message: "permissionDenied:scope", code: "P0D01", details: null, hint: null },
+        "admin.ai.error.denied",
         false,
       ],
       [
