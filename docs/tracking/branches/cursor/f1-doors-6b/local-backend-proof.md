@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `5cb117c198701ffcaa027d508e23aa6ef4bc2147`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44450591343
+- Commit: `93dcd6c182dc5bddb9bc669e3bb75bd2baa81f07`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44489359011
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 646 | 61 | applied 522/522 | 27 | 0 | 0 | 5 | 32 |
-| email | 373 | 62 | applied 522/522 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 1506 | 61 | applied 522/522 | 70 | 0 | 0 | 24 | 94 |
-| 1 | 721 | 62 | applied 522/522 | 186 | 2 | 0 | 69 | 257 |
-| 2 | 678 | 63 | applied 522/522 | 174 | 0 | 0 | 26 | 200 |
-| 3 | 875 | 60 | applied 522/522 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 657 | 79 | applied 522/522 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 800 | 63 | applied 522/522 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 892 | 61 | applied 522/522 | 153 | 0 | 0 | 41 | 194 |
-| 7 | 604 | 70 | applied 522/522 | 146 | 0 | 1 | 77 | 224 |
-| 8 | 768 | 63 | applied 522/522 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 540 | 66 | applied 522/522 | 123 | 0 | 0 | 1 | 124 |
-| 10 | 744 | 63 | applied 522/522 | 150 | 10 | 0 | 2 | 162 |
-| 11 | 588 | 62 | applied 522/522 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 521 | 53 | applied 522/522 | 164 | 0 | 0 | 19 | 183 |
-| 13 | 797 | 64 | applied 522/522 | 157 | 0 | 0 | 9 | 166 |
-| 14 | 889 | 63 | applied 522/522 | 183 | 0 | 0 | 5 | 188 |
-| 15 | 738 | 61 | applied 522/522 | 124 | 0 | 0 | 8 | 132 |
-| 16 | 815 | 63 | applied 522/522 | 172 | 0 | 0 | 48 | 220 |
+| smoke | 686 | 61 | applied 522/522 | 27 | 0 | 0 | 5 | 32 |
+| email | 619 | 61 | applied 522/522 | 6 | 0 | 0 | 0 | 6 |
+| webkit | not run | 62 | applied 522/522 | 0 | 0 | 0 | 0 | 0 |
+| 1 | 738 | 67 | applied 522/522 | 186 | 2 | 0 | 69 | 257 |
+| 2 | 920 | 60 | applied 522/522 | 174 | 0 | 0 | 26 | 200 |
+| 3 | 919 | 64 | applied 522/522 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 482 | 53 | applied 522/522 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 584 | 73 | applied 522/522 | 92 | 0 | 1 | 1 | 94 |
+| 6 | 770 | 64 | applied 522/522 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 758 | 62 | applied 522/522 | 147 | 0 | 0 | 77 | 224 |
+| 8 | 911 | 62 | applied 522/522 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 820 | 61 | applied 522/522 | 123 | 0 | 0 | 1 | 124 |
+| 10 | 560 | 60 | applied 522/522 | 150 | 10 | 0 | 2 | 162 |
+| 11 | 563 | 63 | applied 522/522 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 937 | 61 | applied 522/522 | 164 | 0 | 0 | 19 | 183 |
+| 13 | 849 | 61 | applied 522/522 | 157 | 0 | 0 | 9 | 166 |
+| 14 | 940 | 62 | applied 522/522 | 183 | 0 | 0 | 5 | 188 |
+| 15 | 739 | 61 | applied 522/522 | 124 | 0 | 0 | 8 | 132 |
+| 16 | 945 | 62 | applied 522/522 | 172 | 0 | 0 | 48 | 220 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2533 | 12 | 1 | 360 | 2906 |
+| TOTAL | — | — | — | 2463 | 12 | 1 | 336 | 2812 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: webkit 1506 s
+- Slowest lane: 16 945 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 6, email 6, webkit 6, 1 6, 2 6, 3 6, 4 10, 5 6, 6 6, 7 8, 8 6, 9 8, 10 6, 11 6, 12 5, 13 6, 14 6, 15 6, 16 6, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/340, 2 641/331, 3 641/335, 4 640/455, 5 640/374, 6 641/344, 7 641/415, 8 641/341, 9 641/359, 10 643/366, 11 640/362, 12 641/366, 13 640/300, 14 641/316, 15 641/376, 16 641/324
+- Database session samples during each start (INC-944): smoke 6, email 6, webkit 6, 1 8, 2 6, 3 6, 4 5, 5 9, 6 6, 7 6, 8 6, 9 6, 10 6, 11 7, 12 6, 13 6, 14 6, 15 6, 16 6, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/360, 2 641/312, 3 641/386, 4 640/328, 5 640/406, 6 641/348, 7 641/317, 8 641/338, 9 641/326, 10 643/387, 11 640/384, 12 641/353, 13 640/308, 14 641/332, 15 641/377, 16 641/327
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44450591343-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 44450591343-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44450591343-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44450591343-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44450591343-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44450591343-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44450591343-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44450591343-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44450591343-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44450591343-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44450591343-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44450591343-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44450591343-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44450591343-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44450591343-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44450591343-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44450591343-local-14
-  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44450591343-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44450591343-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44489359011-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-email
+  - webkit: not found
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44489359011-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44489359011-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44489359011-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44489359011-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44489359011-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44489359011-local-9
+  - 10: [e2e:teardown] deleted 5 user(s) owned by process 44489359011-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44489359011-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44489359011-local-14
+  - 15: [e2e:teardown] deleted 43 user(s) owned by process 44489359011-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44489359011-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -78,6 +78,31 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
+## Lane webkit
+- Step failure:
+Step install-chromium-s-system-libraries: outcome failure
+  Get:83 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 liborc-0.4-0t64 amd64 1:0.4.38-1ubuntu0.1 [207 kB]
+  Get:84 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-plugins-base1.0-0 amd64 1.24.2-1ubuntu0.7 [863 kB]
+  Ign:85 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 gstreamer1.0-libav amd64 1.24.1-1build1
+  Ign:86 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libcdparanoia0 amd64 3.10.2+debian-14build3
+  Ign:87 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libvisual-0.4-0 amd64 0.4.2-2build1
+  Get:88 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 gstreamer1.0-plugins-base amd64 1.24.2-1ubuntu0.7 [721 kB]
+  Get:89 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libaa1 amd64 1.4p5-51.1 [49.9 kB]
+  Get:90 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libraw1394-11 amd64 2.1.2-2build3 [26.2 kB]
+  Ign:91 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libavc1394-0 amd64 0.5.4-5build3
+  Get:92 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libcaca0 amd64 0.99.beta20-4ubuntu0.2 [209 kB]
+  Ign:93 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libdv4t64 amd64 1.0.0-17.1build1
+  Ign:94 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-plugins-good1.0-0 amd64 1.24.2-1ubuntu1.8
+  Ign:95 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libiec61883-0 amd64 1.2.0-6build1
+  Get:96 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libshout3 amd64 2.4.6-1build2 [50.3 kB]
+  Ign:97 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libtag1v5-vanilla amd64 1.13.1-1build1
+  Get:98 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libtag1v5 amd64 1.13.1-1build1 [11.7 kB]
+  Ign:99 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libv4lconvert0t64 amd64 1.26.1-4build3
+  Ign:100 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libv4l-0t64 amd64 1.26.1-4build3
+  Get:101 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libwavpack1 amd64 5.6.0-1build1 [84.6 kB]
+  ::error title=ci-deadline::bash scripts/ci/install-browser-deps.sh webkit ran past its 1500s deadline on try 1 of 1
+- No JSON results; smoke skipped
+
 ## Lane 1
 - Step failure:
 Step smoke: outcome failure
@@ -85,8 +110,8 @@ Step smoke: outcome failure
 - admin-services.spec.ts / ADMIN › SERVICES — the AI switches and meter (D158) / SV-1 a seller can neither read nor change a switch, call the meter or read its tables / mobile-360 — Error: expect(received).toBe(expected) // Object.is equality
 - admin-services.spec.ts / ADMIN › SERVICES — the AI switches and meter (D158) / SV-1 a seller can neither read nor change a switch, call the meter or read its tables / desktop-1280 — Error: expect(received).toBe(expected) // Object.is equality
 
-## Lane 7
-- choice-lists.spec.ts / choice lists at 1440, light / CL-E10 the account menu's parts equal the other lists' (1440, light) / desktop-1280 — Error: expect(locator).toBeHidden() failed
+## Lane 5
+- admin-translations-data.spec.ts / U4b translations console / TR-24 the Data scope machine-translates one row and then every untranslated one / desktop-1280 — Error: expect(locator).toBeVisible() failed
 
 ## Lane 10
 - Step failure:
