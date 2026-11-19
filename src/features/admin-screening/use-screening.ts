@@ -14,6 +14,7 @@ import { tierOf } from "@/components/marketplace/card-tier";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ReaderError } from "@/lib/reader-failure";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { SHARED_REFUSAL_WORDS } from "@/features/admin-listings/listing-refusals";
 
 /**
  * Bundle 10 E3a — THE SCREENING QUEUE READ (D109).
@@ -249,6 +250,19 @@ export async function decideListing(listingId: string, next: "active" | "rejecte
     p_new_status: next,
   });
   if (error) throw error;
+}
+
+const DECISION_REFUSALS = {
+  words: {
+    ...SHARED_REFUSAL_WORDS,
+    ownListing: "admin.screening.error.ownListing",
+  },
+  generic: "common.error",
+} as const satisfies RefusalFamily;
+
+/** Both review surfaces use the listings family's one refusal reader. */
+export function decisionRefusalKey(error: unknown) {
+  return readRefusal(error, DECISION_REFUSALS).key;
 }
 
 /**

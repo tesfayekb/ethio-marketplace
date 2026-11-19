@@ -2,6 +2,7 @@ import { pageHead } from "@/lib/page-head";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
 import { saveIntentStep } from "@/features/ad-page/save-intent";
+import { useSavedState } from "@/features/ad-page/use-saved-state";
 import { ShareAd } from "@/features/ad-page/share-ad";
 import { sharePriceText } from "@/features/ad-page/share-price-text";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
@@ -12,7 +13,7 @@ import { safeReturnPath } from "@/lib/return-path";
 import { siteHref } from "@/lib/safe-href";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
-import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
+import { saveListing, unsaveListing } from "@/features/ad-page/save";
 import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
 import { readSellerReview } from "@/features/seller/seller-review";
@@ -135,34 +136,27 @@ function AdPage() {
   // Contact seller in this tab within the last 15 minutes, carried through the
   // sign-in by a tab-only intent (D201 §14 — never an address)
   const [contactState, setContactState] = useState<ContactState>({ kind: "idle" });
-  const [saved, setSaved] = useState<boolean | null>(null);
-  const [saveCount, setSaveCount] = useState(doc.counts.saves);
+  const {
+    saved,
+    count: saveCount,
+    beginWrite,
+  } = useSavedState(user?.id ?? null, doc.public_id, doc.counts.saves);
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveRefusal, setSaveRefusal] = useState<"rateLimited" | "failed" | null>(null);
   const [ownAd, setOwnAd] = useState(false);
   useEffect(() => {
-    let active = true;
-    setSaved(user === null ? false : null);
     setOwnAd(false);
-    setSaveCount(doc.counts.saves);
     setSaveRefusal(null);
-    if (user !== null)
-      void listingSaved(doc.public_id).then((answer) => {
-        if (active) setSaved(answer);
-      });
-    return () => {
-      active = false;
-    };
-  }, [user, doc.public_id, doc.counts.saves]);
+  }, [user?.id, doc.public_id, doc.counts.saves]);
   const onToggle = () => {
     if (saveBusy || saved === null || user === null) return;
     setSaveBusy(true);
     setSaveRefusal(null);
+    const applyWrite = beginWrite();
     void (saved ? unsaveListing(doc.public_id) : saveListing(doc.public_id))
       .then((answer) => {
         if (answer.ok) {
-          setSaved(answer.saved);
-          setSaveCount(answer.count);
+          applyWrite(answer);
         } else if (answer.reason === "ownListing") setOwnAd(true);
         else setSaveRefusal(answer.reason === "rateLimited" ? "rateLimited" : "failed");
       })
