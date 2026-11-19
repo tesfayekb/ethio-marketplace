@@ -71,6 +71,7 @@ export function LevelOverridesTable({
       key: "category",
       header: t("admin.monetisation.col.category"),
       priority: "primary",
+      size: "name",
       card: "title",
       cell: (row) => (
         <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-category`}>
@@ -82,6 +83,7 @@ export function LevelOverridesTable({
       key: "country",
       header: t("admin.monetisation.col.country"),
       priority: "primary",
+      size: "name",
       card: "sub",
       cell: (row) => (
         <span className="min-w-0 break-words text-sm" data-testid={`${idOf(row)}-country`}>
@@ -93,6 +95,7 @@ export function LevelOverridesTable({
       key: "days",
       header: t("admin.monetisation.col.days"),
       priority: "primary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-days`}>
@@ -104,6 +107,7 @@ export function LevelOverridesTable({
       key: "photos",
       header: t("admin.monetisation.col.photos"),
       priority: "primary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-photos`}>
@@ -115,6 +119,7 @@ export function LevelOverridesTable({
       key: "placement",
       header: t("admin.monetisation.col.placement"),
       priority: "secondary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-placement`}>
@@ -126,6 +131,7 @@ export function LevelOverridesTable({
       key: "badge",
       header: t("admin.monetisation.col.badge"),
       priority: "secondary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-badge`}>

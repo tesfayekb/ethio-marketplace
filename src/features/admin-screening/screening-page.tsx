@@ -205,6 +205,7 @@ export function AdminScreeningPage({
       header: t("admin.screening.col.title"),
       card: "title",
       priority: "primary",
+      size: "text",
       cell: (row) => (
         <span className="block min-w-0">
           <span className="break-words font-medium">{row.title}</span>
@@ -225,6 +226,7 @@ export function AdminScreeningPage({
       header: t("admin.screening.col.category"),
       card: "sub",
       priority: "secondary",
+      size: "name",
       cell: (row) => <span className="text-sm">{named(row.category)}</span>,
     },
     {
@@ -232,6 +234,7 @@ export function AdminScreeningPage({
       header: t("admin.screening.col.place"),
       card: "sub",
       priority: "secondary",
+      size: "name",
       cell: (row) => <span className="text-sm">{named(row.place)}</span>,
     },
     {
@@ -239,6 +242,7 @@ export function AdminScreeningPage({
       header: t("admin.screening.col.sent"),
       card: "foot",
       priority: "detail",
+      size: "date",
       cell: (row) => <span className="text-sm tabular-nums">{sentAt(row.updatedAt)}</span>,
     },
   ];

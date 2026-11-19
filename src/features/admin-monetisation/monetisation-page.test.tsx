@@ -222,3 +222,20 @@ describe("the price path on the page (L16)", () => {
     expect(screen.queryByTestId("monetisation-price-create")).toBeNull();
   });
 });
+
+/** L18 — the widest column's header carries the largest share (no exact percentage). */
+function expectLargestShare(key: string) {
+  const header = screen.getAllByTestId(`data-table-col-${key}`)[0] as HTMLElement;
+  const table = header.closest("table") as HTMLTableElement;
+  const shares = Array.from(table.querySelectorAll<HTMLElement>("thead th"))
+    .map((th) => Number.parseFloat(th.style.width))
+    .filter((share) => !Number.isNaN(share));
+  expect(Number.parseFloat(header.style.width)).toBe(Math.max(...shares));
+}
+
+describe("column shares (L18)", () => {
+  it("MNS-14 the product Price column, which wraps, carries the largest share", () => {
+    render(<AdminMonetisationPage />);
+    expectLargestShare("price");
+  });
+});

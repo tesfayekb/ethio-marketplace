@@ -94,6 +94,7 @@ export function AdminAiPage() {
       key: "feature",
       header: t("admin.ai.col.feature"),
       priority: AI_COLUMN_PRIORITIES.feature,
+      size: "text",
       card: "title",
       cell: (row) => {
         // Bundle 13 turn 14 — what the feature does and who provides it, under its name.
@@ -122,6 +123,7 @@ export function AdminAiPage() {
       key: "state",
       header: t("admin.ai.col.state"),
       priority: AI_COLUMN_PRIORITIES.state,
+      size: "short",
       card: "badge",
       cell: (row) =>
         row.on ? (
@@ -146,6 +148,7 @@ export function AdminAiPage() {
       key: "spend",
       header: t("admin.ai.col.spend"),
       priority: AI_COLUMN_PRIORITIES.spend,
+      size: "name",
       card: "meta",
       cell: (row) => (
         <span className="flex min-w-0 flex-wrap items-center gap-2">
@@ -171,6 +174,7 @@ export function AdminAiPage() {
       key: "calls",
       header: t("admin.ai.col.calls"),
       priority: AI_COLUMN_PRIORITIES.calls,
+      size: "name",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`ai-${row.feature}-calls`}>
@@ -189,6 +193,7 @@ export function AdminAiPage() {
       key: "price",
       header: t("admin.ai.col.price"),
       priority: AI_COLUMN_PRIORITIES.price,
+      size: "name",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`ai-${row.feature}-price`}>
@@ -203,6 +208,7 @@ export function AdminAiPage() {
       key: "updated",
       header: t("admin.ai.col.updated"),
       priority: AI_COLUMN_PRIORITIES.updated,
+      size: "date",
       card: "foot",
       cell: (row) => <span className="text-sm">{dateOf(row.updatedAt)}</span>,
     },

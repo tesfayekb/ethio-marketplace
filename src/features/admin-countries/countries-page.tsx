@@ -122,6 +122,7 @@ export function AdminCountriesPage() {
       key: "name",
       header: t("admin.countries.col.name"),
       priority: COUNTRY_COLUMN_PRIORITIES.name,
+      size: "name",
       card: "title",
       cell: (row) => (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -134,6 +135,7 @@ export function AdminCountriesPage() {
       key: "status",
       header: t("admin.countries.col.status"),
       priority: COUNTRY_COLUMN_PRIORITIES.status,
+      size: "short",
       card: "badge",
       cell: (row) => (
         <TipBadge
@@ -148,6 +150,7 @@ export function AdminCountriesPage() {
       key: "places",
       header: t("admin.countries.col.places"),
       priority: COUNTRY_COLUMN_PRIORITIES.places,
+      size: "short",
       card: "meta",
       align: "end",
       cell: (row) => (
@@ -164,6 +167,7 @@ export function AdminCountriesPage() {
       key: "units",
       header: t("admin.countries.col.units"),
       priority: COUNTRY_COLUMN_PRIORITIES.units,
+      size: "short",
       card: "sub",
       cell: (row) => (
         <span className="text-sm" data-testid={`country-${row.code}-units`}>
@@ -175,6 +179,7 @@ export function AdminCountriesPage() {
       key: "rail",
       header: t("admin.countries.col.rail"),
       priority: COUNTRY_COLUMN_PRIORITIES.rail,
+      size: "short",
       card: "foot",
       align: "end",
       cell: (row) => (
@@ -191,6 +196,7 @@ export function AdminCountriesPage() {
       key: "roles",
       header: t("admin.countries.col.roles"),
       priority: COUNTRY_COLUMN_PRIORITIES.roles,
+      size: "short",
       align: "end",
       cell: (row) => (
         <span className="text-sm tabular-nums" title={t("admin.countries.roles.hint")}>
@@ -202,6 +208,7 @@ export function AdminCountriesPage() {
       key: "updated",
       header: t("admin.countries.col.updated"),
       priority: COUNTRY_COLUMN_PRIORITIES.updated,
+      size: "date",
       cell: (row) => (
         <span className="text-sm">{row.updatedAt === "" ? "—" : row.updatedAt.slice(0, 10)}</span>
       ),

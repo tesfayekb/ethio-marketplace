@@ -134,6 +134,7 @@ export function NameChecks({
       key: "name",
       header: t("admin.screening.names.col.name"),
       priority: "primary",
+      size: "text",
       card: "title",
       cell: (row) => (
         <span className="block min-w-0">
@@ -164,6 +165,7 @@ export function NameChecks({
       key: "since",
       header: t("admin.screening.names.col.since"),
       priority: "primary",
+      size: "date",
       card: "sub",
       cell: (row) => when.format(new Date(row.since)),
     },
@@ -171,6 +173,7 @@ export function NameChecks({
       key: "attempts",
       header: t("admin.screening.names.col.attempts"),
       priority: "secondary",
+      size: "short",
       card: "meta",
       cell: (row) => number.format(row.attempts),
     },
@@ -178,6 +181,7 @@ export function NameChecks({
       key: "owner",
       header: t("admin.screening.names.col.owner"),
       priority: "secondary",
+      size: "name",
       card: "meta",
       cell: (row) => (
         <Link

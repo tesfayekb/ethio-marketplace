@@ -121,3 +121,21 @@ describe("JHL-U the job line", () => {
     expect(screen.queryByTestId("admin-job-resume")).toBeNull();
   });
 });
+
+/** L18 — the widest column's header carries the largest share (no exact percentage). */
+function expectLargestShare(key: string) {
+  const header = screen.getAllByTestId(`data-table-col-${key}`)[0] as HTMLElement;
+  const table = header.closest("table") as HTMLTableElement;
+  const shares = Array.from(table.querySelectorAll<HTMLElement>("thead th"))
+    .map((th) => Number.parseFloat(th.style.width))
+    .filter((share) => !Number.isNaN(share));
+  expect(Number.parseFloat(header.style.width)).toBe(Math.max(...shares));
+}
+
+describe("column shares (L18)", () => {
+  it("NCQ-U6 the Name column, which wraps, carries the largest share", () => {
+    state.queue.mockReturnValue(answered({ rows: [row], next: null }));
+    wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
+    expectLargestShare("name");
+  });
+});

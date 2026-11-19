@@ -138,6 +138,7 @@ export function ProductsSection({
           key: "photos",
           header: t("admin.monetisation.col.photos"),
           priority: "primary",
+          size: "short",
           card: "meta",
           cell: (row) => (
             <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-photos`}>
@@ -149,6 +150,7 @@ export function ProductsSection({
           key: "placement",
           header: t("admin.monetisation.col.placement"),
           priority: "secondary",
+          size: "short",
           card: "meta",
           cell: (row) => (
             <span className="text-sm" data-testid={`${idOf(row)}-placement`}>
@@ -160,6 +162,7 @@ export function ProductsSection({
           key: "badge",
           header: t("admin.monetisation.col.badge"),
           priority: "secondary",
+          size: "short",
           card: "meta",
           cell: (row) => <OnOff value={row.badge} testid={`${idOf(row)}-badge`} t={t} />,
         },
@@ -173,6 +176,7 @@ export function ProductsSection({
           key: "cities",
           header: t("admin.monetisation.reach.field.cities"),
           priority: "secondary",
+          size: "short",
           card: "meta",
           cell: (row) => capCell(row, "cities", row.maxCities),
         },
@@ -180,6 +184,7 @@ export function ProductsSection({
           key: "regions",
           header: t("admin.monetisation.reach.field.regions"),
           priority: "secondary",
+          size: "short",
           card: "meta",
           cell: (row) => capCell(row, "regions", row.maxRegions),
         },
@@ -187,6 +192,7 @@ export function ProductsSection({
           key: "countries",
           header: t("admin.monetisation.reach.field.countries"),
           priority: "secondary",
+          size: "short",
           card: "meta",
           cell: (row) => capCell(row, "countries", row.maxCountries),
         },
@@ -197,6 +203,7 @@ export function ProductsSection({
       key: "name",
       header: t("admin.monetisation.col.name"),
       priority: "primary",
+      size: "name",
       card: "title",
       cell: (row) => (
         <ProductNameToggle
@@ -212,6 +219,7 @@ export function ProductsSection({
       key: "price",
       header: t("admin.monetisation.col.price"),
       priority: "primary",
+      size: "text",
       card: "meta",
       cell: (row) => <ProductPriceCell productKey={row.key} prices={prices} nowIso={nowIso} />,
     },
@@ -219,6 +227,7 @@ export function ProductsSection({
       key: "key",
       header: t("admin.packages.field.key"),
       priority: "secondary",
+      size: "name",
       card: "sub",
       cell: (row) => (
         <span className="min-w-0 break-all text-sm" data-testid={`${idOf(row)}-key`}>
@@ -230,6 +239,7 @@ export function ProductsSection({
       key: "days",
       header: t(isLevel ? "admin.monetisation.col.defaultDays" : "admin.packages.col.days"),
       priority: "primary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-days`}>
@@ -243,6 +253,7 @@ export function ProductsSection({
       key: "enabled",
       header: t("admin.packages.col.enabled"),
       priority: "primary",
+      size: "short",
       card: "badge",
       cell: (row) => <OnOff value={row.enabled} testid={`${idOf(row)}-enabled`} t={t} />,
     },
@@ -250,6 +261,7 @@ export function ProductsSection({
       key: "selfServe",
       header: t("admin.packages.col.selfServe"),
       priority: "secondary",
+      size: "short",
       card: "meta",
       cell: (row) => <OnOff value={row.selfServe} testid={`${idOf(row)}-self-serve`} t={t} />,
     },
@@ -257,6 +269,7 @@ export function ProductsSection({
       key: "extends",
       header: t("admin.packages.col.extends"),
       priority: "secondary",
+      size: "short",
       card: "meta",
       cell: (row) => <OnOff value={row.extendsLifetime} testid={`${idOf(row)}-extends`} t={t} />,
     },
@@ -264,6 +277,7 @@ export function ProductsSection({
       key: "sort",
       header: t("admin.packages.col.sort"),
       priority: "detail",
+      size: "short",
       card: "foot",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-sort`}>
