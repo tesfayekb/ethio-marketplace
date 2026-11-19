@@ -125,7 +125,7 @@ export function AdminUsersList() {
       key: "name",
       header: t("admin.users.col.name"),
       priority: "primary",
-      width: "w-[22%]",
+      size: "name",
       card: "title",
       cell: (user) => (
         <span className="block truncate font-medium text-foreground" title={user.displayName}>
@@ -137,7 +137,7 @@ export function AdminUsersList() {
       key: "email",
       header: t("admin.users.col.email"),
       priority: "primary",
-      width: "w-[30%]",
+      size: "text",
       card: "sub",
       cell: (user) => (
         // Emails wrap at the @ rather than stretching the column.
@@ -150,7 +150,7 @@ export function AdminUsersList() {
       key: "country",
       header: t("admin.users.col.country"),
       priority: "secondary",
-      width: "w-[10%]",
+      size: "short",
       card: "meta",
       cell: (user) => (
         <span className="block text-muted-foreground">{user.homeCountryCode ?? "—"}</span>
@@ -160,7 +160,7 @@ export function AdminUsersList() {
       key: "status",
       header: t("admin.users.col.status"),
       priority: "secondary",
-      width: "w-[14%]",
+      size: "short",
       card: "badge",
       cell: (user) => <StatusBadge status={user.accountStatus} />,
     },
@@ -168,7 +168,7 @@ export function AdminUsersList() {
       key: "roles",
       header: t("admin.users.col.roles"),
       priority: "secondary",
-      width: "w-[16%]",
+      size: "name",
       card: "meta",
       // A user with no role has no roles fact on the card.
       cardCell: (user) => (user.roles.length > 0 ? <RoleChips roles={user.roles} /> : null),
@@ -178,7 +178,7 @@ export function AdminUsersList() {
       key: "joined",
       header: t("admin.users.col.joined"),
       priority: "detail",
-      width: "w-[12%]",
+      size: "date",
       card: "meta",
       cell: (user) => (
         <span className="block text-muted-foreground">

@@ -387,7 +387,7 @@ export function AdminListingsPage() {
       key: "title",
       header: t("admin.listings.col.title"),
       priority: "primary",
-      width: "w-[17%]",
+      size: "text",
       card: "title",
       // Turn L3 — the title opens the listing's page.
       cell: (row) => (
@@ -413,7 +413,7 @@ export function AdminListingsPage() {
       key: "seller",
       header: t("admin.listings.col.seller"),
       priority: "primary",
-      width: "w-[15%]",
+      size: "name",
       card: "sub",
       cell: (row) => (
         <span className="block min-w-0 max-w-full">
@@ -432,7 +432,7 @@ export function AdminListingsPage() {
       key: "place",
       header: t("admin.listings.col.place"),
       priority: "secondary",
-      width: "w-[12%]",
+      size: "name",
       card: "meta",
       cell: (row) => (
         <span className="block text-muted-foreground">
@@ -445,7 +445,7 @@ export function AdminListingsPage() {
       key: "category",
       header: t("admin.listings.col.category"),
       priority: "wide",
-      width: "w-[13%]",
+      size: "name",
       card: "meta",
       cell: (row) => (
         <span className="block text-muted-foreground">
@@ -457,7 +457,7 @@ export function AdminListingsPage() {
       key: "price",
       header: t("admin.listings.col.price"),
       priority: "secondary",
-      width: "w-[11%]",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="block tabular-nums text-muted-foreground [overflow-wrap:normal]">
@@ -481,7 +481,7 @@ export function AdminListingsPage() {
       key: "status",
       header: t("admin.listings.col.status"),
       priority: "secondary",
-      width: "w-[11%]",
+      size: "short",
       card: "badge",
       cell: (row) => (
         <span className="block min-w-0">
@@ -511,7 +511,7 @@ export function AdminListingsPage() {
       key: "posted",
       header: t("admin.listings.col.posted"),
       priority: "detail",
-      width: "w-[9%]",
+      size: "date",
       card: "meta",
       cell: (row) => tableDay(row.publishedAt ?? row.createdAt),
       cardCell: (row) => day(row.publishedAt ?? row.createdAt),
@@ -520,7 +520,7 @@ export function AdminListingsPage() {
       key: "expires",
       header: t("admin.listings.col.expires"),
       priority: "wide",
-      width: "w-[9%]",
+      size: "date",
       card: "meta",
       cell: (row) => tableDay(row.expiresAt),
       cardCell: (row) => day(row.expiresAt),

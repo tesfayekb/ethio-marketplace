@@ -149,7 +149,7 @@ export function AdminAuditPage() {
       key: "time",
       header: t("admin.audit.col.time"),
       priority: "primary",
-      width: "w-[18%]",
+      size: "date",
       card: "meta",
       cell: (row) => (
         <span className="block truncate tabular-nums text-muted-foreground">
@@ -161,7 +161,7 @@ export function AdminAuditPage() {
       key: "actor",
       header: t("admin.audit.col.actor"),
       priority: "primary",
-      width: "w-[20%]",
+      size: "name",
       card: "sub",
       cell: (row) => (
         <span className="block truncate text-foreground" title={row.actorName ?? undefined}>
@@ -173,7 +173,7 @@ export function AdminAuditPage() {
       key: "action",
       header: t("admin.audit.col.action"),
       priority: "primary",
-      width: "w-[22%]",
+      size: "name",
       card: "title",
       cell: (row) => (
         <span className="block break-all font-medium text-foreground">{row.action}</span>
@@ -183,7 +183,7 @@ export function AdminAuditPage() {
       key: "entity",
       header: t("admin.audit.col.entity"),
       priority: "secondary",
-      width: "w-[20%]",
+      size: "name",
       card: "meta",
       cell: (row) => (
         <span className="block break-all text-muted-foreground">
@@ -196,7 +196,7 @@ export function AdminAuditPage() {
       key: "meta",
       header: t("admin.audit.col.meta"),
       priority: "detail",
-      width: "w-[20%]",
+      size: "text",
       // The card's Details opens every pair; the raw line stays in the table.
       card: "hide",
       cell: (row) => (
