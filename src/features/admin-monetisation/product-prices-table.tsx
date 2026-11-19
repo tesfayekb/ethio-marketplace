@@ -20,10 +20,10 @@ import { dateFormatter, moneyText } from "@/lib/format";
 import { attributionColumns } from "./monetisation-columns";
 import {
   isStandardPrice,
+  PRICE_GROUP_KEY,
   priceGroupOf,
   priceGroups,
   productAnchor,
-  type PriceGroup,
 } from "./monetisation-order";
 import type { PriceRow, ProductRow } from "./monetisation-service";
 import { PriceDialog } from "./price-dialog";
@@ -84,13 +84,6 @@ export function ProductPricesTable({
     needle === ""
       ? ordered
       : ordered.filter((row) => `${scopeOf(row)} ${row.currency}`.toLowerCase().includes(needle));
-  const GROUP_KEY: Record<
-    Exclude<PriceGroup, "ended">,
-    "admin.monetisation.price.group.now" | "admin.monetisation.price.group.scheduled"
-  > = {
-    now: "admin.monetisation.price.group.now",
-    scheduled: "admin.monetisation.price.group.scheduled",
-  };
   const chosen =
     dialog.kind === "edit" || dialog.kind === "end"
       ? (rows.find((row) => row.id === dialog.id) ?? null)
@@ -117,9 +110,9 @@ export function ProductPricesTable({
             </span>
             {(() => {
               const group = priceGroupOf(row, nowIso);
-              return group === "ended" ? null : (
+              return (
                 <span data-testid={`${idOf(row)}-group`} data-group={group}>
-                  {t(GROUP_KEY[group])}
+                  {t(PRICE_GROUP_KEY[group])}
                 </span>
               );
             })()}

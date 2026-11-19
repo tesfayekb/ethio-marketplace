@@ -5,8 +5,10 @@ import { en } from "@/i18n/locales/en";
 
 import {
   MONETISATION_ANCHORS,
+  PRICE_GROUP_KEY,
   firstUnpriced,
   monetisationSteps,
+  priceGroupOf,
   priceGroups,
   priceHoldsNow,
   productAnchor,
@@ -259,6 +261,10 @@ describe("the price path (L16)", () => {
       "later",
       "ended",
     ]);
+    const ended = rows[0];
+    expect(priceGroupOf(ended, NOW)).toBe("ended");
+    expect(PRICE_GROUP_KEY[priceGroupOf(ended, NOW)]).toBe("admin.monetisation.price.group.ended");
+    expect(en["admin.monetisation.price.group.ended"]).toBe("Ended");
   });
 
   it("MNO-8 the Products step leads to the reach block when only reach is missing, to the levels block otherwise", () => {

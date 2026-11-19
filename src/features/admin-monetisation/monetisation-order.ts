@@ -73,6 +73,13 @@ export function rowPrice(
 
 export type PriceGroup = "now" | "scheduled" | "ended";
 
+/** Each group's word, drawn on every price row (ended rows included). */
+export const PRICE_GROUP_KEY = {
+  now: "admin.monetisation.price.group.now",
+  scheduled: "admin.monetisation.price.group.scheduled",
+  ended: "admin.monetisation.price.group.ended",
+} as const satisfies Record<PriceGroup, string>;
+
 export function priceGroupOf(price: PriceRow, nowIso: string): PriceGroup {
   if (price.validFrom > nowIso) return "scheduled";
   return priceHoldsNow(price, nowIso) ? "now" : "ended";

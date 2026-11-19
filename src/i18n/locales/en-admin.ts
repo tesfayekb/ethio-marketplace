@@ -1968,6 +1968,7 @@ export const enAdmin = {
   "admin.monetisation.price.kind.exception": "Exception",
   "admin.monetisation.price.group.now": "Now",
   "admin.monetisation.price.group.scheduled": "Scheduled",
+  "admin.monetisation.price.group.ended": "Ended",
   "admin.monetisation.price.summary": "{product}, {where}: {amount} from {from}.",
   "admin.monetisation.price.summaryUntil": "{product}, {where}: {amount} from {from} until {to}.",
   "admin.monetisation.empty.levelsWhy":

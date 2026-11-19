@@ -1845,6 +1845,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.monetisation.price.kind.exception": "ልዩ ዋጋ",
   "admin.monetisation.price.group.now": "አሁን",
   "admin.monetisation.price.group.scheduled": "የታቀደ",
+  "admin.monetisation.price.group.ended": "ያበቃ",
   "admin.monetisation.price.summary": "{product}፣ {where}፦ {amount} ከ{from} ጀምሮ።",
   "admin.monetisation.price.summaryUntil": "{product}፣ {where}፦ {amount} ከ{from} እስከ {to}።",
   "admin.monetisation.empty.levelsWhy": "እስካሁን ደረጃ የለም — አንድ እስኪኖር ሻጮች የማስታወቂያ ደረጃ መምረጥ አይችሉም።",
