@@ -1,92 +1,18 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44489359011
-- Commit: `93dcd6c182dc5bddb9bc669e3bb75bd2baa81f07`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44491473327
+- Commit: `288471e1df60f652c61e48ac79b424baae370b64`
 - Attempt: 1
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-a182ed421c63… (0 read)
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-c1fcdf96fa99… (0 read)
 - Repeat: nothing to repeat
-- Written (UTC): 2026-11-19T09:08:04.696Z
-- Passed: 2463 · Skipped: 336 · Failed: 12
-- Gating failures: 12 · STAGING-SINK (INC-1175, still gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Written (UTC): 2026-11-19T09:39:31.320Z
+- Passed: 2466 · Skipped: 336 · Failed: 10
+- Gating failures: 10 · STAGING-SINK (INC-1175, still gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16
 - Sources without results: webkit (INFRA: install-chromium-s-system-libraries)
 - Infrastructure: 1 lane(s) died before any test at install-chromium-s-system-libraries — ::error title=ci-deadline::bash scripts/ci/install-browser-deps.sh webkit ran past its 1500s deadline on try 1 of 1
 - Errors outside any test (INC-589): none
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 5` · admin-translations-data.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one — Error: expect(locator).toBeVisible() failed
-
-## Flaky bodies (DEC-078)
-
-### admin-translations-data.spec.ts › U4b translations console › TR-24 the Data scope machine-translates one row and then every untranslated one
-
-- Source: `shard 5`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('entity-row-location-[account id]-name')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('entity-row-location-[account id]-name')
-
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('entity-row-location-[account id]-name')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('entity-row-location-[account id]-name')
-
-
-  309 |       await page.getByTestId("data-search").fill(one.name);
-  310 |       const row = entityRow(page, `location-${one.id}-name`);
-> 311 |       await expect(row).toBeVisible({ timeout: 20000 });
-      |                         ^
-  312 |       await expect(row.getByTestId(`entity-status-location-${one.id}-name`)).toHaveText(
-  313 |         /untranslated/i,
-  314 |       );
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-translations-data.spec.ts:311:25
-```
-
-Context:
-
-```text
-          - listitem [ref=e311]:
-            - generic [ref=e312]: About
-          - listitem [ref=e313]:
-            - generic [ref=e314]: Contact
-      - navigation "Help" [ref=e315]:
-        - heading "Help" [level=2] [ref=e316]
-        - list [ref=e317]:
-          - listitem [ref=e318]:
-            - generic [ref=e319]: Safety
-      - navigation "Legal" [ref=e320]:
-        - heading "Legal" [level=2] [ref=e321]
-        - list [ref=e322]:
-          - listitem [ref=e323]:
-            - link "Terms" [ref=e324] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e325]:
-            - link "Privacy" [ref=e326] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e328]: © 2026 ethio.com — All rights reserved.
-```
-```
 
 ## Errors outside any test (INC-589)
 
@@ -148,139 +74,139 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-19T08:47:40.925Z | 3.2 min |
-| email | 2026-11-19T08:49:39.311Z | 0.3 min |
-| shard 1 | 2026-11-19T08:45:51.949Z | 5.9 min |
-| shard 2 | 2026-11-19T08:49:43.457Z | 5.1 min |
-| shard 3 | 2026-11-19T08:48:53.313Z | 6.3 min |
-| shard 4 | 2026-11-19T08:42:04.280Z | 5.4 min |
-| shard 5 | 2026-11-19T08:43:45.400Z | 6.6 min |
-| shard 6 | 2026-11-19T08:46:37.283Z | 5.7 min |
-| shard 7 | 2026-11-19T08:48:52.803Z | 5.2 min |
-| shard 8 | 2026-11-19T08:49:07.733Z | 5.5 min |
-| shard 9 | 2026-11-19T08:47:56.407Z | 5.3 min |
-| shard 10 | 2026-11-19T08:42:25.955Z | 6.3 min |
-| shard 11 | 2026-11-19T08:42:31.898Z | 6.3 min |
-| shard 12 | 2026-11-19T08:49:18.332Z | 5.8 min |
-| shard 13 | 2026-11-19T08:49:20.634Z | 5.0 min |
-| shard 14 | 2026-11-19T08:50:13.653Z | 5.4 min |
-| shard 15 | 2026-11-19T08:45:37.274Z | 6.2 min |
-| shard 16 | 2026-11-19T08:50:09.946Z | 5.3 min |
+| smoke | 2026-11-19T09:20:23.643Z | 3.4 min |
+| email | 2026-11-19T09:21:13.391Z | 0.3 min |
+| shard 1 | 2026-11-19T09:15:46.455Z | 5.9 min |
+| shard 2 | 2026-11-19T09:21:26.153Z | 5.3 min |
+| shard 3 | 2026-11-19T09:14:44.741Z | 7.2 min |
+| shard 4 | 2026-11-19T09:21:58.613Z | 6.2 min |
+| shard 5 | 2026-11-19T09:16:06.536Z | 6.5 min |
+| shard 6 | 2026-11-19T09:28:59.849Z | 5.6 min |
+| shard 7 | 2026-11-19T09:14:51.294Z | 7.1 min |
+| shard 8 | 2026-11-19T09:21:10.561Z | 5.5 min |
+| shard 9 | 2026-11-19T09:14:16.159Z | 5.3 min |
+| shard 10 | 2026-11-19T09:21:05.212Z | 5.7 min |
+| shard 11 | 2026-11-19T09:21:45.303Z | 5.7 min |
+| shard 12 | 2026-11-19T09:23:43.743Z | 6.2 min |
+| shard 13 | 2026-11-19T09:25:39.769Z | 4.9 min |
+| shard 14 | 2026-11-19T09:18:17.145Z | 6.6 min |
+| shard 15 | 2026-11-19T09:15:04.999Z | 6.4 min |
+| shard 16 | 2026-11-19T09:19:12.701Z | 5.4 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
 | `shell.spec.ts` | 234 | 10.0 min | shard 1 |
-| `post-wizard-bundle2.spec.ts` | 70 | 5.5 min | shard 3 |
-| `admin-attributes-library.spec.ts` | 42 | 5.3 min | shard 2 |
-| `post-wizard-place.spec.ts` | 40 | 4.9 min | shard 11 |
-| `import-security.spec.ts` | 36 | 4.9 min | shard 4 |
+| `post-wizard-bundle2.spec.ts` | 70 | 6.1 min | shard 3 |
+| `admin-attributes-library.spec.ts` | 42 | 5.5 min | shard 2 |
+| `admin-categories-console.spec.ts` | 34 | 5.5 min | shard 7 |
+| `import-security.spec.ts` | 36 | 5.4 min | shard 4 |
+| `admin-screening.spec.ts` | 54 | 5.1 min | shard 14 |
 | `feed-screens.spec.ts` | 36 | 4.8 min | shard 5 |
 | `admin-translations-console.spec.ts` | 46 | 4.7 min | smoke, shard 8 |
-| `admin-locations.spec.ts` | 38 | 4.6 min | shard 6 |
-| `admin-listings.spec.ts` | 76 | 4.6 min | shard 10 |
-| `admin-categories-console.spec.ts` | 34 | 4.3 min | shard 7 |
+| `post-wizard-specs.spec.ts` | 82 | 4.6 min | shard 12 |
+| `admin-locations.spec.ts` | 38 | 4.5 min | shard 6 |
+| `admin-listings.spec.ts` | 76 | 4.5 min | shard 10 |
+| `post-wizard-place.spec.ts` | 40 | 4.4 min | shard 11 |
 | `admin-roles.spec.ts` | 28 | 4.3 min | shard 9 |
-| `admin-screening.spec.ts` | 54 | 4.3 min | shard 14 |
-| `post-wizard-specs.spec.ts` | 82 | 4.3 min | shard 12 |
-| `admin-monetisation.spec.ts` | 34 | 4.1 min | smoke, shard 10 |
-| `admin-attributes-links.spec.ts` | 34 | 4.0 min | shard 13 |
 | `viewing-place.spec.ts` | 22 | 3.9 min | shard 15 |
-| `post-wizard-where.spec.ts` | 32 | 3.8 min | shard 11 |
+| `admin-monetisation.spec.ts` | 34 | 3.8 min | smoke, shard 10 |
+| `admin-attributes-editor.spec.ts` | 36 | 3.8 min | shard 14 |
+| `admin-attributes-links.spec.ts` | 34 | 3.8 min | shard 13 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 3.8 min | shard 15 |
 | `admin-users.spec.ts` | 28 | 3.7 min | shard 16 |
+| `post-wizard-where.spec.ts` | 32 | 3.7 min | shard 11 |
+| `choice-lists.spec.ts` | 96 | 3.7 min | shard 7 |
+| `photo-pipeline.spec.ts` | 70 | 3.6 min | shard 16 |
 | `my-listings-ad.spec.ts` | 38 | 3.6 min | shard 12 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 3.5 min | shard 15 |
-| `photo-pipeline.spec.ts` | 70 | 3.4 min | shard 16 |
-| `admin-attributes-editor.spec.ts` | 36 | 3.2 min | shard 14 |
-| `auth-signout.spec.ts` | 36 | 3.1 min | shard 9 |
-| `ad-page.spec.ts` | 82 | 3.0 min | shard 13 |
-| `admin-translations-governance.spec.ts` | 20 | 3.0 min | smoke, shard 16 |
+| `auth-signout.spec.ts` | 36 | 3.0 min | shard 9 |
 | `post-wizard-pricing.spec.ts` | 52 | 3.0 min | shard 8 |
-| `admin-attributes-safety.spec.ts` | 18 | 2.6 min | shard 5 |
-| `post-wizard-resets.spec.ts` | 34 | 2.6 min | shard 3 |
-| `choice-lists.spec.ts` | 96 | 2.6 min | shard 7 |
-| `admin-translations-data.spec.ts` | 10 | 2.5 min | shard 5 |
+| `ad-page.spec.ts` | 82 | 3.0 min | shard 13 |
+| `admin-translations-governance.spec.ts` | 20 | 2.9 min | smoke, shard 16 |
+| `post-wizard-resets.spec.ts` | 34 | 2.9 min | shard 3 |
+| `post-wizard-category.spec.ts` | 48 | 2.8 min | shard 4 |
+| `legal-admin.spec.ts` | 44 | 2.8 min | shard 7 |
+| `admin-attributes-safety.spec.ts` | 18 | 2.7 min | shard 5 |
 | `sage-bands.spec.ts` | 76 | 2.4 min | shard 6 |
-| `post-wizard-category.spec.ts` | 48 | 2.4 min | shard 4 |
+| `posting-routes.spec.ts` | 80 | 2.2 min | shard 2 |
 | `admin-countries.spec.ts` | 18 | 2.2 min | shard 6 |
-| `posting-routes.spec.ts` | 80 | 2.0 min | shard 2 |
-| `legal-admin.spec.ts` | 44 | 1.8 min | shard 7 |
-| `dialogs.spec.ts` | 16 | 1.8 min | shard 10 |
+| `legal-certify.spec.ts` | 44 | 2.1 min | shard 14 |
+| `admin-translations-data.spec.ts` | 10 | 2.1 min | shard 5 |
+| `admin-categories-home.spec.ts` | 10 | 1.8 min | shard 4 |
+| `mfa-stepup.spec.ts` | 20 | 1.7 min | shard 15 |
+| `dialogs.spec.ts` | 16 | 1.6 min | shard 10 |
 | `admin-attributes-import.spec.ts` | 40 | 1.6 min | shard 8 |
-| `admin-categories-home.spec.ts` | 10 | 1.6 min | shard 4 |
-| `legal-certify.spec.ts` | 44 | 1.6 min | shard 14 |
-| `mfa-stepup.spec.ts` | 20 | 1.5 min | shard 15 |
 | `admin-audit.spec.ts` | 16 | 1.5 min | shard 9 |
-| `my-listings-promote.spec.ts` | 10 | 1.2 min | shard 11 |
-| `one-line-slots-admin.spec.ts` | 10 | 1.1 min | shard 3 |
-| `admin-guides.spec.ts` | 14 | 1.1 min | shard 3 |
-| `phone-frame.spec.ts` | 18 | 1.1 min | shard 12 |
-| `press.spec.ts` | 22 | 1.0 min | shard 12 |
-| `my-listings-page.spec.ts` | 18 | 1.0 min | shard 10 |
-| `sage-ad-page.spec.ts` | 18 | 1.0 min | shard 11 |
-| `admin-shell.spec.ts` | 12 | 0.9 min | shard 2 |
-| `name-check-queue.spec.ts` | 8 | 0.9 min | smoke, shard 9 |
+| `admin-guides.spec.ts` | 14 | 1.4 min | shard 3 |
+| `one-line-slots-admin.spec.ts` | 10 | 1.3 min | shard 3 |
+| `phone-frame.spec.ts` | 18 | 1.3 min | shard 12 |
+| `press.spec.ts` | 22 | 1.2 min | shard 12 |
+| `my-listings-promote.spec.ts` | 10 | 1.1 min | shard 11 |
+| `admin-shell.spec.ts` | 12 | 1.0 min | shard 2 |
+| `my-listings-levels.spec.ts` | 28 | 0.9 min | shard 4 |
 | `sage-tiers.spec.ts` | 40 | 0.9 min | shard 2 |
-| `user-guides.spec.ts` | 18 | 0.9 min | shard 13 |
-| `admin-categories-images.spec.ts` | 4 | 0.8 min | smoke, shard 12 |
+| `name-check-queue.spec.ts` | 8 | 0.9 min | smoke, shard 9 |
+| `admin-categories-images.spec.ts` | 4 | 0.9 min | smoke, shard 12 |
 | `i18n-sign-in-language.spec.ts` | 12 | 0.8 min | shard 15 |
-| `locations-tree.spec.ts` | 8 | 0.7 min | shard 13 |
+| `locations-tree.spec.ts` | 8 | 0.8 min | shard 13 |
+| `sage-ad-page.spec.ts` | 18 | 0.8 min | shard 11 |
+| `post-wizard-removed.spec.ts` | 4 | 0.8 min | shard 7 |
+| `user-guides.spec.ts` | 18 | 0.8 min | shard 13 |
+| `my-listings-page.spec.ts` | 18 | 0.8 min | shard 10 |
 | `sage-shell.spec.ts` | 80 | 0.7 min | shard 16 |
-| `post-wizard-removed.spec.ts` | 4 | 0.7 min | shard 7 |
-| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 4 |
+| `my-listings-doors.spec.ts` | 28 | 0.7 min | shard 3 |
+| `ad-page-doors.spec.ts` | 30 | 0.6 min | shard 14 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
 | `legal-doors.spec.ts` | 34 | 0.6 min | smoke, shard 8 |
-| `house-style.spec.ts` | 12 | 0.5 min | shard 11 |
-| `ad-page-doors.spec.ts` | 30 | 0.5 min | shard 14 |
-| `my-listings-doors.spec.ts` | 28 | 0.5 min | shard 3 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
-| `supabase-door.spec.ts` | 12 | 0.5 min | shard 13 |
+| `post-wizard-details.spec.ts` | 8 | 0.5 min | shard 14 |
+| `sage-cards.spec.ts` | 28 | 0.5 min | shard 7 |
 | `auth-caller-gates.spec.ts` | 8 | 0.5 min | shard 5 |
-| `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 14 |
-| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
+| `house-style.spec.ts` | 12 | 0.5 min | shard 11 |
 | `admin-services.spec.ts` | 10 | 0.4 min | shard 1 |
-| `sage-cards.spec.ts` | 28 | 0.4 min | shard 7 |
+| `supabase-door.spec.ts` | 12 | 0.4 min | shard 13 |
+| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6 |
 | `primitives-law.spec.ts` | 24 | 0.4 min | shard 16 |
+| `i18n-coverage.spec.ts` | 14 | 0.4 min | shard 4 |
+| `legal-accept.spec.ts` | 12 | 0.4 min | shard 2 |
 | `settings.spec.ts` | 9 | 0.3 min | shard 1 |
-| `legal-accept.spec.ts` | 12 | 0.3 min | shard 2 |
 | `one-line-slots.spec.ts` | 10 | 0.3 min | shard 8 |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
-| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4 |
-| `posting-routes-dials.spec.ts` | 14 | 0.3 min | shard 9 |
-| `shell-bands.spec.ts` | 16 | 0.3 min | shard 12 |
 | `submenu.spec.ts` | 14 | 0.3 min | shard 15 |
 | `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 10 |
-| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
-| `page-head.spec.ts` | 4 | 0.3 min | shard 13 |
+| `posting-routes-dials.spec.ts` | 14 | 0.3 min | shard 9 |
+| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
+| `shell-bands.spec.ts` | 16 | 0.3 min | shard 12 |
 | `category-nav.spec.ts` | 10 | 0.3 min | shard 5 |
-| `layout.spec.ts` | 10 | 0.3 min | shard 10 |
-| `a11y.spec.ts` | 4 | 0.2 min | smoke |
+| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
+| `account-saved.spec.ts` | 4 | 0.2 min | shard 4 |
+| `page-head.spec.ts` | 4 | 0.2 min | shard 13 |
+| `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
 | `auth-signup.spec.ts` | 6 | 0.2 min | email |
+| `a11y.spec.ts` | 4 | 0.2 min | smoke |
+| `layout.spec.ts` | 10 | 0.2 min | shard 10 |
+| `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
+| `overlays.spec.ts` | 8 | 0.2 min | shard 15 |
 | `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
+| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
 | `legal-history.spec.ts` | 6 | 0.2 min | shard 16 |
 | `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
 | `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
-| `overlays.spec.ts` | 8 | 0.2 min | shard 15 |
-| `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
-| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
-| `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
-| `feed-route.spec.ts` | 22 | 0.1 min | shard 9 |
-| `account-saved.spec.ts` | 4 | 0.1 min | shard 4 |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
+| `door-refusals.spec.ts` | 12 | 0.2 min | shard 7 |
+| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
 | `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
-| `door-refusals.spec.ts` | 12 | 0.1 min | shard 7 |
-| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
 | `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
-| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
+| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
+| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
 | `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
 | `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
-| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
+| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
+| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
+| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
 | `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
-| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
+| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
+| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
 | `fonts.spec.ts` | 2 | 0.0 min | shard 1 |
 | `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 3 |
@@ -291,21 +217,21 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 45.4 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 41.9 s |
-| `admin-translations-data.spec.ts` › TR-24 the Data scope machine-translates one row and then every untranslated one | desktop-1280 | 40.2 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 39.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 38.0 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 37.5 s |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | desktop-1280 | 35.1 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 34.4 s |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 34.2 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 32.0 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 30.5 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 40.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 37.1 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 36.1 s |
+| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 35.4 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 34.2 s |
+| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | desktop-1280 | 33.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 33.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 32.8 s |
+| `admin-monetisation.spec.ts` › MON-12 a scratch market: paid levels ON without a bundle is refused by name; ON with 10/30 writes the bundle, paid_levels_since and the audit row; OFF clears the mark | mobile-360 | 32.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 31.9 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 31.4 s |
+| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.8 s |
+| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 30.8 s |
+| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 30.5 s |
 | `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | desktop-1280 | 30.3 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | desktop-1280 | 30.2 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 30.2 s |
 
 ## Post-test errors: smoke
 
@@ -314,7 +240,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 44489359011-localproof
+[e2e:teardown] deleted 2 user(s) owned by process 44491473327-localproof
 ```
 
 ## Post-test errors: email
@@ -324,7 +250,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-email
+[e2e:teardown] deleted 3 user(s) owned by process 44491473327-local-email
 ```
 
 ## Post-test errors: shard 1
@@ -334,7 +260,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-1
+[e2e:teardown] deleted 3 user(s) owned by process 44491473327-local-1
 ```
 
 ## Post-test errors: shard 2
@@ -344,7 +270,7 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 9 user(s) owned by process 44489359011-local-2
+[e2e:teardown] deleted 9 user(s) owned by process 44491473327-local-2
 ```
 
 ## Post-test errors: shard 3
@@ -354,7 +280,7 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 44489359011-local-3
+[e2e:teardown] deleted 5 user(s) owned by process 44491473327-local-3
 ```
 
 ## Post-test errors: shard 4
@@ -364,7 +290,7 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 28 (pool 4, fresh 24)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 25 user(s) owned by process 44489359011-local-4
+[e2e:teardown] deleted 25 user(s) owned by process 44491473327-local-4
 ```
 
 ## Post-test errors: shard 5
@@ -374,7 +300,7 @@ shard 5: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 15 user(s) owned by process 44489359011-local-5
+[e2e:teardown] deleted 15 user(s) owned by process 44491473327-local-5
 ```
 
 ## Post-test errors: shard 6
@@ -384,7 +310,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-6
+[e2e:teardown] deleted 3 user(s) owned by process 44491473327-local-6
 ```
 
 ## Post-test errors: shard 7
@@ -394,7 +320,7 @@ shard 7: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-7
+[e2e:teardown] deleted 3 user(s) owned by process 44491473327-local-7
 ```
 
 ## Post-test errors: shard 8
@@ -404,7 +330,7 @@ shard 8: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 44489359011-local-8
+[e2e:teardown] deleted 8 user(s) owned by process 44491473327-local-8
 ```
 
 ## Post-test errors: shard 9
@@ -414,7 +340,7 @@ shard 9: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 16 (pool 4, fresh 12)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 13 user(s) owned by process 44489359011-local-9
+[e2e:teardown] deleted 13 user(s) owned by process 44491473327-local-9
 ```
 
 ## Post-test errors: shard 10
@@ -424,7 +350,7 @@ shard 10: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 44489359011-local-10
+[e2e:teardown] deleted 5 user(s) owned by process 44491473327-local-10
 ```
 
 ## Post-test errors: shard 11
@@ -434,7 +360,7 @@ shard 11: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-11
+[e2e:teardown] deleted 3 user(s) owned by process 44491473327-local-11
 ```
 
 ## Post-test errors: shard 12
@@ -444,7 +370,7 @@ shard 12: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 3, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 44489359011-local-12
+[e2e:teardown] deleted 5 user(s) owned by process 44491473327-local-12
 ```
 
 ## Post-test errors: shard 13
@@ -452,9 +378,9 @@ shard 12: every test's verdict stands — these lines were printed OUTSIDE any t
 shard 13: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
+[e2e:teardown] accounts signed in this run: 5 (pool 3, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44489359011-local-13
+[e2e:teardown] deleted 3 user(s) owned by process 44491473327-local-13
 ```
 
 ## Post-test errors: shard 14
@@ -464,7 +390,7 @@ shard 14: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 44489359011-local-14
+[e2e:teardown] deleted 11 user(s) owned by process 44491473327-local-14
 ```
 
 ## Post-test errors: shard 15
@@ -474,7 +400,7 @@ shard 15: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 28 (pool 2, fresh 26)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 43 user(s) owned by process 44489359011-local-15
+[e2e:teardown] deleted 43 user(s) owned by process 44491473327-local-15
 ```
 
 ## Post-test errors: shard 16
@@ -484,7 +410,7 @@ shard 16: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 23 user(s) owned by process 44489359011-local-16
+[e2e:teardown] deleted 23 user(s) owned by process 44491473327-local-16
 ```
 
 ## admin-services.spec.ts › ADMIN › SERVICES — the AI switches and meter (D158) › SV-1 a seller can neither read nor change a switch, call the meter or read its tables
@@ -691,73 +617,6 @@ Context:
 ```
 ```
 
-## admin-monetisation.spec.ts › P-1b Admin › Monetisation › MON-10 a used price: the service client marks it used, the door refuses Edit by name and nothing changes; after a refresh the verb is gone while End stays
-
-- Source: `shard 10`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toHaveText(expected) failed
-
-Locator:  getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-Expected: "This price has been used; end it and add a new one."
-Received: "That could not be saved."
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-    14 × locator resolved to <p role="alert" class="text-sm text-destructive" data-testid="monetisation-price-edit-error">That could not be saved.</p>
-       - unexpected value "That could not be saved."
-
---- further error 1 ---
-Error: expect(locator).toHaveText(expected) failed
-
-Locator:  getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-Expected: "This price has been used; end it and add a new one."
-Received: "That could not be saved."
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-    14 × locator resolved to <p role="alert" class="text-sm text-destructive" data-testid="monetisation-price-edit-error">That could not be saved.</p>
-       - unexpected value "That could not be saved."
-
-
-  1145 |     await edit.getByTestId("monetisation-price-edit-save").click();
-  1146 |     await awaitGuardedOutcome(page, secret, edit.getByTestId("monetisation-price-edit-error"));
-> 1147 |     await expect(edit.getByTestId("monetisation-price-edit-error")).toHaveText(
-       |                                                                     ^
-  1148 |       en["admin.monetisation.error.priceInUse"],
-  1149 |     );
-```
-
-Context:
-
-```text
-            - generic [ref=e44]: 19 Nov 2026
-          - button "Clear date" [ref=e45]:
-            - img [ref=e46]
-      - generic [ref=e49]:
-        - generic [ref=e50]:
-          - generic [ref=e51]: Valid until
-          - generic [ref=e52]: Optional
-        - button "Valid until Optional" [ref=e55]:
-          - img [ref=e56]
-          - generic [ref=e58]: Choose date
-        - paragraph [ref=e60]: Leave blank for no end.
-      - alert [ref=e61]: That could not be saved.
-      - paragraph [ref=e62]: "Reason: priceInUse"
-      - generic [ref=e63]:
-        - button "Cancel" [ref=e64] [cursor=pointer]
-        - button "Save" [ref=e65] [cursor=pointer]
-    - button "Close" [ref=e66] [cursor=pointer]:
-      - img [ref=e67]
-      - generic [ref=e70]: Close
-```
-```
-
 ## admin-monetisation.spec.ts › P-1b Admin › Monetisation › MON-12 a scratch market: paid levels ON without a bundle is refused by name; ON with 10/30 writes the bundle, paid_levels_since and the audit row; OFF clears the mark
 
 - Source: `shard 10`
@@ -839,7 +698,7 @@ Received string:  "permissionDenied"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-monetisation.spec.ts:1390:81
 ```
 
-Context: context file not found for `admin-monetisation-P-1b-Admin-Monetisation-MON-13-the-browser-roles-read-enabled-products-and-valid-prices-by-their-own-columns-never-created_by-or-updated_by-the-console-rpc-refuses-them-mobile-360` — Playwright's name `admin-monetisation-P-1b-Ad-852f2-he-console-rpc-refuses-them-mobile-360`; this run carried 21 context file(s); of the same spec: `admin-monetisation-P-1b-Ad-4827e-dit-row-OFF-clears-the-mark-mobile-360-retry1`, `admin-monetisation-P-1b-Ad-c2a47-e-doors-refuse-both-by-name-mobile-360`, `admin-monetisation-P-1b-Ad-e27d7-e-when-perks-are-sent-to-it-desktop-1280`, `admin-monetisation-P-1b-Ad-4827e-dit-row-OFF-clears-the-mark-mobile-360`, `admin-monetisation-P-1b-Ad-0bdae-erb-is-gone-while-End-stays-mobile-360-retry1`
+Context: context file not found for `admin-monetisation-P-1b-Admin-Monetisation-MON-13-the-browser-roles-read-enabled-products-and-valid-prices-by-their-own-columns-never-created_by-or-updated_by-the-console-rpc-refuses-them-mobile-360` — Playwright's name `admin-monetisation-P-1b-Ad-852f2-he-console-rpc-refuses-them-mobile-360`; this run carried 16 context file(s); of the same spec: `admin-monetisation-P-1b-Ad-c2a47-e-doors-refuse-both-by-name-desktop-1280-retry1`, `admin-monetisation-P-1b-Ad-4827e-dit-row-OFF-clears-the-mark-desktop-1280`, `admin-monetisation-P-1b-Ad-e27d7-e-when-perks-are-sent-to-it-mobile-360-retry1`, `admin-monetisation-P-1b-Ad-c2a47-e-doors-refuse-both-by-name-mobile-360`, `admin-monetisation-P-1b-Ad-e27d7-e-when-perks-are-sent-to-it-desktop-1280`
 
 ## admin-monetisation.spec.ts › P-1b Admin › Monetisation › MON-2 gating: a reviewer has no entry and a deep link is turned away; a packages:view-only staff sees the blocks without a verb; the doors refuse both by name
 
@@ -943,73 +802,6 @@ Context:
 ```
 ```
 
-## admin-monetisation.spec.ts › P-1b Admin › Monetisation › MON-10 a used price: the service client marks it used, the door refuses Edit by name and nothing changes; after a refresh the verb is gone while End stays
-
-- Source: `shard 10`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toHaveText(expected) failed
-
-Locator:  getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-Expected: "This price has been used; end it and add a new one."
-Received: "That could not be saved."
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-    14 × locator resolved to <p role="alert" class="text-sm text-destructive" data-testid="monetisation-price-edit-error">That could not be saved.</p>
-       - unexpected value "That could not be saved."
-
---- further error 1 ---
-Error: expect(locator).toHaveText(expected) failed
-
-Locator:  getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-Expected: "This price has been used; end it and add a new one."
-Received: "That could not be saved."
-Timeout:  10000ms
-
-Call log:
-  - Expect "toHaveText" with timeout 10000ms
-  - waiting for getByTestId('monetisation-price-edit').getByTestId('monetisation-price-edit-error')
-    14 × locator resolved to <p role="alert" class="text-sm text-destructive" data-testid="monetisation-price-edit-error">That could not be saved.</p>
-       - unexpected value "That could not be saved."
-
-
-  1145 |     await edit.getByTestId("monetisation-price-edit-save").click();
-  1146 |     await awaitGuardedOutcome(page, secret, edit.getByTestId("monetisation-price-edit-error"));
-> 1147 |     await expect(edit.getByTestId("monetisation-price-edit-error")).toHaveText(
-       |                                                                     ^
-  1148 |       en["admin.monetisation.error.priceInUse"],
-  1149 |     );
-```
-
-Context:
-
-```text
-            - generic [ref=e44]: 19 Nov 2026
-          - button "Clear date" [ref=e45]:
-            - img [ref=e46]
-      - generic [ref=e49]:
-        - generic [ref=e50]:
-          - generic [ref=e51]: Valid until
-          - generic [ref=e52]: Optional
-        - button "Valid until Optional" [ref=e55]:
-          - img [ref=e56]
-          - generic [ref=e58]: Choose date
-        - paragraph [ref=e60]: Leave blank for no end.
-      - alert [ref=e61]: That could not be saved.
-      - paragraph [ref=e62]: "Reason: priceInUse"
-      - generic [ref=e63]:
-        - button "Cancel" [ref=e64] [cursor=pointer]
-        - button "Save" [ref=e65] [cursor=pointer]
-    - button "Close" [ref=e66] [cursor=pointer]:
-      - img [ref=e67]
-      - generic [ref=e70]: Close
-```
-```
-
 ## admin-monetisation.spec.ts › P-1b Admin › Monetisation › MON-12 a scratch market: paid levels ON without a bundle is refused by name; ON with 10/30 writes the bundle, paid_levels_since and the audit row; OFF clears the mark
 
 - Source: `shard 10`
@@ -1091,7 +883,7 @@ Received string:  "permissionDenied"
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-monetisation.spec.ts:1390:81
 ```
 
-Context: context file not found for `admin-monetisation-P-1b-Admin-Monetisation-MON-13-the-browser-roles-read-enabled-products-and-valid-prices-by-their-own-columns-never-created_by-or-updated_by-the-console-rpc-refuses-them-desktop-1280` — Playwright's name `admin-monetisation-P-1b-Ad-852f2-he-console-rpc-refuses-them-desktop-1280`; this run carried 21 context file(s); of the same spec: `admin-monetisation-P-1b-Ad-4827e-dit-row-OFF-clears-the-mark-mobile-360-retry1`, `admin-monetisation-P-1b-Ad-c2a47-e-doors-refuse-both-by-name-mobile-360`, `admin-monetisation-P-1b-Ad-e27d7-e-when-perks-are-sent-to-it-desktop-1280`, `admin-monetisation-P-1b-Ad-4827e-dit-row-OFF-clears-the-mark-mobile-360`, `admin-monetisation-P-1b-Ad-0bdae-erb-is-gone-while-End-stays-mobile-360-retry1`
+Context: context file not found for `admin-monetisation-P-1b-Admin-Monetisation-MON-13-the-browser-roles-read-enabled-products-and-valid-prices-by-their-own-columns-never-created_by-or-updated_by-the-console-rpc-refuses-them-desktop-1280` — Playwright's name `admin-monetisation-P-1b-Ad-852f2-he-console-rpc-refuses-them-desktop-1280`; this run carried 16 context file(s); of the same spec: `admin-monetisation-P-1b-Ad-c2a47-e-doors-refuse-both-by-name-desktop-1280-retry1`, `admin-monetisation-P-1b-Ad-4827e-dit-row-OFF-clears-the-mark-desktop-1280`, `admin-monetisation-P-1b-Ad-e27d7-e-when-perks-are-sent-to-it-mobile-360-retry1`, `admin-monetisation-P-1b-Ad-c2a47-e-doors-refuse-both-by-name-mobile-360`, `admin-monetisation-P-1b-Ad-e27d7-e-when-perks-are-sent-to-it-desktop-1280`
 
 ## Server errors: webkit
 
@@ -1126,6 +918,10 @@ No `[ssr-error]` lines in the `shard 10` log (or no log was uploaded).
 
 ```text
 [client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
+[client-error] HTTP 400 POST /rest/v1/rpc/admin_save_listing_package ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "perksOnReach", "refusals": [{"reason": "perksOnReach"}]})
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
+[client-error] HTTP 400 POST /rest/v1/rpc/admin_save_listing_package ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "perksOnReach", "refusals": [{"reason": "perksOnReach"}]})
+[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
 [client-error] HTTP 400 POST /rest/v1/rpc/admin_save_market_settings ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "launchRequired", "refusals": [{"reason": "launchRequired"}]})
 [client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
 [client-error] HTTP 400 POST /rest/v1/rpc/admin_save_market_settings ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "launchRequired", "refusals": [{"reason": "launchRequired"}]})
@@ -1137,10 +933,6 @@ No `[ssr-error]` lines in the `shard 10` log (or no log was uploaded).
 [client-error] HTTP 400 POST /rest/v1/rpc/admin_save_listing_package ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "perksOnReach", "refusals": [{"reason": "perksOnReach"}]})
 [client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
 [client-error] HTTP 400 POST /rest/v1/rpc/admin_save_listing_package ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "perksOnReach", "refusals": [{"reason": "perksOnReach"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
-[client-error] HTTP 400 POST /rest/v1/rpc/admin_edit_package_price ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "priceInUse", "refusals": [{"reason": "priceInUse"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
-[client-error] HTTP 400 POST /rest/v1/rpc/admin_edit_package_price ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "priceInUse", "refusals": [{"reason": "priceInUse"}]})
 [client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
 [client-error] HTTP 400 POST /rest/v1/rpc/admin_save_market_settings ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "launchRequired", "refusals": [{"reason": "launchRequired"}]})
 [client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
@@ -1156,25 +948,25 @@ webkit: no results file — the process failed outside test results (setup/teard
 
 ```text
 Step install-chromium-s-system-libraries: outcome failure
-  Get:83 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 liborc-0.4-0t64 amd64 1:0.4.38-1ubuntu0.1 [207 kB]
-  Get:84 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-plugins-base1.0-0 amd64 1.24.2-1ubuntu0.7 [863 kB]
-  Ign:85 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 gstreamer1.0-libav amd64 1.24.1-1build1
-  Ign:86 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libcdparanoia0 amd64 3.10.2+debian-14build3
-  Ign:87 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libvisual-0.4-0 amd64 0.4.2-2build1
-  Get:88 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 gstreamer1.0-plugins-base amd64 1.24.2-1ubuntu0.7 [721 kB]
-  Get:89 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libaa1 amd64 1.4p5-51.1 [49.9 kB]
-  Get:90 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libraw1394-11 amd64 2.1.2-2build3 [26.2 kB]
-  Ign:91 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libavc1394-0 amd64 0.5.4-5build3
-  Get:92 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libcaca0 amd64 0.99.beta20-4ubuntu0.2 [209 kB]
-  Ign:93 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libdv4t64 amd64 1.0.0-17.1build1
-  Ign:94 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-plugins-good1.0-0 amd64 1.24.2-1ubuntu1.8
-  Ign:95 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libiec61883-0 amd64 1.2.0-6build1
-  Get:96 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libshout3 amd64 2.4.6-1build2 [50.3 kB]
-  Ign:97 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libtag1v5-vanilla amd64 1.13.1-1build1
-  Get:98 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libtag1v5 amd64 1.13.1-1build1 [11.7 kB]
-  Ign:99 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libv4lconvert0t64 amd64 1.26.1-4build3
-  Ign:100 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libv4l-0t64 amd64 1.26.1-4build3
-  Get:101 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libwavpack1 amd64 5.6.0-1build1 [84.6 kB]
+  Get:113 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libdecor-0-0 amd64 0.2.2-1build2 [16.5 kB]
+  Ign:114 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libgles2 amd64 1.7.0-1build1
+  Get:115 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libdirectfb-1.7-7t64 amd64 1.7.7-11.1ubuntu2 [1035 kB]
+  Get:116 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libdvdread8t64 amd64 6.1.3-1.1build1 [54.7 kB]
+  Get:117 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libdvdnav4 amd64 6.1.1-3build1 [39.5 kB]
+  Get:118 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgl1-mesa-dri amd64 25.2.8-0ubuntu0.24.04.5 [38.0 kB]
+  Get:119 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libglx-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [110 kB]
+  Get:120 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgbm1 amd64 25.2.8-0ubuntu0.24.04.5 [34.2 kB]
+  Get:121 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 mesa-libgallium amd64 25.2.8-0ubuntu0.24.04.5 [10.8 MB]
+  Get:122 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libegl-mesa0 amd64 25.2.8-0ubuntu0.24.04.5 [117 kB]
+  Get:123 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libevent-2.1-7t64 amd64 2.1.12-stable-9ubuntu2.2 [146 kB]
+  Get:124 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libfaad2 amd64 2.11.1-1build1 [207 kB]
+  Get:125 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libinstpatch-1.0-2 amd64 1.1.6-1build2 [251 kB]
+  Get:126 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libjack-jackd2-0 amd64 1.9.21~dfsg-3ubuntu3 [289 kB]
+  Get:127 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libwebrtc-audio-processing1 amd64 0.3.1-0ubuntu6 [290 kB]
+  Get:128 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libspa-0.2-modules amd64 1.0.5-1ubuntu3.3 [628 kB]
+  Get:129 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libpipewire-0.3-0t64 amd64 1.0.5-1ubuntu3.3 [252 kB]
+  Get:130 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libsdl2-2.0-0 amd64 2.30.0+dfsg-1ubuntu3.1 [686 kB]
+  Get:131 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 timgm6mb-soundfont all 1.3-5 [5427 kB]
   ::error title=ci-deadline::bash scripts/ci/install-browser-deps.sh webkit ran past its 1500s deadline on try 1 of 1
 ```
 
