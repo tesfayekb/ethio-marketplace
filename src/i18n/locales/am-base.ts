@@ -439,7 +439,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
     "ግምገማ የሚጠብቁ ማስታወቂያዎች። 'አጽድቅ' ማስታወቂያውን በገጹ ላይ ይጭናል፤ 'ውድቅ አድርግ' ደግሞ ከገጹ ውጪ ያደርገዋል።",
   "admin.nav.group.listings": "ማስታወቂያዎች",
   "admin.nav.group.monetisation": "ገቢ ማስገኛ",
-  "admin.nav.group.services": "አገልግሎቶች",
+  "admin.nav.group.services": "ሰው ሰራሽ አስተውሎት እና አገልግሎቶች",
   "admin.section.ai.title": "ሰው ሰራሽ አስተውሎት",
   "admin.section.ai.body": "የእያንዳንዱ የሰው ሰራሽ አስተውሎት አገልግሎት ሁኔታ፣ ወርሃዊ በጀት እና ወጪ።",
   "admin.section.listings.title": "ሁሉም ማስታወቂያዎች",
