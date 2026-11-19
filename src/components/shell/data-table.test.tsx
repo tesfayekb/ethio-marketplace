@@ -666,7 +666,7 @@ describe("DataTable V2 card and frame (D132)", () => {
     renderTable({
       columns: sized({ n: "name", t: "text" }).map((column) => ({
         ...column,
-        minWidth: "min-w-40",
+        minWidth: "min-w-40", // C7-dense: DTK-5 proves the min-width contract (auto layout, scroll)
       })),
     });
     const table = document.querySelector("table");
