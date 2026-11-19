@@ -1,7 +1,5 @@
 import type { MessageKey } from "@/i18n";
-import { errorText } from "@/lib/error-text";
-import { ownValue } from "@/lib/own-key";
-import { splitRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { RefusalFamily } from "@/lib/refusal";
 
 /**
  * F1-6a — THE LISTINGS CONSOLE'S WORDS, by code, for the one reader (DEC-339).
@@ -48,18 +46,3 @@ export const EDIT_REFUSALS = {
 export const EDIT_BAD_VALUES = {
   reason: "admin.listings.move.pickReason",
 } as const satisfies Record<string, MessageKey>;
-
-/**
- * The line a `badValue:<field>` refusal draws by its detail: the one code names
- * many fields, and the reader's words are by code alone. Null for any other
- * refusal and for a field with no words of its own (the family's generic line
- * follows through `readRefusal`). The split is the reader's (`splitRefusal`).
- */
-export function badValueWords(
-  refusal: unknown,
-  badValues: Readonly<Record<string, MessageKey>>,
-): MessageKey | null {
-  const { key, tail } = splitRefusal(errorText(refusal).trim());
-  if (key !== "badValue" || tail === undefined) return null;
-  return ownValue(badValues, tail) ?? null;
-}

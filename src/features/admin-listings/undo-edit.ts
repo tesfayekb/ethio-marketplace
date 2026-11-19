@@ -1,9 +1,10 @@
 import type { Refusal } from "@/features/posting/types";
 import type { MessageKey } from "@/i18n";
+import { badValueWords } from "@/lib/bad-value-words";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { groupOf, groupsOf, type FieldGroup } from "./history";
-import { badValueWords, EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
+import { EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
 import type { AdminListingHistoryEntry } from "./use-admin-listing";
 
 /**

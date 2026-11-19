@@ -1,7 +1,8 @@
 import type { MessageKey } from "@/i18n";
+import { badValueWords } from "@/lib/bad-value-words";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
-import { badValueWords, EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
+import { EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
 
 /**
  * Bundle 13 turn 8 (D154 B4) — WHAT STAFF GIVE WHEN THEY REMOVE ONE PHOTO.

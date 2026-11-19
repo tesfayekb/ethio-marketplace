@@ -1,7 +1,7 @@
 import type { MessageKey } from "@/i18n";
+import { badValueWords } from "@/lib/bad-value-words";
 import { errorText } from "@/lib/error-text";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
-import { badValueWords } from "@/features/admin-listings/listing-refusals";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
