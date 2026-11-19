@@ -548,12 +548,8 @@ export function DataTable<T>({
   /** Any declared min-width switches the table off fixed layout (C7). */
   const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
   const usesShares = !hasMinWidths && columns.some((column) => column.size !== undefined);
-  // Selection and actions are control columns too; reserve their shares so
-  // the sized headers never consume the space those controls need.
-  const totalWeight =
-    columns.reduce((sum, column) => sum + COLUMN_SIZE[column.size ?? "name"], 0) +
-    (selection ? COLUMN_SIZE.control : 0) +
-    (rowActions ? COLUMN_SIZE.control : 0);
+  // Data columns share the room left by the fixed selection and actions columns.
+  const totalWeight = columns.reduce((sum, column) => sum + COLUMN_SIZE[column.size ?? "name"], 0);
   const shareStyle = (size: ColumnSize | undefined) =>
     usesShares && size !== undefined
       ? { width: `${(COLUMN_SIZE[size] / totalWeight) * 100}%` }
@@ -934,11 +930,9 @@ export function DataTable<T>({
                   <th
                     scope="col"
                     className={cn(
-                      !usesShares && "w-10",
-                      "p-3 align-top",
+                      "w-10 p-3 align-top",
                       stickyFirstColumn && "sticky start-0 z-10 bg-card",
                     )}
-                    style={shareStyle("control")}
                   >
                     <Checkbox
                       aria-label={t("prim.table.selectAll")}
@@ -984,10 +978,9 @@ export function DataTable<T>({
                     scope="col"
                     data-testid="data-table-col-actions"
                     className={cn(
-                      !usesShares && ACTIONS_WIDTH_CLASS[actionsWidth],
+                      ACTIONS_WIDTH_CLASS[actionsWidth],
                       "p-3 text-end align-top font-semibold",
                     )}
-                    style={shareStyle("control")}
                   >
                     {t("prim.table.actions")}
                   </th>

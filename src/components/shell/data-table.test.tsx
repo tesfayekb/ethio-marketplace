@@ -625,7 +625,16 @@ describe("DataTable V2 card and frame (D132)", () => {
   it("DTK-2 column shares follow their weights and add up to 100%", () => {
     renderTable({
       columns: sized({ t: "text", n: "name", s: "short" }),
+      selection: { selectedKeys: [], onToggleRow: vi.fn(), onToggleAll: vi.fn() },
+      rowActions: () => <span />,
+      actionsWidth: "w-44",
     });
+    const tickHeader = screen.getByTestId("data-table-select-all").closest("th");
+    expect(tickHeader).toHaveClass("w-10");
+    expect(tickHeader?.style.width).toBe("");
+    const actionsHeader = screen.getByTestId("data-table-col-actions");
+    expect(actionsHeader).toHaveClass("w-44", "md:pointer-fine:w-36");
+    expect(actionsHeader.style.width).toBe("");
     let total = 0;
     for (const [key, weight] of [
       ["t", 7],
