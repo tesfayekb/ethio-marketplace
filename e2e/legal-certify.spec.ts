@@ -435,7 +435,8 @@ test.describe("Legal certification", () => {
     ).rpc("my_listing_certification", {
       p_listing_id: listingId,
     });
-    expect(refused.error).toContain("not your listing");
+    // F1-7a — the reader is on the gate: another seller's ad is the code `notYourListing`.
+    expect(refused.error).toContain("notYourListing");
   });
 
   test("LG-16 publish_listing refuses without the exact certified set and records the certification; a draft with no statement publishes as today", async ({
@@ -1333,13 +1334,14 @@ test.describe("Legal certification", () => {
     await seedDocument(s, kind, "ET", countryText);
 
     // (a) The doors refuse a visitor (M24); a public scratch kind still answers.
-    // PostgREST maps a 42501 raise to HTTP 401 for the anonymous role (signing
-    // in could change the answer) and 403 for a signed-in one — the refusal's
-    // proof is the 42501 body either way.
+    // F1-7a — both readers are on the gate, which the visitor reaches (the grant is no longer the
+    // refusal): the shell raises its own code `notSignedIn` (SQLSTATE P0D01), and PostgREST answers
+    // a raise it has no map for as HTTP 500 (INC-1213, left to F1-7c). Status, SQLSTATE and message
+    // are what a real run answers.
     for (const fn of ["legal_in_force", "legal_scheduled"]) {
       const refused = await anonRpc(fn, { p_kind: kind });
-      expect(refused.status, fn).toBe(401);
-      expect((refused.body as { code?: string }).code).toBe("42501");
+      expect(refused.status, fn).toBe(500);
+      expect(refused.body, fn).toMatchObject({ code: "P0D01", message: "notSignedIn" });
     }
     const publicKind = await anonRpc("legal_in_force", { p_kind: "e2e-lgc6-public" });
     expect(publicKind.status).toBe(200);

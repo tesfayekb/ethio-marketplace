@@ -256,7 +256,7 @@ test("CG-2 the six retired doors are closed to a signed-in account", async () =>
     expect(error?.code, fn).toBe("42501");
     expect(error?.message, fn).toContain("permission denied for function");
     expect(error?.message, fn).not.toMatch(
-      /only a super admin|not your listing|not authenticated|illegal transition/,
+      /only a super admin|not your listing|notYourListing|not authenticated|notSignedIn|illegal transition/,
     );
   }
   const still = await adminClient()
