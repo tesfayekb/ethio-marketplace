@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 738,
-  "dynamicCallSites": 427,
+  "scanned": 739,
+  "dynamicCallSites": 431,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2863,6 +2863,9 @@
     "admin.monetisation.col.placement": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.col.price": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.col.product": [
       "/admin/monetisation"
     ],
@@ -2884,13 +2887,10 @@
     "admin.monetisation.defaultMarket": [
       "/admin/monetisation"
     ],
-    "admin.monetisation.empty.markets": [
+    "admin.monetisation.empty.marketsWhy": [
       "/admin/monetisation"
     ],
-    "admin.monetisation.empty.overrides": [
-      "/admin/monetisation"
-    ],
-    "admin.monetisation.empty.prices": [
+    "admin.monetisation.empty.overridesWhy": [
       "/admin/monetisation"
     ],
     "admin.monetisation.error": [
@@ -2942,6 +2942,12 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.price.end": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.price.exceptions": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.price.none": [
       "/admin/monetisation"
     ],
     "admin.monetisation.prices.searchLabel": [

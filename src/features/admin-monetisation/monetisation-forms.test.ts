@@ -13,7 +13,14 @@ import {
   type ProductFormValues,
 } from "./monetisation-forms";
 import type { MarketRow, OverrideRow, PriceRow, ProductRow } from "./monetisation-service";
-import { dayEnd, dayStart, priceFormInput, priceFormOf, type PriceFormValues } from "./price-forms";
+import {
+  dayEnd,
+  dayStart,
+  priceFormInput,
+  priceFormOf,
+  priceSummaryOf,
+  type PriceFormValues,
+} from "./price-forms";
 
 /** P-1b — the forms' judges mirror the doors; a blank number is a refusal, never 0. */
 const ATTRIBUTION = {
@@ -406,5 +413,39 @@ describe("the monetisation forms' judges (P-1b)", () => {
       creditCost: "4",
       validTo: "2026-12-10",
     });
+  });
+});
+
+/** L16 (ACT-024) — the one sentence before save, from the form's own values. */
+describe("the price form's summary (L16)", () => {
+  const values: PriceFormValues = {
+    packageKey: "gold",
+    countryCode: "",
+    categoryId: "",
+    amount: "150",
+    currency: "ETB",
+    creditCost: "3",
+    validFrom: "",
+    validTo: "",
+  };
+
+  it("MNF-12 a blank start is today and a blank end is none; a set end is kept", () => {
+    expect(priceSummaryOf(values, "2026-11-19")).toEqual({
+      amount: 150,
+      fromDay: "2026-11-19",
+      toDay: null,
+    });
+    expect(
+      priceSummaryOf(
+        { ...values, amount: "9.50", validFrom: "2026-12-01", validTo: "2026-12-31" },
+        "2026-11-19",
+      ),
+    ).toEqual({ amount: 9.5, fromDay: "2026-12-01", toDay: "2026-12-31" });
+  });
+
+  it("MNF-13 an amount the form would refuse gives no sentence", () => {
+    expect(priceSummaryOf({ ...values, amount: "" }, "2026-11-19")).toBeNull();
+    expect(priceSummaryOf({ ...values, amount: "1.234" }, "2026-11-19")).toBeNull();
+    expect(priceSummaryOf({ ...values, amount: "abc" }, "2026-11-19")).toBeNull();
   });
 });

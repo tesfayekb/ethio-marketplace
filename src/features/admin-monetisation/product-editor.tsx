@@ -72,6 +72,7 @@ export function ProductEditorDialog({
   guard,
   openedBy,
   onClose,
+  onCreated,
 }: {
   kind: ProductKind;
   /** null = Add a product of this kind. */
@@ -79,6 +80,8 @@ export function ProductEditorDialog({
   guard: GuardFn;
   openedBy: string;
   onClose: () => void;
+  /** L16 — told the new product's key once Add has saved it (never on Edit). */
+  onCreated?: (key: string) => void;
 }) {
   const { t } = useI18n();
   const save = useSaveProduct();
@@ -123,6 +126,7 @@ export function ProductEditorDialog({
     void guard(async () => {
       try {
         await save.mutateAsync(judged.input);
+        if (creating) onCreated?.(judged.input.key);
         onClose();
       } catch (error) {
         fail(error);

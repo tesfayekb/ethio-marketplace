@@ -7,7 +7,10 @@ import {
   MONETISATION_ANCHORS,
   firstUnpriced,
   monetisationSteps,
+  priceGroups,
+  priceHoldsNow,
   productAnchor,
+  rowPrice,
 } from "./monetisation-order";
 import type { MarketRow, MonetisationConsole, PriceRow, ProductRow } from "./monetisation-service";
 
@@ -193,5 +196,84 @@ describe("monetisationSteps (D313)", () => {
     );
     expect(on?.product.key).toBe("city");
     expect(on?.market.countryCode).toBe("AA");
+  });
+});
+
+/** L16 (ACT-024) — a row's price and the prices' reading order, by the one date rule. */
+describe("the price path (L16)", () => {
+  const scoped = (
+    id: string,
+    countryCode: string | null,
+    categoryId: string | null,
+    from?: string,
+    to?: string | null,
+  ): PriceRow => ({
+    ...price("gold", countryCode, { from, to }),
+    id,
+    categoryId,
+  });
+
+  it("MNO-5 a row holds once started and until its end: a future start, an end at now and an end before now do not hold", () => {
+    expect(priceHoldsNow(scoped("a", null, null), NOW)).toBe(true);
+    expect(priceHoldsNow(scoped("b", null, null, "2026-12-01T00:00:00+00:00"), NOW)).toBe(false);
+    expect(priceHoldsNow(scoped("c", null, null, undefined, NOW), NOW)).toBe(false);
+    expect(
+      priceHoldsNow(scoped("d", null, null, undefined, "2026-11-01T00:00:00+00:00"), NOW),
+    ).toBe(false);
+    expect(
+      priceHoldsNow(scoped("e", null, null, undefined, "2026-11-04T00:00:00+00:00"), NOW),
+    ).toBe(true);
+  });
+
+  it("MNO-6 a row's price: the standard rows that hold now, and the count of exceptions that hold now; ended, scheduled and other products' rows count none", () => {
+    const rows = [
+      scoped("std", null, null),
+      scoped("std-usd", null, null),
+      scoped("et", "ET", null),
+      scoped("cat", null, "c1"),
+      scoped("ended", "ER", null, undefined, "2026-11-01T00:00:00+00:00"),
+      scoped("later", "KE", null, "2026-12-01T00:00:00+00:00"),
+      { ...scoped("other", null, null), packageKey: "silver" },
+    ];
+    const answer = rowPrice(rows, "gold", NOW);
+    expect(answer.standard.map((row) => row.id)).toEqual(["std", "std-usd"]);
+    expect(answer.exceptions).toBe(2);
+    expect(rowPrice([scoped("ended", null, null, undefined, NOW)], "gold", NOW)).toEqual({
+      standard: [],
+      exceptions: 0,
+    });
+  });
+
+  it("MNO-7 the prices read Now (the standard first), then Scheduled, then Ended, keeping their order within", () => {
+    const rows = [
+      scoped("ended", null, null, undefined, "2026-11-01T00:00:00+00:00"),
+      scoped("exc-1", "ET", null),
+      scoped("later", null, null, "2026-12-01T00:00:00+00:00"),
+      scoped("std", null, null),
+      scoped("exc-2", null, "c1"),
+    ];
+    expect(priceGroups(rows, NOW).map((row) => row.id)).toEqual([
+      "std",
+      "exc-1",
+      "exc-2",
+      "later",
+      "ended",
+    ]);
+  });
+
+  it("MNO-8 the Products step leads to the reach block when only reach is missing, to the levels block otherwise", () => {
+    const base: MonetisationConsole = {
+      markets: [market(null, false)],
+      products: [],
+      overrides: [],
+      prices: [],
+    };
+    const t = (key: MessageKey) => en[key];
+    const hashOf = (products: ProductRow[]) =>
+      monetisationSteps({ ...base, products }, NOW, NAMES, t).find((step) => step.id === "products")
+        ?.hash;
+    expect(hashOf([product("gold", "level")])).toBe(MONETISATION_ANCHORS.reach);
+    expect(hashOf([product("city", "reach")])).toBe(MONETISATION_ANCHORS.level);
+    expect(hashOf([])).toBe(MONETISATION_ANCHORS.level);
   });
 });
