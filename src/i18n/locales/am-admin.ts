@@ -516,6 +516,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.screening.confirmRejectMany": "{count} ማስታወቂያዎች ውድቅ ይደረጉ? ከገጹ ውጪ ሆነው ይቆያሉ።",
   "admin.screening.revealLimited": "ባለፈው አንድ ሰዓት ውስጥ ብዙ ቁጥሮችን አሳይተዋል። ቆይተው እንደገና ይሞክሩ።",
   "admin.screening.revealNotShown": "ሻጩ ይህን ቁጥር አያሳይም።",
+  "admin.screening.error.ownListing": "ይህ የራስዎ ማስታወቂያ ነው። ሌላ ገምጋሚ ሊያጸድቀው ወይም ውድቅ ሊያደርገው ይገባል።",
   "admin.translations.title": "ትርጉሞች",
   "admin.translations.subtitle": "ቋንቋዎች፣ ሽፋን እና የሐረግ አርታዒ።",
   "admin.translations.loading": "ቋንቋዎችን በመጫን ላይ…",
