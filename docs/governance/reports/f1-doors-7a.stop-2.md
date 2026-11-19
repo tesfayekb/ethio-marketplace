@@ -126,10 +126,15 @@ only through `rateLimited`'s detail and `door_refused`'s count, which no SQL bod
 In the app, between the staging apply and STEP 3, callers DO meet changed answers, and they are this push's expected
 reds below: the three routes calling the old names (`src/routes/api/attributes.$id.options.ts:31`,
 `src/routes/api/listings/identity.ts:175`, `src/routes/api/translate.ts:105`) answer permission denied until they call
-the `_read` names; `src/features/ad-page/save.ts:47` calls the dropped `listing_saved`; and `src/lib/reader-failure.ts:32`
-classes the gate's `notSignedIn`, `badValue:<field>` and `badSize` as `malformed` (the old sentences were `auth` and
-`refused`) until STEP 3 adds them (ruling 5). The signed-in screens gate by `requireSignedIn`, so a signed-out call
-reaches these readers only when a session expires mid-page.
+the `_read` names; `src/features/ad-page/save.ts:47` calls the dropped `listing_saved`. Two client readers meet the new refusals, as
+this push's CI showed (below): a reader's `door_refuse` (SQLSTATE `P0D01`) reaches a browser caller through PostgREST
+as HTTP 500, and `src/lib/reader-failure.ts:20-36` tests `status >= 500` before its refusal codes, so until STEP 3
+every gate refusal of these readers is classed `server` (the old sentences, P0001 at 400, were `refused`, and
+`not authenticated` was `auth`) — MLA-6's "not one of yours" line is not drawn; and `src/lib/door-error.ts:21`'s
+`REASON_CODE` allows only `[A-Za-z0-9_.-]` after the colon, so a door's `rateLimited:<resets_at>` (an instant with
+`:` and `+`) becomes `doorError` and is logged until STEP 3 reads the code and its detail apart (PR-7). The
+signed-in screens gate by `requireSignedIn`, so a signed-out call reaches these readers only when a session
+expires mid-page.
 
 ## The classification as built
 
@@ -336,6 +341,20 @@ None. `src/lib/door-codes.ts` does not grow (ruling 10).
 8. A deactivated signed-in caller of `legal_in_force` / `legal_scheduled` is now refused `accountDeactivated` (ruling 4
    accepted it; named here as the behaviour change it is).
 9. The retired public-surface lines' tail names F1-7c as the turn where the guards learn retirement (DEC-347).
+10. A census miss outside SCOPE, red on this push's Component tests: `src/features/posting/price-basis.test.ts:21-28`
+    takes the newest migration whose text includes `FUNCTION public.price_shape_for_basis` as the function's
+    declaration; part 9's `REVOKE EXECUTE ON FUNCTION public.price_shape_for_basis(text)` now matches, the test
+    finds no CASE arm ("expected two CASE arms, found 0") and its two SQL-reading tests fail. The file is under
+    `src/features/` but calls no function, so no clause of SCOPE reaches it. Proposed: STEP 3 may change its filter to
+    the declaration (`CREATE OR REPLACE FUNCTION public.price_shape_for_basis`), one line, with its red-first run; the
+    alternative, writing part 9's revoke without `public.`, would bend a migration to a test's reader.
+11. Census misses inside SCOPE, for STEP 3 and STEP 4: LGC-6 (`e2e/legal-certify.spec.ts:1339-1343`) reads the legal
+    readers' old refusal (HTTP 401, code 42501) and now receives `notSignedIn` at HTTP 500; MLA-6 (`e2e/my-listings-
+    ad.spec.ts`, another seller's ad) depends on `reader-failure.ts` classing the gate's refusals before the 5xx test;
+    PR-7 depends on `door-error.ts` reading `rateLimited:<resets_at>`. The census named PR-7 for the time only.
+12. A reader's gate refusal answers HTTP 500 through PostgREST (the `P0` class), as for the readers already on the shell
+    (`e2e/legal-admin.spec.ts:1186`). STEP 3 makes the client read it as a refusal; whether a reader's refusal should
+    set `response.status` as `door_refused` does is a question for F1-7c (it would need a handler in every reader).
 
 ## The reds expected on this push until STEPS 3 and 4
 
@@ -372,4 +391,51 @@ throwaway stack (`bun run db:proof`) and on CI's temporary backends.
 
 ## CI on this push
 
-Read after the push; completed below in a records-only commit.
+```
+# CI Status (auto-generated — do not edit by hand)
+
+- Commit: `a45b433781e052460026abd032a6a59042b98bfe` (short `a45b433`)
+- Conclusion: **FAILURE**
+- Completed (UTC): 2026-11-19T16:09:47Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44552590552
+```
+
+Read with `gh pr checks 75`, the failed jobs' logs (`gh api …/actions/jobs/<id>/logs`, read only) and this lane's
+`e2e-last-failure.md` on ci-evidence (19 of 19 results files and logs read by its writer). 28 checks pass, 15 fail,
+1 is skipped.
+
+- The temporary backends: every lane's backend applied all ten files (`MIGRATIONS_OK: 1`), so every proof passed on
+  CI's temporary Supabase as on the local stack.
+- RULING 7's CONDITION HOLDS: across the twelve red lanes' logs and the e2e failure file, the only functions named in
+  "permission denied for function" are `get_attribute_options_version` (29 in the failure texts; 922 server-log lines),
+  `listing_contact_refusals` (20; 28) and `translation_scope_ok` (21; 44) — the three expected split names. No closed
+  reader or helper is named, and no log line names `permission denied` for anything else.
+- `E2E preflight (migration parity, staging)`: "STAGING BEHIND: apply 20261119150900_3e96e1ab-….sql to ethio-staging
+  before E2E can pass" — expected until the staging apply. `E2E (Playwright, ethio-staging)` reports the lanes'
+  failure file ("E2E failed — see docs/tracking/branches/cursor/f1-doors-7a/e2e-last-failure.md").
+- `Component tests`: 1 of 529 files, 2 of 3452 tests — `src/features/posting/price-basis.test.ts` (decision 10).
+- The twelve red E2E lanes: Passed 2347 · Skipped 360 · Failed 199 (the file's own counts; it holds 246 test
+  sections, grouped below by test id).
+  By spec: `ad-page-doors` AP-4, AP-24, AP-25, AP-27; `ad-page` AP-26; `posting-routes` PR-4, PR-6, PR-7, PR-21;
+  `my-listings-doors` ML-2; `my-listings-page` MLP-1, MLP-5; `my-listings-ad` MLA-1, MLA-2, MLA-6, MLA-7, MLA-15;
+  `legal-certify` LG-15, LGC-6; `viewing-place` VP-4; `admin-translations-console` TR-11, TR-12, TR-13, TR-16,
+  TR-23, TR-35 and one U4b test; `admin-translations-data` TR-24, TR-26; the posting wizard — `post-wizard-bundle2`
+  PW-133, PW-144, PW-149, PW-185; `post-wizard-category` PW-44; `post-wizard-details` PW-102, PW-103, PW-170, PW-172;
+  `post-wizard-finder` PW-85; `post-wizard-place` PW-12, PW-30, PW-76, PW-78; `post-wizard-pricing` PW-55, PW-56,
+  PW-57, PW-58, PW-63, PW-64, PW-67, PW-108, PW-109, PW-136, PW-137, PW-138, PW-140, PW-162; `post-wizard-resets`
+  PW-26, PW-32, PW-59, PW-60, PW-61, PW-152, PW-163, PW-164, PW-165, PW-166, PW-167, PW-168, PW-174;
+  `post-wizard-specs` PW-5, PW-9, PW-16, PW-21, PW-22, PW-25, PW-28, PW-34, PW-35, PW-42, PW-43, PW-45, PW-49, PW-50,
+  PW-51, PW-69, PW-74, PW-106, PW-107, PW-120, PW-145, PW-153, PW-159, PW-188; `post-wizard-units` PW-175;
+  `post-wizard-where` PW-88, PW-104.
+- How each is accounted for: the ids named under "The reds expected" above; the posting wizard's ids, PR-6 and the
+  attribute pickers through the options route (`get_attribute_options_version`, the 922 server-log lines in those
+  shards); PR-4, PW-133, PW-144, PW-149, PW-185, PW-12 and MLA-15 through the identity step
+  (`listing_contact_refusals`); the TR ids through the translate route (`translation_scope_ok`); AP-26 through the ad
+  page's heart (`listing_saved`); LGC-6, MLA-6 and PR-7's cause are the census misses of decision 11. None is
+  outside these classes.
+- Server-error census (non-gating): beside the three names, `rateLimited:<instant>` 8 lines in shard 2 (the doors'
+  new detail reaching `door-error.ts`, decision 11) and `[object Object]` 44 lines in shards 5 and 8, the same shards
+  and count as the translate route's scope denial; its source line was not read here — a finding for STEP 3.
+
+No red on this push is a STOP under ruling 7. Every red above stays until the staging apply and STEPS 3 and 4; the
+next push is the next chat's.
