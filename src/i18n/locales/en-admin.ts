@@ -1984,8 +1984,8 @@ export const enAdmin = {
   "admin.monetisation.empty.reachWhy":
     "No reach products yet — sellers cannot widen where their ad is seen.",
   "admin.monetisation.empty.pricesWhy": "No price yet — sellers cannot buy this product.",
-  "admin.monetisation.empty.overridesWhy":
-    "No per-category perks — every category uses this level's own perks.",
+  "admin.monetisation.empty.perksWhy":
+    "No specific perks — every market and category uses this level's own perks.",
   "admin.monetisation.empty.marketsWhy": "No markets yet — no market can switch on paid levels.",
   "admin.monetisation.error": "The monetisation settings could not be loaded.",
   "admin.monetisation.reach.field.cities": "Cities",

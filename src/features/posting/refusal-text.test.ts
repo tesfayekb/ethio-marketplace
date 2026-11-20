@@ -3,6 +3,11 @@ import { describe, expect, it } from "vitest";
 import { draftRefusalKey, isRateRefusal, photoRefusalKey } from "./refusal-text";
 
 describe("the doors' vocabulary, in words (refusal-text)", () => {
+  it("RRD-4 a reason's code is the text before its first colon (the one reader's cut)", () => {
+    expect(draftRefusalKey("noFreeSlot:3:4")).toBe("post.refusal.noFreeSlot");
+    expect(draftRefusalKey("noFreeSlot")).toBe("post.refusal.noFreeSlot");
+  });
+
   it("PRT-1 publish's slots refusal (noFreeSlot, with its count) has its own words; an unknown reason the fallback", () => {
     expect(draftRefusalKey("noFreeSlot")).toBe("post.refusal.noFreeSlot");
     expect(draftRefusalKey("noFreeSlot:3")).toBe("post.refusal.noFreeSlot");

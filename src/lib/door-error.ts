@@ -1,3 +1,4 @@
+import { DOOR_CODES } from "@/lib/door-codes";
 import { splitRefusal, type Refusal } from "@/lib/refusal";
 
 /**
@@ -42,7 +43,9 @@ export function doorRefusal(message: string): Refusal & { field: "door" } {
   const trimmed = message.trim();
   if (REASON_CODE.test(trimmed)) return { field: "door", reason: trimmed };
   const { key, tail } = splitRefusal(trimmed);
-  if (CODE_HEAD.test(key) && tail !== undefined && tail !== "") {
+  // INC-1220 — an unlisted head followed by a space is a sentence ("word: text"), not a code: it is logged.
+  const sentence = /^\s/.test(tail ?? "") && !(DOOR_CODES as readonly string[]).includes(key);
+  if (CODE_HEAD.test(key) && tail !== undefined && tail !== "" && !sentence) {
     return { field: "door", reason: key, detail: tail };
   }
   const detail = doorErrorDetail(message);

@@ -1,13 +1,14 @@
 import { useState } from "react";
 
 import { useI18n } from "@/i18n";
-import { readRefusal, refusalText } from "@/lib/refusal";
+import { readRefusal, refusalText, splitRefusal } from "@/lib/refusal";
 
 import { CATEGORY_REFUSALS } from "./category-refusals";
 import { CategoryImageError } from "./category-images-service";
 
 /** A door's code, `code[:detail]`: never drawn as the step's own words. */
-const CODE_SHAPED = /^[a-z][A-Za-z]*(?::|$)/;
+const CODE_HEAD = /^[a-z][A-Za-z]*$/;
+const codeShaped = (message: string) => CODE_HEAD.test(splitRefusal(message).key);
 
 /**
  * The picture surface's failure line. A route or storage step's failure names the step and its
@@ -35,7 +36,7 @@ export function useImageFailure() {
       return;
     }
     if (error instanceof CategoryImageError) {
-      const own = CODE_SHAPED.test(error.message) ? "" : `: ${error.message}`;
+      const own = codeShaped(error.message) ? "" : `: ${error.message}`;
       setMessage(`${failed}${stageOf(error.stage)}${own}`);
       return;
     }

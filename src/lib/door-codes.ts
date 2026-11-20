@@ -1,3 +1,5 @@
+import { splitRefusal } from "@/lib/refusal-split";
+
 /**
  * DEC-333 (Foundations 1) — THE DOOR CODES: the closed list of refusal codes a
  * door answers through `door_refuse(code, detail)` (SQLSTATE P0D01, message
@@ -56,8 +58,6 @@ export type DoorCode = (typeof DOOR_CODES)[number];
 /** The one key a screen renders for a refusal it has no words of its own for. */
 export const DOOR_REFUSED_KEY = "door.refused" as const;
 
-const CODE_SHAPE = /^([a-z][A-Za-z]*)(?::(.*))?$/s;
-
 export type DoorRefusalRead = {
   /** The code when it is on the list; null for an unknown or sentence-shaped message. */
   code: DoorCode | null;
@@ -89,10 +89,8 @@ function isDoorCode(code: string): code is DoorCode {
 export function doorCode(input: unknown): DoorRefusalRead {
   const message = messageOf(input);
   if (message === null) return { code: null, detail: null };
-  const match = CODE_SHAPE.exec(message.trim());
-  if (match === null) return { code: null, detail: null };
-  const [, head, tail] = match;
-  const code = head !== undefined && isDoorCode(head) ? head : null;
+  const { key: head, tail } = splitRefusal(message.trim());
+  const code = isDoorCode(head) ? head : null;
   const detail = tail === undefined || tail === "" ? null : tail;
   return { code, detail: code === null ? null : detail };
 }

@@ -1857,7 +1857,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.monetisation.empty.reachWhy":
     "እስካሁን የተደራሽነት ምርት የለም — ሻጮች ማስታወቂያቸው የሚታይበትን ቦታ ማስፋት አይችሉም።",
   "admin.monetisation.empty.pricesWhy": "እስካሁን ዋጋ የለም — ሻጮች ይህን ምርት መግዛት አይችሉም።",
-  "admin.monetisation.empty.overridesWhy": "በምድብ የሚለይ ጥቅም የለም — ሁሉም ምድቦች የዚህን ደረጃ ጥቅሞች ይጠቀማሉ።",
+  "admin.monetisation.empty.perksWhy": "ልዩ ጥቅሞች የሉም — ሁሉም ገበያዎች እና ምድቦች የዚህን ደረጃ የራሱን ጥቅሞች ይጠቀማሉ።",
   "admin.monetisation.empty.marketsWhy": "እስካሁን ገበያ የለም — የሚከፈልባቸው ደረጃዎችን የሚያበራ ገበያ የለም።",
   "admin.monetisation.error": "የገቢ ማስገኛ ቅንብሮች ሊጫኑ አልቻሉም።",
   "admin.monetisation.reach.field.cities": "ከተሞች",

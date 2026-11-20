@@ -7,6 +7,7 @@ import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
+import { splitRefusal } from "@/lib/refusal";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { CountryDialogActions, CountryDialogAlert } from "./country-dialogs";
@@ -51,7 +52,7 @@ export function CountryActiveDialog({
         onClose();
       } catch (error) {
         // The one refusal an operator can answer: the door names the grants.
-        if (errorText(error).startsWith("scopedRolesExist")) {
+        if (splitRefusal(errorText(error).trim()).key === "scopedRolesExist") {
           setForced(true);
         }
         fail(error);
@@ -163,7 +164,7 @@ export function CountryRailOrderDialog({
         // INC-814: the door refused a root that is no longer there — re-read
         // the roots and rebuild the list from the fresh read; the refusal
         // line stays until the next save.
-        if (errorText(error).startsWith("notARoot")) {
+        if (splitRefusal(errorText(error).trim()).key === "notARoot") {
           await refreshAfterWrite(queryClient, { queryKey: ROOT_CATEGORIES_KEY });
           setOrder(null);
         }

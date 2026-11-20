@@ -33,4 +33,19 @@ describe("the picture surface's failure line (F1-4a)", () => {
     );
     expect(line(new Error("Failed to fetch"))).toBe("admin.categories.error.imageFailed");
   });
+
+  it("RRD-7 a persist step's code is named by the step alone; a sentence keeps its words", () => {
+    const { result } = renderHook(() => useImageFailure());
+    const line = (error: unknown) => {
+      act(() => result.current.fail(error));
+      return result.current.message;
+    };
+    const stage = " (admin.categories.image.stageLabel persist)";
+    expect(line(new CategoryImageError("someCode:a, b", 0, "persist"))).toBe(
+      `admin.categories.error.imageFailed${stage}`,
+    );
+    expect(line(new CategoryImageError("Some sentence: x", 0, "persist"))).toBe(
+      `admin.categories.error.imageFailed${stage}: Some sentence: x`,
+    );
+  });
 });

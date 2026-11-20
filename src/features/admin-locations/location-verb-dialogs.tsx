@@ -11,6 +11,7 @@ import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
+import { splitRefusal } from "@/lib/refusal";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { LocationDialogActions, LocationDialogAlert } from "./location-dialogs";
@@ -250,7 +251,7 @@ export function LocationReorderDialog({
         // INC-814's class: the door refused a peer that is no longer there —
         // re-read the roster and rebuild the list from the fresh read; the
         // refusal line stays until the next save.
-        if (errorText(error).startsWith("notAChild")) {
+        if (splitRefusal(errorText(error).trim()).key === "notAChild") {
           await refreshAfterWrite(queryClient, { queryKey: ADMIN_LOCATIONS_KEY });
           setOrder(null);
         }
