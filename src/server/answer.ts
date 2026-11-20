@@ -1,3 +1,4 @@
+import { errorText } from "@/lib/error-text";
 import { readerFailure } from "@/lib/reader-failure";
 import type { Refusal } from "@/lib/refusal";
 import {
@@ -160,8 +161,11 @@ export function clientAborted(request: Request): Response | null {
  */
 export function serverError(path: string, error: unknown): Response {
   const incident = crypto.randomUUID();
-  // eslint-disable-next-line no-restricted-syntax -- INC-815: the stack is wanted when it exists; a plain object falls through to String.
-  logRouteError(path, `[incident ${incident}] ${error instanceof Error ? error.stack : error}`);
+  // INC-1215 — what is not an Error (a database error object, a string) is read through `errorText`,
+  // never templated whole (`[object Object]`).
+  // eslint-disable-next-line no-restricted-syntax -- INC-815: the stack is wanted when it exists.
+  const text = error instanceof Error ? (error.stack ?? errorText(error)) : errorText(error);
+  logRouteError(path, `[incident ${incident}] ${text}`);
   return routeJson({ error: "server error", incident }, 500);
 }
 

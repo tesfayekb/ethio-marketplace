@@ -5685,6 +5685,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      door_refusal_status: { Args: { p_code: string }; Returns: string }
       door_refuse: {
         Args: { p_code: string; p_detail?: string }
         Returns: undefined
@@ -5694,26 +5695,6 @@ export type Database = {
         Returns: Json
       }
       e2e_migration_ledger: { Args: never; Returns: string[] }
-      edit_listing: {
-        Args: {
-          p_attributes: Json
-          p_category_id: string
-          p_contact_pref: Json
-          p_coverage: string[]
-          p_description: string
-          p_listing_id: string
-          p_poster_expires_at: string
-          p_price_amount: number
-          p_price_bp?: number
-          p_price_currency: string
-          p_price_mode: string
-          p_price_negotiable?: boolean
-          p_price_period: string
-          p_title: string
-          p_video_url: string
-        }
-        Returns: Json
-      }
       edit_my_listing: {
         Args: {
           p_certified?: string[]
@@ -5808,41 +5789,6 @@ export type Database = {
         Args: { p_attribute_id: string }
         Returns: string
       }
-      get_browse_tree: {
-        Args: { p_country_code: string }
-        Returns: {
-          allow_listings: boolean
-          display_order: number
-          icon: string
-          id: string
-          is_catchall: boolean
-          parent_id: string
-          slug: string
-        }[]
-      }
-      get_category_attributes: {
-        Args: { p_category_id: string; p_include_inherited?: boolean }
-        Returns: {
-          attr_key: string
-          attr_type: string
-          category_id: string
-          category_name: string
-          default_value: Json
-          display_order: number
-          help_text_am: string
-          help_text_en: string
-          id: string
-          inherited_from: string
-          inherited_from_name: string
-          is_filterable: boolean
-          is_required: boolean
-          is_searchable: boolean
-          name_am: string
-          name_en: string
-          options: Json
-          validation: Json
-        }[]
-      }
       get_category_tree_version: { Args: never; Returns: string }
       get_entity_bundle: { Args: { p_lang: string }; Returns: Json }
       get_location_tree: {
@@ -5891,7 +5837,6 @@ export type Database = {
       }
       get_posting_schema: { Args: { p_category_id: string }; Returns: Json }
       get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }
-      get_ui_bundle: { Args: { p_lang: string }; Returns: Json }
       get_ui_bundle_parts: { Args: { p_lang: string }; Returns: Json }
       get_ui_bundle_version: { Args: { p_lang: string }; Returns: string }
       has_password: { Args: never; Returns: boolean }
@@ -6214,10 +6159,6 @@ export type Database = {
       name_unaccent: { Args: { p: string }; Returns: string }
       new_public_id: { Args: never; Returns: string }
       next_language_sort: { Args: never; Returns: number }
-      package_price_for: {
-        Args: { p_listing_id: string; p_package_key: string }
-        Returns: Json
-      }
       peek_rate_limit: {
         Args: {
           p_action: string
@@ -6302,7 +6243,6 @@ export type Database = {
         }
         Returns: Json
       }
-      relist_listing: { Args: { p_listing_id: string }; Returns: Json }
       remove_listing_photo: {
         Args: { p_listing_id: string; p_photo_id: string }
         Returns: Json
@@ -6418,18 +6358,6 @@ export type Database = {
           p_precision?: string
           p_street?: string
           p_zoom?: number
-        }
-        Returns: Json
-      }
-      set_listing_price: {
-        Args: {
-          p_listing_id: string
-          p_price_amount: number
-          p_price_bp?: number
-          p_price_currency: string
-          p_price_mode: string
-          p_price_negotiable?: boolean
-          p_price_period: string
         }
         Returns: Json
       }

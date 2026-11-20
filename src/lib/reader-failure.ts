@@ -1,4 +1,5 @@
 import { errorText } from "./error-text";
+import { ownValue } from "./own-key";
 import { splitRefusal } from "./refusal";
 
 /** INC-847 — diagnostic classes for a reader, never a discarded door error. */
@@ -10,16 +11,53 @@ export type ReaderFailure = {
 };
 
 /**
- * F1-7a (ruling 2, decision 11) — A GATE REFUSAL IS READ BY ITS CODE BEFORE ITS
- * STATUS. A reader on `door_context` raises `door_refuse(code, detail)`
- * (SQLSTATE P0D01, message `code[:detail]`) and PostgREST answers it as HTTP 500
- * (INC-1213, left to F1-7c), so a status test first would class every refusal
- * `server`. The codes a reader on the gate can raise: the two gates say the
- * caller is not allowed in (`auth`); the readers' own codes say the request was
- * refused (`refused`), as their sentences did.
+ * F1-7c (INC-1213) — THE STATUS A READER'S REFUSAL ARRIVES AT. A reader on
+ * `door_context` raises `door_refuse(code, detail)` and PostgREST answers it at
+ * the status the database's one table gives the code (`door_refusal_status`):
+ * `notSignedIn` 401, `permissionDenied` 403, `accountDeactivated` 403,
+ * `stepUpRequired` 428, `rateLimited` 429, every other code 400 — never 500.
+ * This is that table's client side; `reader-failure.test.ts` (RF-5) reads the
+ * migration that declares the table and fails when the two differ.
+ */
+const REFUSAL_STATUS: Readonly<Record<string, number>> = {
+  notSignedIn: 401,
+  permissionDenied: 403,
+  accountDeactivated: 403,
+  stepUpRequired: 428,
+  rateLimited: 429,
+};
+
+/** The HTTP status a refusal with this code arrives at (400 for a code with no row of its own). */
+export function refusalStatus(code: string): number {
+  return ownValue(REFUSAL_STATUS, code) ?? 400;
+}
+
+/**
+ * F1-7a (ruling 2, decision 11), F1-7c — A GATE REFUSAL IS READ BY ITS CODE
+ * BEFORE ITS STATUS. A reader on `door_context` raises `door_refuse(code,
+ * detail)` (SQLSTATE P0D01 under the door shell, `PGRST` under a reader; message
+ * `code[:detail]`). The codes a reader on the gate can raise: the two gates say
+ * the caller is not allowed in (`auth`); the readers' own codes say the request
+ * was refused (`refused`), as their sentences did.
+ *
+ * The status must AGREE with the code (`refusalStatus`): a refusal that arrives
+ * at 500 (or at any status its code does not carry) is not a refusal the
+ * database answered, so the code does not decide — a 500 classes `server`. An
+ * answer with no status (the browser's `rpc()` drops it) is read by its code.
  */
 const GATE_AUTH_CODES = new Set(["notSignedIn", "accountDeactivated"]);
-const GATE_REFUSED_CODES = new Set(["notYourListing", "notYours", "badValue", "badSize"]);
+const GATE_REFUSED_CODES = new Set([
+  "notYourListing",
+  "notYours",
+  "badValue",
+  "badSize",
+  "permissionDenied",
+  "stepUpRequired",
+  "rateLimited",
+  "acceptancePending",
+  "legalAcceptancePending",
+  "notInForce",
+]);
 
 /** The code a gate refusal's message opens with: everything before the first colon. */
 function gateCodeOf(message: string): string {
@@ -36,26 +74,28 @@ export function readerFailure(error: unknown): ReaderFailure {
   const code = typeof fields.code === "string" ? fields.code : undefined;
   const message = errorText(error);
   const gate = gateCodeOf(message);
-  const kind: ReaderFailure["class"] = GATE_AUTH_CODES.has(gate)
-    ? "auth"
-    : GATE_REFUSED_CODES.has(gate)
-      ? "refused"
-      : status === 401 ||
-          status === 403 ||
-          code === "PGRST301" ||
-          code === "42501" ||
-          /JWT|not authenticated/i.test(message)
-        ? "auth"
-        : error instanceof TypeError || /Failed to fetch|Load failed|fetch failed/i.test(message)
-          ? "network"
-          : status !== undefined && status >= 500
-            ? "server"
-            : code === "P0001" ||
-                /^(?:rateLimited|permissionDenied|acceptancePending|legalAcceptancePending|stepUpRequired|notInForce)(?::|$)/.test(
-                  message,
-                )
-              ? "refused"
-              : "malformed";
+  const agrees = status === undefined || status === refusalStatus(gate);
+  const kind: ReaderFailure["class"] =
+    agrees && GATE_AUTH_CODES.has(gate)
+      ? "auth"
+      : agrees && GATE_REFUSED_CODES.has(gate)
+        ? "refused"
+        : status === 401 ||
+            status === 403 ||
+            code === "PGRST301" ||
+            code === "42501" ||
+            /JWT|not authenticated/i.test(message)
+          ? "auth"
+          : error instanceof TypeError || /Failed to fetch|Load failed|fetch failed/i.test(message)
+            ? "network"
+            : status !== undefined && status >= 500
+              ? "server"
+              : code === "P0001" ||
+                  /^(?:rateLimited|permissionDenied|acceptancePending|legalAcceptancePending|stepUpRequired|notInForce)(?::|$)/.test(
+                    message,
+                  )
+                ? "refused"
+                : "malformed";
   return {
     class: kind,
     ...(status === undefined ? {} : { status }),
