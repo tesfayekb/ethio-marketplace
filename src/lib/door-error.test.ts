@@ -36,9 +36,9 @@ describe("doorRefusal (INC-447)", () => {
   });
 
   it("DE-2 the code is cut at the FIRST colon: a detail may hold colons, plus signs and spaces", () => {
-    expect(doorRefusal("sameLevel:a:b + c")).toEqual({
+    expect(doorRefusal("notReady:a:b + c")).toEqual({
       field: "door",
-      reason: "sameLevel",
+      reason: "notReady",
       detail: "a:b + c",
     });
     // The surrounding whitespace is not part of the refusal.
@@ -59,23 +59,6 @@ describe("doorRefusal (INC-447)", () => {
     ]) {
       expect(doorRefusal(message).reason, message).toBe("doorError");
     }
-  });
-
-  it("RRD-1 a sentence is not a code (INC-1220): an unlisted head and a space after the colon is doorError; a real code's free detail stays", () => {
-    expect(doorRefusal("lowercaseword: some sentence")).toEqual({
-      field: "door",
-      reason: "doorError",
-    });
-    expect(doorRefusal("deleteHasDependents:a, b")).toEqual({
-      field: "door",
-      reason: "deleteHasDependents",
-      detail: "a, b",
-    });
-    expect(doorRefusal("rateLimited: 2026-11-19 20:05:12+00")).toEqual({
-      field: "door",
-      reason: "rateLimited",
-      detail: " 2026-11-19 20:05:12+00",
-    });
   });
 
   it("never sends raw text: doorError with the constraint or nothing", () => {

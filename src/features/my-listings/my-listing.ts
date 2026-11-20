@@ -592,7 +592,7 @@ export type EditOutcome =
 /** Bundle 22 turn 4 — the seller doors' legal refusals, kept as the door's word for certifyRefusal. */
 export type LegalReason = "acceptanceRequired" | "certificationRequired";
 export function legalReasonOf(message: string): LegalReason | undefined {
-  const word = splitRefusal(message.trim()).key;
+  const word = message.trim().split(":")[0];
   return word === "acceptanceRequired" || word === "certificationRequired" ? word : undefined;
 }
 

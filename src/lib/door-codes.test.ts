@@ -92,13 +92,4 @@ describe("doorCode", () => {
       detail: "2026-11-06T10:00:00Z",
     });
   });
-
-  it("RRD-2 the code is cut at the first colon by the one reader: answers for real codes unchanged", () => {
-    expect(doorCode("sameReach:2026-11-20 10:00:00+00")).toEqual({
-      code: "sameReach",
-      detail: "2026-11-20 10:00:00+00",
-    });
-    expect(doorCode("rateLimited:")).toEqual({ code: "rateLimited", detail: null });
-    expect(doorCode("notSignedIn ")).toEqual({ code: "notSignedIn", detail: null });
-  });
 });

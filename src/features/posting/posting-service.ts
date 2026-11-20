@@ -1146,10 +1146,9 @@ export async function savePhotosSoon(listingId: string, on: boolean): Promise<bo
 /** The door's reason in the screen's words; anything else is a plain failure (F4). */
 function pinAnswer(message: string): "contactInNote" | "rateLimited" | "failed" {
   console.error("[pin] set_listing_pin refused:", message);
-  const { key } = splitRefusal(message.trim());
-  if (key === "contactInNote") return "contactInNote";
-  // M9b / INC-444 — the revise dial refuses with the code rateLimited (INC-1189: read by its head).
-  return key === "rateLimited" ? "rateLimited" : "failed";
+  if (message.includes("contactInNote")) return "contactInNote";
+  // M9b / INC-444 — the revise dial refuses by exception naming rateLimited.
+  return message.includes("rateLimited") ? "rateLimited" : "failed";
 }
 
 const pinQueues = new Map<string, DoorQueue>();

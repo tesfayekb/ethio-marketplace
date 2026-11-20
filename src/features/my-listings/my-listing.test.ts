@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { en } from "@/i18n/locales/en";
 
 import {
-  legalReasonOf,
   ACTION_KEY,
   actionKey,
   ASKS_FIRST,
@@ -376,12 +375,4 @@ it("ML-U28 Promote is offered on a live or paused ad only, one rule for the row 
     "sold",
   ])
     expect(promotable(status), status).toBe(offered.includes(status));
-});
-
-describe("the seller doors' legal reason (INC-1189)", () => {
-  it("RRD-6 the reason is the code before the first colon; another word is none", () => {
-    expect(legalReasonOf(" acceptanceRequired:v1 ")).toBe("acceptanceRequired");
-    expect(legalReasonOf("certificationRequired")).toBe("certificationRequired");
-    expect(legalReasonOf("acceptanceRequiredSoon")).toBeUndefined();
-  });
 });

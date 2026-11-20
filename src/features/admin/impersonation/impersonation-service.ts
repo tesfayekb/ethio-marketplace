@@ -1,6 +1,5 @@
 import { rpc } from "@/lib/supabase-door";
 import { errorText } from "@/lib/error-text";
-import { splitRefusal } from "@/lib/refusal";
 
 /**
  * U3 / DEC-016 — IMPERSONATION v1 client seam.
@@ -135,10 +134,12 @@ export async function listImpersonatedListings(
 
 /**
  * True when the server refused because the 15-minute box has closed. F1-7b: the readers raise the
- * door code `noActiveSession` (the code is not on `DOOR_CODES`), read by its head through the one
- * reader's cut (INC-1189). The old sentence left once its Publish was done.
+ * door code `noActiveSession` (read first, by its head — the code is not on `DOOR_CODES`). The old
+ * sentence stays readable until the next Publish, so the order of the production apply and the
+ * Publish cannot break the expired view.
  */
 export function isExpiredSessionError(error: unknown): boolean {
   const message = error === null || error === undefined ? "" : errorText(error);
-  return splitRefusal(message.trim()).key === "noActiveSession";
+  if (/^noActiveSession(?::|$)/.test(message.trim())) return true;
+  return message.includes("impersonation session expired");
 }

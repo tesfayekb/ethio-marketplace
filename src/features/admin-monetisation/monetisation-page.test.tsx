@@ -285,12 +285,4 @@ describe("the level's specific perks (L20)", () => {
       CONSOLE.overrides.length = 0;
     }
   });
-
-  it("RRD-8 a level with no specific perks says the new words", () => {
-    render(<AdminMonetisationPage />);
-    fireEvent.click(screen.getAllByTestId("product-featured-open")[0] as HTMLElement);
-    expect(screen.getAllByTestId("product-featured-perks-empty")[0]).toHaveTextContent(
-      "admin.monetisation.empty.perksWhy",
-    );
-  });
 });

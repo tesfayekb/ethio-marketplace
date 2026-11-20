@@ -8,7 +8,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
-import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
 
 /**
@@ -200,8 +200,9 @@ export function ImportDialog({
      */
     const segments = detail === "" ? [] : detail.split("|");
     const last = segments.length > 0 ? (segments[segments.length - 1] ?? "") : "";
-    const { key: token, tail: arg } = splitRefusal(last);
-    if (arg !== undefined) values["arg"] = arg;
+    const colon = last.indexOf(":");
+    const token = colon === -1 ? last : last.slice(0, colon);
+    if (colon !== -1) values["arg"] = last.slice(colon + 1);
     const leading = segments.slice(0, -1);
     const fields = refusal.reason === "badOption" ? ["key", "value"] : ["cell", "value"];
     leading.forEach((segment, index) => {
