@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44669438676
-- Commit: `0d414b54aaac414665b6635cd37167b16489b1e9`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44693235025
+- Commit: `d708865987cc738a510b6889b016ca501d3b71ec`
 - Attempt: 1
-- Written (UTC): 2026-11-20T03:59:29.543Z
+- Written (UTC): 2026-11-20T07:28:47.500Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -67,7 +67,7 @@ STAGING BEHIND: apply 20261120030700_cbdfbd69-9dc9-4041-b73b-e03f5dc22172.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/eed2391a-1a82-4f00-9d20-c81b0d848bfe' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/13bb7726-c9eb-453b-b747-935acd6ea0f7' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
