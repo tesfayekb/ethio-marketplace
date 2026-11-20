@@ -1335,12 +1335,12 @@ test.describe("Legal certification", () => {
 
     // (a) The doors refuse a visitor (M24); a public scratch kind still answers.
     // F1-7a — both readers are on the gate, which the visitor reaches (the grant is no longer the
-    // refusal): the shell raises its own code `notSignedIn` (SQLSTATE P0D01), and PostgREST answers
-    // a raise it has no map for as HTTP 500 (INC-1213, left to F1-7c). Status, SQLSTATE and message
-    // are what a real run answers.
+    // refusal): the gate raises its own code `notSignedIn` (SQLSTATE P0D01 in the body), and since
+    // F1-7c (INC-1213) a reader's refusal answers its code's status, 401, not 500. Status, SQLSTATE
+    // and message are what a real run answers.
     for (const fn of ["legal_in_force", "legal_scheduled"]) {
       const refused = await anonRpc(fn, { p_kind: kind });
-      expect(refused.status, fn).toBe(500);
+      expect(refused.status, fn).toBe(401);
       expect(refused.body, fn).toMatchObject({ code: "P0D01", message: "notSignedIn" });
     }
     const publicKind = await anonRpc("legal_in_force", { p_kind: "e2e-lgc6-public" });
