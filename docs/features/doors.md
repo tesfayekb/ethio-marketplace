@@ -242,7 +242,11 @@ src/features/my-listings/promote-service.ts.
   redeclared by computed insertion (DEC-383), so the migration reader reads them as computed and
   `COMPUTED_BY_HAND` is empty. The read rules `attributes_public_read`, `cal_public_read` and
   `category_attributes_public_read` are dropped, and `category_attributes` loses its browser
-  SELECT grants: no browser role reads the three tables directly (INC-1166).
+  SELECT grants: no browser role reads the three tables directly (INC-1166). The clients read
+  the new codes (STEP 3): the exports' `exportRefusal` and `isExpiredSessionError` read a
+  family code by its head (neither is on `DOOR_CODES`), the places words and the import
+  dialogs gain `badCoordinates` / `permissionDenied`, and the import route's two scope-sentence
+  rows are gone.
 
 ## Tests
 

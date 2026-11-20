@@ -456,7 +456,8 @@ THE VOCABULARY (`IMPORT_REFUSALS`, `IMPORT_WORDS`; IMD-6 checks every answered
 word against them and that no `.message`/`.details`/`.hint` reaches an
 answer): `step-up required[: …]` →
 `stepUpRequired()` (428 `{error:"step-up required", code:"P0009"}`);
-`unknown category scope`, `unknown country scope` → 404; a gate's
+a planner's unknown scope is the code `unknownCategory` / `unknownCountry` (F1-7b), answered
+by `codedRefusal` at 400 with the code; a gate's
 `permissionDenied` code answers 403 and the export reader's `forbidden` is its own
 word (`exportRefusal`, `csv.ts`);
 `p_items must be a json array` → 400; `too many rows
@@ -473,15 +474,19 @@ imports answer the same way (`importRunning`, `planHasRefusals`, `unknownBatch`,
 `batchAlreadyUndone`, `undoBlocked:hasRows`, `permissionDenied[:scope]`), and the
 sentence rows for them, the `unknownParent: <slug>` key row and the export reader's
 `permission denied` branch are gone — a grep over the last declarations found no
-function the routes call that still raises them. The rows that stay are the
-gate's step-up sentence and the planners' `unknown category scope` /
-`unknown country scope` (F1-7). The import dialog reads a coded refusal
+function the routes call that still raises them. The one row that stays is the
+gate's step-up sentence: the planners' `unknown category scope` /
+`unknown country scope` rows left in F1-7b with the sentences (the same grep found no
+function that raises them). The import dialog reads a coded refusal
 through the console family's words (`refusals`: `CATEGORY_REFUSALS`,
 `ATTRIBUTE_REFUSALS`), and `importRunning` draws its busy line.
 
 Since F1-7b the planners and the exports answer an unknown scope by the
 codes `unknownCategory` / `unknownCountry` (a scope longer than two letters
-included). The places planner reads a scope's own `countries` row as the
+included). The three exports read the code by its head (`exportRefusal`, `csv.ts`: the
+family's codes are not on `DOOR_CODES`) and answer it 404 `{error:"unknownCategory"}` /
+`{error:"unknownCountry"}`; the old sentences are a 500 with no text (EXR-7, CSV-8). The
+places planner reads a scope's own `countries` row as the
 country doors do (INC-1164, `country_row_right`): opening or closing it
 needs `countries:activate` in that country, a field `countries:update`
 (global), its root order `countries:update` in that country; a row without
@@ -490,8 +495,11 @@ the right is a `permissionDenied` reason row (detail `activate` or
 place whose latitude lies beyond ±90 or longitude beyond ±180 is a
 `badCoordinates` reason row. A `name_am` cell reaches the translation core,
 which refuses `permissionDenied:translations` to a caller without
-`translations:update`. The undo refuses `permissionDenied[:scope]` before it
-restores a country row its caller holds no right over.
+`translations:update` (the dialog's 403 draws its denied line). The undo refuses
+`permissionDenied[:scope]` before it restores a country row its caller holds no right
+over. The places and countries dialogs name `badCoordinates` (places file only) and
+`permissionDenied` as row reasons (`admin.locations.import.reason.*`; the reason's detail,
+`activate` or `update`, rides in parentheses as any detail without its own words does).
 
 CHANGES: (1) every `defineRoute` JSON body is decoded strictly — invalid
 UTF-8 is 400 `invalidEncoding`; (2) the meter is the registry dial per

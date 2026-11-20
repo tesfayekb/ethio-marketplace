@@ -34,7 +34,9 @@ targets, a reason under 5 characters, a second concurrent session, and aal1
 callers (INC-081 two-condition step-up). The box is exactly **15 minutes**;
 `impersonation_target()` re-verifies owner + not-ended + not-expired on every
 impersonated read, so an expired session degrades to a refusal, never to data
-(since F1-7b the code `noActiveSession`, SQLSTATE P0D01).
+(since F1-7b the code `noActiveSession`, SQLSTATE P0D01; the client's
+`isExpiredSessionError` reads that code first and still reads the old sentence until the
+next Publish).
 
 ## Client
 
