@@ -17,9 +17,9 @@ describe("isExpiredSessionError reads the code first (F1-7b)", () => {
     expect(isExpiredSessionError("noActiveSession")).toBe(true);
   });
 
-  it("still reads the old sentence until the next Publish", () => {
+  it("RRD-3 the old sentence left with its Publish: it is not an expired session", () => {
     expect(isExpiredSessionError({ message: "impersonation session expired", code: "P0001" })).toBe(
-      true,
+      false,
     );
   });
 

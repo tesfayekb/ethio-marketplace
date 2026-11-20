@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 739,
+  "scanned": 740,
   "dynamicCallSites": 430,
   "keys": {
     "account.deactivatedBanner": [
@@ -2890,7 +2890,7 @@
     "admin.monetisation.empty.marketsWhy": [
       "/admin/monetisation"
     ],
-    "admin.monetisation.empty.overridesWhy": [
+    "admin.monetisation.empty.perksWhy": [
       "/admin/monetisation"
     ],
     "admin.monetisation.error": [
