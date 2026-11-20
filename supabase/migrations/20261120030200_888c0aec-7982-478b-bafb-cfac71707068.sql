@@ -79,6 +79,7 @@ GRANT ALL ON FUNCTION public.cat_import_plan(jsonb, text) TO service_role;
 
 -- ------------------------------------------------------------ 2. attr_import_plan (computed; old md5
 -- 7a2cb3062a843c2d16ce1b5be5be90ef, new md5 b8a140b73f535e16bf7997af3b74c994)
+-- INC-1216: ethio-staging's copy is healed to the repository's body first (three stray blank lines).
 DO $f17b_attr_import_plan$
 DECLARE
   v_src      text;
@@ -93,6 +94,7 @@ DECLARE
   v_pairs    text[][] := ARRAY[
       [E'      RAISE EXCEPTION ''unknown category scope'';',
        E'      PERFORM public.door_refuse(''unknownCategory'');']];
+  v_heal     text[][];
   i          integer;
 BEGIN
   SELECT p.prosrc, pg_get_function_arguments(p.oid), pg_get_function_result(p.oid), p.prosecdef, p.provolatile,
@@ -100,6 +102,24 @@ BEGIN
     INTO v_src, v_args, v_result, v_secdef, v_volatile, v_config, v_defaults, v_acl
     FROM pg_proc p WHERE p.oid = 'public.attr_import_plan(jsonb,jsonb,text)'::regprocedure;
   v_new := replace(v_src, chr(13), '');
+  -- INC-1216: ethio-staging's body carries three stray blank lines inside statements (md5 95afc874cd6bbf2ecbf78529ba9981d9);
+  -- it is healed to the repository's body before the change, so both databases receive the same body. On any other
+  -- database this block does nothing.
+  IF md5(v_new) = '95afc874cd6bbf2ecbf78529ba9981d9' THEN
+    v_heal := ARRAY[
+      [E'ELSE v_att.max_bound END;\n\n    v_fmt', E'ELSE v_att.max_bound END;\n    v_fmt'],
+      [E'jsonb_array_elements(CASE WHEN jsonb_typeof(d.options) = ''array''\n\n', E'jsonb_array_elements(CASE WHEN jsonb_typeof(d.options) = ''array''\n'],
+      [E'AND x.value->>''action'' = ''upsert'') THEN\n\n              v_bad_link := ''unknownSibling:''', E'AND x.value->>''action'' = ''upsert'') THEN\n              v_bad_link := ''unknownSibling:''']];
+    FOR i IN 1..array_length(v_heal, 1) LOOP
+      IF (length(v_new) - length(replace(v_new, v_heal[i][1], ''))) / length(v_heal[i][1]) <> 1 THEN
+        RAISE EXCEPTION 'F1-7b: heal % of attr_import_plan does not find its one anchor', i;
+      END IF;
+      v_new := replace(v_new, v_heal[i][1], v_heal[i][2]);
+    END LOOP;
+    IF md5(v_new) IS DISTINCT FROM '7a2cb3062a843c2d16ce1b5be5be90ef' THEN
+      RAISE EXCEPTION 'F1-7b: the healed attr_import_plan is not the repository''s body (%)', md5(v_new);
+    END IF;
+  END IF;
   IF md5(v_new) IS DISTINCT FROM '7a2cb3062a843c2d16ce1b5be5be90ef' OR v_config <> '{search_path=public}' THEN
     RAISE EXCEPTION 'F1-7b: the live attr_import_plan is not the body this file was built from (%)', md5(v_new);
   END IF;
