@@ -1,5 +1,5 @@
 import { errorText } from "@/lib/error-text";
-import { splitRefusal } from "@/lib/refusal";
+import { splitRefusal } from "@/lib/refusal-split";
 
 /**
  * F1-7d (INC-1218) — THE END OF A SESSION IS ONE STATE. A session ends when this tab signs out,
