@@ -1,77 +1,71 @@
-# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
+# L19 table-cards — plan (INC-1219)
 
-(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
+CI: not read in this plan turn; the build turn opens with the CI line for `cea51009a`.
+Branch `lovable/table-cards` (sandbox `edit/<id>`), base dev `cea51009a` (the tree's HEAD, "Merge pull request #78 … table-widths-2").
 
-## CI first
-- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
-- No completed run on 836d1030 yet. Read again before the build turn's push.
+## (a) Where each fault comes from (`src/components/shell/data-table.tsx`)
 
-## What the operator will see
-Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
+1. Headers: `<th>` classes are `cellClass(...)` (:267-285: `p-3 align-top`, align, tier, sticky, minWidth) + `font-semibold` (:945-948), width from `shareStyle(column.size)` (:949). Nothing lets a word break, so in `table-fixed` (:919) a word wider than its share ("Placement") spills over the next cell. The sort button (:959-965) is `min-h-11 text-start …` with no wrap rule either.
+2. Bare pill: badges are collected by `shown(badgeColumns)` (:758) and drawn at :819-825 as `<Fragment>{value}</Fragment>`: no `label(column)` at all, unlike metas (:797-813).
+3. Empty values: `shown()` (:749-755) drops only `null`, `undefined`, `false`. `attributionColumns` (monetisation-columns.tsx:27-46) returns `<span data-testid=…>{row.createdByName ?? ""}</span>` — an element with empty text, so it passes `shown()`; the foot (:887-897) then draws its label and the `·` (:891). Markets' `since` (markets-section.tsx:125-135) and `launch` (:111-123) do the same with `""` → "Paid since" with no value.
 
-## Census (836d1030; build turn pastes full file:line)
-Primitive consumers — "uses the primitive":
-- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
-- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
-- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
-- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
-- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
+## (b) The fixes
 
-"Draws its own":
-- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
-- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
-- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
-- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
+1. Shared, data-table.tsx only: the `<th>` gets `break-words` (`overflow-wrap: break-word`) and `whitespace-normal`; the sort `<button>` gets the same plus `max-w-full`. Lines break between words first; a single word longer than its share breaks inside the cell instead of spilling. Cells' rules (CutText, text measure) untouched; minWidth tables (auto layout) unaffected.
+2. Choice **(a)**: move the badge columns whose value does not name itself to `meta` in their screen, where the card already draws their header. Reason: `card` placement is already the per-column declaration of "this value names itself"; a shared rule would need either a new prop (a second mechanism, G0) or would label every status pill ("Status: Active"), which the brief says may stay bare. Four screen lines change (`card: "badge"` → `card: "meta"`), nothing else in them.
+3. Shared, data-table.tsx: a pure helper `rendersNothing(node)` (local to the table): true for null/undefined/false/""/whitespace string, an array whose items all render nothing, and an intrinsic element (`typeof type === "string"`) whose `children` render nothing. Components (TipBadge, Badge, CutText…) count as present. `shown()` filters with it, so an empty value drops with its label and its separator in sub, meta, badge and foot alike; separators are already only between kept items. No screen cell changes: the table keeps its `data-testid` span (e2e reads it), so the shared rule is preferred over returning `null`.
 
-Own classes on dialog parts outside the primitive:
-- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
+## (c) Tables that change visibly
 
-Unused primitives:
-- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
-- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
+Header wrap: every fixed-layout table (all DataTable users without `minWidth`) — only where a header was wider than its share today; widest effect on Monetisation Levels/Markets/Prices, AI, translations.
+Empty-value rule: Monetisation Levels, Reach, Markets, Prices (attribution foot; Markets' Paid since and Launch bundle); any other cell returning an empty intrinsic element (none other found in this census).
 
-Allowlists:
-- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
-- look-values-allowlist :3 (drawer) goes with drawer.tsx.
+Badge census (`rg -n 'card: "badge"' src`):
 
-## Mechanism
-1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
-   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
-2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
-3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
-4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
-5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
-6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
+| File:line | Column | Value | Verdict |
+|---|---|---|---|
+| admin-monetisation/products-section.tsx:257 | Enabled | On/Off | does not → meta |
+| admin-monetisation/markets-section.tsx:108 | Paid levels | On/Off | does not → meta |
+| admin-ai/ai-page.tsx:127 | State | On/Off | does not → meta |
+| admin-monetisation/product-prices-table.tsx:129 | Amount | money / "Free" | does not (number) → meta |
+| admin-ai/ai-calls.tsx:86 | Outcome | Answered, Timed out… | names itself |
+| admin-locations/locations-page.tsx:215 | Status | Active/Retired | names itself |
+| admin-listings/listings-page.tsx:485 | Status | listing status word | names itself |
+| admin/users/users-list.tsx:164 | Status | account status | names itself |
+| admin-countries/countries-page.tsx:139 | Status | Open/Closed | names itself |
+| admin/translations/data-scope.tsx:404 | Status | review status (+Flagged) | names itself |
+| admin/translations/strings-page.tsx:617 | Status | review status (+Flagged) | names itself |
+| admin-categories/categories-page.tsx:509 | Status | Active/Retired… | names itself |
+| admin-categories/categories-page.tsx:544 | Flags | Catch-all, Accepts listings… | names itself |
+| admin/impersonation/impersonation-view.tsx:108 | Status | stored status word | names itself |
+| admin/roles/roles-list.tsx:98 | Kind | System/Custom | names itself |
+| components/shell/data-table.test.tsx:365 | fixture Status | Active/Retired | names itself |
 
-## Guard
-- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
-- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
+## (d) Tests (data-table.test.tsx, DTK family; DTK-7 is the highest in use, DTK-8…10 free — re-checked by `rg -n "DTK-(8|9|10)\b" src e2e scripts` before writing)
 
-## Tests
-- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
-- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
-- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
-- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
-- DLG-E6 reduced motion: no transition.
-- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
-- Touched specs whole, both projects, retries 0.
+- DTK-8: fixed table, short column with a long header: the `<th>` and its sort button carry the wrap classes (`toHaveClass("break-words","whitespace-normal")`); a minWidth table is unchanged.
+- DTK-9: a column in `meta` with an On/Off value draws its header beside it in the card; a `badge` status draws bare.
+- DTK-10: a foot of three columns where two return `<span></span>` / `""`: no label and no `·` for them; the third draws alone without a separator; same for a meta fact.
+No compiler directive; classes and DOM asserted at runtime.
 
-## G38 list (build turn greps and names old → new)
-- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
+## (e) Specs and unit tests that see it
 
-## Growth
-- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
-- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
+- e2e/admin-monetisation.spec.ts:711, :714 (created-by/updated-by `toHaveText` — rows with names, still present), :749 (`product-…-enabled` text), :1046/:1051 (price amount), :1270/:1299 (`market-…-paid-levels`); e2e/admin-services.spec.ts:297, :300 (`ai-…-state`); e2e/primitives-law.spec.ts:262 (name header). Testids and text unchanged; only the card place moves — none reads the card's slot. Not edited.
+- Unit: ai-page.test.tsx:100/:106 (state text, unchanged); data-table.test.tsx:365 (badge fixture), :656/:659 (tick/actions header classes — kept). No unit test pins the foot's text.
 
-## Turns
-- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
-- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
-- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
+## (f) Guards
 
-## Open points for the ruling
-1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
-2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
-3. Map pin dropper on the Radix dialog, or allowlisted.
+Must stay green, none edited: GW-2 `scripts/shell-guards.test.ts`, `scripts/admin-tables.test.ts`, `scripts/admin-guides.test.ts`, `src/test/forms.test.ts`, section-notices, live-regions, `scripts/test-ids.test.ts`, `scripts/conformance/non-null.test.ts`. Touched in effect: admin-tables (card placement in four screens) and test-ids (three new ids).
 
-## Technical scope (build)
-src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.
+## (g) Strings
+
+None. Labels are the columns' existing `header`.
+
+## (h) Different
+
+- A single word wider than its column breaks mid-word (only way it can stay inside a fixed cell); the brief's "between words" holds for every multi-word header.
+- `rendersNothing` treats a component as present by design (it cannot see what a component draws); a future cell that wraps an empty value in a component needs `null`. I'd add this to the table's doc comment.
+
+## Files (build)
+
+src/components/shell/data-table.tsx, src/components/shell/data-table.test.tsx, src/features/admin-monetisation/products-section.tsx, src/features/admin-monetisation/markets-section.tsx, src/features/admin-monetisation/product-prices-table.tsx, src/features/admin-ai/ai-page.tsx. Then the ruled cheap checks and the write-back from `cea51009a`.
