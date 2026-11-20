@@ -1,4 +1,5 @@
 import { rpc } from "@/lib/supabase-door";
+import { splitRefusal } from "@/lib/refusal";
 import type { LegalFacts } from "./legal-markdown";
 import { ownValue } from "@/lib/own-key";
 
@@ -98,7 +99,7 @@ export function legalTextFor(
 export function legalRefusal(error: unknown): string {
   const message =
     typeof error === "string" ? error : ((error as { message?: string } | null)?.message ?? "");
-  return message.trim().split(":")[0] ?? "";
+  return splitRefusal(message.trim()).key;
 }
 
 export async function myLegalStatus(kinds: string[]): Promise<LegalStatusRow[]> {

@@ -1,5 +1,5 @@
 import type { MessageKey } from "@/i18n";
-import { readRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, splitRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
  * U6-C1a — THE DOORS' VOCABULARY, IN WORDS (D1 + F4).
@@ -14,8 +14,7 @@ import { readRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
 
 /** `coverageExceedsPlan:city` and `tooLong:120` carry a detail after the colon. */
 function base(reason: string): string {
-  const colon = reason.indexOf(":");
-  return colon === -1 ? reason : reason.slice(0, colon);
+  return splitRefusal(reason).key;
 }
 
 const DRAFT_REASONS: Record<string, MessageKey> = {

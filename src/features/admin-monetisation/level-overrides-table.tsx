@@ -185,7 +185,7 @@ export function LevelOverridesTable({
           }}
           emptyState={
             <p className="text-sm text-muted-foreground" data-testid={`${anchor}-empty`}>
-              {t("admin.monetisation.empty.overridesWhy")}
+              {t("admin.monetisation.empty.perksWhy")}
             </p>
           }
           toolbar={

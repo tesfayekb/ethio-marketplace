@@ -3,7 +3,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const rpc = vi.hoisted(() => vi.fn());
 // DEC-261 — the database call through the client's door.
 vi.mock("@/lib/supabase-door", () => ({ rpc }));
-import { legalTextFor, myListingCertification, parseLegalVersion } from "./legal-reader";
+import {
+  legalRefusal,
+  legalTextFor,
+  myListingCertification,
+  parseLegalVersion,
+} from "./legal-reader";
+
+describe("the legal refusal word (INC-1189)", () => {
+  it("RRD-5 the word is the text before the first colon, from a string or an error", () => {
+    expect(legalRefusal(" acceptanceRequired:a:b ")).toBe("acceptanceRequired");
+    expect(legalRefusal({ message: "certificationRequired" })).toBe("certificationRequired");
+    expect(legalRefusal(null)).toBe("");
+  });
+});
 
 const version = {
   version_id: "e2e-version",
