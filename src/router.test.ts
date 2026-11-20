@@ -1,4 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
+import { QueryObserver, type QueryClient } from "@tanstack/react-query";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import { onUnauthorised } from "@/features/auth/session-end";
@@ -48,7 +48,7 @@ describe("the query client's retry rule", () => {
     expect(queryFn).toHaveBeenCalledTimes(1);
   });
 
-  it("RTR-3 every other failure keeps the query's own rule: its own count, or three", async () => {
+  it("RTR-3 every other failure keeps the query's own rule: its own count, three when watched, none when fetched", async () => {
     const failed = { message: "boom", status: 500 };
     const own = vi.fn().mockRejectedValue(failed);
     await expect(
@@ -60,11 +60,25 @@ describe("the query client's retry rule", () => {
       client.fetchQuery({ queryKey: ["rtr-3b"], queryFn: none, retry: false }),
     ).rejects.toBe(failed);
     expect(none).toHaveBeenCalledTimes(1);
-    const defaulted = vi.fn().mockRejectedValue(failed);
+    const fetched = vi.fn().mockRejectedValue(failed);
     await expect(
-      client.fetchQuery({ queryKey: ["rtr-3c"], queryFn: defaulted, retryDelay: 0 }),
+      client.fetchQuery({ queryKey: ["rtr-3c"], queryFn: fetched, retryDelay: 0 }),
     ).rejects.toBe(failed);
-    expect(defaulted).toHaveBeenCalledTimes(4);
+    expect(fetched).toHaveBeenCalledTimes(1);
+    const watched = vi.fn().mockRejectedValue(failed);
+    const observer = new QueryObserver(client, {
+      queryKey: ["rtr-3d"],
+      queryFn: watched,
+      retryDelay: 0,
+    });
+    await new Promise<void>((settled) => {
+      const off = observer.subscribe((result) => {
+        if (result.status !== "error") return;
+        off();
+        settled();
+      });
+    });
+    expect(watched).toHaveBeenCalledTimes(4);
   });
 
   it("RTR-4 a write refused with notSignedIn reaches the shell; a write refused otherwise does not", async () => {

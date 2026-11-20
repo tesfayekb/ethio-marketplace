@@ -342,7 +342,8 @@ event that the session is gone, or any reader or door answering 401 or `notSigne
 nothing (INC-914), no session is the end, and a session still stored has its failed reads
 read again once (a race with a fresh sign-in). The query client
 (src/features/auth/session-query-client.ts, the router's) never retries an answer that ended
-the session and keeps every other query's own retry rule; the impersonation poll stops on it.
+the session and keeps every other query's own retry rule (a watched query three, a fetch with
+no rule of its own none, as TanStack has it); the impersonation poll stops on it.
 Browser tests: SO-14 (a revoked session ends once and a fresh sign-in sticks), SO-15 (a
 forgotten session ends by a reader's 401 and the poll stops), SO-16 (two tabs, a sign-out and a
 fresh sign-in: the new session stays).

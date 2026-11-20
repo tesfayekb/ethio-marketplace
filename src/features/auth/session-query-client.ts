@@ -2,6 +2,7 @@ import {
   QueryClient,
   type DefaultError,
   type DefaultedQueryObserverOptions,
+  type FetchQueryOptions,
   type QueryKey,
   type QueryObserverOptions,
 } from "@tanstack/react-query";
@@ -44,6 +45,23 @@ class SessionQueryClient extends QueryClient {
       ...defaulted,
       retry: (count: number, error: TError) => !endsSession(error) && retries(own, count, error),
     };
+  }
+
+  /**
+   * A fetch with no retry of its own is never retried (TanStack's rule, which reads `retry` as
+   * unset — and the wrapper above always sets it): the legal landing after a sign-in (INC-661's
+   * SO-9) fails once and lands, never again after the session has gone.
+   */
+  override fetchQuery<
+    TQueryFnData,
+    TError = DefaultError,
+    TData = TQueryFnData,
+    TQueryKey extends QueryKey = QueryKey,
+    TPageParam = never,
+  >(
+    options: FetchQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>,
+  ): Promise<TData> {
+    return super.fetchQuery(options.retry === undefined ? { ...options, retry: false } : options);
   }
 }
 
