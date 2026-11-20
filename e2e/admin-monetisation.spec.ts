@@ -898,7 +898,10 @@ test.describe("P-1b Admin › Monetisation", () => {
     const rootRow = overrideRow(page, key, byRoot?.id as string);
     await expect(rootRow).toBeVisible({ timeout: 20000 });
     await expect(rootRow.getByTestId(`override-${byRoot?.id}-days`)).toHaveText("45");
-    await expect(rootRow.getByTestId(`override-${byRoot?.id}-photos`)).toHaveText("");
+    // A blank cell draws nothing: empty in the table, absent from the card (INC-1219).
+    await expect(
+      rootRow.getByTestId(`override-${byRoot?.id}-photos`).filter({ hasText: /\S/ }),
+    ).toHaveCount(0);
     await expect(rootRow.getByTestId(`override-${byRoot?.id}-country`)).toHaveText(
       en["admin.monetisation.countryAny"],
     );
