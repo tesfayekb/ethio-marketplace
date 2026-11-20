@@ -36,13 +36,7 @@ import { walkFiles } from "./kit";
  * longer declare, or whose last event the reader reads (a declaration or a
  * template after `since`), is a stale line (`staleComputedByHand`, MGR-6).
  */
-export const COMPUTED_BY_HAND: Readonly<Record<string, { since: string; reason: string }>> = {
-  attr_import_plan: {
-    since: "20261017093039",
-    reason:
-      "assembled from the chunks stored in migration_text_parts and run as EXECUTE v_text (20261017093039); four earlier files patch the live text through pg_get_functiondef",
-  },
-};
+export const COMPUTED_BY_HAND: Readonly<Record<string, { since: string; reason: string }>> = {};
 
 /**
  * A string literal on one line: a doubled quote is a quote, and a backslash

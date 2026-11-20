@@ -479,6 +479,20 @@ gate's step-up sentence and the planners' `unknown category scope` /
 through the console family's words (`refusals`: `CATEGORY_REFUSALS`,
 `ATTRIBUTE_REFUSALS`), and `importRunning` draws its busy line.
 
+Since F1-7b the planners and the exports answer an unknown scope by the
+codes `unknownCategory` / `unknownCountry` (a scope longer than two letters
+included). The places planner reads a scope's own `countries` row as the
+country doors do (INC-1164, `country_row_right`): opening or closing it
+needs `countries:activate` in that country, a field `countries:update`
+(global), its root order `countries:update` in that country; a row without
+the right is a `permissionDenied` reason row (detail `activate` or
+`update`), so the commit refuses `planHasRefusals` and writes nothing. A
+place whose latitude lies beyond ±90 or longitude beyond ±180 is a
+`badCoordinates` reason row. A `name_am` cell reaches the translation core,
+which refuses `permissionDenied:translations` to a caller without
+`translations:update`. The undo refuses `permissionDenied[:scope]` before it
+restores a country row its caller holds no right over.
+
 CHANGES: (1) every `defineRoute` JSON body is decoded strictly — invalid
 UTF-8 is 400 `invalidEncoding`; (2) the meter is the registry dial per
 family (30 / 60 s, clock-aligned, shared by every server) and a spent dial

@@ -14,7 +14,10 @@ to the categories that ask for it.
 C3c fallback and is not read by this console.
 
 Both tables refuse direct client access; every read and write below is a gated
-`SECURITY DEFINER` RPC (law E7).
+`SECURITY DEFINER` RPC (law E7). Since F1-7b no read rule names a browser role on
+either table or on `category_attributes`, which holds no browser grant either
+(INC-1166). The planners and the definitions export answer an unknown category
+scope by the code `unknownCategory`.
 
 ## Doors
 

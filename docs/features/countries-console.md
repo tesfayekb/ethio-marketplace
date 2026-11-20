@@ -90,7 +90,9 @@ through the door shell and the console reads them through the one reader
 `denied`, the gate's step-up sentence `stepUp`, and anything without words
 (`notSignedIn`, `accountDeactivated`, a sentence, a failed fetch) the generic
 `admin.countries.error.unknown`, never the raw text. The services call the doors
-through `rpc()`.
+through `rpc()`. Since F1-7b the editor, the opening and the root order check the code
+as text before it is held in a two-letter variable, so a longer code answers
+`badCountryCode` like any other malformed one (INC-1163).
 
 ## Opening a country — the checklist
 
