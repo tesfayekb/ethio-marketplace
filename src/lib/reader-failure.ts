@@ -104,6 +104,28 @@ export function readerFailure(error: unknown): ReaderFailure {
   };
 }
 
+/** A refusal's detail answered to a client: a short code-like tail, never a sentence. */
+export const REFUSAL_DETAIL = /^[A-Za-z0-9_.:+ -]{1,64}$/;
+
+export type GateRefusal = { code: string; status: number; detail?: string };
+
+/**
+ * F1-7d (INC-1221) — THE REFUSAL A READER RAISED, read by the one reader: one of the gate's
+ * codes (above), its status the one table's (`refusalStatus`) — an answer at any other status
+ * is not that refusal — and its detail when it is a short code. Anything else is null.
+ */
+export function gateRefusal(error: unknown): GateRefusal | null {
+  const failure = readerFailure(error);
+  const { key, tail } = splitRefusal(failure.message.trim());
+  if (!GATE_AUTH_CODES.has(key) && !GATE_REFUSED_CODES.has(key)) return null;
+  const status = refusalStatus(key);
+  if (failure.status !== undefined && failure.status !== status) return null;
+  const detail = tail?.trim();
+  return detail !== undefined && REFUSAL_DETAIL.test(detail)
+    ? { code: key, status, detail }
+    : { code: key, status };
+}
+
 export class ReaderError extends Error {
   readonly failure: ReaderFailure;
   constructor(failure: ReaderFailure) {

@@ -4,6 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { DIALS, type Dial } from "@/lib/dials";
 import { errorText } from "@/lib/error-text";
 import { ownValue } from "@/lib/own-key";
+import { REFUSAL_DETAIL, refusalStatus } from "@/lib/reader-failure";
 import { refusalsOf } from "@/lib/refusal";
 import { DOOR_KEY, splitRefusal } from "@/lib/refusal-tail";
 import { importBody, type ImportBody } from "@/lib/schemas/imports";
@@ -92,19 +93,18 @@ const IMPORT_DIALS: Readonly<Record<string, Dial>> = {
 };
 
 const CODE_WORD = /^[a-z][A-Za-z]*$/;
-const CODE_DETAIL = /^[A-Za-z0-9_.:+ -]{1,64}$/;
-const CODE_STATUS: Readonly<Record<string, 401 | 403 | 429>> = {
-  notSignedIn: 401,
-  accountDeactivated: 403,
-  permissionDenied: 403,
-  rateLimited: 429,
-};
+
+/** A coded refusal's client status: the one table's (`refusalStatus`, F1-7d / INC-1223). */
+function codeStatus(word: string): 400 | 401 | 403 | 429 {
+  const status = refusalStatus(word);
+  return status === 401 || status === 403 || status === 429 ? status : 400;
+}
 
 /**
  * DEC-333 (F1-3) — a door's coded refusal (SQLSTATE P0D01): the shell's envelope, read as data
  * from its first refusal, or a raise's `code[:detail]`. The code answers itself with the
- * shell's own status and its detail, a step-up the one 428. Anything not shaped as a code is
- * not answered here.
+ * status the one table gives it and its detail, a step-up the one 428. Anything not shaped as
+ * a code is not answered here.
  */
 function codedRefusal(error: DoorError): Response | null {
   if (error.code !== "P0D01") return null;
@@ -116,8 +116,8 @@ function codedRefusal(error: DoorError): Response | null {
   const detail = listed === undefined ? raised.tail : listed.detail;
   return clientError(
     word,
-    ownValue(CODE_STATUS, word) ?? 400,
-    detail !== undefined && CODE_DETAIL.test(detail) ? { detail } : undefined,
+    codeStatus(word),
+    detail !== undefined && REFUSAL_DETAIL.test(detail) ? { detail } : undefined,
   );
 }
 
@@ -130,15 +130,12 @@ function codedRefusal(error: DoorError): Response | null {
 export function relay(path: string, what: string, error: DoorError): Response {
   const coded = codedRefusal(error);
   if (coded !== null) return coded;
-  const message = String(error.message ?? "").trim();
+  const { key, tail } = splitRefusal(String(error.message ?? "").trim());
   for (const entry of IMPORT_REFUSALS) {
-    if (entry.kind === "stepUp") {
-      if (message === entry.match || message.startsWith(`${entry.match}:`)) return stepUpRequired();
-      continue;
-    }
-    if (message === entry.match) return clientError(entry.match, entry.status);
+    if (key !== entry.match) continue;
+    if (entry.kind === "stepUp") return stepUpRequired();
+    if (tail === undefined) return clientError(entry.match, entry.status);
   }
-  const { key, tail } = splitRefusal(message);
   if (DOOR_KEY.test(key)) {
     const detail = (tail ?? "").trim();
     return clientError(key, 409, detail === "" ? undefined : { detail });
