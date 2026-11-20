@@ -21,7 +21,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the twelve finding kinds must fire on its planted fixture
+ * process — each of the thirteen finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -133,6 +133,11 @@ export const PLANTED_POLICIES = [
     sql: 'DROP POLICY IF EXISTS "e2e_planted_gone" ON public.listings;',
   },
 ];
+/** The planted reader of `dial-shell-mismatch` (F1-7c ruling 1, decision 3): on the gate, no dial, a shell. */
+export const PLANTED_READER_LINE =
+  "e2e_planted_reader(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -";
+export const READER_SHELL_BODY =
+  "BEGIN PERFORM public.door_context('reader'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', NULL, SQLERRM); END";
 export const PLANTED_HELPER_LINE = (reason: string) =>
   `e2e_planted_helper(uuid) | helper | authenticated | - | - | - | - | - | - | - | ${reason}`;
 
@@ -262,6 +267,17 @@ export function plantedCases(): Array<{
       rows: [row({ key: "e2e_planted_helper(uuid)", body: "SELECT true", volatility: "s" })],
       manifest: PLANTED_HELPER_LINE("policy e2e_planted_gone"),
       policies: policyCallsOf(PLANTED_POLICIES),
+    },
+    {
+      kind: "dial-shell-mismatch",
+      rows: [
+        row({
+          key: "e2e_planted_reader(uuid)",
+          body: READER_SHELL_BODY,
+          volatility: "s",
+        }),
+      ],
+      manifest: PLANTED_READER_LINE,
     },
   ];
 }
