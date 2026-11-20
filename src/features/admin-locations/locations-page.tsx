@@ -178,6 +178,7 @@ export function AdminLocationsPage() {
       key: "name",
       header: t("admin.locations.col.name"),
       priority: LOCATION_COLUMN_PRIORITIES.name,
+      size: "name",
       card: "title",
       cell: (row) => (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -202,6 +203,7 @@ export function AdminLocationsPage() {
       key: "path",
       header: t("admin.locations.col.path"),
       priority: LOCATION_COLUMN_PRIORITIES.path,
+      size: "text",
       card: "sub",
       cell: (row) => <span className="min-w-0 break-words text-sm">{row.path}</span>,
     },
@@ -209,6 +211,7 @@ export function AdminLocationsPage() {
       key: "status",
       header: t("admin.locations.col.status"),
       priority: LOCATION_COLUMN_PRIORITIES.status,
+      size: "short",
       card: "badge",
       cell: (row) => (
         <TipBadge
@@ -223,6 +226,7 @@ export function AdminLocationsPage() {
       key: "counts",
       header: t("admin.locations.col.counts"),
       priority: LOCATION_COLUMN_PRIORITIES.counts,
+      size: "short",
       card: "meta",
       align: "end",
       cell: (row) => (
@@ -239,6 +243,7 @@ export function AdminLocationsPage() {
       key: "order",
       header: t("admin.locations.col.order"),
       priority: LOCATION_COLUMN_PRIORITIES.order,
+      size: "short",
       card: "foot",
       align: "end",
       cell: (row) => <span className="tabular-nums text-sm">{row.displayOrder}</span>,
@@ -247,6 +252,7 @@ export function AdminLocationsPage() {
       key: "aliases",
       header: t("admin.locations.col.aliases"),
       priority: LOCATION_COLUMN_PRIORITIES.aliases,
+      size: "short",
       align: "end",
       cell: (row) => <span className="tabular-nums text-sm">{row.aliases.length}</span>,
     },
@@ -254,6 +260,7 @@ export function AdminLocationsPage() {
       key: "iso",
       header: t("admin.locations.col.iso"),
       priority: LOCATION_COLUMN_PRIORITIES.iso,
+      size: "short",
       cell: (row) => <span className="text-sm">{row.iso ?? "—"}</span>,
     },
   ];

@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import {
   COLUMN_SIZE,
@@ -48,6 +48,7 @@ function columns(minWidth?: string): DataTableColumn<Row>[] {
       key: "name",
       header: "Name",
       priority: "primary",
+      size: "name",
       minWidth,
       cell: (row) => <span>{row.name}</span>,
     },
@@ -55,6 +56,7 @@ function columns(minWidth?: string): DataTableColumn<Row>[] {
       key: "note",
       header: "Note",
       priority: "secondary",
+      size: "text",
       cell: (row) => <span>{row.note}</span>,
     },
   ];
@@ -201,6 +203,7 @@ describe("DataTable C7 contract", () => {
           key: "tail",
           header: "Tail",
           priority: "wide",
+          size: "short",
           cell: () => <span data-testid="wide-cell">tail</span>,
         },
       ],
@@ -242,6 +245,7 @@ describe("DataTable C7 contract", () => {
           key: "tail",
           header: "Tail",
           priority: "wide",
+          size: "short",
           cell: () => <span data-testid="wide-cell">tail</span>,
         },
       ],
@@ -337,12 +341,27 @@ const PLACES: Place[] = [
   { id: "p1", name: "Adama", path: "Oromia", listings: 14, order: 3, active: true },
 ];
 const placeColumns: DataTableColumn<Place>[] = [
-  { key: "name", header: "Name", priority: "primary", card: "title", cell: (r) => r.name },
-  { key: "path", header: "Path", priority: "secondary", card: "sub", cell: (r) => r.path },
+  {
+    key: "name",
+    header: "Name",
+    priority: "primary",
+    size: "name",
+    card: "title",
+    cell: (r) => r.name,
+  },
+  {
+    key: "path",
+    header: "Path",
+    priority: "secondary",
+    size: "text",
+    card: "sub",
+    cell: (r) => r.path,
+  },
   {
     key: "status",
     header: "Status",
     priority: "primary",
+    size: "short",
     card: "badge",
     cell: (r) => <span data-testid={`pill-${r.id}`}>{r.active ? "Active" : "Retired"}</span>,
   },
@@ -350,6 +369,7 @@ const placeColumns: DataTableColumn<Place>[] = [
     key: "listings",
     header: "Listings",
     priority: "detail",
+    size: "short",
     card: "meta",
     cell: (r) => <span data-testid={`listings-${r.id}`}>{r.listings}</span>,
   },
@@ -357,6 +377,7 @@ const placeColumns: DataTableColumn<Place>[] = [
     key: "order",
     header: "Order",
     priority: "detail",
+    size: "short",
     card: "foot",
     cell: (r) => <span data-testid={`order-${r.id}`}>{r.order}</span>,
   },
@@ -364,6 +385,7 @@ const placeColumns: DataTableColumn<Place>[] = [
     key: "iso",
     header: "ISO",
     priority: "secondary",
+    size: "short",
     card: "hide",
     cell: () => <span data-testid="iso-cell">ET-OR</span>,
   },
@@ -474,6 +496,7 @@ describe("DataTable V2 card and frame (D132)", () => {
           key: "aliases",
           header: "Aliases",
           priority: "detail",
+          size: "short",
           card: "meta",
           cell: () => <span data-testid="aliases-p1">2</span>,
         },
@@ -693,5 +716,20 @@ describe("DataTable V2 card and frame (D132)", () => {
       expect(screen.getByTestId(`data-table-col-${key}`).style.width).toBe("");
       expect(bodyCell(key).className).toContain("min-w-40");
     }
+  });
+
+  it("DTK-6 a column without a size is refused by the type", () => {
+    expectTypeOf<DataTableColumn<Row>>().not.toHaveProperty("width");
+    expectTypeOf<DataTableColumn<Row>["size"]>().not.toBeNullable();
+  });
+
+  it("DTK-7 with no minWidth every data column gets a share and the shares sum to 100%", () => {
+    renderTable({ columns: sized({ c: "control", d: "date", n: "name" }) });
+    const shares = ["c", "d", "n"].map((key) =>
+      Number.parseFloat(screen.getByTestId(`data-table-col-${key}`).style.width),
+    );
+    expect(shares.every((share) => share > 0)).toBe(true);
+    expect(shares.reduce((sum, share) => sum + share, 0)).toBeCloseTo(100);
+    expect(document.querySelector("table")?.className).toContain("table-fixed");
   });
 });

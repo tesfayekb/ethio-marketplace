@@ -94,6 +94,7 @@ export function ProductPricesTable({
       key: "scope",
       header: t("admin.monetisation.col.scope"),
       priority: "primary",
+      size: "text",
       card: "title",
       cell: (row) => (
         <span className="flex min-w-0 flex-col gap-0.5">
@@ -124,6 +125,7 @@ export function ProductPricesTable({
       key: "amount",
       header: t("admin.packages.prices.col.amount"),
       priority: "primary",
+      size: "short",
       card: "badge",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-amount`}>
@@ -137,6 +139,7 @@ export function ProductPricesTable({
       key: "creditCost",
       header: t("admin.monetisation.col.creditCost"),
       priority: "primary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-credits`}>
@@ -148,6 +151,7 @@ export function ProductPricesTable({
       key: "from",
       header: t("admin.packages.prices.col.from"),
       priority: "secondary",
+      size: "date",
       card: "meta",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-from`}>
@@ -159,6 +163,7 @@ export function ProductPricesTable({
       key: "to",
       header: t("admin.packages.prices.col.to"),
       priority: "secondary",
+      size: "date",
       card: "meta",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-to`}>
@@ -172,6 +177,7 @@ export function ProductPricesTable({
       key: "used",
       header: t("admin.monetisation.col.used"),
       priority: "secondary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-used`}>

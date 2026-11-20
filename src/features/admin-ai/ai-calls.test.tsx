@@ -75,3 +75,26 @@ describe("AI call consumer", () => {
     expect(state.refetch).toHaveBeenCalledTimes(1);
   });
 });
+
+/** L18 — the widest column's header carries the largest share (no exact percentage). */
+function expectLargestShare(key: string) {
+  const header = screen.getAllByTestId(`data-table-col-${key}`)[0] as HTMLElement;
+  const table = header.closest("table") as HTMLTableElement;
+  const shares = Array.from(table.querySelectorAll<HTMLElement>("thead th"))
+    .map((th) => Number.parseFloat(th.style.width))
+    .filter((share) => !Number.isNaN(share));
+  expect(Number.parseFloat(header.style.width)).toBe(Math.max(...shares));
+}
+
+describe("column shares (L18)", () => {
+  it("ACR-7 the Feature column carries the largest share", () => {
+    state.query.mockReturnValue({
+      data: { rows: [row], next: null },
+      isLoading: false,
+      isFetching: false,
+      error: null,
+    });
+    render(<AiCalls />);
+    expectLargestShare("feature");
+  });
+});

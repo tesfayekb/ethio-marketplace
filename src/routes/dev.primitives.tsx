@@ -289,7 +289,6 @@ function PrimitivesFixture() {
    */
   const denseColumns: DataTableColumn<FixtureRow>[] = columns.map((column) => ({
     ...column,
-    size: undefined,
     minWidth: column.priority === "primary" ? "min-w-56" : "min-w-40",
     priority: column.key === "views" || column.key === "updated" ? "wide" : column.priority,
   }));

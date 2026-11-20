@@ -24,6 +24,7 @@ export function attributionColumns<T extends Attribution>(
       key: "createdBy",
       header: t("admin.monetisation.col.createdBy"),
       priority: "detail",
+      size: "name",
       card: "foot",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-created-by`}>
@@ -35,6 +36,7 @@ export function attributionColumns<T extends Attribution>(
       key: "updatedBy",
       header: t("admin.monetisation.col.updatedBy"),
       priority: "detail",
+      size: "name",
       card: "foot",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-updated-by`}>
@@ -46,6 +48,7 @@ export function attributionColumns<T extends Attribution>(
       key: "updated",
       header: t("admin.packages.col.updated"),
       priority: "detail",
+      size: "date",
       card: "foot",
       cell: (row) => <span className="text-sm">{format(row.updatedAt)}</span>,
     },

@@ -106,10 +106,8 @@ export interface DataTableColumn<T> {
   cell: (row: T) => ReactNode;
   priority: ColumnPriority;
   align?: "start" | "end";
-  /** L17 — the kind of content the column holds; the table gives the width. */
-  size?: ColumnSize;
-  /** Free width class: leaves the type in L18; use `size`. */
-  width?: string;
+  /** L17/L18 — the kind of content the column holds; the table gives the width. */
+  size: ColumnSize;
   /**
    * C7 / INC-130 — MIN-WIDTH CONTRACT. A design-token min-width utility class
    * (`min-w-24`, `min-w-40`, …) declared by the column. When ANY column
@@ -282,7 +280,6 @@ function cellClass(
     // column's own width (w-10 → start-10); pinning both at 0 made the first
     // data column jump 40px left on the first scroll tick (L11 drift).
     sticky !== false && cn("sticky z-10 bg-card", sticky),
-    column.size ? undefined : column.width,
     column.minWidth,
   );
 }
@@ -547,13 +544,11 @@ export function DataTable<T>({
 
   /** Any declared min-width switches the table off fixed layout (C7). */
   const hasMinWidths = columns.some((column) => Boolean(column.minWidth));
-  const usesShares = !hasMinWidths && columns.some((column) => column.size !== undefined);
+  const usesShares = !hasMinWidths;
   // Data columns share the room left by the fixed selection and actions columns.
-  const totalWeight = columns.reduce((sum, column) => sum + COLUMN_SIZE[column.size ?? "name"], 0);
-  const shareStyle = (size: ColumnSize | undefined) =>
-    usesShares && size !== undefined
-      ? { width: `${(COLUMN_SIZE[size] / totalWeight) * 100}%` }
-      : undefined;
+  const totalWeight = columns.reduce((sum, column) => sum + COLUMN_SIZE[column.size], 0);
+  const shareStyle = (size: ColumnSize) =>
+    usesShares ? { width: `${(COLUMN_SIZE[size] / totalWeight) * 100}%` } : undefined;
   /** U1d: the FIRST primary column carries the row link inside the table. */
 
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;

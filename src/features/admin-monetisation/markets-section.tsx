@@ -66,6 +66,7 @@ export function MarketsSection({
       key: "market",
       header: t("admin.monetisation.col.market"),
       priority: "primary",
+      size: "name",
       card: "title",
       cell: (row) => (
         <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-name`}>
@@ -79,6 +80,7 @@ export function MarketsSection({
       key: "freeAds",
       header: t("admin.monetisation.col.freeAds"),
       priority: "primary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-free-ads`}>
@@ -90,6 +92,7 @@ export function MarketsSection({
       key: "includedReach",
       header: t("admin.monetisation.col.includedReach"),
       priority: "primary",
+      size: "name",
       card: "sub",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-reach`}>
@@ -101,6 +104,7 @@ export function MarketsSection({
       key: "paidLevels",
       header: t("admin.monetisation.col.paidLevels"),
       priority: "primary",
+      size: "short",
       card: "badge",
       cell: (row) => <OnOff value={row.paidLevels} testid={`${idOf(row)}-paid-levels`} t={t} />,
     },
@@ -108,6 +112,7 @@ export function MarketsSection({
       key: "launch",
       header: t("admin.monetisation.col.launch"),
       priority: "secondary",
+      size: "short",
       card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-launch`}>
@@ -121,6 +126,7 @@ export function MarketsSection({
       key: "since",
       header: t("admin.monetisation.col.since"),
       priority: "secondary",
+      size: "date",
       card: "meta",
       cell: (row) => (
         <span className="text-sm" data-testid={`${idOf(row)}-since`}>
