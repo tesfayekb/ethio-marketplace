@@ -92,10 +92,8 @@ export const enGuide = {
     "Give every product a price in each market where paid levels are on.",
   "admin.monetisation.levelOverrides.guide.what":
     "This level's perks for one main category, one country, or both. A blank cell keeps the level's own value. A subcategory follows its main category's row.",
-  "admin.monetisation.levelOverrides.guide.col.category":
-    "The main category this row applies to, or every category.",
-  "admin.monetisation.levelOverrides.guide.col.country":
-    "The country this row applies to, or every country.",
+  "admin.monetisation.levelOverrides.guide.col.scope":
+    "Where this row applies: one market, one category, or both.",
   "admin.monetisation.levelOverrides.guide.col.days":
     "How many days the level runs here; blank keeps the level's default.",
   "admin.monetisation.levelOverrides.guide.col.photos":
@@ -108,7 +106,7 @@ export const enGuide = {
   "admin.monetisation.levelOverrides.guide.col.updatedBy": "Who last changed this row.",
   "admin.monetisation.levelOverrides.guide.col.updated": "When this row last changed.",
   "admin.monetisation.levelOverrides.guide.how":
-    "Add override picks the category and the country and sets at least one cell. Edit changes the cells. Clear (red) removes the row and ads fall back to the level's own perks. When a category and a country both have rows, the row naming both wins, then the country's, then the category's.",
+    "Add specific perks picks the market and the category and sets at least one cell. Edit changes the cells. Clear (red) removes the row and ads fall back to the level's own perks. When rows overlap, the row naming both wins, then the market's, then the category's.",
   "admin.monetisation.levelOverrides.guide.next": "Add this level's prices.",
   "admin.monetisation.productPrices.guide.what":
     "What this product costs, by market and category, for a window of time. Sellers pay in credits; the money amount is kept for checkout later. Without a valid price a seller cannot buy this product in that market.",

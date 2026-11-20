@@ -77,8 +77,8 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.reach.guide.next": "የሚከፈልባቸው ደረጃዎች በበሩበት በእያንዳንዱ ገበያ ለእያንዳንዱ ምርት ዋጋ ይስጡ።",
   "admin.monetisation.levelOverrides.guide.what":
     "የዚህ ደረጃ ጥቅሞች ለአንድ ዋና ምድብ፣ ለአንድ ሀገር ወይም ለሁለቱም። ባዶ ክፍል የደረጃውን የራሱን እሴት ይጠብቃል። ንዑስ ምድብ የዋና ምድቡን ረድፍ ይከተላል።",
-  "admin.monetisation.levelOverrides.guide.col.category": "ይህ ረድፍ የሚመለከተው ዋና ምድብ፣ ወይም እያንዳንዱ ምድብ።",
-  "admin.monetisation.levelOverrides.guide.col.country": "ይህ ረድፍ የሚመለከተው ሀገር፣ ወይም እያንዳንዱ ሀገር።",
+  "admin.monetisation.levelOverrides.guide.col.scope":
+    "ይህ ረድፍ የሚመለከተው፦ አንድ ገበያ፣ አንድ ምድብ ወይም ሁለቱንም።",
   "admin.monetisation.levelOverrides.guide.col.days":
     "ደረጃው እዚህ ስንት ቀን እንደሚቆይ፤ ባዶ ከሆነ የደረጃውን ነባሪ ይጠብቃል።",
   "admin.monetisation.levelOverrides.guide.col.photos":
@@ -91,7 +91,7 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.levelOverrides.guide.col.updatedBy": "ይህን ረድፍ በመጨረሻ የቀየረው ማን ነው።",
   "admin.monetisation.levelOverrides.guide.col.updated": "ይህ ረድፍ በመጨረሻ የተቀየረበት ጊዜ።",
   "admin.monetisation.levelOverrides.guide.how":
-    "«የምድብ ጥቅም ጨምር» ምድቡን እና ሀገሩን መርጦ ቢያንስ አንድ ክፍል ያስቀምጣል። «አርትዕ» ክፍሎቹን ይቀይራል። «አጥፋ» (ቀይ) ረድፉን ያስወግዳል እና ማስታወቂያዎች ወደ ደረጃው የራሱ ጥቅሞች ይመለሳሉ። ምድብ እና ሀገር ሁለቱም ረድፎች ሲኖራቸው ሁለቱንም የሚጠቅሰው ረድፍ ያሸንፋል፣ ከዚያ የሀገሩ፣ ከዚያ የምድቡ።",
+    "«ልዩ ጥቅሞች ጨምር» ገበያውን እና ምድቡን መርጦ ቢያንስ አንድ ክፍል ያስቀምጣል። «አርትዕ» ክፍሎቹን ይቀይራል። «አጥፋ» (ቀይ) ረድፉን ያስወግዳል እና ማስታወቂያዎች ወደ ደረጃው የራሱ ጥቅሞች ይመለሳሉ። ረድፎች ሲደራረቡ ሁለቱንም የሚጠቅሰው ረድፍ ያሸንፋል፣ ከዚያ የገበያው፣ ከዚያ የምድቡ።",
   "admin.monetisation.levelOverrides.guide.next": "የዚህን ደረጃ ዋጋዎች ይጨምሩ።",
   "admin.monetisation.productPrices.guide.what":
     "ይህ ምርት በገበያ እና በምድብ፣ ለተወሰነ ጊዜ ምን ያህል እንደሚያስከፍል። ሻጮች በክሬዲት ይከፍላሉ፤ የገንዘቡ መጠን ለኋላ ክፍያ ተጠብቆ ይቀመጣል። ትክክለኛ ዋጋ ከሌለ ሻጭ በዚያ ገበያ ይህን ምርት መግዛት አይችልም።",

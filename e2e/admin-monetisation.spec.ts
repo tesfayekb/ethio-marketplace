@@ -894,7 +894,7 @@ test.describe("P-1b Admin › Monetisation", () => {
         await audits("level_override", row?.id as string, "level_override.saved", since),
       ).toHaveLength(1);
     }
-    // The rows as data: the root's name and the "every country" word; a blank photos cell.
+    // The rows as data: the root's name and the "every market" word; a blank photos cell.
     const rootRow = overrideRow(page, key, byRoot?.id as string);
     await expect(rootRow).toBeVisible({ timeout: 20000 });
     await expect(rootRow.getByTestId(`override-${byRoot?.id}-days`)).toHaveText("45");
@@ -903,7 +903,7 @@ test.describe("P-1b Admin › Monetisation", () => {
       rootRow.getByTestId(`override-${byRoot?.id}-photos`).filter({ hasText: /\S/ }),
     ).toHaveCount(0);
     await expect(rootRow.getByTestId(`override-${byRoot?.id}-country`)).toHaveText(
-      en["admin.monetisation.countryAny"],
+      en["admin.packages.prices.everyMarket"],
     );
 
     // Precedence per column, as the service client reads it: the leaf inherits the

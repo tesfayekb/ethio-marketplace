@@ -18,20 +18,21 @@ import { dateFormatter } from "@/lib/format";
 
 import { attributionColumns } from "./monetisation-columns";
 import { PLACEMENT_LABEL } from "./monetisation-forms";
-import { productAnchor } from "./monetisation-order";
+import { perksOrder, productAnchor } from "./monetisation-order";
 import type { OverrideRow, ProductRow } from "./monetisation-service";
 import { OverrideDialog } from "./override-dialog";
 import { useMonetisationNames } from "./use-monetisation-names";
 
 /**
  * P-1c (D313; P-1b's D295 rows) — ONE LEVEL'S PER-CATEGORY PERKS, inside the
- * level's expanded row: a row per main category and country, each cell a perk
+ * level's expanded row: a row per market and main category (one Scope cell,
+ * most specific first — `perksOrder`), each cell a perk
  * the row sets (days, photos, placement, badge); a blank cell is the level's
  * own value, a subcategory inherits its main category's row. Verbs: Add
  * override (the level fixed), Edit, Clear (red). Frame id
  * `product-<key>-perks` (the Guides' and the strip's landing).
  */
-const LOCKED = ["category"];
+const LOCKED = ["scope"];
 
 type Dialog =
   | { kind: "none" }
@@ -56,11 +57,12 @@ export function LevelOverridesTable({
   guard: GuardFn;
 }) {
   const { t, language } = useI18n();
-  const { marketName, categoryName, productName } = useMonetisationNames(products);
+  const { scopeParts, productName } = useMonetisationNames(products);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const date = dateFormatter("day", language);
   const anchor = productAnchor(level.key, "perks");
   const idOf = (row: OverrideRow) => `override-${row.id}`;
+  const ordered = perksOrder(rows);
   const chosen =
     dialog.kind === "edit" || dialog.kind === "clear"
       ? (rows.find((row) => row.id === dialog.id) ?? null)
@@ -68,28 +70,21 @@ export function LevelOverridesTable({
 
   const columns: DataTableColumn<OverrideRow>[] = [
     {
-      key: "category",
-      header: t("admin.monetisation.col.category"),
+      key: "scope",
+      header: t("admin.monetisation.col.scope"),
       priority: "primary",
-      size: "name",
+      size: "text",
       card: "title",
-      cell: (row) => (
-        <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-category`}>
-          {categoryName(row.categoryId, "mainCategoryAny")}
-        </span>
-      ),
-    },
-    {
-      key: "country",
-      header: t("admin.monetisation.col.country"),
-      priority: "primary",
-      size: "name",
-      card: "sub",
-      cell: (row) => (
-        <span className="min-w-0 break-words text-sm" data-testid={`${idOf(row)}-country`}>
-          {marketName(row.countryCode, "countryAny")}
-        </span>
-      ),
+      cell: (row) => {
+        const parts = scopeParts(row.countryCode, row.categoryId);
+        return (
+          <span className="min-w-0 break-words font-medium">
+            <span data-testid={`${idOf(row)}-country`}>{parts.market}</span>
+            {" · "}
+            <span data-testid={`${idOf(row)}-category`}>{parts.category}</span>
+          </span>
+        );
+      },
     },
     {
       key: "days",
@@ -159,7 +154,7 @@ export function LevelOverridesTable({
       <section data-testid={anchor} className="min-w-0 space-y-3">
         <TableActions
           testid={`${anchor}-header`}
-          title={t("admin.monetisation.overrides.title")}
+          title={t("admin.monetisation.perks.title")}
           level="h2"
         >
           {mayUpdate ? (
@@ -169,16 +164,19 @@ export function LevelOverridesTable({
               disabled={settling}
               onClick={() => setDialog({ kind: "create", openedBy: "header" })}
               icon={<Plus />}
-              label={t("admin.monetisation.override.add")}
+              label={t("admin.monetisation.perks.add")}
             />
           ) : null}
         </TableActions>
+        <p className="text-sm text-muted-foreground" data-testid={`${anchor}-lead`}>
+          {t("admin.monetisation.perks.lead")}
+        </p>
         <DataTable<OverrideRow>
           columns={shown}
-          rows={rows}
+          rows={ordered}
           rowKey={(row) => row.id}
           rowTestId={idOf}
-          caption={t("admin.monetisation.overrides.title")}
+          caption={t("admin.monetisation.perks.title")}
           cardUntil="lg"
           guide={{
             prefix: "admin.monetisation.levelOverrides",
@@ -213,14 +211,14 @@ export function LevelOverridesTable({
                 testid={`override-actions-${row.id}`}
                 name={productName(row.levelKey)}
                 edit={{
-                  label: t("admin.monetisation.override.edit"),
+                  label: t("admin.monetisation.perks.edit"),
                   disabled: settling,
                   onSelect: () => setDialog({ kind: "edit", id: row.id, openedBy: "row-click" }),
                 }}
                 more={[
                   {
                     key: "clear",
-                    label: t("admin.monetisation.override.clear"),
+                    label: t("admin.monetisation.perks.clear"),
                     tone: "danger",
                     disabled: settling,
                     onSelect: () => setDialog({ kind: "clear", id: row.id, openedBy: "row-menu" }),
@@ -246,6 +244,11 @@ export function LevelOverridesTable({
             />
           }
         />
+        {rows.length > 0 ? (
+          <p className="text-sm text-muted-foreground" data-testid={`${anchor}-blank-note`}>
+            {t("admin.monetisation.perks.blankNote")}
+          </p>
+        ) : null}
       </section>
       {dialog.kind === "create" ? (
         <OverrideDialog

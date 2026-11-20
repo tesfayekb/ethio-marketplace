@@ -104,6 +104,12 @@ vi.mock("./use-monetisation-names", () => ({
   useMonetisationNames: (products: { key: string; nameEn: string }[]) => ({
     marketName: (code: string | null) => code ?? "Every market",
     categoryName: (id: string | null) => id ?? "Every category",
+    scopeParts: (code: string | null, id: string | null) => ({
+      market: code ?? "Every market",
+      category: id ?? "Every category",
+    }),
+    scopeOf: (row: { countryCode: string | null; categoryId: string | null }) =>
+      `${row.countryCode ?? "Every market"} · ${row.categoryId ?? "Every category"}`,
     productName: (key: string) => products.find((p) => p.key === key)?.nameEn ?? key,
     markets: [],
     tree: { roots: [], byId: new Map() },
@@ -169,7 +175,7 @@ describe("AdminMonetisationPage (D313)", () => {
     fireEvent.click(screen.getAllByTestId("product-featured-open")[0] as HTMLElement);
     expect(document.querySelectorAll("h1").length).toBe(1);
     const opened = [...document.querySelectorAll("h2")].map((heading) => heading.textContent);
-    expect(opened).toContain("admin.monetisation.overrides.title");
+    expect(opened).toContain("admin.monetisation.perks.title");
     expect(opened).toContain("admin.monetisation.prices.title");
     expect(document.getElementById("product-featured-perks")).not.toBeNull();
     expect(document.getElementById("product-featured-prices")).not.toBeNull();
@@ -237,5 +243,46 @@ describe("column shares (L18)", () => {
   it("MNS-14 the product Price column, which wraps, carries the largest share", () => {
     render(<AdminMonetisationPage />);
     expectLargestShare("price");
+  });
+});
+
+describe("the level's specific perks (L20)", () => {
+  it("PKW-3 one Scope cell holds both testids, the lead under the title, the blank note under the table, the new Add words", () => {
+    CONSOLE.overrides.push({
+      ...ATTRIBUTION,
+      id: "o1",
+      levelKey: "featured",
+      categoryId: null,
+      countryCode: "KE",
+      days: 20,
+      maxPhotos: null,
+      placement: null,
+      badge: null,
+    });
+    try {
+      render(<AdminMonetisationPage />);
+      fireEvent.click(screen.getAllByTestId("product-featured-open")[0] as HTMLElement);
+      const frame = document.getElementById("product-featured-perks") as HTMLElement;
+      const headers = Array.from(frame.querySelectorAll("thead th")).map((th) => th.textContent);
+      expect(headers).toContain("admin.monetisation.col.scope");
+      expect(headers).not.toContain("admin.monetisation.col.category");
+      expect(headers).not.toContain("admin.monetisation.col.country");
+      const country = screen.getAllByTestId("override-o1-country")[0] as HTMLElement;
+      const category = screen.getAllByTestId("override-o1-category")[0] as HTMLElement;
+      expect(country).toHaveTextContent("KE");
+      expect(category).toHaveTextContent("Every category");
+      expect(country.closest("td")).toBe(category.closest("td"));
+      expect(screen.getAllByTestId("product-featured-perks-lead")[0]).toHaveTextContent(
+        "admin.monetisation.perks.lead",
+      );
+      expect(screen.getAllByTestId("product-featured-perks-blank-note")[0]).toHaveTextContent(
+        "admin.monetisation.perks.blankNote",
+      );
+      expect(screen.getAllByTestId("product-featured-override-add")[0]).toHaveTextContent(
+        "admin.monetisation.perks.add",
+      );
+    } finally {
+      CONSOLE.overrides.length = 0;
+    }
   });
 });

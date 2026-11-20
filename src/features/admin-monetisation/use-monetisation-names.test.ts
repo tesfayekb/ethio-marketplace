@@ -1,5 +1,5 @@
 import { renderHook } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import type { ProductRow } from "./monetisation-service";
 
@@ -95,5 +95,21 @@ describe("the monetisation console's names (INC-1087)", () => {
     );
     expect(result.current.marketName("KE", "everyMarket")).toBe("Kenya");
     expect(result.current.marketName(null, "countryAny")).toBe("admin.monetisation.countryAny");
+  });
+
+  it("PKW-2 a scope is the prices table's words in two parts, joined market · category", () => {
+    openMarkets.markets = [{ code: "KE", nameEn: "Kenya", anchorId: null }];
+    const { result } = renderHook(() => useMonetisationNames([product]));
+    expectTypeOf(result.current.scopeParts).returns.toEqualTypeOf<{
+      market: string;
+      category: string;
+    }>();
+    expect(result.current.scopeParts(null, null)).toEqual({
+      market: "admin.packages.prices.everyMarket",
+      category: "admin.packages.prices.everyCategory",
+    });
+    expect(result.current.scopeOf({ countryCode: "KE", categoryId: null })).toBe(
+      "Kenya · admin.packages.prices.everyCategory",
+    );
   });
 });
