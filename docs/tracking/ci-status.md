@@ -1,29 +1,29 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `70533e5594192767dfd4aefc18ef82fde388c20d` (short `70533e5`)
+- Commit: `8a2593c5034683de1f50a5579aaed68fb67ef4fa` (short `8a2593c`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-20T09:59:19Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44714564220
-- Lanes: skipped — the code tree was proven by run 44707486476 (pull_request, lovable/table-cards, head 859ece9)
+- Completed (UTC): 2026-11-20T11:36:32Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44728234555
+- Lanes: skipped — the code tree was proven by run 44720812130 (pull_request, cursor/f1-doors-7c, head 10d519b)
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Migration linter (with self-test) | success |
-| Hardcoded string scan (enforcing) | success |
-| Component tests | success |
 | Build, typecheck, lint | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Component tests | success |
+| E2E preflight (migration parity, staging) | success |
 | Gitleaks secrets scan | success |
 | i18n used-on map is fresh (U4i ②) | success |
-| Import gate guard (with self-test) | success |
 | Semgrep (enforcing on ERROR) | success |
-| E2E preflight (migration parity, staging) | success |
+| Hardcoded string scan (enforcing) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Listing-write seam guard (with self-test) | success |
-| Scope (docs-only push, DEC-365) | success |
 | Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Listing-write seam guard (with self-test) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Scope (docs-only push, DEC-365) | success |
+| Migration linter (with self-test) | success |
+| Import gate guard (with self-test) | success |
 | E2E (Playwright, ethio-staging) | success |
 | First-paint bundle budget (gzipped ceiling) | skipped (proven tree) |
 | E2E lanes | skipped (proven tree) |
