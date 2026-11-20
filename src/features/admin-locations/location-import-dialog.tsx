@@ -31,6 +31,8 @@ const REASON_KEYS = new Set([
   "crossCountry",
   "duplicateKey",
   "missingCoordinates",
+  "badCoordinates",
+  "permissionDenied",
   "isoOnRegionsOnly",
   "nameRequired",
   "countryRowByActivation",

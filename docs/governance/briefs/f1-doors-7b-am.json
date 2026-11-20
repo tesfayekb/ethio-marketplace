@@ -1,0 +1,5 @@
+{
+  "admin.locations.error.badCoordinates": "ኬክሮስ ከ-90 እስከ 90፣ ኬንትሮስ ደግሞ ከ-180 እስከ 180 መሆን አለበት።",
+  "admin.locations.import.reason.badCoordinates": "የዚህ ረድፍ ኬክሮስ ወይም ኬንትሮስ ከሚፈቀደው ወሰን ውጭ ነው።",
+  "admin.locations.import.reason.permissionDenied": "የዚህን ገበያ የራሱን መዝገብ ለመቀየር ፈቃድ የለህም።"
+}

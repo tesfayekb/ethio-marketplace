@@ -170,7 +170,7 @@ describe("the reader knows what the migrations dropped (DEC-357)", () => {
 describe("a body built at run time is computed (INC-1083)", () => {
   it("MGR-6 COMPUTED_BY_HAND: a line stands for its name's last declaration; one the files no longer declare, or whose last event the reader reads, is stale", () => {
     expect(staleComputedByHand(process.cwd())).toEqual([]);
-    expect(Object.keys(COMPUTED_BY_HAND)).toEqual(["attr_import_plan"]);
+    expect(Object.keys(COMPUTED_BY_HAND)).toEqual([]);
     const root = tree({
       "20990101000000_a.sql":
         fn("built", "  RETURN 'x';") +
@@ -227,6 +227,12 @@ describe("a body built at run time is computed (INC-1083)", () => {
         .filter(([, d]) => d.computed === true)
         .map(([name]) => name)
         .sort(),
-    ).toEqual(["attr_import_plan", "public_listing_json", "validate_listing_draft"]);
+    ).toEqual([
+      "attr_import_plan",
+      "cat_import_plan",
+      "loc_import_plan",
+      "public_listing_json",
+      "validate_listing_draft",
+    ]);
   });
 });

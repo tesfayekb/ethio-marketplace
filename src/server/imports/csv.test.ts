@@ -57,19 +57,30 @@ describe("toCsv", () => {
     }
   });
 
-  it("CSV-7 an export reader's gate code is forbidden, with or without its scope; no sentence is; the scope sentence answers itself", () => {
-    const scope = "unknown category scope" as const;
+  it("CSV-7 an export reader's gate code is forbidden, with or without its scope; no sentence is; the scope code answers itself", () => {
+    const scope = "unknownCategory" as const;
     expect(exportRefusal({ message: "permissionDenied" }, scope)).toBe("forbidden");
-    expect(exportRefusal({ message: "permissionDenied:scope" }, "unknown country scope")).toBe(
+    expect(exportRefusal({ message: "permissionDenied:scope" }, "unknownCountry")).toBe(
       "forbidden",
     );
-    expect(exportRefusal({ message: "permission denied" }, "unknown country scope")).toBeNull();
-    expect(exportRefusal({ message: "unknown category scope" }, scope)).toBe(scope);
-    expect(exportRefusal({ message: "unknown country scope" }, "unknown country scope")).toBe(
-      "unknown country scope",
-    );
+    expect(exportRefusal({ message: "permission denied" }, "unknownCountry")).toBeNull();
+    expect(exportRefusal({ message: "unknownCategory" }, scope)).toBe(scope);
+    expect(exportRefusal({ message: "unknownCountry" }, "unknownCountry")).toBe("unknownCountry");
     expect(exportRefusal({ message: "rateLimited" }, scope)).toBeNull();
     expect(exportRefusal({ message: "relation x does not exist" }, scope)).toBeNull();
+  });
+
+  it("CSV-8 a scope code is read by its head, whole: the other family's code, the old sentences and a longer word are not it", () => {
+    expect(exportRefusal({ message: " unknownCountry " }, "unknownCountry")).toBe("unknownCountry");
+    expect(exportRefusal({ message: "unknownCountry:ET" }, "unknownCountry")).toBe(
+      "unknownCountry",
+    );
+    expect(exportRefusal({ message: "unknownCountry" }, "unknownCategory")).toBeNull();
+    expect(exportRefusal({ message: "unknownCategory" }, "unknownCountry")).toBeNull();
+    expect(exportRefusal({ message: "unknownCategoryScope" }, "unknownCategory")).toBeNull();
+    expect(exportRefusal({ message: "unknown category scope" }, "unknownCategory")).toBeNull();
+    expect(exportRefusal({ message: "unknown country scope" }, "unknownCountry")).toBeNull();
+    expect(exportRefusal({ message: "x: unknownCountry" }, "unknownCountry")).toBeNull();
   });
 
   it("CSV-4 exportColumns equals the literal lists the exports carried", () => {

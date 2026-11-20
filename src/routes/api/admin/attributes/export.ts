@@ -40,7 +40,7 @@ async function handler(
       ? await supabase.rpc("admin_export_attributes")
       : await supabase.rpc("admin_export_attributes", { p_scope_slug: scope });
   if (error) {
-    const refused = exportRefusal(error, "unknown category scope");
+    const refused = exportRefusal(error, "unknownCategory");
     if (refused !== null) return clientError(refused, refused === "forbidden" ? 403 : 404);
     return readFailure(PATH, "export_failed", error);
   }

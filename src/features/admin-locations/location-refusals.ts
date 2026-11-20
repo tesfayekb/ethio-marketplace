@@ -8,10 +8,11 @@ import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
  * DEC-333 (F1-4b) — the places console's own words for its doors' codes. Every id the console
- * spoke before the doors moved to codes keeps its line, the seven the ancestry trigger raises as
- * plain sentences (`rootMustBeCountry`, `badSlug`, `missingCoordinates`, `parentMissing`,
- * `levelMismatch`, `crossCountry`, `parentInactive`) among them: whatever the SQLSTATE, the reader
- * hears an error's `message` as its code. `permissionDenied` (with or without its `:scope`) reads
+ * spoke before the doors moved to codes keeps its line, the eight the ancestry trigger refuses by
+ * (`rootMustBeCountry`, `badSlug`, `missingCoordinates`, `badCoordinates`, `parentMissing`,
+ * `levelMismatch`, `crossCountry`, `parentInactive`; F1-7b: `door_refuse` raises each, so a door's
+ * shell answers it as a refusal, and `badCoordinates` is the new one) among them: whatever the
+ * SQLSTATE, the reader hears an error's `message` as its code. `permissionDenied` (with or without its `:scope`) reads
  * the console's denied line; the gate's step-up sentence (SQLSTATE P0009) still reads its own
  * line; a code with no words of its own (`notSignedIn`, `accountDeactivated`, `unknownBatch`,
  * `undoBlocked`) draws the console's generic line.
@@ -27,6 +28,7 @@ export const LOCATION_REFUSALS = {
     crossCountry: "admin.locations.error.crossCountry",
     badSlug: "admin.locations.error.badSlug",
     missingCoordinates: "admin.locations.error.missingCoordinates",
+    badCoordinates: "admin.locations.error.badCoordinates",
     rootMustBeCountry: "admin.locations.error.rootMustBeCountry",
     badLevel: "admin.locations.error.badLevel",
     isoOnRegionsOnly: "admin.locations.error.isoOnRegionsOnly",

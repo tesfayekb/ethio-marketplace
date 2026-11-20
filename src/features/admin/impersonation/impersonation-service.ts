@@ -132,8 +132,14 @@ export async function listImpersonatedListings(
   };
 }
 
-/** True when the server refused because the 15-minute box has closed. */
+/**
+ * True when the server refused because the 15-minute box has closed. F1-7b: the readers raise the
+ * door code `noActiveSession` (read first, by its head — the code is not on `DOOR_CODES`). The old
+ * sentence stays readable until the next Publish, so the order of the production apply and the
+ * Publish cannot break the expired view.
+ */
 export function isExpiredSessionError(error: unknown): boolean {
   const message = error === null || error === undefined ? "" : errorText(error);
+  if (/^noActiveSession(?::|$)/.test(message.trim())) return true;
   return message.includes("impersonation session expired");
 }

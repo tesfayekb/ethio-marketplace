@@ -41,7 +41,7 @@ async function handler(
       ? await supabase.rpc("admin_export_locations")
       : await supabase.rpc("admin_export_locations", { p_scope: scope });
   if (error) {
-    const refused = exportRefusal(error, "unknown country scope");
+    const refused = exportRefusal(error, "unknownCountry");
     if (refused !== null) return clientError(refused, refused === "forbidden" ? 403 : 404);
     return readFailure(PATH, "export_failed", error);
   }

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Foundations turn 11 (DEC-237, INC-860 part 1) — THE THREE EXPORTS ON THE ONE
- * BOUNDARY (EXR-1…6). The Supabase client is mocked under the REAL
+ * BOUNDARY (EXR-1…7). The Supabase client is mocked under the REAL
  * user-client.ts and route.ts; EXR-4's bytes were computed by running the
  * categories export's own writer at 126fbb4c on the fixture below.
  */
@@ -12,6 +12,8 @@ const state = {
   allowed: true,
   rpc: [] as { name: string; args: unknown }[],
   payload: {} as unknown,
+  /** An export reader's refusal (the raise's `code` and `message`), answered instead of the payload. */
+  error: null as { message: string; code: string } | null,
 };
 
 vi.mock("@supabase/supabase-js", async (importOriginal) => {
@@ -35,6 +37,7 @@ vi.mock("@supabase/supabase-js", async (importOriginal) => {
       rpc: async (name: string, args: unknown) => {
         state.rpc.push({ name, args });
         if (name === "has_permission") return { data: state.allowed, error: null };
+        if (state.error !== null) return { data: null, error: state.error };
         return { data: state.payload, error: null };
       },
     }),
@@ -88,6 +91,7 @@ beforeEach(() => {
   state.allowed = true;
   state.rpc = [];
   state.payload = {};
+  state.error = null;
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date("2026-10-24T12:00:00Z"));
@@ -161,6 +165,30 @@ describe("the three exports", () => {
     expect(markets).toBe(
       "country_code,name_en,is_active,unit_system,currency_code,display_order,root_order",
     );
+  });
+
+  it("EXR-7 an unknown scope is the reader's code at 404; the old sentence and any other error are a 500 with no text", async () => {
+    const routes = [
+      [categories, "/api/admin/categories/export?scope=cars", "unknownCategory"],
+      [attributes, "/api/admin/attributes/export?file=definitions&scope=cars", "unknownCategory"],
+      [locations, "/api/admin/locations/export?file=countries&scope=XZ", "unknownCountry"],
+    ] as const;
+    for (const [route, url, code] of routes) {
+      state.error = { message: code, code: "P0D01" };
+      const refused = await get(route, url);
+      expect([url, refused.status]).toEqual([url, 404]);
+      expect(await refused.json()).toEqual({ error: code });
+      for (const message of [
+        "unknown category scope",
+        "unknown country scope",
+        "relation x does not exist",
+      ]) {
+        state.error = { message, code: message.startsWith("relation") ? "42P01" : "P0001" };
+        const failed = await get(route, url);
+        expect([message, failed.status]).toEqual([message, 500]);
+        expect(await failed.text()).not.toMatch(/scope|relation/);
+      }
+    }
   });
 
   it("EXR-6 the filename follows the one rule (CHANGE 7)", async () => {

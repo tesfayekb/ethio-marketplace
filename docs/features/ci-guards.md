@@ -94,9 +94,10 @@ Details: `docs/features/security-scanning.md`.
 - The file side reads such a body as computed (INC-1083, P-2 (c) c3): the one
   reader (`scripts/conformance/migration-reader.ts`) marks a function whose last
   event is a `format()` template (`public.<fn>(` or `public.%I(` with a literal
-  name) `computed`, with an empty body, and `COMPUTED_BY_HAND` names the one it
-  cannot detect (`attr_import_plan`, assembled from stored chunks), each with its
-  reason; a hand-listed name the reader can read again fails MGR-6. A census of
+  name) `computed`, with an empty body, and `COMPUTED_BY_HAND` names any it
+  cannot detect, each with its reason (empty since F1-7b: `attr_import_plan`,
+  once assembled from stored chunks, is now a `format()` template's last event);
+  a hand-listed name the reader can read again fails MGR-6. A census of
   bodies skips a computed function by name with its reason; the seller-name law
   judges it live on the smoke lane (DEC-359, `docs/features/hidden-seller-name.md`).
 - Random-text guard (INC-1202, DEC-406, floor `RANDOM_TEXT_FLOOR=20261118160000`):

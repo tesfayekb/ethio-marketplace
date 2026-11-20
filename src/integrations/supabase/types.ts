@@ -5628,6 +5628,19 @@ export type Database = {
         Returns: boolean
       }
       country_export_row: { Args: { p_code: string }; Returns: Json }
+      country_row_right: {
+        Args: {
+          p_activate: boolean
+          p_code: string
+          p_fields: boolean
+          p_root_order: boolean
+        }
+        Returns: {
+          allowed: boolean
+          detail: string
+          refused: string
+        }[]
+      }
       deal_group: {
         Args: { p_has_unit: boolean; p_key: string }
         Returns: string

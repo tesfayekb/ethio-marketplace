@@ -221,6 +221,32 @@ src/features/my-listings/promote-service.ts.
   the browser roles (DEC-407's form, each file's chain proof: every SQL caller runs as its owner
   or is itself closed). Eleven public readers stay off the gate as `public-data` (DEC-408); the
   helper lines left are `has_permission` and `sold_cutoff`, each by its policies (INC-1212).
+- **F1-7b — the queued door corrections** (`docs/governance/briefs/f1-doors-7b.md`; eight files
+  `20261120030000` → `20261120030700`, marks `20261120050000` → `20261120050700`): a check the database made
+  before the door did answers by the door's own code. The places trigger
+  (`locations_ancestry_guard`) refuses through `door_refuse` for every writer — its seven codes
+  and `badCoordinates` (a latitude beyond ±90 or a longitude beyond ±180, or not a number) — so a
+  door's shell answers them at 400 and meters them. `assign_role` refuses `badCountryCode` (a
+  scope that is not two letters) and `unknownUser` (no account holds the person) before its
+  insert (INC-1156); the three country doors check the code as text before it is held in a
+  two-letter variable (`badCountryCode`, INC-1163). The planners and exports answer an unknown
+  scope by `unknownCategory` / `unknownCountry`, `impersonation_target` by `noActiveSession`, and
+  the translation core's own permission step by `permissionDenied:translations`. The places
+  planner, its commit and the undo write a scope's own `countries` row only for a caller holding
+  the right that row's change needs (INC-1164), read by `country_row_right` (a closed helper on
+  `has_permission_scoped`, the country doors' rule): `countries:activate` (match) to open or
+  close it, `countries:update` (global) for its fields and (match) for its root order. The
+  preview names a missing right as the row's `permissionDenied` reason (detail `activate` or
+  `update`), so the commit refuses `planHasRefusals`; the undo refuses `permissionDenied[:scope]`
+  before it restores anything. `cat_import_plan`, `attr_import_plan` and `loc_import_plan` are
+  redeclared by computed insertion (DEC-383), so the migration reader reads them as computed and
+  `COMPUTED_BY_HAND` is empty. The read rules `attributes_public_read`, `cal_public_read` and
+  `category_attributes_public_read` are dropped, and `category_attributes` loses its browser
+  SELECT grants: no browser role reads the three tables directly (INC-1166). The clients read
+  the new codes (STEP 3): the exports' `exportRefusal` and `isExpiredSessionError` read a
+  family code by its head (neither is on `DOOR_CODES`), the places words and the import
+  dialogs gain `badCoordinates` / `permissionDenied`, and the import route's two scope-sentence
+  rows are gone.
 
 ## Tests
 

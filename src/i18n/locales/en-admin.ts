@@ -1502,6 +1502,8 @@ export const enAdmin = {
   "admin.locations.caption": "Locations in the selected market",
   "admin.locations.loading": "Loading locations…",
   "admin.locations.error": "The locations could not be loaded.",
+  "admin.locations.error.badCoordinates":
+    "Latitude must lie between -90 and 90, and longitude between -180 and 180.",
   "admin.locations.error.badLevel": "That level is not one of country, region, city or sub-city.",
   "admin.locations.error.badSlug": "That address is not usable.",
   "admin.locations.error.cannotMoveCountry": "A market's anchor cannot be moved.",
@@ -1662,6 +1664,8 @@ export const enAdmin = {
     "This row's depth does not match the place holding it.",
   "admin.locations.import.reason.parentInactive": "The place above it is retired.",
   "admin.locations.import.reason.crossCountry": "This row points at another market.",
+  "admin.locations.import.reason.badCoordinates":
+    "This row's latitude or longitude is out of range.",
   "admin.locations.import.reason.duplicateKey": "The same address appears twice in this file.",
   "admin.locations.import.reason.missingCoordinates":
     "A city and a sub-city both need a centre latitude and longitude.",
@@ -1710,6 +1714,8 @@ export const enAdmin = {
   "admin.locations.import.reason.badBoolean": "That cell must be true or false.",
   "admin.locations.import.reason.tooLong": "That cell is longer than this column allows.",
   "admin.locations.import.reason.required": "This cell cannot be empty.",
+  "admin.locations.import.reason.permissionDenied":
+    "You do not have permission to change this market's own record.",
   "admin.locations.import.reason.unknown": "This row was refused",
   "admin.locations.import.titleAll": "Import into all countries",
   "admin.locations.transfer.scopeAll": "For all countries",

@@ -1,4 +1,5 @@
 import { doorCode } from "@/lib/door-codes";
+import { splitRefusal } from "@/lib/refusal";
 
 import type { FileSpec } from "./registry";
 
@@ -58,14 +59,16 @@ export function exportFilename(fileId: string, scope: string | null, now = new D
 
 /**
  * The export RPCs' refusals: a reader's gate code (`permissionDenied`, with or without its
- * `:scope`; every export reader since F1-4b) and the planner's scope sentence; anything else is
- * the caller's read failure.
+ * `:scope`; every export reader since F1-4b) and the planner's scope code (`unknownCategory` /
+ * `unknownCountry` since F1-7b, which `door_refuse` raises as the whole message, with or without a
+ * `:detail`); anything else is the caller's read failure. The family's own codes are not on
+ * `DOOR_CODES`, so the scope code is read by its head, never by a text match.
  */
 export function exportRefusal(
   error: { message: string },
-  unknownScope: "unknown category scope" | "unknown country scope",
+  unknownScope: "unknownCategory" | "unknownCountry",
 ): "forbidden" | typeof unknownScope | null {
   if (doorCode(error).code === "permissionDenied") return "forbidden";
-  if (error.message.includes(unknownScope)) return unknownScope;
+  if (splitRefusal(error.message.trim()).key === unknownScope) return unknownScope;
   return null;
 }

@@ -142,9 +142,13 @@ every id the console spoke before — `locationMissing`, `parentMissing`, `paren
 `retireInstead` with `hasChildren | hasListings | hasCoverage | hasProfileDefaults`
 rendered beside it — under `admin.locations.error.*`; `permissionDenied` (with or without
 its `:scope`) reads `denied`, the gate's step-up sentence (SQLSTATE P0009) reads `stepUp`,
-and `rateLimited` the shared line. The seven ids the ancestry trigger still raises as
-plain sentences read their words too: the reader hears an error's `message` as its code,
-whatever the SQLSTATE. Anything else — a code with no words (`notSignedIn`,
+and `rateLimited` the shared line. Since F1-7b the ancestry trigger refuses through
+`door_refuse` (SQLSTATE P0D01) for every writer, so a door's shell answers its codes at 400
+and meters them — the seven ids above and `badCoordinates` (a latitude beyond ±90 or a
+longitude beyond ±180, or not a number); the reader hears an error's `message` as its code,
+whatever the SQLSTATE; `badCoordinates` reads `admin.locations.error.badCoordinates` (LRF-6),
+and the import dialog's row reasons gain `badCoordinates` and `permissionDenied` (LID-1).
+Anything else — a code with no words (`notSignedIn`,
 `accountDeactivated`), a sentence, a failed fetch — renders `admin.locations.error.unknown`
 and never the raw text (`location-dialog-error` carries the line). A failure is always shown,
 never swallowed and never mistaken for "no permission" (F4).
