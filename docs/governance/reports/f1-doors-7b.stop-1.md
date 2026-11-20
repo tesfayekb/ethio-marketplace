@@ -1,5 +1,6 @@
 MIGRATION — f1-doors-7b STEP 2: the queued door corrections
-DONE: STEP 0 (brief saved, sha256 93cd589e… matched), STEP 1 (the census, 13b5ca353), STEP 2 (the migration, 4b4ca6ff5)
+DONE: STEP 0 (brief saved, sha256 93cd589e… matched), STEP 1 (the census, 13b5ca353), STEP 2 (the migration, 4b4ca6ff5),
+ruling 1's correction (saved 346cb0ab0, sha256 b5aaafcd… matched; the heal 7bd4682ea)
 LEFT: STEPS 3–7 (the clients, the family's tests, the gate, the self-review and push, the report) — in a new chat (DEC-387)
 CI: # CI Status (auto-generated — do not edit by hand)
 
@@ -16,6 +17,8 @@ docs/features/countries-console.md
 docs/features/doors.md
 docs/features/imports.md
 docs/features/locations-console.md
+docs/governance/briefs/f1-doors-7b-am.json
+docs/governance/briefs/f1-doors-7b-ruling-1.md
 docs/governance/briefs/f1-doors-7b.md
 docs/governance/reports/f1-doors-7b.census.md
 docs/governance/reports/f1-doors-7b.stop-1.md
@@ -67,7 +70,16 @@ every body it redeclares. Part 5 of the planned seven (the six doors, 26 KB) was
    `country_row_right` cases (service role, no caller, scoped holder, places-only holder, global holder).
    `apply e6a3d930 → expect mark 20261120050100`
 3. `20261120030200_888c0aec-7982-478b-bafb-cfac71707068.sql` — sha256
-   `6ce355af16479d29ac85113d6b5efe8729f0188984e964c24e05dc9c8d653d0f`; mark `20261120050200`. Redeclares
+   `4041bcf1caf56221059f7a3ab59470e9095f1faa13d92e19f8980cd6082c2e49` since ruling 1's heal (commit `7bd4682ea`;
+   it was `6ce355af16479d29ac85113d6b5efe8729f0188984e964c24e05dc9c8d653d0f` at `4b4ca6ff5`); mark `20261120050200`.
+   INC-1216: the `attr_import_plan` block first heals ethio-staging's copy (md5 `95afc874cd6bbf2ecbf78529ba9981d9`,
+   three stray blank lines) to the repository's body (`7a2cb3062a843c2d16ce1b5be5be90ef`) with the supervisor's
+   `f1-doors-7b-heal.sql`, inserted byte for byte (sha256 `4c34301d…a179` checked) directly after the block's
+   `v_new := replace(v_src, chr(13), '');`; on any other database it does nothing. `v_heal text[][]` is declared
+   after the `v_pairs` declaration ends (its first line opens a multi-line array, so the line goes after the closing
+   `]];`). Checked offline on the repository body: putting the three blank lines back (the second anchor at its
+   second occurrence) gives md5 `95afc874…`, and on that body each heal anchor matches once and the result is
+   `7a2cb306…`. Redeclares
    `cat_import_plan` and `attr_import_plan` by computed insertion (DEC-383; old and new md5 checked in the block,
    header, ACL and defaults asserted after) and `attr_export_payload` written out; each one's REVOKE from PUBLIC,
    anon, authenticated and GRANT ALL to service_role restated. Proofs: (a) bodies, headers, service-role-only
@@ -113,9 +125,13 @@ every body it redeclares. Part 5 of the planned seven (the six doors, 26 KB) was
    by the table or any column, nor write `category_attributes`; the service role keeps SELECT.
    `apply cbdfbd69 → expect mark 20261120050700`
 
-`bun run db:proof --fresh` on the committed tree (4b4ca6ff5):
+`bun run db:proof --fresh` on the committed tree (4b4ca6ff5), and again on the healed tree (7bd4682ea):
 
     db:proof PASS — applied 540/540, CLI 2.120.0, cold, 57 s
+    db:proof PASS — applied 540/540, CLI 2.120.0, cold, 57 s
+
+On 7bd4682ea `check-migrations.sh` printed the same eight guard lines below, `check-doors` the same two, and the laws
+124 files passed, 668 tests passed, 1 skipped.
 
 Guard lines (`bash scripts/check-migrations.sh`, exit 0):
 
