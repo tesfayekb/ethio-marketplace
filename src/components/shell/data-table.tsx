@@ -264,6 +264,30 @@ const ACTIONS_WIDTH_CLASS = {
   "w-44": "w-44 md:pointer-fine:w-36",
 } as const;
 
+/**
+ * INC-1219 — a header never spills into the next column: its words wrap, a
+ * word too long for its share breaks with a hyphen where the language allows,
+ * and `break-words` is the fallback. The sort button wraps the same way.
+ */
+const HEADER_WRAP = "whitespace-normal break-words hyphens-auto";
+
+/**
+ * INC-1219 — whether a card value draws nothing: null, undefined, false, an
+ * empty or blank string, a list of such, or a plain element (a `span`, a `div`)
+ * whose children draw nothing. A component (TipBadge, Badge, CutText…) counts
+ * as present, because the card cannot see what it draws; a cell that wraps an
+ * empty value in a component returns `null` instead.
+ */
+function rendersNothing(node: ReactNode): boolean {
+  if (node === null || node === undefined || node === false || node === true) return true;
+  if (typeof node === "string") return node.trim() === "";
+  if (Array.isArray(node)) return node.every((item) => rendersNothing(item as ReactNode));
+  if (isValidElement(node) && typeof node.type === "string") {
+    return rendersNothing((node.props as { children?: ReactNode }).children);
+  }
+  return false;
+}
+
 function cellClass(
   column: DataTableColumn<unknown>,
   sticky: false | "start-0" | "start-10" = false,
@@ -745,14 +769,14 @@ export function DataTable<T>({
               column.header !== ""
                 ? column.header
                 : null;
-            /** The card's own value of a column; null, undefined or false leaves it out. */
+            /** The card's own value of a column; a value that renders nothing leaves it out, with its label and separator. */
             const shown = (columns: DataTableColumn<T>[]) =>
               columns
                 .map((column) => ({
                   column,
                   value: column.cardCell ? column.cardCell(row) : column.cell(row),
                 }))
-                .filter(({ value }) => value !== null && value !== undefined && value !== false);
+                .filter(({ value }) => !rendersNothing(value));
             const subs = shown(subColumns);
             const metas = shown(metaColumns);
             const badges = shown(badgeColumns);
@@ -945,6 +969,7 @@ export function DataTable<T>({
                     className={cn(
                       cellClass(column as DataTableColumn<unknown>, stickyFor(index)),
                       "font-semibold",
+                      hasMinWidths ? null : HEADER_WRAP,
                     )}
                     style={shareStyle(column.size)}
                     aria-sort={
@@ -958,7 +983,10 @@ export function DataTable<T>({
                     {column.sortable && onSort ? (
                       <button
                         type="button"
-                        className="min-h-11 text-start underline-offset-4 hover:underline"
+                        className={cn(
+                          "min-h-11 max-w-full text-start underline-offset-4 hover:underline",
+                          hasMinWidths ? null : HEADER_WRAP,
+                        )}
                         onClick={() => onSort(column.key)}
                       >
                         {column.header}

@@ -254,7 +254,7 @@ export function ProductsSection({
       header: t("admin.packages.col.enabled"),
       priority: "primary",
       size: "short",
-      card: "badge",
+      card: "meta",
       cell: (row) => <OnOff value={row.enabled} testid={`${idOf(row)}-enabled`} t={t} />,
     },
     {

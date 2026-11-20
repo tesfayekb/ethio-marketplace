@@ -105,7 +105,7 @@ export function MarketsSection({
       header: t("admin.monetisation.col.paidLevels"),
       priority: "primary",
       size: "short",
-      card: "badge",
+      card: "meta",
       cell: (row) => <OnOff value={row.paidLevels} testid={`${idOf(row)}-paid-levels`} t={t} />,
     },
     {

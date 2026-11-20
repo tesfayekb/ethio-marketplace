@@ -126,7 +126,7 @@ export function ProductPricesTable({
       header: t("admin.packages.prices.col.amount"),
       priority: "primary",
       size: "short",
-      card: "badge",
+      card: "meta",
       cell: (row) => (
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-amount`}>
           {row.amount === 0
