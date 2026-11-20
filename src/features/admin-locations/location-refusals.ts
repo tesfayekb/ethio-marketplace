@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { rateText } from "@/lib/refusal-tail";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
@@ -63,7 +64,7 @@ const RETIRE_DETAILS = {
  * shows a client-side check's own key.
  */
 export function useLocationRefusal() {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const clear = () => setMessage(null);
   const fail = (error: unknown) => {
@@ -72,7 +73,7 @@ export function useLocationRefusal() {
       setMessage(null);
       return;
     }
-    const text = refusalText(read, t);
+    const text = rateText(read, t, language);
     const detail =
       read.key === LOCATION_REFUSALS.words.retireInstead && read.tail !== undefined
         ? ownValue(RETIRE_DETAILS, read.tail)

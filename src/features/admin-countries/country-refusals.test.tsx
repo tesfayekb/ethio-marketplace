@@ -4,8 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 import { StepUpCancelled } from "@/features/auth/mfa/mfa-service";
 import { readRefusal } from "@/lib/refusal";
 
+const language = vi.hoisted(() => ({ current: undefined as string | undefined }));
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => `T(${key})`, has: () => false }),
+  useI18n: () => ({
+    language: language.current,
+    t: (key: string) => `T(${key})`,
+    has: () => false,
+  }),
 }));
 
 import { COUNTRY_REFUSALS, useCountryRefusal } from "./country-refusals";
@@ -90,5 +95,19 @@ describe("the markets console's refusals (F1-4b, DEC-333)", () => {
     expect(result.current.message).toBe("T(admin.countries.error.nameRequired)");
     act(() => result.current.clear());
     expect(result.current.message).toBeNull();
+  });
+});
+
+describe("the console's rate sentence says when (L22)", () => {
+  it("RTW-4 a rate refusal with a future instant and a language draws the when words", () => {
+    language.current = "en";
+    try {
+      const { result } = renderHook(() => useCountryRefusal());
+      const at = new Date(Date.now() + 3_600_000).toISOString();
+      act(() => result.current.fail({ message: `rateLimited:${at}`, code: "P0D01" }));
+      expect(result.current.message).toContain("T(admin.error.rateLimitedWhen)");
+    } finally {
+      language.current = undefined;
+    }
   });
 });

@@ -5,8 +5,10 @@ import { StepUpCancelled, StepUpUnavailable } from "@/features/auth/mfa/mfa-serv
 import { readRefusal, refusalText } from "@/lib/refusal";
 
 const catalogue = new Set(["admin.attributes.error.parentAfterChild"]);
+const language = vi.hoisted(() => ({ current: undefined as string | undefined }));
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
+    language: language.current,
     t: (key: string) => `T(${key})`,
     has: (key: string) => catalogue.has(key),
   }),
@@ -172,5 +174,19 @@ describe("the places console's refusals (F1-4b, DEC-333)", () => {
     expect(result.current.message).toBe("T(admin.locations.error.nameRequired)");
     act(() => result.current.clear());
     expect(result.current.message).toBeNull();
+  });
+});
+
+describe("the console's rate sentence says when (L22)", () => {
+  it("RTW-5 a rate refusal with a future instant and a language draws the when words", () => {
+    language.current = "en";
+    try {
+      const { result } = renderHook(() => useLocationRefusal());
+      const at = new Date(Date.now() + 3_600_000).toISOString();
+      act(() => result.current.fail({ message: `rateLimited:${at}`, code: "P0D01" }));
+      expect(result.current.message).toContain("T(admin.error.rateLimitedWhen)");
+    } finally {
+      language.current = undefined;
+    }
   });
 });

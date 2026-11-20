@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
 import { DOOR_REFUSED_KEY, doorCode } from "@/lib/door-codes";
 import { ownValue } from "@/lib/own-key";
+import { relativeTime } from "@/lib/relative-time";
 import { splitRefusal } from "@/lib/refusal-split";
 
 /**
@@ -80,10 +81,13 @@ export type { RefusalParts } from "./refusal-split";
  * whole tail; `{attr}` / `{target}` take the first / last pipe-separated part
  * (DEC-050 L3b). A sentence without a placeholder is returned unchanged.
  */
-export function fillRefusal(text: string, tail: string | undefined): string {
+export function fillRefusal(text: string, tail: string | undefined, language?: string): string {
   if (tail === undefined) return text;
   const parts = tail.split("|");
-  return text
+  // L22 — `{when}`: the tail's instant, relative to now, in the reader's language (law B2).
+  const when = language === undefined ? undefined : relativeTime(tail.trim(), language);
+  const timed = when === undefined || when === "" ? text : text.split("{when}").join(when);
+  return timed
     .split("{count}")
     .join(tail)
     .split("{attr}")
@@ -247,8 +251,9 @@ export function refusalText(
   read: RefusalRead,
   t: (key: MessageKey) => string,
   values?: Record<string, string | number>,
+  language?: string,
 ): string {
   if (read.silent) return "";
-  const text = fillRefusal(t(read.key), read.tail);
+  const text = fillRefusal(t(read.key), read.tail, language);
   return values === undefined ? text : fill(text, values);
 }

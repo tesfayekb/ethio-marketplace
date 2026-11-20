@@ -1,7 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
-import { readRefusal, refusalText, type Refusal, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
+import { rateText } from "@/lib/refusal-tail";
 
 import { RequiredMark } from "./required-mark";
 import type { FormGate } from "./use-form-gate";
@@ -75,7 +76,7 @@ export function Field({
   blank?: boolean;
   children: ReactNode | ((control: FieldControl) => ReactNode);
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const register = gate?.register;
   const missing = required && blank;
   useEffect(() => {
@@ -98,7 +99,8 @@ export function Field({
   };
   const drawn = typeof children === "function" ? children(control) : children;
   const mark = required && marked ? <RequiredMark testId={markTestId} /> : null;
-  const words = refusal === null ? "" : refusalText(readRefusal(refusal, family), t, refusalValues);
+  const words =
+    refusal === null ? "" : rateText(readRefusal(refusal, family), t, language, refusalValues);
   const refusalLine = refused ? (
     <p
       id={refusalId}

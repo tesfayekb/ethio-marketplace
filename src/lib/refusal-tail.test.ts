@@ -1,6 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
-import { doorKeyText, fillRefusal, splitRefusal } from "./refusal-tail";
+import type { MessageKey } from "@/i18n";
+import { readRefusal } from "@/lib/refusal";
+import { relativeTime } from "@/lib/relative-time";
+
+import {
+  ADMIN_REFUSALS,
+  doorKeyText,
+  fillRefusal,
+  RATE_WORDS,
+  rateText,
+  splitRefusal,
+  type RateWords,
+} from "./refusal-tail";
 
 describe("splitRefusal", () => {
   it("returns the key alone when there is no tail", () => {
@@ -67,5 +79,42 @@ describe("doorKeyText (T7)", () => {
     expect(doorKeyText("admin.categories.error.unknownThing", translate)).toBeNull();
     expect(doorKeyText("permission denied", translate)).toBeNull();
     expect(doorKeyText("", translate)).toBeNull();
+  });
+});
+
+describe("a rate sentence says WHEN (L22)", () => {
+  const soon = () => new Date(Date.now() + 2 * 3_600_000).toISOString();
+  const t = (key: string) =>
+    key === "admin.error.rateLimitedWhen" ? "Try again {when}." : `T(${key})`;
+
+  it("RTW-1 {when} is the instant from relativeTime, in English and in Amharic", () => {
+    const at = soon();
+    for (const language of ["en", "am"]) {
+      expect(fillRefusal("Try again {when}.", at, language)).toBe(
+        `Try again ${relativeTime(at, language)}.`,
+      );
+    }
+    expect(relativeTime(at, "en")).toMatch(/2 hours/);
+  });
+
+  it("RTW-2 no tail, a bad or a past instant, or no language keeps the plain sentence", () => {
+    const read = (tail: string | undefined) =>
+      readRefusal(tail === undefined ? "rateLimited" : `rateLimited:${tail}`, ADMIN_REFUSALS);
+    expect(rateText(read(undefined), t, "en")).toBe("T(admin.error.rateLimited)");
+    expect(rateText(read("not-a-time"), t, "en")).toBe("T(admin.error.rateLimited)");
+    expect(rateText(read("2001-01-01T00:00:00Z"), t, "en")).toBe("T(admin.error.rateLimited)");
+    expect(rateText(read(soon()), t)).toBe("T(admin.error.rateLimited)");
+  });
+
+  it("RTW-3 rateText chooses the when key for a future instant; other refusals are refusalText", () => {
+    const at = soon();
+    const read = readRefusal(`rateLimited:${at}`, ADMIN_REFUSALS);
+    expect(rateText(read, t, "en")).toBe(`Try again ${relativeTime(at, "en")}.`);
+    expect(rateText(readRefusal("someCode", ADMIN_REFUSALS), t, "en")).toBe("T(common.error)");
+    expectTypeOf(RATE_WORDS).toEqualTypeOf<readonly RateWords[]>();
+    expectTypeOf<RateWords>().toEqualTypeOf<{
+      readonly plain: MessageKey;
+      readonly when: MessageKey;
+    }>();
   });
 });

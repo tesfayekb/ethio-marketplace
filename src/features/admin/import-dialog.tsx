@@ -8,8 +8,8 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
-import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
-import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
+import { readRefusal, splitRefusal, type RefusalFamily } from "@/lib/refusal";
+import { ADMIN_REFUSALS, rateText } from "@/lib/refusal-tail";
 
 /**
  * L1 import-reason-words — THE SHARED IMPORT WORDS. A refused commit or undo
@@ -155,7 +155,7 @@ export function ImportDialog({
   onWritten,
   refusals = ADMIN_REFUSALS,
 }: ImportDialogProps) {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [texts, setTexts] = useState<Record<string, string>>({});
   /** IE-7 — the chosen filename, spoken beside its picker. */
   const [names, setNames] = useState<Record<string, string>>({});
@@ -249,7 +249,7 @@ export function ImportDialog({
       words: { ...ADMIN_REFUSALS.words, ...IMPORT_REFUSAL_WORDS, ...refusals.words },
     };
     const read = readRefusal(detail === "" ? code : `${code}:${detail}`, family, has);
-    if (read.branch === "family" || read.branch === "doorKey") return refusalText(read, t);
+    if (read.branch === "family" || read.branch === "doorKey") return rateText(read, t, language);
     return detail === "" ? code : `${code} — ${detail}`;
   };
 

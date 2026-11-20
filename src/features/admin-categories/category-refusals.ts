@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useI18n } from "@/i18n";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { rateText } from "@/lib/refusal-tail";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
@@ -34,11 +35,11 @@ export const CATEGORY_REFUSALS = {
  * raises (`admin.attributes.error.parentAfterChild:…`); a cancelled step-up says nothing.
  */
 export function useCategoryRefusal() {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {
     const read = readRefusal(error, CATEGORY_REFUSALS, has);
-    setMessage(read.silent ? null : refusalText(read, t));
+    setMessage(read.silent ? null : rateText(read, t, language));
   };
   return { message, setMessage, fail };
 }

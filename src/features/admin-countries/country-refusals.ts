@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useI18n, type MessageKey } from "@/i18n";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { rateText } from "@/lib/refusal-tail";
 import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
@@ -37,12 +38,12 @@ export const COUNTRY_REFUSALS = {
  * family's words; a cancelled step-up says nothing. `render` shows a client-side check's own key.
  */
 export function useCountryRefusal() {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const clear = () => setMessage(null);
   const fail = (error: unknown) => {
     const read = readRefusal(error, COUNTRY_REFUSALS, has);
-    setMessage(read.silent ? null : refusalText(read, t));
+    setMessage(read.silent ? null : rateText(read, t, language));
   };
   const render = (key: MessageKey) => setMessage(t(key));
   return { message, clear, fail, render };
