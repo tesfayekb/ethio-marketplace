@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import {
   COLUMN_SIZE,
@@ -719,23 +719,8 @@ describe("DataTable V2 card and frame (D132)", () => {
   });
 
   it("DTK-6 a column without a size is refused by the type", () => {
-    const refused: DataTableColumn<Row> = {
-      key: "bare",
-      header: "Bare",
-      priority: "primary",
-      cell: (row) => row.id,
-      // @ts-expect-error L18 — `width` left the type; a column declares its `size`.
-      width: "w-48",
-    };
-    // @ts-expect-error L18 — `size` is required on every column.
-    const missing: DataTableColumn<Row> = {
-      key: "m",
-      header: "M",
-      priority: "primary",
-      cell: () => null,
-    };
-    expect(refused.key).toBe("bare");
-    expect(missing.key).toBe("m");
+    expectTypeOf<DataTableColumn<Row>>().not.toHaveProperty("width");
+    expectTypeOf<DataTableColumn<Row>["size"]>().not.toBeNullable();
   });
 
   it("DTK-7 with no minWidth every data column gets a share and the shares sum to 100%", () => {

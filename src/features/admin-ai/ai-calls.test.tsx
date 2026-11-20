@@ -87,7 +87,7 @@ function expectLargestShare(key: string) {
 }
 
 describe("column shares (L18)", () => {
-  it("ACR-5 the Feature column carries the largest share", () => {
+  it("ACR-7 the Feature column carries the largest share", () => {
     state.query.mockReturnValue({
       data: { rows: [row], next: null },
       isLoading: false,
