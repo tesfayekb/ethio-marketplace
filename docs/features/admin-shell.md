@@ -330,6 +330,23 @@ named once — `SIGN_OUT_LANDING` in src/lib/sign-out-landing.ts — whose code 
 fetches ahead for a signed-in visitor, so an offline sign-out still draws it (CF-SOL-1
 names a landing written as a literal "/").
 
+Later word (F1-7d, INC-1218, DEC-411): sign-out ends the session on this device only
+(`signOut({ scope: "local" })`, src/features/auth/sign-out.ts, ASC-10); "Sign out other
+devices" and a credential change still end the others. The end of a session is ONE state
+(src/features/auth/session-end.ts): this tab's sign-out, the session policy's expiry, an auth
+event that the session is gone, or any reader or door answering 401 or `notSignedIn` reaches
+`hardReset(notice, event, code)` once, which writes the one console line
+`[session] ended: <event> <code or none> <seconds since this tab's last sign-in or none>
+<visibility>` (never a token or an id) and offers sign-in in the existing words
+(`session.expired`). A 401 is read against the stored session first: a failed read decides
+nothing (INC-914), no session is the end, and a session still stored has its failed reads
+read again once (a race with a fresh sign-in). The query client
+(src/features/auth/session-query-client.ts, the router's) never retries an answer that ended
+the session and keeps every other query's own retry rule; the impersonation poll stops on it.
+Browser tests: SO-14 (a revoked session ends once and a fresh sign-in sticks), SO-15 (a
+forgotten session ends by a reader's 401 and the poll stops), SO-16 (two tabs, a sign-out and a
+fresh sign-in: the new session stays).
+
 ## Session policy (U0k)
 
 Sign-out is ONE CLICK: every affordance (rail/drawer foot, account menu) calls
