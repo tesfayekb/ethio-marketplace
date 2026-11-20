@@ -1,9 +1,10 @@
-import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
+import { sessionQueryClient } from "@/features/auth/session-end";
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
-  const queryClient = new QueryClient();
+  // F1-7d (INC-1218) — an answer that ended the session is never retried, and reaches the shell.
+  const queryClient = sessionQueryClient();
 
   const router = createRouter({
     routeTree,
