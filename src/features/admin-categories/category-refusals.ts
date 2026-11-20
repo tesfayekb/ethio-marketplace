@@ -2,9 +2,8 @@ import { useState } from "react";
 
 import { useI18n } from "@/i18n";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
-import { rateText } from "@/lib/refusal-tail";
-import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
+import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
  * DEC-333 (F1-4a) — the categories console's own words for its doors' codes. Each code that
@@ -13,6 +12,7 @@ import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
  * permissionDenied) draws the console's generic line. A count travels as the code's tail.
  */
 export const CATEGORY_REFUSALS = {
+  when: ADMIN_WHEN,
   words: {
     rateLimited: RATE_LIMITED_KEY,
     catchallParent: "admin.categories.error.catchallParent",
@@ -39,7 +39,7 @@ export function useCategoryRefusal() {
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {
     const read = readRefusal(error, CATEGORY_REFUSALS, has);
-    setMessage(read.silent ? null : rateText(read, t, language));
+    setMessage(read.silent ? null : refusalText(read, t, undefined, language));
   };
   return { message, setMessage, fail };
 }

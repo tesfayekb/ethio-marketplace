@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isUnknownVersion } from "./legal-version-view";
+import { isUnknownVersion } from "./unknown-version";
 
 describe("the legal version view's unknown version (INC-1189)", () => {
   it("RTW-9 unknownVersion is read by its code, with or without a detail; another code is not", () => {

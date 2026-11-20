@@ -27,9 +27,8 @@ import {
   versionStatus,
 } from "./legal-service";
 import { useLegalWrites, useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
-import { errorText } from "@/lib/error-text";
-import { splitRefusal } from "@/lib/refusal";
 import { dateFormatter } from "@/lib/format";
+import { isUnknownVersion } from "./unknown-version";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
 function CompareText({
@@ -105,11 +104,6 @@ function CompareText({
       )}
     </section>
   );
-}
-
-/** INC-1189 — the reader's `unknownVersion`, read by its code through the one reader's cut. */
-export function isUnknownVersion(error: unknown): boolean {
-  return error != null && splitRefusal(errorText(error).trim()).key === "unknownVersion";
 }
 
 export function LegalVersionView({

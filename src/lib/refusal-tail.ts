@@ -1,13 +1,6 @@
 import type { MessageKey } from "@/i18n";
 
-import {
-  DOOR_KEY,
-  fillRefusal,
-  refusalText,
-  splitRefusal,
-  type RefusalFamily,
-  type RefusalRead,
-} from "./refusal";
+import { DOOR_KEY, fillRefusal, splitRefusal, type RefusalFamily } from "./refusal";
 
 /**
  * DEC-339 — the console doors' dialect beside the one refusal reader
@@ -26,35 +19,16 @@ export { DOOR_KEY, fillRefusal, splitRefusal, type RefusalParts } from "./refusa
  */
 export const RATE_LIMITED_KEY = "admin.error.rateLimited" satisfies MessageKey;
 
+/** L22 — the consoles' shared words that say when the rate gate opens again. */
+export const ADMIN_WHEN = {
+  rateLimited: "admin.error.rateLimitedWhen",
+} as const satisfies Record<string, MessageKey>;
+
 /** The consoles' shared words, for `readRefusal`: the rate gate's one sentence. */
-export const ADMIN_REFUSALS: RefusalFamily = { words: { rateLimited: RATE_LIMITED_KEY } };
-
-/** L22 — a rate sentence that says WHEN (`{when}`), and the plain sentence it falls back to. */
-export type RateWords = { readonly plain: MessageKey; readonly when: MessageKey };
-
-/** L22 — every family's rate words; a family's plain key reads its `when` key through `rateText`. */
-export const RATE_WORDS: readonly RateWords[] = [
-  { plain: RATE_LIMITED_KEY, when: "admin.error.rateLimitedWhen" },
-];
-
-/**
- * L22 — ONE choice of a rate sentence. A refusal whose key has rate words, whose tail is an
- * instant still to come and which arrives with the reader's language says WHEN, filled by
- * `fillRefusal`'s `{when}`; no tail, an unreadable or past instant, or no language keeps the plain
- * sentence, so nothing shows a raw time. Every other refusal is `refusalText` as it was.
- */
-export function rateText(
-  read: RefusalRead,
-  t: (key: MessageKey) => string,
-  language?: string,
-  values?: Record<string, string | number>,
-): string {
-  const words = RATE_WORDS.find((entry) => entry.plain === read.key);
-  const at = read.tail === undefined ? Number.NaN : Date.parse(read.tail.trim());
-  const timed =
-    words !== undefined && language !== undefined && Number.isFinite(at) && at > Date.now();
-  return refusalText(timed ? { ...read, key: words.when } : read, t, values, language);
-}
+export const ADMIN_REFUSALS: RefusalFamily = {
+  words: { rateLimited: RATE_LIMITED_KEY },
+  when: ADMIN_WHEN,
+};
 
 /**
  * T7 (INC-578's class, G29) — ONE reading of a door's words. A refusal that IS
