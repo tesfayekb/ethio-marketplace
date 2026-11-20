@@ -1,4 +1,4 @@
-import { ReaderError } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -202,6 +202,39 @@ describe("the route answers (B2)", () => {
           incident: expect.stringMatching(/^[0-9a-f-]{36}$/),
         });
         expect(JSON.stringify(body)).not.toContain("secret detail");
+      }
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
+  it("ANS-13 F1-7d (INC-1221) — readFailure answers a reader's refusal at its code's status, never 500", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const refusals: Array<[unknown, number, Record<string, string>]> = [
+        [{ message: "notSignedIn", code: "P0D01" }, 401, { error: "notSignedIn" }],
+        [readFailed({ message: "accountDeactivated" }, 403), 403, { error: "accountDeactivated" }],
+        [{ message: "permissionDenied", status: 403 }, 403, { error: "permissionDenied" }],
+        [{ message: "rateLimited:60", status: 429 }, 429, { error: "rateLimited", detail: "60" }],
+        [{ message: "badValue:field" }, 400, { error: "badValue", detail: "field" }],
+      ];
+      for (const [error, status, body] of refusals) {
+        const response = readFailure("/api/test", "database read", error);
+        expect(response.status).toBe(status);
+        expect(await response.json()).toEqual(body);
+      }
+      const stepUp = readFailure("/api/test", "database read", { message: "stepUpRequired" });
+      expect(stepUp.status).toBe(428);
+      expect(logged).not.toHaveBeenCalled();
+      // A code at a status the one table does not give it, a 401 that is no code, and a sentence
+      // that only names a code are not refusals: a server error with its incident.
+      for (const error of [
+        readFailed({ message: "rateLimited" }, 500),
+        { message: "JWT expired", status: 401 },
+        { message: "the reader said rateLimited" },
+      ]) {
+        const response = readFailure("/api/test", "database read", error);
+        expect(response.status).toBe(500);
       }
     } finally {
       logged.mockRestore();

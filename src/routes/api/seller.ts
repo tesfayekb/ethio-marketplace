@@ -2,8 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { cursor, encodeCursor } from "@/lib/schemas/cursor";
+import { ownValue } from "@/lib/own-key";
 import { readFailed } from "@/lib/reader-failure";
 import { clientError, ok, readFailure, serverError } from "@/server/answer";
+import { functionRefusalCode } from "@/server/function-refusal";
 import { defineRoute, type RouteContext } from "@/server/route";
 
 /**
@@ -33,10 +35,10 @@ const SellerQuery = z.object({
 /** INC-802 — every client refusal this route sends, as a closed set. */
 type ClientCode = "badKey" | "badCursor" | "badSize" | "unknownSeller";
 
-/** The database's error names mapped to this route's fixed codes. */
+/** `seller_feed_page`'s refusal codes (INC-1224) mapped to this route's fixed codes. */
 const BAD: Readonly<Record<string, ClientCode>> = {
-  "seller_feed_page: badCursor": "badCursor",
-  "seller_feed_page: badSize": "badSize",
+  badCursor: "badCursor",
+  badSize: "badSize",
 };
 
 async function handler(
@@ -55,13 +57,10 @@ async function handler(
   if (took > 5000) console.warn("[slow-rpc]", "seller_feed_page", took);
 
   if (error) {
-    const message = error.message ?? "";
-    if (message.includes("seller_feed_page: unknownSeller")) {
-      return clientError("unknownSeller", 404);
-    }
-    for (const [name, code] of Object.entries(BAD)) {
-      if (message.includes(name)) return clientError(code, 400);
-    }
+    const refused = functionRefusalCode(error.message ?? "", "seller_feed_page");
+    if (refused === "unknownSeller") return clientError("unknownSeller", 404);
+    const bad = refused === null ? undefined : ownValue(BAD, refused);
+    if (bad !== undefined) return clientError(bad, 400);
     return readFailure(PATH, "seller read", readFailed(error, status));
   }
 

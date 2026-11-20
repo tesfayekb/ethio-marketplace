@@ -10,6 +10,10 @@ import type { AuthResult } from "./types";
  * (sign-up, OAuth, passwords, identities), so the service stays out of every page's first
  * download. The service re-exports `signOut` for its neighbours; the body is DEC-268's law,
  * unchanged.
+ *
+ * DEC-411 — sign-out ends the session on THIS device only (`scope: "local"`): the person's other
+ * devices stay signed in. "Sign out other devices" and a credential change still end the others
+ * (auth-service.ts, `scope: "others"`). Supersedes U0j's (INC-072) global sign-out.
  */
 export async function signOut(): Promise<AuthResult> {
   const supabase = await authClient();
@@ -20,7 +24,7 @@ export async function signOut(): Promise<AuthResult> {
     forgetStoredSession();
     return CLIENT_FAILED;
   }
-  const { error } = await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut({ scope: "local" });
   if (error) {
     forgetStoredSession();
     return failure(error);

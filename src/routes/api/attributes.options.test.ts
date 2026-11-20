@@ -137,3 +137,27 @@ it("ATO-7 the shell's refusals: attributeNotFound is a 404, rateLimited a 429 th
   const deactivated = await get({ request: request(), params: { id: ID } });
   expect([404, 429]).not.toContain(deactivated.status);
 });
+it("ATO-8 F1-7d — a refusal is read by its code: a sentence that only names one is a read failure, and a gate refusal answers at its own status (INC-1221)", async () => {
+  const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  try {
+    const get = await reader();
+    const refuse = (message: string, status: number) =>
+      state.rpc.mockImplementation(async (name: string) => ({
+        data: name === "get_attribute_options_version_read" ? "v1" : null,
+        error: name === "get_attribute_options" ? { message } : null,
+        status,
+      }));
+    refuse("attributeNotFound:option", 400);
+    expect((await get({ request: request(), params: { id: ID } })).status).toBe(404);
+    for (const message of ["no attributeNotFound here", "notRateLimited"]) {
+      refuse(message, 500);
+      expect((await get({ request: request(), params: { id: ID } })).status, message).toBe(500);
+    }
+    refuse("accountDeactivated", 403);
+    const deactivated = await get({ request: request(), params: { id: ID } });
+    expect(deactivated.status).toBe(403);
+    expect(await deactivated.json()).toEqual({ error: "accountDeactivated" });
+  } finally {
+    logged.mockRestore();
+  }
+});

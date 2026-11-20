@@ -249,6 +249,14 @@ describe("a sign-out ends the session on this device whatever the server answers
     expect(door.forgetStoredSession).not.toHaveBeenCalled();
   });
 
+  it("ASC-10 DEC-411 — a sign-out ends the session on this device only", async () => {
+    const signOut = vi.fn().mockResolvedValue({ error: null });
+    door.getSupabase.mockReset().mockResolvedValue({ auth: { signOut } });
+    expect(await service.signOut()).toEqual({ ok: true });
+    expect(signOut).toHaveBeenCalledTimes(1);
+    expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
   it("ASC-4 a sign-in that drops an expired prior session drops it from this device when the library keeps it", async () => {
     const key = "sb-abcdefghijklmnop-auth-token";
     const expiredAt = Math.floor(Date.now() / 1000) - 3600;

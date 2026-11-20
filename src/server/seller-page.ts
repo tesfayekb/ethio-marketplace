@@ -1,5 +1,6 @@
 import { anonymousClient } from "@/server/supabase/user-client";
 import { errorText } from "@/lib/error-text";
+import { functionRefusalCode } from "@/server/function-refusal";
 
 const NAME_PATTERN = /^[A-Za-z0-9_]{1,60}$/;
 
@@ -25,7 +26,7 @@ export async function sellerExists(name: string): Promise<boolean> {
   });
   if (performance.now() - started > 5000) console.error("[slow-rpc] /$name seller_feed_page");
   if (error === null) return true;
-  if (error.message.startsWith("seller_feed_page: unknownSeller")) return false;
+  if (functionRefusalCode(error.message, "seller_feed_page") === "unknownSeller") return false;
   console.error("[ssr-error] /$name", errorText(error.message));
   throw new Error(`seller_feed_page ${errorText(error.message)}`);
 }
