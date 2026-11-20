@@ -2,7 +2,13 @@ import type { OrderStep } from "@/components/shell/order-strip";
 import { fill } from "@/features/posting/refusal-text";
 import type { MessageKey } from "@/i18n";
 
-import type { MarketRow, MonetisationConsole, PriceRow, ProductRow } from "./monetisation-service";
+import type {
+  MarketRow,
+  MonetisationConsole,
+  OverrideRow,
+  PriceRow,
+  ProductRow,
+} from "./monetisation-service";
 
 /**
  * P-1c (D313) — THE MONETISATION ORDER STRIP'S STATES, from the page's ONE read
@@ -162,4 +168,18 @@ export function monetisationSteps(
           hash: productAnchor(unpriced.product.key, "prices"),
         },
   ];
+}
+
+/**
+ * L20 — the per-level perks in the resolver's precedence, most specific first:
+ * (market, category), (market, any), (any, category), (any, any); stable within.
+ * The door's own order is untouched; this is the reading order only.
+ */
+export function perksOrder(rows: readonly OverrideRow[]): OverrideRow[] {
+  const rank = (row: OverrideRow) =>
+    (row.countryCode === null ? 2 : 0) + (row.categoryId === null ? 1 : 0);
+  return rows
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => rank(a.row) - rank(b.row) || a.index - b.index)
+    .map(({ row }) => row);
 }

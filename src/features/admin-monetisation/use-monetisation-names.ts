@@ -38,18 +38,27 @@ export function useMonetisationNames(products: ProductRow[]) {
         );
   };
 
-  const categoryName = (id: string | null, every: "everyCategory" | "mainCategoryAny") => {
-    if (id === null) {
-      return t(
-        every === "everyCategory"
-          ? "admin.packages.prices.everyCategory"
-          : "admin.monetisation.mainCategoryAny",
-      );
-    }
+  const categoryName = (id: string | null, _every: "everyCategory") => {
+    if (id === null) return t("admin.packages.prices.everyCategory");
     const node = tree.byId.get(id);
     return node
       ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
       : t("admin.monetisation.category.unknown");
+  };
+
+  /** A row's scope in its two parts, each with the prices table's "every …" word (L20). */
+  const scopeParts = (
+    countryCode: string | null,
+    categoryId: string | null,
+  ): { market: string; category: string } => ({
+    market: marketName(countryCode, "everyMarket"),
+    category: categoryName(categoryId, "everyCategory"),
+  });
+
+  /** The scope as one line: market · category. */
+  const scopeOf = (row: { countryCode: string | null; categoryId: string | null }) => {
+    const parts = scopeParts(row.countryCode, row.categoryId);
+    return `${parts.market} · ${parts.category}`;
   };
 
   const productName = (key: string) => {
@@ -59,5 +68,13 @@ export function useMonetisationNames(products: ProductRow[]) {
       : t("admin.monetisation.product.unknown");
   };
 
-  return { marketName, categoryName, productName, markets: markets.markets, tree };
+  return {
+    marketName,
+    categoryName,
+    scopeParts,
+    scopeOf,
+    productName,
+    markets: markets.markets,
+    tree,
+  };
 }

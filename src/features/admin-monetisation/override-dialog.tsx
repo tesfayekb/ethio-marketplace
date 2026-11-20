@@ -117,14 +117,14 @@ export function OverrideDialog({
 
   const title =
     mode === "create"
-      ? "admin.monetisation.override.add"
+      ? "admin.monetisation.perks.add"
       : mode === "edit"
-        ? "admin.monetisation.override.edit"
-        : "admin.monetisation.override.clear";
+        ? "admin.monetisation.perks.edit"
+        : "admin.monetisation.perks.clear";
 
   const scopeLine = (
     <p className="min-w-0 break-words text-sm" data-testid={`${prefix}-scope`}>
-      {`${productName(form.levelKey)} · ${categoryName(form.categoryId === "" ? null : form.categoryId, "mainCategoryAny")} · ${marketName(form.countryCode === "" ? null : form.countryCode, "countryAny")}`}
+      {`${productName(form.levelKey)} · ${categoryName(form.categoryId === "" ? null : form.categoryId, "everyCategory")} · ${marketName(form.countryCode === "" ? null : form.countryCode, "countryAny")}`}
     </p>
   );
 
@@ -183,10 +183,10 @@ export function OverrideDialog({
                 value={form.categoryId}
                 onChange={(event) => change({ categoryId: event.target.value })}
               >
-                <option value="">{t("admin.monetisation.mainCategoryAny")}</option>
+                <option value="">{t("admin.packages.prices.everyCategory")}</option>
                 {rootsOf(tree).map((node) => (
                   <option key={node.id} value={node.id}>
-                    {categoryName(node.id, "mainCategoryAny")}
+                    {categoryName(node.id, "everyCategory")}
                   </option>
                 ))}
               </NativeSelect>
@@ -260,7 +260,7 @@ export function OverrideDialog({
         busy={save.isPending || clearRow.isPending}
         cancelTestId={`${prefix}-cancel`}
         submitTestId={`${prefix}-${mode === "clear" ? "confirm" : "save"}`}
-        submitLabel={t(mode === "clear" ? "admin.monetisation.override.clear" : "common.save")}
+        submitLabel={t(mode === "clear" ? "admin.monetisation.perks.clear" : "common.save")}
         destructive={mode === "clear"}
       />
     </CategoryModal>

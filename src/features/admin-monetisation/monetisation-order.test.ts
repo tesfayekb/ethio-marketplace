@@ -10,11 +10,18 @@ import {
   monetisationSteps,
   priceGroupOf,
   priceGroups,
+  perksOrder,
   priceHoldsNow,
   productAnchor,
   rowPrice,
 } from "./monetisation-order";
-import type { MarketRow, MonetisationConsole, PriceRow, ProductRow } from "./monetisation-service";
+import type {
+  MarketRow,
+  MonetisationConsole,
+  OverrideRow,
+  PriceRow,
+  ProductRow,
+} from "./monetisation-service";
 
 /** P-1c (D313) — the order strip's states come from the page's one read, by date and name alone. */
 const ATTRIBUTION = {
@@ -281,5 +288,28 @@ describe("the price path (L16)", () => {
     expect(hashOf([product("gold", "level")])).toBe(MONETISATION_ANCHORS.reach);
     expect(hashOf([product("city", "reach")])).toBe(MONETISATION_ANCHORS.level);
     expect(hashOf([])).toBe(MONETISATION_ANCHORS.level);
+  });
+});
+
+describe("PKW-1 the perks read most specific first", () => {
+  it("orders (market, category), (market, any), (any, category), (any, any), stable within", () => {
+    const row = (id: string, countryCode: string | null, categoryId: string | null) =>
+      ({ id, countryCode, categoryId }) as OverrideRow;
+    const ordered = perksOrder([
+      row("any-any", null, null),
+      row("any-cat", null, "c1"),
+      row("mkt-any", "KE", null),
+      row("mkt-cat-1", "KE", "c1"),
+      row("any-cat-2", null, "c2"),
+      row("mkt-cat-2", "ET", "c2"),
+    ]);
+    expect(ordered.map((r) => r.id)).toEqual([
+      "mkt-cat-1",
+      "mkt-cat-2",
+      "mkt-any",
+      "any-cat",
+      "any-cat-2",
+      "any-any",
+    ]);
   });
 });

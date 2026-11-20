@@ -68,7 +68,7 @@ export function ProductPricesTable({
   guard: GuardFn;
 }) {
   const { t, language } = useI18n();
-  const { marketName, categoryName } = useMonetisationNames(products);
+  const { scopeOf } = useMonetisationNames(products);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [search, setSearch] = useState("");
   const date = dateFormatter("day", language);
@@ -76,8 +76,6 @@ export function ProductPricesTable({
   const anchor = productAnchor(product.key, "prices");
   const idOf = (row: PriceRow) => `price-${row.id}`;
   const live = (row: PriceRow) => row.validTo === null || row.validTo > nowIso;
-  const scopeOf = (row: PriceRow) =>
-    `${marketName(row.countryCode, "everyMarket")} · ${categoryName(row.categoryId, "everyCategory")}`;
   const needle = search.trim().toLowerCase();
   const ordered = priceGroups(rows, nowIso);
   const found =
