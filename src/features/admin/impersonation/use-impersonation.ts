@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { endsSession } from "@/features/auth/session-end";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -18,7 +19,8 @@ export const IMPERSONATION_KEY = [AUTH_DERIVED_ROOT, "impersonation"] as const;
 /**
  * The active-session probe behind the global banner: polled every 30s AND
  * re-read on every route change, so the banner clears on expiry without a
- * reload (IMP-4).
+ * reload (IMP-4). F1-7d (INC-1218) — an answer that ended the session stops
+ * both: the poll and the route-change read call no more until a read succeeds.
  */
 export function useActiveImpersonation(enabled: boolean) {
   const queryClient = useQueryClient();
@@ -28,7 +30,7 @@ export function useActiveImpersonation(enabled: boolean) {
     queryKey: [...IMPERSONATION_KEY, "active"],
     queryFn: getActiveImpersonation,
     enabled,
-    refetchInterval: 30_000,
+    refetchInterval: (current) => (endsSession(current.state.error) ? false : 30_000),
     staleTime: 10_000,
     // INC-085 / U1g-4 — gcTime 0: the moment the last observer unmounts (the
     // banner unmounts on sign-out), the entry must EVAPORATE. A lingering
@@ -38,7 +40,9 @@ export function useActiveImpersonation(enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) return;
-    void refreshAfterWrite(queryClient, { queryKey: [...IMPERSONATION_KEY, "active"] });
+    const queryKey = [...IMPERSONATION_KEY, "active"];
+    if (endsSession(queryClient.getQueryState(queryKey)?.error)) return;
+    void refreshAfterWrite(queryClient, { queryKey });
   }, [pathname, enabled, queryClient]);
 
   return query;

@@ -60,6 +60,8 @@ export interface RpcError {
   code: string;
   details: string;
   hint: string;
+  /** The HTTP status the answer arrived at (F1-7d: a 401 ends the session); absent with no answer. */
+  status?: number;
 }
 
 /** supabase-js's answer shape for a database call. */
@@ -255,7 +257,7 @@ export function anonymousHeaders(key: string): Headers {
   return headers;
 }
 
-function rpcError(body: unknown, fallback: string): RpcError {
+function rpcError(body: unknown, fallback: string, status?: number): RpcError {
   const field = (name: string): string => {
     if (body === null || typeof body !== "object" || !(name in body)) return "";
     const value: unknown = Reflect.get(body, name);
@@ -266,6 +268,7 @@ function rpcError(body: unknown, fallback: string): RpcError {
     code: field("code"),
     details: field("details"),
     hint: field("hint"),
+    ...(status === undefined || status === 0 ? {} : { status }),
   };
 }
 
@@ -299,9 +302,9 @@ async function anonymousRpc<T>(name: string, args: object): Promise<RpcAnswer<T>
   }
   try {
     const body: unknown = JSON.parse(text);
-    return { data: null, error: rpcError(body, text) };
+    return { data: null, error: rpcError(body, text, response.status) };
   } catch {
-    return { data: null, error: rpcError(null, text) };
+    return { data: null, error: rpcError(null, text, response.status) };
   }
 }
 
@@ -322,8 +325,8 @@ export async function rpc<F extends FunctionName>(
     return { data: null, error: rpcError(null, `the client did not load: ${errorText(error)}`) };
   }
   // The client's own type is the generated, non-null one; the request carries the NULL as sent.
-  const { data, error } = await client.rpc(name, args as Functions[F]["Args"] | undefined);
-  return { data, error: error === null ? null : rpcError(error, error.message) };
+  const { data, error, status } = await client.rpc(name, args as Functions[F]["Args"] | undefined);
+  return { data, error: error === null ? null : rpcError(error, error.message, status) };
 }
 
 function logLoadFailure(error: unknown): void {

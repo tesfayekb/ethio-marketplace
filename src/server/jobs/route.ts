@@ -1,5 +1,6 @@
 import type { JobName } from "@/lib/schemas/jobs";
 import { ownValue } from "@/lib/own-key";
+import { splitRefusal } from "@/lib/refusal";
 import { clientError, ok, upstreamUnavailable } from "@/server/answer";
 import type { RouteContext } from "@/server/route";
 import { runNameCheckCatchup, type RunResult } from "@/server/jobs/name-check-catchup";
@@ -67,7 +68,9 @@ export async function jobHandler(
   const admin = await ctx.service();
   const claim = await admin.rpc("job_run_claim", { p_job: job, p_ts: ts });
   if (claim.error) {
-    if ((claim.error.message ?? "").startsWith("refused:")) {
+    // job_run_claim refuses a stale window or a replay as `refused:<why>`, read by its code.
+    const claimRefusal = splitRefusal((claim.error.message ?? "").trim());
+    if (claimRefusal.key === "refused" && claimRefusal.tail !== undefined) {
       logRefusal(job, "replay");
       return refused();
     }

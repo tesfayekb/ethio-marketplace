@@ -10,6 +10,7 @@ import { aiCall, translationLanguages, type TranslationLanguages } from "@/serve
 import { TRANSLATION_CHUNK } from "@/server/ai/tasks";
 import { DIALS } from "@/lib/dials";
 import { errorText } from "@/lib/error-text";
+import { splitRefusal } from "@/lib/refusal";
 import { clientError, ok, readFailure, refused } from "@/server/answer";
 import { spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
@@ -61,19 +62,22 @@ const MAX_BODY_BYTES = 1_048_576;
  * admin_machine_entity_translation on the door shell, DEC-333, F1-3: `code[:detail]`);
  * a step-up stays require_step_up_if_needed's sentence. Any other code is writerFailed.
  */
-const WRITER_REASONS = new Map<string, TranslateReason>([
-  ["permissionDenied", "permission"],
-  ["permissionDenied:language", "scope"],
-  ["baseLocked", "baseLocked"],
-  ["unknownKey", "unknownTarget"],
-  ["unknownEntity", "unknownTarget"],
-  ["badValue:field", "unknownTarget"],
-  ["required:value", "emptyValue"],
-]);
+const WRITER_REASONS: ReadonlyArray<{ code: string; detail?: string; reason: TranslateReason }> = [
+  { code: "permissionDenied", reason: "permission" },
+  { code: "permissionDenied", detail: "language", reason: "scope" },
+  { code: "baseLocked", reason: "baseLocked" },
+  { code: "unknownKey", reason: "unknownTarget" },
+  { code: "unknownEntity", reason: "unknownTarget" },
+  { code: "badValue", detail: "field", reason: "unknownTarget" },
+  { code: "required", detail: "value", reason: "emptyValue" },
+];
 
+/** F1-7d (INC-1189) — the writer's refusal read by the one reader: its code, then its detail. */
 function writerReason(message: string): TranslateReason {
-  if (message.startsWith("step-up required")) return "stepUp";
-  return WRITER_REASONS.get(message) ?? "writerFailed";
+  const { key, tail } = splitRefusal(message.trim());
+  if (key === "step-up required") return "stepUp";
+  const entry = WRITER_REASONS.find((row) => row.code === key && row.detail === tail);
+  return entry?.reason ?? "writerFailed";
 }
 
 /** A language list that could not be read: today's 503 without a key, 502 otherwise. */

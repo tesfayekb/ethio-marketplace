@@ -1,0 +1,7 @@
+# CF-REFUSAL-1 (scripts/conformance/refusal-readers.test.ts, F1-7d) — a reading of a refusal's text by hand
+# outside splitRefusal (src/lib/refusal.ts, src/lib/refusal-split.ts).
+# Grammar: <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
+# The kit's grammar takes no turn name: a line a later turn removes is until INC-1189 and its reason names
+# that turn (ruling 2 of F1-7d, decision 3).
+src/features/admin/legal/legal-version-view.tsx:160 | a whole-message compare with unknownVersion on a client screen; Lovable's L22 folds it | INC-1189
+src/lib/door-error.ts:22 | REASON_CODE keeps a plain-token detail joined to its code (tooManyPhotos:10, door-error.test.ts) while any other detail is cut (deleteHasDependents:a, b); splitRefusal and CODE_HEAD alone cannot tell the two, so the branch stays until the door codes carry their detail one way (INC-1220's rule) | INC-1189

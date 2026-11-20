@@ -138,14 +138,29 @@ describe("the client's door (DEC-261)", () => {
     expect(anonymousHeaders("sb_secret_x").has("Authorization")).toBe(false);
   });
 
-  it("SBD-5 a refusal answers supabase-js's error shape from PostgREST's body", async () => {
+  it("SBD-5 a refusal answers supabase-js's error shape from PostgREST's body, at its status", async () => {
     fetchMock.mockResolvedValue(
       json({ code: "42501", message: "permission denied", details: "d", hint: "h" }, 403),
     );
     const { rpc } = await door();
     expect(await rpc("price_unit_labels")).toEqual({
       data: null,
-      error: { code: "42501", message: "permission denied", details: "d", hint: "h" },
+      error: { code: "42501", message: "permission denied", details: "d", hint: "h", status: 403 },
+    });
+  });
+
+  it("SBD-22 F1-7d — a signed-in caller's refused call carries the status the client answered at", async () => {
+    window.localStorage.setItem(STORED, JSON.stringify({ access_token: "t", refresh_token: "r" }));
+    state.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "PGRST301", message: "JWT expired", details: "", hint: "" },
+      status: 401,
+    });
+    const { rpc } = await door();
+    await vi.waitFor(() => expect(state.imported).toBe(1));
+    expect(await rpc("get_my_permissions")).toEqual({
+      data: null,
+      error: { code: "PGRST301", message: "JWT expired", details: "", hint: "", status: 401 },
     });
   });
 

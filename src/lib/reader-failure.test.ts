@@ -1,8 +1,14 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { walkFiles } from "../../scripts/conformance/kit";
-import { readerFailure, ReaderError, refusalStatus } from "./reader-failure";
+import {
+  gateRefusal,
+  readerFailure,
+  ReaderError,
+  readFailed,
+  refusalStatus,
+} from "./reader-failure";
 
 describe("INC-847 reader failure classes", () => {
   it("auth preserves status and code", () =>
@@ -91,27 +97,38 @@ describe("INC-847 reader failure classes", () => {
       "auth",
     );
   });
-  it("RF-5 the client's status table is the database's: door_refusal_status, read from its last declaration", () => {
-    const dir = resolve("supabase/migrations");
-    const declaring = readdirSync(dir)
-      .filter((name) => name.endsWith(".sql"))
-      .sort()
-      .filter((name) =>
-        /FUNCTION public\.door_refusal_status\(/.test(readFileSync(resolve(dir, name), "utf8")),
-      );
-    const last = declaring.at(-1);
-    expect(last, "a migration declares door_refusal_status").toBeDefined();
-    const sql = readFileSync(resolve(dir, last ?? ""), "utf8");
-    const body =
-      /FUNCTION public\.door_refusal_status\([\s\S]*?\$\$([\s\S]*?)\$\$;/.exec(sql)?.[1] ?? "";
-    const rows = [...body.matchAll(/WHEN '([A-Za-z]+)' THEN '(\d{3})'/g)].map(
-      (match) => [match[1] ?? "", Number(match[2])] as const,
-    );
-    const fallback = /ELSE '(\d{3})'/.exec(body)?.[1];
-    expect(rows.length).toBeGreaterThan(0);
-    for (const [code, status] of rows) expect(refusalStatus(code), code).toBe(status);
-    expect(refusalStatus("anyOtherCode")).toBe(Number(fallback));
-    expect(refusalStatus("constructor")).toBe(Number(fallback));
+  it("RF-5 refusalStatus answers a code's own row, and 400 for any other code (CF-REFUSAL-2 holds the rows to door_refusal_status)", () => {
+    expect(refusalStatus("notSignedIn")).toBe(401);
+    expect(refusalStatus("rateLimited")).toBe(429);
+    expect(refusalStatus("anyOtherCode")).toBe(400);
+    expect(refusalStatus("constructor")).toBe(400);
+  });
+  it("RF-6 F1-7d (INC-1221) — a reader's refusal is its gate code at the one table's status, with a short detail", () => {
+    expect(gateRefusal({ message: "notSignedIn", code: "P0D01" })).toEqual({
+      code: "notSignedIn",
+      status: 401,
+    });
+    expect(gateRefusal(readFailed({ message: "rateLimited:60" }, 429))).toEqual({
+      code: "rateLimited",
+      status: 429,
+      detail: "60",
+    });
+    expect(gateRefusal({ message: " badValue: field " })).toEqual({
+      code: "badValue",
+      status: 400,
+      detail: "field",
+    });
+    // A detail that is a sentence is not answered; the refusal still is.
+    expect(gateRefusal({ message: `badValue:${"x".repeat(65)}` })).toEqual({
+      code: "badValue",
+      status: 400,
+    });
+    // A status that disagrees, a code that is not the gate's, a sentence: not a refusal.
+    expect(gateRefusal(readFailed({ message: "rateLimited" }, 500))).toBeNull();
+    expect(gateRefusal({ message: "permissionDenied", status: 401 })).toBeNull();
+    expect(gateRefusal({ message: "unknownCategory" })).toBeNull();
+    expect(gateRefusal({ message: "JWT expired", status: 401 })).toBeNull();
+    expect(gateRefusal(new Error("the reader said notSignedIn"))).toBeNull();
   });
   it("ReaderError retains the exact typed failure", () => {
     const failure = { class: "malformed" as const, message: "bad shape" };

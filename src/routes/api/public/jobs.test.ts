@@ -449,6 +449,21 @@ describe("JRF — one typed line per refusal (INC-1000)", () => {
     spy.mockRestore();
   });
 
+  it("JRF-7 F1-7d — a claim's refusal is read by its code: `refused:<why>` is refused; any other failure is not a replay", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+    state.claim = { data: null, error: { message: " refused:window " } };
+    await expectRefused(await post(signed()));
+    expect(refusals(spy)).toEqual(["[job-refused] name-check-catchup replay"]);
+    for (const message of ["badValue:job", "refused", "not refused:replay"]) {
+      state.claim = { data: null, error: { message } };
+      expect((await post(signed())).status, message).toBe(503);
+    }
+    expect(refusals(spy)).toHaveLength(1);
+    spy.mockRestore();
+    errors.mockRestore();
+  });
+
   it("JRF-6 a genuine call logs no refusal", async () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect((await post(signed())).status).toBe(200);

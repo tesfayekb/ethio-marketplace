@@ -217,6 +217,10 @@ export const SHARED_SHELL_MODULES = [
   ["src/lib/query-keys.ts", "the neutral query-key module (U1g-3)"],
   ["src/lib/reader-locale.ts", "the reader's locale and its region-name fallback"],
   ["src/lib/refresh-after-write.ts", "after a write, a new read (INC-579)"],
+  [
+    "src/lib/refusal-split.ts",
+    "the one reader's cut of a refusal (INC-1189): the session's end and the legal reader on every page, and the lazy screens",
+  ],
   ["src/lib/return-path.ts", "the return path, and why it is so narrow (D20)"],
   ["src/lib/route-client.ts", "the one envelope reader for both route transports"],
   ["src/lib/safe-href.ts", "the one rule for a link whose target comes from data (DEC-370)"],
