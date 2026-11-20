@@ -124,7 +124,7 @@ export function AdminAiPage() {
       header: t("admin.ai.col.state"),
       priority: AI_COLUMN_PRIORITIES.state,
       size: "short",
-      card: "badge",
+      card: "meta",
       cell: (row) =>
         row.on ? (
           <TipBadge

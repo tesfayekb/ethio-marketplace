@@ -732,4 +732,82 @@ describe("DataTable V2 card and frame (D132)", () => {
     expect(shares.reduce((sum, share) => sum + share, 0)).toBeCloseTo(100);
     expect(document.querySelector("table")?.className).toContain("table-fixed");
   });
+  it("DTK-8 a fixed table's header and its sort button wrap; a min-width table's do not change", () => {
+    const wrap = ["whitespace-normal", "break-words", "hyphens-auto"];
+    renderTable({
+      columns: sized({ n: "name", s: "short" }).map((column) =>
+        column.key === "s" ? { ...column, header: "Placement badge", sortable: true } : column,
+      ),
+      onSort: vi.fn(),
+    });
+    const header = screen.getByTestId("data-table-col-s");
+    expect(header).toHaveClass(...wrap);
+    expect(within(header).getByRole("button")).toHaveClass(...wrap, "max-w-full");
+    document.body.innerHTML = "";
+    renderTable({
+      columns: sized({ n: "name", s: "short" }).map((column) => ({
+        ...column,
+        minWidth: "min-w-40", // C7-dense: DTK-8 proves a min-width table keeps its header classes
+      })),
+    });
+    for (const name of wrap) {
+      expect(screen.getByTestId("data-table-col-s")).not.toHaveClass(name);
+    }
+  });
+
+  it("DTK-9 an On/Off value in meta carries its label in the card; a status badge stays bare", () => {
+    renderTable({
+      columns: [
+        ...sized({ n: "name" }),
+        {
+          key: "enabled",
+          header: "Enabled",
+          priority: "primary",
+          size: "short",
+          card: "meta",
+          cell: (row: Row) => <span data-testid={`on-${row.id}`}>On</span>,
+        },
+        {
+          key: "status",
+          header: "Status",
+          priority: "primary",
+          size: "short",
+          card: "badge",
+          cell: (row: Row) => <span data-testid={`st-${row.id}`}>Active</span>,
+        },
+      ],
+    });
+    const cards = screen.getByTestId("data-table-cards");
+    const fact = cards.querySelector('[data-card-fact="enabled"]');
+    expect(fact?.textContent).toBe("EnabledOn");
+    const pill = within(cards).getAllByTestId(/^st-/)[0];
+    expect(pill?.parentElement?.textContent).toBe("Active");
+  });
+
+  it("DTK-10 empty card values draw no label and no separator", () => {
+    const empty = (key: string, card: "foot" | "meta", value: (row: Row) => React.ReactNode) => ({
+      key,
+      header: key === "kept" ? "Updated" : `Label-${key}`,
+      priority: "secondary" as const,
+      size: "short" as const,
+      card,
+      cell: value,
+    });
+    renderTable({
+      columns: [
+        ...sized({ n: "name" }),
+        empty("createdBy", "foot", () => <span className="text-sm"></span>),
+        empty("updatedBy", "foot", () => ""),
+        empty("kept", "foot", () => <span>today</span>),
+        empty("since", "meta", () => <span> </span>),
+      ],
+    });
+    const card = within(screen.getByTestId("data-table-cards")).getAllByRole("listitem")[0];
+    const text = card?.textContent ?? "";
+    expect(text).not.toContain("Label-createdBy");
+    expect(text).not.toContain("Label-updatedBy");
+    expect(text).not.toContain("Label-since");
+    expect(text).not.toContain("·");
+    expect(text).toContain("Updatedtoday");
+  });
 });
