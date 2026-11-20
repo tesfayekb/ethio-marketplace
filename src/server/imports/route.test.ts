@@ -460,6 +460,61 @@ describe("defineImportRoute", () => {
     expect(state.refreshes).toEqual([]);
   });
 
+  it("IMR-16 a planner's unknown scope (F1-7b) answers its code at 400 — a preview's raise and a commit's envelope alike; the old sentences are a 500", async () => {
+    const raised = (message: string) => ({
+      code: "P0D01",
+      message,
+      details: "pg detail",
+      hint: "secret",
+    });
+    const envelope = (reason: string) => ({ ...raised(reason), refusals: [{ reason }] });
+    const previews: [typeof categories, string, string, string, Record<string, string>][] = [
+      [
+        categories,
+        "admin_preview_category_import",
+        "unknownCategory",
+        "e2e-imr",
+        { categories: CATEGORIES },
+      ],
+      [
+        locations,
+        "admin_preview_location_import",
+        "unknownCountry",
+        "ZQ",
+        { countries: COUNTRIES },
+      ],
+    ];
+    for (const [route, rpcName, code, scope, files] of previews) {
+      for (const error of [raised(code), envelope(code)]) {
+        state.answers[rpcName] = { data: null, error };
+        const response = await send(route, { mode: "preview", scope, ...files });
+        expect([code, response.status]).toEqual([code, 400]);
+        const text = await response.text();
+        expect(text).not.toMatch(/pg detail|secret/);
+        expect(JSON.parse(text)).toEqual({ error: code });
+      }
+      for (const sentence of ["unknown category scope", "unknown country scope"]) {
+        state.answers[rpcName] = { data: null, error: { message: sentence, code: "P0001" } };
+        const response = await send(route, { mode: "preview", scope, ...files });
+        expect([sentence, response.status]).toEqual([sentence, 500]);
+        expect(await response.text()).not.toMatch(/scope/);
+      }
+    }
+    const digest = await digestOf([CATEGORIES]);
+    state.answers["admin_commit_category_import"] = {
+      data: null,
+      error: envelope("unknownCategory"),
+    };
+    const commit = await send(categories, {
+      mode: "commit",
+      scope: "e2e-imr",
+      categories: CATEGORIES,
+      digest,
+    });
+    expect([commit.status, await commit.json()]).toEqual([400, { error: "unknownCategory" }]);
+    expect(state.refreshes).toEqual([]);
+  });
+
   it("IMR-10 the refresh runs only after a successful commit, never after a refused one", async () => {
     const digest = await digestOf([CATEGORIES]);
     state.answers["admin_commit_category_import"] = {
