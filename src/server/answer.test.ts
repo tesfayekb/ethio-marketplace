@@ -157,6 +157,28 @@ describe("the route answers (B2)", () => {
     logged.mockRestore();
   });
 
+  it("ANS-12 serverError writes a database error object's text, a string's, and never [object Object] (INC-1215)", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      for (const [error, text] of [
+        [{ message: "relation x does not exist", code: "42P01" }, "relation x does not exist"],
+        [{ code: "PGRST301" }, "code PGRST301"],
+        ["plain failure text", "plain failure text"],
+        [{}, "no message (object)"],
+      ] as const) {
+        logged.mockClear();
+        const response = serverError("/api/test", error);
+        const body = (await response.json()) as { incident: string };
+        const line = logged.mock.calls.map((call) => call.join(" ")).join("\n");
+        expect(line, text).toContain(`[incident ${body.incident}] ${text}`);
+        expect(line, text).not.toContain("[object Object]");
+        expect(JSON.stringify(body), text).not.toContain(text);
+      }
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
   it("ANS-10 readFailure maps typed and raw failures without detail", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     try {

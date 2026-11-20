@@ -209,10 +209,11 @@ test(
   },
 );
 
-// INC-836 part 1 closed delete_draft, confirm_home_country and promote_to_super_admin; part 2
-// (F1-1, DEC-335) closes edit_listing, relist_listing and set_listing_price the same way: the
-// browser roles' EXECUTE revoked, so the catalogue refuses before any body runs.
-test("CG-2 the six retired doors are closed to a signed-in account", async () => {
+// INC-836 part 1 closed delete_draft, confirm_home_country and promote_to_super_admin: the browser
+// roles' EXECUTE revoked, so the catalogue refuses before any body runs. F1-1 (DEC-335) closed
+// edit_listing, relist_listing and set_listing_price the same way; F1-7c dropped the three, and its
+// drop file's proof asserts they are absent, so no browser test calls a function that no longer exists.
+test("CG-2 the three retired doors are closed to a signed-in account", async () => {
   const user = await leaseUser();
   consumerIds.push(user.id);
   const scaffold = await fixtures.scratchSeller();
@@ -228,29 +229,10 @@ test("CG-2 the six retired doors are closed to a signed-in account", async () =>
   if (before.error || !before.data) throw new Error(`[CG] draft read: ${before.error?.message}`);
   const session = await passwordGrant(user.email, user.password);
   const caller = bearerClient(session.access_token);
-  const priceOf = { p_price_mode: "fixed", p_price_currency: "ETB", p_price_period: "once" };
   for (const [fn, args] of [
     ["delete_draft", { p_listing_id: draft.id }],
     ["confirm_home_country", { p_country: "ET" }],
     ["promote_to_super_admin", { p_target_user: user.id }],
-    ["relist_listing", { p_listing_id: draft.id }],
-    ["set_listing_price", { p_listing_id: draft.id, p_price_amount: 90, ...priceOf }],
-    [
-      "edit_listing",
-      {
-        p_listing_id: draft.id,
-        p_category_id: scaffold.leafId,
-        p_title: "CG-2 retired door",
-        p_description: "CG-2 retired door",
-        p_video_url: null,
-        p_attributes: {},
-        p_price_amount: 90,
-        ...priceOf,
-        p_poster_expires_at: null,
-        p_coverage: [scaffold.cityId],
-        p_contact_pref: { messages: true },
-      },
-    ],
   ] as const) {
     const { error } = await caller.rpc(fn, args);
     expect(error?.code, fn).toBe("42501");

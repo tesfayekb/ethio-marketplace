@@ -32,8 +32,3 @@ export function takeDeactivatedSignOut(): boolean {
     return false;
   }
 }
-
-/** The door's own sentence for a deactivated caller (rate_gate, the staff doors, the routes). */
-export function isDeactivatedRefusal(message: string | null | undefined): boolean {
-  return typeof message === "string" && message.includes("account is deactivated");
-}

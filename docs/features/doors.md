@@ -247,12 +247,32 @@ src/features/my-listings/promote-service.ts.
   family code by its head (neither is on `DOOR_CODES`), the places words and the import
   dialogs gain `badCoordinates` / `permissionDenied`, and the import route's two scope-sentence
   rows are gone.
+- **F1-7c — a reader's refusal at its code's status** (`docs/governance/briefs/f1-doors-7c.md`,
+  rulings `f1-doors-7c-ruling-1.md` and `-2.md`; four files `20261120100000` → `20261120100300`,
+  marks `20261120120000` → `20261120120300`): `door_refusal_status(code)` is the one table from a
+  refusal's code to its HTTP status (`notSignedIn` 401, `permissionDenied` 403,
+  `accountDeactivated` 403, `stepUpRequired` 428, `rateLimited` 429, otherwise 400), read by
+  `door_refused` (a door's shell) and `door_refuse` (a reader's). `door_context` marks the
+  outermost call transaction-locally from its own argument and dial (a dial marks `door`, a call
+  with none marks `reader` only when unmarked); `door_refuse` raises SQLSTATE `PGRST` under a
+  `reader` mark, so PostgREST answers the table's status with the body it always had (`code:
+P0D01`, `message: code[:detail]`), and `P0D01` otherwise, so a door's shell handler is
+  untouched. `check-doors` judges the dial against the shell (`dial-shell-mismatch`, DOORS-15).
+  `assign_role` stores its scope upper-cased (INC-1217). The seven retired functions no caller
+  uses are dropped (`edit_listing`, `relist_listing`, `set_listing_price`, `get_browse_tree`,
+  `get_category_attributes`, `get_ui_bundle`, `package_price_for`) with their RETIRED lines. The
+  client: `reader-failure.ts` reads a refusal by its code first and checks the status agrees with
+  `refusalStatus(code)` (the table's client side; RF-5 reads the migration and fails when they
+  differ), and a refusal that arrives at 500 classes `server`; `doorCall` logs only a
+  `doorError` (INC-1214, DC-4); `serverError` writes the error's text through `errorText`
+  (INC-1215, ANS-12); `isDeactivatedRefusal` is removed with its test (INC-1188). F1-7d owns the
+  one refusal reader and the session's end.
 
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,
 count-on-refusal through the shell, scope `match`, scope `global` / `filter`);
-`e2e/auth-caller-gates.spec.ts` CG-2 (six retired doors), CG-4 (the code);
+`e2e/auth-caller-gates.spec.ts` CG-2 (three retired doors; the other three dropped by F1-7c), CG-4 (the code);
 `e2e/legal-admin.spec.ts` LGA-22 (`base_languages`); the twelve tests of the retired doors
 moved onto `edit_my_listing` (PR-27; ML-2, ML-4, ML-5, ML-6, ML-7; MLP-1, MLP-5; AL-5, AL-29;
 LG-28) or withdrawn with their doors (PR-32, PR-46).

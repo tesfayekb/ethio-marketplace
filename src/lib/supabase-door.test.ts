@@ -117,11 +117,11 @@ describe("the client's door (DEC-261)", () => {
 
   it("SBD-3 signed out: a database function is the client's own anonymous call — POST, the key as apikey, no bearer for a new key", async () => {
     const { rpc } = await door();
-    const answer = await rpc("get_ui_bundle", { p_lang: "am" });
+    const answer = await rpc("get_ui_bundle_parts", { p_lang: "am" });
     expect(answer).toEqual({ data: ["ok"], error: null });
     expect(state.imported).toBe(0);
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe(`${URL_}/rest/v1/rpc/get_ui_bundle`);
+    expect(url).toBe(`${URL_}/rest/v1/rpc/get_ui_bundle_parts`);
     expect(init.method).toBe("POST");
     expect(init.body).toBe(JSON.stringify({ p_lang: "am" }));
     expect(init.headers.get("apikey")).toBe(KEY);

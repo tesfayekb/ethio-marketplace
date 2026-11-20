@@ -124,6 +124,31 @@ describe("doorCall — the door-call envelope", () => {
     expect(state.logs).toHaveLength(0);
   });
 
+  it("DC-4 only a doorError is logged: a rate-limited call, whose code carries an instant for its detail, writes no line (INC-1214)", async () => {
+    const instant = "rateLimited:2026-11-19T20:00:00+00:00";
+    const limited = await doorCall("/api/x", async () => ({
+      data: null,
+      error: { message: instant },
+      status: 429,
+    }));
+    expect(await limited.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "rateLimited", detail: "2026-11-19T20:00:00+00:00" }],
+    });
+    expect(state.logs).toEqual([]);
+
+    const sentence = await doorCall("/api/x", async () => ({
+      data: null,
+      error: { message: "an unexpected sentence: with a colon" },
+      status: 400,
+    }));
+    expect(await sentence.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "door", reason: "doorError" }],
+    });
+    expect(state.logs).toEqual(["/api/x an unexpected sentence: with a colon"]);
+  });
+
   it("DC-3 ok answers doorAnswer(data), or the raw data with raw", async () => {
     const shaped = await doorCall("/api/x", async () => ({
       data: { ok: true },

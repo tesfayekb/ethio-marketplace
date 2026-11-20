@@ -37,7 +37,13 @@ import { browserCallable, type DoorRow } from "./rows";
  *                          `request.` setting) (F1-7a ruling 1, decisions 4, 9);
  * - helper-reason-unproven a helper line whose reason is `policy` and names no
  *                          standing policy that calls the function (policies.ts,
- *                          F1-7a ruling 1 decision 7, INC-1212).
+ *                          F1-7a ruling 1 decision 7, INC-1212);
+ * - dial-shell-mismatch    a body on the gate whose dial and shell disagree: a
+ *                          dial (the line's cell or door_context's argument)
+ *                          without the P0D01 shell, or neither with it.
+ *                          door_context marks a call with a dial a door and one
+ *                          without a reader, and door_refuse raises a reader's
+ *                          refusal past any shell (F1-7c ruling 1 decision 3).
  *
  * A legacy body (no door_context yet) is judged by the old rule only; its line
  * is the promise its family's turn keeps (plan §5).
@@ -56,6 +62,7 @@ export const FINDING_KINDS = [
   "opt-out-over-step-up",
   "reader-off-gate",
   "helper-reason-unproven",
+  "dial-shell-mismatch",
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -161,6 +168,11 @@ function pairFindings(row: DoorRow, line: ManifestLine): Finding[] {
         "a door on door_context takes the shell (P0D01 → door_refused)",
       );
   } else if (ctx[3] !== null) add("class-mismatch", "a reader spends no dial");
+  const spends = line.dial !== null || ctx[3] !== null;
+  if (spends && !SHELL.test(row.body))
+    add("dial-shell-mismatch", "a dial without the shell: door_context marks the call a door");
+  if (!spends && SHELL.test(row.body))
+    add("dial-shell-mismatch", "a shell without a dial: door_context marks the call a reader");
   if (isStaff(line)) {
     const mode = scopeModeOf(line);
     const bodyMode = literalOf(ctx[5]) ?? (ctx[5] === null ? "none" : "?");

@@ -10,7 +10,9 @@ import {
   PLANTED_HELPER_LINE,
   PLANTED_POLICIES,
   PLANTED_PUBLIC_DATA_LINE,
+  PLANTED_READER_LINE,
   PLANTED_STEP_UPS,
+  READER_SHELL_BODY,
   allow,
   liveFindings,
   plantedCases,
@@ -32,12 +34,13 @@ import {
   liveRows,
   staticRows,
   treeCallers,
+  type DoorRow,
 } from "./rows";
 import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
- * the twelve finding kinds each fire on their planted bypass and a clean pair
+ * the thirteen finding kinds each fire on their planted bypass and a clean pair
  * fires nothing (DOORS-1); the manifest's grammar refuses what it must
  * (DOORS-2); the live reader answers the same rows the judge reads and refuses
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
@@ -52,7 +55,8 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  * `none:` step-up cell names a permission the migrations declare without step-up (DOORS-11, F1-6a);
  * a reader off the gate is a public reader whose `public-data` holds through every body it names
  * (DOORS-12, F1-7a); a helper's `policy` reason names standing policies that call it (DOORS-13,
- * F1-7a, INC-1212); a dynamic grant on a proof's pg_temp copy is no public grant (DOORS-14, F1-7a).
+ * F1-7a, INC-1212); a dynamic grant on a proof's pg_temp copy is no public grant (DOORS-14, F1-7a);
+ * a body on the gate keeps the shell exactly when it spends a dial (DOORS-15, F1-7c ruling 1).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -552,6 +556,46 @@ describe("check-doors (CF-DOORS)", () => {
       expect(tree("listings_public_read", "has_permission")).toBe(false);
     },
   );
+
+  it("DOORS-15 a body on the gate keeps the shell exactly when it spends a dial (F1-7c ruling 1, decision 3)", () => {
+    const plantedRow = (key: string, body: string, volatility: DoorRow["volatility"]): DoorRow => ({
+      key,
+      name: key.slice(0, key.indexOf("(")),
+      body,
+      volatility,
+      definer: true,
+      anon: false,
+      authenticated: true,
+      trigger: false,
+      where: "planted",
+    });
+    const fired = (
+      manifest: string,
+      key: string,
+      body: string,
+      volatility: DoorRow["volatility"] = "v",
+    ) =>
+      judge([plantedRow(key, body, volatility)], parseManifest(manifest))
+        .filter((finding) => finding.kind === "dial-shell-mismatch")
+        .map((finding) => finding.what);
+    const owner = "e2e_planted_owner(uuid)";
+    const ownerLine = `${owner} | owner | authenticated | - | - | draft | - | - | draft | - | -`;
+    const readerKey = "e2e_planted_reader(uuid)";
+    const plainReader = "BEGIN PERFORM public.door_context('reader'); RETURN '{}'::jsonb; END";
+    const shellDoor =
+      "BEGIN v_ctx := public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END";
+    const bareDoor =
+      "BEGIN v_ctx := public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; END";
+    expect(parseManifest(PLANTED_READER_LINE).errors).toEqual([]);
+    expect(fired(PLANTED_READER_LINE, readerKey, READER_SHELL_BODY, "s")).toEqual([
+      "a shell without a dial: door_context marks the call a reader",
+    ]);
+    expect(fired(PLANTED_READER_LINE, readerKey, plainReader, "s")).toEqual([]);
+    expect(fired(ownerLine, owner, bareDoor)).toEqual([
+      "a dial without the shell: door_context marks the call a door",
+    ]);
+    expect(fired(ownerLine, owner, shellDoor)).toEqual([]);
+  });
 
   it(
     "DOORS-4 the repository's tree reconciles: every browser-callable function has its line, every line its door",

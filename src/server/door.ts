@@ -18,7 +18,8 @@ import { logRouteError } from "@/server/supabase/user-client";
  *                                      refusal when it answers (not logged —
  *                                      INC-368), else the door's own code
  *                                      (doorRefusal; a code is not logged,
- *                                      a sentence is and answers doorError)
+ *                                      a sentence is and answers doorError —
+ *                                      INC-1214: only a `doorError` is logged)
  *   ok                               → doorAnswer(data), or the raw data
  *
  * The seed of the door mechanism (DEC-237's door turn), extended there; its
@@ -46,11 +47,10 @@ export async function doorCall(
     const refusal = doorRefusal(error.message);
     // Ruling 4 (F1-5a) — a door's own machine code (`notYourListing`, `rateLimited`,
     // `illegalTransition:closed-reduced`) is a known refusal, not a server error: it reaches the
-    // client as its reason and writes no log line (INC-368). `doorRefusal` keeps a code whole as
-    // the reason, so a reason equal to the message is a code; a sentence no `translate` mapped
-    // becomes `doorError` and is still logged, the message whole.
-    if (refusal.reason === error.message.trim()) return verdict([refusal]);
-    logRouteError(path, error.message);
+    // client as its reason and writes no log line (INC-368). INC-1214 — only a `doorError` (a
+    // sentence no `translate` mapped) is logged, the message whole: a code whose detail holds
+    // any character (`rateLimited:<instant>`) reads as a code with its detail, not as a sentence.
+    if (refusal.reason === "doorError") logRouteError(path, error.message);
     return verdict([refusal]);
   }
   return ok(opts?.raw === true ? data : doorAnswer(data));
