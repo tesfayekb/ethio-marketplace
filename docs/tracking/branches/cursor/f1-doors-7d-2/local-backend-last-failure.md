@@ -1,73 +1,15 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44762889388
-- Commit: `b8eb0ea9b3d2347ad8b028ce8a51ab3497d94529`
+last E2E run 44767885988 passed
+
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44767885988
+- Commit: `1264edbccdc73a152e481a89b9829ba07d6317de`
 - Attempt: 1
-- Repeat: 22 of 22 tests repeated — specs directly changed 1/1, importers of a changed helper 0/0; budget 643 s
-- Written (UTC): 2026-11-20T15:44:43.505Z
-- Passed: 2649 · Skipped: 391 · Failed: 7
-- Gating failures: 7 · STAGING-SINK (INC-1175, still gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
-- Post-test errors (DEC-059, non-gating): smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16
-- Sources without results: none
+- Repeat: 22 of 22 tests repeated — specs directly changed 1/1, importers of a changed helper 0/0; budget 643 s; the time cap left 17 test runs
+- Written (UTC): 2026-11-20T16:18:22.895Z
+- Post-test warnings: 57
+- Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): repeat (2)
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `mobile-360` · source `shard 7` · legal-admin.spec.ts › Admin Legal › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused — Test timeout of 60000ms exceeded.
-
-## Flaky bodies (DEC-078)
-
-### legal-admin.spec.ts › Admin Legal › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused
-
-- Source: `shard 7`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('legal-review-note')
-
-
-  845 |     expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(true);
-  846 |     await block.getByTestId("legal-review-mark").click();
-> 847 |     await page.getByTestId("legal-review-note").fill("LGA-17 read, no change");
-      |                                                 ^
-  848 |     await page.getByTestId("legal-review-save").click();
-  849 |     await expect(page.getByTestId("legal-review-saved")).toBeVisible();
-  850 |     await expect(block).toHaveAttribute("data-state", "due");
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-admin.spec.ts:847:49
-```
-
-Context:
-
-```text
-          - listitem [ref=e495]:
-            - generic [ref=e496]: About
-          - listitem [ref=e497]:
-            - generic [ref=e498]: Contact
-      - navigation "Help" [ref=e499]:
-        - heading "Help" [level=2] [ref=e500]
-        - list [ref=e501]:
-          - listitem [ref=e502]:
-            - generic [ref=e503]: Safety
-      - navigation "Legal" [ref=e504]:
-        - heading "Legal" [level=2] [ref=e505]
-        - list [ref=e506]:
-          - listitem [ref=e507]:
-            - link "Terms" [ref=e508] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e509]:
-            - link "Privacy" [ref=e510] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e512]: © 2026 ethio.com — All rights reserved.
-```
-```
 
 ## Errors outside any test (INC-589)
 
@@ -137,144 +79,144 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-20T15:29:08.955Z | 3.7 min |
-| email | 2026-11-20T15:29:06.771Z | 0.3 min |
-| webkit | 2026-11-20T15:29:13.726Z | 8.2 min |
-| shard 1 | 2026-11-20T15:29:16.392Z | 5.4 min |
-| shard 2 | 2026-11-20T15:29:22.480Z | 5.1 min |
-| shard 3 | 2026-11-20T15:29:53.454Z | 7.9 min |
-| shard 4 | 2026-11-20T15:29:14.200Z | 5.2 min |
-| shard 5 | 2026-11-20T15:28:57.838Z | 6.1 min |
-| shard 6 | 2026-11-20T15:29:07.460Z | 5.7 min |
-| shard 7 | 2026-11-20T15:29:44.256Z | 8.0 min |
-| shard 8 | 2026-11-20T15:29:42.946Z | 6.7 min |
-| shard 9 | 2026-11-20T15:33:40.527Z | 8.0 min |
-| shard 10 | 2026-11-20T15:30:33.594Z | 7.1 min |
-| shard 11 | 2026-11-20T15:37:31.804Z | 6.6 min |
-| shard 12 | 2026-11-20T15:31:04.566Z | 5.8 min |
-| shard 13 | 2026-11-20T15:30:38.477Z | 4.9 min |
-| shard 14 | 2026-11-20T15:29:33.181Z | 5.1 min |
-| shard 15 | 2026-11-20T15:29:47.883Z | 6.4 min |
-| shard 16 | 2026-11-20T15:29:47.913Z | 6.9 min |
-| repeat | 2026-11-20T15:31:06.368Z | 12.7 min |
+| smoke | 2026-11-20T15:59:03.790Z | 4.4 min |
+| email | 2026-11-20T15:57:22.598Z | 0.3 min |
+| webkit | 2026-11-20T15:59:32.621Z | 9.0 min |
+| shard 1 | 2026-11-20T15:58:22.993Z | 6.1 min |
+| shard 2 | 2026-11-20T15:57:56.372Z | 6.0 min |
+| shard 3 | 2026-11-20T15:58:13.839Z | 6.2 min |
+| shard 4 | 2026-11-20T15:59:13.225Z | 6.4 min |
+| shard 5 | 2026-11-20T15:58:21.538Z | 6.3 min |
+| shard 6 | 2026-11-20T15:58:49.426Z | 6.9 min |
+| shard 7 | 2026-11-20T15:58:40.411Z | 7.3 min |
+| shard 8 | 2026-11-20T15:57:50.753Z | 5.6 min |
+| shard 9 | 2026-11-20T16:00:49.709Z | 6.3 min |
+| shard 10 | 2026-11-20T15:58:14.138Z | 5.6 min |
+| shard 11 | 2026-11-20T16:11:10.706Z | 6.7 min |
+| shard 12 | 2026-11-20T15:59:10.674Z | 6.9 min |
+| shard 13 | 2026-11-20T15:57:23.665Z | 5.0 min |
+| shard 14 | 2026-11-20T16:00:37.763Z | 5.0 min |
+| shard 15 | 2026-11-20T15:58:39.270Z | 6.7 min |
+| shard 16 | 2026-11-20T15:58:55.821Z | 5.4 min |
+| repeat | 2026-11-20T15:58:28.090Z | 12.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `auth-signout.spec.ts` | 176 | 19.3 min | webkit, shard 9, repeat |
-| `shell.spec.ts` | 234 | 9.5 min | shard 1 |
-| `admin-listings.spec.ts` | 78 | 7.2 min | webkit, shard 10 |
-| `post-wizard-bundle2.spec.ts` | 70 | 6.5 min | shard 3 |
-| `admin-categories-console.spec.ts` | 34 | 5.5 min | shard 7 |
-| `admin-translations-console.spec.ts` | 46 | 5.4 min | smoke, shard 8 |
-| `admin-attributes-library.spec.ts` | 42 | 5.4 min | shard 2 |
-| `photo-pipeline.spec.ts` | 74 | 5.3 min | webkit, shard 16 |
-| `admin-roles.spec.ts` | 28 | 5.0 min | shard 9 |
+| `auth-signout.spec.ts` | 176 | 17.4 min | webkit, shard 9, repeat |
+| `shell.spec.ts` | 234 | 10.4 min | shard 1 |
+| `admin-attributes-library.spec.ts` | 42 | 5.8 min | shard 2 |
+| `admin-categories-console.spec.ts` | 34 | 5.6 min | shard 7 |
+| `import-security.spec.ts` | 36 | 5.5 min | shard 4 |
+| `admin-listings.spec.ts` | 78 | 5.5 min | webkit, shard 10 |
+| `post-wizard-bundle2.spec.ts` | 70 | 5.4 min | shard 3 |
+| `admin-locations.spec.ts` | 38 | 5.4 min | shard 6 |
+| `post-wizard-specs.spec.ts` | 82 | 5.2 min | shard 12 |
+| `feed-screens.spec.ts` | 40 | 5.1 min | webkit, shard 5 |
 | `post-wizard-place.spec.ts` | 40 | 5.0 min | shard 11 |
-| `feed-screens.spec.ts` | 40 | 4.9 min | webkit, shard 5 |
-| `import-security.spec.ts` | 36 | 4.7 min | shard 4 |
+| `admin-translations-console.spec.ts` | 46 | 4.8 min | smoke, shard 8 |
 | `admin-screening.spec.ts` | 58 | 4.6 min | webkit, shard 14 |
-| `admin-locations.spec.ts` | 38 | 4.6 min | shard 6 |
-| `admin-users.spec.ts` | 28 | 4.6 min | shard 16 |
-| `post-wizard-specs.spec.ts` | 82 | 4.3 min | shard 12 |
-| `ad-page.spec.ts` | 104 | 4.2 min | webkit, shard 13 |
-| `post-wizard-where.spec.ts` | 32 | 4.1 min | shard 11 |
-| `choice-lists.spec.ts` | 96 | 4.1 min | shard 7 |
-| `post-wizard-pricing.spec.ts` | 52 | 4.0 min | shard 8 |
-| `viewing-place.spec.ts` | 22 | 3.9 min | shard 15 |
-| `admin-monetisation.spec.ts` | 34 | 3.9 min | smoke, shard 10 |
-| `admin-attributes-links.spec.ts` | 34 | 3.8 min | shard 13 |
-| `legal-admin.spec.ts` | 44 | 3.8 min | shard 7 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 3.6 min | shard 15 |
-| `my-listings-ad.spec.ts` | 38 | 3.6 min | shard 12 |
-| `post-wizard-resets.spec.ts` | 34 | 3.2 min | shard 3 |
-| `admin-translations-governance.spec.ts` | 20 | 3.1 min | smoke, shard 16 |
-| `admin-attributes-editor.spec.ts` | 36 | 3.1 min | shard 14 |
-| `dialogs.spec.ts` | 20 | 3.0 min | webkit, shard 10 |
-| `post-wizard-category.spec.ts` | 52 | 2.6 min | webkit, shard 4 |
-| `sage-bands.spec.ts` | 76 | 2.4 min | shard 6 |
-| `admin-attributes-safety.spec.ts` | 18 | 2.4 min | shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 2.2 min | shard 8 |
-| `admin-countries.spec.ts` | 18 | 2.2 min | shard 6 |
-| `posting-routes.spec.ts` | 80 | 2.0 min | shard 2 |
-| `admin-audit.spec.ts` | 16 | 2.0 min | shard 9 |
-| `sage-ad-page.spec.ts` | 30 | 2.0 min | webkit, shard 11 |
-| `admin-translations-data.spec.ts` | 10 | 1.9 min | shard 5 |
-| `mfa-stepup.spec.ts` | 22 | 1.9 min | webkit, shard 15 |
-| `admin-categories-home.spec.ts` | 10 | 1.6 min | shard 4 |
-| `admin-guides.spec.ts` | 14 | 1.5 min | shard 3 |
-| `one-line-slots-admin.spec.ts` | 10 | 1.5 min | shard 3 |
-| `admin-categories-images.spec.ts` | 6 | 1.4 min | smoke, webkit, shard 12 |
+| `ad-page.spec.ts` | 104 | 4.5 min | webkit, shard 13 |
+| `admin-roles.spec.ts` | 28 | 4.4 min | shard 9 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 4.0 min | shard 15 |
+| `viewing-place.spec.ts` | 22 | 4.0 min | shard 15 |
+| `admin-attributes-links.spec.ts` | 34 | 4.0 min | shard 13 |
+| `post-wizard-where.spec.ts` | 32 | 4.0 min | shard 11 |
+| `photo-pipeline.spec.ts` | 74 | 3.9 min | webkit, shard 16 |
+| `admin-monetisation.spec.ts` | 34 | 3.8 min | smoke, shard 10 |
+| `choice-lists.spec.ts` | 96 | 3.8 min | shard 7 |
+| `admin-users.spec.ts` | 28 | 3.7 min | shard 16 |
+| `post-wizard-category.spec.ts` | 52 | 3.6 min | webkit, shard 4 |
+| `my-listings-ad.spec.ts` | 38 | 3.5 min | shard 12 |
+| `sage-bands.spec.ts` | 76 | 3.4 min | shard 6 |
+| `admin-translations-governance.spec.ts` | 20 | 3.4 min | smoke, shard 16 |
+| `post-wizard-pricing.spec.ts` | 52 | 3.1 min | shard 8 |
+| `admin-attributes-editor.spec.ts` | 36 | 3.0 min | shard 14 |
+| `posting-routes.spec.ts` | 80 | 2.9 min | shard 2 |
+| `legal-admin.spec.ts` | 44 | 2.8 min | shard 7 |
+| `dialogs.spec.ts` | 20 | 2.7 min | webkit, shard 10 |
+| `admin-countries.spec.ts` | 18 | 2.6 min | shard 6 |
+| `admin-attributes-safety.spec.ts` | 18 | 2.6 min | shard 5 |
+| `post-wizard-resets.spec.ts` | 34 | 2.5 min | shard 3 |
+| `sage-ad-page.spec.ts` | 30 | 2.3 min | webkit, shard 11 |
+| `admin-translations-data.spec.ts` | 10 | 2.1 min | shard 5 |
+| `mfa-stepup.spec.ts` | 22 | 2.0 min | webkit, shard 15 |
+| `admin-categories-home.spec.ts` | 10 | 2.0 min | shard 4 |
+| `admin-attributes-import.spec.ts` | 40 | 1.7 min | shard 8 |
+| `admin-categories-images.spec.ts` | 6 | 1.6 min | smoke, webkit, shard 12 |
+| `sage-tiers.spec.ts` | 52 | 1.6 min | webkit, shard 2 |
+| `admin-audit.spec.ts` | 16 | 1.6 min | shard 9 |
 | `legal-certify.spec.ts` | 44 | 1.4 min | shard 14 |
-| `sage-tiers.spec.ts` | 52 | 1.4 min | webkit, shard 2 |
 | `my-listings-promote.spec.ts` | 10 | 1.3 min | shard 11 |
-| `my-listings-page.spec.ts` | 20 | 1.2 min | webkit, shard 10 |
-| `phone-frame.spec.ts` | 18 | 1.1 min | shard 12 |
-| `sage-cards.spec.ts` | 40 | 1.0 min | webkit, shard 7 |
-| `sage-shell.spec.ts` | 80 | 1.0 min | shard 16 |
-| `name-check-queue.spec.ts` | 8 | 1.0 min | smoke, shard 9 |
-| `press.spec.ts` | 22 | 1.0 min | shard 12 |
-| `admin-shell.spec.ts` | 12 | 0.9 min | shard 2 |
-| `locations-tree.spec.ts` | 8 | 0.8 min | shard 13 |
-| `post-wizard-removed.spec.ts` | 4 | 0.8 min | shard 7 |
+| `phone-frame.spec.ts` | 18 | 1.2 min | shard 12 |
+| `press.spec.ts` | 22 | 1.2 min | shard 12 |
+| `one-line-slots-admin.spec.ts` | 10 | 1.1 min | shard 3 |
+| `admin-shell.spec.ts` | 12 | 1.1 min | shard 2 |
+| `admin-guides.spec.ts` | 14 | 1.1 min | shard 3 |
+| `sage-cards.spec.ts` | 40 | 0.9 min | webkit, shard 7 |
+| `my-listings-page.spec.ts` | 20 | 0.9 min | webkit, shard 10 |
+| `my-listings-levels.spec.ts` | 28 | 0.9 min | shard 4 |
+| `i18n-sign-in-language.spec.ts` | 12 | 0.9 min | shard 15 |
+| `name-check-queue.spec.ts` | 8 | 0.9 min | smoke, shard 9 |
 | `user-guides.spec.ts` | 18 | 0.8 min | shard 13 |
-| `legal-doors.spec.ts` | 34 | 0.8 min | smoke, shard 8 |
-| `i18n-sign-in-language.spec.ts` | 12 | 0.8 min | shard 15 |
-| `my-listings-doors.spec.ts` | 28 | 0.7 min | shard 3 |
-| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 4 |
-| `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
-| `layout.spec.ts` | 18 | 0.6 min | webkit, shard 10 |
-| `primitives-law.spec.ts` | 24 | 0.6 min | shard 16 |
+| `post-wizard-removed.spec.ts` | 4 | 0.8 min | shard 7 |
+| `locations-tree.spec.ts` | 8 | 0.8 min | shard 13 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.7 min | shard 6 |
+| `sage-shell.spec.ts` | 80 | 0.7 min | shard 16 |
 | `house-style.spec.ts` | 12 | 0.6 min | shard 11 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
+| `legal-doors.spec.ts` | 34 | 0.6 min | smoke, shard 8 |
+| `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
+| `post-wizard-finder.spec.ts` | 8 | 0.5 min | shard 6 |
+| `my-listings-doors.spec.ts` | 28 | 0.5 min | shard 3 |
+| `layout.spec.ts` | 18 | 0.5 min | webkit, shard 10 |
 | `ad-page-doors.spec.ts` | 30 | 0.5 min | shard 14 |
-| `supabase-door.spec.ts` | 12 | 0.4 min | shard 13 |
-| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6 |
-| `posting-routes-dials.spec.ts` | 14 | 0.4 min | shard 9 |
-| `breadcrumbs.spec.ts` | 6 | 0.4 min | shard 10 |
-| `one-line-slots.spec.ts` | 10 | 0.4 min | shard 8 |
+| `supabase-door.spec.ts` | 12 | 0.5 min | shard 13 |
+| `auth-caller-gates.spec.ts` | 8 | 0.5 min | shard 5 |
+| `i18n-coverage.spec.ts` | 14 | 0.4 min | shard 4 |
+| `admin-services.spec.ts` | 10 | 0.4 min | shard 1 |
+| `settings.spec.ts` | 9 | 0.4 min | shard 1 |
+| `legal-accept.spec.ts` | 12 | 0.4 min | shard 2 |
 | `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 14 |
-| `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 5 |
-| `legal-accept.spec.ts` | 12 | 0.3 min | shard 2 |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
-| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
-| `settings.spec.ts` | 9 | 0.3 min | shard 1 |
-| `legal-history.spec.ts` | 6 | 0.3 min | shard 16 |
+| `legal-pages.spec.ts` | 10 | 0.4 min | shard 11 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 16 |
+| `shell-bands.spec.ts` | 16 | 0.4 min | shard 12 |
+| `one-line-slots.spec.ts` | 10 | 0.3 min | shard 8 |
 | `submenu.spec.ts` | 14 | 0.3 min | shard 15 |
-| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4 |
-| `shell-bands.spec.ts` | 16 | 0.3 min | shard 12 |
-| `admin-services.spec.ts` | 10 | 0.3 min | shard 1 |
+| `a11y.spec.ts` | 4 | 0.3 min | smoke |
+| `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 10 |
+| `posting-routes-dials.spec.ts` | 14 | 0.3 min | shard 9 |
+| `page-head.spec.ts` | 4 | 0.3 min | shard 13 |
+| `feed-index.spec.ts` | 30 | 0.3 min | shard 6 |
 | `rbac.spec.ts` | 6 | 0.3 min | shard 7 |
-| `page-head.spec.ts` | 4 | 0.2 min | shard 13 |
-| `a11y.spec.ts` | 4 | 0.2 min | smoke |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
-| `auth-signup.spec.ts` | 6 | 0.2 min | email |
-| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
+| `account-saved.spec.ts` | 4 | 0.2 min | shard 4 |
 | `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
+| `post-wizard-units.spec.ts` | 4 | 0.2 min | shard 3 |
+| `auth-signup.spec.ts` | 6 | 0.2 min | email |
 | `door-refusals.spec.ts` | 14 | 0.2 min | shard 7 |
 | `overlays.spec.ts` | 8 | 0.2 min | shard 15 |
-| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
-| `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
 | `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
-| `post-wizard-recent.spec.ts` | 2 | 0.2 min | shard 9 |
+| `legal-history.spec.ts` | 6 | 0.2 min | shard 16 |
+| `submenu-look.spec.ts` | 12 | 0.2 min | shard 2 |
+| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
 | `menu-rows.spec.ts` | 6 | 0.2 min | shard 14 |
-| `auth-callback.spec.ts` | 4 | 0.2 min | shard 3 |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.2 min | shard 8 |
-| `account-saved.spec.ts` | 4 | 0.1 min | shard 4 |
+| `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
 | `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
-| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
-| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
-| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
-| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
+| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
+| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
 | `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
 | `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
-| `fonts.spec.ts` | 2 | 0.0 min | shard 1 |
-| `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
+| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | shard 13 |
+| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
+| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
+| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
+| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
+| `fonts.spec.ts` | 2 | 0.1 min | shard 1 |
 | `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
+| `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 3 |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 11 |
 
@@ -282,718 +224,18 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `legal-admin.spec.ts` › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused | mobile-360 | 64.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 44.9 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 43.4 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 42.7 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 39.2 s |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | desktop-1280 | 35.2 s |
-| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 34.9 s |
-| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | desktop-1280 | 34.8 s |
-| `auth-signout.spec.ts` › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661) | mobile-360 | 34.4 s |
-| `auth-signout.spec.ts` › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661) | desktop-1280 | 34.2 s |
-| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 33.8 s |
-| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | desktop-1280 | 33.7 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | mobile-360 | 51.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | desktop-1280 | 50.3 s |
+| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 45.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 34.6 s |
+| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | desktop-1280 | 33.8 s |
+| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | desktop-1280 | 33.8 s |
+| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | desktop-1280 | 33.8 s |
 | `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 33.7 s |
 | `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 33.7 s |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 33.4 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 44762889388-localproof
-```
-
-## Post-test errors: email
-
-email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44762889388-local-email
-```
-
-## Post-test errors: webkit
-
-webkit: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 44762889388-local-webkit
-```
-
-## Post-test errors: shard 1
-
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44762889388-local-1
-```
-
-## Post-test errors: shard 2
-
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 9 user(s) owned by process 44762889388-local-2
-```
-
-## Post-test errors: shard 3
-
-shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 44762889388-local-3
-```
-
-## Post-test errors: shard 4
-
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 28 (pool 4, fresh 24)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 25 user(s) owned by process 44762889388-local-4
-```
-
-## Post-test errors: shard 5
-
-shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 15 user(s) owned by process 44762889388-local-5
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44762889388-local-6
-```
-
-## Post-test errors: shard 7
-
-shard 7: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44762889388-local-7
-```
-
-## Post-test errors: shard 8
-
-shard 8: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 3, fresh 6)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 44762889388-local-8
-```
-
-## Post-test errors: shard 9
-
-shard 9: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 16 (pool 4, fresh 12)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 13 user(s) owned by process 44762889388-local-9
-```
-
-## Post-test errors: shard 10
-
-shard 10: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 7 user(s) owned by process 44762889388-local-10
-```
-
-## Post-test errors: shard 11
-
-shard 11: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44762889388-local-11
-```
-
-## Post-test errors: shard 12
-
-shard 12: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 7 (pool 3, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 44762889388-local-12
-```
-
-## Post-test errors: shard 13
-
-shard 13: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 5 (pool 3, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 44762889388-local-13
-```
-
-## Post-test errors: shard 14
-
-shard 14: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 44762889388-local-14
-```
-
-## Post-test errors: shard 15
-
-shard 15: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 28 (pool 2, fresh 26)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 43 user(s) owned by process 44762889388-local-15
-```
-
-## Post-test errors: shard 16
-
-shard 16: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 23 user(s) owned by process 44762889388-local-16
-```
-
-## auth-signout.spec.ts › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)
-
-- Source: `shard 9`
-- Project: `mobile-360`
-
-```text
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
-
-  663 |
-  664 |       // The page must land on /auth with the deactivated reason, never the signed-in screen.
-> 665 |       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
-      |                          ^
-  666 |       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
-  667 |       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  668 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:665:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e234]:
-            - generic [ref=e235]: About
-          - listitem [ref=e236]:
-            - generic [ref=e237]: Contact
-      - navigation "Help" [ref=e238]:
-        - heading "Help" [level=2] [ref=e239]
-        - list [ref=e240]:
-          - listitem [ref=e241]:
-            - generic [ref=e242]: Safety
-      - navigation "Legal" [ref=e243]:
-        - heading "Legal" [level=2] [ref=e244]
-        - list [ref=e245]:
-          - listitem [ref=e246]:
-            - link "Terms" [ref=e247] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e248]:
-            - link "Privacy" [ref=e249] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e251]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## auth-signout.spec.ts › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)
-
-- Source: `shard 9`
-- Project: `desktop-1280`
-
-```text
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
-
-  663 |
-  664 |       // The page must land on /auth with the deactivated reason, never the signed-in screen.
-> 665 |       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
-      |                          ^
-  666 |       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
-  667 |       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  668 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:665:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e285]:
-            - generic [ref=e286]: About
-          - listitem [ref=e287]:
-            - generic [ref=e288]: Contact
-      - navigation "Help" [ref=e289]:
-        - heading "Help" [level=2] [ref=e290]
-        - list [ref=e291]:
-          - listitem [ref=e292]:
-            - generic [ref=e293]: Safety
-      - navigation "Legal" [ref=e294]:
-        - heading "Legal" [level=2] [ref=e295]
-        - list [ref=e296]:
-          - listitem [ref=e297]:
-            - link "Terms" [ref=e298] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e299]:
-            - link "Privacy" [ref=e300] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e302]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## auth-signout.spec.ts › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)
-
-- Source: `repeat`
-- Project: `mobile-360`
-
-```text
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
-
-  663 |
-  664 |       // The page must land on /auth with the deactivated reason, never the signed-in screen.
-> 665 |       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
-      |                          ^
-  666 |       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
-  667 |       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  668 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:665:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e234]:
-            - generic [ref=e235]: About
-          - listitem [ref=e236]:
-            - generic [ref=e237]: Contact
-      - navigation "Help" [ref=e238]:
-        - heading "Help" [level=2] [ref=e239]
-        - list [ref=e240]:
-          - listitem [ref=e241]:
-            - generic [ref=e242]: Safety
-      - navigation "Legal" [ref=e243]:
-        - heading "Legal" [level=2] [ref=e244]
-        - list [ref=e245]:
-          - listitem [ref=e246]:
-            - link "Terms" [ref=e247] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e248]:
-            - link "Privacy" [ref=e249] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e251]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## auth-signout.spec.ts › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)
-
-- Source: `repeat`
-- Project: `mobile-360`
-
-```text
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
-
-  663 |
-  664 |       // The page must land on /auth with the deactivated reason, never the signed-in screen.
-> 665 |       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
-      |                          ^
-  666 |       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
-  667 |       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  668 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:665:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e234]:
-            - generic [ref=e235]: About
-          - listitem [ref=e236]:
-            - generic [ref=e237]: Contact
-      - navigation "Help" [ref=e238]:
-        - heading "Help" [level=2] [ref=e239]
-        - list [ref=e240]:
-          - listitem [ref=e241]:
-            - generic [ref=e242]: Safety
-      - navigation "Legal" [ref=e243]:
-        - heading "Legal" [level=2] [ref=e244]
-        - list [ref=e245]:
-          - listitem [ref=e246]:
-            - link "Terms" [ref=e247] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e248]:
-            - link "Privacy" [ref=e249] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e251]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## auth-signout.spec.ts › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)
-
-- Source: `repeat`
-- Project: `mobile-360`
-
-```text
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
-
-  663 |
-  664 |       // The page must land on /auth with the deactivated reason, never the signed-in screen.
-> 665 |       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
-      |                          ^
-  666 |       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
-  667 |       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  668 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:665:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e234]:
-            - generic [ref=e235]: About
-          - listitem [ref=e236]:
-            - generic [ref=e237]: Contact
-      - navigation "Help" [ref=e238]:
-        - heading "Help" [level=2] [ref=e239]
-        - list [ref=e240]:
-          - listitem [ref=e241]:
-            - generic [ref=e242]: Safety
-      - navigation "Legal" [ref=e243]:
-        - heading "Legal" [level=2] [ref=e244]
-        - list [ref=e245]:
-          - listitem [ref=e246]:
-            - link "Terms" [ref=e247] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e248]:
-            - link "Privacy" [ref=e249] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e251]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## auth-signout.spec.ts › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)
-
-- Source: `repeat`
-- Project: `desktop-1280`
-
-```text
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
-
-  663 |
-  664 |       // The page must land on /auth with the deactivated reason, never the signed-in screen.
-> 665 |       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
-      |                          ^
-  666 |       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
-  667 |       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  668 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:665:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e285]:
-            - generic [ref=e286]: About
-          - listitem [ref=e287]:
-            - generic [ref=e288]: Contact
-      - navigation "Help" [ref=e289]:
-        - heading "Help" [level=2] [ref=e290]
-        - list [ref=e291]:
-          - listitem [ref=e292]:
-            - generic [ref=e293]: Safety
-      - navigation "Legal" [ref=e294]:
-        - heading "Legal" [level=2] [ref=e295]
-        - list [ref=e296]:
-          - listitem [ref=e297]:
-            - link "Terms" [ref=e298] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e299]:
-            - link "Privacy" [ref=e300] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e302]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## auth-signout.spec.ts › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661)
-
-- Source: `repeat`
-- Project: `desktop-1280`
-
-```text
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
---- further error 1 ---
-Error: expect(page).toHaveURL(expected) failed
-
-Expected pattern: /\/auth\?.*reason=deactivated/
-Received string:  "http://127.0.0.1:4173/"
-Timeout: 15000ms
-
-Call log:
-  - Expect "toHaveURL" with timeout 15000ms
-    3 × unexpected value "http://127.0.0.1:4173/auth"
-    16 × unexpected value "http://127.0.0.1:4173/"
-
-
-  663 |
-  664 |       // The page must land on /auth with the deactivated reason, never the signed-in screen.
-> 665 |       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
-      |                          ^
-  666 |       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
-  667 |       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-  668 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:665:26
-```
-
-Context:
-
-```text
-          - listitem [ref=e285]:
-            - generic [ref=e286]: About
-          - listitem [ref=e287]:
-            - generic [ref=e288]: Contact
-      - navigation "Help" [ref=e289]:
-        - heading "Help" [level=2] [ref=e290]
-        - list [ref=e291]:
-          - listitem [ref=e292]:
-            - generic [ref=e293]: Safety
-      - navigation "Legal" [ref=e294]:
-        - heading "Legal" [level=2] [ref=e295]
-        - list [ref=e296]:
-          - listitem [ref=e297]:
-            - link "Terms" [ref=e298] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e299]:
-            - link "Privacy" [ref=e300] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e302]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-## Server errors: shard 9
-
-No `[ssr-error]` lines in the `shard 9` log (or no log was uploaded).
-
-## Client errors: shard 9
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-console.error: [client-error] legal landing read failed ×4
-```
-
-## Server errors: repeat
-
-No `[ssr-error]` lines in the `repeat` log (or no log was uploaded).
-
-## Client errors: repeat
-
-```text
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 () ×2
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 403 POST /rest/v1/rpc/my_legal_status ({"code":"P0D01","details":null,"hint":null,"message":"accountDeactivated"})
-[client-error] HTTP 403 POST /rest/v1/rpc/user_set_preferred_language ({"ok": false, "code": "P0D01", "hint": null, "details": null, "message": "accountDeactivated", "refusals": [{"reason": "accountDeactivated"}]})
-[client-error] console.error: Failed to load resource: the server responded with a status of 401 () ×2
-[client-error] HTTP 401 POST /rest/v1/rpc/get_active_impersonation ({"code":"42501","details":null,"hint":null,"message":"permission denied for function get_active_impersonation"}) ×2
-console.error: [client-error] legal landing read failed ×5
-```
+| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 33.7 s |
+| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 33.7 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 33.5 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 33.5 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 32.3 s |
+| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.9 s |
