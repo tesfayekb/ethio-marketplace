@@ -18,6 +18,13 @@ import { LOCATION_REFUSALS, useLocationRefusal } from "./location-refusals";
 const refused = (message: string) => ({ message, code: "P0D01", details: "", hint: "" });
 /** The trigger's plain raise: the sentence is the message, the SQLSTATE is not a door's. */
 const raised = (message: string) => ({ message, code: "P0001", details: null, hint: null });
+/** A door shell's returned envelope for a code (`door_refused`): the code and its first refusal. */
+const shellEnvelope = (reason: string) => ({
+  ok: false,
+  code: "P0D01",
+  message: reason,
+  refusals: [{ reason }],
+});
 
 /** Every id the console's mapper spoke before the doors moved to codes (F1-4b, ruling 1 item 4). */
 const IDS = [
@@ -28,6 +35,7 @@ const IDS = [
   "crossCountry",
   "badSlug",
   "missingCoordinates",
+  "badCoordinates",
   "rootMustBeCountry",
   "badLevel",
   "isoOnRegionsOnly",
@@ -41,11 +49,12 @@ const IDS = [
   "retireInstead",
 ] as const;
 
-/** The seven plain sentences the ancestry trigger raises. */
+/** The eight codes the ancestry trigger refuses by (F1-7b: the seven it raised as sentences, and `badCoordinates`). */
 const TRIGGER_IDS = [
   "rootMustBeCountry",
   "badSlug",
   "missingCoordinates",
+  "badCoordinates",
   "parentMissing",
   "levelMismatch",
   "crossCountry",
@@ -74,13 +83,18 @@ describe("the places console's refusals (F1-4b, DEC-333)", () => {
     );
   });
 
-  it("LRF-2 the ancestry trigger's plain sentences read their words by the error's own message", () => {
+  it("LRF-2 the ancestry trigger's eight codes read their words by the error's own message, raised or answered by a shell", () => {
+    expect(TRIGGER_IDS).toHaveLength(8);
     for (const id of TRIGGER_IDS) {
-      const read = readRefusal(raised(id), LOCATION_REFUSALS);
-      expect([id, read.branch, read.key]).toEqual([id, "family", `admin.locations.error.${id}`]);
+      for (const error of [raised(id), refused(id), shellEnvelope(id)]) {
+        const read = readRefusal(error, LOCATION_REFUSALS);
+        expect([id, read.branch, read.key]).toEqual([id, "family", `admin.locations.error.${id}`]);
+      }
     }
     const { result } = renderHook(() => useLocationRefusal());
     act(() => result.current.fail(raised("parentInactive")));
+    expect(result.current.message).toBe("T(admin.locations.error.parentInactive)");
+    act(() => result.current.fail(shellEnvelope("parentInactive")));
     expect(result.current.message).toBe("T(admin.locations.error.parentInactive)");
   });
 
@@ -97,6 +111,21 @@ describe("the places console's refusals (F1-4b, DEC-333)", () => {
     expect(result.current.message).toBe("T(admin.locations.error.retireInstead)");
     act(() => result.current.fail(refused("retireInstead")));
     expect(result.current.message).toBe("T(admin.locations.error.retireInstead)");
+  });
+
+  it("LRF-6 a coordinate out of range (F1-7b) reads its own line, through the screen's state, never the generic one", () => {
+    const own = "admin.locations.error.badCoordinates";
+    expect(LOCATION_REFUSALS.words.badCoordinates).toBe(own);
+    expect(LOCATION_REFUSALS.words.badCoordinates).not.toBe(LOCATION_REFUSALS.generic);
+    const { result } = renderHook(() => useLocationRefusal());
+    for (const error of [
+      refused("badCoordinates"),
+      raised("badCoordinates"),
+      shellEnvelope("badCoordinates"),
+    ]) {
+      act(() => result.current.fail(error));
+      expect(result.current.message).toBe(`T(${own})`);
+    }
   });
 
   it("LRF-4 a code without words, a sentence and a failed fetch draw the console's generic line, never the raw text", () => {

@@ -37,7 +37,7 @@ async function handler(
     scope === null ? {} : { p_scope: scope },
   );
   if (error) {
-    const refused = exportRefusal(error, "unknown category scope");
+    const refused = exportRefusal(error, "unknownCategory");
     if (refused !== null) return clientError(refused, refused === "forbidden" ? 403 : 404);
     return readFailure(PATH, "export_failed", error);
   }

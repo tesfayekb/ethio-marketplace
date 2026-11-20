@@ -20,6 +20,7 @@ const PATH = "/api/admin/locations/import";
 /** The planner's whole vocabulary, copied by name from the L1b doors (E7). */
 const REASON_KEYS = new Set([
   "badCountryCode",
+  "permissionDenied",
   "badUnitSystem",
   "badCurrency",
   "nameRequired",

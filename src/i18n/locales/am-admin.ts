@@ -1409,6 +1409,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.locations.caption": "በተመረጠው ገበያ ውስጥ ያሉ ቦታዎች",
   "admin.locations.loading": "ቦታዎች እየተጫኑ ነው…",
   "admin.locations.error": "ቦታዎቹን መጫን አልተቻለም።",
+  "admin.locations.error.badCoordinates": "ኬክሮስ ከ-90 እስከ 90፣ ኬንትሮስ ደግሞ ከ-180 እስከ 180 መሆን አለበት።",
   "admin.locations.error.badLevel": "ያ ደረጃ ከአገር፣ ክልል፣ ከተማ ወይም ክፍለ ከተማ አንዱ አይደለም።",
   "admin.locations.error.badSlug": "ያ አድራሻ ጥቅም ላይ የሚውል አይደለም።",
   "admin.locations.error.cannotMoveCountry": "የገበያ መልሕቅ ማንቀሳቀስ አይቻልም።",
@@ -1554,6 +1555,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.locations.import.reason.levelMismatch": "የዚህ ረድፍ ጥልቀት ከያዘው ቦታ አይስማማም።",
   "admin.locations.import.reason.parentInactive": "ከበላዩ ያለው ቦታ ተቋርጧል።",
   "admin.locations.import.reason.crossCountry": "ይህ ረድፍ ሌላ ገበያን ያመለክታል።",
+  "admin.locations.import.reason.badCoordinates": "የዚህ ረድፍ ኬክሮስ ወይም ኬንትሮስ ከሚፈቀደው ወሰን ውጭ ነው።",
   "admin.locations.import.reason.duplicateKey": "ተመሳሳዩ አድራሻ በዚህ ፋይል ሁለት ጊዜ ይታያል።",
   "admin.locations.import.reason.missingCoordinates": "ከተማም ክፍለ ከተማም የመሃል ኬክሮስና ኬንትሮስ ያስፈልጋቸዋል።",
   "admin.locations.import.reason.isoOnRegionsOnly": "የISO 3166-2 ኮድ የሚይዘው ክልል ብቻ ነው።",
@@ -1592,6 +1594,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.locations.import.reason.badBoolean": "ያ ሕዋስ true ወይም false መሆን አለበት።",
   "admin.locations.import.reason.tooLong": "ያ ሕዋስ ይህ አምድ ከሚፈቅደው ይረዝማል።",
   "admin.locations.import.reason.required": "ይህ ሕዋስ ባዶ መሆን አይችልም።",
+  "admin.locations.import.reason.permissionDenied": "የዚህን ገበያ የራሱን መዝገብ ለመቀየር ፈቃድ የለህም።",
   "admin.locations.import.reason.unknown": "ይህ ረድፍ ተከልክሏል",
   "admin.locations.import.titleAll":
     "\u12c8\u12f0 \u1201\u1209\u121d \u12a0\u1308\u122e\u127d \u12a0\u1235\u1308\u1263",

@@ -47,8 +47,10 @@ type DoorError = {
  * THE DOOR TABLE (CHANGE 4). `exact`: the whole message; `stepUp`: the message is
  * `step-up required` or begins `step-up required:`. A fixed sentence answers ITSELF (a server
  * literal). Every door answers a code through the shell since F1-4b (read by `codedRefusal`);
- * what stays is the gate's step-up sentence (SQLSTATE P0009, every family) and the planners'
- * `unknown category scope` / `unknown country scope` (F1-7).
+ * what stays is the gate's step-up sentence (SQLSTATE P0009, every family). The planners'
+ * `unknown category scope` / `unknown country scope` sentences became the codes
+ * `unknownCategory` / `unknownCountry` in F1-7b, which `codedRefusal` answers (400, with the
+ * code); a row of this table leaves when no function the route calls still raises it.
  */
 export type ImportRefusal =
   | { match: string; kind: "exact"; status: 404 }
@@ -56,8 +58,6 @@ export type ImportRefusal =
 
 export const IMPORT_REFUSALS: readonly ImportRefusal[] = [
   { match: "step-up required", kind: "stepUp", status: 428 },
-  { match: "unknown category scope", kind: "exact", status: 404 },
-  { match: "unknown country scope", kind: "exact", status: 404 },
 ];
 
 /** The factory's own words and the gate's file-law words — with the table, every word answered. */
