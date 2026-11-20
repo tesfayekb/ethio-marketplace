@@ -1,10 +1,10 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `86c402285289efd15e73ae0b2643c28ab5376ac5` (short `86c4022`)
+- Commit: `c075c18174fa70a2197c2a147800f0635a3d1fc9` (short `c075c18`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-20T08:50:48Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44703584986
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-ee2236758dc1… (0 read)
+- Completed (UTC): 2026-11-20T08:58:46Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44705961303
+- Lanes: skipped — the code tree was proven by run 44703584986 (pull_request, cursor/f1-doors-7b, head 86c4022)
 
 ## Jobs
 
@@ -12,40 +12,19 @@
 | --- | ---------- |
 | Scope (docs-only push, DEC-365) | success |
 | Gitleaks secrets scan | success |
-| Hardcoded string scan (enforcing) | success |
-| Build, typecheck, lint | success |
-| Migration linter (with self-test) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | Import gate guard (with self-test) | success |
 | i18n used-on map is fresh (U4i ②) | success |
 | Component tests | success |
-| Semgrep (enforcing on ERROR) | success |
+| Build, typecheck, lint | success |
 | Listing-write seam guard (with self-test) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | E2E preflight (migration parity, staging) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| E2E lanes / Backend images (DEC-309) | success |
-| E2E lanes / Lane 9 on temporary Supabase | success |
-| E2E lanes / Lane 2 on temporary Supabase | success |
-| E2E lanes / Lane 6 on temporary Supabase | success |
-| E2E lanes / Lane smoke on temporary Supabase | success |
-| E2E lanes / Lane webkit on temporary Supabase | success |
-| E2E lanes / Lane 1 on temporary Supabase | success |
-| E2E lanes / Lane 3 on temporary Supabase | success |
-| E2E lanes / Lane 12 on temporary Supabase | success |
-| E2E lanes / Lane 15 on temporary Supabase | success |
-| E2E lanes / Lane 7 on temporary Supabase | success |
-| E2E lanes / Lane 16 on temporary Supabase | success |
-| E2E lanes / Lane 10 on temporary Supabase | success |
-| E2E lanes / Lane repeat on temporary Supabase | success |
-| E2E lanes / Lane 5 on temporary Supabase | success |
-| E2E lanes / Lane email on temporary Supabase | success |
-| E2E lanes / Lane 4 on temporary Supabase | success |
-| E2E lanes / Lane 13 on temporary Supabase | success |
-| E2E lanes / Lane 11 on temporary Supabase | success |
-| E2E lanes / Lane 8 on temporary Supabase | success |
-| E2E lanes / Lane 14 on temporary Supabase | success |
-| E2E lanes / Summarize temporary backend lanes | success |
+| Hardcoded string scan (enforcing) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Migration linter (with self-test) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
+| Semgrep (enforcing on ERROR) | success |
 | E2E (Playwright, ethio-staging) | success |
+| E2E lanes | skipped (proven tree) |
+| First-paint bundle budget (gzipped ceiling) | skipped (proven tree) |
 | Promote to main (fast-forward on green) | skipped |
