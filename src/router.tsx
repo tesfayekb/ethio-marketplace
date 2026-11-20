@@ -1,5 +1,5 @@
 import { createRouter } from "@tanstack/react-router";
-import { sessionQueryClient } from "@/features/auth/session-end";
+import { sessionQueryClient } from "@/features/auth/session-query-client";
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
