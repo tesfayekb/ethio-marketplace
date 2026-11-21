@@ -1,0 +1,19 @@
+{
+  "note": "Cursor bundle 1, item 4 (ACT-029): the level Guide's two sentences. Copy each value by script; check each sha256 (of the UTF-8 value). Every other key of the level block moves byte for byte.",
+  "keys": [
+    {
+      "key": "admin.monetisation.levels.guide.what",
+      "en": "The levels an ad can have — Regular, Featured, Premium and any you add. A level sets how long an ad runs, how many photos it may carry, where it is placed and whether it wears a badge. Open a level to set its specific perks and its prices.",
+      "en_sha256": "055cb84e4ea3a345605cee5580a8155f0e9aee7cd6130f9e9501f0437a1009cf",
+      "am": "ማስታወቂያ ሊኖረው የሚችለው ደረጃዎች — መደበኛ፣ የተለየ፣ ፕሪሚየም እና እርስዎ የሚጨምሩት ማንኛውም። ደረጃ ማስታወቂያ ምን ያህል እንደሚቆይ፣ ስንት ፎቶ እንደሚይዝ፣ የት እንደሚቀመጥ እና ምልክት እንደሚኖረው ይወስናል። ልዩ ጥቅሞቹን እና ዋጋዎቹን ለማስቀመጥ ደረጃውን ይክፈቱ።",
+      "am_sha256": "0f5774f85476749a93fcf14df220967fffbbe0bd0711981f1424437b4f2bcdd2"
+    },
+    {
+      "key": "admin.monetisation.levels.guide.how",
+      "en": "Add level creates a level with its key, names and perks. Edit changes everything but the key. A level is switched off, never removed, so ads that have it keep their history. Open a row to add specific perks and prices for this level.",
+      "en_sha256": "32bd8754c1184d1de0ffefe689cbcc008bd96775d221aa10b4cb6c492fdd6367",
+      "am": "«ደረጃ ጨምር» በመለያው፣ በስሞቹ እና በጥቅሞቹ ደረጃ ይፈጥራል። «አርትዕ» ከመለያው በስተቀር ሁሉንም ይቀይራል። ደረጃ ይጠፋል እንጂ በፍጹም አይወገድም፤ ስለዚህ ያለው ማስታወቂያዎች ታሪካቸውን ይጠብቃሉ። ለዚህ ደረጃ ልዩ ጥቅሞችን እና ዋጋዎችን ለመጨመር ረድፉን ይክፈቱ።",
+      "am_sha256": "2b8d807a0692f5d3423dcdbd459b17890a9b03feba9ded2e4b61a06d6c5a9326"
+    }
+  ]
+}
