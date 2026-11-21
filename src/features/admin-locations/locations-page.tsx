@@ -17,6 +17,7 @@ import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -33,7 +34,7 @@ import {
   LocationMoveDialog,
   LocationReorderDialog,
 } from "./location-verb-dialogs";
-import { LocationFilters, MarketPicker } from "./locations-toolbar";
+import { LocationFilters } from "./locations-toolbar";
 import {
   childLevelOf,
   deleteBlockedKey,
@@ -449,14 +450,26 @@ export function AdminLocationsPage() {
                 <TableToolbar
                   testid="location-toolbar"
                   scope={
-                    <MarketPicker
-                      markets={markets}
-                      country={country}
-                      onCountry={(code) => {
-                        setCountry(code);
+                    <NativeSelect
+                      className="w-full md:w-64"
+                      data-testid="location-country-filter"
+                      aria-label={t("admin.locations.filter.country")}
+                      value={country}
+                      onChange={(event) => {
+                        setCountry(event.target.value);
                         setPage(0);
                       }}
-                    />
+                    >
+                      {/* L2b-C1 — the roster OPENS here: every market at once, one read. */}
+                      <option value="">{t("admin.locations.filter.allCountriesOption")}</option>
+                      {markets.map((market) => (
+                        <option key={market.code} value={market.code}>
+                          {market.isActive
+                            ? market.nameEn
+                            : `${market.nameEn} · ${t("admin.locations.filter.closedSuffix")}`}
+                        </option>
+                      ))}
+                    </NativeSelect>
                   }
                   search={
                     <Input

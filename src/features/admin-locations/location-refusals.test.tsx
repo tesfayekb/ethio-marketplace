@@ -66,7 +66,17 @@ const TRIGGER_IDS = [
 describe("the places console's refusals (F1-4b, DEC-333)", () => {
   it("LRF-1 every id the console spoke keeps its own line; the words hold those and the two shared codes", () => {
     expect(Object.keys(LOCATION_REFUSALS.words).sort()).toEqual(
-      [...IDS, "permissionDenied", "rateLimited", "required", "badType"].sort(),
+      [
+        ...IDS,
+        "permissionDenied",
+        "rateLimited",
+        "required",
+        "badType",
+        "notSignedIn",
+        "accountDeactivated",
+        "unknownBatch",
+        "undoBlocked",
+      ].sort(),
     );
     for (const id of IDS) {
       const read = readRefusal(refused(id), LOCATION_REFUSALS);
@@ -132,14 +142,7 @@ describe("the places console's refusals (F1-4b, DEC-333)", () => {
 
   it("LRF-4 a code without words, a sentence and a failed fetch draw the console's generic line, never the raw text", () => {
     const generic = "admin.locations.error.unknown";
-    for (const message of [
-      "notSignedIn",
-      "accountDeactivated",
-      "unknownBatch",
-      "undoBlocked:hasRows",
-      "something new",
-      "TypeError: Failed to fetch",
-    ]) {
+    for (const message of ["something new", "TypeError: Failed to fetch"]) {
       expect([message, readRefusal(refused(message), LOCATION_REFUSALS).key]).toEqual([
         message,
         generic,
@@ -149,6 +152,18 @@ describe("the places console's refusals (F1-4b, DEC-333)", () => {
     const { result } = renderHook(() => useLocationRefusal());
     act(() => result.current.fail({ message: "something new", code: "P0001" }));
     expect(result.current.message).toBe(`T(${generic})`);
+  });
+
+  it("LRF-7 the four codes that drew the generic line have words: signed out or deactivated reads denied, an undo's batch codes the import words", () => {
+    for (const [message, key] of [
+      ["notSignedIn", "admin.locations.error.denied"],
+      ["accountDeactivated", "admin.locations.error.denied"],
+      ["unknownBatch", "admin.import.reason.unknownBatch"],
+      ["undoBlocked:hasRows", "admin.import.reason.undoBlocked"],
+    ] as const) {
+      const read = readRefusal(refused(message), LOCATION_REFUSALS);
+      expect([message, read.branch, read.key]).toEqual([message, "family", key]);
+    }
   });
 
   it("LRF-5 the gate's step-up sentence reads its own line; a cancelled step-up says nothing; no factor says so", () => {

@@ -9,19 +9,13 @@ import { CategoryImageError } from "./category-images-service";
 import { useImageFailure } from "./use-image-failure";
 
 describe("the picture surface's failure line (F1-4a)", () => {
-  it("CIG-2 a route step keeps its own words; a door's refusal reads the family's words, a code without words names the step alone", () => {
+  it("CIG-2 a door's refusal reads the family's words, a code without words names the step alone", () => {
     const { result } = renderHook(() => useImageFailure());
     const line = (error: unknown) => {
       act(() => result.current.fail(error));
       return result.current.message;
     };
     const stage = (name: string) => ` (admin.categories.image.stageLabel ${name})`;
-    expect(line(new CategoryImageError("rateLimited", 429, "model-call"))).toBe(
-      `admin.categories.error.imageFailed${stage("model-call")}: rateLimited`,
-    );
-    expect(line(new CategoryImageError("storage upload failed: x", 0, "upload"))).toBe(
-      `admin.categories.error.imageFailed${stage("upload")}: storage upload failed: x`,
-    );
     expect(line(new CategoryImageError("rateLimited", 0, "persist"))).toBe(
       "admin.error.rateLimited",
     );
@@ -32,6 +26,30 @@ describe("the picture surface's failure line (F1-4a)", () => {
       "admin.categories.error.acceptNoImage",
     );
     expect(line(new Error("Failed to fetch"))).toBe("admin.categories.error.imageFailed");
+  });
+
+  it("CIG-3 a route or storage step never draws its own raw text: a code with words reads them, anything else names the step alone", () => {
+    const { result } = renderHook(() => useImageFailure());
+    const line = (error: unknown) => {
+      act(() => result.current.fail(error));
+      return result.current.message;
+    };
+    const stage = (name: string) => ` (admin.categories.image.stageLabel ${name})`;
+    expect(line(new CategoryImageError("rateLimited", 429, "model-call"))).toBe(
+      "admin.error.rateLimited",
+    );
+    for (const [message, step] of [
+      ["storage upload failed: x", "upload"],
+      ["not signed in", "model-call"],
+      ["network error", "model-call"],
+      ["route returned no image", "model-call"],
+      ["client-timeout", "client-timeout"],
+    ] as const) {
+      expect([message, line(new CategoryImageError(message, 0, step))]).toEqual([
+        message,
+        `admin.categories.error.imageFailed${stage(step)}`,
+      ]);
+    }
   });
 
   it("RRD-7 a persist step's code is named by the step alone; a sentence keeps its words", () => {

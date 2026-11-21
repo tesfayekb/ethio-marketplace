@@ -1,5 +1,5 @@
 import type { MessageKey } from "@/i18n";
-import { DOOR_REFUSED_KEY } from "@/lib/door-codes";
+import { DOOR_REFUSED_KEY, doorCode } from "@/lib/door-codes";
 import { ownValue } from "@/lib/own-key";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
@@ -221,6 +221,18 @@ function refusalKeyOf(code: string, kind: PromoteKind): MessageKey | undefined {
 /** A door refusal in the seller's words; a code without words of its own is `door.refused`. */
 export function promoteRefusalKey(error: unknown, kind: PromoteKind): MessageKey {
   return readRefusal(error, kind === "reach" ? REACH_REFUSALS : LEVEL_REFUSALS).key;
+}
+
+/**
+ * The sheet's read failure in words, through the one reader (bundle 1 part C, CF-FORM-3): a read
+ * the door refused by a code is named in the level's words; any other failure is the plain retry
+ * line.
+ */
+export function promoteReadErrorKey(error: unknown): MessageKey {
+  const failure = readerFailure(error);
+  return doorCode(failure).code === null
+    ? "myListings.error.failed"
+    : readRefusal(failure, LEVEL_REFUSALS).key;
 }
 
 /** Why a row the ad cannot take is not offered (the door's availability, in words). */

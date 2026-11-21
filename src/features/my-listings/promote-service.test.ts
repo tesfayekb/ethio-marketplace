@@ -15,6 +15,7 @@ import { readerFailure } from "@/lib/reader-failure";
 import {
   availabilityKey,
   parsePromoteOptions,
+  promoteReadErrorKey,
   promoteRefusalKey,
   readPromoteOptions,
   setListingLevel,
@@ -270,4 +271,15 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
     expect(availabilityKey("unknownReach", "reach")).toBe("myListings.promote.error.unknownReach");
     expect(availabilityKey("lowerReach", "reach")).toBe("myListings.promote.error.lowerReach");
   });
+});
+
+it("PMV-8 the sheet's read failure: a code the door refused by is named in the level's words, any other failure is the plain retry line", () => {
+  expect(promoteReadErrorKey({ message: "notLive", code: "P0D01" })).toBe(
+    "myListings.promote.error.notLive",
+  );
+  expect(promoteReadErrorKey({ message: "a sentence, not a code", code: "P0001" })).toBe(
+    "myListings.error.failed",
+  );
+  expect(promoteReadErrorKey(new Error("Failed to fetch"))).toBe("myListings.error.failed");
+  expect(promoteReadErrorKey(undefined)).toBe("myListings.error.failed");
 });
