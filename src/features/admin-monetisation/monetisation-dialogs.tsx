@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
-import type { Refusal } from "@/lib/refusal";
+import { refusalText, type Refusal } from "@/lib/refusal";
 
 import { PLACEMENT_LABEL } from "./monetisation-forms";
 import { MONETISATION_REFUSALS, type MonetisationRefusal } from "./monetisation-refusals";
@@ -26,12 +26,14 @@ export function MonetisationProblemLine({
   refusal: MonetisationRefusal | null;
   testid: string;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   if (refusal === null) return null;
   return (
     <>
       <p role="alert" data-testid={testid} className="text-sm text-destructive">
-        {t(refusal.key)}
+        {refusal.read === undefined
+          ? t(refusal.key)
+          : refusalText(refusal.read, t, undefined, language)}
       </p>
       {refusal.raw === null ? null : (
         <p className="text-sm break-words text-muted-foreground" data-testid={`${testid}-reason`}>

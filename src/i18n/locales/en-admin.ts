@@ -532,6 +532,8 @@ export const enAdmin = {
   "admin.screening.confirmApproveMany": "Approve {count} ads? They go on the site now.",
   "admin.screening.confirmRejectMany": "Reject {count} ads? They stay off the site.",
   "admin.screening.revealLimited": "You have shown many numbers in the last hour. Try again later.",
+  "admin.screening.revealLimitedWhen":
+    "You have shown many numbers in the last hour. Try again {when}.",
   "admin.screening.revealNotShown": "The seller does not show this number.",
   "admin.screening.error.ownListing":
     "This is your own ad. Another reviewer must approve or reject it.",
@@ -1872,6 +1874,7 @@ export const enAdmin = {
   "admin.packages.error.denied": "You do not have permission to do that.",
   "admin.packages.error.stepUp": "Verify a code and try again.",
   "admin.packages.error.rateLimited": "Too many changes in a row; try again later.",
+  "admin.packages.error.rateLimitedWhen": "Too many changes in a row. Try again {when}.",
   "admin.packages.error.badKey":
     "A package key is 2 to 32 lower-case letters, digits or underscores, starting with a letter.",
   "admin.packages.error.badDays": "Days is at least 1.",

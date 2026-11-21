@@ -223,6 +223,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "admin.listings.move.error.illegal": "ዝርዝሩ ከተጫነ በኋላ የዚህ ማስታወቂያ ሁኔታ ተቀይሯል። ገጹን እንደገና ይጫኑ።",
   "admin.listings.move.error.severe": "በከባድ ምክንያት የተወገደ ማስታወቂያ የሚመለሰው በዋና አስተዳዳሪ ብቻ ነው።",
   "admin.listings.move.error.rateLimited": "ባለፈው ሰዓት ውስጥ ብዙ ለውጦች ተደርገዋል። ቆይተው እንደገና ይሞክሩ።",
+  "admin.listings.move.error.rateLimitedWhen": "ባለፈው ሰዓት ውስጥ ብዙ ለውጦች ተደርገዋል። {when} እንደገና ይሞክሩ።",
   "admin.listings.move.error.denied": "ይህን ለማድረግ ፈቃድ የለዎትም።",
   "admin.listings.detail.history": "ታሪክ",
   "admin.listings.detail.sellerEnd": "ሻጩ የመረጠው ማብቂያ ቀን",

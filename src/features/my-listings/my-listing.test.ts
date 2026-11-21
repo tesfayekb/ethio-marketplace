@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { en } from "@/i18n/locales/en";
 
@@ -32,6 +32,7 @@ import {
   type MyListing,
 } from "./my-listing";
 import { REASON_WORD, REMOVAL_REASON, SOLD_ON, stateLine } from "./state-line";
+import { actionErrorRead, actionOutcomeText } from "./my-listing";
 
 /** Bundle 16 turn 3 — one ad's answer, its history and its actions. */
 const row = {
@@ -383,5 +384,23 @@ describe("the seller doors' legal reason (INC-1189)", () => {
     expect(legalReasonOf(" acceptanceRequired:v1 ")).toBe("acceptanceRequired");
     expect(legalReasonOf("certificationRequired")).toBe("certificationRequired");
     expect(legalReasonOf("acceptanceRequiredSoon")).toBeUndefined();
+  });
+});
+
+describe("L22b RTW-13", () => {
+  it("RTW-13 my listings: a reset still to come says when; no instant keeps the plain words", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-21T04:00:00Z"));
+    try {
+      const words = (key: string) => (key.endsWith("When") ? "{when}" : "plain");
+      const read = actionErrorRead("rateLimited:2026-11-21T05:00:00Z");
+      expect(read.key).toBe("myListings.error.rateLimited");
+      expect(actionOutcomeText({ key: read.key, read }, words, "en")).toBe("in 1 hour");
+      const plain = actionErrorRead("rateLimited");
+      expect(actionOutcomeText({ key: plain.key, read: plain }, words, "en")).toBe("plain");
+      expect(actionOutcomeText({ key: "myListings.error.rateLimited" }, words, "en")).toBe("plain");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

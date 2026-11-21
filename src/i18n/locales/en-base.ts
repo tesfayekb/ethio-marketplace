@@ -134,6 +134,7 @@ export const enBase = {
   "myListings.done.reopen": "Reopened. It is live again.",
   "myListings.done.renew": "Renewed. It is live again.",
   "myListings.error.rateLimited": "Too many changes in a short time. Try again in a little while.",
+  "myListings.error.rateLimitedWhen": "Too many changes in a short time. Try again {when}.",
   "myListings.error.deactivated": "Your account is deactivated.",
   "myListings.error.notYours": "This ad could not be found.",
   "myListings.error.changed": "This ad has changed. The page now shows it as it is.",
