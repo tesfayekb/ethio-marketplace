@@ -1,6 +1,6 @@
 import { rpc } from "@/lib/supabase-door";
 import { ownValue } from "@/lib/own-key";
-import { reportRefusal, type ReportRefusal } from "./ad-page-refusals";
+import { rateUntilOf, reportRefusal, type ReportRefusal } from "./ad-page-refusals";
 
 export const REPORT_REASONS = [
   "spam",
@@ -14,7 +14,7 @@ export const REPORT_REASONS = [
   "other",
 ] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
-export type ReportAnswer = { ok: true } | { ok: false; reason: ReportRefusal };
+export type ReportAnswer = { ok: true } | { ok: false; reason: ReportRefusal; until?: string };
 
 export async function reportListing(
   publicId: string,
@@ -30,7 +30,12 @@ export async function reportListing(
     if (error) {
       console.error("[report-listing]", error.message);
       // F1-5b — the shell's refusal is a code (`alreadyReported`, `ownListing`, `rateLimited`, ...).
-      return { ok: false, reason: reportRefusal(error) };
+      const refused = reportRefusal(error);
+      const until = refused === "rateLimited" ? rateUntilOf(error) : undefined;
+      // L22c — the reset instant rides along only when the dial named one.
+      return until === undefined
+        ? { ok: false, reason: refused }
+        : { ok: false, reason: refused, until };
     }
     if (data === null || typeof data !== "object" || Array.isArray(data))
       return { ok: false, reason: "failed" };

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 744,
-  "dynamicCallSites": 426,
+  "dynamicCallSites": 425,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -103,18 +103,6 @@
       "/post/$listingId"
     ],
     "adPage.contact.link": [
-      "(every page)",
-      "/admin/listings/$listingId",
-      "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "adPage.contact.rateLimited": [
       "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
@@ -348,6 +336,18 @@
       "/post/$listingId"
     ],
     "adPage.save.count": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "adPage.save.failed": [
       "(every page)",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",

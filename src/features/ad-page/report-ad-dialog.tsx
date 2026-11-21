@@ -13,6 +13,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n, type MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { rateText } from "./ad-page-refusals";
 import { REPORT_REASONS, reportListing, type ReportReason } from "./report";
 
 /**
@@ -33,12 +34,14 @@ export function ReportAdDialog({
   publicId: string;
   onOwn: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const id = useId();
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [state, setState] = useState<"sent" | "already" | "rateLimited" | "failed" | null>(null);
+  // L22c — the report dial's reset instant, when it named one.
+  const [until, setUntil] = useState<string | undefined>(undefined);
   const terminal = state === "sent" || state === "already";
   const send = async () => {
     if (reason === null || busy) return;
@@ -49,7 +52,10 @@ export function ReportAdDialog({
     else if (answer.reason === "ownListing") {
       onOpenChange(false);
       onOwn();
-    } else setState(answer.reason === "alreadyReported" ? "already" : answer.reason);
+    } else {
+      setState(answer.reason === "alreadyReported" ? "already" : answer.reason);
+      setUntil(answer.until);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,15 +71,15 @@ export function ReportAdDialog({
             data-state={state}
             className="break-words text-sm"
           >
-            {t(
-              state === "sent"
-                ? "adPage.report.thanks"
-                : state === "already"
-                  ? "adPage.report.already"
-                  : state === "rateLimited"
-                    ? "adPage.report.rateLimited"
-                    : "adPage.report.failed",
-            )}
+            {state === "rateLimited"
+              ? rateText("report", until, t, language)
+              : t(
+                  state === "sent"
+                    ? "adPage.report.thanks"
+                    : state === "already"
+                      ? "adPage.report.already"
+                      : "adPage.report.failed",
+                )}
           </p>
         )}
         {terminal ? (

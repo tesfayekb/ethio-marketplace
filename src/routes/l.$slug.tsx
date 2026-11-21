@@ -144,6 +144,8 @@ function AdPage() {
   } = useSavedState(user?.id ?? null, doc.public_id, doc.counts.saves);
   const [saveBusy, setSaveBusy] = useState(false);
   const [saveRefusal, setSaveRefusal] = useState<"rateLimited" | "failed" | null>(null);
+  // L22c — the save dial's reset instant, when it named one.
+  const [saveUntil, setSaveUntil] = useState<string | undefined>(undefined);
   // INC-1191 (F1-7a) — the seller is known from the signed-in read of the viewer's state
   // (`viewerOwns`, also true after a reload); `ownAd` stays for a refusal that proved it first
   // (a Save or Report the door refused as the ad's own), so the page never offers either twice.
@@ -163,7 +165,10 @@ function AdPage() {
         if (answer.ok) {
           applyWrite(answer);
         } else if (answer.reason === "ownListing") setOwnAd(true);
-        else setSaveRefusal(answer.reason === "rateLimited" ? "rateLimited" : "failed");
+        else {
+          setSaveRefusal(answer.reason === "rateLimited" ? "rateLimited" : "failed");
+          setSaveUntil(answer.until);
+        }
       })
       .finally(() => setSaveBusy(false));
   };
@@ -220,7 +225,11 @@ function AdPage() {
           certifyRefusal("acceptanceRequired", navigate);
           setContactState({ kind: "idle" });
         } else {
-          setContactState({ kind: "refused", reason: answer.reason });
+          setContactState(
+            answer.until === undefined
+              ? { kind: "refused", reason: answer.reason }
+              : { kind: "refused", reason: answer.reason, until: answer.until },
+          );
         }
       })
       .finally(() => {
@@ -312,6 +321,7 @@ function AdPage() {
                 count: saveCount,
                 busy: saveBusy,
                 refusal: saveRefusal,
+                ...(saveUntil === undefined ? {} : { until: saveUntil }),
                 signInTo: { to: "/auth", search: { return: `${canonical}#save` } },
                 onToggle,
               }

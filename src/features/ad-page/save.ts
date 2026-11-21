@@ -2,11 +2,18 @@ import { levelsOf, parseCard, type FeedListing } from "@/features/feed/feed-page
 import { seedLevelRows, type LevelRow } from "@/features/levels/levels-store";
 import { rpc } from "@/lib/supabase-door";
 import type { Json } from "@/integrations/supabase/types";
-import { saveRefusal, type SaveRefusal } from "./ad-page-refusals";
+import { rateUntilOf, saveRefusal, type SaveRefusal } from "./ad-page-refusals";
 
 export type SaveAnswer =
   | { ok: true; saved: boolean; count: number }
-  | { ok: false; reason: SaveRefusal };
+  | { ok: false; reason: SaveRefusal; until?: string };
+
+/** L22c — a refused answer; the reset instant rides along only when the dial named one. */
+function refusedAnswer(reason: SaveRefusal, until: string | undefined): SaveAnswer {
+  return reason === "rateLimited" && until !== undefined
+    ? { ok: false, reason, until }
+    : { ok: false, reason };
+}
 
 async function toggle(
   publicId: string,
@@ -17,7 +24,7 @@ async function toggle(
     if (error) {
       console.error(`[save-error] ${door}`, error.message);
       // F1-5b — the shell's refusal is a code (`ownListing`, `rateLimited`, ...), read by the one reader.
-      return { ok: false, reason: saveRefusal(error) };
+      return refusedAnswer(saveRefusal(error), rateUntilOf(error));
     }
     if (data !== null && typeof data === "object" && !Array.isArray(data)) {
       if (

@@ -1,4 +1,5 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
+import { rateText } from "@/features/ad-page/ad-page-refusals";
 import { logOnDemandFailure } from "@/lib/on-demand-failure";
 import { loadOnce } from "@/lib/load-once";
 import { resilientLazy } from "@/lib/resilient-lazy";
@@ -277,6 +278,8 @@ export interface ListingDetailView {
     count: number;
     busy: boolean;
     refusal: "rateLimited" | "failed" | null;
+    /** L22c — the save dial's reset instant, when it named one. */
+    until?: string;
     signInTo: { to: "/auth"; search: { return: string } };
     onToggle: () => void;
   };
@@ -790,11 +793,9 @@ export function ListingDetail(view: ListingDetailView) {
                   data-testid="listing-save-refusal"
                   className="text-sm text-destructive"
                 >
-                  {t(
-                    view.save.refusal === "rateLimited"
-                      ? "adPage.save.rateLimited"
-                      : "adPage.save.failed",
-                  )}
+                  {view.save.refusal === "rateLimited"
+                    ? rateText("save", view.save.until, t, language)
+                    : t("adPage.save.failed")}
                 </p>
               )}
               {highlighted.length > 0 && (
@@ -1424,7 +1425,7 @@ function BuyerContact({
   contactLook: string;
   ink: string;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   // Blink-free first paint: until the sign-in state is known, the heading alone.
   if (contact.viewer === "unknown") return null;
@@ -1520,7 +1521,7 @@ function BuyerContact({
           {state.reason === "sellersCapReached"
             ? t("adPage.contact.sellersCap")
             : state.reason === "rateLimited"
-              ? t("adPage.contact.rateLimited")
+              ? rateText("contact", state.until, t, language)
               : t("adPage.contact.failed")}
         </p>
       )}
