@@ -8,7 +8,9 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useOpenerFocus } from "./dialog-opener";
 import { NoticeOutlet } from "./notice-outlet";
+import { focusAwayFromRed } from "./dialog-parts";
 import {
+  BANDS_PANEL,
   DIALOG_CLOSE,
   DIALOG_FOOTER,
   DIALOG_GRABBER,
@@ -46,6 +48,8 @@ SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content> {
   /** The edge it docks to, in the reading direction: start, end, or the bottom (with the grabber). */
   side?: SheetSide;
+  /** Bundle 2 — the panel anatomy (dialog-parts.tsx). */
+  bands?: boolean;
   /** The close button's test id, for a surface whose tests press it. */
   closeTestId?: string;
 }
@@ -56,7 +60,16 @@ const SheetContent = React.forwardRef<
   SheetContentProps
 >(
   (
-    { side = "end", className, closeTestId, children, onOpenAutoFocus, onCloseAutoFocus, ...props },
+    {
+      side = "end",
+      bands = false,
+      className,
+      closeTestId,
+      children,
+      onOpenAutoFocus,
+      onCloseAutoFocus,
+      ...props
+    },
     ref,
   ) => {
     const { t } = useI18n();
@@ -68,10 +81,19 @@ const SheetContent = React.forwardRef<
         <SheetPrimitive.Content
           ref={ref}
           data-dialog-panel=""
-          className={cn(SHEET_PANEL, DIALOG_LAYER.modal, SHEET_SIDE[side], className)}
+          className={cn(
+            SHEET_PANEL,
+            DIALOG_LAYER.modal,
+            SHEET_SIDE[side],
+            bands && BANDS_PANEL,
+            className,
+          )}
+          data-bands={bands ? "" : undefined}
+          data-phone={side === "bottom" ? "sheet" : undefined}
           onOpenAutoFocus={(event) => {
             opener.opened(event);
             onOpenAutoFocus?.(event);
+            if (!event.defaultPrevented) focusAwayFromRed(event);
           }}
           onCloseAutoFocus={(event) => {
             onCloseAutoFocus?.(event);
@@ -79,7 +101,7 @@ const SheetContent = React.forwardRef<
           }}
           {...props}
         >
-          {side === "bottom" ? (
+          {side === "bottom" && !bands ? (
             <div aria-hidden="true" data-dialog-grabber="" className={DIALOG_GRABBER} />
           ) : null}
           {children}

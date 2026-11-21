@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 import { useOpenerFocus } from "./dialog-opener";
 import { NoticeOutlet } from "./notice-outlet";
 import { buttonVariants } from "@/components/ui/button-variants";
+import { focusAwayFromRed } from "./dialog-parts";
 import {
+  BANDS_PANEL,
   DIALOG_FIT,
   DIALOG_FOOTER,
   DIALOG_HEADER,
@@ -41,40 +43,60 @@ AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName;
  *  is one of its two actions. */
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> & { size?: DialogSize }
->(({ className, size = "default", children, onOpenAutoFocus, onCloseAutoFocus, ...props }, ref) => {
-  // INC-1130 — the alert gives the focus back to its opener, as every panel does.
-  const opener = useOpenerFocus();
-  return (
-    <AlertDialogPortal>
-      <AlertDialogOverlay />
-      <AlertDialogPrimitive.Content
-        ref={ref}
-        data-dialog-panel=""
-        className={cn(
-          DIALOG_PANEL,
-          DIALOG_LAYER.modal,
-          DIALOG_SIZE[size],
-          DIALOG_FIT.bounded,
-          className,
-        )}
-        onOpenAutoFocus={(event) => {
-          opener.opened(event);
-          onOpenAutoFocus?.(event);
-        }}
-        onCloseAutoFocus={(event) => {
-          onCloseAutoFocus?.(event);
-          opener.closed(event);
-        }}
-        {...props}
-      >
-        {children}
-        {/* INC-955 — the shell's notices are drawn here while this alert is open. */}
-        <NoticeOutlet />
-      </AlertDialogPrimitive.Content>
-    </AlertDialogPortal>
-  );
-});
+  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> & {
+    size?: DialogSize;
+    /** Bundle 2 — the panel anatomy (dialog-parts.tsx). */
+    bands?: boolean;
+  }
+>(
+  (
+    {
+      className,
+      size = "default",
+      bands = false,
+      children,
+      onOpenAutoFocus,
+      onCloseAutoFocus,
+      ...props
+    },
+    ref,
+  ) => {
+    // INC-1130 — the alert gives the focus back to its opener, as every panel does.
+    const opener = useOpenerFocus();
+    return (
+      <AlertDialogPortal>
+        <AlertDialogOverlay />
+        <AlertDialogPrimitive.Content
+          ref={ref}
+          data-dialog-panel=""
+          className={cn(
+            DIALOG_PANEL,
+            DIALOG_LAYER.modal,
+            DIALOG_SIZE[size],
+            DIALOG_FIT.bounded,
+            bands && BANDS_PANEL,
+            className,
+          )}
+          data-bands={bands ? "" : undefined}
+          onOpenAutoFocus={(event) => {
+            opener.opened(event);
+            onOpenAutoFocus?.(event);
+            if (!event.defaultPrevented) focusAwayFromRed(event);
+          }}
+          onCloseAutoFocus={(event) => {
+            onCloseAutoFocus?.(event);
+            opener.closed(event);
+          }}
+          {...props}
+        >
+          {children}
+          {/* INC-955 — the shell's notices are drawn here while this alert is open. */}
+          <NoticeOutlet />
+        </AlertDialogPrimitive.Content>
+      </AlertDialogPortal>
+    );
+  },
+);
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName;
 
 const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

@@ -8,7 +8,9 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useOpenerFocus } from "./dialog-opener";
 import { NoticeOutlet } from "./notice-outlet";
+import { focusAwayFromRed } from "./dialog-parts";
 import {
+  BANDS_PANEL,
   DIALOG_CLOSE,
   DIALOG_FIT,
   DIALOG_FOOTER,
@@ -66,6 +68,9 @@ type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.
   layer?: DialogLayer;
   /** The close button's test id, for a surface whose tests press it. */
   closeTestId?: string;
+  /** Bundle 2 — the panel anatomy: header band, the body alone scrolls, footer band
+   *  (PanelHeader, PanelBody, PanelFooter in dialog-parts.tsx). */
+  bands?: boolean;
 };
 
 /** Turn S6-1 — the one dialog panel (dialog-look.ts); the consumer chooses variants, never a look. */
@@ -82,6 +87,7 @@ const DialogContent = React.forwardRef<
       phone = "float",
       layer = "modal",
       closeTestId,
+      bands = false,
       onOpenAutoFocus,
       onCloseAutoFocus,
       children,
@@ -101,16 +107,20 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Content
           ref={ref}
           data-dialog-panel=""
+          data-bands={bands && !screen ? "" : undefined}
+          data-phone={phone}
           className={cn(
             screen
               ? SCREEN_PANEL
               : [DIALOG_PANEL, DIALOG_SIZE[size], DIALOG_FIT[fit], DIALOG_PHONE[phone]],
+            bands && !screen && BANDS_PANEL,
             DIALOG_LAYER[layer],
             className,
           )}
           onOpenAutoFocus={(event) => {
             opener.opened(event);
             onOpenAutoFocus?.(event);
+            if (!event.defaultPrevented) focusAwayFromRed(event);
             const panel = event.target;
             if (!screenSized || event.defaultPrevented || !(panel instanceof HTMLElement)) return;
             event.preventDefault();
@@ -122,7 +132,7 @@ const DialogContent = React.forwardRef<
           }}
           {...props}
         >
-          {!screen && phone === "sheet" ? (
+          {!screen && !bands && phone === "sheet" ? (
             <div
               aria-hidden="true"
               data-dialog-grabber=""

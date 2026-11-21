@@ -1,6 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Check,
+  Columns3,
+  History,
+  ImageIcon,
+  Link2,
+  Pencil,
+  Send,
+  Share2,
+  SlidersHorizontal,
+  Trash2,
+  Upload,
+} from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Field } from "@/components/forms/field";
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { cn } from "@/lib/utils";
@@ -14,6 +26,10 @@ import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
+import { FilterDates } from "@/components/shell/filter-dates";
+import { FilterRow } from "@/components/shell/filter-row";
+import { FilterSelect } from "@/components/shell/filter-select";
+import { FilterText } from "@/components/shell/filter-text";
 import { RowActions } from "@/components/shell/row-actions";
 import {
   AlertDialog,
@@ -28,6 +44,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
+import {
+  BANDS_PANEL,
+  DIALOG_CARD,
+  DIALOG_PANEL,
+  DIALOG_SIZE,
+  DIALOG_TEXT,
+  DIALOG_TITLE,
+  type DialogSize,
+} from "@/components/ui/dialog-look";
+import {
+  ActionRow,
+  ClosedPrimary,
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelSubject,
+  StepTrack,
+} from "@/components/ui/dialog-parts";
 import {
   Dialog,
   DialogClose,
@@ -469,6 +504,467 @@ function DialogSpecimens() {
   );
 }
 
+/*
+ * Bundle 2 (INC-1146, DEC-418/419/420) — THE PANEL ANATOMY BOARD, look B: every archetype on
+ * the parts (dialog-parts.tsx), drawn twice as a still frame — light and dark through the theme
+ * tokens — and once as a real dialog in the page's own theme. Fixture words (a dev page,
+ * English only, as the board's other fixtures).
+ */
+const BOARD = {
+  open: "Open",
+  cancel: "Cancel",
+  approve: "Approve",
+  approveTitle: "Approve this ad?",
+  approveText: "It goes on the site now. The seller sees it as live.",
+  adTitle: "Toyota Corolla 2012, one owner",
+  adLines: ["420,000 ETB", "Bole, Addis Ababa"],
+  deleteTitle: "Delete this category?",
+  deleteText: "It is removed for good. Ads in it move to its parent.",
+  delete: "Delete",
+  formTitle: "Edit category",
+  formText: "Change its names and its place in the tree. Save keeps them.",
+  save: "Save",
+  missing: "Give the category an English name to save.",
+  nameEn: "Name in English",
+  shareTitle: "Share this ad",
+  shareText: "Send its link in an app, or copy it.",
+  shareRows: ["Telegram", "WhatsApp", "Email", "Copy link"],
+  stepsTitle: "Import places",
+  stepsText: "Choose a file and check it. Nothing changes until you confirm.",
+  steps: ["File", "Check", "Import"],
+  stepsLabel: "Steps",
+  next: "Next",
+  back: "Back",
+  sheetTitle: "History",
+  sheetText: "Every change to this text, newest first.",
+  filtersTitle: "Filters",
+  filtersText: "Narrow the list. It changes as you choose.",
+  columnsTitle: "Columns",
+  columnsText: "Choose the columns this table shows.",
+  status: "Status",
+  place: "Place",
+  title: "Title",
+  dates: "Updated",
+  from: "From",
+  to: "To",
+  all: "All",
+  search: "Search",
+  none: "Nothing matches",
+  clear: "Clear all",
+  done: "Done",
+  columns: ["Title", "Category", "Place", "Price", "Updated"],
+} as const;
+const BOARD_FIELDS = [
+  "Name in Amharic",
+  "Name in Afaan Oromo",
+  "Name in Tigrinya",
+  "Slug",
+  "Parent",
+  "Order",
+];
+const BOARD_STATUS = [
+  { value: "live", label: "Live" },
+  { value: "held", label: "Held" },
+  { value: "ended", label: "Ended" },
+];
+const BOARD_PLACES = [
+  "Addis Ababa",
+  "Adama",
+  "Bahir Dar",
+  "Dire Dawa",
+  "Gondar",
+  "Hawassa",
+  "Jimma",
+  "Mekelle",
+  "Asmara",
+  "Keren",
+  "Massawa",
+  "Dessie",
+].map((label) => ({ value: label.toLowerCase().replace(/\s+/g, "-"), label }));
+
+type BoardTitle = (props: { children: ReactNode }) => ReactNode;
+type BoardText = (props: { children: ReactNode }) => ReactNode;
+interface BoardParts {
+  Title: BoardTitle;
+  Text: BoardText;
+}
+interface Archetype {
+  key: string;
+  size: DialogSize;
+  draw: (parts: BoardParts) => ReactNode;
+}
+
+function FormArchetype({ Title, Text }: BoardParts) {
+  const [name, setName] = useState("");
+  const [marked, setMarked] = useState(false);
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  return (
+    <>
+      <PanelHeader icon={<Pencil />}>
+        <Title>{BOARD.formTitle}</Title>
+        <Text>{BOARD.formText}</Text>
+      </PanelHeader>
+      <PanelBody>
+        <div className={cn(DIALOG_CARD, "flex flex-col gap-3")}>
+          {BOARD_FIELDS.map((label) => (
+            <label key={label} className="flex flex-col gap-1 text-sm font-medium">
+              {label}
+              <Input />
+            </label>
+          ))}
+          <label className="flex flex-col gap-1 text-sm font-medium">
+            {BOARD.nameEn}
+            <Input
+              ref={nameRef}
+              value={name}
+              aria-invalid={marked && name === "" ? true : undefined}
+              className="aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive"
+              onChange={(event) => setName(event.target.value)}
+            />
+          </label>
+        </div>
+      </PanelBody>
+      <PanelFooter>
+        <Button variant="outline" size="touch">
+          {BOARD.cancel}
+        </Button>
+        <div className="flex flex-col gap-1 sm:items-end">
+          <ClosedPrimary
+            closed={name === ""}
+            onClosedPress={() => {
+              setMarked(true);
+              nameRef.current?.scrollIntoView({ block: "center" });
+              nameRef.current?.focus({ preventScroll: true });
+            }}
+            className={buttonVariants({ size: "touch" })}
+          >
+            {BOARD.save}
+          </ClosedPrimary>
+          {name === "" ? <p className="text-xs text-muted-foreground">{BOARD.missing}</p> : null}
+        </div>
+      </PanelFooter>
+    </>
+  );
+}
+
+function FiltersArchetype({ Title, Text, open }: BoardParts & { open: boolean }) {
+  const [status, setStatus] = useState<string[]>(["live"]);
+  const [places, setPlaces] = useState<string[]>([]);
+  const [text, setText] = useState("");
+  const [dates, setDates] = useState({ from: "", to: "" });
+  return (
+    <>
+      <PanelHeader icon={<SlidersHorizontal />}>
+        <Title>{BOARD.filtersTitle}</Title>
+        <Text>{BOARD.filtersText}</Text>
+      </PanelHeader>
+      <PanelBody>
+        <div className={cn(DIALOG_CARD, "flex flex-col gap-3")}>
+          <FilterRow label={BOARD.status} htmlFor={`${open}-status`}>
+            <FilterSelect
+              id={`${open}-status`}
+              testId={`style-anatomy-status-${open ? "open" : "shut"}`}
+              options={BOARD_STATUS}
+              value={status}
+              onChange={setStatus}
+              placeholder={BOARD.all}
+              searchLabel={BOARD.search}
+              noneLabel={BOARD.none}
+            />
+          </FilterRow>
+          <FilterRow label={BOARD.place} htmlFor={`${open}-place`}>
+            <FilterSelect
+              id={`${open}-place`}
+              testId={`style-anatomy-place-${open ? "open" : "shut"}`}
+              multiple
+              defaultOpen={open}
+              options={BOARD_PLACES}
+              value={places}
+              onChange={setPlaces}
+              placeholder={BOARD.all}
+              searchLabel={BOARD.search}
+              noneLabel={BOARD.none}
+            />
+          </FilterRow>
+          <FilterRow label={BOARD.title} htmlFor={`${open}-title`}>
+            <FilterText id={`${open}-title`} value={text} onChange={setText} />
+          </FilterRow>
+          <FilterRow label={BOARD.dates} htmlFor={`${open}-dates`}>
+            <FilterDates
+              id={`${open}-dates`}
+              from={dates.from}
+              to={dates.to}
+              onChange={setDates}
+              fromLabel={BOARD.from}
+              toLabel={BOARD.to}
+            />
+          </FilterRow>
+        </div>
+      </PanelBody>
+      <PanelFooter>
+        <Button variant="outline" size="touch">
+          {BOARD.clear}
+        </Button>
+        <Button size="touch">{BOARD.done}</Button>
+      </PanelFooter>
+    </>
+  );
+}
+
+const ARCHETYPES: readonly Archetype[] = [
+  {
+    key: "question",
+    size: "narrow",
+    draw: ({ Title, Text }) => (
+      <>
+        <PanelHeader icon={<Check />} tone="confirm">
+          <Title>{BOARD.approveTitle}</Title>
+          <Text>{BOARD.approveText}</Text>
+        </PanelHeader>
+        <PanelBody>
+          <PanelSubject
+            picture={
+              <ImageIcon aria-hidden="true" className="m-auto mt-4 size-6 text-muted-foreground" />
+            }
+            title={BOARD.adTitle}
+            lines={BOARD.adLines}
+          />
+        </PanelBody>
+        <PanelFooter>
+          <Button variant="outline" size="touch">
+            {BOARD.cancel}
+          </Button>
+          <Button size="touch">{BOARD.approve}</Button>
+        </PanelFooter>
+      </>
+    ),
+  },
+  {
+    key: "warning",
+    size: "narrow",
+    draw: ({ Title, Text }) => (
+      <>
+        <PanelHeader icon={<Trash2 />} tone="danger">
+          <Title>{BOARD.deleteTitle}</Title>
+          <Text>{BOARD.deleteText}</Text>
+        </PanelHeader>
+        <PanelBody>
+          <PanelSubject title={"Cars"} lines={["Vehicles › Cars"]} />
+        </PanelBody>
+        <PanelFooter>
+          <Button variant="outline" size="touch">
+            {BOARD.cancel}
+          </Button>
+          <Button variant="destructive" size="touch">
+            {BOARD.delete}
+          </Button>
+        </PanelFooter>
+      </>
+    ),
+  },
+  { key: "form", size: "default", draw: (parts) => <FormArchetype {...parts} /> },
+  {
+    key: "actions",
+    size: "default",
+    draw: ({ Title, Text }) => (
+      <>
+        <PanelHeader icon={<Share2 />}>
+          <Title>{BOARD.shareTitle}</Title>
+          <Text>{BOARD.shareText}</Text>
+        </PanelHeader>
+        <PanelBody>
+          <PanelSubject
+            picture={
+              <ImageIcon aria-hidden="true" className="m-auto mt-4 size-6 text-muted-foreground" />
+            }
+            title={BOARD.adTitle}
+            lines={[BOARD.adLines[0]]}
+          />
+          <div className={cn(DIALOG_CARD, "flex flex-col gap-1 p-2")}>
+            {BOARD.shareRows.map((row) => (
+              <ActionRow key={row} icon={row === "Copy link" ? <Link2 /> : <Send />}>
+                {row}
+              </ActionRow>
+            ))}
+          </div>
+        </PanelBody>
+      </>
+    ),
+  },
+  {
+    key: "steps",
+    size: "wide",
+    draw: ({ Title, Text }) => (
+      <>
+        <PanelHeader icon={<Upload />}>
+          <Title>{BOARD.stepsTitle}</Title>
+          <Text>{BOARD.stepsText}</Text>
+          <StepTrack label={BOARD.stepsLabel} steps={BOARD.steps} current={1} />
+        </PanelHeader>
+        <PanelBody>
+          <div className={cn(DIALOG_CARD, "text-sm")}>{"places.csv · 214 rows · 3 to fix"}</div>
+        </PanelBody>
+        <PanelFooter>
+          <Button variant="outline" size="touch">
+            {BOARD.back}
+          </Button>
+          <Button size="touch">{BOARD.next}</Button>
+        </PanelFooter>
+      </>
+    ),
+  },
+  {
+    key: "columns",
+    size: "narrow",
+    draw: ({ Title, Text }) => (
+      <>
+        <PanelHeader icon={<Columns3 />}>
+          <Title>{BOARD.columnsTitle}</Title>
+          <Text>{BOARD.columnsText}</Text>
+        </PanelHeader>
+        <PanelBody>
+          <div className={cn(DIALOG_CARD, "flex flex-col gap-1 p-2")}>
+            {BOARD.columns.map((column, index) => (
+              <label key={column} className={cn(LIST_ROW, "gap-3")}>
+                <input
+                  type="checkbox"
+                  defaultChecked={index < 4}
+                  className="size-4 accent-primary"
+                />
+                <span>{column}</span>
+              </label>
+            ))}
+          </div>
+        </PanelBody>
+      </>
+    ),
+  },
+];
+
+const StillTitle: BoardTitle = ({ children }) => <h3 className={DIALOG_TITLE}>{children}</h3>;
+const StillText: BoardText = ({ children }) => <p className={DIALOG_TEXT}>{children}</p>;
+const LiveTitle: BoardTitle = ({ children }) => <DialogTitle>{children}</DialogTitle>;
+const LiveText: BoardText = ({ children }) => <DialogDescription>{children}</DialogDescription>;
+const STILL = { Title: StillTitle, Text: StillText };
+const LIVE = { Title: LiveTitle, Text: LiveText };
+
+/** A still frame: the panel's own classes, placed in the page instead of over it. */
+function StillPanel({
+  size,
+  testId,
+  children,
+}: {
+  size: DialogSize;
+  testId: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      data-dialog-panel=""
+      data-bands=""
+      className={cn(
+        DIALOG_PANEL,
+        DIALOG_SIZE[size],
+        BANDS_PANEL,
+        "relative inset-auto m-0 h-auto max-h-[30rem] w-full",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function AnatomyBoard() {
+  const [themes, setThemes] = useState(themesModule.ready);
+  useEffect(() => {
+    if (themes) return;
+    themesModule.load().then(setThemes, (error: unknown) => {
+      reportOnDemandFailure("the theme data", error);
+    });
+  }, [themes]);
+  const name = themes ? (Object.keys(themes)[0] as ThemeName | undefined) : undefined;
+  return (
+    <div className="mt-4 flex flex-col gap-6">
+      <div className="flex flex-wrap gap-2">
+        {ARCHETYPES.map((archetype) => (
+          <Dialog key={archetype.key}>
+            <DialogTrigger asChild>
+              <Button variant="outline" data-testid={`style-anatomy-${archetype.key}-open`}>
+                {`${BOARD.open}: ${archetype.key}`}
+              </Button>
+            </DialogTrigger>
+            <DialogContent
+              bands
+              size={archetype.size}
+              phone={archetype.key === "actions" ? "sheet" : "float"}
+              data-testid={`style-anatomy-${archetype.key}`}
+            >
+              {archetype.draw(LIVE)}
+            </DialogContent>
+          </Dialog>
+        ))}
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              data-testid="style-anatomy-filters-open"
+            >{`${BOARD.open}: filters`}</Button>
+          </DialogTrigger>
+          <DialogContent bands data-testid="style-anatomy-filters">
+            <FiltersArchetype {...LIVE} open={false} />
+          </DialogContent>
+        </Dialog>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button
+              variant="outline"
+              data-testid="style-anatomy-sheet-open"
+            >{`${BOARD.open}: sheet`}</Button>
+          </SheetTrigger>
+          <SheetContent side="end" bands data-testid="style-anatomy-sheet">
+            <PanelHeader icon={<History />}>
+              <SheetTitle>{BOARD.sheetTitle}</SheetTitle>
+              <SheetDescription>{BOARD.sheetText}</SheetDescription>
+            </PanelHeader>
+            <PanelBody>
+              {Array.from({ length: 14 }, (_, index) => (
+                <div
+                  key={index}
+                  className={cn(DIALOG_CARD, "text-sm")}
+                >{`Version ${14 - index}`}</div>
+              ))}
+            </PanelBody>
+          </SheetContent>
+        </Sheet>
+      </div>
+      {themes && name !== undefined
+        ? (["light", "dark"] as const).map((mode) => (
+            <div
+              key={mode}
+              data-testid={`style-anatomy-${mode}`}
+              className={`${mode === "dark" ? "dark " : ""}grid grid-cols-1 items-start gap-4 rounded-card bg-muted p-4 text-foreground md:grid-cols-2 xl:grid-cols-3`}
+              style={themeScope(themes, name, mode)}
+            >
+              {ARCHETYPES.map((archetype) => (
+                <StillPanel
+                  key={archetype.key}
+                  size={archetype.size}
+                  testId={`style-anatomy-${archetype.key}-${mode}`}
+                >
+                  {archetype.draw(STILL)}
+                </StillPanel>
+              ))}
+              <StillPanel size="default" testId={`style-anatomy-filters-${mode}`}>
+                <FiltersArchetype {...STILL} open={mode === "light"} />
+              </StillPanel>
+            </div>
+          ))
+        : null}
+    </div>
+  );
+}
+
 function StyleFixture() {
   const [last, setLast] = useState("");
   const [offset, setOffset] = useState(0);
@@ -626,6 +1122,10 @@ function StyleFixture() {
               }}
             />
           </div>
+        </Section>
+
+        <Section title={"Panels"} testid="style-anatomy-section">
+          <AnatomyBoard />
         </Section>
 
         <Section title={"Filters"} testid="style-filters-section">
