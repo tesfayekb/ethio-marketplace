@@ -131,6 +131,9 @@ there): <file>`. Any other CREATE TABLE is judged as before. Self-tests: one
   `Real-row proof guard: allowlisted statements (each cites its reason)`.
   Self-test: of two offending statements in one temporary file, the named one
   is skipped and printed, the other is refused; the bad fixture is refused.
+- Since the tests and CI turn 2 (INC-1207), both rules and the allowlist's
+  split run on the one migration reader (below, "One reader for the migration
+  guard's proof rules"); their verdicts, heads and allowlist keys are unchanged.
 - Drafts are checked before they are saved: the migration tool applies a file
   the moment it is saved, so write the draft into a temporary folder under its
   final name, run `MIGRATIONS_DIR=<that folder> bash scripts/check-migrations.sh`,
@@ -1410,3 +1413,55 @@ a TOLERANCES paragraph that names no first download is not read for the first ha
 tree law through `scripts/brief/check-go.ts` and on the brief in force in
 `scripts/conformance/briefs.test.ts`, whose planted brief (a TOLERANCES paragraph with a bare
 2 KiB) fails it by name and whose clean brief passes.
+
+## One reader for the migration guard's proof rules (the tests and CI turn 2, INC-1207, INC-1205)
+
+`scripts/check-migrations.sh` judged three proof rules with perl of its own: the scratch table
+(DEC-151), the real row (INC-445) and the real pick (INC-1040), with the real-row allowlist's split.
+They now run on the one migration reader (register row 125): `scripts/conformance/migration-guards.ts`
+holds the rules (`tableCreatesOutsideProofs`, `realRowHeads`, `realPickHeads`, `splitByAllowlist`)
+over the reader's `doBlocksOf` (each `DO $tag$ … $tag$;` block, comments blanked), and the
+reader's CLI runs them (`--table-creates`, `--real-rows`, `--real-picks`, `--real-row-split`),
+loading them by dynamic import so the two files do not import each other. A rule judges a
+statement's code with its comments blanked. It names the statement by its raw text,
+comments kept, cut at 120 bytes with only ASCII whitespace folded, because the allowlist's
+keys were written by that reading. A scratch key named anywhere in a statement, a comment
+included, still sets it aside. On every migration of the tree the guard's verdicts, heads
+and allowlisted lines are byte-equal to the perl's (the census of this turn); only the order
+of the printed lines changed (rows, then picks).
+
+Every guard calls the reader once over its files and checks its exit: the shell's
+`MIGRATION_READER` names it, and a reader that does not finish fails the guard (`… FAILED: the
+migration reader did not finish`). The spanning-literal guard, whose scan read its reader's
+answer without its exit (INC-1205), has the checked form now, as the random-text guard had. Each
+guard's self-test points `MIGRATION_READER` at a reader that cannot run, and the real-row scan
+at a planted reader that fails one named mode (`FAIL_MODE`), so the rows, the picks and the
+split are each proven; the planted rules are MGR-9…13 (`scripts/conformance/migration-guards.test.ts`).
+`wired.test.ts` holds the six modes' calls and the absence of perl from the guard.
+
+## No import cycle through the strings — CF-CYCLE (the tests and CI turn 2, INC-1193)
+
+`scripts/conformance/import-cycles.ts` builds `src/`'s static import graph (`import` and
+`export … from`, the `@/` alias and relative paths resolved; a type-only import and a dynamic
+`import()` are no edge) and finds its strongly connected components (Tarjan). CF-CYCLE-1 refuses
+any cycle that holds a module under `src/i18n/` or a module that imports one directly, naming the
+shortest cycle through it (`a:line → b; …`); `scripts/conformance/import-cycles-allowlist.txt`
+(`key | reason | until`) is empty. CF-CYCLE-2 plants a cycle through the catalogue, one through
+an importer by re-export, and a self-import, and shows an unrelated cycle, an `import type` and a
+dynamic import pass. `src/` has no cycle at the base; INC-1193's cause (the preview's throw) stays
+open, for the preview's stack.
+
+## A column's minWidth is one min-w class (the tests and CI turn 2, ACT-023)
+
+Any `minWidth` switches the DataTable off its fixed layout, so a value that is not a min-width
+(`w-fit`, `max-w-40`, two classes) buys the switch and leaves the width unhonoured — a table
+cell's max-width is not honoured by table layout (INC-1211's class). The min-width guard
+(`scripts/check-datatable-minwidth.sh`, C3-UX-1d) keeps its same-line `// C7-dense:` rule and
+now also reads every `minWidth:` value through `scripts/datatable-minwidth.ts` (TypeScript's
+parser): a string, or a choice whose every arm is one, holding exactly one `min-w-*` class; a
+name, a call or a sum is refused because its value cannot be read. The showcase
+(`src/routes/dev.primitives.tsx`) is judged too; only `data-table.tsx`, which declares the prop,
+is not. A reader that does not finish fails the guard. Planted:
+`scripts/fixtures/bad-datatable-minwidth-class-example.tsx.txt` (GW-2) and GW-4's two-class,
+`w-fit`, one-arm, name and sum cases (refused) beside a `min-w-40`, a `min-w-[12rem]` and a
+choice of two (passing), in `scripts/shell-guards.test.ts`.

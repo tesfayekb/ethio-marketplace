@@ -100,7 +100,9 @@ expansion carries the option list at every width.
 `minWidth` fails the run unless the SAME line carries a `// C7-dense: <reason>`
 justification. `scripts/fixtures/bad-datatable-minwidth-example.tsx.txt` is its
 self-test (the guard must flag it); `data-table.tsx` itself and the
-`dev.primitives` showcase are exempt by name (E5).
+`dev.primitives` showcase are exempt by name (E5). Since ACT-023 the guard also
+refuses a `minWidth` that is not exactly one `min-w-*` class, the showcase
+included (`docs/features/ci-guards.md`).
 
 A **category filter** sits in the toolbar and lives in the URL as
 `?category=<slug>`, so a filtered library is shareable and reloadable; it reads

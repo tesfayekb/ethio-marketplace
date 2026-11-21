@@ -1,0 +1,1 @@
+# CF-CYCLE-1 (the tests and CI turn 2, INC-1193): empty — src/ holds no import cycle through src/i18n/ or a module importing one; a line here is a new exception, keyed by the cycle's first such module.

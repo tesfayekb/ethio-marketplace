@@ -1,0 +1,15 @@
+// GUARD SELF-TEST FIXTURE — intentionally illegal, never imported.
+// A DataTable column whose justified `minWidth` is not a min-width: `w-fit
+// max-w-40` switches the table off its fixed layout and the cell ignores the
+// max-width (ACT-023). `check-datatable-minwidth.sh` MUST flag this file.
+const columns = [
+  {
+    key: "name",
+    header: "Name",
+    priority: "primary",
+    minWidth: "w-fit max-w-40", // C7-dense: the planted ACT-023 case
+    cell: (row: { name: string }) => row.name,
+  },
+];
+
+export default columns;

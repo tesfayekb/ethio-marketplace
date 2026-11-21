@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -48,7 +49,10 @@ describe("shell guards run by the unit tests (INC-563)", () => {
     () => {
       const planted = run("scripts/check-datatable-minwidth.sh", ["scripts/fixtures"]);
       expect(planted.out).toContain("bad-datatable-minwidth-example.tsx.txt");
-      expect(planted.out).toContain("findings: 1");
+      expect(planted.out).toContain(
+        'bad-datatable-minwidth-class-example.tsx.txt:10:    minWidth: "w-fit max-w-40", // C7-dense: the planted ACT-023 case  <- ACT-023',
+      );
+      expect(planted.out).toContain("findings: 2");
       expect(planted.status).toBe(1);
       const tree = run("scripts/check-datatable-minwidth.sh", []);
       expect(tree.out).toContain("findings: 0");
@@ -56,6 +60,33 @@ describe("shell guards run by the unit tests (INC-563)", () => {
     },
     TREE_SCAN_MS,
   );
+
+  it("GW-4 a minWidth is exactly one min-w-* class: two classes, a width that is not a min-width, one arm of a choice, a name or a sum are refused (ACT-023)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "minwidth-"));
+    try {
+      const column = (value: string) =>
+        `const c = {\n  key: "k",\n  minWidth: ${value}, // C7-dense: planted\n};\n`;
+      writeFileSync(join(dir, "one.tsx"), column('"min-w-40"'));
+      writeFileSync(join(dir, "arbitrary.tsx"), column('"min-w-[12rem]"'));
+      writeFileSync(
+        join(dir, "choice.tsx"),
+        column('kind === "primary" ? "min-w-56" : (`min-w-40`)'),
+      );
+      expect(run("scripts/check-datatable-minwidth.sh", [dir]).out).toContain("findings: 0");
+      writeFileSync(join(dir, "two.tsx"), column('"min-w-40 max-w-60"'));
+      writeFileSync(join(dir, "width.tsx"), column("'w-fit'"));
+      writeFileSync(join(dir, "arm.tsx"), column('wide ? "min-w-56" : "w-40"'));
+      writeFileSync(join(dir, "named.tsx"), column("columnWidth"));
+      writeFileSync(join(dir, "sum.tsx"), column('"min-w-40" + extra'));
+      const refused = run("scripts/check-datatable-minwidth.sh", [dir]);
+      for (const file of ["two", "width", "arm", "named", "sum"])
+        expect(refused.out).toMatch(new RegExp(`${file}\\.tsx:3:.*<- ACT-023`));
+      expect(refused.out).toContain("findings: 5");
+      expect(refused.status).toBe(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 
   /**
    * The executor sandbox shims git read-only (add/commit/push refused even in

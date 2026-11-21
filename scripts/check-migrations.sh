@@ -45,29 +45,43 @@ rls_closer_ok() {
   return 0
 }
 
-strip_proof_scratch_tables() {
-  # DEC-151: prints the file with every DO $tag$ ... $tag$ block set aside in
-  # which CREATE TABLE and DROP TABLE occur equally often (at least once) and
-  # the scratch namespace e2e_mig_ occurs. Every other text is kept as is.
-  perl -0777 -pe '
-    s{\bDO\s+(\$\w*\$)(.*?)\1}{
-      my ($all, $b) = ($&, $2);
-      my $c = () = $b =~ /create\s+table/gi;
-      my $d = () = $b =~ /drop\s+table/gi;
-      ($c >= 1 && $c == $d && $b =~ /e2e_mig_/) ? "" : $all
-    }gse;
-  ' "$1"
+# INC-1207: the proof rules read a migration through the one migration reader
+# (scripts/conformance/migration-reader.ts, its rules in migration-guards.ts),
+# and every caller checks its exit: a reader that does not finish fails the
+# guard. The self-tests point MIGRATION_READER at a reader that cannot run.
+MIGRATION_READER="${MIGRATION_READER:-$SCRIPT_DIR/conformance/migration-reader.ts}"
+NO_READER="$SCRIPT_DIR/conformance/no-such-migration-reader.ts"
+
+table_creates() {
+  # DEC-151: one line per CREATE TABLE outside a proof block that creates and
+  # drops its tables equally often (at least once) in the namespace e2e_mig_.
+  bun "$MIGRATION_READER" --table-creates "$@"
+}
+
+table_creates_in() {
+  # $1 = migrations dir. The reader's lines for every file holding CREATE TABLE.
+  local dir="$1" file files=()
+  while IFS= read -r -d '' file; do
+    grep -qiE 'create[[:space:]]+table' "$file" && files+=("$file")
+  done < <(find "$dir" -type f -name '*.sql' -print0)
+  [ "${#files[@]}" -eq 0 ] || table_creates "${files[@]}"
 }
 
 check_file() {
-  # Returns 0 = OK, 1 = violation. Prints reason on violation.
+  # Returns 0 = OK, 1 = violation. Prints reason on violation. The real scan
+  # reads every file once beforehand into TABLE_CREATES_READ.
   local file="$1"
   if ! grep -qiE 'create[[:space:]]+table' "$file"; then
     return 0
   fi
-  local stripped
-  stripped="$(strip_proof_scratch_tables "$file")"
-  if ! grep -qiE 'create[[:space:]]+table' <<<"$stripped"; then
+  local outside=""
+  if [ -n "${TABLE_CREATES_READ+set}" ]; then
+    if [[ $'\n'"$TABLE_CREATES_READ" == *$'\n'"$file:"* ]]; then outside="yes"; fi
+  elif ! outside="$(table_creates "$file")"; then
+    echo "  - $file (the migration reader did not finish)"
+    return 1
+  fi
+  if [ -z "$outside" ]; then
     echo "Scratch table in a proof block (created and dropped there): $(basename "$file")" >&2
     return 0
   fi
@@ -156,12 +170,17 @@ for bad in no-drop no-namespace top-level; do
     rm -rf "$SCR_DIR"; exit 1
   fi
 done
+if (MIGRATION_READER="$NO_READER"; check_file "$SCR_DIR/pass.sql") >/dev/null 2>&1 \
+  || (MIGRATION_READER="$NO_READER"; table_creates_in "$SCR_DIR") >/dev/null 2>&1; then
+  echo "GUARD SELF-TEST FAILED: the scratch-table rule passed when its reader did not finish (INC-1207)"
+  rm -rf "$SCR_DIR"; exit 1
+fi
 rm -rf "$SCR_DIR"
 if check_file "$BAD_FIXTURE" >/dev/null 2>&1; then
   echo "GUARD SELF-TEST FAILED: bad fixture passed after the scratch-table rule"
   exit 1
 fi
-echo "Self-test OK: a proof block's scratch table passes only when created, dropped and namespaced there (no drop, no namespace, top-level table all flagged)."
+echo "Self-test OK: a proof block's scratch table passes only when created, dropped and namespaced there (no drop, no namespace, top-level table all flagged; a reader that does not finish fails)."
 
 
 # INC-832: a top-level table must be judged even beyond a pipe buffer.
@@ -185,6 +204,10 @@ if [ ! -d "$MIGRATIONS_DIR" ]; then
   exit 0
 fi
 
+if ! TABLE_CREATES_READ="$(table_creates_in "$MIGRATIONS_DIR")"; then
+  echo "Migration guard FAILED: the migration reader did not finish (INC-1207)."
+  exit 1
+fi
 violations=0
 offenders=""
 while IFS= read -r -d '' file; do
@@ -690,24 +713,10 @@ echo "Public-surface guard OK (floor $PUBLIC_SURFACE_FLOOR)."
 REAL_ROW_FLOOR="${REAL_ROW_FLOOR:-20261007000000}"
 
 real_row_offenders() {
-  # $1 = file. Prints one "<file>: <statement head>" per refused statement.
+  # $@ = files. Prints one "<file>: <statement head>" per refused statement.
   # INC-760: the head is trimmed of trailing spaces, as the allowlist fields are,
-  # so a statement whose 120-character cut ends on a space can be allowlisted.
-  perl -0777 -ne '
-    my $t = q{(?:auth\.users|public\.(?:user_roles|profiles|user_directory|locations|categories|attributes))\b};
-    while (/\bDO\s+(\$\w*\$)(.*?)\1/sg) {
-      for my $st (split /;/, $2) {
-        next if $st =~ /e2e-mig-/;
-        if ($st =~ /\bSELECT\b.*?\bFROM\s+$t/si
-            || $st =~ /\bUPDATE\s+$t.*?\bWHERE\b/si
-            || $st =~ /\bDELETE\s+FROM\s+$t.*?\bWHERE\b/si) {
-          (my $head = $st) =~ s/\s+/ /g; $head =~ s/^ //;
-          (my $cut = substr($head, 0, 120)) =~ s/ +$//;
-          print "$ARGV: $cut\n";
-        }
-      }
-    }
-  ' "$1"
+  # so a statement whose 120-byte cut ends on a space can be allowlisted.
+  bun "$MIGRATION_READER" --real-rows "$@"
 }
 
 # INC-1040 — nor does it pick a real reference row. In a migration at or after
@@ -718,20 +727,34 @@ real_row_offenders() {
 REAL_PICK_FLOOR="${REAL_PICK_FLOOR:-20261102000000}"
 
 real_pick_offenders() {
-  # $1 = file. Prints one "<file>: <statement head>" per refused statement.
-  perl -0777 -ne '
-    my $t = q{public\.(?:countries|languages|currencies)\b};
-    while (/\bDO\s+(\$\w*\$)(.*?)\1/sg) {
-      for my $st (split /;/, $2) {
-        next if $st =~ /e2e[-_]mig[-_]/i;
-        if ($st =~ /\bSELECT\b.*?\bFROM\s+$t.*?\bORDER\s+BY\b.*?\bLIMIT\s+1\b/si) {
-          (my $head = $st) =~ s/\s+/ /g; $head =~ s/^ //;
-          (my $cut = substr($head, 0, 120)) =~ s/ +$//;
-          print "$ARGV: $cut\n";
-        }
-      }
-    }
-  ' "$1"
+  # $@ = files. Prints one "<file>: <statement head>" per refused statement.
+  bun "$MIGRATION_READER" --real-picks "$@"
+}
+
+real_rows_in() {
+  # $1 = migrations dir. Every refused statement of the files at or after each
+  # rule's floor, read once per rule; fails when the reader does.
+  local dir="$1" file base stamp rows picks row_files=() pick_files=()
+  while IFS= read -r -d '' file; do
+    base="$(basename "$file")"
+    stamp="${base%%_*}"
+    if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$REAL_ROW_FLOOR" ]]; then
+      continue
+    fi
+    row_files+=("$file")
+    if ! [[ "$stamp" < "$REAL_PICK_FLOOR" ]]; then
+      pick_files+=("$file")
+    fi
+  done < <(find "$dir" -type f -name '*.sql' -print0)
+  rows=""
+  picks=""
+  if [ "${#row_files[@]}" -gt 0 ]; then
+    rows="$(real_row_offenders "${row_files[@]}")" || return 1
+  fi
+  if [ "${#pick_files[@]}" -gt 0 ]; then
+    picks="$(real_pick_offenders "${pick_files[@]}")" || return 1
+  fi
+  printf '%s\n%s\n' "$rows" "$picks"
 }
 
 REAL_ROW_ALLOWLIST_FILE="${REAL_ROW_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-real-row-allowlist.txt}"
@@ -745,35 +768,7 @@ real_row_split() {
   # (which the line format cannot hold) can still be allowlisted.
   local list="$2"
   [ -f "$list" ] || list=/dev/null
-  printf '%s' "$1" | perl -MDigest::SHA=sha256_hex -e '
-    my $list = $ARGV[0];
-    my (%why, %why_sha);
-    if (open(my $a, "<", $list)) {
-      while (my $l = <$a>) {
-        chomp $l;
-        next if $l =~ /^\s*#/ || $l =~ /^\s*$/;
-        my @f = split /\|/, $l;
-        next if @f < 3;
-        for my $i (0 .. 2) { $f[$i] =~ s/^\s+|\s+$//g; }
-        if ($f[1] =~ /^sha256:([0-9a-f]{16})$/) { $why_sha{$f[0] . "\034" . $1} = $f[2]; }
-        else { $why{$f[0] . "\034" . $f[1]} = $f[2]; }
-      }
-    }
-    while (my $line = <STDIN>) {
-      chomp $line;
-      next if $line =~ /^\s*$/;
-      my $i = index($line, ": ");
-      my $path = substr($line, 0, $i);
-      my $head = substr($line, $i + 2);
-      (my $base = $path) =~ s/.*\///;
-      my $k = $base . "\034" . $head;
-      my $sha = substr(sha256_hex($head), 0, 16);
-      my $ks = $base . "\034" . $sha;
-      if (exists $why{$k}) { print STDERR "  - $base | $head | $why{$k}\n"; }
-      elsif (exists $why_sha{$ks}) { print STDERR "  - $base | sha256:$sha | $why_sha{$ks}\n"; }
-      else { print "$line\n"; }
-    }
-  ' "$list"
+  printf '%s' "$1" | bun "$MIGRATION_READER" --real-row-split "$list"
 }
 
 if [ -z "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" ]; then
@@ -858,21 +853,38 @@ if ! grep -q 'FROM public.languages ORDER BY code LIMIT 1' <<<"$pick_fixture" ||
 fi
 echo "Real-row proof guard self-test OK (a reference pick is refused; a scratch-keyed pick and a pick without ORDER BY … LIMIT 1 pass)."
 
-real_row_found=""
-while IFS= read -r -d '' file; do
-  base="$(basename "$file")"
-  stamp="${base%%_*}"
-  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$REAL_ROW_FLOOR" ]]; then
-    continue
+# Self-test (INC-1207): a reader that does not finish fails each step of the
+# scan — the rows, the picks and the allowlist's split. The planted reader
+# fails only the mode it is told to, so each step's own check is proven.
+RF_DIR="$(mktemp -d)"
+printf '%s\n' 'process.exit(process.argv[2] === process.env.FAIL_MODE ? 1 : 0);' > "$RF_DIR/reader.ts"
+mkdir "$RF_DIR/migrations"
+printf '%s\n' 'SELECT 1;' > "$RF_DIR/migrations/29990101000000_rfrf1111.sql"
+rf_passed=""
+for mode in --real-rows --real-picks; do
+  if (MIGRATION_READER="$RF_DIR/reader.ts" FAIL_MODE="$mode" real_rows_in "$RF_DIR/migrations") >/dev/null 2>&1; then
+    rf_passed+=" $mode"
   fi
-  real_row_found+="$(real_row_offenders "$file")"$'\n'
-  if ! [[ "$stamp" < "$REAL_PICK_FLOOR" ]]; then
-    real_row_found+="$(real_pick_offenders "$file")"$'\n'
-  fi
-done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
+done
+if ! (MIGRATION_READER="$RF_DIR/reader.ts" FAIL_MODE=none real_rows_in "$RF_DIR/migrations") >/dev/null 2>&1; then
+  rf_passed+=" (the planted reader failed every mode)"
+fi
+if (MIGRATION_READER="$NO_READER"; real_row_split "x.sql: SELECT 1" /dev/null) >/dev/null 2>&1; then
+  rf_passed+=" --real-row-split"
+fi
+rm -rf "$RF_DIR"
+if [ -n "$rf_passed" ]; then
+  echo "Real-row proof guard self-test FAILED: the guard passed when its reader did not finish:$rf_passed"
+  exit 1
+fi
+echo "Real-row proof guard self-test OK (a reader that does not finish fails the rows, the picks and the split)."
 
-real_row_skipped="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>&1 >/dev/null)"
-real_row_found="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>/dev/null)"
+if ! real_row_found="$(real_rows_in "$MIGRATIONS_DIR")" \
+  || ! real_row_skipped="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>&1 >/dev/null)" \
+  || ! real_row_found="$(real_row_split "$real_row_found" "$REAL_ROW_ALLOWLIST_FILE" 2>/dev/null)"; then
+  echo "Real-row proof guard FAILED: the migration reader did not finish (INC-1207)."
+  exit 1
+fi
 if [ -n "$real_row_skipped" ]; then
   echo "Real-row proof guard: allowlisted statements (each cites its reason)"
   printf '%s\n' "$real_row_skipped"
@@ -892,7 +904,21 @@ echo "Real-row proof guard OK (floor $REAL_ROW_FLOOR)."
 SPANNING_LITERAL_FLOOR="${SPANNING_LITERAL_FLOOR:-20261109000000}"
 
 spanning_literals() {
-  bun "$SCRIPT_DIR/conformance/migration-reader.ts" --spanning "$@"
+  bun "$MIGRATION_READER" --spanning "$@"
+}
+
+spanning_literals_in() {
+  # $1 = migrations dir. The reader's lines for the files at or after the floor.
+  local dir="$1" file base stamp files=()
+  while IFS= read -r -d '' file; do
+    base="$(basename "$file")"
+    stamp="${base%%_*}"
+    if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$SPANNING_LITERAL_FLOOR" ]]; then
+      continue
+    fi
+    files+=("$file")
+  done < <(find "$dir" -type f -name '*.sql' -print0)
+  [ "${#files[@]}" -eq 0 ] || spanning_literals "${files[@]}"
 }
 
 if [ -z "$(spanning_literals "$FIXTURE_DIR/bad-spanning-literal-example.sql")" ]; then
@@ -903,21 +929,18 @@ if [ -n "$(spanning_literals "$FIXTURE_DIR/good-spanning-literal-example.sql")" 
   echo "Spanning-literal guard self-test FAILED: the good fixture was refused."
   exit 1
 fi
-echo "Spanning-literal guard self-test OK (the bad fixture is refused, the good one passes)."
+SL_DIR="$(mktemp -d)"
+cp "$FIXTURE_DIR/good-spanning-literal-example.sql" "$SL_DIR/29990101000000_slsl1111.sql"
+if (MIGRATION_READER="$NO_READER"; spanning_literals_in "$SL_DIR") >/dev/null 2>&1; then
+  echo "Spanning-literal guard self-test FAILED: the guard passed when its reader did not finish (INC-1207)."
+  rm -rf "$SL_DIR"; exit 1
+fi
+rm -rf "$SL_DIR"
+echo "Spanning-literal guard self-test OK (the bad fixture is refused, the good one passes, a reader that does not finish fails)."
 
-spanning_files=()
-while IFS= read -r -d '' file; do
-  base="$(basename "$file")"
-  stamp="${base%%_*}"
-  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$SPANNING_LITERAL_FLOOR" ]]; then
-    continue
-  fi
-  spanning_files+=("$file")
-done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
-
-spanning_found=""
-if [ "${#spanning_files[@]}" -gt 0 ]; then
-  spanning_found="$(spanning_literals "${spanning_files[@]}")"
+if ! spanning_found="$(spanning_literals_in "$MIGRATIONS_DIR")"; then
+  echo "Spanning-literal guard FAILED: the migration reader did not finish (INC-1207)."
+  exit 1
 fi
 if [ -n "$spanning_found" ]; then
   echo "Spanning-literal guard FAILED:"
@@ -934,7 +957,21 @@ echo "Spanning-literal guard OK (floor $SPANNING_LITERAL_FLOOR)."
 RANDOM_TEXT_FLOOR="${RANDOM_TEXT_FLOOR:-20261118160000}"
 
 random_texts() {
-  bun "$SCRIPT_DIR/conformance/migration-reader.ts" --random-text "$@"
+  bun "$MIGRATION_READER" --random-text "$@"
+}
+
+random_texts_in() {
+  # $1 = migrations dir. The reader's lines for the files at or after the floor.
+  local dir="$1" file base stamp files=()
+  while IFS= read -r -d '' file; do
+    base="$(basename "$file")"
+    stamp="${base%%_*}"
+    if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$RANDOM_TEXT_FLOOR" ]]; then
+      continue
+    fi
+    files+=("$file")
+  done < <(find "$dir" -type f -name '*.sql' -print0)
+  [ "${#files[@]}" -eq 0 ] || random_texts "${files[@]}"
 }
 
 if ! random_text_bad="$(random_texts "$FIXTURE_DIR/bad-random-text-proof-example.sql")" ||
@@ -947,21 +984,16 @@ if ! random_text_good="$(random_texts "$FIXTURE_DIR/good-random-text-proof-examp
   echo "Random-text guard self-test FAILED: the good fixture was refused, or the reader did not finish."
   exit 1
 fi
-echo "Random-text guard self-test OK (the bad fixture's four lines are refused, the good one passes)."
+RT_DIR="$(mktemp -d)"
+cp "$FIXTURE_DIR/good-random-text-proof-example.sql" "$RT_DIR/29990101000000_rtrt1111.sql"
+if (MIGRATION_READER="$NO_READER"; random_texts_in "$RT_DIR") >/dev/null 2>&1; then
+  echo "Random-text guard self-test FAILED: the guard passed when its reader did not finish (INC-1207)."
+  rm -rf "$RT_DIR"; exit 1
+fi
+rm -rf "$RT_DIR"
+echo "Random-text guard self-test OK (the bad fixture's four lines are refused, the good one passes, a reader that does not finish fails)."
 
-random_text_files=()
-while IFS= read -r -d '' file; do
-  base="$(basename "$file")"
-  stamp="${base%%_*}"
-  if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$RANDOM_TEXT_FLOOR" ]]; then
-    continue
-  fi
-  random_text_files+=("$file")
-done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
-
-random_text_found=""
-if [ "${#random_text_files[@]}" -gt 0 ] &&
-  ! random_text_found="$(random_texts "${random_text_files[@]}")"; then
+if ! random_text_found="$(random_texts_in "$MIGRATIONS_DIR")"; then
   echo "Random-text guard FAILED: the reader did not finish."
   exit 1
 fi
