@@ -97,53 +97,61 @@ test.describe("D247 a touch phone's lists", () => {
     branch = null;
   });
 
-  test("ROWS-E1 a touch phone's menu lists follow the 16-item rule at 360×640", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
-    branch = await seedScratchBranch(SEEDED, "rows-e1");
-    await page.setViewportSize({ width: 360, height: 640 });
-    await gotoReady(page, "/");
-    expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
-    const menu = await openRailScope(page);
-    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
-    const region = menu.getByTestId("rail-scroll");
-    const list = region.locator("nav > ul.menu-fit");
-    const rows = list.locator(":scope > li:not([aria-hidden])");
-    const scroll = () =>
-      region.evaluate((el) => ({
-        overflow: el.scrollHeight - el.clientHeight,
-        bar: (el as HTMLElement).offsetWidth - el.clientWidth,
-      }));
-    // The rule for the count this backend holds at run time (G27, G28: lanes add roots).
-    const judge = async (label: string, expected?: number) => {
-      if (expected !== undefined) await expect(rows).toHaveCount(expected);
-      const count = await rows.count();
-      if (count > 16) {
-        expect(await list.getAttribute("data-many"), `${label}: data-many`).toBe("");
-        await expect.poll(async () => (await scroll()).overflow).toBeGreaterThan(0);
-        expect((await scroll()).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
+  test(
+    "ROWS-E1 a touch phone's menu lists follow the 16-item rule at 360×640",
+    {
+      tag: "@global-state",
+    },
+    async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
+      test.info().annotations.push({
+        type: "global-state",
+        description: "INC-1015 measures the rail's rows",
+      });
+      branch = await seedScratchBranch(SEEDED, "rows-e1");
+      await page.setViewportSize({ width: 360, height: 640 });
+      await gotoReady(page, "/");
+      expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
+      const menu = await openRailScope(page);
+      await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+      const region = menu.getByTestId("rail-scroll");
+      const list = region.locator("nav > ul.menu-fit");
+      const rows = list.locator(":scope > li:not([aria-hidden])");
+      const scroll = () =>
+        region.evaluate((el) => ({
+          overflow: el.scrollHeight - el.clientHeight,
+          bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+        }));
+      // The rule for the count this backend holds at run time (G27, G28: lanes add roots).
+      const judge = async (label: string, expected?: number) => {
+        if (expected !== undefined) await expect(rows).toHaveCount(expected);
+        const count = await rows.count();
+        if (count > 16) {
+          expect(await list.getAttribute("data-many"), `${label}: data-many`).toBe("");
+          await expect.poll(async () => (await scroll()).overflow).toBeGreaterThan(0);
+          expect((await scroll()).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
+          return count;
+        }
+        expect(await list.getAttribute("data-many"), `${label}: not data-many`).toBeNull();
+        await expect
+          .poll(async () => (await scroll()).overflow, { message: `${label}: the list scrolls` })
+          .toBeLessThanOrEqual(0);
+        for (const height of await rows.evaluateAll((els) =>
+          els.map((el) => el.getBoundingClientRect().height),
+        )) {
+          expect(height, `${label}: a phone row is 32–40 px`).toBeGreaterThanOrEqual(31.5);
+          expect(height, `${label}: a phone row is 32–40 px (INC-1010)`).toBeLessThanOrEqual(40.5);
+        }
         return count;
-      }
-      expect(await list.getAttribute("data-many"), `${label}: not data-many`).toBeNull();
-      await expect
-        .poll(async () => (await scroll()).overflow, { message: `${label}: the list scrolls` })
-        .toBeLessThanOrEqual(0);
-      for (const height of await rows.evaluateAll((els) =>
-        els.map((el) => el.getBoundingClientRect().height),
-      )) {
-        expect(height, `${label}: a phone row is 32–40 px`).toBeGreaterThanOrEqual(31.5);
-        expect(height, `${label}: a phone row is 32–40 px (INC-1010)`).toBeLessThanOrEqual(40.5);
-      }
-      return count;
-    };
-    await judge("ROWS-E1 the main list");
-    // The 16-or-fewer branch on a list this test seeded itself: the back row and the opened
-    // root's row head its 12 subcategories, 14 rows.
-    await menu.getByTestId(`rail-category-${branch.root}`).tap();
-    await expect(menu.getByTestId("rail-menu-back")).toBeVisible();
-    expect(await judge("ROWS-E1 the seeded list", SEEDED + 2)).toBe(SEEDED + 2);
-  });
+      };
+      await judge("ROWS-E1 the main list");
+      // The 16-or-fewer branch on a list this test seeded itself: the back row and the opened
+      // root's row head its 12 subcategories, 14 rows.
+      await menu.getByTestId(`rail-category-${branch.root}`).tap();
+      await expect(menu.getByTestId("rail-menu-back")).toBeVisible();
+      expect(await judge("ROWS-E1 the seeded list", SEEDED + 2)).toBe(SEEDED + 2);
+    },
+  );
 });
 
 /**

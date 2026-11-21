@@ -23,7 +23,12 @@ import {
 } from "../ci/lane-plan";
 import { LANE_PROJECTS, type Weights } from "../ci/lane-weights";
 import { readAllowlist, report, walkFiles } from "./kit";
-import { readManifest, sharedValueFindings, triggerFindings } from "./shared-values";
+import {
+  readerFindings,
+  readManifest,
+  sharedValueFindings,
+  triggerFindings,
+} from "./shared-values";
 
 /**
  * The speed turn (DEC-375 b, DEC-376) — EVERY CHROMIUM TEST IN EXACTLY ONE LANE, SPLIT BY MEASURED
@@ -44,7 +49,8 @@ import { readManifest, sharedValueFindings, triggerFindings } from "./shared-val
  * CF-LANES-4 (the CI turn, DEC-378 a, INC-1136): no scratch row moves a shared value in a split
  * lane — every write site on a table of shared-value-tables.txt sits in a `@global-state` test or
  * a sanctioned helper, or is a line of shared-values-allowlist.txt; every table a migration gives a
- * statement-level trigger is on the manifest (shared-values.ts).
+ * statement-level trigger is on the manifest (shared-values.ts); every reader a "shared with its
+ * readers" row names is a `@global-state` test of its file (the tests and CI turn 2, INC-1015).
  */
 type Finding = { file: string; line: number; what: string };
 /** A coverage finding's allowlist key: `@<tag>` for a test every lane leaves out, else the test. */
@@ -384,6 +390,48 @@ describe("no scratch row moves a shared value in a split lane (DEC-378 a, INC-11
     expect(missing, "a sanctioned helper no file under e2e/ defines").toEqual([]);
     const migrations = walkFiles(["supabase/migrations"], { ext: ["sql"] }).map(read);
     expect(report(triggerFindings(migrations, manifest, MANIFEST))).toBe("");
+
+    // INC-1015: a value shared with its readers — every named reader is a test there, serial.
+    expect(manifest.readers.map((row) => row.table)).toEqual(["category_tree_pointers"]);
+    expect(report(readerFindings(specs, manifest.readers, MANIFEST))).toBe("");
+    const readersRow = (readers: string) =>
+      readManifest(
+        `category_tree_pointers | shared with its readers | why | ${readers}\n`,
+        MANIFEST,
+      ).readers;
+    const readerSpec = {
+      path: "e2e/planted-reader.spec.ts",
+      text: [
+        'test("RDP-1 measures the rail", async () => {});',
+        'test("RDP-2 tagged", { tag: "@global-state" }, async () => {});',
+        'test.describe("RDP serial @global-state", () => { test("RDP-3 in a tagged describe", async () => {}); });',
+        "for (const h of [600, 800]) test(`RDP-4 at ${h}`, async () => {});",
+        'for (const h of [600, 800]) test(`RDP-5 at ${h}`, { tag: "@global-state" }, async () => {});',
+      ].join("\n"),
+    };
+    expect(
+      report(
+        readerFindings(
+          [readerSpec],
+          readersRow(
+            ["RDP-1", "RDP-2", "RDP-3", "RDP-4", "RDP-5", "RDP-9"]
+              .map((id) => `${readerSpec.path}::${id}`)
+              .join(", "),
+          ),
+          MANIFEST,
+        ),
+      ).split("\n"),
+    ).toEqual(
+      [
+        `${MANIFEST}:1 category_tree_pointers names e2e/planted-reader.spec.ts::RDP-9 as a reader, but no test of that id is there (stale)`,
+        `e2e/planted-reader.spec.ts:1 RDP-1 reads category_tree_pointers's shared value (${MANIFEST}:1) outside @global-state`,
+        `e2e/planted-reader.spec.ts:4 RDP-4 reads category_tree_pointers's shared value (${MANIFEST}:1) outside @global-state`,
+      ].sort(),
+    );
+    expect(() => readersRow("SMN-E13")).toThrow(/a reader is not <file>::<test id>/);
+    expect(() => readersRow("e2e/submenu-look.spec.ts::SMN-E13,")).toThrow(
+      /a reader is not <file>::<test id>/,
+    );
 
     // Planted: an untagged writer, a helper's caller and a door's caller are found; a tagged test,
     // a tagged describe and a sanctioned helper's caller are not.

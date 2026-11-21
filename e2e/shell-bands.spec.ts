@@ -99,30 +99,38 @@ test("BND-E2 at 360 the breadcrumb and location rows are 40 px; the phone menu h
   for (const row of rows) expect(Math.abs(row.h - 40), `${row.id} is 40 px`).toBeLessThanOrEqual(1);
 });
 
-test("BND-E3 on the feed, signed out, Services' panel starts at the location row's top", async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await gotoReady(page, "/");
-  const opener = page.getByTestId("app-rail").getByTestId("rail-category-services");
-  // G27: the operator's tree holds Services; another tree has nothing to judge here.
-  test.skip((await opener.count()) === 0, "this backend's tree has no Services");
-  const location = await box(page, "location-row");
-  await opener.hover();
-  const panel = page.getByTestId("submenu-panel");
-  await expect(panel).toBeVisible();
-  const rows = await panel.locator("[data-submenu-row]").count();
-  const { panel: panelBox } = await layoutBoxes({ panel });
-  // A panel that spans the menu (taller than it, D254) starts on the band boundary.
-  const railRow = await opener.evaluate((el) => el.getBoundingClientRect().height);
-  if (rows * railRow > 800 - location.y)
-    expect(
-      Math.abs(panelBox.y - location.y),
-      "BND-E3 the panel starts at the location row",
-    ).toBeLessThanOrEqual(1);
-  else expect(panelBox.y).toBeGreaterThanOrEqual(location.y - 1);
-});
+test(
+  "BND-E3 on the feed, signed out, Services' panel starts at the location row's top",
+  {
+    tag: "@global-state",
+  },
+  async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+    test.info().annotations.push({
+      type: "global-state",
+      description: "INC-1015 measures the rail's rows",
+    });
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await gotoReady(page, "/");
+    const opener = page.getByTestId("app-rail").getByTestId("rail-category-services");
+    // G27: the operator's tree holds Services; another tree has nothing to judge here.
+    test.skip((await opener.count()) === 0, "this backend's tree has no Services");
+    const location = await box(page, "location-row");
+    await opener.hover();
+    const panel = page.getByTestId("submenu-panel");
+    await expect(panel).toBeVisible();
+    const rows = await panel.locator("[data-submenu-row]").count();
+    const { panel: panelBox } = await layoutBoxes({ panel });
+    // A panel that spans the menu (taller than it, D254) starts on the band boundary.
+    const railRow = await opener.evaluate((el) => el.getBoundingClientRect().height);
+    if (rows * railRow > 800 - location.y)
+      expect(
+        Math.abs(panelBox.y - location.y),
+        "BND-E3 the panel starts at the location row",
+      ).toBeLessThanOrEqual(1);
+    else expect(panelBox.y).toBeGreaterThanOrEqual(location.y - 1);
+  },
+);
 
 test("BAR-E1 the top bar has one gap and no overlap between the toggle and the logo", async ({
   page,

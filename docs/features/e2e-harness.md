@@ -622,6 +622,19 @@ upsert|delete(`, and `.rpc("<door>"` for a door the manifest names); the helper 
 unit, so a writing function's calls are the sites. A site outside `@global-state` and
 the sanctioned helpers fails unless `shared-values-allowlist.txt` names it, and a table
 with a statement-level trigger that the manifest does not name fails.
+Since the tests and CI turn 2 (INC-1015) a table can also be "shared with its readers"
+(`<table> | shared with its readers | why | readers`): its writes move a value only some
+tests read, so the readers run serially and the writers are not judged. A new root joins
+the rail, and the rail's rows share its height (D247), so `category_tree_pointers` names the
+tests whose verdict a root another worker adds can change: they read the rail and what they
+judge against it in separate moments, or choose their branch from a count read before.
+They are SMN-E4, SMN-E7, SMN-E9, SMN-E10, SMN-E13, ROWS-E1, ROWS-E3, ROWS-E4 and BND-E3,
+each `<file>::<test id>`. CF-LANES-4 (`readerFindings`) fails a named reader without
+`@global-state`, on itself or a describe around it, and a name no test of its file answers
+to (stale); a looped test's id is its templated title's head. A new test that measures the
+rail joins the row. SMN-E13 reads the menu's rows with its own scratch root already on the
+rail, then grows its branch to one row more than they hold (`growScratchBranch`,
+`e2e/helpers/posting.ts`).
 Each numbered lane's evidence carries its `- Plan (DEC-375 b):` line and the plan's
 line; the summary's `- Lane plan (DEC-375 b):` line adds planned against test seconds
 per lane. Guards: CF-LANES-1 → 4 (`scripts/conformance/lanes.test.ts`, the one-worker

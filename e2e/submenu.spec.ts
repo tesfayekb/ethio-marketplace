@@ -192,30 +192,38 @@ test.describe("D244 every panel on screen", () => {
   }
 
   for (const width of [1280, 1024]) {
-    test(`SMN-E4 a 14-row panel fits at ${width}×600 and follows a resize`, async ({
-      page,
-    }, testInfo) => {
-      test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-      const seeded = await seedScratchBranch(CHILDREN, "smn-e4");
-      branch = seeded;
-      await page.setViewportSize({ width, height: 600 });
-      await gotoReady(page, "/");
-      const rail = await openRailScope(page);
-      const opener = rail.getByTestId(`rail-category-${seeded.root}`);
-      await opener.scrollIntoViewIfNeeded();
-      await opener.hover();
-      await everyRowOnScreen(page, `SMN-E4 ${width}×600`);
-      await page.mouse.move(width - 20, 20);
-      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+    test(
+      `SMN-E4 a 14-row panel fits at ${width}×600 and follows a resize`,
+      {
+        tag: "@global-state",
+      },
+      async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+        test.info().annotations.push({
+          type: "global-state",
+          description: "INC-1015 measures the rail's rows",
+        });
+        const seeded = await seedScratchBranch(CHILDREN, "smn-e4");
+        branch = seeded;
+        await page.setViewportSize({ width, height: 600 });
+        await gotoReady(page, "/");
+        const rail = await openRailScope(page);
+        const opener = rail.getByTestId(`rail-category-${seeded.root}`);
+        await opener.scrollIntoViewIfNeeded();
+        await opener.hover();
+        await everyRowOnScreen(page, `SMN-E4 ${width}×600`);
+        await page.mouse.move(width - 20, 20);
+        await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
 
-      await page.setViewportSize({ width, height: 900 });
-      // Opened by the keys, so no pointer leaves its row while the rows move with the window.
-      await opener.focus();
-      await page.keyboard.press("ArrowRight");
-      await expect(page.getByTestId("submenu-panel")).toBeVisible();
-      await page.setViewportSize({ width, height: 600 });
-      await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
-    });
+        await page.setViewportSize({ width, height: 900 });
+        // Opened by the keys, so no pointer leaves its row while the rows move with the window.
+        await opener.focus();
+        await page.keyboard.press("ArrowRight");
+        await expect(page.getByTestId("submenu-panel")).toBeVisible();
+        await page.setViewportSize({ width, height: 600 });
+        await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
+      },
+    );
   }
 });
 
