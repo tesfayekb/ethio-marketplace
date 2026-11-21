@@ -398,7 +398,7 @@ test.describe("INC-1234 one step-up, one prompt", () => {
       test.setTimeout(120_000);
       await page.addInitScript(() => {
         const seen = { count: 0 };
-        (window as unknown as { __stepUpSeen: typeof seen }).__stepUpSeen = seen;
+        Reflect.set(window, "__stepUpSeen", seen);
         new MutationObserver((records) => {
           for (const record of records)
             for (const node of Array.from(record.addedNodes))
@@ -411,10 +411,15 @@ test.describe("INC-1234 one step-up, one prompt", () => {
         }).observe(document, { childList: true, subtree: true });
       });
       const opened = () =>
-        page.evaluate(
-          () =>
-            (window as unknown as { __stepUpSeen?: { count: number } }).__stepUpSeen?.count ?? -1,
-        );
+        page.evaluate(() => {
+          const seen: unknown = Reflect.get(window, "__stepUpSeen");
+          return typeof seen === "object" &&
+            seen !== null &&
+            "count" in seen &&
+            typeof seen.count === "number"
+            ? seen.count
+            : -1;
+        });
       const { user, secret } = await signInJobSuperAdmin(page);
       // A fresh password sign-in is aal1: the modal is guaranteed for the create.
       await switchUser(page, user.email, user.password);
