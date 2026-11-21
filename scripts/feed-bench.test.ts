@@ -12,6 +12,7 @@ import {
   levelMix,
   nearestRank,
   renderStatus,
+  SHAPE_NAMES,
   summarise,
   verdict,
   type ShapeResult,
@@ -26,7 +27,7 @@ import {
 } from "./feed-bench-market";
 
 function six(): ShapeResult[] {
-  return ["a", "b", "c", "d", "e", "f"].map((name) => ({
+  return SHAPE_NAMES.map((name) => ({
     name,
     runs: 30,
     p50: 5,
@@ -59,7 +60,7 @@ describe("feed-bench", () => {
     slow[2] = { ...slow[2]!, p95: 50.01 };
     const v = verdict(slow, 10000, 0);
     expect(v.pass).toBe(false);
-    expect(v.lines.some((l) => l.includes('"c"'))).toBe(true);
+    expect(v.lines.some((l) => l.includes(`"${SHAPE_NAMES[2]}"`))).toBe(true);
     const few = six();
     few[0] = { ...few[0]!, cards: 19 };
     expect(verdict(few, 10000, 0).pass).toBe(false);
@@ -113,7 +114,7 @@ describe("feed-bench", () => {
       market: "none",
       free: 0,
       shapes: [],
-      bytes: 0,
+      bytes: null,
     };
     expect(
       renderStatus({
@@ -127,6 +128,51 @@ describe("feed-bench", () => {
     ).toContain("Verdict: YIELDED (CI run 2 (queued, abcdef01) started)");
     expect(renderStatus({ ...base, outcome: "PASS" })).toContain("Verdict: PASS");
     expect(GATE_WAIT_MINUTES).toBe(40);
+  });
+
+  it("FB-10 a yielded run (no shape, no page size) prints no PASS line and names each value it did not measure (INC-1228)", () => {
+    const judged = verdict([], null, 0);
+    expect(judged.pass).toBe(false);
+    expect(judged.lines.some((line) => line.startsWith("PASS"))).toBe(false);
+    for (const shape of six()) expect(judged.lines).toContain(`NOT MEASURED: "${shape.name}"`);
+    expect(judged.lines).toContain("NOT MEASURED: page size");
+    const text = renderStatus({
+      runUrl: "local",
+      runSha: "local",
+      timestamp: "2026-11-21T10:04:39.660Z",
+      outcome: "YIELDED",
+      error: "CI run 44892432414 (in_progress, 37b62562) started",
+      seeded: 0,
+      seedSeconds: 154.6,
+      sellerSeconds: 124.9,
+      insertSeconds: 1.4,
+      cleanupSeconds: 13.4,
+      leftovers: 0,
+      sellers: 2048,
+      market: "QM",
+      free: 50,
+      shapes: [],
+      bytes: null,
+    });
+    expect(text).toContain("Verdict: YIELDED (CI run 44892432414 (in_progress, 37b62562) started)");
+    expect(text).not.toContain("everywhere): 0 bytes");
+    expect(text).toContain(
+      "- Page size (all categories, everywhere): not measured (target ≤ 30720)",
+    );
+    for (const shape of six()) expect(text).toContain(`- Not measured: "${shape.name}"`);
+  });
+
+  it("FB-11 a run that failed after some shapes prints no PASS line; everything measured and met prints PASS", () => {
+    const some = verdict(six().slice(0, 3), 10000, 0);
+    expect(some.pass).toBe(false);
+    expect(some.lines.some((line) => line.startsWith("PASS"))).toBe(false);
+    expect(some.lines).toEqual(
+      six()
+        .slice(3)
+        .map((shape) => `NOT MEASURED: "${shape.name}"`),
+    );
+    const all = verdict(six(), 10000, 0);
+    expect(all).toEqual({ pass: true, lines: ["PASS: every target met"] });
   });
 
   it("FB-7 the level mix comes from the answer's dictionary, never a level by name", () => {

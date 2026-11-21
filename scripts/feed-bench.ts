@@ -76,19 +76,41 @@ export function summarise(ms: number[]): { runs: number; p50: number; p95: numbe
   };
 }
 
+/** The six page shapes the bench times, in the order it times them; the measure step reads this list. */
+export const SHAPE_NAMES = [
+  "all, everywhere",
+  "top, country",
+  "leaf, city",
+  "top, city, widening",
+  "page 50 by cursor",
+  "guest host, country",
+] as const;
+export type ShapeName = (typeof SHAPE_NAMES)[number];
+
+/** INC-1228 — the shapes of SHAPE_NAMES a run did not measure. */
+function unmeasured(shapes: ShapeResult[]): string[] {
+  return SHAPE_NAMES.filter((name) => !shapes.some((s) => s.name === name));
+}
+
+/**
+ * INC-1228 — PASS only when every shape of SHAPE_NAMES and the page size were measured and met their
+ * targets; each value not measured gets its own line, and an unmeasured page size is null, never 0.
+ */
 export function verdict(
   shapes: ShapeResult[],
-  bytes: number,
+  bytes: number | null,
   leftovers: number,
 ): { pass: boolean; lines: string[] } {
-  const lines: string[] = [];
+  const lines: string[] = unmeasured(shapes).map((name) => `NOT MEASURED: "${name}"`);
+  if (bytes === null) lines.push("NOT MEASURED: page size");
   for (const s of shapes) {
     if (s.p95 > TARGET_P95_MS) {
       lines.push(`MISS: "${s.name}" p95 ${s.p95.toFixed(2)} ms > ${TARGET_P95_MS} ms`);
     }
     if (s.cards < 20) lines.push(`MISS: "${s.name}" returned ${s.cards} cards (< 20)`);
   }
-  if (bytes > TARGET_BYTES) lines.push(`MISS: page size ${bytes} bytes > ${TARGET_BYTES} bytes`);
+  if (bytes !== null && bytes > TARGET_BYTES)
+    lines.push(`MISS: page size ${bytes} bytes > ${TARGET_BYTES} bytes`);
   if (leftovers > 0) lines.push(`MISS: ${leftovers} scratch rows left after cleanup`);
   const pass = lines.length === 0;
   if (pass) lines.push("PASS: every target met");
@@ -113,7 +135,8 @@ export interface StatusInput {
   market: string;
   free: number;
   shapes: ShapeResult[];
-  bytes: number;
+  /** The first shape's page size; null when it was not measured (INC-1228). */
+  bytes: number | null;
 }
 
 export function renderStatus(input: StatusInput): string {
@@ -139,7 +162,8 @@ export function renderStatus(input: StatusInput): string {
     "| --- | --- | --- | --- | --- | --- |",
     ...rows,
     "",
-    `- Page size (all categories, everywhere): ${input.bytes} bytes (target ≤ 30720)`,
+    ...unmeasured(input.shapes).map((name) => `- Not measured: "${name}"`),
+    `- Page size (all categories, everywhere): ${input.bytes === null ? "not measured" : `${input.bytes} bytes`} (target ≤ 30720)`,
     "- Targets (D101 §5, DEC-166): p95 ≤ 50 ms per shape; one page ≤ 30,720 bytes.",
     "- Not measured here: the cached first page's time to first byte (≤ 100 ms) needs the published site; the first page on slow 3G (≤ 1.5 s) needs a browser.",
     "",
@@ -467,7 +491,7 @@ async function main(): Promise<number> {
           market: "none",
           free: 0,
           shapes: [],
-          bytes: 0,
+          bytes: null,
         }),
       );
       console.log(`::error::feed-bench SKIPPED: ${skipped}`);
@@ -487,7 +511,7 @@ async function main(): Promise<number> {
   let insertStart = 0;
   let cleanupSeconds = 0;
   let leftovers = 0;
-  let bytes = 0;
+  let bytes: number | null = null;
   const shapes: ShapeResult[] = [];
   const sellerIds: string[] = [];
   let market = "none";
@@ -631,15 +655,16 @@ async function main(): Promise<number> {
       ) as { next: unknown };
       after = page.next;
     }
-    const plan: [string, string | null, string | null, unknown][] = [
-      ["all, everywhere", null, null, null],
-      ["top, country", tops[4]!, anchor, null],
-      ["leaf, city", leaves[0]!, cities[0]!, null],
-      ["top, city, widening", tops[4]!, emptyCity, null],
-      ["page 50 by cursor", null, null, after],
-      ["guest host, country", tops[2]!, anchor, null],
-    ];
-    for (const [name, cat, loc, cursor] of plan) {
+    const plan: Record<ShapeName, [string | null, string | null, unknown]> = {
+      "all, everywhere": [null, null, null],
+      "top, country": [tops[4]!, anchor, null],
+      "leaf, city": [leaves[0]!, cities[0]!, null],
+      "top, city, widening": [tops[4]!, emptyCity, null],
+      "page 50 by cursor": [null, null, after],
+      "guest host, country": [tops[2]!, anchor, null],
+    };
+    for (const name of SHAPE_NAMES) {
+      const [cat, loc, cursor] = plan[name];
       await checkGate();
       const answer = must(
         await db.rpc("feed_bench", {
@@ -650,7 +675,7 @@ async function main(): Promise<number> {
         }),
         `feed_bench ${name}`,
       ) as BenchAnswer;
-      if (shapes.length === 0) bytes = answer.bytes;
+      if (name === SHAPE_NAMES[0]) bytes = answer.bytes;
       shapes.push({ name, ...summarise(answer.ms.slice(WARMUP)), cards: answer.cards });
     }
   } catch (error) {
