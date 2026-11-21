@@ -46,10 +46,15 @@ guard's allowlist until it lands.
   caller's values (`fill`). A family (`RefusalFamily`: `words`, `generic`) is
   the form's code map; a code no family knows reads as `common.error`, never
   the provider's or Postgres' text. `src/lib/refusal-tail.ts` keeps only the
-  console doors' dialect (its admin-layer words and `doorKeyText`, until wave 3;
-  since F1-4a no screen calls `doorKeyText`: the categories and attributes
+  console doors' dialect (its admin-layer words; `doorKeyText` was removed with
+  INC-1229, no screen having called it since F1-4a: the categories and attributes
   consoles read a door key through `readRefusal`'s key branch)
-  and re-exports the folded shapes. The door's worder (`src/lib/door-error.ts`) sits
+  and re-exports the folded shapes. `rateUntilOf(input)` (INC-1229) is the one
+  reader of a rate refusal's reset instant, for the ad page and the posting
+  wizard alike (RTW-22). The generic key `DOOR_REFUSED_KEY` is its own leaf
+  (`src/lib/door-refused-key.ts`, INC-1153), so the shell's notice does not carry
+  the closed list of door codes (`door-codes.ts`, which re-exports it): the list
+  arrives with the reader's chunk (DRC-8). The door's worder (`src/lib/door-error.ts`) sits
   beside it, so the server no longer imports a posting module for its wording
   (INC-1050). Tests: RFR-1 → RFR-10.
 - **The parser** — `src/lib/parse-input.ts`: `parseNumber(raw, rules)` and

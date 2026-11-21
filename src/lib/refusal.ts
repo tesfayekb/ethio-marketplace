@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
-import { DOOR_REFUSED_KEY, doorCode } from "@/lib/door-codes";
+import { doorCode } from "@/lib/door-codes";
+import { DOOR_REFUSED_KEY } from "@/lib/door-refused-key";
 import { ownValue } from "@/lib/own-key";
 import { relativeTime } from "@/lib/relative-time";
 import { splitRefusal } from "@/lib/refusal-split";
@@ -257,6 +258,23 @@ export function readRefusal(
     if (words !== undefined) return read(words, "provider");
   }
   return read(generic, "generic");
+}
+
+/**
+ * INC-1229 — THE ONE READER OF A RATE REFUSAL'S RESET INSTANT (L22, L22c). The tail of a
+ * `rateLimited:<instant>` refusal, from whatever shape it arrived in (a string, an error's
+ * `message`, a refusal's `reason`, a returned answer), or — for the photo route's dial — the
+ * refusal's own `detail`. Undefined when the refusal is not the dial's or names no instant.
+ * Both the ad page's and the posting wizard's rate sentences ask it; neither keeps a reader of
+ * its own. An input that carries both a `message` and a `reason` is read by its `reason`, as
+ * every refusal is (`hear`); no caller passes both.
+ */
+export function rateUntilOf(input: unknown): string | undefined {
+  const heard = hear(input);
+  const { key, tail } = splitRefusal(heard.code?.trim() ?? "");
+  if (key !== "rateLimited") return undefined;
+  const until = (tail ?? heard.detail)?.trim();
+  return until === undefined || until === "" ? undefined : until;
 }
 
 /** The words a screen draws for a refusal it read: translated, then filled. */

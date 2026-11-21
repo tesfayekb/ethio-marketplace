@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import {
+  rateUntilOf,
   readRefusal,
   refusalText,
   splitRefusal,
@@ -187,21 +188,6 @@ export function draftRefusalKey(reason: string): MessageKey {
  */
 export function isRateRefusal(refusal: unknown): boolean {
   return readRefusal(refusal, DRAFT_REFUSALS).key === DRAFT_REASONS["rateLimited"];
-}
-
-/**
- * L22 (bundle 1 part B) — THE DIAL'S RESET INSTANT, beside the key readers (which keep their
- * answers): a `rateLimited` refusal's instant, from its own tail (`rateLimited:<instant>`) or its
- * `detail` (the photo route's). Undefined when the refusal is not the dial's or names none.
- */
-export function rateUntilOf(refusal: Refusal | string | undefined): string | undefined {
-  if (refusal === undefined) return undefined;
-  const { key, tail } = splitRefusal(
-    (typeof refusal === "string" ? refusal : refusal.reason).trim(),
-  );
-  if (key !== "rateLimited") return undefined;
-  const until = (tail ?? (typeof refusal === "string" ? undefined : refusal.detail))?.trim();
-  return until === undefined || until === "" ? undefined : until;
 }
 
 /**

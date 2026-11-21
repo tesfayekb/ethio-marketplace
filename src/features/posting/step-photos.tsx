@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
+import { rateUntilOf } from "@/lib/refusal";
 
 import { Field } from "./field";
 import { controlClass } from "@/components/forms/control-class";
@@ -23,7 +24,7 @@ import {
   uploadPhoto,
   type DraftPhotoRow,
 } from "./posting-service";
-import { fill, photoRateText, photoRefusalKey, rateUntilOf } from "./refusal-text";
+import { fill, photoRateText, photoRefusalKey } from "./refusal-text";
 import type { PhotoItem, Refusal } from "./types";
 import { usePhotoLinks } from "./use-photo-links";
 

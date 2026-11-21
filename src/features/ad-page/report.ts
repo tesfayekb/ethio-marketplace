@@ -1,6 +1,7 @@
 import { rpc } from "@/lib/supabase-door";
 import { ownValue } from "@/lib/own-key";
-import { rateUntilOf, reportRefusal, type ReportRefusal } from "./ad-page-refusals";
+import { rateUntilOf } from "@/lib/refusal";
+import { reportRefusal, type ReportRefusal } from "./ad-page-refusals";
 
 export const REPORT_REASONS = [
   "spam",

@@ -1,6 +1,8 @@
 import { specsRateText } from "./field-refusals";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
+import { rateUntilOf } from "@/lib/refusal";
+
 import {
   draftRateText,
   draftRefusalKey,
@@ -8,7 +10,6 @@ import {
   isRateRefusal,
   photoRateText,
   photoRefusalKey,
-  rateUntilOf,
 } from "./refusal-text";
 
 /** L22 — the words as keys, so a test reads which sentence was chosen and how it was filled. */

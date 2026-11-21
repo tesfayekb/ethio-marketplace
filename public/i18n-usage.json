@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 745,
+  "scanned": 746,
   "dynamicCallSites": 415,
   "keys": {
     "account.deactivatedBanner": [

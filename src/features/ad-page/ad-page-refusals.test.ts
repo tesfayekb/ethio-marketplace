@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
-import { readRefusal } from "@/lib/refusal";
+import { rateUntilOf, readRefusal } from "@/lib/refusal";
 import {
   CONTACT_REFUSALS,
   REPORT_REFUSALS,
@@ -10,7 +10,6 @@ import {
   reportRefusal,
   saveRefusal,
   rateText,
-  rateUntilOf,
 } from "./ad-page-refusals";
 import type { ContactState, RevealAnswer } from "./contact";
 import type { ReportAnswer } from "./report";

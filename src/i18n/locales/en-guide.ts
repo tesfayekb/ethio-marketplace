@@ -30,35 +30,35 @@ export const enGuide = {
   "admin.monetisation.markets.guide.how":
     "Add market opens a row for a country that has none; the default row cannot be removed. Edit changes a row; switching paid levels on needs a launch bundle (credits and days). A row is never deleted — switch paid levels off instead.",
   "admin.monetisation.markets.guide.next": "Check the levels sellers can buy and their perks.",
-  "admin.monetisation.level.guide.what":
-    "The levels an ad can have — Regular, Featured, Premium and any you add. A level sets how long an ad runs, how many photos it may carry, where it is placed and whether it wears a badge. Open a level to set its per-category perks and its prices.",
-  "admin.monetisation.level.guide.col.name": "The name sellers see, in each language.",
-  "admin.monetisation.level.guide.col.price":
+  "admin.monetisation.levels.guide.what":
+    "The levels an ad can have — Regular, Featured, Premium and any you add. A level sets how long an ad runs, how many photos it may carry, where it is placed and whether it wears a badge. Open a level to set its specific perks and its prices.",
+  "admin.monetisation.levels.guide.col.name": "The name sellers see, in each language.",
+  "admin.monetisation.levels.guide.col.price":
     'The level\'s price now: its standard price and how many specific prices are in force. "No price yet" means sellers cannot buy it.',
-  "admin.monetisation.level.guide.col.key":
+  "admin.monetisation.levels.guide.col.key":
     "The level's fixed identity in the system; it never changes once saved.",
-  "admin.monetisation.level.guide.col.days": "How many days the level runs by default.",
-  "admin.monetisation.level.guide.col.photos": "How many photos an ad at this level may carry.",
-  "admin.monetisation.level.guide.col.placement":
+  "admin.monetisation.levels.guide.col.days": "How many days the level runs by default.",
+  "admin.monetisation.levels.guide.col.photos": "How many photos an ad at this level may carry.",
+  "admin.monetisation.levels.guide.col.placement":
     "Where ads at this level appear: standard, boosted or at the top.",
-  "admin.monetisation.level.guide.col.badge": "Whether ads at this level wear a badge.",
-  "admin.monetisation.level.guide.col.cities": "A level has no city limit; the reach sets it.",
-  "admin.monetisation.level.guide.col.regions": "A level has no region limit; the reach sets it.",
-  "admin.monetisation.level.guide.col.countries":
+  "admin.monetisation.levels.guide.col.badge": "Whether ads at this level wear a badge.",
+  "admin.monetisation.levels.guide.col.cities": "A level has no city limit; the reach sets it.",
+  "admin.monetisation.levels.guide.col.regions": "A level has no region limit; the reach sets it.",
+  "admin.monetisation.levels.guide.col.countries":
     "A level has no country limit; the reach sets it.",
-  "admin.monetisation.level.guide.col.enabled":
+  "admin.monetisation.levels.guide.col.enabled":
     "Whether sellers can still get this level; off hides it everywhere.",
-  "admin.monetisation.level.guide.col.selfServe":
+  "admin.monetisation.levels.guide.col.selfServe":
     "Whether a seller can buy this level alone, without staff.",
-  "admin.monetisation.level.guide.col.extends":
+  "admin.monetisation.levels.guide.col.extends":
     "Whether buying this level also extends the ad's lifetime.",
-  "admin.monetisation.level.guide.col.sort": "The level's place in the order sellers see.",
-  "admin.monetisation.level.guide.col.createdBy": "Who added this level.",
-  "admin.monetisation.level.guide.col.updatedBy": "Who last changed this level.",
-  "admin.monetisation.level.guide.col.updated": "When this level last changed.",
-  "admin.monetisation.level.guide.how":
-    "Add level creates a level with its key, names and perks. Edit changes everything but the key. A level is switched off, never removed, so ads that have it keep their history. Open a row to add per-category perks and prices for this level.",
-  "admin.monetisation.level.guide.next": "Set the reach products — where an ad is seen.",
+  "admin.monetisation.levels.guide.col.sort": "The level's place in the order sellers see.",
+  "admin.monetisation.levels.guide.col.createdBy": "Who added this level.",
+  "admin.monetisation.levels.guide.col.updatedBy": "Who last changed this level.",
+  "admin.monetisation.levels.guide.col.updated": "When this level last changed.",
+  "admin.monetisation.levels.guide.how":
+    "Add level creates a level with its key, names and perks. Edit changes everything but the key. A level is switched off, never removed, so ads that have it keep their history. Open a row to add specific perks and prices for this level.",
+  "admin.monetisation.levels.guide.next": "Set the reach products — where an ad is seen.",
   "admin.monetisation.reach.guide.what":
     "The reach products — how far an ad is seen: its city, the whole country or worldwide. A reach only has a duration; its perks come from the ad's level. Open a reach to set its prices.",
   "admin.monetisation.reach.guide.col.name": "The name sellers see, in each language.",

@@ -2,7 +2,8 @@ import { levelsOf, parseCard, type FeedListing } from "@/features/feed/feed-page
 import { seedLevelRows, type LevelRow } from "@/features/levels/levels-store";
 import { rpc } from "@/lib/supabase-door";
 import type { Json } from "@/integrations/supabase/types";
-import { rateUntilOf, saveRefusal, type SaveRefusal } from "./ad-page-refusals";
+import { rateUntilOf } from "@/lib/refusal";
+import { saveRefusal, type SaveRefusal } from "./ad-page-refusals";
 
 export type SaveAnswer =
   | { ok: true; saved: boolean; count: number }
