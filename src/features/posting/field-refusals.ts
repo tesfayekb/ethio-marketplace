@@ -52,7 +52,7 @@ export const POSTING_FIELDS: FieldRegistry = {
   seller_type: { step: 7 },
   business_name: { label: "post.who.businessLabel", step: 7 },
   home_country_code: { label: "post.who.countryLabel", step: 7 },
-  poster_expires_at: { label: "post.price.expiryLabel", step: 8 },
+  poster_expires_at: { label: "post.price.expiryField", step: 8 },
 };
 
 /** Which step a refused field belongs to, or `null` when no step claims it. */

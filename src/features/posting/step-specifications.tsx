@@ -22,7 +22,7 @@ import { numberOf, parseNumber } from "@/lib/parse-input";
 import { readPostingSchemaAnswer, type AttrDef, type PostingSchema } from "./posting-service";
 import { contactRuleApplies, looksLikeContact } from "./contact-like";
 import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
-import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import { draftRefusalKey, fill, refusalFor, specsRateText } from "./refusal-text";
 import type { Refusal } from "./types";
 import { conditionMet } from "./visible-when";
 import {
@@ -171,6 +171,8 @@ export function StepSpecifications({
   const [schema, setSchema] = useState<PostingSchema | null>(null);
   const [failed, setFailed] = useState(false);
   const [rateLimited, setRateLimited] = useState(false);
+  /** L22 — the dial's reset instant, when its refusal named one. */
+  const [rateUntil, setRateUntil] = useState<string | undefined>(undefined);
   const [options, setOptions] = useState<Record<string, OptionState>>({});
   /**
    * INC-240 — WHO WROTE THIS ANSWER. For every detail this screen filled in from
@@ -242,6 +244,7 @@ export function StepSpecifications({
       setSchema(read.schema);
       setFailed(read.schema === null);
       setRateLimited(read.rateLimited);
+      setRateUntil(read.until);
     });
     return () => {
       cancelled = true;
@@ -1191,7 +1194,7 @@ export function StepSpecifications({
       <div className="space-y-5" data-testid={testId} data-options="0">
         {failed ? (
           <p className="text-sm text-destructive" data-testid="post-specs-error">
-            {t(rateLimited ? "post.specs.rateLimited" : "post.specs.loadFailed")}
+            {rateLimited ? specsRateText(rateUntil, t, language) : t("post.specs.loadFailed")}
           </p>
         ) : (
           <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
@@ -1204,7 +1207,7 @@ export function StepSpecifications({
   if (failed) {
     return (
       <p className="text-sm text-destructive" data-testid="post-specs-error">
-        {t(rateLimited ? "post.specs.rateLimited" : "post.specs.loadFailed")}
+        {rateLimited ? specsRateText(rateUntil, t, language) : t("post.specs.loadFailed")}
       </p>
     );
   }

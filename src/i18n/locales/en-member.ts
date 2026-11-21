@@ -428,6 +428,8 @@ export const enMember = {
   "post.specs.none": "This category asks for no extra details.",
   "post.specs.rateLimited":
     "You have opened many categories in a short while. Please wait a little and try again.",
+  "post.specs.rateLimitedWhen":
+    "You have opened many categories in a short while. Try again {when}.",
   "post.specs.loadFailed": "These details could not be loaded.",
   "post.specs.choose": "Choose",
   "post.specs.optionsLoading": "Loading choices…",
@@ -579,7 +581,7 @@ export const enMember = {
   "post.where.detailsSaved": "Location details saved.",
   "post.where.detailsTooLong": "Keep the location details to {max} characters.",
   "post.where.detailsFailed": "The location details were not saved. Try again.",
-  "post.where.directionsLabel": "Directions (optional)",
+  "post.where.directionsField": "Directions",
   "post.where.directionsHelp": "Suite, floor or a landmark nearby. No phone numbers.",
   "post.where.directionsSaved": "Directions saved.",
   "post.where.directionsTooLong": "Keep the directions to {max} characters.",
@@ -686,7 +688,7 @@ export const enMember = {
   "post.details.videoLabel": "YouTube link",
   "post.price.amountLabel": "Amount",
   "post.price.currencyLabel": "Currency",
-  "post.price.expiryLabel": "Take it down on (optional)",
+  "post.price.expiryField": "Take it down on",
   "post.price.modeLabel": "How are you pricing it?",
   "post.price.periodLabel": "Per",
   "post.refusalSummary": "Complete these to continue:",

@@ -31,7 +31,7 @@ import {
   clearSellerPlace,
   type SellerPlace,
   readPlaceText,
-  savePlaceText,
+  savePlaceTextAnswer,
   savePin,
   pinDoorQueue,
   type LastPlaces,
@@ -42,7 +42,7 @@ import {
 import { whereSeed, type PlaceFact, type WhereSeed } from "./where-seed";
 import { Field, RequiredMark } from "./field";
 import { looksLikeContact } from "./contact-like";
-import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import { draftRateText, draftRefusalText, fill, refusalFor } from "./refusal-text";
 import type { PinPlace, PinValue } from "./map/map-pin-dropper";
 import { DETAILS_MAX, sanitizeDetails } from "./map/location-details";
 import { MapFailedHere } from "./map/map-failed-here";
@@ -822,7 +822,7 @@ export function StepWhere({
    */
   onMissing?: (fields: string[]) => void;
 }) {
-  const { t, entities } = useI18n();
+  const { t, entities, language } = useI18n();
   const markets = useOpenMarkets();
   const [pinOpen, setPinOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
@@ -834,6 +834,8 @@ export function StepWhere({
    */
   const [note, setNote] = useState<string>(pin?.street ?? "");
   const [noteState, setNoteState] = useState<LineState>("idle");
+  /** L22 — the dial's reset instant for the details line's rate refusal, when it named one. */
+  const [noteUntil, setNoteUntil] = useState<string | undefined>(undefined);
   const [pinState, setPinState] = useState<"idle" | "saved" | "removed" | "failed">("idle");
   /**
    * Bundle 2 step 10 (P4) — THE DIRECTIONS LINE (`listings.directions`): optional,
@@ -843,6 +845,7 @@ export function StepWhere({
    */
   const [directions, setDirections] = useState<string>("");
   const [dirState, setDirState] = useState<LineState>("idle");
+  const [dirUntil, setDirUntil] = useState<string | undefined>(undefined);
   /** The values the door last held, so a save of one line never clears the other. */
   const savedText = useRef<{ street: string | null; directions: string | null }>({
     street: pin?.street ?? null,
@@ -1717,7 +1720,7 @@ export function StepWhere({
             >
               {chooseCity
                 ? t("post.refusal.cityRequired")
-                : t(draftRefusalKey(coverageRefusal.reason))}
+                : draftRefusalText(coverageRefusal, t, language)}
             </p>
           )}
         </div>
@@ -2054,7 +2057,7 @@ export function StepWhere({
         <div className="space-y-1">
           <Field
             id="post-where-directions"
-            label={t("post.where.directionsLabel")}
+            label={t("post.where.directionsField")}
             required={false}
             refusal={lineRefusal("directions", dirState)}
             family={DIRECTIONS_REFUSALS}
@@ -2101,20 +2104,25 @@ export function StepWhere({
                       // INC-522 (A2) — read the text again while it is unknown.
                       const wasUnknown = textUnknown.current;
                       if (!(await ensureText()))
-                        return { answer: "failed" as const, directions: null };
+                        return { answer: "failed" as const, directions: null, until: undefined };
                       const own = clean === "" && wasUnknown ? savedText.current.directions : clean;
                       const text = {
                         street: savedText.current.street,
                         directions: own === null || own === "" ? null : own,
                       };
-                      const answer = await savePlaceText(listingId, text, pinNow.current);
+                      const { answer, until } = await savePlaceTextAnswer(
+                        listingId,
+                        text,
+                        pinNow.current,
+                      );
                       if (answer === "saved") {
                         savedText.current = text;
                         noteSaved();
                       }
-                      return { answer, directions: text.directions };
+                      return { answer, directions: text.directions, until };
                     });
                     if (outcome.answer === "saved") onDirectionsSaved?.(outcome.directions);
+                    setDirUntil(outcome.until);
                     setDirState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
                   })();
                 }}
@@ -2132,11 +2140,9 @@ export function StepWhere({
               role="alert"
               data-testid="post-where-directions-failed"
             >
-              {t(
-                dirState === "rateLimited"
-                  ? "post.refusal.rateLimited"
-                  : "post.where.directionsFailed",
-              )}
+              {dirState === "rateLimited"
+                ? draftRateText(dirUntil, t, language)
+                : t("post.where.directionsFailed")}
             </p>
           )}
         </div>
@@ -2192,20 +2198,30 @@ export function StepWhere({
                       // INC-522 (A2) — read the text again while it is unknown.
                       const wasUnknown = textUnknown.current;
                       if (!(await ensureText())) {
-                        return { answer: "failed" as const, street: null, pin: null };
+                        return {
+                          answer: "failed" as const,
+                          street: null,
+                          pin: null,
+                          until: undefined,
+                        };
                       }
                       const own = clean === "" && wasUnknown ? savedText.current.street : clean;
                       const street = own === null || own === "" ? null : own;
                       const text = { street, directions: savedText.current.directions };
                       const pinAtSend = pinNow.current;
-                      const answer = await savePlaceText(listingId, text, pinAtSend);
+                      const { answer, until } = await savePlaceTextAnswer(
+                        listingId,
+                        text,
+                        pinAtSend,
+                      );
                       if (answer === "saved") {
                         savedText.current = text;
                         if (pinAtSend !== null) pinNow.current = { ...pinAtSend, street };
                         noteSaved();
                       }
-                      return { answer, street, pin: pinAtSend };
+                      return { answer, street, pin: pinAtSend, until };
                     });
+                    setNoteUntil(outcome.until);
                     setNoteState(outcome.answer === "contactInNote" ? "contact" : outcome.answer);
                     if (outcome.answer === "saved" && outcome.pin !== null) {
                       onPinSaved?.({ ...outcome.pin, street: outcome.street });
@@ -2226,11 +2242,9 @@ export function StepWhere({
               role="alert"
               data-testid="post-where-details-failed"
             >
-              {t(
-                noteState === "rateLimited"
-                  ? "post.refusal.rateLimited"
-                  : "post.where.detailsFailed",
-              )}
+              {noteState === "rateLimited"
+                ? draftRateText(noteUntil, t, language)
+                : t("post.where.detailsFailed")}
             </p>
           )}
         </div>

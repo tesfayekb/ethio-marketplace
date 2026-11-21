@@ -1,8 +1,80 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Button } from "./button";
+
+/**
+ * INC-1226 — the module can be held back: while `held.on`, the loader's promise waits and the
+ * facades see no module, as on a page whose chunk is slow; `release` lets it arrive.
+ */
+const held = vi.hoisted(() => ({
+  on: false,
+  waiting: [] as Array<() => void>,
+  listeners: new Set<() => void>(),
+}));
+vi.mock("./overlay-loader", async () => {
+  const React = await import("react");
+  const actual = await vi.importActual<typeof import("./overlay-loader")>("./overlay-loader");
+  return {
+    ...actual,
+    loadOverlays: () =>
+      held.on
+        ? new Promise<void>((resolve) => held.waiting.push(resolve)).then(() =>
+            actual.loadOverlays(),
+          )
+        : actual.loadOverlays(),
+    useOverlays: () => {
+      const impl = actual.useOverlays();
+      const on = React.useSyncExternalStore(
+        (listener: () => void) => {
+          held.listeners.add(listener);
+          return () => held.listeners.delete(listener);
+        },
+        () => held.on,
+        () => false,
+      );
+      return on ? null : impl;
+    },
+  };
+});
+
+async function release(): Promise<void> {
+  await act(async () => {
+    held.on = false;
+    for (const resolve of held.waiting.splice(0)) resolve();
+    for (const listener of held.listeners) listener();
+    await Promise.resolve();
+  });
+}
+
+/** The row's ⋯ button (row-actions.tsx): a tooltip trigger and a menu trigger on one element. */
+function Nested() {
+  return (
+    <DropdownMenu modal={false}>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button data-testid="nested">More</Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>More actions</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <DropdownMenuContent data-testid="nested-menu">
+        <DropdownMenuItem>Copy</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** A mouse's press on the trigger: it comes over it, presses, lets go. */
+function press(trigger: HTMLElement): void {
+  fireEvent.pointerEnter(trigger, { pointerType: "mouse" });
+  fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false, pointerType: "mouse" });
+  fireEvent.pointerUp(trigger, { pointerType: "mouse" });
+}
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -194,5 +266,48 @@ describe("the overlay facades (DEC-259)", () => {
     expect(screen.getByTestId("live-menu")).toHaveTextContent("First");
     rerender(<Live label="Second" />);
     expect(screen.getByTestId("live-menu")).toHaveTextContent("Second");
+  });
+
+  it("OVF-27 a press while the code loads: once it arrives the menu is open, the tooltip is not, and Escape closes the menu (INC-1226)", async () => {
+    held.on = true;
+    render(<Nested />);
+    const trigger = screen.getByTestId("nested");
+    press(trigger);
+    expect(screen.queryByTestId("nested-menu")).toBeNull();
+    await release();
+    expect(screen.getByTestId("nested-menu")).toBeInTheDocument();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    fireEvent.keyDown(screen.getByTestId("nested-menu"), { key: "Escape" });
+    await waitFor(() => expect(screen.queryByTestId("nested-menu")).toBeNull());
+  });
+
+  it("OVF-28 the same press on live code leaves the same: the menu open, no tooltip, Escape closes the menu", async () => {
+    render(<Nested />);
+    press(screen.getByTestId("nested"));
+    expect(screen.getByTestId("nested-menu")).toBeInTheDocument();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    fireEvent.keyDown(screen.getByTestId("nested-menu"), { key: "Escape" });
+    await waitFor(() => expect(screen.queryByTestId("nested-menu")).toBeNull());
+  });
+
+  it("OVF-29 a hover alone while the code loads still opens the tooltip once it arrives, and no menu", async () => {
+    held.on = true;
+    render(<Nested />);
+    fireEvent.pointerEnter(screen.getByTestId("nested"), { pointerType: "mouse" });
+    await release();
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("More actions");
+    expect(screen.queryByTestId("nested-menu")).toBeNull();
+  });
+
+  it("OVF-30 a focus the press caused while the code loads opens no tooltip once it arrives", async () => {
+    held.on = true;
+    render(<Nested />);
+    const trigger = screen.getByTestId("nested");
+    fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false, pointerType: "mouse" });
+    fireEvent.focus(trigger);
+    fireEvent.pointerUp(trigger, { pointerType: "mouse" });
+    await release();
+    expect(screen.getByTestId("nested-menu")).toBeInTheDocument();
+    expect(screen.queryByRole("tooltip")).toBeNull();
   });
 });
