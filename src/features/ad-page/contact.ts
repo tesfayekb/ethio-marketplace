@@ -1,6 +1,7 @@
 import { safeHref, type SafeHref } from "@/lib/safe-href";
 import { rpc } from "@/lib/supabase-door";
-import { contactRefusal, rateUntilOf, type ContactRefusal } from "./ad-page-refusals";
+import { rateUntilOf } from "@/lib/refusal";
+import { contactRefusal, type ContactRefusal } from "./ad-page-refusals";
 
 /**
  * Bundle 19 turn 11 (D201 §6) — THE BUYER'S CONTACT REVEAL. The values never

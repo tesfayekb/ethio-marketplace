@@ -3,7 +3,7 @@ import { useState } from "react";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { ActionMessage } from "@/components/ui/action-message";
 import { useI18n } from "@/i18n";
-import { DOOR_REFUSED_KEY } from "@/lib/door-codes";
+import { DOOR_REFUSED_KEY } from "@/lib/door-refused-key";
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";

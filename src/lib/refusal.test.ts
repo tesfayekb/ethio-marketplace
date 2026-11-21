@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 
@@ -6,7 +6,7 @@ import { StepUpCancelled, StepUpUnavailable } from "@/features/auth/mfa/mfa-serv
 import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 
-import { readRefusal, refusalText, refusalsOf, type RefusalFamily } from "./refusal";
+import { rateUntilOf, readRefusal, refusalText, refusalsOf, type RefusalFamily } from "./refusal";
 import { ADMIN_REFUSALS } from "./refusal-tail";
 
 const POSTING: RefusalFamily = {
@@ -175,5 +175,43 @@ describe("the one refusal reader (DEC-339)", () => {
     ]);
     expect(refusalsOf({ refusals: "not a list" })).toEqual([]);
     expect(refusalsOf({})).toEqual([]);
+  });
+
+  it("RTW-22 the one reader of a rate refusal's reset instant reads every shape both feature readers read (INC-1229)", () => {
+    const until = "2026-11-21T05:00:00+00:00";
+    // A string, an error's message, a refusal's reason, the shell's envelope: the instant is the tail.
+    expect(rateUntilOf(`rateLimited:${until}`)).toBe(until);
+    expect(rateUntilOf({ message: `rateLimited:${until}` })).toBe(until);
+    expect(rateUntilOf({ field: "rate", reason: `rateLimited:${until}` })).toBe(until);
+    expect(
+      rateUntilOf({
+        ok: false,
+        code: "P0D01",
+        message: `rateLimited:${until}`,
+        refusals: [{ reason: "rateLimited", detail: until }],
+      }),
+    ).toBe(until);
+    // The photo route's dial names it in the refusal's detail; a tail wins over a detail.
+    expect(rateUntilOf({ field: "rate", reason: "rateLimited", detail: until })).toBe(until);
+    expect(rateUntilOf({ field: "rate", reason: `rateLimited:${until}`, detail: "later" })).toBe(
+      until,
+    );
+    // No instant, a blank one, another code, or no refusal at all: undefined.
+    for (const none of [
+      "rateLimited",
+      "rateLimited: ",
+      { message: "rateLimited" },
+      { field: "rate", reason: "rateLimited" },
+      { field: "rate", reason: "rateLimited", detail: " " },
+      { reason: "ownListing" },
+      { field: "x", reason: "tooLarge", detail: until },
+      `noFreeSlot:${until}`,
+      undefined,
+      null,
+      42,
+      {},
+    ])
+      expect(rateUntilOf(none), JSON.stringify(none)).toBeUndefined();
+    expectTypeOf(rateUntilOf).returns.toEqualTypeOf<string | undefined>();
   });
 });

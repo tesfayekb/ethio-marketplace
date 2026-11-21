@@ -21,32 +21,32 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.markets.guide.how":
     "«ገበያ ጨምር» ረድፍ ለሌለው ሀገር ረድፍ ይከፍታል፤ ነባሪው ረድፍ ሊወገድ አይችልም። «አርትዕ» ረድፍን ይቀይራል፤ የሚከፈልባቸውን ደረጃዎች ማብራት የመክፈቻ ጥቅል (ክሬዲቶች እና ቀናት) ያስፈልገዋል። ረድፍ በፍጹም አይሰረዝም — በምትኩ የሚከፈልባቸውን ደረጃዎች ያጥፉ።",
   "admin.monetisation.markets.guide.next": "ሻጮች ሊገዙ የሚችሉትን ደረጃዎች እና ጥቅሞቻቸውን ይመልከቱ።",
-  "admin.monetisation.level.guide.what":
-    "ማስታወቂያ ሊኖረው የሚችለው ደረጃዎች — መደበኛ፣ የተለየ፣ ፕሪሚየም እና እርስዎ የሚጨምሩት ማንኛውም። ደረጃ ማስታወቂያ ምን ያህል እንደሚቆይ፣ ስንት ፎቶ እንደሚይዝ፣ የት እንደሚቀመጥ እና ምልክት እንደሚኖረው ይወስናል። የምድብ ጥቅሞቹን እና ዋጋዎቹን ለማስቀመጥ ደረጃውን ይክፈቱ።",
-  "admin.monetisation.level.guide.col.name": "ሻጮች በየቋንቋው የሚያዩት ስም።",
-  "admin.monetisation.level.guide.col.price":
+  "admin.monetisation.levels.guide.what":
+    "ማስታወቂያ ሊኖረው የሚችለው ደረጃዎች — መደበኛ፣ የተለየ፣ ፕሪሚየም እና እርስዎ የሚጨምሩት ማንኛውም። ደረጃ ማስታወቂያ ምን ያህል እንደሚቆይ፣ ስንት ፎቶ እንደሚይዝ፣ የት እንደሚቀመጥ እና ምልክት እንደሚኖረው ይወስናል። ልዩ ጥቅሞቹን እና ዋጋዎቹን ለማስቀመጥ ደረጃውን ይክፈቱ።",
+  "admin.monetisation.levels.guide.col.name": "ሻጮች በየቋንቋው የሚያዩት ስም።",
+  "admin.monetisation.levels.guide.col.price":
     "የደረጃው የአሁን ዋጋ፦ አጠቃላይ ዋጋው፣ እና በሥራ ላይ ያሉ ልዩ ዋጋዎች ብዛት። «እስካሁን ዋጋ የለም» ማለት ሻጮች ሊገዙት አይችሉም ማለት ነው።",
-  "admin.monetisation.level.guide.col.key":
+  "admin.monetisation.levels.guide.col.key":
     "የደረጃው በስርዓቱ ውስጥ ያለው ቋሚ መለያ፤ አንዴ ከተቀመጠ በኋላ በፍጹም አይቀየርም።",
-  "admin.monetisation.level.guide.col.days": "ደረጃው በነባሪነት ስንት ቀን እንደሚቆይ።",
-  "admin.monetisation.level.guide.col.photos": "በዚህ ደረጃ ያለ ማስታወቂያ ስንት ፎቶ ሊይዝ እንደሚችል።",
-  "admin.monetisation.level.guide.col.placement":
+  "admin.monetisation.levels.guide.col.days": "ደረጃው በነባሪነት ስንት ቀን እንደሚቆይ።",
+  "admin.monetisation.levels.guide.col.photos": "በዚህ ደረጃ ያለ ማስታወቂያ ስንት ፎቶ ሊይዝ እንደሚችል።",
+  "admin.monetisation.levels.guide.col.placement":
     "በዚህ ደረጃ ያሉ ማስታወቂያዎች የት እንደሚታዩ፦ መደበኛ፣ የጎላ ወይም በመጀመሪያ።",
-  "admin.monetisation.level.guide.col.badge": "በዚህ ደረጃ ያሉ ማስታወቂያዎች ምልክት እንደሚኖራቸው።",
-  "admin.monetisation.level.guide.col.cities": "ደረጃ የከተማ ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
-  "admin.monetisation.level.guide.col.regions": "ደረጃ የክልል ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
-  "admin.monetisation.level.guide.col.countries": "ደረጃ የሀገር ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
-  "admin.monetisation.level.guide.col.enabled":
+  "admin.monetisation.levels.guide.col.badge": "በዚህ ደረጃ ያሉ ማስታወቂያዎች ምልክት እንደሚኖራቸው።",
+  "admin.monetisation.levels.guide.col.cities": "ደረጃ የከተማ ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
+  "admin.monetisation.levels.guide.col.regions": "ደረጃ የክልል ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
+  "admin.monetisation.levels.guide.col.countries": "ደረጃ የሀገር ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
+  "admin.monetisation.levels.guide.col.enabled":
     "ሻጮች ይህን ደረጃ አሁንም ማግኘት ይችሉ እንደሆነ፤ ጠፍቶ ከሆነ በየትም ቦታ አይታይም።",
-  "admin.monetisation.level.guide.col.selfServe": "ሻጭ ይህን ደረጃ ያለ ሠራተኞች ብቻውን መግዛት ይችል እንደሆነ።",
-  "admin.monetisation.level.guide.col.extends": "ይህን ደረጃ መግዛት የማስታወቂያውን ቆይታም ያራዝም እንደሆነ።",
-  "admin.monetisation.level.guide.col.sort": "ሻጮች በሚያዩት ቅደም ተከተል ውስጥ የደረጃው ቦታ።",
-  "admin.monetisation.level.guide.col.createdBy": "ይህን ደረጃ የጨመረው ማን ነው።",
-  "admin.monetisation.level.guide.col.updatedBy": "ይህን ደረጃ በመጨረሻ የቀየረው ማን ነው።",
-  "admin.monetisation.level.guide.col.updated": "ይህ ደረጃ በመጨረሻ የተቀየረበት ጊዜ።",
-  "admin.monetisation.level.guide.how":
-    "«ደረጃ ጨምር» በመለያው፣ በስሞቹ እና በጥቅሞቹ ደረጃ ይፈጥራል። «አርትዕ» ከመለያው በስተቀር ሁሉንም ይቀይራል። ደረጃ ይጠፋል እንጂ በፍጹም አይወገድም፤ ስለዚህ ያለው ማስታወቂያዎች ታሪካቸውን ይጠብቃሉ። ለዚህ ደረጃ የምድብ ጥቅሞችን እና ዋጋዎችን ለመጨመር ረድፉን ይክፈቱ።",
-  "admin.monetisation.level.guide.next": "የተደራሽነት ምርቶችን ያስቀምጡ — ማስታወቂያ የት እንደሚታይ።",
+  "admin.monetisation.levels.guide.col.selfServe": "ሻጭ ይህን ደረጃ ያለ ሠራተኞች ብቻውን መግዛት ይችል እንደሆነ።",
+  "admin.monetisation.levels.guide.col.extends": "ይህን ደረጃ መግዛት የማስታወቂያውን ቆይታም ያራዝም እንደሆነ።",
+  "admin.monetisation.levels.guide.col.sort": "ሻጮች በሚያዩት ቅደም ተከተል ውስጥ የደረጃው ቦታ።",
+  "admin.monetisation.levels.guide.col.createdBy": "ይህን ደረጃ የጨመረው ማን ነው።",
+  "admin.monetisation.levels.guide.col.updatedBy": "ይህን ደረጃ በመጨረሻ የቀየረው ማን ነው።",
+  "admin.monetisation.levels.guide.col.updated": "ይህ ደረጃ በመጨረሻ የተቀየረበት ጊዜ።",
+  "admin.monetisation.levels.guide.how":
+    "«ደረጃ ጨምር» በመለያው፣ በስሞቹ እና በጥቅሞቹ ደረጃ ይፈጥራል። «አርትዕ» ከመለያው በስተቀር ሁሉንም ይቀይራል። ደረጃ ይጠፋል እንጂ በፍጹም አይወገድም፤ ስለዚህ ያለው ማስታወቂያዎች ታሪካቸውን ይጠብቃሉ። ለዚህ ደረጃ ልዩ ጥቅሞችን እና ዋጋዎችን ለመጨመር ረድፉን ይክፈቱ።",
+  "admin.monetisation.levels.guide.next": "የተደራሽነት ምርቶችን ያስቀምጡ — ማስታወቂያ የት እንደሚታይ።",
   "admin.monetisation.reach.guide.what":
     "የተደራሽነት ምርቶች — ማስታወቂያ እስከ የት እንደሚታይ፦ ከተማው፣ መላው ሀገር ወይም ዓለም አቀፍ። ተደራሽነት ቆይታ ብቻ አለው፤ ጥቅሞቹ ከማስታወቂያው ደረጃ ይመጣሉ። ዋጋዎቹን ለማስቀመጥ ተደራሽነቱን ይክፈቱ።",
   "admin.monetisation.reach.guide.col.name": "ሻጮች በየቋንቋው የሚያዩት ስም።",

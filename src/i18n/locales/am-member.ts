@@ -163,6 +163,10 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "mfa.errorGeneric": "ይህን ማጠናቀቅ አልቻልንም። እባክዎ እንደገና ይሞክሩ።",
   "mfa.errorInvalidCode": "ኮዱ ትክክል አይደለም። ከመተግበሪያዎ አሁን ያለውን ኮድ ያስገቡ።",
   "mfa.errorNoFactor": "በዚህ መለያ ላይ የተዋቀረ የማረጋገጫ መተግበሪያ የለም።",
+  "mfa.errorSetupPending":
+    "ለዚህ መለያ የባለ ሁለት ደረጃ ማረጋገጫ ማዋቀር ተጀምሮ አልተጠናቀቀም። በጀመሩበት ቦታ ያጠናቅቁት፣ ወይም ትንሽ ቆይተው እንደገና ይሞክሩ።",
+  "mfa.errorFactorExists": "ይህ መለያ አስቀድሞ የማረጋገጫ መተግበሪያ አለው። ሌላ ከመጨመርዎ በፊት ያስወግዱት።",
+  "mfa.errorMethodOff": "የባለ ሁለት ደረጃ ማረጋገጫ ኮዶች ለጊዜው ጠፍተዋል። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።",
   "mfa.title": "ባለ ሁለት ደረጃ ማረጋገጫ",
   "mfa.description": "ሚስጥራዊ እርምጃዎችን ለመጠበቅ ከማረጋገጫ መተግበሪያ የሚመጣ የአንድ ጊዜ ኮድ ይጨምሩ።",
   "mfa.statusOn": "ባለ ሁለት ደረጃ ማረጋገጫ በርቷል",

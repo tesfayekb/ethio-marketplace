@@ -54,6 +54,8 @@ import {
  * CF-LANES-5 (DEC-415): the repeat lane's serial pass repeats the selected specs' `@global-state`
  * tests at one worker with the lane's own `--repeat-each`, and the planner's two lists keep out
  * the same tags as the two commands they count for.
+ * CF-LANES-6 (INC-1231): the statement-trigger reader reads SQL as the migration reader does, so a
+ * `--` inside a quoted literal hides no trigger and a comment after one still hides its own.
  */
 type Finding = { file: string; line: number; what: string };
 /** A coverage finding's allowlist key: `@<tag>` for a test every lane leaves out, else the test. */
@@ -554,9 +556,9 @@ describe("no scratch row moves a shared value in a split lane (DEC-378 a, INC-11
         `e2e/planted-reader.spec.ts:4 RDP-4 reads category_tree_pointers's shared value (${MANIFEST}:1) outside @global-state`,
       ].sort(),
     );
-    expect(() => readersRow("SMN-E13")).toThrow(/a reader is not <file>::<test id>/);
+    expect(() => readersRow("SMN-E13")).toThrow(/a reader line is not "file::test id"/);
     expect(() => readersRow("e2e/submenu-look.spec.ts::SMN-E13,")).toThrow(
-      /a reader is not <file>::<test id>/,
+      /a reader line is not "file::test id"/,
     );
 
     // Planted: an untagged writer, a helper's caller and a door's caller are found; a tagged test,
@@ -631,5 +633,21 @@ describe("no scratch row moves a shared value in a split lane (DEC-378 a, INC-11
       ].sort(),
     );
     expect(() => readManifest("languages | why | -\n", "planted.txt")).toThrow(/planted.txt:1/);
+  });
+
+  it("CF-LANES-6 a `--` inside a literal hides no statement trigger; a comment after one hides its own (INC-1231)", () => {
+    const planted = {
+      path: "supabase/migrations/planted-literal.sql",
+      text: [
+        "INSERT INTO public.notes (body) VALUES ('--'); CREATE TRIGGER t2 AFTER INSERT ON public.planted_literal FOR EACH STATEMENT EXECUTE FUNCTION public.f();",
+        "INSERT INTO public.notes (body) VALUES ('x'); -- CREATE TRIGGER t3 AFTER INSERT ON public.planted_comment FOR EACH STATEMENT EXECUTE FUNCTION public.f();",
+      ].join("\n"),
+    };
+    const found = triggerFindings([planted], manifest, MANIFEST)
+      .filter((finding) => finding.file === planted.path)
+      .map((finding) => `${finding.file}:${String(finding.line)} ${finding.what}`);
+    expect(found).toEqual([
+      'supabase/migrations/planted-literal.sql:1 public.planted_literal carries a statement-level trigger; the manifest names it neither shared nor "read, not shared"',
+    ]);
   });
 });

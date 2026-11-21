@@ -331,6 +331,17 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "check-doors.ts --live",
     );
+    // DOORS-16 / DOORS-17 (cursor-bundle-1 item 6, INC-1166): the open read rules' file, judged by
+    // check-doors.ts in both modes (open-rules.ts through judge.ts); the smoke lane hands its live half the
+    // grants query of scripts/doors/live-open-rules.sql, printed by `--live-open-rules-query`.
+    expect(doorsTests).toContain("DOORS-16");
+    expect(doorsTests).toContain("DOORS-17");
+    expect(readFileSync(join(ROOT, "scripts/doors/check-doors.ts"), "utf8")).toContain(
+      "openRules: declaredOpenRulesFile(root",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "check-doors.ts --live-open-rules-query",
+    );
     // seller-names.ts (DEC-359) is the seller-name law: seller-names.test.ts SPA-10a…10d runs its
     // file half; the smoke lane runs its live half after the door guard.
     expect(readFileSync(join(ROOT, "scripts/conformance/seller-names.test.ts"), "utf8")).toContain(

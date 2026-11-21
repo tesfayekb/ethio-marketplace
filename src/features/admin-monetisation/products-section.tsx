@@ -325,7 +325,7 @@ export function ProductsSection({
           )}
           cardUntil="lg"
           guide={{
-            prefix: isLevel ? "admin.monetisation.level" : "admin.monetisation.reach",
+            prefix: isLevel ? "admin.monetisation.levels" : "admin.monetisation.reach",
             anchor,
             next: {
               section: "monetisation",

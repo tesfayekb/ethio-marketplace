@@ -1,6 +1,6 @@
 import { errorText } from "@/lib/error-text";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
-import { refusalsOf, splitRefusal } from "@/lib/refusal";
+import { rateUntilOf, refusalsOf, splitRefusal } from "@/lib/refusal";
 import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
 import { tierOf } from "@/components/marketplace/card-tier";
@@ -9,7 +9,7 @@ import type { Certification } from "@/features/my-listings/my-listing";
 
 import { createDoorQueue, type DoorQueue } from "./door-queue";
 import { readPin, type Pin, type PinPrecision } from "./map/pin";
-import { isRateRefusal, rateUntilOf } from "./refusal-text";
+import { isRateRefusal } from "./refusal-text";
 import type { CategoryFacts, DoorAnswer } from "./types";
 import type { VisibleWhen } from "./visible-when";
 import { shapePlanCaps, shapePostingSchema } from "./schema-shape";

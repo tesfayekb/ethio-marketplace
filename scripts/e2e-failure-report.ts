@@ -34,6 +34,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { errorText } from "../src/lib/error-text";
 import { SKIPPED_PREFIX } from "./ci/docs-only";
+import { SERIAL_CAP_LINE } from "./ci/repeat-cap";
 import { authored } from "./lib/pattern";
 
 /**
@@ -1580,7 +1581,11 @@ export function lanesLines(meta: ReportMeta): string[] {
 
 /** INC-1107 — the repeat lane's selection file, uploaded inside its `e2e-log-repeat` artifact. */
 export const REPEAT_SELECTION_FILE = "local-backend-repeat.txt";
-/** The line scripts/ci/repeat-cap.ts appends for each test run the time cap left unrun. */
+/**
+ * The line scripts/ci/repeat-cap.ts appends for each test run the time cap left unrun. The serial
+ * pass's own cap line (`SERIAL_CAP_LINE`, the one definition) starts with the same words and is
+ * not a test run: it is read apart (INC-1232).
+ */
 export const TIME_CAP_LINE = "- Not repeated (time cap): ";
 /** The selection step's summary line (local-backend-proof.yml), its counts captured. */
 const REPEAT_SUMMARY =
@@ -1606,9 +1611,13 @@ export function repeatLines(meta: ReportMeta): string[] {
   const m = REPEAT_SUMMARY.exec(summary);
   if (m === null) return [`- Repeat: the selection's summary did not parse: \`${summary}\``];
   const [, selected, repeated, budget, direct, directAll, helper, helperAll] = m;
-  const capped = lines.filter((line) => line.startsWith(TIME_CAP_LINE)).length;
+  const serialLine = SERIAL_CAP_LINE.trimEnd();
+  const capped = lines.filter(
+    (line) => line.startsWith(TIME_CAP_LINE) && line !== serialLine,
+  ).length;
+  const serialCapped = lines.includes(serialLine);
   return [
-    `- Repeat: ${repeated} of ${selected} tests repeated — specs directly changed ${direct}/${directAll}, importers of a changed helper ${helper}/${helperAll}; budget ${budget} s${capped > 0 ? `; the time cap left ${capped} test runs` : ""}`,
+    `- Repeat: ${repeated} of ${selected} tests repeated — specs directly changed ${direct}/${directAll}, importers of a changed helper ${helper}/${helperAll}; budget ${budget} s${capped > 0 ? `; the time cap left ${capped} test runs` : ""}${serialCapped ? "; the time cap stopped the serial pass" : ""}`,
   ];
 }
 

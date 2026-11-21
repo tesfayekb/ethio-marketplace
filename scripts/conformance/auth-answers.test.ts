@@ -20,7 +20,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SERVICE = join(ROOT, "src", "features", "auth", "auth-service.ts");
 // DEC-348: the sign-out action lives in its own leaf beside the service; both define actions.
 const SIGN_OUT_LEAF = join(ROOT, "src", "features", "auth", "sign-out.ts");
-const ACTION_FILES = [SERVICE, SIGN_OUT_LEAF];
+// INC-1153: the email-verification landing is a leaf too (its async export is an action).
+const VERIFICATION_LEAF = join(ROOT, "src", "features", "auth", "email-verification.ts");
+const ACTION_FILES = [SERVICE, SIGN_OUT_LEAF, VERIFICATION_LEAF];
 const ALLOWLIST = join(dirname(fileURLToPath(import.meta.url)), "auth-answers-allowlist.txt");
 
 type Finding = { file: string; line: number; what: string };
@@ -81,6 +83,9 @@ describe("an auth action's answer is read where it is called (INC-915)", () => {
     const actions = ACTION_FILES.flatMap((file) => authActions(readFileSync(file, "utf8")));
     expect(actions, "the leaf's sign-out is an action the census knows (DEC-348)").toContain(
       "signOut",
+    );
+    expect(actions, "the verification leaf's action is one the census knows (INC-1153)").toContain(
+      "completeEmailVerification",
     );
     expect(actions.length).toBeGreaterThanOrEqual(15);
     const { scanned, findings } = census([join(ROOT, "src")], actions);

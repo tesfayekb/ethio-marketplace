@@ -46,10 +46,15 @@ guard's allowlist until it lands.
   caller's values (`fill`). A family (`RefusalFamily`: `words`, `generic`) is
   the form's code map; a code no family knows reads as `common.error`, never
   the provider's or Postgres' text. `src/lib/refusal-tail.ts` keeps only the
-  console doors' dialect (its admin-layer words and `doorKeyText`, until wave 3;
-  since F1-4a no screen calls `doorKeyText`: the categories and attributes
+  console doors' dialect (its admin-layer words; `doorKeyText` was removed with
+  INC-1229, no screen having called it since F1-4a: the categories and attributes
   consoles read a door key through `readRefusal`'s key branch)
-  and re-exports the folded shapes. The door's worder (`src/lib/door-error.ts`) sits
+  and re-exports the folded shapes. `rateUntilOf(input)` (INC-1229) is the one
+  reader of a rate refusal's reset instant, for the ad page and the posting
+  wizard alike (RTW-22). The generic key `DOOR_REFUSED_KEY` is its own leaf
+  (`src/lib/door-refused-key.ts`, INC-1153), so the shell's notice does not carry
+  the closed list of door codes (`door-codes.ts`, which re-exports it): the list
+  arrives with the reader's chunk (DRC-8). The door's worder (`src/lib/door-error.ts`) sits
   beside it, so the server no longer imports a posting module for its wording
   (INC-1050). Tests: RFR-1 → RFR-10.
 - **The parser** — `src/lib/parse-input.ts`: `parseNumber(raw, rules)` and
@@ -236,3 +241,12 @@ refusal stay in the dialog's `<prefix>-error` line. Tests: KMO-1…8.
 - Users: the deactivation reason is held by the gate, and its blank keeps the `reason-error` line (read by the browser tests), named by the box's `aria-describedby`. The profile editor's display name goes through the gate (`PROFILE_EDIT_REFUSALS.words.required`); every door refusal stays in the `edit-error` line, and the alias, alias-reason or country box it is about carries `aria-invalid` and names that line. The local list's helper rows are `InfoRow`, so the tag `Field` means only the kit.
 - View-as: a blank reason is held by the gate under its box; the too-short reason and every door refusal stay in `impersonation-error`, named by the box.
 - The two list searches stay bare inputs in their toolbars (DEC-338, T2b). Tests: KFS-1…5 (`src/features/admin/users/staff-form-gates.test.tsx`).
+
+## Sign-in, the two-factor service and the step-up code (wave 2, last lines; cursor bundle 1)
+
+- **The auth mapper** — `src/features/auth/auth-error-key.ts` reads a provider error through `readRefusal` (dialect 7: the provider's own `code`, by `AUTH_REFUSALS.words`; the provider's English by the family's `sentences`, in the order the mapper always read them; `auth.errorGeneric` for the rest). Three reads a table cannot say are made before the reader: the leaked-password reason, the mail the server could not send, and the refused address (its code is read ahead of the sentence that would name the "email address"); a 429 no words name is the rate line. `failure` (the answer every auth action shares) moved beside it: the shell's sign-out answers `auth.errorGeneric` without the mapper and logs the provider's own words once, because the shell reads only `ok` (DEC-268; ASC-11).
+- **The email-verification landing** is a leaf, `email-verification.ts` (the body moved byte for byte; `auth-service.ts` re-exports it): `/auth/callback` draws it and nothing else of the service, so the page does not download the reader the mapper stands on.
+- **The two-factor service** — `mfa-service.ts` reads each refusal of `mfa.enroll`, `mfa.challenge`, `mfa.verify` and `mfa.unenroll` through `MFA_REFUSALS`: a code the table names reads its own words (`mfa.errorInvalidCode`, `auth.errorRateLimited`, and the three new sentences `mfa.errorSetupPending`, `mfa.errorFactorExists`, `mfa.errorMethodOff`), a provider that words a refusal with no code keeps the old words test (invalid, expired or code), the rest read `mfa.errorGeneric` (INC-1147 class 1). An outcome carries `errorKey` for the settings screen and `refusal` for the dialog. `stepUpAbortKey` reads the reader's own step-up branch (its name, its three answers and its callers are unchanged).
+- **The step-up dialog** draws its code in the one `Field` (`id="step-up-code"`, `refusalTestId="step-up-error"`); the control keeps `data-testid="step-up-code"`. The gate holds a `Refusal`, not a key.
+- **The guard** — `forms-allowlist.txt` holds no line; CF-FORM-6 says so and asserts the tree has no finding of the five laws. Tests: MSV-1…5 (`mfa-service.test.ts`), SUD-1…2 (`step-up-dialog.test.tsx`), `auth-error-key.test.ts`, MF-2 in the browser.
+- INC-1147 classes 2 and 3 stay open (the account-security phase, ACT-020).

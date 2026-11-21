@@ -55,8 +55,7 @@ export const DOOR_CODES = [
 
 export type DoorCode = (typeof DOOR_CODES)[number];
 
-/** The one key a screen renders for a refusal it has no words of its own for. */
-export const DOOR_REFUSED_KEY = "door.refused" as const;
+export { DOOR_REFUSED_KEY } from "@/lib/door-refused-key";
 
 export type DoorRefusalRead = {
   /** The code when it is on the list; null for an unknown or sentence-shaped message. */

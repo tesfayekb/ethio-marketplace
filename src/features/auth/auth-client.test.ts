@@ -218,7 +218,7 @@ describe("a failed client download is a failed action (INC-915)", () => {
     // pair both import authClient from it and never call getSupabase themselves.
     const client = readFileSync("src/features/auth/auth-client.ts", "utf8");
     expect(client.match(/getSupabase\(\)/g) ?? []).toHaveLength(1);
-    for (const file of ["auth-service.ts", "preferred-language.ts"]) {
+    for (const file of ["auth-service.ts", "preferred-language.ts", "email-verification.ts"]) {
       const text = readFileSync(`src/features/auth/${file}`, "utf8");
       expect(text, file).not.toContain("getSupabase");
       expect(text, file).toContain("import { authClient");
@@ -238,8 +238,14 @@ describe("a sign-out ends the session on this device whatever the server answers
       error: { name: "AuthRetryableFetchError", message: "Failed to fetch", status: 0 },
     });
     door.getSupabase.mockReset().mockResolvedValue({ auth: { signOut } });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const failed = await service.signOut();
-    expect(failed.ok).toBe(false);
+    // INC-1153: the failure answers the one generic line without the mapper, and the provider's own
+    // words are logged once.
+    expect(failed).toEqual({ ok: false, errorKey: "auth.errorGeneric" });
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]?.[0])).toContain("Failed to fetch");
+    warn.mockRestore();
     expect(signOut).toHaveBeenCalledTimes(1);
     expect(door.forgetStoredSession).toHaveBeenCalledTimes(1);
     // A sign-out the server confirmed leaves the stored session to supabase-js, which removed it.
@@ -247,6 +253,18 @@ describe("a sign-out ends the session on this device whatever the server answers
     signOut.mockResolvedValue({ error: null });
     expect(await service.signOut()).toEqual({ ok: true });
     expect(door.forgetStoredSession).not.toHaveBeenCalled();
+  });
+
+  it("ASC-11 the shell reads only `ok` of a sign-out's answer, so a failure's words are never drawn (INC-1153)", () => {
+    const shell = readFileSync("src/components/app-shell.tsx", "utf8");
+    expect(shell).toContain("const answer = await signOut();");
+    expect([...new Set([...shell.matchAll(/\banswer\.(\w+)/g)].map((match) => match[1]))]).toEqual([
+      "ok",
+    ]);
+    // The leaf answers without the mapper (and the reader it stands on).
+    const leaf = readFileSync("src/features/auth/sign-out.ts", "utf8");
+    expect(leaf).not.toMatch(/from ["']\.\/auth-error-key["']/);
+    expect(leaf).not.toMatch(/from ["']@\/lib\/refusal["']/);
   });
 
   it("ASC-10 DEC-411 — a sign-out ends the session on this device only", async () => {

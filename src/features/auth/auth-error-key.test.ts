@@ -91,3 +91,36 @@ describe("toErrorKey — a confirmation e-mail that cannot be sent (bundle 22 tu
     ).toBe("auth.errorGeneric");
   });
 });
+
+describe("toErrorKey — each provider code the family names reads its words (INC-1147, wave 2)", () => {
+  const codes: Array<[string, string]> = [
+    ["email_not_confirmed", "auth.errorEmailNotConfirmed"],
+    ["invalid_credentials", "auth.errorInvalidCredentials"],
+    ["user_already_exists", "auth.errorEmailInUse"],
+    ["single_identity_not_deletable", "auth.errorLastMethod"],
+    ["weak_password", "auth.errorWeakPassword"],
+    ["email_address_not_authorized", "auth.errorMailSend"],
+    ["validation_failed", "auth.errorInvalidEmail"],
+    ["over_request_rate_limit", "auth.errorRateLimited"],
+    ["over_email_send_rate_limit", "auth.errorRateLimited"],
+  ];
+  for (const [code, key] of codes) {
+    it(`${code} answers ${key} whatever its message says`, () => {
+      expect(toErrorKey({ message: "words nothing above names", code })).toBe(key);
+    });
+  }
+  it("a code the family does not name, and no sentence, answers the generic key", () => {
+    expect(toErrorKey({ message: "words nothing above names", code: "unexpected_failure" })).toBe(
+      "auth.errorGeneric",
+    );
+    expect(toErrorKey({ message: "" })).toBe("auth.errorGeneric");
+  });
+  it("a refused address's message that names the e-mail address keeps the mail word by its code, ahead of the sentence", () => {
+    expect(
+      toErrorKey({
+        message: 'Email address "a@example.com" cannot be used as it is not authorized',
+        code: "email_address_not_authorized",
+      }),
+    ).toBe("auth.errorMailSend");
+  });
+});

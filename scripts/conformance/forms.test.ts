@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -15,6 +15,9 @@ import { readAllowlist, report, TREE_SCAN_MS } from "./kit";
  */
 
 const ALLOWLIST = "scripts/conformance/forms-allowlist.txt";
+
+/** A line of an allowlist that is a line (not blank, not a comment). */
+const isLine = (line: string): boolean => line.trim() !== "" && !line.trim().startsWith("#");
 
 let tree: FormFinding[] | null = null;
 function treeFindings(): FormFinding[] {
@@ -146,6 +149,14 @@ describe("the form kit's laws (DEC-339)", () => {
       ].join("\n"),
     );
     expect(planted("src/components/forms/control-class.ts", text, "CF-FORM-5")).toBe("");
+  });
+
+  it("CF-FORM-6 wave 2 is done: the allowlist holds no line, and the tree has no finding of the five laws", () => {
+    // Cursor bundle 1 (INC-1147 class 1): the step-up code sits in the Field, the auth mapper and the
+    // two-factor service read through the one reader. The list ends empty, and stays so.
+    expect(readAllowlist(ALLOWLIST, allowlistKeys(treeFindings()).keys())).toEqual(new Map());
+    expect(report(treeFindings())).toBe("");
+    expect(readFileSync(ALLOWLIST, "utf8").split("\n").filter(isLine)).toEqual([]);
   });
 
   it("CF-FORM-5b the allowlist only falls: a risen count is a finding, a fallen one a stale line", () => {

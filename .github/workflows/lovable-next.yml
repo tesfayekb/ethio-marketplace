@@ -1,0 +1,57 @@
+name: Lovable next branch
+
+# DEC-416 — the one standing Lovable branch. Lovable's work lives on `lovable/next`; on every push to
+# dev this workflow moves that branch up to dev's head when it holds nothing dev lacks, so every
+# Lovable bundle starts from dev's head and the operator never creates or switches a branch.
+# Three cases, each ending by its own words in the job summary:
+#   - `lovable/next` does not exist: nothing moves, the job ends green (the operator creates the
+#     branch once);
+#   - `lovable/next` is an ancestor of dev's head (or equal to it): dev's head is pushed to it, a
+#     fast-forward, never forced;
+#   - `lovable/next` holds a commit dev lacks (a bundle in flight): nothing moves, the job ends green.
+# The trigger is a push to dev and nothing else; the job reads git only (the checkout, `rev-parse`,
+# `merge-base`, `push`) and runs no script and no code of any branch. A failed push is a red job.
+on:
+  push:
+    branches: [dev]
+
+concurrency:
+  group: lovable-next
+  cancel-in-progress: false
+
+jobs:
+  move:
+    name: Lovable next branch (DEC-416)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        timeout-minutes: 5
+        with:
+          fetch-depth: 0
+      - name: Move lovable/next to dev's head
+        timeout-minutes: 3
+        run: |
+          set -eu
+          head_sha="$(git rev-parse --verify "${GITHUB_SHA}^{commit}")"
+          if ! next_sha="$(git rev-parse --verify --quiet "refs/remotes/origin/lovable/next^{commit}")"; then
+            echo "lovable/next does not exist; nothing moved (the operator creates it once)." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ "$next_sha" = "$head_sha" ]; then
+            echo "lovable/next is at dev's head ${head_sha}; nothing to move." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          ancestor=0
+          git merge-base --is-ancestor "$next_sha" "$head_sha" || ancestor=$?
+          if [ "$ancestor" -eq 0 ]; then
+            git push origin "${head_sha}:refs/heads/lovable/next"
+            echo "lovable/next moved from ${next_sha} to dev's head ${head_sha} (a fast-forward)." >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$ancestor" -eq 1 ]; then
+            echo "lovable/next (${next_sha}) holds a commit dev's head ${head_sha} lacks (a bundle in flight); nothing moved." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "the ancestor test failed (exit ${ancestor}); nothing moved." >> "$GITHUB_STEP_SUMMARY"
+            exit "$ancestor"
+          fi

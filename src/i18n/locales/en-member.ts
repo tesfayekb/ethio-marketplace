@@ -165,6 +165,11 @@ export const enMember = {
   "mfa.errorGeneric": "We couldn't complete that. Please try again.",
   "mfa.errorInvalidCode": "That code isn't right. Enter the current code from your app.",
   "mfa.errorNoFactor": "No authenticator app is set up on this account.",
+  "mfa.errorSetupPending":
+    "A two-factor setup was started for this account and not finished. Finish it where you started it, or try again later.",
+  "mfa.errorFactorExists":
+    "This account already has an authenticator app. Remove it before adding another.",
+  "mfa.errorMethodOff": "Two-factor codes are switched off for now. Please try again later.",
   "mfa.title": "Two-factor authentication",
   "mfa.description": "Add a one-time code from an authenticator app to protect sensitive actions.",
   "mfa.statusOn": "Two-factor authentication is on",

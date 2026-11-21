@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import { DOOR_CODES, DOOR_REFUSED_KEY, doorCode } from "./door-codes";
+import { DOOR_REFUSED_KEY as LEAF_KEY } from "./door-refused-key";
 
 /** DRC-1…7 (DEC-333): the one reader of door refusal codes. */
 describe("doorCode", () => {
@@ -100,5 +103,15 @@ describe("doorCode", () => {
     });
     expect(doorCode("rateLimited:")).toEqual({ code: "rateLimited", detail: null });
     expect(doorCode("notSignedIn ")).toEqual({ code: "notSignedIn", detail: null });
+  });
+
+  it("DRC-8 the generic key is a leaf the shell can import without the list: both modules answer the same value (INC-1153)", () => {
+    expect(LEAF_KEY).toBe("door.refused");
+    expect(DOOR_REFUSED_KEY).toBe(LEAF_KEY);
+    expect(readFileSync("src/lib/door-refused-key.ts", "utf8")).not.toMatch(/^import /m);
+    // The shell's notice (every page) reads the leaf, never the list.
+    const notice = readFileSync("src/components/shell/impersonation-notice.tsx", "utf8");
+    expect(notice).toContain('from "@/lib/door-refused-key"');
+    expect(notice).not.toContain("@/lib/door-codes");
   });
 });

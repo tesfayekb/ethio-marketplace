@@ -110,4 +110,78 @@ describe("a lane's step failure is published (INC-984)", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("LFE-4 the merge keeps the repeat lane's serial line, beside its parallel and WebKit lines (INC-1232)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "lfe-"));
+    try {
+      // The lane's own echo lines (the workflow's words, their variables filled), after the real
+      // selection's summary line.
+      const echo = (head: string) =>
+        [
+          ...WORKFLOW.matchAll(
+            new RegExp(`echo "(${head}[^"]+)" >> local-backend-repeat\\.txt`, "g"),
+          ),
+        ]
+          .map((match) => match[1] ?? "")
+          .at(-1) ?? "";
+      const values = new Map([
+        ["webkit_used", "4"],
+        ["serial_used", "3"],
+        ["each", "2"],
+      ]);
+      const filled = (line: string) =>
+        line.replace(/\$\{?(\w+)\}?/g, (all, name: string) => values.get(name) ?? all);
+      const selection = readFileSync(
+        "scripts/fixtures/local-backend-repeat.43144538685.txt",
+        "utf8",
+      );
+      const serial = filled(echo("- Repeat serially"));
+      expect(serial).toBe(
+        "- Repeat serially (DEC-415): 3 of the repeated tests, @global-state, each 2 on mobile-360 and desktop-1280 at one worker after the parallel pass",
+      );
+      const fragment = [
+        "- Lane: repeat",
+        "# Local backend proof (non-gating)",
+        "",
+        "- Commit: `fixture`",
+        "- Seconds — job: 119",
+        "- Seconds — start (migrations included): 61",
+        "- Migrations: applied 374/374",
+        "- Smoke: 0 passed · 0 failed · 0 flaky · 0 skipped · total 0",
+        "- Teardown: not found",
+        ...selection.split("\n").filter((line) => line !== ""),
+        filled(echo("- Repeat in WebKit")),
+        serial,
+        "- Job conclusion before evidence publication: success",
+        "",
+      ].join("\n");
+      mkdirSync(join(dir, "local-proof-artifacts", "local-proof-repeat"), { recursive: true });
+      writeFileSync(
+        join(dir, "local-proof-artifacts", "local-proof-repeat", "local-backend-proof-repeat.md"),
+        fragment,
+      );
+      const result = spawnSync("python3", ["-c", heredoc("Write proof summary and notice")], {
+        cwd: dir,
+        encoding: "utf8",
+        env: {
+          PATH: process.env["PATH"] ?? "",
+          // The step's PYTHONPATH (scripts/ci), absolute: the program runs in a scratch directory.
+          PYTHONPATH: join(process.cwd(), "scripts/ci"),
+          PYTHONDONTWRITEBYTECODE: "1",
+          GITHUB_SHA: "f".repeat(40),
+          GITHUB_REPOSITORY: "o/r",
+          GITHUB_RUN_ID: "1",
+        },
+        timeout: 20_000,
+      });
+      expect(result.status, result.stderr).toBe(0);
+      const proof = readFileSync(join(dir, "docs/tracking/local-backend-proof.md"), "utf8");
+      const line =
+        proof.split("\n").find((text) => text.startsWith("- Repeat lane (DEC-283): ")) ?? "";
+      expect(line).toContain("; Repeat in WebKit (DEC-371): 4 of the repeated tests");
+      expect(line).toContain(`; ${serial.slice(2)}`);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

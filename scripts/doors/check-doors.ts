@@ -7,8 +7,16 @@ import { catalogueOf, type DroppedGrant } from "./catalogue";
 import { declaredColumns } from "./columns";
 import { FINDING_KINDS, judge, type Finding, type FindingKind } from "./judge";
 import { parseManifest } from "./manifest";
-import { declaredPolicyCalls, policyCallsOf } from "./policies";
-import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./rows";
+import { liveGrants, parseOpenRules, type OpenRuleEvidence } from "./open-rules";
+import { declaredOpenRules, declaredPolicyCalls, openRulesOf, policyCallsOf } from "./policies";
+import {
+  LIVE_OPEN_RULES_QUERY,
+  LIVE_QUERY,
+  liveRows,
+  staticRows,
+  treeCallers,
+  type DoorRow,
+} from "./rows";
 import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
@@ -16,12 +24,17 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  * scripts/doors/manifest.txt against the rows (judge.ts):
  *
  *   bun scripts/doors/check-doors.ts                 static: the migrations' catalogue + the tree's callers
- *   bun scripts/doors/check-doors.ts --live <tsv>    live: the smoke lane's catalogue (LIVE_QUERY's answer)
+ *   bun scripts/doors/check-doors.ts --live <tsv> <grants tsv>
+ *                                                    live: the smoke lane's catalogue (LIVE_QUERY's answer) and the
+ *                                                    browser roles' grants on the open rules' tables
+ *                                                    (LIVE_OPEN_RULES_QUERY's answer)
  *   bun scripts/doors/check-doors.ts --live-query    prints scripts/doors/live-query.sql verbatim for the workflow's psql
+ *   bun scripts/doors/check-doors.ts --live-open-rules-query
+ *                                                    prints scripts/doors/live-open-rules.sql verbatim
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the thirteen finding kinds must fire on its planted fixture
+ * process — each of the seventeen finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -32,6 +45,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "doors", "check-doors-allowlist.txt");
 const MANIFEST = join(ROOT, "scripts", "doors", "manifest.txt");
+const OPEN_RULES = join("scripts", "doors", "open-rules.txt");
 
 const row = (over: Partial<DoorRow> & Pick<DoorRow, "key" | "body">): DoorRow => ({
   name: over.key.slice(0, over.key.indexOf("(")),
@@ -141,6 +155,56 @@ export const READER_SHELL_BODY =
 export const PLANTED_HELPER_LINE = (reason: string) =>
   `e2e_planted_helper(uuid) | helper | authenticated | - | - | - | - | - | - | - | ${reason}`;
 
+/**
+ * The planted open rules (cursor-bundle-1 item 6, INC-1166): a standing open rule, a closed policy, an
+ * open rule a later file drops, an open policy on a dropped table, and the open policy a DO block builds
+ * by dynamic SQL (the reader cannot name it).
+ */
+export const PLANTED_OPEN_FILES = [
+  {
+    file: "supabase/migrations/20260101000000_a.sql",
+    sql: [
+      "CREATE POLICY e2e_planted_open ON public.e2e_planted_t FOR SELECT TO anon, authenticated USING (true);",
+      "CREATE POLICY e2e_planted_closed ON public.e2e_planted_t FOR SELECT TO anon USING (false);",
+      "CREATE POLICY e2e_planted_gone ON public.e2e_planted_u FOR SELECT TO authenticated USING (true);",
+      "CREATE POLICY e2e_planted_dead ON public.e2e_planted_v FOR ALL TO service_role USING (true) WITH CHECK (true);",
+      "INSERT INTO public.e2e_planted_notes (body) VALUES ('--'); CREATE POLICY e2e_planted_lit ON public.e2e_planted_w FOR SELECT USING (true);",
+    ].join("\n"),
+  },
+  {
+    file: "supabase/migrations/20260102000000_b.sql",
+    sql: "DROP POLICY e2e_planted_gone ON public.e2e_planted_u;\nDROP TABLE IF EXISTS public.e2e_planted_v;",
+  },
+];
+/** An open policy built by dynamic SQL, naming its table in the text (so a `(computed)` line can claim it). */
+export const PLANTED_COMPUTED_FILE = {
+  file: "supabase/migrations/20260103000000_c.sql",
+  sql: "DO $$ BEGIN EXECUTE format('CREATE POLICY %I ON public.e2e_planted_x FOR SELECT USING (true)', 'e2e_planted_x_read'); END $$;",
+};
+/** The lines of the planted open rules: the standing open rules of PLANTED_OPEN_FILES, kept. */
+export const PLANTED_OPEN_LINES = [
+  "e2e_planted_t e2e_planted_open | SELECT to anon,authenticated | grants anon:SELECT authenticated:SELECT | planted",
+  "e2e_planted_w e2e_planted_lit | SELECT to public | grants none | planted",
+].join("\n");
+/** The planted evidence of an open-rules judgement: the files read, the file's text, the live grants. */
+export function plantedOpenRules(
+  files: Array<{ file: string; sql: string }>,
+  lines: string,
+  live?: string,
+): OpenRuleEvidence {
+  return {
+    ...openRulesOf(files),
+    file: parseOpenRules(lines),
+    live: live === undefined ? undefined : liveGrants(live),
+  };
+}
+/** The planted live answer for `e2e_planted_t`: table-level SELECT to both browser roles, nothing for `w`. */
+export const PLANTED_LIVE_GRANTS =
+  "e2e_planted_t\tanon\tSELECT\t*\ne2e_planted_t\tauthenticated\tSELECT\t*\n";
+/** The planted live answer of a table that holds SELECT by column alone (the case ruling 2 pins). */
+export const PLANTED_LIVE_COLUMN_GRANTS =
+  "e2e_planted_t\tanon\tSELECT\ta,b\ne2e_planted_t\tauthenticated\tSELECT\ta,b\n";
+
 /** The planted fixtures: each kind on its own bypass, and a clean pair. */
 export function plantedCases(): Array<{
   kind: FindingKind | "clean";
@@ -151,7 +215,9 @@ export function plantedCases(): Array<{
   dropped?: DroppedGrant[];
   stepUps?: (permission: string) => boolean | null | undefined;
   policies?: (policy: string, fn: string) => boolean;
+  openRules?: OpenRuleEvidence;
 }> {
+  const openFiles = PLANTED_OPEN_FILES;
   return [
     {
       kind: "clean",
@@ -279,6 +345,50 @@ export function plantedCases(): Array<{
       ],
       manifest: PLANTED_READER_LINE,
     },
+    {
+      // Every line kept, a closed policy, a dropped one, a dropped table's and a computed one a line
+      // claims: nothing fires; the live grants are the catalogue's.
+      kind: "clean",
+      rows: [],
+      manifest: "",
+      openRules: plantedOpenRules(
+        [...openFiles, PLANTED_COMPUTED_FILE],
+        `${PLANTED_OPEN_LINES}\ne2e_planted_x (computed) | SELECT to public | grants none | planted`,
+        PLANTED_LIVE_GRANTS,
+      ),
+    },
+    {
+      kind: "open-rule-undeclared",
+      rows: [],
+      manifest: "",
+      openRules: plantedOpenRules(openFiles, ""),
+    },
+    {
+      kind: "open-rule-gone",
+      rows: [],
+      manifest: "",
+      openRules: plantedOpenRules(
+        openFiles,
+        `${PLANTED_OPEN_LINES}\ne2e_planted_u e2e_planted_gone | SELECT to authenticated | grants none | planted`,
+      ),
+    },
+    {
+      kind: "open-rule-computed",
+      rows: [],
+      manifest: "",
+      openRules: plantedOpenRules([...openFiles, PLANTED_COMPUTED_FILE], PLANTED_OPEN_LINES),
+    },
+    {
+      // A table that holds SELECT by column alone, its line saying `none`.
+      kind: "open-rule-grants",
+      rows: [],
+      manifest: "",
+      openRules: plantedOpenRules(
+        openFiles,
+        PLANTED_OPEN_LINES.replace("grants anon:SELECT authenticated:SELECT", "grants none"),
+        PLANTED_LIVE_COLUMN_GRANTS,
+      ),
+    },
   ];
 }
 
@@ -304,6 +414,7 @@ export function selfTest(): string[] {
             dropped: planted.dropped,
             stepUps: planted.stepUps,
             policies: planted.policies,
+            openRules: planted.openRules,
           };
     const findings = judge(planted.rows, parseManifest(planted.manifest), evidence);
     if (planted.kind === "clean") {
@@ -340,10 +451,20 @@ export function staticFindings(root = ROOT): Finding[] {
     columns: declaredColumns(root),
     stepUps: declaredStepUps(root),
     policies: declaredPolicyCalls(root),
+    openRules: declaredOpenRulesFile(root),
   });
 }
 
-export function liveFindings(tsv: string, root = ROOT): Finding[] {
+/** The open rules the migrations leave standing, beside the file that lists them (`live`: the grants). */
+function declaredOpenRulesFile(root: string, grantsTsv?: string): OpenRuleEvidence {
+  return {
+    ...declaredOpenRules(root),
+    file: parseOpenRules(readFileSync(join(root, OPEN_RULES), "utf8")),
+    live: grantsTsv === undefined ? undefined : liveGrants(grantsTsv),
+  };
+}
+
+export function liveFindings(tsv: string, root = ROOT, grantsTsv?: string): Finding[] {
   const manifest = parseManifest(
     readFileSync(join(root, "scripts", "doors", "manifest.txt"), "utf8"),
   );
@@ -356,6 +477,7 @@ export function liveFindings(tsv: string, root = ROOT): Finding[] {
     columns: declaredColumns(root),
     stepUps: declaredStepUps(root),
     policies: declaredPolicyCalls(root),
+    openRules: declaredOpenRulesFile(root, grantsTsv),
   });
 }
 
@@ -367,10 +489,15 @@ function print(label: string, findings: Finding[]): void {
 }
 
 if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const [mode, path] = process.argv.slice(2);
+  const [mode, path, grantsPath] = process.argv.slice(2);
   if (mode === "--live-query") {
     // INC-1070: the file's bytes as they are — the workflow hands them to psql.
     process.stdout.write(LIVE_QUERY);
+    process.exit(0);
+  }
+  if (mode === "--live-open-rules-query") {
+    // The file's bytes as they are — the workflow hands them to psql (INC-1070).
+    process.stdout.write(LIVE_OPEN_RULES_QUERY);
     process.exit(0);
   }
   const proof = selfTest();
@@ -385,14 +512,19 @@ if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.
   if (process.env["SELF_TEST"] === "1") process.exit(0);
   const manifestLines = parseManifest(readFileSync(MANIFEST, "utf8")).lines.size;
   if (mode === "--live") {
-    if (path === undefined) throw new Error("check-doors --live requires the catalogue TSV path");
-    const findings = allow(liveFindings(readFileSync(path, "utf8")));
+    if (path === undefined || grantsPath === undefined)
+      throw new Error(
+        "check-doors --live requires the catalogue TSV path and the open rules' grants TSV path",
+      );
+    const findings = allow(
+      liveFindings(readFileSync(path, "utf8"), ROOT, readFileSync(grantsPath, "utf8")),
+    );
     if (findings.length > 0) {
       print("live", findings);
       process.exit(1);
     }
     console.log(
-      `check-doors live OK: ${manifestLines} manifest lines reconcile with the live catalogue`,
+      `check-doors live OK: ${manifestLines} manifest lines reconcile with the live catalogue; the open rules' grants are the catalogue's`,
     );
   } else {
     const findings = allow(staticFindings());

@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
+import { ownValue } from "@/lib/own-key";
+import { readRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
 import { currentSession } from "@/lib/supabase-door";
 
 /**
@@ -80,7 +82,15 @@ function stepUpWindowMs(): number {
  * Law F4 — no phantom success: every outcome is an explicit ok/errorKey.
  */
 
-export type MfaOutcome = { ok: true } | { ok: false; errorKey: MessageKey };
+/**
+ * An answer that did not go through: the key the settings screen draws beside its own fields
+ * (`errorKey`), and the refusal the step-up dialog's Field draws under the code (`refusal`, read by
+ * MFA_REFUSALS). Its `reason` is the provider's own code when the family names it, `invalidCode`
+ * for a provider that worded the refusal without a code, else `unknown`.
+ */
+export type MfaFailure = { ok: false; errorKey: MessageKey; refusal: Refusal };
+
+export type MfaOutcome = { ok: true } | MfaFailure;
 
 export type MfaFactor = {
   id: string;
@@ -90,21 +100,66 @@ export type MfaFactor = {
 
 export type EnrollResult =
   | { ok: true; factorId: string; qrCode: string; secret: string; uri: string }
-  | { ok: false; errorKey: MessageKey };
+  | MfaFailure;
 
 /** The current session's assurance level, as GoTrue reports it. */
 export type AalState = { current: string | null; next: string | null };
 
-function invalidCode(message: string | undefined): boolean {
-  const text = (message ?? "").toLowerCase();
-  return text.includes("invalid") || text.includes("expired") || text.includes("code");
+/** The field every two-factor refusal belongs to: the six-digit code. */
+const CODE_FIELD = "code";
+
+/**
+ * DEC-339 wave 2 (INC-1147 class 1) — THE TWO-FACTOR PROVIDER'S WORDS, read by the one reader
+ * (src/lib/refusal.ts): each refusal the callees of `mfa.enroll`, `mfa.challenge`, `mfa.verify`
+ * and `mfa.unenroll` answer by its own `code` reads words of its own, and a code this table does
+ * not name reads the generic line — never the words test the old mapper made on the message.
+ * `invalidCode` and `noFactor` are this service's own reasons (a provider that worded a refusal
+ * with no code; no factor to verify). The one sentence is the old words test, kept for the
+ * providers that still answer a message only.
+ */
+export const MFA_REFUSALS: RefusalFamily = {
+  words: {
+    mfa_verification_failed: "mfa.errorInvalidCode",
+    mfa_challenge_expired: "mfa.errorInvalidCode",
+    invalidCode: "mfa.errorInvalidCode",
+    noFactor: "mfa.errorNoFactor",
+    over_request_rate_limit: "auth.errorRateLimited",
+    mfa_factor_name_conflict: "mfa.errorSetupPending",
+    too_many_enrolled_mfa_factors: "mfa.errorFactorExists",
+    mfa_verified_factor_exists: "mfa.errorFactorExists",
+    mfa_totp_enroll_not_enabled: "mfa.errorMethodOff",
+    mfa_totp_verify_not_enabled: "mfa.errorMethodOff",
+  },
+  sentences: [[/invalid|expired|code/i, "mfa.errorInvalidCode"]],
+  generic: "mfa.errorGeneric",
+};
+
+/** The provider's error as the service reads it (auth-js `AuthError`, or none). */
+type ProviderError = { message?: string; code?: string } | null | undefined;
+
+/** A refusal the service answers of its own (no provider error behind it). */
+function refusalOf(reason: string): MfaFailure {
+  const read = readRefusal(reason, MFA_REFUSALS);
+  return { ok: false, errorKey: read.key, refusal: { field: CODE_FIELD, reason } };
 }
 
-function failure(message: string | undefined): { ok: false; errorKey: MessageKey } {
-  return {
-    ok: false,
-    errorKey: invalidCode(message) ? "mfa.errorInvalidCode" : "mfa.errorGeneric",
-  };
+/**
+ * The failure answer for a provider error. A code the family names is handed to the reader as
+ * itself, so it is read before any sentence of the message (a code's words beat a message that
+ * happens to hold "code"); else the error is handed over whole (its message by the sentence, its
+ * code by the provider words).
+ */
+function failure(error: ProviderError): MfaFailure {
+  const code = error?.code;
+  const named =
+    code !== undefined && MFA_REFUSALS.words !== undefined
+      ? ownValue(MFA_REFUSALS.words, code) !== undefined
+      : false;
+  const heard: unknown = named ? code : error;
+  const read = readRefusal(heard, MFA_REFUSALS);
+  const reason =
+    named && code !== undefined ? code : read.branch === "sentence" ? "invalidCode" : "unknown";
+  return { ok: false, errorKey: read.key, refusal: { field: CODE_FIELD, reason } };
 }
 
 /**
@@ -137,9 +192,10 @@ export class StepUpUnavailable extends Error {
  *   • a key       — no factor: reset the buttons and render this hint.
  */
 export function stepUpAbortKey(error: unknown): MessageKey | null | undefined {
-  if (error instanceof StepUpCancelled) return null;
-  if (error instanceof StepUpUnavailable) return "mfa.stepUpUnavailableHint";
-  return undefined;
+  // The reader's own step-up branch (dialect 1): cancelled is silent, unavailable has its hint.
+  const read = readRefusal(error);
+  if (read.branch !== "stepUp") return undefined;
+  return read.silent ? null : read.key;
 }
 
 /** PostgREST surfaces the server gate's RAISE as this message (SQLSTATE P0009). */
@@ -185,11 +241,9 @@ export async function isStepUpFresh(): Promise<boolean> {
   return factors.ok && factors.factors.length > 0;
 }
 
-export async function listFactors(): Promise<
-  { ok: true; factors: MfaFactor[] } | { ok: false; errorKey: MessageKey }
-> {
+export async function listFactors(): Promise<{ ok: true; factors: MfaFactor[] } | MfaFailure> {
   const { data, error } = await supabase.auth.mfa.listFactors();
-  if (error || !data) return { ok: false, errorKey: "mfa.errorGeneric" };
+  if (error || !data) return refusalOf("unknown");
   return {
     ok: true,
     factors: (data.totp ?? []).map((factor) => ({
@@ -205,7 +259,7 @@ export async function enrollTotp(friendlyName: string): Promise<EnrollResult> {
     factorType: "totp",
     friendlyName,
   });
-  if (error || !data) return failure(error?.message);
+  if (error || !data) return failure(error);
   return {
     ok: true,
     factorId: data.id,
@@ -222,13 +276,13 @@ export async function enrollTotp(friendlyName: string): Promise<EnrollResult> {
  */
 export async function verifyFactor(factorId: string, code: string): Promise<MfaOutcome> {
   const challenge = await supabase.auth.mfa.challenge({ factorId });
-  if (challenge.error || !challenge.data) return failure(challenge.error?.message);
+  if (challenge.error || !challenge.data) return failure(challenge.error);
   const verify = await supabase.auth.mfa.verify({
     factorId,
     challengeId: challenge.data.id,
     code: code.trim(),
   });
-  if (verify.error) return failure(verify.error.message);
+  if (verify.error) return failure(verify.error);
   // L5: no hint is written — the refreshed token now carries the totp `amr`
   // entry that `isStepUpFresh` reads.
   return { ok: true };
@@ -237,9 +291,9 @@ export async function verifyFactor(factorId: string, code: string): Promise<MfaO
 /** Step the CURRENT session up using the first verified TOTP factor. */
 export async function stepUpWithCode(code: string): Promise<MfaOutcome> {
   const factors = await listFactors();
-  if (!factors.ok) return { ok: false, errorKey: factors.errorKey };
+  if (!factors.ok) return factors;
   const factor = factors.factors[0];
-  if (!factor) return { ok: false, errorKey: "mfa.errorNoFactor" };
+  if (!factor) return refusalOf("noFactor");
   return verifyFactor(factor.id, code);
 }
 
@@ -251,7 +305,7 @@ export async function stepUpWithCode(code: string): Promise<MfaOutcome> {
  */
 export async function unenrollFactor(factorId: string): Promise<MfaOutcome> {
   const { error } = await supabase.auth.mfa.unenroll({ factorId });
-  if (error) return failure(error.message);
+  if (error) return failure(error);
   // L5: refresh so the token itself stops claiming aal2 / carrying the amr.
   await supabase.auth.refreshSession();
   return { ok: true };

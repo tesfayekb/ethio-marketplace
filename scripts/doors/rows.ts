@@ -72,6 +72,12 @@ function readStaticRows(root: string): StaticRows {
  */
 export const LIVE_QUERY_FILE = join(dirname(fileURLToPath(import.meta.url)), "live-query.sql");
 export const LIVE_QUERY = readFileSync(LIVE_QUERY_FILE, "utf8");
+/** The second live query (cursor-bundle-1 item 6): the browser roles' grants, read verbatim like the first. */
+export const LIVE_OPEN_RULES_QUERY_FILE = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "live-open-rules.sql",
+);
+export const LIVE_OPEN_RULES_QUERY = readFileSync(LIVE_OPEN_RULES_QUERY_FILE, "utf8");
 
 /** The rows of a LIVE_QUERY answer; a malformed row is an error, never a skipped door. */
 export function liveRows(tsv: string): DoorRow[] {

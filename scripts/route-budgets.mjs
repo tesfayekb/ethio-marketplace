@@ -142,10 +142,6 @@ export const SHARED_SHELL_MODULES = [
     "the client-side session policy the shell's auth hook enforces on every page",
   ],
   [
-    "src/features/auth/auth-error-key.ts",
-    "the provider's error as the mapper reads it; the shell and every auth screen",
-  ],
-  [
     "src/features/auth/auth-result.ts",
     "the answers the auth actions share, as a leaf (DEC-348); INC-1097's first name",
   ],

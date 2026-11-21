@@ -4,7 +4,7 @@ import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-route
 import { useEffect, useState } from "react";
 
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
-import { completeEmailVerification } from "@/features/auth/auth-service";
+import { completeEmailVerification } from "@/features/auth/email-verification";
 import { landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
 import { safeReturnPath } from "@/lib/return-path";

@@ -85,8 +85,19 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   `admin_upsert_language`, were restored by its first file, DEC-392). No allowance. `row-column-unknown`
   (F1-3): a line's `row:<table.column>` cell names a column the migrations declare —
   `columns.ts` reads every `CREATE TABLE` column list, `ADD COLUMN` and `RENAME COLUMN … TO`,
-  comments and `DO` blocks blanked; both modes judge it, with no allowance. Static mode (the guards job of `ci.yml`)
-  judges the tree; `--live <tsv>` (the smoke lane of `local-backend-proof.yml`, the TSV from
+  comments and `DO` blocks blanked; both modes judge it, with no allowance. `open-rule-undeclared`,
+  `open-rule-gone`, `open-rule-computed` and `open-rule-grants` (cursor-bundle-1 item 6, INC-1166's
+  second half; `open-rules.ts`, DOORS-16 and DOORS-17): every standing policy whose text holds
+  `USING (true)` or `WITH CHECK (true)` is a line of `scripts/doors/open-rules.txt` (`table policy |
+  command to roles | grants … | reason`). `policies.ts` `openRulesOf` computes the rules the
+  migrations leave standing (a `DROP POLICY` or a `DROP TABLE` removes them) and the open policies
+  built by dynamic SQL it cannot name, which need a `(computed)` line naming their table. The static
+  run judges the lines against the migrations; the smoke lane's live run also compares each line's
+  `grants` with the browser roles' privileges on the table, read from the catalogue by
+  `scripts/doors/live-open-rules.sql` (`--live-open-rules-query`, printed verbatim; the answer is the
+  second TSV of `--live`): a privilege held by column alone (`SELECT(a,b)`) is not a table-level one.
+  Static mode (the guards job of `ci.yml`)
+  judges the tree; `--live <tsv> <grants tsv>` (the smoke lane of `local-backend-proof.yml`, the TSV from
   `--live-query` through psql) judges the backend's catalogue. The live query is the file
   `scripts/doors/live-query.sql`, printed verbatim — never a string code assembles (INC-1070: the
   first build joined its clauses without their boundaries and the lane's psql refused it). `judge.ts` holds the kinds; a

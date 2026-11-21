@@ -90,27 +90,6 @@ export function contactRefusal(failure: unknown): ContactRefusal {
   return key === CONTACT_REFUSALS.words.rateLimited ? "rateLimited" : "failed";
 }
 
-/**
- * L22c — THE DIAL'S RESET INSTANT, beside the code readers (which keep their answers): the
- * tail of a `rateLimited:<instant>` refusal, from an error, a returned answer or a string.
- * Undefined when the refusal is not the dial's or names no instant.
- */
-export function rateUntilOf(failure: unknown): string | undefined {
-  const fields =
-    typeof failure === "object" && failure !== null ? (failure as Record<string, unknown>) : {};
-  const raw =
-    typeof failure === "string"
-      ? failure
-      : typeof fields["message"] === "string"
-        ? fields["message"]
-        : fields["reason"];
-  if (typeof raw !== "string") return undefined;
-  const parts = splitRefusal(raw.trim());
-  if (parts.key !== "rateLimited") return undefined;
-  const tail = parts.tail?.trim();
-  return tail === undefined || tail === "" ? undefined : tail;
-}
-
 const RATE_FAMILY = { save: SAVE_REFUSALS, report: REPORT_REFUSALS, contact: CONTACT_REFUSALS };
 
 /**
