@@ -103,6 +103,9 @@ export interface StatusInput {
   error?: string;
   seeded: number;
   seedSeconds: number;
+  /** INC-1181 — the seed's two costs apart: the sellers' creation and the listings' insert. */
+  sellerSeconds: number;
+  insertSeconds: number;
   cleanupSeconds: number;
   leftovers: number;
   /** The scratch market (INC-1169): its sellers, its code and its free number. */
@@ -130,7 +133,7 @@ export function renderStatus(input: StatusInput): string {
     `- Commit: ${input.runSha}`,
     `- Timestamp (UTC): ${input.timestamp}`,
     `- Verdict: ${shown}`,
-    `- Listings seeded: ${input.seeded} · seed ${input.seedSeconds.toFixed(1)} s · cleanup ${input.cleanupSeconds.toFixed(1)} s · leftovers ${input.leftovers} · sellers ${input.sellers} · market ${input.market} free ${input.free}`,
+    `- Listings seeded: ${input.seeded} · seed ${input.seedSeconds.toFixed(1)} s (sellers ${input.sellerSeconds.toFixed(1)} s, listings ${input.insertSeconds.toFixed(1)} s) · cleanup ${input.cleanupSeconds.toFixed(1)} s · leftovers ${input.leftovers} · sellers ${input.sellers} · market ${input.market} free ${input.free}`,
     "",
     "| Shape | Runs | p50 ms | p95 ms | Max ms | Cards |",
     "| --- | --- | --- | --- | --- | --- |",
@@ -456,6 +459,8 @@ async function main(): Promise<number> {
           error: skipped,
           seeded: 0,
           seedSeconds: 0,
+          sellerSeconds: 0,
+          insertSeconds: 0,
           cleanupSeconds: 0,
           leftovers: 0,
           sellers: 0,
@@ -477,6 +482,9 @@ async function main(): Promise<number> {
 
   let seeded = 0;
   let seedSeconds = 0;
+  let sellerSeconds = 0;
+  let insertSeconds = 0;
+  let insertStart = 0;
   let cleanupSeconds = 0;
   let leftovers = 0;
   let bytes = 0;
@@ -511,7 +519,12 @@ async function main(): Promise<number> {
     free = seeding.free;
     market = await freeScratchCode(db);
     const anchor = await createMarket(db, market, benchCountryName(P), free);
-    await createSellers(db, run, sellerIds);
+    const sellersStart = Date.now();
+    try {
+      await createSellers(db, run, sellerIds);
+    } finally {
+      sellerSeconds = (Date.now() - sellersStart) / 1000;
+    }
     const sellerOf = (g: number): string => {
       const id = sellerIds[seeding.sellerOf(g)];
       if (id === undefined) throw new Error(`no seller for row ${g}`);
@@ -589,6 +602,7 @@ async function main(): Promise<number> {
       seeded += batch.length;
       batch = [];
     };
+    insertStart = Date.now();
     for (let g = 1; g <= LISTINGS; g++) {
       batch.push(row(g, leaves[(g * 7919) % 156]!, cities[(g * 104729) % 100]!, g % 86400));
       if (batch.length === BATCH) await flush();
@@ -599,6 +613,7 @@ async function main(): Promise<number> {
       if (batch.length === BATCH) await flush();
     }
     await flush();
+    insertSeconds = (Date.now() - insertStart) / 1000;
     seedSeconds = (Date.now() - seedStart) / 1000;
 
     // 5. Measure.
@@ -642,6 +657,7 @@ async function main(): Promise<number> {
     if (error instanceof YieldError) yielded = error.message;
     else failure = errorText(error);
     if (seedStart > 0 && seedSeconds === 0) seedSeconds = (Date.now() - seedStart) / 1000;
+    if (insertStart > 0 && insertSeconds === 0) insertSeconds = (Date.now() - insertStart) / 1000;
   } finally {
     // 6. Clean up, whatever happened.
     const cleanStart = Date.now();
@@ -677,6 +693,8 @@ async function main(): Promise<number> {
       error: failure ?? yielded,
       seeded,
       seedSeconds,
+      sellerSeconds,
+      insertSeconds,
       cleanupSeconds,
       leftovers,
       sellers: sellerIds.length,

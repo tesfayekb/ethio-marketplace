@@ -64,8 +64,9 @@ const BUDGET_KIB = {
   // DEC-296 (turn P-1c b): local 213.6 + 0.1 KiB sat inside the NEAR band of 214 — the Guide on the pages people use: the entry's dependency map names the new chunks (page-guide, guide-spec, guide-sheet, the split spinner and on-demand-notice) and the six prim.guide.* keys join the base catalogue (CF-SL-1); +1.0 on base eb72f3bd's 212.6, while index.js itself is 0.6 smaller; 214 → 215 = ceilingForLocal(213.6).
   // ratchet housekeeping-1b (206.0 KiB local; DEC-362): the closure is chunked by a rule, 215 → 207 = ceilingForLocal(206.0); was 215.
   // ratchet housekeeping-4 (204.4 KiB local; INC-1042: the admin navigation off the entry): 207 → 205 = ceilingForLocal(204.4); was 207.
-  js: 205,
-  css: 40,
+  // DEC-296 (tests-ci-2, the ratchet, INC-1198): JS local 201.7 KiB; 205 → 203 = ceilingForLocal(201.7); was 205. CSS local 22.54 KiB; 40 → 23 = ceilingForLocal(22.54); was 40.
+  js: 203,
+  css: 23,
 };
 
 const CANDIDATE_DIRS = [

@@ -394,9 +394,23 @@ function runInGit(
 
 const noPatch = (filename: string): Entry => ({ filename, status: "modified" });
 
-/** The real ceilings file, with `count` of its ceiling lines grown by one (each line about 4 KB). */
+/**
+ * INC-1206 — the ceilings file's path with a text of the test's own, in its form: twelve ceiling
+ * lines of about 4 KB each, as the real file's lines are (why the API carries no patch for it), so
+ * a change to the live scripts/route-budgets.mjs never changes a verdict here.
+ */
 const BUDGETS = "scripts/route-budgets.mjs";
-const budgetsText = readFileSync(BUDGETS, "utf8");
+const budgetsText = [
+  "/** The first-download ceilings (a fixture in the file's form). */",
+  "export const ROUTE_BUDGETS_KIB = {",
+  ...Array.from(
+    { length: 12 },
+    (_, i) =>
+      `  "/page-${i + 1}": { ceiling: ${210 + i}, public: ${i % 2 === 0} }, // DEC-296 (fixture ${i + 1}): ${"a cause measured and named; ".repeat(150)}`,
+  ),
+  "};",
+  "",
+].join("\n");
 function grown(count: number, extra?: (lines: string[]) => void): string {
   const lines = budgetsText.split("\n");
   let done = 0;
@@ -409,7 +423,7 @@ function grown(count: number, extra?: (lines: string[]) => void): string {
       done += 1;
     }
   }
-  if (done < count) throw new Error("route-budgets.mjs has too few ceiling lines");
+  if (done < count) throw new Error("the ceilings fixture has too few ceiling lines");
   extra?.(lines);
   return lines.join("\n");
 }

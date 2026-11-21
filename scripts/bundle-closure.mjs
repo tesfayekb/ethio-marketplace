@@ -15,6 +15,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { ceilingFor } from "./budget-band.mjs";
 
 // `import "./x.js"`, `import { a } from "./x.js"` and `export … from "./x.js"`;
 // a dynamic `import("./x.js")` has a parenthesis before its quote and never matches.
@@ -166,6 +167,9 @@ export function pageRouteIds(routes) {
  * with no page, a page over its ceiling, a page `slack` KiB or more under it (the
  * ratchet: lower it), a public page holding a must-stay-lazy chunk, and a public page
  * whose chunks carry a MUST_NOT_CARRY marker (`carries(closure)`, DEC-261) each fail.
+ * The ratchet names DEC-296's ceiling for the size (INC-1198): `measure` answers the judged
+ * size (budget-band.mjs's judgedSize, the local allowance added off CI), so `ceilingFor` of
+ * it is the ceiling the rule sets.
  */
 export function judgeRouteBudgets({ routeIds, budgets, measure, slack, publicLazy, carries }) {
   // Page ids come from the build's manifest: the ceilings are read as own entries only.
@@ -186,7 +190,7 @@ export function judgeRouteBudgets({ routeIds, budgets, measure, slack, publicLaz
       failures.push(`${id}: ${kib.toFixed(1)} KiB, over its ceiling of ${budget.ceiling} KiB`);
     } else if (budget.ceiling - kib >= slack) {
       failures.push(
-        `${id}: ${kib.toFixed(1)} KiB, ${slack} KiB or more under its ceiling of ${budget.ceiling} KiB (ratchet: lower the ceiling to ${Math.ceil(kib + 3)})`,
+        `${id}: ${kib.toFixed(1)} KiB, ${slack} KiB or more under its ceiling of ${budget.ceiling} KiB (ratchet, DEC-296: lower it to ceilingFor(size) = ${ceilingFor(kib)})`,
       );
     }
     if (budget.public) {

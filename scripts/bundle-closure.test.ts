@@ -22,6 +22,7 @@ import {
   staticClosure,
   staticImportsOf,
 } from "./bundle-closure.mjs";
+import { ceilingFor } from "./budget-band.mjs";
 import { readAllowlist } from "./conformance/kit";
 import { ENTRY_CLOSURE, SHARED_SHELL_MODULES } from "./route-budgets.mjs";
 
@@ -158,8 +159,15 @@ describe("every page's first download (D234)", () => {
       "/: 300.0 KiB, over its ceiling of 299 KiB",
     ]);
     expect(judge({ ...fair, "/post": { ceiling: 428, public: false } })).toEqual([
-      "/post: 420.0 KiB, 8 KiB or more under its ceiling of 428 KiB (ratchet: lower the ceiling to 423)",
+      "/post: 420.0 KiB, 8 KiB or more under its ceiling of 428 KiB (ratchet, DEC-296: lower it to ceilingFor(size) = 421)",
     ]);
+    // INC-1198 — the message and DEC-296's rule say one thing: at a judged 420.75 KiB the band
+    // crosses the next whole KiB, so the rule's ceiling is 422 where the old `kib + 3` said 424.
+    const edge = { ...sizes, "/post": { kib: 420.75, closure: sizes["/post"]?.closure ?? [] } };
+    expect(judge({ ...fair, "/post": { ceiling: 430, public: false } }, edge)).toEqual([
+      `/post: 420.8 KiB, 8 KiB or more under its ceiling of 430 KiB (ratchet, DEC-296: lower it to ceilingFor(size) = ${ceilingFor(420.75)})`,
+    ]);
+    expect(ceilingFor(420.75)).toBe(422);
   });
 
   it("BC-11 a page with no ceiling fails, and so does a ceiling for a page the build lacks", () => {

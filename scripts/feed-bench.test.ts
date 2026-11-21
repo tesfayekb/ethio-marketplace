@@ -74,17 +74,20 @@ describe("feed-bench", () => {
       timestamp: "2026-10-09T00:00:00.000Z",
       outcome: "PASS",
       seeded: 100500,
-      seedSeconds: 1,
+      seedSeconds: 300,
+      sellerSeconds: 120.5,
+      insertSeconds: 170.4,
       cleanupSeconds: 1,
       leftovers: 0,
-      sellers: 256,
+      sellers: 2048,
       market: "QM",
-      free: 379,
+      free: 50,
       shapes: six(),
       bytes: 10000,
     });
     expect(text).toContain("Verdict: PASS");
-    expect(text).toContain("leftovers 0 · sellers 256 · market QM free 379");
+    expect(text).toContain("seed 300.0 s (sellers 120.5 s, listings 170.4 s) · cleanup 1.0 s");
+    expect(text).toContain("leftovers 0 · sellers 2048 · market QM free 50");
     for (const s of six()) expect(text).toContain(`| ${s.name} | 30 |`);
     expect(text).toContain("- Not measured here:");
   });
@@ -102,6 +105,8 @@ describe("feed-bench", () => {
       timestamp: "2026-10-09T00:00:00.000Z",
       seeded: 0,
       seedSeconds: 0,
+      sellerSeconds: 0,
+      insertSeconds: 0,
       cleanupSeconds: 0,
       leftovers: 0,
       sellers: 0,
@@ -150,9 +155,9 @@ describe("feed-bench", () => {
       "lvl-base",
     ]);
     const plan = seedPlan(LISTINGS + HOT, SELLERS, tierOf, baseline);
-    expect(SELLERS).toBe(256);
-    expect([Math.min(...plan.baselineRows), Math.max(...plan.baselineRows)]).toEqual([376, 378]);
-    expect(plan.free).toBe(379);
+    expect(SELLERS).toBe(2048);
+    expect([Math.min(...plan.baselineRows), Math.max(...plan.baselineRows)]).toEqual([47, 49]);
+    expect(plan.free).toBe(50);
 
     // The guard, replayed in insert order: a baseline row is refused when the seller's other
     // live baseline rows already reach the free number.
