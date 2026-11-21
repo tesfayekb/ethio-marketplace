@@ -1,0 +1,44 @@
+name: Lovable branch guard
+
+# DEC-413 — the Lovable branch guard (DEC-394, CF-LVB) is judged from the base. It runs on
+# `pull_request_target`, so the workflow, the checkout and the script are the base branch's, never
+# the pull request's: the base commit is checked out and nothing of the head is run. The head is
+# read as data only — its files from the API (the files GitHub computes against the merge base),
+# and, for a patchless exception file (DEC-398), its commit fetched without blobs and read with
+# `git diff`. The token reads the contents and the pull request, nothing more, and the checkout
+# keeps no credential. This is the one place the guard runs (ci.yml's scope job no longer does).
+on:
+  pull_request_target:
+    branches: [dev]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: lovable-branch-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Lovable branch guard (DEC-413)
+    if: startsWith(github.head_ref, 'lovable/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        timeout-minutes: 5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Lovable branch guard (DEC-394, DEC-413)
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -o pipefail
+          gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" | bash scripts/ci/lovable-branch-guard.sh

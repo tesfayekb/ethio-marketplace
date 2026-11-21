@@ -25,8 +25,11 @@ import type { Db } from "./feed-bench";
 export const BENCH_PREFIX = "e2e-bench-";
 /** The bench's sellers: inside the scratch users' namespace (ruling 1 §2.2). */
 export const BENCH_SELLER_PREFIX = `${SCRATCH_PREFIXES.user}bench-`;
-/** Scratch sellers per run: 376–378 baseline rows each over the seed (the census's table). */
-export const SELLERS = 256;
+/**
+ * Scratch sellers per run: 47–49 baseline rows each over the seed, so the free-slot guard counts
+ * at most 49 of a seller's rows per insert (INC-1181, DEC-412; 256 sellers held 376–378 each).
+ */
+export const SELLERS = 2048;
 /** Sellers created (and deleted) in parallel per round. */
 export const SELLER_BATCH = 16;
 

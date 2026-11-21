@@ -131,6 +131,9 @@ there): <file>`. Any other CREATE TABLE is judged as before. Self-tests: one
   `Real-row proof guard: allowlisted statements (each cites its reason)`.
   Self-test: of two offending statements in one temporary file, the named one
   is skipped and printed, the other is refused; the bad fixture is refused.
+- Since the tests and CI turn 2 (INC-1207), both rules and the allowlist's
+  split run on the one migration reader (below, "One reader for the migration
+  guard's proof rules"); their verdicts, heads and allowlist keys are unchanged.
 - Drafts are checked before they are saved: the migration tool applies a file
   the moment it is saved, so write the draft into a temporary folder under its
   final name, run `MIGRATIONS_DIR=<that folder> bash scripts/check-migrations.sh`,
@@ -1305,16 +1308,23 @@ that backend and a config-wide one are named, and the guard refuses them before 
 builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.
 
-## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396; a patchless exception file, DEC-398)
+## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396; a patchless exception file, DEC-398; judged from the base, DEC-413)
 
-`scripts/ci/lovable-branch-guard.sh` runs in `ci.yml`'s `scope` job, after its checkout, on a pull
-request from a `lovable/*` branch only (`if: github.event_name == 'pull_request' &&
-startsWith(github.head_ref, 'lovable/')`). The step pipes `gh api --paginate
+`scripts/ci/lovable-branch-guard.sh` runs in its own workflow, `.github/workflows/lovable-branch-guard.yml`,
+judged from the base (DEC-413, the tests and CI turn 2): on `pull_request_target` into dev, for a
+`lovable/*` head only (`if: startsWith(github.head_ref, 'lovable/')`), the workflow, the checkout
+and the script are the base branch's. Its one checkout is the base commit
+(`ref: ${{ github.event.pull_request.base.sha }}`, `persist-credentials: false`), its token holds
+`contents: read` and `pull-requests: read` and no secret, and no step runs the head's code: the
+head is read as data only. The step pipes `gh api --paginate
 repos/<owner>/<repo>/pulls/<number>/files` — the files GitHub computes against the merge base, one
 JSON array per page — into the script with `GH_TOKEN: ${{ github.token }}`, and names the pull
 request's two commits in `PR_BASE_SHA` and `PR_HEAD_SHA` (`github.event.pull_request.base.sha` /
-`.head.sha`). The verdict is the JSON's, except for one reading of git (DEC-398, below); the job's
-checkout stays shallow.
+`.head.sha`). The verdict is the JSON's, except for one reading of git (DEC-398, below), which
+fetches the commits without blobs and reads them with `git diff`; the checkout stays shallow.
+`ci.yml`'s `scope` job no longer runs the guard, so one place judges. A `pull_request_target`
+workflow runs as the base branch holds it, so a change to the workflow or the script takes effect
+once it is on dev; the check's name is `Lovable branch guard (DEC-413)`.
 
 - **The list** is Knowledge v3.14's ROLE paragraph (DEC-386), quoted word for word in the script's
   comment: `supabase/**` and every `*.sql`; `src/features/auth/**`, `src/lib/supabase-door.ts`,
@@ -1355,7 +1365,11 @@ checkout stays shallow.
   every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
   real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
   across two pages, a missing patch, a rename away from a forbidden path, input that is not the
-  API's, the `ci.yml` step itself, and (CF-LVB-11, CF-LVB-12) an allowlist's removed lines passing
+  API's, the workflow's shape (CF-LVB-10, DEC-413: the one event, the base checkout without a kept
+  credential, the two permissions, no secret, exactly the checkout and the guard as steps, the
+  head's sha only as `PR_HEAD_SHA`, and `ci.yml` free of the guard; seven planted breaches — the
+  `pull_request` event, a head checkout, a kept credential, a write permission, an install step,
+  a secret, every head — each found), and (CF-LVB-11, CF-LVB-12) an allowlist's removed lines passing
   — every allowlist file of the tree, beside a screen file and the deletions line — against an
   added line, a changed line, a missing patch, a new, renamed or deleted allowlist, a nested path
   and `kit.ts` and `scripts/doors/manifest.txt` refusing, each case asserting the exit code and the
@@ -1365,16 +1379,18 @@ checkout stays shallow.
   shas, a commit the remote lacks, a binary file refused, and a patchless file under no exception
   keeping its path rule. These tests plant git repositories, so they run where git may write
   `.git` (CI; locally outside a write-restricted sandbox).
-  `scripts/conformance/wired.test.ts` finds the script's basename in `ci.yml`.
+  `scripts/conformance/wired.test.ts` finds the script in `lovable-branch-guard.yml` and not in
+  `ci.yml`.
 - **Its fixtures are its own (INC-1201):** the four `CF-FORM-1` lines and the ceiling line the
   tests remove, keep and grow are written in the test (invented paths in
   `scripts/conformance/forms-allowlist.txt`'s line form; a `/fixture-page` line in DEC-296's form
   that matches the guard's ceiling pattern), so no test depends on how many lines a live allowlist
   or the ceilings file holds — the form-kit turns that shrink `forms-allowlist.txt` never redden it.
 - **Left:** INC-1168 (c), a "carry" step that rebuilds the pull request from dev plus the approved
-  files. The endpoint answers without the `pull-requests` permission while the repository is
-  public; when it goes private the step fails loudly (the API's refusal is not JSON arrays) until
-  the scope job's token gains `pull-requests: read`.
+  files, is not built (DEC-413). The guard's token holds `pull-requests: read`, so the files
+  endpoint answers when the repository goes private; DEC-398's fetch of the two commits keeps no
+  credential (`persist-credentials: false`), so on a private repository a patchless exception file
+  refuses (never passes) until that fetch is given one.
 
 ## No real person's mailbox in a tracked file — CF-MAIL (the tests and CI turn, INC-1165)
 
@@ -1410,3 +1426,55 @@ a TOLERANCES paragraph that names no first download is not read for the first ha
 tree law through `scripts/brief/check-go.ts` and on the brief in force in
 `scripts/conformance/briefs.test.ts`, whose planted brief (a TOLERANCES paragraph with a bare
 2 KiB) fails it by name and whose clean brief passes.
+
+## One reader for the migration guard's proof rules (the tests and CI turn 2, INC-1207, INC-1205)
+
+`scripts/check-migrations.sh` judged three proof rules with perl of its own: the scratch table
+(DEC-151), the real row (INC-445) and the real pick (INC-1040), with the real-row allowlist's split.
+They now run on the one migration reader (register row 125): `scripts/conformance/migration-guards.ts`
+holds the rules (`tableCreatesOutsideProofs`, `realRowHeads`, `realPickHeads`, `splitByAllowlist`)
+over the reader's `doBlocksOf` (each `DO $tag$ … $tag$;` block, comments blanked), and the
+reader's CLI runs them (`--table-creates`, `--real-rows`, `--real-picks`, `--real-row-split`),
+loading them by dynamic import so the two files do not import each other. A rule judges a
+statement's code with its comments blanked. It names the statement by its raw text,
+comments kept, cut at 120 bytes with only ASCII whitespace folded, because the allowlist's
+keys were written by that reading. A scratch key named anywhere in a statement, a comment
+included, still sets it aside. On every migration of the tree the guard's verdicts, heads
+and allowlisted lines are byte-equal to the perl's (the census of this turn); only the order
+of the printed lines changed (rows, then picks).
+
+Every guard calls the reader once over its files and checks its exit: the shell's
+`MIGRATION_READER` names it, and a reader that does not finish fails the guard (`… FAILED: the
+migration reader did not finish`). The spanning-literal guard, whose scan read its reader's
+answer without its exit (INC-1205), has the checked form now, as the random-text guard had. Each
+guard's self-test points `MIGRATION_READER` at a reader that cannot run, and the real-row scan
+at a planted reader that fails one named mode (`FAIL_MODE`), so the rows, the picks and the
+split are each proven; the planted rules are MGR-9…13 (`scripts/conformance/migration-guards.test.ts`).
+`wired.test.ts` holds the six modes' calls and the absence of perl from the guard.
+
+## No import cycle through the strings — CF-CYCLE (the tests and CI turn 2, INC-1193)
+
+`scripts/conformance/import-cycles.ts` builds `src/`'s static import graph (`import` and
+`export … from`, the `@/` alias and relative paths resolved; a type-only import and a dynamic
+`import()` are no edge) and finds its strongly connected components (Tarjan). CF-CYCLE-1 refuses
+any cycle that holds a module under `src/i18n/` or a module that imports one directly, naming the
+shortest cycle through it (`a:line → b; …`); `scripts/conformance/import-cycles-allowlist.txt`
+(`key | reason | until`) is empty. CF-CYCLE-2 plants a cycle through the catalogue, one through
+an importer by re-export, and a self-import, and shows an unrelated cycle, an `import type` and a
+dynamic import pass. `src/` has no cycle at the base; INC-1193's cause (the preview's throw) stays
+open, for the preview's stack.
+
+## A column's minWidth is one min-w class (the tests and CI turn 2, ACT-023)
+
+Any `minWidth` switches the DataTable off its fixed layout, so a value that is not a min-width
+(`w-fit`, `max-w-40`, two classes) buys the switch and leaves the width unhonoured — a table
+cell's max-width is not honoured by table layout (INC-1211's class). The min-width guard
+(`scripts/check-datatable-minwidth.sh`, C3-UX-1d) keeps its same-line `// C7-dense:` rule and
+now also reads every `minWidth:` value through `scripts/datatable-minwidth.ts` (TypeScript's
+parser): a string, or a choice whose every arm is one, holding exactly one `min-w-*` class; a
+name, a call or a sum is refused because its value cannot be read. The showcase
+(`src/routes/dev.primitives.tsx`) is judged too; only `data-table.tsx`, which declares the prop,
+is not. A reader that does not finish fails the guard. Planted:
+`scripts/fixtures/bad-datatable-minwidth-class-example.tsx.txt` (GW-2) and GW-4's two-class,
+`w-fit`, one-arm, name and sum cases (refused) beside a `min-w-40`, a `min-w-[12rem]` and a
+choice of two (passing), in `scripts/shell-guards.test.ts`.

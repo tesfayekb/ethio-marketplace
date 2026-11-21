@@ -1,6 +1,6 @@
 /**
  * The one workflow reader (K1): a workflow's jobs and their steps, read by indentation. Read by
- * CF-CID-1 (ci-deadlines.test.ts) and CF-CI-IMG-1 (ci-images.test.ts, DEC-309).
+ * CF-CID-1 and CF-CID-11 (ci-deadlines.test.ts) and CF-CI-IMG-1 (ci-images.test.ts, DEC-309).
  */
 export type Step = { line: number; text: string; timeout: boolean };
 export type Job = {
@@ -9,6 +9,8 @@ export type Job = {
   line: number;
   callsWorkflow: boolean;
   timeout: boolean;
+  /** The job's own `timeout-minutes`, or null when it declares none. */
+  minutes: number | null;
   steps: Step[];
 };
 
@@ -31,6 +33,7 @@ export function readWorkflow(file: string, text: string): Job[] {
         line: index + 1,
         callsWorkflow: false,
         timeout: false,
+        minutes: null,
         steps: [],
       };
       jobs.push(job);
@@ -38,7 +41,11 @@ export function readWorkflow(file: string, text: string): Job[] {
       continue;
     }
     if (job === null) continue;
-    if (/^ {4}timeout-minutes:\s*\d+\s*$/.test(text)) job.timeout = true;
+    const minutes = /^ {4}timeout-minutes:\s*(\d+)\s*$/.exec(text);
+    if (minutes) {
+      job.timeout = true;
+      job.minutes = Number(minutes[1]);
+    }
     if (/^ {4}uses:\s*\S/.test(text)) job.callsWorkflow = true;
     if (/^ {6}- /.test(text)) {
       step = { line: index + 1, text: `${text}\n`, timeout: false };

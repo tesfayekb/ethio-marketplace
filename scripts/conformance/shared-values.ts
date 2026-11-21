@@ -18,6 +18,12 @@ import { visitTs } from "./kit";
  * its test, or a describe around it, carries `@global-state`, or the function it sits in is a
  * sanctioned helper of the table. Every other site is a finding, keyed
  * `<file>::<test id or function>::<table>` for the allowlist's `key | reason | until`.
+ *
+ * The tests and CI turn 2 (INC-1015) — A VALUE SHARED WITH ITS READERS. Some writes move a value
+ * only the tests that measure it read: a scratch root joins the rail and moves its row height for
+ * every test that measures the rail, while the rest of the suite writes the table freely. Such a
+ * table's row names its readers (`<file>::<test id>`), and each must carry `@global-state`; its
+ * writers are not judged.
  */
 
 export type SharedTable = {
@@ -52,20 +58,33 @@ function items(cell: string): string[] {
   return out.map((item) => /^[A-Za-z_$][\w$]*/.exec(item)?.[0] ?? item);
 }
 
+export type SharedWithReaders = {
+  table: string;
+  why: string;
+  /** Each `<file>::<test id>`: a test whose verdict the table's writes move. */
+  readers: Array<{ file: string; id: string }>;
+  line: number;
+};
+
 export type Manifest = {
   shared: SharedTable[];
   /** Tables with a statement-level trigger whose writes move no shared value. */
   readOnly: Array<{ table: string; why: string; line: number }>;
+  /** Tables whose writes move a value only the named tests read. */
+  readers: SharedWithReaders[];
 };
 
 const READ_NOT_SHARED = "read, not shared";
+const SHARED_WITH_READERS = "shared with its readers";
+const READER = /^(e2e\/[\w./-]+\.spec\.ts)::([A-Z][\w-]*)$/;
 
 /**
- * The manifest's rows: `table | why | doors | helpers` (four non-empty cells, `-` for none), or
- * `table | read, not shared | why`. Anything else, or a table twice, throws.
+ * The manifest's rows: `table | why | doors | helpers` (four non-empty cells, `-` for none),
+ * `table | read, not shared | why`, or `table | shared with its readers | why | readers` (each
+ * reader `<file>::<test id>`, comma-separated). Anything else, or a table twice, throws.
  */
 export function readManifest(text: string, path: string): Manifest {
-  const manifest: Manifest = { shared: [], readOnly: [] };
+  const manifest: Manifest = { shared: [], readOnly: [], readers: [] };
   const seen = new Set<string>();
   text.split(/\r?\n/).forEach((raw, index) => {
     const trimmed = raw.trim();
@@ -81,7 +100,14 @@ export function readManifest(text: string, path: string): Manifest {
     seen.add(table);
     if (cells.length === 3 && second === READ_NOT_SHARED)
       manifest.readOnly.push({ table, why: third, line });
-    else if (cells.length === 4)
+    else if (cells.length === 4 && second === SHARED_WITH_READERS) {
+      const readers = fourth.split(",").map((entry) => {
+        const match = READER.exec(entry.trim());
+        if (match === null) return fail(`a reader is not <file>::<test id> (${entry.trim()})`);
+        return { file: match[1] ?? "", id: match[2] ?? "" };
+      });
+      manifest.readers.push({ table, why: third, readers, line });
+    } else if (cells.length === 4)
       manifest.shared.push({
         table,
         why: second,
@@ -89,7 +115,10 @@ export function readManifest(text: string, path: string): Manifest {
         helpers: items(fourth),
         line,
       });
-    else fail("expected `table | why | doors | helpers` or `table | read, not shared | why`");
+    else
+      fail(
+        "expected `table | why | doors | helpers`, `table | read, not shared | why` or `table | shared with its readers | why | readers`",
+      );
   });
   return manifest;
 }
@@ -107,7 +136,9 @@ export function triggerFindings(
   manifest: Manifest,
   manifestPath: string,
 ): Finding[] {
-  const named = new Set([...manifest.shared, ...manifest.readOnly].map((row) => row.table));
+  const named = new Set(
+    [...manifest.shared, ...manifest.readOnly, ...manifest.readers].map((row) => row.table),
+  );
   const carried = new Set<string>();
   const findings: Finding[] = [];
   for (const { path, text } of migrations) {
@@ -161,14 +192,17 @@ function tableOf(call: ts.CallExpression): string | null {
 
 /** A `test(…)` call's title, through `test.only` and its kin; null for any other call. */
 function testTitle(call: ts.CallExpression): string | null {
-  const callee = call.expression;
-  const isTest =
+  return isTestCallee(call.expression) ? literal(call.arguments[0]) : null;
+}
+
+function isTestCallee(callee: ts.Expression): boolean {
+  return (
     (ts.isIdentifier(callee) && callee.text === "test") ||
     (ts.isPropertyAccessExpression(callee) &&
       ts.isIdentifier(callee.expression) &&
       callee.expression.text === "test" &&
-      TEST_MODIFIERS.has(callee.name.text));
-  return isTest ? literal(call.arguments[0]) : null;
+      TEST_MODIFIERS.has(callee.name.text))
+  );
 }
 
 function isDescribe(call: ts.CallExpression): boolean {
@@ -373,4 +407,60 @@ export function sharedValueFindings(
     });
   }
   return [...findings.values()];
+}
+
+/** A test call's id, its title's first word (a templated title's head); null for other calls. */
+function testIdOf(call: ts.CallExpression): string | null {
+  const title = call.arguments[0];
+  const text =
+    title !== undefined && ts.isTemplateExpression(title) && isTestCallee(call.expression)
+      ? title.head.text
+      : testTitle(call);
+  return text === null ? null : (text.split(/\s/)[0] ?? text);
+}
+
+/**
+ * The readers' rule: every reader a "shared with its readers" row names is a test of its file
+ * (every test of that id, a looped title's included) that carries `@global-state`, itself or by a
+ * describe around it. A named reader no test answers to is stale.
+ */
+export function readerFindings(
+  files: Array<{ path: string; text: string }>,
+  rows: SharedWithReaders[],
+  manifestPath: string,
+): Finding[] {
+  const findings: Finding[] = [];
+  for (const row of rows)
+    for (const reader of row.readers) {
+      const key = `${reader.file}::${reader.id}::${row.table}`;
+      const file = files.find((candidate) => candidate.path === reader.file);
+      const tests: Array<{ line: number; serial: boolean }> = [];
+      if (file !== undefined)
+        visitTs(
+          file.path,
+          (node, source) => {
+            if (!ts.isCallExpression(node) || testIdOf(node) !== reader.id) return;
+            let serial = tagged(node);
+            for (let up: ts.Node | undefined = node.parent; up !== undefined; up = up.parent)
+              if (ts.isCallExpression(up) && isDescribe(up) && tagged(up)) serial = true;
+            tests.push({ line: lineOf(source, node), serial });
+          },
+          file.text,
+        );
+      if (tests.length === 0)
+        findings.push({
+          key,
+          file: manifestPath,
+          line: row.line,
+          what: `${row.table} names ${reader.file}::${reader.id} as a reader, but no test of that id is there (stale)`,
+        });
+      for (const test of tests.filter((candidate) => !candidate.serial))
+        findings.push({
+          key,
+          file: reader.file,
+          line: test.line,
+          what: `${reader.id} reads ${row.table}'s shared value (${manifestPath}:${String(row.line)}) outside @global-state`,
+        });
+    }
+  return findings;
 }

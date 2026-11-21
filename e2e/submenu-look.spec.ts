@@ -1,8 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { adminClient } from "./global-setup";
-import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
-import { gotoReady, layoutBoxes, openRailScope } from "./helpers/ui";
+import { destroyCategoryBranch, growScratchBranch, seedScratchBranch } from "./helpers/posting";
+import { gotoReady, openRailScope } from "./helpers/ui";
 
 /**
  * SMN-E7 … SMN-E10 (D248; Foundations turn R1d-a) — a side panel is the main menu: the
@@ -63,56 +63,62 @@ test.describe("D248 a side panel is the main menu", () => {
   });
 
   for (const height of [800, 600]) {
-    test(`SMN-E7 at 1280×${height} panel rows are the rail's rows: height, level, look and icon`, async ({
-      page,
-    }, testInfo) => {
-      test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-      const seeded = await seedScratchBranch(4, "smn-e7");
-      branch = seeded;
-      await page.setViewportSize({ width: 1280, height });
-      await gotoReady(page, "/");
-      const panel = await openPanel(page, seeded.root);
-      const grid = await railGrid(page);
-      const look = await panel.evaluate((el) => {
-        const style = getComputedStyle(el);
-        const rows = Array.from(el.querySelectorAll<HTMLElement>("[data-submenu-row]"));
-        return {
-          border: style.borderTopWidth,
-          radius: parseFloat(style.borderTopLeftRadius),
-          rows: rows.map((row) => {
-            const box = row.parentElement?.getBoundingClientRect();
-            const own = getComputedStyle(row);
-            return {
-              top: box?.top ?? 0,
-              height: box?.height ?? 0,
-              separator: own.borderBottomWidth,
-              classes: row.className,
-              icon: row.querySelector("svg") !== null,
-            };
-          }),
-        };
-      });
-      expect(look.border, "SMN-E7 the panel has no border").toBe("0px");
-      expect(look.radius, "SMN-E7 the panel's corners are rounded").toBeGreaterThan(0);
-      expect(look.rows).toHaveLength(4);
-      for (const row of look.rows) {
-        expect(
-          Math.abs(row.height - grid.height),
-          "SMN-E7 a row is the rail's height",
-        ).toBeLessThanOrEqual(1);
-        expect(
-          Math.min(...grid.tops.map((top) => Math.abs(top - row.top))),
-          "SMN-E7 a row is level with a rail row",
-        ).toBeLessThanOrEqual(1);
-        expect(row.separator, "SMN-E7 no separator line").toBe("0px");
-        expect(row.classes, "SMN-E7 the shared row classes (Sage §2: 14 px)").toContain(
-          "rounded-row",
-        );
-        expect(row.classes, "SMN-E7 the Sage hover (§2; INC-042)").toContain("hover:bg-card/70");
-        expect(row.classes, "SMN-E7 never bg-muted").not.toContain("bg-muted");
-        expect(row.icon, "SMN-E7 each row shows an icon").toBe(true);
-      }
-    });
+    test(
+      `SMN-E7 at 1280×${height} panel rows are the rail's rows: height, level, look and icon`,
+      { tag: "@global-state" },
+      async ({ page }, testInfo) => {
+        test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+        test.info().annotations.push({
+          type: "global-state",
+          description: "INC-1015 measures the rail's rows",
+        });
+        const seeded = await seedScratchBranch(4, "smn-e7");
+        branch = seeded;
+        await page.setViewportSize({ width: 1280, height });
+        await gotoReady(page, "/");
+        const panel = await openPanel(page, seeded.root);
+        const grid = await railGrid(page);
+        const look = await panel.evaluate((el) => {
+          const style = getComputedStyle(el);
+          const rows = Array.from(el.querySelectorAll<HTMLElement>("[data-submenu-row]"));
+          return {
+            border: style.borderTopWidth,
+            radius: parseFloat(style.borderTopLeftRadius),
+            rows: rows.map((row) => {
+              const box = row.parentElement?.getBoundingClientRect();
+              const own = getComputedStyle(row);
+              return {
+                top: box?.top ?? 0,
+                height: box?.height ?? 0,
+                separator: own.borderBottomWidth,
+                classes: row.className,
+                icon: row.querySelector("svg") !== null,
+              };
+            }),
+          };
+        });
+        expect(look.border, "SMN-E7 the panel has no border").toBe("0px");
+        expect(look.radius, "SMN-E7 the panel's corners are rounded").toBeGreaterThan(0);
+        expect(look.rows).toHaveLength(4);
+        for (const row of look.rows) {
+          expect(
+            Math.abs(row.height - grid.height),
+            "SMN-E7 a row is the rail's height",
+          ).toBeLessThanOrEqual(1);
+          expect(
+            Math.min(...grid.tops.map((top) => Math.abs(top - row.top))),
+            "SMN-E7 a row is level with a rail row",
+          ).toBeLessThanOrEqual(1);
+          expect(row.separator, "SMN-E7 no separator line").toBe("0px");
+          expect(row.classes, "SMN-E7 the shared row classes (Sage §2: 14 px)").toContain(
+            "rounded-row",
+          );
+          expect(row.classes, "SMN-E7 the Sage hover (§2; INC-042)").toContain("hover:bg-card/70");
+          expect(row.classes, "SMN-E7 never bg-muted").not.toContain("bg-muted");
+          expect(row.icon, "SMN-E7 each row shows an icon").toBe(true);
+        }
+      },
+    );
   }
 
   test("SMN-E8 a 60-character name stays on one line, cut with an ellipsis, its full name kept", async ({
@@ -149,42 +155,112 @@ test.describe("D248 a side panel is the main menu", () => {
     expect(cut).toEqual({ over: true, ellipsis: "ellipsis", wrap: "nowrap", lines: 1 });
   });
 
-  test("SMN-E9 a panel opened from the last root ends level with the rail's last row", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-    const seeded = await seedScratchBranch(6, "smn-e9");
-    branch = seeded;
-    await page.setViewportSize({ width: 1280, height: 800 });
-    await gotoReady(page, "/");
-    const panel = await openPanel(page, seeded.root);
-    const grid = await railGrid(page);
-    const box = await panel.evaluate((el) => el.getBoundingClientRect().bottom);
-    expect(
-      Math.abs(box - grid.bottom),
-      "SMN-E9 the panel ends at the rail's last row",
-    ).toBeLessThanOrEqual(1);
-  });
+  test(
+    "SMN-E9 a panel opened from the last root ends level with the rail's last row",
+    { tag: "@global-state" },
+    async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+      test.info().annotations.push({
+        type: "global-state",
+        description: "INC-1015 measures the rail's rows",
+      });
+      const seeded = await seedScratchBranch(6, "smn-e9");
+      branch = seeded;
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await gotoReady(page, "/");
+      const panel = await openPanel(page, seeded.root);
+      const grid = await railGrid(page);
+      const box = await panel.evaluate((el) => el.getBoundingClientRect().bottom);
+      expect(
+        Math.abs(box - grid.bottom),
+        "SMN-E9 the panel ends at the rail's last row",
+      ).toBeLessThanOrEqual(1);
+    },
+  );
 
   // SMN-E10 — replaced by D254 (Foundations turn R1d-b, G38; not loosened): a panel never
   // compacts. Its rows keep a rail row's measured height; beyond the menu it scrolls.
-  test("SMN-E10 a 20-row panel keeps the rail's row height at 1280×1000 and 1280×600, and scrolls when the menu cannot hold it", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-    const seeded = await seedScratchBranch(20, "smn-e10");
-    branch = seeded;
-    for (const height of [1000, 600]) {
-      await page.setViewportSize({ width: 1280, height });
+  test(
+    "SMN-E10 a 20-row panel keeps the rail's row height at 1280×1000 and 1280×600, and scrolls when the menu cannot hold it",
+    { tag: "@global-state" },
+    async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+      test.info().annotations.push({
+        type: "global-state",
+        description: "INC-1015 measures the rail's rows",
+      });
+      const seeded = await seedScratchBranch(20, "smn-e10");
+      branch = seeded;
+      for (const height of [1000, 600]) {
+        await page.setViewportSize({ width: 1280, height });
+        await gotoReady(page, "/");
+        const panel = await openPanel(page, seeded.root);
+        await expect(panel.locator("[data-submenu-row]")).toHaveCount(20);
+        const grid = await railGrid(page);
+        const state = await panel.evaluate((el) => ({
+          top: el.getBoundingClientRect().top,
+          bottom: el.getBoundingClientRect().bottom,
+          overflow: el.scrollHeight - el.clientHeight,
+          bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+          rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
+            (row) => row.parentElement?.getBoundingClientRect().height ?? 0,
+          ),
+        }));
+        for (const row of state.rows)
+          expect(
+            Math.abs(row - grid.height),
+            `SMN-E10 ${height}: a panel row equals a rail row`,
+          ).toBeLessThanOrEqual(1);
+        if (state.overflow > 1) {
+          expect(state.bar, `SMN-E10 ${height}: its scrollbar takes width`).toBeGreaterThan(0);
+          expect(
+            Math.abs(state.top - grid.first),
+            `SMN-E10 ${height}: spans from the menu's top`,
+          ).toBeLessThanOrEqual(1);
+          expect(
+            Math.abs(state.bottom - grid.last),
+            `SMN-E10 ${height}: to its last row`,
+          ).toBeLessThanOrEqual(1);
+        }
+        await page.mouse.move(1200, height - 50);
+        await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+      }
+    },
+  );
+
+  test(
+    "SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254)",
+    { tag: "@global-state" },
+    async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+      test.info().annotations.push({
+        type: "global-state",
+        description: "INC-1015 measures the rail's rows",
+      });
+      // INC-1015 (run 44607286456): the menu's rows are read with this test's own root already
+      // on the rail — never before it, when another root could join in between — and the panel
+      // then grows to one row more than they hold.
+      const seeded = await seedScratchBranch(1, "smn-e13");
+      branch = seeded;
+      await page.setViewportSize({ width: 1280, height: 1000 });
+      await gotoReady(page, "/");
+      await expect(
+        page.getByTestId("app-rail").getByTestId(`rail-category-${seeded.root}`),
+      ).not.toHaveCount(0);
+      const shown = await railGrid(page);
+      const holds = Math.round((shown.last - shown.first) / shown.height);
+      await growScratchBranch(seeded, holds, "smn-e13");
       await gotoReady(page, "/");
       const panel = await openPanel(page, seeded.root);
-      await expect(panel.locator("[data-submenu-row]")).toHaveCount(20);
       const grid = await railGrid(page);
       const state = await panel.evaluate((el) => ({
         top: el.getBoundingClientRect().top,
         bottom: el.getBoundingClientRect().bottom,
         overflow: el.scrollHeight - el.clientHeight,
         bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+        tops: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
+          (row) => row.parentElement?.getBoundingClientRect().top ?? 0,
+        ),
         rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
           (row) => row.parentElement?.getBoundingClientRect().height ?? 0,
         ),
@@ -192,72 +268,20 @@ test.describe("D248 a side panel is the main menu", () => {
       for (const row of state.rows)
         expect(
           Math.abs(row - grid.height),
-          `SMN-E10 ${height}: a panel row equals a rail row`,
+          "SMN-E13 a panel row equals a rail row",
         ).toBeLessThanOrEqual(1);
-      if (state.overflow > 1) {
-        expect(state.bar, `SMN-E10 ${height}: its scrollbar takes width`).toBeGreaterThan(0);
+      for (const top of state.tops.slice(0, Math.round((grid.last - grid.first) / grid.height)))
         expect(
-          Math.abs(state.top - grid.first),
-          `SMN-E10 ${height}: spans from the menu's top`,
+          Math.min(...grid.tops.map((railTop) => Math.abs(railTop - top))),
+          "SMN-E13 each shown row is level with a rail row",
         ).toBeLessThanOrEqual(1);
-        expect(
-          Math.abs(state.bottom - grid.last),
-          `SMN-E10 ${height}: to its last row`,
-        ).toBeLessThanOrEqual(1);
-      }
-      await page.mouse.move(1200, height - 50);
-      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
-    }
-  });
-
-  test("SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254)", async ({
-    page,
-  }, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-    await page.setViewportSize({ width: 1280, height: 1000 });
-    await gotoReady(page, "/");
-    const shown = await railGrid(page);
-    const holds = Math.round((shown.last - shown.first) / shown.height);
-    // CI run 41051458551 (fa5c333f, shard 16 and repeat): the seeded root is itself a row of
-    // the menu. When the menu had room for one more row, it then held holds + 1 rows and a
-    // panel of holds + 1 fitted (overflow 0). The seed counts that row (G21: cause, not retry).
-    const { region } = await layoutBoxes({
-      region: page.getByTestId("app-rail").getByTestId("rail-scroll"),
-    });
-    const roomForTheRoot = region.y + region.height - shown.last >= shown.height - 1;
-    const seeded = await seedScratchBranch(holds + (roomForTheRoot ? 2 : 1), "smn-e13");
-    branch = seeded;
-    await gotoReady(page, "/");
-    const panel = await openPanel(page, seeded.root);
-    const grid = await railGrid(page);
-    const state = await panel.evaluate((el) => ({
-      top: el.getBoundingClientRect().top,
-      bottom: el.getBoundingClientRect().bottom,
-      overflow: el.scrollHeight - el.clientHeight,
-      bar: (el as HTMLElement).offsetWidth - el.clientWidth,
-      tops: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
-        (row) => row.parentElement?.getBoundingClientRect().top ?? 0,
-      ),
-      rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
-        (row) => row.parentElement?.getBoundingClientRect().height ?? 0,
-      ),
-    }));
-    for (const row of state.rows)
       expect(
-        Math.abs(row - grid.height),
-        "SMN-E13 a panel row equals a rail row",
+        Math.abs(state.top - grid.first),
+        "SMN-E13 spans from the menu's first row",
       ).toBeLessThanOrEqual(1);
-    for (const top of state.tops.slice(0, Math.round((grid.last - grid.first) / grid.height)))
-      expect(
-        Math.min(...grid.tops.map((railTop) => Math.abs(railTop - top))),
-        "SMN-E13 each shown row is level with a rail row",
-      ).toBeLessThanOrEqual(1);
-    expect(
-      Math.abs(state.top - grid.first),
-      "SMN-E13 spans from the menu's first row",
-    ).toBeLessThanOrEqual(1);
-    expect(Math.abs(state.bottom - grid.last), "SMN-E13 to its last row").toBeLessThanOrEqual(1);
-    expect(state.overflow, "SMN-E13 the panel scrolls").toBeGreaterThan(0);
-    expect(state.bar, "SMN-E13 with a visible scrollbar").toBeGreaterThan(0);
-  });
+      expect(Math.abs(state.bottom - grid.last), "SMN-E13 to its last row").toBeLessThanOrEqual(1);
+      expect(state.overflow, "SMN-E13 the panel scrolls").toBeGreaterThan(0);
+      expect(state.bar, "SMN-E13 with a visible scrollbar").toBeGreaterThan(0);
+    },
+  );
 });

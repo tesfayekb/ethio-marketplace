@@ -2,14 +2,24 @@ name: Feed bench
 
 # D101 §5 / DEC-166 — the feed engine's speed judge on ethio-staging:
 # 100,500 scratch listings, six page shapes timed inside the database
-# (feed_bench), everything removed after. Weekly (Sunday 16:10 UTC, DEC-171 —
-# before the 18:00 UTC nightly; was 05:10 UTC, DEC-167)
+# (feed_bench), everything removed after. Weekly (Sunday 13:10 UTC, DEC-412 —
+# at least two hours before the earlier nightly cron, 15:30 UTC; was 16:10 UTC,
+# DEC-171, and 05:10 UTC, DEC-167)
 # and on demand; red when a target is missed, or when it was skipped or
 # yielded to another staging run (DEC-168, scripts/staging-gate.ts).
 # Evidence publishes to branch ci-evidence (DEC-098).
+# The quiet window (the tests and CI turn 2, ruling 4): a run yields to every CI, Nightly E2E or
+# Guard Proof run from the moment that run is queued. Those are started by a push to a branch with
+# an open pull request into dev (a docs-only push too), a merge into dev, a pull request opened,
+# the nightly crons (15:30 and 16:30 UTC) and a Guard Proof dispatch. Dispatch only when no such run
+# is queued or in progress, and let nothing of that kind happen until the run completes. The window
+# is the gate's wait plus about 25 minutes (run 44896403216: 1,513 s from start to end, 2 s of it
+# the gate's). The job's limit is the gate's whole wait, plus half as much again of the measured
+# run: 40 + 38 = 78 minutes (INC-1230), so every honest end is the script's own; only a hang meets
+# it. 13:10 UTC plus 78 minutes ends before the nightly's 15:30 UTC.
 on:
   schedule:
-    - cron: "10 16 * * 0"
+    - cron: "10 13 * * 0"
   workflow_dispatch:
 
 # DEC-153 (a) — read-only by default; only the job that publishes holds write.
@@ -24,8 +34,12 @@ jobs:
   feed-bench:
     name: Feed bench (ethio-staging, 100,500 scratch listings)
     runs-on: ubuntu-24.04
-    # DEC-168 — up to 40 minutes waiting for a quiet staging, then the run.
-    timeout-minutes: 90
+    # DEC-412, INC-1230 — the gate's whole wait, plus half as much again of the measured run:
+    # GATE_WAIT_MINUTES 40 + RUN_ALLOWANCE_MINUTES 38 (scripts/feed-bench.ts; CF-CID-11). Run
+    # 44896403216 (2026-11-21, 2,048 sellers) measured: gate 2 s, seed 1,330 s, pre-clean and
+    # measure 7 s, cleanup 157 s, the other steps 17 s; without the gate 1,511 s, half as much
+    # again 37.8 min. Was 60, from run 43872334867's 2,373 s with 256 sellers and its gate in it.
+    timeout-minutes: 78
     permissions:
       contents: write
       # DEC-168 — the staging gate reads the repository's runs.

@@ -2,6 +2,7 @@
 # a write changes a value that rows the writer did not create carry, so two workers of one lane race.
 # Key: `<table>` | why its rows are shared | doors that write it | helpers whose placement moves no shared value
 # Or: `<table>` | read, not shared | why — a table with a statement-level trigger whose writes move no such value.
+# Or: `<table>` | shared with its readers | why | readers (`<file>::<test id>`) — a table whose writes move a value only the named tests read: each carries @global-state, its writers are not judged.
 listing_packages | level_ranks_rebuild() renumbers every level by (sort, key) and requeues the live ads on any write | - | seedProduct (e2e/admin-monetisation.spec.ts: after every row of its kind), destroyProduct (e2e/admin-monetisation.spec.ts: removes that row), seedScratchReaches (e2e/helpers/reach-rows.ts: above every real reach), destroyScratchReaches (e2e/helpers/reach-rows.ts: removes those rows)
 languages | the switcher, the hreflang gate and every bundle read the enabled_public rows | - | ensureFenceLanguage (e2e/helpers/translations.ts: a fence language, never public, DEC-148)
 job_pauses | one row per job: a pause stops that job for every caller | job_pause_set | -
@@ -10,5 +11,5 @@ category_attribute_links | read, not shared | catalog_find_rebuild(), as categor
 entity_translations | read, not shared | catalog_find_rebuild(), as categories
 listings | read, not shared | the feed index triggers rewrite the written ads' own rows only
 listing_locations | read, not shared | the feed index triggers rewrite the written places' own ads only
-category_tree_pointers | read, not shared | the reindex triggers queue the ads under the moved pointers only
+category_tree_pointers | shared with its readers | a root added to the rail IS shared by every test that measures the rail: its rows share the rail's height (D247), so one more root moves every row; the reindex triggers queue the ads under the moved pointers only | e2e/submenu.spec.ts::SMN-E4, e2e/submenu-look.spec.ts::SMN-E7, e2e/submenu-look.spec.ts::SMN-E9, e2e/submenu-look.spec.ts::SMN-E10, e2e/submenu-look.spec.ts::SMN-E13, e2e/submenu-touch.spec.ts::ROWS-E1, e2e/menu-rows.spec.ts::ROWS-E3, e2e/menu-rows.spec.ts::ROWS-E4, e2e/shell-bands.spec.ts::BND-E3
 locations | read, not shared | the reindex trigger queues the ads in the moved places only

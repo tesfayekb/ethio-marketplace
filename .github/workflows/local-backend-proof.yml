@@ -256,12 +256,19 @@ jobs:
           fi
           # DEC-371: a spec's `@webkit` tests repeat in the WebKit pair too, so each counts twice in the budget
           # (once for the two Chromium projects, once for the two WebKit ones); webkit-1280 lists the tagged ones.
+          # DEC-415: the run step's serial pass repeats the selected specs' `@global-state` tests in
+          # Chromium after the parallel pass, so they count too (a spec of only such tests included);
+          # each list keeps out exactly the tags its pass keeps out (CF-LANES-5). A spec with no test
+          # one list keeps is no error there.
           # shellcheck disable=SC2086
-          bunx playwright test --list --project=mobile-360 --project=webkit-1280 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.txt"
-          tests=$(python3 - "$RUNNER_TEMP/repeat-list.txt" "$RUNNER_TEMP/repeat-ranks.txt" <<'PY'
+          bunx playwright test --list --pass-with-no-tests --project=mobile-360 --project=webkit-1280 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.txt"
+          # shellcheck disable=SC2086
+          bunx playwright test --list --pass-with-no-tests --project=mobile-360 --grep "@global-state" --grep-invert "@a11y" $specs > "$RUNNER_TEMP/repeat-serial-list.txt"
+          tests=$(python3 - "$RUNNER_TEMP/repeat-list.txt" "$RUNNER_TEMP/repeat-ranks.txt" "$RUNNER_TEMP/repeat-serial-list.txt" <<'PY'
           import re, sys
           counts = {}
           webkit = {}
+          serial = {}
           for line in open(sys.argv[1]).read().splitlines():
               m = re.match(r'^\s+\[(mobile-360|webkit-1280)\] › (\S+?):\d+:\d+ › ', line)
               if m:
@@ -269,11 +276,17 @@ jobs:
                   counts[spec] = counts.get(spec, 0) + 1
                   if m[1] == 'webkit-1280':
                       webkit[spec] = webkit.get(spec, 0) + 1
+          for line in open(sys.argv[3]).read().splitlines():
+              m = re.match(r'^\s+\[mobile-360\] › (\S+?):\d+:\d+ › ', line)
+              if m:
+                  spec = 'e2e/' + m[1]
+                  serial[spec] = serial.get(spec, 0) + 1
           with open('repeat-counts.txt', 'w') as out:
               for line in open(sys.argv[2]).read().splitlines():
                   spec, rank = line.split()
-                  out.write(spec + ' ' + str(counts.get(spec, 0)) + ' ' + rank + ' ' + str(webkit.get(spec, 0)) + '\n')
-          print(sum(counts.values()))
+                  n = counts.get(spec, 0) + serial.get(spec, 0)
+                  out.write(spec + ' ' + str(n) + ' ' + rank + ' ' + str(webkit.get(spec, 0)) + ' ' + str(serial.get(spec, 0)) + '\n')
+          print(sum(counts.values()) + sum(serial.values()))
           PY
           )
           plan=$(bun -e "import { repeatPlan } from './scripts/e2e-select.ts'; const p = repeatPlan($tests, $REPEAT_BUDGET_SECONDS, $REPEAT_SECONDS_PER_TEST); console.log(p.each + ' ' + p.take);")
@@ -282,10 +295,11 @@ jobs:
           chosen=""
           used=0
           webkit_used=0
+          serial_used=0
           direct_n=0; direct_taken=0; helper_n=0; helper_taken=0
           # In the selector's order (rank 1, then rank 2): a spec too large for what is left is skipped
           # and the next one tried (INC-967).
-          while read -r spec n rank w; do
+          while read -r spec n rank w s; do
             # A spec whose every test is left out by the tags has nothing to repeat.
             if [ "$n" -eq 0 ]; then continue; fi
             if [ "$rank" = 1 ]; then direct_n=$(( direct_n + 1 )); else helper_n=$(( helper_n + 1 )); fi
@@ -293,6 +307,7 @@ jobs:
               chosen="${chosen:+$chosen }$spec"
               used=$(( used + n ))
               webkit_used=$(( webkit_used + w ))
+              serial_used=$(( serial_used + s ))
               if [ "$rank" = 1 ]; then direct_taken=$(( direct_taken + 1 )); else helper_taken=$(( helper_taken + 1 )); fi
             else
               echo "- Not repeated: $spec ($n tests)" >> local-backend-repeat.txt
@@ -307,11 +322,14 @@ jobs:
           fi
           echo "- Repeat: each $each on both projects; $tests tests selected, $used repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test; directly changed: $direct_taken of $direct_n repeated; importers of a changed helper: $helper_taken of $helper_n" >> local-backend-repeat.txt
           echo "- Repeat in WebKit (DEC-371): $webkit_used of the repeated tests, on webkit-1280 and webkit-390" >> local-backend-repeat.txt
+          echo "- Repeat serially (DEC-415): $serial_used of the repeated tests, @global-state, each $each on mobile-360 and desktop-1280 at one worker after the parallel pass" >> local-backend-repeat.txt
           webkit_projects=""
           if [ "$webkit_used" -gt 0 ]; then webkit_projects="--project=webkit-1280 --project=webkit-390"; fi
           {
             echo "REPEAT_WEBKIT_PROJECTS=$webkit_projects"
             echo "REPEAT_SPECS=$chosen"
+            echo "REPEAT_PARALLEL_TESTS=$(( used - serial_used ))"
+            echo "REPEAT_SERIAL_TESTS=$serial_used"
             echo "REPEAT_TESTS=$tests"
             echo "REPEAT_EACH=$each"
             echo "REPEAT_BUDGET_SECONDS=$REPEAT_BUDGET_SECONDS"
@@ -794,8 +812,40 @@ jobs:
             # @global-state tests run here since the app-fixes turn (INC-1135).
             bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "@a11y|@global-state" --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
           elif [ "$PROOF_LANE" = repeat ]; then
-            # shellcheck disable=SC2086
-            bunx playwright test --project=mobile-360 --project=desktop-1280 ${REPEAT_WEBKIT_PROJECTS:-} --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS > "local-backend-lane-$PROOF_LANE.log" 2>&1
+            # DEC-415: two passes under the one deadline, the parallel pass and then the selected specs'
+            # @global-state tests serially (@a11y stays out of both); a pass with no test to run is
+            # skipped, never a failure, and the lane is red when either pass fails.
+            deadline=$(( $(date +%s) + REPEAT_GLOBAL_TIMEOUT_MS / 1000 ))
+            parallel=0
+            serial=0
+            : > "local-backend-lane-$PROOF_LANE.log"
+            if [ "${REPEAT_PARALLEL_TESTS:-0}" -gt 0 ]; then
+              # shellcheck disable=SC2086
+              bunx playwright test --project=mobile-360 --project=desktop-1280 ${REPEAT_WEBKIT_PROJECTS:-} --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS >> "local-backend-lane-$PROOF_LANE.log" 2>&1
+              parallel=$?
+            fi
+            if [ "${REPEAT_SERIAL_TESTS:-0}" -gt 0 ]; then
+              left=$(( deadline - $(date +%s) ))
+              if [ "$left" -lt 1 ]; then
+                echo "- Not repeated (time cap): the serial pass's @global-state tests (DEC-415)" >> local-backend-repeat.txt
+              else
+                # Playwright empties test-results/ before a run: the parallel pass's waits aside (an
+                # empty report when it ran no test), and repeat-cap.ts joins it back so one results
+                # file holds both passes and a serial pass capped before any test loaded is named.
+                aside="$RUNNER_TEMP/repeat-parallel-results"
+                if [ -d test-results ]; then
+                  mv test-results "$aside"
+                else
+                  mkdir -p "$aside"
+                  printf '%s\n' '{"suites":[],"errors":[]}' > "$aside/results.json"
+                fi
+                # shellcheck disable=SC2086
+                bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "@global-state" --grep-invert "@a11y" --workers=1 --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$(( left * 1000 ))" $REPEAT_SPECS >> "local-backend-lane-$PROOF_LANE.log" 2>&1
+                serial=$?
+                bun run scripts/ci/repeat-cap.ts --merge "$aside" test-results local-backend-repeat.txt || serial=1
+              fi
+            fi
+            [ "$parallel" -eq 0 ] && [ "$serial" -eq 0 ]
           elif [ "$PROOF_LANE" = webkit ]; then
             # DEC-371: the `@webkit`-tagged tests (the picture screens) in Desktop Safari and on an iPhone.
             bunx playwright test --project=webkit-1280 --project=webkit-390 --grep-invert "@global-state|@a11y" > "local-backend-lane-$PROOF_LANE.log" 2>&1

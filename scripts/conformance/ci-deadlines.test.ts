@@ -26,9 +26,13 @@ import { report, walkFiles } from "./kit";
  * installed only by scripts/ci/install-browser-deps.sh, which survives one apt mirror; a line that
  * runs `playwright install-deps` or `playwright install --with-deps` itself is a breach. The script
  * is a package install reaching outside, so the other rules hold around it (deadline, wrapper, once).
+ * INC-1230 (the tests and CI turn 2, ruling 5) — a job whose script waits inside it for a designed
+ * maximum gets that maximum whole in its limit: the Feed bench's `timeout-minutes` is the gate's
+ * whole wait plus the run's allowance, the two constants of scripts/feed-bench.ts (CF-CID-11).
  */
 
 import playwrightConfig from "../../playwright.config";
+import { GATE_WAIT_MINUTES, RUN_ALLOWANCE_MINUTES } from "../feed-bench";
 import { enginesOf } from "../e2e-browser-guard";
 import { readWorkflow, type Step } from "./workflow-reader";
 
@@ -582,5 +586,25 @@ describe("the temporary backend's ports sit below the ephemeral range (DEC-284)"
     expect(portBlockFindings("x.yml", "[db]\nport = 31322\nshadow_port = 54320\n")).toEqual([
       "x.yml:3 backend port 54320 outside 31320-31329 (DEC-284)",
     ]);
+  });
+});
+
+const FEED_BENCH = ".github/workflows/feed-bench.yml";
+
+/** INC-1230 — the Feed bench job's limit, or null when the workflow declares none. */
+export function benchJobMinutes(text: string): number | null {
+  const job = readWorkflow(FEED_BENCH, text).find((j) => j.id === "feed-bench");
+  return job?.minutes ?? null;
+}
+
+describe("the Feed bench's limit holds the gate's whole wait and the run (INC-1230)", () => {
+  it("CF-CID-11 feed-bench.yml's timeout-minutes is GATE_WAIT_MINUTES + RUN_ALLOWANCE_MINUTES; a planted 38 is not", () => {
+    const text = readFileSync(FEED_BENCH, "utf8");
+    const limit = GATE_WAIT_MINUTES + RUN_ALLOWANCE_MINUTES;
+    expect(benchJobMinutes(text)).toBe(limit);
+    const planted = text.replace(/^ {4}timeout-minutes: \d+$/m, "    timeout-minutes: 38");
+    expect(planted).not.toBe(text);
+    expect(benchJobMinutes(planted)).toBe(38);
+    expect(benchJobMinutes(planted)).not.toBe(limit);
   });
 });

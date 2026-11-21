@@ -587,6 +587,31 @@ Since DEC-375 (b) (the speed turn) the cap is the slowest planned lane's seconds
 one worker (`bun scripts/ci/lane-plan.ts --repeat-budget`), so the repeat lane ends
 within that lane.
 
+Since DEC-415 (the tests and CI turn 2, ruling 3) the repeat lane runs two passes under
+that one deadline. The parallel pass repeats the selected specs' tests outside
+`@global-state` and `@a11y`. The serial pass then repeats the same specs' `@global-state`
+tests in the Chromium pair with `--workers=1`, the lane's own `--repeat-each` and
+`--retries 0`. Before DEC-415 the lane left `@global-state` tests out, so a test the
+serial tag moved (SMN-E13, INC-1015) was proven once a push and never repeated. `@a11y`
+tests stay out of both passes; they run once a push in the smoke lane. The planner in
+the select step counts both passes: one `--list` per pass, each keeping out the tags its
+command keeps out, with `--pass-with-no-tests` so a spec one list leaves empty is no
+error. So `REPEAT_EACH`, the per-spec fit and the time cap hold both passes, and a spec
+of only `@global-state` tests is repeated too. A pass with no test to run is skipped; the
+lane is red when either pass fails. Playwright empties `test-results/` before each run,
+so the parallel pass's directory is set aside (an empty report when that pass ran no
+test) and `bun run scripts/ci/repeat-cap.ts --merge` joins it back: one `results.json` (suites and errors in pass order, stats
+summed) and both passes' error contexts, read by the cap and by the failure reporter.
+The serial pass gets what is left of the deadline. When nothing is left, or the cap
+stops it before a test loads, `local-backend-repeat.txt` says so on a
+`- Not repeated (time cap):` line. Its `- Repeat serially (DEC-415):` line names the
+serial tests and their repetitions. CF-LANES-5 (`scripts/conformance/lanes.test.ts`)
+reads the workflow. It requires a serial pass for `@global-state` at one worker with the
+lane's `--repeat-each`, joined back by `--merge`, and the planner's two lists keeping out
+the same tags as the two commands. Its planted cases remove the serial pass, remove its
+count, and change its workers, count or tags. CF-LANES-3 takes the most workers any of a
+lane's runs uses.
+
 Since DEC-375 (b) (the speed turn) every per-push Chromium test runs in exactly one
 lane. Lanes 1 → 16 run SPEC FILES split by measured seconds, not `--shard`:
 `scripts/ci/lane-plan.ts` reads `playwright test --list --reporter=json` over the two
@@ -622,6 +647,19 @@ upsert|delete(`, and `.rpc("<door>"` for a door the manifest names); the helper 
 unit, so a writing function's calls are the sites. A site outside `@global-state` and
 the sanctioned helpers fails unless `shared-values-allowlist.txt` names it, and a table
 with a statement-level trigger that the manifest does not name fails.
+Since the tests and CI turn 2 (INC-1015) a table can also be "shared with its readers"
+(`<table> | shared with its readers | why | readers`): its writes move a value only some
+tests read, so the readers run serially and the writers are not judged. A new root joins
+the rail, and the rail's rows share its height (D247), so `category_tree_pointers` names the
+tests whose verdict a root another worker adds can change: they read the rail and what they
+judge against it in separate moments, or choose their branch from a count read before.
+They are SMN-E4, SMN-E7, SMN-E9, SMN-E10, SMN-E13, ROWS-E1, ROWS-E3, ROWS-E4 and BND-E3,
+each `<file>::<test id>`. CF-LANES-4 (`readerFindings`) fails a named reader without
+`@global-state`, on itself or a describe around it, and a name no test of its file answers
+to (stale); a looped test's id is its templated title's head. A new test that measures the
+rail joins the row. SMN-E13 reads the menu's rows with its own scratch root already on the
+rail, then grows its branch to one row more than they hold (`growScratchBranch`,
+`e2e/helpers/posting.ts`).
 Each numbered lane's evidence carries its `- Plan (DEC-375 b):` line and the plan's
 line; the summary's `- Lane plan (DEC-375 b):` line adds planned against test seconds
 per lane. Guards: CF-LANES-1 → 4 (`scripts/conformance/lanes.test.ts`, the one-worker

@@ -238,8 +238,8 @@ describe("the repeat lane (DEC-283)", () => {
       ["(smoke|email|repeat|", "(smoke|email|", "the summary's evidence pattern leaves repeat out"],
       ["14,15,16,repeat?\n", "14,15,16\n", "the reporter's expected sources leave repeat out"],
       [
-        '--repeat-each "$REPEAT_EACH" --retries 0',
-        '--repeat-each "$REPEAT_EACH" --retries 2',
+        '--grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0',
+        '--grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 2',
         "the repeat lane's run lacks --retries 0",
       ],
       [
@@ -275,7 +275,7 @@ describe("the repeat lane (DEC-283)", () => {
       `an inline 'Timed out waiting' reading in ${WORKFLOW}`,
     ]);
     expect(
-      repeatLaneFindings(real.replace("bun run scripts/ci/repeat-cap.ts", "python3 cap.py")),
+      repeatLaneFindings(real.replaceAll("bun run scripts/ci/repeat-cap.ts", "python3 cap.py")),
     ).toContain("the cap is not read by scripts/ci/repeat-cap.ts");
     expect(
       repeatLaneFindings(

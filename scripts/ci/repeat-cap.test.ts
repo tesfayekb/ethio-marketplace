@@ -1,9 +1,16 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { capVerdict, capVerdictOfFile, isGlobalTimeout } from "./repeat-cap";
+import {
+  cappedBeforeLoad,
+  capVerdict,
+  capVerdictOfFile,
+  isGlobalTimeout,
+  mergedReport,
+  SERIAL_CAP_LINE,
+} from "./repeat-cap";
 
 /**
  * DEC-283 / INC-966 (Foundations turn K5) — scripts/ci/repeat-cap.ts, the one reader of the
@@ -154,6 +161,97 @@ describe("the repeat lane's cap reader (INC-966)", () => {
       expect(cli(join(dir, "capped.json")).status).toBe(0);
       expect(readFileSync(evidence, "utf8")).toBe(
         "- Repeat: each 2\n- Not repeated (time cap): geo.spec.ts / GEO-1 the feed is scoped / desktop-1280\n",
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  const passed = (title: string) => ({
+    title: "rail.spec.ts",
+    specs: [
+      {
+        title,
+        tests: [
+          { projectName: "desktop-1280", status: "expected", results: [{ status: "passed" }] },
+        ],
+      },
+    ],
+  });
+  const withStats = (r: object, expected: number, unexpected: number) => ({
+    ...r,
+    config: { workers: 1 },
+    stats: { startTime: "t", duration: 10, expected, skipped: 0, unexpected, flaky: 0 },
+  });
+
+  it("RCAP-10 the two passes join as one report: suites and errors in pass order, stats summed (DEC-415)", () => {
+    const first = withStats(report([], [passed("PAR-1")]), 1, 0);
+    const failedSerial = {
+      title: "rail.spec.ts",
+      specs: [
+        {
+          title: "SER-1",
+          tests: [
+            { projectName: "desktop-1280", status: "unexpected", results: [{ status: "failed" }] },
+          ],
+        },
+      ],
+    };
+    const second = withStats(report([], [failedSerial]), 0, 1);
+    const merged = mergedReport(first, second);
+    expect(merged).toEqual({
+      config: { workers: 1 },
+      suites: [passed("PAR-1"), failedSerial],
+      errors: [],
+      stats: { startTime: "t", duration: 20, expected: 1, skipped: 0, unexpected: 1, flaky: 0 },
+    });
+    // A failure in the serial pass fails the cap over both; a cap in the serial pass alone is a cap.
+    const capped = report([plain(30, "test suite")], [interruptedSuite]);
+    expect(capVerdict(mergedReport(capped, second)).verdict).toBe("failed");
+    expect(capVerdict(mergedReport(first, capped))).toEqual({
+      verdict: "capped",
+      left: ["geo.spec.ts / GEO-1 the feed is scoped / desktop-1280"],
+    });
+    // The parallel pass ran no test: its empty report keeps the serial pass's config and stats.
+    expect(mergedReport({ suites: [], errors: [] }, second)).toEqual(second);
+    expect(mergedReport(first, undefined)).toBeNull();
+    expect(mergedReport(first, { suites: [] })).toBeNull();
+    expect(cappedBeforeLoad(report([plain(1, "global setup")], []))).toBe(true);
+    expect(cappedBeforeLoad(capped)).toBe(false);
+    expect(cappedBeforeLoad(report([], []))).toBe(false);
+  });
+
+  it("RCAP-11 --merge joins the set-aside pass back; a cap before any test loaded is named, a missing report fails", () => {
+    const dir = mkdtempSync(join(tmpdir(), "repeat-merge-"));
+    try {
+      const aside = join(dir, "aside");
+      const results = join(dir, "test-results");
+      const evidence = join(dir, "evidence.txt");
+      const pass = (path: string, body: object, context: string) => {
+        mkdirSync(join(path, "a-test"), { recursive: true });
+        writeFileSync(join(path, "results.json"), JSON.stringify(body));
+        writeFileSync(join(path, "a-test", `${context}.md`), context);
+      };
+      const cli = () =>
+        spawnSync("bun", ["run", "scripts/ci/repeat-cap.ts", "--merge", aside, results, evidence], {
+          encoding: "utf8",
+        });
+      writeFileSync(evidence, "- Repeat: each 2\n");
+      pass(aside, report([], [passed("PAR-1")]), "parallel");
+      pass(results, report([plain(1, "global setup")], []), "serial");
+      expect(cli().status).toBe(0);
+      const joined: unknown = JSON.parse(readFileSync(join(results, "results.json"), "utf8"));
+      expect(joined).toEqual(
+        mergedReport(report([], [passed("PAR-1")]), report([plain(1, "global setup")], [])),
+      );
+      expect(readFileSync(join(results, "a-test", "parallel.md"), "utf8")).toBe("parallel");
+      expect(readFileSync(join(results, "a-test", "serial.md"), "utf8")).toBe("serial");
+      expect(readFileSync(evidence, "utf8")).toBe(`- Repeat: each 2\n${SERIAL_CAP_LINE}`);
+
+      rmSync(results, { recursive: true, force: true });
+      expect(cli().status).toBe(1);
+      expect(readFileSync(join(results, "results.json"), "utf8")).toBe(
+        JSON.stringify(report([], [passed("PAR-1")])),
       );
     } finally {
       rmSync(dir, { recursive: true, force: true });

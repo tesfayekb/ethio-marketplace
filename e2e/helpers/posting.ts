@@ -457,6 +457,45 @@ export async function seedScratchBranch(children: number, tag: string) {
   return { root, kids };
 }
 
+/**
+ * INC-1015 — `more` children after a seeded branch's own, so a test can measure the rail with
+ * its root already on it and size the branch from that reading. Their slugs join `branch.kids`
+ * before any write, so the branch's own removal (destroyCategoryBranch) takes them (J3).
+ */
+export async function growScratchBranch(
+  branch: { root: string; kids: string[] },
+  more: number,
+  tag: string,
+): Promise<void> {
+  if (!branch.root.endsWith("-r")) throw new Error(`[e2e:${tag}] ${branch.root} is no branch root`);
+  const base = branch.root.slice(0, -2);
+  const from = branch.kids.length;
+  const kids = Array.from({ length: more }, (_, index) => `${base}-k${from + index + 1}`);
+  if (kids.length === 0) return;
+  branch.kids.push(...kids);
+  const supabase = adminClient();
+  const { data: parent, error: parentError } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("slug", branch.root)
+    .single();
+  if (parentError || !parent)
+    throw new Error(`[e2e:${tag}] reading the root failed: ${parentError?.message}`);
+  const { data: rows, error } = await supabase
+    .from("categories")
+    .insert(kids.map((slug) => ({ slug, name_en: slug, is_active: true, allow_listings: true })))
+    .select("id, slug");
+  if (error || !rows) throw new Error(`[e2e:${tag}] growing failed: ${error?.message}`);
+  const { error: pointerError } = await supabase.from("category_tree_pointers").insert(
+    kids.map((slug, index) => {
+      const row = rows.find((candidate) => candidate.slug === slug);
+      if (!row) throw new Error(`[e2e:${tag}] ${slug} was not inserted`);
+      return { parent_id: parent.id, child_id: row.id, display_order: from + index + 1 };
+    }),
+  );
+  if (pointerError) throw new Error(`[e2e:${tag}] linking failed: ${pointerError.message}`);
+}
+
 /** Pointers first, then the rows — a branch never leaves an orphan edge (J3). */
 export async function destroyCategoryBranch(slugs: string[]): Promise<void> {
   if (slugs.length === 0) return;

@@ -1,0 +1,25 @@
+RULING — tests-ci-2, stop 3: the repeat lane gains a serial pass (option A, DEC-415), the bench's numbers, then STEP 7. Base: cursor/tests-ci-2 2ece00075.
+
+PREVENTION (G70)
+- Class (the supervisor's, S706): ruling 2 named a CI lane as the proof of a test without reading that lane's command, and the lane's filter leaves the test out (`.github/workflows/local-backend-proof.yml:798`). It is the class "a ruling reads the mechanism's every branch" again, so it gets a guard and not a note. Changed here: decision 1 closes the gap in the repository, so no tag can take a changed test out of the repeat proof, and CF-LANES-5 keeps it closed. In force now: a ruling or a GO that names a lane as a proof quotes that lane's command line, file:line, beside the claim.
+- Class: a tag that moves a test between lanes changes which proof reaches it. Changed here: decision 1.
+Repository: decision 1. Cursor rules, Knowledge: not needed.
+
+THE RULINGS
+1. OPTION A, built in this turn (DEC-415). After its parallel pass, the repeat lane repeats the selected specs' `@global-state` tests in a serial pass.
+   - The command: the Chromium pair (`--project=mobile-360 --project=desktop-1280`), `--grep "@global-state"`, `--workers=1`, `--repeat-each "$REPEAT_EACH"`, `--retries 0`, on the same selected specs.
+   - The budget: the planner counts these tests too, so `REPEAT_EACH`, `REPEAT_TESTS` and the lane's deadline stay true with both passes inside them. Where the count lives is yours to decide; name it under §10.
+   - The verdict: the lane is red when either pass fails. A pass that has no test to run is not a failure.
+   - The evidence: neither pass overwrites the other's results. What `scripts/ci/repeat-cap.ts` and the failure reporter read (`test-results/results.json` today) holds both, so a failure in the serial pass shows in the lane's failure file with its body, and the repeat cap is judged over both passes.
+   - The lane's report line in `local-backend-repeat.txt` names the serial pass, with its test count and its repetitions.
+   - `@a11y` stays out of the repeat lane. Say so where the lane is documented.
+   - CF-LANES-5 (new): read from the workflow's text, the repeat lane has a serial pass for `@global-state` at one worker with the lane's own `--repeat-each`, and the planner's filter agrees with the two commands on which tags are left out. Planted cases: the serial pass removed, and the planner counting without it.
+   - `docs/features/e2e-harness.md` says what the lane now repeats.
+   - SCOPE widens by `scripts/ci/lane-plan.ts`, `scripts/ci/repeat-cap.ts` and `scripts/e2e-select.ts`, each with its tests, only as far as this needs. A further file this needs is named under §10 and you go on. A change to WHICH specs the lane selects is a STOP.
+2. THE PROOF OF SMN-E13 is the run of the commit that carries decision 1. This lane changes the reader spec files, so the repeat lane selects them and its serial pass repeats the readers. Read the lane's result file: every repetition of every reader passed. If a reader fails only on a later repetition, that is a real defect of its own cleanup (rule 40): fix it at the test and name it under §10. Never a retry, a raised timeout or a lower repeat count (G38).
+3. THE FEED BENCH. The operator dispatches "Feed bench" on `cursor/tests-ci-2` now, at `2ece00075`. Decision 1 does not touch the bench. When the run has completed, read it whole (`gh run list --workflow feed-bench.yml --branch cursor/tests-ci-2`, then the run's log), set `timeout-minutes` in `.github/workflows/feed-bench.yml` from gate + seed + measure + cleanup as the brief says, and fill DEC-412's brackets. This rides the same commit as decision 1. If the bench is red, or has not completed when decision 1 is ready, STOP with its state. Do not push without its numbers.
+4. ONE PUSH. Decision 1 and the bench's limit go in one code commit, `tests-ci-2: the repeat lane's serial pass, the bench's limit`, after `bun run checks` on the final tree and the self-review. Then STEP 7: the report with your four corrections. Its CI line is the run of that commit.
+
+RECORDS (word for word into §14; the INC-1015 line replaces ruling 2's)
+DEC-415 — the repeat lane also repeats the selected specs' `@global-state` tests, in a serial pass at one worker after its parallel pass, inside the same budget ([where the count lives]; CF-LANES-5). Judge (frozen, G22): over the next ten runs whose repeat lane selects a `@global-state` test, the lane ends inside its deadline in every one; a miss sends the serial pass's budget back to the tests and CI turn, never to a lower repeat count by hand. A test that fails only on a later repetition is that test's own defect.
+INC-1015 — status line: CLOSED — SMN-E13 reads the rail after its own scratch root is in place and runs serially (`@global-state`); `category_tree_pointers` is "shared with its readers" ([the readers]), and CF-LANES-4 refuses an untagged reader; the repeat lane's serial pass repeated every reader [n] times in run [id] (DEC-415).

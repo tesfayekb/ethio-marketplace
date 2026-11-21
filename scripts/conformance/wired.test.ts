@@ -222,13 +222,24 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain(
       'public-surface.ts" --migration',
     );
-    // INC-1089: the migration guard runs the reader's spanning-literal census.
-    expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain(
-      'conformance/migration-reader.ts" --spanning',
+    // INC-1089, INC-1202, INC-1207: the migration guard runs the reader's spanning-literal and
+    // random-text censuses and its proof rules (migration-guards.ts), one reader for all.
+    const migrationGuard = readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8");
+    expect(migrationGuard).toContain(
+      'MIGRATION_READER="${MIGRATION_READER:-$SCRIPT_DIR/conformance/migration-reader.ts}"',
     );
-    // INC-1202: the migration guard runs the reader's random-text census.
-    expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain(
-      'conformance/migration-reader.ts" --random-text',
+    for (const mode of [
+      "--spanning",
+      "--random-text",
+      "--table-creates",
+      "--real-rows",
+      "--real-picks",
+      "--real-row-split",
+    ])
+      expect(migrationGuard).toContain(`bun "$MIGRATION_READER" ${mode}`);
+    expect(migrationGuard).not.toMatch(/\bperl\b/);
+    expect(readFileSync(join(ROOT, "scripts/conformance/migration-reader.ts"), "utf8")).toContain(
+      'await import("./migration-guards")',
     );
     expect(readFileSync(join(ROOT, "scripts/security-lints.ts"), "utf8")).toContain(
       'from "./public-surface"',
@@ -249,6 +260,25 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/budget-band.test.ts"), "utf8")).toContain(
       "NB-5",
     );
+    // import-cycles.test.ts CF-CYCLE-1…2 (the tests and CI turn 2, INC-1193) is discovered by
+    // test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/import-cycles.test.ts"), "utf8")).toContain(
+      "CF-CYCLE-2",
+    );
+    // DEC-413: the Lovable branch guard runs in its own workflow, judged from the base
+    // (lovable-branch-guard.test.ts CF-LVB-10 holds its shape), and nowhere else.
+    expect(
+      readFileSync(join(ROOT, ".github/workflows/lovable-branch-guard.yml"), "utf8"),
+    ).toContain("| bash scripts/ci/lovable-branch-guard.sh");
+    expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).not.toContain(
+      "lovable-branch-guard.sh",
+    );
+    // ACT-023: the min-width guard (run by shell-guards.test.ts GW-2, GW-4) reads each minWidth
+    // through scripts/datatable-minwidth.ts.
+    expect(readFileSync(join(ROOT, "scripts/check-datatable-minwidth.sh"), "utf8")).toContain(
+      'bun "$SCRIPT_DIR/datatable-minwidth.ts"',
+    );
+    expect(readFileSync(join(ROOT, "scripts/shell-guards.test.ts"), "utf8")).toContain("GW-4");
     // dialogs.test.ts CF-DIALOG-1 DG-1…6 (turn S6-1) is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "scripts/conformance/dialogs.test.ts"), "utf8")).toContain(
       "DG-6",

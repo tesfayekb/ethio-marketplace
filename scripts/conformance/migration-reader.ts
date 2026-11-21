@@ -72,6 +72,27 @@ export function spanningLiterals(sql: string): Array<{ line: number }> {
 }
 
 const DO_BLOCK = /\bDO\s+(\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$)[\s\S]*?\1\s*;/gi;
+const DO_BLOCK_PARTS = /\bDO\s+(\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$)([\s\S]*?)\1\s*;/gi;
+
+/**
+ * Every `DO $tag$ … $tag$;` block of a file (a proof), comments blanked: the whole block, its
+ * body between the tags, and their offsets — for the migration guard's proof rules
+ * (scripts/conformance/migration-guards.ts, INC-1207).
+ */
+export function doBlocksOf(
+  sql: string,
+): Array<{ text: string; offset: number; body: string; bodyOffset: number }> {
+  return Array.from(sqlCodeOf(sql).matchAll(DO_BLOCK_PARTS), (match) => {
+    const offset = match.index ?? 0;
+    const body = match[2] ?? "";
+    return {
+      text: match[0],
+      offset,
+      body,
+      bodyOffset: offset + match[0].indexOf(match[1] ?? "") + (match[1] ?? "").length,
+    };
+  });
+}
 const CREATE_FUNCTION =
   /\bCREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?\s*\(/gi;
 const DROP_FUNCTION =
@@ -455,25 +476,68 @@ export function staleComputedByHand(
   return stale;
 }
 
+const GUARD_MODES = ["--table-creates", "--real-rows", "--real-picks", "--real-row-split"];
+
+/**
+ * The proof rules' modes (scripts/conformance/migration-guards.ts, INC-1207):
+ * `--table-creates <file>…` one line per CREATE TABLE outside a proof's scratch
+ * tables; `--real-rows <file>…` and `--real-picks <file>…` one `<file>: <head>`
+ * line per refused statement; `--real-row-split <allowlist>` reads offender
+ * lines on stdin, prints the refused ones and writes the allowlisted ones to
+ * stderr as `  - <file> | <head> | <reason>`.
+ */
+async function guardMode(mode: string, args: string[]): Promise<void> {
+  const guards = await import("./migration-guards");
+  const out = (line: string) => process.stdout.write(Buffer.from(`${line}\n`, "latin1"));
+  if (mode === "--real-row-split") {
+    const [list] = args;
+    if (list === undefined) throw new Error("migration reader: --real-row-split <allowlist>");
+    const { refused, allowed } = guards.splitByAllowlist(
+      readFileSync(0, "latin1").split("\n"),
+      guards.readMigrationBytes(list),
+    );
+    for (const line of allowed) process.stderr.write(Buffer.from(`  - ${line}\n`, "latin1"));
+    for (const line of refused) out(line);
+    return;
+  }
+  for (const file of args) {
+    const sql = guards.readMigrationBytes(file);
+    if (mode === "--table-creates")
+      for (const { line } of guards.tableCreatesOutsideProofs(sql))
+        out(`${file}:${line}: a CREATE TABLE outside a proof's scratch tables (DEC-151)`);
+    else
+      for (const head of mode === "--real-rows"
+        ? guards.realRowHeads(sql)
+        : guards.realPickHeads(sql))
+        out(`${file}: ${head}`);
+  }
+}
+
 /**
  * `--spanning <file>…`: one line per spanning literal; `--random-text <file>…`:
- * one line per random draw sent as a door's text — for scripts/check-migrations.sh.
+ * one line per random draw sent as a door's text; and the proof rules' modes
+ * above — for scripts/check-migrations.sh.
  */
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const [mode, ...files] = process.argv.slice(2);
-  if ((mode !== "--spanning" && mode !== "--random-text") || files.length === 0)
-    throw new Error("migration reader: use --spanning <file>… or --random-text <file>…");
-  for (const file of files) {
-    const sql = readFileSync(file, "utf8");
-    if (mode === "--spanning")
-      for (const { line } of spanningLiterals(sql))
-        console.log(
-          `${file}:${line}: a string literal spans a line break — write chr(10) or E'\\n' (INC-1089)`,
-        );
-    else
-      for (const { line } of randomTexts(sql))
-        console.log(
-          `${file}:${line}: a proof sends a random draw's digits through a door as a title, a description or a name — map them: translate(…, '0123456789', 'ghijkmnopr') (INC-1202)`,
-        );
-  }
+  if (mode !== undefined && GUARD_MODES.includes(mode) && files.length > 0)
+    await guardMode(mode, files);
+  else if ((mode !== "--spanning" && mode !== "--random-text") || files.length === 0)
+    throw new Error(
+      `migration reader: use --spanning, --random-text or ${GUARD_MODES.join(", ")} with their arguments`,
+    );
+  else
+    for (const file of files) {
+      const sql = readFileSync(file, "utf8");
+      if (mode === "--spanning")
+        for (const { line } of spanningLiterals(sql))
+          console.log(
+            `${file}:${line}: a string literal spans a line break — write chr(10) or E'\\n' (INC-1089)`,
+          );
+      else
+        for (const { line } of randomTexts(sql))
+          console.log(
+            `${file}:${line}: a proof sends a random draw's digits through a door as a title, a description or a name — map them: translate(…, '0123456789', 'ghijkmnopr') (INC-1202)`,
+          );
+    }
 }
