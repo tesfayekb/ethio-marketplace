@@ -292,6 +292,9 @@ export function OverlayTrigger({
           const handler = real?.[name];
           if (typeof handler === "function")
             (handler as Handler)({ defaultPrevented: false } as React.SyntheticEvent);
+          // The person's pointer is already up: release Radix's pointer-down flag as live does.
+          if (name === "onPointerDown" && !pressed.current)
+            document.dispatchEvent(new Event("pointerup"));
         }
     } finally {
       replaying.current = false;

@@ -22,7 +22,8 @@ import { numberOf, parseNumber } from "@/lib/parse-input";
 import { readPostingSchemaAnswer, type AttrDef, type PostingSchema } from "./posting-service";
 import { contactRuleApplies, looksLikeContact } from "./contact-like";
 import { answerOtherText, answerTokens, multiAnswer } from "./answer-tokens";
-import { draftRefusalKey, fill, refusalFor, specsRateText } from "./refusal-text";
+import { specsRateText } from "./field-refusals";
+import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { conditionMet } from "./visible-when";
 import {

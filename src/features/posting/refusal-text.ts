@@ -208,7 +208,7 @@ export function rateUntilOf(refusal: Refusal | string | undefined): string | und
  * The dial's sentence in a family's words: its when words for an instant still to come, in the
  * reader's language; else its plain words.
  */
-function rateLine(
+export function rateLine(
   family: RefusalFamily,
   until: string | undefined,
   t: (key: MessageKey) => string,
@@ -247,20 +247,6 @@ export function photoRateText(
   language: string,
 ): string {
   return rateLine(PHOTO_REFUSALS, until, t, language);
-}
-
-/** The specifications step's dial sentence (its own words, the member layer's). */
-const SPECS_RATE: RefusalFamily = {
-  words: { rateLimited: "post.specs.rateLimited" },
-  when: { rateLimited: "post.specs.rateLimitedWhen" },
-};
-
-export function specsRateText(
-  until: string | undefined,
-  t: (key: MessageKey) => string,
-  language: string,
-): string {
-  return rateLine(SPECS_RATE, until, t, language);
 }
 
 /** An upload-route refusal, in the seller's language. */

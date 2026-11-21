@@ -37,6 +37,9 @@ export function useImageFailure() {
       // person's: the step is named alone. A door's sentence at the persist step keeps its words.
       const own =
         error.stage !== "persist" || codeShaped(error.message) ? "" : `: ${error.message}`;
+      // The dropped text is kept for whoever debugs it, once, as a failed schema read is.
+      if (own === "")
+        console.error("[categories] picture step failed:", error.stage, error.message);
       setMessage(`${failed}${stageOf(error.stage)}${own}`);
       return;
     }

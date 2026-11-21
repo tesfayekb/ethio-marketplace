@@ -25,10 +25,10 @@ import {
 } from "./posting-service";
 import { fill, photoRateText, photoRefusalKey, rateUntilOf } from "./refusal-text";
 import type { PhotoItem, Refusal } from "./types";
+import { usePhotoLinks } from "./use-photo-links";
 
 /** The photo dial's plain words (`PHOTO_REFUSALS`), the line that can say when it resets. */
 const RATE_KEY: MessageKey = "post.photo.refusal.rateLimited";
-import { usePhotoLinks } from "./use-photo-links";
 
 /**
  * U6-C1a — STEP 2: PHOTOS, PREPARED ON THE DEVICE AND SENT ONE AT A TIME.
@@ -295,7 +295,7 @@ export function StepPhotos({
         refusalKey: keyOf(answer.refusals[0]),
       });
     },
-    [listingId, onChanged, patchItem, certification, navigate],
+    [listingId, onChanged, patchItem, certification, navigate, keyOf],
   );
 
   /** Sequential, deliberately: parallel uploads on 2G starve each other. */
@@ -352,7 +352,7 @@ export function StepPhotos({
       setItems((prev) => prev.filter((entry) => entry.localId !== item.localId));
       onChanged();
     },
-    [onChanged, patchItem],
+    [onChanged, patchItem, keyOf],
   );
 
   const makeCover = useCallback(
@@ -364,7 +364,7 @@ export function StepPhotos({
       }
       onChanged();
     },
-    [onChanged, patchItem],
+    [onChanged, patchItem, keyOf],
   );
 
   /** INC-595 — a stored photo from an earlier visit is removed through the same door. */
@@ -390,7 +390,7 @@ export function StepPhotos({
       });
       onChanged();
     },
-    [onChanged],
+    [onChanged, keyOf],
   );
 
   /** INC-595 — a stored photo from an earlier visit is made the cover through the same door. */
@@ -411,7 +411,7 @@ export function StepPhotos({
       }
       onChanged();
     },
-    [onChanged],
+    [onChanged, keyOf],
   );
 
   /**
@@ -441,7 +441,7 @@ export function StepPhotos({
       });
       onChanged();
     },
-    [onChanged],
+    [onChanged, keyOf],
   );
 
   /**
@@ -510,7 +510,7 @@ export function StepPhotos({
         }
       }
     },
-    [listingId, onChanged, waitForStatement, certification, navigate],
+    [listingId, onChanged, waitForStatement, certification, navigate, keyOf],
   );
 
   const stored = items.filter((item) => item.state === "stored").length;

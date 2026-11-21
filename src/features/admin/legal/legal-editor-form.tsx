@@ -193,7 +193,7 @@ export function LegalEditorForm({
                       <>
                         {l === "en" || l === "am"
                           ? t(l === "en" ? "admin.legal.field.bodyEn" : "admin.legal.field.bodyAm")
-                          : t("admin.legal.field.textOptional").replace(
+                          : t("admin.legal.field.textField").replace(
                               "{language}",
                               extraLanguages.find((language) => language.code === l)?.name_en ?? l,
                             )}

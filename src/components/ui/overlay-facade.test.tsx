@@ -70,6 +70,11 @@ function Nested() {
 }
 
 /** A mouse's press on the trigger: it comes over it, presses, lets go. */
+/** INC-1226 — what live Radix leaves when focus returns to the trigger after Escape. */
+const LIVE_TIP_AFTER_FOCUS = true;
+function tipAfterFocus(): boolean {
+  return screen.queryByRole("tooltip") !== null;
+}
 function press(trigger: HTMLElement): void {
   fireEvent.pointerEnter(trigger, { pointerType: "mouse" });
   fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false, pointerType: "mouse" });
@@ -279,15 +284,22 @@ describe("the overlay facades (DEC-259)", () => {
     expect(screen.queryByRole("tooltip")).toBeNull();
     fireEvent.keyDown(screen.getByTestId("nested-menu"), { key: "Escape" });
     await waitFor(() => expect(screen.queryByTestId("nested-menu")).toBeNull());
+    act(() => trigger.focus());
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(tipAfterFocus()).toBe(LIVE_TIP_AFTER_FOCUS);
   });
 
   it("OVF-28 the same press on live code leaves the same: the menu open, no tooltip, Escape closes the menu", async () => {
     render(<Nested />);
-    press(screen.getByTestId("nested"));
+    const trigger = screen.getByTestId("nested");
+    press(trigger);
     expect(screen.getByTestId("nested-menu")).toBeInTheDocument();
     expect(screen.queryByRole("tooltip")).toBeNull();
     fireEvent.keyDown(screen.getByTestId("nested-menu"), { key: "Escape" });
     await waitFor(() => expect(screen.queryByTestId("nested-menu")).toBeNull());
+    act(() => trigger.focus());
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(tipAfterFocus()).toBe(LIVE_TIP_AFTER_FOCUS);
   });
 
   it("OVF-29 a hover alone while the code loads still opens the tooltip once it arrives, and no menu", async () => {
