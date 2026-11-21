@@ -14,15 +14,13 @@ import {
 import { levelNameOf } from "@/features/levels/level-fields";
 import { fill } from "@/features/posting/refusal-text";
 import { useI18n, type MessageKey } from "@/i18n";
-import { doorCode } from "@/lib/door-codes";
 import { formatDate, formatNumber, moneyText } from "@/lib/format";
 import { authKey } from "@/lib/query-keys";
-import { readerFailure } from "@/lib/reader-failure";
 import { cn } from "@/lib/utils";
 
 import {
   availabilityKey,
-  promoteRefusalKey,
+  promoteReadErrorKey,
   readPromoteOptions,
   setListingLevel,
   setListingReach,
@@ -109,7 +107,7 @@ export function PromoteSheet({
           </p>
         ) : query.isError ? (
           <p role="alert" data-testid="promote-load-error" className="text-sm text-destructive">
-            {t(readErrorKey(query.error))}
+            {t(promoteReadErrorKey(query.error))}
           </p>
         ) : (
           <PromoteChoices
@@ -322,12 +320,4 @@ function RowEnd({
       {t(words.choose)}
     </Button>
   );
-}
-
-/** A read the door refused by a code is named; any other failure is the plain retry line. */
-function readErrorKey(error: unknown): MessageKey {
-  const failure = readerFailure(error);
-  return doorCode(failure).code === null
-    ? "myListings.error.failed"
-    : promoteRefusalKey(failure, "level");
 }

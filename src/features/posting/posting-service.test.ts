@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
 // The posting doors' transport is the route client (Foundations turn 14); the
 // tests mock IT, not fetch/XHR — the request bytes are route-client's own
@@ -53,6 +53,8 @@ import {
   publishListing,
   readDraft,
   readPostingSchemaAnswer,
+  savePlaceText,
+  savePlaceTextAnswer,
   removeBackground,
   SAVE_TIMEOUT_MS,
   saveDraft,
@@ -343,6 +345,45 @@ describe("the owner's draft read (turn T1)", () => {
    * F1-5a — `get_posting_schema` is on the shell: its refusal is the call's error, `message` =
    * `code[:detail]`; the details step's "too many reads" line reads it through the one reader.
    */
+  it("RTW-20 the pin's text door and the schema door keep their answers and carry the dial's instant beside them, only when it names one", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const until = "2030-01-01T00:00:00Z";
+    const text = { street: null, directions: "Behind the school" };
+    try {
+      tables.doorAnswer = { data: null, error: { message: `rateLimited:${until}`, code: "P0D01" } };
+      expect(await savePlaceTextAnswer("listing-1", text, null)).toEqual({
+        answer: "rateLimited",
+        until,
+      });
+      expect(await savePlaceText("listing-1", text, null)).toBe("rateLimited");
+      expect(await readPostingSchemaAnswer("cat-1")).toEqual({
+        schema: null,
+        rateLimited: true,
+        until,
+      });
+      tables.doorAnswer = { data: null, error: { message: "rateLimited", code: "P0D01" } };
+      const plain = await savePlaceTextAnswer("listing-1", text, null);
+      expect(plain).toEqual({ answer: "rateLimited" });
+      expect(plain).not.toHaveProperty("until");
+      expect(await readPostingSchemaAnswer("cat-1")).not.toHaveProperty("until");
+      tables.doorAnswer = {
+        data: null,
+        error: { message: `contactInNote:${until}`, code: "P0D01" },
+      };
+      expect(await savePlaceTextAnswer("listing-1", text, null)).toEqual({
+        answer: "contactInNote",
+      });
+      tables.doorAnswer = { data: null, error: null };
+      expect(await savePlaceTextAnswer("listing-1", text, null)).toEqual({ answer: "saved" });
+      expectTypeOf<Awaited<ReturnType<typeof savePlaceTextAnswer>>["until"]>().toEqualTypeOf<
+        string | undefined
+      >();
+    } finally {
+      tables.doorAnswer = null;
+      logged.mockRestore();
+    }
+  });
+
   it("PSV-9 the schema door's rate refusal is read by the one reader; any other refusal is a plain failure", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     try {

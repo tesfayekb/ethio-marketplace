@@ -23,9 +23,12 @@ import {
   uploadPhoto,
   type DraftPhotoRow,
 } from "./posting-service";
-import { fill, photoRefusalKey } from "./refusal-text";
+import { fill, photoRateText, photoRefusalKey, rateUntilOf } from "./refusal-text";
 import type { PhotoItem, Refusal } from "./types";
 import { usePhotoLinks } from "./use-photo-links";
+
+/** The photo dial's plain words (`PHOTO_REFUSALS`), the line that can say when it resets. */
+const RATE_KEY: MessageKey = "post.photo.refusal.rateLimited";
 
 /**
  * U6-C1a — STEP 2: PHOTOS, PREPARED ON THE DEVICE AND SENT ONE AT A TIME.
@@ -128,7 +131,7 @@ export function StepPhotos({
   certification?: Certification;
   waitForStatement?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
   /** The one dial, for this render: the plan's number, or no cap of our own. */
   const MAX_PHOTOS = maxPhotos ?? NO_CAP;
@@ -155,6 +158,20 @@ export function StepPhotos({
   const [rowBusy, setRowBusy] = useState<ReadonlySet<string>>(new Set());
   /** INC-595 — a stored photo's last refusal (its Remove or Make cover), by photo id. */
   const [rowRefusal, setRowRefusal] = useState<Readonly<Record<string, MessageKey>>>({});
+  /** L22 (bundle 1 part B) — the photo dial's reset instant, from its last refusal that named one. */
+  const [rateUntil, setRateUntil] = useState<string | undefined>(undefined);
+  /** A photo route's refusal as its key; the dial's refusal keeps its instant for `say`. */
+  const keyOf = useCallback((refusal: Refusal | undefined): MessageKey => {
+    const key = photoRefusalKey(refusal?.reason ?? "");
+    if (key === RATE_KEY) setRateUntil(rateUntilOf(refusal));
+    return key;
+  }, []);
+  /** A refusal key in words: the dial's says when it resets, when it named an instant to come. */
+  const say = useCallback(
+    (key: MessageKey): string =>
+      key === RATE_KEY ? photoRateText(rateUntil, t, language) : t(key),
+    [rateUntil, t, language],
+  );
   /** D154 B2 — the stored photo open in the editor, and its stored cover's link. */
   const [editing, setEditing] = useState<{ photoId: string; url: string } | null>(null);
   /** Bundle 13 turn 12 (D159) — the cover open in the background tool. */
@@ -275,10 +292,10 @@ export function StepPhotos({
       // A verdict. Final by definition — the tile stops here (PP-10).
       patchItem(localId, {
         state: "refused",
-        refusalKey: photoRefusalKey(answer.refusals[0]?.reason ?? ""),
+        refusalKey: keyOf(answer.refusals[0]),
       });
     },
-    [listingId, onChanged, patchItem, certification, navigate],
+    [listingId, onChanged, patchItem, certification, navigate, keyOf],
   );
 
   /** Sequential, deliberately: parallel uploads on 2G starve each other. */
@@ -328,26 +345,26 @@ export function StepPhotos({
       }
       const answer = await deletePhoto(item.photoId);
       if (!answer.ok) {
-        patchItem(item.localId, { refusalKey: photoRefusalKey(answer.refusals[0]?.reason ?? "") });
+        patchItem(item.localId, { refusalKey: keyOf(answer.refusals[0]) });
         return;
       }
       URL.revokeObjectURL(item.previewUrl);
       setItems((prev) => prev.filter((entry) => entry.localId !== item.localId));
       onChanged();
     },
-    [onChanged, patchItem],
+    [onChanged, patchItem, keyOf],
   );
 
   const makeCover = useCallback(
     async (photoId: string, localId: string) => {
       const answer = await setCoverPhoto(photoId);
       if (!answer.ok) {
-        patchItem(localId, { refusalKey: photoRefusalKey(answer.refusals[0]?.reason ?? "") });
+        patchItem(localId, { refusalKey: keyOf(answer.refusals[0]) });
         return;
       }
       onChanged();
     },
-    [onChanged, patchItem],
+    [onChanged, patchItem, keyOf],
   );
 
   /** INC-595 — a stored photo from an earlier visit is removed through the same door. */
@@ -362,7 +379,7 @@ export function StepPhotos({
         return next;
       });
       if (!answer.ok) {
-        const key = photoRefusalKey(answer.refusals[0]?.reason ?? "");
+        const key = keyOf(answer.refusals[0]);
         setRowRefusal((prev) => ({ ...prev, [photoId]: key }));
         return;
       }
@@ -373,7 +390,7 @@ export function StepPhotos({
       });
       onChanged();
     },
-    [onChanged],
+    [onChanged, keyOf],
   );
 
   /** INC-595 — a stored photo from an earlier visit is made the cover through the same door. */
@@ -388,13 +405,13 @@ export function StepPhotos({
         return next;
       });
       if (!answer.ok) {
-        const key = photoRefusalKey(answer.refusals[0]?.reason ?? "");
+        const key = keyOf(answer.refusals[0]);
         setRowRefusal((prev) => ({ ...prev, [photoId]: key }));
         return;
       }
       onChanged();
     },
-    [onChanged],
+    [onChanged, keyOf],
   );
 
   /**
@@ -413,7 +430,7 @@ export function StepPhotos({
         return next;
       });
       if (!answer.ok) {
-        const key = photoRefusalKey(answer.refusals[0]?.reason ?? "");
+        const key = keyOf(answer.refusals[0]);
         setRowRefusal((prev) => ({ ...prev, [photoId]: key }));
         return;
       }
@@ -424,7 +441,7 @@ export function StepPhotos({
       });
       onChanged();
     },
-    [onChanged],
+    [onChanged, keyOf],
   );
 
   /**
@@ -481,7 +498,7 @@ export function StepPhotos({
         }
         if (answer.unreachable) return "post.photos.couldNotSend";
         certifyRefusal(answer.refusals[0]?.reason ?? "", navigate);
-        return photoRefusalKey(answer.refusals[0]?.reason ?? "");
+        return keyOf(answer.refusals[0]);
       } finally {
         if (aliveRef.current) {
           setEditSaving(false);
@@ -493,7 +510,7 @@ export function StepPhotos({
         }
       }
     },
-    [listingId, onChanged, waitForStatement, certification, navigate],
+    [listingId, onChanged, waitForStatement, certification, navigate, keyOf],
   );
 
   const stored = items.filter((item) => item.state === "stored").length;
@@ -650,7 +667,7 @@ export function StepPhotos({
           {item.state === "stored" && t("post.photos.done")}
           {(item.state === "failed" || item.state === "refused") &&
             item.refusalKey !== null &&
-            t(item.refusalKey)}
+            say(item.refusalKey)}
         </p>
         {/* PP-10 — a refusal says so once, and says it is final. */}
         {item.state === "refused" && (
@@ -662,7 +679,7 @@ export function StepPhotos({
         {relevanceWarning(item.photoId)}
         {item.photoId !== null && rowRefusal[item.photoId] !== undefined && (
           <p className="text-xs text-destructive" role="alert" data-testid="post-photo-row-refusal">
-            {t(rowRefusal[item.photoId]!)}
+            {say(rowRefusal[item.photoId]!)}
           </p>
         )}
         <div className="flex gap-2">
@@ -733,7 +750,7 @@ export function StepPhotos({
         {relevanceWarning(row.id)}
         {rowRefusal[row.id] !== undefined && (
           <p className="text-xs text-destructive" role="alert" data-testid="post-photo-state">
-            {t(rowRefusal[row.id]!)}
+            {say(rowRefusal[row.id]!)}
           </p>
         )}
         <div className="flex gap-2">
@@ -999,6 +1016,7 @@ export function StepPhotos({
       <PhotoEditor
         sourceUrl={editing?.url ?? null}
         onCancel={() => setEditing(null)}
+        say={say}
         onSave={(picture) => {
           if (editing === null) {
             picture.close();

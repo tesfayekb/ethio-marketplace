@@ -542,23 +542,36 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
               ["approx", "post.pin.showAsApprox"],
             ] as const
           ).map(([value, key]) => (
-            <label
+            // Bundle 1 part C — each choice is a choice Field (the form kit), drawn as a list row.
+            <div
               key={value}
               className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
             >
-              <input
-                type="radio"
-                name="post-pin-precision"
-                value={value}
-                checked={precision === value}
-                onChange={() => {
-                  setPrecision(value);
-                  setState("idle");
-                }}
-                data-testid={`post-pin-precision-${value}`}
-              />
-              <span>{t(key)}</span>
-            </label>
+              <Field
+                id={`post-pin-precision-${value}`}
+                field="precision"
+                label={<span>{t(key)}</span>}
+                required={false}
+                marked={false}
+                refusal={null}
+                layout="choice"
+              >
+                {(field) => (
+                  <input
+                    type="radio"
+                    {...field}
+                    name="post-pin-precision"
+                    value={value}
+                    checked={precision === value}
+                    onChange={() => {
+                      setPrecision(value);
+                      setState("idle");
+                    }}
+                    data-testid={`post-pin-precision-${value}`}
+                  />
+                )}
+              </Field>
+            </div>
           ))}
         </fieldset>
         {state === "failed" && (

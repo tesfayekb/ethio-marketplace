@@ -304,7 +304,7 @@ export function NameChecks({
             <Field
               id={"admin-name-check-reason"}
               field="reason"
-              label={<>{t("admin.screening.names.clear.reason")}</>}
+              label={<>{t("admin.screening.names.clear.reasonField")}</>}
               required={false}
               refusal={null}
               layout="stack"

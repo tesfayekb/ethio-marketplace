@@ -11,9 +11,10 @@ const CODE_HEAD = /^[a-z][A-Za-z]*$/;
 const codeShaped = (message: string) => CODE_HEAD.test(splitRefusal(message).key);
 
 /**
- * The picture surface's failure line. A route or storage step's failure names the step and its
- * own words; a door's refusal (the persist step, the accept) reads the categories family's words
- * through the one reader (F1-4a), and a code without words names the step alone.
+ * The picture surface's failure line. Every failure reads through the one reader first: a code
+ * with words (the route's `rateLimited`, a door's refusal at the persist step or the accept) reads
+ * the categories family's words (F1-4a). Otherwise the line names the step alone — a route or
+ * storage step's raw text is never drawn (bundle 1 part C); a persist sentence keeps its words.
  */
 export function useImageFailure() {
   const { t, has } = useI18n();
@@ -22,10 +23,6 @@ export function useImageFailure() {
     const failed = t("admin.categories.error.imageFailed");
     const stageOf = (stage: string | null) =>
       stage === null ? "" : ` (${t("admin.categories.image.stageLabel")} ${stage})`;
-    if (error instanceof CategoryImageError && error.stage !== "persist") {
-      setMessage(`${failed}${stageOf(error.stage)}: ${error.message}`);
-      return;
-    }
     const read = readRefusal(error, CATEGORY_REFUSALS, has);
     if (read.silent) {
       setMessage(null);
@@ -36,7 +33,13 @@ export function useImageFailure() {
       return;
     }
     if (error instanceof CategoryImageError) {
-      const own = codeShaped(error.message) ? "" : `: ${error.message}`;
+      // Bundle 1 part C — a route or storage step's own text is the machine's, never the
+      // person's: the step is named alone. A door's sentence at the persist step keeps its words.
+      const own =
+        error.stage !== "persist" || codeShaped(error.message) ? "" : `: ${error.message}`;
+      // The dropped text is kept for whoever debugs it, once, as a failed schema read is.
+      if (own === "")
+        console.error("[categories] picture step failed:", error.stage, error.message);
       setMessage(`${failed}${stageOf(error.stage)}${own}`);
       return;
     }

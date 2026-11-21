@@ -28,7 +28,7 @@ import {
   type SellerIdentity,
   type SellerLineFacts,
 } from "./posting-service";
-import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
+import { draftRefusalText, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { checkChannel, normalizeTelegram } from "./validate";
 import { dateFormatter } from "@/lib/format";
@@ -752,7 +752,7 @@ export function StepWho({
             ))}
             {typeRefusal !== null && (
               <p className="text-sm text-destructive" data-testid="post-who-type-refusal">
-                {t(draftRefusalKey(typeRefusal.reason))}
+                {draftRefusalText(typeRefusal, t, language)}
               </p>
             )}
           </fieldset>
@@ -1009,7 +1009,7 @@ export function StepWho({
         )}
         {messagesRefusal !== null && (
           <p className="text-sm text-destructive" data-testid="post-who-messages-refusal">
-            {t(draftRefusalKey(messagesRefusal.reason))}
+            {draftRefusalText(messagesRefusal, t, language)}
           </p>
         )}
 

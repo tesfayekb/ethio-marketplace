@@ -546,6 +546,8 @@ export const enBase = {
   "post.photo.refusal.tooManyPhotos": "This listing already has the most photos allowed.",
   "post.photo.refusal.rateLimited":
     "You have sent many photos in a short time. Please wait a little.",
+  "post.photo.refusal.rateLimitedWhen":
+    "You have sent many photos in a short time. Try again {when}.",
   "post.photo.refusal.notYourListing": "This listing belongs to another account.",
   "post.photo.refusal.listingNotOpenForPhotos": "This listing can no longer take photos.",
   "post.photo.refusal.unknown": "This photo was not accepted.",
@@ -570,6 +572,7 @@ export const enBase = {
     "We could not tell which country you are posting from. Please try again.",
   "post.refusal.coverageExceedsReach": "That is more places than this ad's reach allows.",
   "post.refusal.rateLimited": "You have saved many times in a short while. Please wait a little.",
+  "post.refusal.rateLimitedWhen": "You have saved many times in a short while. Try again {when}.",
   "post.refusal.messagesRequired": "Buyers must be able to message you.",
   "post.refusal.notYourListing": "This listing belongs to another account.",
   "post.refusal.unknown": "That could not be saved.",

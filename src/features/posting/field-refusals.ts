@@ -3,6 +3,8 @@ import { revealControl } from "@/components/forms/reveal-control";
 import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 
+import type { RefusalFamily } from "@/lib/refusal";
+import { rateLine } from "./refusal-text";
 import { type Refusal } from "./types";
 
 /**
@@ -52,7 +54,7 @@ export const POSTING_FIELDS: FieldRegistry = {
   seller_type: { step: 7 },
   business_name: { label: "post.who.businessLabel", step: 7 },
   home_country_code: { label: "post.who.countryLabel", step: 7 },
-  poster_expires_at: { label: "post.price.expiryLabel", step: 8 },
+  poster_expires_at: { label: "post.price.expiryField", step: 8 },
 };
 
 /** Which step a refused field belongs to, or `null` when no step claims it. */
@@ -160,4 +162,18 @@ export function summaryLabel(
   if (key !== undefined) return t(key);
   const name = ownValue(fieldNames, field);
   return name === undefined || name === "" ? field : name;
+}
+
+/** The specifications step's dial sentence (its own words, the member layer's: kept in the wizard, off the base layer's posting reader). */
+const SPECS_RATE: RefusalFamily = {
+  words: { rateLimited: "post.specs.rateLimited" },
+  when: { rateLimited: "post.specs.rateLimitedWhen" },
+};
+
+export function specsRateText(
+  until: string | undefined,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  return rateLine(SPECS_RATE, until, t, language);
 }

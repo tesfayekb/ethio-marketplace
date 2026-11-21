@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 744,
-  "dynamicCallSites": 425,
+  "dynamicCallSites": 416,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1951,7 +1951,7 @@
     "admin.legal.field.labelHelp": [
       "/admin/legal/edit"
     ],
-    "admin.legal.field.textOptional": [
+    "admin.legal.field.textField": [
       "/admin/legal/$versionId",
       "/admin/legal/edit"
     ],
@@ -2620,21 +2620,7 @@
       "/my-listings"
     ],
     "admin.locations.filter.allCountriesOption": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "/admin/places"
     ],
     "admin.locations.filter.allLevelsOption": [
       "/admin/ai",
@@ -2671,38 +2657,10 @@
       "/my-listings"
     ],
     "admin.locations.filter.closedSuffix": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "/admin/places"
     ],
     "admin.locations.filter.country": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "/admin/places"
     ],
     "admin.locations.filter.level": [
       "/admin/ai",
@@ -3348,7 +3306,7 @@
     "admin.screening.names.clear.body": [
       "/admin/screening"
     ],
-    "admin.screening.names.clear.reason": [
+    "admin.screening.names.clear.reasonField": [
       "/admin/screening"
     ],
     "admin.screening.names.clear.reasonHelp": [
@@ -7071,6 +7029,12 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.specs.loadFailed": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.specs.modelDiffers": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
@@ -7227,6 +7191,12 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.detailsFailed": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.detailsHelp": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
@@ -7251,13 +7221,19 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.where.directionsHelp": [
+    "post.where.directionsFailed": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
     ],
-    "post.where.directionsLabel": [
+    "post.where.directionsField": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.directionsHelp": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",

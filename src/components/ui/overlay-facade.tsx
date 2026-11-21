@@ -265,6 +265,8 @@ export function OverlayTrigger({
   const pressed = React.useRef(false);
   /** True while the intent is replayed: the consumer heard the person's click already. */
   const replaying = React.useRef(false);
+  /** INC-1226 — a press while the code loaded: live Radix closes the tooltip on it. */
+  const pressedLate = React.useRef(false);
 
   useIsoLayoutEffect(() => {
     const sink = root.sink;
@@ -284,10 +286,21 @@ export function OverlayTrigger({
     replaying.current = true;
     try {
       replay(intent, node.current, hovered.current);
+      // INC-1226 — as live Radix: the press, then its click, close the tooltip the hover opened.
+      if (pressedLate.current)
+        for (const name of ["onPointerDown", "onClick"]) {
+          const handler = real?.[name];
+          if (typeof handler === "function")
+            (handler as Handler)({ defaultPrevented: false } as React.SyntheticEvent);
+          // The person's pointer is already up: release Radix's pointer-down flag as live does.
+          if (name === "onPointerDown" && !pressed.current)
+            document.dispatchEvent(new Event("pointerup"));
+        }
     } finally {
       replaying.current = false;
+      pressedLate.current = false;
     }
-  }, [live, root.intent]);
+  }, [live, root.intent, real]);
 
   const track: Props = {
     onPointerEnter: (event: React.PointerEvent) => {
@@ -316,6 +329,7 @@ export function OverlayTrigger({
       onPointerLeave: track.onPointerLeave,
       onPointerDown: () => {
         pressed.current = true;
+        pressedLate.current = true;
         document.addEventListener(
           "pointerup",
           () => {

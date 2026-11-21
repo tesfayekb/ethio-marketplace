@@ -91,6 +91,7 @@ export function PhotoEditor({
   sourceUrl,
   onCancel,
   onSave,
+  say,
 }: {
   /** The stored photo's signed link; null while the editor is closed. */
   sourceUrl: string | null;
@@ -100,6 +101,8 @@ export function PhotoEditor({
    * was stored (the step then closes the editor), or the refusal to show.
    */
   onSave: (picture: ImageBitmap) => Promise<MessageKey | null>;
+  /** L22 — the step's words for a refusal key (the photo dial's says when); else `t`. */
+  say?: (key: MessageKey) => string;
 }) {
   const { t } = useI18n();
   const [phase, setPhase] = useState<Phase>("loading");
@@ -342,7 +345,7 @@ export function PhotoEditor({
         )}
         {refusal !== null && (
           <div role="alert" className="space-y-1" data-testid="post-photo-editor-refusal">
-            <p className="text-sm text-destructive">{t(refusal)}</p>
+            <p className="text-sm text-destructive">{(say ?? t)(refusal)}</p>
             <p className="text-xs text-muted-foreground">{t("post.photos.editor.kept")}</p>
           </div>
         )}

@@ -1,5 +1,11 @@
 import type { MessageKey } from "@/i18n";
-import { readRefusal, splitRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
+import {
+  readRefusal,
+  refusalText,
+  splitRefusal,
+  type Refusal,
+  type RefusalFamily,
+} from "@/lib/refusal";
 
 /**
  * U6-C1a — THE DOORS' VOCABULARY, IN WORDS (D1 + F4).
@@ -148,11 +154,14 @@ const BACKGROUND_REASONS: Record<string, MessageKey> = {
  */
 export const DRAFT_REFUSALS: RefusalFamily = {
   words: DRAFT_REASONS,
+  // L22 — the dial's reset instant, said as when (`refusalText`).
+  when: { rateLimited: "post.refusal.rateLimitedWhen" },
   generic: "post.refusal.unknown",
 };
 
 export const PHOTO_REFUSALS: RefusalFamily = {
   words: PHOTO_REASONS,
+  when: { rateLimited: "post.photo.refusal.rateLimitedWhen" },
   generic: "post.photo.refusal.unknown",
 };
 
@@ -178,6 +187,66 @@ export function draftRefusalKey(reason: string): MessageKey {
  */
 export function isRateRefusal(refusal: unknown): boolean {
   return readRefusal(refusal, DRAFT_REFUSALS).key === DRAFT_REASONS["rateLimited"];
+}
+
+/**
+ * L22 (bundle 1 part B) — THE DIAL'S RESET INSTANT, beside the key readers (which keep their
+ * answers): a `rateLimited` refusal's instant, from its own tail (`rateLimited:<instant>`) or its
+ * `detail` (the photo route's). Undefined when the refusal is not the dial's or names none.
+ */
+export function rateUntilOf(refusal: Refusal | string | undefined): string | undefined {
+  if (refusal === undefined) return undefined;
+  const { key, tail } = splitRefusal(
+    (typeof refusal === "string" ? refusal : refusal.reason).trim(),
+  );
+  if (key !== "rateLimited") return undefined;
+  const until = (tail ?? (typeof refusal === "string" ? undefined : refusal.detail))?.trim();
+  return until === undefined || until === "" ? undefined : until;
+}
+
+/**
+ * The dial's sentence in a family's words: its when words for an instant still to come, in the
+ * reader's language; else its plain words.
+ */
+export function rateLine(
+  family: RefusalFamily,
+  until: string | undefined,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  const read = readRefusal(until === undefined ? "rateLimited" : `rateLimited:${until}`, family);
+  return refusalText(read, t, undefined, language);
+}
+
+/** A draft-route refusal's words: the dial's with its when, every other as `draftRefusalKey`. */
+export function draftRefusalText(
+  refusal: Refusal | string,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  const reason = typeof refusal === "string" ? refusal : refusal.reason;
+  const key = draftRefusalKey(reason);
+  return key === DRAFT_REASONS["rateLimited"]
+    ? rateLine(DRAFT_REFUSALS, rateUntilOf(refusal), t, language)
+    : t(key);
+}
+
+/** The draft dial's sentence for an answer that kept only its instant (the pin's lines). */
+export function draftRateText(
+  until: string | undefined,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  return rateLine(DRAFT_REFUSALS, until, t, language);
+}
+
+/** The photo dial's sentence: its when words for an instant still to come, else its plain words. */
+export function photoRateText(
+  until: string | undefined,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  return rateLine(PHOTO_REFUSALS, until, t, language);
 }
 
 /** An upload-route refusal, in the seller's language. */

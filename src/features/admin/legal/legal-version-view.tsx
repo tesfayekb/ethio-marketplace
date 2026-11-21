@@ -344,7 +344,7 @@ export function LegalVersionView({
                           field="body"
                           label={
                             <>
-                              {t("admin.legal.field.textOptional").replace(
+                              {t("admin.legal.field.textField").replace(
                                 "{language}",
                                 languageName(translationLanguage),
                               )}

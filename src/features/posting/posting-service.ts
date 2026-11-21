@@ -9,7 +9,7 @@ import type { Certification } from "@/features/my-listings/my-listing";
 
 import { createDoorQueue, type DoorQueue } from "./door-queue";
 import { readPin, type Pin, type PinPrecision } from "./map/pin";
-import { isRateRefusal } from "./refusal-text";
+import { isRateRefusal, rateUntilOf } from "./refusal-text";
 import type { CategoryFacts, DoorAnswer } from "./types";
 import type { VisibleWhen } from "./visible-when";
 import { shapePlanCaps, shapePostingSchema } from "./schema-shape";
@@ -843,14 +843,18 @@ export async function readPostingSchema(categoryId: string): Promise<PostingSche
  */
 export async function readPostingSchemaAnswer(
   categoryId: string,
-): Promise<{ schema: PostingSchema | null; rateLimited: boolean }> {
+): Promise<{ schema: PostingSchema | null; rateLimited: boolean; until?: string }> {
   const { data, error } = await supabase.rpc("get_posting_schema", {
     p_category_id: categoryId,
   });
   if (error) {
     const rateLimited = isRateRefusal(error);
     if (!rateLimited) console.error("[posting] schema read failed:", error.message);
-    return { schema: null, rateLimited };
+    // L22 (bundle 1 part B) — the dial's reset instant, only when it names one.
+    const until = rateLimited ? rateUntilOf(error.message) : undefined;
+    return until === undefined
+      ? { schema: null, rateLimited }
+      : { schema: null, rateLimited, until };
   }
   return { schema: shapePostingSchema(data), rateLimited: false };
 }
@@ -1243,11 +1247,25 @@ export async function savePlaceText(
   text: PlaceText,
   pin: Pin | null,
 ): Promise<"saved" | "contactInNote" | "rateLimited" | "failed"> {
+  return (await savePlaceTextAnswer(listingId, text, pin)).answer;
+}
+
+/**
+ * L22 (bundle 1 part B) — `savePlaceText`'s answer with the dial's reset instant beside it
+ * (`until`, present only when the door's `rateLimited` names one); the answer is the same.
+ */
+export async function savePlaceTextAnswer(
+  listingId: string,
+  text: PlaceText,
+  pin: Pin | null,
+): Promise<{ answer: "saved" | "contactInNote" | "rateLimited" | "failed"; until?: string }> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,
     ...(pin === null ? {} : { p_lat: pin.lat, p_lng: pin.lng, p_precision: pin.precision }),
     ...textArgs(text),
   });
-  if (error !== null) return pinAnswer(error.message);
-  return "saved";
+  if (error === null) return { answer: "saved" };
+  const answer = pinAnswer(error.message);
+  const until = answer === "rateLimited" ? rateUntilOf(error.message) : undefined;
+  return until === undefined ? { answer } : { answer, until };
 }

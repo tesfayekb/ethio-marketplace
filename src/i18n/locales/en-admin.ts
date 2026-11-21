@@ -37,7 +37,7 @@ export const enAdmin = {
   "admin.ai.log.outcome.providerError": "Provider error",
   "admin.ai.log.outcome.unusableAnswer": "Unusable answer",
 
-  "admin.legal.field.textOptional": "{language} text (optional)",
+  "admin.legal.field.textField": "{language} text",
   "admin.legal.translation.add": "Add translation",
   "admin.legal.translation.hint":
     "A translation added to a published version is final. If it differs from the English, the English applies.",
@@ -473,7 +473,7 @@ export const enAdmin = {
   "admin.screening.names.clear.title": "Allow this seller name?",
   "admin.screening.names.clear.body":
     "Buyers will see the name again on the seller's ads and page. The decision is recorded.",
-  "admin.screening.names.clear.reason": "Reason (optional)",
+  "admin.screening.names.clear.reasonField": "Reason",
   "admin.screening.names.clear.reasonHelp": "Kept in the audit log with your decision.",
   "admin.screening.names.clear.done": "The name is allowed. Buyers see it again.",
   "admin.screening.names.clear.doneVisible": "The name is allowed. Buyers already saw it.",
@@ -1502,6 +1502,9 @@ export const enAdmin = {
   "admin.categories.flag.needsCard": "Pick at least two attributes to show on listing cards.",
   "admin.categories.parent.primary": "Primary",
   "admin.categories.parent.also": "Also in: {list}",
+  "admin.locations.filter.country": "Country",
+  "admin.locations.filter.allCountriesOption": "Country: all countries",
+  "admin.locations.filter.closedSuffix": "closed",
   "admin.locations.caption": "Locations in the selected market",
   "admin.locations.loading": "Loading locations…",
   "admin.locations.error": "The locations could not be loaded.",
