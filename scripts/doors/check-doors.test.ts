@@ -7,7 +7,12 @@ import { describe, expect, it } from "vitest";
 
 import { GRANT_DROPPED_FLOOR, catalogueOf } from "./catalogue";
 import {
+  PLANTED_COMPUTED_FILE,
   PLANTED_HELPER_LINE,
+  PLANTED_LIVE_COLUMN_GRANTS,
+  PLANTED_LIVE_GRANTS,
+  PLANTED_OPEN_FILES,
+  PLANTED_OPEN_LINES,
   PLANTED_POLICIES,
   PLANTED_PUBLIC_DATA_LINE,
   PLANTED_READER_LINE,
@@ -18,6 +23,7 @@ import {
   plantedCases,
   plantedDropHistory,
   plantedGrant,
+  plantedOpenRules,
   plantedReaders,
   selfTest,
   staticFindings,
@@ -25,8 +31,11 @@ import {
 import { columnsOf, declaredColumns } from "./columns";
 import { FINDING_KINDS, doorContextCall, judge, reasonPolicies } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
-import { declaredPolicyCalls, policyCallsOf } from "./policies";
+import { liveGrants, openRuleFindings, parseOpenRules, type OpenRuleEvidence } from "./open-rules";
+import { declaredPolicyCalls, openRulesOf, policyCallsOf } from "./policies";
 import {
+  LIVE_OPEN_RULES_QUERY,
+  LIVE_OPEN_RULES_QUERY_FILE,
   LIVE_QUERY,
   LIVE_QUERY_FILE,
   browserCallable,
@@ -40,7 +49,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
- * the thirteen finding kinds each fire on their planted bypass and a clean pair
+ * the seventeen finding kinds each fire on their planted bypass and a clean pair
  * fires nothing (DOORS-1); the manifest's grammar refuses what it must
  * (DOORS-2); the live reader answers the same rows the judge reads and refuses
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
@@ -595,6 +604,129 @@ describe("check-doors (CF-DOORS)", () => {
       "a dial without the shell: door_context marks the call a door",
     ]);
     expect(fired(ownerLine, owner, shellDoor)).toEqual([]);
+  });
+
+  it("DOORS-16 the open read rules: the migrations' standing open rules are exactly open-rules.txt; --live-open-rules-query prints its file as it is", () => {
+    // The reader: a policy dropped, a policy on a dropped table, a literal holding `--` — and the
+    // dynamic one it cannot name.
+    const planted = openRulesOf(PLANTED_OPEN_FILES);
+    expect(planted.standing.map((rule) => `${rule.table} ${rule.policy} ${rule.command}`)).toEqual([
+      "e2e_planted_t e2e_planted_open SELECT",
+      "e2e_planted_w e2e_planted_lit SELECT",
+    ]);
+    expect(planted.computed).toEqual([]);
+    expect(openRulesOf([...PLANTED_OPEN_FILES, PLANTED_COMPUTED_FILE]).computed).toHaveLength(1);
+    // Every finding kind on its own planted fixture, and the lines judged clean.
+    const kindsOf = (evidence: OpenRuleEvidence) =>
+      openRuleFindings(evidence).map((finding) => finding.kind);
+    const files = PLANTED_OPEN_FILES;
+    expect(kindsOf(plantedOpenRules(files, PLANTED_OPEN_LINES))).toEqual([]);
+    expect(kindsOf(plantedOpenRules(files, ""))).toEqual([
+      "open-rule-undeclared",
+      "open-rule-undeclared",
+    ]);
+    expect(
+      kindsOf(
+        plantedOpenRules(
+          files,
+          PLANTED_OPEN_LINES.replace("SELECT to anon,auth", "ALL to anon,auth"),
+        ),
+      ),
+    ).toEqual(["open-rule-undeclared"]);
+    expect(
+      kindsOf(
+        plantedOpenRules(
+          files,
+          `${PLANTED_OPEN_LINES}\ne2e_planted_u e2e_planted_gone | SELECT to authenticated | grants none | planted`,
+        ),
+      ),
+    ).toEqual(["open-rule-gone"]);
+    expect(
+      kindsOf(plantedOpenRules([...files, PLANTED_COMPUTED_FILE], PLANTED_OPEN_LINES)),
+    ).toEqual(["open-rule-computed"]);
+    expect(
+      kindsOf(
+        plantedOpenRules(
+          [...files, PLANTED_COMPUTED_FILE],
+          `${PLANTED_OPEN_LINES}\ne2e_planted_x (computed) | SELECT to public | grants none | planted`,
+        ),
+      ),
+    ).toEqual([]);
+    // A malformed line is a finding, never a skipped rule.
+    for (const bad of [
+      "e2e_planted_t e2e_planted_open | SELECT to anon | grants none",
+      "e2e_planted_t e2e_planted_open | SELECT to authenticated,anon | grants none | r",
+      "e2e_planted_t e2e_planted_open | SELECT to anon | grants authenticated:SELECT anon:SELECT | r",
+      "e2e_planted_t e2e_planted_open | SELECT to anon | grants anon:SELECT(b,a) | r",
+      "e2e_planted_t e2e_planted_open | SELECT to anon | grants anon:DELETE(a) | r",
+      "e2e_planted_t e2e_planted_open | SELECT to anon | anon:SELECT | r",
+    ])
+      expect(parseOpenRules(bad).errors).toHaveLength(1);
+    // The repository's own file: parses clean, and --live-open-rules-query prints the query file as it is.
+    expect(
+      parseOpenRules(readFileSync(join(ROOT, "scripts", "doors", "open-rules.txt"), "utf8")).errors,
+    ).toEqual([]);
+    const printed = execFileSync(
+      "bun",
+      ["scripts/doors/check-doors.ts", "--live-open-rules-query"],
+      {
+        cwd: ROOT,
+        encoding: "utf8",
+      },
+    );
+    expect(printed).toBe(readFileSync(LIVE_OPEN_RULES_QUERY_FILE, "utf8"));
+    expect(printed).toBe(LIVE_OPEN_RULES_QUERY);
+    expect(printed.trimEnd().endsWith(";")).toBe(true);
+    const statement = printed
+      .split("\n")
+      .filter((line) => !line.startsWith("--"))
+      .join("\n");
+    expect(statement).toMatch(/^select [\s\S]*\nfrom pg_class c\n[\s\S]*\norder by 1, 2, 3;\n$/);
+    // The live answer, parsed to the file's own form.
+    expect(
+      liveGrants(
+        `${PLANTED_LIVE_GRANTS}${PLANTED_LIVE_COLUMN_GRANTS.replace(/e2e_planted_t/g, "e2e_planted_c")}`,
+      ),
+    ).toEqual(
+      new Map([
+        ["e2e_planted_t", "anon:SELECT authenticated:SELECT"],
+        ["e2e_planted_c", "anon:SELECT(a,b) authenticated:SELECT(a,b)"],
+      ]),
+    );
+    expect(() => liveGrants("e2e_planted_t\tanon\tSELECT\n")).toThrow(/malformed/);
+  });
+
+  it("DOORS-17 a table whose browser roles hold column-level SELECT and no table-level SELECT: a `none` line fires open-rule-grants; a line listing the columns is clean (ruling 2)", () => {
+    const standing = [
+      "CREATE POLICY e2e_planted_open ON public.e2e_planted_t FOR SELECT TO anon, authenticated USING (true);",
+    ].join("\n");
+    const files = [{ file: "supabase/migrations/20260101000000_a.sql", sql: standing }];
+    const line = (grants: string) =>
+      `e2e_planted_t e2e_planted_open | SELECT to anon,authenticated | grants ${grants} | planted`;
+    const live = PLANTED_LIVE_COLUMN_GRANTS;
+    const judged = (grants: string, tsv: string) =>
+      openRuleFindings(plantedOpenRules(files, line(grants), tsv)).map(
+        (finding) => `${finding.kind} — ${finding.what}`,
+      );
+    expect(judged("none", live)).toEqual([
+      "open-rule-grants — the line says grants none; the live catalogue says anon:SELECT(a,b) authenticated:SELECT(a,b)",
+    ]);
+    expect(judged("anon:SELECT(a,b) authenticated:SELECT(a,b)", live)).toEqual([]);
+    // A table-level grant is not the column-level one, in either direction.
+    expect(judged("anon:SELECT(a,b) authenticated:SELECT(a,b)", PLANTED_LIVE_GRANTS)).toHaveLength(
+      1,
+    );
+    expect(judged("anon:SELECT authenticated:SELECT", live)).toHaveLength(1);
+    // A table the live answer does not list holds nothing for the browser roles.
+    expect(judged("none", "")).toEqual([]);
+    // The static run never judges the grants' content, the live run does.
+    expect(openRuleFindings(plantedOpenRules(files, line("none")))).toEqual([]);
+    // The judge reaches the finding through `judge`, which the self-test and both modes call.
+    expect(
+      judge([], parseManifest(""), { openRules: plantedOpenRules(files, line("none"), live) }).map(
+        (finding) => finding.kind,
+      ),
+    ).toEqual(["open-rule-grants"]);
   });
 
   it(

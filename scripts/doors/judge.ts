@@ -1,10 +1,11 @@
 import { splitTopLevel, type DroppedGrant, type UnseenGrant } from "./catalogue";
 import { CONTEXT_CLASS, scopeModeOf, type Manifest, type ManifestLine } from "./manifest";
+import { OPEN_RULE_KINDS, openRuleFindings, type OpenRuleEvidence } from "./open-rules";
 import { browserCallable, type DoorRow } from "./rows";
 
 /**
  * Foundations 1 (DEC-333) — THE JUDGEMENT of the manifest against the rows.
- * Twelve finding kinds, each planted in check-doors' self-test (DEC-334):
+ * Seventeen finding kinds, each planted in check-doors' self-test (DEC-334):
  *
  * - missing-line           a browser-callable function with no manifest line;
  * - line-without-door      a line whose function is absent or closed to the browser;
@@ -45,6 +46,14 @@ import { browserCallable, type DoorRow } from "./rows";
  *                          without a reader, and door_refuse raises a reader's
  *                          refusal past any shell (F1-7c ruling 1 decision 3).
  *
+ * - open-rule-undeclared / open-rule-gone / open-rule-computed / open-rule-grants
+ *                          the four kinds of scripts/doors/open-rules.txt (open-rules.ts,
+ *                          cursor-bundle-1 item 6, INC-1166): a standing `USING (true)` /
+ *                          `WITH CHECK (true)` policy with no line (or a line that differs), a
+ *                          line whose policy is gone, an open policy built by dynamic SQL no
+ *                          `(computed)` line names, and (live) a line whose grants are not the
+ *                          catalogue's.
+ *
  * A legacy body (no door_context yet) is judged by the old rule only; its line
  * is the promise its family's turn keeps (plan §5).
  */
@@ -63,6 +72,7 @@ export const FINDING_KINDS = [
   "reader-off-gate",
   "helper-reason-unproven",
   "dial-shell-mismatch",
+  ...OPEN_RULE_KINDS,
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -206,6 +216,8 @@ export type Evidence = {
   stepUps?: (permission: string) => boolean | null | undefined;
   /** Whether a standing policy of that name calls the function (policies.ts). */
   policies?: (policy: string, fn: string) => boolean;
+  /** The standing open rules, their dynamic twins and their file (open-rules.ts). */
+  openRules?: OpenRuleEvidence;
 };
 
 /** A body's read of its caller: an `auth.` identity call or a `request.` setting. */
@@ -370,5 +382,6 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
           where: row.where,
         });
     }
+  if (evidence.openRules !== undefined) found.push(...openRuleFindings(evidence.openRules));
   return found.sort((a, b) => a.kind.localeCompare(b.kind) || a.key.localeCompare(b.key));
 }

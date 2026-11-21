@@ -1392,6 +1392,45 @@ once it is on dev; the check's name is `Lovable branch guard (DEC-413)`.
   credential (`persist-credentials: false`), so on a private repository a patchless exception file
   refuses (never passes) until that fetch is given one.
 
+## The standing Lovable branch — `lovable-next.yml`, CF-LVB-15…16 (cursor-bundle-1, DEC-416)
+
+Lovable works on one branch, `lovable/next`, and the operator never creates or switches a branch
+again. `.github/workflows/lovable-next.yml` runs on a push to dev and nothing else (never
+`pull_request`, never `pull_request_target`, no dispatch). Its one job holds `contents: write` and
+no other permission, one concurrency group (`lovable-next`, queued, never cancelled) so two pushes do
+not race, and a deadline on the job and on each step. It checks out dev's commit with its history
+(`actions/checkout`, `fetch-depth: 0`) and runs git plumbing only: no script, no install, and no code
+of any branch. Each of three cases ends by its own words in the job summary:
+
+- **`lovable/next` does not exist:** the summary says so and the job ends green; the operator creates
+  the branch once.
+- **`lovable/next` is an ancestor of dev's head** (or equal to it): dev's head is pushed to
+  `refs/heads/lovable/next` — `git push origin "${head_sha}:refs/heads/lovable/next"`, a
+  fast-forward, never forced (no force flag, no `+` refspec), inside the branch of the ancestor
+  test that answered 0. An equal branch moves nothing and says so.
+- **`lovable/next` holds a commit dev lacks** (a bundle in flight): nothing moves, the summary says
+  so and the job ends green. Any other answer of the ancestor test, and a push the remote refuses,
+  is a red job, never a silent pass.
+
+The Lovable branch guard (`lovable-branch-guard.yml`, above) and CI judge `lovable/next` as any
+`lovable/*` branch: the branch is not special to either.
+
+- **Tests:** `scripts/conformance/lovable-next.test.ts`. CF-LVB-15 judges the workflow's shape through
+  `scripts/conformance/workflow-reader.ts` — the one event, the one permission, the one push line and
+  its place behind the ancestor test, git only, no secret, every deadline — and plants each breach (a
+  `pull_request` or `pull_request_target` event, a dispatch, a second branch, a second or a
+  workflow-wide permission, a secret, a forced, `+`-refspec, lease or other-ref push, a push outside
+  the ancestor test or before it, a script step, a missing job or step deadline, a checkout of another
+  ref or without its history). CF-LVB-16 runs the step's own shell over planted git histories: the
+  branch absent, behind dev (fast-forwarded), holding a commit dev lacks and equal (both left), and a
+  remote that refuses the push (a failing exit). These tests plant git repositories, so they run where
+  git may write `.git` (CI; locally outside a write-restricted sandbox).
+- **Not proven here:** whether GitHub accepts a push by this job's token when the commits it carries
+  change a file under `.github/workflows/` (GitHub guards workflow files against tokens without its
+  `workflows` permission, which the job's token cannot hold). If it refuses, the job is red on that
+  push and the summary says nothing moved; the first push to dev that carries a workflow change shows
+  which.
+
 ## No real person's mailbox in a tracked file — CF-MAIL (the tests and CI turn, INC-1165)
 
 The repository is public until launch (DEC-116). `scripts/conformance/mailbox.test.ts` reads every

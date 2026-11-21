@@ -2,6 +2,7 @@ import { dirname, join } from "node:path";
 import ts from "typescript";
 
 import { visitTs } from "./kit";
+import { sqlCodeOf } from "./migration-reader";
 
 /**
  * The CI turn (DEC-378 a, INC-1136) — NO SCRATCH ROW MOVES A SHARED VALUE IN A SPLIT LANE. Two
@@ -103,7 +104,7 @@ export function readManifest(text: string, path: string): Manifest {
     else if (cells.length === 4 && second === SHARED_WITH_READERS) {
       const readers = fourth.split(",").map((entry) => {
         const match = READER.exec(entry.trim());
-        if (match === null) return fail(`a reader is not <file>::<test id> (${entry.trim()})`);
+        if (match === null) return fail(`a reader line is not "file::test id" (${entry.trim()})`);
         return { file: match[1] ?? "", id: match[2] ?? "" };
       });
       manifest.readers.push({ table, why: third, readers, line });
@@ -127,8 +128,9 @@ const STATEMENT_TRIGGER =
   /\bCREATE\s+(?:OR\s+REPLACE\s+)?TRIGGER\s+\w+\s+(?:BEFORE|AFTER|INSTEAD\s+OF)\b[^;]*?\bON\s+public\.(\w+)[^;]*?\bFOR\s+EACH\s+STATEMENT\b/gi;
 
 /**
- * The growth rule: every table a migration gives a statement-level trigger (one authored pattern
- * over the SQL with its `--` comments blanked) is on the manifest, shared or "read, not shared";
+ * The growth rule: every table a migration gives a statement-level trigger (one pattern over the
+ * SQL as the migration reader blanks its comments, `sqlCodeOf`, register row 125: a `--` inside a
+ * quoted literal hides nothing) is on the manifest, shared or "read, not shared";
  * a "read, not shared" line whose table carries no such trigger is stale.
  */
 export function triggerFindings(
@@ -142,7 +144,7 @@ export function triggerFindings(
   const carried = new Set<string>();
   const findings: Finding[] = [];
   for (const { path, text } of migrations) {
-    const sql = text.replace(/--[^\n]*/g, (comment) => " ".repeat(comment.length));
+    const sql = sqlCodeOf(text);
     for (const match of sql.matchAll(STATEMENT_TRIGGER)) {
       const table = match[1] ?? "";
       if (carried.has(table)) continue;

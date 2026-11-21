@@ -3,7 +3,14 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { selfTestFailureLines, STAGING_SINK_LABEL, stagingSinkSample } from "./e2e-failure-report";
+import { SERIAL_CAP_LINE } from "./ci/repeat-cap";
+import {
+  repeatLines,
+  selfTestFailureLines,
+  STAGING_SINK_LABEL,
+  stagingSinkSample,
+  TIME_CAP_LINE,
+} from "./e2e-failure-report";
 
 const NIGHTLY_YML = readFileSync(".github/workflows/nightly-e2e.yml", "utf8");
 const SAMPLE = readFileSync("scripts/fixtures/e2e-results-sample.json", "utf8");
@@ -118,5 +125,30 @@ describe("the nightly's verdict without its serial run (DEC-393, INC-1175)", () 
     expect(NIGHTLY_YML).toMatch(
       /^ {10}E2E_GREEN: \$\{\{ steps\.run\.outcome == 'success' && '1' \|\| '0' \}\}$/m,
     );
+  });
+
+  it("EFR-5 the serial pass's cap line is its own clause, never a counted test run (INC-1232)", () => {
+    const real = readFileSync("scripts/fixtures/local-backend-repeat.43144538685.txt", "utf8");
+    const meta = (repeatSelection: string) => ({
+      runId: "efr-5",
+      runUrl: "",
+      sha: "efr-5",
+      repeatSelection,
+    });
+    const head =
+      "- Repeat: 38 of 1393 tests repeated — specs directly changed 5/53, importers of a changed helper 0/60; budget 720 s";
+    const perTest = `${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [mobile-360]\n${TIME_CAP_LINE}e2e/a.spec.ts › A-1 [desktop-1280]\n`;
+    // the real selection, two capped test runs and the serial pass's line: two runs, plus the clause.
+    expect(repeatLines(meta(`${real}${perTest}${SERIAL_CAP_LINE}`))).toEqual([
+      `${head}; the time cap left 2 test runs; the time cap stopped the serial pass`,
+    ]);
+    // the serial line alone is no test run.
+    expect(repeatLines(meta(`${real}${SERIAL_CAP_LINE}`))).toEqual([
+      `${head}; the time cap stopped the serial pass`,
+    ]);
+    // per-test lines alone read as before.
+    expect(repeatLines(meta(`${real}${perTest}`))).toEqual([
+      `${head}; the time cap left 2 test runs`,
+    ]);
   });
 });

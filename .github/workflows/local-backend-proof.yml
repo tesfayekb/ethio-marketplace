@@ -688,7 +688,11 @@ jobs:
         run: |
           doors_query=$(bun scripts/doors/check-doors.ts --live-query)
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$doors_query" > "$RUNNER_TEMP/doors.tsv"
-          bun scripts/doors/check-doors.ts --live "$RUNNER_TEMP/doors.tsv"
+          # Cursor bundle 1 item 6 (INC-1166): the browser roles' grants on the tables of the open read
+          # rules, judged against scripts/doors/open-rules.txt in the same run.
+          grants_query=$(bun scripts/doors/check-doors.ts --live-open-rules-query)
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$grants_query" > "$RUNNER_TEMP/open-rule-grants.tsv"
+          bun scripts/doors/check-doors.ts --live "$RUNNER_TEMP/doors.tsv" "$RUNNER_TEMP/open-rule-grants.tsv"
       # DEC-359: the seller-name law's live half judges every live body of schema public, the
       # computed ones the file census cannot read included (INC-1083). The script runs its
       # self-test first and judges nothing until it passes. Live names stay in RUNNER_TEMP
@@ -1219,7 +1223,7 @@ jobs:
               heading = '## Migration/start failure'
               if heading in fragment:
                   details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
-          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the twenty lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Repeat in WebKit', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
+          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the twenty lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Repeat in WebKit', '- Repeat serially', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
           planned = [lane + ' ' + re.sub(r'.* (\d+) s planned.*', r'\1', field(fragments.get(lane, []), '- Plan (DEC-375 b): ', '?')) + '/' + field(fragments.get(lane, []), '- Seconds — tests: ', '?') for lane in map(str, range(1, 17))]
           plan_line = next((field(fragments[lane], '- Lane plan (DEC-375 b): ', '') for lane in map(str, range(1, 17)) if lane in fragments and field(fragments[lane], '- Lane plan (DEC-375 b): ', '')), 'no evidence')
           lines.append('- Lane plan (DEC-375 b): ' + plan_line + '; planned/test seconds: ' + ', '.join(planned))
