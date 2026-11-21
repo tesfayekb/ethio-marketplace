@@ -14,8 +14,16 @@
  * (playwright-core lib/utils/isomorphic/colors.js:36, :67); with colours off the text is plain.
  *
  * Usage: bun run scripts/ci/repeat-cap.ts <results.json> <evidence-file>
+ *
+ * DEC-415 (the tests and CI turn 2, ruling 3) — the lane runs two passes, the parallel one and then
+ * the selected specs' `@global-state` tests serially, and Playwright empties `test-results/` before
+ * each run. The workflow sets the parallel pass's directory aside; this script joins it back, so the
+ * one results file the cap and the failure reporter read holds both passes:
+ *   bun run scripts/ci/repeat-cap.ts --merge <aside-dir> <results-dir> <evidence-file>
+ * A serial pass the cap stopped before any test loaded is named on the evidence file, never silent.
  */
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, cpSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { errorText } from "../../src/lib/error-text";
 
 const RED_OPEN = "\x1B[31m";
@@ -98,8 +106,91 @@ export function capVerdictOfFile(path: string): CapVerdict {
   return capVerdict(parsed);
 }
 
+const STAT_COUNTS = ["expected", "skipped", "unexpected", "flaky"] as const;
+
+/** DEC-415 — two Playwright JSON reports as one: suites and errors in pass order, stats summed. */
+export function mergedReport(first: unknown, second: unknown): Json | null {
+  if (!isObject(first) || !isObject(second)) return null;
+  const lists = [first, second].map((r) => [r["suites"], r["errors"]]);
+  if (!lists.every((pair) => pair.every(Array.isArray))) return null;
+  const join2 = (key: string): unknown[] =>
+    [first[key], second[key]].flatMap((v) => (Array.isArray(v) ? v : []));
+  const merged: Json = { ...second, ...first, suites: join2("suites"), errors: join2("errors") };
+  const a = first["stats"];
+  const b = second["stats"];
+  if (!isObject(a) && isObject(b)) merged["stats"] = b;
+  if (isObject(a) && isObject(b)) {
+    const sum = (key: string): number | undefined => {
+      const x = a[key];
+      const y = b[key];
+      return typeof x === "number" && typeof y === "number" ? x + y : undefined;
+    };
+    const stats: Json = { ...a, duration: sum("duration") };
+    for (const key of STAT_COUNTS) stats[key] = sum(key);
+    merged["stats"] = stats;
+  }
+  return merged;
+}
+
+/** True when the report holds no test at all and every top-level error is the cap. */
+export function cappedBeforeLoad(report: unknown): boolean {
+  if (!isObject(report) || !Array.isArray(report["errors"])) return false;
+  const errors = report["errors"];
+  if (errors.length === 0 || !errors.every((e) => isObject(e) && isGlobalTimeout(e["message"])))
+    return false;
+  let tests = 0;
+  const walk = (suite: Json): void => {
+    for (const spec of list(suite, "specs")) tests += list(spec, "tests").length;
+    for (const child of list(suite, "suites")) walk(child);
+  };
+  try {
+    for (const suite of list(report, "suites")) walk(suite);
+  } catch (error) {
+    if (error instanceof Unreadable) return false;
+    throw error;
+  }
+  return tests === 0;
+}
+
+/** The line a serial pass gets when the cap left it no test run. */
+export const SERIAL_CAP_LINE =
+  "- Not repeated (time cap): the serial pass's @global-state tests (DEC-415)\n";
+
+function readJson(path: string): unknown {
+  try {
+    return JSON.parse(readFileSync(path, "utf8"));
+  } catch (error) {
+    console.error(`repeat-cap: cannot read ${path}: ${errorText(error)}`);
+    return undefined;
+  }
+}
+
+/** DEC-415 — joins the set-aside parallel pass into the serial pass's directory; false when it cannot. */
+export function mergeDirs(aside: string, dir: string, evidence: string): boolean {
+  const results = join(dir, "results.json");
+  const second = existsSync(results) ? readJson(results) : undefined;
+  const merged = mergedReport(readJson(join(aside, "results.json")), second);
+  cpSync(aside, dir, { recursive: true, force: false });
+  if (merged === null) {
+    console.error("repeat-cap: the two passes' reports could not be joined");
+    return false;
+  }
+  writeFileSync(results, JSON.stringify(merged));
+  if (cappedBeforeLoad(second)) appendFileSync(evidence, SERIAL_CAP_LINE);
+  return true;
+}
+
 function main(): void {
-  const [results, evidence] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  if (args[0] === "--merge") {
+    const [, aside, dir, evidence] = args;
+    if (!aside || !dir || !evidence) {
+      console.error("usage: repeat-cap.ts --merge <aside-dir> <results-dir> <evidence-file>");
+      process.exit(1);
+    }
+    process.exit(mergeDirs(aside, dir, evidence) ? 0 : 1);
+  }
+  const [results, evidence] = args;
   if (!results || !evidence) {
     console.error("usage: repeat-cap.ts <results.json> <evidence-file>");
     process.exit(1);

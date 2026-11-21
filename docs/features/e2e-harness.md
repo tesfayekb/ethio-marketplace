@@ -587,6 +587,31 @@ Since DEC-375 (b) (the speed turn) the cap is the slowest planned lane's seconds
 one worker (`bun scripts/ci/lane-plan.ts --repeat-budget`), so the repeat lane ends
 within that lane.
 
+Since DEC-415 (the tests and CI turn 2, ruling 3) the repeat lane runs two passes under
+that one deadline. The parallel pass repeats the selected specs' tests outside
+`@global-state` and `@a11y`. The serial pass then repeats the same specs' `@global-state`
+tests in the Chromium pair with `--workers=1`, the lane's own `--repeat-each` and
+`--retries 0`. Before DEC-415 the lane left `@global-state` tests out, so a test the
+serial tag moved (SMN-E13, INC-1015) was proven once a push and never repeated. `@a11y`
+tests stay out of both passes; they run once a push in the smoke lane. The planner in
+the select step counts both passes: one `--list` per pass, each keeping out the tags its
+command keeps out, with `--pass-with-no-tests` so a spec one list leaves empty is no
+error. So `REPEAT_EACH`, the per-spec fit and the time cap hold both passes, and a spec
+of only `@global-state` tests is repeated too. A pass with no test to run is skipped; the
+lane is red when either pass fails. Playwright empties `test-results/` before each run,
+so the parallel pass's directory is set aside (an empty report when that pass ran no
+test) and `bun run scripts/ci/repeat-cap.ts --merge` joins it back: one `results.json` (suites and errors in pass order, stats
+summed) and both passes' error contexts, read by the cap and by the failure reporter.
+The serial pass gets what is left of the deadline. When nothing is left, or the cap
+stops it before a test loads, `local-backend-repeat.txt` says so on a
+`- Not repeated (time cap):` line. Its `- Repeat serially (DEC-415):` line names the
+serial tests and their repetitions. CF-LANES-5 (`scripts/conformance/lanes.test.ts`)
+reads the workflow. It requires a serial pass for `@global-state` at one worker with the
+lane's `--repeat-each`, joined back by `--merge`, and the planner's two lists keeping out
+the same tags as the two commands. Its planted cases remove the serial pass, remove its
+count, and change its workers, count or tags. CF-LANES-3 takes the most workers any of a
+lane's runs uses.
+
 Since DEC-375 (b) (the speed turn) every per-push Chromium test runs in exactly one
 lane. Lanes 1 → 16 run SPEC FILES split by measured seconds, not `--shard`:
 `scripts/ci/lane-plan.ts` reads `playwright test --list --reporter=json` over the two

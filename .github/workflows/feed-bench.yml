@@ -8,6 +8,13 @@ name: Feed bench
 # and on demand; red when a target is missed, or when it was skipped or
 # yielded to another staging run (DEC-168, scripts/staging-gate.ts).
 # Evidence publishes to branch ci-evidence (DEC-098).
+# The quiet window (the tests and CI turn 2, ruling 4): a run yields to every CI, Nightly E2E or
+# Guard Proof run from the moment that run is queued. Those are started by a push to a branch with
+# an open pull request into dev (a docs-only push too), a merge into dev, a pull request opened,
+# the nightly crons (15:30 and 16:30 UTC) and a Guard Proof dispatch. Dispatch only when no such run
+# is queued or in progress, and let nothing of that kind happen until the run completes. The window
+# is the gate's wait plus about 25 minutes (run 44896403216: 1,513 s from start to end, 2 s of it
+# the gate's).
 on:
   schedule:
     - cron: "10 13 * * 0"
@@ -25,9 +32,10 @@ jobs:
   feed-bench:
     name: Feed bench (ethio-staging, 100,500 scratch listings)
     runs-on: ubuntu-24.04
-    # DEC-412 — run 43872334867 (2026-11-16) measured: gate 293 s, seed 1,925 s, pre-clean and
-    # measure 7 s, cleanup 136 s, the other steps 12 s (2,373 s); half as much again is 59.3 min.
-    timeout-minutes: 60
+    # DEC-412 — run 44896403216 (2026-11-21, 2,048 sellers) measured: gate 2 s, seed 1,330 s,
+    # pre-clean and measure 7 s, cleanup 157 s, the other steps 17 s (1,513 s); half as much again
+    # is 37.8 min (was 60, from run 43872334867's 2,373 s with 256 sellers).
+    timeout-minutes: 38
     permissions:
       contents: write
       # DEC-168 — the staging gate reads the repository's runs.

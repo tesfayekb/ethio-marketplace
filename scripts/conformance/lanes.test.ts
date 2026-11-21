@@ -51,6 +51,9 @@ import {
  * a sanctioned helper, or is a line of shared-values-allowlist.txt; every table a migration gives a
  * statement-level trigger is on the manifest (shared-values.ts); every reader a "shared with its
  * readers" row names is a `@global-state` test of its file (the tests and CI turn 2, INC-1015).
+ * CF-LANES-5 (DEC-415): the repeat lane's serial pass repeats the selected specs' `@global-state`
+ * tests at one worker with the lane's own `--repeat-each`, and the planner's two lists keep out
+ * the same tags as the two commands they count for.
  */
 type Finding = { file: string; line: number; what: string };
 /** A coverage finding's allowlist key: `@<tag>` for a test every lane leaves out, else the test. */
@@ -182,7 +185,7 @@ function matrixLanes(yml: string): string[] {
     .filter((lane) => lane !== "");
 }
 
-/** Each lane's workers: the job's E2E_WORKERS for that lane, then a `--workers=` in its branch. */
+/** Each lane's workers: the job's E2E_WORKERS for that lane, or a run's `--workers=` in its branch. */
 export function workersByLane(yml: string): Map<string, number | null> {
   const lanes = matrixLanes(yml);
   const plain = /\n\s*E2E_WORKERS:\s*"(\d+)"/.exec(yml);
@@ -198,8 +201,17 @@ export function workersByLane(yml: string): Map<string, number | null> {
     if (plain) value = Number(plain[1]);
     else if (chosen) value = Number(named.includes(lane) ? chosen[2] : chosen[3]);
     const branch = branches.get(NUMBERED.includes(lane) ? "numbered" : lane);
-    const flag = branch === undefined ? null : /--workers=(\d+)/.exec(branch.text);
-    if (flag) value = Number(flag[1]);
+    // DEC-415: a branch may run twice (the repeat lane's two passes); the lane runs the most
+    // workers any of its runs takes, each run's own `--workers=` or else the job's.
+    const runs = (branch?.text ?? "")
+      .split("\n")
+      .filter((line) => /playwright test\b/.test(line) && !line.includes("--list"))
+      .map((line) => {
+        const flag = /--workers=(\d+)/.exec(line);
+        return flag ? Number(flag[1]) : value;
+      });
+    const read = runs.filter((run): run is number => run !== null);
+    if (runs.length > 0) value = read.length === runs.length ? Math.max(...read) : null;
     workers.set(lane, value);
   }
   return workers;
@@ -220,6 +232,76 @@ export function workerFindings(yml: string): Finding[] {
         line: 0,
         what: `lane ${lane} runs ${value === null ? "an unread number of" : String(value)} worker(s); expected ${String(expected)}`,
       });
+  }
+  return findings;
+}
+
+const SELECT_STEP = "- name: Select the specs to repeat (DEC-283)";
+const CHROMIUM_PAIR = "--project=mobile-360 --project=desktop-1280";
+
+function argOf(command: string, flag: "--grep" | "--grep-invert"): string[] {
+  return tagsOf(new RegExp(`${flag} "([^"]+)"`).exec(command)?.[1]);
+}
+
+/** The repeat lane's planner: the select step's `playwright test --list` lines over `$specs`. */
+function plannerLists(yml: string): string[] {
+  const at = yml.indexOf(SELECT_STEP);
+  if (at < 0) return [];
+  const end = yml.indexOf("\n      - name: ", at + SELECT_STEP.length);
+  return yml
+    .slice(at, end < 0 ? undefined : end)
+    .split("\n")
+    .filter((line) => /playwright test --list\b/.test(line) && line.includes("$specs"));
+}
+
+/**
+ * DEC-415 — the repeat lane's two passes: the parallel pass, then a serial pass for `@global-state`
+ * at one worker with the lane's own `--repeat-each`; the planner counts what each pass runs, its
+ * filters keeping out the same tags as the commands they count for.
+ */
+export function repeatPassFindings(yml: string): string[] {
+  const findings: string[] = [];
+  const branch = laneBranches(yml).get("repeat")?.text ?? "";
+  const commands = branch
+    .split("\n")
+    .filter((line) => /playwright test\b/.test(line) && !line.includes("--list"));
+  const parallel = commands.find((line) => !/--grep "/.test(line));
+  const serial = commands.find((line) => argOf(line, "--grep").includes("global-state"));
+  if (parallel === undefined) findings.push("the repeat lane has no parallel pass");
+  if (serial === undefined) findings.push("the repeat lane has no serial pass for @global-state");
+  else {
+    if (argOf(serial, "--grep").join("|") !== "global-state")
+      findings.push("the serial pass runs more than the @global-state tests");
+    if (!serial.includes(CHROMIUM_PAIR)) findings.push("the serial pass is not the Chromium pair");
+    if (!/--workers=1\b/.test(serial)) findings.push("the serial pass is not at one worker");
+    if (!serial.includes('--repeat-each "$REPEAT_EACH"'))
+      findings.push("the serial pass's count is not the lane's --repeat-each");
+    if (!/--retries 0\b/.test(serial)) findings.push("the serial pass lacks --retries 0");
+    if (!/--global-timeout\b/.test(serial)) findings.push("the serial pass has no time cap");
+    if (!serial.includes("$REPEAT_SPECS"))
+      findings.push("the serial pass is not on the selected specs");
+    if (!/bun run scripts\/ci\/repeat-cap\.ts --merge\b/.test(branch))
+      findings.push("the serial pass's results are not joined to the parallel pass's");
+  }
+  const lists = plannerLists(yml);
+  const parallelList = lists.find((line) => !/--grep "/.test(line));
+  const serialList = lists.find((line) => argOf(line, "--grep").includes("global-state"));
+  const agree = (pass: string, list: string | undefined, command: string | undefined) => {
+    if (command === undefined) return;
+    if (list === undefined) {
+      findings.push(`the planner counts without the ${pass} pass`);
+      return;
+    }
+    for (const flag of ["--grep", "--grep-invert"] as const)
+      if (argOf(list, flag).join("|") !== argOf(command, flag).join("|"))
+        findings.push(`the planner's ${flag} for the ${pass} pass differs from its command's`);
+  };
+  agree("parallel", parallelList, parallel);
+  agree("serial", serialList, serial);
+  if (parallel !== undefined && serial !== undefined) {
+    const out = argOf(parallel, "--grep-invert").filter((tag) => tag !== "global-state");
+    if (argOf(serial, "--grep-invert").join("|") !== out.join("|"))
+      findings.push("the two passes do not keep out the same tags besides @global-state");
   }
   return findings;
 }
@@ -360,6 +442,50 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
     );
     expect(flagged).not.toBe(yml);
     expect(workerFindings(flagged)).toHaveLength(16);
+  });
+
+  it("CF-LANES-5 the repeat lane repeats the selected specs' @global-state tests in a serial pass the planner counts (DEC-415)", () => {
+    expect(repeatPassFindings(yml)).toEqual([]);
+    expect(plannerLists(yml)).toHaveLength(2);
+    const commandLines = yml.split("\n").filter((line) => line.includes("$REPEAT_SPECS"));
+    const serialLine = commandLines.find((line) => line.includes('--grep "@global-state"'));
+    const serialList = plannerLists(yml).find((line) => line.includes('--grep "@global-state"'));
+    if (serialLine === undefined || serialList === undefined)
+      throw new Error("the serial pass or its count is not in the workflow");
+    const without = (line: string) => {
+      expect(yml.split(line).length - 1, `anchor found once: ${line.trim()}`).toBe(1);
+      return yml.replace(`${line}\n`, "");
+    };
+
+    // Planted: the serial pass removed; the planner counting without it; the pass at two workers
+    // or with its own count; the planner keeping out another tag than the command.
+    expect(repeatPassFindings(without(serialLine))).toEqual([
+      "the repeat lane has no serial pass for @global-state",
+    ]);
+    expect(repeatPassFindings(without(serialList))).toEqual([
+      "the planner counts without the serial pass",
+    ]);
+    const swap = (from: string, to: string) => {
+      expect(serialLine.includes(from), from).toBe(true);
+      return yml.replace(serialLine, serialLine.replace(from, to));
+    };
+    expect(repeatPassFindings(swap("--workers=1", "--workers=2"))).toEqual([
+      "the serial pass is not at one worker",
+    ]);
+    expect(
+      repeatPassFindings(
+        yml.replace("scripts/ci/repeat-cap.ts --merge", "scripts/ci/repeat-cap.ts"),
+      ),
+    ).toEqual(["the serial pass's results are not joined to the parallel pass's"]);
+    expect(repeatPassFindings(swap('--repeat-each "$REPEAT_EACH"', "--repeat-each 1"))).toEqual([
+      "the serial pass's count is not the lane's --repeat-each",
+    ]);
+    expect(
+      repeatPassFindings(swap('--grep-invert "@a11y"', '--grep-invert "@a11y|@webkit"')),
+    ).toEqual([
+      "the planner's --grep-invert for the serial pass differs from its command's",
+      "the two passes do not keep out the same tags besides @global-state",
+    ]);
   });
 });
 
