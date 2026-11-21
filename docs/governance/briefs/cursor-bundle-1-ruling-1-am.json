@@ -1,0 +1,26 @@
+{
+  "note": "Cursor bundle 1, ruling 1: item 2's three new sentences (member layer). Copy each value by script; check each sha256 (of the UTF-8 value).",
+  "keys": [
+    {
+      "key": "mfa.errorSetupPending",
+      "en": "A two-factor setup was started for this account and not finished. Finish it where you started it, or try again later.",
+      "en_sha256": "de1becccb0f1b7ef02cf9596b742373dcabfa09fd4e43755db42ee0ab2d23829",
+      "am": "ለዚህ መለያ የባለ ሁለት ደረጃ ማረጋገጫ ማዋቀር ተጀምሮ አልተጠናቀቀም። በጀመሩበት ቦታ ያጠናቅቁት፣ ወይም ትንሽ ቆይተው እንደገና ይሞክሩ።",
+      "am_sha256": "b6de2a9e245272f51671f682b979003b757b16ca6369a138f09d96083448178d"
+    },
+    {
+      "key": "mfa.errorFactorExists",
+      "en": "This account already has an authenticator app. Remove it before adding another.",
+      "en_sha256": "c8678dfb7c88c04dacbc21e6d40268d0eea37658637da5a7f5c84b8bf46efb0e",
+      "am": "ይህ መለያ አስቀድሞ የማረጋገጫ መተግበሪያ አለው። ሌላ ከመጨመርዎ በፊት ያስወግዱት።",
+      "am_sha256": "8b33fc496263fed3b11b53d81082fdde6f51d246ec015ca07a43efdc337abfa0"
+    },
+    {
+      "key": "mfa.errorMethodOff",
+      "en": "Two-factor codes are switched off for now. Please try again later.",
+      "en_sha256": "96cb8408d6cc79986483613df673fdccd302e791f83d79bdd5a3974f3c2377f2",
+      "am": "የባለ ሁለት ደረጃ ማረጋገጫ ኮዶች ለጊዜው ጠፍተዋል። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።",
+      "am_sha256": "a63039d8972533ac753df7961addfa1ceecc827358b92a4b76598439761d9a37"
+    }
+  ]
+}
