@@ -16,8 +16,9 @@ export type ReaderFailure = {
  * the status the database's one table gives the code (`door_refusal_status`):
  * `notSignedIn` 401, `permissionDenied` 403, `accountDeactivated` 403,
  * `stepUpRequired` 428, `rateLimited` 429, every other code 400 — never 500.
- * This is that table's client side; `reader-failure.test.ts` (RF-5) reads the
- * migration that declares the table and fails when the two differ.
+ * This is that table's client side; CF-REFUSAL-2
+ * (scripts/conformance/refusal-readers.test.ts) reads the table's last
+ * declaration and fails when the two differ in either direction.
  */
 const REFUSAL_STATUS: Readonly<Record<string, number>> = {
   notSignedIn: 401,
@@ -58,6 +59,15 @@ const GATE_REFUSED_CODES = new Set([
   "legalAcceptancePending",
   "notInForce",
 ]);
+/** The codes read as a refusal even when their status disagrees (below 500). */
+const FALLBACK_REFUSED_CODES = new Set([
+  "rateLimited",
+  "permissionDenied",
+  "acceptancePending",
+  "legalAcceptancePending",
+  "stepUpRequired",
+  "notInForce",
+]);
 
 /** The code a gate refusal's message opens with: everything before the first colon. */
 function gateCodeOf(message: string): string {
@@ -90,10 +100,7 @@ export function readerFailure(error: unknown): ReaderFailure {
             ? "network"
             : status !== undefined && status >= 500
               ? "server"
-              : code === "P0001" ||
-                  /^(?:rateLimited|permissionDenied|acceptancePending|legalAcceptancePending|stepUpRequired|notInForce)(?::|$)/.test(
-                    message,
-                  )
+              : code === "P0001" || FALLBACK_REFUSED_CODES.has(gate)
                 ? "refused"
                 : "malformed";
   return {
@@ -102,6 +109,28 @@ export function readerFailure(error: unknown): ReaderFailure {
     ...(code === undefined ? {} : { code }),
     message,
   };
+}
+
+/** A refusal's detail answered to a client: a short code-like tail, never a sentence. */
+export const REFUSAL_DETAIL = /^[A-Za-z0-9_.:+ -]{1,64}$/;
+
+export type GateRefusal = { code: string; status: number; detail?: string };
+
+/**
+ * F1-7d (INC-1221) — THE REFUSAL A READER RAISED, read by the one reader: one of the gate's
+ * codes (above), its status the one table's (`refusalStatus`) — an answer at any other status
+ * is not that refusal — and its detail when it is a short code. Anything else is null.
+ */
+export function gateRefusal(error: unknown): GateRefusal | null {
+  const failure = readerFailure(error);
+  const { key, tail } = splitRefusal(failure.message.trim());
+  if (!GATE_AUTH_CODES.has(key) && !GATE_REFUSED_CODES.has(key)) return null;
+  const status = refusalStatus(key);
+  if (failure.status !== undefined && failure.status !== status) return null;
+  const detail = tail?.trim();
+  return detail !== undefined && REFUSAL_DETAIL.test(detail)
+    ? { code: key, status, detail }
+    : { code: key, status };
 }
 
 export class ReaderError extends Error {

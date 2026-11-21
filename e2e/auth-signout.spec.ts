@@ -25,6 +25,7 @@ import {
   forgetStoredSession,
   injectSession,
   passwordGrant,
+  readStoredSession,
   sessionsIn,
   storageKey,
   supabaseNamesIn,
@@ -710,5 +711,171 @@ test.describe("D189 deactivated session", () => {
       .toBe(true);
     expect(linkSamples, "SO-10: the Sign in link showed during the read").toBe(0);
     await expect(menu).toBeVisible();
+  });
+});
+
+/**
+ * F1-7d (INC-1218) — THE END OF A SESSION IS ONE STATE. However a session ends (a refresh the
+ * server refuses, a session gone with no event, a sign-out in another tab), the tab says so once,
+ * with the words that offer sign-in, and never "could not be loaded"; the sign-in after it sticks;
+ * no poll keeps calling. Each end writes ONE console line, `[session] ended: <event> <code or
+ * none> <seconds since this tab's last sign-in or none> <visibility>`, never a token.
+ */
+const LOAD_FAILED_TEXTS = Object.values(en).filter((text) =>
+  /could(?:n't| not) be loaded/i.test(text),
+);
+const SESSION_END_LINE =
+  /^\[session\] ended: (signOut|idle|absolute|signedOut|unauthorised) [A-Za-z0-9_]+ (\d+|none) (visible|hidden)$/;
+
+async function loadFailedTextsOn(page: Page): Promise<string[]> {
+  const body = await page.evaluate(() => document.body.innerText);
+  return LOAD_FAILED_TEXTS.filter((text) => body.includes(text));
+}
+
+/** The calls the page makes from now on that answer 401, by method and path (never the query). */
+function record401s(page: Page): string[] {
+  const seen: string[] = [];
+  page.on("response", (response) => {
+    if (response.status() !== 401) return;
+    seen.push(`${response.request().method()} ${new URL(response.url()).pathname}`);
+  });
+  return seen;
+}
+
+/** The calls the page makes from now on to one database function. */
+function recordCalls(page: Page, fn: string): string[] {
+  const seen: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === `/rest/v1/rpc/${fn}`) seen.push(request.method());
+  });
+  return seen;
+}
+
+/** The page's session-end console lines from now on. */
+function sessionEndLines(page: Page): string[] {
+  const lines: string[] = [];
+  page.on("console", (message) => {
+    if (message.text().startsWith("[session] ended:")) lines.push(message.text());
+  });
+  return lines;
+}
+
+test.describe("F1-7d the end of a session", () => {
+  test("SO-14 a refresh the server refuses ends the session once: the notice offers sign-in, nothing says it could not be loaded, and the sign-in after it sticks (INC-1218)", async ({
+    page,
+  }) => {
+    test.setTimeout(150_000);
+    const user = await leaseUser();
+    await grantRole(user.id, "super_admin");
+    const lines = sessionEndLines(page);
+    await signIn(page, user.email, user.password);
+
+    // The scratch account's every session is revoked, and this tab's session is made due: the
+    // client's next refresh (its own 30 s tick, or the next read) is one the server refuses.
+    const grant = await passwordGrant(user.email, user.password, { fresh: true });
+    const stored = await readStoredSession(page);
+    const revoked = await adminClient().auth.admin.signOut(grant.access_token, "global");
+    expect(revoked.error, "the scratch account's sessions were not revoked").toBeNull();
+    await editStoredSession(page, (session) => ({
+      ...session,
+      expires_at: Math.floor(Date.now() / 1000) - 60,
+    }));
+
+    await expect(page.getByTestId("session-notice")).toContainText(en["session.expired"], {
+      timeout: 45_000,
+    });
+    await expect(signInMarker(page)).toBeVisible();
+    await expect(signedInMarker(page)).toHaveCount(0);
+    expect(await loadFailedTextsOn(page), "the end showed a could-not-be-loaded message").toEqual(
+      [],
+    );
+    await expect.poll(() => lines.length, { message: "no session-end line was written" }).toBe(1);
+    const [line = ""] = lines;
+    expect(line).toMatch(SESSION_END_LINE);
+    for (const token of [grant.access_token, grant.refresh_token, stored?.access_token ?? ""])
+      if (token !== "") expect(line.includes(token), "the line carries a token").toBe(false);
+
+    // The sign-in after the end sticks.
+    await signIn(page, user.email, user.password);
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027: the subject IS the seconds after a sign-in
+    await page.waitForTimeout(6_000);
+    expect((await readStoredSession(page)) !== null, "the fresh session was dropped").toBe(true);
+    await expect(signedInMarker(page)).toBeVisible();
+    await expect(page.getByTestId("session-notice")).toHaveCount(0);
+    expect(lines, "the fresh session was ended").toHaveLength(1);
+  });
+
+  test("SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218)", async ({
+    page,
+  }) => {
+    test.setTimeout(150_000);
+    const user = await leaseUser();
+    await grantRole(user.id, "super_admin");
+    const lines = sessionEndLines(page);
+    await signIn(page, user.email, user.password);
+
+    // The stored session goes with no auth event (a same-tab removal raises none); the
+    // impersonation poll (every 30 s) is the next read, and it is refused.
+    await forgetStoredSession(page);
+    await expect(page.getByTestId("session-notice")).toContainText(en["session.expired"], {
+      timeout: 45_000,
+    });
+    await expect(signInMarker(page)).toBeVisible();
+    expect(await loadFailedTextsOn(page), "the end showed a could-not-be-loaded message").toEqual(
+      [],
+    );
+    await expect.poll(() => lines.length, { message: "no session-end line was written" }).toBe(1);
+    expect(lines[0]).toMatch(/^\[session\] ended: unauthorised [A-Za-z0-9_]+ \d+ visible$/);
+
+    const polled = recordCalls(page, "get_active_impersonation");
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027: the subject IS the poll's 30 s interval
+    await page.waitForTimeout(32_000);
+    expect(polled, "the poll kept calling after the end").toEqual([]);
+    expect(lines, "the end was told more than once").toHaveLength(1);
+  });
+
+  /**
+   * SO-16 (ruling 1, decision 1) — two pages of one browser, both signed in with one scratch
+   * account; page A signs out and signs in again. Page A keeps its fresh session, makes no call
+   * that answers 401, and neither page says "could not be loaded". Red-first at the base, it was
+   * green there in every project (Chromium and WebKit): a second tab of the site, with a sign-out
+   * and a fresh sign-in in the first, is not the cause of INC-1218.
+   */
+  test("SO-16 a sign-out and a fresh sign-in in one tab, with a second tab open, keep the fresh session (INC-1218) @webkit", async ({
+    page,
+    context,
+  }) => {
+    test.setTimeout(120_000);
+    const user = await leaseUser();
+    await grantRole(user.id, "super_admin");
+    await signIn(page, user.email, user.password);
+    const other = await context.newPage();
+    await gotoReady(other, "/");
+    await expect(signedInMarker(other)).toBeVisible({ timeout: 15_000 });
+
+    await signOutViaUi(page);
+    // The shell hides the account the moment the sign-out starts; the stored session goes when
+    // the client's sign-out has finished.
+    await expect
+      .poll(async () => (await readStoredSession(page)) === null, {
+        message: "the sign-out left a stored session",
+      })
+      .toBe(true);
+    const unauthorised = record401s(page);
+    await signIn(page, user.email, user.password);
+    expect((await readStoredSession(page)) !== null, "the fresh sign-in stored no session").toBe(
+      true,
+    );
+
+    // eslint-disable-next-line no-restricted-syntax -- DEC-027: the subject IS the seconds after a sign-in (ruling 1: at least 5 s)
+    await page.waitForTimeout(6_000);
+    expect((await readStoredSession(page)) !== null, "the fresh session was dropped").toBe(true);
+    await expect(signedInMarker(page)).toBeVisible();
+    expect(unauthorised, "the tab made calls that answered 401 after the fresh sign-in").toEqual(
+      [],
+    );
+    expect(await loadFailedTextsOn(page), "page A says something could not be loaded").toEqual([]);
+    expect(await loadFailedTextsOn(other), "page B says something could not be loaded").toEqual([]);
+    await other.close();
   });
 });

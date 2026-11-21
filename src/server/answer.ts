@@ -1,5 +1,5 @@
 import { errorText } from "@/lib/error-text";
-import { readerFailure } from "@/lib/reader-failure";
+import { gateRefusal, readerFailure } from "@/lib/reader-failure";
 import type { Refusal } from "@/lib/refusal";
 import {
   doorAnswer,
@@ -227,8 +227,28 @@ export function download(text: string, init: { filename: string; contentType: st
 
 export { doorAnswer, upstreamFailed, upstreamUnavailable };
 
-/** The one database-read failure answer, never exposing diagnostic text. */
+/** The client statuses a reader's refusal answers at (the one table's, `refusalStatus`). */
+function refusalAnswerStatus(status: number): 400 | 401 | 403 | 429 | null {
+  return status === 400 || status === 401 || status === 403 || status === 429 ? status : null;
+}
+
+/**
+ * The one database-read failure answer, never exposing diagnostic text. F1-7d (INC-1221) — a
+ * reader's refusal (`gateRefusal`) answers its code at the status the one table gives it, a
+ * step-up the one 428, never a 500 with an incident.
+ */
 export function readFailure(path: string, what: string, error: unknown): Response {
+  const refused = gateRefusal(error);
+  if (refused !== null) {
+    if (refused.status === 428) return stepUpRequired();
+    const answerStatus = refusalAnswerStatus(refused.status);
+    if (answerStatus !== null)
+      return clientError(
+        refused.code,
+        answerStatus,
+        refused.detail === undefined ? undefined : { detail: refused.detail },
+      );
+  }
   const failure = readerFailure(error);
   const status = failure.status ?? 500;
   return upstreamFailed({ message: failure.message }, status)

@@ -547,6 +547,26 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
 });
 
 describe("GET /api/translate on defineRoute (Foundations turn 19)", () => {
+  it("TRR-11 F1-7d — a writer refusal is read by its code and detail: another detail, or none where one is owed, is writerFailed", async () => {
+    const table: [string, string][] = [
+      [" permissionDenied:language ", "scope"],
+      ["permissionDenied:other", "writerFailed"],
+      ["badValue", "writerFailed"],
+      ["badValue:other", "writerFailed"],
+      ["required", "writerFailed"],
+      ["step-up required:", "stepUp"],
+      ["a step-up required", "writerFailed"],
+    ];
+    const sent = items(table.length);
+    table.forEach(([message], index) => state.writerErrors.set(`e2e.trr.${index}`, message));
+    const answer = await post({ target_lang: "am", items: sent });
+    expect(answer.body).toEqual({
+      done: 0,
+      flagged: 0,
+      failed: table.map(([, code], index) => ({ key: `e2e.trr.${index}`, reason: code })),
+    });
+  });
+
   it("TRR-7 GET without translations:manage is 403 and with it answers the provider's list", async () => {
     state.permissions = new Set(["translations:machine"]);
     expect(await get()).toEqual({ status: 403, body: { error: "forbidden" } });

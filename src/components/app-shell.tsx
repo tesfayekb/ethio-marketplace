@@ -44,6 +44,13 @@ import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { panelAt } from "@/components/shell/menu-current";
 import { takeDeactivatedSignOut } from "@/features/auth/deactivated";
+import {
+  endSession,
+  onUnauthorised,
+  sessionStarted,
+  unauthorisedVerdict,
+  type SessionEndEvent,
+} from "@/features/auth/session-end";
 import { useAuth } from "@/features/auth/use-auth";
 import { feedRouteOf, useCategoryTree } from "@/features/categories/category-tree";
 import type { AuthUser } from "@/features/auth/types";
@@ -61,7 +68,7 @@ import type { MessageKey } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { errorText } from "@/lib/error-text";
-import { getSupabase } from "@/lib/supabase-door";
+import { currentSession, getSupabase } from "@/lib/supabase-door";
 import { sendsToSignIn } from "@/lib/signed-in-pages";
 import { createHomeAhead, SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
@@ -661,9 +668,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   /**
    * U0j (INC-072) — SIGN-OUT IS A HARD RESET, in this exact order:
-   *   (a) supabase.auth.signOut() — the repo's existing default scope
-   *       ("global": every session for this user) is kept deliberately, and it
-   *       is awaited;
+   *   (a) supabase.auth.signOut({ scope: "local" }) — DEC-411: this device's
+   *       session only (the person's other devices stay signed in; "Sign out
+   *       other devices" ends those), and it is awaited;
    *   (b) the permission cache is REMOVED (not merely invalidated) so no
    *       stale admin grant can paint anything;
    *   (c) the session-policy clocks are cleared (U0k) so the next sign-in
@@ -679,7 +686,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [sessionNotice, setSessionNotice] = useState<MessageKey | null>(null);
 
   const hardReset = useCallback(
-    async (notice: MessageKey | null) => {
+    async (notice: MessageKey | null, event: SessionEndEvent, code: string | null = null) => {
+      // F1-7d — the session's end is told once (the console line), whatever ended it.
+      endSession(event, code);
       /**
        * U1g-4 (A) — ORDER IS THE FIX. The purge must run when NO observer is
        * left, otherwise React Query keeps (or re-creates) the permissions entry
@@ -743,7 +752,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const requestSignOut = useCallback(() => {
     if (signingOut) return;
-    void hardReset(null);
+    void hardReset(null, "signOut");
   }, [hardReset, signingOut]);
 
   /**
@@ -765,10 +774,37 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const onExpire = useCallback(
     (reason: SessionExpiryReason) => {
-      void hardReset(reason === "idle" ? "session.signedOutIdle" : "session.expired");
+      void hardReset(reason === "idle" ? "session.signedOutIdle" : "session.expired", reason);
     },
     [hardReset],
   );
+
+  /**
+   * F1-7d (INC-1218) — A READER'S 401 ENDS THE SESSION ONCE. The query client reports every read
+   * or write that answered 401 or `notSignedIn` (session-end.ts, never retried); the session read
+   * after it decides (`unauthorisedVerdict`): the end is the hard reset with "Session expired", a
+   * session still stored has its failed reads read again once.
+   */
+  const recoveredFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (user === null || signingOut) return;
+    return onUnauthorised((code) => {
+      void currentSession().then((read) => {
+        // INC-914 — a session that could not be read decides nothing.
+        if (read.failed) return;
+        const verdict = unauthorisedVerdict(read, recoveredFor.current);
+        if (verdict.kind === "recover") {
+          recoveredFor.current = verdict.held;
+          void queryClient.refetchQueries({
+            type: "active",
+            predicate: (query) => query.state.status === "error",
+          });
+        } else if (verdict.kind === "end" && endSession("unauthorised", code)) {
+          void hardReset("session.expired", "unauthorised", code);
+        }
+      });
+    });
+  }, [user, signingOut, hardReset, queryClient]);
 
   /**
    * INC-223 — THE POLICY STARTS AFTER THIS SESSION'S CLOCKS EXIST. The clocks
@@ -786,6 +822,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     // Same session on a reload keeps its clocks; anything else starts fresh.
     startSessionClocks();
+    sessionStarted();
     setSessionNotice(null);
     setClocksReady(true);
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -838,9 +875,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (hadSession) setNavOpen(false);
     // Bundle 16 turn S3 (D189) — a deactivated account's sign-out lands on the sign-in page with the reason.
     if (takeDeactivatedSignOut()) {
+      if (hadSession) endSession("signedOut", "accountDeactivated");
       void navigate({ to: "/auth", search: { reason: "deactivated" }, replace: true });
       return;
     }
+    // F1-7d (INC-1218) — a session this tab held, ended by no hard reset of this tab (another
+    // tab's sign-out, a refused refresh): the same end, said once, with the words that offer
+    // sign-in. This tab's own hard reset has already told its end, so it sets no notice here.
+    if (hadSession && endSession("signedOut", null)) setSessionNotice("session.expired");
     if (gatedRoute && (!ownSignIn || hadSession))
       void navigate({ to: SIGN_OUT_LANDING, replace: true });
   }, [authLoading, user, hadSession, gatedRoute, ownSignIn, navigate, queryClient]);

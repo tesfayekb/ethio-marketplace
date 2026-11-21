@@ -61,6 +61,29 @@ it("SLR-4 unknownSeller keeps its 404", async () => {
   expect(response.status).toBe(404);
   expect(await response.json()).toEqual({ error: "unknownSeller" });
 });
+it("SLR-6 F1-7d (INC-1224) — seller_feed_page's refusal is read by its code; another function's is not this route's", async () => {
+  const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  try {
+    for (const [message, status, code] of [
+      ["seller_feed_page: unknownSeller", 404, "unknownSeller"],
+      ["seller_feed_page: badCursor", 400, "badCursor"],
+      ["seller_feed_page: badSize", 400, "badSize"],
+    ] as const) {
+      state.rpc.mockResolvedValue({ data: null, error: { message }, status: 400 });
+      const response = await get("?key=seller");
+      expect(response.status, message).toBe(status);
+      expect(await response.json()).toEqual({ error: code });
+    }
+    state.rpc.mockResolvedValue({
+      data: null,
+      error: { message: "feed_page: unknownSeller" },
+      status: 500,
+    });
+    expect((await get("?key=seller")).status).toBe(500);
+  } finally {
+    logged.mockRestore();
+  }
+});
 it("SLR-5 the answer's level dictionary rides the body as it came; an answer without one is a server error (P-2 (c) c2a)", async () => {
   const levels = [{ key: "lvl-base", sort: 0, name_en: "Base", name_am: null, is_baseline: true }];
   state.rpc.mockResolvedValue({

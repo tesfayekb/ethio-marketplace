@@ -262,11 +262,25 @@ P0D01`, `message: code[:detail]`), and `P0D01` otherwise, so a door's shell hand
   uses are dropped (`edit_listing`, `relist_listing`, `set_listing_price`, `get_browse_tree`,
   `get_category_attributes`, `get_ui_bundle`, `package_price_for`) with their RETIRED lines. The
   client: `reader-failure.ts` reads a refusal by its code first and checks the status agrees with
-  `refusalStatus(code)` (the table's client side; RF-5 reads the migration and fails when they
-  differ), and a refusal that arrives at 500 classes `server`; `doorCall` logs only a
+  `refusalStatus(code)` (the table's client side; CF-REFUSAL-2 since F1-7d), and a refusal that
+  arrives at 500 classes `server`; `doorCall` logs only a
   `doorError` (INC-1214, DC-4); `serverError` writes the error's text through `errorText`
   (INC-1215, ANS-12); `isDeactivatedRefusal` is removed with its test (INC-1188). F1-7d owns the
   one refusal reader and the session's end.
+- **F1-7d — the server reads every refusal one way** (`docs/governance/briefs/f1-doors-7d.md`,
+  rulings `f1-doors-7d-ruling-1.md` and `-2.md`): a refusal's text is cut only by `splitRefusal`
+  (`src/lib/refusal-split.ts`, re-exported by `src/lib/refusal.ts`; in `SHARED_SHELL_MODULES`
+  because the session's end and the legal reader read it on every page). `readFailure` answers a
+  reader's gate refusal at its code's status (`gateRefusal`, reader-failure.ts: 428 as
+  `stepUpRequired`, any other gate code as `clientError(code, status)` with a short detail;
+  INC-1221, ANS-13). The feed's and the seller page's functions raise `<function>: <code>`
+  (INC-1224) and are read through `splitRefusal` twice (`functionRefusalCode`,
+  src/server/function-refusal.ts); the options, translate, jobs and import routes read their
+  refusals through it, and the import route's `CODE_STATUS` table is gone (`refusalStatus`).
+  CF-REFUSAL-1 (`scripts/conformance/refusal-readers.test.ts`) names every other hand reading
+  of a refusal's text in `src/` (a whole-text compare, a code or sentence matched inside it, a
+  colon split, a code-shaped regex), its lines in `refusal-readers-allowlist.txt`; CF-REFUSAL-2
+  holds `refusalStatus`'s rows to `door_refusal_status`'s last declaration in both directions.
 
 ## Tests
 

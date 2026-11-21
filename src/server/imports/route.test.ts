@@ -515,6 +515,41 @@ describe("defineImportRoute", () => {
     expect(state.refreshes).toEqual([]);
   });
 
+  it("IMR-17 F1-7d (INC-1223) — a coded refusal answers at the one table's status (refusalStatus); the gate's step-up sentence is read by its key", async () => {
+    const { refusalStatus } = await import("@/lib/reader-failure");
+    const digest = await digestOf([COUNTRIES, ""]);
+    const commit = () => send(locations, { mode: "commit", countries: COUNTRIES, digest });
+    for (const code of [
+      "notSignedIn",
+      "accountDeactivated",
+      "permissionDenied",
+      "rateLimited",
+      "importRunning",
+    ]) {
+      state.answers["admin_commit_location_import"] = {
+        data: null,
+        error: { code: "P0D01", message: code, details: "", hint: "" },
+      };
+      const response = await commit();
+      expect([code, response.status]).toEqual([code, refusalStatus(code)]);
+      expect(await response.json()).toEqual({ error: code });
+    }
+    for (const [message, status] of [
+      ["step-up required", 428],
+      [" step-up required: verification expired ", 428],
+      ["step-up required by policy", 500],
+    ] as const) {
+      const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      state.answers["admin_commit_location_import"] = {
+        data: null,
+        error: { code: "P0009", message, details: "", hint: "" },
+      };
+      expect([message, (await commit()).status]).toEqual([message, status]);
+      logged.mockRestore();
+    }
+    expect(state.refreshes).toEqual([]);
+  });
+
   it("IMR-10 the refresh runs only after a successful commit, never after a refused one", async () => {
     const digest = await digestOf([CATEGORIES]);
     state.answers["admin_commit_category_import"] = {

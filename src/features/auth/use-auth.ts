@@ -5,6 +5,7 @@ import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { currentSession, getSupabase, onAuthChange } from "@/lib/supabase-door";
 
 import { markDeactivatedSignOut } from "./deactivated";
+import { noteSignIn } from "./session-end";
 // The leaf by its namespace so the call keeps the action's name (auth-answers census, INC-915).
 import * as session from "./sign-out";
 import type { AuthUser } from "./types";
@@ -114,9 +115,15 @@ export function useAuth() {
       });
     };
 
+    // F1-7d — a sign-in this tab saw (a user where there was none): the session-end line counts
+    // its seconds from here. A refresh or a restored session is not a sign-in.
+    let heldUserId: string | undefined;
     // DEC-261 — the door: a signed-out visitor hears INITIAL_SESSION null without the client.
-    const subscription = onAuthChange((_event, session) => {
-      void applyUser(session?.user?.id, session?.user?.email);
+    const subscription = onAuthChange((event, session) => {
+      const userId = session?.user?.id;
+      if (event === "SIGNED_IN" && userId !== undefined && heldUserId !== userId) noteSignIn();
+      heldUserId = userId;
+      void applyUser(userId, session?.user?.email);
     });
 
     void currentSession().then((read) => {

@@ -1,6 +1,7 @@
 import { rpc } from "@/lib/supabase-door";
 import type { LegalFacts } from "./legal-markdown";
 import { ownValue } from "@/lib/own-key";
+import { splitRefusal } from "@/lib/refusal-split";
 
 /** Bundle 22 turn 3 — the browser's legal reads; every answer is shape-checked (a wrong shape throws). */
 export type LegalStatusRow = {
@@ -98,7 +99,7 @@ export function legalTextFor(
 export function legalRefusal(error: unknown): string {
   const message =
     typeof error === "string" ? error : ((error as { message?: string } | null)?.message ?? "");
-  return message.trim().split(":")[0] ?? "";
+  return splitRefusal(message.trim()).key;
 }
 
 export async function myLegalStatus(kinds: string[]): Promise<LegalStatusRow[]> {

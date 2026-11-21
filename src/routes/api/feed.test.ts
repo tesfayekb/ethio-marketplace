@@ -202,4 +202,26 @@ describe("/api/feed — the cover links (DEC-195)", () => {
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "badSize" });
   });
+
+  it("FD-6 F1-7d (INC-1224) — feed_page's refusal is read by its code: not found 404, bad 400; another function's is not this route's", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      for (const [message, status, code] of [
+        ["feed_page: unknownCategory", 404, "unknownCategory"],
+        ["feed_page: unknownPlace", 404, "unknownPlace"],
+        ["feed_page: badCursor", 400, "badCursor"],
+        ["feed_page: badSize", 400, "badSize"],
+      ] as const) {
+        state.rpcError = { message };
+        const response = await get();
+        expect(response.status, message).toBe(status);
+        expect(await response.json()).toEqual({ error: code });
+      }
+      state.rpcError = { message: "seller_feed_page: unknownCategory" };
+      expect((await get()).status).toBe(500);
+    } finally {
+      state.rpcError = null;
+      logged.mockRestore();
+    }
+  });
 });

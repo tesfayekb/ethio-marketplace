@@ -3,8 +3,10 @@ import { z } from "zod";
 
 import { uuid } from "@/lib/schemas/primitives";
 import { cursor, encodeCursor } from "@/lib/schemas/cursor";
+import { ownValue } from "@/lib/own-key";
 import { readFailed } from "@/lib/reader-failure";
 import { clientError, ok, readFailure, serverError } from "@/server/answer";
+import { functionRefusalCode } from "@/server/function-refusal";
 import { defineRoute, type RouteContext } from "@/server/route";
 import { errorText } from "@/lib/error-text";
 import { PHOTO_LINK_SECONDS, readAndSignPhotoLinks } from "@/server/media/links";
@@ -48,14 +50,14 @@ type ClientCode =
   | "unknownCategory"
   | "unknownPlace";
 
-/** The database's error names mapped to this route's fixed codes. */
+/** `feed_page`'s refusal codes (INC-1224: `feed_page: <code>`) mapped to this route's fixed codes. */
 const NOT_FOUND: Readonly<Record<string, ClientCode>> = {
-  "feed_page: unknownCategory": "unknownCategory",
-  "feed_page: unknownPlace": "unknownPlace",
+  unknownCategory: "unknownCategory",
+  unknownPlace: "unknownPlace",
 };
 const BAD: Readonly<Record<string, ClientCode>> = {
-  "feed_page: badCursor": "badCursor",
-  "feed_page: badSize": "badSize",
+  badCursor: "badCursor",
+  badSize: "badSize",
 };
 
 async function handler(
@@ -75,13 +77,11 @@ async function handler(
   if (took > 5000) console.warn("[slow-rpc]", "feed_page", took);
 
   if (error) {
-    const message = error.message ?? "";
-    for (const [name, code] of Object.entries(NOT_FOUND)) {
-      if (message.includes(name)) return clientError(code, 404);
-    }
-    for (const [name, code] of Object.entries(BAD)) {
-      if (message.includes(name)) return clientError(code, 400);
-    }
+    const refused = functionRefusalCode(error.message ?? "", "feed_page");
+    const notFound = refused === null ? undefined : ownValue(NOT_FOUND, refused);
+    if (notFound !== undefined) return clientError(notFound, 404);
+    const bad = refused === null ? undefined : ownValue(BAD, refused);
+    if (bad !== undefined) return clientError(bad, 400);
     return readFailure(PATH, "feed read", readFailed(error, status));
   }
 

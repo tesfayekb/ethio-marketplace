@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { readFailed } from "@/lib/reader-failure";
+import { splitRefusal } from "@/lib/refusal";
 import { uuid } from "@/lib/schemas/primitives";
 import { clientError, conditional, readFailure } from "@/server/answer";
 import { defineRoute, type RouteContext } from "@/server/route";
@@ -41,8 +42,9 @@ async function handler(ctx: RouteContext<unknown, z.infer<typeof Params>>): Prom
           p_attribute_id: id,
         });
         if (error) {
-          if (error.message.includes("attributeNotFound")) return null;
-          if (error.message.includes("rateLimited")) throw new OptionsRefusal();
+          const refused = splitRefusal(error.message.trim()).key;
+          if (refused === "attributeNotFound") return null;
+          if (refused === "rateLimited") throw new OptionsRefusal();
           throw readFailed(error, status);
         }
         return { body: data ?? { options: [], version: stamp }, stamp };

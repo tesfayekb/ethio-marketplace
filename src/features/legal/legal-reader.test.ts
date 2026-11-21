@@ -3,7 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const rpc = vi.hoisted(() => vi.fn());
 // DEC-261 — the database call through the client's door.
 vi.mock("@/lib/supabase-door", () => ({ rpc }));
-import { legalTextFor, myListingCertification, parseLegalVersion } from "./legal-reader";
+import {
+  legalRefusal,
+  legalTextFor,
+  myListingCertification,
+  parseLegalVersion,
+} from "./legal-reader";
 
 const version = {
   version_id: "e2e-version",
@@ -69,4 +74,14 @@ describe("legal reader text shapes", () => {
       await expect(myListingCertification("e2e-listing")).rejects.toThrow();
     },
   );
+});
+
+describe("the legal refusal's word (ACT-028)", () => {
+  it("LGRD-1 the word is the door's code before its first colon, read through splitRefusal", () => {
+    expect(legalRefusal({ message: " notInForce:terms " })).toBe("notInForce");
+    expect(legalRefusal("acceptancePending")).toBe("acceptancePending");
+    expect(legalRefusal({ message: "badValue:a:b" })).toBe("badValue");
+    expect(legalRefusal(null)).toBe("");
+    expect(legalRefusal({})).toBe("");
+  });
 });
