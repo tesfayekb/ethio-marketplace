@@ -1,77 +1,75 @@
-# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
+# L22c — posting and the ad page say WHEN, the two Guide lines, the preview look (PLAN)
 
-(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
+Branch `lovable/reset-words-c` · base commit `4bf2293e9`. The sandbox HEAD is `4bf2293e9` and the tree is clean against it.
 
-## CI first
-- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
-- No completed run on 836d1030 yet. Read again before the build turn's push.
+## Part 2 question first (read only)
+Yes, option B needs a change under `scripts/`. `scripts/conformance/admin-guides.ts:172-174` builds the keys a block needs from the fixed endings: `${prefix}.guide.what`, `.guide.col.<key>` and `.guide.how`. Its `unclaimed` rule (`:39`) fails any key in en-guide.ts that no block needs, so override keys would be flagged and the old what/how would still be needed. **I propose option A.**
 
-## What the operator will see
-Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
+## (a) Families, from the tree at the base
+| Family | Where the instant is lost | Change | Callers |
+|---|---|---|---|
+| Posting draft | `refusal-text.ts:171` `draftRefusalKey` returns `.key` | `DRAFT_REFUSALS.when` → `post.refusal.rateLimitedWhen`; new `draftRefusalText(reason, t, language)` beside the key reader | wizard.tsx:1701, 1764; step-who.tsx:755, 1012; step-where.tsx:1720; step-review.tsx:838; step-pricing.tsx:439; step-details.tsx:454 |
+| Posting photo | `refusal-text.ts:185` `photoRefusalKey` returns `.key`; step-photos stores `refusalKey` (278, 331, 345, 365, 391, 416, 484, 589) | `PHOTO_REFUSALS.when` → `post.photo.refusal.rateLimitedWhen`; step-photos stores the refused reason next to its key and draws `photoRefusalText` | step-photos.tsx only. listing-photos.tsx:216 and photo-reviews.tsx:161 read review codes with no instant, so they stay unchanged |
+| Pin answer | `posting-service.ts:1147-1152` `pinAnswer` returns `"rateLimited"` | return value kept; a second export `pinRateUntil(message)` returns the instant; the answer gains an optional `until` | step-where.tsx:2137, 2231 (line state `rateLimited` keeps its key and gains the instant) |
+| Specifications | `posting-service.ts:846-853` returns `rateLimited: boolean`; step-specifications.tsx:173/244/288 | add `rateUntil?: string`; draw `post.specs.rateLimitedWhen` when there is an instant | step-specifications.tsx:1194, 1207, 1756. The options route answers `{reason:"rateLimited"}` with no instant, so it stays plain |
+| Ad page save | `ad-page-refusals.ts:59` collapses to `"rateLimited"` | `saveRefusal` kept byte for byte; new `rateUntilOf(failure)` beside it; `save.ts:20` answer gains `until?` | l.$slug.tsx:146, 166, 314 → listing-detail.tsx:279, 794 |
+| Ad page report | `:67-69` | `reportRefusal` kept; `report.ts:33` answer gains `until?` | report-ad-dialog.tsx:41, 73-74 |
+| Ad page contact | `:83-85` | `contactRefusal` kept; `contact.ts:37, 40` answer gains `until?` | listing-detail.tsx:1522-1523 |
 
-## Census (836d1030; build turn pastes full file:line)
-Primitive consumers — "uses the primitive":
-- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
-- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
-- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
-- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
-- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
+Each family declares its own `when` map next to its plain words. A refusal with no instant, or an instant in the past, keeps today's sentence.
 
-"Draws its own":
-- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
-- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
-- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
-- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
+## (b) Keys
+Added, each beside its plain key:
+- `post.refusal.rateLimitedWhen` (base layer): "You have saved many times in a short while. Try again {when}." Amharic is held by the supervisor.
+- `post.photo.refusal.rateLimitedWhen` (base layer): the plain sentence with "Try again {when}." Amharic is held by the supervisor.
+- `post.specs.rateLimitedWhen` (member layer): the plain sentence with "Try again {when}." Needs Amharic.
+- `adPage.save.rateLimitedWhen` (base layer): "You have saved many ads today. Try again {when}."
+- `adPage.report.rateLimitedWhen` (base layer): "You have sent many reports today. Try again {when}."
+- `adPage.contact.rateLimitedWhen` (base layer): "You have looked up many contacts today. Try again {when}."
 
-Own classes on dialog parts outside the primitive:
-- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
+No key is retired; every plain key stays as the fallback. The key census for each changed file is pasted at the start of the build, and every other key those files draw is kept.
 
-Unused primitives:
-- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
-- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
+Part 2 (option A): the level block's 20 guide keys move from `admin.monetisation.level.guide.*` to `admin.monetisation.levels.guide.*`, with the prefix changed at `products-section.tsx:328`.
+- 18 keys keep their English and their Amharic byte for byte, copied by script.
+- `what` and `how` take the "specific perks" wording and need new Amharic.
+- The 20 old keys are retired; nothing else in src, e2e or scripts reads them.
 
-Allowlists:
-- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
-- look-values-allowlist :3 (drawer) goes with drawer.tsx.
+## (c) First download
+`bun run build` was not run in plan mode, because it writes `dist/`. It is the first step of the build.
+- If a changed module in `index` or `shared-shell` has different imports, the build stops there.
+- No changed file will import `refusal-tail.ts` or an admin key; the only import added is `refusalText` from `src/lib/refusal.ts`.
+- Known risk: `refusal.ts` sits in its own `refusal` chunk. Public pages (`l.$slug`, listing-detail) may not load it today. If they don't, `rateUntilOf` reads the instant through `splitRefusal`, which already ships in `index`, and the page fills `{when}` with `relativeTime`. I will report which of the two holds.
 
-## Mechanism
-1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
-   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
-2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
-3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
-4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
-5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
-6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
+## (d) Tests
+One test per family, RTW-15 to RTW-21. Each checks that a future instant draws the "when" words and that no instant keeps the plain words. The ids are checked free across src, e2e and scripts at build time. The new `until?` fields are proven with `expectTypeOf`. Existing tests that compare exact answer shapes stay unchanged, because `until` is added only when an instant exists.
 
-## Guard
-- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
-- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
+## (e) e2e
+- `ad-page-doors.spec.ts:773/779/880/886` read `saveRefusal`/`reportRefusal` and expect `"rateLimited"`. Those readers keep their return value, so the specs don't break.
+- `post-wizard-specs.spec.ts:399/401` check the testid, `data-reason="rateLimited"` and the exact `en["post.specs.rateLimited"]` text. Their route answer carries no instant, so the plain text stays and the specs don't break.
+- `post-wizard-bundle2:1140`, `photo-pipeline:445`, `post-wizard-place:1540` and the `ad-page-doors:562/771/777/878/884` code checks read codes or reasons only, so they don't break.
+- The `per-category` hits are comments and test titles in `admin-monetisation.spec.ts:97/797/819` and the attribute specs; they don't break.
 
-## Tests
-- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
-- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
-- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
-- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
-- DLG-E6 reduced motion: no transition.
-- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
-- Touched specs whole, both projects, retries 0.
+No spec edits.
 
-## G38 list (build turn greps and names old → new)
-- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
+## (f) Guards
+- String scan.
+- strings-layers: ad page and posting keys go to the base layer, the specifications key to member, the guide keys to the guide layer.
+- Both usage maps regenerated.
+- test-ids, non-null, forms and refusal-readers.
+- The guide check is `scripts/conformance/admin-guides.test.ts`; there is no `scripts/admin-guides.test.ts`. It judges option A.
 
-## Growth
-- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
-- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
+## (g) Count and split
+About 30 source files: 17 family files, about 6 locale files, 1 guide spec and about 6 tests. Proposed split:
+- **L22c (this turn): the ad page and Part 2**, about 14 files: ad-page-refusals, save, report, contact, l.$slug, report-ad-dialog, listing-detail, products-section, en/am-base, en/am-guide, and tests.
+- **L22d: posting**, about 16 files: refusal-text, wizard, the steps, posting-service and step-specifications.
 
-## Turns
-- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
-- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
-- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
+## (h) Part 3 result (INC-1193)
+At base `4bf2293e9`, I opened `/` and `/l/canon-dslr-camera-rescvrjk6v` in the sandbox preview with headless Chromium. There was no `Cannot access enBase before initialization`, and no page error on either page. The ad page logged four `401` resource loads (signed-out reads) and nothing else. Earlier turns did see that error on `/dev/primitives`, which I haven't checked here. I don't have the error from Lovable's hosted preview.
 
-## Open points for the ruling
-1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
-2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
-3. Map pin dropper on the Radix dialog, or allowlisted.
+## (i) Differently
+- I would keep every code-returning reader and add the instant beside it, rather than change what the readers return, because e2e specs read those values.
+- `pinAnswer` is in `posting-service.ts`. Its key reader is unchanged; only a sibling export is added. No query changes.
+- The photo review codes on the staff screens keep the plain words; they carry no instant.
 
-## Technical scope (build)
-src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.
+## Not changed
+Doors, queries, permissions, testids, `scripts/`, `src/integrations/`, `src/features/auth/`, `src/server/` and `src/routes/api/` are unchanged. `use-draft.ts`, the route words with no instant, and `auth.errorRateLimited` stay out of scope.
