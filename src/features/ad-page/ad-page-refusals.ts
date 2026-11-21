@@ -1,4 +1,5 @@
-import { readRefusal, splitRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { MessageKey } from "@/i18n";
+import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
  * F1-5b — THE BUYER'S DOORS' WORDS, by code, for the one reader (DEC-339). The shell
@@ -9,6 +10,8 @@ import { readRefusal, splitRefusal, type RefusalFamily } from "@/lib/refusal";
  */
 export const SAVE_REFUSALS = {
   words: { rateLimited: "adPage.save.rateLimited" },
+  // L22c — the dial's words that say WHEN, for a reset instant still to come.
+  when: { rateLimited: "adPage.save.rateLimitedWhen" },
   generic: "adPage.save.failed",
 } as const satisfies RefusalFamily;
 
@@ -17,6 +20,7 @@ export const REPORT_REFUSALS = {
     rateLimited: "adPage.report.rateLimited",
     alreadyReported: "adPage.report.already",
   },
+  when: { rateLimited: "adPage.report.rateLimitedWhen" },
   generic: "adPage.report.failed",
 } as const satisfies RefusalFamily;
 
@@ -26,6 +30,7 @@ export const CONTACT_REFUSALS = {
     rateLimited: "adPage.contact.rateLimited",
     sellersCapReached: "adPage.contact.sellersCap",
   },
+  when: { rateLimited: "adPage.contact.rateLimitedWhen" },
   generic: "adPage.contact.failed",
 } as const satisfies RefusalFamily;
 
@@ -83,4 +88,42 @@ export function contactRefusal(failure: unknown): ContactRefusal {
   const key = readRefusal(failure, CONTACT_REFUSALS).key;
   if (key === CONTACT_REFUSALS.words.sellersCapReached) return "sellersCapReached";
   return key === CONTACT_REFUSALS.words.rateLimited ? "rateLimited" : "failed";
+}
+
+/**
+ * L22c — THE DIAL'S RESET INSTANT, beside the code readers (which keep their answers): the
+ * tail of a `rateLimited:<instant>` refusal, from an error, a returned answer or a string.
+ * Undefined when the refusal is not the dial's or names no instant.
+ */
+export function rateUntilOf(failure: unknown): string | undefined {
+  const fields =
+    typeof failure === "object" && failure !== null ? (failure as Record<string, unknown>) : {};
+  const raw =
+    typeof failure === "string"
+      ? failure
+      : typeof fields["message"] === "string"
+        ? fields["message"]
+        : fields["reason"];
+  if (typeof raw !== "string") return undefined;
+  const parts = splitRefusal(raw.trim());
+  if (parts.key !== "rateLimited") return undefined;
+  const tail = parts.tail?.trim();
+  return tail === undefined || tail === "" ? undefined : tail;
+}
+
+const RATE_FAMILY = { save: SAVE_REFUSALS, report: REPORT_REFUSALS, contact: CONTACT_REFUSALS };
+
+/**
+ * L22c — a door's rate sentence in the family's own words: its `when` words for an instant
+ * still to come (`refusalText`, in the reader's language), else its plain words.
+ */
+export function rateText(
+  door: keyof typeof RATE_FAMILY,
+  until: string | undefined,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  const family = RATE_FAMILY[door];
+  const read = readRefusal(until === undefined ? "rateLimited" : `rateLimited:${until}`, family);
+  return refusalText(read, t, undefined, language);
 }

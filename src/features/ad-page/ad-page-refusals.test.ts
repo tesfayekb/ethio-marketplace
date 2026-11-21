@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { readRefusal } from "@/lib/refusal";
 import {
@@ -9,7 +9,12 @@ import {
   refusalCode,
   reportRefusal,
   saveRefusal,
+  rateText,
+  rateUntilOf,
 } from "./ad-page-refusals";
+import type { ContactState, RevealAnswer } from "./contact";
+import type { ReportAnswer } from "./report";
+import type { SaveAnswer } from "./save";
 
 /**
  * F1-5b — the buyer's doors' words and the reason each screen branches on, read from what
@@ -98,5 +103,46 @@ describe("ARF-5 contact reveal", () => {
   });
   it("a returned answer with no reason reads the generic line", () => {
     expect(contactRefusal({ ok: false })).toBe("failed");
+  });
+});
+
+describe("L22c — the ad page's rate sentences say when", () => {
+  const words = (key: string) => (key.endsWith("When") ? "{when}" : "plain");
+  const timed = (door: "save" | "report" | "contact") => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-21T04:00:00Z"));
+    try {
+      const until = rateUntilOf({ message: "rateLimited:2026-11-21T05:00:00Z" });
+      expect(until).toBe("2026-11-21T05:00:00Z");
+      expect(rateText(door, until, words, "en")).toBe("in 1 hour");
+      expect(rateText(door, undefined, words, "en")).toBe("plain");
+      expect(rateText(door, "2026-11-21T03:00:00Z", words, "en")).toBe("plain");
+      expect(rateUntilOf({ message: "rateLimited" })).toBeUndefined();
+      expect(rateUntilOf({ reason: "ownListing" })).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  };
+  it("RTW-15 save: a reset still to come says when; no instant keeps the plain words", () => {
+    timed("save");
+    expect(saveRefusal({ message: "rateLimited:2026-11-21T05:00:00Z" })).toBe("rateLimited");
+    expectTypeOf<Extract<SaveAnswer, { ok: false }>["until"]>().toEqualTypeOf<string | undefined>();
+  });
+  it("RTW-16 report: a reset still to come says when; no instant keeps the plain words", () => {
+    timed("report");
+    expect(reportRefusal({ message: "rateLimited:2026-11-21T05:00:00Z" })).toBe("rateLimited");
+    expectTypeOf<Extract<ReportAnswer, { ok: false }>["until"]>().toEqualTypeOf<
+      string | undefined
+    >();
+  });
+  it("RTW-17 contact: a reset still to come says when; no instant keeps the plain words", () => {
+    timed("contact");
+    expect(contactRefusal({ reason: "rateLimited" })).toBe("rateLimited");
+    expectTypeOf<Extract<RevealAnswer, { ok: false }>["until"]>().toEqualTypeOf<
+      string | undefined
+    >();
+    expectTypeOf<Extract<ContactState, { kind: "refused" }>["until"]>().toEqualTypeOf<
+      string | undefined
+    >();
   });
 });
