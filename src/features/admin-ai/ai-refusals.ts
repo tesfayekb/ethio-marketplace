@@ -2,7 +2,7 @@ import type { MessageKey } from "@/i18n";
 import { badValueWords } from "@/lib/bad-value-words";
 import { errorText } from "@/lib/error-text";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
-import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
+import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
  * F1-6b — THE AI CONSOLE'S WORDS FOR THE FEATURE DOOR'S CODES, for the one
@@ -15,6 +15,7 @@ import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
  * in the family's files.
  */
 export const AI_DOOR_REFUSALS = {
+  when: ADMIN_WHEN,
   words: {
     notSignedIn: "admin.ai.error.denied",
     permissionDenied: "admin.ai.error.denied",
