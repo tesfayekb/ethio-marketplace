@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-import type { MessageKey } from "@/i18n";
+import type { Refusal } from "@/lib/refusal";
 
 import {
   isStepUpFresh,
@@ -60,7 +60,7 @@ export type GuardFn = <T>(action: () => T | Promise<T>) => Promise<T>;
 export function useStepUp() {
   const [mode, setMode] = useState<StepUpMode>("closed");
   const [busy, setBusy] = useState(false);
-  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
+  const [refusal, setRefusal] = useState<Refusal | null>(null);
   const pendingRef = useRef<Pending | null>(null);
 
   const close = useCallback(() => {
@@ -70,7 +70,7 @@ export function useStepUp() {
     const pending = pendingRef.current;
     pendingRef.current = null;
     setMode("closed");
-    setErrorKey(null);
+    setRefusal(null);
     setBusy(false);
     pending?.reject(new StepUpCancelled());
   }, []);
@@ -84,7 +84,7 @@ export function useStepUp() {
     const pending = pendingRef.current;
     pendingRef.current = null;
     setMode("closed");
-    setErrorKey(null);
+    setRefusal(null);
     setBusy(false);
     pending?.reject(new StepUpUnavailable());
   }, []);
@@ -92,7 +92,7 @@ export function useStepUp() {
   /** Parks the action behind the modal; the caller's promise waits for it. */
   const open = useCallback(async (pending: Pending) => {
     pendingRef.current = pending;
-    setErrorKey(null);
+    setRefusal(null);
     const factors = await listFactors();
     const hasFactor = factors.ok && factors.factors.length > 0;
     setMode(hasFactor ? "code" : "no-factor");
@@ -133,11 +133,11 @@ export function useStepUp() {
   const submitCode = useCallback(async (code: string) => {
     const pending = pendingRef.current;
     setBusy(true);
-    setErrorKey(null);
+    setRefusal(null);
     const verified = await stepUpWithCode(code);
     if (!verified.ok) {
       setBusy(false);
-      setErrorKey(verified.errorKey);
+      setRefusal(verified.refusal);
       return false;
     }
     setBusy(false);
@@ -154,5 +154,5 @@ export function useStepUp() {
     return true;
   }, []);
 
-  return { mode, busy, errorKey, guard, submitCode, close, unavailable };
+  return { mode, busy, refusal, guard, submitCode, close, unavailable };
 }

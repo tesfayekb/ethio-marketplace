@@ -1,7 +1,8 @@
+import { errorText } from "@/lib/error-text";
 import { forgetStoredSession } from "@/lib/supabase-door";
 
 import { authClient } from "./auth-client";
-import { CLIENT_FAILED, failure } from "./auth-result";
+import { CLIENT_FAILED } from "./auth-result";
 import type { AuthResult } from "./types";
 
 /**
@@ -27,7 +28,11 @@ export async function signOut(): Promise<AuthResult> {
   const { error } = await supabase.auth.signOut({ scope: "local" });
   if (error) {
     forgetStoredSession();
-    return failure(error);
+    // INC-1153 — the shell reads only `ok` (app-shell, DEC-268), so the failure answers the one generic
+    // line without the mapper (which would carry the reader into every page); the provider's own words
+    // are logged once, here.
+    console.warn(`[auth] the sign-out was not accepted: ${errorText(error)}`);
+    return { ok: false, errorKey: "auth.errorGeneric" };
   }
   return { ok: true };
 }

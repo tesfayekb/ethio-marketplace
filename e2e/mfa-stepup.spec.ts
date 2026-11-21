@@ -1,12 +1,20 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { destroyCategory, scratchSlug } from "./helpers/categories";
 import { pageDoor } from "./helpers/door-callers";
 
 import { en } from "../src/i18n/locales/en";
 
 import { expectPicturesFit } from "./helpers/pictures";
 import { totp, wrongCode } from "./helpers/totp";
-import { gotoReady, isMobile, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  expectAal2,
+  gotoReady,
+  isMobile,
+  signInJobSuperAdmin,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { adminClient, createUser, grantRole } from "./helpers/users";
 
 /**
@@ -369,6 +377,82 @@ test.describe("FIX-SCAN-1 step-up abort", () => {
       await expect(page.getByTestId("edit-save")).toBeEnabled();
       await expect(page.getByTestId("edit-error")).toHaveText(en["mfa.stepUpUnavailableHint"]);
       expect(await displayName(target.id), "MF-7c nothing was written").toBe(before);
+    },
+  );
+});
+
+/*
+ * MF-9 (cursor bundle 1, item 7; INC-1234) — ONE STEP-UP, ONE PROMPT. The operator's walk of
+ * 2026-11-15 asked for the code a second time on Admin, creating a category and then generating
+ * its picture, moments after the first. The cause was not found (the census ran this flow on
+ * ethio-staging and the modal opened once); this test pins what the walk expected: one code
+ * covers the create and the picture step. It counts every step-up modal that OPENS, by an
+ * observer installed before the first paint — the one form that can see a second prompt (the
+ * image specs answer a prompt silently).
+ */
+test.describe("INC-1234 one step-up, one prompt", () => {
+  test(
+    "MF-9 one code covers a category's creation and its picture step",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      test.setTimeout(120_000);
+      await page.addInitScript(() => {
+        const seen = { count: 0 };
+        (window as unknown as { __stepUpSeen: typeof seen }).__stepUpSeen = seen;
+        new MutationObserver((records) => {
+          for (const record of records)
+            for (const node of Array.from(record.addedNodes))
+              if (
+                node instanceof HTMLElement &&
+                (node.matches('[data-testid="step-up-modal"]') ||
+                  node.querySelector('[data-testid="step-up-modal"]') !== null)
+              )
+                seen.count += 1;
+        }).observe(document, { childList: true, subtree: true });
+      });
+      const opened = () =>
+        page.evaluate(
+          () =>
+            (window as unknown as { __stepUpSeen?: { count: number } }).__stepUpSeen?.count ?? -1,
+        );
+      const { user, secret } = await signInJobSuperAdmin(page);
+      // A fresh password sign-in is aal1: the modal is guaranteed for the create.
+      await switchUser(page, user.email, user.password);
+      const slug = scratchSlug();
+      try {
+        await gotoReady(page, "/admin/categories");
+        const before = await opened();
+        await page.getByTestId("category-create-open").click();
+        await page.getByTestId("category-create-name").fill(slug);
+        await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
+        await page.getByTestId("category-create-submit").click();
+        const modal = page.getByTestId("step-up-modal");
+        await expect(modal).toBeVisible({ timeout: 15000 });
+        await page.getByTestId("step-up-code").fill(totp(secret));
+        await page.getByTestId("step-up-submit").click();
+        await expect(modal).toBeHidden({ timeout: 20000 });
+        await expectAal2(page);
+        await expect(page.getByTestId("category-editor-image")).toBeVisible({ timeout: 20000 });
+        expect(await opened(), "the create asked once").toBe(before + 1);
+
+        await page.getByTestId("category-image-generate").click();
+        await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 60000 });
+        await page.getByTestId("category-image-accept").click();
+        // The accept ends by its toast or its badge — or, had the gate asked again, by a modal.
+        await expect
+          .poll(
+            async () =>
+              (await page.getByTestId("category-image-accept-toast").count()) > 0 ||
+              (await page.getByTestId("category-image-accepted-badge").count()) > 0 ||
+              (await modal.count()) > 0,
+            { timeout: 30000 },
+          )
+          .toBe(true);
+        expect(await opened(), "the picture step asked again").toBe(before + 1);
+        await expect(modal).toHaveCount(0);
+      } finally {
+        await destroyCategory(slug);
+      }
     },
   );
 });

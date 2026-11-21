@@ -32,7 +32,7 @@ const StepUpDialog = resilientLazy(
  * failed overlay download does (the dialog root's `onUnavailable`).
  */
 export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNode }) {
-  const { mode, busy, errorKey, guard, submitCode, close, unavailable } = useStepUp();
+  const { mode, busy, refusal, guard, submitCode, close, unavailable } = useStepUp();
 
   return (
     <>
@@ -43,7 +43,7 @@ export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNo
           <StepUpDialog
             mode={mode}
             busy={busy}
-            errorKey={errorKey}
+            refusal={refusal}
             submitCode={submitCode}
             close={close}
             unavailable={unavailable}

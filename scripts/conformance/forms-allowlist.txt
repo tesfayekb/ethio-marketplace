@@ -2,6 +2,4 @@
 # One line per law and file, keyed `<law> <file> (<findings>)`: a count that rises is a new finding, and a
 # count that falls leaves its line stale until it is rewritten — the list only falls. The reason names the
 # wave that moves the file onto the kit. <key> | <reason> | <until>
-CF-FORM-1 src/features/auth/mfa/step-up-dialog.tsx (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
-CF-FORM-3 src/features/auth/auth-error-key.ts (1) | wave 2 — sign-in, sign-up, reset, settings and the step-up code | DEC-339
-CF-FORM-3 src/features/auth/mfa/mfa-service.ts (2) | wave 2 — the two-factor service's own mappers (INC-1147 class 1) | INC-1147
+# Wave 2 is DONE (cursor bundle 1): the list holds no line, and CF-FORM-6 says so.

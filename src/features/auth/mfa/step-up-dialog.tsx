@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 
+import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,14 +12,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useI18n, type MessageKey } from "@/i18n";
+import { useI18n } from "@/i18n";
+import type { Refusal } from "@/lib/refusal";
 
+import { MFA_REFUSALS } from "./mfa-service";
 import type { StepUpMode } from "./use-step-up";
 
 export type StepUpDialogProps = {
   mode: Exclude<StepUpMode, "closed">;
   busy: boolean;
-  errorKey: MessageKey | null;
+  /** The code's refusal, read by MFA_REFUSALS under the control (the one Field). */
+  refusal: Refusal | null;
   submitCode: (code: string) => Promise<boolean>;
   close: () => void;
   unavailable: () => void;
@@ -40,7 +44,7 @@ export type StepUpDialogProps = {
 export function StepUpDialog({
   mode,
   busy,
-  errorKey,
+  refusal,
   submitCode,
   close,
   unavailable,
@@ -86,27 +90,29 @@ export function StepUpDialog({
         </DialogHeader>
 
         {mode === "code" ? (
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-foreground" htmlFor="step-up-code">
-              {t("mfa.codeLabel")}
-            </label>
-            <Input
-              id="step-up-code"
-              ref={codeRef}
-              data-testid="step-up-code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
-              placeholder={t("mfa.codePlaceholder")}
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-            />
-            {errorKey ? (
-              <p role="alert" data-testid="step-up-error" className="text-sm text-destructive">
-                {t(errorKey)}
-              </p>
-            ) : null}
-          </div>
+          <Field
+            id="step-up-code"
+            field="code"
+            label={t("mfa.codeLabel")}
+            required
+            refusal={refusal}
+            family={MFA_REFUSALS}
+            refusalTestId="step-up-error"
+          >
+            {(control) => (
+              <Input
+                {...control}
+                ref={codeRef}
+                data-testid="step-up-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                placeholder={t("mfa.codePlaceholder")}
+                value={code}
+                onChange={(event) => setCode(event.target.value)}
+              />
+            )}
+          </Field>
         ) : null}
 
         <DialogFooter>

@@ -1,4 +1,7 @@
 import type { MessageKey } from "@/i18n";
+import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+
+import type { AuthResult } from "./types";
 
 /**
  * The provider's error as the mapper reads it. `reasons` is the auth client's
@@ -31,38 +34,74 @@ function onlyLeaked(error: AuthErrorLike): boolean {
  */
 const MAIL_SEND_FAILED = /^Error sending (confirmation email|recovery email|magic link email)$/i;
 
-/** Map a Supabase auth error onto a translation key. Raw errors never reach the UI. */
-export function toErrorKey(error: AuthErrorLike): MessageKey {
-  const message = error.message ?? "";
-  const code = error.code;
+/** The word the reader is handed for a leaked-password refusal (`reasons` all `pwned`). */
+const LEAKED_PASSWORD = "leakedPassword";
+const MAIL_NOT_AUTHORIZED = "email_address_not_authorized";
+const RATE_LIMITED = "over_request_rate_limit";
 
-  if (isEmailNotConfirmed(message, code)) return "auth.errorEmailNotConfirmed";
-  if (code === "invalid_credentials" || /invalid login credentials/i.test(message)) {
-    return "auth.errorInvalidCredentials";
-  }
-  if (code === "user_already_exists" || /already registered/i.test(message)) {
-    return "auth.errorEmailInUse";
-  }
-  if (code === "single_identity_not_deletable" || /at least 1 identity/i.test(message)) {
-    return "auth.errorLastMethod";
-  }
-  if (code === "weak_password" || /password should be/i.test(message)) {
-    return onlyLeaked(error) ? "auth.errorLeakedPassword" : "auth.errorWeakPassword";
-  }
+/**
+ * DEC-339 wave 2 (INC-1147) — THE AUTH PROVIDER'S WORDS, read by the one reader (src/lib/refusal.ts,
+ * dialect 7: the provider's own error `code`, by the family's words). The `sentences` are the
+ * provider's English for the errors that carry no code, in the order the mapper always read them
+ * (the first match wins). Raw errors never reach the UI.
+ */
+export const AUTH_REFUSALS: RefusalFamily = {
+  words: {
+    email_not_confirmed: "auth.errorEmailNotConfirmed",
+    invalid_credentials: "auth.errorInvalidCredentials",
+    user_already_exists: "auth.errorEmailInUse",
+    single_identity_not_deletable: "auth.errorLastMethod",
+    weak_password: "auth.errorWeakPassword",
+    [LEAKED_PASSWORD]: "auth.errorLeakedPassword",
+    [MAIL_NOT_AUTHORIZED]: "auth.errorMailSend",
+    validation_failed: "auth.errorInvalidEmail",
+    [RATE_LIMITED]: "auth.errorRateLimited",
+    over_email_send_rate_limit: "auth.errorRateLimited",
+  },
+  sentences: [
+    [/email not confirmed/i, "auth.errorEmailNotConfirmed"],
+    [/invalid login credentials/i, "auth.errorInvalidCredentials"],
+    [/already registered/i, "auth.errorEmailInUse"],
+    [/at least 1 identity/i, "auth.errorLastMethod"],
+    [/password should be/i, "auth.errorWeakPassword"],
+    // Bundle 16 turn S2 (D185) — the sign-up hook refuses a throwaway mail domain
+    // (`hook_before_user_created`); read before the generic e-mail check.
+    [/disposableEmail/, "auth.errorDisposableEmail"],
+    [/invalid email|email address/i, "auth.errorInvalidEmail"],
+    [/rate limit/i, "auth.errorRateLimited"],
+  ],
+  generic: "auth.errorGeneric",
+};
 
-  // Bundle 16 turn S2 (D185) — the sign-up hook refuses a throwaway mail domain
-  // (`hook_before_user_created`); read before the generic e-mail check.
-  if (/disposableEmail/.test(message)) return "auth.errorDisposableEmail";
-  // INC-822 — read before the generic e-mail check: the refused address's message names "Email address".
+/**
+ * What the reader is handed: the three reads a family's table cannot say come first — the leaked
+ * reason, and (INC-822, read before the generic e-mail check: the refused address's message names
+ * "Email address") the mail the server could not send or the address it refuses — then the code
+ * the table names, else the error itself (its message by the sentences, then its code).
+ */
+function heardOf(error: AuthErrorLike): unknown {
+  if (onlyLeaked(error)) return LEAKED_PASSWORD;
   if (
-    code === "email_address_not_authorized" ||
-    (error.status === 500 && MAIL_SEND_FAILED.test(message))
-  ) {
-    return "auth.errorMailSend";
-  }
-  if (code === "validation_failed" || /invalid email|email address/i.test(message)) {
-    return "auth.errorInvalidEmail";
-  }
-  if (error.status === 429 || /rate limit/i.test(message)) return "auth.errorRateLimited";
-  return "auth.errorGeneric";
+    error.code === MAIL_NOT_AUTHORIZED ||
+    (error.status === 500 && MAIL_SEND_FAILED.test(error.message ?? ""))
+  )
+    return MAIL_NOT_AUTHORIZED;
+  return error;
+}
+
+/** Map a Supabase auth error onto a translation key, through the one reader. */
+export function toErrorKey(error: AuthErrorLike): MessageKey {
+  const read = readRefusal(heardOf(error), AUTH_REFUSALS);
+  // A 429 whose words nothing above names is still a rate refusal.
+  if (read.branch === "generic" && error.status === 429) return "auth.errorRateLimited";
+  return read.key;
+}
+
+/** An auth action's failure as the answer every action shares (the service's own import). */
+export function failure(error: AuthErrorLike): AuthResult {
+  return {
+    ok: false,
+    errorKey: toErrorKey(error),
+    emailNotConfirmed: isEmailNotConfirmed(error.message ?? "", error.code),
+  };
 }
