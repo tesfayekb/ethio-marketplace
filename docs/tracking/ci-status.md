@@ -1,29 +1,29 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `96b53abfecb1ec414f02c24da533b4b8aa0c297d` (short `96b53ab`)
+- Commit: `4bf2293e965ae76796ffa2ca7082fb57c354d51c` (short `4bf2293`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-21T05:14:11Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44869352644
-- Lanes: skipped — the code tree was proven by run 44865593517 (pull_request, lovable/reset-words, head 8b1656a)
+- Completed (UTC): 2026-11-21T08:35:19Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44885169320
+- Lanes: skipped — the code tree was proven by run 44883885466 (pull_request, lovable/reset-words-b, head 977e7e9)
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Gitleaks secrets scan | success |
-| Listing-write seam guard (with self-test) | success |
 | i18n used-on map is fresh (U4i ②) | success |
 | Build, typecheck, lint | success |
-| Migration linter (with self-test) | success |
+| Gitleaks secrets scan | success |
 | Import gate guard (with self-test) | success |
-| Hardcoded string scan (enforcing) | success |
-| Scope (docs-only push, DEC-365) | success |
-| Component tests | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Migration linter (with self-test) | success |
+| Component tests | success |
 | E2E preflight (migration parity, staging) | success |
-| Semgrep (enforcing on ERROR) | success |
+| Scope (docs-only push, DEC-365) | success |
+| Listing-write seam guard (with self-test) | success |
 | Dependency vulnerability audit (enforcing on high/critical) | success |
+| Semgrep (enforcing on ERROR) | success |
+| Hardcoded string scan (enforcing) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | E2E (Playwright, ethio-staging) | success |
 | E2E lanes | skipped (proven tree) |
 | First-paint bundle budget (gzipped ceiling) | skipped (proven tree) |
