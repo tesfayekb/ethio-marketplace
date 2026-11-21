@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
-import type { Refusal, RefusalFamily } from "@/lib/refusal";
+import type { Refusal, RefusalFamily, RefusalRead } from "@/lib/refusal";
 
 /**
  * L8 (DEC-339, wave 3) — the monetisation console's refusal family for the one
@@ -64,6 +64,8 @@ export function ownRefusals(
  * grow (INC-1153): the words of a family live in the family's files.
  */
 export const MONETISATION_DOOR_REFUSALS = {
+  // L22b — the dial's words that say WHEN, for a reset instant still to come.
+  when: { rateLimited: "admin.packages.error.rateLimitedWhen" },
   words: {
     notSignedIn: "admin.packages.error.denied",
     permissionDenied: "admin.packages.error.denied",
@@ -116,4 +118,6 @@ export interface MonetisationRefusal {
   key: MessageKey;
   /** The door's own code when no key names it (shown as a reason line). */
   raw: string | null;
+  /** L22b — the door's read with its tail, so the line can say when (`refusalText`). */
+  read?: RefusalRead;
 }

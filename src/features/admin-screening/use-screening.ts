@@ -1,3 +1,4 @@
+import type { MessageKey } from "@/i18n";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
@@ -13,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { tierOf } from "@/components/marketplace/card-tier";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ReaderError } from "@/lib/reader-failure";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { SHARED_REFUSAL_WORDS } from "@/features/admin-listings/listing-refusals";
 
 /**
@@ -357,7 +358,8 @@ export function useScreeningSchema(categoryId: string | null) {
  */
 export type RevealAnswer =
   | { ok: true; value: string }
-  | { ok: false; reason: "notShown" | "rateLimited" };
+  | { ok: false; reason: "notShown" }
+  | { ok: false; reason: "rateLimited"; until?: string };
 
 /** Bundle 11 A3 — the words drawn under a channel's row when a reveal is refused. */
 export function revealProblemKey(reason: "notShown" | "rateLimited") {
@@ -366,9 +368,30 @@ export function revealProblemKey(reason: "notShown" | "rateLimited") {
     : ("admin.screening.revealNotShown" as const);
 }
 
+/** L22b — a reveal's problem under its row: the key (state) and, for the dial, its reset instant. */
+export type RevealProblem = { key: MessageKey; until?: string };
+
+/** L22b — the reveal's problem as words, saying when the dial resets. */
+export function revealProblemText(
+  problem: RevealProblem,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  if (problem.until === undefined || problem.key !== revealProblemKey("rateLimited"))
+    return t(problem.key);
+  return refusalText(
+    readRefusal(`rateLimited:${problem.until}`, REVEAL_REFUSALS),
+    t,
+    undefined,
+    language,
+  );
+}
+
 /** The reveal's one refusal with a line of its own: the dial. The gate raises it as a code. */
 const REVEAL_REFUSALS = {
   words: { rateLimited: "admin.screening.revealLimited" },
+  // L22b — the dial's words that say WHEN, for a reset instant still to come.
+  when: { rateLimited: "admin.screening.revealLimitedWhen" },
   generic: "common.error",
 } as const satisfies RefusalFamily;
 
@@ -384,8 +407,11 @@ export async function revealContact(
     // INC-1170 (F1-7a): the gate raises the dial's refusal as `rateLimited:<instant>`, the code with
     // the reset time after its first colon; the one reader reads the code, and the screen's line for
     // it is the one the returned answer drew before (the words that draw the time are F1-7c's).
-    if (readRefusal(error, REVEAL_REFUSALS).key === revealProblemKey("rateLimited")) {
-      return { ok: false, reason: "rateLimited" };
+    const read = readRefusal(error, REVEAL_REFUSALS);
+    if (read.key === revealProblemKey("rateLimited")) {
+      return read.tail === undefined
+        ? { ok: false, reason: "rateLimited" }
+        : { ok: false, reason: "rateLimited", until: read.tail };
     }
     throw error;
   }

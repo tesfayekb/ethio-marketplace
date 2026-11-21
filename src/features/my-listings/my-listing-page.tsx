@@ -47,6 +47,7 @@ import { authKey } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import {
+  actionOutcomeText,
   actionKey,
   actionsFor,
   ASKS_FIRST,
@@ -306,7 +307,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
       if (!outcome.ok) {
         // Bundle 22 turn 4 — a legal refusal goes through certifyRefusal; the others as before.
         if (outcome.reason === undefined || !certifyRefusal(outcome.reason, navigate))
-          setProblem(t(outcome.key));
+          setProblem(actionOutcomeText(outcome, t, language));
       } else if (action === "delete") {
         // Turn 3b (call F) — a deleted ad has no page: back to My listings, read again.
         await reload();
@@ -341,7 +342,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
         void navigate({ to: "/post/$listingId", params: { listingId: outcome.listingId } });
         return;
       }
-      setProblem(t(outcome.key));
+      setProblem(actionOutcomeText(outcome, t, language));
     } catch {
       setProblem(t("myListings.error.failed"));
     }

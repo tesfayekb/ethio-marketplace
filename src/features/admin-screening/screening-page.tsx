@@ -58,6 +58,8 @@ import {
   readScreeningRow,
   revealContact,
   revealProblemKey,
+  revealProblemText,
+  type RevealProblem,
   useNameCheckSummary,
   useScreeningFacts,
   useScreeningPhotos,
@@ -156,9 +158,9 @@ export function AdminScreeningPage({
   };
   const [previewRow, setPreviewRow] = useState<ScreeningRow | null>(null);
   const [revealed, setRevealed] = useState<Partial<Record<RevealChannel, string>>>({});
-  const [revealProblems, setRevealProblems] = useState<Partial<Record<RevealChannel, MessageKey>>>(
-    {},
-  );
+  const [revealProblems, setRevealProblems] = useState<
+    Partial<Record<RevealChannel, RevealProblem>>
+  >({});
   const [revealing, setRevealing] = useState<RevealChannel | null>(null);
   // The ad the preview shows now: an answer that arrives after the preview has
   // closed or moved to another ad is dropped, never drawn under the wrong ad.
@@ -325,13 +327,16 @@ export function AdminScreeningPage({
       } else {
         setRevealProblems((current) => ({
           ...current,
-          [channel]: revealProblemKey(answer.reason),
+          [channel]:
+            answer.reason === "rateLimited" && answer.until !== undefined
+              ? { key: revealProblemKey(answer.reason), until: answer.until }
+              : { key: revealProblemKey(answer.reason) },
         }));
       }
     } catch (error) {
       console.error("[screening] reveal failed", error);
       if (previewId.current !== row.id) return;
-      setRevealProblems((current) => ({ ...current, [channel]: "common.error" }));
+      setRevealProblems((current) => ({ ...current, [channel]: { key: "common.error" } }));
     } finally {
       setRevealing(null);
     }
@@ -355,7 +360,7 @@ export function AdminScreeningPage({
       const problem = revealProblems[channel];
       return (
         <>
-          {problem === "admin.screening.revealNotShown" ? null : (
+          {problem?.key === "admin.screening.revealNotShown" ? null : (
             <Button
               type="button"
               variant="outline"
@@ -373,7 +378,7 @@ export function AdminScreeningPage({
               data-testid={`admin-screening-reveal-problem-${channel}`}
               className="basis-full text-xs text-destructive"
             >
-              {t(problem)}
+              {revealProblemText(problem, t, language)}
             </p>
           ) : null}
         </>

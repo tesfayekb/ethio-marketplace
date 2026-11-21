@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 /** Bundle 11 A3 — every call the queue read makes on the query builder, in order. */
 const calls = vi.hoisted(() => [] as Array<[string, unknown[]]>);
@@ -45,6 +45,9 @@ import {
   readScreeningRow,
   revealContact,
   revealProblemKey,
+  revealProblemText,
+  type RevealAnswer,
+  type RevealProblem,
 } from "./use-screening";
 
 /** Bundle 11 A2 (D120) — the preview's facts as the door returns them. */
@@ -238,6 +241,7 @@ describe("revealContact", () => {
     await expect(revealContact("l-1", "phone")).resolves.toEqual({
       ok: false,
       reason: "rateLimited",
+      until: "2026-11-19T20:05:12.123456+00:00",
     });
     doors.answer = { data: null, error: { message: "permissionDenied" } };
     await expect(revealContact("l-1", "phone")).rejects.toMatchObject({
@@ -356,6 +360,29 @@ describe("the screening row's tier", () => {
       expect(String(select?.[1][0]).split(",")).toContain("tier");
     } finally {
       answer.rows = [];
+    }
+  });
+});
+
+describe("L22b RTW-14", () => {
+  it("RTW-14 screening reveal: a reset still to come says when; no instant keeps the plain words", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-21T04:00:00Z"));
+    try {
+      const words = (key: string) => (key.endsWith("When") ? "{when}" : "plain");
+      const timed: RevealProblem = {
+        key: "admin.screening.revealLimited",
+        until: "2026-11-21T05:00:00Z",
+      };
+      expect(revealProblemText(timed, words, "en")).toBe("in 1 hour");
+      expect(revealProblemText({ key: "admin.screening.revealLimited" }, words, "en")).toBe(
+        "plain",
+      );
+      expectTypeOf<Extract<RevealAnswer, { reason: "rateLimited" }>["until"]>().toEqualTypeOf<
+        string | undefined
+      >();
+    } finally {
+      vi.useRealTimers();
     }
   });
 });

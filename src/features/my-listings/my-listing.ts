@@ -4,7 +4,13 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { ownValue } from "@/lib/own-key";
-import { readRefusal, splitRefusal, type RefusalFamily } from "@/lib/refusal";
+import {
+  readRefusal,
+  refusalText,
+  splitRefusal,
+  type RefusalFamily,
+  type RefusalRead,
+} from "@/lib/refusal";
 
 import {
   LISTING_GROUPS,
@@ -257,6 +263,8 @@ export const ASKS_FIRST: ReadonlySet<ListingAction> = new Set<ListingAction>(["s
  * (`notCopied`, `notEditable`, `reviewerOnly`, …) draws the screen's generic line.
  */
 const SELLER_DOOR_REFUSALS: RefusalFamily = {
+  // L22b — the dial's words that say WHEN, for a reset instant still to come.
+  when: { rateLimited: "myListings.error.rateLimitedWhen" },
   words: {
     rateLimited: "myListings.error.rateLimited",
     accountDeactivated: "myListings.error.deactivated",
@@ -284,7 +292,33 @@ export function actionErrorKey(refusal: string): MessageKey {
   return readRefusal(refusal, SELLER_DOOR_REFUSALS).key;
 }
 
-export type ActionOutcome = { ok: true } | { ok: false; key: MessageKey; reason?: LegalReason };
+/** L22b — the door's read with its tail, for `actionOutcomeText`. */
+export function actionErrorRead(refusal: string): RefusalRead {
+  return readRefusal(refusal, SELLER_DOOR_REFUSALS);
+}
+
+/** L22b — a refused outcome's key, with the read only when it can say when (other shapes unchanged). */
+function refused(refusal: string): { key: MessageKey; read?: RefusalRead } {
+  const read = actionErrorRead(refusal);
+  return read.when === undefined || read.tail === undefined
+    ? { key: read.key }
+    : { key: read.key, read };
+}
+
+export type ActionOutcome =
+  | { ok: true }
+  | { ok: false; key: MessageKey; reason?: LegalReason; read?: RefusalRead };
+
+/** L22b — a refused outcome as the seller reads it, saying when the dial resets. */
+export function actionOutcomeText(
+  outcome: { key: MessageKey; read?: RefusalRead },
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  return outcome.read === undefined
+    ? t(outcome.key)
+    : refusalText(outcome.read, t, undefined, language);
+}
 
 /** The renew door answers its refusals in its body, not as an error. */
 function refusalOf(data: unknown): string | null {
@@ -346,11 +380,11 @@ export async function runAction(
   }
   if (result.error) {
     const reason = legalReasonOf(result.error.message);
-    const key = actionErrorKey(result.error.message);
-    return reason === undefined ? { ok: false, key } : { ok: false, key, reason };
+    const words = refused(result.error.message);
+    return reason === undefined ? { ok: false, ...words } : { ok: false, ...words, reason };
   }
   const refusal = refusalOf(result.data);
-  if (refusal !== null) return { ok: false, key: actionErrorKey(refusal) };
+  if (refusal !== null) return { ok: false, ...refused(refusal) };
   return { ok: true };
 }
 
@@ -665,9 +699,9 @@ export async function editMyListing(
 /** D182 4 — Post a similar ad: the new draft's id, or the refusal in words. */
 export async function copyMyListing(
   listingId: string,
-): Promise<{ ok: true; listingId: string } | { ok: false; key: MessageKey }> {
+): Promise<{ ok: true; listingId: string } | { ok: false; key: MessageKey; read?: RefusalRead }> {
   const { data, error } = await supabase.rpc("copy_my_listing", { p_listing_id: listingId });
-  if (error) return { ok: false, key: actionErrorKey(error.message) };
+  if (error) return { ok: false, ...refused(error.message) };
   if (isObject(data) && data.ok === true && typeof data.listing_id === "string") {
     return { ok: true, listingId: data.listing_id };
   }

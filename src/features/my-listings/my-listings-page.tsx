@@ -53,6 +53,7 @@ import { authKey } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import {
+  actionOutcomeText,
   actionKey,
   ASKS_FIRST,
   BULK_ACTIONS,
@@ -385,7 +386,7 @@ export function MyListingsPage() {
           handled = true;
           break;
         }
-        reason ??= t(outcome.key);
+        reason ??= actionOutcomeText(outcome, t, language);
         if (outcome.key === "myListings.error.rateLimited") break;
       }
     } catch {
@@ -425,7 +426,7 @@ export function MyListingsPage() {
         void navigate({ to: "/post/$listingId", params: { listingId: outcome.listingId } });
         return;
       }
-      setNotice({ text: t(outcome.key), tone: "error" });
+      setNotice({ text: actionOutcomeText(outcome, t, language), tone: "error" });
     } catch {
       setNotice({ text: t("myListings.error.failed"), tone: "error" });
     }

@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { MOVE_REASONS, moveErrorKey, moveProblem, movesFor, NOTE_MAX } from "./move-reasons";
+import { moveErrorText } from "./move-reasons";
 
 /**
  * Bundle 11, turn L2b — the dialog offers only what the door accepts. The
@@ -71,5 +72,20 @@ describe("the listing moves (turn L2b)", () => {
 
   it("MR-5 a restore the free-slot law refuses (noFreeSlot) reads as the seller's slots being in use", () => {
     expect(moveErrorKey("noFreeSlot")).toBe("admin.listings.error.noFreeSlot");
+  });
+});
+
+describe("L22b RTW-12", () => {
+  it("RTW-12 listings move: a reset still to come says when; no instant keeps the plain words", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-21T04:00:00Z"));
+    try {
+      const words = (key: string) => (key.endsWith("When") ? "{when}" : "plain");
+      expect(moveErrorText("rateLimited:2026-11-21T05:00:00Z", words, "en")).toBe("in 1 hour");
+      expect(moveErrorText("rateLimited", words, "en")).toBe("plain");
+      expect(moveErrorText("rateLimited:2026-11-21T03:00:00Z", words, "en")).toBe("plain");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

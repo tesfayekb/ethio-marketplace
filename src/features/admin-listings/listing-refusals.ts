@@ -29,6 +29,8 @@ export const SHARED_REFUSAL_WORDS = {
 /** Remove, Restore and Send back (`admin_move_listing`). */
 export const MOVE_REFUSALS = {
   words: SHARED_REFUSAL_WORDS,
+  // L22b — the dial's words that say WHEN, for a reset instant still to come.
+  when: { rateLimited: "admin.listings.move.error.rateLimitedWhen" },
   generic: "common.error",
 } as const satisfies RefusalFamily;
 

@@ -515,6 +515,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.screening.confirmApproveMany": "{count} ማስታወቂያዎች ይጽደቁ? አሁን በገጹ ላይ ይጫናሉ።",
   "admin.screening.confirmRejectMany": "{count} ማስታወቂያዎች ውድቅ ይደረጉ? ከገጹ ውጪ ሆነው ይቆያሉ።",
   "admin.screening.revealLimited": "ባለፈው አንድ ሰዓት ውስጥ ብዙ ቁጥሮችን አሳይተዋል። ቆይተው እንደገና ይሞክሩ።",
+  "admin.screening.revealLimitedWhen": "ባለፈው አንድ ሰዓት ውስጥ ብዙ ቁጥሮችን አሳይተዋል። {when} እንደገና ይሞክሩ።",
   "admin.screening.revealNotShown": "ሻጩ ይህን ቁጥር አያሳይም።",
   "admin.screening.error.ownListing": "ይህ የራስዎ ማስታወቂያ ነው። ሌላ ገምጋሚ ሊያጸድቀው ወይም ውድቅ ሊያደርገው ይገባል።",
   "admin.translations.title": "ትርጉሞች",
@@ -1748,6 +1749,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.packages.error.denied": "ይህን ለማድረግ ፈቃድ የለዎትም።",
   "admin.packages.error.stepUp": "ኮድ አረጋግጠው እንደገና ይሞክሩ።",
   "admin.packages.error.rateLimited": "በተከታታይ በጣም ብዙ ለውጦች፤ ቆይተው እንደገና ይሞክሩ።",
+  "admin.packages.error.rateLimitedWhen": "በተከታታይ በጣም ብዙ ለውጦች። {when} እንደገና ይሞክሩ።",
   "admin.packages.error.badKey":
     "የጥቅል ቁልፍ ከ2 እስከ 32 ትንንሽ የላቲን ፊደላት፣ አኃዞች ወይም ከስር መስመሮች ነው፣ በፊደል የሚጀምር።",
   "admin.packages.error.badDays": "ቀናት ቢያንስ 1 ነው።",

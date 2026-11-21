@@ -38,7 +38,7 @@ import {
 } from "./history";
 import { ListingPhotos } from "./listing-photos";
 import { MoveDialog } from "./move-dialog";
-import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
+import { MOVE_LABEL, MOVE_TARGET, moveErrorText, movesFor, type MoveKind } from "./move-reasons";
 import { changeListingTier } from "./change-listing-tier";
 import { TierDialog } from "./tier-dialog";
 import { LEVEL_SOURCE_LABEL, levelLabel, mayTier } from "./tier-reasons";
@@ -362,7 +362,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
         error !== null && typeof error === "object" && "message" in error
           ? String((error as { message: unknown }).message)
           : "";
-      setRefusal(t(abort ?? moveErrorKey(message)));
+      setRefusal(abort === undefined ? moveErrorText(message, t, language) : t(abort));
       return;
     }
     setBusy(false);

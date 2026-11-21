@@ -45,7 +45,7 @@ import { catalogText, entityName } from "@/i18n/entity";
 
 import { ListingSettings } from "./listing-settings";
 import { MoveDialog } from "./move-dialog";
-import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
+import { MOVE_LABEL, MOVE_TARGET, moveErrorText, movesFor, type MoveKind } from "./move-reasons";
 import { TierDialog } from "./tier-dialog";
 import { levelLabel, mayTier } from "./tier-reasons";
 import { useLevelRows } from "@/features/levels/use-level-rows";
@@ -313,7 +313,7 @@ export function AdminListingsPage() {
               error !== null && typeof error === "object" && "message" in error
                 ? String((error as { message: unknown }).message)
                 : "";
-            refused.push(t(moveErrorKey(message)));
+            refused.push(moveErrorText(message, t, language));
             if (doorCode(message).code === "rateLimited") break;
           }
         }

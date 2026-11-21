@@ -1,5 +1,5 @@
 import type { MessageKey } from "@/i18n";
-import { readRefusal } from "@/lib/refusal";
+import { readRefusal, refusalText } from "@/lib/refusal";
 
 import { MOVE_REFUSALS } from "./listing-refusals";
 
@@ -58,4 +58,13 @@ export function moveProblem(reason: string, note: string): MessageKey | null {
 /** The door's refusal (`code[:detail]`), as the person reads it. */
 export function moveErrorKey(refusal: unknown): MessageKey {
   return readRefusal(refusal, MOVE_REFUSALS).key;
+}
+
+/** L22b — the same refusal as a sentence, saying when the dial resets (`refusalText`). */
+export function moveErrorText(
+  refusal: unknown,
+  t: (key: MessageKey) => string,
+  language: string,
+): string {
+  return refusalText(readRefusal(refusal, MOVE_REFUSALS), t, undefined, language);
 }

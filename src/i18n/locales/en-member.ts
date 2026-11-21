@@ -228,6 +228,8 @@ export const enMember = {
   "admin.listings.move.error.severe":
     "A listing removed for a severe reason is restored by a super admin only.",
   "admin.listings.move.error.rateLimited": "Too many changes in the last hour. Try again later.",
+  "admin.listings.move.error.rateLimitedWhen":
+    "Too many changes in the last hour. Try again {when}.",
   "admin.listings.move.error.denied": "You do not hold the right to do this.",
   "admin.listings.detail.history": "History",
   "admin.listings.detail.sellerEnd": "Seller's end date",

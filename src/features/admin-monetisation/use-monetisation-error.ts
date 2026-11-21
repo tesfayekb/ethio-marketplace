@@ -33,7 +33,12 @@ export function useMonetisationError() {
         : error === null || error === undefined
           ? ""
           : errorText(error).trim();
-    setRefusal({ key: read.key, raw: read.branch === "generic" && text !== "" ? text : null });
+    setRefusal({
+      key: read.key,
+      raw: read.branch === "generic" && text !== "" ? text : null,
+      // L22b — the read rides along only when it can say when (other shapes unchanged).
+      ...(read.when === undefined || read.tail === undefined ? {} : { read }),
+    });
   };
   const render = (message: MessageKey) => setRefusal({ key: message, raw: null });
   return { refusal, clear, fail, render };

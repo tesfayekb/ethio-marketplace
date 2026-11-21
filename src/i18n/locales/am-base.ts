@@ -123,6 +123,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "myListings.done.reopen": "እንደገና ተከፍቷል። አሁን በቀጥታ ነው።",
   "myListings.done.renew": "ታድሷል። አሁን በቀጥታ ነው።",
   "myListings.error.rateLimited": "በአጭር ጊዜ ውስጥ ብዙ ለውጦች ተደርገዋል። ትንሽ ቆይተው እንደገና ይሞክሩ።",
+  "myListings.error.rateLimitedWhen": "በአጭር ጊዜ ውስጥ ብዙ ለውጦች ተደርገዋል። {when} እንደገና ይሞክሩ።",
   "myListings.error.deactivated": "መለያዎ ተቋርጧል።",
   "myListings.error.notYours": "ይህ ማስታወቂያ አልተገኘም።",
   "myListings.error.changed": "ይህ ማስታወቂያ ተቀይሯል። ገጹ አሁን ያለበትን ሁኔታ ያሳያል።",
