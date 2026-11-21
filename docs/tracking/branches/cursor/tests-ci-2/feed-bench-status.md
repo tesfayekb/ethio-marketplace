@@ -1,10 +1,10 @@
 # Feed bench (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44892283273
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44894899898
 - Commit: 2ece00075f3e5251d3fbd3f2779b909bfa6fb7e9
-- Timestamp (UTC): 2026-11-21T10:04:39.660Z
-- Verdict: YIELDED (CI run 44892432414 (in_progress, 37b62562) started)
-- Listings seeded: 0 · seed 154.6 s (sellers 124.9 s, listings 1.4 s) · cleanup 13.4 s · leftovers 0 · sellers 2048 · market QM free 50
+- Timestamp (UTC): 2026-11-21T10:36:30.236Z
+- Verdict: YIELDED (CI run 44894986213 (queued, 3be465ac) started)
+- Listings seeded: 0 · seed 157.9 s (sellers 118.9 s, listings 1.8 s) · cleanup 16.7 s · leftovers 0 · sellers 2048 · market QM free 50
 
 | Shape | Runs | p50 ms | p95 ms | Max ms | Cards |
 | --- | --- | --- | --- | --- | --- |
