@@ -1,0 +1,29 @@
+RULING — tests-ci-2, stop 1: the plan ruled item by item; three premises corrected. Base: cursor/tests-ci-2 a9504b98a.
+
+PREVENTION (G70)
+- Class (the supervisor's, S701): three of the GO's premises were copied from the INC records' estimates and never read against the runs: INC-1181's cause, INC-1190's skipped budget, INC-1193's cycle. Changed here: each item below is ruled on your census's reading. In force now: a GO that takes a queued finding's cause from its record marks it "ESTIMATE, the census proves or corrects it", and the supervisor reads the run or the graph first when it can.
+- Class: the GO told you to dispatch a workflow, which rule 50 forbids. Changed here: decision 2. In force: a GO's step is checked against the Cursor rules before it is sent.
+Repository: the items below. Cursor rules, Knowledge: not needed.
+
+THE RULINGS
+1. ITEM 2 (INC-1186, with INC-1168 (c)). The substance is the one your own repository already names in `docs/governance/reports/lovable-guard-patchless.report.md` §13: the Lovable branch guard runs from the pull request's own checkout, so a pull request that edits the guard's script or its step is judged by its edited version. DEC-413, the fix:
+   - A NEW workflow file under `.github/workflows/` runs the guard on `pull_request_target` for head branches `lovable/*`. That event takes the workflow and the checkout from the BASE branch. It checks out the base only, never the pull request's code, with `permissions: contents: read, pull-requests: read`, and no secret beyond the default token.
+   - The guard reads the pull request's files from the API, as today. For DEC-398's patchless fallback it fetches the two commits as data and reads them with `git diff` and `git show`; it never executes anything from the head.
+   - The guard's step leaves `ci.yml`'s scope job, so one place judges. `scripts/conformance/wired.test.ts` names the new caller.
+   - A test proves the workflow's shape: the event, the base checkout, and no step that runs head code.
+   - INC-1168 (c)'s "carry" step is NOT built. With the guard judged from the base, and every Lovable task ending in its write-back, a rebuilt pull request adds nothing. `docs/features/ci-guards.md` says so under Left.
+   - The report names INC-1186 by number, with "the guard is judged from the base (DEC-413)". Nothing more is needed in committed files, since §13 of the older report already states the class.
+2. ITEM 1 (the Feed bench): 2,048 scratch sellers, accepted. The seed logs seller creation's seconds and the listing insert's seconds separately, accepted. The cron `10 13 * * 0`, accepted (DEC-412). THE DISPATCH is the operator's: after your one push he runs the Feed bench on your branch from GitHub's Actions page, and the supervisor reads the run. THE TIMEOUT: before the push, set `timeout-minutes` from the last measured run (seed 1,925 s on 2026-11-16) with the gate, measure and cleanup added and half as much again as margin. One further commit corrects it only if the dispatched run shows it wrong. If that run shows the per-row feed-index refresh is the larger cost, name it in the report with its numbers. It is recorded as a finding and is not fixed here (no migration in this turn).
+3. ITEM 3 (the budget): the premise is withdrawn. The skip is right: an identical code tree was already judged, with "Bundle budget OK". The skip does NOT change. INC-1190's status line reads: CLOSED, no defect; the tree was judged by the earlier run [id]. THE RATCHET stands, as your census's table. The entry's JS and CSS ceilings come down by the same rule. The 8 KiB slack stays (it is D234's decision). The ratchet message takes DEC-296's formula, so the message and the rule say one thing.
+4. ITEM 4 (INC-1193): option C. The cycle guard over `src/i18n/` and its importers lands with its planted cycle. INC-1193 stays open: the supervisor gets the real stack from Lovable's preview through Lovable's next task and rules its fix then. Do not spend this turn on the dev server.
+5. ITEM 7. SMN-E13: option B. Tag it `@global-state`, read its setup after its own fixture is in place, and correct `shared-value-tables.txt:13`: a root added to the rail IS shared by every test that measures the rail. The repeat lane proves it. CL-E10: NOT in this turn. Its cause is a real defect in `src/components/ui/overlay-facade.tsx` (a tooltip opens over an open menu when the overlay code arrives late), which is a client component and so Lovable's (DEC-410). The supervisor registers it as INC-1226 and sends it to Lovable with your census's reading. CL-E10's test stays as it is, and INC-1210's status line says where it went.
+6. ITEM 8 (ACT-023): yes, that is the check: a `minWidth` that is not exactly one `min-w-*` class is refused, with a planted case.
+7. Items 5 and 6: as your stop report plans.
+8. SCOPE: the brief's, plus the new workflow file and its test. `src/components/ui/overlay-facade.tsx` stays out.
+
+RECORDS (word for word into §14, beside the GO's)
+DEC-413 — the Lovable branch guard is judged from the base: its own workflow on `pull_request_target` for `lovable/*` heads, the base checked out, the head read as data only. INC-1168 (c)'s carry step is not built.
+INC-1190 — status line: CLOSED, no defect — the dev push's tree was judged by the earlier run [id] ("Bundle budget OK"); the skip stands.
+INC-1193 — status line: OPEN — `src/` has no import cycle at the base or at L10 (this census); the cycle guard landed; the cause needs the preview's stack.
+INC-1210 — status line: CL-E10's cause is INC-1226 (Lovable's); SMN-E13 fixed here ([the fix]).
+INC-1226 — a tooltip opens over an open menu when the overlay code arrives after the click, so Escape closes the tooltip and leaves the menu open (`src/components/ui/overlay-facade.tsx`; this census). Class: two overlays opened by one press. Owner: Lovable's next turn, red first.
