@@ -14,7 +14,9 @@ name: Feed bench
 # the nightly crons (15:30 and 16:30 UTC) and a Guard Proof dispatch. Dispatch only when no such run
 # is queued or in progress, and let nothing of that kind happen until the run completes. The window
 # is the gate's wait plus about 25 minutes (run 44896403216: 1,513 s from start to end, 2 s of it
-# the gate's).
+# the gate's). The job's limit is the gate's whole wait, plus half as much again of the measured
+# run: 40 + 38 = 78 minutes (INC-1230), so every honest end is the script's own; only a hang meets
+# it. 13:10 UTC plus 78 minutes ends before the nightly's 15:30 UTC.
 on:
   schedule:
     - cron: "10 13 * * 0"
@@ -32,10 +34,12 @@ jobs:
   feed-bench:
     name: Feed bench (ethio-staging, 100,500 scratch listings)
     runs-on: ubuntu-24.04
-    # DEC-412 — run 44896403216 (2026-11-21, 2,048 sellers) measured: gate 2 s, seed 1,330 s,
-    # pre-clean and measure 7 s, cleanup 157 s, the other steps 17 s (1,513 s); half as much again
-    # is 37.8 min (was 60, from run 43872334867's 2,373 s with 256 sellers).
-    timeout-minutes: 38
+    # DEC-412, INC-1230 — the gate's whole wait, plus half as much again of the measured run:
+    # GATE_WAIT_MINUTES 40 + RUN_ALLOWANCE_MINUTES 38 (scripts/feed-bench.ts; CF-CID-11). Run
+    # 44896403216 (2026-11-21, 2,048 sellers) measured: gate 2 s, seed 1,330 s, pre-clean and
+    # measure 7 s, cleanup 157 s, the other steps 17 s; without the gate 1,511 s, half as much
+    # again 37.8 min. Was 60, from run 43872334867's 2,373 s with 256 sellers and its gate in it.
+    timeout-minutes: 78
     permissions:
       contents: write
       # DEC-168 — the staging gate reads the repository's runs.

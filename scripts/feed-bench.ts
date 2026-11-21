@@ -44,6 +44,13 @@ export const BATCH = 250;
 export const STAGING_REF = "jatpuhfdjfzctjipklmk";
 /** DEC-168 — the longest the bench waits for a quiet staging before it skips. */
 export const GATE_WAIT_MINUTES = 40;
+/**
+ * DEC-412, INC-1230 — the run's own allowance beside the gate's whole wait: half as much again of
+ * run 44896403216 (2026-11-21, 2,048 sellers) without its gate wait — seed 1,330 s, pre-clean and
+ * measure 7 s, cleanup 157 s, the other steps 17 s (1,511 s) → 37.8 min. The job's
+ * `timeout-minutes` is GATE_WAIT_MINUTES + this (CF-CID-11), so only a hang meets the limit.
+ */
+export const RUN_ALLOWANCE_MINUTES = 38;
 
 const STATUS_PATH = "docs/tracking/feed-bench-status.md";
 
