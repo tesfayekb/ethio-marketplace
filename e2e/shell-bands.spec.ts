@@ -101,9 +101,7 @@ test("BND-E2 at 360 the breadcrumb and location rows are 40 px; the phone menu h
 
 test(
   "BND-E3 on the feed, signed out, Services' panel starts at the location row's top",
-  {
-    tag: "@global-state",
-  },
+  { tag: "@global-state" },
   async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     test.info().annotations.push({

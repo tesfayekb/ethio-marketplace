@@ -99,9 +99,7 @@ test.describe("D247 a touch phone's lists", () => {
 
   test(
     "ROWS-E1 a touch phone's menu lists follow the 16-item rule at 360×640",
-    {
-      tag: "@global-state",
-    },
+    { tag: "@global-state" },
     async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
       test.info().annotations.push({

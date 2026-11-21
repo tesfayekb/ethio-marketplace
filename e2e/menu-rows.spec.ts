@@ -80,9 +80,7 @@ test.describe("D247 the rail's list", () => {
 
   test(
     "ROWS-E3 the rail at 1280×600 follows the 16-item rule; a seeded list of 12 fits without scrolling",
-    {
-      tag: "@global-state",
-    },
+    { tag: "@global-state" },
     async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "the persistent rail is from 768 px");
       test.info().annotations.push({
@@ -135,9 +133,7 @@ test.describe("D247 the rail's list", () => {
 
 test(
   "ROWS-E4 with the favourite the rail is too short even at 32 px: it scrolls with a visible scrollbar",
-  {
-    tag: "@global-state",
-  },
+  { tag: "@global-state" },
   async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280", "the persistent rail is from 768 px");
     test

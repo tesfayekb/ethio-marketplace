@@ -22,6 +22,7 @@ test.use({
 });
 
 const RAIL_ROWS = "[data-testid='rail-scroll'] nav > ul.menu-fit > li:not([aria-hidden])";
+
 async function openPanel(page: Page, slug: string) {
   const rail = await openRailScope(page);
   await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
@@ -156,9 +157,7 @@ test.describe("D248 a side panel is the main menu", () => {
 
   test(
     "SMN-E9 a panel opened from the last root ends level with the rail's last row",
-    {
-      tag: "@global-state",
-    },
+    { tag: "@global-state" },
     async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
       test.info().annotations.push({
@@ -183,9 +182,7 @@ test.describe("D248 a side panel is the main menu", () => {
   // compacts. Its rows keep a rail row's measured height; beyond the menu it scrolls.
   test(
     "SMN-E10 a 20-row panel keeps the rail's row height at 1280×1000 and 1280×600, and scrolls when the menu cannot hold it",
-    {
-      tag: "@global-state",
-    },
+    { tag: "@global-state" },
     async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
       test.info().annotations.push({
@@ -233,9 +230,7 @@ test.describe("D248 a side panel is the main menu", () => {
 
   test(
     "SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254)",
-    {
-      tag: "@global-state",
-    },
+    { tag: "@global-state" },
     async ({ page }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
       test.info().annotations.push({

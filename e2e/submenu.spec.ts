@@ -194,9 +194,7 @@ test.describe("D244 every panel on screen", () => {
   for (const width of [1280, 1024]) {
     test(
       `SMN-E4 a 14-row panel fits at ${width}×600 and follows a resize`,
-      {
-        tag: "@global-state",
-      },
+      { tag: "@global-state" },
       async ({ page }, testInfo) => {
         test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
         test.info().annotations.push({
