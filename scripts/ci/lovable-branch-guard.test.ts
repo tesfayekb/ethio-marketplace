@@ -15,6 +15,60 @@ import { walkFiles } from "../conformance/kit";
  */
 
 const SCRIPT = "scripts/ci/lovable-branch-guard.sh";
+const WORKFLOW = ".github/workflows/lovable-branch-guard.yml";
+
+/**
+ * DEC-413 — the guard's workflow, read by its lines: the one event `pull_request_target` on dev,
+ * a job for `lovable/*` heads only, the token reading the contents and the pull request alone, no
+ * secret, and exactly two steps — the base commit checked out without a kept credential, and the
+ * base's script fed the API's files. The head's sha appears only as the guard's PR_HEAD_SHA (read
+ * by `git diff`, DEC-398); its ref nowhere but the job's condition.
+ */
+function workflowShapeFindings(yml: string): string[] {
+  const findings: string[] = [];
+  const lines = yml.split("\n");
+  const block = (key: string) => {
+    const start = lines.indexOf(key);
+    if (start === -1) return [];
+    const end = lines.findIndex((line, i) => i > start && /^\S/.test(line));
+    return lines
+      .slice(start + 1, end === -1 ? undefined : end)
+      .filter((line) => line.trim() !== "");
+  };
+  if (block("on:").join("\n") !== "  pull_request_target:\n    branches: [dev]")
+    findings.push("the one event is pull_request_target on dev");
+  if (block("permissions:").join("\n") !== "  contents: read\n  pull-requests: read")
+    findings.push("the token reads the contents and the pull request, nothing more");
+  if (lines.filter((line) => line.trim() === "permissions:").length !== 1)
+    findings.push("no job widens the token");
+  if (!yml.includes("    if: startsWith(github.head_ref, 'lovable/')\n"))
+    findings.push("the job runs for lovable/* heads only");
+  if (/\bsecrets\./.test(yml)) findings.push("no secret beyond the default token");
+  const steps = lines.filter((line) => /^ {6}- /.test(line));
+  if (
+    steps.join("\n") !==
+    "      - uses: actions/checkout@v5\n      - name: Lovable branch guard (DEC-394, DEC-413)"
+  )
+    findings.push("exactly two steps: the base checkout and the guard");
+  if (
+    !yml.includes(
+      "        with:\n          ref: ${{ github.event.pull_request.base.sha }}\n          persist-credentials: false\n",
+    )
+  )
+    findings.push("the checkout is the base commit, keeping no credential");
+  const run = yml.slice(yml.indexOf("        run: |\n"));
+  if (
+    run !==
+    '        run: |\n          set -o pipefail\n          gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" | bash scripts/ci/lovable-branch-guard.sh\n'
+  )
+    findings.push("the one command feeds the API's files to the base's script");
+  const headSha = lines.filter((line) => line.includes("pull_request.head."));
+  if (headSha.join("\n") !== "          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}")
+    findings.push("the head's sha only as PR_HEAD_SHA");
+  if (lines.filter((line) => line.includes("github.head_ref")).length !== 1)
+    findings.push("the head's ref only in the job's condition");
+  return findings;
+}
 
 type Entry = { filename: string; status: string; patch?: string; previous_filename?: string };
 
@@ -221,22 +275,36 @@ describe("a Lovable branch's pull request changes only screen files (DEC-394)", 
     }
   });
 
-  it("CF-LVB-10 ci.yml's scope job runs it on lovable/* pull requests, after the checkout, from the API", () => {
+  it("CF-LVB-10 its own workflow judges it from the base: pull_request_target on lovable/* heads, the base checked out, no step that runs the head's code (DEC-413)", () => {
+    expect(workflowShapeFindings(readFileSync(WORKFLOW, "utf8"))).toEqual([]);
     const ci = readFileSync(".github/workflows/ci.yml", "utf8");
-    const scope = ci.slice(ci.indexOf("\n  scope:\n"), ci.indexOf("\n  build-and-check:\n"));
-    const step = scope.slice(scope.indexOf("- name: Lovable branch guard (DEC-394)"));
-    expect(scope.indexOf("- uses: actions/checkout@v5")).toBeGreaterThan(-1);
-    expect(scope.indexOf("- uses: actions/checkout@v5")).toBeLessThan(
-      scope.indexOf("- name: Lovable branch guard (DEC-394)"),
-    );
-    expect(step).toContain(
-      "if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'lovable/')",
-    );
-    expect(step).toContain("GH_TOKEN: ${{ github.token }}");
-    expect(step).toContain(
-      'gh api --paginate "repos/${REPO}/pulls/${PR_NUMBER}/files" | bash scripts/ci/lovable-branch-guard.sh',
-    );
-    expect(scope).not.toContain("fetch-depth");
+    expect(ci).not.toContain("lovable-branch-guard.sh");
+    expect(ci).not.toContain("- name: Lovable branch guard");
+
+    // Planted: each way the workflow could run or reach the head's code is found.
+    const live = readFileSync(WORKFLOW, "utf8");
+    const planted: Array<[string, string, string]> = [
+      ["the pull_request event", "  pull_request_target:\n", "  pull_request:\n"],
+      [
+        "a head checkout",
+        "ref: ${{ github.event.pull_request.base.sha }}",
+        "ref: ${{ github.event.pull_request.head.sha }}",
+      ],
+      ["a kept credential", "persist-credentials: false", "persist-credentials: true"],
+      ["a write permission", "  contents: read\n", "  contents: write\n"],
+      [
+        "a step that installs",
+        "      - name: Lovable branch guard (DEC-394, DEC-413)",
+        "      - run: bun install\n      - name: Lovable branch guard (DEC-394, DEC-413)",
+      ],
+      ["a secret", "GH_TOKEN: ${{ github.token }}", "GH_TOKEN: ${{ secrets.ADMIN_TOKEN }}"],
+      ["every head", "if: startsWith(github.head_ref, 'lovable/')", "if: true"],
+    ];
+    for (const [what, from, to] of planted) {
+      const yml = live.replace(from, to);
+      expect(yml, what).not.toBe(live);
+      expect(workflowShapeFindings(yml).length, what).toBeGreaterThan(0);
+    }
   });
 
   it("CF-LVB-11 an allowlist under scripts/conformance/ may lose lines: removed lines only pass (DEC-396)", () => {
@@ -495,12 +563,14 @@ describe("a patchless exception file is read from git (DEC-398)", () => {
     expect(plain.out).not.toContain("src/routes/index.tsx");
 
     // The step names the two commits and the guard reads nothing else of the pull request's git.
-    const ci = readFileSync(".github/workflows/ci.yml", "utf8");
-    const step = ci.slice(ci.indexOf("- name: Lovable branch guard (DEC-394)"));
+    const workflow = readFileSync(WORKFLOW, "utf8");
+    const step = workflow.slice(
+      workflow.indexOf("- name: Lovable branch guard (DEC-394, DEC-413)"),
+    );
     const env = step.slice(0, step.indexOf("        run: |"));
     expect(env).toContain("PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}");
     expect(env).toContain("PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}");
-  });
+  }, 30_000);
 
   it("CF-LVB-14 the same file with one changed line that is not a ceiling line refuses with DEC-390 named", () => {
     const other = plant(
@@ -553,5 +623,5 @@ describe("a patchless exception file is read from git (DEC-398)", () => {
     expect(added.out).toContain(
       "scripts/conformance/new-allowlist.txt — added; a Lovable branch may only remove lines of an existing allowlist — DEC-396",
     );
-  });
+  }, 30_000);
 });

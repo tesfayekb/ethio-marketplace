@@ -1308,16 +1308,23 @@ that backend and a config-wide one are named, and the guard refuses them before 
 builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.
 
-## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396; a patchless exception file, DEC-398)
+## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396; a patchless exception file, DEC-398; judged from the base, DEC-413)
 
-`scripts/ci/lovable-branch-guard.sh` runs in `ci.yml`'s `scope` job, after its checkout, on a pull
-request from a `lovable/*` branch only (`if: github.event_name == 'pull_request' &&
-startsWith(github.head_ref, 'lovable/')`). The step pipes `gh api --paginate
+`scripts/ci/lovable-branch-guard.sh` runs in its own workflow, `.github/workflows/lovable-branch-guard.yml`,
+judged from the base (DEC-413, the tests and CI turn 2): on `pull_request_target` into dev, for a
+`lovable/*` head only (`if: startsWith(github.head_ref, 'lovable/')`), the workflow, the checkout
+and the script are the base branch's. Its one checkout is the base commit
+(`ref: ${{ github.event.pull_request.base.sha }}`, `persist-credentials: false`), its token holds
+`contents: read` and `pull-requests: read` and no secret, and no step runs the head's code: the
+head is read as data only. The step pipes `gh api --paginate
 repos/<owner>/<repo>/pulls/<number>/files` — the files GitHub computes against the merge base, one
 JSON array per page — into the script with `GH_TOKEN: ${{ github.token }}`, and names the pull
 request's two commits in `PR_BASE_SHA` and `PR_HEAD_SHA` (`github.event.pull_request.base.sha` /
-`.head.sha`). The verdict is the JSON's, except for one reading of git (DEC-398, below); the job's
-checkout stays shallow.
+`.head.sha`). The verdict is the JSON's, except for one reading of git (DEC-398, below), which
+fetches the commits without blobs and reads them with `git diff`; the checkout stays shallow.
+`ci.yml`'s `scope` job no longer runs the guard, so one place judges. A `pull_request_target`
+workflow runs as the base branch holds it, so a change to the workflow or the script takes effect
+once it is on dev; the check's name is `Lovable branch guard (DEC-413)`.
 
 - **The list** is Knowledge v3.14's ROLE paragraph (DEC-386), quoted word for word in the script's
   comment: `supabase/**` and every `*.sql`; `src/features/auth/**`, `src/lib/supabase-door.ts`,
@@ -1358,7 +1365,11 @@ checkout stays shallow.
   every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
   real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
   across two pages, a missing patch, a rename away from a forbidden path, input that is not the
-  API's, the `ci.yml` step itself, and (CF-LVB-11, CF-LVB-12) an allowlist's removed lines passing
+  API's, the workflow's shape (CF-LVB-10, DEC-413: the one event, the base checkout without a kept
+  credential, the two permissions, no secret, exactly the checkout and the guard as steps, the
+  head's sha only as `PR_HEAD_SHA`, and `ci.yml` free of the guard; seven planted breaches — the
+  `pull_request` event, a head checkout, a kept credential, a write permission, an install step,
+  a secret, every head — each found), and (CF-LVB-11, CF-LVB-12) an allowlist's removed lines passing
   — every allowlist file of the tree, beside a screen file and the deletions line — against an
   added line, a changed line, a missing patch, a new, renamed or deleted allowlist, a nested path
   and `kit.ts` and `scripts/doors/manifest.txt` refusing, each case asserting the exit code and the
@@ -1368,16 +1379,18 @@ checkout stays shallow.
   shas, a commit the remote lacks, a binary file refused, and a patchless file under no exception
   keeping its path rule. These tests plant git repositories, so they run where git may write
   `.git` (CI; locally outside a write-restricted sandbox).
-  `scripts/conformance/wired.test.ts` finds the script's basename in `ci.yml`.
+  `scripts/conformance/wired.test.ts` finds the script in `lovable-branch-guard.yml` and not in
+  `ci.yml`.
 - **Its fixtures are its own (INC-1201):** the four `CF-FORM-1` lines and the ceiling line the
   tests remove, keep and grow are written in the test (invented paths in
   `scripts/conformance/forms-allowlist.txt`'s line form; a `/fixture-page` line in DEC-296's form
   that matches the guard's ceiling pattern), so no test depends on how many lines a live allowlist
   or the ceilings file holds — the form-kit turns that shrink `forms-allowlist.txt` never redden it.
 - **Left:** INC-1168 (c), a "carry" step that rebuilds the pull request from dev plus the approved
-  files. The endpoint answers without the `pull-requests` permission while the repository is
-  public; when it goes private the step fails loudly (the API's refusal is not JSON arrays) until
-  the scope job's token gains `pull-requests: read`.
+  files, is not built (DEC-413). The guard's token holds `pull-requests: read`, so the files
+  endpoint answers when the repository goes private; DEC-398's fetch of the two commits keeps no
+  credential (`persist-credentials: false`), so on a private repository a patchless exception file
+  refuses (never passes) until that fetch is given one.
 
 ## No real person's mailbox in a tracked file — CF-MAIL (the tests and CI turn, INC-1165)
 

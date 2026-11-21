@@ -265,6 +265,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/import-cycles.test.ts"), "utf8")).toContain(
       "CF-CYCLE-2",
     );
+    // DEC-413: the Lovable branch guard runs in its own workflow, judged from the base
+    // (lovable-branch-guard.test.ts CF-LVB-10 holds its shape), and nowhere else.
+    expect(
+      readFileSync(join(ROOT, ".github/workflows/lovable-branch-guard.yml"), "utf8"),
+    ).toContain("| bash scripts/ci/lovable-branch-guard.sh");
+    expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).not.toContain(
+      "lovable-branch-guard.sh",
+    );
     // ACT-023: the min-width guard (run by shell-guards.test.ts GW-2, GW-4) reads each minWidth
     // through scripts/datatable-minwidth.ts.
     expect(readFileSync(join(ROOT, "scripts/check-datatable-minwidth.sh"), "utf8")).toContain(

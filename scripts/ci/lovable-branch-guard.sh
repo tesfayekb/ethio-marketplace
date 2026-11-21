@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # DEC-394 (the tests and CI turn, Part C) — A LOVABLE BRANCH'S PULL REQUEST CHANGES ONLY SCREEN
-# FILES. Usage, in ci.yml's scope job on a pull request from a `lovable/*` branch:
+# FILES. Usage, in .github/workflows/lovable-branch-guard.yml on a pull request from a `lovable/*`
+# branch, judged from the base (DEC-413: pull_request_target, the base checked out, the head read as
+# data only):
 #   gh api --paginate repos/<owner>/<repo>/pulls/<number>/files | bash scripts/ci/lovable-branch-guard.sh
 # The input is the pull request's files as GitHub computes them against the merge base: one JSON
 # array per page, each entry carrying `filename`, `status`, `previous_filename` (a rename) and
