@@ -155,7 +155,7 @@ export function ImportDialog({
   onWritten,
   refusals = ADMIN_REFUSALS,
 }: ImportDialogProps) {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [texts, setTexts] = useState<Record<string, string>>({});
   /** IE-7 — the chosen filename, spoken beside its picker. */
   const [names, setNames] = useState<Record<string, string>>({});
@@ -249,7 +249,8 @@ export function ImportDialog({
       words: { ...ADMIN_REFUSALS.words, ...IMPORT_REFUSAL_WORDS, ...refusals.words },
     };
     const read = readRefusal(detail === "" ? code : `${code}:${detail}`, family, has);
-    if (read.branch === "family" || read.branch === "doorKey") return refusalText(read, t);
+    if (read.branch === "family" || read.branch === "doorKey")
+      return refusalText(read, t, undefined, language);
     return detail === "" ? code : `${code} — ${detail}`;
   };
 

@@ -719,6 +719,7 @@ export const enAdmin = {
   "admin.translations.ai.failedList": "Not translated: {keys}",
   "admin.translations.ai.error": "Machine translation could not be completed.",
   "admin.error.rateLimited": "Too many changes in the last hour. Try again later.",
+  "admin.error.rateLimitedWhen": "Too many changes in the last hour. Try again {when}.",
   "admin.translations.translator.title": "Translator languages",
   "admin.translations.translator.scopeNote":
     "Visible to translation managers only. Assignments scope which languages this person may edit; the translator role grants the editing permission itself.",

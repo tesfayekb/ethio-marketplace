@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
 import { DOOR_REFUSED_KEY, doorCode } from "@/lib/door-codes";
 import { ownValue } from "@/lib/own-key";
+import { relativeTime } from "@/lib/relative-time";
 import { splitRefusal } from "@/lib/refusal-split";
 
 /**
@@ -43,6 +44,8 @@ export interface RefusalFamily {
   readonly sentences?: ReadonlyArray<readonly [RegExp, MessageKey]>;
   /** The family's own generic; the reader's is `common.error`. */
   readonly generic?: MessageKey;
+  /** L22 — a code's words that say WHEN (`{when}`), drawn only for an instant still to come. */
+  readonly when?: Readonly<Record<string, MessageKey>>;
 }
 
 export type RefusalBranch =
@@ -63,6 +66,8 @@ export type RefusalRead = {
   /** A step-up the person cancelled: nothing ran, so nothing is said. */
   silent: boolean;
   branch: RefusalBranch;
+  /** L22 — the family's words that say when, for the family branch; `refusalText` chooses them. */
+  when: MessageKey | undefined;
 };
 
 export const GENERIC_REFUSAL_KEY = "common.error" satisfies MessageKey;
@@ -80,10 +85,13 @@ export type { RefusalParts } from "./refusal-split";
  * whole tail; `{attr}` / `{target}` take the first / last pipe-separated part
  * (DEC-050 L3b). A sentence without a placeholder is returned unchanged.
  */
-export function fillRefusal(text: string, tail: string | undefined): string {
+export function fillRefusal(text: string, tail: string | undefined, language?: string): string {
   if (tail === undefined) return text;
   const parts = tail.split("|");
-  return text
+  // L22 — `{when}`: the tail's instant, relative to now, in the reader's language (law B2).
+  const when = language === undefined ? undefined : relativeTime(tail.trim(), language);
+  const timed = when === undefined || when === "" ? text : text.split("{when}").join(when);
+  return timed
     .split("{count}")
     .join(tail)
     .split("{attr}")
@@ -211,12 +219,18 @@ export function readRefusal(
 ): RefusalRead {
   const heard = hear(input);
   const generic = family.generic ?? GENERIC_REFUSAL_KEY;
-  const read = (key: MessageKey, branch: RefusalBranch, tail?: string): RefusalRead => ({
+  const read = (
+    key: MessageKey,
+    branch: RefusalBranch,
+    tail?: string,
+    when?: MessageKey,
+  ): RefusalRead => ({
     key,
     tail,
     field: heard.field,
     silent: false,
     branch,
+    when,
   });
   if (heard.name === "StepUpCancelled") return { ...read(generic, "stepUp"), silent: true };
   if (heard.name === "StepUpUnavailable") return read(STEP_UP_UNAVAILABLE_KEY, "stepUp");
@@ -225,7 +239,10 @@ export function readRefusal(
     const { key: head, tail: ownTail } = splitRefusal(raw);
     const tail = ownTail ?? heard.detail;
     const words = family.words === undefined ? undefined : ownValue(family.words, head);
-    if (words !== undefined) return read(words, "family", tail);
+    if (words !== undefined) {
+      const when = family.when === undefined ? undefined : ownValue(family.when, head);
+      return read(words, "family", tail, when);
+    }
     if (known !== undefined && DOOR_KEY.test(head) && isKnownKey(head, known)) {
       return read(head, "doorKey", tail);
     }
@@ -247,8 +264,13 @@ export function refusalText(
   read: RefusalRead,
   t: (key: MessageKey) => string,
   values?: Record<string, string | number>,
+  language?: string,
 ): string {
   if (read.silent) return "";
-  const text = fillRefusal(t(read.key), read.tail);
+  // L22 — the when words only for an instant still to come, with the reader's language.
+  const at = read.tail === undefined ? Number.NaN : Date.parse(read.tail.trim());
+  const timed = read.when !== undefined && language !== undefined && at > Date.now();
+  const key = timed && read.when !== undefined ? read.when : read.key;
+  const text = fillRefusal(t(key), read.tail, language);
   return values === undefined ? text : fill(text, values);
 }

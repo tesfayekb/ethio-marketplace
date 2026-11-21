@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useI18n } from "@/i18n";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
-import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
+import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 
 /**
@@ -14,6 +14,7 @@ import { PARSE_INVALID_KEY } from "@/lib/parse-input";
  * permissionDenied) draws the library's generic line.
  */
 export const ATTRIBUTE_REFUSALS = {
+  when: ADMIN_WHEN,
   words: {
     rateLimited: RATE_LIMITED_KEY,
     /** DEC-339 — the one gate's words for a blank required answer (and the door's). */
@@ -60,11 +61,11 @@ export const ATTRIBUTE_REFUSALS = {
  * (`admin.attributes.error.parentAfterChild:…`); a cancelled step-up says nothing.
  */
 export function useAttributeRefusal() {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const fail = (error: unknown) => {
     const read = readRefusal(error, ATTRIBUTE_REFUSALS, has);
-    setMessage(read.silent ? null : refusalText(read, t));
+    setMessage(read.silent ? null : refusalText(read, t, undefined, language));
   };
   return { message, setMessage, fail };
 }

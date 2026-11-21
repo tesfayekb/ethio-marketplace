@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useI18n, type MessageKey } from "@/i18n";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
-import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
+import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
  * DEC-333 (F1-4b) — the markets console's own words for its doors' codes. Every id the console
@@ -13,6 +13,7 @@ import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
  * console's generic line.
  */
 export const COUNTRY_REFUSALS = {
+  when: ADMIN_WHEN,
   words: {
     rateLimited: RATE_LIMITED_KEY,
     permissionDenied: "admin.countries.error.denied",
@@ -37,12 +38,12 @@ export const COUNTRY_REFUSALS = {
  * family's words; a cancelled step-up says nothing. `render` shows a client-side check's own key.
  */
 export function useCountryRefusal() {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const clear = () => setMessage(null);
   const fail = (error: unknown) => {
     const read = readRefusal(error, COUNTRY_REFUSALS, has);
-    setMessage(read.silent ? null : refusalText(read, t));
+    setMessage(read.silent ? null : refusalText(read, t, undefined, language));
   };
   const render = (key: MessageKey) => setMessage(t(key));
   return { message, clear, fail, render };

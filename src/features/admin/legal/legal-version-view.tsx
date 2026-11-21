@@ -27,8 +27,8 @@ import {
   versionStatus,
 } from "./legal-service";
 import { useLegalWrites, useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
-import { errorText } from "@/lib/error-text";
 import { dateFormatter } from "@/lib/format";
+import { isUnknownVersion } from "./unknown-version";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
 function CompareText({
@@ -157,7 +157,7 @@ export function LegalVersionView({
   const previous = row
     ? siblings?.filter((v) => v.version < row.version).sort((a, b) => b.version - a.version)[0]
     : undefined;
-  const unknown = version.error != null && errorText(version.error) === "unknownVersion";
+  const unknown = isUnknownVersion(version.error);
   const kind = row ? kindKey(row.kind) : null;
   const facts = row?.status === "published" ? (row.settings_snapshot ?? {}) : (settings.data ?? {});
   const text = row

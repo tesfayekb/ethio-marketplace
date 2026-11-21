@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { aiRefusalOf } from "./ai-refusals";
+import { readRefusal, refusalText } from "@/lib/refusal";
+
+import { AI_DOOR_REFUSALS, aiRefusalOf } from "./ai-refusals";
 import {
   aiCallsOf,
   aiFeatureOf,
@@ -185,6 +187,26 @@ describe("the AI console's seam (D158)", () => {
     expect(aiRefusalOf("boom")).toEqual({ key: "admin.ai.error.unknown", raw: "boom" });
     expect(aiRefusalOf("")).toEqual({ key: "admin.ai.error.unknown", raw: null });
     expect(aiRefusalOf(undefined)).toEqual({ key: "admin.ai.error.unknown", raw: null });
+  });
+
+  it("RTW-10 the AI family's rate refusal supplies when words and keeps the plain fallback", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-21T04:00:00Z"));
+    try {
+      const read = readRefusal(
+        { message: "rateLimited:2026-11-21T05:00:00Z", code: "P0D01" },
+        AI_DOOR_REFUSALS,
+      );
+      expect(read.when).toBe("admin.error.rateLimitedWhen");
+      const words = (key: string) => (key === "admin.error.rateLimitedWhen" ? "{when}" : "later");
+      expect(refusalText(read, words, undefined, "en")).toBe("in 1 hour");
+      expect(refusalText(read, words)).toBe("later");
+      expect(
+        refusalText(readRefusal("rateLimited", AI_DOOR_REFUSALS), words, undefined, "en"),
+      ).toBe("later");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   /** Bundle 13 turn 14 — the spend of each day, read from its door and summed for the page. */

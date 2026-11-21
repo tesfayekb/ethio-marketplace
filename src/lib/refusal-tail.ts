@@ -19,8 +19,16 @@ export { DOOR_KEY, fillRefusal, splitRefusal, type RefusalParts } from "./refusa
  */
 export const RATE_LIMITED_KEY = "admin.error.rateLimited" satisfies MessageKey;
 
+/** L22 — the consoles' shared words that say when the rate gate opens again. */
+export const ADMIN_WHEN = {
+  rateLimited: "admin.error.rateLimitedWhen",
+} as const satisfies Record<string, MessageKey>;
+
 /** The consoles' shared words, for `readRefusal`: the rate gate's one sentence. */
-export const ADMIN_REFUSALS: RefusalFamily = { words: { rateLimited: RATE_LIMITED_KEY } };
+export const ADMIN_REFUSALS: RefusalFamily = {
+  words: { rateLimited: RATE_LIMITED_KEY },
+  when: ADMIN_WHEN,
+};
 
 /**
  * T7 (INC-578's class, G29) — ONE reading of a door's words. A refusal that IS

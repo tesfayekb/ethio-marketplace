@@ -75,7 +75,7 @@ export function Field({
   blank?: boolean;
   children: ReactNode | ((control: FieldControl) => ReactNode);
 }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const register = gate?.register;
   const missing = required && blank;
   useEffect(() => {
@@ -98,7 +98,8 @@ export function Field({
   };
   const drawn = typeof children === "function" ? children(control) : children;
   const mark = required && marked ? <RequiredMark testId={markTestId} /> : null;
-  const words = refusal === null ? "" : refusalText(readRefusal(refusal, family), t, refusalValues);
+  const words =
+    refusal === null ? "" : refusalText(readRefusal(refusal, family), t, refusalValues, language);
   const refusalLine = refused ? (
     <p
       id={refusalId}

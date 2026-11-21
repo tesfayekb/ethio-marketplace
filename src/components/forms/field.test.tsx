@@ -15,6 +15,8 @@ vi.mock("@/i18n", async (original) => {
 });
 import { DIALOG_FIELD } from "@/components/ui/dialog-look";
 import { en } from "@/i18n/locales/en";
+import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
+import { relativeTime } from "@/lib/relative-time";
 
 import { controlClass, stateBorder } from "./control-class";
 import { Field } from "./field";
@@ -184,5 +186,25 @@ describe("the one Field (DEC-339)", () => {
     expect(screen.queryByTestId("required-mark")).toBeNull();
     expect(screen.queryByText(en["post.optional"])).toBeNull();
     expect(screen.getByLabelText(/Region/).getAttribute("aria-required")).toBe("true");
+  });
+});
+
+describe("the Field's rate sentence says when (L22)", () => {
+  it("RTW-8 a refusal with a future instant, in a family with the rate words, fills {when}", () => {
+    const at = new Date(Date.now() + 2 * 3_600_000).toISOString();
+    render(
+      <Field
+        id="name"
+        label="Name"
+        required={false}
+        refusal={{ field: "name", reason: "rateLimited", detail: at }}
+        family={ADMIN_REFUSALS}
+      >
+        {(control) => <input {...control} />}
+      </Field>,
+    );
+    expect(screen.getByTestId("form-field-refusal").textContent).toBe(
+      en["admin.error.rateLimitedWhen"].split("{when}").join(relativeTime(at, "en")),
+    );
   });
 });

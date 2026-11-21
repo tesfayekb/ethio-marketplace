@@ -4,7 +4,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
-import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
+import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
  * DEC-333 (F1-4b) — the places console's own words for its doors' codes. Every id the console
@@ -18,6 +18,7 @@ import { RATE_LIMITED_KEY } from "@/lib/refusal-tail";
  * `undoBlocked`) draws the console's generic line.
  */
 export const LOCATION_REFUSALS = {
+  when: ADMIN_WHEN,
   words: {
     rateLimited: RATE_LIMITED_KEY,
     permissionDenied: "admin.locations.error.denied",
@@ -63,7 +64,7 @@ const RETIRE_DETAILS = {
  * shows a client-side check's own key.
  */
 export function useLocationRefusal() {
-  const { t, has } = useI18n();
+  const { t, has, language } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
   const clear = () => setMessage(null);
   const fail = (error: unknown) => {
@@ -72,7 +73,7 @@ export function useLocationRefusal() {
       setMessage(null);
       return;
     }
-    const text = refusalText(read, t);
+    const text = refusalText(read, t, undefined, language);
     const detail =
       read.key === LOCATION_REFUSALS.words.retireInstead && read.tail !== undefined
         ? ownValue(RETIRE_DETAILS, read.tail)
