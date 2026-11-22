@@ -42,3 +42,6 @@ filter-off-helper legal_scheduled(text,character) | one country's scheduled lega
 filter-off-helper save_posting_identity(text,text,text,text,text,jsonb,character) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
 filter-off-helper submit_listing(uuid,smallint,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
 filter-off-helper suggest_seller_aliases(text,text,text,uuid) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+# cursor-bundle-2 (DEC-422): the Screening queue's door is born in the migration stop; its caller (the queue's reader in
+# src/features/admin-screening) moves onto it in STEP 3, and this line goes with that commit.
+grant-without-caller admin_screening_queue(text,text[],text,text,integer,integer) | the queue's reader moves onto the door in cursor-bundle-2 STEP 3 | DEC-422
