@@ -127,7 +127,6 @@ describe("a Lovable branch's pull request changes only screen files (DEC-394)", 
         "src/integrations/supabase/** — the platform's client",
       ],
       [".github/workflows/ci.yml", ".github/** — workflows (DEC-386)"],
-      ["scripts/check-bundle-size.mjs", "scripts/** — the guards and tools (DEC-386"],
       ["e2e/helpers/ui.ts", "e2e/helpers/** — e2e helpers (DEC-386)"],
       ["e2e/global-setup.ts", "e2e/global-setup.ts — e2e global setup (DEC-386)"],
       ["e2e/global-teardown.ts", "e2e/global-teardown.ts — e2e global setup (DEC-386)"],
@@ -370,12 +369,12 @@ describe("a Lovable branch's pull request changes only screen files (DEC-394)", 
     ]);
     expect(renamedAway.code).toBe(1);
     expect(renamedAway.out).toContain(
-      `${FORMS_ALLOWLIST} — renamed to docs/old-list.txt: scripts/** — the guards and tools (DEC-386; the two exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396)`,
+      `${FORMS_ALLOWLIST} — renamed to docs/old-list.txt: scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425)`,
     );
 
     // Nothing else under scripts/ takes the exception, with a removal-only patch or not.
     const scriptsRule =
-      "scripts/** — the guards and tools (DEC-386; the two exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396)";
+      "scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425)";
     for (const path of [
       "scripts/conformance/kit.ts",
       "scripts/doors/manifest.txt",
@@ -624,4 +623,247 @@ describe("a patchless exception file is read from git (DEC-398)", () => {
       "scripts/conformance/new-allowlist.txt — added; a Lovable branch may only remove lines of an existing allowlist — DEC-396",
     );
   }, 30_000);
+});
+
+/**
+ * DEC-425 — the stylesheet's limit line of scripts/check-bundle-size.mjs. The guard places the
+ * change from the BASE checkout's own file (it runs in the base, DEC-413), so each case runs in a
+ * scratch directory that holds a fixture of that file in its form (INC-1201: never the live file a
+ * ceilings turn rewrites), and every patch is `git diff`'s own output over two fixture texts.
+ */
+const BUNDLE = "scripts/check-bundle-size.mjs";
+const bundleLines = [
+  'import { readAllowlist } from "./conformance/kit.ts";',
+  "",
+  "/** Ceilings in KiB, gzipped, for everything the browser loads before paint. */",
+  "const BUDGET_KIB = {",
+  "  // DEC-231 (fixture): an older turn's cause.",
+  "  // DEC-296 (fixture turn): JS local 201.7 KiB; 205 → 203 = ceilingForLocal(201.7); was 205. CSS local 22.54 KiB; 40 → 23 = ceilingForLocal(22.54); was 40.",
+  "  js: 203,",
+  "  css: 23,",
+  "};",
+  "",
+  "const CANDIDATE_DIRS = [",
+  '  ".output/public",',
+  "];",
+  "",
+  "const OTHER = { js: 1, css: 2 };",
+];
+const CSS_AT = bundleLines.indexOf("  css: 23,");
+const JS_AT = bundleLines.indexOf("  js: 203,");
+const CSS_COMMENT =
+  "  // DEC-296 (fixture C): CSS local 22.8 KiB; 23 → 24 = ceilingForLocal(22.8); was 23.";
+
+/** The scratch directory the guard runs in: the fixture file is the base's. */
+const baseDir = (() => {
+  const dir = mkdtempSync(join(SCRATCH, "base-"));
+  mkdirSync(join(dir, "scripts"), { recursive: true });
+  writeFileSync(join(dir, BUNDLE), `${bundleLines.join("\n")}\n`);
+  return dir;
+})();
+
+/** `git diff`'s patch (the API's form, three lines of context) of the fixture and a changed copy. */
+function bundlePatch(change: (lines: string[]) => void, context = 3): string {
+  const head = [...bundleLines];
+  change(head);
+  const dir = mkdtempSync(join(SCRATCH, "diff-"));
+  writeFileSync(join(dir, "a"), `${bundleLines.join("\n")}\n`);
+  writeFileSync(join(dir, "b"), `${head.join("\n")}\n`);
+  const result = spawnSync("git", ["diff", "--no-index", `--unified=${context}`, "a", "b"], {
+    cwd: dir,
+    encoding: "utf8",
+    env: GIT_ENV,
+    timeout: 20_000,
+  });
+  const text = result.stdout;
+  const patch = text.slice(text.indexOf("@@")).trimEnd();
+  if (!patch.startsWith("@@")) throw new Error("the planted patch is empty");
+  return patch;
+}
+
+function runAt(cwd: string, pages: Entry[][]) {
+  const input = pages.map((p) => JSON.stringify(p)).join("");
+  const result = spawnSync("bash", [resolve(SCRIPT)], {
+    encoding: "utf8",
+    input,
+    cwd,
+    timeout: 20_000,
+    env: GIT_ENV,
+  });
+  return { code: result.status, out: `${result.stdout}${result.stderr}` };
+}
+
+const moveCss = (lines: string[]) => {
+  lines[CSS_AT] = "  css: 24,";
+};
+const NONE_OUTSIDE =
+  "lovable-branch-guard: 1 file(s), none outside what a Lovable branch may change (DEC-394).";
+
+describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () => {
+  it("CF-LVB-17 the css number alone, or with one DEC-296 comment above the limits, passes — by the API's patch and by git's", () => {
+    const alone = runAt(baseDir, [[modified(BUNDLE, bundlePatch(moveCss))]]);
+    expect(alone.code, alone.out).toBe(0);
+    expect(alone.out).toContain(NONE_OUTSIDE);
+
+    // The comment directly above `js:`, and at the block's first line after its opening.
+    for (const at of [JS_AT, bundleLines.indexOf("const BUDGET_KIB = {") + 1]) {
+      const withComment = (lines: string[]) => {
+        moveCss(lines);
+        lines.splice(at, 0, CSS_COMMENT);
+      };
+      const result = runAt(baseDir, [[modified(BUNDLE, bundlePatch(withComment))]]);
+      expect(result.code, `${at}: ${result.out}`).toBe(0);
+      // The same change as git holds it (no context lines), for a file the API carries no patch for.
+      const zero = bundlePatch(withComment, 0);
+      const viaGit = runAt(baseDir, [[modified(BUNDLE, zero)]]);
+      expect(viaGit.code, `${at} u0: ${viaGit.out}`).toBe(0);
+    }
+    // The local form too: `ceilingFor(` and `CI`, a sixth-decimal size.
+    const ci = (lines: string[]) => {
+      moveCss(lines);
+      lines.splice(
+        JS_AT,
+        0,
+        "  // DEC-296 (fixture D): CSS CI 22.9 KiB; 23 → 24 = ceilingFor(22.9); was 23.",
+      );
+    };
+    expect(runAt(baseDir, [[modified(BUNDLE, bundlePatch(ci))]]).code).toBe(0);
+
+    // The file with no patch from the API is read from git, as DEC-398 reads the ceilings file.
+    const tree = plant(
+      { [BUNDLE]: `${bundleLines.join("\n")}\n` },
+      {
+        [BUNDLE]: `${bundleLines.map((l, i) => (i === CSS_AT ? "  css: 24," : l)).join("\n")}\n`,
+      },
+    );
+    mkdirSync(join(tree.work, "scripts"), { recursive: true });
+    writeFileSync(join(tree.work, BUNDLE), `${bundleLines.join("\n")}\n`);
+    const patchless = runInGit([[noPatch(BUNDLE)]], tree);
+    expect(patchless.code, patchless.out).toBe(0);
+    expect(patchless.out).toContain(NONE_OUTSIDE);
+  }, 30_000);
+
+  it("CF-LVB-18 any other line of the file, the same line in another form, and a comment out of place or out of agreement refuse", () => {
+    const why = `${BUNDLE} — a changed line that is not the stylesheet's limit line; DEC-425 admits one \`css:\` number and one DEC-296 comment only`;
+    const refused = (what: string, change: (lines: string[]) => void, expected: string) => {
+      const result = runAt(baseDir, [[modified(BUNDLE, bundlePatch(change))]]);
+      expect(result.code, what).toBe(1);
+      expect(result.out, what).toContain(expected);
+      expect(result.out, what).toContain("1 change(s) outside what a Lovable branch may change");
+    };
+
+    // The default patch of CF-LVB-1's table: a path of the file, no stylesheet line.
+    const plain = run([[modified(BUNDLE)]]);
+    expect(plain.code).toBe(1);
+    expect(plain.out).toContain(why);
+
+    refused("the js limit", (l) => (l[JS_AT] = "  js: 204,"), why);
+    refused("a line elsewhere", (l) => l.push("const MORE = true;"), why);
+    refused("the other css", (l) => (l[l.length - 1] = "const OTHER = { js: 1, css: 3 };"), why);
+    refused("a trailing comment", (l) => (l[CSS_AT] = "  css: 24, // loose"), why);
+    refused("a quoted key", (l) => (l[CSS_AT] = '  "css": 24,'), why);
+    refused(
+      "a removed comment",
+      (l) => {
+        moveCss(l);
+        l.splice(JS_AT - 1, 1);
+      },
+      why,
+    );
+    refused(
+      "a comment in another form",
+      (l) => {
+        moveCss(l);
+        l.splice(JS_AT, 0, "  // css moves to 24");
+      },
+      why,
+    );
+    refused(
+      "a comment for both limits (two arrows)",
+      (l) => {
+        moveCss(l);
+        l.splice(
+          JS_AT,
+          0,
+          "  // DEC-296 (fixture E): JS local 201.7 KiB; 203 → 204 = ceilingForLocal(201.7); was 203. CSS local 22.8 KiB; 23 → 24 = ceilingForLocal(22.8); was 23.",
+        );
+      },
+      why,
+    );
+    refused(
+      "a second comment",
+      (l) => {
+        moveCss(l);
+        l.splice(JS_AT, 0, CSS_COMMENT, CSS_COMMENT.replace("fixture C", "fixture F"));
+      },
+      `${BUNDLE} — a second comment line; DEC-425 admits one DEC-296 comment for the stylesheet's limit`,
+    );
+    refused(
+      "numbers that disagree",
+      (l) => {
+        moveCss(l);
+        l.splice(JS_AT, 0, CSS_COMMENT.replace("23 → 24", "23 → 30"));
+      },
+      `${BUNDLE} — the comment says 23 → 30, was 23; the css lines say 23 → 24 (DEC-425)`,
+    );
+    refused(
+      "a comment below the limits",
+      (l) => {
+        moveCss(l);
+        l.splice(CSS_AT + 2, 0, CSS_COMMENT);
+      },
+      `${BUNDLE} — the comment is outside the block above the two limits`,
+    );
+    refused(
+      "a comment above the block",
+      (l) => {
+        moveCss(l);
+        l.splice(0, 0, CSS_COMMENT);
+      },
+      `${BUNDLE} — the comment is outside the block above the two limits`,
+    );
+    refused(
+      "no css line change",
+      (l) => l.splice(JS_AT, 0, CSS_COMMENT),
+      `${BUNDLE} — DEC-425 admits the stylesheet's limit as one removed and one added \`css:\` line (0 removed, 0 added)`,
+    );
+    refused(
+      "the css line moved",
+      (l) => {
+        l.splice(CSS_AT, 1);
+        l.splice(CSS_AT + 4, 0, "  css: 24,");
+      },
+      "DEC-425",
+    );
+
+    // A new, renamed or deleted file is not a changed limit; a patch of no text refuses.
+    for (const status of ["added", "renamed", "removed"]) {
+      const result = runAt(baseDir, [[{ filename: BUNDLE, status, patch: bundlePatch(moveCss) }]]);
+      expect(result.code, status).toBe(1);
+      expect(result.out, status).toContain(
+        `${BUNDLE} — ${status}; a Lovable branch may only move the stylesheet's limit line of the existing file — DEC-425`,
+      );
+    }
+    const unreadable = runAt(baseDir, [[{ filename: BUNDLE, status: "modified" }]]);
+    expect(unreadable.code).toBe(1);
+    expect(unreadable.out).toContain(`${BUNDLE} — the API carries no patch for it`);
+    expect(unreadable.out).toContain("DEC-425's exception cannot be read");
+    const garbled = runAt(baseDir, [[modified(BUNDLE, "no hunk here\n-  css: 23,\n+  css: 24,")]]);
+    expect(garbled.code).toBe(1);
+
+    // A base with no budget block to place the change in is a refusal, never a pass.
+    const empty = mkdtempSync(join(SCRATCH, "empty-"));
+    const blind = runAt(empty, [[modified(BUNDLE, bundlePatch(moveCss))]]);
+    expect(blind.code).toBe(1);
+    expect(blind.out).toContain("holds no BUDGET_KIB block above its `js:` line");
+
+    // Beside a pass for the number: the other file's refusal stands.
+    const beside = runAt(baseDir, [
+      [modified(BUNDLE, bundlePatch(moveCss)), modified("package.json")],
+    ]);
+    expect(beside.code).toBe(1);
+    expect(beside.out).toContain("1 change(s) outside what a Lovable branch may change");
+    expect(beside.out).toContain("package.json — modified");
+    expect(beside.out).not.toContain(`${BUNDLE} —`);
+  }, 60_000);
 });

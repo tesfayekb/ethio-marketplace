@@ -25,10 +25,21 @@
 # `-` lines pass; an added or changed line, a rename, a new or deleted allowlist file refuses, and so
 # does any other file under scripts/ (kit.ts, scripts/doors/manifest.txt, …).
 #
-# Every offending path is listed with its rule; then exit 1. The three exceptions are judged by
+# A fourth exception, DEC-425 (cursor-bundle-3): the stylesheet's limit line of
+# scripts/check-bundle-size.mjs (`css:` in its BUDGET_KIB block) is admitted as DEC-390 admits a
+# page's ceiling line of scripts/route-budgets.mjs: its number may move, with ONE added comment line
+# in DEC-296's form in the block above the two limits (`js:` and `css:`). The changed lines must be
+# exactly one removed and one added `  css: <n>,` line and at most one added comment line that names
+# CSS, one `<old> → <new> = ceilingFor(Local)?(<size>); was <old>.` and agrees with the css lines;
+# the comment's line falls between `const BUDGET_KIB = {` and the `js:` line of the base checkout's
+# own file (this script runs in the base, DEC-413). Any other changed line of that file, the same
+# line in another form (a trailing comment, a changed `js:`), a removed or second comment, a rename
+# or a patch the guard cannot read refuses.
+#
+# Every offending path is listed with its rule; then exit 1. The four exceptions are judged by
 # content: the deletions file takes added lines only; every changed line of the ceilings file is a
-# ceiling line; an allowlist takes removed lines only. Input that is not the API's JSON arrays is an
-# error (exit 2), never a pass.
+# ceiling line; an allowlist takes removed lines only; the bundle-size file takes its css limit and
+# that one comment. Input that is not the API's JSON arrays is an error (exit 2), never a pass.
 #
 # A patchless exception file, DEC-398 (INC-1185): GitHub's files API drops `patch` for a file whose
 # diff is too large to carry (the ceilings file's long lines: pull request #55's nine changed lines
@@ -44,8 +55,13 @@ set -euo pipefail
 
 readonly DELETIONS="docs/tracking/intentional-deletions.txt"
 readonly CEILINGS="scripts/route-budgets.mjs"
+readonly BUNDLE_SIZE="scripts/check-bundle-size.mjs"
 # The shape of every route line of scripts/route-budgets.mjs, read from the file.
 readonly CEILING_LINE='^  "[^"]+": \{ ceiling: [0-9]+, public: (true|false) \}, // .+$'
+# DEC-425: the shape of the stylesheet's limit line, and of DEC-296's comment for it (groups: the
+# measuring place, the old limit, the new limit, `Local`, the `was` value).
+readonly CSS_LINE='^  css: ([0-9]+),$'
+readonly CSS_COMMENT='^  // DEC-296 \(.+\): .*CSS (local|CI) [0-9.]+ KiB.*; ([0-9]+) → ([0-9]+) = ceilingFor(Local)?\([0-9.]+\); was ([0-9]+)\.$'
 
 # A conformance allowlist (DEC-396): `scripts/conformance/` + one name ending `-allowlist.txt`. The
 # `case` glob alone would let `*` cross a slash, so a nested path is ruled out beside it.
@@ -67,7 +83,7 @@ rule_for() {
     src/routes/api/*) echo "src/routes/api/** — server routes (DEC-386)" ;;
     src/integrations/supabase/*) echo "src/integrations/supabase/** — the platform's client (INC-1168, DEC-386)" ;;
     .github/*) echo ".github/** — workflows (DEC-386)" ;;
-    scripts/*) echo "scripts/** — the guards and tools (DEC-386; the two exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396)" ;;
+    scripts/*) echo "scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425)" ;;
     e2e/helpers/*) echo "e2e/helpers/** — e2e helpers (DEC-386)" ;;
     e2e/global-setup.ts | e2e/global-teardown.ts | e2e/fixtures.ts) echo "$1 — e2e global setup (DEC-386)" ;;
     package.json | bun.lock) echo "$1 — dependencies (DEC-386)" ;;
@@ -129,18 +145,111 @@ changed_lines() {
   done <<<"$1"
 }
 
-# An exception's verdict: empty when its patch holds only what DEC-390 or DEC-396 allows, else the
-# reason. The patch is the API's or, when the API carried none, git's (DEC-398); `unreadable` is why
-# neither could be had.
+# DEC-425 — the stylesheet's limit line, judged by content: empty when the patch holds exactly one
+# removed and one added `css:` line and at most one added DEC-296 comment line (agreeing with them,
+# placed in the block above the limits of the base's own file), else the reason.
+bundle_size_refusal() {
+  local path="$1" patch="$2" line text arrows start="" js=""
+  local new_no=0 removed=0 added=0 comments=0 old_css="" new_css="" new_css_at=0 comment_at=0
+  local c_old="" c_new="" c_was=""
+  local why="${path} — a changed line that is not the stylesheet's limit line; DEC-425 admits one \`css:\` number and one DEC-296 comment only"
+  while IFS= read -r line; do
+    case "$line" in
+      "") continue ;;
+      "@@"*)
+        if [[ "$line" =~ ^@@\ -[0-9]+(,[0-9]+)?\ \+([0-9]+)(,[0-9]+)?\ @@ ]]; then
+          new_no="${BASH_REMATCH[2]}"
+        else
+          echo "${path} — a hunk header the guard cannot read; DEC-425 refuses what it cannot judge"
+          return
+        fi
+        ;;
+      "\\"*) ;;
+      " "*) new_no=$((new_no + 1)) ;;
+      "-"*)
+        text="${line:1}"
+        if [[ "$text" =~ $CSS_LINE ]]; then
+          removed=$((removed + 1))
+          old_css="${BASH_REMATCH[1]}"
+        else
+          echo "$why"
+          return
+        fi
+        ;;
+      "+"*)
+        text="${line:1}"
+        arrows="$(printf '%s' "$text" | grep -o '→' | wc -l || true)"
+        if [[ "$text" =~ $CSS_LINE ]]; then
+          added=$((added + 1))
+          new_css="${BASH_REMATCH[1]}"
+          new_css_at=$new_no
+        elif [[ "$text" =~ $CSS_COMMENT ]] && [ "${arrows//[[:space:]]/}" = "1" ]; then
+          comments=$((comments + 1))
+          c_old="${BASH_REMATCH[2]}"
+          c_new="${BASH_REMATCH[3]}"
+          c_was="${BASH_REMATCH[5]}"
+          comment_at=$new_no
+        else
+          echo "$why"
+          return
+        fi
+        new_no=$((new_no + 1))
+        ;;
+      *)
+        echo "$why"
+        return
+        ;;
+    esac
+  done <<<"$patch"
+  if [ "$removed" != "1" ] || [ "$added" != "1" ]; then
+    echo "${path} — DEC-425 admits the stylesheet's limit as one removed and one added \`css:\` line (${removed} removed, ${added} added)"
+    return
+  fi
+  if [ "$comments" -gt 1 ]; then
+    echo "${path} — a second comment line; DEC-425 admits one DEC-296 comment for the stylesheet's limit"
+    return
+  fi
+  if [ "$comments" = "1" ] && { [ "$c_new" != "$new_css" ] || [ "$c_was" != "$old_css" ] || [ "$c_old" != "$old_css" ]; }; then
+    echo "${path} — the comment says ${c_old} → ${c_new}, was ${c_was}; the css lines say ${old_css} → ${new_css} (DEC-425)"
+    return
+  fi
+  start="$(awk '$0 == "const BUDGET_KIB = {" { print NR; exit }' "$BUNDLE_SIZE" 2>/dev/null || true)"
+  js="$(awk '/^  js: [0-9]+,$/ { print NR; exit }' "$BUNDLE_SIZE" 2>/dev/null || true)"
+  if ! [[ "$start" =~ ^[0-9]+$ && "$js" =~ ^[0-9]+$ ]] || [ "$start" -ge "$js" ]; then
+    echo "${path} — the base's own file holds no BUDGET_KIB block above its \`js:\` line to place the change in; DEC-425 refuses what it cannot judge"
+    return
+  fi
+  if [ "$comments" = "1" ] && { [ "$comment_at" -le "$start" ] || [ "$comment_at" -gt "$js" ]; }; then
+    echo "${path} — the comment is outside the block above the two limits (after line ${start}, up to line ${js}); DEC-425"
+    return
+  fi
+  if [ "$new_css_at" != "$((js + 1 + comments))" ]; then
+    echo "${path} — the \`css:\` line moved from its place under the \`js:\` limit; DEC-425"
+    return
+  fi
+}
+
+# An exception's verdict: empty when its patch holds only what DEC-390, DEC-396 or DEC-425 allows,
+# else the reason. The patch is the API's or, when the API carried none, git's (DEC-398);
+# `unreadable` is why neither could be had.
 exception_refusal() {
   local path="$1" has_patch="$2" patch="$3" status="$4" unreadable="${5:-}" line dec="DEC-390"
   if is_allowlist "$path"; then dec="DEC-396"; fi
+  if [ "$path" = "$BUNDLE_SIZE" ]; then dec="DEC-425"; fi
   if [ "$has_patch" != "1" ]; then
     echo "${path} — the API carries no patch for it (a binary or a very large diff) and its two sides could not be read from git: ${unreadable}, so ${dec}'s exception cannot be read"
     return
   fi
   if is_allowlist "$path" && [ "$status" != "modified" ]; then
     echo "${path} — ${status}; a Lovable branch may only remove lines of an existing allowlist — DEC-396; a new, renamed or deleted allowlist is refused"
+    return
+  fi
+  if [ "$path" = "$BUNDLE_SIZE" ]; then
+    if [ "$status" != "modified" ]; then
+      echo "${path} — ${status}; a Lovable branch may only move the stylesheet's limit line of the existing file — DEC-425"
+      return
+    fi
+    bundle_size_refusal "$path" "$patch"
     return
   fi
   while IFS= read -r line; do
@@ -173,7 +282,7 @@ count=0
 # Fields joined by the unit separator: a tab is whitespace to `read`, so an empty field would shift.
 while IFS=$'\x1f' read -r filename previous status has_patch; do
   count=$((count + 1))
-  if [ "$filename" = "$DELETIONS" ] || [ "$filename" = "$CEILINGS" ] || is_allowlist "$filename"; then
+  if [ "$filename" = "$DELETIONS" ] || [ "$filename" = "$CEILINGS" ] || [ "$filename" = "$BUNDLE_SIZE" ] || is_allowlist "$filename"; then
     patch="$(jq -r --arg f "$filename" '.[] | select(.filename == $f) | .patch // ""' <<<"$input")"
     unreadable=""
     if [ "$has_patch" != "1" ]; then

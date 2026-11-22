@@ -1308,7 +1308,7 @@ that backend and a config-wide one are named, and the guard refuses them before 
 builds. CF-CID-9 plants a job running `webkit-390` on a
 Chromium install, its kept twin, a run on the nightly's own config and a run naming no project.
 
-## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396; a patchless exception file, DEC-398; judged from the base, DEC-413)
+## A Lovable branch's pull request changes only screen files — CF-LVB (the tests and CI turn, DEC-394; the third exception, DEC-396; a patchless exception file, DEC-398; judged from the base, DEC-413; the fourth exception, DEC-425)
 
 `scripts/ci/lovable-branch-guard.sh` runs in its own workflow, `.github/workflows/lovable-branch-guard.yml`,
 judged from the base (DEC-413, the tests and CI turn 2): on `pull_request_target` into dev, for a
@@ -1334,7 +1334,7 @@ once it is on dev; the check's name is `Lovable branch guard (DEC-413)`.
   `docs/spec/**`; and the platform's own paths (INC-1168) `src/integrations/supabase/**` and
   `.lovable/**`. One path rule per line, each with its DEC; a rename is judged by the path it
   leaves too.
-- **The three exceptions, by content:** `docs/tracking/intentional-deletions.txt` takes
+- **The four exceptions, by content (the fourth, DEC-425, is the next bullet):** `docs/tracking/intentional-deletions.txt` takes
   added lines only; every changed line of `scripts/route-budgets.mjs` must be a ceiling line (the
   shape of its route lines: a quoted route key, `{ ceiling: <n>, public: <true|false> },` and a
   `//` comment) (DEC-390); and a conformance allowlist, `scripts/conformance/<name>-allowlist.txt`
@@ -1344,6 +1344,20 @@ once it is on dev; the check's name is `Lovable branch guard (DEC-413)`.
   never widens. An added or changed line, a rename, a new or a deleted allowlist file refuses;
   `scripts/doors/manifest.txt`, `scripts/conformance/kit.ts` and every other file under `scripts/`
   stay refused under `scripts/**`.
+- **The stylesheet's limit line (DEC-425, cursor-bundle-3):** `scripts/check-bundle-size.mjs` is
+  admitted as `scripts/route-budgets.mjs` is: its `css:` number (the `BUDGET_KIB` block) may move,
+  with ONE added comment line in DEC-296's form in the block above the two limits. The changed
+  lines must be exactly one removed and one added `  css: <n>,` line and at most one added comment
+  that names CSS (`CSS (local|CI) <size> KiB`, exactly one `<old> → <new> = ceilingFor(Local)?(<size>);
+was <old>.`), agreeing with the two css lines. The comment's line must fall after
+  `const BUDGET_KIB = {` and up to the `js:` line, and the `css:` line must stay directly under
+  `js:`; both are read from the base checkout's own file, which is where the script runs (DEC-413).
+  Any other changed line, the same line in another form (a trailing comment, a quoted key), a
+  removed, a second or a two-limit comment, a comment that disagrees with the lines, a rename, a
+  new or a deleted file, a patch it cannot read, or a base file with no block to place the change
+  in refuses with DEC-425 named. A patchless file is read from git as DEC-398 reads the ceilings
+  file. The `scripts/*` rule's refusal text and the tests that pin it say "the three exceptions"
+  and name DEC-425.
 - **A patchless exception file (DEC-398, INC-1185):** GitHub's files API leaves `patch` out of an
   entry whose diff is too large to carry — pull request #55's nine changed ceiling lines of about
   4 KB each — and out of a binary one (the REST page "List pull requests files" documents the
@@ -1361,7 +1375,7 @@ once it is on dev; the check's name is `Lovable branch guard (DEC-413)`.
 - **The verdict:** every offending change listed with its rule, exit 1; a pass names the file
   count. Input that is not the API's JSON arrays (an empty answer, an error object) is exit 2,
   never a pass.
-- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…14 on planted API answers —
+- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…14, 17 and 18 on planted API answers —
   every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
   real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
   across two pages, a missing patch, a rename away from a forbidden path, input that is not the
@@ -1377,8 +1391,16 @@ once it is on dev; the check's name is `Lovable branch guard (DEC-413)`.
   read from a planted remote and passing, and refused with DEC-390 named for one non-ceiling or
   widened line, the ledger's and an allowlist's rules applied to git's lines, no or malformed
   shas, a commit the remote lacks, a binary file refused, and a patchless file under no exception
-  keeping its path rule. These tests plant git repositories, so they run where git may write
-  `.git` (CI; locally outside a write-restricted sandbox).
+  keeping its path rule; (CF-LVB-17) the stylesheet's number alone, with one comment at the
+  block's first line and directly above `js:`, in the `CI` and `ceilingFor(` forms, and read from a
+  planted remote, passing; (CF-LVB-18, which holds the path's former CF-LVB-1 row) the `js:` line, a
+  line elsewhere, the other `css`, a trailing comment, a quoted key, a removed comment, a comment
+  in another form, a two-limit comment, a second comment, disagreeing numbers, a comment below the
+  limits or above the block, no `css:` change, a `css:` line moved, a new, renamed or deleted file,
+  no patch, a garbled patch and a base with no block refusing. Every patch of CF-LVB-17 and
+  CF-LVB-18 is `git diff`'s own output over two fixture texts, and each case runs in a scratch
+  directory holding a fixture of the base's file. These tests plant git repositories, so they run
+  where git may write `.git` (CI; locally outside a write-restricted sandbox).
   `scripts/conformance/wired.test.ts` finds the script in `lovable-branch-guard.yml` and not in
   `ci.yml`.
 - **Its fixtures are its own (INC-1201):** the four `CF-FORM-1` lines and the ceiling line the
