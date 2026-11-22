@@ -24,11 +24,13 @@ import { useMonetisationError } from "./use-monetisation-error";
  */
 export function PriceEndDialog({
   row,
+  productName,
   guard,
   openedBy,
   onClose,
 }: {
   row: PriceRow;
+  productName: string;
   guard: GuardFn;
   openedBy: string;
   onClose: () => void;
@@ -62,12 +64,11 @@ export function PriceEndDialog({
       onClose={onClose}
       description={t("admin.packages.prices.end.body")}
       size="narrow"
-      subject={<PanelSubject title={row.packageKey} />}
+      subject={<PanelSubject title={productName} />}
       tone={"danger"}
       icon={<TriangleAlert />}
       footer={
         <MonetisationDialogActions
-          bare
           onCancel={onClose}
           onSubmit={submit}
           busy={end.isPending}

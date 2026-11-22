@@ -1,3 +1,10 @@
+import { TriangleAlert } from "lucide-react";
+import {
+  PanelHeader,
+  PanelBody,
+  PanelFooter,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { useState } from "react";
@@ -8,8 +15,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
@@ -92,67 +97,68 @@ export function DeleteLanguageDialog({
         if (!next) onClose();
       }}
     >
-      <AlertDialogContent data-testid={`lang-delete-dialog-${row.code}`}>
-        <AlertDialogHeader>
+      <AlertDialogContent data-testid={`lang-delete-dialog-${row.code}`} bands size="default">
+        <PanelHeader tone={"danger"} icon={<TriangleAlert />}>
           <AlertDialogTitle>
             {t("admin.translations.delete.title")
               .replace("{language}", row.nameNative || row.nameEn)
               .replace("{code}", row.code)}
           </AlertDialogTitle>
           <AlertDialogDescription>{t("admin.translations.delete.body")}</AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <p data-testid={`lang-delete-counts-${row.code}`} className="text-sm text-foreground">
-          {preview.isPending
-            ? t("admin.translations.delete.countsLoading")
-            : preview.isError || !preview.data
-              ? t("admin.translations.delete.countsError")
-              : t("admin.translations.delete.counts")
-                  .replace("{ui}", String(preview.data.uiRows))
-                  .replace("{entity}", String(preview.data.entityRows))
-                  .replace("{revisions}", String(preview.data.revisions))
-                  .replace("{assignments}", String(preview.data.assignments))}
-        </p>
-
-        <Field
-          id={`lang-delete-confirm-${row.code}`}
-          field="code"
-          label={
-            <>
-              <span>{t("admin.translations.delete.confirmLabel").replace("{code}", row.code)}</span>
-            </>
-          }
-          required
-          gate={gate}
-          blank={typed.trim() === ""}
-          refusal={gate.marks.find((mark) => mark.field === "code") ?? null}
-          family={TRANSLATION_REFUSALS}
-          layout="stack"
-        >
-          {(control) => (
-            <Input
-              {...control}
-              value={typed}
-              data-testid={`lang-delete-confirm-${row.code}`}
-              autoComplete="off"
-              spellCheck={false}
-              onChange={(event) => setTyped(event.target.value)}
-            />
-          )}
-        </Field>
-
-        {errorKey ? (
-          <p
-            role="alert"
-            data-testid={`lang-delete-error-${row.code}`}
-            className="text-sm text-destructive"
-          >
-            {t(errorKey)}
-            {errorDetail ? <span className="block text-xs opacity-80">{errorDetail}</span> : null}
+        </PanelHeader>
+        <PanelBody>
+          <PanelSubject title={row.nameNative || row.nameEn} />
+          <p data-testid={`lang-delete-counts-${row.code}`} className="text-sm text-foreground">
+            {preview.isPending
+              ? t("admin.translations.delete.countsLoading")
+              : preview.isError || !preview.data
+                ? t("admin.translations.delete.countsError")
+                : t("admin.translations.delete.counts")
+                    .replace("{ui}", String(preview.data.uiRows))
+                    .replace("{entity}", String(preview.data.entityRows))
+                    .replace("{revisions}", String(preview.data.revisions))
+                    .replace("{assignments}", String(preview.data.assignments))}
           </p>
-        ) : null}
-
-        <AlertDialogFooter>
+          <Field
+            id={`lang-delete-confirm-${row.code}`}
+            field="code"
+            label={
+              <>
+                <span>
+                  {t("admin.translations.delete.confirmLabel").replace("{code}", row.code)}
+                </span>
+              </>
+            }
+            required
+            gate={gate}
+            blank={typed.trim() === ""}
+            refusal={gate.marks.find((mark) => mark.field === "code") ?? null}
+            family={TRANSLATION_REFUSALS}
+            layout="stack"
+          >
+            {(control) => (
+              <Input
+                {...control}
+                value={typed}
+                data-testid={`lang-delete-confirm-${row.code}`}
+                autoComplete="off"
+                spellCheck={false}
+                onChange={(event) => setTyped(event.target.value)}
+              />
+            )}
+          </Field>
+          {errorKey ? (
+            <p
+              role="alert"
+              data-testid={`lang-delete-error-${row.code}`}
+              className="text-sm text-destructive"
+            >
+              {t(errorKey)}
+              {errorDetail ? <span className="block text-xs opacity-80">{errorDetail}</span> : null}
+            </p>
+          ) : null}
+        </PanelBody>
+        <PanelFooter>
           <AlertDialogCancel>{t("admin.translations.delete.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             // Bundle 11 A3 (G29, the Reject-red class) — the button that
@@ -171,7 +177,7 @@ export function DeleteLanguageDialog({
               ? t("admin.translations.delete.pending")
               : t("admin.translations.delete.confirm")}
           </AlertDialogAction>
-        </AlertDialogFooter>
+        </PanelFooter>
       </AlertDialogContent>
     </AlertDialog>
   );

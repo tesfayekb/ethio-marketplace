@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { AdminScreeningPage } from "./screening-page";
@@ -39,6 +40,7 @@ vi.mock("@/features/categories/category-tree", () => ({
   useCategoryTree: () => ({ tree: [] }),
   nearestCategoryPicture: () => null,
 }));
+vi.mock("@/features/posting/use-photo-links", () => ({ usePhotoLinks: () => undefined }));
 vi.mock("@/features/posting/use-price-unit-labels", () => ({ usePriceUnitLabels: () => [] }));
 vi.mock("@/features/posting/preview/preview-sheet", () => ({ PreviewSheet: () => null }));
 vi.mock("@/features/admin-listings/listing-photos", () => ({ ListingPhotos: () => null }));

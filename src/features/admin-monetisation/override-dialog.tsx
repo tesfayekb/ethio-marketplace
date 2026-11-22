@@ -147,7 +147,6 @@ export function OverrideDialog({
       icon={<TriangleAlert />}
       footer={
         <MonetisationDialogActions
-          bare
           onCancel={onClose}
           onSubmit={submit}
           busy={save.isPending || clearRow.isPending}

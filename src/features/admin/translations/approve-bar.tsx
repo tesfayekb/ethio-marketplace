@@ -1,3 +1,5 @@
+import { Check } from "lucide-react";
+import { PanelHeader, PanelBody, PanelFooter } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import {
@@ -6,8 +8,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -142,8 +142,8 @@ export function ApproveAllBar({
       ) : null}
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
-        <AlertDialogContent data-testid={testid("approve-all-confirm")}>
-          <AlertDialogHeader>
+        <AlertDialogContent data-testid={testid("approve-all-confirm")} bands size="narrow">
+          <PanelHeader tone={"confirm"} icon={<Check />}>
             <AlertDialogTitle>
               {t(
                 isEntity
@@ -158,15 +158,16 @@ export function ApproveAllBar({
                   : "admin.translations.approve.confirmBody",
               ).replace("{count}", String(reviewable))}
             </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
+          </PanelHeader>
+          <PanelBody>{null}</PanelBody>
+          <PanelFooter>
             <AlertDialogCancel data-testid={testid("approve-all-cancel")}>
               {t("admin.translations.approve.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction data-testid={testid("approve-all-confirm-run")} onClick={start}>
               {t("admin.translations.approve.confirmCta").replace("{count}", String(reviewable))}
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </PanelFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

@@ -181,7 +181,6 @@ export function ProductEditorDialog({
       subject={row === null ? undefined : <PanelSubject title={row.nameEn} />}
       footer={
         <MonetisationDialogActions
-          bare
           onCancel={onClose}
           onSubmit={submit}
           busy={save.isPending}

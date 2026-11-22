@@ -101,7 +101,6 @@ export function CountryActiveDialog({
           </>
         ) : (
           <CountryDialogActions
-            bare
             onCancel={onClose}
             onSubmit={() => run(false)}
             busy={setActive.isPending}

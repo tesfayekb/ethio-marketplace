@@ -157,6 +157,9 @@ export const enMember = {
   "prim.table.filters": "Filters",
   "prim.table.clearAll": "Clear all",
   "prim.table.removeFilter": "Remove filter",
+  "prim.table.filtersDescription": "Choose what the list shows.",
+  "prim.table.columnsDescription":
+    "Choose the columns the table shows. Your choice is kept on this device.",
   "prim.table.columns": "Columns",
   "prim.table.all": "All",
   "prim.table.done": "Done",

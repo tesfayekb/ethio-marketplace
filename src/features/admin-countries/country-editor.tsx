@@ -92,7 +92,6 @@ export function CountryEditorDialog({
       subject={<PanelSubject title={`${row.nameEn} · ${row.code}`} testId="country-editor-code" />}
       footer={
         <CountryDialogActions
-          bare
           onCancel={onClose}
           onSubmit={submit}
           busy={upsert.isPending}

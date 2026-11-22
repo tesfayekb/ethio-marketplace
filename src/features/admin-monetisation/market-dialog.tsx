@@ -114,7 +114,6 @@ export function MarketDialog({
       }
       footer={
         <MonetisationDialogActions
-          bare
           onCancel={onClose}
           onSubmit={submit}
           busy={save.isPending}

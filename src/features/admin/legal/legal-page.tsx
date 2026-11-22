@@ -1,3 +1,9 @@
+import {
+  PanelHeader,
+  PanelBody,
+  PanelFooter,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { compareCodes } from "@/lib/reader-locale";
@@ -5,14 +11,7 @@ import { Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAdminShell } from "@/features/admin/admin-context";
@@ -71,6 +70,7 @@ export function LegalPage() {
   const writes = useLegalWrites();
   // Bundle 22 turn 20 (DEC-219) — the one review dialog: the document under review, the note, the error line.
   const [reviewing, setReviewing] = useState<string | null>(null);
+  const reviewDocument = documents.data?.find((doc) => doc.document_id === reviewing);
   const [reviewNote, setReviewNote] = useState("");
   const reviewGate = useFormGate(reviewing ?? "");
   const [reviewError, setReviewError] = useState<MessageKey | null>(null);
@@ -412,8 +412,8 @@ export function LegalPage() {
               if (!open && !writes.review.isPending) setReviewing(null);
             }}
           >
-            <DialogContent data-testid="legal-review-dialog">
-              <DialogHeader>
+            <DialogContent data-testid="legal-review-dialog" bands size="wide">
+              <PanelHeader>
                 <DialogTitle>{t("admin.legal.review.title")}</DialogTitle>
                 <DialogDescription>
                   {t("admin.legal.review.help").replace(
@@ -421,43 +421,51 @@ export function LegalPage() {
                     String(settings.data?.review_months ?? ""),
                   )}
                 </DialogDescription>
-              </DialogHeader>
-              <Field
-                id="legal-review-note"
-                field="note"
-                label={<>{t("admin.legal.review.noteLabel")}</>}
-                required
-                gate={reviewGate}
-                blank={!reviewNote.trim()}
-                refusal={null}
-              >
-                {(control) => (
-                  <Textarea
-                    {...control}
-                    aria-invalid={reviewError === "admin.legal.error.noteRequired" || undefined}
-                    aria-describedby={
-                      reviewError === "admin.legal.error.noteRequired"
-                        ? "legal-review-error"
-                        : control["aria-describedby"]
-                    }
-                    data-testid="legal-review-note"
-                    maxLength={2000}
-                    value={reviewNote}
-                    onChange={(e) => setReviewNote(e.target.value)}
+              </PanelHeader>
+              <PanelBody>
+                {reviewDocument === undefined ? null : (
+                  <PanelSubject
+                    title={t(kindKey(reviewDocument.kind) ?? "admin.legal.otherDocuments")}
+                    lines={[scope(reviewDocument.country_code)]}
                   />
                 )}
-              </Field>
-              {reviewError ? (
-                <p
-                  role="alert"
-                  id="legal-review-error"
-                  data-testid="legal-review-error"
-                  className="text-destructive"
+                <Field
+                  id="legal-review-note"
+                  field="note"
+                  label={<>{t("admin.legal.review.noteLabel")}</>}
+                  required
+                  gate={reviewGate}
+                  blank={!reviewNote.trim()}
+                  refusal={null}
                 >
-                  {t(reviewError)}
-                </p>
-              ) : null}
-              <DialogFooter>
+                  {(control) => (
+                    <Textarea
+                      {...control}
+                      aria-invalid={reviewError === "admin.legal.error.noteRequired" || undefined}
+                      aria-describedby={
+                        reviewError === "admin.legal.error.noteRequired"
+                          ? "legal-review-error"
+                          : control["aria-describedby"]
+                      }
+                      data-testid="legal-review-note"
+                      maxLength={2000}
+                      value={reviewNote}
+                      onChange={(e) => setReviewNote(e.target.value)}
+                    />
+                  )}
+                </Field>
+                {reviewError ? (
+                  <p
+                    role="alert"
+                    id="legal-review-error"
+                    data-testid="legal-review-error"
+                    className="text-destructive"
+                  >
+                    {t(reviewError)}
+                  </p>
+                ) : null}
+              </PanelBody>
+              <PanelFooter>
                 <Button
                   variant="outline"
                   size="touch"
@@ -489,7 +497,7 @@ export function LegalPage() {
                 >
                   {t("admin.legal.action.saveReview")}
                 </Button>
-              </DialogFooter>
+              </PanelFooter>
             </DialogContent>
           </Dialog>
         </div>

@@ -1,12 +1,13 @@
+import { PanelHeader, PanelBody, PanelFooter } from "@/components/ui/dialog-parts-facade";
+import { BANDS_PANEL } from "@/components/ui/dialog-look";
 import { useState, type ReactNode } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Sheet,
   SheetContent,
-  SheetFooter,
-  SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -41,12 +42,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
  * the first press); both lay the footer's link and its primary in the shared
  * footer part, in one row.
  */
-const BODY = "-mx-6 -my-1 min-h-0 flex-1 overflow-y-auto px-6 py-1";
-const FOOT = "flex-row items-center";
 
 export function ToolbarPanel({
   testid,
   title,
+  description,
   trigger,
   children,
   footer,
@@ -55,6 +55,7 @@ export function ToolbarPanel({
 }: {
   testid: string;
   title: string;
+  description?: string;
   trigger: ReactNode;
   children: ReactNode;
   footer?: (close: () => void, changed: boolean) => ReactNode;
@@ -70,8 +71,8 @@ export function ToolbarPanel({
   };
   const close = () => setOpen(false);
   const foot = footer?.(close, state !== openedWith) ?? null;
-  const body = <div className={BODY}>{children}</div>;
-  const footPart = foot !== null ? <SheetFooter className={FOOT}>{foot}</SheetFooter> : null;
+  const body = <PanelBody>{children}</PanelBody>;
+  const footPart = foot !== null ? <PanelFooter>{foot}</PanelFooter> : null;
 
   if (isMobile) {
     return (
@@ -81,11 +82,15 @@ export function ToolbarPanel({
           side="bottom"
           data-testid={`${testid}-panel`}
           closeTestId={`${testid}-close`}
-          aria-describedby={undefined}
+          bands
+          aria-describedby={description === undefined ? undefined : `${testid}-description`}
         >
-          <SheetHeader>
+          <PanelHeader>
             <SheetTitle>{title}</SheetTitle>
-          </SheetHeader>
+            {description === undefined ? null : (
+              <SheetDescription id={`${testid}-description`}>{description}</SheetDescription>
+            )}
+          </PanelHeader>
           {body}
           {footPart}
         </SheetContent>
@@ -96,7 +101,18 @@ export function ToolbarPanel({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent variant="panel" align={align} data-testid={`${testid}-panel`}>
+      <PopoverContent
+        variant="panel"
+        align={align}
+        data-testid={`${testid}-panel`}
+        className={BANDS_PANEL}
+      >
+        <PanelHeader>
+          <h2 className="font-semibold">{title}</h2>
+          {description === undefined ? null : (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+        </PanelHeader>
         {body}
         {footPart}
       </PopoverContent>

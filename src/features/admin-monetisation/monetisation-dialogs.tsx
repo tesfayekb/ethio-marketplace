@@ -45,7 +45,6 @@ export function MonetisationProblemLine({
 }
 
 export function MonetisationDialogActions({
-  bare = false,
   onCancel,
   onSubmit,
   busy,
@@ -54,7 +53,6 @@ export function MonetisationDialogActions({
   submitLabel,
   destructive = false,
 }: {
-  bare?: boolean;
   onCancel: () => void;
   onSubmit: () => void;
   busy: boolean;
@@ -64,7 +62,7 @@ export function MonetisationDialogActions({
   destructive?: boolean;
 }) {
   const { t } = useI18n();
-  const buttons = (
+  return (
     <>
       <Button
         type="button"
@@ -86,11 +84,6 @@ export function MonetisationDialogActions({
         {submitLabel}
       </Button>
     </>
-  );
-  return bare ? (
-    buttons
-  ) : (
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">{buttons}</div>
   );
 }
 

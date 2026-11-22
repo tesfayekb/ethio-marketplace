@@ -133,7 +133,6 @@ export function PriceDialog({
       }
       footer={
         <MonetisationDialogActions
-          bare
           onCancel={onClose}
           onSubmit={submit}
           busy={save.isPending || edit.isPending}

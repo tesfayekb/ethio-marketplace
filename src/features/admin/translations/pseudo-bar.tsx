@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelHeader, PanelBody, PanelFooter } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import {
@@ -6,8 +8,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -109,21 +109,22 @@ export function PseudoBar({
 
       {/* U4i-3 (e): a catalog-wide machine write confirms first, naming zxa. */}
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
-        <AlertDialogContent data-testid="pseudo-generate-confirm">
-          <AlertDialogHeader>
+        <AlertDialogContent data-testid="pseudo-generate-confirm" bands size="narrow">
+          <PanelHeader tone={"confirm"} icon={<TriangleAlert />}>
             <AlertDialogTitle>
               {t("admin.translations.pseudo.confirmTitle").replace("{code}", PSEUDO_LANG)}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t("admin.translations.pseudo.confirmBody").replaceAll("{code}", PSEUDO_LANG)}
             </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
+          </PanelHeader>
+          <PanelBody>{null}</PanelBody>
+          <PanelFooter>
             <AlertDialogCancel>{t("admin.translations.pseudo.confirmCancel")}</AlertDialogCancel>
             <AlertDialogAction data-testid="pseudo-generate-confirm-action" onClick={run}>
               {t("admin.translations.pseudo.confirmAction")}
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </PanelFooter>
         </AlertDialogContent>
       </AlertDialog>
 

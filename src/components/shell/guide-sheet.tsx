@@ -1,7 +1,8 @@
+import { PanelHeader, PanelBody } from "@/components/ui/dialog-parts-facade";
 import { Suspense, useRef, type ReactNode, type RefObject } from "react";
 
 import { Spinner } from "@/components/brand/spinner";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useI18n } from "@/i18n";
 import { resilientLazy } from "@/lib/resilient-lazy";
 
@@ -80,6 +81,7 @@ export function GuideSheetContent({
       side="end"
       data-testid={`${anchor}-guide-sheet`}
       closeTestId={`${anchor}-guide-close`}
+      // Description exception: the guide text is the content.
       aria-describedby={undefined}
       onCloseAutoFocus={(event) => {
         const hash = landing.current;
@@ -90,31 +92,34 @@ export function GuideSheetContent({
         event.preventDefault();
         target.focus({ preventScroll: true });
       }}
+      bands
     >
-      <SheetHeader>
+      <PanelHeader>
         <SheetTitle>{title}</SheetTitle>
-      </SheetHeader>
-      <StringsLayerGate layers={["guide"]}>
-        <Suspense
-          fallback={
-            <div className="flex justify-center py-12">
-              <Spinner label={t("common.loading")} />
-            </div>
-          }
-        >
-          <BlockGuideSheet
-            anchor={anchor}
-            spec={spec}
-            parts={parts}
-            partsKind={partsKind}
-            current={current}
-            onNext={(hash) => {
-              landing.current = hash ?? null;
-              onOpenChange(false);
-            }}
-          />
-        </Suspense>
-      </StringsLayerGate>
+      </PanelHeader>
+      <PanelBody>
+        <StringsLayerGate layers={["guide"]}>
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-12">
+                <Spinner label={t("common.loading")} />
+              </div>
+            }
+          >
+            <BlockGuideSheet
+              anchor={anchor}
+              spec={spec}
+              parts={parts}
+              partsKind={partsKind}
+              current={current}
+              onNext={(hash) => {
+                landing.current = hash ?? null;
+                onOpenChange(false);
+              }}
+            />
+          </Suspense>
+        </StringsLayerGate>
+      </PanelBody>
     </SheetContent>
   );
 }

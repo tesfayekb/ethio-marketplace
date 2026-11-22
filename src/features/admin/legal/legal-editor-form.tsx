@@ -1,3 +1,10 @@
+import { TriangleAlert } from "lucide-react";
+import {
+  PanelHeader,
+  PanelBody,
+  PanelFooter,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -8,8 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
@@ -390,12 +395,18 @@ export function LegalEditorForm({
             </p>
           ) : null}
           <AlertDialog open={discarding} onOpenChange={setDiscarding}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
+            <AlertDialogContent bands size="narrow">
+              <PanelHeader tone={"danger"} icon={<TriangleAlert />}>
                 <AlertDialogTitle>{t("admin.legal.discardTitle")}</AlertDialogTitle>
                 <AlertDialogDescription>{t("admin.legal.discardBody")}</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
+              </PanelHeader>
+              <PanelBody>
+                <PanelSubject
+                  title={document}
+                  lines={[t("admin.legal.version").replace("{n}", String(version))]}
+                />
+              </PanelBody>
+              <PanelFooter>
                 <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                 <Button
                   variant="destructive"
@@ -414,7 +425,7 @@ export function LegalEditorForm({
                 >
                   {t("admin.legal.action.discardDraft")}
                 </Button>
-              </AlertDialogFooter>
+              </PanelFooter>
             </AlertDialogContent>
           </AlertDialog>
           {publishing && savedId ? (

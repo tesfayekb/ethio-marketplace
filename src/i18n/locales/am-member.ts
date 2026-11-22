@@ -155,6 +155,8 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "prim.table.filters": "ማጣሪያዎች",
   "prim.table.clearAll": "ሁሉንም አጽዳ",
   "prim.table.removeFilter": "ማጣሪያውን አስወግድ",
+  "prim.table.filtersDescription": "ዝርዝሩ የሚያሳየውን ይምረጡ።",
+  "prim.table.columnsDescription": "ሰንጠረዡ የሚያሳያቸውን አምዶች ይምረጡ። ምርጫዎ በዚህ መሣሪያ ላይ ይቀመጣል።",
   "prim.table.columns": "አምዶች",
   "prim.table.all": "ሁሉም",
   "prim.table.done": "ተጠናቋል",

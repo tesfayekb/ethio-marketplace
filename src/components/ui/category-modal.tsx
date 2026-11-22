@@ -42,7 +42,7 @@ export function CategoryModal({
   /** narrow for a question, default for a form, wide for a table or a preview. */
   size?: DialogSize;
   /** What happens when the primary is pressed, in the house's plain words. */
-  description?: string;
+  description?: ReactNode;
   icon?: ReactNode;
   tone?: DialogTone;
   /** What the dialog acts on (PanelSubject), drawn from what the opener holds. */

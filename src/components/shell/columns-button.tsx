@@ -55,6 +55,7 @@ export function ColumnsButton({
       <ToolbarPanel
         testid={testid}
         title={label}
+        description={t("prim.table.columnsDescription")}
         state={state}
         align="end"
         trigger={

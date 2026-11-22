@@ -2,7 +2,6 @@ import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
 import type { FormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -38,14 +37,12 @@ export function CountryDialogAlert({
 }
 
 export function CountryDialogActions({
-  bare = false,
   onCancel,
   onSubmit,
   busy,
   submitTestId,
   submitLabel,
 }: {
-  bare?: boolean;
   onCancel: () => void;
   onSubmit: () => void;
   busy: boolean;
@@ -53,7 +50,7 @@ export function CountryDialogActions({
   submitLabel?: string;
 }) {
   const { t } = useI18n();
-  const buttons = (
+  return (
     <>
       <Button
         type="button"
@@ -75,7 +72,6 @@ export function CountryDialogActions({
       </Button>
     </>
   );
-  return bare ? buttons : <DialogFooter>{buttons}</DialogFooter>;
 }
 
 export interface CountryFormValues {

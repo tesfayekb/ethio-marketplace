@@ -1,4 +1,5 @@
-import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { act, fireEvent, renderHook, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 758,
-  "dynamicCallSites": 415,
+  "dynamicCallSites": 423,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2106,6 +2106,7 @@
     "admin.legal.version": [
       "/admin/legal",
       "/admin/legal/$versionId",
+      "/admin/legal/edit",
       "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
@@ -3308,11 +3309,11 @@
     "admin.screening.col.title": [
       "/admin/screening"
     ],
-    "admin.screening.confirmApprove": [
+    "admin.screening.confirm.titleApprove": [
       "/admin/listings/$listingId/edit",
       "/admin/screening"
     ],
-    "admin.screening.confirmReject": [
+    "admin.screening.confirm.titleReject": [
       "/admin/listings/$listingId/edit",
       "/admin/screening"
     ],
@@ -8229,6 +8230,24 @@
       "/dev/style",
       "/my-listings"
     ],
+    "prim.table.columnsDescription": [
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/impersonation/$sessionId",
+      "/admin/listings",
+      "/admin/monetisation",
+      "/admin/places",
+      "/admin/roles",
+      "/admin/screening",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/style",
+      "/my-listings"
+    ],
     "prim.table.done": [
       "/admin/ai",
       "/admin/attributes",
@@ -8248,6 +8267,19 @@
       "/my-listings"
     ],
     "prim.table.filters": [
+      "/admin/ai",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/listings",
+      "/admin/places",
+      "/admin/screening",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/style",
+      "/my-listings"
+    ],
+    "prim.table.filtersDescription": [
       "/admin/ai",
       "/admin/audit",
       "/admin/categories",
