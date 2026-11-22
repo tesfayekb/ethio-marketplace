@@ -35,7 +35,10 @@ The find group carries four filters and the page-size
 control. **One read per country** (L2a-R): `admin_list_locations` is called with
 `p_country_code` alone — a list (DEC-420): one market is a list of one, and All countries sends no
 argument (PL-6) — and search, level and status sieve that roster in the
-browser. Switching the country is the only control that fetches — a keystroke
+browser. The door's list is proven from the browser's side by LT-17 (two markets OR-ed, none or an
+empty list filters nothing, twenty-one values or a three-letter code refused as `badValue:country`),
+LT-18 (no `locations:view` is refused before any list is read) and LT-19 (a grant naming one country
+lists that country's places only, whatever list is asked). Switching the country is the only control that fetches — a keystroke
 costs no request on an expensive-data device.
 
 | Control                      | Test id                   | Effect                                          |
