@@ -325,7 +325,13 @@ function RemoveDialog({
           title={t("admin.listings.photos.title")}
           picture={
             link === null ? undefined : (
-              <Picture src={link} fit="contain" width={480} height={360} className="size-full" />
+              <Picture
+                src={link}
+                fit="contain"
+                width={480}
+                height={360}
+                className="h-full w-full"
+              />
             )
           }
         />

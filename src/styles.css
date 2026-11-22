@@ -41,6 +41,13 @@
 @utility band-drop {
   box-shadow: var(--lift-subband);
 }
+
+/* Lovable bundle 2 (DEC-418) — the scroll cue's fade: the body's own colour rising from the
+   panel's bottom edge. Written by hand: the framework's gradient utilities would add their
+   whole machinery to every page's stylesheet for this one fade. */
+@utility cue-fade {
+  background: linear-gradient(to top, var(--background), transparent);
+}
 [data-testid="shell-subband"]:has(+ [data-testid="shell-location-band"]):not(
     [data-location-covered]
   ),

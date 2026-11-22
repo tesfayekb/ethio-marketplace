@@ -488,7 +488,7 @@ export function AdminScreeningPage({
                 fit="cover"
                 width={160}
                 height={160}
-                className="size-full"
+                className="h-full w-full"
               />
             )
           }
@@ -502,7 +502,7 @@ export function AdminScreeningPage({
                 fit="contain"
                 width={160}
                 height={160}
-                className="size-20 shrink-0"
+                className="aspect-square w-20 shrink-0"
               />
             ))}
           </div>

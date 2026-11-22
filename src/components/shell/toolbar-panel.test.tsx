@@ -104,7 +104,7 @@ describe("ToolbarPanel", () => {
   });
 });
 
-it("FP-U16 a toolbar panel with no answers opens and closes without a body band", async () => {
+it("FP-U17 a toolbar panel with no answers opens and closes without a body band", async () => {
   render(
     <ToolbarPanel
       testid="empty-filter"

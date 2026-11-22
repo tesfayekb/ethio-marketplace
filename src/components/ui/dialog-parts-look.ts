@@ -18,7 +18,7 @@ export const DIALOG_TONE = {
   danger: "bg-destructive text-destructive-foreground",
 } as const;
 export const CUE_WRAP =
-  "pointer-events-none absolute inset-x-0 bottom-0 flex justify-center bg-linear-to-t from-background to-transparent px-6 py-4 pb-2";
+  "pointer-events-none absolute inset-x-0 bottom-0 flex justify-center cue-fade px-6 py-4 pb-2";
 export const CUE_BUTTON = `pointer-events-auto inline-flex min-h-11 md:pointer-fine:min-h-9 items-center gap-1 rounded-full px-4 text-sm font-medium ${CONTROL_LOOK}`;
 export const STEP_TRACK = "flex min-w-0 items-center gap-2 text-xs text-muted-foreground";
 export const STEP_MARK =

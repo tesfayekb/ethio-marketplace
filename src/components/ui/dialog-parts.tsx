@@ -79,7 +79,9 @@ export function PanelSubject({
       className={cn(DIALOG_CARD, "flex min-w-0 items-center gap-3")}
     >
       {picture === undefined ? null : (
-        <div className="size-14 shrink-0 overflow-hidden rounded-lg bg-muted">{picture}</div>
+        <div className="aspect-square w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+          {picture}
+        </div>
       )}
       <div className="min-w-0">
         <p className="truncate font-semibold text-foreground">{title}</p>
@@ -193,7 +195,7 @@ export function StepTrack({
                 state === "current"
                   ? DIALOG_TONE.confirm
                   : state === "done"
-                    ? "bg-primary/15 text-primary"
+                    ? "bg-primary/10 text-primary"
                     : undefined,
               )}
             >
@@ -270,7 +272,7 @@ export const ClosedPrimary = React.forwardRef<
         }}
       />
       {closed && missing ? (
-        <p id={lineId} className="order-last w-full text-sm text-muted-foreground">
+        <p id={lineId} className="order-2 w-full text-sm text-muted-foreground">
           {missing}
         </p>
       ) : null}

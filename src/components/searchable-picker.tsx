@@ -57,7 +57,7 @@ export function PickerOption({
       aria-disabled={unavailable || undefined}
       data-testid={testId}
       {...dataAttrs}
-      className={`${unavailable ? "opacity-50 cursor-not-allowed" : ""} ${LIST_ROW} ${selected ? LIST_ROW_CURRENT : highlighted ? LIST_ROW_HIGHLIGHT : ""} ${className}`}
+      className={`${unavailable ? "opacity-50 cursor-default" : ""} ${LIST_ROW} ${selected ? LIST_ROW_CURRENT : highlighted ? LIST_ROW_HIGHLIGHT : ""} ${className}`}
       onMouseDown={(event) => event.preventDefault()}
       onClick={() => {
         if (!unavailable) onPick();
