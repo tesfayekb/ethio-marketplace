@@ -355,6 +355,20 @@ describe("nameCheckSummaryOf", () => {
 });
 
 /** Turn T1 — the preview's tier look reads the ad's tier from the queue's own row. */
+describe("several screening markets", () => {
+  it("SF-15 several countries reach the existing door in order, capped at 20", () => {
+    const choices = Array.from({ length: 21 }, (_, index) => `choice-${index}`);
+    expect(screeningQueueArgs(0, "", 25, { country: choices, tier: null })).toEqual({
+      p_country: choices.slice(0, 20),
+      p_limit: 25,
+      p_offset: 0,
+    });
+    expect(screeningQueueArgs(0, "", 25, { country: [], tier: null })).not.toHaveProperty(
+      "p_country",
+    );
+  });
+});
+
 describe("the screening row's tier", () => {
   it("SF-6 any level key is read as it is (P-2 (c) c2a: levels are rows), no key is null", async () => {
     answerRows(

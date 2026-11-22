@@ -1,22 +1,30 @@
-import { Suspense } from "react";
-import { resilientLazy } from "@/lib/resilient-lazy";
+import { useEffect, useState } from "react";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import { loadOnce } from "@/lib/load-once";
 import type { TableFilter, TableFilterWords } from "./table-filters";
 
-const Empty = () => null;
-const Body = resilientLazy(
-  () => import("./filter-panel-body").then((module) => module.FilterPanelBody),
-  "table filter controls",
-  Empty,
-);
+const panel = loadOnce(() => import("./filter-panel-body"));
 
-/** Loading the overlay alone must not evaluate the calendar's language reader. */
+/** The overlay preload evaluates neither the calendar nor the failure reporter. */
 export function FilterPanelBody(props: {
   filters: readonly TableFilter[];
   words: TableFilterWords;
 }) {
-  return (
-    <Suspense fallback={null}>
-      <Body {...props} />
-    </Suspense>
-  );
+  const [implementation, setImplementation] = useState(() => panel.ready());
+  useEffect(() => {
+    if (implementation !== null) return;
+    let mounted = true;
+    void panel.load().then(
+      (loaded) => {
+        if (mounted) setImplementation(loaded);
+      },
+      (error: unknown) => {
+        reportOnDemandFailure("table filter controls", error);
+      },
+    );
+    return () => {
+      mounted = false;
+    };
+  }, [implementation]);
+  return implementation === null ? null : <implementation.FilterPanelBody {...props} />;
 }

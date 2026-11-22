@@ -54,6 +54,21 @@ describe("the All listings reader (DEC-420)", () => {
     ]);
   });
 
+  it("ALR-3 several countries and categories reach the existing door in order, capped at 20", async () => {
+    const choices = Array.from({ length: 21 }, (_, index) => `choice-${index}`);
+    await listAdminListings({ ...NONE, country: choices, category: choices });
+    expect(door.calls[0]).toEqual([
+      "admin_list_listings",
+      {
+        p_view: "all",
+        p_country: choices.slice(0, 20),
+        p_category: choices.slice(0, 20),
+        p_limit: 25,
+        p_offset: 0,
+      },
+    ]);
+  });
+
   it("ALR-2 a failed read is a typed ReaderError carrying the door's own text, never an empty table", async () => {
     door.answer = { data: null, error: { message: "permissionDenied" } };
     const failed = await listAdminListings(NONE).catch((error: unknown) => error);

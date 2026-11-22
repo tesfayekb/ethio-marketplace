@@ -21,6 +21,7 @@ export function FilterDates({
   testId?: string;
   maxDate?: string;
 }) {
+  const upperBound = to !== "" && (maxDate === undefined || to < maxDate) ? to : maxDate;
   return (
     <div data-testid={testId} className="grid min-w-0 grid-cols-2 gap-2">
       <div className="min-w-0">
@@ -31,9 +32,7 @@ export function FilterDates({
           id={id}
           testid={`${testId ?? id}-from`}
           value={from}
-          {...((to === "" ? maxDate : maxDate && maxDate < to ? maxDate : to) === undefined
-            ? {}
-            : { max: to !== "" && (!maxDate || to < maxDate) ? to : maxDate })}
+          {...(upperBound === undefined ? {} : { max: upperBound })}
           onChange={(next) => onChange({ from: next, to })}
         />
       </div>

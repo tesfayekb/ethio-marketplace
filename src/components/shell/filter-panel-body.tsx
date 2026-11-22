@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FilterRow } from "./filter-row";
 import { FilterSelect } from "./filter-select";
@@ -19,7 +20,7 @@ export function FilterPanelBody({
         <FilterRow
           key={filter.id}
           label={filter.name}
-          htmlFor={filter.id}
+          htmlFor={filter.kind === "dates" ? `${filter.id}-from` : filter.id}
           dates={filter.kind === "dates"}
         >
           {filter.kind === "select" ? (
@@ -62,11 +63,13 @@ export function FilterPanelBody({
               data-testid={filter.id}
               type="button"
               variant="outline"
-              aria-pressed={filter.value}
-              className="min-h-11 w-full md:pointer-fine:min-h-9"
+              role="switch"
+              aria-label={filter.name}
+              aria-checked={filter.value}
+              className="size-11 px-0 md:pointer-fine:size-9"
               onClick={() => filter.onChange(!filter.value)}
             >
-              {filter.name}
+              <Check aria-hidden="true" className={filter.value ? "opacity-100" : "opacity-0"} />
             </Button>
           )}
         </FilterRow>

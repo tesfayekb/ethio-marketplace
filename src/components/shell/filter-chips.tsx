@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useI18n } from "@/i18n";
 
-import { useOverlays } from "@/components/ui/overlay-loader";
+import { FilterPanelBody } from "./filter-panel-facade";
 import {
   clearTableFilters,
   tableFilterChips,
@@ -74,7 +74,6 @@ export function FiltersButton({
 }) {
   const { t } = useI18n();
   const label = t("prim.table.filters");
-  const impl = useOverlays();
   const count = tableFilterChips(filters).length;
   const state = tableFilterState(filters);
   return (
@@ -132,17 +131,15 @@ export function FiltersButton({
           </>
         )}
       >
-        {impl === null ? null : (
-          <impl.filterPanel.FilterPanelBody
-            filters={filters}
-            words={{
-              all: t("prim.table.all"),
-              search: t("prim.filter.search"),
-              none: t("prim.filter.none"),
-              max: t("prim.filter.max"),
-            }}
-          />
-        )}
+        <FilterPanelBody
+          filters={filters}
+          words={{
+            all: t("prim.table.all"),
+            search: t("prim.filter.search"),
+            none: t("prim.filter.none"),
+            max: t("prim.filter.max"),
+          }}
+        />
       </ToolbarPanel>
     </PressLabel>
   );

@@ -238,7 +238,7 @@ const SERVER_SNAPSHOT: Snapshot = Object.freeze({ ready: false, entry: EMPTY });
 const snapshots = new Map<string, Snapshot>();
 
 function snapshotOf(account: TableViewAccount, tableId: string): Snapshot {
-  if (account === undefined) return SERVER_SNAPSHOT;
+  if (account === undefined || account === null) return SERVER_SNAPSHOT;
   const entry = entryOf(account, tableId);
   const id = `${String(account)}\u0000${tableId}`;
   const held = snapshots.get(id);

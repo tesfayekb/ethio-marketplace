@@ -151,6 +151,13 @@ describe("my_listings answer", () => {
     expect(LISTING_MARKS).toEqual(["reserved", "reduced"]);
   });
 
+  it("ML-U30 several categories reach the existing door in order, capped at 20", () => {
+    const choices = Array.from({ length: 21 }, (_, index) => `choice-${index}`);
+    expect(filterArgs({ search: "", category: choices, mark: null })).toEqual({
+      p_category: choices.slice(0, 20),
+    });
+  });
+
   it("ML-U29 the one category the page filters by reaches the door as a list of one, and no category sends no list (DEC-420)", () => {
     const category = "00000000-0000-4000-8000-0000000000c1";
     expect(filterArgs({ search: "", category: [category], mark: null })).toEqual({
