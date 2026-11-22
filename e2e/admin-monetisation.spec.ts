@@ -1378,12 +1378,15 @@ test.describe("P-1b Admin › Monetisation", () => {
           "42501",
         );
       }
-      // A market's dials are public (the wizard reads them); its authors are not.
+      // A market's dials are no browser read (INC-1236: the staff console's door and the definer doors
+      // read them); neither are its authors.
       const market = await client
         .from("market_settings")
         .select("id, free_regular_ads, included_reach, paid_levels")
         .limit(1);
-      expect(market.error, `MON-13 ${who}: the market's own columns were refused`).toBeNull();
+      expect(market.error?.code, `MON-13 ${who}: the market's own columns were readable`).toBe(
+        "42501",
+      );
       const marketAuthor = await client.from("market_settings").select("created_by").limit(1);
       expect(
         marketAuthor.error?.code,
