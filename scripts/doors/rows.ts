@@ -6,6 +6,7 @@ import { codeOf, walkFiles } from "../conformance/kit";
 import { sqlCodeOf } from "../conformance/migration-reader";
 import { pattern } from "../lib/pattern";
 import { callableBy, readCatalogue, type DroppedGrant, type UnseenGrant } from "./catalogue";
+import { argumentsOf } from "./identity";
 import { readOnce, type OnceOptions } from "./once";
 
 /**
@@ -28,6 +29,11 @@ export type DoorRow = {
   authenticated: boolean;
   /** RETURNS trigger / event_trigger: never a door, read only for stray grants. */
   trigger: boolean;
+  /**
+   * The input argument names, in order (`""` when unnamed): the static catalogue's, and the live
+   * definition's header read the same way. Absent on a planted row that names none.
+   */
+  argNames?: string[];
   /** The body (static: comments blanked; live: the whole definition, comments stripped). */
   body: string;
   where: string;
@@ -56,6 +62,7 @@ function readStaticRows(root: string): StaticRows {
       anon: callableBy(fn, "anon"),
       authenticated: callableBy(fn, "authenticated"),
       trigger: /^(?:trigger|event_trigger)$/.test(fn.returns),
+      argNames: fn.argNames,
       body: fn.body,
       where: `${fn.file}:${fn.line}`,
     });
@@ -103,6 +110,7 @@ export function liveRows(tsv: string): DoorRow[] {
       anon: anon === "t",
       authenticated: authenticated === "t",
       trigger: trigger === "t",
+      argNames: argumentsOf(body).map((arg) => arg.name),
       body,
       where: `live:${index + 1}`,
     });

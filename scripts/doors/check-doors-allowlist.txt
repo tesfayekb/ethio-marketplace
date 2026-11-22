@@ -3,3 +3,45 @@
 # another body. Each is revoked, or its caller found, in its family's turn (plan §5); the line goes with it.
 # F1-7a (STEP 3): the four lines the new readers held until their callers moved left with the callers
 # (the three `_read` routes and the ad page's viewer state); none is in the tree.
+# cursor-bundle-2 (DEC-423): `filter-off-helper` — a country, category or scope argument is read through the list rule
+# (door_filter_countries / door_filter_categories) or stands on a line here, each with its reason. These are the
+# arguments that are no list filter: a value a door writes or names, a download's or an import's scope, a page's
+# own address. Reviewed each half year.
+filter-off-helper admin_commit_attribute_import(jsonb,jsonb,text,text) | an import's scope: the one category it commits, not a list filter | 2027-05-31
+filter-off-helper admin_commit_category_import(jsonb,text,text) | an import's scope: the one category it commits, not a list filter | 2027-05-31
+filter-off-helper admin_commit_location_import(jsonb,jsonb,text,text) | an import's rows and scope: the one market it commits, not a list filter | 2027-05-31
+filter-off-helper admin_edit_package_price(uuid,numeric,character,integer,character,uuid,timestamp with time zone,timestamp with time zone) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_export_categories(text) | a download's scope: the one category it exports, not a list filter | 2027-05-31
+filter-off-helper admin_export_locations(text) | a download's scope: the one market it exports, not a list filter | 2027-05-31
+filter-off-helper admin_link_attribute(uuid,uuid,boolean,boolean,integer,text[],jsonb,jsonb) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_list_category_attribute_links(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
+filter-off-helper admin_list_category_pointers(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
+filter-off-helper admin_list_effective_category_links(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
+filter-off-helper admin_list_listings(text,text,text,uuid,text,date,date,text,integer,integer) | the list doors read the list rule from the next commit of cursor-bundle-2 (DEC-420) | DEC-420
+filter-off-helper admin_list_locations(text,text,text,boolean) | the list doors read the list rule from the next commit of cursor-bundle-2 (DEC-420) | DEC-420
+filter-off-helper admin_preview_attribute_import(jsonb,jsonb,text) | an import's scope: the one category it previews, not a list filter | 2027-05-31
+filter-off-helper admin_preview_category_import(jsonb,text) | an import's scope: the one category it previews, not a list filter | 2027-05-31
+filter-off-helper admin_preview_location_import(jsonb,jsonb,text) | an import's rows and scope: the one market it previews, not a list filter | 2027-05-31
+filter-off-helper admin_save_legal_draft(text,character,text,text,text,text,jsonb) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_save_level_override(text,uuid,character,integer,smallint,text,boolean) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_save_market_settings(integer,text,boolean,character,integer,integer) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_save_package_price(text,numeric,character,integer,character,uuid,timestamp with time zone,timestamp with time zone) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_set_attribute_link_order(uuid,uuid[]) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_set_card_attributes(uuid,uuid[]) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_set_country_exclusions(uuid,text[]) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_set_country_root_order(text,uuid[]) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_set_fact_attributes(uuid,uuid[]) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_update_profile(uuid,text,text,character,text) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper admin_upsert_language(text,text,text,boolean,text[]) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper assign_role(uuid,text,character) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper change_home_country(character) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper feed_page(uuid,uuid,jsonb,integer) | the public feed's own category and place, the page's address, not a list filter | 2027-05-31
+filter-off-helper get_location_tree(text) | the public place tree of one market, the page's address, not a list filter | 2027-05-31
+filter-off-helper get_location_tree_version(text) | the public place tree of one market, the page's address, not a list filter | 2027-05-31
+filter-off-helper get_posting_schema(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
+filter-off-helper legal_in_force(text,character) | one country's legal text in force, the page's address, not a list filter | 2027-05-31
+filter-off-helper legal_scheduled(text,character) | one country's scheduled legal text, the page's address, not a list filter | 2027-05-31
+filter-off-helper my_listings(text,integer,integer,text,uuid,text) | the list doors read the list rule from the next commit of cursor-bundle-2 (DEC-420) | DEC-420
+filter-off-helper save_posting_identity(text,text,text,text,text,jsonb,character) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper submit_listing(uuid,smallint,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
+filter-off-helper suggest_seller_aliases(text,text,text,uuid) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31

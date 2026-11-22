@@ -342,6 +342,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "check-doors.ts --live-open-rules-query",
     );
+    // DOORS-18 (cursor-bundle-2, DEC-423): the list rule's guard — `filter-off-helper`, judged by
+    // check-doors.ts in both modes (the arguments' names come from the static declaration and from the
+    // live definition), so a country or category argument is read through door_filter_countries /
+    // door_filter_categories or stands on a line of scripts/doors/check-doors-allowlist.txt.
+    expect(doorsTests).toContain("DOORS-18");
+    expect(readFileSync(join(ROOT, "scripts/doors/judge.ts"), "utf8")).toContain(
+      '"filter-off-helper"',
+    );
     // seller-names.ts (DEC-359) is the seller-name law: seller-names.test.ts SPA-10a…10d runs its
     // file half; the smoke lane runs its live half after the door guard.
     expect(readFileSync(join(ROOT, "scripts/conformance/seller-names.test.ts"), "utf8")).toContain(

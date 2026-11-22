@@ -1,11 +1,12 @@
 import { splitTopLevel, type DroppedGrant, type UnseenGrant } from "./catalogue";
+import { pattern } from "../lib/pattern";
 import { CONTEXT_CLASS, scopeModeOf, type Manifest, type ManifestLine } from "./manifest";
 import { OPEN_RULE_KINDS, openRuleFindings, type OpenRuleEvidence } from "./open-rules";
 import { browserCallable, type DoorRow } from "./rows";
 
 /**
  * Foundations 1 (DEC-333) — THE JUDGEMENT of the manifest against the rows.
- * Seventeen finding kinds, each planted in check-doors' self-test (DEC-334):
+ * Eighteen finding kinds, each planted in check-doors' self-test (DEC-334):
  *
  * - missing-line           a browser-callable function with no manifest line;
  * - line-without-door      a line whose function is absent or closed to the browser;
@@ -46,6 +47,12 @@ import { browserCallable, type DoorRow } from "./rows";
  *                          without a reader, and door_refuse raises a reader's
  *                          refusal past any shell (F1-7c ruling 1 decision 3).
  *
+ * - filter-off-helper      a browser-callable function whose last declaration holds a country, a category or a
+ *                          scope argument that its body does not read through the list rule
+ *                          (`door_filter_countries` / `door_filter_categories`, cursor-bundle-2, DEC-423):
+ *                          a scalar argument, or a local comparison, on a list door; the arguments that are
+ *                          no list filter (a value a door writes, a download's scope, the public feed's
+ *                          own category) stand on an allowlist line with a reason and an until;
  * - open-rule-undeclared / open-rule-gone / open-rule-computed / open-rule-grants
  *                          the four kinds of scripts/doors/open-rules.txt (open-rules.ts,
  *                          cursor-bundle-1 item 6, INC-1166): a standing `USING (true)` /
@@ -72,6 +79,7 @@ export const FINDING_KINDS = [
   "reader-off-gate",
   "helper-reason-unproven",
   "dial-shell-mismatch",
+  "filter-off-helper",
   ...OPEN_RULE_KINDS,
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
@@ -82,6 +90,8 @@ export type Finding = { kind: FindingKind; key: string; what: string; where: str
 export const LEGACY_GATE =
   /\b(?:assert_caller_active|rate_gate|has_permission|is_super_admin)\s*\(/;
 const SHELL = /EXCEPTION\s+WHEN\s+SQLSTATE\s+'P0D01'/i;
+/** A call of either list rule (cursor-bundle-2, DEC-423): its one refusal is `badValue`. */
+const LIST_RULE = /\bdoor_filter_(?:countries|categories)\s*\(/;
 
 export type ContextArg = { literal: string } | { expression: string } | null;
 
@@ -194,6 +204,8 @@ function pairFindings(row: DoorRow, line: ManifestLine): Finding[] {
   const codes = [...row.body.matchAll(/\bdoor_refuse\s*\(\s*'([A-Za-z]+)'/g)].map(
     (match) => match[1] ?? "",
   );
+  // A list rule (door_filter_countries / door_filter_categories) refuses with badValue and nothing else.
+  if (LIST_RULE.test(row.body)) codes.push("badValue");
   const own = [...new Set(codes)].sort().join(",");
   const listed = [...line.codes].sort().join(",");
   if (own !== listed) add("class-mismatch", `codes ${own || "-"} for the line's ${listed || "-"}`);
@@ -245,6 +257,30 @@ export function callerReadIn(row: DoorRow, rows: readonly DoorRow[]): string | n
   return null;
 }
 
+/**
+ * The arguments that filter by a country, a category or a scope, by name (cursor-bundle-2, DEC-423),
+ * and the list rule each is read through. A scope names a country or a category too (a download's, an
+ * import's); it has no helper, so it always stands on an allowlist line.
+ */
+const FILTER_ARGUMENTS: ReadonlyArray<{ kind: string; name: RegExp; helper: string | null }> = [
+  { kind: "country", name: /countr/i, helper: "door_filter_countries" },
+  { kind: "category", name: /categor/i, helper: "door_filter_categories" },
+  { kind: "scope", name: /^p_scope$/i, helper: null },
+];
+
+/** The filter arguments of a row its body does not read through the list rule, as `name (kind)`. */
+export function filterArgumentsOff(row: DoorRow): string[] {
+  const off: string[] = [];
+  for (const name of row.argNames ?? []) {
+    const rule = FILTER_ARGUMENTS.find((candidate) => candidate.name.test(name));
+    if (rule === undefined) continue;
+    const through =
+      rule.helper !== null && pattern`\\b${rule.helper}\\s*\\(\\s*${name}\\b`.test(row.body);
+    if (!through) off.push(`${name} (${rule.kind})`);
+  }
+  return off;
+}
+
 const PUBLIC_DATA = "public-data";
 
 function isReader(line: ManifestLine): boolean {
@@ -287,6 +323,14 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
     });
   for (const row of rows) {
     if (row.trigger || !browserCallable(row)) continue;
+    const off = filterArgumentsOff(row);
+    if (off.length > 0)
+      found.push({
+        kind: "filter-off-helper",
+        key: row.key,
+        what: `${off.join(", ")} not read through the list rule (door_filter_countries / door_filter_categories)`,
+        where: row.where,
+      });
     const line = manifest.lines.get(row.key);
     if (line === undefined) {
       found.push({

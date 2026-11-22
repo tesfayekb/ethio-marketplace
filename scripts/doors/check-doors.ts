@@ -34,7 +34,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the seventeen finding kinds must fire on its planted fixture
+ * process — each of the eighteen finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -205,6 +205,19 @@ export const PLANTED_LIVE_GRANTS =
 export const PLANTED_LIVE_COLUMN_GRANTS =
   "e2e_planted_t\tanon\tSELECT\ta,b\ne2e_planted_t\tauthenticated\tSELECT\ta,b\n";
 
+/**
+ * The planted list doors of `filter-off-helper` (cursor-bundle-2, DEC-423): the same door twice — one that
+ * reads its country list through the list rule, and one that compares the argument itself.
+ */
+export const PLANTED_LIST_LINE =
+  "e2e_planted_list(text[]) | owner | authenticated | - | - | draft | - | - | draft | badValue | -";
+export const plantedListBody = (read: string) =>
+  `BEGIN v_ctx := public.door_context('owner', NULL, NULL, 'draft'); ${read} RETURN jsonb_build_object('ok', true); EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END`;
+export const PLANTED_LIST_THROUGH =
+  "v_codes := public.door_filter_countries(p_country, 'country');";
+export const PLANTED_LIST_OFF =
+  "IF upper(btrim(p_country)) !~ '^[A-Z]{2}$' THEN PERFORM public.door_refuse('badValue', 'country'); END IF;";
+
 /** The planted fixtures: each kind on its own bypass, and a clean pair. */
 export function plantedCases(): Array<{
   kind: FindingKind | "clean";
@@ -344,6 +357,29 @@ export function plantedCases(): Array<{
         }),
       ],
       manifest: PLANTED_READER_LINE,
+    },
+    {
+      // The list rule read through its helper: nothing fires, and the helper's refusal is the line's badValue.
+      kind: "clean",
+      rows: [
+        row({
+          key: "e2e_planted_list(text[])",
+          argNames: ["p_country"],
+          body: plantedListBody(PLANTED_LIST_THROUGH),
+        }),
+      ],
+      manifest: PLANTED_LIST_LINE,
+    },
+    {
+      kind: "filter-off-helper",
+      rows: [
+        row({
+          key: "e2e_planted_list(text[])",
+          argNames: ["p_country"],
+          body: plantedListBody(PLANTED_LIST_OFF),
+        }),
+      ],
+      manifest: PLANTED_LIST_LINE,
     },
     {
       // Every line kept, a closed policy, a dropped one, a dropped table's and a computed one a line

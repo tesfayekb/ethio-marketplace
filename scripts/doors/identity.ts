@@ -102,6 +102,33 @@ export function parseArgument(text: string): { mode: string; name: string; type:
   };
 }
 
+/** Where a header's argument list opens and closes (`open` is -1 with no parenthesis). */
+export function argumentSpan(header: string): { open: number; close: number } {
+  const open = header.indexOf("(");
+  if (open < 0) return { open, close: open };
+  let depth = 0;
+  for (let at = open; at < header.length; at += 1) {
+    if (header[at] === "(") depth += 1;
+    else if (header[at] === ")") {
+      depth -= 1;
+      if (depth === 0) return { open, close: at };
+    }
+  }
+  return { open, close: header.length };
+}
+
+/**
+ * The input arguments of a declaration (or of the live catalogue's one-line definition): the list between the
+ * first parenthesis and its match, split at its top level, OUT arguments left out (they are not identity).
+ */
+export function argumentsOf(header: string): Array<{ mode: string; name: string; type: string }> {
+  const { open, close } = argumentSpan(header);
+  if (open < 0) return [];
+  return splitTopLevel(header.slice(open + 1, close))
+    .map(parseArgument)
+    .filter((arg): arg is NonNullable<typeof arg> => arg !== null && arg.mode !== "out");
+}
+
 /** `name(type,type)` from a function name and its declared argument list text. */
 export function identityKey(name: string, argList: string): string {
   const types = splitTopLevel(argList)
