@@ -9,6 +9,7 @@ export function FilterDates({
   fromLabel,
   toLabel,
   testId,
+  maxDate,
 }: {
   id: string;
   from: string;
@@ -18,9 +19,11 @@ export function FilterDates({
   fromLabel: string;
   toLabel: string;
   testId?: string;
+  maxDate?: string;
 }) {
+  const upperBound = to !== "" && (maxDate === undefined || to < maxDate) ? to : maxDate;
   return (
-    <div data-testid={testId} className="grid min-w-0 grid-cols-2 gap-2">
+    <div data-testid={testId} className="grid min-w-0 grid-cols-1 gap-2">
       <div className="min-w-0">
         <label htmlFor={id} className="text-sm text-muted-foreground">
           {fromLabel}
@@ -29,18 +32,19 @@ export function FilterDates({
           id={id}
           testid={`${testId ?? id}-from`}
           value={from}
-          {...(to === "" ? {} : { max: to })}
+          {...(upperBound === undefined ? {} : { max: upperBound })}
           onChange={(next) => onChange({ from: next, to })}
         />
       </div>
       <div className="min-w-0">
-        <label htmlFor={`${id}-to`} className="text-sm text-muted-foreground">
+        <label htmlFor={`${testId ?? id}-to`} className="text-sm text-muted-foreground">
           {toLabel}
         </label>
         <DateField
-          id={`${id}-to`}
+          id={`${testId ?? id}-to`}
           testid={`${testId ?? id}-to`}
           value={to}
+          {...(maxDate === undefined ? {} : { max: maxDate })}
           {...(from === "" ? {} : { min: from })}
           onChange={(next) => onChange({ from, to: next })}
         />

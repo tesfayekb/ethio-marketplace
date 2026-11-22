@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { Field } from "@/components/forms/field";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -121,8 +122,8 @@ export function AdminTranslationsStringsPage({
   const scope = useMyTranslatorLanguages(!mayManage && (mayUpdate || mayApprove));
 
   const viewScope = search.scope === "data" ? "data" : "interface";
-  const status = search.status ?? "all";
-  const flagged = search.flagged === true || status === "flagged";
+  const addressStatus = search.flagged === true ? "flagged" : (search.status ?? "all");
+
   const query = search.q ?? "";
   /**
    * Bundle 11 G3e (D128, D132) — the footer's page size, kept in this browser;
@@ -147,17 +148,66 @@ export function AdminTranslationsStringsPage({
    * rather than a URL filter because the route file (the single parse point
    * for search params) is outside this task's scope.
    */
-  const [orphanedView, setOrphanedView] = useState(false);
 
-  const list = useTranslations({
-    lang,
-    status: status === "flagged" ? "all" : status,
-    ...(flagged ? { flagged: true } : {}),
-    search: query,
-    limit: pageSize,
-    offset: page * pageSize,
-    orphaned: orphanedView,
-  });
+  const langStats = (stats.data ?? [])[0];
+  const counts: Record<string, number> = {
+    all: langStats?.total ?? 0,
+    untranslated: langStats?.untranslated ?? 0,
+    machine: langStats?.machineCount ?? 0,
+    edited: langStats?.edited ?? 0,
+    approved: langStats?.approved ?? 0,
+    flagged: langStats?.flagged ?? 0,
+    orphaned: langStats?.orphaned ?? 0,
+  };
+  const chooseFilter = (value: string) => {
+    setPage(0);
+    setSearchParams({
+      ...(value === "all" || value === "orphaned" ? {} : { status: value }),
+      ...(query === "" ? {} : { q: query }),
+    });
+  };
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-strings", [
+    {
+      kind: "select",
+      id: "strings-status-filter",
+      addressValue: addressStatus === "all" ? [] : [addressStatus],
+      chipKey: "",
+      name: t("admin.translations.col.status"),
+      kept: true,
+      allLabel: `${t("prim.table.all")} · ${counts["all"] ?? 0}`,
+      value: [],
+      onChange: (next: string[]) => chooseFilter(next[0] ?? "all"),
+      options: [
+        ...STATUS_CHIPS.map((chip) => ({
+          value: chip.value,
+          label: `${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`,
+        })),
+        {
+          value: "orphaned",
+          label: t("admin.translations.orphaned.chip").replace(
+            "{count}",
+            String(counts["orphaned"] ?? 0),
+          ),
+        },
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+  ]);
+  const filterValue = filterValues(tableFilters, "strings-status-filter")[0] ?? "all";
+  const status = filterValue === "orphaned" ? "all" : filterValue;
+  const flagged = status === "flagged";
+  const orphanedView = filterValue === "orphaned";
+  const list = useTranslations(
+    {
+      lang,
+      status: status === "flagged" ? "all" : status,
+      ...(flagged ? { flagged: true } : {}),
+      search: query,
+      limit: pageSize,
+      offset: page * pageSize,
+      orphaned: orphanedView,
+    },
+    filtersReady && paging.ready,
+  );
 
   const setSearchParams = (next: StringsSearch) => {
     setPage(0);
@@ -216,16 +266,6 @@ export function AdminTranslationsStringsPage({
     );
   }
 
-  const langStats = (stats.data ?? [])[0];
-  const counts: Record<string, number> = {
-    all: langStats?.total ?? 0,
-    untranslated: langStats?.untranslated ?? 0,
-    machine: langStats?.machineCount ?? 0,
-    edited: langStats?.edited ?? 0,
-    approved: langStats?.approved ?? 0,
-    flagged: langStats?.flagged ?? 0,
-    orphaned: langStats?.orphaned ?? 0,
-  };
   const reviewable = langStats?.reviewable ?? 0;
   const dataStats = pickEntityStats(entityStats.data, lang);
 
@@ -243,36 +283,7 @@ export function AdminTranslationsStringsPage({
    * (INC-073), or the orphaned view (component state, U4g). Choosing one clears
    * the other, as the old chips did; the chip under the toolbar names it.
    */
-  const filterValue = orphanedView ? "orphaned" : status;
-  const keepQuery = query === "" ? {} : { q: query };
-  const clearFilters = () => {
-    setOrphanedView(false);
-    setSearchParams(keepQuery);
-  };
-  const chooseFilter = (value: string) => {
-    if (value === "orphaned") {
-      setOrphanedView(true);
-      setSearchParams(keepQuery);
-      return;
-    }
-    setOrphanedView(false);
-    setSearchParams({ ...(value === "all" ? {} : { status: value }), ...keepQuery });
-  };
-  const chosenStatus = STATUS_CHIPS.find((chip) => chip.value === status);
-  const filterChips = orphanedView
-    ? [
-        {
-          key: "orphaned",
-          label: t("admin.translations.orphaned.chip").replace(
-            "{count}",
-            String(counts["orphaned"] ?? 0),
-          ),
-          onRemove: clearFilters,
-        },
-      ]
-    : status !== "all" && chosenStatus
-      ? [{ key: status, label: t(chosenStatus.labelKey), onRemove: clearFilters }]
-      : [];
+
   const allStringColumns = stringColumns(t, known?.rtl ?? false);
 
   return (
@@ -385,7 +396,12 @@ export function AdminTranslationsStringsPage({
               <DataTable
                 guide={{ prefix: "admin.translations.strings", next: { section: "translations" } }}
                 columns={visibleColumns(allStringColumns, hidden, ["key"])}
-                rows={rows}
+                serverPage={{
+                  rows: list.data?.rows,
+                  busy: list.isFetching || list.isPlaceholderData,
+                  first: page === 0,
+                  onFirst: () => setPage(0),
+                }}
                 rowKey={(row) => row.key}
                 rowTestId={(row) => `string-row-${slug(row.key)}`}
                 caption={t("admin.translations.strings.caption")}
@@ -427,32 +443,10 @@ export function AdminTranslationsStringsPage({
                       }
                       filters={
                         <FiltersButton
-                          testid="strings-filters"
-                          count={filterChips.length}
-                          state={filterValue}
+                          testid={"strings-filters"}
                           resultCount={total}
-                          onClearAll={clearFilters}
-                        >
-                          <FilterChoices
-                            testid="strings-status-filter"
-                            label={t("admin.translations.col.status")}
-                            value={filterValue}
-                            options={[
-                              ...STATUS_CHIPS.map((chip) => ({
-                                value: chip.value,
-                                label: `${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`,
-                              })),
-                              {
-                                value: "orphaned",
-                                label: t("admin.translations.orphaned.chip").replace(
-                                  "{count}",
-                                  String(counts["orphaned"] ?? 0),
-                                ),
-                              },
-                            ]}
-                            onChange={chooseFilter}
-                          />
-                        </FiltersButton>
+                          filters={tableFilters}
+                        />
                       }
                       columns={
                         <ColumnsButton
@@ -466,13 +460,7 @@ export function AdminTranslationsStringsPage({
                           onToggle={toggleColumn}
                         />
                       }
-                      chips={
-                        <FilterChips
-                          testid="strings-chips"
-                          chips={filterChips}
-                          onClearAll={clearFilters}
-                        />
-                      }
+                      chips={<FilterChips testid={"strings-chips"} filters={tableFilters} />}
                     />
                     {orphanedView ? (
                       <p

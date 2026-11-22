@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Check,
@@ -26,7 +27,6 @@ import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { ColumnsList } from "@/components/shell/columns-button";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FilterChoices } from "@/components/shell/filter-choices";
 import { FilterDates } from "@/components/shell/filter-dates";
 import { FilterRow } from "@/components/shell/filter-row";
 import { FilterSelect } from "@/components/shell/filter-select";
@@ -376,7 +376,18 @@ function DarkCardChoice() {
 const SAMPLE_ROWS = ["Alpha", "Beta", "Gamma"] as const;
 const TONES: IconButtonTone[] = ["neutral", "danger", "success", "warning", "info"];
 const PAGER_TOTAL = 300;
-const COLOURS = ["Red", "Blue"] as const;
+const COLOURS = [
+  "Red",
+  "Blue",
+  "Green",
+  "Yellow",
+  "Black",
+  "White",
+  "Pink",
+  "Orange",
+  "Grey",
+  "Silver",
+] as const;
 const SIZES = ["Small", "Large"] as const;
 /** Fixture words (a dev page, English only). */
 const COLOUR_LABEL = "Colour";
@@ -661,48 +672,42 @@ function FiltersArchetype({ Title, Text, open }: BoardParts & { open: boolean })
       </PanelHeader>
       <PanelBody>
         <div className={cn(DIALOG_CARD, "flex flex-col gap-3")}>
-          <FilterRow label={BOARD.status} htmlFor={`${open}-status`}>
-            <FilterSelect
-              id={`${open}-status`}
-              testId={`style-anatomy-status-${open ? "open" : "shut"}`}
-              options={BOARD_STATUS}
-              value={status}
-              onChange={setStatus}
-              placeholder={BOARD.all}
-              searchLabel={BOARD.search}
-              noneLabel={BOARD.none}
-            />
-          </FilterRow>
+          <FilterSelect
+            rowLabel={BOARD.status}
+            id={`${open}-status`}
+            testId={`style-anatomy-status-${open ? "open" : "shut"}`}
+            options={BOARD_STATUS}
+            value={status}
+            onChange={setStatus}
+            placeholder={BOARD.all}
+            searchLabel={BOARD.search}
+            noneLabel={BOARD.none}
+          />
           <FilterRow label={BOARD.title} htmlFor={`${open}-title`}>
             <FilterText id={`${open}-title`} value={text} onChange={setText} />
           </FilterRow>
-          <FilterRow dates label={BOARD.dates} htmlFor={`${open}-dates`}>
-            <FilterDates
-              id={`${open}-dates`}
-              from={dates.from}
-              to={dates.to}
-              onChange={setDates}
-              fromLabel={BOARD.from}
-              toLabel={BOARD.to}
-            />
-          </FilterRow>
-          <FilterRow label={BOARD.place} htmlFor={`${open}-place`}>
-            <FilterSelect
-              id={`${open}-place`}
-              testId={`style-anatomy-place-${open ? "open" : "shut"}`}
-              multiple
-              defaultOpen={open}
-              options={BOARD_PLACES}
-              value={places}
-              onChange={setPlaces}
-              placeholder={BOARD.all}
-              searchLabel={BOARD.search}
-              noneLabel={BOARD.none}
-            />
-          </FilterRow>
+          <FilterDates
+            id={`${open}-dates`}
+            from={dates.from}
+            to={dates.to}
+            onChange={setDates}
+            fromLabel={BOARD.from}
+            toLabel={BOARD.to}
+          />
+          <FilterSelect
+            rowLabel={BOARD.place}
+            id={`${open}-place`}
+            testId={`style-anatomy-place-${open ? "open" : "shut"}`}
+            multiple
+            defaultOpen={open}
+            options={BOARD_PLACES}
+            value={places}
+            onChange={setPlaces}
+            placeholder={BOARD.all}
+            searchLabel={BOARD.search}
+            noneLabel={BOARD.none}
+          />
         </div>
-        {/* Still-only room beneath the last row: the open list hides no other row's name. */}
-        {open ? <div aria-hidden="true" className="h-80 shrink-0" /> : null}
       </PanelBody>
       <PanelFooter>
         <Button variant="outline" size="touch">
@@ -927,8 +932,16 @@ function AnatomyBoard() {
                 bands
                 size={archetype.size}
                 data-testid={`style-anatomy-${archetype.key}`}
+                aria-describedby={`style-anatomy-${archetype.key}-description`}
               >
-                {archetype.draw({ Title: AlertDialogTitle, Text: AlertDialogDescription })}
+                {archetype.draw({
+                  Title: AlertDialogTitle,
+                  Text: ({ children }) => (
+                    <AlertDialogDescription id={`style-anatomy-${archetype.key}-description`}>
+                      {children}
+                    </AlertDialogDescription>
+                  ),
+                })}
               </AlertDialogContent>
             </AlertDialog>
           ) : (
@@ -943,8 +956,16 @@ function AnatomyBoard() {
                 size={archetype.size}
                 phone={archetype.key === "actions" ? "sheet" : "float"}
                 data-testid={`style-anatomy-${archetype.key}`}
+                aria-describedby={`style-anatomy-${archetype.key}-description`}
               >
-                {archetype.draw(LIVE)}
+                {archetype.draw({
+                  ...LIVE,
+                  Text: ({ children }) => (
+                    <DialogDescription id={`style-anatomy-${archetype.key}-description`}>
+                      {children}
+                    </DialogDescription>
+                  ),
+                })}
               </DialogContent>
             </Dialog>
           ),
@@ -956,8 +977,20 @@ function AnatomyBoard() {
               data-testid="style-anatomy-filters-open"
             >{`${BOARD.open}: filters`}</Button>
           </DialogTrigger>
-          <DialogContent bands data-testid="style-anatomy-filters">
-            <FiltersArchetype {...LIVE} open={false} />
+          <DialogContent
+            bands
+            data-testid="style-anatomy-filters"
+            aria-describedby="style-anatomy-filters-description"
+          >
+            <FiltersArchetype
+              {...LIVE}
+              Text={({ children }) => (
+                <DialogDescription id="style-anatomy-filters-description">
+                  {children}
+                </DialogDescription>
+              )}
+              open={false}
+            />
           </DialogContent>
         </Dialog>
         <Sheet>
@@ -1014,12 +1047,113 @@ function StyleFixture() {
   const [last, setLast] = useState("");
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const [colour, setColour] = useState("");
-  const [size, setSize] = useState("");
-  const chips = [
-    ...(colour ? [{ key: "colour", label: colour, onRemove: () => setColour("") }] : []),
-    ...(size ? [{ key: "size", label: size, onRemove: () => setSize("") }] : []),
-  ];
+  const [rawColour, setColour] = useState<string[]>([]);
+  const [rawSize, setSize] = useState("");
+  const { filters: tableFilters } = useTableFilters("style-filters", [
+    {
+      kind: "select",
+      id: "style-filters-colour",
+      chipKey: "colour",
+      name: COLOUR_LABEL,
+      kept: true,
+      multiple: true,
+      value: rawColour,
+      onChange: (next: string[]) => {
+        setColour(next);
+      },
+      options: [{ value: "", label: ANY }, ...COLOURS.map((c) => ({ value: c, label: c }))].filter(
+        (option) => option.value !== "" && option.value !== "all",
+      ),
+    },
+    {
+      kind: "select",
+      id: "style-filters-size",
+      chipKey: "size",
+      name: SIZE_LABEL,
+      kept: true,
+      value: rawSize === "" || rawSize === null ? [] : [rawSize],
+      onChange: (next: string[]) => setSize(next[0] ?? ""),
+      options: [{ value: "", label: ANY }, ...SIZES.map((c) => ({ value: c, label: c }))].filter(
+        (option) => option.value !== "" && option.value !== "all",
+      ),
+    },
+  ]);
+  const [fullCountry, setFullCountry] = useState<string[]>([]);
+  const [fullCategory, setFullCategory] = useState<string[]>([]);
+  const [fullSeller, setFullSeller] = useState("");
+  const [fullLevel, setFullLevel] = useState<string[]>([]);
+  const [fullDates, setFullDates] = useState({ from: "", to: "" });
+  const [fullMissing, setFullMissing] = useState(false);
+  const { filters: fullFilters } = useTableFilters("style-filters-full", [
+    {
+      kind: "select",
+      id: "style-filters-full-country",
+      chipKey: "country",
+      name: "Country",
+      kept: true,
+      multiple: true,
+      value: fullCountry,
+      onChange: setFullCountry,
+      options: Array.from({ length: 12 }, (_, index) => ({
+        value: `market-${index}`,
+        label: `Market ${index + 1}`,
+      })),
+    },
+    {
+      kind: "select",
+      id: "style-filters-full-category",
+      chipKey: "category",
+      name: "Category",
+      kept: true,
+      multiple: true,
+      value: fullCategory,
+      onChange: setFullCategory,
+      options: ["Vehicles", "Homes", "Electronics"].map((value) => ({ value, label: value })),
+    },
+    {
+      kind: "text",
+      id: "style-filters-full-seller",
+      chipKey: "seller",
+      name: "Seller",
+      kept: false,
+      value: fullSeller,
+      onChange: setFullSeller,
+      placeholder: "Name or email",
+    },
+    {
+      kind: "select",
+      id: "style-filters-full-level",
+      chipKey: "level",
+      name: "Level",
+      kept: true,
+      value: fullLevel,
+      onChange: setFullLevel,
+      options: ["Regular", "Premium"].map((value) => ({ value, label: value })),
+    },
+    {
+      kind: "dates",
+      id: "style-filters-full-made",
+      chipKey: "made",
+      kept: false,
+      value: fullDates,
+      onChange: setFullDates,
+      fromLabel: "Posted from",
+      toLabel: "Posted to",
+      maxDate: "2026-11-22",
+    },
+    {
+      kind: "switch",
+      id: "style-filters-full-missing",
+      chipKey: "missing",
+      name: "Missing picture",
+      kept: true,
+      value: fullMissing,
+      onChange: setFullMissing,
+    },
+  ]);
+  const colour = filterValues(tableFilters, "style-filters-colour");
+  const size = filterValues(tableFilters, "style-filters-size")[0] ?? "";
+
   return (
     <PageShell as="main" data-testid="dev-style">
       <div className="flex flex-col gap-6">
@@ -1176,41 +1310,12 @@ function StyleFixture() {
         <Section title={"Filters"} testid="style-filters-section">
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {/* Bundle 11 V2 (INC-543) — each filter a row of pills, never a dropdown. */}
-            <FiltersButton
-              testid="style-filters"
-              count={chips.length}
-              state={`${colour}|${size}`}
-              onClearAll={() => {
-                setColour("");
-                setSize("");
-              }}
-            >
-              <FilterChoices
-                testid="style-filters-colour"
-                label={COLOUR_LABEL}
-                value={colour}
-                onChange={setColour}
-                options={[
-                  { value: "", label: ANY },
-                  ...COLOURS.map((c) => ({ value: c, label: c })),
-                ]}
-              />
-              <FilterChoices
-                testid="style-filters-size"
-                label={SIZE_LABEL}
-                value={size}
-                onChange={setSize}
-                options={[{ value: "", label: ANY }, ...SIZES.map((c) => ({ value: c, label: c }))]}
-              />
-            </FiltersButton>
-            <FilterChips
-              testid="style-filters-chips"
-              chips={chips}
-              onClearAll={() => {
-                setColour("");
-                setSize("");
-              }}
-            />
+            <FiltersButton testid={"style-filters"} filters={tableFilters} />
+            <FilterChips testid={"style-filters-chips"} filters={tableFilters} />
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <FiltersButton testid="style-filters-full" filters={fullFilters} />
+            <FilterChips testid="style-filters-full-chips" filters={fullFilters} />
           </div>
         </Section>
       </div>

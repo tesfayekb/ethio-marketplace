@@ -17,8 +17,8 @@ export type ListingView = (typeof LISTING_VIEWS)[number];
 export interface AdminListingFilters {
   view: ListingView;
   search: string;
-  country: string | null;
-  category: string | null;
+  country: readonly string[];
+  category: readonly string[];
   seller: string;
   from: string;
   to: string;
@@ -69,9 +69,9 @@ export async function listAdminListings(
   const { data, error } = await supabase.rpc("admin_list_listings", {
     p_view: filters.view,
     ...(filters.search.trim() === "" ? {} : { p_search: filters.search.trim() }),
-    // DEC-420 — the door's country and category filters are lists; the screen's one value is a list of one.
-    ...(filters.country === null ? {} : { p_country: [filters.country] }),
-    ...(filters.category === null ? {} : { p_category: [filters.category] }),
+    // DEC-420 — closed-list choices, capped at twenty before the existing door.
+    ...(filters.country.length === 0 ? {} : { p_country: filters.country.slice(0, 20) }),
+    ...(filters.category.length === 0 ? {} : { p_category: filters.category.slice(0, 20) }),
     ...(filters.seller.trim() === "" ? {} : { p_seller: filters.seller.trim() }),
     ...(filters.from === "" ? {} : { p_from: filters.from }),
     ...(filters.to === "" ? {} : { p_to: filters.to }),
@@ -114,8 +114,13 @@ export async function listAdminListings(
   return { rows, total };
 }
 
-export function useAdminListings(filters: AdminListingFilters) {
+/**
+ * `ready` (INC-1238, ruling 1 decision 5): false until the kept view is known; no read leaves
+ * before it, so the unfiltered list is never asked for first.
+ */
+export function useAdminListings(filters: AdminListingFilters, ready: boolean) {
   return useQuery({
+    enabled: ready,
     queryKey: [...ADMIN_LISTINGS_KEY, "list", filters],
     queryFn: () => listAdminListings(filters),
     placeholderData: keepPreviousData,

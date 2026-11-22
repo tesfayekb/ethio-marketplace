@@ -1,9 +1,17 @@
 import { ListFilter, X } from "lucide-react";
-import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useI18n } from "@/i18n";
+
+import { FilterPanelBody } from "./filter-panel-facade";
+import { preloadFilterPanel } from "./filter-panel-loader";
+import {
+  clearTableFilters,
+  tableFilterChips,
+  tableFilterState,
+  type TableFilter,
+} from "./table-filters";
 
 import { PressLabel } from "./press-label";
 import { ToolbarPanel } from "./toolbar-panel";
@@ -14,14 +22,13 @@ import { ToolbarPanel } from "./toolbar-panel";
  */
 export function FilterChips({
   testid,
-  chips,
-  onClearAll,
+  filters,
 }: {
   testid: string;
-  chips: Array<{ key: string; label: string; onRemove: () => void }>;
-  onClearAll: () => void;
+  filters: readonly TableFilter[];
 }) {
   const { t } = useI18n();
+  const chips = tableFilterChips(filters);
   if (chips.length === 0) return null;
   const removeLabel = t("prim.table.removeFilter");
   return (
@@ -48,7 +55,7 @@ export function FilterChips({
         variant="link"
         className="h-11 px-1.5 text-muted-foreground underline md:pointer-fine:h-9"
         data-testid={`${testid}-clear`}
-        onClick={() => onClearAll()}
+        onClick={() => clearTableFilters(filters)}
       >
         {t("prim.table.clearAll")}
       </Button>
@@ -56,38 +63,20 @@ export function FilterChips({
   );
 }
 
-/**
- * BUNDLE 9 B5 — the filters button and its panel (THE SIZE RULE, text button).
- *
- * Bundle 11 V2 (D132, INC-543) — a 44 px icon tile on a phone (its count a
- * small badge on the tile's corner), icon and word from md. Its panel is the
- * shared ToolbarPanel: a popover from md, a bottom sheet on a phone. The
- * panel's footer clears every filter (`onClearAll`) and closes with the result
- * count when the page gives one (`resultCount`: "Show 12 results"), else
- * "Done". The filters inside are FilterChoices pills — never a dropdown.
- *
- * Bundle 11 V2c — `state` is the page's filter choices as one string; the
- * footer's primary ("Show 12 results", "Done") is enabled only while they
- * differ from the choices the panel opened with.
- */
+/** DEC-419 replaces D132's pills: one declaration, compact rows fetched with the panel. */
 export function FiltersButton({
   testid,
-  count,
-  state,
-  children,
-  onClearAll,
+  filters,
   resultCount,
 }: {
   testid: string;
-  count: number;
-  /** The filter choices as one string (any stable spelling). */
-  state: string;
-  children: ReactNode;
-  onClearAll?: () => void;
+  filters: readonly TableFilter[];
   resultCount?: number;
 }) {
   const { t } = useI18n();
   const label = t("prim.table.filters");
+  const count = tableFilterChips(filters).length;
+  const state = tableFilterState(filters);
   return (
     <PressLabel label={label}>
       <ToolbarPanel
@@ -100,6 +89,8 @@ export function FiltersButton({
             type="button"
             variant="outline"
             data-testid={testid}
+            onPointerEnter={preloadFilterPanel}
+            onFocus={preloadFilterPanel}
             className="relative h-11 max-md:w-11 max-md:px-0 md:pointer-fine:h-9"
           >
             <ListFilter aria-hidden="true" />
@@ -116,18 +107,18 @@ export function FiltersButton({
         }
         footer={(close, changed) => (
           <>
-            {onClearAll ? (
+            {
               <Button
                 type="button"
                 variant="link"
                 className="h-11 px-1 text-muted-foreground underline md:pointer-fine:h-9"
                 data-testid={`${testid}-clear`}
                 disabled={count === 0}
-                onClick={() => onClearAll()}
+                onClick={() => clearTableFilters(filters)}
               >
                 {t("prim.table.clearAll")}
               </Button>
-            ) : null}
+            }
             <Button
               type="button"
               size="touch"
@@ -143,7 +134,15 @@ export function FiltersButton({
           </>
         )}
       >
-        <div className="flex min-w-0 flex-col gap-5">{children}</div>
+        <FilterPanelBody
+          filters={filters}
+          words={{
+            all: t("prim.table.all"),
+            search: t("prim.filter.search"),
+            none: t("prim.filter.none"),
+            max: t("prim.filter.max"),
+          }}
+        />
       </ToolbarPanel>
     </PressLabel>
   );

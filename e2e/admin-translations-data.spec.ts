@@ -472,7 +472,8 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       return data;
     };
     const statusOf = async (id: string) => (await rowOf(id))?.status ?? "missing";
-    // Bundle 11 G3e — the counts sit on the status pills inside the Filters panel.
+    // Lovable bundle 3 (DEC-419) — the counts sit on the status choices of the row's list
+    // inside the Filters panel.
     const chipCount = async (name: string) =>
       Number(
         (await page.getByTestId(`data-status-filter-${name}`).innerText()).replace(/[^0-9]/g, "") ||
@@ -518,12 +519,16 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       await gotoReady(page, `/admin/translations/${fence}?scope=data`);
       await page.getByTestId("data-filters").click();
       await expect(page.getByTestId("data-status-filter")).toBeVisible({ timeout: 20000 });
+      await page.getByTestId("data-status-filter").click();
       await expect
         .poll(() => chipCount("machine"), {
           timeout: 20000,
           message: "the machine chip never counted the sweep",
         })
         .toBeGreaterThan(0);
+      // The first Escape closes the list, the second the panel.
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("data-status-filter-list")).toHaveCount(0);
       await page.keyboard.press("Escape");
       await expect(page.getByTestId("data-filters-panel")).toHaveCount(0);
 

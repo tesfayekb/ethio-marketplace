@@ -39,8 +39,13 @@ export const adminUserDetailKey = (userId: string) =>
 /** 300ms debounce for the search box — one hook for every table's search (bundle 16 turn R1). */
 export { useDebounced } from "@/hooks/use-debounced";
 
-export function useAdminUsers(input: ListUsersInput) {
+export function useAdminUsers(
+  input: ListUsersInput,
+  /** INC-1238 (ruling 1 decision 5) — no read before the kept view is known. */
+  ready: boolean,
+) {
   return useQuery({
+    enabled: ready,
     queryKey: [...ADMIN_USERS_KEY, "list", input],
     queryFn: () => listUsers(input),
     staleTime: 30_000,

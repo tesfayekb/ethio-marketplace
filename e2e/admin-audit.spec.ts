@@ -134,14 +134,15 @@ test.describe("U3 audit & security", () => {
 
     await page.getByTestId("audit-filters").click();
     const panel = page.getByTestId("audit-filters-panel");
-    await expect(panel.getByTestId("audit-filter-action-all")).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    await expect(panel.getByTestId("audit-filter-entity-all")).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
+    // Lovable bundle 3 (DEC-419) — a filter is one row with a select: its choices are in the
+    // list the row opens, and the first Escape closes that list, never the panel.
+    for (const filter of ["audit-filter-action", "audit-filter-entity"]) {
+      await panel.getByTestId(filter).click();
+      await expect(panel.getByTestId(`${filter}-all`)).toHaveAttribute("aria-selected", "true");
+      await page.keyboard.press("Escape");
+      await expect(panel.getByTestId(`${filter}-list`)).toHaveCount(0);
+    }
+    await expect(panel).toBeVisible();
     // G3b (INC-548) — today in the browser's own calendar; no date after it,
     // and To is never before From.
     const today = await page.evaluate(() => {

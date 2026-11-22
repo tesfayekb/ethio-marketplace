@@ -1,6 +1,7 @@
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { UserRound } from "lucide-react";
 import { useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,6 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FilterChoices } from "@/components/shell/filter-choices";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
@@ -71,43 +71,33 @@ function RoleChips({ roles }: { roles: string[] }) {
 export function AdminUsersList() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
-  // INC-073 law: the role filter is URL-derived — the URL is its only source
-  // of truth, so a deep link and an in-page change are the same state.
+  const [rawStatus, setStatus] = useState("");
+  // INC-073 law: a role named by the address wins; arriving never changes the kept view.
   const navigate = useNavigate();
   const { role: roleParam } = useSearch({ from: "/admin/users" });
-  const role = roleParam ?? "";
+  const rawRole = roleParam ?? "";
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
-  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
-    useKeptPage(PAGE_SIZE_STORAGE_KEY);
+  const {
+    ready: keptReady,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    pageSizeOptions,
+  } = useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   const debouncedSearch = useDebounced(search);
 
-  const { data, isLoading, error } = useAdminUsers({
-    search: debouncedSearch,
-    status: status === "" ? "all" : status,
-    role: role === "" ? "all" : role,
-    limit: pageSize,
-    offset: page * pageSize,
-  });
   const roles = useAdminRoles();
-
-  // U4g-13 (INC-106, INC-073 extended): the URL role is a first-class choice
-  // even before the roster resolves — labelled from the roster once it loads,
-  // by its raw name until then.
   const roleOptions: { name: string; label: string }[] = (roles.data ?? []).map((item) => ({
     name: item.name,
     label: item.displayName ?? item.name,
   }));
-  if (role !== "" && !roleOptions.some((item) => item.name === role)) {
-    roleOptions.unshift({ name: role, label: role });
-  }
-  const roleLabel = roleOptions.find((item) => item.name === role)?.label ?? role;
-
-  const users = data?.users ?? [];
-  const total = data?.totalCount ?? 0;
-  const dateFmt = dateFormatter("dayNumeric", language);
-
+  // U4g-13 (INC-106, INC-073 extended): the URL role is a first-class choice
+  // even before the roster resolves — labelled from the roster once it loads,
+  // by its raw name until then.
+  if (rawRole !== "" && !roleOptions.some((item) => item.name === rawRole))
+    roleOptions.unshift({ name: rawRole, label: rawRole });
   const setRole = (next: string) => {
     setPage(0);
     void navigate({
@@ -120,6 +110,53 @@ export function AdminUsersList() {
     setPage(0);
     setStatus(next);
   };
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-users", [
+    {
+      kind: "select",
+      id: "users-status-filter",
+      chipKey: "status",
+      name: t("admin.users.statusFilter"),
+      kept: true,
+      value: rawStatus === "" || rawStatus === null ? [] : [rawStatus],
+      onChange: (next: string[]) => setStatusFilter(next[0] ?? ""),
+      options: [
+        { value: "", label: t("admin.users.filter.all") },
+        { value: "active", label: t("admin.users.status.active") },
+        { value: "deactivated", label: t("admin.users.status.deactivated") },
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "select",
+      id: "users-role-filter",
+      addressValue: rawRole === "" ? [] : [rawRole],
+      choicesReady: !roles.isLoading,
+      chipKey: "role",
+      name: t("admin.users.roleFilter"),
+      kept: true,
+      value: rawRole === "" || rawRole === null ? [] : [rawRole],
+      onChange: (next: string[]) => setRole(next[0] ?? ""),
+      options: [
+        { value: "", label: t("admin.users.filter.all") },
+        ...roleOptions.map((item) => ({ value: item.name, label: item.label })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+  ]);
+  const status = filterValues(tableFilters, "users-status-filter")[0] ?? "";
+  const role = filterValues(tableFilters, "users-role-filter")[0] ?? "";
+  const { data, isLoading, isFetching, error } = useAdminUsers(
+    {
+      search: debouncedSearch,
+      status: status === "" ? "all" : status,
+      role: role === "" ? "all" : role,
+      limit: pageSize,
+      offset: page * pageSize,
+    },
+    keptReady && filtersReady,
+  );
+
+  const total = data?.totalCount ?? 0;
+  const dateFmt = dateFormatter("dayNumeric", language);
+
   const allColumns: DataTableColumn<AdminUserRow>[] = [
     {
       key: "name",
@@ -189,34 +226,6 @@ export function AdminUsersList() {
   ];
   const columns = visibleColumns(allColumns, hidden, LOCKED);
 
-  const chips = [
-    ...(status === ""
-      ? []
-      : [
-          {
-            key: "status",
-            label:
-              status === "deactivated"
-                ? t("admin.users.status.deactivated")
-                : t("admin.users.status.active"),
-            onRemove: () => setStatusFilter(""),
-          },
-        ]),
-    ...(role === ""
-      ? []
-      : [
-          {
-            key: "role",
-            label: roleLabel,
-            onRemove: () => setRole(""),
-          },
-        ]),
-  ];
-  const clearAll = () => {
-    setStatus("");
-    setRole("");
-  };
-
   return (
     <div data-testid="admin-users" className="min-w-0 space-y-4">
       <TableActions testid="users-header" title={t("admin.users.title")} />
@@ -224,7 +233,12 @@ export function AdminUsersList() {
       <DataTable<AdminUserRow>
         guide={{ prefix: "admin.users", next: { section: "roles" } }}
         columns={columns}
-        rows={users}
+        serverPage={{
+          rows: data?.users,
+          busy: isFetching,
+          first: page === 0,
+          onFirst: () => setPage(0),
+        }}
         rowKey={(user) => user.userId}
         rowTestId={(user) => `user-row-${user.userId}`}
         rowHref={(user) => ({
@@ -233,7 +247,7 @@ export function AdminUsersList() {
         })}
         caption={t("admin.users.title")}
         cardLead={() => <UserRound />}
-        loading={isLoading}
+        loading={isLoading || !keptReady}
         loadingState={
           <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
             {t("admin.users.loading")}
@@ -263,35 +277,7 @@ export function AdminUsersList() {
               />
             }
             filters={
-              <FiltersButton
-                testid="users-filters"
-                count={chips.length}
-                state={`${status}|${role}`}
-                resultCount={total}
-                onClearAll={clearAll}
-              >
-                <FilterChoices
-                  testid="users-status-filter"
-                  label={t("admin.users.statusFilter")}
-                  value={status}
-                  onChange={setStatusFilter}
-                  options={[
-                    { value: "", label: t("admin.users.filter.all") },
-                    { value: "active", label: t("admin.users.status.active") },
-                    { value: "deactivated", label: t("admin.users.status.deactivated") },
-                  ]}
-                />
-                <FilterChoices
-                  testid="users-role-filter"
-                  label={t("admin.users.roleFilter")}
-                  value={role}
-                  onChange={setRole}
-                  options={[
-                    { value: "", label: t("admin.users.filter.all") },
-                    ...roleOptions.map((item) => ({ value: item.name, label: item.label })),
-                  ]}
-                />
-              </FiltersButton>
+              <FiltersButton testid={"users-filters"} resultCount={total} filters={tableFilters} />
             }
             columns={
               <ColumnsButton
@@ -305,7 +291,7 @@ export function AdminUsersList() {
                 onToggle={toggleColumn}
               />
             }
-            chips={<FilterChips testid="users-chips" chips={chips} onClearAll={clearAll} />}
+            chips={<FilterChips testid={"users-chips"} filters={tableFilters} />}
           />
         }
         pagination={

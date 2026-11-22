@@ -216,7 +216,12 @@ export function NameChecks({
         <DataTable
           guide={{ prefix: "admin.screening.names", next: { section: "users" } }}
           columns={visibleColumns(columns, hidden, LOCKED)}
-          rows={query.data?.rows ?? []}
+          serverPage={{
+            rows: query.data?.rows,
+            busy: query.isFetching || query.isPlaceholderData,
+            first: history.length === 1,
+            onFirst: () => setHistory([null]),
+          }}
           rowKey={(row) => `${row.profileId}:${row.subject}`}
           rowTestId={(row) => `admin-name-check-${row.profileId}`}
           caption={t("admin.screening.names.title")}

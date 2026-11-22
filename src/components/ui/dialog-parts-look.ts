@@ -37,6 +37,12 @@ export const DIALOG_TONE = {
 export const CUE_ANCHOR = "pointer-events-none sticky bottom-0 h-0";
 /** The anchor spans the body's side insets, so the fade runs edge to edge. */
 export const CUE_SPAN = "-mx-6";
+/**
+ * The cue's room as the body's scroll padding (INC-1254, WCAG 2.2 2.4.11): its tallest form
+ * (16 + 44 + 8 px = 4.25rem); less in a body too short to keep 7rem clear of it; none below that
+ * (the percentage is the scrolling body's own height). No calc() inside: the DOM returns it as is.
+ */
+export const CUE_ROOM = "clamp(0px, 100% - 7rem, 4.25rem)";
 export const CUE_WRAP = "absolute inset-x-0 bottom-0 flex justify-center cue-fade px-6 py-4 pb-2";
 export const CUE_BUTTON = `pointer-events-auto inline-flex min-h-11 md:pointer-fine:min-h-9 items-center gap-1 rounded-full px-4 text-sm font-medium ${CONTROL_LOOK}`;
 export const STEP_TRACK = "flex min-w-0 items-center gap-2 text-xs text-muted-foreground";

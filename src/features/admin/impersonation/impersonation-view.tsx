@@ -58,6 +58,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
     sessionId,
     paging.pageSize,
     paging.page * paging.pageSize,
+    paging.ready,
   );
   const end = useEndImpersonation();
 
@@ -218,7 +219,12 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       <DataTable<ImpersonatedListing>
         guide={{ prefix: "impersonation.listings", next: { section: "users" } }}
         columns={visible}
-        rows={listings.data?.rows ?? []}
+        serverPage={{
+          rows: listings.data?.rows,
+          busy: listings.isFetching || listings.isPlaceholderData,
+          first: paging.page === 0,
+          onFirst: () => paging.setPage(0),
+        }}
         pagination={
           <DataTablePagination
             testid="impersonation-listings-pagination"
@@ -253,7 +259,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
             }
           />
         }
-        loading={listings.isLoading}
+        loading={listings.isLoading || !paging.ready}
         error={listings.error}
         emptyState={
           <p className="text-sm text-muted-foreground">{t("impersonation.listings.empty")}</p>

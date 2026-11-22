@@ -25,8 +25,8 @@ import { listAdminListings, type AdminListingFilters } from "./use-admin-listing
 const NONE: AdminListingFilters = {
   view: "all",
   search: "",
-  country: null,
-  category: null,
+  country: [],
+  category: [],
   seller: "",
   from: "",
   to: "",
@@ -43,7 +43,7 @@ beforeEach(() => {
 describe("the All listings reader (DEC-420)", () => {
   it("ALR-1 the country and the category are lists of one on the door; none asked sends no list", async () => {
     const category = "6d1f1c2e-0000-4000-8000-000000000030";
-    await listAdminListings({ ...NONE, country: "ET", category });
+    await listAdminListings({ ...NONE, country: ["ET"], category: [category] });
     await listAdminListings(NONE);
     expect(door.calls).toEqual([
       [
@@ -51,6 +51,21 @@ describe("the All listings reader (DEC-420)", () => {
         { p_view: "all", p_country: ["ET"], p_category: [category], p_limit: 25, p_offset: 0 },
       ],
       ["admin_list_listings", { p_view: "all", p_limit: 25, p_offset: 0 }],
+    ]);
+  });
+
+  it("ALR-3 several countries and categories reach the existing door in order, capped at 20", async () => {
+    const choices = Array.from({ length: 21 }, (_, index) => `choice-${index}`);
+    await listAdminListings({ ...NONE, country: choices, category: choices });
+    expect(door.calls[0]).toEqual([
+      "admin_list_listings",
+      {
+        p_view: "all",
+        p_country: choices.slice(0, 20),
+        p_category: choices.slice(0, 20),
+        p_limit: 25,
+        p_offset: 0,
+      },
     ]);
   });
 

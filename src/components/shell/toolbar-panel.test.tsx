@@ -3,6 +3,7 @@ import { fireEvent, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { FilterSelect } from "./filter-select";
 import { ToolbarPanel } from "./toolbar-panel";
 
 vi.mock("@/i18n", () => ({
@@ -127,3 +128,78 @@ it("FP-U17 a toolbar panel with no answers opens and closes without a body band"
   fireEvent.click(screen.getByRole("button", { name: "Done" }));
   expect(screen.queryByTestId("empty-filter-panel")).toBeNull();
 });
+
+it("FP-U24 a wide panel's first Escape closes its list, the second closes the panel", async () => {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
+  render(
+    <ToolbarPanel
+      testid="escape-filter"
+      title="Filters"
+      description="Choices"
+      state="all"
+      trigger={<button data-testid="escape-filter" />}
+    >
+      <FilterSelect
+        id="escape-choice"
+        testId="escape-choice"
+        options={[{ value: "one", label: "One" }]}
+        value={[]}
+        onChange={vi.fn()}
+        placeholder="All"
+        searchLabel="Search"
+        noneLabel="None"
+      />
+    </ToolbarPanel>,
+  );
+  fireEvent.click(screen.getByTestId("escape-filter"));
+  const control = await screen.findByTestId("escape-choice");
+  fireEvent.click(control);
+  expect(screen.getByTestId("escape-choice-list")).toBeInTheDocument();
+  fireEvent.keyDown(control, { key: "Escape" });
+  expect(screen.queryByTestId("escape-choice-list")).toBeNull();
+  expect(screen.getByTestId("escape-filter-panel")).toBeInTheDocument();
+  fireEvent.keyDown(control, { key: "Escape" });
+  expect(screen.queryByTestId("escape-filter-panel")).toBeNull();
+});
+
+it("FP-U26 the wide panel names its description paragraph", async () => {
+  Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
+  render(
+    <ToolbarPanel
+      testid="described-filter"
+      title="Filters"
+      description="Choices"
+      state="all"
+      trigger={<button data-testid="described-filter" />}
+    >
+      <span />
+    </ToolbarPanel>,
+  );
+  fireEvent.click(screen.getByTestId("described-filter"));
+  const panel = await screen.findByTestId("described-filter-panel");
+  const id = panel.getAttribute("aria-describedby");
+  expect(id).toBe("described-filter-description");
+  expect(id === null ? null : document.getElementById(id)?.tagName).toBe("P");
+});
+
+it.each([360, 1280])(
+  "FP-U38 the panel is named by its heading in the %i-wide form",
+  async (width) => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+    render(
+      <ToolbarPanel
+        testid="named"
+        title="Filters"
+        description="Choose what the list shows."
+        state="all"
+        trigger={<button data-testid="named" />}
+      >
+        <span />
+      </ToolbarPanel>,
+    );
+    fireEvent.click(screen.getByTestId("named"));
+    expect(await screen.findByRole("dialog", { name: "Filters" })).toHaveAccessibleDescription(
+      "Choose what the list shows.",
+    );
+  },
+);

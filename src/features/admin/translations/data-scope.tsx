@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { Field } from "@/components/forms/field";
 import { useState, type ReactNode } from "react";
 
@@ -9,7 +10,6 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FilterChoices } from "@/components/shell/filter-choices";
 import { RowActions } from "@/components/shell/row-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
@@ -114,8 +114,38 @@ export function DataScope({
    * scope; the incoming `status` prop remains the initial truth.
    */
   const [chip, setChip] = useState(status === "flagged" ? "all" : status);
-  const activeStatus = chip;
+  const rawActiveStatus = chip;
 
+  const stats = useEntityTranslationStats(lang);
+  const langStats = pickEntityStats(stats.data, lang);
+  const chipCounts: Record<string, number> = {
+    all: langStats?.total ?? 0,
+    untranslated: langStats?.untranslated ?? 0,
+    machine: langStats?.machineCount ?? 0,
+    edited: langStats?.edited ?? 0,
+    approved: langStats?.approved ?? 0,
+  };
+  const chooseStatus = (value: string) => {
+    setPage(0);
+    setChip(value);
+  };
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-data", [
+    {
+      kind: "select",
+      id: "data-status-filter",
+      chipKey: "",
+      name: t("admin.translations.col.status"),
+      kept: true,
+      allLabel: `${t("prim.table.all")} · ${chipCounts["all"] ?? 0}`,
+      value: rawActiveStatus === "all" || rawActiveStatus === null ? [] : [rawActiveStatus],
+      onChange: (next: string[]) => chooseStatus(next[0] ?? "all"),
+      options: DATA_STATUS_CHIPS.map((entry) => ({
+        value: entry.value,
+        label: `${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`,
+      })).filter((option) => option.value !== "all"),
+    },
+  ]);
+  const activeStatus = filterValues(tableFilters, "data-status-filter")[0] ?? "all";
   const list = useEntityTranslations(
     {
       lang,
@@ -124,20 +154,20 @@ export function DataScope({
       limit: pageSize,
       offset: page * pageSize,
     },
-    true,
+    paging.ready && filtersReady,
   );
   /**
    * U4j — one gated stats RPC replaces the two 1-row probes: the meter's
    * numerator, denominator and the bulk bar's work count now come from the
    * SAME server count over the SAME universe as the list.
    */
-  const stats = useEntityTranslationStats(lang);
+
   /**
    * INC-119 — MATCH THE LANGUAGE, NEVER `[0]`, AND NEVER FAKE A ZERO.
    * `langStats === undefined` means pending, failed, or "the server returned
    * no row for this language" — three states that are not "no work left".
    */
-  const langStats = pickEntityStats(stats.data, lang);
+
   const countState: CountState = langStats
     ? "success"
     : stats.isError
@@ -146,29 +176,12 @@ export function DataScope({
         ? "pending"
         : "missing";
 
-  const chipCounts: Record<string, number> = {
-    all: langStats?.total ?? 0,
-    untranslated: langStats?.untranslated ?? 0,
-    machine: langStats?.machineCount ?? 0,
-    edited: langStats?.edited ?? 0,
-    approved: langStats?.approved ?? 0,
-  };
   /** The entity layer has no flags: everything machine|edited is approvable. */
   const reviewable = (langStats?.machineCount ?? 0) + (langStats?.edited ?? 0);
 
-  const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
   const allColumns = dataColumns(t, rtl);
   /** Bundle 11 G3e — the Filters panel's status pills; the chosen one is a chip. */
-  const chooseStatus = (value: string) => {
-    setPage(0);
-    setChip(value);
-  };
-  const chosen = DATA_STATUS_CHIPS.find((entry) => entry.value === activeStatus);
-  const chips =
-    activeStatus !== "all" && chosen
-      ? [{ key: activeStatus, label: t(chosen.labelKey), onRemove: () => chooseStatus("all") }]
-      : [];
 
   return (
     <div className="min-w-0 space-y-4" data-testid="admin-translations-data">
@@ -211,7 +224,12 @@ export function DataScope({
       <DataTable
         guide={{ prefix: "admin.translations.data", next: { section: "translations" } }}
         columns={visibleColumns(allColumns, hidden, ["entity"])}
-        rows={rows}
+        serverPage={{
+          rows: list.data?.rows,
+          busy: list.isFetching || list.isPlaceholderData,
+          first: page === 0,
+          onFirst: () => setPage(0),
+        }}
         rowKey={(row) => row.key}
         rowTestId={(row) => `entity-row-${entityRowSlug(row)}`}
         caption={t("admin.translations.data.caption")}
@@ -231,24 +249,7 @@ export function DataScope({
             testid="data-toolbar"
             search={search}
             filters={
-              <FiltersButton
-                testid="data-filters"
-                count={chips.length}
-                state={activeStatus}
-                resultCount={total}
-                onClearAll={() => chooseStatus("all")}
-              >
-                <FilterChoices
-                  testid="data-status-filter"
-                  label={t("admin.translations.col.status")}
-                  value={activeStatus}
-                  options={DATA_STATUS_CHIPS.map((entry) => ({
-                    value: entry.value,
-                    label: `${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`,
-                  }))}
-                  onChange={chooseStatus}
-                />
-              </FiltersButton>
+              <FiltersButton testid={"data-filters"} resultCount={total} filters={tableFilters} />
             }
             columns={
               <ColumnsButton
@@ -262,13 +263,7 @@ export function DataScope({
                 onToggle={toggleColumn}
               />
             }
-            chips={
-              <FilterChips
-                testid="data-chips"
-                chips={chips}
-                onClearAll={() => chooseStatus("all")}
-              />
-            }
+            chips={<FilterChips testid={"data-chips"} filters={tableFilters} />}
           />
         }
         expandedRow={(row) =>

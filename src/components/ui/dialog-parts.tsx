@@ -19,6 +19,7 @@ import {
   CLOSED_PRIMARY,
   CUE_ANCHOR,
   CUE_BUTTON,
+  CUE_ROOM,
   CUE_SPAN,
   CUE_WRAP,
   DIALOG_CARD,
@@ -169,6 +170,7 @@ export function PanelBody({
       ref={ref}
       data-panel-body=""
       data-testid={testId}
+      style={more ? { scrollPaddingBottom: CUE_ROOM } : undefined}
       className={cn(BANDS_BODY, !flush && BANDS_INSET_X, className)}
     >
       <div className={cn(BANDS_FLOW, !flush && BANDS_INSET_Y, end && BANDS_END)}>{children}</div>
@@ -281,13 +283,18 @@ export function ActionRow({
 
 /**
  * The closed primary (DEC-418): the posting wizard's closed Next as a shared part. Drawn closed
- * (`data-closed="1"`) while `closed`, never disabled: a press calls `onClosedPress` (the consumer
+ * (`data-closed="1"`) while `closed`: a press calls `onClosedPress` (the consumer
  * marks the missing choice and scrolls to it) and nothing is sent; open, it calls `onClick`.
  */
 export const ClosedPrimary = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { closed: boolean; missing?: string; onClosedPress: () => void }
->(({ closed, missing, onClosedPress, onClick, className, disabled: _disabled, ...props }, ref) => {
+  Omit<ButtonProps, "disabled"> & {
+    closed: boolean;
+    busy?: boolean;
+    missing?: string;
+    onClosedPress: () => void;
+  }
+>(({ closed, busy = false, missing, onClosedPress, onClick, className, ...props }, ref) => {
   const lineId = React.useId();
   return (
     <>
@@ -296,6 +303,8 @@ export const ClosedPrimary = React.forwardRef<
         ref={ref}
         type="button"
         size="touch"
+        disabled={busy}
+        aria-busy={busy ? "true" : undefined}
         data-closed={closed ? "1" : undefined}
         className={cn(className, CLOSED_PRIMARY)}
         aria-describedby={closed && missing ? lineId : undefined}

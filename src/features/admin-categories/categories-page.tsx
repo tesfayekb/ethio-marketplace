@@ -1,3 +1,4 @@
+import { useTableFilters, filterOn } from "@/components/shell/table-filters";
 import {
   ArrowDown,
   ArrowUp,
@@ -205,10 +206,25 @@ export function AdminCategoriesPage() {
   const reactivate = useReactivateCategory();
   const [search, setSearch] = useState("");
   const [rootFilter, setRootFilter] = useState("");
-  const [missingOnly, setMissingOnly] = useState(false);
+  const [rawMissingOnly, setMissingOnly] = useState(false);
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
+  const { filters: tableFilters } = useTableFilters("admin-categories", [
+    {
+      kind: "switch",
+      id: "category-missing-filter",
+      chipKey: "missing",
+      name: t("admin.categories.filter.missingAssets"),
+      kept: true,
+      value: rawMissingOnly,
+      onChange: (next) => {
+        setMissingOnly(next);
+        setPage(0);
+      },
+    },
+  ]);
+  const missingOnly = filterOn(tableFilters, "category-missing-filter");
   const offset = page * pageSize;
 
   const [dialog, setDialog] = useState<DialogState>({ kind: "none" });
@@ -1120,25 +1136,10 @@ export function AdminCategoriesPage() {
                 }
                 filters={
                   <FiltersButton
-                    testid="category-filters"
-                    count={missingOnly ? 1 : 0}
-                    state={String(missingOnly)}
+                    testid={"category-filters"}
                     resultCount={filtered.length}
-                    onClearAll={() => setMissingOnly(false)}
-                  >
-                    {/* Bundle 11 V2 — a one-tap pill, the look of every filter choice. */}
-                    <Button
-                      type="button"
-                      variant={missingOnly ? "default" : "outline"}
-                      aria-pressed={missingOnly}
-                      data-testid="category-missing-filter"
-                      className="h-10 self-start rounded-full px-3.5"
-                      onClick={() => setMissingOnly((prev) => !prev)}
-                    >
-                      {missingOnly ? <Check aria-hidden="true" /> : null}
-                      {t("admin.categories.filter.missingAssets")}
-                    </Button>
-                  </FiltersButton>
+                    filters={tableFilters}
+                  />
                 }
                 columns={
                   <ColumnsButton
@@ -1152,23 +1153,7 @@ export function AdminCategoriesPage() {
                     onToggle={toggleColumn}
                   />
                 }
-                chips={
-                  <FilterChips
-                    testid="category-chips"
-                    chips={
-                      missingOnly
-                        ? [
-                            {
-                              key: "missing",
-                              label: t("admin.categories.filter.missingAssets"),
-                              onRemove: () => setMissingOnly(false),
-                            },
-                          ]
-                        : []
-                    }
-                    onClearAll={() => setMissingOnly(false)}
-                  />
-                }
+                chips={<FilterChips testid={"category-chips"} filters={tableFilters} />}
               />
             }
             pagination={

@@ -4,66 +4,60 @@ import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { FilterChips, FiltersButton } from "./filter-chips";
+import type { TableFilter } from "./table-filters";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", setLanguage: () => {} }),
 }));
+const select = (values: string[], onChange: (next: string[]) => void = vi.fn()): TableFilter => ({
+  kind: "select",
+  id: "colour",
+  chipKey: "colour",
+  name: "Colour",
+  kept: true,
+  options: [
+    { value: "a", label: "Red" },
+    { value: "b", label: "Blue" },
+  ],
+  value: values,
+  onChange,
+});
 
-/** BUNDLE 9 B5 — chips, their removal, clear-all, and the count mark. */
 describe("FilterChips and FiltersButton", () => {
   it("renders nothing with no chip", () => {
-    const { container } = render(<FilterChips testid="f" chips={[]} onClearAll={() => {}} />);
+    const { container } = render(<FilterChips testid="f" filters={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
-
   it("a chip's remove calls its onRemove; clear calls onClearAll", () => {
-    const onRemove = vi.fn();
-    const onClearAll = vi.fn();
-    render(
-      <FilterChips
-        testid="f"
-        chips={[{ key: "a", label: "Red", onRemove }]}
-        onClearAll={onClearAll}
-      />,
-    );
+    const change = vi.fn();
+    render(<FilterChips testid="f" filters={[select(["a"], change)]} />);
     fireEvent.click(screen.getByRole("button", { name: "prim.table.removeFilter — Red" }));
-    expect(onRemove).toHaveBeenCalledTimes(1);
+    expect(change).toHaveBeenCalledWith([]);
+    change.mockClear();
     fireEvent.click(screen.getByTestId("f-clear"));
-    expect(onClearAll).toHaveBeenCalledTimes(1);
+    expect(change).toHaveBeenCalledWith([]);
   });
-
   it("shows the count mark only above zero", () => {
-    const { rerender } = render(
-      <FiltersButton testid="b" count={0} state="">
-        {null}
-      </FiltersButton>,
-    );
+    const { rerender } = render(<FiltersButton testid="b" filters={[select([])]} />);
     expect(screen.queryByTestId("b-count")).toBeNull();
-    rerender(
-      <FiltersButton testid="b" count={2} state="">
-        {null}
-      </FiltersButton>,
-    );
+    rerender(<FiltersButton testid="b" filters={[select(["a", "b"])]} />);
     expect(screen.getByTestId("b-count")).toHaveTextContent("2");
   });
-
   it("HS-20 the panel's footer clears every filter and closes with the result count (D132); its primary waits for a change (V2c)", () => {
     const onClearAll = vi.fn();
     function Harness() {
-      const [level, setLevel] = useState("city");
+      const [value, setValue] = useState(["a"]);
       return (
         <FiltersButton
           testid="p"
-          count={level === "" ? 0 : 1}
-          state={level}
-          onClearAll={() => {
-            onClearAll();
-            setLevel("");
-          }}
+          filters={[
+            select(value, (next) => {
+              onClearAll();
+              setValue(next);
+            }),
+          ]}
           resultCount={41}
-        >
-          <p data-testid="p-body">body</p>
-        </FiltersButton>
+        />
       );
     }
     render(<Harness />);

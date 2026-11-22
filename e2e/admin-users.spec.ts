@@ -520,15 +520,24 @@ test.describe("U1 admin users", () => {
 
     await page.getByTestId("users-filters").click();
     const panel = page.getByTestId("users-filters-panel");
+    // Lovable bundle 3 (DEC-419) — a filter is one row with a select: its choices are in the
+    // list the row opens. The first Escape closes the list, the second the panel.
+    await panel.getByTestId("users-status-filter").click();
     await expect(panel.getByTestId("users-status-filter-all")).toHaveAttribute(
-      "aria-pressed",
+      "aria-selected",
       "true",
     );
+    await page.keyboard.press("Escape");
+    await expect(panel.getByTestId("users-status-filter-list")).toHaveCount(0);
+    await panel.getByTestId("users-role-filter").click();
     await expect(panel.getByTestId("users-role-filter-all")).toHaveAttribute(
-      "aria-pressed",
+      "aria-selected",
       "true",
     );
     await expect(panel.getByTestId("users-role-filter-admin")).toBeVisible({ timeout: 20000 });
+    await page.keyboard.press("Escape");
+    await expect(panel.getByTestId("users-role-filter-list")).toHaveCount(0);
+    await expect(panel).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
 

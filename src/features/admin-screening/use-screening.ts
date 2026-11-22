@@ -40,7 +40,7 @@ export interface ScreeningFilters {
    * the door reads the ad's place for this filter and the ad's home country
    * for the caller's reach. The door takes a list; one market is a list of one.
    */
-  country: string | null;
+  country: readonly string[];
   /** P-1 W4 — the ad's tier (`listings.tier`, the listings table's own filter). */
   tier: string | null;
   /**
@@ -51,7 +51,7 @@ export interface ScreeningFilters {
 }
 
 /** The toolbar with no filter set. */
-export const NO_SCREENING_FILTERS: ScreeningFilters = { country: null, tier: null };
+export const NO_SCREENING_FILTERS: ScreeningFilters = { country: [], tier: null };
 
 type Named = { name_en: string; name_am: string | null } | null;
 
@@ -187,7 +187,7 @@ export function screeningQueueArgs(
   const seller = (filters.seller ?? "").trim();
   return {
     ...(term === "" ? {} : { p_search: term }),
-    ...(filters.country === null ? {} : { p_country: [filters.country] }),
+    ...(filters.country.length === 0 ? {} : { p_country: filters.country.slice(0, 20) }),
     ...(filters.tier === null ? {} : { p_tier: filters.tier }),
     ...(seller === "" ? {} : { p_seller: seller }),
     p_limit: pageSize,
@@ -233,8 +233,11 @@ export function useScreeningQueue(
   search: string,
   pageSize: number = SCREENING_PAGE_SIZE,
   filters: ScreeningFilters = NO_SCREENING_FILTERS,
+  /** INC-1238 (ruling 1 decision 5) — no read before the kept view is known. */
+  ready: boolean,
 ) {
   return useQuery({
+    enabled: ready,
     queryKey: [
       ...ADMIN_SCREENING_KEY,
       "list",

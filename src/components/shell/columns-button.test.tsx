@@ -4,6 +4,8 @@ import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ColumnsButton, ColumnsList } from "./columns-button";
+import { tableViewTestShell } from "./table-view-test-shell";
+import { forgetTableViewsForTests } from "./table-view-store";
 import { useHiddenColumns, visibleColumns } from "./columns-state";
 import { TableActionButton, TableActions } from "./table-actions";
 import { TableToolbar } from "./table-toolbar";
@@ -44,15 +46,18 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
   });
 
   it("HS-8 the hidden columns are remembered per table, and failing storage hides nothing", () => {
-    const first = renderHook(() => useHiddenColumns("t1"));
+    forgetTableViewsForTests();
+    const wrapper = tableViewTestShell("columns-account");
+    const accountHook = (id: string) => renderHook(() => useHiddenColumns(id), { wrapper });
+    const first = accountHook("t1");
     act(() => first.result.current[1]("sent", false));
     expect(first.result.current[0]).toEqual(["sent"]);
-    const again = renderHook(() => useHiddenColumns("t1"));
+    const again = accountHook("t1");
     expect(again.result.current[0]).toEqual(["sent"]);
-    const other = renderHook(() => useHiddenColumns("t2"));
+    const other = accountHook("t2");
     expect(other.result.current[0]).toEqual([]);
     act(() => first.result.current[1]("sent", true));
-    expect(renderHook(() => useHiddenColumns("t1")).result.current[0]).toEqual([]);
+    expect(accountHook("t1").result.current[0]).toEqual([]);
 
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("blocked");
@@ -60,7 +65,7 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
     vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("blocked");
     });
-    const blocked = renderHook(() => useHiddenColumns("t3"));
+    const blocked = accountHook("t3");
     expect(blocked.result.current[0]).toEqual([]);
     act(() => blocked.result.current[1]("sent", false));
     expect(blocked.result.current[0]).toEqual(["sent"]);

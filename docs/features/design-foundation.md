@@ -2,6 +2,22 @@
 
 The first substantial frontend build. Every later page inherits from it.
 
+## Bundle 3 — filter behavior and server-page recovery
+
+- Filter rows own the one open select. A sibling control's pointer-down never removes an in-flow
+  list; leaving the whole rows region closes it. Escape and single-choice selection focus the
+  select control. A row taller than the body's room is scrolled to the body's top.
+- The filter-panel loader owns preload separately from the component facade; no global overlay
+  import carries the filter rows. Page-size options belong to the shell, with no feature re-export.
+- All listings and Screening share `SellerCell` and `useSellerFilter`; the row receives their held
+  `profiles:view` permission and typed seller text is never kept.
+- `ClosedPrimary` accepts `busy`, not `disabled`. A new pin needs placement and an explicit show
+  choice; its closed press reveals the missing answer. Saved pins keep their precision ungated.
+- Door-paged tables use the required `ServerTablePage` answer/navigation shape instead of local
+  `rows`. DataTable requests the first page only for a successful, completed empty answer past
+  the first page, using one rule for offset and cursor consumers. Unanswered, busy, placeholder
+  and failed reads never count as empty. Screening reopening failures use its shared refusal reader.
+
 ## Palette — "coffee on cool slate"
 
 > Superseded by the Sage 3D look (DEC-289; turn SAGE-S1, ruling C of SAGE-S0): the values
@@ -625,7 +641,9 @@ passes the translated `dialog.moreBelow` cue label to the real body.
   squeezes a fixed-height clipped child in Chromium (the pin map fell to its border); and
   unless it is `relative`, a screen-reader-only label inside it is laid out against the
   frame, which then has hidden room below its footer and can be scrolled off its header.
-  The cue is a zero-height sticky anchor, the scroller's last child.
+  The cue is a zero-height sticky anchor, the scroller's last child. While it shows, the
+  body keeps the cue's room as scroll padding, so what is brought into view stands clear
+  of it (WCAG 2.2, 2.4.11; INC-1254).
 - A frame's last band carries the bottom inset: the footer does; a body with no footer
   says `end`. The toolbar panel says it on a phone only (its desktop form is a popover).
 - A change of a dialog's frame never changes its content's width: the buyer's preview
@@ -653,7 +671,7 @@ is raised here: the supervisor measures the final head and supplies exact ceilin
 
 The three look specs are `e2e/dialogs.spec.ts`, `e2e/overlays.spec.ts` and
 `e2e/house-style.spec.ts`; local unit tests prove the parts and all their consumers.
-DLG-E10 and DLG-E11 run in WebKit too (`@webkit`): a tall body in a short window scrolls
+DLG-E10, DLG-E11, DLG-E12 (a Filters panel in rows) and DLG-E13 (the fullest Filters panel: the date boxes, their calendars, a press on another row) run in WebKit too (`@webkit`): a tall body in a short window scrolls
 alone and its last control takes the press, and every banded panel of the board keeps its
 body between its header and its last band, with a height.
 
@@ -723,3 +741,9 @@ body between its header and its last band, with a height.
 - **Every other picture** draws through `Picture`, each site's size a class on the frame: staff's photo-change and photo-review thumbnails (`h-full w-full` in their 64 × 48 box; no address, no picture), the staff photo grid (`absolute inset-0` in its 4:3 tile, the badge over it) and the Remove dialog (`aspect-[4/3] w-full max-w-64`, `contain`), the ad's gallery — the main photo (`absolute inset-0` in the 4:3 button, `contain`, `@min-[32rem]:object-top` as `imgClassName`, `srcSet`/`sizes` unchanged), the thumbnails (`h-full w-full`, `cover`) and the full-screen viewer (`absolute inset-0`, `contain`; the zoom and the double click on the image; a small photo now grows to the viewer as a large one does) — the post wizard's photo tiles (`h-24 w-full`, `cover`), the two-step sign-in QR (`h-[200px] w-[200px]`, its padding on the image), the ad's share QR (`size-48`) and a category's three pictures (`aspect-[4/3] w-40`, `aspect-[4/3] w-16`, `aspect-[40/21] w-full max-w-xs`, each `contain`). Unit PRS-1, CIG-1 and each site's own tests.
 - **The guard:** `scripts/conformance/pictures.test.ts` CF-PICTURE-1…3 refuses, under `src/` outside `picture.tsx`, a JSX `img`, a library's `<X.Image>` part or a style `url(` (inline, `bg-[url(…)]`, a stylesheet); `url(#…)` (an SVG paint), a gradient and the two pixel-editing canvases (the photo editor, remove-background) are outside the definition. `scripts/conformance/pictures-allowlist.txt` is empty. The lint list `RESTRICTED_SYNTAX.picture` (`eslint.config.js`, CF-LINT-6) refuses a JSX `img` while a file is edited. The unused `AvatarImage` was removed from `src/components/ui/avatar.tsx`.
 - **Bytes:** `Picture` is its own chunk (`picture.js`, 0.84 KiB gzipped, with the failed-load icon that left `listing-picture.js`, −0.27); the pages that draw pictures grew 0.5–0.9 KiB (the report's table, `docs/governance/reports/pictures.report.md`).
+
+### Bundle 3 — address filters and dates (ruling 5)
+
+R: INC-073 keeps the Users role and interface-strings status/flagged in the address; a named address choice overrides the kept view without changing it on arrival. One optional `addressValue` declaration field supplies that precedence, and a panel, chip or Clear choice writes the address with replacement and the kept view together; no synchronization effect copies either source.
+
+S: Filters panels stack From and To at full-row width, each with its own label and its calendar in the content flow. A landed click on a text box, date box or switch closes the select through the rows' owner without moving content on pointer-down.

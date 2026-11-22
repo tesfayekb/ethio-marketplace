@@ -60,18 +60,23 @@ async function searchRole(page: Page, name: string) {
 }
 
 /**
- * Bundle 11 G2a — the Users list's role filter is a row of pills in the Filters
- * panel and a chip under the toolbar: the URL's role is the chosen pill.
+ * Lovable bundle 3 (DEC-419) — the Users list's role filter is one row with a select in the
+ * Filters panel and a chip under the toolbar: the URL's role is the chosen choice of its list
+ * (INC-073). The first Escape closes the list, the second the panel.
  */
 async function expectRoleChosen(page: Page, name: string) {
   await expect(page.getByTestId("users-chips-chip-role")).toBeVisible({ timeout: 20000 });
   await page.getByTestId("users-filters").click();
-  await expect(page.getByTestId(`users-role-filter-${name}`)).toHaveAttribute(
-    "aria-pressed",
+  const panel = page.getByTestId("users-filters-panel");
+  await panel.getByTestId("users-role-filter").click();
+  await expect(panel.getByTestId(`users-role-filter-${name}`)).toHaveAttribute(
+    "aria-selected",
     "true",
   );
   await page.keyboard.press("Escape");
-  await expect(page.getByTestId("users-filters-panel")).toHaveCount(0);
+  await expect(panel.getByTestId("users-role-filter-list")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(panel).toHaveCount(0);
 }
 
 async function roleId(name: string) {

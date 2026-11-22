@@ -1,10 +1,10 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { History } from "lucide-react";
 import { useState } from "react";
 
 import { ChartFrame } from "@/components/shell/chart-frame";
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { todayIso } from "@/components/shell/date-day";
-import { DateField } from "@/components/shell/date-field";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
 import {
   DataTable,
@@ -13,7 +13,6 @@ import {
 } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FilterChoices } from "@/components/shell/filter-choices";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
@@ -100,16 +99,80 @@ function DayBars({
 export function AdminAuditPage() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
-  const [action, setAction] = useState("");
-  const [entityType, setEntityType] = useState("");
+  const [rawAction, setAction] = useState("");
+  const [rawEntityType, setEntityType] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
-  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
-    useKeptPage(PAGE_SIZE_STORAGE_KEY);
+  const {
+    ready: keptReady,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    pageSizeOptions,
+  } = useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
+  const facets = useAuditFacets();
+  const resetPage = () => setPage(0);
+  const today = todayIso();
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-audit", [
+    {
+      kind: "select",
+      id: "audit-filter-action",
+      choicesReady: !facets.isLoading,
+      chipKey: "action",
+      name: t("admin.audit.filter.action"),
+      kept: true,
+      value: rawAction === "" || rawAction === null ? [] : [rawAction],
+      onChange: (next: string[]) =>
+        ((value) => {
+          setAction(value);
+          resetPage();
+        })(next[0] ?? ""),
+      options: [
+        { value: "", label: t("admin.audit.filter.all") },
+        ...(facets.data?.actions ?? []).map((value) => ({ value, label: value })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "select",
+      id: "audit-filter-entity",
+      choicesReady: !facets.isLoading,
+      chipKey: "entity",
+      name: t("admin.audit.filter.entity"),
+      kept: true,
+      value: rawEntityType === "" || rawEntityType === null ? [] : [rawEntityType],
+      onChange: (next: string[]) =>
+        ((value) => {
+          setEntityType(value);
+          resetPage();
+        })(next[0] ?? ""),
+      options: [
+        { value: "", label: t("admin.audit.filter.all") },
+        ...(facets.data?.entityTypes ?? []).map((value) => ({ value, label: value })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "dates",
+      id: "audit-filter",
+      chipKey: "dates",
+      kept: false,
+      value: { from, to },
+      onChange: (next) => {
+        setFrom(next.from);
+        setTo(next.to);
+        resetPage();
+      },
+      fromLabel: t("admin.audit.filter.from"),
+      toLabel: t("admin.audit.filter.to"),
+      maxDate: today,
+    },
+  ]);
+  const action = filterValues(tableFilters, "audit-filter-action")[0] ?? "";
+  const entityType = filterValues(tableFilters, "audit-filter-entity")[0] ?? "";
   const filters = {
     search,
     action: action === "" ? "all" : action,
@@ -119,11 +182,10 @@ export function AdminAuditPage() {
     limit: pageSize,
     offset: page * pageSize,
   };
-  const list = useAuditList(filters);
-  const facets = useAuditFacets();
+  const list = useAuditList(filters, keptReady && filtersReady);
+
   const stats = useAuditStats(14);
 
-  const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
 
   const timeFmt = dateFormatter("dayTimeNumeric", language);
@@ -141,9 +203,8 @@ export function AdminAuditPage() {
       : null,
   );
 
-  const resetPage = () => setPage(0);
   // INC-548 — the log holds no future events, so no day after today is offered.
-  const today = todayIso();
+
   const allColumns: DataTableColumn<AuditRow>[] = [
     {
       key: "time",
@@ -208,46 +269,6 @@ export function AdminAuditPage() {
   ];
   const columns = visibleColumns(allColumns, hidden, LOCKED);
 
-  const chips = [
-    ...(action === ""
-      ? []
-      : [{ key: "action", label: action, onRemove: () => (setAction(""), resetPage()) }]),
-    ...(entityType === ""
-      ? []
-      : [
-          {
-            key: "entity",
-            label: entityType,
-            onRemove: () => (setEntityType(""), resetPage()),
-          },
-        ]),
-    ...(from === ""
-      ? []
-      : [
-          {
-            key: "from",
-            label: `${t("admin.audit.filter.from")} ${from}`,
-            onRemove: () => (setFrom(""), resetPage()),
-          },
-        ]),
-    ...(to === ""
-      ? []
-      : [
-          {
-            key: "to",
-            label: `${t("admin.audit.filter.to")} ${to}`,
-            onRemove: () => (setTo(""), resetPage()),
-          },
-        ]),
-  ];
-  const clearAll = () => {
-    setAction("");
-    setEntityType("");
-    setFrom("");
-    setTo("");
-    resetPage();
-  };
-
   const topAction = stats.data?.topActions[0];
 
   return (
@@ -309,12 +330,17 @@ export function AdminAuditPage() {
       <DataTable<AuditRow>
         guide={{ prefix: "admin.audit", next: { section: "roles" } }}
         columns={columns}
-        rows={rows}
+        serverPage={{
+          rows: list.data?.rows,
+          busy: list.isFetching || list.isPlaceholderData,
+          first: page === 0,
+          onFirst: () => setPage(0),
+        }}
         rowKey={(row) => row.id}
         rowTestId={(row) => `audit-row-${row.id}`}
         caption={t("admin.audit.caption")}
         cardLead={() => <History />}
-        loading={list.isLoading}
+        loading={list.isLoading || !keptReady}
         loadingState={<p className="text-sm text-muted-foreground">{t("admin.audit.loading")}</p>}
         error={list.error}
         errorState={<p className="text-sm text-destructive">{t("admin.audit.error")}</p>}
@@ -336,83 +362,10 @@ export function AdminAuditPage() {
             }
             filters={
               <FiltersButton
-                testid="audit-filters"
-                count={chips.length}
-                state={`${action}|${entityType}|${from}|${to}`}
+                testid={"audit-filters"}
                 resultCount={total > 10000 ? undefined : total}
-                onClearAll={clearAll}
-              >
-                <FilterChoices
-                  testid="audit-filter-action"
-                  label={t("admin.audit.filter.action")}
-                  value={action}
-                  onChange={(value) => {
-                    setAction(value);
-                    resetPage();
-                  }}
-                  options={[
-                    { value: "", label: t("admin.audit.filter.all") },
-                    ...(facets.data?.actions ?? []).map((value) => ({ value, label: value })),
-                  ]}
-                />
-                <FilterChoices
-                  testid="audit-filter-entity"
-                  label={t("admin.audit.filter.entity")}
-                  value={entityType}
-                  onChange={(value) => {
-                    setEntityType(value);
-                    resetPage();
-                  }}
-                  options={[
-                    { value: "", label: t("admin.audit.filter.all") },
-                    ...(facets.data?.entityTypes ?? []).map((value) => ({ value, label: value })),
-                  ]}
-                />
-                {/* The dates are picked inside the sheet, which a focus change
-                    never closes (INC-543). INC-548 — From is never after To or
-                    today; To is never before From or after today. INC-549 —
-                    the app's own calendar: days outside the bounds are greyed
-                    and cannot be chosen, and the month stops at the bounds. */}
-                <div className="grid min-w-0 grid-cols-1 gap-3">
-                  <div className="flex min-w-0 flex-col gap-2">
-                    <label
-                      htmlFor="audit-filter-from"
-                      className="text-sm font-semibold text-foreground"
-                    >
-                      {t("admin.audit.filter.from")}
-                    </label>
-                    <DateField
-                      id="audit-filter-from"
-                      testid="audit-filter-from"
-                      value={from}
-                      max={to !== "" && to < today ? to : today}
-                      onChange={(next) => {
-                        setFrom(next);
-                        resetPage();
-                      }}
-                    />
-                  </div>
-                  <div className="flex min-w-0 flex-col gap-2">
-                    <label
-                      htmlFor="audit-filter-to"
-                      className="text-sm font-semibold text-foreground"
-                    >
-                      {t("admin.audit.filter.to")}
-                    </label>
-                    <DateField
-                      id="audit-filter-to"
-                      testid="audit-filter-to"
-                      value={to}
-                      min={from !== "" ? from : undefined}
-                      max={today}
-                      onChange={(next) => {
-                        setTo(next);
-                        resetPage();
-                      }}
-                    />
-                  </div>
-                </div>
-              </FiltersButton>
+                filters={tableFilters}
+              />
             }
             columns={
               <ColumnsButton
@@ -426,7 +379,7 @@ export function AdminAuditPage() {
                 onToggle={toggleColumn}
               />
             }
-            chips={<FilterChips testid="audit-chips" chips={chips} onClearAll={clearAll} />}
+            chips={<FilterChips testid={"audit-chips"} filters={tableFilters} />}
           />
         }
         expandedRow={(row) =>

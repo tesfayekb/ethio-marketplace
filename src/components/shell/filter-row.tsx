@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 export function FilterRow({
   label,
   htmlFor,
+  labelId,
   children,
   testId,
   dates = false,
@@ -13,6 +14,7 @@ export function FilterRow({
   label: string;
   /** The control's id, so the name labels it. */
   htmlFor?: string;
+  labelId?: string;
   children: ReactNode;
   testId?: string;
   /** Only the date pair may occupy a second row. */
@@ -25,6 +27,7 @@ export function FilterRow({
       className="flex min-w-0 flex-wrap items-center gap-3"
     >
       <label
+        id={labelId}
         htmlFor={htmlFor}
         title={label}
         className="w-1/3 min-w-0 truncate text-sm font-medium text-foreground"

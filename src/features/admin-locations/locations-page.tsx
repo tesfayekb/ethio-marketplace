@@ -1,3 +1,5 @@
+import { LISTED_LEVELS } from "./locations-service";
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { compareNames } from "@/lib/name-collator";
 import { compareCodes } from "@/lib/reader-locale";
 import { ArrowDownUp, Download, MapPin, MoveRight, Plus, RotateCcw, Upload } from "lucide-react";
@@ -34,7 +36,6 @@ import {
   LocationMoveDialog,
   LocationReorderDialog,
 } from "./location-verb-dialogs";
-import { LocationFilters } from "./locations-toolbar";
 import {
   childLevelOf,
   deleteBlockedKey,
@@ -103,8 +104,8 @@ export function AdminLocationsPage() {
   const countries = useAllCountries();
   const [country, setCountry] = useState("");
   const [search, setSearch] = useState("");
-  const [level, setLevel] = useState("");
-  const [status, setStatus] = useState("");
+  const [rawLevel, setLevel] = useState("");
+  const [rawStatus, setStatus] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
@@ -132,6 +133,42 @@ export function AdminLocationsPage() {
   const byId = useMemo(() => new Map(places.map((row) => [row.id, row])), [places]);
   /** A keystroke sieves, never fetches; deferring keeps typing smooth. */
   const deferredSearch = useDeferredValue(search);
+  const { filters: tableFilters } = useTableFilters("admin-places", [
+    {
+      kind: "select",
+      id: "location-level-filter",
+      chipKey: "level",
+      name: t("admin.locations.filter.level"),
+      kept: true,
+      value: rawLevel === "" ? [] : [rawLevel],
+      onChange: (next) => {
+        setLevel(next[0] ?? "");
+        setPage(0);
+      },
+      options: LISTED_LEVELS.map((name) => ({
+        value: name,
+        label: t(`admin.locations.level.${name}` as MessageKey),
+      })),
+    },
+    {
+      kind: "select",
+      id: "location-active-filter",
+      chipKey: "status",
+      name: t("admin.locations.filter.status"),
+      kept: true,
+      value: rawStatus === "" ? [] : [rawStatus],
+      onChange: (next) => {
+        setStatus(next[0] ?? "");
+        setPage(0);
+      },
+      options: [
+        { value: "active", label: t("admin.locations.filter.activeOnly") },
+        { value: "retired", label: t("admin.locations.filter.retiredOnly") },
+      ],
+    },
+  ]);
+  const level = filterValues(tableFilters, "location-level-filter")[0] ?? "";
+  const status = filterValues(tableFilters, "location-active-filter")[0] ?? "";
   const rows = useMemo(
     () => filterLocations(places, { search: deferredSearch, level, status }),
     [places, deferredSearch, level, status],
@@ -334,37 +371,6 @@ export function AdminLocationsPage() {
     );
   };
 
-  const chips = [
-    ...(level === ""
-      ? []
-      : [
-          {
-            key: "level",
-            label: t(`admin.locations.level.${level}` as MessageKey),
-            onRemove: () => {
-              setLevel("");
-              setPage(0);
-            },
-          },
-        ]),
-    ...(status === ""
-      ? []
-      : [
-          {
-            key: "status",
-            label: t(
-              status === "active"
-                ? "admin.locations.filter.activeOnly"
-                : "admin.locations.filter.retiredOnly",
-            ),
-            onRemove: () => {
-              setStatus("");
-              setPage(0);
-            },
-          },
-        ]),
-  ];
-
   return (
     <StepUpGate>
       {(guard) => (
@@ -485,29 +491,10 @@ export function AdminLocationsPage() {
                   }
                   filters={
                     <FiltersButton
-                      testid="location-filters"
-                      count={chips.length}
-                      state={`${level}|${status}`}
+                      testid={"location-filters"}
                       resultCount={rows.length}
-                      onClearAll={() => {
-                        setLevel("");
-                        setStatus("");
-                        setPage(0);
-                      }}
-                    >
-                      <LocationFilters
-                        level={level}
-                        onLevel={(value) => {
-                          setLevel(value);
-                          setPage(0);
-                        }}
-                        status={status}
-                        onStatus={(value) => {
-                          setStatus(value);
-                          setPage(0);
-                        }}
-                      />
-                    </FiltersButton>
+                      filters={tableFilters}
+                    />
                   }
                   columns={
                     <ColumnsButton
@@ -521,17 +508,7 @@ export function AdminLocationsPage() {
                       onToggle={toggleColumn}
                     />
                   }
-                  chips={
-                    <FilterChips
-                      testid="location-chips"
-                      chips={chips}
-                      onClearAll={() => {
-                        setLevel("");
-                        setStatus("");
-                        setPage(0);
-                      }}
-                    />
-                  }
+                  chips={<FilterChips testid={"location-chips"} filters={tableFilters} />}
                 />
                 {selectedMarket ? (
                   <p
