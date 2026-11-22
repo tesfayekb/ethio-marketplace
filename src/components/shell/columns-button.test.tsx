@@ -2,7 +2,7 @@ import { act, fireEvent, render, renderHook, screen } from "@testing-library/rea
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ColumnsButton } from "./columns-button";
+import { ColumnsButton, ColumnsList } from "./columns-button";
 import { useHiddenColumns, visibleColumns } from "./columns-state";
 import { TableActionButton, TableActions } from "./table-actions";
 import { TableToolbar } from "./table-toolbar";
@@ -177,5 +177,28 @@ describe("ColumnsButton, useHiddenColumns and TableToolbar", () => {
     expect(screen.getByTestId("hx-gen")).not.toHaveAttribute("title");
     expect(screen.getByTestId("hx-new")).not.toHaveAttribute("title");
     expect(screen.getByTestId("hx-gen")).toHaveAccessibleName("Generate");
+  });
+});
+
+describe("the shared columns list", () => {
+  it("FP-U15 the standalone list preserves locked columns and reports toggles", () => {
+    const change = vi.fn();
+    render(
+      <ColumnsList
+        testid="board-columns"
+        columns={[
+          { key: "title", label: "Title", locked: true },
+          { key: "sent", label: "Sent" },
+        ]}
+        hidden={["sent"]}
+        onToggle={change}
+      />,
+    );
+    expect(screen.getByTestId("board-columns-title")).toBeDisabled();
+    expect(screen.getByTestId("board-columns-title")).toHaveAttribute("data-state", "checked");
+    fireEvent.click(screen.getByTestId("board-columns-title"));
+    expect(change).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("board-columns-sent"));
+    expect(change).toHaveBeenCalledWith("sent", true);
   });
 });

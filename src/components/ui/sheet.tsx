@@ -67,6 +67,7 @@ const SheetContent = React.forwardRef<
       children,
       onOpenAutoFocus,
       onCloseAutoFocus,
+      onEscapeKeyDown,
       ...props
     },
     ref,
@@ -93,6 +94,10 @@ const SheetContent = React.forwardRef<
             opener.opened(event);
             onOpenAutoFocus?.(event);
             if (!event.defaultPrevented) focusAwayFromRed(event);
+          }}
+          onEscapeKeyDown={(event) => {
+            opener.escape(event);
+            onEscapeKeyDown?.(event);
           }}
           onCloseAutoFocus={(event) => {
             onCloseAutoFocus?.(event);

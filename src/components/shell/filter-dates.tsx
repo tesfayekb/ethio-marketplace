@@ -1,4 +1,4 @@
-import { Input } from "@/components/ui/input";
+import { DateField } from "./date-field";
 
 /** Bundle 2 (INC-1146) — a table filter's pair of DATE boxes, from and to (ISO yyyy-mm-dd). */
 export function FilterDates({
@@ -19,28 +19,32 @@ export function FilterDates({
   toLabel: string;
   testId?: string;
 }) {
-  const box = "min-h-11 md:pointer-fine:min-h-9";
   return (
     <div data-testid={testId} className="grid min-w-0 grid-cols-2 gap-2">
-      <Input
-        id={id}
-        type="date"
-        aria-label={fromLabel}
-        data-testid={testId === undefined ? undefined : `${testId}-from`}
-        className={box}
-        value={from}
-        max={to === "" ? undefined : to}
-        onChange={(event) => onChange({ from: event.target.value, to })}
-      />
-      <Input
-        type="date"
-        aria-label={toLabel}
-        data-testid={testId === undefined ? undefined : `${testId}-to`}
-        className={box}
-        value={to}
-        min={from === "" ? undefined : from}
-        onChange={(event) => onChange({ from, to: event.target.value })}
-      />
+      <div className="min-w-0">
+        <label htmlFor={id} className="text-sm text-muted-foreground">
+          {fromLabel}
+        </label>
+        <DateField
+          id={id}
+          testid={`${testId ?? id}-from`}
+          value={from}
+          {...(to === "" ? {} : { max: to })}
+          onChange={(next) => onChange({ from: next, to })}
+        />
+      </div>
+      <div className="min-w-0">
+        <label htmlFor={`${id}-to`} className="text-sm text-muted-foreground">
+          {toLabel}
+        </label>
+        <DateField
+          id={`${id}-to`}
+          testid={`${testId ?? id}-to`}
+          value={to}
+          {...(from === "" ? {} : { min: from })}
+          onChange={(next) => onChange({ from, to: next })}
+        />
+      </div>
     </div>
   );
 }

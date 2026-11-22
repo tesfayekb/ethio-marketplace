@@ -1,3 +1,4 @@
+import * as React from "react";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
@@ -294,4 +295,62 @@ describe("panel correction laws", () => {
     await waitFor(() => expect(screen.getByTestId("safe-action")).toHaveFocus());
     expect(screen.getByTestId("red-action")).not.toHaveFocus();
   });
+});
+
+describe("panel Escape belongs to its open list", () => {
+  for (const kind of ["dialog", "alert", "sheet"] as const) {
+    it(`DP-U${kind === "dialog" ? 15 : kind === "alert" ? 16 : 17} ${kind} stays open for the first Escape and closes on the second`, async () => {
+      function Owner() {
+        const [open, setOpen] = React.useState(true);
+        const [list, setList] = React.useState(true);
+        const body = (
+          <>
+            <input
+              data-testid="list-focus"
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setList(false);
+              }}
+            />
+            {list ? <div data-picker-popup="" data-testid="owned-list" /> : null}
+          </>
+        );
+        if (kind === "alert")
+          return (
+            <AlertDialog open={open} onOpenChange={setOpen}>
+              <AlertDialogContent bands data-testid="held-panel">
+                <AlertDialogTitle>Title</AlertDialogTitle>
+                {body}
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+              </AlertDialogContent>
+            </AlertDialog>
+          );
+        if (kind === "sheet")
+          return (
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetContent bands data-testid="held-panel">
+                <SheetTitle>Title</SheetTitle>
+                {body}
+              </SheetContent>
+            </Sheet>
+          );
+        return (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent bands data-testid="held-panel">
+              <DialogTitle>Title</DialogTitle>
+              {body}
+            </DialogContent>
+          </Dialog>
+        );
+      }
+      render(<Owner />);
+      const focus = await screen.findByTestId("list-focus");
+      await waitFor(() => expect(screen.getByTestId("held-panel")).toBeInTheDocument());
+      focus.focus();
+      fireEvent.keyDown(focus, { key: "Escape" });
+      await waitFor(() => expect(screen.queryByTestId("owned-list")).toBeNull());
+      expect(screen.getByTestId("held-panel")).toBeInTheDocument();
+      fireEvent.keyDown(focus, { key: "Escape" });
+      await waitFor(() => expect(screen.queryByTestId("held-panel")).toBeNull());
+    });
+  }
 });

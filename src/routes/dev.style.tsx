@@ -24,6 +24,7 @@ import { CARD_LOOKS } from "@/components/marketplace/card-tier";
 import { PLAIN_LOOK } from "@/features/levels/level-fields";
 import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
+import { ColumnsList } from "@/components/shell/columns-button";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
 import { FilterDates } from "@/components/shell/filter-dates";
@@ -714,6 +715,28 @@ function FiltersArchetype({ Title, Text, open }: BoardParts & { open: boolean })
   );
 }
 
+function ColumnsArchetype() {
+  const [hidden, setHidden] = useState<string[]>(["Updated"]);
+  return (
+    <div className={cn(DIALOG_CARD, "p-2")}>
+      <ColumnsList
+        testid="style-anatomy-columns-list"
+        columns={BOARD.columns.map((label, index) => ({ key: label, label, locked: index === 0 }))}
+        hidden={hidden}
+        onToggle={(key, visible) =>
+          setHidden((current) =>
+            visible
+              ? current.filter((item) => item !== key)
+              : current.includes(key)
+                ? current
+                : [...current, key],
+          )
+        }
+      />
+    </div>
+  );
+}
+
 const ARCHETYPES: readonly Archetype[] = [
   {
     key: "question",
@@ -844,18 +867,7 @@ const ARCHETYPES: readonly Archetype[] = [
           <Text>{BOARD.columnsText}</Text>
         </PanelHeader>
         <PanelBody>
-          <div className={cn(DIALOG_CARD, "flex flex-col gap-1 p-2")}>
-            {BOARD.columns.map((column, index) => (
-              <label key={column} className={cn(LIST_ROW, "gap-3")}>
-                <input
-                  type="checkbox"
-                  defaultChecked={index < 4}
-                  className="size-4 accent-primary"
-                />
-                <span>{column}</span>
-              </label>
-            ))}
-          </div>
+          <ColumnsArchetype />
         </PanelBody>
       </>
     ),

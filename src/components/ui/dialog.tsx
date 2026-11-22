@@ -89,6 +89,7 @@ const DialogContent = React.forwardRef<
       bands = false,
       onOpenAutoFocus,
       onCloseAutoFocus,
+      onEscapeKeyDown,
       children,
       ...props
     },
@@ -124,6 +125,10 @@ const DialogContent = React.forwardRef<
             if (!screenSized || event.defaultPrevented || !(panel instanceof HTMLElement)) return;
             event.preventDefault();
             panel.focus({ preventScroll: true });
+          }}
+          onEscapeKeyDown={(event) => {
+            opener.escape(event);
+            onEscapeKeyDown?.(event);
           }}
           onCloseAutoFocus={(event) => {
             onCloseAutoFocus?.(event);

@@ -99,7 +99,7 @@ export const BANDS_BODY =
   "flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-6 py-4";
 /** The footer band: white, the bar's upward shadow; the footer's order and stacking. */
 export const BANDS_FOOT =
-  "relative flex shrink-0 flex-wrap items-center justify-end gap-2 bg-card px-6 py-4 shadow-bar-up";
+  "relative flex shrink-0 flex-wrap-reverse items-center justify-end gap-2 bg-card px-6 py-4 pb-[calc(1.375rem+env(safe-area-inset-bottom))] shadow-bar-up max-sm:[&>button]:flex-1 sm:flex-wrap";
 /** The grabber inside the header band: drawn only on a phone sheet below md. */
 export const BANDS_GRABBER = "hidden max-md:in-data-[phone=sheet]:block -mt-2 mb-1 mx-auto";
 /** A white card on the body's ground (the subject, a group of fields). */

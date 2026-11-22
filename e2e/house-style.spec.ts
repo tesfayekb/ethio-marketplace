@@ -221,4 +221,20 @@ test.describe("house style fixture", () => {
     await expect(more).toBeFocused();
     expect(await drawnRing(more), "HS-6: no ring after keyboard use").toBe(true);
   });
+  test("HS-29 Escape closes the open filter list before its panel", async ({ page }) => {
+    await gotoReady(page, "/dev/style");
+    await page.getByTestId("style-anatomy-filters-open").click();
+    const panel = page.getByTestId("style-anatomy-filters");
+    await expect(panel).toBeVisible();
+    const status = panel.getByTestId("style-anatomy-status-shut");
+    await status.click();
+    await expect(status).toHaveAttribute("aria-expanded", "true");
+    await expect(panel.getByTestId("style-anatomy-status-shut-list")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(panel.getByTestId("style-anatomy-status-shut-list")).toHaveCount(0);
+    await expect(status).toHaveAttribute("aria-expanded", "false");
+    await expect(panel).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+  });
 });

@@ -7847,6 +7847,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7856,6 +7857,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7865,6 +7867,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7874,6 +7877,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8141,6 +8145,7 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/dev/style",
       "/my-listings"
     ],
     "prim.table.done": [
@@ -8354,6 +8359,7 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/dev/style",
       "/my-listings"
     ],
     "prim.table.showResults": [

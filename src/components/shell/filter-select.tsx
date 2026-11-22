@@ -13,6 +13,7 @@ export interface FilterOption {
 
 /** A list longer than this shows its search box. */
 const SEARCH_FROM = 8;
+const panelBodyOf = (anchor: HTMLElement) => anchor.closest<HTMLElement>("[data-panel-body]");
 
 /**
  * Bundle 2 (INC-1146) — a table filter's SELECT, one or several choices (`multiple`), on the one
@@ -119,7 +120,9 @@ export function FilterSelect({
     }
     onKeyDown(event as KeyboardEvent<HTMLInputElement>);
   };
-  const placement = usePickerPlacement(wrapRef, open, shown.length + 1 + (searchable ? 1 : 0));
+  const placement = usePickerPlacement(wrapRef, open, shown.length + 1 + (searchable ? 1 : 0), {
+    boundary: panelBodyOf,
+  });
   const chosen = options.filter((option) => value.includes(option.value)).map((o) => o.label);
   return (
     <div
@@ -151,7 +154,11 @@ export function FilterSelect({
         <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
       </button>
       {open ? (
-        <div data-placement={placement} className={pickerPopClass(placement)}>
+        <div
+          data-picker-popup=""
+          data-placement={placement}
+          className={cn(pickerPopClass(placement), "overflow-hidden")}
+        >
           {searchable ? (
             <input
               type="search"

@@ -68,20 +68,28 @@ export type OpenerFocus = {
   opened: (event: Event) => void;
   /** In the panel's onCloseAutoFocus, after the owner's: gives the focus back to the opener. */
   closed: (event: Event) => void;
+  /** The open list receives Escape before its containing panel dismisses. */
+  escape: (event: KeyboardEvent) => void;
 };
 
 /** One panel's opener, recorded when it opens and given the focus when it closes. */
 export function useOpenerFocus(): OpenerFocus {
   const opener = React.useRef<HTMLElement | null>(null);
+  const panel = React.useRef<HTMLElement | null>(null);
   return React.useMemo(
     () => ({
       opened: (event) => {
-        const panel = event.target;
-        if (!(panel instanceof HTMLElement)) return;
-        const held = openerOf(panel.ownerDocument.activeElement);
-        opener.current = held !== null && !isTriggerOf(held, panel) ? held : null;
+        const surface = event.target;
+        if (!(surface instanceof HTMLElement)) return;
+        panel.current = surface;
+        const held = openerOf(surface.ownerDocument.activeElement);
+        opener.current = held !== null && !isTriggerOf(held, surface) ? held : null;
+      },
+      escape: (event) => {
+        if (panel.current?.querySelector("[data-picker-popup]")) event.preventDefault();
       },
       closed: (event) => {
+        panel.current = null;
         const back = opener.current;
         opener.current = null;
         if (event.defaultPrevented || back === null || !back.isConnected) return;

@@ -254,7 +254,7 @@ export const ClosedPrimary = React.forwardRef<
         }}
       />
       {closed && missing ? (
-        <p id={lineId} className="w-full text-sm text-muted-foreground">
+        <p id={lineId} className="order-last w-full text-sm text-muted-foreground sm:order-first">
           {missing}
         </p>
       ) : null}
