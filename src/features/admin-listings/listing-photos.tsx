@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -5,7 +7,7 @@ import { useState } from "react";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { Picture } from "@/components/ui/picture";
 import { CategoryModal } from "@/components/ui/category-modal";
 import {
@@ -318,44 +320,23 @@ function RemoveDialog({
       onClose={() => {
         if (!busy) onCancel();
       }}
-    >
-      <div className="min-w-0 space-y-3">
-        {link !== null ? (
-          <Picture
-            src={link}
-            fit="contain"
-            width={480}
-            height={360}
-            className="aspect-[4/3] w-full max-w-64 rounded-md"
-          />
-        ) : null}
-        <p className="text-sm text-muted-foreground">{t("admin.listings.photos.hint")}</p>
-        <ReasonNote
-          testid="listing-photo-remove"
-          reasons={PHOTO_REASONS}
-          reason={reason}
-          note={note}
-          problem={problem}
-          onReason={(value) => {
-            setReason(value);
-            setProblem(null);
-          }}
-          onNote={(value) => {
-            setNote(value);
-            setProblem(null);
-          }}
+      subject={
+        <PanelSubject
+          title={t("admin.listings.photos.title")}
+          picture={
+            link === null ? undefined : (
+              <Picture src={link} fit="contain" width={480} height={360} className="size-full" />
+            )
+          }
         />
-        {problem !== null || refusal !== null ? (
-          <p
-            role="alert"
-            id="listing-photo-remove-problem"
-            data-testid="listing-photo-remove-problem"
-            className="text-sm text-destructive"
-          >
-            {problem !== null ? t(problem) : refusal}
-          </p>
-        ) : null}
-        <DialogFooter>
+      }
+      description={t("admin.listings.photos.hint")}
+      size="narrow"
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <>
+          {" "}
           <Button
             type="button"
             variant="outline"
@@ -382,8 +363,36 @@ function RemoveDialog({
             }}
           >
             {t("admin.listings.photos.confirm")}
-          </Button>
-        </DialogFooter>
+          </Button>{" "}
+        </>
+      }
+    >
+      <div className="min-w-0 space-y-3">
+        <ReasonNote
+          testid="listing-photo-remove"
+          reasons={PHOTO_REASONS}
+          reason={reason}
+          note={note}
+          problem={problem}
+          onReason={(value) => {
+            setReason(value);
+            setProblem(null);
+          }}
+          onNote={(value) => {
+            setNote(value);
+            setProblem(null);
+          }}
+        />
+        {problem !== null || refusal !== null ? (
+          <p
+            role="alert"
+            id="listing-photo-remove-problem"
+            data-testid="listing-photo-remove-problem"
+            className="text-sm text-destructive"
+          >
+            {problem !== null ? t(problem) : refusal}
+          </p>
+        ) : null}
       </div>
     </CategoryModal>
   );

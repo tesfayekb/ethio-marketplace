@@ -38,12 +38,14 @@ export function CountryDialogAlert({
 }
 
 export function CountryDialogActions({
+  bare = false,
   onCancel,
   onSubmit,
   busy,
   submitTestId,
   submitLabel,
 }: {
+  bare?: boolean;
   onCancel: () => void;
   onSubmit: () => void;
   busy: boolean;
@@ -51,8 +53,8 @@ export function CountryDialogActions({
   submitLabel?: string;
 }) {
   const { t } = useI18n();
-  return (
-    <DialogFooter>
+  const buttons = (
+    <>
       <Button
         type="button"
         variant="outline"
@@ -71,8 +73,9 @@ export function CountryDialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </DialogFooter>
+    </>
   );
+  return bare ? buttons : <DialogFooter>{buttons}</DialogFooter>;
 }
 
 export interface CountryFormValues {

@@ -1,3 +1,4 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState, type ReactNode } from "react";
 
 import { useFormGate } from "@/components/forms/use-form-gate";
@@ -98,11 +99,19 @@ export function LocationEditorDialog({
       openedBy={openedBy}
       title={t("admin.locations.edit.title")}
       onClose={onClose}
+      description={t("admin.locations.edit.description")}
+      size="default"
+      subject={<PanelSubject title={row.path} testId="location-editor-path" />}
+      footer={
+        <LocationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={upsert.isPending}
+          submitTestId="location-editor-save"
+        />
+      }
     >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <span className="min-w-0 break-words text-sm" data-testid="location-editor-path">
-          {row.path}
-        </span>
         <TipBadge
           variant="outline"
           label={t(`admin.locations.level.${row.level}` as MessageKey)}
@@ -135,12 +144,6 @@ export function LocationEditorDialog({
         </a>
       </p>
       <LocationDialogAlert message={message} />
-      <LocationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={upsert.isPending}
-        submitTestId="location-editor-save"
-      />
 
       {verbBar}
     </CategoryModal>

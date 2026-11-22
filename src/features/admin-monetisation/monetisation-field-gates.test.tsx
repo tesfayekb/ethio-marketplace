@@ -25,8 +25,25 @@ import { NEW_PRICE_FORM, priceFormInput } from "./price-forms";
 const calls = vi.hoisted(() => ({ savePrice: vi.fn(), saveMarket: vi.fn() }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children, testid }: { children: ReactNode; testid: string }) => (
-    <div data-testid={testid}>{children}</div>
+  CategoryModal: ({
+    children,
+    testid,
+    footer,
+    subject,
+    description,
+  }: {
+    children: ReactNode;
+    testid: string;
+    footer?: ReactNode;
+    subject?: ReactNode;
+    description?: string;
+  }) => (
+    <div data-testid={testid}>
+      {description}
+      {subject}
+      {children}
+      {footer}
+    </div>
   ),
 }));
 vi.mock("@/features/posting/pricing-data", () => ({

@@ -2068,4 +2068,17 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.listings.level.source.money": "የተከፈለ",
   "admin.listings.level.source.credits": "ክሬዲት",
   "admin.listings.level.unknown": "ደረጃው አይታወቅም",
+  "admin.ai.edit.description": "አገልግሎቱን ያብሩ ወይም ያጥፉ፤ ወርሃዊ በጀቱንና የአቅራቢውን ዋጋዎች ያስገቡ።",
+  "admin.attributes.edit.description":
+    "የባህሪውን ስም፣ ዓይነትና አማራጮች ያስገቡ። ማስቀመጥ ባህሪው ጥቅም ላይ በሚውልበት ቦታ ሁሉ ይተገብራቸዋል።",
+  "admin.categories.attributes.description":
+    "ይህ ምድብ የሚጠይቃቸውን ባህሪያትና ካርዶቹ የሚያሳዩትን ይምረጡ። እያንዳንዱ ለውጥ ወዲያውኑ ይቀመጣል።",
+  "admin.categories.edit.description": "የምድቡን ስም፣ አዶና የማስታወቂያ ደንቦች ያስገቡ።",
+  "admin.countries.edit.description": "የአገሩን ስም፣ የመለኪያ ሥርዓት፣ የገንዘብ ኮድና ቅደም ተከተል ይለውጡ።",
+  "admin.locations.edit.description": "የቦታውን ስም፣ ኮዶች፣ መሃልና ሰዎች የሚፈልጉባቸውን ሌሎች ስሞች ይለውጡ።",
+  "admin.monetisation.market.description":
+    "የዚህን ገበያ ነጻ መደበኛ ማስታወቂያዎች፣ የተካተተ ተደራሽነት፣ የሚከፈልባቸው ደረጃዎች መሸጣቸውንና የመክፈቻ ክሬዲቶቹን ያስገቡ።",
+  "admin.monetisation.override.description": "ለአንድ ደረጃ በአንድ ምድብ ወይም አገር የተለዩ ቀናትና ፎቶዎች ይስጡ።",
+  "admin.monetisation.price.description": "ይህ ምርት ምን ያህል እንደሚያስከፍል፣ የትና ከየትኛው ቀን ጀምሮ እንደሆነ ያስገቡ።",
+  "admin.packages.product.description": "ስሞቹን፣ ቀናቱን፣ ፎቶዎቹንና የተደራሽነት ገደቦቹን ያስገቡ፤ ያብሩት ወይም ያጥፉት።",
 };

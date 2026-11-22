@@ -1,9 +1,10 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { CategoryModal } from "@/components/ui/category-modal";
@@ -59,7 +60,7 @@ export function LocationDialogActions({
 }) {
   const { t } = useI18n();
   return (
-    <DialogFooter>
+    <>
       <Button
         type="button"
         variant="outline"
@@ -79,7 +80,7 @@ export function LocationDialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </DialogFooter>
+    </>
   );
 }
 
@@ -164,6 +165,30 @@ export function LocationCreateDialog({
       openedBy={fixed ? "verb-create-child" : "create-button"}
       title={t("admin.locations.create.title")}
       onClose={onClose}
+      description={t("admin.locations.create.bornRetired")}
+      size="default"
+      subject={parent === null ? undefined : <PanelSubject title={parent.path} />}
+      footer={
+        created ? (
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              size="touch"
+              data-testid="location-create-close"
+              onClick={onClose}
+            >
+              {t("common.close")}
+            </Button>
+          </div>
+        ) : (
+          <LocationDialogActions
+            onCancel={onClose}
+            onSubmit={submit}
+            busy={upsert.isPending}
+            submitTestId="location-create-submit"
+          />
+        )
+      }
     >
       <Field
         id="location-create-parent"
@@ -218,16 +243,6 @@ export function LocationCreateDialog({
           >
             {t("admin.locations.create.bornRetired")}
           </p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              size="touch"
-              data-testid="location-create-close"
-              onClick={onClose}
-            >
-              {t("common.close")}
-            </Button>
-          </div>
         </>
       ) : (
         <>
@@ -240,12 +255,6 @@ export function LocationCreateDialog({
             refusals={locationRefusals(gate, parsed)}
           />
           <LocationDialogAlert message={message} />
-          <LocationDialogActions
-            onCancel={onClose}
-            onSubmit={submit}
-            busy={upsert.isPending}
-            submitTestId="location-create-submit"
-          />
         </>
       )}
     </CategoryModal>

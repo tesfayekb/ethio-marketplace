@@ -1,5 +1,6 @@
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";

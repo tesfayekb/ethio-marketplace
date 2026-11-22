@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 756,
+  "scanned": 758,
   "dynamicCallSites": 415,
   "keys": {
     "account.deactivatedBanner": [
@@ -562,6 +562,9 @@
     "admin.ai.days.total": [
       "/admin/ai"
     ],
+    "admin.ai.edit.description": [
+      "/admin/ai"
+    ],
     "admin.ai.edit.title": [
       "/admin/ai"
     ],
@@ -773,6 +776,10 @@
       "/admin/categories"
     ],
     "admin.attributes.dependsOn.previewResults": [
+      "/admin/categories"
+    ],
+    "admin.attributes.edit.description": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.attributes.edit.removedHolders": [
@@ -1343,6 +1350,9 @@
     "admin.categories.action.window": [
       "/admin/categories"
     ],
+    "admin.categories.attributes.description": [
+      "/admin/categories"
+    ],
     "admin.categories.badge.active": [
       "/admin/categories"
     ],
@@ -1458,6 +1468,9 @@
       "/admin/categories"
     ],
     "admin.categories.delete.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.edit.description": [
       "/admin/categories"
     ],
     "admin.categories.edit.title": [
@@ -1741,6 +1754,9 @@
       "/admin/countries"
     ],
     "admin.countries.col.updated": [
+      "/admin/countries"
+    ],
+    "admin.countries.edit.description": [
       "/admin/countries"
     ],
     "admin.countries.edit.title": [
@@ -2555,6 +2571,9 @@
     "admin.locations.delete.title": [
       "/admin/places"
     ],
+    "admin.locations.edit.description": [
+      "/admin/places"
+    ],
     "admin.locations.edit.title": [
       "/admin/places"
     ],
@@ -2890,6 +2909,9 @@
     "admin.monetisation.market.add": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.market.description": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.market.edit": [
       "/admin/monetisation"
     ],
@@ -2897,6 +2919,9 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.markets.title": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.override.description": [
       "/admin/monetisation"
     ],
     "admin.monetisation.perks.add": [
@@ -2918,6 +2943,9 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.price.add": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.price.description": [
       "/admin/monetisation"
     ],
     "admin.monetisation.price.edit": [
@@ -3080,6 +3108,9 @@
       "/admin/monetisation"
     ],
     "admin.packages.prices.open": [
+      "/admin/monetisation"
+    ],
+    "admin.packages.product.description": [
       "/admin/monetisation"
     ],
     "admin.roles.action.open": [

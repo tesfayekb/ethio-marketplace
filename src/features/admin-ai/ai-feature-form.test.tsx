@@ -20,7 +20,21 @@ vi.mock("./use-ai-features", () => ({
   useSetAiFeature: () => ({ mutateAsync: save, isPending: false }),
 }));
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CategoryModal: ({
+    children,
+    footer,
+    subject,
+  }: {
+    children: React.ReactNode;
+    footer?: React.ReactNode;
+    subject?: React.ReactNode;
+  }) => (
+    <div>
+      {subject}
+      {children}
+      {footer}
+    </div>
+  ),
 }));
 
 const ROW: AiFeatureRow = {

@@ -1,3 +1,4 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { Field } from "@/components/forms/field";
@@ -170,7 +171,26 @@ export function ProductEditorDialog({
       : "admin.packages.edit.title";
 
   return (
-    <CategoryModal testid={prefix} openedBy={openedBy} title={t(title)} onClose={onClose}>
+    <CategoryModal
+      testid={prefix}
+      openedBy={openedBy}
+      title={t(title)}
+      onClose={onClose}
+      description={t("admin.packages.product.description")}
+      size="default"
+      subject={row === null ? undefined : <PanelSubject title={row.nameEn} />}
+      footer={
+        <MonetisationDialogActions
+          bare
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={save.isPending}
+          cancelTestId={`${prefix}-cancel`}
+          submitTestId={`${prefix}-save`}
+          submitLabel={t("common.save")}
+        />
+      }
+    >
       {creating ? (
         <Field
           id={`${prefix}-key`}
@@ -306,14 +326,6 @@ export function ProductEditorDialog({
       </Field>
       <p className="text-sm text-muted-foreground">{t("admin.packages.noDelete")}</p>
       <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
-      <MonetisationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={save.isPending}
-        cancelTestId={`${prefix}-cancel`}
-        submitTestId={`${prefix}-save`}
-        submitLabel={t("common.save")}
-      />
     </CategoryModal>
   );
 }

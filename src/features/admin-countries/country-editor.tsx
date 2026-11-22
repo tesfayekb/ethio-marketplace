@@ -1,3 +1,4 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState, type ReactNode } from "react";
 
 import { useFormGate } from "@/components/forms/use-form-gate";
@@ -86,11 +87,20 @@ export function CountryEditorDialog({
       openedBy={openedBy}
       title={t("admin.countries.edit.title")}
       onClose={onClose}
+      description={t("admin.countries.edit.description")}
+      size="default"
+      subject={<PanelSubject title={`${row.nameEn} · ${row.code}`} testId="country-editor-code" />}
+      footer={
+        <CountryDialogActions
+          bare
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={upsert.isPending}
+          submitTestId="country-editor-save"
+        />
+      }
     >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <span className="min-w-0 break-words text-sm" data-testid="country-editor-code">
-          {`${row.nameEn} · ${row.code}`}
-        </span>
         <TipBadge
           variant={row.isActive ? "secondary" : "outline"}
           label={t(row.isActive ? "admin.countries.badge.open" : "admin.countries.badge.closed")}
@@ -115,12 +125,6 @@ export function CountryEditorDialog({
         </a>
       </p>
       <CountryDialogAlert message={message} />
-      <CountryDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={upsert.isPending}
-        submitTestId="country-editor-save"
-      />
 
       {verbBar}
     </CategoryModal>

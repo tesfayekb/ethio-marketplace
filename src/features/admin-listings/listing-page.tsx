@@ -1,3 +1,5 @@
+import { CircleHelp } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { formatCountryName } from "@/lib/reader-locale";
 import { REPORT_REASONS } from "@/features/ad-page/report";
 import { useListingReports } from "./use-listing-reports";
@@ -891,6 +893,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
 
           {move !== null ? (
             <MoveDialog
+              subjectTitle={listing.title}
               kind={move}
               count={1}
               busy={busy}
@@ -904,6 +907,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
           ) : null}
           {tiering ? (
             <TierDialog
+              subjectTitle={listing.title}
               current={listing.tier}
               busy={busy}
               refusal={refusal}
@@ -918,6 +922,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
           ) : null}
           {undoing !== null ? (
             <UndoDialog
+              subjectTitle={listing.title}
               busy={busy}
               problem={undoProblem}
               onCancel={() => {
@@ -928,14 +933,26 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
             />
           ) : null}
           {viewAs ? (
-            <CategoryModal
-              testid="listings-view-as-dialog"
-              openedBy="view-as"
-              title={t("admin.listings.action.viewAsSeller")}
-              onClose={() => setViewAs(false)}
-            >
-              <ImpersonationStarter userId={seller.id} guard={guard} />
-            </CategoryModal>
+            <ImpersonationStarter
+              userId={seller.id}
+              guard={guard}
+              renderPanel={(body, footer) => (
+                <CategoryModal
+                  testid="listings-view-as-dialog"
+                  openedBy="view-as"
+                  title={t("admin.listings.action.viewAsSeller")}
+                  footer={footer}
+                  onClose={() => setViewAs(false)}
+                  description={t("impersonation.readOnlyNote")}
+                  size="narrow"
+                  subject={<PanelSubject title={listing.title} />}
+                  tone={"confirm"}
+                  icon={<CircleHelp />}
+                >
+                  {body}
+                </CategoryModal>
+              )}
+            />
           ) : null}
         </div>
       )}

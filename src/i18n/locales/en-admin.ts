@@ -2207,4 +2207,21 @@ export const enAdmin = {
   "admin.listings.level.source.money": "Paid",
   "admin.listings.level.source.credits": "Credits",
   "admin.listings.level.unknown": "Level not known",
+  "admin.ai.edit.description":
+    "Switch the feature on or off and set its monthly budget and the provider's prices.",
+  "admin.attributes.edit.description":
+    "Set the attribute's name, type and options. Save applies them wherever the attribute is used.",
+  "admin.categories.attributes.description":
+    "Choose the attributes this category asks for and what its cards show. Each change is saved at once.",
+  "admin.categories.edit.description": "Set the category's name, icon and listing rules.",
+  "admin.countries.edit.description": "Change the country's name, unit system, currency and order.",
+  "admin.locations.edit.description":
+    "Change the place's name, codes, centre and the other names people search for.",
+  "admin.monetisation.market.description":
+    "Set this market's free Regular ads, the reach every ad includes, whether paid levels are sold, and its launch credits.",
+  "admin.monetisation.override.description":
+    "Give one level different days and photos in a category or a country.",
+  "admin.monetisation.price.description": "Set what this product costs, where, and from which day.",
+  "admin.packages.product.description":
+    "Set its names, days, photos and reach limits, and switch it on or off.",
 } as const;

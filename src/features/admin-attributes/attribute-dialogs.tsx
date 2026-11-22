@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { controlClass } from "@/components/forms/control-class";
@@ -5,7 +7,7 @@ import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -102,7 +104,7 @@ function DialogActions({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   return (
-    <DialogFooter>
+    <>
       <Button
         type="button"
         variant="outline"
@@ -122,7 +124,7 @@ function DialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </DialogFooter>
+    </>
   );
 }
 
@@ -331,6 +333,24 @@ export function AttributeEditorDialog({
         attribute === null ? t("admin.attributes.create.title") : t("admin.attributes.edit.title")
       }
       onClose={onClose}
+      description={t("admin.attributes.edit.description")}
+      size="default"
+      subject={
+        attribute === null ? undefined : (
+          <PanelSubject
+            title={attributeLabel(attribute.id, attribute.nameEn)}
+            lines={[attribute.attrKey]}
+          />
+        )
+      }
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={upsert.isPending}
+          submitTestId="attribute-edit-submit"
+        />
+      }
     >
       {/* UX-2 PART 4 — key and name are different KINDS of thing, and the form
           now says which is which before an operator guesses. */}
@@ -587,12 +607,6 @@ export function AttributeEditorDialog({
         <AttributeDialogAlert message={t("admin.attributes.links.error")} />
       ) : null}
       <AttributeDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={upsert.isPending}
-        submitTestId="attribute-edit-submit"
-      />
     </CategoryModal>
   );
 }
@@ -660,8 +674,27 @@ export function DeleteAttributeDialog({
       openedBy="row-delete"
       title={t("admin.attributes.delete.title")}
       onClose={onClose}
+      description={t("admin.attributes.delete.hint")}
+      size="narrow"
+      subject={
+        <PanelSubject
+          title={attributeLabel(attribute.id, attribute.nameEn)}
+          lines={[attribute.attrKey]}
+        />
+      }
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={remove.isPending}
+          submitTestId="attribute-delete-submit"
+          submitLabel={t("admin.attributes.action.delete")}
+          danger
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.attributes.delete.hint")}</p>
       {blastCount !== null ? (
         <p
           role="status"
@@ -689,14 +722,6 @@ export function DeleteAttributeDialog({
         )}
       </Field>
       {blastCount === null ? <AttributeDialogAlert message={message} /> : null}
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={remove.isPending}
-        submitTestId="attribute-delete-submit"
-        submitLabel={t("admin.attributes.action.delete")}
-        danger
-      />
     </CategoryModal>
   );
 }
@@ -762,9 +787,27 @@ export function MergeAttributesDialog({
       openedBy="toolbar-merge"
       title={t("admin.attributes.merge.title")}
       onClose={onClose}
+      description={t("admin.attributes.merge.hint")}
+      size="default"
+      subject={
+        <PanelSubject
+          title={attributes.map((row) => attributeLabel(row.id, row.nameEn)).join(" · ")}
+        />
+      }
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={merge.isPending}
+          submitTestId="attribute-merge-submit"
+          submitLabel={t("admin.attributes.action.merge")}
+          /* Bundle 11 B3 (G29) — a merge removes the duplicates' definitions. */
+          danger
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.attributes.merge.hint")}</p>
-
       <Field
         id="attribute-merge-target"
         label={t("admin.attributes.merge.target")}
@@ -794,7 +837,7 @@ export function MergeAttributesDialog({
         <legend className="text-sm font-medium text-foreground">
           {t("admin.attributes.merge.sources")}
         </legend>
-        <div className="max-h-56 space-y-1 overflow-y-auto">
+        <div className="space-y-1">
           {attributes
             .filter((row) => row.id !== targetId)
             .map((row) => (
@@ -850,15 +893,6 @@ export function MergeAttributesDialog({
       )}
 
       <AttributeDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={merge.isPending}
-        submitTestId="attribute-merge-submit"
-        submitLabel={t("admin.attributes.action.merge")}
-        /* Bundle 11 B3 (G29) — a merge removes the duplicates' definitions. */
-        danger
-      />
     </CategoryModal>
   );
 }
@@ -928,8 +962,24 @@ export function AssignAttributeDialog({
       openedBy="row-assign"
       title={`${t("admin.attributes.assign.title")} — ${attributeLabel(attribute.id, attribute.nameEn)}`}
       onClose={onClose}
+      description={t("admin.attributes.assign.hint")}
+      size="default"
+      subject={
+        <PanelSubject
+          title={attributeLabel(attribute.id, attribute.nameEn)}
+          lines={[attribute.attrKey]}
+        />
+      }
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={link.isPending}
+          submitTestId="attribute-assign-submit"
+          submitLabel={t("admin.attributes.action.assign")}
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.attributes.assign.hint")}</p>
       <Field
         id="attribute-assign-search"
         label={<span className="sr-only">{t("admin.attributes.assign.searchPlaceholder")}</span>}
@@ -974,13 +1024,6 @@ export function AssignAttributeDialog({
         )}
       </Field>
       <AttributeDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={link.isPending}
-        submitTestId="attribute-assign-submit"
-        submitLabel={t("admin.attributes.action.assign")}
-      />
     </CategoryModal>
   );
 }
@@ -1039,6 +1082,28 @@ export function RemoveAttributeCategoryDialog({
       openedBy="row-remove"
       title={`${t("admin.attributes.remove.title")} — ${attributeLabel(attribute.id, attribute.nameEn)}`}
       onClose={onClose}
+      description={t("admin.attributes.remove.hint")}
+      size="narrow"
+      subject={
+        <PanelSubject
+          title={attributeLabel(attribute.id, attribute.nameEn)}
+          lines={[attribute.attrKey]}
+        />
+      }
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        links.length === 0 ? null : (
+          <DialogActions
+            onCancel={onClose}
+            onSubmit={submit}
+            busy={unlink.isPending || (chosen !== null && !holdersKnown)}
+            danger
+            submitTestId="attribute-remove-submit"
+            submitLabel={t("admin.attributes.action.remove")}
+          />
+        )
+      }
     >
       {links.length === 0 ? (
         <p data-testid="attribute-remove-none" className="text-sm text-muted-foreground">
@@ -1046,7 +1111,6 @@ export function RemoveAttributeCategoryDialog({
         </p>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">{t("admin.attributes.remove.hint")}</p>
           <Field
             id="attribute-remove-picker"
             label={t("admin.attributes.remove.category")}
@@ -1089,16 +1153,6 @@ export function RemoveAttributeCategoryDialog({
         </>
       )}
       <AttributeDialogAlert message={message} />
-      {links.length === 0 ? null : (
-        <DialogActions
-          onCancel={onClose}
-          onSubmit={submit}
-          busy={unlink.isPending || (chosen !== null && !holdersKnown)}
-          danger
-          submitTestId="attribute-remove-submit"
-          submitLabel={t("admin.attributes.action.remove")}
-        />
-      )}
     </CategoryModal>
   );
 }

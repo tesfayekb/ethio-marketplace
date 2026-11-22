@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { controlClass } from "@/components/forms/control-class";
@@ -7,7 +9,7 @@ import { CategoryModal } from "@/components/ui/category-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -275,6 +277,37 @@ export function CategoryEditorDialog({
       openedBy={openedBy}
       title={creating ? t("admin.categories.create.title") : t("admin.categories.edit.title")}
       onClose={onClose}
+      description={t("admin.categories.edit.description")}
+      size="default"
+      subject={category === null ? undefined : <PanelSubject title={category.nameEn} />}
+      footer={
+        creating ? (
+          <DialogActions
+            onCancel={onClose}
+            onSubmit={submit}
+            busy={busy || create.isPending}
+            submitTestId="category-create-submit"
+          />
+        ) : createdId !== null ? (
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              size="touch"
+              data-testid="category-editor-close"
+              onClick={onClose}
+            >
+              {t("common.close")}
+            </Button>
+          </div>
+        ) : (
+          <DialogActions
+            onCancel={onClose}
+            onSubmit={submit}
+            busy={update.isPending || settling}
+            submitTestId="category-edit-submit"
+          />
+        )
+      }
     >
       {creating ? (
         <>
@@ -301,28 +334,12 @@ export function CategoryEditorDialog({
             }}
           />
           <CategoryDialogAlert message={message} />
-          <DialogActions
-            onCancel={onClose}
-            onSubmit={submit}
-            busy={busy || create.isPending}
-            submitTestId="category-create-submit"
-          />
         </>
       ) : createdId !== null ? (
         /* C5m — the SAME dialog, now bound to the new id: Image in front. */
         <div data-testid="category-editor-image" className="space-y-3">
           <CategoryImagePanel categoryId={createdId} guard={guard} />
           <CategoryDialogAlert message={message} />
-          <div className="flex justify-end">
-            <Button
-              type="button"
-              size="touch"
-              data-testid="category-editor-close"
-              onClick={onClose}
-            >
-              {t("common.close")}
-            </Button>
-          </div>
         </div>
       ) : (
         <>
@@ -368,12 +385,6 @@ export function CategoryEditorDialog({
             }
           />
           <CategoryDialogAlert message={message} />
-          <DialogActions
-            onCancel={onClose}
-            onSubmit={submit}
-            busy={update.isPending || settling}
-            submitTestId="category-edit-submit"
-          />
         </>
       )}
     </CategoryModal>
@@ -398,7 +409,7 @@ function DialogActions({
 }) {
   const { t } = useI18n();
   return (
-    <DialogFooter>
+    <>
       <Button
         type="button"
         variant="outline"
@@ -418,7 +429,7 @@ function DialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </DialogFooter>
+    </>
   );
 }
 
@@ -484,8 +495,18 @@ export function CategoryWindowDialog({
       openedBy={openedBy}
       title={t("admin.categories.window.title")}
       onClose={onClose}
+      description={t("admin.categories.window.hint")}
+      size="default"
+      subject={<PanelSubject title={category.nameEn} />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={setWindow.isPending}
+          submitTestId="category-window-submit"
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.categories.window.hint")}</p>
       <Field
         id="category-window-from"
         field="visibleFrom"
@@ -525,12 +546,6 @@ export function CategoryWindowDialog({
         )}
       </Field>
       <CategoryDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={setWindow.isPending}
-        submitTestId="category-window-submit"
-      />
     </CategoryModal>
   );
 }
@@ -576,12 +591,22 @@ export function CategoryExclusionsDialog({
       openedBy={openedBy}
       title={t("admin.categories.exclusions.title")}
       onClose={onClose}
+      description={t("admin.categories.exclusions.hint")}
+      size="default"
+      subject={<PanelSubject title={category.nameEn} />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={setExclusions.isPending}
+          submitTestId="category-exclusions-submit"
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.categories.exclusions.hint")}</p>
       <p data-testid="category-exclusions-current" className="text-sm text-foreground">
         {`${t("admin.categories.exclusions.current")}: ${category.exclusionCount}`}
       </p>
-      <div className="grid max-h-64 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
         {countries.map((country) => (
           <Field
             key={country.code}
@@ -607,12 +632,6 @@ export function CategoryExclusionsDialog({
         ))}
       </div>
       <CategoryDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={setExclusions.isPending}
-        submitTestId="category-exclusions-submit"
-      />
     </CategoryModal>
   );
 }
@@ -671,8 +690,21 @@ export function RetireCategoryDialog({
       openedBy={openedBy}
       title={t("admin.categories.retire.title")}
       onClose={onClose}
+      description={t("admin.categories.retire.hint")}
+      size="narrow"
+      subject={<PanelSubject title={category.nameEn} />}
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={retire.isPending}
+          submitTestId="category-retire-submit"
+          submitLabel={t("admin.categories.retire.confirm")}
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.categories.retire.hint")}</p>
       {hasListings ? (
         <Field
           id="category-retire-target"
@@ -713,13 +745,6 @@ export function RetireCategoryDialog({
         </p>
       )}
       <CategoryDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={retire.isPending}
-        submitTestId="category-retire-submit"
-        submitLabel={t("admin.categories.retire.confirm")}
-      />
     </CategoryModal>
   );
 }
@@ -765,8 +790,18 @@ export function AddPointerDialog({
       openedBy={openedBy}
       title={t("admin.categories.pointer.title")}
       onClose={onClose}
+      description={t("admin.categories.pointer.hint")}
+      size="default"
+      subject={<PanelSubject title={category.nameEn} />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={addPointer.isPending}
+          submitTestId="category-pointer-submit"
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.categories.pointer.hint")}</p>
       <Field
         id="category-pointer-parent"
         field="parentId"
@@ -796,12 +831,6 @@ export function AddPointerDialog({
         )}
       </Field>
       <CategoryDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={addPointer.isPending}
-        submitTestId="category-pointer-submit"
-      />
     </CategoryModal>
   );
 }
@@ -865,9 +894,28 @@ export function CategoryPathsDialog({
       openedBy={openedBy}
       title={t("admin.categories.paths.title")}
       onClose={onClose}
+      description={t("admin.categories.paths.hint")}
+      size="default"
+      subject={<PanelSubject title={category.nameEn} />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={() => {
+            setMessage(null);
+            // DEC-339: a blank parent is the gate's to stop.
+            if (!gate.try()) return;
+            run(async () => {
+              await addPointer.mutateAsync({ parentId: addParentId, childId: category.id });
+              setAddParentId("");
+              setAddRound((round) => round + 1);
+            });
+          }}
+          busy={busy}
+          submitTestId="category-paths-add-submit"
+          submitLabel={t("admin.categories.paths.addSubmit")}
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.categories.paths.hint")}</p>
-
       {pointers.isLoading ? (
         <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
           {t("admin.categories.paths.loading")}
@@ -1003,22 +1051,6 @@ export function CategoryPathsDialog({
         )}
       </Field>
       <CategoryDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={() => {
-          setMessage(null);
-          // DEC-339: a blank parent is the gate's to stop.
-          if (!gate.try()) return;
-          run(async () => {
-            await addPointer.mutateAsync({ parentId: addParentId, childId: category.id });
-            setAddParentId("");
-            setAddRound((round) => round + 1);
-          });
-        }}
-        busy={busy}
-        submitTestId="category-paths-add-submit"
-        submitLabel={t("admin.categories.paths.addSubmit")}
-      />
     </CategoryModal>
   );
 }
@@ -1072,8 +1104,22 @@ export function DeleteCategoryDialog({
       openedBy={openedBy}
       title={t("admin.categories.delete.title")}
       onClose={onClose}
+      description={t("admin.categories.delete.hint")}
+      size="narrow"
+      subject={<PanelSubject title={category.nameEn} />}
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <DialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={remove.isPending}
+          submitTestId="category-delete-submit"
+          submitLabel={t("admin.categories.delete.confirm")}
+          danger
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.categories.delete.hint")}</p>
       <Field
         id="category-delete-slug"
         field="confirmSlug"
@@ -1100,14 +1146,6 @@ export function DeleteCategoryDialog({
         )}
       </Field>
       <CategoryDialogAlert message={message} />
-      <DialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={remove.isPending}
-        submitTestId="category-delete-submit"
-        submitLabel={t("admin.categories.delete.confirm")}
-        danger
-      />
     </CategoryModal>
   );
 }

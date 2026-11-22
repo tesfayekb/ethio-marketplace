@@ -13,7 +13,24 @@ vi.mock("@/i18n", () => ({
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: vi.fn() }));
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CategoryModal: ({
+    children,
+    footer,
+    subject,
+    description,
+  }: {
+    children: ReactNode;
+    footer?: ReactNode;
+    subject?: ReactNode;
+    description?: string;
+  }) => (
+    <div>
+      {description}
+      {subject}
+      {children}
+      {footer}
+    </div>
+  ),
 }));
 vi.mock("@/features/admin-categories/use-categories", () => ({
   useAdminCategories: () => ({ data: [] }),

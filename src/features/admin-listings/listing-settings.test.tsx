@@ -17,7 +17,24 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CategoryModal: ({
+    children,
+    footer,
+    subject,
+    description,
+  }: {
+    children: ReactNode;
+    footer?: ReactNode;
+    subject?: ReactNode;
+    description?: string;
+  }) => (
+    <div>
+      {description}
+      {subject}
+      {children}
+      {footer}
+    </div>
+  ),
 }));
 vi.mock("@/lib/refresh-after-write", () => ({ refreshAfterWrite: vi.fn() }));
 

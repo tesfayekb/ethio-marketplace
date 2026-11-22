@@ -1,9 +1,11 @@
+import { CircleHelp } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n } from "@/i18n";
 
@@ -20,6 +22,7 @@ import { NOTE_MAX } from "./move-reasons";
  * `listing-undo-confirm`.
  */
 export interface UndoDialogProps {
+  subjectTitle?: string;
   busy: boolean;
   /** The door's refusal, already in words; null when there is none. */
   problem: string | null;
@@ -27,7 +30,7 @@ export interface UndoDialogProps {
   onConfirm: (note: string) => void;
 }
 
-export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogProps) {
+export function UndoDialog({ subjectTitle, busy, problem, onCancel, onConfirm }: UndoDialogProps) {
   const { t } = useI18n();
   const [note, setNote] = useState("");
 
@@ -39,9 +42,37 @@ export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogPro
       onClose={() => {
         if (!busy) onCancel();
       }}
+      description={t("admin.listings.undo.hint")}
+      size="narrow"
+      subject={subjectTitle === undefined ? undefined : <PanelSubject title={subjectTitle} />}
+      tone={"confirm"}
+      icon={<CircleHelp />}
+      footer={
+        <>
+          {" "}
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            data-testid="listing-undo-cancel"
+            disabled={busy}
+            onClick={onCancel}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="button"
+            size="touch"
+            data-testid="listing-undo-confirm"
+            disabled={busy}
+            onClick={() => onConfirm(note.trim())}
+          >
+            {t("admin.listings.undo.confirm")}
+          </Button>{" "}
+        </>
+      }
     >
       <div className="min-w-0 space-y-3">
-        <p className="text-sm text-muted-foreground">{t("admin.listings.undo.hint")}</p>
         <Field
           id={"listing-undo-note"}
           field="note"
@@ -68,27 +99,6 @@ export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogPro
             {problem}
           </p>
         ) : null}
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid="listing-undo-cancel"
-            disabled={busy}
-            onClick={onCancel}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="button"
-            size="touch"
-            data-testid="listing-undo-confirm"
-            disabled={busy}
-            onClick={() => onConfirm(note.trim())}
-          >
-            {t("admin.listings.undo.confirm")}
-          </Button>
-        </DialogFooter>
       </div>
     </CategoryModal>
   );

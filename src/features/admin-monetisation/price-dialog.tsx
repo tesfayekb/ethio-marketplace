@@ -1,3 +1,4 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { DateField } from "@/components/shell/date-field";
@@ -123,6 +124,24 @@ export function PriceDialog({
       openedBy={openedBy}
       title={t(creating ? "admin.monetisation.price.add" : "admin.monetisation.price.edit")}
       onClose={onClose}
+      description={t("admin.monetisation.price.description")}
+      size="default"
+      subject={
+        row === null && fixedProduct === undefined ? undefined : (
+          <PanelSubject title={productName(row?.packageKey ?? fixedProduct ?? "")} />
+        )
+      }
+      footer={
+        <MonetisationDialogActions
+          bare
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={save.isPending || edit.isPending}
+          cancelTestId={`${prefix}-cancel`}
+          submitTestId={`${prefix}-save`}
+          submitLabel={t("common.save")}
+        />
+      }
     >
       {fixedProduct === undefined ? (
         <Field
@@ -333,14 +352,6 @@ export function PriceDialog({
         );
       })()}
       <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
-      <MonetisationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={save.isPending || edit.isPending}
-        cancelTestId={`${prefix}-cancel`}
-        submitTestId={`${prefix}-save`}
-        submitLabel={t("common.save")}
-      />
     </CategoryModal>
   );
 }

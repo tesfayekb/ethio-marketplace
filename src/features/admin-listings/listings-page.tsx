@@ -1,3 +1,5 @@
+import { CircleHelp } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { fill } from "@/features/posting/refusal-text";
 import { useOpenReportCounts } from "./use-listing-reports";
 import { useQueryClient } from "@tanstack/react-query";
@@ -882,6 +884,10 @@ export function AdminListingsPage() {
 
           {move !== null ? (
             <MoveDialog
+              subjectTitle={rows
+                .filter((row) => move.ids.includes(row.id))
+                .map((row) => row.title)
+                .join(" · ")}
               kind={move.kind}
               count={move.ids.length}
               busy={busy}
@@ -895,6 +901,7 @@ export function AdminListingsPage() {
           ) : null}
           {tiering !== null ? (
             <TierDialog
+              subjectTitle={tiering.title}
               current={tiering.tier}
               busy={busy}
               refusal={refusal}
@@ -908,14 +915,26 @@ export function AdminListingsPage() {
             />
           ) : null}
           {viewAs !== null ? (
-            <CategoryModal
-              testid="listings-view-as-dialog"
-              openedBy="view-as"
-              title={t("admin.listings.action.viewAsSeller")}
-              onClose={() => setViewAs(null)}
-            >
-              <ImpersonationStarter userId={viewAs.sellerId} guard={guard} />
-            </CategoryModal>
+            <ImpersonationStarter
+              userId={viewAs.sellerId}
+              guard={guard}
+              renderPanel={(body, footer) => (
+                <CategoryModal
+                  testid="listings-view-as-dialog"
+                  openedBy="view-as"
+                  title={t("admin.listings.action.viewAsSeller")}
+                  footer={footer}
+                  onClose={() => setViewAs(null)}
+                  description={t("impersonation.readOnlyNote")}
+                  size="narrow"
+                  subject={<PanelSubject title={viewAs.title} />}
+                  tone={"confirm"}
+                  icon={<CircleHelp />}
+                >
+                  {body}
+                </CategoryModal>
+              )}
+            />
           ) : null}
         </div>
       )}

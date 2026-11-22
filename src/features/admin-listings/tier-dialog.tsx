@@ -1,9 +1,10 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { useState } from "react";
 
 import { FilterChoices } from "@/components/shell/filter-choices";
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { Input } from "@/components/ui/input";
 import { CategoryModal } from "@/components/ui/category-modal";
 import { levelNameOf } from "@/features/levels/level-fields";
@@ -33,6 +34,7 @@ import { TIER_REASONS, tierDays, tierProblem } from "./tier-reasons";
 export interface TierDialogProps {
   /** The listing's tier now (null when the door answered none); the dialog refuses to send it unchanged. */
   current: string | null;
+  subjectTitle?: string;
   busy: boolean;
   /** The door's refusal, already translated; null when there is none. */
   refusal: string | null;
@@ -46,7 +48,14 @@ const DAYS_PROBLEMS: ReadonlySet<MessageKey> = new Set([
   "admin.listings.level.error.baselineDays",
 ]);
 
-export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: TierDialogProps) {
+export function TierDialog({
+  subjectTitle,
+  current,
+  busy,
+  refusal,
+  onCancel,
+  onConfirm,
+}: TierDialogProps) {
   const { t, language } = useI18n();
   const levels = useLevelRows({ looks: false });
   const [tier, setTier] = useState(current ?? "");
@@ -64,9 +73,43 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
       onClose={() => {
         if (!busy) onCancel();
       }}
+      description={t("admin.listings.level.hint")}
+      size="default"
+      subject={subjectTitle === undefined ? undefined : <PanelSubject title={subjectTitle} />}
+      footer={
+        <>
+          {" "}
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            data-testid="listings-tier-cancel"
+            disabled={busy}
+            onClick={onCancel}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="button"
+            size="touch"
+            data-testid="listings-tier-confirm"
+            disabled={busy || levels.isLoading || levels.error !== null}
+            onClick={() => {
+              const missing = tierProblem(tier, current, reason, note, days, levels.rows);
+              const parsed = tierDays(days);
+              if (missing !== null || parsed === undefined) {
+                setProblem(missing ?? "admin.listings.level.error.days");
+                return;
+              }
+              onConfirm(tier, reason, note.trim(), parsed);
+            }}
+          >
+            {t("admin.listings.action.level")}
+          </Button>{" "}
+        </>
+      }
     >
       <div className="min-w-0 space-y-3">
-        <p className="text-sm text-muted-foreground">{t("admin.listings.level.hint")}</p>
         <Field
           id="listings-tier-pick"
           field="tier"
@@ -177,35 +220,6 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
             {problem !== null ? t(problem) : refusal}
           </p>
         ) : null}
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid="listings-tier-cancel"
-            disabled={busy}
-            onClick={onCancel}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button
-            type="button"
-            size="touch"
-            data-testid="listings-tier-confirm"
-            disabled={busy || levels.isLoading || levels.error !== null}
-            onClick={() => {
-              const missing = tierProblem(tier, current, reason, note, days, levels.rows);
-              const parsed = tierDays(days);
-              if (missing !== null || parsed === undefined) {
-                setProblem(missing ?? "admin.listings.level.error.days");
-                return;
-              }
-              onConfirm(tier, reason, note.trim(), parsed);
-            }}
-          >
-            {t("admin.listings.action.level")}
-          </Button>
-        </DialogFooter>
       </div>
     </CategoryModal>
   );

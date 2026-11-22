@@ -1,4 +1,5 @@
-import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { act, fireEvent, renderHook, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { DIALOG_FIELD } from "@/components/ui/dialog-look";

@@ -10,7 +10,24 @@ vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, has: () => false, language: "en" }),
 }));
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CategoryModal: ({
+    children,
+    footer,
+    subject,
+    description,
+  }: {
+    children: ReactNode;
+    footer?: ReactNode;
+    subject?: ReactNode;
+    description?: string;
+  }) => (
+    <div>
+      {description}
+      {subject}
+      {children}
+      {footer}
+    </div>
+  ),
 }));
 vi.mock("./use-countries", () => ({
   useUpsertCountry: () => ({ mutateAsync, isPending: false }),

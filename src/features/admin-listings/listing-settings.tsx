@@ -7,7 +7,7 @@ import { TableActionButton } from "@/components/shell/table-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { CategoryModal } from "@/components/ui/category-modal";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -131,9 +131,34 @@ export function ListingSettings({
           openedBy="listings-settings"
           title={t("admin.listings.settings.title")}
           onClose={close}
+          description={t("admin.listings.settings.body")}
+          size="default"
+          footer={
+            <>
+              {" "}
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                data-testid="listings-settings-cancel"
+                disabled={busy}
+                onClick={close}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                type="button"
+                size="touch"
+                data-testid="listings-settings-save"
+                disabled={busy || shown === null}
+                onClick={() => void save()}
+              >
+                {t("admin.listings.settings.save")}
+              </Button>{" "}
+            </>
+          }
         >
           <div className="min-w-0 space-y-4">
-            <p className="text-sm text-muted-foreground">{t("admin.listings.settings.body")}</p>
             {query.isError ? (
               <p
                 role="alert"
@@ -216,27 +241,6 @@ export function ListingSettings({
                 {problem}
               </p>
             ) : null}
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
-                data-testid="listings-settings-cancel"
-                disabled={busy}
-                onClick={close}
-              >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                type="button"
-                size="touch"
-                data-testid="listings-settings-save"
-                disabled={busy || shown === null}
-                onClick={() => void save()}
-              >
-                {t("admin.listings.settings.save")}
-              </Button>
-            </DialogFooter>
           </div>
         </CategoryModal>
       ) : null}

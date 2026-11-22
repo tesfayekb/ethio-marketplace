@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
@@ -71,27 +73,28 @@ export function LocationActiveDialog({
         activating ? "admin.locations.active.titleActivate" : "admin.locations.active.titleRetire",
       )}
       onClose={onClose}
+      description={t(
+        activating ? "admin.locations.active.hintActivate" : "admin.locations.active.hintRetire",
+      )}
+      size="narrow"
+      subject={<PanelSubject title={row.path} testId="location-active-path" />}
+      tone={activating ? "confirm" : "danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <LocationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={setActive.isPending}
+          submitTestId="location-active-submit"
+          submitLabel={t(
+            activating
+              ? "admin.locations.active.confirmActivate"
+              : "admin.locations.active.confirmRetire",
+          )}
+        />
+      }
     >
-      <p className="text-sm" data-testid="location-active-path">
-        {row.path}
-      </p>
-      <p className="text-sm text-muted-foreground">
-        {t(
-          activating ? "admin.locations.active.hintActivate" : "admin.locations.active.hintRetire",
-        )}
-      </p>
       <LocationDialogAlert message={message} />
-      <LocationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={setActive.isPending}
-        submitTestId="location-active-submit"
-        submitLabel={t(
-          activating
-            ? "admin.locations.active.confirmActivate"
-            : "admin.locations.active.confirmRetire",
-        )}
-      />
     </CategoryModal>
   );
 }
@@ -149,10 +152,19 @@ export function LocationMoveDialog({
       openedBy="row-move"
       title={t("admin.locations.move.title")}
       onClose={onClose}
+      description={t("admin.locations.move.hint")}
+      size="default"
+      subject={<PanelSubject title={row.path} testId="location-move-path" />}
+      footer={
+        <LocationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={move.isPending || parentId === ""}
+          submitTestId="location-move-submit"
+          submitLabel={t("admin.locations.move.submit")}
+        />
+      }
     >
-      <p className="text-sm" data-testid="location-move-path">
-        {row.path}
-      </p>
       {targets.length === 0 ? (
         <p className="text-sm text-muted-foreground" data-testid="location-move-empty">
           {t("admin.locations.move.noTargets")}
@@ -164,7 +176,6 @@ export function LocationMoveDialog({
           label={t("admin.locations.move.parent")}
           required
           marked={false}
-          hint={<p className="text-xs text-muted-foreground">{t("admin.locations.move.hint")}</p>}
           refusal={null}
         >
           {(control) => (
@@ -186,13 +197,6 @@ export function LocationMoveDialog({
         </Field>
       )}
       <LocationDialogAlert message={message} />
-      <LocationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={move.isPending || parentId === ""}
-        submitTestId="location-move-submit"
-        submitLabel={t("admin.locations.move.submit")}
-      />
     </CategoryModal>
   );
 }
@@ -266,8 +270,21 @@ export function LocationReorderDialog({
       openedBy="row-reorder"
       title={t("admin.locations.reorder.title")}
       onClose={onClose}
+      description={t("admin.locations.reorder.hint")}
+      size="default"
+      subject={
+        <PanelSubject title={roster.find((peer) => peer.id === row.parentId)?.path ?? row.path} />
+      }
+      footer={
+        <LocationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={reorder.isPending}
+          submitTestId="location-reorder-submit"
+          submitLabel={t("admin.locations.reorder.submit")}
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.locations.reorder.hint")}</p>
       <ol className="flex flex-col gap-2" data-testid="location-reorder-list">
         {peers.map((peer, index) => (
           <li
@@ -302,13 +319,6 @@ export function LocationReorderDialog({
         ))}
       </ol>
       <LocationDialogAlert message={message} />
-      <LocationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={reorder.isPending}
-        submitTestId="location-reorder-submit"
-        submitLabel={t("admin.locations.reorder.submit")}
-      />
     </CategoryModal>
   );
 }
@@ -360,11 +370,22 @@ export function LocationDeleteDialog({
       openedBy="row-delete"
       title={t("admin.locations.delete.title")}
       onClose={onClose}
+      description={t("admin.locations.delete.hint")}
+      size="narrow"
+      subject={<PanelSubject title={row.path} testId="location-delete-path" />}
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <LocationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={remove.isPending}
+          submitTestId="location-delete-submit"
+          submitLabel={t("admin.locations.delete.confirm")}
+          danger
+        />
+      }
     >
-      <p className="text-sm" data-testid="location-delete-path">
-        {row.path}
-      </p>
-      <p className="text-sm text-muted-foreground">{t("admin.locations.delete.hint")}</p>
       <Field
         id="location-delete-confirm"
         field="slug"
@@ -386,14 +407,6 @@ export function LocationDeleteDialog({
         )}
       </Field>
       <LocationDialogAlert message={message} />
-      <LocationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={remove.isPending}
-        submitTestId="location-delete-submit"
-        submitLabel={t("admin.locations.delete.confirm")}
-        danger
-      />
     </CategoryModal>
   );
 }
