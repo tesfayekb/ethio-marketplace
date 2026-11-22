@@ -1,15 +1,15 @@
 import { useId, useState } from "react";
+import { Flag } from "lucide-react";
+import {
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n, type MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -28,11 +28,13 @@ export function ReportAdDialog({
   onOpenChange,
   publicId,
   onOwn,
+  subjectTitle,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   publicId: string;
   onOwn: () => void;
+  subjectTitle?: string;
 }) {
   const { t, language } = useI18n();
   const id = useId();
@@ -59,98 +61,103 @@ export function ReportAdDialog({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent aria-describedby={`${id}-question`}>
-        <DialogHeader>
+      <DialogContent bands aria-describedby={`${id}-question`}>
+        <PanelHeader icon={<Flag />}>
           <DialogTitle>{t("adPage.report.open")}</DialogTitle>
           <DialogDescription id={`${id}-question`}>{t("adPage.report.question")}</DialogDescription>
-        </DialogHeader>
-        {state !== null && (
-          <p
-            role="status"
-            data-testid="listing-report-status"
-            data-state={state}
-            className="break-words text-sm"
-          >
-            {state === "rateLimited"
-              ? rateText("report", until, t, language)
-              : t(
-                  state === "sent"
-                    ? "adPage.report.thanks"
-                    : state === "already"
-                      ? "adPage.report.already"
-                      : "adPage.report.failed",
+        </PanelHeader>
+        <PanelBody>
+          {subjectTitle === undefined ? null : <PanelSubject title={subjectTitle} />}
+          {state !== null && (
+            <p
+              role="status"
+              data-testid="listing-report-status"
+              data-state={state}
+              className="break-words text-sm"
+            >
+              {state === "rateLimited"
+                ? rateText("report", until, t, language)
+                : t(
+                    state === "sent"
+                      ? "adPage.report.thanks"
+                      : state === "already"
+                        ? "adPage.report.already"
+                        : "adPage.report.failed",
+                  )}
+            </p>
+          )}
+          {!terminal && (
+            <>
+              <div
+                role="radiogroup"
+                aria-labelledby={`${id}-question`}
+                aria-required
+                data-testid="listing-report-reasons"
+                className="grid gap-1"
+              >
+                {REPORT_REASONS.map((entry) => (
+                  <div
+                    key={entry}
+                    className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer")}
+                  >
+                    <Field
+                      id={`${id}-${entry}`}
+                      field="reason"
+                      label={
+                        <span className="min-w-0 break-words">
+                          {t(`adPage.report.reason.${entry}` as MessageKey)}
+                        </span>
+                      }
+                      required={true}
+                      marked={false}
+                      refusal={null}
+                      layout="choice"
+                    >
+                      {(field) => (
+                        <input
+                          type="radio"
+                          {...field}
+                          name={`${id}-reason`}
+                          value={entry}
+                          className="mt-0.5 size-5 accent-primary"
+                          data-testid={`listing-report-reason-${entry}`}
+                          checked={reason === entry}
+                          disabled={busy}
+                          onChange={() => setReason(entry)}
+                        />
+                      )}
+                    </Field>
+                  </div>
+                ))}
+              </div>
+              <Field
+                id={`${id}-note`}
+                field="note"
+                label={t("adPage.report.note")}
+                required={false}
+                refusal={null}
+              >
+                {(field) => (
+                  <Textarea
+                    {...field}
+                    data-testid="listing-report-note"
+                    maxLength={500}
+                    value={note}
+                    disabled={busy}
+                    onChange={(event) => setNote(event.target.value)}
+                  />
                 )}
-          </p>
-        )}
-        {terminal ? (
-          <DialogFooter>
+              </Field>
+            </>
+          )}
+        </PanelBody>
+        <PanelFooter>
+          {terminal ? (
             <Button size="touch" onClick={() => onOpenChange(false)}>
               {t("common.close")}
             </Button>
-          </DialogFooter>
-        ) : (
-          <>
-            <div
-              role="radiogroup"
-              aria-labelledby={`${id}-question`}
-              aria-required
-              data-testid="listing-report-reasons"
-              className="grid gap-1"
-            >
-              {REPORT_REASONS.map((entry) => (
-                <div
-                  key={entry}
-                  className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer")}
-                >
-                  <Field
-                    id={`${id}-${entry}`}
-                    field="reason"
-                    label={
-                      <span className="min-w-0 break-words">
-                        {t(`adPage.report.reason.${entry}` as MessageKey)}
-                      </span>
-                    }
-                    required={true}
-                    marked={false}
-                    refusal={null}
-                    layout="choice"
-                  >
-                    {(field) => (
-                      <input
-                        type="radio"
-                        {...field}
-                        name={`${id}-reason`}
-                        value={entry}
-                        className="mt-0.5 size-5 accent-primary"
-                        data-testid={`listing-report-reason-${entry}`}
-                        checked={reason === entry}
-                        disabled={busy}
-                        onChange={() => setReason(entry)}
-                      />
-                    )}
-                  </Field>
-                </div>
-              ))}
-            </div>
-            <Field
-              id={`${id}-note`}
-              field="note"
-              label={t("adPage.report.note")}
-              required={false}
-              refusal={null}
-            >
-              {(field) => (
-                <Textarea
-                  {...field}
-                  data-testid="listing-report-note"
-                  maxLength={500}
-                  value={note}
-                  disabled={busy}
-                  onChange={(event) => setNote(event.target.value)}
-                />
-              )}
-            </Field>
-            <DialogFooter>
+          ) : (
+            <>
               <Button
                 size="touch"
                 variant="outline"
@@ -167,9 +174,9 @@ export function ReportAdDialog({
               >
                 {t("adPage.report.send")}
               </Button>
-            </DialogFooter>
-          </>
-        )}
+            </>
+          )}
+        </PanelFooter>
       </DialogContent>
     </Dialog>
   );

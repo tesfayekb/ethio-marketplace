@@ -17,7 +17,14 @@ import {
   type MapsPair,
 } from "@/features/ad-page/maps-links";
 import { postedWhen } from "@/features/ad-page/posted";
-import { Heart, Expand } from "lucide-react";
+import { Heart, Expand, MapPin } from "lucide-react";
+import {
+  ActionRow,
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { Link } from "@tanstack/react-router";
 
 import { ListingPicture } from "@/components/marketplace/listing-picture";
@@ -26,8 +33,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogFooter,
-  DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
@@ -1299,28 +1305,32 @@ export function ListingDetail(view: ListingDetailView) {
                   <Dialog open={mapOpen} onOpenChange={setMapOpen}>
                     {mapOpen && (
                       <DialogContent
+                        bands
                         data-testid="listing-map-dialog"
+                        // Description exception: the enlarged map is the viewer's content.
                         aria-describedby={undefined}
                         size="wide"
                         fit="fill"
                         closeTestId="listing-map-close"
                       >
-                        <DialogHeader>
+                        <PanelHeader icon={<MapPin />}>
                           <DialogTitle>{t("adPage.section.location")}</DialogTitle>
-                        </DialogHeader>
-                        <Suspense
-                          fallback={
-                            <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>
-                          }
-                        >
-                          <MapLarge
-                            lat={pin.lat}
-                            lng={pin.lng}
-                            precision={pin.precision}
-                            zoom={view.pinZoom ?? null}
-                            {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
-                          />
-                        </Suspense>
+                        </PanelHeader>
+                        <PanelBody className="p-0">
+                          <Suspense
+                            fallback={
+                              <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>
+                            }
+                          >
+                            <MapLarge
+                              lat={pin.lat}
+                              lng={pin.lng}
+                              precision={pin.precision}
+                              zoom={view.pinZoom ?? null}
+                              {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
+                            />
+                          </Suspense>
+                        </PanelBody>
                       </DialogContent>
                     )}
                   </Dialog>
@@ -1369,39 +1379,43 @@ export function ListingDetail(view: ListingDetailView) {
         }}
       >
         {mapsChoice !== null && (
-          <DialogContent aria-describedby={undefined} size="narrow">
-            <DialogHeader>
+          <DialogContent bands size="narrow">
+            <PanelHeader icon={<MapPin />}>
               <DialogTitle>{t("adPage.map.google")}</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-2">
-              <Button asChild variant="outline" size="touch">
-                <a
-                  data-testid="listing-maps-app"
-                  href={mapsChoice.app}
-                  onClick={() => setMapsChoice(null)}
-                >
-                  {t("adPage.map.app")}
-                </a>
-              </Button>
-              <Button asChild variant="outline" size="touch">
-                <a
-                  data-testid="listing-maps-web"
-                  href={mapsChoice.web}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMapsChoice(null)}
-                >
-                  {t("adPage.map.web")}
-                </a>
-              </Button>
-            </div>
-            <DialogFooter>
+              <DialogDescription>{t("adPage.map.openDescription")}</DialogDescription>
+            </PanelHeader>
+            <PanelBody>
+              {places.length === 0 ? null : <PanelSubject title={places.join(", ")} />}
+              <div className="grid gap-2">
+                <ActionRow asChild icon={<MapPin />}>
+                  <a
+                    data-testid="listing-maps-app"
+                    href={mapsChoice.app}
+                    onClick={() => setMapsChoice(null)}
+                  >
+                    {t("adPage.map.app")}
+                  </a>
+                </ActionRow>
+                <ActionRow asChild icon={<Expand />}>
+                  <a
+                    data-testid="listing-maps-web"
+                    href={mapsChoice.web}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMapsChoice(null)}
+                  >
+                    {t("adPage.map.web")}
+                  </a>
+                </ActionRow>
+              </div>
+            </PanelBody>
+            <PanelFooter>
               <DialogClose asChild>
                 <Button data-testid="listing-maps-cancel" variant="outline" size="touch">
                   {t("common.cancel")}
                 </Button>
               </DialogClose>
-            </DialogFooter>
+            </PanelFooter>
           </DialogContent>
         )}
       </Dialog>

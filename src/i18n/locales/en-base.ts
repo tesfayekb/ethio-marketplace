@@ -1,4 +1,6 @@
 export const enBase = {
+  "adPage.share.description": "Send the link in an app, copy it, or show a QR code.",
+  "adPage.map.openDescription": "Open the ad's place in the Google Maps app or in your browser.",
   "dialog.moreBelow": "More below",
   "head.auth.description": "Sign in or create your free ethio.com account.",
   "head.authCallback.description": "Finish confirming your ethio.com account.",

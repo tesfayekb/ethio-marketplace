@@ -6,7 +6,8 @@ import { X } from "lucide-react";
 
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { focusAwayFromRed, useOpenerFocus } from "./dialog-opener";
+import { useOpenerFocus } from "./dialog-opener";
+import { useOverlays } from "./overlay-loader";
 import { NoticeOutlet } from "./notice-outlet";
 import {
   BANDS_PANEL,
@@ -101,6 +102,7 @@ const DialogContent = React.forwardRef<
     // does not rise over it). Every panel gives the focus back to its opener (INC-1130).
     const screenSized = screen || phone === "full";
     const opener = useOpenerFocus();
+    const impl = useOverlays();
     return (
       <DialogPortal>
         <DialogOverlay className={DIALOG_LAYER[layer]} />
@@ -119,15 +121,16 @@ const DialogContent = React.forwardRef<
           )}
           onOpenAutoFocus={(event) => {
             opener.opened(event);
+            impl?.dialogRules.recordPanel(event, opener);
             onOpenAutoFocus?.(event);
-            if (!event.defaultPrevented) focusAwayFromRed(event);
+            if (!event.defaultPrevented) impl?.dialogRules.focusAwayFromRed(event);
             const panel = event.target;
             if (!screenSized || event.defaultPrevented || !(panel instanceof HTMLElement)) return;
             event.preventDefault();
             panel.focus({ preventScroll: true });
           }}
           onEscapeKeyDown={(event) => {
-            opener.escape(event);
+            impl?.dialogRules.keepOpenList(event, opener);
             onEscapeKeyDown?.(event);
           }}
           onCloseAutoFocus={(event) => {

@@ -13,11 +13,13 @@ export function ReportAd({
   viewer,
   signInTo,
   onOwn,
+  subjectTitle,
 }: {
   publicId: string;
   viewer: "unknown" | "signedOut" | "signedIn";
   signInTo: { to: "/auth"; search: { return: string } };
   onOwn: () => void;
+  subjectTitle?: string;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -58,6 +60,7 @@ export function ReportAd({
             onOpenChange={setOpen}
             publicId={publicId}
             onOwn={onOwn}
+            {...(subjectTitle === undefined ? {} : { subjectTitle })}
           />
         </Suspense>
       )}

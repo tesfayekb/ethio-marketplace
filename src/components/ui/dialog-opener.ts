@@ -1,7 +1,5 @@
 import * as React from "react";
 
-import { DESTRUCTIVE_FILL } from "./button-variants";
-
 import { pressTarget } from "@/lib/press";
 
 /**
@@ -68,28 +66,20 @@ export type OpenerFocus = {
   opened: (event: Event) => void;
   /** In the panel's onCloseAutoFocus, after the owner's: gives the focus back to the opener. */
   closed: (event: Event) => void;
-  /** The open list receives Escape before its containing panel dismisses. */
-  escape: (event: KeyboardEvent) => void;
 };
 
 /** One panel's opener, recorded when it opens and given the focus when it closes. */
 export function useOpenerFocus(): OpenerFocus {
   const opener = React.useRef<HTMLElement | null>(null);
-  const panel = React.useRef<HTMLElement | null>(null);
   return React.useMemo(
     () => ({
       opened: (event) => {
-        const surface = event.target;
-        if (!(surface instanceof HTMLElement)) return;
-        panel.current = surface;
-        const held = openerOf(surface.ownerDocument.activeElement);
-        opener.current = held !== null && !isTriggerOf(held, surface) ? held : null;
-      },
-      escape: (event) => {
-        if (panel.current?.querySelector("[data-picker-popup]")) event.preventDefault();
+        const panel = event.target;
+        if (!(panel instanceof HTMLElement)) return;
+        const held = openerOf(panel.ownerDocument.activeElement);
+        opener.current = held !== null && !isTriggerOf(held, panel) ? held : null;
       },
       closed: (event) => {
-        panel.current = null;
         const back = opener.current;
         opener.current = null;
         if (event.defaultPrevented || back === null || !back.isConnected) return;
@@ -100,27 +90,4 @@ export function useOpenerFocus(): OpenerFocus {
     }),
     [],
   );
-}
-
-/** A red primary (the destructive tone's own fill). */
-const isRed = (element: Element) => element.classList.contains(DESTRUCTIVE_FILL);
-const FOCUSABLE =
-  'input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
-
-/**
- * The focus law of bundle 2: a red primary never takes the focus when its panel opens. The
- * first field takes it; else the first control that is not red. Called from the primitives'
- * open handler; it moves the focus only when the default would land on a red button.
- */
-export function focusAwayFromRed(event: Event): void {
-  const panel = event.currentTarget ?? event.target;
-  if (!(panel instanceof HTMLElement)) return;
-  const all = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE));
-  const first = all[0];
-  if (first === undefined || !isRed(first)) return;
-  const field = all.find((element) => element.matches("input, textarea, select"));
-  const target = field ?? all.find((element) => !isRed(element));
-  if (target === undefined) return;
-  event.preventDefault();
-  target.focus({ preventScroll: true });
 }

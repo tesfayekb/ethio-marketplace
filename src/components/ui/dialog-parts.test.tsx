@@ -209,6 +209,22 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     expect(screen.getByTestId("red")).not.toHaveFocus();
   });
 
+  it("DP-U18 an action row can keep an external link and its channel handler on the link", () => {
+    const press = vi.fn();
+    render(
+      <ActionRow asChild icon={<span>i</span>} data-testid="action-link">
+        <a href="https://example.test/share" onClick={press}>
+          Share
+        </a>
+      </ActionRow>,
+    );
+    const link = screen.getByTestId("action-link");
+    expect(link).toHaveAttribute("href", "https://example.test/share");
+    link.addEventListener("click", (event) => event.preventDefault());
+    fireEvent.click(link);
+    expect(press).toHaveBeenCalledTimes(1);
+  });
+
   it("DP-U10 an alert and a sheet take the bands too; the alert's focus goes to its cancel", async () => {
     render(
       <>

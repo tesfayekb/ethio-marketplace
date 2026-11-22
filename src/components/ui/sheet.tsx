@@ -6,7 +6,8 @@ import { X } from "lucide-react";
 
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { focusAwayFromRed, useOpenerFocus } from "./dialog-opener";
+import { useOpenerFocus } from "./dialog-opener";
+import { useOverlays } from "./overlay-loader";
 import { NoticeOutlet } from "./notice-outlet";
 import {
   BANDS_PANEL,
@@ -75,6 +76,7 @@ const SheetContent = React.forwardRef<
     const { t } = useI18n();
     // INC-1130 — the sheet gives the focus back to its opener, as every panel does.
     const opener = useOpenerFocus();
+    const impl = useOverlays();
     return (
       <SheetPortal>
         <SheetOverlay />
@@ -92,11 +94,12 @@ const SheetContent = React.forwardRef<
           data-phone={side === "bottom" ? "sheet" : undefined}
           onOpenAutoFocus={(event) => {
             opener.opened(event);
+            impl?.dialogRules.recordPanel(event, opener);
             onOpenAutoFocus?.(event);
-            if (!event.defaultPrevented) focusAwayFromRed(event);
+            if (!event.defaultPrevented) impl?.dialogRules.focusAwayFromRed(event);
           }}
           onEscapeKeyDown={(event) => {
-            opener.escape(event);
+            impl?.dialogRules.keepOpenList(event, opener);
             onEscapeKeyDown?.(event);
           }}
           onCloseAutoFocus={(event) => {

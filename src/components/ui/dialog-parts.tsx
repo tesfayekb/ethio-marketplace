@@ -212,15 +212,30 @@ export function ActionRow({
   icon,
   children,
   className,
+  asChild = false,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { icon: React.ReactNode }) {
-  return (
-    <button type="button" className={cn(LIST_ROW, LIST_ROW_WRAP, "gap-3", className)} {...props}>
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { icon: React.ReactNode; asChild?: boolean }) {
+  const content = (label: React.ReactNode) => (
+    <>
       <span aria-hidden="true" className={cn(DIALOG_TILE, DIALOG_TONE.plain, "size-9")}>
         {icon}
       </span>
-      <span className="min-w-0 grow text-start">{children}</span>
-    </button>
+      <span className="min-w-0 grow text-start">{label}</span>
+    </>
+  );
+  return (
+    <Button
+      asChild={asChild}
+      type="button"
+      variant="ghost"
+      size="touch"
+      className={cn(LIST_ROW, LIST_ROW_WRAP, "gap-3", className)}
+      {...props}
+    >
+      {asChild && React.isValidElement<{ children?: React.ReactNode }>(children)
+        ? React.cloneElement(children, { children: content(children.props.children) })
+        : content(children)}
+    </Button>
   );
 }
 

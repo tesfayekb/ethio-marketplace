@@ -11,6 +11,7 @@ import {
 import { PhotoRibbon } from "@/components/marketplace/listing-picture";
 import type { RibbonPalette } from "@/components/marketplace/ribbon-geometry";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PanelBody, PanelFooter, PanelHeader } from "@/components/ui/dialog-parts-facade";
 import { Picture } from "@/components/ui/picture";
 import { StripArrows } from "@/components/ui/strip-arrows";
 import { keepInStrip } from "@/components/ui/keep-in-strip";
@@ -371,10 +372,12 @@ function Viewer({
       }}
     >
       <DialogContent
+        bands
         variant="screen"
         layer="viewer"
         data-testid="gallery-viewer"
         closeTestId="gallery-viewer-close"
+        // Description exception: this full-screen viewer is the photo itself.
         aria-describedby={undefined}
         onKeyDown={(event) => {
           if (event.key === "ArrowRight") onGo(at + 1);
@@ -383,56 +386,60 @@ function Viewer({
           event.preventDefault();
         }}
       >
-        <DialogTitle className="sr-only">{place}</DialogTitle>
-        <div className="flex min-h-16 items-center px-4 pe-16">
-          <span data-testid="gallery-viewer-count" className="text-sm text-muted-foreground">
-            {`${at + 1} / ${total}`}
-          </span>
-        </div>
-        <div
-          className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden"
-          style={{ touchAction: "pan-y pinch-zoom" }}
-          {...swipe.handlers}
-        >
-          <Picture
-            imgTestId="gallery-viewer-image"
-            src={photo.large ?? photo.main}
-            fit="contain"
-            alt={place}
-            className="absolute inset-0"
-            imgClassName={`transition-transform ${
-              zoomed ? "scale-200 cursor-zoom-out" : "cursor-zoom-in"
-            }`}
-            draggable={false}
-            onDoubleClick={() => setZoomed((value) => !value)}
-          />
-          {total > 1 ? (
-            <>
-              <button
-                type="button"
-                data-testid="gallery-viewer-previous"
-                aria-label={t("post.gallery.previous")}
-                className={`${arrowClass} start-2`}
-                disabled={at === 0}
-                onClick={() => onGo(at - 1)}
-              >
-                <span aria-hidden="true">‹</span>
-              </button>
-              <button
-                type="button"
-                data-testid="gallery-viewer-next"
-                aria-label={t("post.gallery.next")}
-                className={`${arrowClass} end-2`}
-                disabled={at === total - 1}
-                onClick={() => onGo(at + 1)}
-              >
-                <span aria-hidden="true">›</span>
-              </button>
-            </>
-          ) : null}
-        </div>
+        <PanelHeader>
+          <DialogTitle className="sr-only">{place}</DialogTitle>
+          <div className="flex items-center">
+            <span data-testid="gallery-viewer-count" className="text-sm text-muted-foreground">
+              {`${at + 1} / ${total}`}
+            </span>
+          </div>
+        </PanelHeader>
+        <PanelBody className="p-0 overflow-hidden">
+          <div
+            className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden"
+            style={{ touchAction: "pan-y pinch-zoom" }}
+            {...swipe.handlers}
+          >
+            <Picture
+              imgTestId="gallery-viewer-image"
+              src={photo.large ?? photo.main}
+              fit="contain"
+              alt={place}
+              className="absolute inset-0"
+              imgClassName={`transition-transform ${
+                zoomed ? "scale-200 cursor-zoom-out" : "cursor-zoom-in"
+              }`}
+              draggable={false}
+              onDoubleClick={() => setZoomed((value) => !value)}
+            />
+            {total > 1 ? (
+              <>
+                <button
+                  type="button"
+                  data-testid="gallery-viewer-previous"
+                  aria-label={t("post.gallery.previous")}
+                  className={`${arrowClass} start-2`}
+                  disabled={at === 0}
+                  onClick={() => onGo(at - 1)}
+                >
+                  <span aria-hidden="true">‹</span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="gallery-viewer-next"
+                  aria-label={t("post.gallery.next")}
+                  className={`${arrowClass} end-2`}
+                  disabled={at === total - 1}
+                  onClick={() => onGo(at + 1)}
+                >
+                  <span aria-hidden="true">›</span>
+                </button>
+              </>
+            ) : null}
+          </div>
+        </PanelBody>
         {total > 1 ? (
-          <div className="relative">
+          <PanelFooter className="block p-0">
             <Thumbs
               ref={stripRef}
               photos={photos}
@@ -450,7 +457,7 @@ function Viewer({
               moreLabel={t("post.gallery.stripMore")}
               testIdPrefix="gallery-viewer-strip"
             />
-          </div>
+          </PanelFooter>
         ) : null}
       </DialogContent>
     </Dialog>

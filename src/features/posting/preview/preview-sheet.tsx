@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { PanelBody, PanelFooter, PanelHeader } from "@/components/ui/dialog-parts-facade";
 import { useLevelLook } from "@/features/levels/use-level-rows";
 import { useI18n } from "@/i18n";
 
@@ -44,22 +45,22 @@ export function PreviewSheet({
       }}
     >
       <DialogContent
+        bands
         variant="screen"
         data-testid="post-preview-sheet"
         closeTestId="post-preview-close"
+        // Description exception: the buyer's preview is the complete panel content.
         aria-describedby={undefined}
       >
-        <div className="mx-auto w-full max-w-2xl space-y-4 p-4 pb-16">
-          <DialogHeader>
-            <DialogTitle>{t("post.preview.title")}</DialogTitle>
-          </DialogHeader>
-          {body ?? <ListingDetail {...view} look={look} />}
-          {footer ? (
-            <div data-testid="post-preview-footer" className="flex flex-wrap items-center gap-2">
-              {footer}
-            </div>
-          ) : null}
-        </div>
+        <PanelHeader>
+          <DialogTitle>{t("post.preview.title")}</DialogTitle>
+        </PanelHeader>
+        <PanelBody>
+          <div className="mx-auto w-full max-w-2xl space-y-4">
+            {body ?? <ListingDetail {...view} look={look} />}
+          </div>
+        </PanelBody>
+        {footer ? <PanelFooter data-testid="post-preview-footer">{footer}</PanelFooter> : null}
       </DialogContent>
     </Dialog>
   );

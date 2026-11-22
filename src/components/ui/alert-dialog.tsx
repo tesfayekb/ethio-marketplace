@@ -2,7 +2,8 @@ import * as React from "react";
 import * as AlertDialogPrimitive from "./alert-dialog-primitive";
 
 import { cn } from "@/lib/utils";
-import { focusAwayFromRed, useOpenerFocus } from "./dialog-opener";
+import { useOpenerFocus } from "./dialog-opener";
+import { useOverlays } from "./overlay-loader";
 import { NoticeOutlet } from "./notice-outlet";
 import { buttonVariants } from "@/components/ui/button-variants";
 import {
@@ -63,6 +64,7 @@ const AlertDialogContent = React.forwardRef<
   ) => {
     // INC-1130 — the alert gives the focus back to its opener, as every panel does.
     const opener = useOpenerFocus();
+    const impl = useOverlays();
     return (
       <AlertDialogPortal>
         <AlertDialogOverlay />
@@ -80,11 +82,12 @@ const AlertDialogContent = React.forwardRef<
           data-bands={bands ? "" : undefined}
           onOpenAutoFocus={(event) => {
             opener.opened(event);
+            impl?.dialogRules.recordPanel(event, opener);
             onOpenAutoFocus?.(event);
-            if (!event.defaultPrevented) focusAwayFromRed(event);
+            if (!event.defaultPrevented) impl?.dialogRules.focusAwayFromRed(event);
           }}
           onEscapeKeyDown={(event) => {
-            opener.escape(event);
+            impl?.dialogRules.keepOpenList(event, opener);
             onEscapeKeyDown?.(event);
           }}
           onCloseAutoFocus={(event) => {

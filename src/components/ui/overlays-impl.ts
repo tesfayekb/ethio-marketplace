@@ -15,3 +15,4 @@ export * as tooltip from "./tooltip-impl";
 export * as submenu from "./submenu-impl";
 export * as submenuLevels from "./submenu-levels";
 export * as dialogParts from "./dialog-parts";
+export * as dialogRules from "./dialog-rules";

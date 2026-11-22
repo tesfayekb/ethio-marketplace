@@ -112,7 +112,10 @@ function layersOf(shadow: string): string[] {
 /** The panel's own look: the dialog radius and padding, the dialog shadow with its ring first. */
 async function expectPanel(page: Page, panel: Locator, where: string) {
   const look = await lookOf(panel);
-  expect(look.padding, `${where} padding`).toEqual(["22px", "24px", "22px", "24px"]);
+  const bands = (await panel.getAttribute("data-bands")) !== null;
+  expect(look.padding, `${where} padding`).toEqual(
+    bands ? ["0px", "0px", "0px", "0px"] : ["22px", "24px", "22px", "24px"],
+  );
   expect(look.shadow, `${where} shadow`).toBe(
     await tokenValue(page, "--lift-dialog", "box-shadow"),
   );
@@ -120,8 +123,35 @@ async function expectPanel(page: Page, panel: Locator, where: string) {
   expect(layers.length, `${where} shadow layers`).toBe(3);
   expect(layers[0], `${where} the first layer is the ring`).toMatch(/ 0px 0px 0px 1px$/);
   expect(look.background, `${where} surface`).toBe(
-    await tokenValue(page, "--popover", "background-color"),
+    await tokenValue(page, bands ? "--background" : "--popover", "background-color"),
   );
+  if (bands) {
+    const head = panel.locator("[data-panel-head]");
+    const body = panel.locator("[data-panel-body]");
+    await expect(head).toHaveCount(1);
+    await expect(body).toHaveCount(1);
+    expect((await lookOf(head)).background, `${where} header surface`).toBe(
+      await tokenValue(page, "--card", "background-color"),
+    );
+    const insets = await body.evaluate((element) => {
+      const css = getComputedStyle(element);
+      return [
+        css.paddingBlockStart,
+        css.paddingInlineStart,
+        css.paddingBlockEnd,
+        css.paddingInlineEnd,
+      ];
+    });
+    expect(insets, `${where} body padding`).toEqual(["16px", "24px", "16px", "24px"]);
+    expect(
+      await panel.evaluate((element) => getComputedStyle(element).overflowY),
+      `${where} panel does not scroll`,
+    ).toBe("hidden");
+    expect(
+      await body.evaluate((element) => getComputedStyle(element).overflowY),
+      `${where} body scrolls`,
+    ).toBe("auto");
+  }
   const scrim = page.locator("[data-dialog-scrim][data-state='open']");
   await expect(scrim).toHaveCount(1);
   expect(await fillOf(scrim), `${where} scrim`).toBe(
@@ -351,6 +381,8 @@ test.describe("one dialog look on a real surface (turn S6-1)", () => {
       await page.getByTestId("listing-share-open").click();
       const panel = page.locator("[data-dialog-panel][role='dialog']");
       await expect(panel).toBeVisible();
+      await expect(panel).toHaveAttribute("data-bands", "");
+      await expect(panel).toHaveAccessibleDescription(en["adPage.share.description"]);
       await settled(page);
       const look = await expectPanel(page, panel, where);
       const grabber = panel.locator("[data-dialog-grabber]");
