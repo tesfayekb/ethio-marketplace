@@ -105,8 +105,14 @@ export function AdminAuditPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
-  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
-    useKeptPage(PAGE_SIZE_STORAGE_KEY);
+  const {
+    ready: keptReady,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    pageSizeOptions,
+  } = useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
@@ -119,7 +125,7 @@ export function AdminAuditPage() {
     limit: pageSize,
     offset: page * pageSize,
   };
-  const list = useAuditList(filters);
+  const list = useAuditList(filters, keptReady);
   const facets = useAuditFacets();
   const stats = useAuditStats(14);
 
@@ -314,7 +320,7 @@ export function AdminAuditPage() {
         rowTestId={(row) => `audit-row-${row.id}`}
         caption={t("admin.audit.caption")}
         cardLead={() => <History />}
-        loading={list.isLoading}
+        loading={list.isLoading || !keptReady}
         loadingState={<p className="text-sm text-muted-foreground">{t("admin.audit.loading")}</p>}
         error={list.error}
         errorState={<p className="text-sm text-destructive">{t("admin.audit.error")}</p>}

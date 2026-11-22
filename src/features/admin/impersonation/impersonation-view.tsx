@@ -58,6 +58,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
     sessionId,
     paging.pageSize,
     paging.page * paging.pageSize,
+    paging.ready,
   );
   const end = useEndImpersonation();
 
@@ -253,7 +254,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
             }
           />
         }
-        loading={listings.isLoading}
+        loading={listings.isLoading || !paging.ready}
         error={listings.error}
         emptyState={
           <p className="text-sm text-muted-foreground">{t("impersonation.listings.empty")}</p>

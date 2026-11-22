@@ -150,18 +150,21 @@ export function AdminListingsPage() {
   const debouncedSeller = useDebounced(seller);
   const today = todayIso();
 
-  const query = useAdminListings({
-    view,
-    search: debouncedSearch,
-    country,
-    category,
-    seller: debouncedSeller,
-    from,
-    to,
-    tier,
-    limit: paging.pageSize,
-    offset: paging.page * paging.pageSize,
-  });
+  const query = useAdminListings(
+    {
+      view,
+      search: debouncedSearch,
+      country,
+      category,
+      seller: debouncedSeller,
+      from,
+      to,
+      tier,
+      limit: paging.pageSize,
+      offset: paging.page * paging.pageSize,
+    },
+    paging.ready,
+  );
   const rows = query.data?.rows ?? [];
   const total = query.data?.total ?? 0;
   const mayReview = permissions.includes("listings:review");
@@ -636,7 +639,7 @@ export function AdminListingsPage() {
             cardUntil="xl"
             caption={t(section.titleKey)}
             cardLead={() => <Package />}
-            loading={query.isLoading}
+            loading={query.isLoading || !paging.ready}
             loadingState={
               <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
                 {t("common.loading")}

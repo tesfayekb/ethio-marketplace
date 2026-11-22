@@ -114,8 +114,13 @@ export async function listAdminListings(
   return { rows, total };
 }
 
-export function useAdminListings(filters: AdminListingFilters) {
+/**
+ * `ready` (INC-1238, ruling 1 decision 5): false until the kept view is known; no read leaves
+ * before it, so the unfiltered list is never asked for first.
+ */
+export function useAdminListings(filters: AdminListingFilters, ready: boolean) {
   return useQuery({
+    enabled: ready,
     queryKey: [...ADMIN_LISTINGS_KEY, "list", filters],
     queryFn: () => listAdminListings(filters),
     placeholderData: keepPreviousData,

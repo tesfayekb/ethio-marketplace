@@ -78,18 +78,27 @@ export function AdminUsersList() {
   const { role: roleParam } = useSearch({ from: "/admin/users" });
   const role = roleParam ?? "";
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
-  const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
-    useKeptPage(PAGE_SIZE_STORAGE_KEY);
+  const {
+    ready: keptReady,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    pageSizeOptions,
+  } = useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   const debouncedSearch = useDebounced(search);
 
-  const { data, isLoading, error } = useAdminUsers({
-    search: debouncedSearch,
-    status: status === "" ? "all" : status,
-    role: role === "" ? "all" : role,
-    limit: pageSize,
-    offset: page * pageSize,
-  });
+  const { data, isLoading, error } = useAdminUsers(
+    {
+      search: debouncedSearch,
+      status: status === "" ? "all" : status,
+      role: role === "" ? "all" : role,
+      limit: pageSize,
+      offset: page * pageSize,
+    },
+    keptReady,
+  );
   const roles = useAdminRoles();
 
   // U4g-13 (INC-106, INC-073 extended): the URL role is a first-class choice
@@ -233,7 +242,7 @@ export function AdminUsersList() {
         })}
         caption={t("admin.users.title")}
         cardLead={() => <UserRound />}
-        loading={isLoading}
+        loading={isLoading || !keptReady}
         loadingState={
           <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
             {t("admin.users.loading")}

@@ -151,11 +151,14 @@ export function AdminScreeningPage({
   const tierLabel = (value: string) =>
     levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
-  const { page, setPage, pageSize, setPageSize, pageSizeOptions } = useKeptPage(
-    "ethio.admin.screening.pageSize",
-    SCREENING_PAGE_SIZE,
-    SCREENING_PAGE_SIZES,
-  );
+  const {
+    ready: keptReady,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    pageSizeOptions,
+  } = useKeptPage("ethio.admin.screening.pageSize", SCREENING_PAGE_SIZE, SCREENING_PAGE_SIZES);
   const [selected, setSelected] = useState<string[]>([]);
   const [decision, setDecision] = useState<Decision>(null);
   const [decisionProblem, setDecisionProblem] = useState<MessageKey | null>(null);
@@ -189,7 +192,7 @@ export function AdminScreeningPage({
   const { tree } = useCategoryTree();
   const unitLabels = usePriceUnitLabels(previewRow !== null && previewRow.priceUnit !== null);
 
-  const query = useScreeningQueue(page, search, pageSize, { country, tier });
+  const query = useScreeningQueue(page, search, pageSize, { country, tier }, keptReady);
   const photos = useScreeningPhotos(previewRow?.id ?? null);
   const decidingOne = decision?.ids.length === 1 ? decision.subjects[0] : undefined;
   const decisionPhotos = useScreeningPhotos(decidingOne?.id ?? null);
@@ -630,7 +633,7 @@ export function AdminScreeningPage({
               caption={t(section.titleKey)}
               cardUntil="lg"
               cardLead={() => <ImageIcon />}
-              loading={query.isLoading}
+              loading={query.isLoading || !keptReady}
               loadingState={<p className="text-sm">{t("common.loading")}</p>}
               error={query.error}
               errorState={

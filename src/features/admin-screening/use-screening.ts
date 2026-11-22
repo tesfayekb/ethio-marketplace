@@ -233,8 +233,11 @@ export function useScreeningQueue(
   search: string,
   pageSize: number = SCREENING_PAGE_SIZE,
   filters: ScreeningFilters = NO_SCREENING_FILTERS,
+  /** INC-1238 (ruling 1 decision 5) — no read before the kept view is known. */
+  ready: boolean,
 ) {
   return useQuery({
+    enabled: ready,
     queryKey: [
       ...ADMIN_SCREENING_KEY,
       "list",

@@ -77,8 +77,15 @@ export function useImpersonatedProfile(sessionId: string) {
  * (`p_limit`, `p_offset`) and counts them all, so the view's footer reaches
  * every one (it used to show the first 25 with no way past them).
  */
-export function useImpersonatedListings(sessionId: string, limit = 25, offset = 0) {
+export function useImpersonatedListings(
+  sessionId: string,
+  limit: number,
+  offset: number,
+  /** INC-1238 (ruling 1 decision 5) — no read before the kept view is known. */
+  ready: boolean,
+) {
   return useQuery({
+    enabled: ready,
     queryKey: [...IMPERSONATION_KEY, "listings", sessionId, limit, offset],
     queryFn: () => listImpersonatedListings(sessionId, limit, offset),
     retry: false,

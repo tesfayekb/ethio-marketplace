@@ -183,6 +183,8 @@ export function MyListingsPage() {
   const filters: MyListingsFilters = { search: debouncedSearch, category, mark };
 
   const query = useQuery({
+    // INC-1238 (ruling 1 decision 5) — no read before the kept view is known.
+    enabled: paging.ready,
     queryKey: authKey("my-listings", {
       group,
       page: paging.page,
@@ -712,7 +714,7 @@ export function MyListingsPage() {
           guide={{ prefix: "myListings", next: { to: "/post" } }}
           cardLead={(row) => picture(row)}
           cardLeadKind="picture"
-          loading={query.isLoading}
+          loading={query.isLoading || !paging.ready}
           loadingState={
             <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
               {t("common.loading")}

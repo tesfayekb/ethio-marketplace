@@ -1,14 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
+
+import { setKeptPageSize, tableOfPageKey, useTableEntry } from "./table-view-store";
 
 /**
  * Bundle 11 G3a (the operator's walk, 2026-10-11: "I don't see page count,
  * pagination line in roles") — every table has its footer: the range, rows per
- * page and the pages. This hook holds a client-paged table's page and its page
- * size, the size kept in this browser under `storageKey` (a convenience only:
- * storage that fails or is missing keeps the default). The size is read after
- * mount, so the server's render and the first client render agree.
+ * page and the pages. This hook holds a table's page and its page size.
+ * INC-1238 — the size is a reader of the one kept view (table-view-store.ts), per account and
+ * table; `storageKey` names the table (the store pairs it with the table's columns id). A kept
+ * size the table does not offer today reads as the default.
+ *
+ * `ready` (ruling 1, decision 5): false until the account is known (the server's render and the
+ * first paint). A table whose door takes the page size waits for it before its first read.
  */
 export function useKeptPage(
   storageKey: string,
@@ -16,31 +21,19 @@ export function useKeptPage(
   /** Bundle 11 C1 — a table whose door pages differently names its own sizes (Screening: 25, 50, 100). */
   options: readonly number[] = PAGE_SIZE_OPTIONS,
 ) {
+  const tableId = tableOfPageKey(storageKey);
+  const { ready, entry } = useTableEntry(tableId);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState<number>(defaultSize);
-
-  useEffect(() => {
-    try {
-      const stored = Number(window.localStorage.getItem(storageKey) ?? "");
-      if (options.includes(stored)) {
-        setPageSize(stored);
-      }
-    } catch {
-      // Storage refused: the default stands.
-    }
-  }, [storageKey, options]);
+  const kept = entry.pageSize;
+  const pageSize = kept !== null && options.includes(kept) ? kept : defaultSize;
 
   const setPageSizeKept = (next: number) => {
-    setPageSize(next);
     setPage(0);
-    try {
-      window.localStorage.setItem(storageKey, String(next));
-    } catch {
-      // Storage refused: the choice lasts for this visit.
-    }
+    setKeptPageSize(tableId, next);
   };
 
   return {
+    ready,
     page,
     setPage,
     pageSize,

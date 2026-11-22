@@ -10,8 +10,13 @@ import { getAuditStats, listAudit, listAuditFacets, type AuditFilters } from "./
  */
 export const ADMIN_AUDIT_KEY = [AUTH_DERIVED_ROOT, "admin", "audit"] as const;
 
-export function useAuditList(filters: AuditFilters) {
+export function useAuditList(
+  filters: AuditFilters,
+  /** INC-1238 (ruling 1 decision 5) — no read before the kept view is known. */
+  ready: boolean,
+) {
   return useQuery({
+    enabled: ready,
     queryKey: [...ADMIN_AUDIT_KEY, "list", filters],
     queryFn: () => listAudit(filters),
     staleTime: 15_000,
