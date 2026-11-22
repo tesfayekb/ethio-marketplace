@@ -669,7 +669,7 @@ is raised here: the supervisor measures the final head and supplies exact ceilin
 
 The three look specs are `e2e/dialogs.spec.ts`, `e2e/overlays.spec.ts` and
 `e2e/house-style.spec.ts`; local unit tests prove the parts and all their consumers.
-DLG-E10, DLG-E11 and DLG-E12 (a Filters panel in rows) run in WebKit too (`@webkit`): a tall body in a short window scrolls
+DLG-E10, DLG-E11, DLG-E12 (a Filters panel in rows) and DLG-E13 (the fullest Filters panel: the date boxes, their calendars, a press on another row) run in WebKit too (`@webkit`): a tall body in a short window scrolls
 alone and its last control takes the press, and every banded panel of the board keeps its
 body between its header and its last band, with a height.
 

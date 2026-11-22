@@ -761,6 +761,17 @@ test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
     }, filter);
   }
 
+  /**
+   * A control low in a scrolling body can lie under the "More below" cue, and the cue appears and
+   * goes as the body moves: a press that begins on the control can end on the cue (INC-1252).
+   * These tests judge the rows, so a control is brought to the body's middle before its press.
+   */
+  async function pressClear(control: Locator) {
+    await control.evaluate((element) => element.scrollIntoView({ block: "center" }));
+    await settled(control.page());
+    await control.click();
+  }
+
   test(
     "DLG-E12 a filter row's list opens in the panel's flow under its row with its choices in view above the footer; one press opens another row's list; Escape closes the list, then the panel",
     { tag: "@webkit" },
@@ -818,7 +829,7 @@ test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
       await expect(colourList).toBeVisible();
 
       // ONE press on another row's control closes this list and opens that row's.
-      await size.click();
+      await pressClear(size);
       await expect(sizeList).toBeVisible();
       await expect(colourList).toHaveCount(0);
       // One choice closes its list, and the focus stays on the select.
@@ -859,6 +870,125 @@ test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
       await expect(short).toHaveCount(0);
+    },
+  );
+
+  /** What a person sees of an open calendar, measured against the body's own visible box. */
+  async function calendarFacts(panel: Locator, box: string) {
+    return panel.evaluate((element, box) => {
+      const within = (selector: string) => element.querySelector<HTMLElement>(selector);
+      const field = within(`[data-testid="${box}"]`);
+      const calendar = within(`[data-testid="${box}-calendar"]`);
+      const body = within("[data-panel-body]");
+      if (!field || !calendar || !body) return null;
+      const room = body.getBoundingClientRect();
+      const days = Array.from(
+        calendar.querySelectorAll<HTMLElement>(`[data-testid^="${box}-day-"]`),
+      ).map((day) => day.getBoundingClientRect());
+      return {
+        underItsBox:
+          calendar.getBoundingClientRect().top >= field.getBoundingClientRect().bottom - 1,
+        dayColumns: new Set(days.map((day) => Math.round(day.left))).size,
+        daysInsideThePanel: days.every(
+          (day) => day.left >= room.left - 1 && day.right <= room.right + 1,
+        ),
+        noSidewaysScroll: body.scrollWidth <= body.clientWidth + 1,
+      };
+    }, box);
+  }
+
+  test(
+    "DLG-E13 the fullest Filters panel: each date box's calendar opens inside the panel with its seven days in view, a chosen date is read whole, and a press on another row closes the open list",
+    { tag: "@webkit" },
+    async ({ page }) => {
+      const [width = 390] = widthsOf(page);
+      await page.setViewportSize({ width, height: 900 });
+      await gotoReady(page, "/dev/style");
+      await stillPage(page.getByTestId("style-filters-full"), { what: "the board" });
+      const panel = await open(page, "style-filters-full", "style-filters-full-panel");
+      const from = panel.getByTestId("style-filters-full-made-from");
+      const to = panel.getByTestId("style-filters-full-made-to");
+      const inside = {
+        underItsBox: true,
+        dayColumns: 7,
+        daysInsideThePanel: true,
+        noSidewaysScroll: true,
+      };
+
+      // The two date boxes stand one under the other, each as wide as the row.
+      const boxes = await layoutBoxes({ from, to });
+      expect(
+        Math.round(boxes.to.y),
+        "DLG-E13: the To box is not under the From box",
+      ).toBeGreaterThanOrEqual(Math.round(boxes.from.y + boxes.from.height));
+      expect(Math.round(boxes.to.x), "DLG-E13: the two date boxes do not start together").toBe(
+        Math.round(boxes.from.x),
+      );
+
+      // From: its calendar is inside the panel; a chosen date is read whole.
+      await from.click();
+      await expect(panel.getByTestId("style-filters-full-made-from-calendar")).toBeVisible();
+      await expect(panel.getByTestId("style-filters-full-made-from-day-2026-11-15")).toBeVisible({
+        timeout: 20000,
+      });
+      await settled(page);
+      expect(
+        await calendarFacts(panel, "style-filters-full-made-from"),
+        `DLG-E13 the From calendar @ ${width}`,
+      ).toEqual(inside);
+      await panel.getByTestId("style-filters-full-made-from-day-2026-11-15").click();
+      await expect(panel.getByTestId("style-filters-full-made-from-calendar")).toHaveCount(0);
+      const value = panel.getByTestId("style-filters-full-made-from-value");
+      await expect(value).toContainText("2026");
+      expect(
+        await value.evaluate((element) => element.scrollWidth <= element.clientWidth),
+        `DLG-E13: the chosen date is cut in its box @ ${width}`,
+      ).toBe(true);
+
+      // To: the calendar that ran out of the panel when the boxes stood side by side.
+      await to.click();
+      await expect(panel.getByTestId("style-filters-full-made-to-day-2026-11-15")).toBeVisible({
+        timeout: 20000,
+      });
+      await settled(page);
+      expect(
+        await calendarFacts(panel, "style-filters-full-made-to"),
+        `DLG-E13 the To calendar @ ${width}`,
+      ).toEqual(inside);
+      await to.click();
+      await expect(panel.getByTestId("style-filters-full-made-to-calendar")).toHaveCount(0);
+
+      // A press that lands on another row closes the open list: a text box, the switch, a
+      // date box.
+      const country = panel.getByTestId("style-filters-full-country");
+      const countryList = panel.getByTestId("style-filters-full-country-list");
+      const seller = panel.getByTestId("style-filters-full-seller");
+      await country.click();
+      await expect(countryList).toBeVisible();
+      await pressClear(seller);
+      await expect(countryList).toHaveCount(0);
+      await expect(seller).toBeFocused();
+
+      const level = panel.getByTestId("style-filters-full-level");
+      const levelList = panel.getByTestId("style-filters-full-level-list");
+      const missing = panel.getByTestId("style-filters-full-missing");
+      await level.click();
+      await expect(levelList).toBeVisible();
+      await pressClear(missing);
+      await expect(levelList).toHaveCount(0);
+      await expect(missing).toHaveAttribute("aria-pressed", "true");
+
+      await pressClear(country);
+      await expect(countryList).toBeVisible();
+      await pressClear(to);
+      await expect(countryList).toHaveCount(0);
+      await expect(panel.getByTestId("style-filters-full-made-to-calendar")).toBeVisible();
+      await to.click();
+
+      await page.keyboard.press("Escape");
+      await expect(panel).toHaveCount(0);
+      // What was chosen: one date and the switch.
+      await expect(page.getByTestId("style-filters-full-count")).toHaveText("2");
     },
   );
 });
