@@ -1,120 +1,77 @@
-# Lovable Bundle 3 — filters in rows, one kept view per account, the pin's first-time gate
+# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
 
-CI (last completed, read first): `9d9748da3` — SUCCESS, run 45013403588. Base `9d9748da3` (all reads below are `git show 9d9748da3:<path>`). Branch `lovable/next`. Nothing changed in this turn.
+(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
 
-## (a) The census
+## CI first
+- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
+- No completed run on 836d1030 yet. Read again before the build turn's push.
 
-Eleven panels (`<panel>` = FiltersButton testid). "Kept" = goes to the account's store.
+## What the operator will see
+Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
 
-| Panel | Filter testid | Today | Becomes | One/several | Reader field (door list?) | Kept |
-|---|---|---|---|---|---|---|
-| ai-calls-filters | ai-calls-feature | pills | FilterSelect | one | page state `feature` (client) | yes |
-| ai-calls-filters | ai-calls-outcome | pills | FilterSelect | one | `outcome` (client) | yes |
-| category-filters | category-missing-filter | one pill toggle | one switch (the control itself, keeps `aria-pressed`) | one | `missingOnly` (client) | yes |
-| country-filters | country-status-filter (CountryFilters, countries-toolbar.tsx) | pills | FilterSelect | one | `status` (client) | yes |
-| listings-filters | listings-filter-country | pills | FilterSelect multiple | several | `AdminListingFilters.country` → `p_country` (list) | yes |
-| listings-filters | listings-filter-category | pills | FilterSelect multiple | several | `.category` → `p_category` (list) | yes |
-| listings-filters | listings-filter-seller | hand-drawn Input | shared Seller row (FilterText) | one | `.seller` → `p_seller` | NO (typed) |
-| listings-filters | listings-filter-from / -to | hand-drawn DateField pair | FilterDates `testId="listings-filter"` (ids unchanged) | one pair | `.from/.to` | yes |
-| listings-filters | listings-filter-tier | pills | FilterSelect | one | `tier` | yes |
-| location-filters | location-level-filter (LocationFilters) | pills | FilterSelect | one | `level` (client) | yes |
-| location-filters | location-active-filter | pills | FilterSelect | one | `status` (client) | yes |
-| admin-screening-filters | admin-screening-filter-country | pills | FilterSelect multiple | several | `ScreeningFilters.country` → `p_country` (list) | yes |
-| admin-screening-filters | admin-screening-filter-tier | pills | FilterSelect | one | `.tier` → `p_tier` (one) | yes |
-| admin-screening-filters | admin-screening-filter-seller (NEW, Part D) | — | shared Seller row | one | `.seller` → `p_seller` (exists) | NO |
-| audit-filters | audit-filter-action | pills | FilterSelect | one | `action` | yes |
-| audit-filters | audit-filter-entity | pills | FilterSelect | one | `entityType` | yes |
-| audit-filters | audit-filter-from / -to | hand-drawn pair | FilterDates `testId="audit-filter"` | pair | `from/to` | yes |
-| data-filters | data-status-filter | pills | FilterSelect | one | `activeStatus` | yes |
-| strings-filters | strings-status-filter | pills | FilterSelect | one | `filterValue` | yes |
-| users-filters | users-status-filter | pills | FilterSelect | one | `status` | yes |
-| users-filters | users-role-filter | pills | FilterSelect | one | `role` | yes (role key, closed list) |
-| my-listings-filters | my-listings-filter-category | pills | FilterSelect multiple | several | `MyListingsFilters.category` → `p_category` (list) | yes |
-| my-listings-filters | my-listings-filter-mark | pills | FilterSelect | one | `.mark` | yes |
+## Census (836d1030; build turn pastes full file:line)
+Primitive consumers — "uses the primitive":
+- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
+- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
+- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
+- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
+- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
 
-Search boxes outside the panels (the table's search) are typed: never kept.
+"Draws its own":
+- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
+- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
+- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
+- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
 
-`FilterChoices` NOT in a Filters panel — left as they are: `listings-view` (listings-page.tsx:620, view switch), `listings-tier-pick` (tier-dialog.tsx:139, dialog choice), `${testid}-reason` (reason-note.tsx:58, dialog choice), `strings-scope` (strings-page.tsx:312, scope switch), `my-listings-group` (my-listings-page.tsx:690, group switch). The Locations market picker (locations-toolbar.tsx:12–14) is the scope, stays one market. The board's `style-filters-colour/-size` (dev.style.tsx:1189/1199) are the board's own panel: they become rows (see THE BOARD).
+Own classes on dialog parts outside the primitive:
+- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
 
-## (b) The kept view
+Unused primitives:
+- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
+- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
 
-New module `src/components/shell/table-view-store.ts` (one store; on-demand-free, tiny, no `@/i18n`, no door).
-- Key: `ethio:view:<accountId>:<tableId>` in `localStorage`.
-- Entry schema (zod, `.strict()`): `{ v: 1, hidden?: string[] (≤50, each ≤64 chars), pageSize?: int, filters?: Record<filterKey, string[] (≤20 each, each ≤64 chars)> }`. Dates are kept as `["YYYY-MM-DD"]` checked by regex.
-- Each table passes its offer: column keys it has, its page sizes, and per filter its allowed values (today's options; dates by shape). Read back = parse → intersect with today's offer → unknown filter keys, retired values, bad sizes dropped. A parse failure reads as nothing. Storage that throws reads/writes as nothing (no error shown, per brief; these `catch` blocks are the brief's own rule, named in Part G's list).
-- Account: `useAuth().user?.id` (imported, not edited). `loading` or no user → nothing read or written; state lives for the visit. Sign-out never removes the entry; another account reads its own key only.
-- Server render and first browser render: both draw the defaults with the table's box held ("pending"). After mount, once `useAuth` settles, the store reads once and marks the view `ready`. Each page's query is `enabled: ready` (its existing query, no new read), so no unfiltered request leaves first. Signed out → ready at once with defaults.
-- Old keys: `ethio:table-columns:<table>` and each page's page-size key are read once (when the account has no entry), written into the account entry, then removed.
-- API: `useTableView(tableId, offer)` → `{ ready, hidden, setColumn, pageSize, setPageSize, filters, setFilter, clearFilters }`. `useHiddenColumns` and `useKeptPage` stay as thin readers over it (same names and signatures + `ready`), because `scripts/admin-tables.ts` T3/T6 match those names in every consumer (Cursor's file; untouched).
-- Consumers of the two old stores (22 files, all move in Part A): ai-calls, ai-page, attributes-page, categories-page, countries-page, listings-page, locations-page, level-overrides-table, markets-section, product-prices-table, products-section, name-checks, screening-page, audit-page, impersonation-view, roles-list, data-scope, languages-page, strings-page, users-list, my-listings-page; plus tests columns-button.test.tsx, use-kept-page.test.ts.
+Allowlists:
+- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
+- look-values-allowlist :3 (drawer) goes with drawer.tsx.
 
-## (c) The words (English only; Amharic from the supervisor)
+## Mechanism
+1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
+   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
+2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
+3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
+4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
+5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
+6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
 
-New, base layer (shared by admin and My listings):
-- `prim.filter.search` — "Search the list"
-- `prim.filter.none` — "Nothing matches"
-- `prim.filter.max` — "Up to 20 choices"  (help line under a full multi-select)
-Placeholder of every select: existing `prim.table.all` "All" (member layer; flagged in (h) if a select draws where member is not declared — none found).
-Pin (member layer):
-- `post.pin.chooseShow` — "Choose how the pin shows on your ad" (the closed Save's missing line)
-Screening (admin layer), reused not added: column header `admin.listings.col.seller`, row label `admin.listings.filter.seller`, placeholders `admin.listings.filter.sellerPlaceholder` / `…PlaceholderEmail`.
-No key changed or retired.
+## Guard
+- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
+- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
 
-## (d) The tests
+## Tests
+- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
+- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
+- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
+- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
+- DLG-E6 reduced motion: no transition.
+- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
+- Touched specs whole, both projects, retries 0.
 
-Changed unit tests: columns-button.test.tsx, use-kept-page.test.ts, filter-chips / toolbar-panel tests, use-admin-listings.test.ts, use-admin-listing.test.ts, use-screening.test.ts, my-listings.test.ts (list-of-one becomes list), each of the eleven pages' own tests that click a pill, map-pin-dropper test (starts with no choice), screening-page tests.
-New (ids by the supervisor): store parse/drop/retired value/broken entry/refusing storage/signed-out no-write/other account isolated/old-key migration-and-removal/query waits for ready; select max 20 (21st unavailable, not sent); chip removal per value; filter change returns to first page; past-end page asks first page; pin new = no choice, closed Save scrolls and marks, saved pin open; screening reopen failure shows refusal; shared Seller cell and row on both tables; e-mail drawn only when answered.
+## G38 list (build turn greps and names old → new)
+- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
 
-Browser assertions made false (lines unchanged until the ruling names them):
-- e2e/admin-audit.spec.ts:137 and :141 — `audit-filter-action-all` / `-entity-all` `aria-pressed=true`. New: open the select (`audit-filter-action`), expect `audit-filter-action-all` `aria-selected="true"`; or expect the control's text "All".
-- e2e/admin-users.spec.ts:523 and :527 — same, `users-status-filter-all` / `users-role-filter-all`.
-- e2e/admin-roles.spec.ts:69 — `users-role-filter-<name>` `aria-pressed`: open `users-role-filter` first, then `aria-selected`.
-- e2e/admin-screening.spec.ts:513 region (`admin-screening-filter-country-<code>` read as pills) and :1465 region (`…-tier-<value>`): choices only visible after opening the control; state via `aria-selected`.
-- e2e/admin-categories-console.spec.ts:738 — `category-missing-filter` `aria-pressed`: UNCHANGED (the switch keeps `aria-pressed`).
-- e2e/house-style.spec.ts:186–187 — board's `style-filters-colour-Red` `aria-pressed`: open `style-filters-colour` first, `aria-selected`.
-- Not affected: admin-listings.spec.ts:746 (`listings-view`), my-listings-page.spec.ts:337/:382 (`my-listings-group`), pin specs (all already call `choosePinShow`; post-wizard-bundle2.spec.ts:428 `toBeDisabled` is the busy state, which stays disabled).
+## Growth
+- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
+- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
 
-## (e) Exported types changed
+## Turns
+- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
+- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
+- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
 
-- `AdminListingFilters.country`, `.category`: `string | null` → `readonly string[]` (use-admin-listings.ts). Readers: listings-page.tsx, use-admin-listings.test.ts, use-admin-listing.test.ts. Outside my folders: none in src/scripts/e2e (only docs prose).
-- `ScreeningFilters.country`: → `readonly string[]`; `NO_SCREENING_FILTERS` follows. Readers: screening-page.tsx, use-screening.test.ts. Outside: none.
-- `MyListingsFilters.category`: → `readonly string[]`; `NO_FILTERS` follows. Readers: my-listings-page.tsx, my-listings.test.ts. Outside: none.
-- `useKeptPage` / `useHiddenColumns` return gains `ready` (additive). `scripts/admin-tables.ts` reads the names only.
-- `DataTablePagination` gains optional `settled?: boolean` (Part F). Additive.
-- New exports: `useTableView`, `TableViewOffer`, `SellerCell`, `SellerFilterRow`.
+## Open points for the ruling
+1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
+2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
+3. Map pin dropper on the Radix dialog, or allowlisted.
 
-## (f) First download
-
-FilterRow/Select/Text/Dates are imported by the panel body only; the panel is already drawn inside `FiltersButton`'s on-demand overlay, so the parts ride the panel's chunk, never the page's. The store is small and imported by the pages (it decides the first read), so it lands in each table page's chunk (admin pages and /my-listings). The eleven pages' numbers are measured from the build in build turn A (the plan turn runs no build); any growth is listed chunk by chunk, and the ceiling lines come from the supervisor (DEC-390).
-
-## (g) Outside my reach (for Cursor)
-
-- `scripts/admin-tables.ts` T3/T6 keep matching `useHiddenColumns(` / `useKeptPage(`; if the supervisor prefers the guard to name `useTableView`, that is Cursor's edit.
-- `e2e/helpers/filters.ts` `chooseFilter` needs no change (row control → choice; Escape twice).
-- No door, read or route changes; `src/lib/**`, `src/features/auth/**` untouched.
-- Spec lines in (d) once ruled.
-
-## (h) Conflicts and findings at the base
-
-1. Pin Save is also `disabled` when no pin is placed (`position === null`, :595). The brief names only the choice; I propose the closed primary covers both (missing line "Place the pin on the map" would be one more key) — or keep `position === null` disabled. Ruling needed.
-2. Screening Seller placeholder: All listings switches to the e-mail placeholder by a permission it holds; the screening screen must "never ask". Proposal: screening uses the plain placeholder always.
-3. Empty `catch` in storage helpers (columns-state.ts:18/26, use-kept-page.ts:28/38) are the brief's own "storage that refuses is not an error"; they move into the store and stay as named exceptions.
-4. "ONE READ" makes every table's first query wait for `useAuth` to settle — a small delay on each admin table; this is the brief's rule.
-5. `chooseFilter` step 3: a multi-select stays open after a pick, so Escape closes the list, then the panel (two presses) — matches the helper.
-
-## Part G class — empty `catch` in touched files
-
-- screening-page.tsx:301 (readScreeningRow) — FIXED: failure goes through `readFailure`/refusal reader into the page's notice.
-- my-listings-page.tsx:396 and :434 — not empty: they show `myListings.error.failed`. Left.
-- columns-state.ts:18/26, use-kept-page.ts:28/38 — named reason above (storage refusal is not an error).
-- All other `catch (error)` in touched files surface the error. Left.
-
-## (i) Build order
-
-1. Part A — store + thin hooks + 22 consumers + old-key migration + query waits for ready. Green: all src suites, store tests.
-2. Part B — every panel in rows, chips per value, first page on change; board. Green: page tests; stop for the spec-line ruling.
-3. Part C — the three readers to lists, max 20.
-4. Part D — shared Seller cell and row on both tables.
-5. Part E — pin gate.
-6. Parts F and G — past-end page; screening read failure.
-7. Last — i18n:usage + diff, write-back from `9d9748da3` committed and proven at HEAD, supervisor's ceiling lines.
+## Technical scope (build)
+src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.
