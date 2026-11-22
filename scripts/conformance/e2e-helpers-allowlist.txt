@@ -2,6 +2,9 @@
 # declares its own copy of a shared helper, disables rules-of-hooks, or writes profiles.preferred_language outside
 # e2e/helpers/account-language.ts. Key: `<file> <name>` | reason | until (a date or an INC-/DEC- number); stale or
 # expired lines fail. Empty at birth.
+# CF-HELPERS-10 (cursor-bundle-3, INC-1245): `<file> drops-error (<n>)` is one line a file with its count of reads
+# that take an answer's `data` (or `count`) and never its `error`; a file that gains or loses a read changes its key,
+# so the old line is stale and the new one is a finding. Each line goes when its file's reads take their error.
 e2e/admin-shell.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
 e2e/admin-translations-console.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
 e2e/admin-translations-governance.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
@@ -25,3 +28,28 @@ e2e/shell.spec.ts project-name | branches on a Playwright project's name; until 
 e2e/submenu-look.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
 e2e/submenu-touch.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
 e2e/submenu.spec.ts project-name | branches on a Playwright project's name; until the e2e leftovers turn moves it onto layoutOf (e2e/helpers/layout.ts) | INC-1123
+e2e/ad-page-doors.spec.ts drops-error (13) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-attributes-editor.spec.ts drops-error (7) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-attributes-import.spec.ts drops-error (15) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-attributes-library.spec.ts drops-error (6) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-attributes-links.spec.ts drops-error (20) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-categories-lifecycle.spec.ts drops-error (15) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-listings.spec.ts drops-error (14) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-locations.spec.ts drops-error (2) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-roles.spec.ts drops-error (4) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-screening.spec.ts drops-error (5) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-translations-console.spec.ts drops-error (4) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-translations-data.spec.ts drops-error (6) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-translations-governance.spec.ts drops-error (5) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/admin-users.spec.ts drops-error (2) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/category-image-routes.spec.ts drops-error (5) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/import-security.spec.ts drops-error (4) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/legal-doors.spec.ts drops-error (5) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/my-listings-ad.spec.ts drops-error (1) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/my-listings-doors.spec.ts drops-error (2) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/photo-pipeline.spec.ts drops-error (1) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/post-wizard-bundle2.spec.ts drops-error (2) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/post-wizard-category.spec.ts drops-error (1) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/post-wizard-place.spec.ts drops-error (1) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/post-wizard-pricing.spec.ts drops-error (1) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245
+e2e/posting-routes.spec.ts drops-error (1) | reads an answer's data and never its error; until the tests-and-CI turn gives each read its error | INC-1245

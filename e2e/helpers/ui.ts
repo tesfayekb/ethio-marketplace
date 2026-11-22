@@ -1237,7 +1237,8 @@ export async function awaitGuardedOutcome(
  */
 export async function readAal(page: Page) {
   return inBrowserClient(page, async (client) => {
-    const { data } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    const { data, error } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) throw new Error(`readAal: ${error.message}`);
     return data?.currentLevel ?? null;
   });
 }

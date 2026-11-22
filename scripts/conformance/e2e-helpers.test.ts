@@ -15,6 +15,7 @@ import {
   SCRATCH_PREFIXES,
   type ScratchKind,
 } from "../../e2e/helpers/scratch";
+import { pattern } from "../lib/pattern";
 import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
@@ -54,6 +55,13 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  * - CF-HELPERS-9 (the pictures turn, ruling 1 answer 4, INC-1123): no e2e/*.spec.ts names a
  *   Playwright project (PROJECT_NAMES) in a string — a spec branches on `layoutOf(page)`
  *   (e2e/helpers/layout.ts), so a new engine at the same width never silently skips its branch.
+ * - CF-HELPERS-10 (cursor-bundle-3, INC-1245): no file under e2e/ reads an answer's `data` (or
+ *   `count`) and never its `error` — a failed read is a thrown error naming the read, never an
+ *   empty list a test then passes over. The sites by definition (droppedErrorFindings): a
+ *   destructure `const { data } = …`, a callback's `({ data }) =>`, `(await …).data`, and an
+ *   awaited Supabase chain held in a name whose `.data` is read and whose `.error` (or the whole
+ *   answer, passed on) never is. The allowlist holds one line a file with its count,
+ *   `<file> drops-error (<n>)`, each until INC-1245; a changed count is a new finding and a stale line.
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -496,6 +504,132 @@ export function likeMatches(likePattern: string, text: string): boolean {
   return from(0, 0);
 }
 
+/** The client's own verbs: a chain made of one of them is a Supabase answer (CF-HELPERS-10). */
+const SUPABASE_VERBS = new Set([
+  "from",
+  "rpc",
+  "schema",
+  "storage",
+  "auth",
+  "functions",
+  "select",
+  "insert",
+  "update",
+  "upsert",
+  "delete",
+  "maybeSingle",
+  "single",
+  "eq",
+  "in",
+  "order",
+  "limit",
+  "range",
+]);
+
+/**
+ * Whether the awaited expression's own call chain (`supabase.from(…).select(…)`, its callee names,
+ * never its arguments' code) holds one of the client's verbs: `Array.from` inside a callback
+ * handed to `.evaluate(` is a page read, not an answer.
+ */
+function isSupabaseChain(awaited: ts.AwaitExpression): boolean {
+  return chainHoldsVerb(awaited.expression);
+}
+
+function chainHoldsVerb(start: ts.Expression): boolean {
+  let node: ts.Expression = start;
+  for (;;) {
+    if (ts.isConditionalExpression(node))
+      return chainHoldsVerb(node.whenTrue) || chainHoldsVerb(node.whenFalse);
+    if (
+      ts.isCallExpression(node) ||
+      ts.isNonNullExpression(node) ||
+      ts.isParenthesizedExpression(node)
+    ) {
+      node = node.expression;
+    } else if (ts.isPropertyAccessExpression(node)) {
+      if (SUPABASE_VERBS.has(node.name.text)) return true;
+      node = node.expression;
+    } else if (ts.isElementAccessExpression(node) || ts.isAsExpression(node)) {
+      node = node.expression;
+    } else return false;
+  }
+}
+
+/** The property names an object binding pattern takes (`{ data: rows }` takes `data`). */
+function takenKeys(binding: ts.ObjectBindingPattern): string[] {
+  return binding.elements.map((element) => (element.propertyName ?? element.name).getText());
+}
+
+const takesAnswer = (keys: string[]) =>
+  (keys.includes("data") || keys.includes("count")) && !keys.includes("error");
+
+/**
+ * CF-HELPERS-10 — every read of an answer's `data` (or `count`) that never reads its `error`.
+ * The key is the file with its count of sites, `<file> drops-error (<n>)`, one allowlist line a
+ * file (a file that gains or loses a site changes its key).
+ */
+export function droppedErrorFindings(files: string[]): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const file of files) {
+    const sites: Array<{ line: number; form: string }> = [];
+    visitTs(file, (node, source) => {
+      const site = (at: ts.Node, form: string) =>
+        sites.push({
+          line: source.getLineAndCharacterOfPosition(at.getStart(source)).line + 1,
+          form,
+        });
+      // `const { data, … } = …` with no `error` taken.
+      if (
+        ts.isVariableDeclaration(node) &&
+        ts.isObjectBindingPattern(node.name) &&
+        node.initializer !== undefined &&
+        takesAnswer(takenKeys(node.name))
+      )
+        site(node, "`data` by destructuring");
+      // A callback's first parameter, `({ data }) => …`.
+      if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
+        const first = node.parameters[0];
+        if (
+          first !== undefined &&
+          ts.isObjectBindingPattern(first.name) &&
+          takesAnswer(takenKeys(first.name))
+        )
+          site(node, "`data` as a callback's parameter");
+      }
+      // `(await …).data`.
+      if (
+        ts.isPropertyAccessExpression(node) &&
+        (node.name.text === "data" || node.name.text === "count") &&
+        ts.isParenthesizedExpression(node.expression) &&
+        ts.isAwaitExpression(node.expression.expression)
+      )
+        site(node, `\`(await …).${node.name.text}\``);
+      // `const answer = await <Supabase chain>` whose `.data` is read and `.error` never is.
+      if (
+        ts.isVariableDeclaration(node) &&
+        ts.isIdentifier(node.name) &&
+        node.initializer !== undefined &&
+        ts.isAwaitExpression(node.initializer) &&
+        isSupabaseChain(node.initializer)
+      ) {
+        const name = node.name.text;
+        const scope = node.parent.parent.parent.getText(source);
+        const readsData = pattern`\\b${name}\\??\\.(data|count)\\b`.test(scope);
+        const readsError = pattern`\\b${name}\\??\\.error\\b|\\b${name}\\b\\s*\\)`.test(scope);
+        if (readsData && !readsError) site(node, `\`${name}.data\` held`);
+      }
+    });
+    for (const { line, form } of sites)
+      findings.push({
+        file,
+        line,
+        what: `reads ${form} and never its error: read \`error\` and throw with the read's name and its text`,
+        key: `${file} drops-error (${sites.length})`,
+      });
+  }
+  return findings;
+}
+
 const e2eFiles = () => walkFiles(["e2e"], { ext: ["ts"] });
 const harnessFiles = (files: string[]) =>
   files.filter(
@@ -508,7 +642,7 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-9 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project",
+    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-10 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project, no e2e file reads an answer's data and never its error but on the allowlist",
     () => {
       const files = e2eFiles();
       const findings = [
@@ -523,6 +657,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
         ...regexpSiteFindings(harnessFiles(files)),
         ...pictureCheckFindings(specs()),
         ...projectNameFindings(specs()),
+        ...droppedErrorFindings(files),
       ];
       const allowances = readAllowlist(
         ALLOWLIST,
@@ -747,6 +882,56 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
       expect(projectNameFindings([bare, measured]).map((f) => [f.line, f.key])).toEqual([
         [3, `${bare} project-name`],
         [5, `${bare} project-name`],
+      ]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("planted: CF-HELPERS-10 finds each form of a read that drops its error, keys a file by its count, and passes a read of the error", () => {
+    const dir = mkdtempSync(join(tmpdir(), "e2e-helpers-dropped-"));
+    try {
+      const dropping = join(dir, "dropping.spec.ts");
+      writeFileSync(
+        dropping,
+        [
+          "export async function plants(supabase: Client, page: Page) {",
+          '  const { data } = await supabase.from("t").select("id");',
+          '  const { count } = await supabase.from("t").select("id", { count: "exact" });',
+          '  const rows = (await supabase.rpc("f")).data;',
+          '  const held = await supabase.from("t").select("id");',
+          "  void held.data;",
+          '  await supabase.from("t").select("id").then(({ data: rows2 }) => rows2);',
+          "}",
+          "",
+        ].join("\n"),
+      );
+      const reading = join(dir, "reading.spec.ts");
+      writeFileSync(
+        reading,
+        [
+          "export async function reads(supabase: Client, answerOf: (x: unknown) => void) {",
+          '  const { data, error } = await supabase.from("t").select("id");',
+          "  if (error) throw new Error(`reads: ${error.message}`);",
+          '  const held = await supabase.from("t").select("id");',
+          "  if (held.error) throw new Error(held.error.message);",
+          "  void held.data;",
+          '  const passed = await supabase.from("t").select("id");',
+          "  void passed.data;",
+          "  answerOf(passed);",
+          '  const { other } = await supabase.from("t").select("id");',
+          '  const { data: shaped, error: refused } = await supabase.rpc("f");',
+          "  void [data, other, shaped, refused];",
+          "}",
+          "",
+        ].join("\n"),
+      );
+      expect(droppedErrorFindings([dropping, reading]).map((f) => [f.line, f.key])).toEqual([
+        [2, `${dropping} drops-error (5)`],
+        [3, `${dropping} drops-error (5)`],
+        [4, `${dropping} drops-error (5)`],
+        [5, `${dropping} drops-error (5)`],
+        [7, `${dropping} drops-error (5)`],
       ]);
     } finally {
       rmSync(dir, { recursive: true, force: true });

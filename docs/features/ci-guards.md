@@ -1598,3 +1598,22 @@ Findings at the base (`9d9748da3`), by the census: DG-8, DG-9, DG-10, CF-OV-7 an
 four — `src/components/shell/toolbar-panel.tsx` (its popover form draws the description as a
 paragraph the panel does not name) and the three specimens of `src/routes/dev.style.tsx`. Both are
 files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
+
+## A read that takes `data` takes its `error` — CF-HELPERS-10 (cursor-bundle-3, Part 4; INC-1245)
+
+- **Concern:** a test's read of an answer drops its failure. A destructure `const { data } = …`, a
+  callback's `({ data }) =>`, `(await …).data`, and an awaited Supabase chain held in a name whose
+  `.data` is read and whose `.error` (or the whole answer, passed on) never is, each read a failed
+  call as an empty one.
+- **Mechanism:** `droppedErrorFindings` in `scripts/conformance/e2e-helpers.test.ts`, over every file
+  under `e2e/`. A held answer is a Supabase chain by the verbs in its own call chain
+  (`from`, `rpc`, `select`, `eq`, …), never by its arguments' code: `Array.from` inside a callback
+  handed to `.evaluate(` is a page read. Planted by a test that writes each form, a read that takes
+  its error, an answer passed on whole, and a destructure that never takes `data`.
+- **Allowlist:** `scripts/conformance/e2e-helpers-allowlist.txt` holds one line a file, key
+  `<file> drops-error (<n>)`, until INC-1245. A file that gains or loses a read changes its key, so
+  its old line is stale and the new site is a finding: the count only falls.
+- **Fixed at the cause here:** the console spec's three reads and the thirteen reads of
+  `e2e/helpers/` (the helpers every test calls) take their error: a helper throws with its name and
+  the error's text; `rosterDump` and `lifecycleDump` build a failure's own text and name the failed
+  read inside it. At the base of this change 142 reads in 25 specs stay on the allowlist.

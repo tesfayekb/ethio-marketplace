@@ -131,19 +131,26 @@ async function rosterDump(page: Page, slug: string, createdAt?: number): Promise
     parts.push("page: unreadable");
   }
   try {
-    const { data: row } = await adminClient()
+    const { data: row, error: rowError } = await adminClient()
       .from("categories")
       .select("id, is_active")
       .eq("slug", slug)
       .maybeSingle();
-    if (row === null) {
+    if (rowError) {
+      // The dump builds a failure's text and never throws: a read that failed says so.
+      parts.push(`db: unreadable (rosterDump: ${rowError.message})`);
+    } else if (row === null) {
       parts.push("db: no row");
     } else {
-      const { count } = await adminClient()
+      const { count, error: countError } = await adminClient()
         .from("category_tree_pointers")
         .select("id", { count: "exact", head: true })
         .eq("child_id", row.id);
-      parts.push(`db: row active=${String(row.is_active)} pointers=${count ?? "?"}`);
+      parts.push(
+        countError
+          ? `db: unreadable (rosterDump: ${countError.message})`
+          : `db: row active=${String(row.is_active)} pointers=${count ?? "?"}`,
+      );
     }
   } catch {
     parts.push("db: unreadable");
@@ -432,7 +439,11 @@ export async function lifecycleDump(page: Page, slug: string, errors: string[]):
     .select("id, slug, is_active")
     .eq("slug", slug)
     .maybeSingle();
-  return `[e2e:c2] lifecycle ${slug}: dom=${JSON.stringify(dom)} db=${JSON.stringify(row.data)} clientErrors=${JSON.stringify(errors.slice(-5))}`;
+  // The dump builds a failure's text: a read that failed is named in it, never an empty row.
+  const db = row.error
+    ? `unreadable (lifecycleDump: ${row.error.message})`
+    : JSON.stringify(row.data);
+  return `[e2e:c2] lifecycle ${slug}: dom=${JSON.stringify(dom)} db=${db} clientErrors=${JSON.stringify(errors.slice(-5))}`;
 }
 
 /**

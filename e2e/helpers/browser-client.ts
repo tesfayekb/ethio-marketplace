@@ -49,6 +49,7 @@ export interface BrowserClient {
       }): Promise<{ error: { message: string } | null }>;
       getAuthenticatorAssuranceLevel(): Promise<{
         data: { currentLevel: string | null } | null;
+        error: { message: string } | null;
       }>;
     };
   };

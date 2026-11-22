@@ -100,20 +100,22 @@ export async function seedAttribute(key: string, type = "text") {
 }
 
 export async function readAttribute(key: string) {
-  const { data } = await adminClient()
+  const { data, error } = await adminClient()
     .from("attributes")
     .select("id, attr_key, name_en, attr_type, options, depends_on")
     .eq("attr_key", key)
     .maybeSingle();
+  if (error) throw new Error(`readAttribute: ${error.message}`);
   return data;
 }
 
 export async function readLinks(categoryId: string) {
-  const { data } = await adminClient()
+  const { data, error } = await adminClient()
     .from("category_attribute_links")
     .select("id, attribute_id, is_required, display_order, card_rank")
     .eq("category_id", categoryId)
     .order("display_order");
+  if (error) throw new Error(`readLinks: ${error.message}`);
   return data ?? [];
 }
 
