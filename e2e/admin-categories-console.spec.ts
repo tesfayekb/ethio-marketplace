@@ -1,5 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { inBrowserClient } from "./helpers/browser-client";
+import { chooseFilter } from "./helpers/filters";
 import { withinPreviewBudget } from "./helpers/rate-window";
 
 import { en } from "../src/i18n/locales/en";
@@ -30,7 +32,6 @@ import {
   actionsOf,
   deleteButton,
   rowMenu,
-  toggleMissingAssets,
   openEditor,
   grantRole,
   readCategory,
@@ -47,7 +48,23 @@ import {
  *
  * L1 (DEC-037): one third of the former admin-categories.spec.ts. Titles, tags
  * and fixture identities are byte-identical; only the file changed (INC-159).
- */ /**
+ */
+
+/** The embedded parent of a pointer row, read through a shape guard (never a cast). */
+function embeddedParent(value: unknown): { name_en: string; is_active: boolean } | null {
+  if (value === null) return null;
+  if (
+    typeof value === "object" &&
+    "name_en" in value &&
+    typeof value.name_en === "string" &&
+    "is_active" in value &&
+    typeof value.is_active === "boolean"
+  )
+    return { name_en: value.name_en, is_active: value.is_active };
+  throw new Error(`[e2e:ct] a pointer's parent has an unexpected shape: ${JSON.stringify(value)}`);
+}
+
+/**
  * C3c — DB TRUTH for the Parent cell. The roster picks its PRIMARY parent the
  * way admin_list_categories does — the first active pointer by
  * (parent_id IS NOT NULL, display_order, created_at) — and every other active
@@ -65,13 +82,10 @@ async function secondaryParentNames(slug: string): Promise<string[]> {
     .eq("child_id", category.id)
     .order("display_order")
     .order("created_at");
-  type Pointer = {
-    parent_id: string | null;
-    categories: { name_en: string; is_active: boolean } | null;
-  };
-  const pointers = ((data ?? []) as unknown as Pointer[]).filter(
-    (row) => row.parent_id === null || row.categories?.is_active === true,
-  );
+  // The generated types draw the embedded parent as a list; the answer is one row (or none).
+  const pointers = (data ?? [])
+    .map((row) => ({ parent_id: row.parent_id, categories: embeddedParent(row.categories) }))
+    .filter((row) => row.parent_id === null || row.categories?.is_active === true);
   const ordered = [
     ...pointers.filter((row) => row.parent_id === null),
     ...pointers.filter((row) => row.parent_id !== null),
@@ -717,7 +731,7 @@ test.describe("C2 categories console", () => {
     // The filter narrows to rows the roster itself marks as missing assets;
     // every surviving row must carry the amber flag (DB truth is the icon and
     // image_url columns the RPC reports).
-    await toggleMissingAssets(page);
+    await chooseFilter(page, "category-filters", "category-missing-filter");
     await expect(page.getByTestId("category-chips-chip-missing")).toBeVisible();
     await expect(page.getByTestId("category-filters-count")).toHaveText("1");
     await page.getByTestId("category-filters").click();
@@ -951,16 +965,7 @@ test.describe("C2 categories console", () => {
       await signInJobSuperAdmin(page);
       await gotoReady(page, "/admin/categories");
       await findRow(page, rootSlug);
-      const token = await page.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              auth: {
-                getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
-              };
-            };
-          }
-        ).__ethioSupabase;
+      const token = await inBrowserClient(page, async (client) => {
         const { data } = await client.auth.getSession();
         return data.session?.access_token ?? "";
       });

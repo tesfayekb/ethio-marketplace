@@ -67,8 +67,8 @@ admin_list_countries() | staff-reader | authenticated | countries:view | - | - |
 admin_list_effective_category_links(uuid) | staff-reader | authenticated | categories:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_list_entity_translations(text,text,text,integer,integer) | staff-reader | authenticated | translations:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_list_languages() | staff-reader | authenticated | translations:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
-admin_list_listings(text,text,text,uuid,text,date,date,text,integer,integer) | staff-reader | authenticated | listings:view | - | - | - | filter | - | badValue | -
-admin_list_locations(text,text,text,boolean) | staff-reader | authenticated | locations:view | - | - | - | filter | - | - | -
+admin_list_listings(text,text,text[],uuid[],text,date,date,text,integer,integer) | staff-reader | authenticated | listings:view | - | - | - | filter | - | badValue | -
+admin_list_locations(text[],text,text,boolean) | staff-reader | authenticated | locations:view | - | - | - | filter | - | badValue | -
 admin_list_monetisation() | staff-reader | authenticated | packages:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_list_roles_detailed() | staff-reader | authenticated | roles:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_list_roles() | staff-reader | authenticated | profiles:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
@@ -109,6 +109,7 @@ admin_save_market_settings(integer,text,boolean,character,integer,integer) | sta
 admin_save_package_price(text,numeric,character,integer,character,uuid,timestamp with time zone,timestamp with time zone) | staff | authenticated | packages:update | row | staff_config | manual | arg:country_code | staff | badAmount,badCreditCost,badWindow,overlappingWindow,unknownCategory,unknownCountry,unknownCurrency,unknownPackage | -
 admin_save_translation(text,text,text) | staff | authenticated | translations:update | row | staff_translation | - | global | staff | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_screening_facts(uuid) | staff-reader | authenticated | listings:review | - | - | - | filter | - | listingNotFound | -
+admin_screening_queue(text,text[],text,text,integer,integer) | staff-reader | authenticated | listings:review | - | - | - | filter | - | badValue | -
 admin_set_account_status(uuid,text,text) | staff | authenticated | profiles:update | row | staff_moderation | user.status_change | global | staff | badValue,required,unknownUser | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_ai_feature(text,boolean,integer,integer) | staff | authenticated | services:manage | row | staff_config | manual | global | staff | badValue,overBudget,unknownFeature | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 admin_set_attribute_link_order(uuid,uuid[]) | staff | authenticated | categories:update | row | staff_config | attribute.reorder | global | staff | orderMismatch | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
@@ -193,7 +194,7 @@ my_legal_version(uuid) | signed-in-reader | authenticated | - | - | - | - | - | 
 my_listing_certification(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
 my_listing_private(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
 my_listing(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
-my_listings(text,integer,integer,text,uuid,text) | signed-in-reader | authenticated | - | - | - | - | - | - | badValue,notSignedIn | -
+my_listings(text,integer,integer,text,uuid[],text) | signed-in-reader | authenticated | - | - | - | - | - | - | badValue,notSignedIn | -
 my_recent_categories() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
 my_saved_listings(jsonb,integer) | signed-in-reader | authenticated | - | - | - | - | - | - | badSize,badValue,notSignedIn | -
 my_seller_line() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -

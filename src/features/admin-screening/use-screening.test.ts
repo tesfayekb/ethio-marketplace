@@ -1,37 +1,32 @@
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
-/** Bundle 11 A3 — every call the queue read makes on the query builder, in order. */
-const calls = vi.hoisted(() => [] as Array<[string, unknown[]]>);
-/** Turn E3 — the rows the mocked read answers with (empty unless a test fills it). */
-const answer = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
 /** F1-6a — the doors' calls and what the mocked `rpc` answers with. */
 const doors = vi.hoisted(() => ({
   calls: [] as Array<[string, unknown]>,
-  answer: { data: null, error: null } as { data: unknown; error: { message: string } | null },
+  answer: { data: null, error: null } as {
+    data: unknown;
+    error: { message: string; code?: string } | null;
+  },
+}));
+/** DEC-422 — what the photos' table read answers with. */
+const table = vi.hoisted(() => ({
+  answer: { data: [] as unknown[] | null, error: null } as {
+    data: unknown[] | null;
+    error: { message: string } | null;
+  },
 }));
 
 vi.mock("@/integrations/supabase/client", () => {
   const builder: Record<string, (...args: unknown[]) => unknown> = {};
-  for (const name of ["select", "eq", "not", "ilike", "order", "range", "maybeSingle"]) {
-    builder[name] = (...args: unknown[]) => {
-      calls.push([name, args]);
-      if (name === "range")
-        return Promise.resolve({ data: answer.rows, error: null, count: answer.rows.length });
-      if (name === "maybeSingle")
-        return Promise.resolve({ data: answer.rows[0] ?? null, error: null });
-      return builder;
-    };
-  }
+  for (const name of ["select", "eq"]) builder[name] = () => builder;
+  builder["order"] = () => Promise.resolve(table.answer);
   return {
     supabase: {
       rpc: (name: string, args: unknown) => {
         doors.calls.push([name, args]);
         return Promise.resolve(doors.answer);
       },
-      from: (table: string) => {
-        calls.push(["from", [table]]);
-        return builder;
-      },
+      from: () => builder,
     },
   };
 });
@@ -40,15 +35,58 @@ import {
   decideListing,
   decisionRefusalKey,
   listScreening,
+  listScreeningPhotos,
   nameCheckSummaryOf,
   parseScreeningFacts,
+  parseScreeningQueue,
+  readScreeningFacts,
   readScreeningRow,
   revealContact,
   revealProblemKey,
   revealProblemText,
+  screeningQueueArgs,
   type RevealAnswer,
   type RevealProblem,
 } from "./use-screening";
+import { ReaderError } from "@/lib/reader-failure";
+
+/** DEC-422 — one row of the queue door's answer: exactly its 25 flat keys. */
+function doorRow(id: string, over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id,
+    title: "Fridge",
+    description: "Works",
+    category_id: "c-1",
+    location_id: "p-1",
+    price_mode: "fixed",
+    price_amount: 1500,
+    price_currency: "ETB",
+    price_period: "once",
+    price_bp: null,
+    price_negotiable: false,
+    price_unit: null,
+    price_unit_text: null,
+    attributes: {},
+    photos_soon: false,
+    tier: null,
+    updated_at: "2026-10-15T00:00:00Z",
+    category_name_en: "Fridges",
+    category_name_am: null,
+    place_name_en: "Bole",
+    place_name_am: null,
+    country_code: "ET",
+    seller_alias: "abebe",
+    seller_business_name: null,
+    seller_email: null,
+    ...over,
+  };
+}
+
+/** The door answers these rows as its page. */
+function answerRows(rows: Array<Record<string, unknown>>, total = rows.length): void {
+  doors.calls.length = 0;
+  doors.answer = { data: { total, rows }, error: null };
+}
 
 /** Bundle 11 A2 (D120) — the preview's facts as the door returns them. */
 describe("parseScreeningFacts", () => {
@@ -92,86 +130,90 @@ describe("parseScreeningFacts", () => {
 
 /** Bundle 11 A3 (INC-537) — the market filter as the read sends it. */
 describe("listScreening", () => {
-  it("SF-2 a market filter reads the ad's place, never home_country_code; no market sends no place filter", async () => {
-    calls.length = 0;
+  it("SF-2 a market filter is a list of one on the queue's door; no market sends no country", async () => {
+    answerRows([]);
     await listScreening(0, "", 25, { country: "ET", tier: null });
-    expect(calls).toContainEqual(["eq", ["place.country_code", "ET"]]);
-    expect(calls).toContainEqual(["not", ["place", "is", null]]);
-    expect(JSON.stringify(calls)).not.toContain("home_country_code");
+    expect(doors.calls).toEqual([
+      ["admin_screening_queue", { p_country: ["ET"], p_limit: 25, p_offset: 0 }],
+    ]);
+    expect(JSON.stringify(doors.calls)).not.toContain("home_country_code");
 
-    calls.length = 0;
+    answerRows([]);
     await listScreening(0, "", 25, { country: null, tier: null });
-    expect(calls.filter(([name]) => name === "not")).toEqual([]);
-    expect(calls.filter(([name, args]) => name === "eq" && args[0] !== "status")).toEqual([]);
+    expect(doors.calls).toEqual([["admin_screening_queue", { p_limit: 25, p_offset: 0 }]]);
   });
 
-  /** P-1 W4 — the tier filter the listings table has, on the queue's own column. */
-  it("SF-7 a tier filter reads the ad's tier column; no tier sends no tier filter", async () => {
-    calls.length = 0;
+  /** P-1 W4 — the tier filter the listings table has, on the door's own argument. */
+  it("SF-7 a tier filter is the door's p_tier; no tier sends none", async () => {
+    answerRows([]);
     await listScreening(0, "", 25, { country: null, tier: "premium" });
-    expect(calls).toContainEqual(["eq", ["tier", "premium"]]);
-    expect(calls.filter(([name]) => name === "not")).toEqual([]);
+    expect(doors.calls[0]?.[1]).toEqual({ p_tier: "premium", p_limit: 25, p_offset: 0 });
 
-    calls.length = 0;
+    answerRows([]);
     await listScreening(0, "", 25, { country: "ET", tier: null });
-    expect(calls.filter(([name, args]) => name === "eq" && args[0] === "tier")).toEqual([]);
+    expect(doors.calls[0]?.[1]).not.toHaveProperty("p_tier");
+  });
+
+  it("SF-11 a page past the end keeps the door's total, and the page is sent as the offset (DEC-422)", async () => {
+    answerRows([], 41);
+    const past = await listScreening(3, "", 25, { country: null, tier: null });
+    expect(past).toEqual({ rows: [], total: 41 });
+    expect(doors.calls[0]?.[1]).toEqual({ p_limit: 25, p_offset: 75 });
+  });
+
+  it("SF-14 the search and the seller are trimmed and sent only when asked", () => {
+    expect(
+      screeningQueueArgs(2, "  fridge ", 50, { country: null, tier: null, seller: " abe " }),
+    ).toEqual({ p_search: "fridge", p_seller: "abe", p_limit: 50, p_offset: 100 });
+    expect(screeningQueueArgs(0, "   ", 25, { country: null, tier: null, seller: "  " })).toEqual({
+      p_limit: 25,
+      p_offset: 0,
+    });
+    expect(screeningQueueArgs(0, "", 25, { country: null, tier: null })).toEqual({
+      p_limit: 25,
+      p_offset: 0,
+    });
   });
 });
 
 /** Bundle 16 turn E3 (D188) — the preview's edit boxes need the ad's market: the place's country. */
 describe("listScreening — the row's market", () => {
-  it("SF-4 reads the place's country_code into countryCode; an ad with no place has none", async () => {
-    calls.length = 0;
-    answer.rows = [
-      {
-        id: "l-1",
-        title: "Fridge",
-        description: "Works",
-        category_id: "c-1",
-        location_id: "p-1",
-        price_mode: "fixed",
-        price_amount: "1500",
-        price_currency: "ETB",
-        price_period: "once",
-        price_bp: null,
-        price_negotiable: false,
-        price_unit: null,
-        price_unit_text: null,
-        attributes: {},
-        photos_soon: false,
-        updated_at: "2026-10-15T00:00:00Z",
-        category: { name_en: "Fridges", name_am: null },
-        place: { name_en: "Bole", name_am: null, country_code: "ET" },
-      },
-      {
-        id: "l-2",
-        title: "Draft",
-        description: "",
-        category_id: "c-1",
-        location_id: null,
-        price_mode: "contact",
-        price_amount: null,
-        price_currency: null,
-        price_period: null,
-        price_bp: null,
-        price_negotiable: false,
-        price_unit: null,
-        price_unit_text: null,
-        attributes: null,
-        photos_soon: false,
-        updated_at: "2026-10-15T00:00:00Z",
-        category: { name_en: "Fridges", name_am: null },
-        place: null,
-      },
-    ];
-    try {
-      const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
-      expect(rows.map((row) => row.countryCode)).toEqual(["ET", null]);
-      const select = calls.find(([name]) => name === "select");
-      expect(String(select?.[1][0])).toContain("place:locations(name_en,name_am,country_code)");
-    } finally {
-      answer.rows = [];
-    }
+  it("SF-10 reads the seller's public name, business name and e-mail from the row; an absent e-mail is null (DEC-422)", async () => {
+    answerRows([
+      doorRow("l-1", {
+        seller_alias: "abebe",
+        seller_business_name: "Abebe Trading",
+        seller_email: "abebe@example.test",
+      }),
+      doorRow("l-2", { seller_alias: null, seller_business_name: null, seller_email: null }),
+    ]);
+    const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
+    expect(rows.map((row) => [row.sellerAlias, row.sellerBusinessName, row.sellerEmail])).toEqual([
+      ["abebe", "Abebe Trading", "abebe@example.test"],
+      [null, null, null],
+    ]);
+  });
+
+  it("SF-4 reads the row's country_code into countryCode and the total from the door; an ad with no place has none", async () => {
+    answerRows(
+      [
+        doorRow("l-1"),
+        doorRow("l-2", {
+          location_id: null,
+          price_mode: "contact",
+          price_amount: null,
+          attributes: null,
+          place_name_en: null,
+          country_code: null,
+        }),
+      ],
+      41,
+    );
+    const { rows, total } = await listScreening(0, "", 25, { country: null, tier: null });
+    expect(total).toBe(41);
+    expect(rows.map((row) => row.countryCode)).toEqual(["ET", null]);
+    expect(rows.map((row) => row.place)).toEqual([{ name_en: "Bole", name_am: null }, null]);
+    expect(rows[1]).toMatchObject({ attributes: {}, priceAmount: null, locationId: null });
   });
 });
 
@@ -256,48 +298,33 @@ describe("revealContact", () => {
 
 /** Bundle 17 turn 2 (D194) — the preview that re-opens after the ad's Edit reads its row fresh. */
 describe("readScreeningRow", () => {
-  it("SF-5 reads one ad of the queue by its id, in screening only; none is null", async () => {
-    calls.length = 0;
-    answer.rows = [
-      {
-        id: "l-1",
-        title: "Fridge",
-        description: "Cold",
-        category_id: "c-1",
-        location_id: "p-1",
-        price_mode: "fixed",
+  const id = "6d1f1c2e-0000-4000-8000-000000000031";
+
+  it("SF-5 reads one ad of the queue by its id through the door; none is null", async () => {
+    answerRows([
+      doorRow(id, {
         price_amount: "1500",
-        price_currency: "ETB",
-        price_period: "once",
-        price_bp: null,
-        price_negotiable: false,
-        price_unit: null,
-        price_unit_text: null,
         attributes: { colour: "red" },
-        photos_soon: false,
         updated_at: "2026-10-16T00:00:00Z",
-        category: { name_en: "Fridges", name_am: null },
-        place: { name_en: "Bole", name_am: null, country_code: "ET" },
-      },
-    ];
-    try {
-      const row = await readScreeningRow("l-1");
-      expect(calls).toContainEqual(["eq", ["status", "screening"]]);
-      expect(calls).toContainEqual(["eq", ["id", "l-1"]]);
-      expect(calls.map(([name]) => name)).toContain("maybeSingle");
-      expect(row).toMatchObject({
-        id: "l-1",
-        title: "Fridge",
-        priceAmount: 1500,
-        countryCode: "ET",
-        attributes: { colour: "red" },
-        place: { name_en: "Bole", name_am: null, country_code: "ET" },
-      });
-      answer.rows = [];
-      expect(await readScreeningRow("l-2")).toBeNull();
-    } finally {
-      answer.rows = [];
-    }
+      }),
+    ]);
+    const row = await readScreeningRow(id);
+    expect(doors.calls).toEqual([
+      ["admin_screening_queue", { p_search: id, p_limit: 1, p_offset: 0 }],
+    ]);
+    expect(row).toMatchObject({
+      id,
+      title: "Fridge",
+      priceAmount: 1500,
+      countryCode: "ET",
+      attributes: { colour: "red" },
+      place: { name_en: "Bole", name_am: null },
+    });
+    answerRows([]);
+    expect(await readScreeningRow(id)).toBeNull();
+    // A title that happens to match is not the ad asked for.
+    answerRows([doorRow("6d1f1c2e-0000-4000-8000-000000000032")]);
+    expect(await readScreeningRow(id)).toBeNull();
   });
 });
 
@@ -327,40 +354,66 @@ describe("nameCheckSummaryOf", () => {
   });
 });
 
-/** Turn T1 — the preview's tier look reads the ad's tier from the queue's own select. */
+/** Turn T1 — the preview's tier look reads the ad's tier from the queue's own row. */
 describe("the screening row's tier", () => {
-  it("SF-6 the select names tier; any level key is read as it is (P-2 (c) c2a: levels are rows), no key is null", async () => {
-    calls.length = 0;
-    const row = (id: string, tier: unknown) => ({
-      id,
-      title: "Fridge",
-      description: "Cold",
-      category_id: "c-1",
-      location_id: null,
-      price_mode: "contact",
-      price_amount: null,
-      price_currency: null,
-      price_period: null,
-      price_bp: null,
-      price_negotiable: false,
-      price_unit: null,
-      price_unit_text: null,
-      attributes: {},
-      photos_soon: false,
-      tier,
-      updated_at: "2026-11-02T00:00:00Z",
-      category: null,
-      place: null,
-    });
-    answer.rows = [row("l-1", "lvl-a"), row("l-2", "lvl-fourth"), row("l-3", ""), row("l-4", null)];
-    try {
-      const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
-      expect(rows.map((r) => r.tier)).toEqual(["lvl-a", "lvl-fourth", null, null]);
-      const select = calls.find(([name]) => name === "select");
-      expect(String(select?.[1][0]).split(",")).toContain("tier");
-    } finally {
-      answer.rows = [];
+  it("SF-6 any level key is read as it is (P-2 (c) c2a: levels are rows), no key is null", async () => {
+    answerRows(
+      [
+        doorRow("l-1", { tier: "lvl-a" }),
+        doorRow("l-2", { tier: "lvl-fourth" }),
+        doorRow("l-3", { tier: "" }),
+        doorRow("l-4", { tier: null }),
+      ],
+      4,
+    );
+    const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
+    expect(rows.map((r) => r.tier)).toEqual(["lvl-a", "lvl-fourth", null, null]);
+  });
+});
+
+/** DEC-422 — the queue's answer is read by a shape guard, and every failure of a reader is typed. */
+describe("the queue's reader failures", () => {
+  it("SF-12 an answer out of shape is a malformed ReaderError, never an empty queue", async () => {
+    for (const bad of [
+      null,
+      [],
+      "x",
+      {},
+      { total: 1 },
+      { total: "1", rows: [] },
+      { total: -1, rows: [] },
+      { total: 1.5, rows: [] },
+      { total: 1, rows: {} },
+      { total: 1, rows: [null] },
+      { total: 1, rows: [doorRow("l-1", { title: null })] },
+      { total: 1, rows: [doorRow("l-1", { price_amount: "abc" })] },
+    ]) {
+      expect(parseScreeningQueue(bad), JSON.stringify(bad)).toBeNull();
+      doors.calls.length = 0;
+      doors.answer = { data: bad, error: null };
+      await expect(listScreening(0, "", 25, { country: null, tier: null })).rejects.toMatchObject({
+        name: "ReaderError",
+        failure: { class: "malformed" },
+      });
     }
+  });
+
+  it("SF-13 a refusal or a failed read is a ReaderError whose class the one reader decides, on every reader of the file", async () => {
+    doors.answer = { data: null, error: { message: "permissionDenied" } };
+    const refused = await listScreening(0, "", 25, { country: null, tier: null }).catch(
+      (error: unknown) => error,
+    );
+    expect(refused).toBeInstanceOf(ReaderError);
+    expect(refused).toMatchObject({ failure: { class: "refused", message: "permissionDenied" } });
+    await expect(readScreeningRow("l-1")).rejects.toBeInstanceOf(ReaderError);
+    await expect(readScreeningFacts("l-1")).rejects.toBeInstanceOf(ReaderError);
+    doors.answer = { data: { country: null }, error: null };
+    await expect(readScreeningFacts("l-1")).rejects.toMatchObject({
+      failure: { class: "malformed" },
+    });
+    table.answer = { data: null, error: { message: "boom" } };
+    await expect(listScreeningPhotos("l-1")).rejects.toBeInstanceOf(ReaderError);
+    table.answer = { data: [], error: null };
   });
 });
 

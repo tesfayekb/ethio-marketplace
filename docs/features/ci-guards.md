@@ -1517,3 +1517,22 @@ is not. A reader that does not finish fails the guard. Planted:
 `scripts/fixtures/bad-datatable-minwidth-class-example.tsx.txt` (GW-2) and GW-4's two-class,
 `w-fit`, one-arm, name and sum cases (refused) beside a `min-w-40`, a `min-w-[12rem]` and a
 choice of two (passing), in `scripts/shell-guards.test.ts`.
+
+## The double cast is judged — CF-CAST (cursor-bundle-2, INC-1239)
+
+Rule 10 (TypeScript) bans `as unknown as`; until now it was read, not judged. The census is
+`scripts/conformance/type-casts.ts` (`typeCastCensus`, `doubleCastLines`, `castFiles`): it parses
+every `.ts`, `.tsx` and `.mts` file under `src/`, `e2e/` and `scripts/` (tests included) and finds
+the cast in the syntax tree — a `<x> as unknown as <T>` wrapped in parentheses or split over lines
+is a finding; the same words in a string, a comment or a single cast are not. Generated files are
+left out as a class: `src/integrations/supabase/**` and `routeTree.gen.ts`. The ratchet is
+`scripts/conformance/type-casts-allowlist.txt`, one line per file keyed `<file> (<count>)`, `key |
+reason | until` (INC-1239): a file that sheds a cast lowers its line (the old one goes stale and
+fails), a file that gains one is named, a new file starts at zero. CF-CAST-1 holds the tree to the
+list and names the files this bundle moved off it (the four specs and `use-screening.ts`); CF-CAST-2
+plants a wrapped, a split and a plain double cast beside a string, a comment, a single cast and a
+guard; CF-CAST-3 shows a stale, expired, malformed and duplicate line fail. It joined the allowlist
+reader's census (CF-KIT-7: it hands its census's keys). The census counts casts in the syntax tree,
+so its numbers can differ from `rg -n "as unknown as"` where the words sit in a comment or a string.
+`e2e/helpers/browser-client.ts` gained what the moved specs needed: `BrowserClient.from(table)
+.select(columns)` and `window.__ethioQueryClient` (`BrowserQuery`).

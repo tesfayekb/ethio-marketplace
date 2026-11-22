@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 import { en } from "../src/i18n/locales/en";
 import { gotoReady, signInJobSuperAdmin } from "./helpers/ui";
 import { inBrowserClient } from "./helpers/browser-client";
@@ -27,11 +28,8 @@ test("ACR-E1 staff history filters through the real door and renders its exact p
   if (answer.data.rows.length === 0)
     await expect(section.getByTestId("data-table-empty")).toBeVisible();
   // INC-987 — the choices live in the Filters panel (T2b).
-  await section.getByTestId("ai-calls-filters").click();
-  const panel = page.getByTestId("ai-calls-filters-panel");
-  await panel.getByTestId("ai-calls-feature-name_check").click();
-  await panel.getByTestId("ai-calls-outcome-timeout").click();
-  await page.keyboard.press("Escape");
+  await chooseFilter(page, "ai-calls-filters", "ai-calls-feature", "name_check");
+  await chooseFilter(page, "ai-calls-filters", "ai-calls-outcome", "timeout");
   await expect(section.getByTestId("ai-calls-chips-chip-outcome")).toBeVisible();
   const filtered = await inBrowserClient(page, (client) =>
     client.rpc<{ rows: { id: string; feature: string; outcome: string }[] }>(

@@ -8,7 +8,7 @@ import {
   sqlCodeOf,
   type Declaration,
 } from "../conformance/migration-reader";
-import { identityKey, normaliseType, parseArgument, splitTopLevel } from "./identity";
+import { argumentSpan, argumentsOf, identityKey, normaliseType, splitTopLevel } from "./identity";
 
 export { identityKey, normaliseType, parseArgument, splitTopLevel } from "./identity";
 
@@ -113,22 +113,8 @@ type Header = {
 };
 
 function parseHeader(header: string): Header {
-  const open = header.indexOf("(");
-  let depth = 0;
-  let close = open;
-  for (let at = open; at < header.length; at += 1) {
-    if (header[at] === "(") depth += 1;
-    else if (header[at] === ")") {
-      depth -= 1;
-      if (depth === 0) {
-        close = at;
-        break;
-      }
-    }
-  }
-  const args = splitTopLevel(header.slice(open + 1, close))
-    .map(parseArgument)
-    .filter((arg): arg is NonNullable<typeof arg> => arg !== null && arg.mode !== "out");
+  const { close } = argumentSpan(header);
+  const args = argumentsOf(header);
   const tail = header.slice(close + 1);
   const returnsMatch =
     /\bRETURNS\s+([\s\S]*?)(?=\s+(?:LANGUAGE|AS|STABLE|IMMUTABLE|VOLATILE|SECURITY|SET|STRICT|CALLED|RETURNS\s+NULL|PARALLEL|COST|ROWS|LEAKPROOF|NOT)\b|$)/i.exec(

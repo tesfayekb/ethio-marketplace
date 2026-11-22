@@ -99,17 +99,6 @@ export async function rowMenu(page: Page, code: string, item: string) {
   await page.getByTestId(`country-actions-${code}-more-${item}`).click();
 }
 
-/**
- * Bundle 11 B1 — a filter lives in the Filters panel: open it, choose, close it.
- * Bundle 11 V2 (INC-543) — a choice is a pill (`<testid>-<value>`, "" is `all`).
- */
-export async function chooseFilter(page: Page, testid: string, value: string) {
-  await page.getByTestId("country-filters").click();
-  await page.getByTestId(`${testid}-${value === "" ? "all" : value}`).click();
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("country-filters-panel")).toHaveCount(0);
-}
-
 /** A verb of the OPEN editor's bar — exactly one match per name (J5). */
 export function verb(page: Page, name: string): Locator {
   return page.getByTestId("country-verb-bar").getByTestId(`country-verb-${name}`);

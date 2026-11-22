@@ -1115,7 +1115,7 @@ The "Delete language" confirmation is drawn red (`destructive`), as every button
 - A phone shows one card per row: the key (or the content name) on top, the source under it, the translation as a fact, the status pills at the end of the facts, the provenance in the footer beside Edit.
 - The footer: the range, the page size (kept per browser: `ethio.admin.strings.pageSize`, `ethio.admin.data.pageSize`) and the pages.
 - Unchanged: the approve-all, AI and transfer bars, the editors, the history drawer.
-- Tests: TR-5 (the status through the panel, kept after a reload as a chip), TR-26 (the counts read on the panel's pills), TR-21 (the orphaned pill), and every editor test opens the editor by the row's Edit (`chooseFilter` in e2e/helpers/translations.ts).
+- Tests: TR-5 (the status through the panel, kept after a reload as a chip), TR-26 (the counts read on the panel's pills), TR-21 (the orphaned pill), and every editor test opens the editor by the row's Edit (`chooseFilter` in e2e/helpers/filters.ts).
 
 ## Answer options (DEC-233, bundle 22 turn 25)
 

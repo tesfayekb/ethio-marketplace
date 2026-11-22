@@ -1,5 +1,6 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { authErrorText } from "./global-setup";
@@ -42,20 +43,7 @@ async function describeUserDetail(page: Page): Promise<string> {
   let cache = "(query cache unavailable)";
   try {
     cache = await page.evaluate(() => {
-      type Q = {
-        queryKey: unknown[];
-        state: {
-          status: string;
-          error: unknown;
-          dataUpdatedAt: number;
-          data: unknown;
-        };
-      };
-      const client = (
-        window as unknown as {
-          __ethioQueryClient?: { getQueryCache: () => { getAll: () => Q[] } };
-        }
-      ).__ethioQueryClient;
+      const client = window.__ethioQueryClient;
       if (!client) return "(no __ethioQueryClient — not an E2E build?)";
       return client
         .getQueryCache()
@@ -187,9 +175,7 @@ test.describe("U1 admin users", () => {
     await expect(userRow(page, scratch.id)).toBeVisible({ timeout: 15000 });
 
     // Bundle 11 G2a (INC-543) — the status is a pill in the Filters panel.
-    await page.getByTestId("users-filters").click();
-    await page.getByTestId("users-status-filter-deactivated").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "users-filters", "users-status-filter", "deactivated");
     await expect(page.getByTestId("users-chips-chip-status")).toBeVisible();
     await expect(userRow(page, scratch.id)).toHaveCount(0);
   });

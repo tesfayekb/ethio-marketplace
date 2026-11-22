@@ -3,6 +3,7 @@ import { expect, type Page, type Response } from "@playwright/test";
 import { inBrowserClient } from "./browser-client";
 import { scratchSlug } from "./categories";
 import { likePrefix, SCRATCH_PREFIXES } from "./scratch";
+import type { PinPrecision } from "../../src/features/posting/map/pin";
 import { adminClient, leaseUser, type TestUser } from "./users";
 
 /**
@@ -1891,6 +1892,17 @@ export async function linkSpecToCategory(
     display_order: displayOrder,
   });
   if (error) throw new Error(`[e2e:inc248] linking the definition failed: ${error.message}`);
+}
+
+/**
+ * cursor-bundle-2 item 5 — CHOOSE HOW THE PIN SHOWS. The pin dropper's "Show on my ad" is a radio
+ * per precision (`post-pin-precision-<precision>`, `PIN_PRECISIONS` in
+ * src/features/posting/map/pin.ts); a spec that saves a NEW pin presses its choice before Save
+ * and never leans on the dialog's starting value (`NEW_PIN_PRECISION`), which is the product's
+ * to change. `"exact"` is the choice of a test that meant no choice.
+ */
+export async function choosePinShow(page: Page, precision: PinPrecision): Promise<void> {
+  await page.getByTestId(`post-pin-precision-${precision}`).click();
 }
 
 /**

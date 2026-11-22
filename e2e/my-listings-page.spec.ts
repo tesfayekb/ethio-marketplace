@@ -1,6 +1,7 @@
 import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 import { en } from "../src/i18n/locales/en";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -63,7 +64,7 @@ async function listingTruth(listingId: string) {
     .maybeSingle();
   if (error) throw new Error(`[e2e:mlp] listing read failed: ${error.message}`);
   if (!data) throw new Error(`[e2e:mlp] listing ${listingId} not found`);
-  return data as unknown as Row;
+  return { ...data };
 }
 
 type Counts = Record<"live" | "review" | "attention" | "closed" | "sold" | "drafts", number>;
@@ -525,11 +526,11 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     expect(sorted(ids(spaced))).toEqual(sorted([X1, X2]));
     expect(spaced.counts).toEqual({ ...zero, live: 2, sold: 1 });
 
-    const first = await ask(a, { p_category: sellerA.parentId });
+    const first = await ask(a, { p_category: [sellerA.parentId] });
     expect(sorted(ids(first))).toEqual(sorted([X1, X2]));
     expect(first.counts.live).toBe(2);
     expect(first.counts.sold).toBe(1);
-    const other = await ask(a, { p_category: second.parent.id as string });
+    const other = await ask(a, { p_category: [second.parent.id as string] });
     expect(ids(other)).toEqual([X3]);
     expect(other.counts.live).toBe(1);
     expect(other.counts.sold).toBe(0);
@@ -542,7 +543,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
 
     const together = await ask(a, {
       p_search: "phone",
-      p_category: sellerA.parentId,
+      p_category: [sellerA.parentId],
       p_mark: "reserved",
     });
     expect(ids(together)).toEqual([X2]);
@@ -574,6 +575,52 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       p_mark: "gone",
     });
     expect(gone.error).toBe("badValue:mark");
+  });
+
+  test("MLP-10 my_listings: a list of categories is OR-ed, each with its subtree; more than twenty values are refused (DEC-420, DEC-423)", async () => {
+    const sellerA = await scratchSeller();
+    const second = await seedCategoryBranch();
+    branches.push([second.parent.slug as string, second.leaf.slug as string]);
+    const onSecond = { ...sellerA, leafId: second.leaf.id as string };
+    const a = await asPerson(sellerA);
+    const X1 = await seed(sellerA, "active", { title: "Red phone" });
+    const X3 = await seed(onSecond, "active", { title: "Blue chair" });
+
+    const ask = async (args: Record<string, unknown>) =>
+      a.rpc("my_listings", { p_group: "live", p_limit: 50, p_offset: 0, ...args });
+    const idsOf = (call: { data: unknown }) =>
+      ((call.data as { rows: Array<{ id: string }> }).rows ?? []).map((row) => row.id).sort();
+
+    // Two categories OR-ed: each parent brings the ad that sits under it.
+    const both = await ask({ p_category: [sellerA.parentId, second.parent.id as string] });
+    expect(both.error, "[e2e:mlp] two categories").toBeNull();
+    expect(idsOf(both)).toEqual([X1, X3].sort());
+    // An empty list filters nothing.
+    const none = await ask({ p_category: [] });
+    expect(none.error, "[e2e:mlp] an empty list").toBeNull();
+    expect(idsOf(none)).toEqual([X1, X3].sort());
+    // Twenty-one values, counted as sent, are refused before any row is read.
+    const many = await ask({ p_category: Array.from({ length: 21 }, () => sellerA.parentId) });
+    expect(many.error).toBe("badValue:category");
+  });
+
+  test("MLP-11 my_listings: a list naming a category that holds another seller's ad returns none of that seller's ads (DEC-420)", async () => {
+    const sellerA = await scratchSeller();
+    const sellerB = await scratchSeller();
+    const B1 = await seed(sellerB, "active", { title: "Blue chair" });
+    const a = await asPerson(sellerA);
+
+    const result = await a.rpc("my_listings", {
+      p_group: "live",
+      p_limit: 50,
+      p_offset: 0,
+      p_category: [sellerB.parentId, sellerB.leafId],
+    });
+    expect(result.error, "[e2e:mlp] a list naming B's category").toBeNull();
+    const answer = result.data as { rows: Array<{ id: string }>; counts: Record<string, number> };
+    expect(answer.rows.map((row) => row.id)).not.toContain(B1);
+    expect(answer.rows).toEqual([]);
+    expect(answer.counts.live).toBe(0);
   });
 
   test("MLP-6 My listings on the table blocks: the header, the search, Filters with chips, Columns and each row's actions (D181)", async ({
@@ -664,12 +711,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     });
     expect((await listingTruth(X))["reserved_at"], "[e2e:mlp] X reserved").not.toBeNull();
 
-    await page.getByTestId("my-listings-filters").click();
-    await page
-      .getByTestId("my-listings-filters-panel")
-      .getByTestId("my-listings-filter-mark-reserved")
-      .click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "my-listings-filters", "my-listings-filter-mark", "reserved");
     await expect(page.getByTestId("my-listings-chips-chip-mark")).toContainText(
       en["myListings.reserved"],
       { timeout: 15000 },
@@ -819,9 +861,9 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     if (truth.error || !truth.data) {
       throw new Error(`[e2e:mlp] X truth failed: ${truth.error?.message ?? "no row"}`);
     }
-    const publicId = (truth.data as unknown as Row)["public_id"];
+    const publicId = truth.data.public_id;
     expect(typeof publicId, "[e2e:mlp] X carries its public id").toBe("string");
-    expect((truth.data as unknown as Row)["status"], "[e2e:mlp] X live").toBe("active");
+    expect(truth.data.status, "[e2e:mlp] X live").toBe("active");
 
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, "/my-listings");

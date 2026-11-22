@@ -33,17 +33,21 @@ title/body moved to `admin.section.places.*`.
 
 The find group carries four filters and the page-size
 control. **One read per country** (L2a-R): `admin_list_locations` is called with
-`p_country_code` alone, and search, level and status sieve that roster in the
-browser. Switching the country is the only control that fetches — a keystroke
+`p_country_code` alone — a list (DEC-420): one market is a list of one, and All countries sends no
+argument (PL-6) — and search, level and status sieve that roster in the
+browser. The door's list is proven from the browser's side by LT-17 (two markets OR-ed, none or an
+empty list filters nothing, twenty-one values or a three-letter code refused as `badValue:country`),
+LT-18 (no `locations:view` is refused before any list is read) and LT-19 (a grant naming one country
+lists that country's places only, whatever list is asked). Switching the country is the only control that fetches — a keystroke
 costs no request on an expensive-data device.
 
-| Control                      | Test id                   | Effect                                         |
-| ---------------------------- | ------------------------- | ---------------------------------------------- |
-| Country                      | `location-country-filter` | `p_country_code` — the one door argument       |
-| Search (name · slug · alias) | `location-search`         | client sieve, deferred while typing            |
-| Level                        | `location-level-filter`   | client sieve                                   |
-| Active / retired             | `location-active-filter`  | client sieve                                   |
-| Rows per page                | `location-page-size`      | client only (`ethio.admin.locations.pageSize`) |
+| Control                      | Test id                   | Effect                                          |
+| ---------------------------- | ------------------------- | ----------------------------------------------- |
+| Country                      | `location-country-filter` | `p_country_code` — the one door argument (list) |
+| Search (name · slug · alias) | `location-search`         | client sieve, deferred while typing             |
+| Level                        | `location-level-filter`   | client sieve                                    |
+| Active / retired             | `location-active-filter`  | client sieve                                    |
+| Rows per page                | `location-page-size`      | client only (`ethio.admin.locations.pageSize`)  |
 
 The picker's FIRST option is **All countries** (value `""`) and it is the
 DEFAULT: the door reads every market on a NULL scope (L2b-M), so the roster opens

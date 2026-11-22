@@ -85,7 +85,7 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   `admin_upsert_language`, were restored by its first file, DEC-392). No allowance. `row-column-unknown`
   (F1-3): a line's `row:<table.column>` cell names a column the migrations declare —
   `columns.ts` reads every `CREATE TABLE` column list, `ADD COLUMN` and `RENAME COLUMN … TO`,
-  comments and `DO` blocks blanked; both modes judge it, with no allowance. `open-rule-undeclared`,
+  comments and `DO` blocks blanked; both modes judge it, with no allowance. `filter-off-helper` (cursor-bundle-2, DEC-423; `check-doors.test.ts` DOORS-18): a browser-callable function whose last declaration holds a country, a category or a scope argument that its body does not read through the list rule — `door_filter_countries(text[], text)` and `door_filter_categories(uuid[], text)`, closed to browsers, which answer the filter (NULL or an empty list is no filter, a list that matches nothing answers a list no row carries, more than 20 values, a NULL element or a non-two-letter country is `badValue:<field>`, a category list brings each root's subtree) — fires; an argument that is no list filter (a value the door writes, a download's scope) stands on an allowlist line `key | reason | until`. Self-test: eighteen finding kinds. `open-rule-undeclared`,
   `open-rule-gone`, `open-rule-computed` and `open-rule-grants` (cursor-bundle-1 item 6, INC-1166's
   second half; `open-rules.ts`, DOORS-16 and DOORS-17): every standing policy whose text holds
   `USING (true)` or `WITH CHECK (true)` is a line of `scripts/doors/open-rules.txt` (`table policy |

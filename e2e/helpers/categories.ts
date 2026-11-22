@@ -225,14 +225,6 @@ export async function rowMenu(page: Page, slug: string, item: string) {
   await page.getByTestId(`category-actions-${slug}-more-${item}`).click();
 }
 
-/** Bundle 11 B2 — Missing assets lives in the Filters panel: open it, press it, close it. */
-export async function toggleMissingAssets(page: Page) {
-  await page.getByTestId("category-filters").click();
-  await page.getByTestId("category-missing-filter").click();
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("category-filters-panel")).toHaveCount(0);
-}
-
 /** Opens a row's editor — the single door to every non-edit verb. */
 export async function openEditor(page: Page, slug: string) {
   await action(page, slug, "edit").click();

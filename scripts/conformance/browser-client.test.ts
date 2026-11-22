@@ -68,6 +68,8 @@ describe("a test reaches the browser's client one way (INC-959)", () => {
         "e2e/helpers/ui.ts",
         "e2e/helpers/posting.ts",
         "e2e/admin-users.spec.ts",
+        "e2e/admin-categories-console.spec.ts",
+        "e2e/post-wizard-bundle2.spec.ts",
         "e2e/admin-translations-data.spec.ts",
         "e2e/admin-translations-console.spec.ts",
         "e2e/auth-signout.spec.ts",

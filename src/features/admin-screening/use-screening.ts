@@ -13,17 +13,19 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { tierOf } from "@/components/marketplace/card-tier";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
-import { ReaderError } from "@/lib/reader-failure";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { SHARED_REFUSAL_WORDS } from "@/features/admin-listings/listing-refusals";
 
 /**
  * Bundle 10 E3a — THE SCREENING QUEUE READ (D109).
  *
- * Read with the signed-in session: RLS `listings_admin_read` and
- * `listing_photos_admin_read` (both `listings:view`) decide what comes back
- * (F3). Oldest first by updated_at, then id; one page of the server's own range;
- * the title search runs in the query so a row is found whatever page it sits on.
+ * DEC-422 (ACT-022) — the queue is read through its own staff door,
+ * `admin_screening_queue` (listings:review, the caller's country reach): it
+ * answers `{ total, rows }`, oldest change first by updated_at then id, one page
+ * of the server's own offset; the title search (or an ad's id) and the filters
+ * run in the door, so a row is found whatever page it sits on. The photos' read
+ * is `listing_photos_admin_read` (listings:view, RLS, F3).
  */
 export const ADMIN_SCREENING_KEY = [AUTH_DERIVED_ROOT, "admin", "screening"] as const;
 export const SCREENING_PAGE_SIZE = 25;
@@ -35,12 +37,17 @@ export interface ScreeningFilters {
   /**
    * The market of the ad's place (`locations.country_code`, the market
    * admin_screening_facts reports). A3, INC-537 — never `home_country_code`:
-   * that column is outside the signed-in role's grant on listings, so a filter
-   * on it is refused and every filtered read failed.
+   * the door reads the ad's place for this filter and the ad's home country
+   * for the caller's reach. The door takes a list; one market is a list of one.
    */
   country: string | null;
   /** P-1 W4 — the ad's tier (`listings.tier`, the listings table's own filter). */
   tier: string | null;
+  /**
+   * DEC-422 — the seller, by public name or business name (and by e-mail for a
+   * holder of profiles:view); the door's `p_seller`. Left out, the filter is off.
+   */
+  seller?: string;
 }
 
 /** The toolbar with no filter set. */
@@ -72,87 +79,144 @@ export interface ScreeningRow {
   updatedAt: string;
   category: Named;
   place: Named;
+  /** DEC-422 — the seller as the queue's door names them: the public name, the business name and, for a holder of profiles:view only, the e-mail (null otherwise). */
+  sellerAlias: string | null;
+  sellerBusinessName: string | null;
+  sellerEmail: string | null;
 }
 
-/** LIKE wildcards in the reviewer's words are matched as themselves. */
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, (char) => `\\${char}`);
+type DoorRow = Record<string, unknown>;
+
+/** A plain JSON object (never null, never an array) — the one shape guard of this file's answers. */
+function isDoorRow(value: unknown): value is DoorRow {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-/** The queue's columns: the ad's public row with its category and its place embedded. */
-const SCREENING_SELECT =
-  "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,tier,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am,country_code)";
+const textOrNull = (value: unknown): string | null => (typeof value === "string" ? value : null);
 
-type ScreeningSelected = {
-  id: string;
-  title: string;
-  description: string;
-  category_id: string;
-  location_id: string | null;
-  price_mode: string;
-  price_amount: number | string | null;
-  price_currency: string | null;
-  price_period: string | null;
-  price_bp: number | null;
-  price_negotiable: boolean;
-  price_unit: string | null;
-  price_unit_text: string | null;
-  attributes: unknown;
-  photos_soon: boolean;
-  tier: unknown;
-  updated_at: string;
-  category: unknown;
-  place: unknown;
-};
+/** A number the door sent as a JSON number or as numeric text; anything else is not a number. */
+function numberOrNull(value: unknown): number | null {
+  const n = typeof value === "string" && value !== "" ? Number(value) : value;
+  return typeof n === "number" && Number.isFinite(n) ? n : null;
+}
 
-/** One selected row as the page reads it (shared by the queue and the one-row read). */
-function screeningRowOf(row: ScreeningSelected): ScreeningRow {
+/** A category's or a place's names as the row's flat keys carry them; null when the row names none. */
+function namedOf(en: unknown, am: unknown): Named {
+  return typeof en === "string" ? { name_en: en, name_am: textOrNull(am) } : null;
+}
+
+/**
+ * One row of the door's answer as the page reads it (the queue and the one-row
+ * read share it), or null when the row is out of shape — a row the page cannot
+ * draw is a malformed answer, never a row with invented values (F4).
+ */
+export function parseScreeningRow(value: unknown): ScreeningRow | null {
+  if (!isDoorRow(value)) return null;
+  const row = value;
+  if (
+    typeof row["id"] !== "string" ||
+    typeof row["title"] !== "string" ||
+    typeof row["description"] !== "string" ||
+    typeof row["category_id"] !== "string" ||
+    typeof row["price_mode"] !== "string" ||
+    typeof row["price_negotiable"] !== "boolean" ||
+    typeof row["photos_soon"] !== "boolean" ||
+    typeof row["updated_at"] !== "string"
+  ) {
+    return null;
+  }
+  const amount = row["price_amount"];
+  if (amount !== null && numberOrNull(amount) === null) return null;
   return {
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    categoryId: row.category_id,
-    locationId: row.location_id,
-    countryCode:
-      row.place !== null &&
-      typeof (row.place as { country_code?: unknown }).country_code === "string"
-        ? ((row.place as { country_code: string }).country_code ?? null)
-        : null,
-    priceMode: row.price_mode,
-    priceAmount: row.price_amount === null ? null : Number(row.price_amount),
-    priceCurrency: row.price_currency,
-    pricePeriod: row.price_period,
-    priceBp: typeof row.price_bp === "number" ? row.price_bp : null,
-    priceNegotiable: row.price_negotiable,
-    priceUnit: row.price_unit,
-    priceUnitText: row.price_unit_text,
-    attributes:
-      row.attributes !== null && typeof row.attributes === "object"
-        ? (row.attributes as Record<string, unknown>)
-        : {},
-    photosSoon: row.photos_soon,
-    tier: tierOf(row.tier),
-    updatedAt: row.updated_at,
-    category: (row.category as Named) ?? null,
-    place: (row.place as Named) ?? null,
+    id: row["id"],
+    title: row["title"],
+    description: row["description"],
+    categoryId: row["category_id"],
+    locationId: textOrNull(row["location_id"]),
+    countryCode: textOrNull(row["country_code"]),
+    priceMode: row["price_mode"],
+    priceAmount: numberOrNull(amount),
+    priceCurrency: textOrNull(row["price_currency"]),
+    pricePeriod: textOrNull(row["price_period"]),
+    priceBp: typeof row["price_bp"] === "number" ? row["price_bp"] : null,
+    priceNegotiable: row["price_negotiable"],
+    priceUnit: textOrNull(row["price_unit"]),
+    priceUnitText: textOrNull(row["price_unit_text"]),
+    attributes: isDoorRow(row["attributes"]) ? row["attributes"] : {},
+    photosSoon: row["photos_soon"],
+    tier: tierOf(row["tier"]),
+    updatedAt: row["updated_at"],
+    category: namedOf(row["category_name_en"], row["category_name_am"]),
+    place: namedOf(row["place_name_en"], row["place_name_am"]),
+    sellerAlias: textOrNull(row["seller_alias"]),
+    sellerBusinessName: textOrNull(row["seller_business_name"]),
+    sellerEmail: textOrNull(row["seller_email"]),
   };
+}
+
+/**
+ * The door's answer `{ total, rows }`, or null when it is out of shape: a
+ * total that is not a whole number, rows that are not a list, or one row the
+ * page cannot draw.
+ */
+export function parseScreeningQueue(
+  value: unknown,
+): { rows: ScreeningRow[]; total: number } | null {
+  if (!isDoorRow(value)) return null;
+  const total = value["total"];
+  const raw = value["rows"];
+  if (typeof total !== "number" || !Number.isInteger(total) || total < 0) return null;
+  if (!Array.isArray(raw)) return null;
+  const rows: ScreeningRow[] = [];
+  for (const item of raw) {
+    const row = parseScreeningRow(item);
+    if (row === null) return null;
+    rows.push(row);
+  }
+  return { rows, total };
+}
+
+/** The door's arguments for a page: only what is asked is sent, the market as a list of one (DEC-420). */
+export function screeningQueueArgs(
+  page: number,
+  search: string,
+  pageSize: number,
+  filters: ScreeningFilters,
+) {
+  const term = search.trim();
+  const seller = (filters.seller ?? "").trim();
+  return {
+    ...(term === "" ? {} : { p_search: term }),
+    ...(filters.country === null ? {} : { p_country: [filters.country] }),
+    ...(filters.tier === null ? {} : { p_tier: filters.tier }),
+    ...(seller === "" ? {} : { p_seller: seller }),
+    p_limit: pageSize,
+    p_offset: page * pageSize,
+  };
+}
+
+/** One page of the queue through its door; a typed failure on a refusal or an answer out of shape (F4). */
+async function readQueue(args: ReturnType<typeof screeningQueueArgs>) {
+  const { data, error } = await supabase.rpc("admin_screening_queue", args);
+  if (error) throw new ReaderError(readerFailure(error));
+  const answer = parseScreeningQueue(data);
+  if (answer === null) {
+    throw new ReaderError({ class: "malformed", message: "admin_screening_queue malformed" });
+  }
+  return answer;
 }
 
 /**
  * Bundle 17 turn 2 (D194) — one ad of the queue by its id, for the preview that
  * re-opens when the reviewer comes back from the ad's Edit (`?open=<id>`): read
- * fresh, so the preview shows the ad as the edit left it. Null when the ad is
- * no longer in screening (decided, or moved on meanwhile).
+ * fresh, so the preview shows the ad as the edit left it. The door matches a
+ * search term shaped like an id against the ad's id. Null when the ad is no
+ * longer in screening (decided, or moved on meanwhile) or is outside the
+ * caller's reach.
  */
 export async function readScreeningRow(listingId: string): Promise<ScreeningRow | null> {
-  const { data, error } = await supabase
-    .from("listings")
-    .select(SCREENING_SELECT)
-    .eq("status", "screening")
-    .eq("id", listingId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return data === null ? null : screeningRowOf(data as unknown as ScreeningSelected);
+  const { rows } = await readQueue({ p_search: listingId, p_limit: 1, p_offset: 0 });
+  return rows.find((row) => row.id === listingId) ?? null;
 }
 
 export async function listScreening(
@@ -161,29 +225,7 @@ export async function listScreening(
   pageSize: number = SCREENING_PAGE_SIZE,
   filters: ScreeningFilters = NO_SCREENING_FILTERS,
 ): Promise<{ rows: ScreeningRow[]; total: number }> {
-  const from = page * pageSize;
-  let query = supabase
-    .from("listings")
-    .select(SCREENING_SELECT, { count: "exact" })
-    .eq("status", "screening");
-  const term = search.trim();
-  if (term !== "") query = query.ilike("title", `%${escapeLike(term)}%`);
-  // INC-537 — through the embedded place; `place=not.is.null` keeps only the
-  // ads whose place is in the market (the place's columns are granted).
-  if (filters.country !== null) {
-    query = query.eq("place.country_code", filters.country).not("place", "is", null);
-  }
-  // P-1 W4 — the tier filter the listings table has (`p_tier` there, the column here).
-  if (filters.tier !== null) query = query.eq("tier", filters.tier);
-  const { data, error, count } = await query
-    .order("updated_at", { ascending: true })
-    .order("id", { ascending: true })
-    .range(from, from + pageSize - 1);
-  // F4 — a failed read is an error, never an empty queue.
-  if (error) throw new Error(error.message);
-  if (!data || count === null) throw new Error("screening read returned no data");
-  const rows = data.map((row) => screeningRowOf(row as unknown as ScreeningSelected));
-  return { rows, total: count };
+  return readQueue(screeningQueueArgs(page, search, pageSize, filters));
 }
 
 export function useScreeningQueue(
@@ -201,6 +243,7 @@ export function useScreeningQueue(
       pageSize,
       filters.country,
       filters.tier,
+      filters.seller ?? null,
     ],
     queryFn: () => listScreening(page, search, pageSize, filters),
     placeholderData: keepPreviousData,
@@ -214,7 +257,7 @@ export async function listScreeningPhotos(listingId: string): Promise<DraftPhoto
     .select(PHOTO_ROW_SELECT)
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
-  if (error) throw new Error(error.message);
+  if (error) throw new ReaderError(readerFailure(error));
   return (data ?? []).map((row) => ({
     id: row.id,
     displayOrder: row.display_order,
@@ -307,9 +350,11 @@ export async function readScreeningFacts(listingId: string): Promise<ScreeningFa
   const { data, error } = await supabase.rpc("admin_screening_facts", {
     p_listing_id: listingId,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw new ReaderError(readerFailure(error));
   const facts = parseScreeningFacts(data);
-  if (facts === null) throw new Error("screening facts returned no data");
+  if (facts === null) {
+    throw new ReaderError({ class: "malformed", message: "admin_screening_facts malformed" });
+  }
   return facts;
 }
 

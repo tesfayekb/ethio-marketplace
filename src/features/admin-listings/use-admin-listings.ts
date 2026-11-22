@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134) — All listings' read, through
@@ -68,8 +69,9 @@ export async function listAdminListings(
   const { data, error } = await supabase.rpc("admin_list_listings", {
     p_view: filters.view,
     ...(filters.search.trim() === "" ? {} : { p_search: filters.search.trim() }),
-    ...(filters.country === null ? {} : { p_country: filters.country }),
-    ...(filters.category === null ? {} : { p_category: filters.category }),
+    // DEC-420 — the door's country and category filters are lists; the screen's one value is a list of one.
+    ...(filters.country === null ? {} : { p_country: [filters.country] }),
+    ...(filters.category === null ? {} : { p_category: [filters.category] }),
     ...(filters.seller.trim() === "" ? {} : { p_seller: filters.seller.trim() }),
     ...(filters.from === "" ? {} : { p_from: filters.from }),
     ...(filters.to === "" ? {} : { p_to: filters.to }),
@@ -77,8 +79,8 @@ export async function listAdminListings(
     p_limit: filters.limit,
     p_offset: filters.offset,
   });
-  // F4 — a failed read is an error, never an empty table.
-  if (error) throw new Error(error.message);
+  // F4 — a failed read is a typed failure, never an empty table (INC-847).
+  if (error) throw new ReaderError(readerFailure(error));
   const raw = (data ?? []) as Array<Record<string, unknown>>;
   const rows = raw.map((row) => ({
     id: String(row["id"]),

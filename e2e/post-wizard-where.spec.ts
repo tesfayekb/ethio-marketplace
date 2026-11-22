@@ -13,6 +13,7 @@ import { updateListingRow } from "./helpers/listing-seed";
 import {
   leaseSeller,
   bearerOf,
+  choosePinShow,
   completeDraft,
   coverageOf,
   destroyListingsOf,
@@ -654,6 +655,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       page.getByTestId("post-pin-save"),
       "PW-92: Save location is below the fold",
     ).toBeInViewport();
+    await choosePinShow(page, "exact");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-pin-sheet")).toHaveCount(0);
@@ -885,6 +887,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     ).toBeVisible();
     await map.click({ position: { x: 120, y: 90 } });
     await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
+    await choosePinShow(page, "exact");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     await expect(
@@ -920,6 +923,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     // Part H2 — the pin map's credit, read while it is open.
     const pinCredit = ((await page.getByTestId("post-pin-credit").textContent()) ?? "").trim();
     expect(pinCredit, "PW-96: the pin map printed no credit").not.toBe("");
+    await choosePinShow(page, "exact");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await pinOf(listingId)).zoom, { timeout: 10_000 }).toBe(left);

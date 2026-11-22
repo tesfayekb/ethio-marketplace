@@ -5,10 +5,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { GRANT_DROPPED_FLOOR, catalogueOf } from "./catalogue";
+import { GRANT_DROPPED_FLOOR, catalogueOf, splitTopLevel } from "./catalogue";
 import {
   PLANTED_COMPUTED_FILE,
   PLANTED_HELPER_LINE,
+  PLANTED_LIST_LINE,
+  PLANTED_LIST_OFF,
+  PLANTED_LIST_THROUGH,
   PLANTED_LIVE_COLUMN_GRANTS,
   PLANTED_LIVE_GRANTS,
   PLANTED_OPEN_FILES,
@@ -23,6 +26,7 @@ import {
   plantedCases,
   plantedDropHistory,
   plantedGrant,
+  plantedListBody,
   plantedOpenRules,
   plantedReaders,
   selfTest,
@@ -49,7 +53,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
- * the seventeen finding kinds each fire on their planted bypass and a clean pair
+ * the eighteen finding kinds each fire on their planted bypass and a clean pair
  * fires nothing (DOORS-1); the manifest's grammar refuses what it must
  * (DOORS-2); the live reader answers the same rows the judge reads and refuses
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
@@ -65,7 +69,9 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  * a reader off the gate is a public reader whose `public-data` holds through every body it names
  * (DOORS-12, F1-7a); a helper's `policy` reason names standing policies that call it (DOORS-13,
  * F1-7a, INC-1212); a dynamic grant on a proof's pg_temp copy is no public grant (DOORS-14, F1-7a);
- * a body on the gate keeps the shell exactly when it spends a dial (DOORS-15, F1-7c ruling 1).
+ * a body on the gate keeps the shell exactly when it spends a dial (DOORS-15, F1-7c ruling 1); a
+ * country, category or scope argument is read through the list rule or stands on an allowlist line
+ * (DOORS-18, cursor-bundle-2, DEC-423).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -86,6 +92,19 @@ function catalogueDrop(stamp: string, sql: string) {
     },
     { file: `supabase/migrations/${stamp}_planted.sql`, sql },
   ]).dropped;
+}
+
+/**
+ * A row as the live catalogue's one-line definition prints it: the header with its argument names and types
+ * (what the live reader reads the names from), then the body.
+ */
+function liveDefinitionOf(row: DoorRow): string {
+  const types = splitTopLevel(row.key.slice(row.key.indexOf("(") + 1, -1));
+  const args = types
+    .map((type, at) => `${row.argNames?.[at] ? `${row.argNames[at]} ` : ""}${type}`)
+    .join(", ");
+  const body = row.body.replace(/[\t\r\n]+/g, " ");
+  return `CREATE OR REPLACE FUNCTION public.${row.name}(${args}) RETURNS void AS $function$ ${body} $function$`;
 }
 
 describe("check-doors (CF-DOORS)", () => {
@@ -180,7 +199,7 @@ describe("check-doors (CF-DOORS)", () => {
             row.anon ? "t" : "f",
             row.authenticated ? "t" : "f",
             row.trigger ? "t" : "f",
-            row.body.replace(/[\t\r\n]+/g, " "),
+            liveDefinitionOf(row),
           ].join("\t"),
         )
         .join("\n");
@@ -727,6 +746,127 @@ describe("check-doors (CF-DOORS)", () => {
         (finding) => finding.kind,
       ),
     ).toEqual(["open-rule-grants"]);
+  });
+
+  it("DOORS-18 a country, category or scope argument is read through the list rule or stands on an allowlist line: a body that compares the argument itself fires filter-off-helper (cursor-bundle-2, DEC-423)", () => {
+    const key = "e2e_planted_list(text[])";
+    const fired = (argNames: string[] | undefined, body: string) =>
+      judge(
+        [
+          {
+            key,
+            name: "e2e_planted_list",
+            body,
+            volatility: "v",
+            definer: true,
+            anon: false,
+            authenticated: true,
+            trigger: false,
+            argNames,
+            where: "planted",
+          },
+        ],
+        parseManifest(PLANTED_LIST_LINE),
+      )
+        .filter((finding) => finding.kind === "filter-off-helper")
+        .map((finding) => finding.what);
+    const through = plantedListBody(PLANTED_LIST_THROUGH);
+    const off = plantedListBody(PLANTED_LIST_OFF);
+    // The planted bypass compares the argument itself: one finding, naming the argument and its kind.
+    expect(fired(["p_country"], off)).toEqual([
+      "p_country (country) not read through the list rule (door_filter_countries / door_filter_categories)",
+    ]);
+    // Read through its helper: clean, whatever else the body holds.
+    expect(fired(["p_country"], through)).toEqual([]);
+    // The helper takes the argument itself: a list built around it is a local form, not the rule.
+    expect(
+      fired(
+        ["p_country"],
+        plantedListBody("v_codes := public.door_filter_countries(ARRAY[p_country], 'country');"),
+      ),
+    ).toHaveLength(1);
+    // A category is read through the category helper, never the country one.
+    const category = plantedListBody(
+      "v_ids := public.door_filter_categories(p_category, 'category');",
+    );
+    expect(fired(["p_category"], category)).toEqual([]);
+    expect(fired(["p_category"], through)).toHaveLength(1);
+    // Two arguments, one off: each named once, in order.
+    expect(
+      fired(["p_country", "p_category_id"], through).map((what) => what.split(" not read")[0]),
+    ).toEqual(["p_category_id (category)"]);
+    // A scope names a country or a category and has no helper: it always stands on a line.
+    expect(fired(["p_scope"], through)).toHaveLength(1);
+    // Arguments that filter by neither, and a row that names no arguments, are not judged.
+    expect(fired(["p_tier", "p_limit", "p_offset", "p_seller"], off)).toEqual([]);
+    expect(fired(undefined, off)).toEqual([]);
+    // An allowance names the function, with a reason and an until (kit grammar; stale lines fail).
+    const dir = mkdtempSync(join(tmpdir(), "doors-18-"));
+    try {
+      const list = join(dir, "allowlist.txt");
+      const finding = judge(
+        [
+          {
+            key,
+            name: "e2e_planted_list",
+            body: off,
+            volatility: "v",
+            definer: true,
+            anon: false,
+            authenticated: true,
+            trigger: false,
+            argNames: ["p_country"],
+            where: "planted",
+          },
+        ],
+        parseManifest(PLANTED_LIST_LINE),
+      );
+      writeFileSync(
+        list,
+        `filter-off-helper ${key} | planted: a value the door writes | 2099-01-01\n`,
+      );
+      expect(allow(finding, list)).toEqual([]);
+      writeFileSync(list, `filter-off-helper e2e_planted_gone(text) | planted | 2099-01-01\n`);
+      expect(() => allow(finding, list)).toThrow(/stale allowance/);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    // The live catalogue's one-line definition gives the same argument names as the migrations' declaration.
+    const definition =
+      "CREATE OR REPLACE FUNCTION public.e2e_planted_list(p_country text[] DEFAULT NULL::text[], p_note text DEFAULT 'a, b'::text, OUT p_out integer) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN RETURN '{}'::jsonb; END $function$";
+    const [live] = liveRows(`e2e_planted_list(text[],text)\tv\tt\tf\tt\tf\t${definition}\n`);
+    expect(live?.argNames).toEqual(["p_country", "p_note"]);
+    const declared = catalogueOf([
+      {
+        file: "supabase/migrations/20260101000000_planted.sql",
+        sql: `CREATE FUNCTION public.e2e_planted_list(p_country text[] DEFAULT NULL, p_note text DEFAULT 'a, b') RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN RETURN '{}'::jsonb; END $function$;\n`,
+      },
+    ]);
+    expect(declared.functions.get("e2e_planted_list(text[],text)")?.argNames).toEqual([
+      "p_country",
+      "p_note",
+    ]);
+    // The list rule's one refusal is badValue: a door that calls it needs no literal door_refuse of its own.
+    const noLiteral = plantedListBody(PLANTED_LIST_THROUGH);
+    expect(
+      judge(
+        [
+          {
+            key,
+            name: "e2e_planted_list",
+            body: noLiteral,
+            volatility: "v",
+            definer: true,
+            anon: false,
+            authenticated: true,
+            trigger: false,
+            argNames: ["p_country"],
+            where: "planted",
+          },
+        ],
+        parseManifest(PLANTED_LIST_LINE.replace("| badValue |", "| - |")),
+      ).map((finding) => finding.kind),
+    ).toEqual(["class-mismatch"]);
   });
 
   it(

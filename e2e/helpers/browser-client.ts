@@ -30,6 +30,10 @@ export interface BrowserClient {
     fn: string,
     args?: Record<string, unknown>,
   ): Promise<{ data: T | null; error: BrowserClientError | null }>;
+  /** A table read as the signed-in person: the rows, or the refusal. */
+  from(table: string): {
+    select(columns: string): Promise<{ data: unknown; error: BrowserClientError | null }>;
+  };
   auth: {
     getSession(): Promise<{
       data: { session: { access_token: string; user: { id: string } } | null };
@@ -50,10 +54,18 @@ export interface BrowserClient {
   };
 }
 
+/** One entry of the page's query cache, as the E2E instrument shows it (a failure dump reads it). */
+export interface BrowserQuery {
+  queryKey: unknown[];
+  state: { status: string; error: unknown; dataUpdatedAt: number; data: unknown };
+}
+
 declare global {
   interface Window {
     /** The app's client, handed to the page by its E2E hook (src/components/app-shell.tsx). */
     __ethioSupabase?: BrowserClient;
+    /** The page's query cache, handed over by the same hook (VITE_E2E-gated). */
+    __ethioQueryClient?: { getQueryCache(): { getAll(): BrowserQuery[] } };
   }
 }
 

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
@@ -12,14 +13,15 @@ import {
   signInJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, grantScratchRole, leaseUser } from "./helpers/users";
+import { asPerson } from "./helpers/door-callers";
+import { destroyCountry } from "./helpers/countries";
 import { expectActionsInsideCell } from "./helpers/row-actions";
 import { geometryDump, grantRole, nameFoldPresent, scratchFoldWord } from "./helpers/categories";
 import {
   actionsOf,
   activeRosterSpan,
   anchorOf,
-  chooseFilter,
   deleteButton,
   destroyLocation,
   editButton,
@@ -34,6 +36,7 @@ import {
   rowMenu,
   regionUnder,
   scratchSlug,
+  seedSingleOptionMarket,
   treeSlugs,
   treeVersion,
   openVerb,
@@ -232,7 +235,7 @@ test.describe("L2a locations console", () => {
 
       // The level filter scopes to regions: the scratch city drops out.
       await page.getByTestId("location-search").fill("");
-      await chooseFilter(page, "location-level-filter", "region");
+      await chooseFilter(page, "location-filters", "location-level-filter", "region");
       await expect(locationRow(page, `${ANCHOR}/${region.slug}/${slug}`)).toHaveCount(0);
       await expect(page.getByTestId("location-chips-chip-level")).toBeVisible();
       await expectNoHorizontalOverflow(page);
@@ -1011,8 +1014,8 @@ test.describe("L2a locations console", () => {
 
     // Typing, level and status are client sieves over the roster already read.
     await page.getByTestId("location-search").fill("adam");
-    await chooseFilter(page, "location-level-filter", "region");
-    await chooseFilter(page, "location-active-filter", "active");
+    await chooseFilter(page, "location-filters", "location-level-filter", "region");
+    await chooseFilter(page, "location-filters", "location-active-filter", "active");
     await page.getByTestId("location-search").fill("");
     await expect
       .poll(() => reads, { timeout: 3000, intervals: [500, 500, 500, 500] })
@@ -1120,7 +1123,7 @@ test.describe("L2a locations console", () => {
       .poll(
         async () => {
           await gotoReady(page, "/admin/places");
-          await chooseFilter(page, "location-active-filter", "active");
+          await chooseFilter(page, "location-filters", "location-active-filter", "active");
           const pagination = page.getByTestId("location-pagination-range");
           await expect(pagination).toContainText(/\d/, { timeout: 10000 });
           span = await activeRosterSpan();
@@ -1278,5 +1281,109 @@ test.describe("L2a locations console", () => {
       "href",
       "/admin/locations",
     );
+  });
+});
+
+test.describe("L2a locations door — the country filter is a list (DEC-420, DEC-423)", () => {
+  const markets: string[] = [];
+  const roles: string[] = [];
+
+  test.afterEach(async () => {
+    const supabase = adminClient();
+    for (const code of markets.splice(0)) await destroyCountry(code);
+    for (const roleId of roles.splice(0)) {
+      const a = await supabase.from("role_permissions").delete().eq("role_id", roleId);
+      if (a.error) throw new Error(`[e2e:lt] role_permissions reap failed: ${a.error.message}`);
+      const b = await supabase.from("user_roles").delete().eq("role_id", roleId);
+      if (b.error) throw new Error(`[e2e:lt] user_roles reap failed: ${b.error.message}`);
+      const c = await supabase.from("roles").delete().eq("id", roleId);
+      if (c.error) throw new Error(`[e2e:lt] roles reap failed: ${c.error.message}`);
+    }
+  });
+
+  /** Two scratch markets, each a country place, a region and a city, all of them listed by the door. */
+  async function twoMarkets() {
+    const first = await seedSingleOptionMarket();
+    markets.push(first.code);
+    const second = await seedSingleOptionMarket();
+    markets.push(second.code);
+    const placesOf = (market: typeof first) =>
+      [market.anchor.id, market.region.id, market.city.id].sort();
+    return { first, second, placesOf };
+  }
+
+  /** The ids of every place the door lists for these arguments, sorted. */
+  async function listed(
+    caller: Awaited<ReturnType<typeof asPerson>>,
+    args: Record<string, unknown>,
+  ): Promise<string[]> {
+    const answer = await caller.rpc("admin_list_locations", args);
+    expect(answer.error, `[e2e:lt] ${JSON.stringify(args)}`).toBeNull();
+    const rows = answer.data;
+    if (!Array.isArray(rows)) throw new Error("[e2e:lt] the door answered no list");
+    return rows
+      .map((row) => (typeof row === "object" && row !== null && "id" in row ? row.id : null))
+      .filter((id): id is string => typeof id === "string")
+      .sort();
+  }
+
+  test("LT-17 the places list takes several countries, OR-ed; none asked lists every market; more than twenty values are refused", async () => {
+    const { first, second, placesOf } = await twoMarkets();
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["locations", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
+
+    expect(await listed(viewer, { p_country_code: [first.code, second.code] })).toEqual(
+      [...placesOf(first), ...placesOf(second)].sort(),
+    );
+    expect(await listed(viewer, { p_country_code: [first.code] })).toEqual(placesOf(first));
+    expect(await listed(viewer, { p_country_code: [second.code] })).toEqual(placesOf(second));
+    // No list, or an empty list, filters nothing: a place of either market is found by its own name.
+    for (const market of [first, second])
+      for (const args of [{}, { p_country_code: [] }])
+        expect(await listed(viewer, { ...args, p_search: market.region.slug })).toEqual([
+          market.region.id,
+        ]);
+
+    const many = Array.from({ length: 21 }, () => first.code);
+    expect((await viewer.rpc("admin_list_locations", { p_country_code: many })).error).toBe(
+      "badValue:country",
+    );
+    expect(
+      (await viewer.rpc("admin_list_locations", { p_country_code: [first.code, "ETH"] })).error,
+    ).toBe("badValue:country");
+  });
+
+  test("LT-18 a signed-in person without locations:view is refused before any list is read", async () => {
+    const person = await asPerson(await leaseUser());
+    const refused = await person.rpc("admin_list_locations", { p_country_code: ["ET"] });
+    expect(refused.error).toBe("permissionDenied");
+    // The gate answers first: a list that would be refused on its own is the same refusal.
+    const first = await person.rpc("admin_list_locations", {
+      p_country_code: Array.from({ length: 21 }, () => "ET"),
+    });
+    expect(first.error).toBe("permissionDenied");
+  });
+
+  test("LT-19 a caller whose grant names one country lists that country's places only, whatever list is asked", async () => {
+    const { first, second, placesOf } = await twoMarkets();
+    const staff = await leaseUser();
+    const roleId = await grantScratchRole(staff.id, [["locations", "view"]], roles);
+    const scoped = await adminClient()
+      .from("user_roles")
+      .update({ scope_type: "country", scope_country: first.code })
+      .eq("user_id", staff.id)
+      .eq("role_id", roleId);
+    expect(scoped.error, "[e2e:lt] scoping the scratch grant").toBeNull();
+    const caller = await asPerson(staff);
+
+    const both = { p_country_code: [first.code, second.code] };
+    expect(await listed(caller, both)).toEqual(placesOf(first));
+    expect(await listed(caller, { p_country_code: [first.code] })).toEqual(placesOf(first));
+    // The other market is outside the reach: asking for it alone lists nothing, never widens.
+    expect(await listed(caller, { p_country_code: [second.code] })).toEqual([]);
+    // No list at all reaches the other market no further: its place is not found by its own name.
+    expect(await listed(caller, { p_search: second.region.slug })).toEqual([]);
+    expect(await listed(caller, { p_search: first.region.slug })).toEqual([first.region.id]);
   });
 });

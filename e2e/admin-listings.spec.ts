@@ -3,6 +3,7 @@ import { type Page } from "@playwright/test";
 import { en } from "../src/i18n/locales/en";
 
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
@@ -277,9 +278,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await ids({ p_view: "ended" })).toEqual([sold.id]);
     expect(await ids({ p_view: "removed" })).toEqual([removed.id]);
     expect(await ids({ p_view: "all" })).toHaveLength(5);
-    expect(await ids({ p_category: seller.parentId })).toHaveLength(5);
-    expect(await ids({ p_country: "ET" })).toHaveLength(5);
-    expect(await ids({ p_country: "KE" })).toEqual([]);
+    expect(await ids({ p_category: [seller.parentId] })).toHaveLength(5);
+    expect(await ids({ p_country: ["ET"] })).toHaveLength(5);
+    expect(await ids({ p_country: ["KE"] })).toEqual([]);
     expect(await ids({ p_tier: "featured" })).toEqual([newer.id]);
     const tomorrow = new Date(Date.now() + 24 * hour).toISOString().slice(0, 10);
     expect(await ids({ p_from: tomorrow })).toEqual([]);
@@ -2167,6 +2168,49 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-reports")).toHaveCount(0);
   });
 
+  test("AL-32 All listings: the country and category filters are lists, OR-ed; an empty list filters nothing; more than twenty values are refused (DEC-420, DEC-423)", async () => {
+    const seller = await scratchSeller();
+    const second = await seedCategoryBranch();
+    branches.push([second.parent.slug as string, second.leaf.slug as string]);
+    const first = await seed(seller, "active");
+    const other = await seed({ ...seller, leafId: second.leaf.id as string }, "active");
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
+    const both = [first.id, other.id].sort();
+    const ask = (args: Record<string, unknown>) =>
+      viewer.rpc("admin_list_listings", { p_seller: seller.alias, ...args });
+    const ids = async (args: Record<string, unknown>) => {
+      const result = await ask(args);
+      expect(result.error, `[e2e:al] ${JSON.stringify(args)}`).toBeNull();
+      return (result.data as Row[]).map((row) => row.id as string).sort();
+    };
+
+    expect(await ids({ p_category: [seller.parentId, second.parent.id as string] })).toEqual(both);
+    expect(await ids({ p_category: [seller.parentId] })).toEqual([first.id]);
+    expect(await ids({ p_country: ["KE", "ET"] })).toEqual(both);
+    expect(await ids({ p_country: ["KE", "US"] })).toEqual([]);
+    expect(await ids({ p_country: [], p_category: [] })).toEqual(both);
+
+    const many = <T>(value: T) => Array.from({ length: 21 }, () => value);
+    expect((await ask({ p_country: many("ET") })).error).toBe("badValue:country");
+    expect((await ask({ p_category: many(seller.parentId) })).error).toBe("badValue:category");
+  });
+
+  test("AL-33 All listings: a signed-in person without listings:view is refused before any list is read", async () => {
+    const person = await asPerson(await leaseUser());
+    const refused = await person.rpc("admin_list_listings", {
+      p_country: ["ET"],
+      p_category: [],
+    });
+    expect(refused.error).toBe("permissionDenied");
+    // The gate answers first: a list that would be refused on its own is the same refusal.
+    const first = await person.rpc("admin_list_listings", {
+      p_country: Array.from({ length: 21 }, () => "ET"),
+    });
+    expect(first.error).toBe("permissionDenied");
+  });
+
   // ───────────── Turn T1 part B (D242, D276) — STAFF SET AN AD'S TIER (ATR-1..ATR-5) ─────────────
   // The one door `admin_set_listing_tier` (M1: listings:enforce with a fresh second factor; a tier
   // among premium, featured and regular; never a draft, a removed or the caller's own listing; a
@@ -2454,15 +2498,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
 
     // The table's own Tier filter proves the row's tier: Regular drops it, Premium lists it.
-    await page.getByTestId("listings-filters").click();
-    await page.getByTestId("listings-filter-tier-regular").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "listings-filters", "listings-filter-tier", "regular");
     await expect(listingRow(page, ad.id), "ATR-6: Regular still listed the ad").toHaveCount(0, {
       timeout: 20000,
     });
-    await page.getByTestId("listings-filters").click();
-    await page.getByTestId("listings-filter-tier-premium").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "listings-filters", "listings-filter-tier", "premium");
     await expect(listingRow(page, ad.id), "ATR-6: Premium did not list the ad").toBeVisible({
       timeout: 20000,
     });
