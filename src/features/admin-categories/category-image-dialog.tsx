@@ -326,6 +326,21 @@ export function CategoryImageDialog({
       openedBy={openedBy}
       title={t("admin.categories.image.title")}
       onClose={onClose}
+      description={t("admin.categories.image.review")}
+      size="default"
+      footer={
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            data-testid="category-image-close"
+            onClick={onClose}
+          >
+            {t("common.close")}
+          </Button>
+        </div>
+      }
     >
       <CategoryImagePanel
         categoryId={categoryId}
@@ -333,17 +348,6 @@ export function CategoryImageDialog({
         // PART C — accept-closes: the confirmation is read, then the surface goes.
         onAccepted={() => window.setTimeout(onClose, 1200)}
       />
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-11"
-          data-testid="category-image-close"
-          onClick={onClose}
-        >
-          {t("common.close")}
-        </Button>
-      </div>
     </CategoryModal>
   );
 }

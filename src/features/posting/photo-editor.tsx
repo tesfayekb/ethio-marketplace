@@ -1,14 +1,9 @@
-import { RotateCcw, RotateCw } from "lucide-react";
+import { Crop, RotateCcw, RotateCw } from "lucide-react";
+import { PanelBody, PanelFooter, PanelHeader } from "@/components/ui/dialog-parts-facade";
+import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -237,121 +232,121 @@ export function PhotoEditor({
         if (!open && phase !== "saving") onCancel();
       }}
     >
-      <DialogContent data-testid="post-photo-editor">
-        <DialogHeader>
+      <DialogContent bands size="wide" data-testid="post-photo-editor">
+        <PanelHeader icon={<Crop />}>
           <DialogTitle>{t("post.photos.edit")}</DialogTitle>
           <DialogDescription>{t("post.photos.editor.hint")}</DialogDescription>
-        </DialogHeader>
-
-        {phase === "loading" && (
-          <p className="text-sm text-muted-foreground" data-testid="post-photo-editor-loading">
-            {t("common.loading")}
-          </p>
-        )}
-        {phase === "failed" && (
-          <p
-            className="text-sm text-destructive"
-            role="alert"
-            data-testid="post-photo-editor-failed"
-          >
-            {t("post.photos.editor.failed")}
-          </p>
-        )}
-
-        {source !== null && (
-          <div className="flex justify-center">
-            <div
-              ref={frameRef}
-              data-testid="post-photo-editor-frame"
-              data-turns={turns}
-              className="relative inline-block touch-none select-none overflow-hidden"
-              onPointerMove={drag}
-              onPointerUp={endDrag}
-              onPointerCancel={endDrag}
+        </PanelHeader>
+        <PanelBody>
+          {phase === "loading" && (
+            <p className="text-sm text-muted-foreground" data-testid="post-photo-editor-loading">
+              {t("common.loading")}
+            </p>
+          )}
+          {phase === "failed" && (
+            <p
+              className="text-sm text-destructive"
+              role="alert"
+              data-testid="post-photo-editor-failed"
             >
-              <canvas
-                ref={previewRef}
-                data-testid="post-photo-editor-preview"
-                className="block h-auto max-h-[55vh] w-auto max-w-full"
-              />
+              {t("post.photos.editor.failed")}
+            </p>
+          )}
+
+          {source !== null && (
+            <div className="flex justify-center">
               <div
-                role="group"
-                tabIndex={busy ? -1 : 0}
-                aria-label={t("post.photos.editor.box")}
-                data-testid="post-photo-editor-box"
-                data-box={[box.x, box.y, box.w, box.h].map((n) => n.toFixed(4)).join(",")}
-                className="absolute cursor-move border-2 border-white outline-none shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] focus-visible:border-primary"
-                style={{
-                  left: `${box.x * 100}%`,
-                  top: `${box.y * 100}%`,
-                  width: `${box.w * 100}%`,
-                  height: `${box.h * 100}%`,
-                }}
-                onPointerDown={(event) => startDrag(event, "move")}
-                onKeyDown={(event) => {
-                  if (busy) return;
-                  const next = keyBox(box, event.key, event.shiftKey);
-                  if (next === null) return;
-                  event.preventDefault();
-                  setBox(next);
-                  setRefusal(null);
-                }}
+                ref={frameRef}
+                data-testid="post-photo-editor-frame"
+                data-turns={turns}
+                className="relative inline-block touch-none select-none overflow-hidden"
+                onPointerMove={drag}
+                onPointerUp={endDrag}
+                onPointerCancel={endDrag}
               >
-                {CORNERS.map((corner) => (
-                  <span
-                    key={corner}
-                    aria-hidden="true"
-                    data-testid={`post-photo-editor-corner-${corner}`}
-                    className={`absolute flex h-11 max-h-[40%] w-11 max-w-[40%] ${CORNER_PLACE[corner]}`}
-                    onPointerDown={(event) => startDrag(event, corner)}
-                  >
-                    <span className="h-3.5 w-3.5 rounded-sm border border-foreground bg-white" />
-                  </span>
-                ))}
+                <canvas
+                  ref={previewRef}
+                  data-testid="post-photo-editor-preview"
+                  className="block h-auto max-h-[55vh] w-auto max-w-full"
+                />
+                <div
+                  role="group"
+                  tabIndex={busy ? -1 : 0}
+                  aria-label={t("post.photos.editor.box")}
+                  data-testid="post-photo-editor-box"
+                  data-box={[box.x, box.y, box.w, box.h].map((n) => n.toFixed(4)).join(",")}
+                  className="absolute cursor-move border-2 border-white outline-none shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] focus-visible:border-primary"
+                  style={{
+                    left: `${box.x * 100}%`,
+                    top: `${box.y * 100}%`,
+                    width: `${box.w * 100}%`,
+                    height: `${box.h * 100}%`,
+                  }}
+                  onPointerDown={(event) => startDrag(event, "move")}
+                  onKeyDown={(event) => {
+                    if (busy) return;
+                    const next = keyBox(box, event.key, event.shiftKey);
+                    if (next === null) return;
+                    event.preventDefault();
+                    setBox(next);
+                    setRefusal(null);
+                  }}
+                >
+                  {CORNERS.map((corner) => (
+                    <span
+                      key={corner}
+                      aria-hidden="true"
+                      data-testid={`post-photo-editor-corner-${corner}`}
+                      className={`absolute flex h-11 max-h-[40%] w-11 max-w-[40%] ${CORNER_PLACE[corner]}`}
+                      onPointerDown={(event) => startDrag(event, corner)}
+                    >
+                      <span className="h-3.5 w-3.5 rounded-sm border border-foreground bg-white" />
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {source !== null && (
-          <div className="flex justify-center gap-2">
-            <button
-              type="button"
-              data-testid="post-photo-editor-left"
-              className={toolButtonClass}
-              disabled={busy}
-              onClick={() => rotate("left")}
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              {t("post.photos.editor.rotateLeft")}
-            </button>
-            <button
-              type="button"
-              data-testid="post-photo-editor-right"
-              className={toolButtonClass}
-              disabled={busy}
-              onClick={() => rotate("right")}
-            >
-              <RotateCw className="h-4 w-4" aria-hidden="true" />
-              {t("post.photos.editor.rotateRight")}
-            </button>
-          </div>
-        )}
+          {source !== null && (
+            <div className="flex justify-center gap-2">
+              <button
+                type="button"
+                data-testid="post-photo-editor-left"
+                className={toolButtonClass}
+                disabled={busy}
+                onClick={() => rotate("left")}
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                {t("post.photos.editor.rotateLeft")}
+              </button>
+              <button
+                type="button"
+                data-testid="post-photo-editor-right"
+                className={toolButtonClass}
+                disabled={busy}
+                onClick={() => rotate("right")}
+              >
+                <RotateCw className="h-4 w-4" aria-hidden="true" />
+                {t("post.photos.editor.rotateRight")}
+              </button>
+            </div>
+          )}
 
-        {phase === "saving" && (
-          <p className="text-sm text-muted-foreground" data-testid="post-photo-editor-saving">
-            {t("post.photos.editor.saving")}
-          </p>
-        )}
-        {refusal !== null && (
-          <div role="alert" className="space-y-1" data-testid="post-photo-editor-refusal">
-            <p className="text-sm text-destructive">{(say ?? t)(refusal)}</p>
-            <p className="text-xs text-muted-foreground">{t("post.photos.editor.kept")}</p>
-          </div>
-        )}
-
-        <DialogFooter>
-          <button
+          {phase === "saving" && (
+            <p className="text-sm text-muted-foreground" data-testid="post-photo-editor-saving">
+              {t("post.photos.editor.saving")}
+            </p>
+          )}
+          {refusal !== null && (
+            <div role="alert" className="space-y-1" data-testid="post-photo-editor-refusal">
+              <p className="text-sm text-destructive">{(say ?? t)(refusal)}</p>
+              <p className="text-xs text-muted-foreground">{t("post.photos.editor.kept")}</p>
+            </div>
+          )}
+        </PanelBody>
+        <PanelFooter>
+          <Button
             type="button"
             data-testid="post-photo-editor-cancel"
             className={toolButtonClass}
@@ -359,8 +354,8 @@ export function PhotoEditor({
             onClick={onCancel}
           >
             {t("common.cancel")}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             data-testid="post-photo-editor-save"
             className={saveButtonClass}
@@ -368,8 +363,8 @@ export function PhotoEditor({
             onClick={() => void save()}
           >
             {t("common.save")}
-          </button>
-        </DialogFooter>
+          </Button>
+        </PanelFooter>
       </DialogContent>
     </Dialog>
   );

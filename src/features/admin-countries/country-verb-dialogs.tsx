@@ -1,8 +1,10 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { CategoryModal } from "@/components/ui/category-modal";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -66,44 +68,51 @@ export function CountryActiveDialog({
       openedBy={opening ? "verb-open" : "verb-close"}
       title={t(opening ? "admin.countries.open.title" : "admin.countries.close.title")}
       onClose={onClose}
-    >
-      <p className="text-sm text-muted-foreground">
-        {t(opening ? "admin.countries.open.hint" : "admin.countries.close.hint")}
-      </p>
-      <CountryDialogAlert message={message} testid="country-verb-error" />
-      {forced ? (
-        <>
-          <p
-            role="status"
-            data-testid="country-close-scoped"
-            className="text-sm text-muted-foreground"
-          >
-            {t("admin.countries.close.scopedHint").replace("{count}", String(row.scopedRoleCount))}
-          </p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="destructive"
-              size="touch"
-              data-testid="country-close-force"
-              disabled={setActive.isPending}
-              onClick={() => run(true)}
+      description={t(opening ? "admin.countries.open.hint" : "admin.countries.close.hint")}
+      size="narrow"
+      subject={<PanelSubject title={row.nameEn} lines={[row.code]} />}
+      tone={opening ? "confirm" : "danger"}
+      icon={<TriangleAlert />}
+      footer={
+        forced ? (
+          <>
+            <p
+              role="status"
+              data-testid="country-close-scoped"
+              className="text-sm text-muted-foreground"
             >
-              {t("admin.countries.close.forceConfirm")}
-            </Button>
-          </div>
-        </>
-      ) : (
-        <CountryDialogActions
-          onCancel={onClose}
-          onSubmit={() => run(false)}
-          busy={setActive.isPending}
-          submitTestId="country-active-confirm"
-          submitLabel={t(
-            opening ? "admin.countries.open.confirm" : "admin.countries.close.confirm",
-          )}
-        />
-      )}
+              {t("admin.countries.close.scopedHint").replace(
+                "{count}",
+                String(row.scopedRoleCount),
+              )}
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="destructive"
+                size="touch"
+                data-testid="country-close-force"
+                disabled={setActive.isPending}
+                onClick={() => run(true)}
+              >
+                {t("admin.countries.close.forceConfirm")}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <CountryDialogActions
+            onCancel={onClose}
+            onSubmit={() => run(false)}
+            busy={setActive.isPending}
+            submitTestId="country-active-confirm"
+            submitLabel={t(
+              opening ? "admin.countries.open.confirm" : "admin.countries.close.confirm",
+            )}
+          />
+        )
+      }
+    >
+      <CountryDialogAlert message={message} testid="country-verb-error" />
     </CategoryModal>
   );
 }
@@ -179,8 +188,34 @@ export function CountryRailOrderDialog({
       openedBy="verb-rail-order"
       title={t("admin.countries.rail.title")}
       onClose={onClose}
+      description={t("admin.countries.rail.hintDialog")}
+      size="default"
+      subject={<PanelSubject title={row.nameEn} lines={[row.code]} />}
+      footer={
+        <>
+          {" "}
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            data-testid="country-rail-reset"
+            disabled={save.isPending}
+            onClick={() => submit([])}
+          >
+            {t("admin.countries.rail.reset")}
+          </Button>
+          <Button
+            type="button"
+            size="touch"
+            data-testid="country-rail-save"
+            disabled={save.isPending || ids.length === 0}
+            onClick={() => submit(ids)}
+          >
+            {t("admin.countries.rail.submit")}
+          </Button>{" "}
+        </>
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.countries.rail.hintDialog")}</p>
       {row.rootOrder.length === 0 ? (
         <p className="text-sm text-muted-foreground" data-testid="country-rail-global">
           {t("admin.countries.rail.globalNote")}
@@ -229,27 +264,6 @@ export function CountryRailOrderDialog({
       </ol>
 
       <CountryDialogAlert message={message} testid="country-verb-error" />
-      <DialogFooter>
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          data-testid="country-rail-reset"
-          disabled={save.isPending}
-          onClick={() => submit([])}
-        >
-          {t("admin.countries.rail.reset")}
-        </Button>
-        <Button
-          type="button"
-          size="touch"
-          data-testid="country-rail-save"
-          disabled={save.isPending || ids.length === 0}
-          onClick={() => submit(ids)}
-        >
-          {t("admin.countries.rail.submit")}
-        </Button>
-      </DialogFooter>
     </CategoryModal>
   );
 }

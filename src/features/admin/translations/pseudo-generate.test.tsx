@@ -1,5 +1,6 @@
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, renderHook, screen } from "@testing-library/react";
+import { act, fireEvent, renderHook, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

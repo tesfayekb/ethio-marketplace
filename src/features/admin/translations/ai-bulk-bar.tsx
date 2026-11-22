@@ -1,3 +1,5 @@
+import { Sparkles } from "lucide-react";
+import { PanelHeader, PanelBody, PanelFooter } from "@/components/ui/dialog-parts-facade";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -7,8 +9,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -344,14 +344,15 @@ export function AiBulkBar({
       ) : null}
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
-        <AlertDialogContent data-testid="ai-bulk-confirm">
-          <AlertDialogHeader>
+        <AlertDialogContent data-testid="ai-bulk-confirm" bands size="narrow">
+          <PanelHeader tone={"confirm"} icon={<Sparkles />}>
             <AlertDialogTitle>{t("admin.translations.ai.confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {t("admin.translations.ai.confirmBody").replace("{count}", String(effectiveCount))}
             </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
+          </PanelHeader>
+          <PanelBody>{null}</PanelBody>
+          <PanelFooter>
             <AlertDialogCancel data-testid="ai-bulk-cancel">
               {t("admin.translations.ai.cancel")}
             </AlertDialogCancel>
@@ -363,7 +364,7 @@ export function AiBulkBar({
             >
               {t("admin.translations.ai.confirmCta").replace("{count}", String(effectiveCount))}
             </AlertDialogAction>
-          </AlertDialogFooter>
+          </PanelFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>

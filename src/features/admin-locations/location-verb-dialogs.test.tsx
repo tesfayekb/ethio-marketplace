@@ -25,8 +25,25 @@ vi.mock("@/i18n", () => ({
 }));
 
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children, testid }: { children: ReactNode; testid: string }) => (
-    <div data-testid={testid}>{children}</div>
+  CategoryModal: ({
+    children,
+    testid,
+    footer,
+    subject,
+    description,
+  }: {
+    children: ReactNode;
+    testid: string;
+    footer?: ReactNode;
+    subject?: ReactNode;
+    description?: string;
+  }) => (
+    <div data-testid={testid}>
+      {description}
+      {subject}
+      {children}
+      {footer}
+    </div>
   ),
 }));
 
@@ -142,7 +159,9 @@ describe("the move and delete dialogs on the one Field and gate (L3, DEC-339)", 
     const parent = screen.getByTestId("location-move-parent");
     expect(parent).toHaveAttribute("id", "location-move-parent");
     expect(screen.getByLabelText(/admin\.locations\.move\.parent/)).toBe(parent);
-    expect(parent.getAttribute("aria-describedby")).toBeTruthy();
+    expect(screen.getByTestId("location-move-dialog")).toHaveTextContent(
+      "admin.locations.move.hint",
+    );
   });
 
   it("KFP-7 a blank delete confirmation is marked by the gate under its Field and nothing is sent", async () => {

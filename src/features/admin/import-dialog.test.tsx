@@ -1,5 +1,12 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
+const track = vi.hoisted(() => vi.fn());
+vi.mock("@/components/ui/dialog-parts-facade", () => ({
+  StepTrack: (props: { steps: string[]; current: number }) => {
+    track(props);
+    return null;
+  },
+}));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { enAdmin } from "@/i18n/locales/en-admin";
@@ -24,7 +31,21 @@ vi.mock("@/lib/route-client", () => ({ callRoute: (...args: unknown[]) => callRo
 vi.mock("@/features/auth/mfa/mfa-service", () => ({ stepUpAbortKey: () => undefined }));
 
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CategoryModal: ({
+    children,
+    footer,
+    description,
+  }: {
+    children: ReactNode;
+    footer: ReactNode;
+    description: ReactNode;
+  }) => (
+    <div>
+      {description}
+      {children}
+      {footer}
+    </div>
+  ),
 }));
 
 import { ImportDialog } from "./import-dialog";
@@ -94,6 +115,7 @@ const reasonLine = () => screen.queryByTestId("imp-error-reason")?.textContent ?
 
 beforeEach(() => {
   callRoute.mockReset();
+  track.mockClear();
   document.body.innerHTML = "";
 });
 
@@ -153,4 +175,28 @@ describe("import dialog reason words (L1)", () => {
     });
     expect(reasonLine()).toBe("Reason: That import is no longer on record.");
   });
+});
+
+it("DP-U22 import advances through preview and confirm, then both acts are done", async () => {
+  callRoute
+    .mockResolvedValueOnce(ok(PREVIEW))
+    .mockResolvedValueOnce(ok({ batch_id: "b1", counts: {} }));
+  mount();
+  expect(track).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      steps: [t("admin.test.import.preview"), t("admin.test.import.confirm")],
+      current: 0,
+    }),
+  );
+  const preview = screen.getByTestId("imp-preview");
+  expect(preview).toBeDisabled();
+  await pick();
+  const buttons = screen.getAllByRole("button");
+  expect(buttons.slice(-2)).toEqual([screen.getByTestId("imp-discard"), preview]);
+  fireEvent.click(preview);
+  await screen.findByTestId("imp-confirm");
+  expect(track).toHaveBeenLastCalledWith(expect.objectContaining({ current: 1 }));
+  fireEvent.click(screen.getByTestId("imp-confirm"));
+  await screen.findByTestId("imp-close");
+  expect(track).toHaveBeenLastCalledWith(expect.objectContaining({ current: 2 }));
 });

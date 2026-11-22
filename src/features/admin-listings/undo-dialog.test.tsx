@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { UndoDialog } from "./undo-dialog";

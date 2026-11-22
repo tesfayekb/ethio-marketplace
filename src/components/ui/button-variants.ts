@@ -2,14 +2,16 @@ import { cva } from "class-variance-authority";
 
 import { PRESSED } from "@/components/shell/menu-row";
 
+/** The destructive fill is also the opening-focus law’s source of truth. */
+export const DESTRUCTIVE_FILL = "bg-destructive";
+
 export const buttonVariants = cva(
   `${PRESSED.button} inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0`,
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground shadow-button hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground shadow-button hover:bg-destructive/90",
+        destructive: `${DESTRUCTIVE_FILL} text-destructive-foreground shadow-button hover:bg-destructive/90`,
         // Bundle 11 C2 — a destructive act that opens its confirmation or sits in a list: red words and border.
         destructiveOutline:
           "border border-destructive/50 bg-card text-destructive shadow-tile hover:bg-destructive/10",

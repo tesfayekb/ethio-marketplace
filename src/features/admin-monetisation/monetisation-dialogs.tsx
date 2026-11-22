@@ -63,7 +63,7 @@ export function MonetisationDialogActions({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <>
       <Button
         type="button"
         variant="outline"
@@ -83,7 +83,7 @@ export function MonetisationDialogActions({
       >
         {submitLabel}
       </Button>
-    </div>
+    </>
   );
 }
 

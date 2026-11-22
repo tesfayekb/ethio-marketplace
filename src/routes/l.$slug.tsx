@@ -330,6 +330,7 @@ function AdPage() {
           ownsAd ? undefined : (
             <ReportAd
               publicId={doc.public_id}
+              subjectTitle={doc.title}
               viewer={authLoading ? "unknown" : user === null ? "signedOut" : "signedIn"}
               signInTo={{ to: "/auth", search: { return: `${canonical}#report` } }}
               onOwn={() => setOwnAd(true)}

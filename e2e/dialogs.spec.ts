@@ -112,7 +112,10 @@ function layersOf(shadow: string): string[] {
 /** The panel's own look: the dialog radius and padding, the dialog shadow with its ring first. */
 async function expectPanel(page: Page, panel: Locator, where: string) {
   const look = await lookOf(panel);
-  expect(look.padding, `${where} padding`).toEqual(["22px", "24px", "22px", "24px"]);
+  const bands = (await panel.getAttribute("data-bands")) !== null;
+  expect(look.padding, `${where} padding`).toEqual(
+    bands ? ["0px", "0px", "0px", "0px"] : ["22px", "24px", "22px", "24px"],
+  );
   expect(look.shadow, `${where} shadow`).toBe(
     await tokenValue(page, "--lift-dialog", "box-shadow"),
   );
@@ -120,8 +123,52 @@ async function expectPanel(page: Page, panel: Locator, where: string) {
   expect(layers.length, `${where} shadow layers`).toBe(3);
   expect(layers[0], `${where} the first layer is the ring`).toMatch(/ 0px 0px 0px 1px$/);
   expect(look.background, `${where} surface`).toBe(
-    await tokenValue(page, "--popover", "background-color"),
+    await tokenValue(page, bands ? "--background" : "--popover", "background-color"),
   );
+  if (bands) {
+    const head = panel.locator("[data-panel-head]");
+    const body = panel.locator("[data-panel-body]");
+    await expect(head).toHaveCount(1);
+    expect(await body.count(), `${where} optional body band`).toBeLessThanOrEqual(1);
+    expect((await lookOf(head)).background, `${where} header surface`).toBe(
+      await tokenValue(page, "--card", "background-color"),
+    );
+    expect(
+      await panel.evaluate((element) => getComputedStyle(element).overflowY),
+      `${where} panel does not scroll`,
+    ).toBe("hidden");
+    if (await body.count()) {
+      // The body is one block scroller, the panel's own child (it scrolls in every engine and
+      // squeezes no child); its content carries the top and bottom inset, so the cue sticks to
+      // the body's true bottom edge.
+      const insets = await body.evaluate((element) => {
+        const css = getComputedStyle(element);
+        const flow = element.firstElementChild;
+        return [
+          element.parentElement === element.closest("[data-bands]") ? "own child" : "wrapped",
+          css.display,
+          css.paddingBlockStart,
+          css.paddingInlineStart,
+          css.paddingBlockEnd,
+          css.paddingInlineEnd,
+          flow === null ? "" : getComputedStyle(flow).paddingBlockStart,
+        ];
+      });
+      expect(insets, `${where} body insets`).toEqual([
+        "own child",
+        "block",
+        "0px",
+        "24px",
+        "0px",
+        "24px",
+        "16px",
+      ]);
+      expect(
+        await body.evaluate((element) => getComputedStyle(element).overflowY),
+        `${where} body scrolls`,
+      ).toBe("auto");
+    }
+  }
   const scrim = page.locator("[data-dialog-scrim][data-state='open']");
   await expect(scrim).toHaveCount(1);
   expect(await fillOf(scrim), `${where} scrim`).toBe(
@@ -351,6 +398,8 @@ test.describe("one dialog look on a real surface (turn S6-1)", () => {
       await page.getByTestId("listing-share-open").click();
       const panel = page.locator("[data-dialog-panel][role='dialog']");
       await expect(panel).toBeVisible();
+      await expect(panel).toHaveAttribute("data-bands", "");
+      await expect(panel).toHaveAccessibleDescription(en["adPage.share.description"]);
       await settled(page);
       const look = await expectPanel(page, panel, where);
       const grabber = panel.locator("[data-dialog-grabber]");
@@ -565,6 +614,102 @@ test.describe("the full-screen surfaces on the one primitive (turn S6-4)", () =>
           timeout: 20_000,
         });
         await closesBack(page, pin, map, where);
+      }
+    },
+  );
+});
+
+test.describe("the banded panel's body (Lovable bundle 2)", () => {
+  test(
+    "DLG-E10 a tall banded panel in a short window: the body alone scrolls, its last control is reached and pressed, the cue takes no room",
+    { tag: "@webkit" },
+    async ({ page }) => {
+      const [width = 390] = widthsOf(page);
+      // A short window, so the panel's own height limit holds the body (the board's form is
+      // taller): a body that does not scroll leaves its last control under the footer.
+      await page.setViewportSize({ width, height: 440 });
+      await gotoReady(page, "/dev/style");
+      const panel = await open(page, "style-anatomy-form-open", "style-anatomy-form");
+      const body = panel.locator("[data-panel-body]");
+      const foot = panel.locator("[data-panel-foot]");
+      const boxes = await layoutBoxes({ panel, body, foot });
+      expect(
+        Math.round(boxes.body.y + boxes.body.height),
+        "DLG-E10: the body does not end where the footer begins",
+      ).toBe(Math.round(boxes.foot.y));
+      expect(
+        Math.round(boxes.foot.y + boxes.foot.height),
+        "DLG-E10: the footer is not inside the panel",
+      ).toBeLessThanOrEqual(Math.round(boxes.panel.y + boxes.panel.height));
+      // More lies below: the cue shows.
+      const cue = panel.locator("[data-scroll-cue]");
+      await expect(cue).toBeVisible();
+      const tall = await body.evaluate((element) => element.scrollHeight);
+      expect(tall, "DLG-E10: the body has nothing to scroll").toBeGreaterThan(
+        await body.evaluate((element) => element.clientHeight),
+      );
+      // The last control is reached and takes the press.
+      const last = panel.locator("#board-name-en");
+      await last.click();
+      await expect(last).toBeFocused();
+      // The panel itself has no hidden room: a scroll to a control moves the body alone, never
+      // the header out of the panel.
+      await last.evaluate((element) => element.scrollIntoView({ block: "center" }));
+      expect(
+        await panel.evaluate((element) => [
+          element.scrollTop,
+          element.scrollHeight - element.clientHeight,
+        ]),
+        "DLG-E10: the panel moved, or has hidden room below its footer",
+      ).toEqual([0, 0]);
+      // At the end the cue goes, and the content has not moved.
+      await body.evaluate((element) => element.scrollTo(0, element.scrollHeight));
+      await expect(cue).toHaveCount(0);
+      expect(
+        await body.evaluate((element) => element.scrollHeight),
+        "DLG-E10: the cue took room in the body",
+      ).toBe(tall);
+    },
+  );
+
+  test(
+    "DLG-E11 every banded panel of the board: the body has its content's height or scrolls, between the header and the last band, inside the window",
+    { tag: "@webkit" },
+    async ({ page }) => {
+      const [width = 390] = widthsOf(page);
+      await page.setViewportSize({ width, height: 700 });
+      await gotoReady(page, "/dev/style");
+      for (const key of ["question", "form", "actions", "steps", "columns", "filters", "sheet"]) {
+        const panel = await open(page, `style-anatomy-${key}-open`, `style-anatomy-${key}`);
+        const facts = await panel.evaluate((element) => {
+          const head = element.querySelector("[data-panel-head]");
+          const body = element.querySelector("[data-panel-body]");
+          const foot = element.querySelector("[data-panel-foot]");
+          if (head === null || body === null) return null;
+          const own = element.getBoundingClientRect();
+          const end = foot === null ? own.bottom : foot.getBoundingClientRect().top;
+          const box = body.getBoundingClientRect();
+          return {
+            // WebKit gave a zero-basis body no height: 32 px of padding around hidden content.
+            bodyHasHeight: body.clientHeight >= Math.min(body.scrollHeight, 96),
+            bodyStartsUnderHeader: Math.abs(box.top - head.getBoundingClientRect().bottom) < 1,
+            bodyEndsAtLastBand: Math.abs(box.bottom - end) < 1,
+            footerInsidePanel:
+              foot === null || foot.getBoundingClientRect().bottom <= own.bottom + 1,
+            panelInsideWindow: own.top >= 0 && own.bottom <= window.innerHeight + 1,
+            panelHiddenRoom: element.scrollHeight - element.clientHeight,
+          };
+        });
+        expect(facts, `DLG-E11 ${key} @ ${width}`).toEqual({
+          bodyHasHeight: true,
+          bodyStartsUnderHeader: true,
+          bodyEndsAtLastBand: true,
+          footerInsidePanel: true,
+          panelInsideWindow: true,
+          panelHiddenRoom: 0,
+        });
+        await page.keyboard.press("Escape");
+        await expect(panel).toHaveCount(0);
       }
     },
   );

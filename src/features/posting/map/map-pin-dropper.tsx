@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { MapPin } from "lucide-react";
+import { PanelBody, PanelFooter, PanelHeader } from "@/components/ui/dialog-parts-facade";
 import type * as Leaflet from "leaflet";
 
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
@@ -115,6 +110,7 @@ export function MapPinDropper(props: PinSheetProps) {
       }}
     >
       <DialogContent
+        bands
         phone="full"
         fit="fill"
         data-testid="post-pin-sheet"
@@ -369,11 +365,11 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
 
   return (
     <>
-      <DialogHeader>
+      <PanelHeader icon={<MapPin />}>
         <DialogTitle>{t("post.pin.title")}</DialogTitle>
         <DialogDescription>{t("post.pin.why")}</DialogDescription>
-      </DialogHeader>
-      <div className="-mx-1 min-h-0 flex-1 space-y-3 overflow-y-auto px-1" data-testid="post-pin">
+      </PanelHeader>
+      <PanelBody testId="post-pin">
         <div className="space-y-1">
           <Label htmlFor="post-pin-search">{t("post.pin.searchLabel")}</Label>
           {/* DEC-338 — a finder for the map, not an answer: the pin is the answer. */}
@@ -579,10 +575,10 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
             {t("post.pin.saveFailed")}
           </p>
         )}
-      </div>
+      </PanelBody>
 
       {/* C4 — the verbs stay on screen: the footer sits under the scrolling body. */}
-      <DialogFooter data-testid="post-pin-actions">
+      <PanelFooter data-testid="post-pin-actions">
         <Button
           type="button"
           variant="outline"
@@ -602,7 +598,7 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
         >
           {state === "busy" ? t("post.pin.saving") : t("post.pin.saveLocation")}
         </Button>
-      </DialogFooter>
+      </PanelFooter>
     </>
   );
 }

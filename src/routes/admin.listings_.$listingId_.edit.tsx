@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelHeader, PanelBody, PanelFooter } from "@/components/ui/dialog-parts-facade";
 import { pageHead } from "@/lib/page-head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -6,8 +8,8 @@ import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogFooter,
   AlertDialogTitle,
+  AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/features/admin/admin-context";
@@ -126,13 +128,26 @@ function AdminListingEditRoute() {
               if (!open && !busy) setAsking(null);
             }}
           >
-            <AlertDialogContent data-testid="post-edit-confirm">
-              <AlertDialogTitle>
-                {asking === "rejected"
-                  ? t("admin.screening.confirmReject")
-                  : t("admin.screening.confirmApprove")}
-              </AlertDialogTitle>
-              <AlertDialogFooter>
+            <AlertDialogContent data-testid="post-edit-confirm" bands size="narrow">
+              <PanelHeader
+                tone={asking === "rejected" ? "danger" : "confirm"}
+                icon={<TriangleAlert />}
+              >
+                <AlertDialogTitle>
+                  {asking === "rejected"
+                    ? t("admin.screening.confirm.titleReject")
+                    : t("admin.screening.confirm.titleApprove")}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t(
+                    asking === "rejected"
+                      ? "admin.screening.confirm.descriptionReject"
+                      : "admin.screening.confirm.descriptionApprove",
+                  )}
+                </AlertDialogDescription>
+              </PanelHeader>
+              <PanelBody>{null}</PanelBody>
+              <PanelFooter>
                 <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
                 <Button
                   type="button"
@@ -146,7 +161,7 @@ function AdminListingEditRoute() {
                     ? t("admin.screening.reject")
                     : t("admin.screening.approve")}
                 </Button>
-              </AlertDialogFooter>
+              </PanelFooter>
             </AlertDialogContent>
           </AlertDialog>
         </>

@@ -5,7 +5,7 @@ import { callRoute, type RoutePath } from "@/lib/route-client";
 import { Button } from "@/components/ui/button";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { DialogFooter } from "@/components/ui/dialog";
+import { StepTrack } from "@/components/ui/dialog-parts-facade";
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
 import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
@@ -442,11 +442,79 @@ export function ImportDialog({
       openedBy="toolbar-import"
       title={title ?? t(key("title"))}
       onClose={onClose}
+      size="wide"
+      description={<span data-testid={`${idPrefix}-guidance`}>{t(key("guidance"))}</span>}
+      footer={
+        <>
+          {state === "applied" ? (
+            <>
+              {committed === null ? null : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid={`${idPrefix}-undo`}
+                  disabled={busy}
+                  onClick={runUndo}
+                >
+                  {t(key("undo"))}
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="touch"
+                data-testid={`${idPrefix}-close`}
+                onClick={onClose}
+              >
+                {t(key("close"))}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                data-testid={`${idPrefix}-discard`}
+                title={t(key("discardHint"))}
+                onClick={onClose}
+              >
+                {t(key("discard"))}
+              </Button>
+              {state === "ready" ? (
+                <Button
+                  type="button"
+                  size="touch"
+                  data-testid={`${idPrefix}-preview`}
+                  disabled={!chosen || busy}
+                  onClick={() => void runPreview()}
+                >
+                  {busy ? t(key("busy")) : t(key("preview"))}
+                </Button>
+              ) : null}
+
+              {state !== "previewed" ? null : (
+                <Button
+                  type="button"
+                  size="touch"
+                  data-testid={`${idPrefix}-confirm`}
+                  disabled={busy}
+                  onClick={runCommit}
+                >
+                  {t(key("confirm"))}
+                </Button>
+              )}
+            </>
+          )}
+        </>
+      }
     >
+      <StepTrack
+        steps={[t(key("preview")), t(key("confirm"))]}
+        current={state === "ready" ? 0 : state === "previewed" ? 1 : 2}
+        label={title ?? t(key("title"))}
+      />
       <p className="text-sm text-muted-foreground">{t(key("hint"))}</p>
-      <p className="text-sm text-muted-foreground" data-testid={`${idPrefix}-guidance`}>
-        {t(key("guidance"))}
-      </p>
 
       {state !== "ready" ? null : (
         <>
@@ -492,17 +560,6 @@ export function ImportDialog({
               </div>
             ))}
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            data-testid={`${idPrefix}-preview`}
-            disabled={!chosen || busy}
-            onClick={() => void runPreview()}
-          >
-            {busy ? t(key("busy")) : t(key("preview"))}
-          </Button>
         </>
       )}
 
@@ -619,52 +676,6 @@ export function ImportDialog({
           {t(key("error.reason")).replace("{reason}", reason)}
         </p>
       )}
-
-      <DialogFooter>
-        {state === "applied" ? (
-          <>
-            {committed === null ? null : (
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
-                data-testid={`${idPrefix}-undo`}
-                disabled={busy}
-                onClick={runUndo}
-              >
-                {t(key("undo"))}
-              </Button>
-            )}
-            <Button type="button" size="touch" data-testid={`${idPrefix}-close`} onClick={onClose}>
-              {t(key("close"))}
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button
-              type="button"
-              variant="outline"
-              size="touch"
-              data-testid={`${idPrefix}-discard`}
-              title={t(key("discardHint"))}
-              onClick={onClose}
-            >
-              {t(key("discard"))}
-            </Button>
-            {state !== "previewed" ? null : (
-              <Button
-                type="button"
-                size="touch"
-                data-testid={`${idPrefix}-confirm`}
-                disabled={busy}
-                onClick={runCommit}
-              >
-                {t(key("confirm"))}
-              </Button>
-            )}
-          </>
-        )}
-      </DialogFooter>
     </CategoryModal>
   );
 }

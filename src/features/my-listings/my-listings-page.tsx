@@ -1,7 +1,13 @@
 import { readerFailure } from "@/lib/reader-failure";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { CircleHelp, Plus, Trash2 } from "lucide-react";
+import {
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { Suspense, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
@@ -27,8 +33,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -881,12 +885,22 @@ export function MyListingsPage() {
         }}
       >
         {asking !== null ? (
-          <AlertDialogContent data-testid="my-listings-confirm">
-            <AlertDialogHeader>
+          <AlertDialogContent bands size="narrow" data-testid="my-listings-confirm">
+            <PanelHeader
+              tone={asking.action === "delete" ? "danger" : "confirm"}
+              icon={asking.action === "delete" ? <Trash2 /> : <CircleHelp />}
+            >
               <AlertDialogTitle>{confirmTitle}</AlertDialogTitle>
               <AlertDialogDescription>{confirmBody}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
+            </PanelHeader>
+            <PanelBody>
+              <PanelSubject
+                title={
+                  asking.bulk ? confirmTitle : (askingFirst?.title ?? t("myListings.untitled"))
+                }
+              />
+            </PanelBody>
+            <PanelFooter>
               <AlertDialogCancel data-testid="my-listings-confirm-cancel">
                 {t("common.cancel")}
               </AlertDialogCancel>
@@ -901,13 +915,14 @@ export function MyListingsPage() {
               >
                 {confirmYes}
               </AlertDialogAction>
-            </AlertDialogFooter>
+            </PanelFooter>
           </AlertDialogContent>
         ) : null}
       </AlertDialog>
       {renewing !== null ? (
         <CertifyConfirm
           listingId={renewing.id}
+          subjectTitle={renewing.title ?? t("myListings.untitled")}
           title={actionLabel("renew", renewing)}
           yes={actionLabel("renew", renewing)}
           onCancel={() => setRenewing(null)}
@@ -947,6 +962,7 @@ export function MyListingsPage() {
         <Suspense fallback={null}>
           <LazyPromoteSheet
             listingId={promoting.id}
+            subjectTitle={promoting.title ?? t("myListings.untitled")}
             open
             onOpenChange={(next) => {
               if (!next) setPromoting(null);

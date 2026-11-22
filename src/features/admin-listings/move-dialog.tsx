@@ -1,7 +1,9 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
+
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -46,6 +48,7 @@ const HINT: Record<MoveKind, MessageKey> = {
 export interface MoveDialogProps {
   kind: MoveKind;
   count: number;
+  subjectTitle?: string;
   busy: boolean;
   /** The door's refusal, already translated; null when there is none. */
   refusal: string | null;
@@ -53,7 +56,15 @@ export interface MoveDialogProps {
   onConfirm: (reason: string, note: string) => void;
 }
 
-export function MoveDialog({ kind, count, busy, refusal, onCancel, onConfirm }: MoveDialogProps) {
+export function MoveDialog({
+  subjectTitle,
+  kind,
+  count,
+  busy,
+  refusal,
+  onCancel,
+  onConfirm,
+}: MoveDialogProps) {
   const { t } = useI18n();
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
@@ -68,35 +79,14 @@ export function MoveDialog({ kind, count, busy, refusal, onCancel, onConfirm }: 
       onClose={() => {
         if (!busy) onCancel();
       }}
-    >
-      <div data-kind={kind} className="min-w-0 space-y-3">
-        <p className="text-sm text-muted-foreground">{t(HINT[kind])}</p>
-        <ReasonNote
-          testid="listings-move"
-          reasons={MOVE_REASONS[kind]}
-          reason={reason}
-          note={note}
-          problem={problem}
-          onReason={(value) => {
-            setReason(value);
-            setProblem(null);
-          }}
-          onNote={(value) => {
-            setNote(value);
-            setProblem(null);
-          }}
-        />
-        {problem !== null || refusal !== null ? (
-          <p
-            role="alert"
-            id="listings-move-problem"
-            data-testid="listings-move-problem"
-            className="text-sm text-destructive"
-          >
-            {problem !== null ? t(problem) : refusal}
-          </p>
-        ) : null}
-        <DialogFooter>
+      description={t(HINT[kind])}
+      size="default"
+      subject={subjectTitle === undefined ? undefined : <PanelSubject title={subjectTitle} />}
+      tone={kind === "remove" ? "danger" : "confirm"}
+      icon={<TriangleAlert />}
+      footer={
+        <>
+          {" "}
           <Button
             type="button"
             variant="outline"
@@ -123,8 +113,36 @@ export function MoveDialog({ kind, count, busy, refusal, onCancel, onConfirm }: 
             }}
           >
             {t(MOVE_LABEL[kind])}
-          </Button>
-        </DialogFooter>
+          </Button>{" "}
+        </>
+      }
+    >
+      <div data-kind={kind} className="min-w-0 space-y-3">
+        <ReasonNote
+          testid="listings-move"
+          reasons={MOVE_REASONS[kind]}
+          reason={reason}
+          note={note}
+          problem={problem}
+          onReason={(value) => {
+            setReason(value);
+            setProblem(null);
+          }}
+          onNote={(value) => {
+            setNote(value);
+            setProblem(null);
+          }}
+        />
+        {problem !== null || refusal !== null ? (
+          <p
+            role="alert"
+            id="listings-move-problem"
+            data-testid="listings-move-problem"
+            className="text-sm text-destructive"
+          >
+            {problem !== null ? t(problem) : refusal}
+          </p>
+        ) : null}
       </div>
     </CategoryModal>
   );

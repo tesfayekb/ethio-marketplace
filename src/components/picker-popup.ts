@@ -61,12 +61,15 @@ export function usePickerPlacement(
   anchorRef: RefObject<HTMLElement | null>,
   open: boolean,
   rowCount: number,
+  options?: { boundary?: (anchor: HTMLElement) => HTMLElement | null },
 ): PickerPlacement {
+  const boundaryOf = options?.boundary;
   const [placement, setPlacement] = useState<PickerPlacement>("down");
   useEffect(() => {
     if (!open) return;
     const anchor = anchorRef.current;
     if (anchor === null) return;
+    const boundary = boundaryOf?.(anchor) ?? null;
     const place = () => {
       const rect = anchor.getBoundingClientRect();
       // The existing anchor is the currency input or the whole phone field. The
@@ -96,10 +99,20 @@ export function usePickerPlacement(
       panel.style.removeProperty("--picker-max-height");
       const wanted = panel.getBoundingClientRect().height || Math.min(256, 44 * rowCount + 2);
       const page = document.scrollingElement ?? document.documentElement;
-      const scrollRoom = settled
-        ? 0
-        : Math.max(0, page.scrollHeight - window.innerHeight - window.scrollY);
-      const plan = placeList(rect, wanted, visibleArea(), scrollRoom);
+      const scrollRoom =
+        boundary !== null || settled
+          ? 0
+          : Math.max(0, page.scrollHeight - window.innerHeight - window.scrollY);
+      const visible = visibleArea();
+      const bounds = boundary?.getBoundingClientRect();
+      const area =
+        bounds === undefined
+          ? visible
+          : {
+              top: Math.max(visible.top, bounds.top),
+              bottom: Math.min(visible.bottom, bounds.bottom),
+            };
+      const plan = placeList(rect, wanted, area, scrollRoom);
       delete panel.dataset.settled;
       if (plan.scrollBy > 0) {
         // Opacity, not visibility: a hidden list would drop its search box's focus and close.
@@ -129,15 +142,21 @@ export function usePickerPlacement(
     let alive = true;
     place();
     window.addEventListener("resize", place);
+    boundary?.addEventListener("scroll", place, { passive: true });
+    const watch =
+      boundary !== null && typeof ResizeObserver === "function" ? new ResizeObserver(place) : null;
+    if (boundary !== null) watch?.observe(boundary);
     return () => {
       alive = false;
       window.removeEventListener("resize", place);
+      boundary?.removeEventListener("scroll", place);
+      watch?.disconnect();
       const control = anchor.matches("input")
         ? anchor
         : anchor.querySelector<HTMLElement>('[aria-haspopup="listbox"]');
       if (control !== null && control !== undefined) control.dataset.state = "closed";
     };
-  }, [anchorRef, open, rowCount]);
+  }, [anchorRef, open, rowCount, boundaryOf]);
   return placement;
 }
 

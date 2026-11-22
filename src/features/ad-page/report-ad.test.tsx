@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";

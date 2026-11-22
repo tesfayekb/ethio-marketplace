@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-
+import { Eraser } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
+import { Button } from "@/components/ui/button";
+import { Picture } from "@/components/ui/picture";
+
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -47,6 +49,7 @@ export function BackgroundDialog({
   onCancel,
   onSave,
   remove = removeBackground,
+  sourceUrl,
 }: {
   /** The ad and its cover; null while the dialog is closed. */
   target: { listingId: string; photoId: string } | null;
@@ -58,6 +61,8 @@ export function BackgroundDialog({
   onSave: (picture: ImageBitmap) => Promise<MessageKey | null>;
   /** The server call (a test hands its own). */
   remove?: (listingId: string, photoId: string) => Promise<BackgroundAnswer>;
+  /** The photo address already drawn by the opener; never resolved by the dialog. */
+  sourceUrl?: string;
 }) {
   const { t } = useI18n();
   const [phase, setPhase] = useState<Phase>("intro");
@@ -155,50 +160,68 @@ export function BackgroundDialog({
         if (!open && phase !== "saving") onCancel();
       }}
     >
-      <DialogContent data-testid="post-photo-background-dialog">
-        <DialogHeader>
+      <DialogContent bands data-testid="post-photo-background-dialog">
+        <PanelHeader icon={<Eraser />}>
           <DialogTitle>{t("post.photos.background")}</DialogTitle>
           <DialogDescription>{t("post.photos.background.hint")}</DialogDescription>
-        </DialogHeader>
-
-        {phase === "working" && (
-          <p className="text-sm text-muted-foreground" data-testid="post-photo-background-working">
-            {t("post.photos.background.working")}
-          </p>
-        )}
-
-        {result !== null && (
-          <div className="flex justify-center">
-            <canvas
-              ref={previewRef}
-              data-testid="post-photo-background-preview"
-              data-width={result.width}
-              data-height={result.height}
-              className="block h-auto max-h-[55vh] w-auto max-w-full rounded-md"
+        </PanelHeader>
+        <PanelBody>
+          {sourceUrl === undefined ? null : (
+            <PanelSubject
+              title={t("post.photos.background")}
+              picture={
+                <Picture
+                  src={sourceUrl}
+                  fit="cover"
+                  alt={t("post.photos.background")}
+                  width={56}
+                  height={56}
+                />
+              }
             />
-          </div>
-        )}
+          )}
 
-        {triesLeft !== null && (
-          <p className="text-xs text-muted-foreground" data-testid="post-photo-background-tries">
-            {fill(t("post.photos.background.triesLeft"), { count: triesLeft })}
-          </p>
-        )}
+          {phase === "working" && (
+            <p
+              className="text-sm text-muted-foreground"
+              data-testid="post-photo-background-working"
+            >
+              {t("post.photos.background.working")}
+            </p>
+          )}
 
-        {phase === "saving" && (
-          <p className="text-sm text-muted-foreground" data-testid="post-photo-background-saving">
-            {t("post.photos.editor.saving")}
-          </p>
-        )}
-        {refusal !== null && (
-          <div role="alert" className="space-y-1" data-testid="post-photo-background-refusal">
-            <p className="text-sm text-destructive">{t(refusal)}</p>
-            <p className="text-xs text-muted-foreground">{t("post.photos.editor.kept")}</p>
-          </div>
-        )}
+          {result !== null && (
+            <div className="flex justify-center">
+              <canvas
+                ref={previewRef}
+                data-testid="post-photo-background-preview"
+                data-width={result.width}
+                data-height={result.height}
+                className="block h-auto max-h-[55vh] w-auto max-w-full rounded-md"
+              />
+            </div>
+          )}
 
-        <DialogFooter>
-          <button
+          {triesLeft !== null && (
+            <p className="text-xs text-muted-foreground" data-testid="post-photo-background-tries">
+              {fill(t("post.photos.background.triesLeft"), { count: triesLeft })}
+            </p>
+          )}
+
+          {phase === "saving" && (
+            <p className="text-sm text-muted-foreground" data-testid="post-photo-background-saving">
+              {t("post.photos.editor.saving")}
+            </p>
+          )}
+          {refusal !== null && (
+            <div role="alert" className="space-y-1" data-testid="post-photo-background-refusal">
+              <p className="text-sm text-destructive">{t(refusal)}</p>
+              <p className="text-xs text-muted-foreground">{t("post.photos.editor.kept")}</p>
+            </div>
+          )}
+        </PanelBody>
+        <PanelFooter>
+          <Button
             type="button"
             data-testid="post-photo-background-cancel"
             className={toolButtonClass}
@@ -206,9 +229,9 @@ export function BackgroundDialog({
             onClick={onCancel}
           >
             {t("common.cancel")}
-          </button>
+          </Button>
           {result === null ? (
-            <button
+            <Button
               type="button"
               data-testid="post-photo-background-start"
               className={mainButtonClass}
@@ -216,10 +239,10 @@ export function BackgroundDialog({
               onClick={() => void start()}
             >
               {t("post.photos.background")}
-            </button>
+            </Button>
           ) : (
             <>
-              <button
+              <Button
                 type="button"
                 data-testid="post-photo-background-retry"
                 className={toolButtonClass}
@@ -227,8 +250,8 @@ export function BackgroundDialog({
                 onClick={() => void start()}
               >
                 {t("common.retry")}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 data-testid="post-photo-background-keep"
                 className={mainButtonClass}
@@ -236,10 +259,10 @@ export function BackgroundDialog({
                 onClick={() => void keep()}
               >
                 {t("post.photos.background.keep")}
-              </button>
+              </Button>
             </>
           )}
-        </DialogFooter>
+        </PanelFooter>
       </DialogContent>
     </Dialog>
   );

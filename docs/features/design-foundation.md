@@ -558,25 +558,110 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - Turn W3: the panel tabs' current mark follows the press too — `panelAt(useMenuAt().pathname, panelChoice)` (menu-current.ts), the chosen page's panel or the shell's chosen panel; the shell's `activePanel` (the frame) stays on the shown page. PS-7 (e2e/press.spec.ts) judges it at 768 and 1280. Turn T1 (W3's K2): the panel switcher's checked panel (panel-header.tsx, its radio group's value) reads the same `panelAt`, while its heading keeps naming the panel shown; PS-9 judges it.
 - CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`; turn W3: `aria-selected` marks are read too, panel-tabs.tsx is a menu file, and a mark read from `activePanel` is refused — PRP-9; turn T1: panel-header.tsx is a menu file, its radio group's `value` and `aria-checked` marks are read — PRP-11; turn T1: a mark is followed through a multi-line const, a chain of consts and a helper's body — PRP-10) and 4 (vibrate only in press.ts; turn T1, INC-1032: no switch checkbox anywhere, press.ts included — PRP-7).
 
-## Dialogs (turn S6-1)
+## Dialog anatomy (INC-1146, DEC-418/419/420)
 
-- One look for every dialog, alert dialog and sheet (D268, Sage §14), drawn from `src/components/ui/dialog-look.ts` by its three primitives (`dialog.tsx`, `alert-dialog.tsx`, `sheet.tsx`); a consumer picks a variant, never a class (CF-DIALOG-1, register rows 88 and 89).
-- The scrim is `--scrim` (a green-tinted dark wash in light, black in dark). The panel is the popover surface with 22 px above and below and 24 px at the sides, the 20 px dialog radius (`--radius-dialog`) and `--lift-dialog` (a 1 px ring in the hairline colour, then two drops; black in dark, as D262's card).
-- DialogContent's variants: `size` (narrow, default, wide), `fit` (bounded, scrolling inside 100dvh − 2rem; fill, a column of that height, 70vh from md), `phone` (float, or sheet: a bottom sheet below md with the grabber and the safe-area inset), `layer` (modal, viewer, top — the step-up's `Z_TOP` over every other layer) and `closeTestId`.
-- The heading is the display face at 20 px and 800; the description 14 px in the muted ink. The close button reads the top bar's control look (`CONTROL_LOOK`, which lives with `SEARCH_FIELD` in `menu-row.ts`): 44 px below md and on a coarse pointer, 40 px on a fine pointer from md; it sits at the panel's end edge and comes after the content, so the focus lands on the first field.
-- The footer (`DIALOG_FOOTER`) draws the top rule (`--lift-rule-top`) across the panel; its buttons are Cancel, then the action; on a phone they stack with the action on top. An alert dialog has no close button; its Action takes `tone="destructive"` (red) and Action and Cancel are touch-sized.
-- Sheets come from the start, end or bottom edge (logical sides only); a bottom sheet draws the grabber; from 640 px a side sheet takes the dialog radius on its inner corners.
-- A field (Input, Textarea, NativeSelect) inside a panel (`data-dialog-panel`) is the pressed-in field (`--field`, `--lift-field`) through the `in-data-[dialog-panel]:` variant; the posting form keeps the form kit's look.
-- A stacked list of choices in a dialog uses the list row (`LIST_ROW`) with the chosen ring (`LIST_CHOICE_ON`, `--lift-choice-on`) and, where a label may run long, the wrap option (`LIST_ROW_WRAP`: a report reason in Amharic is never cut).
-- First paint: dialog-look.ts holds dialog parts only and stays off the entry (211.2 → 211.4 KiB local in this turn); a page's first download carries it only when the page draws a dialog, a sheet or a field (S6-3 took the step-up gate's dialog on demand: see below).
-- Retired with this turn: command, context-menu, drawer, hover-card, menubar, navigation-menu, select and sidebar (`src/components/ui`); their packages stay until a package turn and no file reaches them (CF-OV-4).
-- Specimens: /dev/style shows the dialog, the alert dialog and the end and bottom sheets from existing keys; e2e/dialogs.spec.ts measures them and Share this ad at 390, 834 and 1440, light and dark.
+One anatomy serves dialogs, alerts, sheets and toolbar panels. The primitive variants and
+`dialog-look.ts` own the frame, scrim, radius, size, layer and phone placement; the anatomy's
+surfaces live in `dialog-parts-look.ts` with the on-demand implementation. A banded frame has
+no padding or scrolling of its own at any placement: on a phone the bottom inset (the safe
+area) is its last band's, never the frame's. The existing unbanded primitive remains
+available for specimens and the step-up dialog pending Cursor's migration.
+
+### Parts and consumers
+
+- `PanelHeader`: the card-surface header band with the title, description and optional icon
+  tile. A question takes the confirm tone; a warning takes the danger tone.
+- `PanelSubject`: one card naming what the action affects, with an optional picture and up
+  to three held text lines. User-provided names and titles remain text, never markup.
+- `PanelBody`: the only scroller, between the fixed header and footer. Its cue appears only
+  while more content lies below and scrolls about one screen on press; it occupies no layout
+  space and respects reduced motion. No children means no body band, including `null`.
+  It is ONE element, the frame's own child: a block scroller that starts at its content's
+  height (`grow`, never `flex-1`) and shrinks when the frame's height limit binds, with its
+  content in one inner column that carries the top and bottom inset. Three switches:
+  `fill` (one child takes the room — a photo, a map: no scroll, no cue, no inset), `flush`
+  (no inset: the content brings its own box, as the buyer's preview does) and `end` (the
+  body is the frame's last band — there is no footer — and carries the bottom inset).
+- `PanelFooter`: the always-visible action band, with safe-area clearance. The secondary
+  action comes first and the forward action last; the forward action uses the filled look.
+- `StepTrack`: the acts in a process, with earlier acts done, the current act marked, and
+  later acts pending. An import has Preview and Confirm; both are done after application.
+- `ActionRow`: the shared icon-and-label list row, preserving a caller's link or handler.
+- `ClosedPrimary`: a closed action with its missing-answer line above the actions at every
+  width. Pressing it closed marks the missing answer without sending; it is not disabled.
+- `FilterRow`, `FilterText`, `FilterSelect`, `FilterDates`: shared answer rows for filter
+  panels. The dates use `DateField`; column panels use the real `ColumnsList`.
+
+Consumers import the thin parts from `dialog-parts-facade.tsx`, never `dialog-parts.tsx`.
+The real parts arrive with the modal through `overlays-impl.ts` and the overlay loader.
+`CategoryModal` accepts description, tone/icon, subject and footer props and draws those
+parts; when neither subject nor children are supplied, it passes nothing to the body.
+`ToolbarPanel` uses the same anatomy in its phone sheet and desktop popover. A late overlay
+has no box in the page: its loading fallback is `null`. Share, like Report, stays mounted
+from its first opening and receives `open`, so closing and opener-focus restoration finish.
+
+The on-demand overlay implementation imports no language provider, Supabase door or query
+state. Words arrive as props: the thin `PanelBody`, already running with the page's provider,
+passes the translated `dialog.moreBelow` cue label to the real body.
+
+### Laws and exceptions
+
+- A subject shows only what its opener already holds; it does not fetch names or records.
+  **The one reading subject is Screening's approval/rejection question**: the operator's
+  item requires the ad's pictures. It uses the preview's existing photos hook and links
+  reader, and no other read. Pending photos leave the tile empty; a failed read removes
+  picture and strip; an answered empty list uses the category picture as an empty-photo ad
+  card does; an answered list uses its first photo, with second and third thumbnails only
+  if a second exists. Several ads use one counted card and the first three held titles.
+- A red primary never receives opening focus. The shared implementation chooses a field
+  or a safe control when the first control is red; the primitive retains normal focus and
+  opener restoration otherwise.
+- Escape closes an open picker list first, leaving its panel open for the next Escape.
+  Lists place and cap within the panel body's room.
+- The body alone scrolls; its cue holds zero layout space. Empty content draws no body band.
+  Why the body has this one form, each proven in a real engine: behind a wrapper, or with a
+  zero basis, WebKit gives the body no height in a frame that fits its content (every
+  centred dialog showed 32 px of padding around hidden content); as a flex column it
+  squeezes a fixed-height clipped child in Chromium (the pin map fell to its border); and
+  unless it is `relative`, a screen-reader-only label inside it is laid out against the
+  frame, which then has hidden room below its footer and can be scrolled off its header.
+  The cue is a zero-height sticky anchor, the scroller's last child.
+- A frame's last band carries the bottom inset: the footer does; a body with no footer
+  says `end`. The toolbar panel says it on a phone only (its desktop form is a popover).
+- A change of a dialog's frame never changes its content's width: the buyer's preview
+  keeps its 640 px column (the ad's own container query reads it).
+- A description states what the forward action does. Exactly four accepted exceptions are
+  marked beside their consumers: the guide sheet (the guide itself is its content), buyer
+  preview (the complete ad is the content), photo viewer (the photo itself) and enlarged
+  map (the map is the content). The pin map keeps its description (why the pin is asked)
+  and its 32rem card.
+- INC-1243: the posting wizard's Next remains in its existing closed/disabled form for this
+  bundle, as ruled. Import's Preview also retains its own disabled rule before a file is
+  chosen and while busy, its busy label and its browser test id; it is not `ClosedPrimary`.
+
+### Cursor-owned completion
+
+The step-up dialog (census row 52) stays on its old frame until Cursor migrates it. Cursor's
+conformance-kit dialog guard turn owns the new laws: thin-only consumer imports and no
+page's static closure reaching the real anatomy (the removed CMD-6 tree-walker law), no
+provider/door/query imports in the on-demand overlay implementation, held-only subjects
+with the Screening picture exception, red-focus safety, list-first Escape, body-only
+scrolling/cue, empty-body omission, the last band's inset (`end`), and description
+exceptions. Until that guard lands,
+the supervisor proves the static-closure law from each build's chunk record. No ceiling
+is raised here: the supervisor measures the final head and supplies exact ceiling lines.
+
+The three look specs are `e2e/dialogs.spec.ts`, `e2e/overlays.spec.ts` and
+`e2e/house-style.spec.ts`; local unit tests prove the parts and all their consumers.
+DLG-E10 and DLG-E11 run in WebKit too (`@webkit`): a tall body in a short window scrolls
+alone and its last control takes the press, and every banded panel of the board keeps its
+body between its header and its last band, with a height.
 
 ## The popover on demand (turn S6-3)
 
 - The popover joins the overlay facade (register row 48): `popover.tsx` is a facade on `OverlayRoot` with `kind="popover"`; Radix's popover, its floating-ui layer and `collisionPaddingNow` live in `popover-impl.tsx`, re-exported by `overlays-impl.ts` and fetched with the other overlays. Its trigger is the consumer's own element from the first render (`aria-haspopup="dialog"`, `aria-expanded="false"` while closed); the first click is replayed on that element once the code is here, and the consumer's own click handler hears it once. A controlled `open` is passed through. `PopoverAnchor` is retired (no consumer).
 - `PopoverContent` takes a variant, never a look: `list` (the default: the list surface, 288 px, 16 px padding) or `panel` (the dialog panel's padding, 320 px, bounded by the room Radix leaves, `data-dialog-panel` so its fields are pressed in).
-- The toolbar panel (Filters, Columns) draws no look of its own: on a phone it is `Sheet side="bottom"` (the scrim, the grabber, the title, the close at `${testid}-close` and the notices come with it); from md it is `PopoverContent variant="panel"`. Both put the footer's link and its primary in the shared footer part, in one row.
+- The toolbar panel (Filters, Columns) draws no look of its own: on a phone it is `Sheet side="bottom"` (the scrim, the grabber, the title, the close at `${testid}-close` and the notices come with it); from md it is `PopoverContent variant="panel"`. Both use the thin header, body and footer parts, including the filter/column description.
 - The step-up gate's dialog lives in `src/features/auth/mfa/step-up-dialog.tsx`, fetched through `resilientLazy` on the first step-up and drawn on the top layer as before. A failed download raises the shell's notice and ends the guarded action as unavailable (SUG-2). The bundler's preload list for that import (the 56 chunks the dialog needs, 0.8 KiB) rides the gate's chunk, so a page that keeps its own dialogs pays about 0.4 KiB net, and a page whose only dialog was the gate's saves 0.6–1.1 KiB.
 - CF-DIALOG-1's DG-1 also reads a part of a namespace imported from dialog-primitive outside the primitives (skipping a `modal={false}` root's subtree: the phone menu) and `PopoverContent` outside the popover's own files (DG-7).
 - First paint: Radix's popover leaves every staff toolbar's first download, about 18 KiB off each of 16 pages; the popover's facade adds 0.2 KiB to the entry (211.4 → 211.6 KiB local, ceiling 212 → 213).
@@ -584,7 +669,7 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 ## The full-screen surfaces (turn S6-4)
 
 - Dialog draws the whole screen too, so a full-screen surface gets the primitive's focus trap, Escape, scroll lock (row 77), notices (row 52) and scrim, and keeps no layer, Escape handler, focus code or body lock of its own (register rows 48 and 88).
-- `variant="screen"` (`SCREEN_PANEL`): the panel is the whole screen at every width, in the page's own surface and ink, scrolling inside. The photo viewer (`photo-gallery.tsx`, `layer="viewer"`, over the ad preview when both are open) and the ad preview (`preview-sheet.tsx`, `layer="modal"`) are drawn by it. The preview's own Close button gave way to the dialog's close (`post-preview-close`).
+- `variant="screen"` (`SCREEN_PANEL`): the panel is the whole screen at every width, in the page's own surface and ink, scrolling inside. The photo viewer (`photo-gallery.tsx`, `layer="viewer"`, over the ad preview when both are open) and the ad preview (`preview-sheet.tsx`, `layer="modal"`) are drawn by it, using the thin header/body parts and a banded frame whose body alone scrolls. The preview's own Close button gave way to the dialog's close (`post-preview-close`).
 - `phone="full"` (`DIALOG_PHONE.full`): the whole screen below md (no radius, no lift, the safe-area inset under the footer), the panel at its size from md. The map pin dropper (`map-pin-dropper.tsx`) is `phone="full" fit="fill"`: full-screen on a phone, a 32rem card from md, with Cancel and Save in the footer part.
 - Focus on a screen-sized surface (`variant="screen"` or `phone="full"`): the panel itself takes the focus when it opens, and the focus returns to the element that held it before (the opener) when it closes, even when the owner opened it without a trigger. Escape closes only the top layer: Escape on the viewer over the preview closes the viewer alone.
 - The viewer's ‹ › arrows step through the photos on the photo itself, so they are the photo's own controls, not the dialog's actions; they sit on one CF-DIALOG-1 DG-4 allowlist line until 2027-05-01. The arrow keys step through the photos while the viewer has focus.
@@ -593,7 +678,7 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - CF-DIALOG-1's DG-2: `role="dialog"` or `"alertdialog"`, `aria-modal`, or a class list holding both `fixed` and `inset-0`, in any .ts or .tsx file outside the primitive's own files, fails. Its allowlist starts empty; the phone menu is non-modal and passes by definition.
 - Proof: DLG-E8 (`e2e/dialogs.spec.ts`) opens the viewer on the ad page, the preview and the viewer over it on the review step, and the pin map on the place step, at 390 and 1440, light and dark (dark with reduced motion). It checks the top layer only closes on Escape, the focus returns to the opener, the page and the opener hold still, and no animation runs under reduced motion. `stillPage` (`e2e/helpers/ui.ts`) waits first for content that arrives late over the network.
 - The opener in Safari (INC-1126, the pictures turn): the opener is the element that held the focus when the panel opened. Safari does not focus a button on a click, so where the focus sat on the page, or on the focusable box around the pressed control, the opener is the control the opening press landed on (`openerOf`, now in `src/components/ui/dialog-opener.ts`). One record, heard from the module's first evaluation (a panel drawn only while open, as the preview sheet, is opened by a press that came before it mounted), filled by a press and emptied by the next press or key, is spent by the one opening that reads it and holds no element after it; a keyboard opening is unchanged. Proof: DO-1 → DO-5 (`src/components/ui/dialog-opener.test.tsx`; jsdom, as Safari, does not focus a clicked button) and DLG-E8 in WebKit.
-- Every panel gives the focus back to its opener (INC-1130, the app-fixes turn, part C; WCAG 2.4.3): the dialog, the sheet and the alert dialog alike, whatever their size and however they opened. Before, only a screen-sized panel restored its opener, and a smaller panel opened from state (Share this ad, the step-up dialog, every confirm) had no trigger for Radix to return to, so the focus fell to the page. One hook, `useOpenerFocus` (`src/components/ui/dialog-opener.ts`), records the opener in the panel's `onOpenAutoFocus` (before the owner's) and gives it the focus in `onCloseAutoFocus` (after the owner's); `dialog.tsx`, `sheet.tsx` and `alert-dialog.tsx` call it. It steps aside for the panel's own library trigger (the control whose `aria-controls` names the panel: Radix returns the focus to it), for an owner whose own `onCloseAutoFocus` prevented the default (the guide sheet's landing frame), and for an opener that left the page (the focus goes where it went before). The phone menu (`app-rail.tsx`) returns the focus by its own handler and is not on it; popovers, menus and tooltips have library triggers. Proof: DO-6 (a small dialog opened from state), DO-7 (the sheet and the alert), DO-8 (a library trigger left to the library) — each red on the old primitives — and DO-9 (the owner's handler wins), DO-10 (an opener that left the page), which the old code already met; DLG-E9 (`e2e/dialogs.spec.ts`, `@webkit`): Share this ad, closed by Escape and by its ✕, gives the focus back to its opener.
+- Every panel gives the focus back to its opener (INC-1130, the app-fixes turn, part C; WCAG 2.4.3): the dialog, the sheet and the alert dialog alike, whatever their size and however they opened. Before, only a screen-sized panel restored its opener, and a smaller panel opened from state (Share this ad, the step-up dialog, every confirm) had no trigger for Radix to return to, so the focus fell to the page. One hook, `useOpenerFocus` (the on-demand `dialog-impl.ts`), records the opener in the panel's `onOpenAutoFocus` (before the owner's) and gives it the focus in `onCloseAutoFocus` (after the owner's); the on-demand implementations call it. It steps aside for the panel's own library trigger (the control whose `aria-controls` names the panel: Radix returns the focus to it), for an owner whose own `onCloseAutoFocus` prevented the default (the guide sheet's landing frame), and for an opener that left the page (the focus goes where it went before). The phone menu (`app-rail.tsx`) returns the focus by its own handler and is not on it; popovers, menus and tooltips have library triggers. Proof: DO-6 (a small dialog opened from state), DO-7 (the sheet and the alert), DO-8 (a library trigger left to the library) — each red on the old primitives — and DO-9 (the owner's handler wins), DO-10 (an opener that left the page), which the old code already met; DLG-E9 (`e2e/dialogs.spec.ts`, `@webkit`): Share this ad, closed by Escape and by its ✕, gives the focus back to its opener.
 
 ## One select (turn S6-2)
 

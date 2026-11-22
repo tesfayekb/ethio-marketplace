@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";

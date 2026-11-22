@@ -505,6 +505,7 @@ export function StepPricing({
                   data-testid="post-price-currency-list"
                   role="listbox"
                   data-placement={placement}
+                  data-picker-popup=""
                   className={`${pickerPopClass(placement)} ${LIST_SCROLLER}`}
                 >
                   {shownRows.map((row, index) => (

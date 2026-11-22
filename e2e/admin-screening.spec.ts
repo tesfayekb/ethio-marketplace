@@ -558,7 +558,10 @@ test.describe("ADMIN SCREENING", () => {
     expect(isRedFill(await fillOf(page.getByTestId("admin-screening-bulk-approve")))).toBe(false);
     await page.getByTestId("admin-screening-bulk-approve").click();
     await expect(page.getByTestId("admin-screening-confirm")).toContainText(
-      en["admin.screening.confirmApproveMany"].replace("{count}", "2"),
+      en["admin.screening.confirm.titleApproveMany"].replace("{count}", "2"),
+    );
+    await expect(page.getByTestId("admin-screening-confirm")).toContainText(
+      en["admin.screening.confirm.descriptionApproveMany"],
     );
     expect(
       isRedFill(await fillOf(page.getByTestId("admin-screening-confirm-go"))),
@@ -676,7 +679,10 @@ test.describe("ADMIN SCREENING", () => {
     await footReject.click();
     await expect(page.getByTestId("post-preview-sheet")).toHaveCount(0);
     await expect(page.getByTestId("admin-screening-confirm")).toContainText(
-      en["admin.screening.confirmReject"],
+      en["admin.screening.confirm.titleReject"],
+    );
+    await expect(page.getByTestId("admin-screening-confirm")).toContainText(
+      en["admin.screening.confirm.descriptionReject"],
     );
     await expect
       .poll(async () => isRedFill(await fillOf(page.getByTestId("admin-screening-confirm-go"))), {
@@ -1409,7 +1415,8 @@ test.describe("ADMIN SCREENING", () => {
     const confirm = page.getByTestId("post-edit-confirm");
     await page.getByTestId("post-edit-approve").click();
     await expect(confirm).toBeVisible({ timeout: 20000 });
-    await expect(confirm).toContainText(en["admin.screening.confirmApprove"]);
+    await expect(confirm).toContainText(en["admin.screening.confirm.titleApprove"]);
+    await expect(confirm).toContainText(en["admin.screening.confirm.descriptionApprove"]);
     await confirm.getByRole("button", { name: en["common.cancel"] }).click();
     await expect(confirm).toHaveCount(0);
     await expect(page.getByTestId("post-review")).toBeVisible();
@@ -1418,7 +1425,8 @@ test.describe("ADMIN SCREENING", () => {
     // Reject asks; Go decides; the queue says Rejected and the ad has left it.
     await page.getByTestId("post-edit-reject").click();
     await expect(confirm).toBeVisible({ timeout: 20000 });
-    await expect(confirm).toContainText(en["admin.screening.confirmReject"]);
+    await expect(confirm).toContainText(en["admin.screening.confirm.titleReject"]);
+    await expect(confirm).toContainText(en["admin.screening.confirm.descriptionReject"]);
     await page.getByTestId("post-edit-confirm-go").click();
     await stepUpIfPrompted(page, secret);
     await expect

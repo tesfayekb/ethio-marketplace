@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
@@ -29,7 +29,15 @@ const REASON_REFUSALS: RefusalFamily = {
  * super-admin targets, short reasons, aal1 callers and a second concurrent
  * session regardless of what this form allows.
  */
-export function ImpersonationStarter({ userId, guard }: { userId: string; guard: GuardFn }) {
+export function ImpersonationStarter({
+  userId,
+  guard,
+  renderPanel,
+}: {
+  userId: string;
+  guard: GuardFn;
+  renderPanel?: (body: ReactNode, footer: ReactNode) => ReactNode;
+}) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const begin = useBeginImpersonation();
@@ -39,61 +47,62 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
   const blankMark = gate.marks.find((mark) => mark.field === "reason") ?? null;
   const tooShort = errorKey === "impersonation.reasonTooShort";
 
-  return (
+  const actions = (
+    <>
+      <Button
+        variant="secondary"
+        className="min-h-11 w-full sm:w-auto"
+        data-testid="impersonation-begin"
+        disabled={begin.isPending}
+        onClick={() => {
+          if (!gate.try()) return;
+          if (reason.trim().length < MIN_REASON) {
+            setErrorKey("impersonation.reasonTooShort");
+            return;
+          }
+          setErrorKey(null);
+          let sessionId: string | null = null;
+          void guard(async () => {
+            const session = await begin.mutateAsync({
+              targetId: userId,
+              reason: reason.trim(),
+            });
+            sessionId = session.sessionId;
+          })
+            .then(() => {
+              if (sessionId === null) return;
+              void navigate({
+                to: "/admin/impersonation/$sessionId",
+                params: { sessionId },
+              });
+            })
+            .catch((failure: unknown) => {
+              const read = readRefusal(failure, { generic: "impersonation.failed" });
+              setErrorKey(read.silent ? null : read.key);
+            });
+        }}
+      >
+        {t("impersonation.start")}
+      </Button>
+      {errorKey ? (
+        <p
+          id="impersonation-error"
+          role="alert"
+          data-testid="impersonation-error"
+          className="text-sm text-destructive"
+        >
+          {t(errorKey)}
+        </p>
+      ) : null}
+    </>
+  );
+  const body = (
     <FormSection
       testid="impersonation-starter"
       title={t("impersonation.viewAs")}
-      description={t("impersonation.readOnlyNote")}
+      {...(renderPanel === undefined ? { description: t("impersonation.readOnlyNote") } : {})}
       columns={1}
-      actions={
-        <>
-          <Button
-            variant="secondary"
-            className="min-h-11 w-full sm:w-auto"
-            data-testid="impersonation-begin"
-            disabled={begin.isPending}
-            onClick={() => {
-              if (!gate.try()) return;
-              if (reason.trim().length < MIN_REASON) {
-                setErrorKey("impersonation.reasonTooShort");
-                return;
-              }
-              setErrorKey(null);
-              let sessionId: string | null = null;
-              void guard(async () => {
-                const session = await begin.mutateAsync({
-                  targetId: userId,
-                  reason: reason.trim(),
-                });
-                sessionId = session.sessionId;
-              })
-                .then(() => {
-                  if (sessionId === null) return;
-                  void navigate({
-                    to: "/admin/impersonation/$sessionId",
-                    params: { sessionId },
-                  });
-                })
-                .catch((failure: unknown) => {
-                  const read = readRefusal(failure, { generic: "impersonation.failed" });
-                  setErrorKey(read.silent ? null : read.key);
-                });
-            }}
-          >
-            {t("impersonation.start")}
-          </Button>
-          {errorKey ? (
-            <p
-              id="impersonation-error"
-              role="alert"
-              data-testid="impersonation-error"
-              className="text-sm text-destructive"
-            >
-              {t(errorKey)}
-            </p>
-          ) : null}
-        </>
-      }
+      actions={renderPanel === undefined ? actions : undefined}
     >
       <Field
         id="impersonation-reason"
@@ -122,6 +131,9 @@ export function ImpersonationStarter({ userId, guard }: { userId: string; guard:
       </Field>
     </FormSection>
   );
+  return renderPanel === undefined
+    ? body
+    : renderPanel(body, <div data-testid="impersonation-starter-actions">{actions}</div>);
 }
 
 export default ImpersonationStarter;

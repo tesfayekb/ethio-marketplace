@@ -55,6 +55,7 @@ export function ColumnsButton({
       <ToolbarPanel
         testid={testid}
         title={label}
+        description={t("prim.table.columnsDescription")}
         state={state}
         align="end"
         trigger={
@@ -95,37 +96,49 @@ export function ColumnsButton({
           </>
         )}
       >
-        <ul className="-my-2 flex flex-col">
-          {columns.map((column) => {
-            const shown = column.locked === true || !hidden.includes(column.key);
-            const id = `${testid}-${column.key}`;
-            return (
-              <li
-                key={column.key}
-                className="flex min-h-12 items-center gap-3 border-b border-border/60 last:border-0"
-              >
-                <label
-                  htmlFor={id}
-                  className={
-                    column.locked === true
-                      ? "min-w-0 flex-1 text-[15px] text-muted-foreground"
-                      : "min-w-0 flex-1 text-[15px] text-foreground"
-                  }
-                >
-                  {column.label}
-                </label>
-                <Switch
-                  id={id}
-                  data-testid={id}
-                  checked={shown}
-                  disabled={column.locked === true}
-                  onCheckedChange={(value) => onToggle(column.key, value)}
-                />
-              </li>
-            );
-          })}
-        </ul>
+        <ColumnsList testid={testid} columns={columns} hidden={hidden} onToggle={onToggle} />
       </ToolbarPanel>
     </PressLabel>
+  );
+}
+
+/** The columns panel’s one list, also drawn by the house-style board. */
+export function ColumnsList({
+  testid,
+  columns,
+  hidden,
+  onToggle,
+}: Pick<Parameters<typeof ColumnsButton>[0], "testid" | "columns" | "hidden" | "onToggle">) {
+  return (
+    <ul className="-my-2 flex flex-col">
+      {columns.map((column) => {
+        const shown = column.locked === true || !hidden.includes(column.key);
+        const id = `${testid}-${column.key}`;
+        return (
+          <li
+            key={column.key}
+            className="flex min-h-12 items-center gap-3 border-b border-border/60 last:border-0"
+          >
+            <label
+              htmlFor={id}
+              className={
+                column.locked === true
+                  ? "min-w-0 flex-1 text-[15px] text-muted-foreground"
+                  : "min-w-0 flex-1 text-[15px] text-foreground"
+              }
+            >
+              {column.label}
+            </label>
+            <Switch
+              id={id}
+              data-testid={id}
+              checked={shown}
+              disabled={column.locked === true}
+              onCheckedChange={(value) => onToggle(column.key, value)}
+            />
+          </li>
+        );
+      })}
+    </ul>
   );
 }

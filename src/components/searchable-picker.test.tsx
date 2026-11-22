@@ -153,3 +153,73 @@ describe("D267 — placeList: an open list stays inside the visible area", () =>
     expect(plan.maxHeight).toBe(700 - 204 + 20);
   });
 });
+
+describe("picker placement in a panel body", () => {
+  it("FP-U14 a short body caps the popup to the larger side without scrolling the page", () => {
+    function Bounded() {
+      const ref = useRef<HTMLDivElement>(null);
+      const placement = usePickerPlacement(ref, true, 12, {
+        boundary: (anchor) => anchor.closest<HTMLElement>("[data-panel-body]"),
+      });
+      return (
+        <div
+          data-panel-body=""
+          ref={(node) => {
+            if (node) node.getBoundingClientRect = () => ({ top: 200, bottom: 500 }) as DOMRect;
+          }}
+        >
+          <div
+            ref={(node) => {
+              ref.current = node;
+              if (node)
+                node.getBoundingClientRect = () =>
+                  ({ top: 400, bottom: 444, left: 24, right: 300, width: 276 }) as DOMRect;
+            }}
+          >
+            <button aria-haspopup="listbox" />
+            <div data-placement={placement} data-testid="bounded-popup" />
+          </div>
+        </div>
+      );
+    }
+    render(<Bounded />);
+    const popup = screen.getByTestId("bounded-popup");
+    expect(popup).toHaveAttribute("data-placement", "up");
+    expect(popup.style.getPropertyValue("--picker-max-height")).toBe("200px");
+  });
+});
+
+describe("panel body placement on the lower side", () => {
+  it("FP-U16 a popup uses the larger lower room and caps its height to 196 px", () => {
+    function Bounded() {
+      const ref = useRef<HTMLDivElement>(null);
+      const placement = usePickerPlacement(ref, true, 12, {
+        boundary: (anchor) => anchor.closest<HTMLElement>("[data-panel-body]"),
+      });
+      return (
+        <div
+          data-panel-body=""
+          ref={(node) => {
+            if (node) node.getBoundingClientRect = () => ({ top: 200, bottom: 500 }) as DOMRect;
+          }}
+        >
+          <div
+            ref={(node) => {
+              ref.current = node;
+              if (node)
+                node.getBoundingClientRect = () =>
+                  ({ top: 260, bottom: 304, left: 24, right: 300, width: 276 }) as DOMRect;
+            }}
+          >
+            <button aria-haspopup="listbox" />
+            <div data-placement={placement} data-testid="lower-popup" />
+          </div>
+        </div>
+      );
+    }
+    render(<Bounded />);
+    const popup = screen.getByTestId("lower-popup");
+    expect(popup).toHaveAttribute("data-placement", "down");
+    expect(popup.style.getPropertyValue("--picker-max-height")).toBe("196px");
+  });
+});

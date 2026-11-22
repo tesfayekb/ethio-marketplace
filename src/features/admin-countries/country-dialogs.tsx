@@ -2,7 +2,6 @@ import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
 import type { FormGate } from "@/components/forms/use-form-gate";
 import { Button } from "@/components/ui/button";
-import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -52,7 +51,7 @@ export function CountryDialogActions({
 }) {
   const { t } = useI18n();
   return (
-    <DialogFooter>
+    <>
       <Button
         type="button"
         variant="outline"
@@ -71,7 +70,7 @@ export function CountryDialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </DialogFooter>
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 746,
-  "dynamicCallSites": 415,
+  "scanned": 758,
+  "dynamicCallSites": 422,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -283,6 +283,18 @@
       "/post",
       "/post/$listingId"
     ],
+    "adPage.map.openDescription": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.map.web": [
       "(every page)",
       "/admin/listings/$listingId",
@@ -416,6 +428,15 @@
       "/post",
       "/post/$listingId"
     ],
+    "adPage.share.description": [
+      "/admin/listings/$listingId/edit",
+      "/l/$slug",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "adPage.share.download": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
@@ -539,6 +560,9 @@
       "/admin/ai"
     ],
     "admin.ai.days.total": [
+      "/admin/ai"
+    ],
+    "admin.ai.edit.description": [
       "/admin/ai"
     ],
     "admin.ai.edit.title": [
@@ -752,6 +776,10 @@
       "/admin/categories"
     ],
     "admin.attributes.dependsOn.previewResults": [
+      "/admin/categories"
+    ],
+    "admin.attributes.edit.description": [
+      "/admin/attributes",
       "/admin/categories"
     ],
     "admin.attributes.edit.removedHolders": [
@@ -1322,6 +1350,9 @@
     "admin.categories.action.window": [
       "/admin/categories"
     ],
+    "admin.categories.attributes.description": [
+      "/admin/categories"
+    ],
     "admin.categories.badge.active": [
       "/admin/categories"
     ],
@@ -1437,6 +1468,9 @@
       "/admin/categories"
     ],
     "admin.categories.delete.title": [
+      "/admin/categories"
+    ],
+    "admin.categories.edit.description": [
       "/admin/categories"
     ],
     "admin.categories.edit.title": [
@@ -1720,6 +1754,9 @@
       "/admin/countries"
     ],
     "admin.countries.col.updated": [
+      "/admin/countries"
+    ],
+    "admin.countries.edit.description": [
       "/admin/countries"
     ],
     "admin.countries.edit.title": [
@@ -2069,6 +2106,7 @@
     "admin.legal.version": [
       "/admin/legal",
       "/admin/legal/$versionId",
+      "/admin/legal/edit",
       "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
@@ -2534,6 +2572,9 @@
     "admin.locations.delete.title": [
       "/admin/places"
     ],
+    "admin.locations.edit.description": [
+      "/admin/places"
+    ],
     "admin.locations.edit.title": [
       "/admin/places"
     ],
@@ -2869,6 +2910,9 @@
     "admin.monetisation.market.add": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.market.description": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.market.edit": [
       "/admin/monetisation"
     ],
@@ -2876,6 +2920,9 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.markets.title": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.override.description": [
       "/admin/monetisation"
     ],
     "admin.monetisation.perks.add": [
@@ -2897,6 +2944,9 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.price.add": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.price.description": [
       "/admin/monetisation"
     ],
     "admin.monetisation.price.edit": [
@@ -3059,6 +3109,9 @@
       "/admin/monetisation"
     ],
     "admin.packages.prices.open": [
+      "/admin/monetisation"
+    ],
+    "admin.packages.product.description": [
       "/admin/monetisation"
     ],
     "admin.roles.action.open": [
@@ -3256,11 +3309,11 @@
     "admin.screening.col.title": [
       "/admin/screening"
     ],
-    "admin.screening.confirmApprove": [
+    "admin.screening.confirm.titleApprove": [
       "/admin/listings/$listingId/edit",
       "/admin/screening"
     ],
-    "admin.screening.confirmReject": [
+    "admin.screening.confirm.titleReject": [
       "/admin/listings/$listingId/edit",
       "/admin/screening"
     ],
@@ -4519,6 +4572,43 @@
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
+    ],
+    "dialog.moreBelow": [
+      "(every page)",
+      "/",
+      "/$name",
+      "/account",
+      "/account/saved",
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/impersonation/$sessionId",
+      "/admin/legal",
+      "/admin/legal/edit",
+      "/admin/listings",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/monetisation",
+      "/admin/places",
+      "/admin/roles",
+      "/admin/screening",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/auth",
+      "/c/$slug",
+      "/dev/primitives",
+      "/dev/style",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "door.refused": [
       "/my-listings",
@@ -7835,6 +7925,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7844,6 +7935,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7853,6 +7945,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7862,6 +7955,7 @@
       "/admin/listings",
       "/admin/listings/$listingId/edit",
       "/admin/monetisation",
+      "/dev/style",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8129,6 +8223,25 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/dev/style",
+      "/my-listings"
+    ],
+    "prim.table.columnsDescription": [
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/impersonation/$sessionId",
+      "/admin/listings",
+      "/admin/monetisation",
+      "/admin/places",
+      "/admin/roles",
+      "/admin/screening",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/style",
       "/my-listings"
     ],
     "prim.table.done": [
@@ -8150,6 +8263,19 @@
       "/my-listings"
     ],
     "prim.table.filters": [
+      "/admin/ai",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/listings",
+      "/admin/places",
+      "/admin/screening",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/style",
+      "/my-listings"
+    ],
+    "prim.table.filtersDescription": [
       "/admin/ai",
       "/admin/audit",
       "/admin/categories",
@@ -8342,6 +8468,7 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/dev/style",
       "/my-listings"
     ],
     "prim.table.showResults": [

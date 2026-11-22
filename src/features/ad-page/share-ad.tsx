@@ -1,34 +1,10 @@
-import { useEffect, useState } from "react";
-import {
-  Share2,
-  Send,
-  MessageCircle,
-  Facebook,
-  Copy,
-  QrCode,
-  Download,
-  ExternalLink,
-} from "lucide-react";
+import { Suspense, useState } from "react";
+import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Picture } from "@/components/ui/picture";
 import { useI18n } from "@/i18n";
-import { safeHref } from "@/lib/safe-href";
-import { fill } from "@/features/posting/refusal-text";
-import { countShare, type ShareChannel } from "./count-view";
+import { LazyShareAdDialog } from "./share-ad-dialog-lazy";
 
-/** D201 §10 — the dialog's responsive frame is a bottom sheet on a phone (turn S6-1: the
- *  primitive's `phone="sheet"`, below md, with the grabber). */
-export function ShareAd({
-  publicId,
-  canonicalPath,
-  title,
-  priceText,
-  prominent = false,
-  ink = "text-primary",
-  open,
-  onOpenChange,
-}: {
+export type ShareAdProps = {
   publicId: string;
   canonicalPath: string;
   title: string;
@@ -44,58 +20,29 @@ export function ShareAd({
    */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-}) {
+};
+
+/** Only the opener rides in the page; all Share content arrives on its first opening. */
+export function ShareAd({
+  publicId,
+  canonicalPath,
+  title,
+  priceText,
+  prominent = false,
+  ink = "text-primary",
+  open,
+  onOpenChange,
+}: ShareAdProps) {
   const { t } = useI18n();
   const callerHeld = open !== undefined && onOpenChange !== undefined;
   const [innerOpen, setInnerOpen] = useState(false);
   const shown = callerHeld ? open : innerOpen;
-  const [url, setUrl] = useState("");
-  const [canShare, setCanShare] = useState(false);
-  const [qr, setQr] = useState(false);
-  const [status, setStatus] = useState<"copied" | "failed" | null>(null);
+  const [opened, setOpened] = useState(shown);
+  if (shown && !opened) setOpened(true);
   const changeOpen = (next: boolean) => {
-    if (next) {
-      setUrl(window.location.origin + canonicalPath);
-      setCanShare(typeof navigator.share === "function");
-      setQr(false);
-      setStatus(null);
-    }
     if (callerHeld) onOpenChange(next);
     else setInnerOpen(next);
   };
-  // D224 — a caller-held open mounts the sheet already open, so the open-time
-  // setup runs here as well as in changeOpen: the same either way it opens.
-  useEffect(() => {
-    if (!shown) return;
-    setUrl(window.location.origin + canonicalPath);
-    setCanShare(typeof navigator.share === "function");
-    setQr(false);
-    setStatus(null);
-  }, [shown, canonicalPath]);
-  const key = priceText === null ? "adPage.share.textNoPrice" : "adPage.share.text";
-  const text = fill(t(key), { title, price: priceText ?? "", url });
-  const textWithoutUrl = fill(t(key), { title, price: priceText ?? "", url: "" })
-    .replace(/(?:፦|:)\s*$/, "")
-    .trim();
-  const telegram = safeHref(
-    `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(textWithoutUrl)}`,
-  );
-  const whatsapp = safeHref(`https://wa.me/?text=${encodeURIComponent(text)}`);
-  const facebook = safeHref(
-    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-  );
-  const qrFile = safeHref(`/l/${publicId}/qr.svg`);
-  const count = (channel: ShareChannel) => void countShare(publicId, channel);
-  const copy = async () => {
-    count("copy");
-    try {
-      await navigator.clipboard.writeText(url);
-      setStatus("copied");
-    } catch {
-      setStatus("failed");
-    }
-  };
-  const row = "min-h-11 w-full justify-start gap-3 whitespace-normal text-start";
   return (
     <>
       {!callerHeld && (
@@ -113,129 +60,18 @@ export function ShareAd({
           {t("adPage.share.open")}
         </Button>
       )}
-      <Dialog open={shown} onOpenChange={changeOpen}>
-        <DialogContent aria-describedby={undefined} phone="sheet">
-          <DialogHeader>
-            <DialogTitle>{t("adPage.share.title")}</DialogTitle>
-          </DialogHeader>
-          <div className="flex min-w-0 flex-col gap-1">
-            {telegram !== null && (
-              <Button asChild variant="ghost" className={row}>
-                <a
-                  data-testid="listing-share-telegram"
-                  href={telegram}
-                  target="_blank"
-                  rel="noopener"
-                  onClick={() => count("telegram")}
-                >
-                  <Send aria-hidden="true" className="size-5 shrink-0" />
-                  {t("post.who.channel.telegram")}
-                </a>
-              </Button>
-            )}
-            {whatsapp !== null && (
-              <Button asChild variant="ghost" className={row}>
-                <a
-                  data-testid="listing-share-whatsapp"
-                  href={whatsapp}
-                  target="_blank"
-                  rel="noopener"
-                  onClick={() => count("whatsapp")}
-                >
-                  <MessageCircle aria-hidden="true" className="size-5 shrink-0" />
-                  {t("post.who.channel.whatsapp")}
-                </a>
-              </Button>
-            )}
-            {facebook !== null && (
-              <Button asChild variant="ghost" className={row}>
-                <a
-                  data-testid="listing-share-facebook"
-                  href={facebook}
-                  target="_blank"
-                  rel="noopener"
-                  onClick={() => count("facebook")}
-                >
-                  <Facebook aria-hidden="true" className="size-5 shrink-0" />
-                  {t("adPage.share.facebook")}
-                </a>
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              className={row}
-              data-testid="listing-share-copy"
-              onClick={() => void copy()}
-            >
-              <Copy aria-hidden="true" className="size-5 shrink-0" />
-              {t("adPage.share.copy")}
-            </Button>
-            {status !== null && (
-              <p
-                role="status"
-                data-testid="listing-share-status"
-                data-state={status}
-                className="text-sm text-muted-foreground"
-              >
-                {t(status === "copied" ? "adPage.share.copied" : "adPage.share.copyFailed")}
-              </p>
-            )}
-            <Button
-              variant="ghost"
-              className={row}
-              data-testid="listing-share-qr"
-              onClick={() => {
-                count("qr");
-                setQr(true);
-              }}
-            >
-              <QrCode aria-hidden="true" className="size-5 shrink-0" />
-              {t("adPage.share.qr")}
-            </Button>
-            {qr && (
-              <div className="flex flex-col items-center gap-2 py-2">
-                <Picture
-                  imgTestId="listing-share-qr-image"
-                  src={`/l/${publicId}/qr.svg`}
-                  fit="contain"
-                  alt={t("adPage.share.qrHint")}
-                  width={192}
-                  height={192}
-                  className="size-48"
-                />
-                <p className="text-sm text-muted-foreground">{t("adPage.share.qrHint")}</p>
-                {qrFile !== null && (
-                  <Button asChild variant="ghost" className="min-h-11">
-                    <a
-                      data-testid="listing-share-qr-download"
-                      href={qrFile}
-                      download={`ethio-${publicId}-qr.svg`}
-                    >
-                      <Download aria-hidden="true" className="size-5" />
-                      {t("adPage.share.download")}
-                    </a>
-                  </Button>
-                )}
-              </div>
-            )}
-            {canShare && (
-              <Button
-                variant="ghost"
-                className={row}
-                data-testid="listing-share-more"
-                onClick={() => {
-                  void navigator.share({ title, text: textWithoutUrl, url }).catch(() => {
-                    /* dismissal is not a failed channel */
-                  });
-                }}
-              >
-                <ExternalLink aria-hidden="true" className="size-5 shrink-0" />
-                {t("adPage.share.more")}
-              </Button>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {opened && (
+        <Suspense fallback={null}>
+          <LazyShareAdDialog
+            publicId={publicId}
+            canonicalPath={canonicalPath}
+            title={title}
+            priceText={priceText}
+            open={shown}
+            onOpenChange={changeOpen}
+          />
+        </Suspense>
+      )}
     </>
   );
 }

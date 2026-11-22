@@ -21,8 +21,25 @@ vi.mock("@/i18n", () => ({
 }));
 
 vi.mock("@/components/ui/category-modal", () => ({
-  CategoryModal: ({ children, testid }: { children: ReactNode; testid: string }) => (
-    <div data-testid={testid}>{children}</div>
+  CategoryModal: ({
+    children,
+    testid,
+    footer,
+    subject,
+    description,
+  }: {
+    children: ReactNode;
+    testid: string;
+    footer?: ReactNode;
+    subject?: ReactNode;
+    description?: string;
+  }) => (
+    <div data-testid={testid}>
+      {description}
+      {subject}
+      {children}
+      {footer}
+    </div>
   ),
 }));
 

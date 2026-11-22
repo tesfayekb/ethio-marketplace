@@ -1,6 +1,15 @@
+import { Picture } from "@/components/ui/picture";
+import { photoUrl } from "@/features/posting/photo-links";
+import { usePhotoLinks } from "@/features/posting/use-photo-links";
+import {
+  PanelHeader,
+  PanelBody,
+  PanelFooter,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
@@ -22,8 +31,8 @@ import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogFooter,
   AlertDialogTitle,
+  AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
@@ -40,7 +49,7 @@ import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/c
 import { heldWithAd } from "@/features/posting/posting-service";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
 import { fill } from "@/features/posting/refusal-text";
-import { storedUnitNoun } from "@/features/posting/price-line";
+import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -103,7 +112,7 @@ import { catalogText } from "@/i18n/entity";
  */
 
 type Next = "active" | "rejected";
-type Decision = { ids: string[]; next: Next } | null;
+type Decision = { ids: string[]; next: Next; subjects: ScreeningRow[] } | null;
 type Notice = { key: MessageKey; tone: "ok" | "error" } | null;
 type RevealChannel = "phone" | "phone2" | "whatsapp";
 
@@ -152,9 +161,16 @@ export function AdminScreeningPage({
   const [decisionProblem, setDecisionProblem] = useState<MessageKey | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
-  const askDecision = (next: NonNullable<Decision>) => {
+  const askDecision = (next: Pick<NonNullable<Decision>, "ids" | "next">) => {
     setDecisionProblem(null);
-    setDecision(next);
+    setDecision({
+      ...next,
+      subjects: next.ids.flatMap((id) => {
+        const held =
+          previewRow?.id === id ? previewRow : query.data?.rows.find((row) => row.id === id);
+        return held === undefined ? [] : [held];
+      }),
+    });
   };
   const [previewRow, setPreviewRow] = useState<ScreeningRow | null>(null);
   const [revealed, setRevealed] = useState<Partial<Record<RevealChannel, string>>>({});
@@ -175,6 +191,11 @@ export function AdminScreeningPage({
 
   const query = useScreeningQueue(page, search, pageSize, { country, tier });
   const photos = useScreeningPhotos(previewRow?.id ?? null);
+  const decidingOne = decision?.ids.length === 1 ? decision.subjects[0] : undefined;
+  const decisionPhotos = useScreeningPhotos(decidingOne?.id ?? null);
+  const firstDecisionPhotos =
+    decisionPhotos.error || decisionPhotos.isLoading ? [] : (decisionPhotos.data ?? []).slice(0, 3);
+  const decisionLinks = usePhotoLinks(firstDecisionPhotos);
   // Bundle 16 turn 4b (D178) — only photos held while checking was off are approved with
   // the ad; a photo the check judged carries its own mark and Allow.
   const heldCount = (photos.data ?? []).filter(heldWithAd).length;
@@ -415,6 +436,80 @@ export function AdminScreeningPage({
   // D154 B3 — the page's ads that hold a photo the screen warned about.
   const warned = useWarnedListings(rows.map((row) => row.id)).data ?? new Set<string>();
 
+  const decisionSubject =
+    decision === null ? null : decidingOne === undefined ? (
+      <PanelSubject
+        title={`${decision.ids.length} ${t("prim.table.selected")}`}
+        lines={decision.subjects.slice(0, 3).map((row) => row.title)}
+      />
+    ) : (
+      <>
+        <PanelSubject
+          title={decidingOne.title}
+          lines={[
+            priceLine(
+              {
+                mode: decidingOne.priceMode,
+                amount: decidingOne.priceAmount,
+                currency: decidingOne.priceCurrency,
+                period: decidingOne.pricePeriod,
+                bp: decidingOne.priceBp,
+                unit: storedUnitNoun(
+                  decidingOne.priceUnit,
+                  decidingOne.priceUnitText,
+                  unitLabels,
+                  language,
+                ),
+              },
+              t,
+              "—",
+              language,
+            ),
+            named(decidingOne.place),
+          ]}
+          picture={
+            decisionPhotos.error ? undefined : decisionPhotos.isLoading ||
+              decisionPhotos.data === undefined ? (
+              <span />
+            ) : (
+              <Picture
+                src={
+                  (firstDecisionPhotos[0] === undefined
+                    ? null
+                    : photoUrl(
+                        firstDecisionPhotos[0],
+                        ["thumb", "card", "cover"],
+                        decisionLinks,
+                      )) ??
+                  (firstDecisionPhotos.length === 0
+                    ? nearestCategoryPicture(tree, decidingOne.categoryId)
+                    : null)
+                }
+                fit="cover"
+                width={160}
+                height={160}
+                className="h-full w-full"
+              />
+            )
+          }
+        />
+        {firstDecisionPhotos.length < 2 ? null : (
+          <div className="flex gap-2">
+            {firstDecisionPhotos.slice(1).map((photo) => (
+              <Picture
+                key={photo.id}
+                src={photoUrl(photo, ["thumb", "card", "cover"], decisionLinks)}
+                fit="contain"
+                width={160}
+                height={160}
+                className="aspect-square w-20 shrink-0"
+              />
+            ))}
+          </div>
+        )}
+      </>
+    );
+
   const chips = [
     ...(country === null
       ? []
@@ -470,7 +565,11 @@ export function AdminScreeningPage({
           } catch (error) {
             const abort = stepUpAbortKey(error);
             const remaining = ids.slice(decidedCount);
-            setDecision({ ids: remaining, next });
+            setDecision({
+              ids: remaining,
+              next,
+              subjects: decision.subjects.filter((row) => remaining.includes(row.id)),
+            });
             setSelected((current) =>
               current.filter((id) => !ids.slice(0, decidedCount).includes(id)),
             );
@@ -726,24 +825,45 @@ export function AdminScreeningPage({
                 if (!open && !busy) setDecision(null);
               }}
             >
-              <AlertDialogContent data-testid="admin-screening-confirm">
-                <AlertDialogTitle>
-                  {decision !== null && decision.ids.length > 1
-                    ? t(
-                        decision.next === "rejected"
-                          ? "admin.screening.confirmRejectMany"
-                          : "admin.screening.confirmApproveMany",
-                      ).replace("{count}", String(decision.ids.length))
-                    : decision?.next === "rejected"
-                      ? t("admin.screening.confirmReject")
-                      : t("admin.screening.confirmApprove")}
-                </AlertDialogTitle>
-                <ActionMessage
-                  tone="error"
-                  testid="admin-screening-confirm-problem"
-                  text={decisionProblem === null ? null : t(decisionProblem)}
-                />
-                <AlertDialogFooter>
+              <AlertDialogContent data-testid="admin-screening-confirm" bands size="narrow">
+                <PanelHeader
+                  tone={decision?.next === "rejected" ? "danger" : "confirm"}
+                  icon={<TriangleAlert />}
+                >
+                  <AlertDialogTitle>
+                    {decision !== null && decision.ids.length > 1
+                      ? t(
+                          decision.next === "rejected"
+                            ? "admin.screening.confirm.titleRejectMany"
+                            : "admin.screening.confirm.titleApproveMany",
+                        ).replace("{count}", String(decision.ids.length))
+                      : decision?.next === "rejected"
+                        ? t("admin.screening.confirm.titleReject")
+                        : t("admin.screening.confirm.titleApprove")}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {decision !== null && decision.ids.length > 1
+                      ? t(
+                          decision.next === "rejected"
+                            ? "admin.screening.confirm.descriptionRejectMany"
+                            : "admin.screening.confirm.descriptionApproveMany",
+                        )
+                      : t(
+                          decision?.next === "rejected"
+                            ? "admin.screening.confirm.descriptionReject"
+                            : "admin.screening.confirm.descriptionApprove",
+                        )}
+                  </AlertDialogDescription>
+                </PanelHeader>
+                <PanelBody>
+                  {decisionSubject}
+                  <ActionMessage
+                    tone="error"
+                    testid="admin-screening-confirm-problem"
+                    text={decisionProblem === null ? null : t(decisionProblem)}
+                  />
+                </PanelBody>
+                <PanelFooter>
                   <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
                   <Button
                     type="button"
@@ -757,7 +877,7 @@ export function AdminScreeningPage({
                       ? t("admin.screening.reject")
                       : t("admin.screening.approve")}
                   </Button>
-                </AlertDialogFooter>
+                </PanelFooter>
               </AlertDialogContent>
             </AlertDialog>
 

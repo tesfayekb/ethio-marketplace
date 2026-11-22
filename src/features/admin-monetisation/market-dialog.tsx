@@ -1,3 +1,4 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { Field } from "@/components/forms/field";
@@ -104,6 +105,23 @@ export function MarketDialog({
       openedBy={openedBy}
       title={t(creating ? "admin.monetisation.market.add" : "admin.monetisation.market.edit")}
       onClose={onClose}
+      description={t("admin.monetisation.market.description")}
+      size="default"
+      subject={
+        row === null ? undefined : (
+          <PanelSubject title={marketName(row.countryCode, "countryAny")} />
+        )
+      }
+      footer={
+        <MonetisationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={save.isPending}
+          cancelTestId={`${prefix}-cancel`}
+          submitTestId={`${prefix}-save`}
+          submitLabel={t("common.save")}
+        />
+      }
     >
       {creating ? (
         <Field
@@ -198,14 +216,6 @@ export function MarketDialog({
         onChange={(next) => change({ launchDays: next })}
       />
       <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
-      <MonetisationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={save.isPending}
-        cancelTestId={`${prefix}-cancel`}
-        submitTestId={`${prefix}-save`}
-        submitLabel={t("common.save")}
-      />
     </CategoryModal>
   );
 }

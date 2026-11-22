@@ -1,3 +1,4 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { CategoryModal } from "@/components/ui/category-modal";
@@ -56,21 +57,28 @@ export function AiEditorDialog({
   };
 
   return (
-    <CategoryModal
-      testid="ai-editor"
-      openedBy={openedBy}
-      title={t("admin.ai.edit.title")}
-      onClose={onClose}
-    >
-      <AiFeatureForm
-        row={row}
-        name={name}
-        busy={save.isPending}
-        refusal={refusal}
-        onCancel={onClose}
-        onSave={submit}
-      />
-    </CategoryModal>
+    <AiFeatureForm
+      row={row}
+      name={name}
+      busy={save.isPending}
+      refusal={refusal}
+      onCancel={onClose}
+      onSave={submit}
+      renderPanel={(body, footer) => (
+        <CategoryModal
+          testid="ai-editor"
+          openedBy={openedBy}
+          title={t("admin.ai.edit.title")}
+          description={t("admin.ai.edit.description")}
+          size="default"
+          subject={<PanelSubject title={name} testId="ai-editor-feature" />}
+          footer={footer}
+          onClose={onClose}
+        >
+          {body}
+        </CategoryModal>
+      )}
+    />
   );
 }
 

@@ -1,6 +1,9 @@
 import type { enBase } from "./en-base";
 
 export const amBase: { [K in keyof typeof enBase]: string } = {
+  "adPage.share.description": "ሊንኩን በመተግበሪያ ይላኩ፣ ይቅዱት ወይም QR ኮድ ያሳዩ።",
+  "adPage.map.openDescription": "የማስታወቂያውን ቦታ በGoogle ካርታ መተግበሪያ ወይም በአሳሽዎ ይክፈቱ።",
+  "dialog.moreBelow": "ከታች ተጨማሪ አለ",
   "head.auth.description": "ይግቡ ወይም ነጻ የ ethio.com አካውንትዎን ይፍጠሩ።",
   "head.authCallback.description": "የ ethio.com አካውንትዎን ማረጋገጥ ይጨርሱ።",
   "head.authCallback.title": "ኢሜይልዎን ያረጋግጡ",

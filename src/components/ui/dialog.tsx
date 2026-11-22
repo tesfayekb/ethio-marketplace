@@ -7,8 +7,10 @@ import { X } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useOpenerFocus } from "./dialog-opener";
+import { useOverlays } from "./overlay-loader";
 import { NoticeOutlet } from "./notice-outlet";
 import {
+  BANDS_PANEL,
   DIALOG_CLOSE,
   DIALOG_FIT,
   DIALOG_FOOTER,
@@ -17,6 +19,7 @@ import {
   DIALOG_LAYER,
   DIALOG_PANEL,
   DIALOG_PHONE,
+  DIALOG_PHONE_INSET,
   DIALOG_SCRIM,
   DIALOG_SIZE,
   DIALOG_TEXT,
@@ -66,6 +69,9 @@ type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.
   layer?: DialogLayer;
   /** The close button's test id, for a surface whose tests press it. */
   closeTestId?: string;
+  /** Bundle 2 — the panel anatomy: header band, the body alone scrolls, footer band
+   *  (PanelHeader, PanelBody, PanelFooter in dialog-parts.tsx). */
+  bands?: boolean;
 };
 
 /** Turn S6-1 — the one dialog panel (dialog-look.ts); the consumer chooses variants, never a look. */
@@ -82,8 +88,10 @@ const DialogContent = React.forwardRef<
       phone = "float",
       layer = "modal",
       closeTestId,
+      bands = false,
       onOpenAutoFocus,
       onCloseAutoFocus,
+      onEscapeKeyDown,
       children,
       ...props
     },
@@ -95,26 +103,42 @@ const DialogContent = React.forwardRef<
     // does not rise over it). Every panel gives the focus back to its opener (INC-1130).
     const screenSized = screen || phone === "full";
     const opener = useOpenerFocus();
+    const impl = useOverlays();
     return (
       <DialogPortal>
         <DialogOverlay className={DIALOG_LAYER[layer]} />
         <DialogPrimitive.Content
           ref={ref}
           data-dialog-panel=""
+          data-bands={bands && !screen ? "" : undefined}
+          data-phone={phone}
           className={cn(
             screen
               ? SCREEN_PANEL
-              : [DIALOG_PANEL, DIALOG_SIZE[size], DIALOG_FIT[fit], DIALOG_PHONE[phone]],
+              : [
+                  DIALOG_PANEL,
+                  DIALOG_SIZE[size],
+                  DIALOG_FIT[fit],
+                  DIALOG_PHONE[phone],
+                  phone !== "float" && !bands && DIALOG_PHONE_INSET,
+                ],
+            bands && !screen && BANDS_PANEL,
             DIALOG_LAYER[layer],
             className,
           )}
           onOpenAutoFocus={(event) => {
             opener.opened(event);
+            impl?.dialogRules.recordPanel(event, opener);
             onOpenAutoFocus?.(event);
+            if (!event.defaultPrevented) impl?.dialogRules.focusAwayFromRed(event);
             const panel = event.target;
             if (!screenSized || event.defaultPrevented || !(panel instanceof HTMLElement)) return;
             event.preventDefault();
             panel.focus({ preventScroll: true });
+          }}
+          onEscapeKeyDown={(event) => {
+            impl?.dialogRules.keepOpenList(event, opener);
+            onEscapeKeyDown?.(event);
           }}
           onCloseAutoFocus={(event) => {
             onCloseAutoFocus?.(event);
@@ -122,7 +146,7 @@ const DialogContent = React.forwardRef<
           }}
           {...props}
         >
-          {!screen && phone === "sheet" ? (
+          {!screen && !bands && phone === "sheet" ? (
             <div
               aria-hidden="true"
               data-dialog-grabber=""

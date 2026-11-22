@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { DateField } from "@/components/shell/date-field";
@@ -22,11 +24,13 @@ import { useMonetisationError } from "./use-monetisation-error";
  */
 export function PriceEndDialog({
   row,
+  productName,
   guard,
   openedBy,
   onClose,
 }: {
   row: PriceRow;
+  productName: string;
   guard: GuardFn;
   openedBy: string;
   onClose: () => void;
@@ -58,8 +62,23 @@ export function PriceEndDialog({
       openedBy={openedBy}
       title={t("admin.packages.prices.end.title")}
       onClose={onClose}
+      description={t("admin.packages.prices.end.body")}
+      size="narrow"
+      subject={<PanelSubject title={productName} />}
+      tone={"danger"}
+      icon={<TriangleAlert />}
+      footer={
+        <MonetisationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={end.isPending}
+          cancelTestId={`${prefix}-cancel`}
+          submitTestId={`${prefix}-confirm`}
+          submitLabel={t("admin.monetisation.price.end")}
+          destructive
+        />
+      }
     >
-      <p className="text-sm text-muted-foreground">{t("admin.packages.prices.end.body")}</p>
       <FormField label={t("admin.packages.prices.field.to")} htmlFor={`${prefix}-to`}>
         <DateField
           id={`${prefix}-to`}
@@ -71,15 +90,6 @@ export function PriceEndDialog({
         />
       </FormField>
       <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
-      <MonetisationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={end.isPending}
-        cancelTestId={`${prefix}-cancel`}
-        submitTestId={`${prefix}-confirm`}
-        submitLabel={t("admin.monetisation.price.end")}
-        destructive
-      />
     </CategoryModal>
   );
 }

@@ -1,8 +1,24 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { useEffect } from "react";
+import type { ShareAdProps } from "./share-ad";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";
 const countShare = vi.hoisted(() => vi.fn());
+const lifetime = vi.hoisted(() => ({ render: vi.fn(), leave: vi.fn() }));
+vi.mock("./share-ad-dialog-lazy", async (original) => {
+  const real = await original<typeof import("./share-ad-dialog-lazy")>();
+  return {
+    LazyShareAdDialog: (
+      props: ShareAdProps & { open: boolean; onOpenChange: (open: boolean) => void },
+    ) => {
+      lifetime.render(props.open);
+      useEffect(() => () => lifetime.leave(), []);
+      return <real.LazyShareAdDialog {...props} />;
+    },
+  };
+});
 vi.mock("./count-view", () => ({ countShare }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => ownValue(en, key) ?? key }) }));
 import { ShareAd } from "./share-ad";
@@ -25,6 +41,7 @@ describe("SH-5 Share sheet", () => {
     async (priceText) => {
       render(<ShareAd {...props} priceText={priceText} />);
       fireEvent.click(screen.getByTestId("listing-share-open"));
+      await screen.findByTestId("listing-share-copy");
       const url = window.location.origin + props.canonicalPath;
       const text =
         priceText === null
@@ -84,6 +101,7 @@ describe("SH-5 Share sheet", () => {
     writeText.mockRejectedValue(new Error("denied"));
     render(<ShareAd {...props} />);
     fireEvent.click(screen.getByTestId("listing-share-open"));
+    await screen.findByTestId("listing-share-copy");
     fireEvent.click(screen.getByTestId("listing-share-copy"));
     await waitFor(() =>
       expect(screen.getByTestId("listing-share-status")).toHaveAttribute("data-state", "failed"),
@@ -99,12 +117,12 @@ describe("SH-5 Share sheet", () => {
 });
 
 describe("D224 the caller-opened way", () => {
-  it("renders no opener of its own and opens the sheet with the right address", () => {
+  it("renders no opener of its own and opens the sheet with the right address", async () => {
     const onOpenChange = vi.fn();
     render(<ShareAd {...props} open onOpenChange={onOpenChange} />);
     expect(screen.queryByTestId("listing-share-open")).toBeNull();
     const url = window.location.origin + props.canonicalPath;
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
     expect(screen.getByTestId("listing-share-telegram").getAttribute("href")).toContain(
       encodeURIComponent(url),
     );
@@ -112,22 +130,23 @@ describe("D224 the caller-opened way", () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  it("closed stays closed and the close path reports to the caller", () => {
+  it("closed stays closed and the close path reports to the caller", async () => {
     const onOpenChange = vi.fn();
     const { rerender } = render(<ShareAd {...props} open={false} onOpenChange={onOpenChange} />);
     expect(screen.queryByTestId("listing-share-open")).toBeNull();
     expect(screen.queryByRole("dialog")).toBeNull();
     rerender(<ShareAd {...props} open onOpenChange={onOpenChange} />);
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
     fireEvent.keyDown(document.body, { key: "Escape" });
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("the default way is unchanged: its own opener opens the sheet", () => {
+  it("the default way is unchanged: its own opener opens the sheet", async () => {
     render(<ShareAd {...props} />);
     expect(screen.queryByRole("dialog")).toBeNull();
     fireEvent.click(screen.getByTestId("listing-share-open"));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await screen.findByTestId("listing-share-copy");
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
   });
 });
 
@@ -140,4 +159,22 @@ describe("Sage S5 the ghost opener's ink", () => {
     expect(screen.getByTestId("listing-share-open")).toHaveClass("text-tier-premium-ink");
     expect(screen.getByTestId("listing-share-open")).not.toHaveClass("text-primary");
   });
+});
+
+it("DP-U23 the once-opened Share stays mounted closed and resets its content on reopening", async () => {
+  render(<ShareAd {...props} />);
+  const opener = screen.getByTestId("listing-share-open");
+  opener.focus();
+  fireEvent.click(opener);
+  await screen.findByTestId("listing-share-copy");
+  fireEvent.click(screen.getByTestId("listing-share-qr"));
+  expect(screen.getByTestId("listing-share-qr-image")).toBeInTheDocument();
+  fireEvent.keyDown(document.body, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(opener).toHaveFocus());
+  expect(lifetime.render).toHaveBeenLastCalledWith(false);
+  expect(lifetime.leave).not.toHaveBeenCalled();
+  fireEvent.click(opener);
+  await screen.findByTestId("listing-share-copy");
+  expect(screen.queryByTestId("listing-share-qr-image")).toBeNull();
 });

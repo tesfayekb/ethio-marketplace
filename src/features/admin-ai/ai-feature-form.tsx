@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { controlClass } from "@/components/forms/control-class";
@@ -40,6 +41,7 @@ export function AiFeatureForm({
   refusal,
   onCancel,
   onSave,
+  renderPanel,
 }: {
   row: AiFeatureRow;
   /** The feature's name, already in the reader's language. */
@@ -48,6 +50,7 @@ export function AiFeatureForm({
   refusal: AiRefusal | null;
   onCancel: () => void;
   onSave: (input: SetAiFeatureInput) => void;
+  renderPanel?: (body: ReactNode, footer: ReactNode) => ReactNode;
 }) {
   const { t } = useI18n();
   const screening = row.feature === "photo_screen";
@@ -82,11 +85,35 @@ export function AiFeatureForm({
 
   const shown: AiRefusal | null = local === null ? refusal : { key: local, raw: null };
 
-  return (
+  const actions = (
+    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <Button
+        type="button"
+        variant="outline"
+        size="touch"
+        data-testid="ai-editor-cancel"
+        onClick={onCancel}
+      >
+        {t("common.cancel")}
+      </Button>
+      <Button
+        type="button"
+        size="touch"
+        data-testid="ai-editor-save"
+        disabled={busy}
+        onClick={submit}
+      >
+        {t("common.save")}
+      </Button>
+    </div>
+  );
+  const body = (
     <div className="min-w-0 space-y-3" data-testid="ai-editor-form">
-      <p className="min-w-0 break-words text-sm font-medium" data-testid="ai-editor-feature">
-        {name}
-      </p>
+      {renderPanel === undefined ? (
+        <p className="min-w-0 break-words text-sm font-medium" data-testid="ai-editor-feature">
+          {name}
+        </p>
+      ) : null}
       <Field
         id={"ai-editor-on"}
         field="enabled"
@@ -179,28 +206,10 @@ export function AiFeatureForm({
           )}
         </>
       )}
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          data-testid="ai-editor-cancel"
-          onClick={onCancel}
-        >
-          {t("common.cancel")}
-        </Button>
-        <Button
-          type="button"
-          size="touch"
-          data-testid="ai-editor-save"
-          disabled={busy}
-          onClick={submit}
-        >
-          {t("common.save")}
-        </Button>
-      </div>
+      {renderPanel === undefined ? actions : null}
     </div>
   );
+  return renderPanel === undefined ? body : renderPanel(body, actions);
 }
 
 export default AiFeatureForm;

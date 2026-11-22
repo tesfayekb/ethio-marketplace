@@ -176,7 +176,7 @@ export function StepPhotos({
   /** D154 B2 — the stored photo open in the editor, and its stored cover's link. */
   const [editing, setEditing] = useState<{ photoId: string; url: string } | null>(null);
   /** Bundle 13 turn 12 (D159) — the cover open in the background tool. */
-  const [cleaning, setCleaning] = useState<string | null>(null);
+  const [cleaning, setCleaning] = useState<{ photoId: string; url: string | null } | null>(null);
   /** D154 B2 — an edited photo on its way: Next and Back wait for it, as for a new one. */
   const [editSaving, setEditSaving] = useState(false);
 
@@ -839,7 +839,7 @@ export function StepPhotos({
             aria-label={t("post.photos.background")}
             title={t("post.photos.background")}
             disabled={busyRow || editSaving || listingId === null}
-            onClick={() => setCleaning(photoId)}
+            onClick={() => setCleaning({ photoId, url: editUrl })}
           >
             <Eraser className="h-4 w-4" aria-hidden="true" />
             <span className="truncate">{t("post.photos.backgroundShort")}</span>
@@ -1028,14 +1028,17 @@ export function StepPhotos({
       />
 
       <BackgroundDialog
-        target={cleaning !== null && listingId !== null ? { listingId, photoId: cleaning } : null}
+        target={
+          cleaning !== null && listingId !== null ? { listingId, photoId: cleaning.photoId } : null
+        }
+        {...(cleaning?.url == null ? {} : { sourceUrl: cleaning.url })}
         onCancel={() => setCleaning(null)}
         onSave={(picture) => {
           if (cleaning === null) {
             picture.close();
             return Promise.resolve(null);
           }
-          return saveEdit(cleaning, picture);
+          return saveEdit(cleaning.photoId, picture);
         }}
       />
 

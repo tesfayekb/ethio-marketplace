@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { act, fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { shapePostingSchema } from "../posting-service";

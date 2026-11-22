@@ -1,3 +1,5 @@
+import { TriangleAlert } from "lucide-react";
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { useState } from "react";
 
 import { Field } from "@/components/forms/field";
@@ -129,7 +131,32 @@ export function OverrideDialog({
   );
 
   return (
-    <CategoryModal testid={prefix} openedBy={openedBy} title={t(title)} onClose={onClose}>
+    <CategoryModal
+      testid={prefix}
+      openedBy={openedBy}
+      title={t(title)}
+      onClose={onClose}
+      description={t("admin.monetisation.override.description")}
+      size="default"
+      subject={
+        row === null && fixedLevel === undefined ? undefined : (
+          <PanelSubject title={productName(row?.levelKey ?? fixedLevel ?? "")} />
+        )
+      }
+      tone={mode === "clear" ? "danger" : "plain"}
+      icon={<TriangleAlert />}
+      footer={
+        <MonetisationDialogActions
+          onCancel={onClose}
+          onSubmit={submit}
+          busy={save.isPending || clearRow.isPending}
+          cancelTestId={`${prefix}-cancel`}
+          submitTestId={`${prefix}-${mode === "clear" ? "confirm" : "save"}`}
+          submitLabel={t(mode === "clear" ? "admin.monetisation.perks.clear" : "common.save")}
+          destructive={mode === "clear"}
+        />
+      }
+    >
       {mode === "create" ? (
         <>
           {fixedLevel === undefined ? (
@@ -254,15 +281,6 @@ export function OverrideDialog({
         </>
       )}
       <MonetisationProblemLine refusal={refusal} testid={`${prefix}-error`} />
-      <MonetisationDialogActions
-        onCancel={onClose}
-        onSubmit={submit}
-        busy={save.isPending || clearRow.isPending}
-        cancelTestId={`${prefix}-cancel`}
-        submitTestId={`${prefix}-${mode === "clear" ? "confirm" : "save"}`}
-        submitLabel={t(mode === "clear" ? "admin.monetisation.perks.clear" : "common.save")}
-        destructive={mode === "clear"}
-      />
     </CategoryModal>
   );
 }

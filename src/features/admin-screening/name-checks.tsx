@@ -1,3 +1,10 @@
+import { ShieldCheck } from "lucide-react";
+import {
+  PanelHeader,
+  PanelBody,
+  PanelFooter,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -13,7 +20,6 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -297,34 +303,39 @@ export function NameChecks({
           if (!open && !busy) setAllowing(null);
         }}
       >
-        <AlertDialogContent data-testid="admin-name-check-allow">
-          <AlertDialogTitle>{t("admin.screening.names.clear.title")}</AlertDialogTitle>
-          <AlertDialogDescription>{t("admin.screening.names.clear.body")}</AlertDialogDescription>
-          <div className="space-y-1">
-            <Field
-              id={"admin-name-check-reason"}
-              field="reason"
-              label={<>{t("admin.screening.names.clear.reasonField")}</>}
-              required={false}
-              refusal={null}
-              layout="stack"
-            >
-              {(control) => (
-                <Textarea
-                  {...control}
-                  data-testid="admin-name-check-allow-reason"
-                  maxLength={500}
-                  value={reason}
-                  onChange={(event) => setReason(event.target.value)}
-                  aria-describedby="admin-name-check-reason-help"
-                />
-              )}
-            </Field>
-            <p id="admin-name-check-reason-help" className="text-xs text-muted-foreground">
-              {t("admin.screening.names.clear.reasonHelp")}
-            </p>
-          </div>
-          <AlertDialogFooter>
+        <AlertDialogContent data-testid="admin-name-check-allow" bands size="default">
+          <PanelHeader tone={"confirm"} icon={<ShieldCheck />}>
+            <AlertDialogTitle>{t("admin.screening.names.clear.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("admin.screening.names.clear.body")}</AlertDialogDescription>
+          </PanelHeader>
+          <PanelBody>
+            {allowing === null ? null : <PanelSubject title={label(allowing)} />}
+            <div className="space-y-1">
+              <Field
+                id={"admin-name-check-reason"}
+                field="reason"
+                label={<>{t("admin.screening.names.clear.reasonField")}</>}
+                required={false}
+                refusal={null}
+                layout="stack"
+              >
+                {(control) => (
+                  <Textarea
+                    {...control}
+                    data-testid="admin-name-check-allow-reason"
+                    maxLength={500}
+                    value={reason}
+                    onChange={(event) => setReason(event.target.value)}
+                    aria-describedby="admin-name-check-reason-help"
+                  />
+                )}
+              </Field>
+              <p id="admin-name-check-reason-help" className="text-xs text-muted-foreground">
+                {t("admin.screening.names.clear.reasonHelp")}
+              </p>
+            </div>
+          </PanelBody>
+          <PanelFooter>
             <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
             <Button
               type="button"
@@ -335,7 +346,7 @@ export function NameChecks({
             >
               {t("admin.screening.names.action.clear")}
             </Button>
-          </AlertDialogFooter>
+          </PanelFooter>
         </AlertDialogContent>
       </AlertDialog>
     </section>

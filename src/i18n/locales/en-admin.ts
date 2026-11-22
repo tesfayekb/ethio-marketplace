@@ -526,11 +526,15 @@ export const enAdmin = {
     "Photos hidden from buyers: the AI check failed them or was unsure, they may not fit the ad, or checking was off when they were added. Allow shows a photo; to remove one or decline the ad, open the ad.",
   "admin.screening.reviews.empty": "No photos are waiting.",
   "admin.screening.openListing": "Open the ad's page",
-  "admin.screening.confirmApprove": "Approve this ad? It goes on the site now.",
-  "admin.screening.confirmReject": "Reject this ad? It stays off the site.",
+  "admin.screening.confirm.titleApprove": "Approve this ad?",
+  "admin.screening.confirm.descriptionApprove": "It goes on the site now.",
+  "admin.screening.confirm.titleReject": "Reject this ad?",
+  "admin.screening.confirm.descriptionReject": "It stays off the site.",
+  "admin.screening.confirm.titleApproveMany": "Approve {count} ads?",
+  "admin.screening.confirm.descriptionApproveMany": "They go on the site now.",
+  "admin.screening.confirm.titleRejectMany": "Reject {count} ads?",
+  "admin.screening.confirm.descriptionRejectMany": "They stay off the site.",
   "admin.screening.showNumber": "Show number",
-  "admin.screening.confirmApproveMany": "Approve {count} ads? They go on the site now.",
-  "admin.screening.confirmRejectMany": "Reject {count} ads? They stay off the site.",
   "admin.screening.revealLimited": "You have shown many numbers in the last hour. Try again later.",
   "admin.screening.revealLimitedWhen":
     "You have shown many numbers in the last hour. Try again {when}.",
@@ -2207,4 +2211,21 @@ export const enAdmin = {
   "admin.listings.level.source.money": "Paid",
   "admin.listings.level.source.credits": "Credits",
   "admin.listings.level.unknown": "Level not known",
+  "admin.ai.edit.description":
+    "Switch the feature on or off and set its monthly budget and the provider's prices.",
+  "admin.attributes.edit.description":
+    "Set the attribute's name, type and options. Save applies them wherever the attribute is used.",
+  "admin.categories.attributes.description":
+    "Choose the attributes this category asks for and what its cards show. Each change is saved at once.",
+  "admin.categories.edit.description": "Set the category's name, icon and listing rules.",
+  "admin.countries.edit.description": "Change the country's name, unit system, currency and order.",
+  "admin.locations.edit.description":
+    "Change the place's name, codes, centre and the other names people search for.",
+  "admin.monetisation.market.description":
+    "Set this market's free Regular ads, the reach every ad includes, whether paid levels are sold, and its launch credits.",
+  "admin.monetisation.override.description":
+    "Give one level different days and photos in a category or a country.",
+  "admin.monetisation.price.description": "Set what this product costs, where, and from which day.",
+  "admin.packages.product.description":
+    "Set its names, days, photos and reach limits, and switch it on or off.",
 } as const;

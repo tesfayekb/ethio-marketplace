@@ -68,7 +68,7 @@ export function ProductPricesTable({
   guard: GuardFn;
 }) {
   const { t, language } = useI18n();
-  const { scopeOf } = useMonetisationNames(products);
+  const { scopeOf, productName } = useMonetisationNames(products);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [search, setSearch] = useState("");
   const date = dateFormatter("day", language);
@@ -328,6 +328,7 @@ export function ProductPricesTable({
       ) : null}
       {chosen !== null && dialog.kind === "end" ? (
         <PriceEndDialog
+          productName={productName(chosen.packageKey)}
           key={chosen.id}
           row={chosen}
           guard={guard}

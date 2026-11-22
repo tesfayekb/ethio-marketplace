@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
+import { fireEvent, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -10,7 +11,7 @@ vi.mock("@/i18n", () => ({
 
 const WIDTH = window.innerWidth;
 
-function renderPanel() {
+function drawPanel() {
   return render(
     <ToolbarPanel
       testid="f"
@@ -36,7 +37,7 @@ describe("ToolbarPanel", () => {
 
   it("HS-16 a narrow screen opens the sheet's bottom side (grabber, named close, the shared footer); a wide one the popover's panel; Escape and the footer close both", async () => {
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 360 });
-    const narrow = renderPanel();
+    const narrow = drawPanel();
     fireEvent.click(await screen.findByTestId("f"));
     const sheet = await screen.findByTestId("f-panel");
     expect(sheet).toHaveAttribute("role", "dialog");
@@ -45,22 +46,19 @@ describe("ToolbarPanel", () => {
     expect(document.querySelector("[data-dialog-scrim]")).not.toBeNull();
     expect(screen.getByRole("heading", { name: "Filters" })).toBeTruthy();
     expect(screen.getByTestId("f-close")).toHaveAccessibleName("common.close");
-    expect(screen.getByTestId("f-done").parentElement).toHaveClass("flex-row", "shadow-rule-top");
     fireEvent.click(screen.getByTestId("f-done"));
     expect(screen.queryByTestId("f-panel")).toBeNull();
     narrow.unmount();
 
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
-    renderPanel();
+    drawPanel();
     expect(screen.getByTestId("f")).toHaveAttribute("aria-haspopup", "dialog");
     fireEvent.click(screen.getByTestId("f"));
     expect(await screen.findByTestId("f-body")).toBeTruthy();
     const panel = screen.getByTestId("f-panel");
     expect(panel).toHaveAttribute("data-dialog-panel", "");
-    expect(panel.querySelector("[data-dialog-grabber]")).toBeNull();
     expect(document.querySelector("[data-dialog-scrim]")).toBeNull();
     expect(screen.queryByTestId("f-close")).toBeNull();
-    expect(screen.getByTestId("f-done").parentElement).toHaveClass("flex-row", "shadow-rule-top");
     fireEvent.keyDown(panel, { key: "Escape" });
     expect(screen.queryByTestId("f-panel")).toBeNull();
   });
@@ -104,4 +102,28 @@ describe("ToolbarPanel", () => {
     fireEvent.click(screen.getByTestId("g-close"));
     expect(screen.queryByTestId("g-panel")).toBeNull();
   });
+});
+
+it("FP-U17 a toolbar panel with no answers opens and closes without a body band", async () => {
+  render(
+    <ToolbarPanel
+      testid="empty-filter"
+      title="Filters"
+      description="Details"
+      state="all"
+      trigger={<button type="button" data-testid="empty-filter" />}
+      footer={(close) => (
+        <button type="button" onClick={close}>
+          Done
+        </button>
+      )}
+    >
+      {null}
+    </ToolbarPanel>,
+  );
+  fireEvent.click(screen.getByTestId("empty-filter"));
+  const panel = await screen.findByTestId("empty-filter-panel");
+  expect(panel.querySelector("[data-panel-body]")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Done" }));
+  expect(screen.queryByTestId("empty-filter-panel")).toBeNull();
 });

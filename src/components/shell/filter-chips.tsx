@@ -93,6 +93,7 @@ export function FiltersButton({
       <ToolbarPanel
         testid={testid}
         title={label}
+        description={t("prim.table.filtersDescription")}
         state={state}
         trigger={
           <Button

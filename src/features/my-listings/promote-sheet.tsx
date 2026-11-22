@@ -1,16 +1,17 @@
 import { useId, useState } from "react";
+import { TrendingUp } from "lucide-react";
+import {
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import { useQuery } from "@tanstack/react-query";
 
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { LIST_ROW_CURRENT } from "@/components/shell/menu-row";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { levelNameOf } from "@/features/levels/level-fields";
 import { fill } from "@/features/posting/refusal-text";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -80,12 +81,14 @@ export function PromoteSheet({
   open,
   onOpenChange,
   onDone,
+  subjectTitle,
 }: {
   listingId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** A level or a reach was set; `until` is the door's end for it, `doneKey` the words for it. */
   onDone: (until: string, doneKey: PromoteDoneKey) => void;
+  subjectTitle?: string;
 }) {
   const { t } = useI18n();
   const query = useQuery({
@@ -96,30 +99,38 @@ export function PromoteSheet({
   });
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent phone="sheet" data-testid="promote-sheet">
-        <DialogHeader>
+      <DialogContent bands phone="sheet" data-testid="promote-sheet">
+        <PanelHeader icon={<TrendingUp />}>
           <DialogTitle>{t("myListings.promote.title")}</DialogTitle>
           <DialogDescription>{t("myListings.promote.hint")}</DialogDescription>
-        </DialogHeader>
-        {query.isPending ? (
-          <p role="status" className="text-sm text-muted-foreground">
-            {t("common.loading")}
-          </p>
-        ) : query.isError ? (
-          <p role="alert" data-testid="promote-load-error" className="text-sm text-destructive">
-            {t(promoteReadErrorKey(query.error))}
-          </p>
-        ) : (
-          <PromoteChoices
-            listingId={listingId}
-            options={query.data}
-            onRefused={async () => (await query.refetch()).data}
-            onDone={(until, doneKey) => {
-              onDone(until, doneKey);
-              onOpenChange(false);
-            }}
-          />
-        )}
+        </PanelHeader>
+        <PanelBody>
+          {subjectTitle === undefined ? null : <PanelSubject title={subjectTitle} />}
+          {query.isPending ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t("common.loading")}
+            </p>
+          ) : query.isError ? (
+            <p role="alert" data-testid="promote-load-error" className="text-sm text-destructive">
+              {t(promoteReadErrorKey(query.error))}
+            </p>
+          ) : (
+            <PromoteChoices
+              listingId={listingId}
+              options={query.data}
+              onRefused={async () => (await query.refetch()).data}
+              onDone={(until, doneKey) => {
+                onDone(until, doneKey);
+                onOpenChange(false);
+              }}
+            />
+          )}
+        </PanelBody>
+        <PanelFooter>
+          <Button size="touch" variant="outline" onClick={() => onOpenChange(false)}>
+            {t("common.close")}
+          </Button>
+        </PanelFooter>
       </DialogContent>
     </Dialog>
   );

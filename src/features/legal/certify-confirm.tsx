@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from "react";
+import { CircleHelp } from "lucide-react";
+import {
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  PanelSubject,
+} from "@/components/ui/dialog-parts-facade";
 import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -25,12 +30,14 @@ export function CertifyConfirm({
   yes,
   onCancel,
   onConfirm,
+  subjectTitle,
 }: {
   listingId: string;
   title: string;
   yes: string;
   onCancel: () => void;
   onConfirm: (certification: { certified: string[]; language: string } | undefined) => void;
+  subjectTitle?: string;
 }) {
   const { t, language } = useI18n();
   const [certify, setCertify] = useState<CertifyState>(CERTIFY_LOADING);
@@ -64,15 +71,16 @@ export function CertifyConfirm({
         }}
       >
         {shown ? (
-          <AlertDialogContent data-testid="certify-confirm">
-            <AlertDialogHeader>
+          <AlertDialogContent bands size="narrow" data-testid="certify-confirm">
+            <PanelHeader tone="confirm" icon={<CircleHelp />}>
               <AlertDialogTitle>{title}</AlertDialogTitle>
-              <AlertDialogDescription className="sr-only">{title}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <div className="max-h-[60vh] overflow-y-auto">
+              <AlertDialogDescription>{title}</AlertDialogDescription>
+            </PanelHeader>
+            <PanelBody>
+              {subjectTitle === undefined ? null : <PanelSubject title={subjectTitle} />}
               <CertifyBlock listingId={listingId} onChange={setCertify} tried={tried} />
-            </div>
-            <AlertDialogFooter>
+            </PanelBody>
+            <PanelFooter>
               <AlertDialogCancel data-testid="certify-confirm-cancel">
                 {t("common.cancel")}
               </AlertDialogCancel>
@@ -94,7 +102,7 @@ export function CertifyConfirm({
               >
                 {yes}
               </Button>
-            </AlertDialogFooter>
+            </PanelFooter>
           </AlertDialogContent>
         ) : null}
       </AlertDialog>

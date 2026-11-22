@@ -1,3 +1,4 @@
+import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { collatorFor } from "@/lib/reader-locale";
 import { useState } from "react";
 
@@ -229,6 +230,25 @@ export function CategoryAttributesDialog({
       openedBy="editor-attributes"
       title={`${t("admin.categories.action.attributes")} — ${categoryName}`}
       onClose={onClose}
+      description={t("admin.categories.attributes.description")}
+      size="wide"
+      subject={<PanelSubject title={categoryName} />}
+      footer={
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground" data-testid="category-attributes-autosave">
+            {t("admin.attributes.links.autosave")}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            data-testid="category-attributes-close"
+            onClick={onClose}
+          >
+            {t("admin.attributes.links.done")}
+          </Button>
+        </div>
+      }
     >
       {/* THE TWO-MUST-DISPLAY CAPTION: what a listing card will actually show. */}
       <p data-testid="category-attributes-card-caption" className="text-sm text-muted-foreground">
@@ -646,20 +666,6 @@ export function CategoryAttributesDialog({
       <AttributeDialogAlert message={message} />
       {/* UX-2 PART 5 — there is nothing left to submit, so the footer says
           Done and states the law it obeys: every change is already written. */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground" data-testid="category-attributes-autosave">
-          {t("admin.attributes.links.autosave")}
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="touch"
-          data-testid="category-attributes-close"
-          onClick={onClose}
-        >
-          {t("admin.attributes.links.done")}
-        </Button>
-      </div>
     </CategoryModal>
   );
 }
