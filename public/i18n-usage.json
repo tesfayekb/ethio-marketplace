@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 746,
+  "scanned": 751,
   "dynamicCallSites": 415,
   "keys": {
     "account.deactivatedBanner": [
@@ -4519,6 +4519,18 @@
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
+    ],
+    "dialog.moreBelow": [
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/listings",
+      "/admin/listings/$listingId",
+      "/admin/monetisation",
+      "/admin/places",
+      "/admin/screening",
+      "/dev/style"
     ],
     "door.refused": [
       "/my-listings",

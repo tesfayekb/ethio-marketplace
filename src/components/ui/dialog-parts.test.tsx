@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogTitle,
@@ -234,5 +235,63 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     const grabbers = sheet.querySelectorAll("[data-dialog-grabber]");
     expect(grabbers).toHaveLength(1);
     expect(grabbers[0]?.closest("[data-panel-head]")).not.toBeNull();
+  });
+});
+
+describe("panel correction laws", () => {
+  it("DP-U12 the cue cannot add to the scroller height when it disappears", () => {
+    render(
+      <PanelBody testId="body">
+        <p>Content</p>
+      </PanelBody>,
+    );
+    const body = screen.getByTestId("body");
+    // A content-only box: an in-flow cue would increase this measured height.
+    Object.defineProperty(body, "scrollHeight", {
+      configurable: true,
+      get: () => 1000 + (body.querySelector("[data-scroll-cue]") ? 72 : 0),
+    });
+    Object.defineProperty(body, "clientHeight", { configurable: true, value: 400 });
+    fireEvent.scroll(body);
+    expect(screen.getByRole("button", { name: "dialog.moreBelow" })).toBeInTheDocument();
+    const height = body.scrollHeight;
+    body.scrollTop = height - 400;
+    fireEvent.scroll(body);
+    expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+    expect(body.scrollHeight).toBe(height);
+  });
+  it("DP-U13 a closed primary owns its missing line and names it only while closed", () => {
+    const props = { missing: "Choose a name", onClosedPress: vi.fn() };
+    const { rerender } = render(
+      <ClosedPrimary {...props} closed>
+        Save
+      </ClosedPrimary>,
+    );
+    expect(screen.getByRole("button", { name: "Save" })).toHaveAccessibleDescription(
+      "Choose a name",
+    );
+    expect(screen.getByText("Choose a name")).toBeInTheDocument();
+    rerender(
+      <ClosedPrimary {...props} closed={false}>
+        Save
+      </ClosedPrimary>,
+    );
+    expect(screen.getByRole("button", { name: "Save" })).not.toHaveAttribute("aria-describedby");
+    expect(screen.queryByText("Choose a name")).toBeNull();
+  });
+  it("DP-U14 a destructive AlertDialogAction does not take opening focus", async () => {
+    render(
+      <AlertDialog open>
+        <AlertDialogContent bands>
+          <AlertDialogTitle>Remove</AlertDialogTitle>
+          <AlertDialogAction tone="destructive" data-testid="red-action">
+            Delete
+          </AlertDialogAction>
+          <AlertDialogCancel data-testid="safe-action">Cancel</AlertDialogCancel>
+        </AlertDialogContent>
+      </AlertDialog>,
+    );
+    await waitFor(() => expect(screen.getByTestId("safe-action")).toHaveFocus());
+    expect(screen.getByTestId("red-action")).not.toHaveFocus();
   });
 });

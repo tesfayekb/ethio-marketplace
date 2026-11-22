@@ -6,9 +6,8 @@ import { X } from "lucide-react";
 
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { useOpenerFocus } from "./dialog-opener";
+import { focusAwayFromRed, useOpenerFocus } from "./dialog-opener";
 import { NoticeOutlet } from "./notice-outlet";
-import { focusAwayFromRed } from "./dialog-parts";
 import {
   BANDS_PANEL,
   DIALOG_CLOSE,

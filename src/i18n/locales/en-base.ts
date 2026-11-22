@@ -33,7 +33,6 @@ export const enBase = {
   "common.empty": "Nothing here yet",
   "common.cancel": "Cancel",
   "common.close": "Close",
-  "dialog.moreBelow": "More below",
   "common.loadFailed":
     "Part of this page didn't load. Check your connection, then refresh the page.",
   "common.refreshPage": "Refresh page",

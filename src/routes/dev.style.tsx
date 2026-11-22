@@ -47,8 +47,9 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import {
   BANDS_PANEL,
+  BANDS_STILL,
   DIALOG_CARD,
-  DIALOG_PANEL,
+  DIALOG_FIT,
   DIALOG_SIZE,
   DIALOG_TEXT,
   DIALOG_TITLE,
@@ -604,44 +605,44 @@ function FormArchetype({ Title, Text }: BoardParts) {
         <Title>{BOARD.formTitle}</Title>
         <Text>{BOARD.formText}</Text>
       </PanelHeader>
-      <PanelBody>
+      <PanelBody className="max-h-64">
         <div className={cn(DIALOG_CARD, "flex flex-col gap-3")}>
           {BOARD_FIELDS.map((label) => (
-            <label key={label} className="flex flex-col gap-1 text-sm font-medium">
-              {label}
-              <Input />
-            </label>
+            <Field key={label} id={`board-${label}`} label={label} required={false} refusal={null}>
+              {(control) => <Input {...control} />}
+            </Field>
           ))}
-          <label className="flex flex-col gap-1 text-sm font-medium">
-            {BOARD.nameEn}
-            <Input
-              ref={nameRef}
-              value={name}
-              aria-invalid={marked && name === "" ? true : undefined}
-              className="aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive"
-              onChange={(event) => setName(event.target.value)}
-            />
-          </label>
+          <Field id="board-name-en" label={BOARD.nameEn} required refusal={null}>
+            {(control) => (
+              <Input
+                {...control}
+                ref={nameRef}
+                value={name}
+                aria-invalid={marked && name === "" ? true : undefined}
+                className={
+                  marked && name === "" ? "border-destructive ring-1 ring-destructive" : undefined
+                }
+                onChange={(event) => setName(event.target.value)}
+              />
+            )}
+          </Field>
         </div>
       </PanelBody>
       <PanelFooter>
         <Button variant="outline" size="touch">
           {BOARD.cancel}
         </Button>
-        <div className="flex flex-col gap-1 sm:items-end">
-          <ClosedPrimary
-            closed={name === ""}
-            onClosedPress={() => {
-              setMarked(true);
-              nameRef.current?.scrollIntoView({ block: "center" });
-              nameRef.current?.focus({ preventScroll: true });
-            }}
-            className={buttonVariants({ size: "touch" })}
-          >
-            {BOARD.save}
-          </ClosedPrimary>
-          {name === "" ? <p className="text-xs text-muted-foreground">{BOARD.missing}</p> : null}
-        </div>
+        <ClosedPrimary
+          closed={name === ""}
+          onClosedPress={() => {
+            setMarked(true);
+            nameRef.current?.scrollIntoView({ block: "center" });
+            nameRef.current?.focus({ preventScroll: true });
+          }}
+          missing={BOARD.missing}
+        >
+          {BOARD.save}
+        </ClosedPrimary>
       </PanelFooter>
     </>
   );
@@ -672,6 +673,19 @@ function FiltersArchetype({ Title, Text, open }: BoardParts & { open: boolean })
               noneLabel={BOARD.none}
             />
           </FilterRow>
+          <FilterRow label={BOARD.title} htmlFor={`${open}-title`}>
+            <FilterText id={`${open}-title`} value={text} onChange={setText} />
+          </FilterRow>
+          <FilterRow dates label={BOARD.dates} htmlFor={`${open}-dates`}>
+            <FilterDates
+              id={`${open}-dates`}
+              from={dates.from}
+              to={dates.to}
+              onChange={setDates}
+              fromLabel={BOARD.from}
+              toLabel={BOARD.to}
+            />
+          </FilterRow>
           <FilterRow label={BOARD.place} htmlFor={`${open}-place`}>
             <FilterSelect
               id={`${open}-place`}
@@ -686,20 +700,9 @@ function FiltersArchetype({ Title, Text, open }: BoardParts & { open: boolean })
               noneLabel={BOARD.none}
             />
           </FilterRow>
-          <FilterRow label={BOARD.title} htmlFor={`${open}-title`}>
-            <FilterText id={`${open}-title`} value={text} onChange={setText} />
-          </FilterRow>
-          <FilterRow label={BOARD.dates} htmlFor={`${open}-dates`}>
-            <FilterDates
-              id={`${open}-dates`}
-              from={dates.from}
-              to={dates.to}
-              onChange={setDates}
-              fromLabel={BOARD.from}
-              toLabel={BOARD.to}
-            />
-          </FilterRow>
         </div>
+        {/* Still-only room beneath the last row: the open list hides no other row's name. */}
+        {open ? <div aria-hidden="true" className="h-80 shrink-0" /> : null}
       </PanelBody>
       <PanelFooter>
         <Button variant="outline" size="touch">
@@ -731,10 +734,19 @@ const ARCHETYPES: readonly Archetype[] = [
           />
         </PanelBody>
         <PanelFooter>
-          <Button variant="outline" size="touch">
-            {BOARD.cancel}
-          </Button>
-          <Button size="touch">{BOARD.approve}</Button>
+          {Title === AlertDialogTitle ? (
+            <>
+              <AlertDialogCancel>{BOARD.cancel}</AlertDialogCancel>
+              <AlertDialogAction>{BOARD.approve}</AlertDialogAction>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" size="touch">
+                {BOARD.cancel}
+              </Button>
+              <Button size="touch">{BOARD.approve}</Button>
+            </>
+          )}
         </PanelFooter>
       </>
     ),
@@ -752,12 +764,21 @@ const ARCHETYPES: readonly Archetype[] = [
           <PanelSubject title={"Cars"} lines={["Vehicles › Cars"]} />
         </PanelBody>
         <PanelFooter>
-          <Button variant="outline" size="touch">
-            {BOARD.cancel}
-          </Button>
-          <Button variant="destructive" size="touch">
-            {BOARD.delete}
-          </Button>
+          {Title === AlertDialogTitle ? (
+            <>
+              <AlertDialogCancel>{BOARD.cancel}</AlertDialogCancel>
+              <AlertDialogAction tone="destructive">{BOARD.delete}</AlertDialogAction>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" size="touch">
+                {BOARD.cancel}
+              </Button>
+              <Button variant="destructive" size="touch">
+                {BOARD.delete}
+              </Button>
+            </>
+          )}
         </PanelFooter>
       </>
     ),
@@ -863,12 +884,7 @@ function StillPanel({
       data-testid={testId}
       data-dialog-panel=""
       data-bands=""
-      className={cn(
-        DIALOG_PANEL,
-        DIALOG_SIZE[size],
-        BANDS_PANEL,
-        "relative inset-auto m-0 h-auto max-h-[30rem] w-full",
-      )}
+      className={cn(DIALOG_SIZE[size], BANDS_PANEL, BANDS_STILL, DIALOG_FIT.bounded, "w-full")}
     >
       {children}
     </div>
@@ -887,23 +903,41 @@ function AnatomyBoard() {
   return (
     <div className="mt-4 flex flex-col gap-6">
       <div className="flex flex-wrap gap-2">
-        {ARCHETYPES.map((archetype) => (
-          <Dialog key={archetype.key}>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid={`style-anatomy-${archetype.key}-open`}>
-                {`${BOARD.open}: ${archetype.key}`}
-              </Button>
-            </DialogTrigger>
-            <DialogContent
-              bands
-              size={archetype.size}
-              phone={archetype.key === "actions" ? "sheet" : "float"}
-              data-testid={`style-anatomy-${archetype.key}`}
-            >
-              {archetype.draw(LIVE)}
-            </DialogContent>
-          </Dialog>
-        ))}
+        {ARCHETYPES.map((archetype) =>
+          archetype.key === "question" || archetype.key === "warning" ? (
+            <AlertDialog key={archetype.key}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  data-testid={`style-anatomy-${archetype.key}-open`}
+                >{`${BOARD.open}: ${archetype.key}`}</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent
+                bands
+                size={archetype.size}
+                data-testid={`style-anatomy-${archetype.key}`}
+              >
+                {archetype.draw({ Title: AlertDialogTitle, Text: AlertDialogDescription })}
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <Dialog key={archetype.key}>
+              <DialogTrigger asChild>
+                <Button variant="outline" data-testid={`style-anatomy-${archetype.key}-open`}>
+                  {`${BOARD.open}: ${archetype.key}`}
+                </Button>
+              </DialogTrigger>
+              <DialogContent
+                bands
+                size={archetype.size}
+                phone={archetype.key === "actions" ? "sheet" : "float"}
+                data-testid={`style-anatomy-${archetype.key}`}
+              >
+                {archetype.draw(LIVE)}
+              </DialogContent>
+            </Dialog>
+          ),
+        )}
         <Dialog>
           <DialogTrigger asChild>
             <Button
@@ -943,7 +977,7 @@ function AnatomyBoard() {
             <div
               key={mode}
               data-testid={`style-anatomy-${mode}`}
-              className={`${mode === "dark" ? "dark " : ""}grid grid-cols-1 items-start gap-4 rounded-card bg-muted p-4 text-foreground md:grid-cols-2 xl:grid-cols-3`}
+              className={`${mode === "dark" ? "dark " : ""}grid grid-cols-1 items-start gap-4 rounded-card bg-muted p-4 text-foreground lg:grid-cols-2`}
               style={themeScope(themes, name, mode)}
             >
               {ARCHETYPES.map((archetype) => (

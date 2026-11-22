@@ -2,10 +2,9 @@ import * as React from "react";
 import * as AlertDialogPrimitive from "./alert-dialog-primitive";
 
 import { cn } from "@/lib/utils";
-import { useOpenerFocus } from "./dialog-opener";
+import { focusAwayFromRed, useOpenerFocus } from "./dialog-opener";
 import { NoticeOutlet } from "./notice-outlet";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { focusAwayFromRed } from "./dialog-parts";
 import {
   BANDS_PANEL,
   DIALOG_FIT,

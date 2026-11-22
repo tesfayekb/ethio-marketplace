@@ -1,6 +1,7 @@
 import type { enMember } from "./en-member";
 
 export const amMember: { [K in keyof typeof enMember]: string } = {
+  "dialog.moreBelow": "ከታች ተጨማሪ አለ",
   "head.account.description": "የ ethio.com አካውንትዎን እና የማስታወቂያ እንቅስቃሴዎን ይመልከቱ።",
   "head.continuePost.description": "በ ethio.com ላይ የጀመሩትን ማስታወቂያ ይጨርሱ።",
   "head.continuePost.title": "ማስታወቂያዎን ይቀጥሉ",

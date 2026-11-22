@@ -28,6 +28,7 @@ export function PickerOption({
   id,
   selected,
   highlighted,
+  unavailable = false,
   testId,
   data,
   onPick,
@@ -37,6 +38,7 @@ export function PickerOption({
   id?: string;
   selected: boolean;
   highlighted: boolean;
+  unavailable?: boolean;
   testId: string;
   data: Record<string, string>;
   onPick: () => void;
@@ -52,11 +54,14 @@ export function PickerOption({
       id={id}
       role="option"
       aria-selected={selected}
+      aria-disabled={unavailable || undefined}
       data-testid={testId}
       {...dataAttrs}
-      className={`${LIST_ROW} ${selected ? LIST_ROW_CURRENT : highlighted ? LIST_ROW_HIGHLIGHT : ""} ${className}`}
+      className={`${unavailable ? "opacity-50 cursor-not-allowed" : ""} ${LIST_ROW} ${selected ? LIST_ROW_CURRENT : highlighted ? LIST_ROW_HIGHLIGHT : ""} ${className}`}
       onMouseDown={(event) => event.preventDefault()}
-      onClick={onPick}
+      onClick={() => {
+        if (!unavailable) onPick();
+      }}
     >
       {children}
       {selected && (

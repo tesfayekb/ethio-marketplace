@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { pickerPopClass, usePickerKeys, usePickerPlacement } from "@/components/picker-popup";
@@ -26,6 +26,7 @@ export function FilterSelect({
   value,
   onChange,
   multiple = false,
+  max = 20,
   placeholder,
   searchLabel,
   noneLabel,
@@ -37,6 +38,7 @@ export function FilterSelect({
   value: readonly string[];
   onChange: (next: string[]) => void;
   multiple?: boolean;
+  max?: number;
   /** Shown while nothing is chosen. */
   placeholder: string;
   /** The search box's name, and the line when nothing matches: the consumer's words. */
@@ -61,7 +63,10 @@ export function FilterSelect({
     setOpen(false);
     setQuery("");
   };
+  const unavailable = (option: FilterOption) =>
+    multiple && !value.includes(option.value) && value.length >= max;
   const pick = (option: FilterOption) => {
+    if (unavailable(option)) return;
     if (!multiple) {
       onChange(value.includes(option.value) ? [] : [option.value]);
       close();
@@ -74,15 +79,47 @@ export function FilterSelect({
     );
   };
   const { highlight, setHighlight, onKeyDown } = usePickerKeys({
-    count: shown.length,
+    count: shown.length + 1,
     onPick: (index) => {
-      const option = shown[index];
+      if (index === 0) {
+        onChange([]);
+        if (!multiple) close();
+        return;
+      }
+      const option = shown[index - 1];
       if (option !== undefined) pick(option);
     },
     onEscape: close,
     onOpen: () => setOpen(true),
   });
-  const placement = usePickerPlacement(wrapRef, open, shown.length + (searchable ? 1 : 0));
+  const keys = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === "Escape" && open) {
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+      return;
+    }
+    if (!open) {
+      if (["ArrowDown", "Enter", " "].includes(event.key)) {
+        event.preventDefault();
+        setHighlight(0);
+        setOpen(true);
+      }
+      return;
+    }
+    // Reuse the picker's arrows and selection; Space is Enter outside the text search.
+    if (event.key === " " && !(event.target instanceof HTMLInputElement)) {
+      event.preventDefault();
+      onKeyDown({
+        ...event,
+        key: "Enter",
+        preventDefault: () => event.preventDefault(),
+      } as KeyboardEvent<HTMLInputElement>);
+      return;
+    }
+    onKeyDown(event as KeyboardEvent<HTMLInputElement>);
+  };
+  const placement = usePickerPlacement(wrapRef, open, shown.length + 1 + (searchable ? 1 : 0));
   const chosen = options.filter((option) => value.includes(option.value)).map((o) => o.label);
   return (
     <div
@@ -103,6 +140,7 @@ export function FilterSelect({
           "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-input px-3 text-start text-sm md:pointer-fine:min-h-9",
           DIALOG_FIELD,
         )}
+        onKeyDown={keys}
         onClick={() => (open ? close() : setOpen(true))}
       >
         <span
@@ -116,6 +154,7 @@ export function FilterSelect({
         <div data-placement={placement} className={pickerPopClass(placement)}>
           {searchable ? (
             <input
+              type="search"
               autoFocus
               data-testid={`${testId}-search`}
               role="combobox"
@@ -128,9 +167,9 @@ export function FilterSelect({
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
-                setHighlight(0);
+                setHighlight(1);
               }}
-              onKeyDown={onKeyDown}
+              onKeyDown={keys}
             />
           ) : null}
           <ul
@@ -139,7 +178,22 @@ export function FilterSelect({
             aria-multiselectable={multiple || undefined}
             data-testid={`${testId}-list`}
             className={LIST_SCROLLER}
+            onKeyDown={keys}
           >
+            <li role="presentation">
+              <PickerOption
+                selected={value.length === 0}
+                highlighted={highlight === 0}
+                testId={`${testId}-all`}
+                data={{ value: "" }}
+                onPick={() => {
+                  onChange([]);
+                  if (!multiple) close();
+                }}
+              >
+                <span className="min-w-0 grow truncate">{placeholder}</span>
+              </PickerOption>
+            </li>
             {shown.length === 0 ? (
               <li className="px-3 py-2 text-sm text-muted-foreground">{noneLabel}</li>
             ) : null}
@@ -147,8 +201,9 @@ export function FilterSelect({
               <li key={option.value} role="presentation">
                 <PickerOption
                   selected={value.includes(option.value)}
-                  highlighted={index === highlight}
-                  testId={`${testId}-option`}
+                  highlighted={index + 1 === highlight}
+                  unavailable={unavailable(option)}
+                  testId={`${testId}-${option.value}`}
                   data={{ value: option.value }}
                   onPick={() => pick(option)}
                 >

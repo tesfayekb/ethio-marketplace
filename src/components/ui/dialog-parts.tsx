@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Check, ChevronDown } from "lucide-react";
 
+import { Button, type ButtonProps } from "./button";
+
 import { LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -129,8 +131,10 @@ export function PanelBody({
     };
   }, []);
   return (
-    <div ref={ref} data-panel-body="" data-testid={testId} className={cn(BANDS_BODY, className)}>
-      {children}
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div ref={ref} data-panel-body="" data-testid={testId} className={cn(BANDS_BODY, className)}>
+        {children}
+      </div>
       {more ? (
         <div data-scroll-cue="" className={CUE_WRAP}>
           <button
@@ -181,7 +185,17 @@ export function StepTrack({
             aria-current={state === "current" ? "step" : undefined}
             className="flex min-w-0 items-center gap-1.5"
           >
-            <span data-state={state} className={STEP_MARK}>
+            <span
+              data-state={state}
+              className={cn(
+                STEP_MARK,
+                state === "current"
+                  ? DIALOG_TONE.confirm
+                  : state === "done"
+                    ? "bg-primary/15 text-primary"
+                    : undefined,
+              )}
+            >
               {state === "done" ? <Check aria-hidden="true" /> : index + 1}
             </span>
             <span className={cn("truncate", state === "current" && "font-medium text-foreground")}>
@@ -218,44 +232,33 @@ export function ActionRow({
  */
 export const ClosedPrimary = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { closed: boolean; onClosedPress: () => void }
->(({ closed, onClosedPress, onClick, className, ...props }, ref) => (
-  <button
-    ref={ref}
-    type="button"
-    data-closed={closed ? "1" : undefined}
-    className={cn(className, CLOSED_PRIMARY)}
-    onClick={(event) => {
-      if (closed) {
-        onClosedPress();
-        return;
-      }
-      onClick?.(event);
-    }}
-    {...props}
-  />
-));
+  ButtonProps & { closed: boolean; missing?: string; onClosedPress: () => void }
+>(({ closed, missing, onClosedPress, onClick, className, disabled: _disabled, ...props }, ref) => {
+  const lineId = React.useId();
+  return (
+    <>
+      <Button
+        {...props}
+        ref={ref}
+        type="button"
+        size="touch"
+        data-closed={closed ? "1" : undefined}
+        className={cn(className, CLOSED_PRIMARY)}
+        aria-describedby={closed && missing ? lineId : undefined}
+        onClick={(event) => {
+          if (closed) {
+            onClosedPress();
+            return;
+          }
+          onClick?.(event);
+        }}
+      />
+      {closed && missing ? (
+        <p id={lineId} className="w-full text-sm text-muted-foreground">
+          {missing}
+        </p>
+      ) : null}
+    </>
+  );
+});
 ClosedPrimary.displayName = "ClosedPrimary";
-
-/** A red primary (the destructive tone's own fill). */
-const isRed = (element: Element) => element.classList.contains("bg-destructive");
-const FOCUSABLE =
-  'input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
-
-/**
- * The focus law of bundle 2: a red primary never takes the focus when its panel opens. The
- * first field takes it; else the first control that is not red. Called from the primitives'
- * open handler; it moves the focus only when the default would land on a red button.
- */
-export function focusAwayFromRed(event: Event): void {
-  const panel = event.currentTarget ?? event.target;
-  if (!(panel instanceof HTMLElement)) return;
-  const all = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE));
-  const first = all[0];
-  if (first === undefined || !isRed(first)) return;
-  const field = all.find((element) => element.matches("input, textarea, select"));
-  const target = field ?? all.find((element) => !isRed(element));
-  if (target === undefined) return;
-  event.preventDefault();
-  target.focus({ preventScroll: true });
-}

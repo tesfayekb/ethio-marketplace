@@ -89,18 +89,19 @@ export type SheetSide = keyof typeof SHEET_SIDE;
  * that draw them live in dialog-parts.tsx, so this module stays small on every page with a field.
  */
 /** The banded panel: no padding or gap of its own, the page ground, and no scroll of its own. */
+export const BANDS_STILL = "rounded-dialog shadow-dialog text-popover-foreground";
 export const BANDS_PANEL = "flex flex-col gap-0 overflow-hidden p-0 bg-background";
 /** The header band: white, the band shadow below; it clears the close button at its end. */
 export const BANDS_HEAD =
-  "relative flex shrink-0 flex-col gap-2 bg-card px-6 pt-5.5 pb-4 pe-16 shadow-band";
+  "relative flex shrink-0 flex-col gap-2 bg-card px-6 py-5.5 pb-4 pe-16 shadow-band";
 /** The body: the panel's only scroller. */
 export const BANDS_BODY =
   "flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-6 py-4";
 /** The footer band: white, the bar's upward shadow; the footer's order and stacking. */
 export const BANDS_FOOT =
-  "relative flex shrink-0 flex-col-reverse gap-2 bg-card px-6 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-bar-up sm:flex-row sm:justify-end";
+  "relative flex shrink-0 flex-wrap items-center justify-end gap-2 bg-card px-6 py-4 shadow-bar-up";
 /** The grabber inside the header band: drawn only on a phone sheet below md. */
-export const BANDS_GRABBER = "hidden max-md:in-data-[phone=sheet]:block -mt-2 mb-1 self-center";
+export const BANDS_GRABBER = "hidden max-md:in-data-[phone=sheet]:block -mt-2 mb-1 mx-auto";
 /** A white card on the body's ground (the subject, a group of fields). */
 export const DIALOG_CARD = "rounded-card bg-card p-4 shadow-card";
 /** The header's icon tile and its three tones. */
@@ -114,12 +115,12 @@ export const DIALOG_TONE = {
 export type DialogTone = keyof typeof DIALOG_TONE;
 /** The scroll cue (DEC-418): a fade over the body's bottom edge and its "More below" button. */
 export const CUE_WRAP =
-  "pointer-events-none sticky bottom-0 -mx-6 -mb-4 mt-auto flex shrink-0 justify-center bg-linear-to-t from-background to-transparent px-6 pt-8 pb-2";
+  "pointer-events-none absolute inset-x-0 bottom-0 flex justify-center bg-linear-to-t from-background to-transparent px-6 py-4 pb-2";
 export const CUE_BUTTON = `pointer-events-auto inline-flex min-h-11 md:pointer-fine:min-h-9 items-center gap-1 rounded-full px-4 text-sm font-medium ${CONTROL_LOOK}`;
 /** The step track: one mark per step, the current one in ink, the done ones ticked. */
 export const STEP_TRACK = "flex min-w-0 items-center gap-2 text-xs text-muted-foreground";
 export const STEP_MARK =
-  "inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted font-semibold data-[state=current]:bg-primary data-[state=current]:text-primary-foreground data-[state=done]:bg-primary/15 data-[state=done]:text-primary [&_svg]:size-3.5";
+  "inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted font-semibold [&_svg]:size-4";
 /** The closed primary's look: the posting wizard's closed Next, full-contrast secondary tokens. */
 export const CLOSED_PRIMARY =
   "data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80";

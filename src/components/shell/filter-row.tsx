@@ -1,31 +1,37 @@
 import type { ReactNode } from "react";
 
 /**
- * Bundle 2 (INC-1146) — a table filter's ROW: its name, its control beside it (stacked below
- * sm). Presentational: a page wires it in a later bundle.
+ * Bundle 2 (INC-1146) — a table filter's ROW: its name and its control beside it at every width. Presentational: a page wires it in a later bundle.
  */
 export function FilterRow({
   label,
   htmlFor,
   children,
   testId,
+  dates = false,
 }: {
   label: string;
   /** The control's id, so the name labels it. */
   htmlFor?: string;
   children: ReactNode;
   testId?: string;
+  /** Only the date pair may occupy a second row. */
+  dates?: boolean;
 }) {
   return (
     <div
       data-filter-row=""
       data-testid={testId}
-      className="grid min-w-0 grid-cols-1 items-center gap-1.5 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-3"
+      className="flex min-w-0 flex-wrap items-center gap-3"
     >
-      <label htmlFor={htmlFor} className="truncate text-sm font-medium text-foreground">
+      <label
+        htmlFor={htmlFor}
+        title={label}
+        className="w-1/3 min-w-0 truncate text-sm font-medium text-foreground"
+      >
         {label}
       </label>
-      <div className="min-w-0">{children}</div>
+      <div className={dates ? "w-full min-w-0" : "min-w-0 flex-1"}>{children}</div>
     </div>
   );
 }
