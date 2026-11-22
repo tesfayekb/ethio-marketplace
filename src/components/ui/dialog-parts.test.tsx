@@ -272,26 +272,113 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
 });
 
 describe("panel correction laws", () => {
-  it("DP-U12 the cue cannot add to the scroller height when it disappears", () => {
+  it("DP-U12 the cue is a zero-height anchor stuck to the scroller's end, so it adds no height", () => {
     render(
       <PanelBody cueLabel="dialog.moreBelow" testId="body">
         <p>Content</p>
       </PanelBody>,
     );
     const body = screen.getByTestId("body");
-    // A content-only box: an in-flow cue would increase this measured height.
-    Object.defineProperty(body, "scrollHeight", {
-      configurable: true,
-      get: () => 1000 + (body.querySelector("[data-scroll-cue]") ? 72 : 0),
-    });
-    Object.defineProperty(body, "clientHeight", { configurable: true, value: 400 });
+    sized(body, { scrollHeight: 1000, clientHeight: 400 });
     fireEvent.scroll(body);
-    expect(screen.getByRole("button", { name: "dialog.moreBelow" })).toBeInTheDocument();
-    const height = body.scrollHeight;
-    body.scrollTop = height - 400;
+    const pill = screen.getByRole("button", { name: "dialog.moreBelow" });
+    const anchor = pill.closest("[data-scroll-cue]")?.parentElement as HTMLElement;
+    // The anchor is the scroller's own last child, after the content; it is zero tall and sticks
+    // to the bottom edge, so the content does not move when it comes or goes (the browser proof
+    // is DLG-E10).
+    expect(anchor.parentElement).toBe(body);
+    expect(body.lastElementChild).toBe(anchor);
+    expect(classes(anchor.className)).toEqual(
+      expect.arrayContaining(["sticky", "bottom-0", "h-0", "pointer-events-none"]),
+    );
+    body.scrollTop = 600;
     fireEvent.scroll(body);
     expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
-    expect(body.scrollHeight).toBe(height);
+    expect(body.children).toHaveLength(1);
+  });
+  it("DP-U27 the body is one element and a block scroller; its content is never its flex item", () => {
+    render(
+      <PanelBody cueLabel="dialog.moreBelow" testId="body">
+        <p data-testid="first">Content</p>
+      </PanelBody>,
+    );
+    const body = screen.getByTestId("body");
+    expect(body).toHaveAttribute("data-panel-body");
+    // A flex scroller squeezes a fixed-height child and, wrapped, does not scroll in WebKit.
+    expect(classes(body.className)).not.toContain("flex");
+    // `grow`, never `flex-1`: with a zero basis WebKit gives the body no height in a panel
+    // that fits its content. `relative`: the scroller holds its absolutely placed descendants.
+    expect(classes(body.className)).not.toContain("flex-1");
+    expect(classes(body.className)).toEqual(
+      expect.arrayContaining(["relative", "min-h-0", "grow", "overflow-y-auto", "px-6"]),
+    );
+    const flow = body.firstElementChild as HTMLElement;
+    expect(flow).toContainElement(screen.getByTestId("first"));
+    expect(classes(flow.className)).toEqual(
+      expect.arrayContaining(["flex", "flex-col", "gap-3", "py-4"]),
+    );
+    // The top and bottom inset is the content's: the cue sticks to the body's true bottom edge.
+    expect(classes(body.className)).not.toContain("py-4");
+  });
+  it("DP-U28 a fill body gives its one child the room: no scroll, no cue, no inset", () => {
+    render(
+      <PanelBody fill cueLabel="dialog.moreBelow" testId="body">
+        <div data-testid="map" />
+      </PanelBody>,
+    );
+    const body = screen.getByTestId("body");
+    sized(body, { scrollHeight: 1000, clientHeight: 400 });
+    fireEvent.scroll(body);
+    expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+    expect(screen.getByTestId("map").parentElement).toBe(body);
+    expect(classes(body.className)).toEqual(
+      expect.arrayContaining(["flex", "flex-col", "min-h-0", "flex-1", "overflow-hidden"]),
+    );
+    expect(classes(body.className)).not.toContain("px-6");
+    expect(classes(body.className)).not.toContain("overflow-y-auto");
+  });
+  it("DP-U29 a flush body has no inset; the last band carries the bottom inset", () => {
+    const inset = "pb-[calc(1.375rem+env(safe-area-inset-bottom))]";
+    const { rerender } = render(
+      <PanelBody flush cueLabel="dialog.moreBelow" testId="body">
+        <p>Content</p>
+      </PanelBody>,
+    );
+    let body = screen.getByTestId("body");
+    expect(classes(body.className)).not.toContain("px-6");
+    expect(classes((body.firstElementChild as HTMLElement).className)).not.toContain("py-4");
+    rerender(
+      <PanelBody end cueLabel="dialog.moreBelow" testId="body">
+        <p>Content</p>
+      </PanelBody>,
+    );
+    body = screen.getByTestId("body");
+    expect(classes((body.firstElementChild as HTMLElement).className)).toContain(inset);
+    expect(classes(body.className)).not.toContain(inset);
+    rerender(
+      <PanelBody fill end cueLabel="dialog.moreBelow" testId="body">
+        <p>Content</p>
+      </PanelBody>,
+    );
+    expect(classes(screen.getByTestId("body").className)).toContain(inset);
+  });
+  it("DP-U30 a banded panel docked on a phone has no inset of its own; an unbanded one keeps it", async () => {
+    const inset = "max-md:pb-[calc(1.375rem+env(safe-area-inset-bottom))]";
+    for (const phone of ["sheet", "full"] as const) {
+      for (const bands of [true, false]) {
+        const view = render(
+          <Dialog open>
+            <DialogContent phone={phone} bands={bands} data-testid="panel">
+              <DialogTitle>Title</DialogTitle>
+              <DialogDescription>Text</DialogDescription>
+            </DialogContent>
+          </Dialog>,
+        );
+        const panel = await screen.findByTestId("panel");
+        expect(classes(panel.className).includes(inset), `${phone} bands=${bands}`).toBe(!bands);
+        view.unmount();
+      }
+    }
   });
   it("DP-U13 a closed primary owns its missing line and names it only while closed", () => {
     const props = { missing: "Choose a name", onClosedPress: vi.fn() };

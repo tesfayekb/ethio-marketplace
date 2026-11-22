@@ -815,7 +815,7 @@ const ARCHETYPES: readonly Archetype[] = [
           <Title>{BOARD.shareTitle}</Title>
           <Text>{BOARD.shareText}</Text>
         </PanelHeader>
-        <PanelBody>
+        <PanelBody end>
           <PanelSubject
             picture={
               <ImageIcon aria-hidden="true" className="m-auto mt-4 size-6 text-muted-foreground" />
@@ -865,7 +865,7 @@ const ARCHETYPES: readonly Archetype[] = [
           <Title>{BOARD.columnsTitle}</Title>
           <Text>{BOARD.columnsText}</Text>
         </PanelHeader>
-        <PanelBody>
+        <PanelBody end>
           <ColumnsArchetype />
         </PanelBody>
       </>
@@ -972,7 +972,7 @@ function AnatomyBoard() {
               <SheetTitle>{BOARD.sheetTitle}</SheetTitle>
               <SheetDescription>{BOARD.sheetText}</SheetDescription>
             </PanelHeader>
-            <PanelBody>
+            <PanelBody end>
               {Array.from({ length: 14 }, (_, index) => (
                 <div
                   key={index}

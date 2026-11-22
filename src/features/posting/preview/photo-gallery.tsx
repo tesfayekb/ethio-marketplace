@@ -394,7 +394,7 @@ function Viewer({
             </span>
           </div>
         </PanelHeader>
-        <PanelBody className="p-0 overflow-hidden">
+        <PanelBody fill>
           <div
             className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden"
             style={{ touchAction: "pan-y pinch-zoom" }}

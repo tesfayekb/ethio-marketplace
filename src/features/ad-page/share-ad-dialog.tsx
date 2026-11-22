@@ -80,7 +80,7 @@ export function ShareAdDialog({
           <DialogTitle>{t("adPage.share.title")}</DialogTitle>
           <DialogDescription>{t("adPage.share.description")}</DialogDescription>
         </PanelHeader>
-        <PanelBody>
+        <PanelBody end>
           <PanelSubject title={title} lines={priceText === null ? [] : [priceText]} />
           <div className="flex min-w-0 flex-col gap-1">
             {telegram !== null && (

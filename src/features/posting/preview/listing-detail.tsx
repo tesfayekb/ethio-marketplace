@@ -1316,7 +1316,7 @@ export function ListingDetail(view: ListingDetailView) {
                         <PanelHeader icon={<MapPin />}>
                           <DialogTitle>{t("adPage.section.location")}</DialogTitle>
                         </PanelHeader>
-                        <PanelBody className="p-0">
+                        <PanelBody fill>
                           <Suspense
                             fallback={
                               <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>

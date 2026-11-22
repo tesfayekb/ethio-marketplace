@@ -55,8 +55,8 @@ export function PreviewSheet({
         <PanelHeader>
           <DialogTitle>{t("post.preview.title")}</DialogTitle>
         </PanelHeader>
-        <PanelBody>
-          <div className="mx-auto w-full max-w-2xl space-y-4">
+        <PanelBody flush end={!footer}>
+          <div className="mx-auto w-full max-w-2xl space-y-4 p-4">
             {body ?? <ListingDetail {...view} look={look} />}
           </div>
         </PanelBody>

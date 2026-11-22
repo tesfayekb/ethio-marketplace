@@ -71,7 +71,7 @@ export function ToolbarPanel({
   };
   const close = () => setOpen(false);
   const foot = footer?.(close, state !== openedWith) ?? null;
-  const body = <PanelBody>{children}</PanelBody>;
+  const body = <PanelBody end={isMobile && foot === null}>{children}</PanelBody>;
   const footPart = foot !== null ? <PanelFooter>{foot}</PanelFooter> : null;
 
   if (isMobile) {

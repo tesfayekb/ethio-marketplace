@@ -126,7 +126,7 @@ export function HistoryDrawer({
               <code className="font-mono text-xs">{translationKey}</code>
             </SheetDescription>
           </PanelHeader>
-          <PanelBody>
+          <PanelBody end>
             {history.isLoading ? (
               <p
                 className="text-sm text-muted-foreground"

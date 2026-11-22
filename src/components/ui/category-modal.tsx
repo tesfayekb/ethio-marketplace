@@ -67,7 +67,7 @@ export function CategoryModal({
                 <DialogDescription>{description}</DialogDescription>
               )}
             </PanelHeader>
-            <PanelBody>
+            <PanelBody end={footer === undefined}>
               {Children.toArray(subject).length === 0 &&
               Children.toArray(children).length === 0 ? null : (
                 <>

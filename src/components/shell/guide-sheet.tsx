@@ -97,7 +97,7 @@ export function GuideSheetContent({
       <PanelHeader>
         <SheetTitle>{title}</SheetTitle>
       </PanelHeader>
-      <PanelBody>
+      <PanelBody end>
         <StringsLayerGate layers={["guide"]}>
           <Suspense
             fallback={

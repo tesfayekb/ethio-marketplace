@@ -563,8 +563,9 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 One anatomy serves dialogs, alerts, sheets and toolbar panels. The primitive variants and
 `dialog-look.ts` own the frame, scrim, radius, size, layer and phone placement; the anatomy's
 surfaces live in `dialog-parts-look.ts` with the on-demand implementation. A banded frame has
-no padding or scrolling of its own. The existing unbanded primitive remains available for
-specimens and the step-up dialog pending Cursor's migration.
+no padding or scrolling of its own at any placement: on a phone the bottom inset (the safe
+area) is its last band's, never the frame's. The existing unbanded primitive remains
+available for specimens and the step-up dialog pending Cursor's migration.
 
 ### Parts and consumers
 
@@ -575,6 +576,12 @@ specimens and the step-up dialog pending Cursor's migration.
 - `PanelBody`: the only scroller, between the fixed header and footer. Its cue appears only
   while more content lies below and scrolls about one screen on press; it occupies no layout
   space and respects reduced motion. No children means no body band, including `null`.
+  It is ONE element, the frame's own child: a block scroller that starts at its content's
+  height (`grow`, never `flex-1`) and shrinks when the frame's height limit binds, with its
+  content in one inner column that carries the top and bottom inset. Three switches:
+  `fill` (one child takes the room — a photo, a map: no scroll, no cue, no inset), `flush`
+  (no inset: the content brings its own box, as the buyer's preview does) and `end` (the
+  body is the frame's last band — there is no footer — and carries the bottom inset).
 - `PanelFooter`: the always-visible action band, with safe-area clearance. The secondary
   action comes first and the forward action last; the forward action uses the filled look.
 - `StepTrack`: the acts in a process, with earlier acts done, the current act marked, and
@@ -612,10 +619,22 @@ passes the translated `dialog.moreBelow` cue label to the real body.
 - Escape closes an open picker list first, leaving its panel open for the next Escape.
   Lists place and cap within the panel body's room.
 - The body alone scrolls; its cue holds zero layout space. Empty content draws no body band.
-- A description states what the forward action does. Exactly five accepted exceptions are
+  Why the body has this one form, each proven in a real engine: behind a wrapper, or with a
+  zero basis, WebKit gives the body no height in a frame that fits its content (every
+  centred dialog showed 32 px of padding around hidden content); as a flex column it
+  squeezes a fixed-height clipped child in Chromium (the pin map fell to its border); and
+  unless it is `relative`, a screen-reader-only label inside it is laid out against the
+  frame, which then has hidden room below its footer and can be scrolled off its header.
+  The cue is a zero-height sticky anchor, the scroller's last child.
+- A frame's last band carries the bottom inset: the footer does; a body with no footer
+  says `end`. The toolbar panel says it on a phone only (its desktop form is a popover).
+- A change of a dialog's frame never changes its content's width: the buyer's preview
+  keeps its 640 px column (the ad's own container query reads it).
+- A description states what the forward action does. Exactly four accepted exceptions are
   marked beside their consumers: the guide sheet (the guide itself is its content), buyer
-  preview (the complete ad is the content), photo viewer (the photo itself), enlarged map
-  (the map is the content), and pin map (the map fills the panel and its title names the task).
+  preview (the complete ad is the content), photo viewer (the photo itself) and enlarged
+  map (the map is the content). The pin map keeps its description (why the pin is asked)
+  and its 32rem card.
 - INC-1243: the posting wizard's Next remains in its existing closed/disabled form for this
   bundle, as ruled. Import's Preview also retains its own disabled rule before a file is
   chosen and while busy, its busy label and its browser test id; it is not `ClosedPrimary`.
@@ -627,12 +646,16 @@ conformance-kit dialog guard turn owns the new laws: thin-only consumer imports 
 page's static closure reaching the real anatomy (the removed CMD-6 tree-walker law), no
 provider/door/query imports in the on-demand overlay implementation, held-only subjects
 with the Screening picture exception, red-focus safety, list-first Escape, body-only
-scrolling/cue, empty-body omission, and description exceptions. Until that guard lands,
+scrolling/cue, empty-body omission, the last band's inset (`end`), and description
+exceptions. Until that guard lands,
 the supervisor proves the static-closure law from each build's chunk record. No ceiling
 is raised here: the supervisor measures the final head and supplies exact ceiling lines.
 
 The three look specs are `e2e/dialogs.spec.ts`, `e2e/overlays.spec.ts` and
 `e2e/house-style.spec.ts`; local unit tests prove the parts and all their consumers.
+DLG-E10 and DLG-E11 run in WebKit too (`@webkit`): a tall body in a short window scrolls
+alone and its last control takes the press, and every banded panel of the board keeps its
+body between its header and its last band, with a height.
 
 ## The popover on demand (turn S6-3)
 

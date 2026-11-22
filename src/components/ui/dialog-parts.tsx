@@ -8,11 +8,18 @@ import { cn } from "@/lib/utils";
 
 import {
   BANDS_BODY,
+  BANDS_END,
+  BANDS_FILL,
+  BANDS_FLOW,
   BANDS_FOOT,
   BANDS_GRABBER,
   BANDS_HEAD,
+  BANDS_INSET_X,
+  BANDS_INSET_Y,
   CLOSED_PRIMARY,
+  CUE_ANCHOR,
   CUE_BUTTON,
+  CUE_SPAN,
   CUE_WRAP,
   DIALOG_CARD,
   DIALOG_TILE,
@@ -100,24 +107,36 @@ const reducedMotion = () =>
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** The body: the panel's only scroller, with the scroll cue while more lies below (DEC-418). */
+/**
+ * The body: the panel's only scroller, with the scroll cue while more lies below (DEC-418). ONE
+ * element, a direct child of the panel, so it scrolls in every engine; its content keeps its own
+ * height. `fill`: the one child takes the panel's room instead (a photo, a map): no scroll, no
+ * cue, no inset. `flush`: no inset (the content brings its own box). `end`: no footer follows, so
+ * this band carries the bottom inset.
+ */
 export function PanelBody({
   children,
   className,
   testId,
   cueLabel,
+  fill = false,
+  flush = false,
+  end = false,
 }: {
   children: React.ReactNode;
   cueLabel: string;
   className?: string;
   testId?: string;
+  fill?: boolean;
+  flush?: boolean;
+  end?: boolean;
 }) {
   const empty = React.Children.toArray(children).length === 0;
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [more, setMore] = React.useState(false);
   React.useEffect(() => {
     const body = ref.current;
-    if (body === null) return;
+    if (body === null || fill) return;
     const judge = () => {
       const next = body.scrollTop + body.clientHeight < body.scrollHeight - 4;
       setMore((prev) => (prev === next ? prev : next));
@@ -126,35 +145,52 @@ export function PanelBody({
     body.addEventListener("scroll", judge, { passive: true });
     const watch = typeof ResizeObserver === "function" ? new ResizeObserver(judge) : null;
     watch?.observe(body);
-    for (const child of Array.from(body.children)) watch?.observe(child);
+    const flow = body.firstElementChild;
+    if (flow !== null) watch?.observe(flow);
     return () => {
       body.removeEventListener("scroll", judge);
       watch?.disconnect();
     };
-  }, [empty]);
+  }, [empty, fill]);
   if (empty) return null;
-  return (
-    <div className="relative flex min-h-0 flex-1 flex-col">
-      <div ref={ref} data-panel-body="" data-testid={testId} className={cn(BANDS_BODY, className)}>
+  if (fill)
+    return (
+      <div
+        ref={ref}
+        data-panel-body=""
+        data-testid={testId}
+        className={cn(BANDS_FILL, end && BANDS_END, className)}
+      >
         {children}
       </div>
+    );
+  return (
+    <div
+      ref={ref}
+      data-panel-body=""
+      data-testid={testId}
+      className={cn(BANDS_BODY, !flush && BANDS_INSET_X, className)}
+    >
+      <div className={cn(BANDS_FLOW, !flush && BANDS_INSET_Y, end && BANDS_END)}>{children}</div>
       {more ? (
-        <div data-scroll-cue="" className={CUE_WRAP}>
-          <button
-            type="button"
-            className={CUE_BUTTON}
-            onClick={() => {
-              const body = ref.current;
-              if (body === null) return;
-              body.scrollBy({
-                top: Math.round(body.clientHeight * 0.85),
-                behavior: reducedMotion() ? "auto" : "smooth",
-              });
-            }}
-          >
-            <ChevronDown aria-hidden="true" className="size-4" />
-            {cueLabel}
-          </button>
+        <div className={cn(CUE_ANCHOR, !flush && CUE_SPAN)}>
+          <div data-scroll-cue="" className={CUE_WRAP}>
+            <button
+              type="button"
+              className={CUE_BUTTON}
+              onClick={() => {
+                const body = ref.current;
+                if (body === null) return;
+                body.scrollBy({
+                  top: Math.round(body.clientHeight * 0.85),
+                  behavior: reducedMotion() ? "auto" : "smooth",
+                });
+              }}
+            >
+              <ChevronDown aria-hidden="true" className="size-4" />
+              {cueLabel}
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

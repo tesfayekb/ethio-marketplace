@@ -44,10 +44,13 @@ export type DialogFit = keyof typeof DIALOG_FIT;
 export const DIALOG_PHONE = {
   float: "",
   sheet:
-    "max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:m-0 max-md:w-full max-md:max-w-none max-md:rounded-b-none max-md:pb-[calc(1.375rem+env(safe-area-inset-bottom))] max-md:data-[state=open]:slide-in-from-bottom max-md:data-[state=closed]:slide-out-to-bottom",
-  full: "max-md:m-0 max-md:h-dvh max-md:max-h-none max-md:w-full max-md:max-w-none max-md:rounded-none max-md:shadow-none max-md:pb-[calc(1.375rem+env(safe-area-inset-bottom))]",
+    "max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:m-0 max-md:w-full max-md:max-w-none max-md:rounded-b-none max-md:data-[state=open]:slide-in-from-bottom max-md:data-[state=closed]:slide-out-to-bottom",
+  full: "max-md:m-0 max-md:h-dvh max-md:max-h-none max-md:w-full max-md:max-w-none max-md:rounded-none max-md:shadow-none",
 } as const;
 export type DialogPhone = keyof typeof DIALOG_PHONE;
+/** The phone placements' bottom inset. A banded panel has no padding at all: its last band
+ *  carries the inset (the footer band; a body with no footer says `end`). */
+export const DIALOG_PHONE_INSET = "max-md:pb-[calc(1.375rem+env(safe-area-inset-bottom))]";
 /** The bottom sheet's grabber (ruling 11): a short bar on the panel's top edge. */
 export const DIALOG_GRABBER = "mx-auto -mt-2 h-1 w-10 shrink-0 rounded-full bg-hairline";
 

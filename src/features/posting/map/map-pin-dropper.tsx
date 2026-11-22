@@ -6,7 +6,7 @@ import type * as Leaflet from "leaflet";
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
@@ -111,9 +111,6 @@ export function MapPinDropper(props: PinSheetProps) {
     >
       <DialogContent
         bands
-        size="wide"
-        // Description exception: the map fills the panel; its title names the pin task.
-        aria-describedby={undefined}
         phone="full"
         fit="fill"
         data-testid="post-pin-sheet"
@@ -370,9 +367,9 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
     <>
       <PanelHeader icon={<MapPin />}>
         <DialogTitle>{t("post.pin.title")}</DialogTitle>
+        <DialogDescription>{t("post.pin.why")}</DialogDescription>
       </PanelHeader>
       <PanelBody testId="post-pin">
-        <p className="text-sm text-muted-foreground">{t("post.pin.why")}</p>
         <div className="space-y-1">
           <Label htmlFor="post-pin-search">{t("post.pin.searchLabel")}</Label>
           {/* DEC-338 — a finder for the map, not an answer: the pin is the answer. */}

@@ -19,6 +19,7 @@ import {
   DIALOG_LAYER,
   DIALOG_PANEL,
   DIALOG_PHONE,
+  DIALOG_PHONE_INSET,
   DIALOG_SCRIM,
   DIALOG_SIZE,
   DIALOG_TEXT,
@@ -114,7 +115,13 @@ const DialogContent = React.forwardRef<
           className={cn(
             screen
               ? SCREEN_PANEL
-              : [DIALOG_PANEL, DIALOG_SIZE[size], DIALOG_FIT[fit], DIALOG_PHONE[phone]],
+              : [
+                  DIALOG_PANEL,
+                  DIALOG_SIZE[size],
+                  DIALOG_FIT[fit],
+                  DIALOG_PHONE[phone],
+                  phone !== "float" && !bands && DIALOG_PHONE_INSET,
+                ],
             bands && !screen && BANDS_PANEL,
             DIALOG_LAYER[layer],
             className,
