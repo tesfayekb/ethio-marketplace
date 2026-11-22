@@ -1,5 +1,5 @@
 import * as React from "react";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render as renderView, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import {
@@ -11,7 +11,8 @@ import {
 } from "./alert-dialog";
 import { Button } from "./button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./dialog";
-import { BANDS_PANEL, CLOSED_PRIMARY, DIALOG_TONE } from "./dialog-look";
+import { BANDS_PANEL } from "./dialog-look";
+import { CLOSED_PRIMARY, DIALOG_TONE } from "./dialog-parts-look";
 import {
   ActionRow,
   ClosedPrimary,
@@ -22,6 +23,9 @@ import {
   StepTrack,
 } from "./dialog-parts";
 import { Sheet, SheetContent, SheetTitle } from "./sheet";
+import { PanelTestContext } from "./dialog-parts-test-context";
+
+const render = (ui: React.ReactNode) => renderView(ui, { wrapper: PanelTestContext });
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", setLanguage: () => {} }),

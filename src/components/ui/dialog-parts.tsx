@@ -16,17 +16,16 @@ import {
   CUE_BUTTON,
   CUE_WRAP,
   DIALOG_CARD,
-  DIALOG_GRABBER,
   DIALOG_TILE,
   DIALOG_TONE,
   STEP_MARK,
   STEP_TRACK,
-  type DialogTone,
-} from "./dialog-look";
+} from "./dialog-parts-look";
+import { DIALOG_GRABBER, type DialogTone } from "./dialog-look";
 
 /**
  * Bundle 2 (INC-1146, DEC-418/419/420) — THE PARTS of a banded panel (`bands` on DialogContent,
- * AlertDialogContent and SheetContent; dialog-look.ts holds their classes). A consumer passes its
+ * AlertDialogContent and SheetContent; dialog-parts-look.ts holds their classes). A consumer passes its
  * own title and description parts (the primitive's, so the panel stays named and described).
  * Text a person typed reaches these parts as children and is drawn as text, never as markup.
  */
@@ -254,7 +253,7 @@ export const ClosedPrimary = React.forwardRef<
         }}
       />
       {closed && missing ? (
-        <p id={lineId} className="order-last w-full text-sm text-muted-foreground sm:order-first">
+        <p id={lineId} className="order-last w-full text-sm text-muted-foreground">
           {missing}
         </p>
       ) : null}

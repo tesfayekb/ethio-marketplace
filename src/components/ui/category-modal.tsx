@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 
 import type { DialogSize, DialogTone } from "./dialog-look";
-import { PanelBody, PanelFooter, PanelHeader } from "./dialog-parts";
+import { PanelBody, PanelFooter, PanelHeader } from "./dialog-parts-facade";
 
 /**
  * The staff consoles' one dialog shell (B3): a title, the opener's mark and a

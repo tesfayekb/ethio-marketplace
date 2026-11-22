@@ -1,5 +1,4 @@
 export const enMember = {
-  "dialog.moreBelow": "More below",
   "head.account.description": "Review your ethio.com account and listing activity.",
   "head.continuePost.description": "Finish the listing you started on ethio.com.",
   "head.continuePost.title": "Continue your listing",

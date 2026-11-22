@@ -1,8 +1,12 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { render as renderView, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { CategoryModal } from "./category-modal";
-import { PanelSubject } from "./dialog-parts";
+import { PanelSubject } from "./dialog-parts-facade";
+import { PanelTestContext } from "./dialog-parts-test-context";
+
+const render = (ui: ReactNode) => renderView(ui, { wrapper: PanelTestContext });
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", setLanguage: () => {} }),

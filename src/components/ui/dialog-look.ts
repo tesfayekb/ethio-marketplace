@@ -82,45 +82,6 @@ export const SHEET_SIDE = {
 } as const;
 export type SheetSide = keyof typeof SHEET_SIDE;
 
-/*
- * Bundle 2 (INC-1146, DEC-418/419/420) — THE PANEL ANATOMY, look B ("like the page"). A panel
- * drawn with `bands` is a white header band, the page's sage body that alone scrolls, and a
- * white footer band always in view; content sits on white cards. Class names only: the parts
- * that draw them live in dialog-parts.tsx, so this module stays small on every page with a field.
- */
-/** The banded panel: no padding or gap of its own, the page ground, and no scroll of its own. */
-export const BANDS_STILL = "rounded-dialog shadow-dialog text-popover-foreground";
+/** The primitive's banded surface; the anatomy's other looks arrive with its parts on demand. */
 export const BANDS_PANEL = "flex flex-col gap-0 overflow-hidden p-0 bg-background";
-/** The header band: white, the band shadow below; it clears the close button at its end. */
-export const BANDS_HEAD =
-  "relative flex shrink-0 flex-col gap-2 bg-card px-6 py-5.5 pb-4 pe-16 shadow-band";
-/** The body: the panel's only scroller. */
-export const BANDS_BODY =
-  "flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-6 py-4";
-/** The footer band: white, the bar's upward shadow; the footer's order and stacking. */
-export const BANDS_FOOT =
-  "relative flex shrink-0 flex-wrap-reverse items-center justify-end gap-2 bg-card px-6 py-4 pb-[calc(1.375rem+env(safe-area-inset-bottom))] shadow-bar-up max-sm:[&>button]:flex-1 sm:flex-wrap";
-/** The grabber inside the header band: drawn only on a phone sheet below md. */
-export const BANDS_GRABBER = "hidden max-md:in-data-[phone=sheet]:block -mt-2 mb-1 mx-auto";
-/** A white card on the body's ground (the subject, a group of fields). */
-export const DIALOG_CARD = "rounded-card bg-card p-4 shadow-card";
-/** The header's icon tile and its three tones. */
-export const DIALOG_TILE =
-  "inline-flex size-10 shrink-0 items-center justify-center rounded-xl [&_svg]:size-5";
-export const DIALOG_TONE = {
-  plain: "bg-muted text-foreground",
-  confirm: "bg-primary text-primary-foreground",
-  danger: "bg-destructive text-destructive-foreground",
-} as const;
-export type DialogTone = keyof typeof DIALOG_TONE;
-/** The scroll cue (DEC-418): a fade over the body's bottom edge and its "More below" button. */
-export const CUE_WRAP =
-  "pointer-events-none absolute inset-x-0 bottom-0 flex justify-center bg-linear-to-t from-background to-transparent px-6 py-4 pb-2";
-export const CUE_BUTTON = `pointer-events-auto inline-flex min-h-11 md:pointer-fine:min-h-9 items-center gap-1 rounded-full px-4 text-sm font-medium ${CONTROL_LOOK}`;
-/** The step track: one mark per step, the current one in ink, the done ones ticked. */
-export const STEP_TRACK = "flex min-w-0 items-center gap-2 text-xs text-muted-foreground";
-export const STEP_MARK =
-  "inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted font-semibold [&_svg]:size-4";
-/** The closed primary's look: the posting wizard's closed Next, full-contrast secondary tokens. */
-export const CLOSED_PRIMARY =
-  "data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80";
+export type DialogTone = "plain" | "confirm" | "danger";

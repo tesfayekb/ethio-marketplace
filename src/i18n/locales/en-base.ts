@@ -1,4 +1,5 @@
 export const enBase = {
+  "dialog.moreBelow": "More below",
   "head.auth.description": "Sign in or create your free ethio.com account.",
   "head.authCallback.description": "Finish confirming your ethio.com account.",
   "head.authCallback.title": "Confirm your email",

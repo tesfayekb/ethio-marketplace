@@ -48,14 +48,13 @@ import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import {
   BANDS_PANEL,
-  BANDS_STILL,
-  DIALOG_CARD,
   DIALOG_FIT,
   DIALOG_SIZE,
   DIALOG_TEXT,
   DIALOG_TITLE,
   type DialogSize,
 } from "@/components/ui/dialog-look";
+import { BANDS_STILL, DIALOG_CARD } from "@/components/ui/dialog-parts-look";
 import {
   ActionRow,
   ClosedPrimary,
