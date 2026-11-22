@@ -17,8 +17,6 @@ filter-off-helper admin_link_attribute(uuid,uuid,boolean,boolean,integer,text[],
 filter-off-helper admin_list_category_attribute_links(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
 filter-off-helper admin_list_category_pointers(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
 filter-off-helper admin_list_effective_category_links(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
-filter-off-helper admin_list_listings(text,text,text,uuid,text,date,date,text,integer,integer) | the list doors read the list rule from the next commit of cursor-bundle-2 (DEC-420) | DEC-420
-filter-off-helper admin_list_locations(text,text,text,boolean) | the list doors read the list rule from the next commit of cursor-bundle-2 (DEC-420) | DEC-420
 filter-off-helper admin_preview_attribute_import(jsonb,jsonb,text) | an import's scope: the one category it previews, not a list filter | 2027-05-31
 filter-off-helper admin_preview_category_import(jsonb,text) | an import's scope: the one category it previews, not a list filter | 2027-05-31
 filter-off-helper admin_preview_location_import(jsonb,jsonb,text) | an import's rows and scope: the one market it previews, not a list filter | 2027-05-31
@@ -41,7 +39,6 @@ filter-off-helper get_location_tree_version(text) | the public place tree of one
 filter-off-helper get_posting_schema(uuid) | the one category a console or the posting form reads, the target and not a list filter | 2027-05-31
 filter-off-helper legal_in_force(text,character) | one country's legal text in force, the page's address, not a list filter | 2027-05-31
 filter-off-helper legal_scheduled(text,character) | one country's scheduled legal text, the page's address, not a list filter | 2027-05-31
-filter-off-helper my_listings(text,integer,integer,text,uuid,text) | the list doors read the list rule from the next commit of cursor-bundle-2 (DEC-420) | DEC-420
 filter-off-helper save_posting_identity(text,text,text,text,text,jsonb,character) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
 filter-off-helper submit_listing(uuid,smallint,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
 filter-off-helper suggest_seller_aliases(text,text,text,uuid) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31

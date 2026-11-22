@@ -277,9 +277,9 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     expect(await ids({ p_view: "ended" })).toEqual([sold.id]);
     expect(await ids({ p_view: "removed" })).toEqual([removed.id]);
     expect(await ids({ p_view: "all" })).toHaveLength(5);
-    expect(await ids({ p_category: seller.parentId })).toHaveLength(5);
-    expect(await ids({ p_country: "ET" })).toHaveLength(5);
-    expect(await ids({ p_country: "KE" })).toEqual([]);
+    expect(await ids({ p_category: [seller.parentId] })).toHaveLength(5);
+    expect(await ids({ p_country: ["ET"] })).toHaveLength(5);
+    expect(await ids({ p_country: ["KE"] })).toEqual([]);
     expect(await ids({ p_tier: "featured" })).toEqual([newer.id]);
     const tomorrow = new Date(Date.now() + 24 * hour).toISOString().slice(0, 10);
     expect(await ids({ p_from: tomorrow })).toEqual([]);

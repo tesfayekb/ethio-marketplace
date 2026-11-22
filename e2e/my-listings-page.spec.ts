@@ -525,11 +525,11 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     expect(sorted(ids(spaced))).toEqual(sorted([X1, X2]));
     expect(spaced.counts).toEqual({ ...zero, live: 2, sold: 1 });
 
-    const first = await ask(a, { p_category: sellerA.parentId });
+    const first = await ask(a, { p_category: [sellerA.parentId] });
     expect(sorted(ids(first))).toEqual(sorted([X1, X2]));
     expect(first.counts.live).toBe(2);
     expect(first.counts.sold).toBe(1);
-    const other = await ask(a, { p_category: second.parent.id as string });
+    const other = await ask(a, { p_category: [second.parent.id as string] });
     expect(ids(other)).toEqual([X3]);
     expect(other.counts.live).toBe(1);
     expect(other.counts.sold).toBe(0);
@@ -542,7 +542,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
 
     const together = await ask(a, {
       p_search: "phone",
-      p_category: sellerA.parentId,
+      p_category: [sellerA.parentId],
       p_mark: "reserved",
     });
     expect(ids(together)).toEqual([X2]);

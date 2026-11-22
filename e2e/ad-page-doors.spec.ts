@@ -370,7 +370,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       p_limit: 50,
       p_offset: 0,
       p_search: ad.title,
-      p_category: seller.leafId,
+      p_category: [seller.leafId],
       p_mark: null,
     });
     expect(list.error).toBeNull();
