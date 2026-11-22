@@ -17,7 +17,10 @@ import { expect } from "../fixtures";
  * 2. when the choice is not in view inside the panel, press the filter's own control
  *    (`<filter>`, inside the panel) first — today's pills are always in view, so this is the way
  *    a collapsed filter will pass through unchanged;
- * 3. press the choice, press Escape, and expect the panel gone.
+ * 3. press the choice, then press Escape while `<panel>-panel` is visible, at most twice, and
+ *    expect the panel gone. Named cause: a row that opens a list inside the panel closes that
+ *    list first on Escape (WAI-ARIA, the innermost layer first); with today's pills the first
+ *    press closes the panel and a second press is never made.
  *
  * Every spec that chooses a filter value calls this one function; a spec's own copy fails
  * CF-HELPERS-1 (`scripts/conformance/e2e-helpers.test.ts`).
@@ -39,6 +42,8 @@ export async function chooseFilter(
     await open.getByTestId(filter).click();
   }
   await choice.click();
-  await page.keyboard.press("Escape");
+  for (let press = 0; press < 2 && (await open.isVisible()); press += 1) {
+    await page.keyboard.press("Escape");
+  }
   await expect(open, `chooseFilter: ${panel} did not close its panel`).toHaveCount(0);
 }
