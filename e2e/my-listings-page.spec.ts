@@ -1,6 +1,7 @@
 import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 import { en } from "../src/i18n/locales/en";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -710,12 +711,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     });
     expect((await listingTruth(X))["reserved_at"], "[e2e:mlp] X reserved").not.toBeNull();
 
-    await page.getByTestId("my-listings-filters").click();
-    await page
-      .getByTestId("my-listings-filters-panel")
-      .getByTestId("my-listings-filter-mark-reserved")
-      .click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "my-listings-filters", "my-listings-filter-mark", "reserved");
     await expect(page.getByTestId("my-listings-chips-chip-mark")).toContainText(
       en["myListings.reserved"],
       { timeout: 15000 },

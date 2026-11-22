@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { geometryDump, grantRole } from "./helpers/categories";
@@ -6,7 +7,6 @@ import {
   actionsOf,
   awaitConsole,
   awaitRoster,
-  chooseFilter,
   countCountries,
   countryRow,
   destroyCountry,
@@ -125,7 +125,7 @@ test.describe("L2b countries console", () => {
     // The closed filter (in the Filters panel) then hides every open one, and
     // shows as a chip that clears it.
     await page.getByTestId("country-search").fill("");
-    await chooseFilter(page, "country-status-filter", "closed");
+    await chooseFilter(page, "country-filters", "country-status-filter", "closed");
     await expect(countryRow(page, "ET")).toHaveCount(0);
     await expect(countryRow(page, "US")).toHaveCount(0);
     await expect(page.getByTestId("country-filters-count")).toHaveText("1");

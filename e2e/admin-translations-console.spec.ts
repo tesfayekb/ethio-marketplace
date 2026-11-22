@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
@@ -25,7 +26,6 @@ import { errorText } from "../src/lib/error-text";
 import {
   langRow,
   actionsOf,
-  chooseFilter,
   stringRow,
   surfaceControl,
   expansionOf,
@@ -201,7 +201,7 @@ test.describe("U4b translations console", () => {
     await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/translations/am");
     // Bundle 11 G3e — the status is a pill in the Filters panel; the choice is a chip.
-    await chooseFilter(page, "strings-filters", "strings-status-filter-approved");
+    await chooseFilter(page, "strings-filters", "strings-status-filter", "approved");
     await expect(page).toHaveURL(/status=approved/);
     await page.reload();
     await waitForHydration(page);

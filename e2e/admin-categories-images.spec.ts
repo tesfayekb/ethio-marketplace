@@ -1,5 +1,6 @@
 import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { errorText } from "../src/lib/error-text";
@@ -263,12 +264,9 @@ import {
         await lazily("goto roster", () => gotoReady(page, "/admin/categories"));
         // Bundle 11 B2 — Missing assets lives in the Filters panel; the page
         // size is the footer's.
-        await step("category-filters", (locator) => locator.click());
-        await step("category-missing-filter", (locator) => locator.click());
-        await lazily("close filters", async () => {
-          await page.keyboard.press("Escape");
-          await expect(page.getByTestId("category-filters-panel")).toHaveCount(0);
-        });
+        await lazily("choose Missing assets", () =>
+          chooseFilter(page, "category-filters", "category-missing-filter"),
+        );
         await step("category-search", (locator) => locator.fill(prefix));
         await step("category-pagination-size", async (locator) => {
           await locator.selectOption("100");

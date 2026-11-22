@@ -93,17 +93,6 @@ export async function rowMenu(page: Page, key: string, item: string) {
   await page.getByTestId(`${id}-more-${item}`).click();
 }
 
-/**
- * Bundle 11 B1 — level and status live in the Filters panel: open it, choose, close it.
- * Bundle 11 V2 (INC-543) — a choice is a pill (`<testid>-<value>`, "" is `all`).
- */
-export async function chooseFilter(page: Page, testid: string, value: string) {
-  await page.getByTestId("location-filters").click();
-  await page.getByTestId(`${testid}-${value === "" ? "all" : value}`).click();
-  await page.keyboard.press("Escape");
-  await expect(page.getByTestId("location-filters-panel")).toHaveCount(0);
-}
-
 /** A verb of the OPEN editor's bar — exactly one match per name (J5). */
 export function verb(page: Page, name: string): Locator {
   return page.getByTestId("location-verb-bar").getByTestId(`location-verb-${name}`);
@@ -614,10 +603,23 @@ export async function readLocationById(id: string) {
  * INC-218 step 3: LS-11 passes OPEN_MARKET_LS11_MS — the route's 15 s server
  * TTL (a seed is invisible until the cached entry ages out; 20 repeats measured
  * up to 15.3 s) + a 20 s allowance for a slow get_open_countries read.
+ *
+ * INC-1244 — A WAIT KEYED ON A VALUE A REPETITION REUSES. The scratch code is drawn from a small
+ * pool, so a repetition can draw the code the one before it used; the held list (15 s) still
+ * carries that code for the market the previous repetition destroyed, under the previous name.
+ * A test that then reads the market's NAME on a page must wait for THIS market: pass
+ * `{ anchorId }` (the seeded market's anchor place, `seedSingleOptionMarket().anchor.id`, a new
+ * row every seed) and the wait ends only when the list carries the code with that anchor. The
+ * default is the code alone, as before.
  */
 export const OPEN_MARKET_LS11_MS = 35_000;
 
-export async function waitForOpenMarket(page: Page, code: string, timeoutMs = 20_000) {
+export async function waitForOpenMarket(
+  page: Page,
+  code: string,
+  timeoutMs = 20_000,
+  options: { anchorId?: string } = {},
+) {
   await expect
     .poll(
       async () => {
@@ -628,16 +630,21 @@ export async function waitForOpenMarket(page: Page, code: string, timeoutMs = 20
           headers: { "cache-control": "no-cache" },
         });
         if (!response.ok()) return [];
-        const body = (await response.json()) as { countries?: { code: string }[] };
-        return (body.countries ?? []).map((row) => row.code);
+        const body = (await response.json()) as {
+          countries?: { code: string; anchor_id?: string | null }[];
+        };
+        return (body.countries ?? [])
+          .filter((row) => options.anchorId === undefined || row.anchor_id === options.anchorId)
+          .map((row) => row.code);
       },
       {
         timeout: timeoutMs,
         intervals: [1000],
         message:
-          timeoutMs === 20_000
+          (timeoutMs === 20_000
             ? `the open-market list never carried ${code} within 20 s`
-            : `the open-market list never carried ${code} within ${timeoutMs / 1000} s (15 s server TTL + 20 s read allowance)`,
+            : `the open-market list never carried ${code} within ${timeoutMs / 1000} s (15 s server TTL + 20 s read allowance)`) +
+          (options.anchorId === undefined ? "" : ` with anchor ${options.anchorId}`),
       },
     )
     .toContain(code);

@@ -4,6 +4,7 @@ import { type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 import { asPerson, pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
@@ -512,8 +513,7 @@ test.describe("ADMIN SCREENING", () => {
     const country = (code: string) => page.getByTestId(`admin-screening-filter-country-${code}`);
     await page.getByTestId("admin-screening-filters").click();
     await expect(country("US")).toHaveCount(1);
-    await country("US").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "admin-screening-filters", "admin-screening-filter-country", "US");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
     await expect(
       page.getByTestId("admin-screening-empty"),
@@ -522,9 +522,7 @@ test.describe("ADMIN SCREENING", () => {
     await expect(page.getByTestId("data-table-error")).toHaveCount(0);
     await expect(rowOf(page, ad.id)).toHaveCount(0);
 
-    await page.getByTestId("admin-screening-filters").click();
-    await country("ET").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "admin-screening-filters", "admin-screening-filter-country", "ET");
     await expect(page.getByTestId("admin-screening-chips-chip-country")).toBeVisible();
     await expect(rowOf(page, ad.id), "SC-11: the ad's own market did not list it").toBeVisible({
       timeout: 20000,
@@ -1466,8 +1464,7 @@ test.describe("ADMIN SCREENING", () => {
     ).toHaveAttribute("data-testid", "admin-screening-filter-tier");
     await expect(tier("premium")).toHaveText(await levelNameFor("premium", "en"));
     await expect(tier("regular")).toHaveText(await levelNameFor("regular", "en"));
-    await tier("premium").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "admin-screening-filters", "admin-screening-filter-tier", "premium");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
     await expect(page.getByTestId("admin-screening-chips-chip-tier")).toContainText(
       await levelNameFor("premium", "en"),

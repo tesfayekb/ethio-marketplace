@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import type { PinPrecision } from "../src/features/posting/map/pin";
 import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
@@ -12,6 +13,7 @@ import {
   leaseSeller,
   activeCityOf,
   bearerOf,
+  choosePinShow,
   completeDraft,
   contactPrefOf,
   coverageOf,
@@ -190,12 +192,14 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     return listingId;
   }
 
-  async function savePinOnMap(page: Page, x: number, y: number) {
+  /** `precision`: how the NEW pin shows, chosen before Save; left out, nothing is pressed (a moved pin). */
+  async function savePinOnMap(page: Page, x: number, y: number, precision?: PinPrecision) {
     await page.getByTestId("post-where-pin-open").click();
     const map = page.getByTestId("post-pin-map");
     await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
     await map.click({ position: { x, y } });
     await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
+    if (precision !== undefined) await choosePinShow(page, precision);
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
   }
@@ -224,7 +228,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       .poll(async () => (await placeTextOf(listingId)).directions, { timeout: 10_000 })
       .toBe("Behind the blue gate, 2nd floor");
 
-    await savePinOnMap(page, 120, 90);
+    await savePinOnMap(page, 120, 90, "exact");
     const first = await pinOf(listingId);
     await savePinOnMap(page, 200, 140);
     await expect
@@ -305,7 +309,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     expect(staleDirections, "PW-178: the held answer was not the older text").toBeNull();
     expect(deliveredAfterSave, "PW-178: the held answer arrived before the save").toBe(true);
 
-    await savePinOnMap(page, 120, 90);
+    await savePinOnMap(page, 120, 90, "exact");
     expect(
       (await placeTextOf(listingId)).directions,
       "PW-178: the pin save restated the older directions",
@@ -355,7 +359,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     expect(refused, "PW-179: no read was refused").toBeGreaterThanOrEqual(1);
     failing = false;
 
-    await savePinOnMap(page, 120, 90);
+    await savePinOnMap(page, 120, 90, "exact");
     expect(passed, "PW-179: the pin save did not read the text again").toBeGreaterThanOrEqual(1);
     expect(
       (await placeTextOf(listingId)).directions,
@@ -417,6 +421,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
     await map.click({ position: { x: 120, y: 90 } });
     await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
+    await choosePinShow(page, "exact");
     await page.getByTestId("post-pin-save").click();
     await expect(
       page.getByTestId("post-pin-save"),

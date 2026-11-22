@@ -3,6 +3,7 @@ import { type Page } from "@playwright/test";
 import { en } from "../src/i18n/locales/en";
 
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
@@ -2497,15 +2498,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
 
     // The table's own Tier filter proves the row's tier: Regular drops it, Premium lists it.
-    await page.getByTestId("listings-filters").click();
-    await page.getByTestId("listings-filter-tier-regular").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "listings-filters", "listings-filter-tier", "regular");
     await expect(listingRow(page, ad.id), "ATR-6: Regular still listed the ad").toHaveCount(0, {
       timeout: 20000,
     });
-    await page.getByTestId("listings-filters").click();
-    await page.getByTestId("listings-filter-tier-premium").click();
-    await page.keyboard.press("Escape");
+    await chooseFilter(page, "listings-filters", "listings-filter-tier", "premium");
     await expect(listingRow(page, ad.id), "ATR-6: Premium did not list the ad").toBeVisible({
       timeout: 20000,
     });

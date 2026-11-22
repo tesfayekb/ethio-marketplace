@@ -40,6 +40,7 @@ import {
   seedPostableCategory,
   seedSpecSet,
   textOf,
+  choosePinShow,
   mapReady,
   stopPageBeforePurge,
 } from "./helpers/posting";
@@ -1346,6 +1347,7 @@ test.describe("POSTING WIZARD", () => {
       timeout: 20_000,
     });
 
+    await choosePinShow(page, "exact");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
 
@@ -1397,6 +1399,7 @@ test.describe("POSTING WIZARD", () => {
     const street = page.getByTestId("post-pin-street");
     await expect(street).not.toHaveValue("");
     await street.fill("e2e pin street");
+    await choosePinShow(page, "exact");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
 
@@ -1417,7 +1420,7 @@ test.describe("POSTING WIZARD", () => {
 
     await mapReady(page);
     await page.getByTestId("post-pin-map").click({ position: { x: 140, y: 110 } });
-    await page.getByTestId("post-pin-precision-approx").click();
+    await choosePinShow(page, "approx");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     expect((await pinOf(listingId)).precision, "PW-39: the door stored the exact point").toBe(
@@ -1452,6 +1455,7 @@ test.describe("POSTING WIZARD", () => {
     await mapReady(page);
     await page.getByTestId("post-pin-map").click({ position: { x: 100, y: 80 } });
     await page.getByTestId("post-pin-street").fill("e2e pin to remove");
+    await choosePinShow(page, "exact");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     expect((await pinOf(listingId)).lat, "PW-40: nothing was saved to remove").not.toBeNull();

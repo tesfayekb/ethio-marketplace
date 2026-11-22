@@ -1472,7 +1472,10 @@ test.describe("P-1b Admin › Monetisation", () => {
       const market = await seedSingleOptionMarket();
       countries.push(market.code);
       await seedMarketOn(market.code);
-      await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS);
+      // INC-1244 — this test reads the market's NAME on the page: wait for THIS market's anchor.
+      await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS, {
+        anchorId: market.anchor.id,
+      });
       const pairs = await unpricedPairs(new Date().toISOString());
       expect(pairs, "MON-16 the scratch pair is missing from the rows").toContainEqual({
         key,

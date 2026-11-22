@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 import { withinPreviewBudget } from "./helpers/rate-window";
 
 import { en } from "../src/i18n/locales/en";
@@ -30,7 +31,6 @@ import {
   actionsOf,
   deleteButton,
   rowMenu,
-  toggleMissingAssets,
   openEditor,
   grantRole,
   readCategory,
@@ -717,7 +717,7 @@ test.describe("C2 categories console", () => {
     // The filter narrows to rows the roster itself marks as missing assets;
     // every surviving row must carry the amber flag (DB truth is the icon and
     // image_url columns the RPC reports).
-    await toggleMissingAssets(page);
+    await chooseFilter(page, "category-filters", "category-missing-filter");
     await expect(page.getByTestId("category-chips-chip-missing")).toBeVisible();
     await expect(page.getByTestId("category-filters-count")).toHaveText("1");
     await page.getByTestId("category-filters").click();

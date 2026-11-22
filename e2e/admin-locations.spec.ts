@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
@@ -19,7 +20,6 @@ import {
   actionsOf,
   activeRosterSpan,
   anchorOf,
-  chooseFilter,
   deleteButton,
   destroyLocation,
   editButton,
@@ -232,7 +232,7 @@ test.describe("L2a locations console", () => {
 
       // The level filter scopes to regions: the scratch city drops out.
       await page.getByTestId("location-search").fill("");
-      await chooseFilter(page, "location-level-filter", "region");
+      await chooseFilter(page, "location-filters", "location-level-filter", "region");
       await expect(locationRow(page, `${ANCHOR}/${region.slug}/${slug}`)).toHaveCount(0);
       await expect(page.getByTestId("location-chips-chip-level")).toBeVisible();
       await expectNoHorizontalOverflow(page);
@@ -1011,8 +1011,8 @@ test.describe("L2a locations console", () => {
 
     // Typing, level and status are client sieves over the roster already read.
     await page.getByTestId("location-search").fill("adam");
-    await chooseFilter(page, "location-level-filter", "region");
-    await chooseFilter(page, "location-active-filter", "active");
+    await chooseFilter(page, "location-filters", "location-level-filter", "region");
+    await chooseFilter(page, "location-filters", "location-active-filter", "active");
     await page.getByTestId("location-search").fill("");
     await expect
       .poll(() => reads, { timeout: 3000, intervals: [500, 500, 500, 500] })
@@ -1120,7 +1120,7 @@ test.describe("L2a locations console", () => {
       .poll(
         async () => {
           await gotoReady(page, "/admin/places");
-          await chooseFilter(page, "location-active-filter", "active");
+          await chooseFilter(page, "location-filters", "location-active-filter", "active");
           const pagination = page.getByTestId("location-pagination-range");
           await expect(pagination).toContainText(/\d/, { timeout: 10000 });
           span = await activeRosterSpan();

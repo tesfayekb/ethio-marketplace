@@ -78,6 +78,7 @@ export const COPIED_NAMES = [
   "setAccountLanguage",
   "seedAccountLanguage",
   "waitForLanguageSettled",
+  "chooseFilter",
 ];
 const HOOKS_DISABLE = /rules-of-hooks/;
 const LANGUAGE_WRITE =
@@ -578,6 +579,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
           '    .from("roles")',
           "    .insert({ name: roleName, display_name: roleName, priority: 1 });",
           "});",
+          "async function chooseFilter() {}",
           "",
         ].join("\n"),
       );
@@ -586,6 +588,7 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
         [2, `${spec} asPerson`],
         [4, `${spec} rpcResult`],
         [5, `${spec} scratchHolder`],
+        [16, `${spec} chooseFilter`],
       ]);
       expect(hooksDisableFindings([spec]).map((f) => f.line)).toEqual([6]);
       expect(languageWriteFindings([spec]).map((f) => f.line)).toEqual([8]);

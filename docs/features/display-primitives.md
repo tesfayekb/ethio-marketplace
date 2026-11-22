@@ -358,8 +358,8 @@ card's footer, depth Soft, page tone Cool grey (tokens: docs/features/design-fou
   card frame, `cardCell`, the pills, the panel's two forms, the held-finger
   label, the pager's arrows, the header's heading and Show all, the Filters
   footer); HS-4 (the pager on a phone) and HS-5 (the filter pills) in
-  e2e/house-style.spec.ts; SC-11 (the screening market pills); the countries
-  and places `chooseFilter` helpers.
+  e2e/house-style.spec.ts; SC-11 (the screening market pills); the one
+  `chooseFilter` helper (e2e/helpers/filters.ts).
 
 ### A fact that names itself (bundle 11, turn B3)
 

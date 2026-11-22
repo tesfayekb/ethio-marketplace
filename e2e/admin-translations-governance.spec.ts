@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 
 import { expect, test } from "./fixtures";
+import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { FENCE_PREFIX_LIST } from "./global-setup";
@@ -568,9 +569,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         // Bundle 11 G3e — the orphaned set is a pill in the Filters panel.
         await page.getByTestId("strings-filters").click();
         await expect(page.getByTestId("strings-status-filter-orphaned")).toContainText(/\d/);
-        await page.getByTestId("strings-status-filter-orphaned").click();
-        await page.keyboard.press("Escape");
-        await expect(page.getByTestId("strings-filters-panel")).toHaveCount(0);
+        await chooseFilter(page, "strings-filters", "strings-status-filter", "orphaned");
         await page.getByTestId("strings-search").fill(key);
         await expect(stringRow(page, slug(key))).toBeVisible({ timeout: 20000 });
 
