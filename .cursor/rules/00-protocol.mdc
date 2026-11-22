@@ -84,11 +84,11 @@ equality; a difference, or a ruling with no stated sha256, is a STOP. Never rety
    of those files is in your scope or named by the task, STOP (its anchors are stale); otherwise go
    on and say so in the report. Read CI for `<HEAD>` (rule 40). A red that belongs to an earlier
    turn is fixed FIRST, at its root, and named in the report.
-2. **Record.** Save the task byte for byte as `docs/governance/briefs/<stem>.md` inside one fenced
-   block (a fence longer than any fence inside the text: four backticks when the task holds code
-   blocks). The saved text must contain the line `Base: dev <sha>` as the task gives it; the checks
+2. **Record.** Save the task byte for byte as `docs/governance/briefs/<stem>.md` by a scripted copy:
+   the saved file is the task's text and nothing else (no fence, no heading, no added line).
+   The saved text must contain the line `Base: dev <sha>` as the task gives it; the checks
    read the base from that exact form. When the task states a sha256, compare it (`sha256sum` of
-   the fenced text); a difference is a STOP. Line 3 of `roadmap.md` names the brief in force: a FEATURE
+   the saved file); a difference is a STOP. Line 3 of `roadmap.md` names the brief in force: a FEATURE
    lane writes `The brief in force: docs/governance/briefs/<stem>.md` there at this step, and a records
    turn writes it by its script; a rules or docs-only lane that runs while a feature lane is open LEAVES
    line 3 as it stands and runs every check with `TURN_BASE=<its Base sha>` and `CHECKS_BASE=<its Base
