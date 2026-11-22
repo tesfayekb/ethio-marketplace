@@ -159,7 +159,6 @@ export function AdminAuditPage() {
       kind: "dates",
       id: "audit-filter",
       chipKey: "dates",
-      name: t("admin.audit.filter.from"),
       kept: false,
       value: { from, to },
       onChange: (next) => {

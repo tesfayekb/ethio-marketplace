@@ -77,7 +77,6 @@ describe("one table filter declaration", () => {
         kind: "dates",
         id: "d",
         chipKey: "d",
-        name: "Dates",
         value: { from: "2026-11-01", to: "2026-11-22" },
         onChange: vi.fn(),
         fromLabel: "From",
@@ -108,4 +107,68 @@ describe("one table filter declaration", () => {
     expect(hook.result.current.ready).toBe(true);
     expect(hook.result.current.filters[0]?.value).toEqual(["v0"]);
   });
+});
+
+function addressHook(table: string, initial: readonly string[] = []) {
+  return renderHook(
+    ({ address }) => useTableFilters(table, [{ ...declaration([]), addressValue: address }]),
+    { initialProps: { address: initial }, wrapper: tableViewTestShell(`account-${table}`) },
+  );
+}
+function choose(hook: ReturnType<typeof addressHook>, value: string[]) {
+  const filter = hook.result.current.filters[0];
+  if (filter?.kind !== "select") throw new Error("select missing");
+  act(() => filter.onChange(value));
+}
+it("FP-U32 a named address choice beats the kept value without changing kept state on arrival", () => {
+  forgetTableViewsForTests();
+  const hook = addressHook("address-wins");
+  choose(hook, ["v1"]);
+  const before = localStorage.getItem("ethio:view:account-address-wins:address-wins");
+  hook.rerender({ address: ["v2"] });
+  expect(hook.result.current.filters[0]?.value).toEqual(["v2"]);
+  expect(localStorage.getItem("ethio:view:account-address-wins:address-wins")).toBe(before);
+});
+it("FP-U33 no named address choice applies the kept value", () => {
+  forgetTableViewsForTests();
+  const hook = addressHook("address-none");
+  choose(hook, ["v1"]);
+  hook.rerender({ address: ["v2"] });
+  hook.rerender({ address: [] });
+  expect(hook.result.current.filters[0]?.value).toEqual(["v1"]);
+});
+it("FP-U34 a choice calls the address writer and keeps the same value", () => {
+  forgetTableViewsForTests();
+  const writer = vi.fn();
+  const hook = renderHook(
+    () => useTableFilters("address-choice", [{ ...declaration([], writer), addressValue: [] }]),
+    { wrapper: tableViewTestShell("address-writer") },
+  );
+  choose(hook, ["v3"]);
+  expect(writer).toHaveBeenCalledExactlyOnceWith(["v3"]);
+  expect(
+    JSON.parse(localStorage.getItem("ethio:view:address-writer:address-choice") ?? "null").filters,
+  ).toEqual({ f: ["v3"] });
+});
+it("FP-U35 Clear all leaves the address writer and kept value empty without a copy effect", () => {
+  forgetTableViewsForTests();
+  const hook = renderHook(
+    () => {
+      const [address, writer] = useState<string[]>(["v2"]);
+      return {
+        ...useTableFilters("address-clear", [
+          { ...declaration([], writer), addressValue: address },
+        ]),
+        address,
+      };
+    },
+    { wrapper: tableViewTestShell("address-clear-account") },
+  );
+  act(() => clearTableFilters(hook.result.current.filters));
+  expect(hook.result.current.address).toEqual([]);
+  expect(hook.result.current.filters[0]?.value).toEqual([]);
+  expect(
+    JSON.parse(localStorage.getItem("ethio:view:address-clear-account:address-clear") ?? "null")
+      .filters,
+  ).toEqual({});
 });

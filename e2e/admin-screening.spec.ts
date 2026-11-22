@@ -509,9 +509,14 @@ test.describe("ADMIN SCREENING", () => {
     // INC-537, INC-538 — a filter is proven by a result the unfiltered list
     // cannot give, read once the filtered read has settled: the page keeps the
     // previous rows on screen while a read is retried.
-    // Bundle 11 V2 (INC-543) — one pill per market, never a dropdown.
+    // Lovable bundle 3 (DEC-419, DEC-420) — the markets are the choices of ONE row's list,
+    // never a block of pills, and the row takes several at once.
     const country = (code: string) => page.getByTestId(`admin-screening-filter-country-${code}`);
     await page.getByTestId("admin-screening-filters").click();
+    await page
+      .getByTestId("admin-screening-filters-panel")
+      .getByTestId("admin-screening-filter-country")
+      .click();
     await expect(country("US")).toHaveCount(1);
     await chooseFilter(page, "admin-screening-filters", "admin-screening-filter-country", "US");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
@@ -522,12 +527,26 @@ test.describe("ADMIN SCREENING", () => {
     await expect(page.getByTestId("data-table-error")).toHaveCount(0);
     await expect(rowOf(page, ad.id)).toHaveCount(0);
 
+    // DEC-420 — a second market is ADDED to the first: the door takes both, and the ad's own
+    // market lists it beside the empty one. Each chosen market has its own chip.
     await chooseFilter(page, "admin-screening-filters", "admin-screening-filter-country", "ET");
     await expect(page.getByTestId("admin-screening-chips-chip-country")).toBeVisible();
+    await expect(page.getByTestId("admin-screening-chips-chip-country-ET")).toBeVisible();
+    await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("2");
     await expect(rowOf(page, ad.id), "SC-11: the ad's own market did not list it").toBeVisible({
       timeout: 20000,
     });
     await expect(page.getByTestId("admin-screening-empty")).toHaveCount(0);
+    await expect(page.getByTestId("data-table-error")).toHaveCount(0);
+    // The first market is taken away at its chip: the ad's own market stands alone and still
+    // lists the ad.
+    await page.getByTestId("admin-screening-chips-chip-country-remove").click();
+    await expect(page.getByTestId("admin-screening-chips-chip-country-ET")).toHaveCount(0);
+    await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
+    await expect(
+      rowOf(page, ad.id),
+      "SC-11: the ad's own market, alone, did not list it",
+    ).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("data-table-error")).toHaveCount(0);
     await page.getByTestId("admin-screening-chips-clear").click();
     await expect(page.getByTestId("admin-screening-chips-chip-country")).toHaveCount(0);
@@ -1464,12 +1483,16 @@ test.describe("ADMIN SCREENING", () => {
 
     const tier = (value: string) => page.getByTestId(`admin-screening-filter-tier-${value}`);
     await page.getByTestId("admin-screening-filters").click();
-    // The group's accessible name is the listings table's own label (`aria-labelledby`).
-    await expect(
-      page
-        .getByTestId("admin-screening-filters-panel")
-        .getByRole("group", { name: en["admin.listings.filter.level"] }),
-    ).toHaveAttribute("data-testid", "admin-screening-filter-tier");
+    // Lovable bundle 3 (DEC-419) — the Tier filter is one row with a select: the select's
+    // accessible name begins with the listings table's own label, and its choices are in the
+    // list the row opens.
+    const tierSelect = page
+      .getByTestId("admin-screening-filters-panel")
+      .getByTestId("admin-screening-filter-tier");
+    await expect(tierSelect).toHaveAccessibleName(
+      new RegExp(`^${en["admin.listings.filter.level"]}`),
+    );
+    await tierSelect.click();
     await expect(tier("premium")).toHaveText(await levelNameFor("premium", "en"));
     await expect(tier("regular")).toHaveText(await levelNameFor("regular", "en"));
     await chooseFilter(page, "admin-screening-filters", "admin-screening-filter-tier", "premium");

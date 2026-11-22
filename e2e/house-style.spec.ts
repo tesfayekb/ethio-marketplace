@@ -3,7 +3,7 @@ import type { Locator, Page } from "@playwright/test";
 
 import en from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
-import { gotoReady, settled } from "./helpers/ui";
+import { gotoReady, settled, stillPage } from "./helpers/ui";
 
 /**
  * BUNDLE 9 A4 — THE HOUSE-STYLE FIXTURE (/dev/style), both projects.
@@ -180,16 +180,26 @@ test.describe("house style fixture", () => {
     );
     await expect(button).toBeVisible();
     await expect(count).toHaveCount(0);
+    // The dialog parts arrive on idle and draw the Panels section above this one: the page has
+    // stopped growing before the panel opens, or an open popover follows its button out of the
+    // window and its rows can never be pressed.
+    await stillPage(button, { what: "the board" });
 
-    // Bundle 11 V2 (INC-543) — a filter is a pill: one tap applies it.
+    // Lovable bundle 3 (DEC-419) — a filter is one row with a select: a choice in its list
+    // applies at once. The first Escape closes the list, the second the panel.
+    const panel = page.getByTestId("style-filters-panel");
     await button.click();
-    await page.getByTestId("style-filters-colour-Red").click();
-    await expect(page.getByTestId("style-filters-colour-Red")).toHaveAttribute(
-      "aria-pressed",
+    await panel.getByTestId("style-filters-colour").click();
+    await panel.getByTestId("style-filters-colour-Red").click();
+    await expect(panel.getByTestId("style-filters-colour-Red")).toHaveAttribute(
+      "aria-selected",
       "true",
     );
     await page.keyboard.press("Escape");
-    await expect(page.getByTestId("style-filters-panel")).toHaveCount(0);
+    await expect(panel.getByTestId("style-filters-colour-list")).toHaveCount(0);
+    await expect(panel).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
     await expect(count).toHaveText("1");
     await expect(chips).toHaveCount(1);
 
@@ -198,9 +208,16 @@ test.describe("house style fixture", () => {
     await expect(count).toHaveCount(0);
 
     await button.click();
-    await page.getByTestId("style-filters-colour-Blue").click();
-    await page.getByTestId("style-filters-size-Large").click();
+    await panel.getByTestId("style-filters-colour").click();
+    await panel.getByTestId("style-filters-colour-Blue").click();
     await page.keyboard.press("Escape");
+    await expect(panel.getByTestId("style-filters-colour-list")).toHaveCount(0);
+    await panel.getByTestId("style-filters-size").click();
+    // A row that takes one choice closes its list with the choice.
+    await panel.getByTestId("style-filters-size-Large").click();
+    await expect(panel.getByTestId("style-filters-size-list")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
     await expect(count).toHaveText("2");
     await expect(chips).toHaveCount(2);
     await page.getByTestId("style-filters-chips-clear").click();

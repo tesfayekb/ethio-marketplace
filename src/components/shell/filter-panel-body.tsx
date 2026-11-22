@@ -16,7 +16,15 @@ export function FilterPanelBody({
 }) {
   const [openSelect, setOpenSelect] = useState<string | null>(null);
   return (
-    <div data-filter-rows="" className="flex min-w-0 flex-col gap-3">
+    <div
+      data-filter-rows=""
+      className="flex min-w-0 flex-col gap-3"
+      onClickCapture={(event) => {
+        // Decision M: never move in-flow rows on pointer-down; close on the landed click.
+        if (event.target instanceof Element && !event.target.closest("[data-filter-select]"))
+          setOpenSelect(null);
+      }}
+    >
       {filters.map((filter) =>
         filter.kind === "select" ? (
           <FilterSelect
@@ -37,13 +45,20 @@ export function FilterPanelBody({
             maxLabel={words.max}
             {...(filter.allLabel === undefined ? {} : { allLabel: filter.allLabel })}
           />
-        ) : (
-          <FilterRow
+        ) : filter.kind === "dates" ? (
+          <FilterDates
             key={filter.id}
-            label={filter.name}
-            htmlFor={filter.kind === "dates" ? `${filter.id}-from` : filter.id}
-            dates={filter.kind === "dates"}
-          >
+            id={`${filter.id}-from`}
+            testId={filter.id}
+            from={filter.value.from}
+            to={filter.value.to}
+            onChange={filter.onChange}
+            fromLabel={filter.fromLabel}
+            toLabel={filter.toLabel}
+            maxDate={filter.maxDate}
+          />
+        ) : (
+          <FilterRow key={filter.id} label={filter.name} htmlFor={filter.id}>
             {filter.kind === "text" ? (
               <FilterText
                 id={filter.id}
@@ -51,17 +66,6 @@ export function FilterPanelBody({
                 value={filter.value}
                 onChange={filter.onChange}
                 placeholder={filter.placeholder}
-              />
-            ) : filter.kind === "dates" ? (
-              <FilterDates
-                id={`${filter.id}-from`}
-                testId={filter.id}
-                from={filter.value.from}
-                to={filter.value.to}
-                onChange={filter.onChange}
-                fromLabel={filter.fromLabel}
-                toLabel={filter.toLabel}
-                maxDate={filter.maxDate}
               />
             ) : (
               <Button

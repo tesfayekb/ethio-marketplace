@@ -29,7 +29,7 @@ import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { SellerCell } from "@/components/shell/seller-cell";
 import { useSellerFilter } from "@/components/shell/use-seller-filter";
-import { useDebounced } from "@/features/admin/users/use-admin-users";
+import { useDebounced } from "@/hooks/use-debounced";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -223,7 +223,6 @@ export function AdminScreeningPage({
     mayReadEmail,
   );
   const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-screening", [
-    sellerFilter,
     {
       kind: "select",
       id: "admin-screening-filter-country",
@@ -245,6 +244,7 @@ export function AdminScreeningPage({
         })),
       ].filter((option) => option.value !== "" && option.value !== "all"),
     },
+    sellerFilter,
     {
       kind: "select",
       id: "admin-screening-filter-tier",

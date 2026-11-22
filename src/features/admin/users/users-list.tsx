@@ -1,6 +1,7 @@
 import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { UserRound } from "lucide-react";
 import { useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -71,7 +72,10 @@ export function AdminUsersList() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
   const [rawStatus, setStatus] = useState("");
-  const [rawRole, chooseRole] = useState("");
+  // INC-073 law: a role named by the address wins; arriving never changes the kept view.
+  const navigate = useNavigate();
+  const { role: roleParam } = useSearch({ from: "/admin/users" });
+  const rawRole = roleParam ?? "";
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const {
     ready: keptReady,
@@ -89,9 +93,18 @@ export function AdminUsersList() {
     name: item.name,
     label: item.displayName ?? item.name,
   }));
+  // U4g-13 (INC-106, INC-073 extended): the URL role is a first-class choice
+  // even before the roster resolves — labelled from the roster once it loads,
+  // by its raw name until then.
+  if (rawRole !== "" && !roleOptions.some((item) => item.name === rawRole))
+    roleOptions.unshift({ name: rawRole, label: rawRole });
   const setRole = (next: string) => {
     setPage(0);
-    chooseRole(next);
+    void navigate({
+      to: "/admin/users",
+      search: next === "" ? {} : { role: next },
+      replace: true,
+    });
   };
   const setStatusFilter = (next: string) => {
     setPage(0);
@@ -115,6 +128,7 @@ export function AdminUsersList() {
     {
       kind: "select",
       id: "users-role-filter",
+      addressValue: rawRole === "" ? [] : [rawRole],
       choicesReady: !roles.isLoading,
       chipKey: "role",
       name: t("admin.users.roleFilter"),
@@ -139,10 +153,6 @@ export function AdminUsersList() {
     },
     keptReady && filtersReady,
   );
-
-  // U4g-13 (INC-106, INC-073 extended): the URL role is a first-class choice
-  // even before the roster resolves — labelled from the roster once it loads,
-  // by its raw name until then.
 
   const total = data?.totalCount ?? 0;
   const dateFmt = dateFormatter("dayNumeric", language);

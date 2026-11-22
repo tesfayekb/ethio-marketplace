@@ -122,7 +122,7 @@ export function AdminTranslationsStringsPage({
   const scope = useMyTranslatorLanguages(!mayManage && (mayUpdate || mayApprove));
 
   const viewScope = search.scope === "data" ? "data" : "interface";
-  const [rawFilterValue, setFilterValue] = useState("all");
+  const addressStatus = search.flagged === true ? "flagged" : (search.status ?? "all");
 
   const query = search.q ?? "";
   /**
@@ -161,17 +161,21 @@ export function AdminTranslationsStringsPage({
   };
   const chooseFilter = (value: string) => {
     setPage(0);
-    setFilterValue(value);
+    setSearchParams({
+      ...(value === "all" || value === "orphaned" ? {} : { status: value }),
+      ...(query === "" ? {} : { q: query }),
+    });
   };
   const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-strings", [
     {
       kind: "select",
       id: "strings-status-filter",
+      addressValue: addressStatus === "all" ? [] : [addressStatus],
       chipKey: "",
       name: t("admin.translations.col.status"),
       kept: true,
       allLabel: `${t("prim.table.all")} · ${counts["all"] ?? 0}`,
-      value: rawFilterValue === "all" || rawFilterValue === null ? [] : [rawFilterValue],
+      value: [],
       onChange: (next: string[]) => chooseFilter(next[0] ?? "all"),
       options: [
         ...STATUS_CHIPS.map((chip) => ({
@@ -223,6 +227,7 @@ export function AdminTranslationsStringsPage({
     if (debounce.current) clearTimeout(debounce.current);
     debounce.current = setTimeout(() => {
       setSearchParams({
+        ...(status === "all" ? {} : { status }),
         ...(searchDraft === "" ? {} : { q: searchDraft }),
       });
     }, 350);

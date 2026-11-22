@@ -669,7 +669,7 @@ is raised here: the supervisor measures the final head and supplies exact ceilin
 
 The three look specs are `e2e/dialogs.spec.ts`, `e2e/overlays.spec.ts` and
 `e2e/house-style.spec.ts`; local unit tests prove the parts and all their consumers.
-DLG-E10 and DLG-E11 run in WebKit too (`@webkit`): a tall body in a short window scrolls
+DLG-E10, DLG-E11 and DLG-E12 (a Filters panel in rows) run in WebKit too (`@webkit`): a tall body in a short window scrolls
 alone and its last control takes the press, and every banded panel of the board keeps its
 body between its header and its last band, with a height.
 
@@ -739,3 +739,9 @@ body between its header and its last band, with a height.
 - **Every other picture** draws through `Picture`, each site's size a class on the frame: staff's photo-change and photo-review thumbnails (`h-full w-full` in their 64 × 48 box; no address, no picture), the staff photo grid (`absolute inset-0` in its 4:3 tile, the badge over it) and the Remove dialog (`aspect-[4/3] w-full max-w-64`, `contain`), the ad's gallery — the main photo (`absolute inset-0` in the 4:3 button, `contain`, `@min-[32rem]:object-top` as `imgClassName`, `srcSet`/`sizes` unchanged), the thumbnails (`h-full w-full`, `cover`) and the full-screen viewer (`absolute inset-0`, `contain`; the zoom and the double click on the image; a small photo now grows to the viewer as a large one does) — the post wizard's photo tiles (`h-24 w-full`, `cover`), the two-step sign-in QR (`h-[200px] w-[200px]`, its padding on the image), the ad's share QR (`size-48`) and a category's three pictures (`aspect-[4/3] w-40`, `aspect-[4/3] w-16`, `aspect-[40/21] w-full max-w-xs`, each `contain`). Unit PRS-1, CIG-1 and each site's own tests.
 - **The guard:** `scripts/conformance/pictures.test.ts` CF-PICTURE-1…3 refuses, under `src/` outside `picture.tsx`, a JSX `img`, a library's `<X.Image>` part or a style `url(` (inline, `bg-[url(…)]`, a stylesheet); `url(#…)` (an SVG paint), a gradient and the two pixel-editing canvases (the photo editor, remove-background) are outside the definition. `scripts/conformance/pictures-allowlist.txt` is empty. The lint list `RESTRICTED_SYNTAX.picture` (`eslint.config.js`, CF-LINT-6) refuses a JSX `img` while a file is edited. The unused `AvatarImage` was removed from `src/components/ui/avatar.tsx`.
 - **Bytes:** `Picture` is its own chunk (`picture.js`, 0.84 KiB gzipped, with the failed-load icon that left `listing-picture.js`, −0.27); the pages that draw pictures grew 0.5–0.9 KiB (the report's table, `docs/governance/reports/pictures.report.md`).
+
+### Bundle 3 — address filters and dates (ruling 5)
+
+R: INC-073 keeps the Users role and interface-strings status/flagged in the address; a named address choice overrides the kept view without changing it on arrival. One optional `addressValue` declaration field supplies that precedence, and a panel, chip or Clear choice writes the address with replacement and the kept view together; no synchronization effect copies either source.
+
+S: Filters panels stack From and To at full-row width, each with its own label and its calendar in the content flow. A landed click on a text box, date box or switch closes the select through the rows' owner without moving content on pointer-down.

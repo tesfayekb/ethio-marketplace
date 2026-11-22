@@ -16,6 +16,8 @@ export interface TableSelectFilter extends FilterBase {
   options: readonly TableFilterOption[];
   multiple?: boolean;
   choicesReady?: boolean;
+  /** INC-073: a named address choice overrides kept state without writing it. */
+  addressValue?: readonly string[];
   allLabel?: string;
   max?: number;
   kept: boolean;
@@ -27,7 +29,7 @@ export interface TableTextFilter extends FilterBase {
   placeholder: string;
   kept: false;
 }
-export interface TableDatesFilter extends FilterBase {
+export interface TableDatesFilter extends Omit<FilterBase, "name"> {
   kind: "dates";
   value: { from: string; to: string };
   onChange: (value: { from: string; to: string }) => void;
@@ -79,7 +81,7 @@ export function useTableFilters(tableId: string, declarations: readonly TableFil
       };
     if (filter.kind === "select") {
       const allowed = filter.options.map((o) => o.value);
-      const value = (kept ?? filter.value)
+      const value = (filter.addressValue?.length ? filter.addressValue : (kept ?? filter.value))
         .filter((v) => allowed.includes(v))
         .slice(0, filter.multiple ? (filter.max ?? 20) : 1);
       return {

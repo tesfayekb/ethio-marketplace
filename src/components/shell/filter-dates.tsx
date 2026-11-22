@@ -23,7 +23,7 @@ export function FilterDates({
 }) {
   const upperBound = to !== "" && (maxDate === undefined || to < maxDate) ? to : maxDate;
   return (
-    <div data-testid={testId} className="grid min-w-0 grid-cols-2 gap-2">
+    <div data-testid={testId} className="grid min-w-0 grid-cols-1 gap-2">
       <div className="min-w-0">
         <label htmlFor={id} className="text-sm text-muted-foreground">
           {fromLabel}

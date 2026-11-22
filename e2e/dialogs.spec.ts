@@ -714,3 +714,151 @@ test.describe("the banded panel's body (Lovable bundle 2)", () => {
     },
   );
 });
+
+/**
+ * Lovable bundle 3 (DEC-419, DEC-420) — a table's Filters panel in rows, on the board's own
+ * panel (the one `FiltersButton` every table draws). Measured inside a panel as small as the
+ * tables' real ones, in both engines: a list that is placed over the panel is squeezed there
+ * to a few pixels, and a person sees a search box and no choice.
+ */
+test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
+  /** What a person sees of the open list, measured against the body's own visible box. */
+  async function listFacts(panel: Locator, filter: string) {
+    return panel.evaluate((element, filter) => {
+      const within = (selector: string) => element.querySelector<HTMLElement>(selector);
+      const control = within(`[data-testid="${filter}"]`);
+      const list = within(`[data-testid="${filter}-list"]`);
+      const body = within("[data-panel-body]");
+      const foot = within("[data-panel-foot]");
+      const row = control?.closest<HTMLElement>("[data-filter-row]") ?? null;
+      const popup = list?.closest<HTMLElement>("[data-picker-popup]") ?? null;
+      if (!control || !list || !body || !foot || !row || !popup) return null;
+      const own = element.getBoundingClientRect();
+      const room = body.getBoundingClientRect();
+      const rowBox = row.getBoundingClientRect();
+      const popupBox = popup.getBoundingClientRect();
+      const listBox = list.getBoundingClientRect();
+      const top = Math.max(room.top, listBox.top);
+      const bottom = Math.min(room.bottom, listBox.bottom);
+      const inView = (box: DOMRect) => box.top >= top - 1 && box.bottom <= bottom + 1;
+      const options = Array.from(list.querySelectorAll<HTMLElement>('[role="option"]'));
+      const search = within(`[data-testid="${filter}-search"]`)?.getBoundingClientRect() ?? null;
+      return {
+        inTheFlow: !["absolute", "fixed"].includes(getComputedStyle(popup).position),
+        underItsRow: popupBox.top >= rowBox.bottom - 1,
+        asWideAsItsRow:
+          Math.abs(popupBox.left - rowBox.left) <= 1 &&
+          Math.abs(popupBox.right - rowBox.right) <= 1,
+        rowInView: rowBox.top >= room.top - 1 && rowBox.bottom <= room.bottom + 1,
+        searchInView:
+          search === null || (search.top >= room.top - 1 && search.bottom <= room.bottom + 1),
+        bodyEndsAtFooter: Math.abs(room.bottom - foot.getBoundingClientRect().top) <= 1,
+        footerInsidePanel: foot.getBoundingClientRect().bottom <= own.bottom + 1,
+        panelInsideWindow: own.top >= 0 && own.bottom <= window.innerHeight + 1,
+        choices: options.length,
+        choicesInView: options.filter((option) => inView(option.getBoundingClientRect())).length,
+      };
+    }, filter);
+  }
+
+  test(
+    "DLG-E12 a filter row's list opens in the panel's flow under its row with its choices in view above the footer; one press opens another row's list; Escape closes the list, then the panel",
+    { tag: "@webkit" },
+    async ({ page }) => {
+      const [width = 390] = widthsOf(page);
+      // A TALL window first: the wide-screen panel opens beside its button with the room the
+      // window gives it, and here that room holds the whole list.
+      await page.setViewportSize({ width, height: 900 });
+      await gotoReady(page, "/dev/style");
+      // The dialog parts arrive on idle and draw the Panels section above this one: the page
+      // has stopped growing before the panel opens (an open popover follows its button).
+      await stillPage(page.getByTestId("style-filters"), { what: "the board" });
+      const panel = await open(page, "style-filters", "style-filters-panel");
+      // The panel says what it is and what it is about, in both of its forms.
+      await expect(panel).toHaveAccessibleName(en["prim.table.filters"]);
+      await expect(panel).toHaveAccessibleDescription(en["prim.table.filtersDescription"]);
+
+      const colour = panel.getByTestId("style-filters-colour");
+      const size = panel.getByTestId("style-filters-size");
+      const colourList = panel.getByTestId("style-filters-colour-list");
+      const sizeList = panel.getByTestId("style-filters-size-list");
+      // A row's select is named by its row and tells its value.
+      await expect(colour).toHaveAccessibleName(/^Colour/);
+      await colour.click();
+      await expect(colourList).toBeVisible();
+      await settled(page);
+      const tall = await listFacts(panel, "style-filters-colour");
+      expect(tall, `DLG-E12 the open list @ ${width} x 900`).toMatchObject({
+        inTheFlow: true,
+        underItsRow: true,
+        asWideAsItsRow: true,
+        rowInView: true,
+        searchInView: true,
+        bodyEndsAtFooter: true,
+        footerInsidePanel: true,
+        panelInsideWindow: true,
+      });
+      // Six choices at once beside "All", or all of them when the list is shorter.
+      expect(
+        tall?.choicesInView ?? 0,
+        `DLG-E12 the choices a person sees @ ${width} x 900`,
+      ).toBeGreaterThanOrEqual(Math.min(tall?.choices ?? 0, 6));
+
+      // Several at once (DEC-420): the list stays open and marks each choice.
+      await panel.getByTestId("style-filters-colour-Red").click();
+      await panel.getByTestId("style-filters-colour-Blue").click();
+      await expect(panel.getByTestId("style-filters-colour-Red")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expect(panel.getByTestId("style-filters-colour-Blue")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      await expect(colourList).toBeVisible();
+
+      // ONE press on another row's control closes this list and opens that row's.
+      await size.click();
+      await expect(sizeList).toBeVisible();
+      await expect(colourList).toHaveCount(0);
+      // One choice closes its list, and the focus stays on the select.
+      await panel.getByTestId("style-filters-size-Large").click();
+      await expect(sizeList).toHaveCount(0);
+      await expect(size).toBeFocused();
+      await expect(size).toHaveAccessibleName(/Large/);
+
+      // Escape closes the open list first and leaves the focus on its select; then the panel.
+      await colour.click();
+      await expect(colourList).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(colourList).toHaveCount(0);
+      await expect(panel).toBeVisible();
+      await expect(colour).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(panel).toHaveCount(0);
+      await expect(page.getByTestId("style-filters-count")).toHaveText("3");
+
+      // A SHORT window: the body scrolls, the footer stays, and the open list's own row is
+      // still in view above it — a person sees which filter the list belongs to.
+      await page.setViewportSize({ width, height: 560 });
+      const short = await open(page, "style-filters", "style-filters-panel");
+      await short.getByTestId("style-filters-colour").click();
+      await expect(short.getByTestId("style-filters-colour-list")).toBeVisible();
+      await settled(page);
+      expect(
+        await listFacts(short, "style-filters-colour"),
+        `DLG-E12 the open list @ ${width} x 560`,
+      ).toMatchObject({
+        inTheFlow: true,
+        underItsRow: true,
+        rowInView: true,
+        bodyEndsAtFooter: true,
+        footerInsidePanel: true,
+        panelInsideWindow: true,
+      });
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await expect(short).toHaveCount(0);
+    },
+  );
+});

@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { FilterPanelBody } from "./filter-panel-body";
 import type { TableSelectFilter, TableFilterWords } from "./table-filters";
 
+vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
+
 const words: TableFilterWords = { all: "All", search: "Search", none: "None", max: "Up to {n}" };
 const options = Array.from({ length: 10 }, (_, i) => ({ value: `v${i}`, label: `Choice ${i}` }));
 const choices = (id: string, onChange = vi.fn()): TableSelectFilter => ({
@@ -129,4 +131,74 @@ describe("a small panel's filter lists", () => {
     fireEvent.click(control);
     expect(control).toHaveAttribute("aria-pressed", "false");
   });
+});
+
+it.each(["text", "dates", "switch"] as const)(
+  "FP-U36 a landed click on a %s row closes the list without moving it on pointer-down",
+  (kind) => {
+    const filter =
+      kind === "text"
+        ? {
+            kind,
+            id: "other",
+            chipKey: "other",
+            name: "Seller",
+            kept: false as const,
+            value: "",
+            onChange: vi.fn(),
+            placeholder: "Seller",
+          }
+        : kind === "dates"
+          ? {
+              kind,
+              id: "other",
+              chipKey: "other",
+              kept: false as const,
+              value: { from: "", to: "" },
+              onChange: vi.fn(),
+              fromLabel: "From",
+              toLabel: "To",
+              maxDate: "2026-11-22",
+            }
+          : {
+              kind,
+              id: "other",
+              chipKey: "other",
+              name: "Missing",
+              kept: true,
+              value: false,
+              onChange: vi.fn(),
+            };
+    render(<FilterPanelBody filters={[choices("first"), filter]} words={words} />);
+    fireEvent.click(screen.getByTestId("first"));
+    const control = screen.getByTestId(kind === "dates" ? "other-from" : "other");
+    fireEvent.pointerDown(control);
+    fireEvent.blur(screen.getByTestId("first-search"), { relatedTarget: control });
+    expect(screen.getByTestId("first-list")).toBeInTheDocument();
+    fireEvent.click(control);
+    expect(screen.queryByTestId("first-list")).toBeNull();
+  },
+);
+it("FP-U37 a dates declaration has only its two box labels and no third row name", () => {
+  render(
+    <FilterPanelBody
+      words={words}
+      filters={[
+        {
+          kind: "dates",
+          id: "made",
+          chipKey: "made",
+          kept: false,
+          value: { from: "", to: "" },
+          onChange: vi.fn(),
+          fromLabel: "Posted from",
+          toLabel: "Posted to",
+          maxDate: "2026-11-22",
+        },
+      ]}
+    />,
+  );
+  expect(screen.getByLabelText("Posted from")).toHaveAttribute("data-testid", "made-from");
+  expect(screen.getByLabelText("Posted to")).toHaveAttribute("data-testid", "made-to");
+  expect(screen.getByTestId("made").querySelectorAll("label")).toHaveLength(2);
 });

@@ -62,6 +62,7 @@ export function FilterSelect({
   onOpenChange?: (next: boolean) => void;
 }) {
   const listId = useId();
+  const rowLabelId = useId();
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const controlRef = useRef<HTMLButtonElement | null>(null);
   const [localOpen, setLocalOpen] = useState(defaultOpen);
@@ -165,6 +166,7 @@ export function FilterSelect({
       aria-haspopup="listbox"
       aria-expanded={open}
       aria-controls={listId}
+      aria-labelledby={rowLabel === undefined ? undefined : `${rowLabelId} ${id}`}
       className={cn(
         "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-input px-3 text-start text-sm md:pointer-fine:min-h-9",
         DIALOG_FIELD,
@@ -181,6 +183,7 @@ export function FilterSelect({
   return (
     <div
       ref={wrapRef}
+      data-filter-select={id}
       className="relative min-w-0"
       onBlur={(event) => {
         const rows = wrapRef.current?.closest("[data-filter-rows]") ?? wrapRef.current;
@@ -190,7 +193,7 @@ export function FilterSelect({
       {rowLabel === undefined ? (
         trigger
       ) : (
-        <FilterRow label={rowLabel} htmlFor={id}>
+        <FilterRow label={rowLabel} labelId={rowLabelId}>
           {trigger}
         </FilterRow>
       )}
@@ -227,6 +230,7 @@ export function FilterSelect({
           <ul
             id={listId}
             role="listbox"
+            aria-labelledby={rowLabel === undefined ? undefined : rowLabelId}
             aria-multiselectable={multiple || undefined}
             data-testid={`${testId}-list`}
             className="max-h-77 overflow-y-auto overscroll-contain md:pointer-fine:max-h-63"

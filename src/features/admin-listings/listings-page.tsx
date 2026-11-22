@@ -36,7 +36,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { useWarnedListings } from "@/features/admin-screening/use-photo-changes";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { sectionById } from "@/features/admin/sections";
-import { useDebounced } from "@/features/admin/users/use-admin-users";
+import { useDebounced } from "@/hooks/use-debounced";
 import { isStepUpRequiredError, stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -251,7 +251,6 @@ export function AdminListingsPage() {
       kind: "dates",
       id: "listings-filter",
       chipKey: "dates",
-      name: t("admin.listings.filter.from"),
       kept: false,
       value: { from, to },
       onChange: (next) => {

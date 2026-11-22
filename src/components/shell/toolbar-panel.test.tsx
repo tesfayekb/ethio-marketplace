@@ -181,3 +181,25 @@ it("FP-U26 the wide panel names its description paragraph", async () => {
   expect(id).toBe("described-filter-description");
   expect(id === null ? null : document.getElementById(id)?.tagName).toBe("P");
 });
+
+it.each([360, 1280])(
+  "FP-U38 the panel is named by its heading in the %i-wide form",
+  async (width) => {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: width });
+    render(
+      <ToolbarPanel
+        testid="named"
+        title="Filters"
+        description="Choose what the list shows."
+        state="all"
+        trigger={<button data-testid="named" />}
+      >
+        <span />
+      </ToolbarPanel>,
+    );
+    fireEvent.click(screen.getByTestId("named"));
+    expect(await screen.findByRole("dialog", { name: "Filters" })).toHaveAccessibleDescription(
+      "Choose what the list shows.",
+    );
+  },
+);

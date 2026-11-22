@@ -109,12 +109,15 @@ export function ToolbarPanel({
         align={align}
         data-testid={`${testid}-panel`}
         className={BANDS_PANEL}
+        aria-labelledby={`${testid}-title`}
         aria-describedby={description === undefined ? undefined : `${testid}-description`}
         onOpenAutoFocus={(event) => impl?.dialogRules.recordPanel(event, opener.current)}
         onEscapeKeyDown={(event) => impl?.dialogRules.keepOpenList(event, opener.current)}
       >
         <PanelHeader>
-          <h2 className="font-semibold">{title}</h2>
+          <h2 id={`${testid}-title`} className="font-semibold">
+            {title}
+          </h2>
           {description === undefined ? null : (
             <p id={`${testid}-description`} className="text-sm text-muted-foreground">
               {description}

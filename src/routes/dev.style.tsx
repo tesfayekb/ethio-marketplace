@@ -672,48 +672,42 @@ function FiltersArchetype({ Title, Text, open }: BoardParts & { open: boolean })
       </PanelHeader>
       <PanelBody>
         <div className={cn(DIALOG_CARD, "flex flex-col gap-3")}>
-          <FilterRow label={BOARD.status} htmlFor={`${open}-status`}>
-            <FilterSelect
-              id={`${open}-status`}
-              testId={`style-anatomy-status-${open ? "open" : "shut"}`}
-              options={BOARD_STATUS}
-              value={status}
-              onChange={setStatus}
-              placeholder={BOARD.all}
-              searchLabel={BOARD.search}
-              noneLabel={BOARD.none}
-            />
-          </FilterRow>
+          <FilterSelect
+            rowLabel={BOARD.status}
+            id={`${open}-status`}
+            testId={`style-anatomy-status-${open ? "open" : "shut"}`}
+            options={BOARD_STATUS}
+            value={status}
+            onChange={setStatus}
+            placeholder={BOARD.all}
+            searchLabel={BOARD.search}
+            noneLabel={BOARD.none}
+          />
           <FilterRow label={BOARD.title} htmlFor={`${open}-title`}>
             <FilterText id={`${open}-title`} value={text} onChange={setText} />
           </FilterRow>
-          <FilterRow dates label={BOARD.dates} htmlFor={`${open}-dates`}>
-            <FilterDates
-              id={`${open}-dates`}
-              from={dates.from}
-              to={dates.to}
-              onChange={setDates}
-              fromLabel={BOARD.from}
-              toLabel={BOARD.to}
-            />
-          </FilterRow>
-          <FilterRow label={BOARD.place} htmlFor={`${open}-place`}>
-            <FilterSelect
-              id={`${open}-place`}
-              testId={`style-anatomy-place-${open ? "open" : "shut"}`}
-              multiple
-              defaultOpen={open}
-              options={BOARD_PLACES}
-              value={places}
-              onChange={setPlaces}
-              placeholder={BOARD.all}
-              searchLabel={BOARD.search}
-              noneLabel={BOARD.none}
-            />
-          </FilterRow>
+          <FilterDates
+            id={`${open}-dates`}
+            from={dates.from}
+            to={dates.to}
+            onChange={setDates}
+            fromLabel={BOARD.from}
+            toLabel={BOARD.to}
+          />
+          <FilterSelect
+            rowLabel={BOARD.place}
+            id={`${open}-place`}
+            testId={`style-anatomy-place-${open ? "open" : "shut"}`}
+            multiple
+            defaultOpen={open}
+            options={BOARD_PLACES}
+            value={places}
+            onChange={setPlaces}
+            placeholder={BOARD.all}
+            searchLabel={BOARD.search}
+            noneLabel={BOARD.none}
+          />
         </div>
-        {/* Still-only room beneath the last row: the open list hides no other row's name. */}
-        {open ? <div aria-hidden="true" className="h-80 shrink-0" /> : null}
       </PanelBody>
       <PanelFooter>
         <Button variant="outline" size="touch">
@@ -1084,6 +1078,79 @@ function StyleFixture() {
       ),
     },
   ]);
+  const [fullCountry, setFullCountry] = useState<string[]>([]);
+  const [fullCategory, setFullCategory] = useState<string[]>([]);
+  const [fullSeller, setFullSeller] = useState("");
+  const [fullLevel, setFullLevel] = useState<string[]>([]);
+  const [fullDates, setFullDates] = useState({ from: "", to: "" });
+  const [fullMissing, setFullMissing] = useState(false);
+  const { filters: fullFilters } = useTableFilters("style-filters-full", [
+    {
+      kind: "select",
+      id: "style-filters-full-country",
+      chipKey: "country",
+      name: "Country",
+      kept: true,
+      multiple: true,
+      value: fullCountry,
+      onChange: setFullCountry,
+      options: Array.from({ length: 12 }, (_, index) => ({
+        value: `market-${index}`,
+        label: `Market ${index + 1}`,
+      })),
+    },
+    {
+      kind: "select",
+      id: "style-filters-full-category",
+      chipKey: "category",
+      name: "Category",
+      kept: true,
+      multiple: true,
+      value: fullCategory,
+      onChange: setFullCategory,
+      options: ["Vehicles", "Homes", "Electronics"].map((value) => ({ value, label: value })),
+    },
+    {
+      kind: "text",
+      id: "style-filters-full-seller",
+      chipKey: "seller",
+      name: "Seller",
+      kept: false,
+      value: fullSeller,
+      onChange: setFullSeller,
+      placeholder: "Name or email",
+    },
+    {
+      kind: "select",
+      id: "style-filters-full-level",
+      chipKey: "level",
+      name: "Level",
+      kept: true,
+      value: fullLevel,
+      onChange: setFullLevel,
+      options: ["Regular", "Premium"].map((value) => ({ value, label: value })),
+    },
+    {
+      kind: "dates",
+      id: "style-filters-full-made",
+      chipKey: "made",
+      kept: false,
+      value: fullDates,
+      onChange: setFullDates,
+      fromLabel: "Posted from",
+      toLabel: "Posted to",
+      maxDate: "2026-11-22",
+    },
+    {
+      kind: "switch",
+      id: "style-filters-full-missing",
+      chipKey: "missing",
+      name: "Missing picture",
+      kept: true,
+      value: fullMissing,
+      onChange: setFullMissing,
+    },
+  ]);
   const colour = filterValues(tableFilters, "style-filters-colour");
   const size = filterValues(tableFilters, "style-filters-size")[0] ?? "";
 
@@ -1245,6 +1312,10 @@ function StyleFixture() {
             {/* Bundle 11 V2 (INC-543) — each filter a row of pills, never a dropdown. */}
             <FiltersButton testid={"style-filters"} filters={tableFilters} />
             <FilterChips testid={"style-filters-chips"} filters={tableFilters} />
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <FiltersButton testid="style-filters-full" filters={fullFilters} />
+            <FilterChips testid="style-filters-full-chips" filters={fullFilters} />
           </div>
         </Section>
       </div>

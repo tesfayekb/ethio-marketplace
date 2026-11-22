@@ -189,3 +189,22 @@ describe("filter keyboard boundaries", () => {
     expect(change).not.toHaveBeenCalled();
   });
 });
+
+it("FP-U39 a row select tells its name followed by its value and names its list by the row", () => {
+  const props = {
+    rowLabel: "Colour",
+    options: [
+      { value: "red", label: "Red" },
+      { value: "blue", label: "Blue" },
+    ],
+    multiple: true,
+  };
+  draw({ ...props, value: ["red", "blue"] });
+  const control = screen.getByRole("button", { name: "Colour Red, Blue" });
+  fireEvent.click(control);
+  expect(screen.getByRole("listbox", { name: "Colour" })).toBeInTheDocument();
+});
+it("FP-U40 a row select with no choices announces its name followed by All", () => {
+  draw({ rowLabel: "Colour" });
+  expect(screen.getByRole("button", { name: "Colour All" })).toBeInTheDocument();
+});
