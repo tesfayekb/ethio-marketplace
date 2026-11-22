@@ -1,58 +1,58 @@
 # Local backend proof (non-gating)
 
-- Commit: `1754bf3bfeca7ce8cefb9495e1feb6c242572f28`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/44979930034
+- Commit: `47014b8476cff7de1a535e8372ae7ade91512e37`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45000932724
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 490 | 70 | applied 550/550 | 38 | 0 | 0 | 16 | 54 |
-| email | 205 | 67 | applied 550/550 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 789 | 77 | applied 550/550 | 72 | 0 | 0 | 24 | 96 |
-| 1 | 504 | 65 | applied 550/550 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 657 | 86 | applied 550/550 | 169 | 0 | 0 | 21 | 190 |
-| 3 | 535 | 66 | applied 550/550 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 545 | 71 | applied 550/550 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 603 | 86 | applied 550/550 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 1333 | 66 | applied 550/550 | 123 | 30 | 0 | 41 | 194 |
-| 7 | 512 | 69 | applied 550/550 | 149 | 0 | 0 | 77 | 226 |
-| 8 | 541 | 68 | applied 550/550 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 571 | 66 | applied 550/550 | 129 | 0 | 0 | 1 | 130 |
-| 10 | 508 | 68 | applied 550/550 | 160 | 0 | 0 | 2 | 162 |
-| 11 | 498 | 64 | applied 550/550 | 120 | 0 | 0 | 8 | 128 |
-| 12 | 533 | 67 | applied 550/550 | 163 | 0 | 0 | 18 | 181 |
-| 13 | 456 | 57 | applied 550/550 | 156 | 0 | 0 | 8 | 164 |
-| 14 | 491 | 68 | applied 550/550 | 181 | 0 | 0 | 3 | 184 |
-| 15 | 547 | 67 | applied 550/550 | 124 | 0 | 0 | 6 | 130 |
-| 16 | 579 | 73 | applied 550/550 | 172 | 0 | 0 | 48 | 220 |
-| repeat | 533 | 66 | applied 550/550 | 126 | 2 | 0 | 0 | 128 |
-| TOTAL | — | — | — | 2654 | 32 | 0 | 360 | 3046 |
+| smoke | 497 | 87 | applied 550/550 | 38 | 0 | 0 | 16 | 54 |
+| email | 180 | 65 | applied 550/550 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 845 | 86 | applied 550/550 | 72 | 0 | 0 | 24 | 96 |
+| 1 | 495 | 67 | applied 550/550 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 489 | 65 | applied 550/550 | 169 | 0 | 0 | 21 | 190 |
+| 3 | 601 | 71 | applied 550/550 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 499 | 66 | applied 550/550 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 528 | 65 | applied 550/550 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 496 | 67 | applied 550/550 | 153 | 0 | 0 | 41 | 194 |
+| 7 | 494 | 67 | applied 550/550 | 149 | 0 | 0 | 77 | 226 |
+| 8 | 509 | 58 | applied 550/550 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 621 | 74 | applied 550/550 | 129 | 0 | 0 | 1 | 130 |
+| 10 | 567 | 72 | applied 550/550 | 168 | 0 | 0 | 2 | 170 |
+| 11 | 520 | 57 | applied 550/550 | 120 | 0 | 0 | 8 | 128 |
+| 12 | 531 | 67 | applied 550/550 | 163 | 0 | 0 | 18 | 181 |
+| 13 | 461 | 66 | applied 550/550 | 156 | 0 | 0 | 8 | 164 |
+| 14 | 505 | 65 | applied 550/550 | 187 | 0 | 0 | 3 | 190 |
+| 15 | 670 | 86 | applied 550/550 | 124 | 0 | 0 | 6 | 130 |
+| 16 | 533 | 70 | applied 550/550 | 172 | 0 | 0 | 48 | 220 |
+| repeat | 792 | 69 | applied 550/550 | 130 | 0 | 0 | 6 | 136 |
+| TOTAL | — | — | — | 2702 | 0 | 0 | 366 | 3068 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 6 1333 s
-- Repeat lane (DEC-283): Not repeated: e2e/admin-listings.spec.ts (39 tests); Not repeated: e2e/my-listings-page.spec.ts (10 tests); Repeat: each 2 on both projects; 81 tests selected, 32 repeated; budget 643 s at 4.7 s a test; directly changed: 2 of 4 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 2 of the repeated tests, @global-state, each 2 on mobile-360 and desktop-1280 at one worker after the parallel pass
-- Database session samples during each start (INC-944): smoke 8, email 7, webkit 10, 1 7, 2 11, 3 7, 4 8, 5 11, 6 7, 7 7, 8 7, 9 7, 10 7, 11 7, 12 7, 13 6, 14 7, 15 7, 16 9, repeat 7
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/329, 2 641/451, 3 641/360, 4 640/360, 5 640/402, 6 641/1153, 7 641/326, 8 641/353, 9 641/384, 10 643/329, 11 640/343, 12 641/352, 13 640/300, 14 641/326, 15 641/385, 16 641/381
+- Slowest lane: webkit 845 s
+- Repeat lane (DEC-283): Not repeated: e2e/admin-categories-images.spec.ts (3 tests); Not repeated: e2e/admin-countries.spec.ts (9 tests); Not repeated: e2e/admin-listings.spec.ts (41 tests); Not repeated: e2e/admin-locations.spec.ts (19 tests); Not repeated: e2e/admin-monetisation.spec.ts (17 tests); Not repeated: e2e/admin-screening.spec.ts (32 tests); Not repeated: e2e/admin-translations-console.spec.ts (23 tests); Not repeated: e2e/admin-translations-governance.spec.ts (10 tests); Not repeated: e2e/admin-users.spec.ts (14 tests); Not repeated: e2e/my-listings-page.spec.ts (12 tests); Not repeated: e2e/post-wizard-bundle2.spec.ts (35 tests); Not repeated: e2e/post-wizard-place.spec.ts (20 tests); Not repeated: e2e/post-wizard-where.spec.ts (16 tests); Not repeated: e2e/account-saved.spec.ts (2 tests); Not repeated: e2e/ad-page.spec.ts (52 tests); Not repeated: e2e/admin-attributes-editor.spec.ts (18 tests); Not repeated: e2e/admin-attributes-import.spec.ts (20 tests); Not repeated: e2e/admin-attributes-library.spec.ts (21 tests); Not repeated: e2e/admin-attributes-links.spec.ts (17 tests); Not repeated: e2e/admin-attributes-safety.spec.ts (9 tests); Not repeated: e2e/admin-audit.spec.ts (8 tests); Not repeated: e2e/admin-categories-home.spec.ts (5 tests); Not repeated: e2e/admin-categories-lifecycle.spec.ts (26 tests); Not repeated: e2e/admin-guides.spec.ts (7 tests); Not repeated: e2e/admin-roles.spec.ts (14 tests); Not repeated: e2e/admin-services.spec.ts (5 tests); Not repeated: e2e/admin-shell.spec.ts (6 tests); Not repeated: e2e/admin-translations-data.spec.ts (5 tests); Not repeated: e2e/auth-callback.spec.ts (4 tests); Not repeated: e2e/auth-caller-gates.spec.ts (4 tests); Not repeated: e2e/auth-google.spec.ts (2 tests); Not repeated: e2e/auth-reset.spec.ts (6 tests); Not repeated: e2e/auth-signin-errors.spec.ts (5 tests); Not repeated: e2e/auth-signout.spec.ts (22 tests); Not repeated: e2e/breadcrumbs.spec.ts (3 tests); Not repeated: e2e/category-image-routes.spec.ts (5 tests); Not repeated: e2e/category-nav.spec.ts (5 tests); Not repeated: e2e/choice-lists.spec.ts (48 tests); Not repeated: e2e/dark-cards.spec.ts (2 tests); Not repeated: e2e/dialogs.spec.ts (10 tests); Not repeated: e2e/door-refusals.spec.ts (7 tests); Not repeated: e2e/feed-index.spec.ts (15 tests); Not repeated: e2e/feed-route.spec.ts (11 tests); Not repeated: e2e/feed-screens.spec.ts (20 tests); Not repeated: e2e/fonts.spec.ts (1 tests); Not repeated: e2e/house-style.spec.ts (6 tests); Not repeated: e2e/i18n-bundle.spec.ts (3 tests); Not repeated: e2e/i18n-coverage.spec.ts (7 tests); Not repeated: e2e/i18n-layers.spec.ts (3 tests); Not repeated: e2e/i18n-sign-in-language.spec.ts (6 tests); Not repeated: e2e/import-security.spec.ts (18 tests); Not repeated: e2e/layout.spec.ts (9 tests); Not repeated: e2e/legal-accept.spec.ts (6 tests); Not repeated: e2e/legal-admin.spec.ts (22 tests); Not repeated: e2e/legal-certify.spec.ts (22 tests); Not repeated: e2e/legal-doors.spec.ts (17 tests); Not repeated: e2e/legal-history.spec.ts (3 tests); Not repeated: e2e/legal-pages.spec.ts (5 tests); Not repeated: e2e/locale-format.spec.ts (1 tests); Not repeated: e2e/locations-tree.spec.ts (4 tests); Not repeated: e2e/menu-rows.spec.ts (3 tests); Not repeated: e2e/mfa-stepup.spec.ts (12 tests); Not repeated: e2e/my-listings-ad.spec.ts (19 tests); Not repeated: e2e/my-listings-doors.spec.ts (14 tests); Not repeated: e2e/my-listings-levels.spec.ts (14 tests); Not repeated: e2e/my-listings-promote.spec.ts (5 tests); Not repeated: e2e/name-check-queue.spec.ts (4 tests); Not repeated: e2e/on-demand-failure.spec.ts (1 tests); Not repeated: e2e/one-line-slots-admin.spec.ts (5 tests); Not repeated: e2e/one-line-slots.spec.ts (5 tests); Not repeated: e2e/overlay-shift.spec.ts (3 tests); Not repeated: e2e/overlays.spec.ts (4 tests); Not repeated: e2e/page-head.spec.ts (2 tests); Not repeated: e2e/phone-frame.spec.ts (9 tests); Not repeated: e2e/photo-pipeline.spec.ts (37 tests); Not repeated: e2e/post-wizard-category.spec.ts (26 tests); Not repeated: e2e/post-wizard-details.spec.ts (4 tests); Not repeated: e2e/post-wizard-finder.spec.ts (4 tests); Not repeated: e2e/post-wizard-pricing.spec.ts (26 tests); Not repeated: e2e/post-wizard-recent.spec.ts (1 tests); Not repeated: e2e/post-wizard-removed.spec.ts (2 tests); Not repeated: e2e/post-wizard-resets.spec.ts (17 tests); Not repeated: e2e/post-wizard-specs.spec.ts (41 tests); Not repeated: e2e/post-wizard-units.spec.ts (2 tests); Not repeated: e2e/posting-routes-catalog.spec.ts (9 tests); Not repeated: e2e/posting-routes-dials.spec.ts (7 tests); Not repeated: e2e/posting-routes-identity.spec.ts (2 tests); Not repeated: e2e/posting-routes.spec.ts (40 tests); Not repeated: e2e/press.spec.ts (11 tests); Not repeated: e2e/primitives-law.spec.ts (12 tests); Not repeated: e2e/rail-first-paint.spec.ts (2 tests); Not repeated: e2e/rbac.spec.ts (3 tests); Not repeated: e2e/sage-ad-page.spec.ts (15 tests); Not repeated: e2e/sage-bands.spec.ts (38 tests); Not repeated: e2e/sage-cards.spec.ts (20 tests); Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/sage-tiers.spec.ts (26 tests); Not repeated: e2e/seller-name-hidden.spec.ts (1 tests); Not repeated: e2e/settings.spec.ts (9 tests); Not repeated: e2e/shell-bands.spec.ts (8 tests); Not repeated: e2e/shell-table-law.spec.ts (1 tests); Not repeated: e2e/shell.spec.ts (117 tests); Not repeated: e2e/smoke-auth-i18n.spec.ts (1 tests); Not repeated: e2e/submenu-look.spec.ts (6 tests); Not repeated: e2e/submenu-touch.spec.ts (4 tests); Not repeated: e2e/submenu.spec.ts (7 tests); Not repeated: e2e/supabase-door.spec.ts (6 tests); Not repeated: e2e/user-guides.spec.ts (9 tests); Not repeated: e2e/viewing-place.spec.ts (11 tests); Repeat: each 2 on both projects; 1467 tests selected, 34 repeated; budget 643 s at 4.7 s a test; directly changed: 3 of 16 repeated; importers of a changed helper: 1 of 97; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 2 on mobile-360 and desktop-1280 at one worker after the parallel pass
+- Database session samples during each start (INC-944): smoke 12, email 7, webkit 11, 1 7, 2 7, 3 8, 4 7, 5 7, 6 7, 7 7, 8 6, 9 9, 10 9, 11 6, 12 7, 13 7, 14 7, 15 11, 16 7, repeat 8
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/333, 2 641/328, 3 641/415, 4 640/319, 5 640/372, 6 641/339, 7 641/324, 8 641/349, 9 641/416, 10 643/380, 11 640/357, 12 641/347, 13 640/303, 14 641/328, 15 641/466, 16 641/356
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 44979930034-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 44979930034-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 44979930034-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 44979930034-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 44979930034-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 44979930034-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 44979930034-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 44979930034-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 44979930034-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 44979930034-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 44979930034-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 44979930034-local-9
-  - 10: [e2e:teardown] deleted 7 user(s) owned by process 44979930034-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 44979930034-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 44979930034-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 44979930034-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 44979930034-local-14
-  - 15: [e2e:teardown] deleted 45 user(s) owned by process 44979930034-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 44979930034-local-16
-  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 44979930034-local-repeat
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45000932724-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 45000932724-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45000932724-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45000932724-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 45000932724-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 45000932724-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 45000932724-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 45000932724-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45000932724-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 45000932724-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 45000932724-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 45000932724-local-9
+  - 10: [e2e:teardown] deleted 7 user(s) owned by process 45000932724-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45000932724-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45000932724-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 45000932724-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 45000932724-local-14
+  - 15: [e2e:teardown] deleted 45 user(s) owned by process 45000932724-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 45000932724-local-16
+  - repeat: [e2e:teardown] deleted 18 user(s) owned by process 45000932724-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -77,47 +77,5 @@ Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
-
-## Lane 6
-- Step failure:
-Step smoke: outcome failure
-  
-- admin-locations.spec.ts / L2a locations console / LT-1 gating: a plain user is refused; the roster, its toolbar and the header's actions render for an admin / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-2 roster: the seeded ET tree renders, an alias narrows the search, the level filter scopes, nothing overflows / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down / mobile-360 — Test timeout of 60000ms exceeded.
-- admin-locations.spec.ts / L2a locations console / LT-4 path rule: retiring a scratch region hides its active descendants from the public tree / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-5 delete guard: a parent is refused, then the chain deletes deepest-first with the typed address / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-6 step-up: an unproven factor cannot move a row; once proven the move carries the descendants / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-7b the editor round-trips a row without dropping a stored field / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-8 verb reachability: every verb and the save button are inside the viewport (CT-8 mirror) / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-9b roster shape, card twin: the edit icon sits inline beside the path line / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-10 tones: retired is destructive, active is secondary, a level badge is outline / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-11 one read per country: filtering costs no request, switching the market costs exactly one / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-12 transfer scope: exports and the import title follow the selected country / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-14 market state and whole-country parent follow the selected market / mobile-360 — Test timeout of 60000ms exceeded.
-- admin-locations.spec.ts / L2a locations console / LT-16 the row's actions: Edit, a red Delete and the menu's verbs open the editor's own dialogs / mobile-360 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-1 gating: a plain user is refused; the roster, its toolbar and the header's actions render for an admin / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-2 roster: the seeded ET tree renders, an alias narrows the search, the level filter scopes, nothing overflows / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-3 create chain: region → city → sub-city are born retired with their ancestry filled, and activate top-down / desktop-1280 — Test timeout of 60000ms exceeded.
-- admin-locations.spec.ts / L2a locations console / LT-4 path rule: retiring a scratch region hides its active descendants from the public tree / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-5 delete guard: a parent is refused, then the chain deletes deepest-first with the typed address / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-6 step-up: an unproven factor cannot move a row; once proven the move carries the descendants / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-7 import round trip: a three-row file previews, commits, exports, deletes and undoes with the original ids / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-7b the editor round-trips a row without dropping a stored field / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-8 verb reachability: every verb and the save button are inside the viewport (CT-8 mirror) / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-9a roster shape, table twin: the edit icon sits in the end column with pagination / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-10 tones: retired is destructive, active is secondary, a level badge is outline / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-11 one read per country: filtering costs no request, switching the market costs exactly one / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-12 transfer scope: exports and the import title follow the selected country / desktop-1280 — Error: expect(locator).toBeVisible() failed
-- admin-locations.spec.ts / L2a locations console / LT-14 market state and whole-country parent follow the selected market / desktop-1280 — Test timeout of 60000ms exceeded.
-- admin-locations.spec.ts / L2a locations console / LT-16 the row's actions: Edit, a red Delete and the menu's verbs open the editor's own dialogs / desktop-1280 — Error: expect(locator).toBeVisible() failed
-
-## Lane repeat
-- Step failure:
-Step smoke: outcome failure
-  repeat-cap: failed
-- admin-monetisation.spec.ts / P-1b Admin › Monetisation / MON-16 the order strip: a market switched on with a sellable product that has no price reads Needs a row, names a product and its market, and its link opens that product's prices / mobile-360 — Error: expect(locator).toContainText(expected) failed
-- admin-monetisation.spec.ts / P-1b Admin › Monetisation / MON-16 the order strip: a market switched on with a sellable product that has no price reads Needs a row, names a product and its market, and its link opens that product's prices / desktop-1280 — Error: expect(locator).toContainText(expected) failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
