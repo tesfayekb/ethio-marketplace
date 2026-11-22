@@ -581,9 +581,7 @@ One anatomy serves dialogs, alerts, sheets and toolbar panels. The primitive var
 surfaces live in `dialog-parts-look.ts` with the on-demand implementation. A banded frame has
 no padding or scrolling of its own at any placement: on a phone the bottom inset (the safe
 area) is its last band's, never the frame's. The existing unbanded primitive remains
-available for specimens and the step-up dialog pending Cursor's migration. While the cue
-shows, the body keeps the cue's room as scroll padding, so what is brought into view stands
-clear of it (WCAG 2.2, 2.4.11).
+available for specimens and the step-up dialog pending Cursor's migration.
 
 ### Parts and consumers
 
@@ -643,7 +641,9 @@ passes the translated `dialog.moreBelow` cue label to the real body.
   squeezes a fixed-height clipped child in Chromium (the pin map fell to its border); and
   unless it is `relative`, a screen-reader-only label inside it is laid out against the
   frame, which then has hidden room below its footer and can be scrolled off its header.
-  The cue is a zero-height sticky anchor, the scroller's last child.
+  The cue is a zero-height sticky anchor, the scroller's last child. While it shows, the
+  body keeps the cue's room as scroll padding, so what is brought into view stands clear
+  of it (WCAG 2.2, 2.4.11; INC-1254).
 - A frame's last band carries the bottom inset: the footer does; a body with no footer
   says `end`. The toolbar panel says it on a phone only (its desktop form is a popover).
 - A change of a dialog's frame never changes its content's width: the buyer's preview
