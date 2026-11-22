@@ -1,80 +1,16 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 45038904160 passed
+last E2E run 45081574208 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45038904160
-- Commit: `9e2c2d1c24db5a2fb93d5580d689f8180a72fd68`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45081574208
+- Commit: `dd17850c2052d70e8fc6d38f1fe3bd8ded2bce7d`
 - Attempt: 1
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-ca6d0f1aa7c1… (0 read)
-- Repeat: 34 of 1475 tests repeated — specs directly changed 1/1, importers of a changed helper 2/112; budget 643 s
-- Written (UTC): 2026-11-22T15:48:18.152Z
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-10421a59fcf4… (0 read)
+- Repeat: 34 of 1479 tests repeated — specs directly changed 1/1, importers of a changed helper 2/112; budget 643 s
+- Written (UTC): 2026-11-22T23:23:04.727Z
 - Post-test warnings: 60
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): none
-
-## Flake ledger (DEC-030)
-
-These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
-a test flaky 3× in 7 days gets an INC and root-cause work.
-
-- FLAKY (passed on retry) · `mobile-360` · source `shard 11` · house-style.spec.ts › house style fixture › HS-6 the focus ring shows after keyboard use only — Test timeout of 60000ms exceeded.
-
-## Flaky bodies (DEC-078)
-
-### house-style.spec.ts › house style fixture › HS-6 the focus ring shows after keyboard use only
-
-- Source: `shard 11`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.click: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('style-row-1-more-copy')
-    - locator resolved to <div tabindex="-1" role="menuitem" data-orientation="vertical" data-radix-collection-item="" data-testid="style-row-1-more-copy" class="data-[pressed]:bg-nav-pill data-[pressed]:text-nav-ink data-[pressed]:transition-none data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none relative flex min-h-11 md:pointer-fine:min-h-10 md:pointer-fine:h-10 w-full min-w-0 cursor-default select-none items-center gap-2 roun…>…</div>
-  - attempting click action
-    2 × waiting for element to be visible, enabled and stable
-      - element is visible, enabled and stable
-      - scrolling into view if needed
-      - done scrolling
-      - element is outside of the viewport
-    - retrying click action
-    - waiting 20ms
-    2 × waiting for element to be visible, enabled and stable
-      - element is visible, enabled and stable
-      - scrolling into view if needed
-      - done scrolling
-      - element is outside of the viewport
-    - retrying click action
-      - waiting 100ms
-    114 × waiting for element to be visible, enabled and stable
-```
-
-Context:
-
-```text
-          - list [ref=e1671]:
-            - listitem [ref=e1672]:
-              - generic [ref=e1673]: Safety
-        - navigation "Legal" [ref=e1674]:
-          - heading "Legal" [level=2] [ref=e1675]
-          - list [ref=e1676]:
-            - listitem [ref=e1677]:
-              - link "Terms" [ref=e1678] [cursor=pointer]:
-                - /url: /terms
-            - listitem [ref=e1679]:
-              - link "Privacy" [ref=e1680] [cursor=pointer]:
-                - /url: /privacy
-      - paragraph [ref=e1682]: © 2026 ethio.com — All rights reserved.
-  - menu "Actions — Alpha" [active] [ref=e1684]:
-    - menuitem "Copy" [ref=e1685]:
-      - generic [ref=e1686]: Copy
-    - separator [ref=e1687]
-    - menuitem "Erase" [ref=e1688]:
-      - generic [ref=e1689]: Erase
-```
-```
 
 ## Errors outside any test (INC-589)
 
@@ -132,163 +68,163 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-22T15:36:33.547Z | 4.1 min |
-| email | 2026-11-22T15:36:50.078Z | 0.4 min |
-| webkit | 2026-11-22T15:36:47.820Z | 8.8 min |
-| shard 1 | 2026-11-22T15:36:54.464Z | 5.8 min |
-| shard 2 | 2026-11-22T15:36:27.590Z | 5.3 min |
-| shard 3 | 2026-11-22T15:37:34.051Z | 6.7 min |
-| shard 4 | 2026-11-22T15:37:02.150Z | 8.1 min |
-| shard 5 | 2026-11-22T15:40:49.649Z | 6.1 min |
-| shard 6 | 2026-11-22T15:36:28.567Z | 5.7 min |
-| shard 7 | 2026-11-22T15:36:46.174Z | 5.4 min |
-| shard 8 | 2026-11-22T15:36:49.269Z | 6.2 min |
-| shard 9 | 2026-11-22T15:38:12.162Z | 6.7 min |
-| shard 10 | 2026-11-22T15:36:42.526Z | 5.7 min |
-| shard 11 | 2026-11-22T15:36:41.079Z | 6.3 min |
-| shard 12 | 2026-11-22T15:36:31.744Z | 5.9 min |
-| shard 13 | 2026-11-22T15:37:00.783Z | 6.4 min |
-| shard 14 | 2026-11-22T15:36:20.715Z | 5.4 min |
-| shard 15 | 2026-11-22T15:37:13.266Z | 7.6 min |
-| shard 16 | 2026-11-22T15:36:52.759Z | 7.0 min |
-| repeat | 2026-11-22T15:38:46.580Z | 8.6 min |
+| smoke | 2026-11-22T23:15:02.881Z | 4.2 min |
+| email | 2026-11-22T23:11:30.961Z | 0.3 min |
+| webkit | 2026-11-22T23:12:09.487Z | 9.3 min |
+| shard 1 | 2026-11-22T23:11:44.644Z | 5.5 min |
+| shard 2 | 2026-11-22T23:12:10.437Z | 5.4 min |
+| shard 3 | 2026-11-22T23:12:03.874Z | 6.5 min |
+| shard 4 | 2026-11-22T23:13:10.379Z | 5.9 min |
+| shard 5 | 2026-11-22T23:11:44.415Z | 6.1 min |
+| shard 6 | 2026-11-22T23:12:18.571Z | 7.1 min |
+| shard 7 | 2026-11-22T23:12:11.219Z | 5.1 min |
+| shard 8 | 2026-11-22T23:11:41.727Z | 5.8 min |
+| shard 9 | 2026-11-22T23:12:34.105Z | 6.7 min |
+| shard 10 | 2026-11-22T23:12:31.592Z | 7.2 min |
+| shard 11 | 2026-11-22T23:14:49.326Z | 7.4 min |
+| shard 12 | 2026-11-22T23:12:17.038Z | 5.8 min |
+| shard 13 | 2026-11-22T23:12:02.648Z | 4.9 min |
+| shard 14 | 2026-11-22T23:11:58.728Z | 5.1 min |
+| shard 15 | 2026-11-22T23:12:40.332Z | 6.9 min |
+| shard 16 | 2026-11-22T23:12:51.822Z | 5.3 min |
+| repeat | 2026-11-22T23:11:43.453Z | 8.8 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `admin-categories-console.spec.ts` | 102 | 12.0 min | shard 7, repeat |
-| `shell.spec.ts` | 234 | 10.0 min | shard 1 |
-| `import-security.spec.ts` | 36 | 7.6 min | shard 4 |
-| `post-wizard-bundle2.spec.ts` | 70 | 5.7 min | shard 3 |
+| `admin-categories-console.spec.ts` | 102 | 11.9 min | shard 7, repeat |
+| `shell.spec.ts` | 234 | 9.6 min | shard 1 |
+| `admin-listings.spec.ts` | 82 | 6.7 min | webkit, shard 10 |
+| `post-wizard-bundle2.spec.ts` | 70 | 5.6 min | shard 3 |
 | `admin-attributes-library.spec.ts` | 42 | 5.6 min | shard 2 |
-| `admin-listings.spec.ts` | 82 | 5.6 min | webkit, shard 10 |
-| `auth-signout.spec.ts` | 44 | 5.5 min | webkit, shard 9 |
-| `ad-page.spec.ts` | 104 | 5.3 min | webkit, shard 13 |
-| `photo-pipeline.spec.ts` | 74 | 5.3 min | webkit, shard 16 |
-| `admin-translations-console.spec.ts` | 46 | 5.1 min | smoke, shard 8 |
-| `admin-screening.spec.ts` | 64 | 4.9 min | webkit, shard 14 |
-| `feed-screens.spec.ts` | 40 | 4.9 min | webkit, shard 5 |
-| `admin-attributes-links.spec.ts` | 34 | 4.8 min | shard 13 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 4.8 min | shard 15 |
+| `admin-locations.spec.ts` | 44 | 5.5 min | shard 6 |
+| `auth-signout.spec.ts` | 44 | 5.4 min | webkit, shard 9 |
+| `import-security.spec.ts` | 36 | 5.4 min | shard 4 |
+| `dialogs.spec.ts` | 36 | 5.2 min | webkit, shard 10 |
+| `post-wizard-place.spec.ts` | 40 | 5.1 min | shard 11 |
+| `feed-screens.spec.ts` | 40 | 5.0 min | webkit, shard 5 |
+| `admin-translations-console.spec.ts` | 46 | 4.9 min | smoke, shard 8 |
+| `admin-screening.spec.ts` | 64 | 4.7 min | webkit, shard 14 |
+| `post-wizard-where.spec.ts` | 32 | 4.7 min | shard 11 |
 | `admin-roles.spec.ts` | 28 | 4.7 min | shard 9 |
-| `admin-locations.spec.ts` | 44 | 4.6 min | shard 6 |
-| `admin-users.spec.ts` | 28 | 4.6 min | shard 16 |
-| `post-wizard-specs.spec.ts` | 82 | 4.4 min | shard 12 |
-| `post-wizard-place.spec.ts` | 40 | 4.3 min | shard 11 |
+| `post-wizard-specs.spec.ts` | 82 | 4.3 min | shard 12 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 4.2 min | shard 15 |
+| `ad-page.spec.ts` | 104 | 4.1 min | webkit, shard 13 |
 | `viewing-place.spec.ts` | 22 | 4.1 min | shard 15 |
-| `post-wizard-where.spec.ts` | 32 | 3.7 min | shard 11 |
-| `dialogs.spec.ts` | 28 | 3.7 min | webkit, shard 10 |
-| `admin-monetisation.spec.ts` | 34 | 3.6 min | smoke, shard 10 |
-| `post-wizard-pricing.spec.ts` | 52 | 3.5 min | shard 8 |
-| `post-wizard-category.spec.ts` | 52 | 3.4 min | webkit, shard 4 |
+| `admin-attributes-links.spec.ts` | 34 | 3.9 min | shard 13 |
+| `photo-pipeline.spec.ts` | 74 | 3.8 min | webkit, shard 16 |
+| `admin-users.spec.ts` | 28 | 3.7 min | shard 16 |
+| `admin-monetisation.spec.ts` | 34 | 3.7 min | smoke, shard 10 |
+| `sage-bands.spec.ts` | 76 | 3.4 min | shard 6 |
+| `post-wizard-pricing.spec.ts` | 52 | 3.3 min | shard 8 |
 | `my-listings-ad.spec.ts` | 38 | 3.3 min | shard 12 |
-| `admin-attributes-editor.spec.ts` | 36 | 3.2 min | shard 14 |
-| `admin-translations-governance.spec.ts` | 20 | 3.2 min | smoke, shard 16 |
-| `post-wizard-resets.spec.ts` | 34 | 2.8 min | shard 3 |
-| `choice-lists.spec.ts` | 96 | 2.7 min | shard 7 |
-| `mfa-stepup.spec.ts` | 24 | 2.7 min | webkit, shard 15 |
-| `admin-attributes-safety.spec.ts` | 18 | 2.4 min | shard 5 |
-| `sage-bands.spec.ts` | 76 | 2.4 min | shard 6 |
+| `admin-attributes-editor.spec.ts` | 36 | 3.1 min | shard 14 |
+| `admin-translations-governance.spec.ts` | 20 | 3.0 min | smoke, shard 16 |
+| `post-wizard-category.spec.ts` | 52 | 2.7 min | webkit, shard 4 |
+| `post-wizard-resets.spec.ts` | 34 | 2.7 min | shard 3 |
+| `admin-countries.spec.ts` | 18 | 2.6 min | shard 6 |
+| `choice-lists.spec.ts` | 96 | 2.5 min | shard 7 |
+| `admin-attributes-safety.spec.ts` | 18 | 2.3 min | shard 5 |
+| `mfa-stepup.spec.ts` | 24 | 2.3 min | webkit, shard 15 |
 | `posting-routes.spec.ts` | 80 | 2.2 min | shard 2 |
-| `admin-countries.spec.ts` | 18 | 2.2 min | shard 6 |
-| `admin-translations-data.spec.ts` | 10 | 2.0 min | shard 5 |
-| `admin-attributes-import.spec.ts` | 40 | 1.9 min | shard 8 |
-| `legal-admin.spec.ts` | 44 | 1.9 min | shard 7 |
-| `admin-categories-home.spec.ts` | 10 | 1.8 min | shard 4 |
-| `sage-ad-page.spec.ts` | 30 | 1.7 min | webkit, shard 11 |
-| `admin-audit.spec.ts` | 16 | 1.7 min | shard 9 |
-| `house-style.spec.ts` | 14 | 1.6 min | shard 11 |
-| `legal-certify.spec.ts` | 44 | 1.5 min | shard 14 |
-| `admin-categories-images.spec.ts` | 6 | 1.4 min | smoke, webkit, shard 12 |
+| `sage-ad-page.spec.ts` | 30 | 2.1 min | webkit, shard 11 |
+| `admin-translations-data.spec.ts` | 10 | 1.9 min | shard 5 |
+| `admin-audit.spec.ts` | 16 | 1.8 min | shard 9 |
+| `admin-attributes-import.spec.ts` | 40 | 1.8 min | shard 8 |
+| `legal-admin.spec.ts` | 44 | 1.7 min | shard 7 |
+| `admin-categories-home.spec.ts` | 10 | 1.7 min | shard 4 |
 | `sage-tiers.spec.ts` | 52 | 1.4 min | webkit, shard 2 |
+| `admin-categories-images.spec.ts` | 6 | 1.4 min | smoke, webkit, shard 12 |
+| `my-listings-promote.spec.ts` | 10 | 1.4 min | shard 11 |
+| `legal-certify.spec.ts` | 44 | 1.4 min | shard 14 |
+| `my-listings-page.spec.ts` | 24 | 1.3 min | webkit, shard 10 |
 | `admin-guides.spec.ts` | 14 | 1.2 min | shard 3 |
-| `one-line-slots-admin.spec.ts` | 10 | 1.2 min | shard 3 |
 | `ad-page-doors.spec.ts` | 90 | 1.2 min | shard 14, repeat |
-| `user-guides.spec.ts` | 18 | 1.2 min | shard 13 |
+| `one-line-slots-admin.spec.ts` | 10 | 1.2 min | shard 3 |
 | `phone-frame.spec.ts` | 18 | 1.1 min | shard 12 |
-| `press.spec.ts` | 22 | 1.1 min | shard 12 |
-| `i18n-sign-in-language.spec.ts` | 12 | 1.1 min | shard 15 |
-| `my-listings-page.spec.ts` | 24 | 1.1 min | webkit, shard 10 |
-| `my-listings-promote.spec.ts` | 10 | 1.1 min | shard 11 |
-| `sage-shell.spec.ts` | 80 | 1.0 min | shard 16 |
+| `house-style.spec.ts` | 14 | 1.1 min | shard 11 |
+| `press.spec.ts` | 22 | 1.0 min | shard 12 |
 | `admin-shell.spec.ts` | 12 | 1.0 min | shard 2 |
-| `locations-tree.spec.ts` | 8 | 1.0 min | shard 13 |
 | `name-check-queue.spec.ts` | 8 | 0.9 min | smoke, shard 9 |
-| `my-listings-levels.spec.ts` | 28 | 0.9 min | shard 4 |
-| `sage-cards.spec.ts` | 40 | 0.8 min | webkit, shard 7 |
-| `legal-doors.spec.ts` | 34 | 0.7 min | smoke, shard 8 |
+| `i18n-sign-in-language.spec.ts` | 12 | 0.9 min | shard 15 |
+| `user-guides.spec.ts` | 18 | 0.8 min | shard 13 |
+| `locations-tree.spec.ts` | 8 | 0.8 min | shard 13 |
+| `sage-cards.spec.ts` | 40 | 0.7 min | webkit, shard 7 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.7 min | shard 6 |
+| `sage-shell.spec.ts` | 80 | 0.7 min | shard 16 |
 | `post-wizard-removed.spec.ts` | 4 | 0.7 min | shard 7 |
-| `supabase-door.spec.ts` | 12 | 0.6 min | shard 13 |
-| `my-listings-doors.spec.ts` | 28 | 0.6 min | shard 3 |
-| `primitives-law.spec.ts` | 24 | 0.6 min | shard 16 |
+| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 4 |
+| `legal-doors.spec.ts` | 34 | 0.6 min | smoke, shard 8 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
-| `account-saved.spec.ts` | 12 | 0.5 min | shard 4, repeat |
-| `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
-| `i18n-coverage.spec.ts` | 14 | 0.5 min | shard 4 |
-| `layout.spec.ts` | 18 | 0.4 min | webkit, shard 10 |
-| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6 |
-| `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 14 |
-| `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 5 |
-| `admin-services.spec.ts` | 10 | 0.4 min | shard 1 |
+| `layout.spec.ts` | 18 | 0.5 min | webkit, shard 10 |
+| `my-listings-doors.spec.ts` | 28 | 0.5 min | shard 3 |
+| `post-wizard-finder.spec.ts` | 8 | 0.5 min | shard 6 |
+| `supabase-door.spec.ts` | 12 | 0.4 min | shard 13 |
+| `account-saved.spec.ts` | 12 | 0.4 min | shard 4, repeat |
+| `legal-pages.spec.ts` | 10 | 0.4 min | shard 11 |
 | `one-line-slots.spec.ts` | 10 | 0.4 min | shard 8 |
-| `settings.spec.ts` | 9 | 0.4 min | shard 1 |
-| `page-head.spec.ts` | 4 | 0.4 min | shard 13 |
+| `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 14 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 16 |
+| `breadcrumbs.spec.ts` | 6 | 0.4 min | shard 10 |
 | `legal-accept.spec.ts` | 12 | 0.4 min | shard 2 |
-| `submenu.spec.ts` | 14 | 0.3 min | smoke, shard 15 |
-| `auth-signup.spec.ts` | 6 | 0.3 min | email |
-| `legal-history.spec.ts` | 6 | 0.3 min | shard 16 |
+| `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 5 |
 | `posting-routes-dials.spec.ts` | 14 | 0.3 min | shard 9 |
-| `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 10 |
-| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 11 |
+| `submenu.spec.ts` | 14 | 0.3 min | smoke, shard 15 |
+| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4 |
+| `settings.spec.ts` | 9 | 0.3 min | shard 1 |
+| `feed-index.spec.ts` | 30 | 0.3 min | shard 6 |
+| `admin-services.spec.ts` | 10 | 0.3 min | shard 1 |
 | `shell-bands.spec.ts` | 16 | 0.3 min | smoke, shard 12 |
-| `overlays.spec.ts` | 8 | 0.3 min | shard 15 |
-| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
+| `auth-signup.spec.ts` | 6 | 0.2 min | email |
 | `a11y.spec.ts` | 4 | 0.2 min | smoke |
+| `post-wizard-units.spec.ts` | 4 | 0.2 min | shard 3 |
+| `page-head.spec.ts` | 4 | 0.2 min | shard 13 |
+| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
+| `overlays.spec.ts` | 8 | 0.2 min | shard 15 |
 | `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
-| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
+| `legal-history.spec.ts` | 6 | 0.2 min | shard 16 |
 | `feed-route.spec.ts` | 22 | 0.2 min | shard 9 |
 | `menu-rows.spec.ts` | 6 | 0.2 min | smoke, shard 14 |
+| `auth-reset.spec.ts` | 6 | 0.2 min | shard 8 |
 | `submenu-look.spec.ts` | 12 | 0.2 min | smoke, shard 2 |
-| `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
+| `admin-ai-calls.spec.ts` | 2 | 0.2 min | shard 11 |
 | `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
-| `door-refusals.spec.ts` | 14 | 0.1 min | shard 7 |
-| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
 | `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 13 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
-| `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
+| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
+| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
+| `door-refusals.spec.ts` | 14 | 0.1 min | shard 7 |
 | `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
-| `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
-| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 2 |
+| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 13 |
 | `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
-| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
+| `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
+| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
+| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
+| `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
 | `fonts.spec.ts` | 2 | 0.0 min | shard 1 |
-| `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
 | `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 3 |
+| `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 11 |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `house-style.spec.ts` › HS-6 the focus ring shows after keyboard use only | mobile-360 | 61.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 53.9 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 51.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 50.4 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | mobile-360 | 50.4 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 49.1 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 41.6 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 46.4 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 45.4 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 42.4 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 40.4 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 37.7 s |
 | `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | desktop-1280 | 34.7 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 34.7 s |
-| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 33.9 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 32.2 s |
-| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | webkit-390 | 31.5 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 31.5 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 31.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 30.9 s |
+| `auth-signout.spec.ts` › SO-15 a session gone with no event ends at the first 401: the notice offers sign-in, and the poll calls no more (INC-1218) | mobile-360 | 34.0 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 33.5 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 32.2 s |
+| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | desktop-1280 | 32.0 s |
+| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 31.2 s |
+| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 31.1 s |
+| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 31.1 s |
+| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 30.9 s |
+| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | desktop-1280 | 30.7 s |
