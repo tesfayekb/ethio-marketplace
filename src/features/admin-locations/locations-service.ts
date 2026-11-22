@@ -4,7 +4,7 @@ import { answeredId } from "@/lib/answered-id";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { ownValue } from "@/lib/own-key";
 import { compareNames } from "@/lib/name-collator";
-import { rpc, type DoorArgs } from "@/lib/supabase-door";
+import { rpc } from "@/lib/supabase-door";
 
 /**
  * LOCATIONS ERA L2a — THE LOCATIONS CONSOLE CLIENT SEAM.
@@ -94,22 +94,17 @@ export async function listLocations(
   // INC-459 — every page, asked for after the last id (locations.id is the
   // table's PRIMARY KEY), never by position: the all-countries scope passes
   // 1,000 rows.
-  // L2b-C1 — "" is the ALL-COUNTRIES scope: the door reads every market when its
-  // country argument is NULL (L2b-M re-declaration). The search, level and
-  // status arguments have their DEFAULT (NULL) and are left out. The keyset read
-  // needs the client's query builder, which `rpc()` does not return, so this is
-  // the one door call that asserts the NULL (the generated type declares the
-  // country non-null) — as a plain assertion of the one argument, never through
-  // `unknown`; the typed Result of every door call is F1-7's.
-  const args: DoorArgs<"admin_list_locations"> = {
-    p_country_code: countryCode === "" ? null : countryCode,
-  };
+  // L2b-C1 — "" is the ALL-COUNTRIES scope: the door reads every market when it
+  // is sent no country. DEC-420 — the door's country argument is a list, so one
+  // market is a list of one and the all-countries scope sends no argument (the
+  // door's DEFAULT). The search, level and status arguments have their DEFAULT
+  // (NULL) and are left out. The keyset read needs the client's query builder,
+  // which `rpc()` does not return.
+  const args: { p_country_code?: string[] } =
+    countryCode === "" ? {} : { p_country_code: [countryCode] };
   const pages = await readAllPages(
     (after, limit) => {
-      const query = supabase
-        .rpc("admin_list_locations", args as { p_country_code: string })
-        .order("id")
-        .limit(limit);
+      const query = supabase.rpc("admin_list_locations", args).order("id").limit(limit);
       return after === null ? query : query.gt("id", after);
     },
     (row) => row.id,

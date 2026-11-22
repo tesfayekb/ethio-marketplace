@@ -4688,8 +4688,8 @@ export type Database = {
       }
       admin_list_listings: {
         Args: {
-          p_category?: string
-          p_country?: string
+          p_category?: string[]
+          p_country?: string[]
           p_from?: string
           p_limit?: number
           p_offset?: number
@@ -4736,7 +4736,7 @@ export type Database = {
       admin_list_locations: {
         Args: {
           p_active?: boolean
-          p_country_code: string
+          p_country_code?: string[]
           p_level?: string
           p_search?: string
         }
@@ -5103,6 +5103,17 @@ export type Database = {
         Returns: undefined
       }
       admin_screening_facts: { Args: { p_listing_id: string }; Returns: Json }
+      admin_screening_queue: {
+        Args: {
+          p_country?: string[]
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_seller?: string
+          p_tier?: string
+        }
+        Returns: Json
+      }
       admin_set_account_status: {
         Args: { p_reason?: string; p_status: string; p_user_id: string }
         Returns: Json
@@ -5685,6 +5696,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      door_filter_categories: {
+        Args: { p_field: string; p_values: string[] }
+        Returns: string[]
+      }
+      door_filter_countries: {
+        Args: { p_field: string; p_values: string[] }
+        Returns: string[]
+      }
       door_refusal_status: { Args: { p_code: string }; Returns: string }
       door_refuse: {
         Args: { p_code: string; p_detail?: string }
@@ -6103,7 +6122,7 @@ export type Database = {
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
       my_listings: {
         Args: {
-          p_category?: string
+          p_category?: string[]
           p_group: string
           p_limit?: number
           p_mark?: string

@@ -4,7 +4,7 @@ import { type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
-import { pageDoor } from "./helpers/door-callers";
+import { asPerson, pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
@@ -1491,5 +1491,124 @@ test.describe("ADMIN SCREENING", () => {
       "SC-27: the cleared chip did not bring the regular ad back",
     ).toBeVisible({ timeout: 20000 });
     await expect(rowOf(page, premium.id)).toBeVisible();
+  });
+
+  // ───────────── cursor-bundle-2 (DEC-422, ACT-022) — THE QUEUE'S OWN DOOR (SC-28..SC-30) ─────────────
+  // `admin_screening_queue` as people call it from node (the same REST request the browser's
+  // client sends): the seller's names and, for profiles:view only, the e-mail; the country list.
+
+  type QueueAnswer = { total: number; rows: Array<Record<string, unknown>> };
+
+  /** The seller's public name, as the scratch seller was given it. */
+  async function aliasOf(userId: string): Promise<string> {
+    const { data, error } = await adminClient()
+      .from("profiles")
+      .select("seller_alias")
+      .eq("user_id", userId)
+      .single();
+    if (error || typeof data?.seller_alias !== "string") {
+      throw new Error(`[e2e:sc] reading the alias failed: ${error?.message ?? "no alias"}`);
+    }
+    return data.seller_alias;
+  }
+
+  test("SC-28 a reviewer without profiles:view sees the seller's name and business name, no e-mail in any row, and an e-mail term matches nothing", async () => {
+    const business = `Acme ${rand().replace(/[0-9]/g, "x")}`;
+    const ad = await seedWaiting({ business });
+    const alias = await aliasOf(ad.sellerId);
+    const reviewerAccount = await leaseUser();
+    await grantScratchRole(reviewerAccount.id, [["listings", "review"]], roles);
+    const reviewer = await asPerson(reviewerAccount);
+
+    const own = await reviewer.rpc("admin_screening_queue", { p_search: ad.id });
+    expect(own.error, "[e2e:sc] the reviewer's read").toBeNull();
+    const answer = own.data as QueueAnswer;
+    expect(answer.total).toBe(1);
+    expect(answer.rows).toHaveLength(1);
+    expect(answer.rows[0]).toMatchObject({
+      id: ad.id,
+      seller_alias: alias,
+      seller_business_name: business,
+      seller_email: null,
+    });
+    for (const row of answer.rows) expect(JSON.stringify(row)).not.toContain(ad.seller.email);
+
+    const byName = await reviewer.rpc("admin_screening_queue", {
+      p_search: ad.id,
+      p_seller: alias,
+    });
+    expect((byName.data as QueueAnswer).total, "SC-28: the public name did not match").toBe(1);
+    const byBusiness = await reviewer.rpc("admin_screening_queue", {
+      p_search: ad.id,
+      p_seller: business,
+    });
+    expect((byBusiness.data as QueueAnswer).total, "SC-28: the business name did not match").toBe(
+      1,
+    );
+    const byEmail = await reviewer.rpc("admin_screening_queue", {
+      p_search: ad.id,
+      p_seller: ad.seller.email,
+    });
+    expect(byEmail.error).toBeNull();
+    expect(
+      (byEmail.data as QueueAnswer).total,
+      "SC-28: an e-mail matched without profiles:view",
+    ).toBe(0);
+  });
+
+  test("SC-29 a reviewer with profiles:view reads the seller's e-mail on the row and matches by it", async () => {
+    const ad = await seedWaiting();
+    const reviewerAccount = await leaseUser();
+    await grantScratchRole(
+      reviewerAccount.id,
+      [
+        ["listings", "review"],
+        ["profiles", "view"],
+      ],
+      roles,
+    );
+    const reviewer = await asPerson(reviewerAccount);
+
+    const own = await reviewer.rpc("admin_screening_queue", { p_search: ad.id });
+    expect(own.error, "[e2e:sc] the reviewer's read").toBeNull();
+    expect((own.data as QueueAnswer).rows[0]).toMatchObject({
+      id: ad.id,
+      seller_email: ad.seller.email,
+    });
+    const byEmail = await reviewer.rpc("admin_screening_queue", {
+      p_search: ad.id,
+      p_seller: ad.seller.email,
+    });
+    expect(byEmail.error).toBeNull();
+    expect((byEmail.data as QueueAnswer).rows.map((row) => row["id"])).toEqual([ad.id]);
+  });
+
+  test("SC-30 the country filter is a list, OR-ed; more than twenty values are refused; viewing alone is not reviewing (DEC-420, DEC-423)", async () => {
+    const ad = await seedWaiting();
+    const person = await leaseUser();
+    const caller = await asPerson(person);
+    const many = Array.from({ length: 21 }, () => "ET");
+
+    // No listings:review, with or without listings:view: refused before any list is read.
+    expect((await caller.rpc("admin_screening_queue", { p_country: many })).error).toBe(
+      "permissionDenied",
+    );
+    await grantScratchRole(person.id, [["listings", "view"]], roles);
+    expect((await caller.rpc("admin_screening_queue", { p_country: ["ET"] })).error).toBe(
+      "permissionDenied",
+    );
+
+    await grantScratchRole(person.id, [["listings", "review"]], roles);
+    const ids = async (args: Record<string, unknown>) => {
+      const result = await caller.rpc("admin_screening_queue", { p_search: ad.id, ...args });
+      expect(result.error, `[e2e:sc] ${JSON.stringify(args)}`).toBeNull();
+      return (result.data as QueueAnswer).rows.map((row) => row["id"]);
+    };
+    expect(await ids({ p_country: ["KE", "ET"] })).toEqual([ad.id]);
+    expect(await ids({ p_country: ["KE", "US"] })).toEqual([]);
+    expect(await ids({ p_country: [] })).toEqual([ad.id]);
+    expect((await caller.rpc("admin_screening_queue", { p_country: many })).error).toBe(
+      "badValue:country",
+    );
   });
 });

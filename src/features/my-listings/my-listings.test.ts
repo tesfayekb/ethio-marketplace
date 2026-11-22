@@ -143,8 +143,14 @@ describe("my_listings answer", () => {
     expect(SEARCH_MAX).toBe(100);
     expect(
       filterArgs({ search: "", category: "00000000-0000-4000-8000-0000000000c1", mark: "reduced" }),
-    ).toEqual({ p_category: "00000000-0000-4000-8000-0000000000c1", p_mark: "reduced" });
+    ).toEqual({ p_category: ["00000000-0000-4000-8000-0000000000c1"], p_mark: "reduced" });
     expect(LISTING_MARKS).toEqual(["reserved", "reduced"]);
+  });
+
+  it("ML-U29 the one category the page filters by reaches the door as a list of one, and no category sends no list (DEC-420)", () => {
+    const category = "00000000-0000-4000-8000-0000000000c1";
+    expect(filterArgs({ search: "", category, mark: null })).toEqual({ p_category: [category] });
+    expect(filterArgs({ search: "", category: null, mark: null })).not.toHaveProperty("p_category");
   });
 
   it("ML-U4 six groups, in the page's order, each with its word", () => {

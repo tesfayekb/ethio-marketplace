@@ -576,6 +576,52 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     expect(gone.error).toBe("badValue:mark");
   });
 
+  test("MLP-10 my_listings: a list of categories is OR-ed, each with its subtree; more than twenty values are refused (DEC-420, DEC-423)", async () => {
+    const sellerA = await scratchSeller();
+    const second = await seedCategoryBranch();
+    branches.push([second.parent.slug as string, second.leaf.slug as string]);
+    const onSecond = { ...sellerA, leafId: second.leaf.id as string };
+    const a = await asPerson(sellerA);
+    const X1 = await seed(sellerA, "active", { title: "Red phone" });
+    const X3 = await seed(onSecond, "active", { title: "Blue chair" });
+
+    const ask = async (args: Record<string, unknown>) =>
+      a.rpc("my_listings", { p_group: "live", p_limit: 50, p_offset: 0, ...args });
+    const idsOf = (call: { data: unknown }) =>
+      ((call.data as { rows: Array<{ id: string }> }).rows ?? []).map((row) => row.id).sort();
+
+    // Two categories OR-ed: each parent brings the ad that sits under it.
+    const both = await ask({ p_category: [sellerA.parentId, second.parent.id as string] });
+    expect(both.error, "[e2e:mlp] two categories").toBeNull();
+    expect(idsOf(both)).toEqual([X1, X3].sort());
+    // An empty list filters nothing.
+    const none = await ask({ p_category: [] });
+    expect(none.error, "[e2e:mlp] an empty list").toBeNull();
+    expect(idsOf(none)).toEqual([X1, X3].sort());
+    // Twenty-one values, counted as sent, are refused before any row is read.
+    const many = await ask({ p_category: Array.from({ length: 21 }, () => sellerA.parentId) });
+    expect(many.error).toBe("badValue:category");
+  });
+
+  test("MLP-11 my_listings: a list naming a category that holds another seller's ad returns none of that seller's ads (DEC-420)", async () => {
+    const sellerA = await scratchSeller();
+    const sellerB = await scratchSeller();
+    const B1 = await seed(sellerB, "active", { title: "Blue chair" });
+    const a = await asPerson(sellerA);
+
+    const result = await a.rpc("my_listings", {
+      p_group: "live",
+      p_limit: 50,
+      p_offset: 0,
+      p_category: [sellerB.parentId, sellerB.leafId],
+    });
+    expect(result.error, "[e2e:mlp] a list naming B's category").toBeNull();
+    const answer = result.data as { rows: Array<{ id: string }>; counts: Record<string, number> };
+    expect(answer.rows.map((row) => row.id)).not.toContain(B1);
+    expect(answer.rows).toEqual([]);
+    expect(answer.counts.live).toBe(0);
+  });
+
   test("MLP-6 My listings on the table blocks: the header, the search, Filters with chips, Columns and each row's actions (D181)", async ({
     page,
   }) => {

@@ -2167,6 +2167,49 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("listing-reports")).toHaveCount(0);
   });
 
+  test("AL-32 All listings: the country and category filters are lists, OR-ed; an empty list filters nothing; more than twenty values are refused (DEC-420, DEC-423)", async () => {
+    const seller = await scratchSeller();
+    const second = await seedCategoryBranch();
+    branches.push([second.parent.slug as string, second.leaf.slug as string]);
+    const first = await seed(seller, "active");
+    const other = await seed({ ...seller, leafId: second.leaf.id as string }, "active");
+    const viewerAccount = await leaseUser();
+    await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
+    const viewer = await asPerson(viewerAccount);
+    const both = [first.id, other.id].sort();
+    const ask = (args: Record<string, unknown>) =>
+      viewer.rpc("admin_list_listings", { p_seller: seller.alias, ...args });
+    const ids = async (args: Record<string, unknown>) => {
+      const result = await ask(args);
+      expect(result.error, `[e2e:al] ${JSON.stringify(args)}`).toBeNull();
+      return (result.data as Row[]).map((row) => row.id as string).sort();
+    };
+
+    expect(await ids({ p_category: [seller.parentId, second.parent.id as string] })).toEqual(both);
+    expect(await ids({ p_category: [seller.parentId] })).toEqual([first.id]);
+    expect(await ids({ p_country: ["KE", "ET"] })).toEqual(both);
+    expect(await ids({ p_country: ["KE", "US"] })).toEqual([]);
+    expect(await ids({ p_country: [], p_category: [] })).toEqual(both);
+
+    const many = <T>(value: T) => Array.from({ length: 21 }, () => value);
+    expect((await ask({ p_country: many("ET") })).error).toBe("badValue:country");
+    expect((await ask({ p_category: many(seller.parentId) })).error).toBe("badValue:category");
+  });
+
+  test("AL-33 All listings: a signed-in person without listings:view is refused before any list is read", async () => {
+    const person = await asPerson(await leaseUser());
+    const refused = await person.rpc("admin_list_listings", {
+      p_country: ["ET"],
+      p_category: [],
+    });
+    expect(refused.error).toBe("permissionDenied");
+    // The gate answers first: a list that would be refused on its own is the same refusal.
+    const first = await person.rpc("admin_list_listings", {
+      p_country: Array.from({ length: 21 }, () => "ET"),
+    });
+    expect(first.error).toBe("permissionDenied");
+  });
+
   // ───────────── Turn T1 part B (D242, D276) — STAFF SET AN AD'S TIER (ATR-1..ATR-5) ─────────────
   // The one door `admin_set_listing_tier` (M1: listings:enforce with a fresh second factor; a tier
   // among premium, featured and regular; never a draft, a removed or the caller's own listing; a

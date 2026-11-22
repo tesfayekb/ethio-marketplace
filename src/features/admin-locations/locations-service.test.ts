@@ -7,11 +7,15 @@ vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
 const door = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: door.rpc }));
+// The keyset read of `listLocations` goes through the client's query builder, not the door seam.
+const client = vi.hoisted(() => ({ rpc: vi.fn() }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: client.rpc } }));
 
 import {
   deleteBlockedKey,
   deleteLocation,
   LISTED_LEVELS,
+  listLocations,
   LOCATION_LEVELS,
   moveLocation,
   reorderLocations,
@@ -134,5 +138,31 @@ describe("the places doors' calls (F1-4b)", () => {
     door.rpc.mockResolvedValue({ data: null, error: refusal });
     await expect(deleteLocation({ id: "p-1", slug: "adama" })).rejects.toBe(refusal);
     await expect(moveLocation({ id: "p-1", newParentId: "p-2" })).rejects.toBe(refusal);
+  });
+});
+
+describe("the places list's country argument (DEC-420)", () => {
+  /** A query builder that answers an empty page whatever it is asked. */
+  function emptyPage() {
+    const builder = {
+      order: () => builder,
+      limit: () => builder,
+      gt: () => builder,
+      then: (resolve: (answer: { data: never[]; error: null }) => unknown) =>
+        resolve({ data: [], error: null }),
+    };
+    return builder;
+  }
+
+  beforeEach(() => client.rpc.mockReset());
+
+  it("PL-6 one market is a list of one, and the all-countries scope sends no country argument", async () => {
+    client.rpc.mockImplementation(() => emptyPage());
+    await listLocations("ET");
+    await listLocations("");
+    expect(client.rpc.mock.calls).toEqual([
+      ["admin_list_locations", { p_country_code: ["ET"] }],
+      ["admin_list_locations", {}],
+    ]);
   });
 });

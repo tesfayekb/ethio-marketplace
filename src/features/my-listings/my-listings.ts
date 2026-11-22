@@ -227,13 +227,14 @@ export function parseMyListings(value: unknown): MyListingsPage | null {
 /** The door's arguments for the search and filters: only what is asked is sent. */
 export function filterArgs(filters: MyListingsFilters): {
   p_search?: string;
-  p_category?: string;
+  p_category?: string[];
   p_mark?: string;
 } {
   const search = filters.search.trim().slice(0, SEARCH_MAX);
   return {
     ...(search === "" ? {} : { p_search: search }),
-    ...(filters.category === null ? {} : { p_category: filters.category }),
+    // DEC-420 — the door's category filter is a list; the screen's one category is a list of one.
+    ...(filters.category === null ? {} : { p_category: [filters.category] }),
     ...(filters.mark === null ? {} : { p_mark: filters.mark }),
   };
 }
