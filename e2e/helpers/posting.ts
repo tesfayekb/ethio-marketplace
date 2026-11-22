@@ -40,7 +40,8 @@ function shortScratchStem(): string {
 /** The bearer the browser holds — the routes' only authority (F3). */
 export async function bearerOf(page: Page): Promise<string> {
   const token = await inBrowserClient(page, async (client) => {
-    const { data } = await client.auth.getSession();
+    const { data, error } = await client.auth.getSession();
+    if (error) throw new Error(`bearerOf: ${error.message}`);
     return data.session?.access_token ?? "";
   });
   expect(token, "[e2e:a2c] the page carries no bearer").not.toBe("");
@@ -1628,6 +1629,8 @@ export async function coverageOf(listingId: string): Promise<{
     .select("location_id")
     .eq("id", listingId)
     .maybeSingle();
+  if (listing.error)
+    throw new Error(`coverageOf: reading the item failed: ${listing.error.message}`);
   return {
     placeIds: (rows.data ?? []).map((row) => row.location_id),
     locationId: listing.data?.location_id ?? null,
@@ -2007,31 +2010,39 @@ export async function seedSurfacedLevel(): Promise<SurfacedLevelSet> {
  */
 export async function anyCatchAllLevel(): Promise<{ hostId: string; otherId: string } | null> {
   const supabase = adminClient();
-  const { data: others } = await supabase
+  const { data: others, error: othersError } = await supabase
     .from("categories")
     .select("id")
     .like("slug", "other-%")
     .eq("is_active", true)
     .limit(50);
+  if (othersError)
+    throw new Error(`anyCatchAllLevel: reading the levels failed: ${othersError.message}`);
   const otherIds = (others ?? []).map((row) => row.id);
   if (otherIds.length === 0) return null;
-  const { data: edges } = await supabase
+  const { data: edges, error: edgesError } = await supabase
     .from("category_tree_pointers")
     .select("parent_id, child_id")
     .in("child_id", otherIds)
     .not("parent_id", "is", null);
+  if (edgesError)
+    throw new Error(`anyCatchAllLevel: reading the pointers failed: ${edgesError.message}`);
   for (const edge of edges ?? []) {
     const parentId = String(edge.parent_id);
-    const { data: parent } = await supabase
+    const { data: parent, error: parentError } = await supabase
       .from("categories")
       .select("id, is_active")
       .eq("id", parentId)
       .maybeSingle();
+    if (parentError)
+      throw new Error(`anyCatchAllLevel: reading ${parentId} failed: ${parentError.message}`);
     if (!parent?.is_active) continue;
-    const { count } = await supabase
+    const { count, error: countError } = await supabase
       .from("category_tree_pointers")
       .select("child_id", { count: "exact", head: true })
       .eq("parent_id", parentId);
+    if (countError)
+      throw new Error(`anyCatchAllLevel: counting ${parentId} failed: ${countError.message}`);
     if ((count ?? 0) < 2) continue;
     return { hostId: parentId, otherId: String(edge.child_id) };
   }

@@ -422,9 +422,11 @@ export async function objectsUnder(userId: string, listingId: string): Promise<s
   if (error) throw new Error(`[e2e:b1] listing ${prefix} failed: ${error.message}`);
   const keys: string[] = [];
   for (const dir of photoDirs ?? []) {
-    const { data: files } = await supabase.storage.from(BUCKET).list(`${prefix}/${dir.name}`, {
-      limit: 100,
-    });
+    const { data: files, error: filesError } = await supabase.storage
+      .from(BUCKET)
+      .list(`${prefix}/${dir.name}`, { limit: 100 });
+    if (filesError)
+      throw new Error(`objectsUnder: ${prefix}/${dir.name} failed: ${filesError.message}`);
     for (const file of files ?? []) keys.push(`${prefix}/${dir.name}/${file.name}`);
   }
   return keys;

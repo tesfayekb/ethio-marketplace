@@ -74,7 +74,7 @@ function embeddedParent(value: unknown): { name_en: string; is_active: boolean }
 async function secondaryParentNames(slug: string): Promise<string[]> {
   const category = await readCategory(slug);
   if (!category) throw new Error(`secondaryParentNames: ${slug} is absent`);
-  const { data } = await adminClient()
+  const { data, error } = await adminClient()
     .from("category_tree_pointers")
     .select(
       "parent_id, display_order, created_at, categories!category_tree_pointers_parent_id_fkey(name_en, is_active)",
@@ -82,6 +82,7 @@ async function secondaryParentNames(slug: string): Promise<string[]> {
     .eq("child_id", category.id)
     .order("display_order")
     .order("created_at");
+  if (error) throw new Error(`secondaryParentNames: ${slug} failed: ${error.message}`);
   // The generated types draw the embedded parent as a list; the answer is one row (or none).
   const pointers = (data ?? [])
     .map((row) => ({ parent_id: row.parent_id, categories: embeddedParent(row.categories) }))
@@ -346,10 +347,11 @@ test.describe("C2 categories console", () => {
       await expect
         .poll(
           async () => {
-            const { data } = await adminClient()
+            const { data, error } = await adminClient()
               .from("category_country_exclusions")
               .select("country_code")
               .eq("category_id", id!);
+            if (error) throw new Error(`CT-5 the exclusions read failed: ${error.message}`);
             return (data ?? []).map((row) => row.country_code);
           },
           { timeout: 20000 },
@@ -966,7 +968,8 @@ test.describe("C2 categories console", () => {
       await gotoReady(page, "/admin/categories");
       await findRow(page, rootSlug);
       const token = await inBrowserClient(page, async (client) => {
-        const { data } = await client.auth.getSession();
+        const { data, error } = await client.auth.getSession();
+        if (error) throw new Error(`CT-32 the session read failed: ${error.message}`);
         return data.session?.access_token ?? "";
       });
       expect(token, "CT-32 the page carries no bearer").not.toBe("");

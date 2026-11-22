@@ -65,8 +65,9 @@ const BUDGET_KIB = {
   // ratchet housekeeping-1b (206.0 KiB local; DEC-362): the closure is chunked by a rule, 215 → 207 = ceilingForLocal(206.0); was 215.
   // ratchet housekeeping-4 (204.4 KiB local; INC-1042: the admin navigation off the entry): 207 → 205 = ceilingForLocal(204.4); was 207.
   // DEC-296 (tests-ci-2, the ratchet, INC-1198): JS local 201.7 KiB; 205 → 203 = ceilingForLocal(201.7); was 205. CSS local 22.54 KiB; 40 → 23 = ceilingForLocal(22.54); was 40.
+  // DEC-296 (cursor-bundle-3, ruling 3, measured on dev with Lovable bundle 3 and this lane): CSS local 22.65 KiB sat inside the NEAR band of 23 — seven classes of the tables' filter rows (the switch row's track and thumb: bg-input, translate-x-0, translate-x-4, rtl:-translate-x-4; the list's height: max-h-77, md:pointer-fine:max-h-63; the dates' placeholder row: md:pointer-fine:h-22), +0.06 on the base's 22.59; 23 → 24 = ceilingForLocal(22.65); was 23.
   js: 203,
-  css: 23,
+  css: 24,
 };
 
 const CANDIDATE_DIRS = [

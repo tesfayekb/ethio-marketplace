@@ -581,7 +581,7 @@ One anatomy serves dialogs, alerts, sheets and toolbar panels. The primitive var
 surfaces live in `dialog-parts-look.ts` with the on-demand implementation. A banded frame has
 no padding or scrolling of its own at any placement: on a phone the bottom inset (the safe
 area) is its last band's, never the frame's. The existing unbanded primitive remains
-available for specimens and the step-up dialog pending Cursor's migration.
+available for specimens; the step-up dialog is on the anatomy (cursor-bundle-3).
 
 ### Parts and consumers
 
@@ -659,15 +659,21 @@ passes the translated `dialog.moreBelow` cue label to the real body.
 
 ### Cursor-owned completion
 
-The step-up dialog (census row 52) stays on its old frame until Cursor migrates it. Cursor's
-conformance-kit dialog guard turn owns the new laws: thin-only consumer imports and no
-page's static closure reaching the real anatomy (the removed CMD-6 tree-walker law), no
-provider/door/query imports in the on-demand overlay implementation, held-only subjects
-with the Screening picture exception, red-focus safety, list-first Escape, body-only
-scrolling/cue, empty-body omission, the last band's inset (`end`), and description
-exceptions. Until that guard lands,
-the supervisor proves the static-closure law from each build's chunk record. No ceiling
-is raised here: the supervisor measures the final head and supplies exact ceiling lines.
+The step-up dialog (census row 52) is on the anatomy (cursor-bundle-3): a look only — its
+layer, test ids, words, focus and state are as they were. The conformance kit holds the
+anatomy's laws, each proven on a planted bypass: no provider, door or query import in the
+on-demand overlay implementation (CF-OV-7); the real parts reached by value only by
+`overlays-impl.ts` and their own unit test, every page and primitive taking the thin parts
+(CF-OV-8); the body's one form (DG-8); a body with no footer after it carries the last
+band's inset (`end`), a `fill` body exempt (DG-9); no vertical scroller of a consumer's own
+inside a panel, read within one file (DG-10); a description for every panel, or the marked
+exception (DG-11). Four laws are left to the tests and CI turn, each held today by a unit
+test: red-focus safety (DP-U9, DP-U14), the empty body (DP-U19), a held-only subject
+(DP-U20 and DP-U21 at the mechanism; DP-U24 at a consumer,
+`src/features/admin-screening/name-checks.test.tsx`) and the list-first Escape (DP-U15,
+DP-U16, DP-U17). A Lovable pull request may carry the stylesheet's limit line (DEC-425;
+CF-LVB-17, CF-LVB-18) as it may carry a page's ceiling line (DEC-390): the supervisor
+measures the final head and supplies the exact line.
 
 The three look specs are `e2e/dialogs.spec.ts`, `e2e/overlays.spec.ts` and
 `e2e/house-style.spec.ts`; local unit tests prove the parts and all their consumers.
