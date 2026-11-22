@@ -581,7 +581,9 @@ One anatomy serves dialogs, alerts, sheets and toolbar panels. The primitive var
 surfaces live in `dialog-parts-look.ts` with the on-demand implementation. A banded frame has
 no padding or scrolling of its own at any placement: on a phone the bottom inset (the safe
 area) is its last band's, never the frame's. The existing unbanded primitive remains
-available for specimens and the step-up dialog pending Cursor's migration.
+available for specimens and the step-up dialog pending Cursor's migration. While the cue
+shows, the body keeps the cue's room as scroll padding, so what is brought into view stands
+clear of it (WCAG 2.2, 2.4.11).
 
 ### Parts and consumers
 

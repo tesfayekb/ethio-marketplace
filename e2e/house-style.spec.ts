@@ -92,6 +92,8 @@ test.describe("house style fixture", () => {
     await expect(edit).toBeVisible();
     await expect(remove).toBeVisible();
     await expect(more).toHaveAccessibleName(`${en["prim.table.actions"]} — Alpha`);
+    // INC-1255 — the board's late parts move the row: its menu opens on a still board.
+    await stillPage(more, { what: "the board" });
 
     await edit.focus();
     await expect(page.getByRole("tooltip")).toHaveText("Edit");
@@ -227,6 +229,8 @@ test.describe("house style fixture", () => {
   test("HS-6 the focus ring shows after keyboard use only", async ({ page }) => {
     await gotoReady(page, "/dev/style");
     const more = page.getByTestId("style-row-1-more");
+    // INC-1255 — the board's late parts move the row: its menu opens on a still board.
+    await stillPage(more, { what: "the board" });
     await more.click();
     await page.getByTestId("style-row-1-more-copy").click();
     await settled(page);

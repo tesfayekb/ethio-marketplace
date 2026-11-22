@@ -12,7 +12,7 @@ import {
 import { Button } from "./button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./dialog";
 import { BANDS_PANEL } from "./dialog-look";
-import { CLOSED_PRIMARY, DIALOG_TONE } from "./dialog-parts-look";
+import { CLOSED_PRIMARY, CUE_ROOM, DIALOG_TONE } from "./dialog-parts-look";
 import {
   ActionRow,
   ClosedPrimary,
@@ -127,6 +127,37 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
       body.dispatchEvent(new Event("scroll"));
     });
     expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+  });
+
+  it("DP-U32 while the cue shows the body keeps its room as scroll padding; at the end and in the fill form none", async () => {
+    const { unmount } = render(
+      <PanelBody cueLabel="dialog.moreBelow" testId="body">
+        <p>long</p>
+      </PanelBody>,
+    );
+    const body = screen.getByTestId("body");
+    sized(body, { scrollHeight: 1000, clientHeight: 400 });
+    act(() => {
+      body.dispatchEvent(new Event("scroll"));
+    });
+    await screen.findByRole("button", { name: "dialog.moreBelow" });
+    expect(body.style.scrollPaddingBottom).toBe(CUE_ROOM);
+    act(() => {
+      body.scrollTop = 600;
+      body.dispatchEvent(new Event("scroll"));
+    });
+    expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+    expect(body.style.scrollPaddingBottom).toBe("");
+    unmount();
+    render(
+      <PanelBody fill cueLabel="dialog.moreBelow" testId="fill">
+        <div />
+      </PanelBody>,
+    );
+    const fill = screen.getByTestId("fill");
+    sized(fill, { scrollHeight: 1000, clientHeight: 400 });
+    fireEvent.scroll(fill);
+    expect(fill.style.scrollPaddingBottom).toBe("");
   });
 
   it("DP-U5 with reduced motion the cue scrolls without a smooth scroll", async () => {

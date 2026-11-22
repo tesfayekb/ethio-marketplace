@@ -19,6 +19,7 @@ import {
   CLOSED_PRIMARY,
   CUE_ANCHOR,
   CUE_BUTTON,
+  CUE_ROOM,
   CUE_SPAN,
   CUE_WRAP,
   DIALOG_CARD,
@@ -169,6 +170,7 @@ export function PanelBody({
       ref={ref}
       data-panel-body=""
       data-testid={testId}
+      style={more ? { scrollPaddingBottom: CUE_ROOM } : undefined}
       className={cn(BANDS_BODY, !flush && BANDS_INSET_X, className)}
     >
       <div className={cn(BANDS_FLOW, !flush && BANDS_INSET_Y, end && BANDS_END)}>{children}</div>
