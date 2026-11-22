@@ -1,6 +1,7 @@
 import { PanelHeader, PanelBody, PanelFooter } from "@/components/ui/dialog-parts-facade";
 import { BANDS_PANEL } from "@/components/ui/dialog-look";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
+import { useOverlays } from "@/components/ui/overlay-loader";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -63,6 +64,8 @@ export function ToolbarPanel({
   align?: "start" | "end";
 }) {
   const isMobile = useIsMobile();
+  const impl = useOverlays();
+  const opener = useRef({});
   const [open, setOpen] = useState(false);
   const [openedWith, setOpenedWith] = useState(state);
   const onOpenChange = (next: boolean) => {
@@ -106,11 +109,16 @@ export function ToolbarPanel({
         align={align}
         data-testid={`${testid}-panel`}
         className={BANDS_PANEL}
+        aria-describedby={description === undefined ? undefined : `${testid}-description`}
+        onOpenAutoFocus={(event) => impl?.dialogRules.recordPanel(event, opener.current)}
+        onEscapeKeyDown={(event) => impl?.dialogRules.keepOpenList(event, opener.current)}
       >
         <PanelHeader>
           <h2 className="font-semibold">{title}</h2>
           {description === undefined ? null : (
-            <p className="text-sm text-muted-foreground">{description}</p>
+            <p id={`${testid}-description`} className="text-sm text-muted-foreground">
+              {description}
+            </p>
           )}
         </PanelHeader>
         {body}

@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 763,
+  "scanned": 764,
   "dynamicCallSites": 416,
   "keys": {
     "account.deactivatedBanner": [
@@ -2647,58 +2647,17 @@
       "/admin/places"
     ],
     "admin.locations.filter.activeOnly": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
       "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "component: locations-toolbar"
     ],
     "admin.locations.filter.allCountriesOption": [
       "/admin/places"
     ],
     "admin.locations.filter.allLevelsOption": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "component: locations-toolbar"
     ],
     "admin.locations.filter.allStatusesOption": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
-      "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "component: locations-toolbar"
     ],
     "admin.locations.filter.closedSuffix": [
       "/admin/places"
@@ -2707,58 +2666,19 @@
       "/admin/places"
     ],
     "admin.locations.filter.level": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
       "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "component: locations-toolbar"
     ],
     "admin.locations.filter.retiredOnly": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
       "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "component: locations-toolbar"
     ],
     "admin.locations.filter.search": [
       "/admin/places"
     ],
     "admin.locations.filter.status": [
-      "/admin/ai",
-      "/admin/attributes",
-      "/admin/audit",
-      "/admin/categories",
-      "/admin/countries",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/monetisation",
       "/admin/places",
-      "/admin/roles",
-      "/admin/screening",
-      "/admin/translations",
-      "/admin/translations/$lang",
-      "/admin/users",
-      "/my-listings"
+      "component: locations-toolbar"
     ],
     "admin.locations.import.openPlaces": [
       "/admin/places"

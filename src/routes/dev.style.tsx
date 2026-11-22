@@ -938,8 +938,16 @@ function AnatomyBoard() {
                 bands
                 size={archetype.size}
                 data-testid={`style-anatomy-${archetype.key}`}
+                aria-describedby={`style-anatomy-${archetype.key}-description`}
               >
-                {archetype.draw({ Title: AlertDialogTitle, Text: AlertDialogDescription })}
+                {archetype.draw({
+                  Title: AlertDialogTitle,
+                  Text: ({ children }) => (
+                    <AlertDialogDescription id={`style-anatomy-${archetype.key}-description`}>
+                      {children}
+                    </AlertDialogDescription>
+                  ),
+                })}
               </AlertDialogContent>
             </AlertDialog>
           ) : (
@@ -954,8 +962,16 @@ function AnatomyBoard() {
                 size={archetype.size}
                 phone={archetype.key === "actions" ? "sheet" : "float"}
                 data-testid={`style-anatomy-${archetype.key}`}
+                aria-describedby={`style-anatomy-${archetype.key}-description`}
               >
-                {archetype.draw(LIVE)}
+                {archetype.draw({
+                  ...LIVE,
+                  Text: ({ children }) => (
+                    <DialogDescription id={`style-anatomy-${archetype.key}-description`}>
+                      {children}
+                    </DialogDescription>
+                  ),
+                })}
               </DialogContent>
             </Dialog>
           ),
@@ -967,8 +983,20 @@ function AnatomyBoard() {
               data-testid="style-anatomy-filters-open"
             >{`${BOARD.open}: filters`}</Button>
           </DialogTrigger>
-          <DialogContent bands data-testid="style-anatomy-filters">
-            <FiltersArchetype {...LIVE} open={false} />
+          <DialogContent
+            bands
+            data-testid="style-anatomy-filters"
+            aria-describedby="style-anatomy-filters-description"
+          >
+            <FiltersArchetype
+              {...LIVE}
+              Text={({ children }) => (
+                <DialogDescription id="style-anatomy-filters-description">
+                  {children}
+                </DialogDescription>
+              )}
+              open={false}
+            />
           </DialogContent>
         </Dialog>
         <Sheet>

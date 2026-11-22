@@ -1,11 +1,12 @@
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ChevronDown } from "lucide-react";
 
-import { pickerPopClass, usePickerKeys, usePickerPlacement } from "@/components/picker-popup";
-import { LIST_SCROLLER, PickerOption } from "@/components/searchable-picker";
+import { usePickerKeys } from "@/components/picker-popup";
+import { PickerOption } from "@/components/searchable-picker";
 import { DIALOG_FIELD } from "@/components/ui/dialog-look";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { FilterRow } from "./filter-row";
 
 export interface FilterOption {
   value: string;
@@ -14,13 +15,12 @@ export interface FilterOption {
 
 /** A list longer than this shows its search box. */
 const SEARCH_FROM = 8;
-const panelBodyOf = (anchor: HTMLElement) => anchor.closest<HTMLElement>("[data-panel-body]");
 
 /**
  * Bundle 2 (INC-1146) — a table filter's SELECT, one or several choices (`multiple`), on the one
- * list mechanism (the searchable picker's rows and keys, the picker's placement inside the
- * visible area: picker-popup.ts). It opens under its own row; a long list is searchable.
- * Presentational: a page wires it in a later bundle.
+ * list mechanism (the searchable picker's rows and keys). The list is in the body's flow,
+ * full-row width in a panel, never positioned over its footer. Seven rows include All plus
+ * six choices; longer lists scroll inside themselves. A long list is searchable.
  */
 export function FilterSelect({
   id,
@@ -36,6 +36,9 @@ export function FilterSelect({
   allLabel,
   testId,
   defaultOpen = false,
+  rowLabel,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   id: string;
   options: readonly FilterOption[];
@@ -53,10 +56,26 @@ export function FilterSelect({
   testId: string;
   /** Opens on first draw (the board shows one select open). */
   defaultOpen?: boolean;
+  /** A panel select owns its whole row, including the full-width list below it. */
+  rowLabel?: string;
+  open?: boolean;
+  onOpenChange?: (next: boolean) => void;
 }) {
   const listId = useId();
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = useState(defaultOpen);
+  const [localOpen, setLocalOpen] = useState(defaultOpen);
+  const open = controlledOpen ?? localOpen;
+  const setOpen = (next: boolean) => {
+    if (onOpenChange) onOpenChange(next);
+    else setLocalOpen(next);
+  };
+  const popupRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const popup = popupRef.current;
+    if (popup && typeof popup.scrollIntoView === "function")
+      popup.scrollIntoView({ block: "nearest" });
+  }, [open]);
   const [query, setQuery] = useState("");
   const searchable = options.length > SEARCH_FROM;
   const shown = useMemo(() => {
@@ -125,10 +144,29 @@ export function FilterSelect({
     }
     onKeyDown(event as KeyboardEvent<HTMLInputElement>);
   };
-  const placement = usePickerPlacement(wrapRef, open, shown.length + 1 + (searchable ? 1 : 0), {
-    boundary: panelBodyOf,
-  });
   const chosen = options.filter((option) => value.includes(option.value)).map((o) => o.label);
+  const trigger = (
+    <Button
+      variant="outline"
+      id={id}
+      type="button"
+      data-testid={testId}
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-controls={listId}
+      className={cn(
+        "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-input px-3 text-start text-sm md:pointer-fine:min-h-9",
+        DIALOG_FIELD,
+      )}
+      onKeyDown={keys}
+      onClick={() => (open ? close() : setOpen(true))}
+    >
+      <span className={cn("min-w-0 grow truncate", chosen.length === 0 && "text-muted-foreground")}>
+        {chosen.length === 0 ? placeholder : chosen.join(", ")}
+      </span>
+      <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+    </Button>
+  );
   return (
     <div
       ref={wrapRef}
@@ -137,36 +175,22 @@ export function FilterSelect({
         if (open && !wrapRef.current?.contains(event.relatedTarget as Node | null)) close();
       }}
     >
-      <Button
-        variant="outline"
-        id={id}
-        type="button"
-        data-testid={testId}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listId}
-        className={cn(
-          "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-input px-3 text-start text-sm md:pointer-fine:min-h-9",
-          DIALOG_FIELD,
-        )}
-        onKeyDown={keys}
-        onClick={() => (open ? close() : setOpen(true))}
-      >
-        <span
-          className={cn("min-w-0 grow truncate", chosen.length === 0 && "text-muted-foreground")}
-        >
-          {chosen.length === 0 ? placeholder : chosen.join(", ")}
-        </span>
-        <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-      </Button>
+      {rowLabel === undefined ? (
+        trigger
+      ) : (
+        <FilterRow label={rowLabel} htmlFor={id}>
+          {trigger}
+        </FilterRow>
+      )}
       {multiple && value.length >= max && maxLabel ? (
         <p className="mt-1 text-sm text-muted-foreground">{maxLabel.replace("{n}", String(max))}</p>
       ) : null}
       {open ? (
         <div
           data-picker-popup=""
-          data-placement={placement}
-          className={cn(pickerPopClass(placement), "overflow-hidden")}
+          ref={popupRef}
+          data-placement="flow"
+          className="mt-3 w-full min-w-0 overflow-hidden rounded-md border border-border bg-popover shadow-control"
         >
           {searchable ? (
             <input
@@ -193,7 +217,7 @@ export function FilterSelect({
             role="listbox"
             aria-multiselectable={multiple || undefined}
             data-testid={`${testId}-list`}
-            className={LIST_SCROLLER}
+            className="max-h-77 overflow-y-auto overscroll-contain md:pointer-fine:max-h-63"
             onKeyDown={keys}
           >
             <li role="presentation">

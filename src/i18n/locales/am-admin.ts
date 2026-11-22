@@ -1,6 +1,18 @@
 import type { enAdmin } from "./en-admin";
 
 export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
+  "admin.locations.error.detail.hasChildren": "ቦታዎች ውስጡ ይቀመጣሉ",
+  "admin.locations.error.detail.hasCoverage": "ሻጮች ይሸፍኑታል",
+  "admin.locations.error.detail.hasListings": "ዝርዝሮች እዚህ ተለጥፈዋል",
+  "admin.locations.error.detail.hasProfileDefaults": "ሰዎች በነባሪ እዚህ ይለጥፋሉ",
+  "admin.locations.filter.activeOnly": "ገባሪ ብቻ",
+  "admin.locations.filter.level": "ደረጃ",
+  "admin.locations.filter.retiredOnly": "የተቋረጡ ብቻ",
+  "admin.locations.filter.status": "ሁኔታ",
+  "admin.locations.level.city": "ከተማ",
+  "admin.locations.level.country": "አገር",
+  "admin.locations.level.region": "ክልል",
+  "admin.locations.level.sub_city": "ክፍለ ከተማ",
   "nav.locations": "አካባቢዎች",
   "head.admin.editListing.title": "ማስታወቂያውን ያርትዑ",
   "head.admin.impersonation.title": "የመወከል ክፍለ ጊዜ",

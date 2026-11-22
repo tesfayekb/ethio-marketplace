@@ -1,6 +1,7 @@
 import { act, renderHook as renderBareHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { PAGE_SIZE_OPTIONS } from "./page-size-options";
 import { tableViewTestShell } from "./table-view-test-shell";
 import { forgetTableViewsForTests } from "./table-view-store";
 import { useKeptPage } from "./use-kept-page";
@@ -96,4 +97,8 @@ describe("useKeptPage", () => {
     expect(hook.result.current.ready).toBe(true);
     expect(hook.result.current.pageSize).toBe(50);
   });
+});
+
+it("KP-5 the shell owns the unchanged page-size choices", () => {
+  expect(PAGE_SIZE_OPTIONS).toEqual([10, 25, 50, 100]);
 });

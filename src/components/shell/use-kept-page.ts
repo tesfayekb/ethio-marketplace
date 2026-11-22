@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
+import { PAGE_SIZE_OPTIONS } from "./page-size-options";
 
 import { tableOfPageKey, useTableEntry } from "./table-view-store";
 

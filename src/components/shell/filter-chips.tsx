@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useI18n } from "@/i18n";
 
-import { FilterPanelBody } from "./filter-panel-facade";
+import { FilterPanelBody, preloadFilterPanel } from "./filter-panel-facade";
 import {
   clearTableFilters,
   tableFilterChips,
@@ -88,6 +88,8 @@ export function FiltersButton({
             type="button"
             variant="outline"
             data-testid={testid}
+            onPointerEnter={preloadFilterPanel}
+            onFocus={preloadFilterPanel}
             className="relative h-11 max-md:w-11 max-md:px-0 md:pointer-fine:h-9"
           >
             <ListFilter aria-hidden="true" />
