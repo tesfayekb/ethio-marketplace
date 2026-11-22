@@ -204,6 +204,9 @@ const held = {
   updatedAt: "2026-10-16T00:00:00Z",
   category: { name_en: "Fridges", name_am: null },
   place: { name_en: "Bole", name_am: null },
+  sellerAlias: null,
+  sellerBusinessName: null,
+  sellerEmail: null,
 } satisfies import("./use-screening").ScreeningRow;
 
 function ask(ids: string[]) {

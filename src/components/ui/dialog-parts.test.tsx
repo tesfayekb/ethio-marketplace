@@ -114,7 +114,7 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     const body = screen.getByTestId("body");
     sized(body, { scrollHeight: 1000, clientHeight: 400 });
     const scrollBy = vi.fn();
-    body.scrollBy = scrollBy as unknown as typeof body.scrollBy;
+    Object.defineProperty(body, "scrollBy", { configurable: true, value: scrollBy });
     act(() => {
       body.dispatchEvent(new Event("scroll"));
     });
@@ -144,7 +144,7 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     const body = screen.getByTestId("body");
     sized(body, { scrollHeight: 1000, clientHeight: 400 });
     const scrollBy = vi.fn();
-    body.scrollBy = scrollBy as unknown as typeof body.scrollBy;
+    Object.defineProperty(body, "scrollBy", { configurable: true, value: scrollBy });
     act(() => {
       body.dispatchEvent(new Event("scroll"));
     });
