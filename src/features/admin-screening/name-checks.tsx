@@ -309,7 +309,7 @@ export function NameChecks({
             <AlertDialogDescription>{t("admin.screening.names.clear.body")}</AlertDialogDescription>
           </PanelHeader>
           <PanelBody>
-            <PanelSubject title={allowing === null ? "" : label(allowing)} />
+            {allowing === null ? null : <PanelSubject title={label(allowing)} />}
             <div className="space-y-1">
               <Field
                 id={"admin-name-check-reason"}

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useI18n } from "@/i18n";
 
 import type * as Parts from "./dialog-parts";
 import { useOverlays } from "./overlay-loader";
@@ -14,9 +15,12 @@ export function PanelSubject(props: React.ComponentProps<typeof Parts.PanelSubje
   return impl === null ? null : <impl.dialogParts.PanelSubject {...props} />;
 }
 
-export function PanelBody(props: React.ComponentProps<typeof Parts.PanelBody>) {
+export function PanelBody(props: Omit<React.ComponentProps<typeof Parts.PanelBody>, "cueLabel">) {
+  const { t } = useI18n();
   const impl = useOverlays();
-  return impl === null ? null : <impl.dialogParts.PanelBody {...props} />;
+  return impl === null ? null : (
+    <impl.dialogParts.PanelBody {...props} cueLabel={t("dialog.moreBelow")} />
+  );
 }
 
 export function PanelFooter(props: React.ComponentProps<typeof Parts.PanelFooter>) {

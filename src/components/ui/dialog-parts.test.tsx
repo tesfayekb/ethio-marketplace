@@ -52,7 +52,9 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
             <DialogTitle>Title</DialogTitle>
             <DialogDescription>What happens</DialogDescription>
           </PanelHeader>
-          <PanelBody testId="body">x</PanelBody>
+          <PanelBody cueLabel="dialog.moreBelow" testId="body">
+            x
+          </PanelBody>
           <PanelFooter data-testid="foot">f</PanelFooter>
         </DialogContent>
       </Dialog>,
@@ -89,17 +91,23 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
 
   it("DP-U3 the subject draws typed text as text, never as markup", () => {
     const typed = '<img src=x onerror="alert(1)"> Car';
-    render(<PanelSubject testId="subject" title={typed} lines={["100 ETB", "Addis", "third"]} />);
+    render(
+      <PanelSubject
+        testId="subject"
+        title={typed}
+        lines={["100 ETB", "Addis", "third", "fourth"]}
+      />,
+    );
     const subject = screen.getByTestId("subject");
     expect(subject.querySelector("img")).toBeNull();
     expect(subject).toHaveTextContent(typed);
-    // At most two lines under the title.
-    expect(subject).not.toHaveTextContent("third");
+    expect(subject).toHaveTextContent("third");
+    expect(subject).not.toHaveTextContent("fourth");
   });
 
   it("DP-U4 the scroll cue: shown while more lies below, a button that scrolls about one screen, gone at the end", async () => {
     render(
-      <PanelBody testId="body">
+      <PanelBody cueLabel="dialog.moreBelow" testId="body">
         <p>long</p>
       </PanelBody>,
     );
@@ -128,7 +136,11 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     onTestFinished(() => {
       window.matchMedia = before;
     });
-    render(<PanelBody testId="body">x</PanelBody>);
+    render(
+      <PanelBody cueLabel="dialog.moreBelow" testId="body">
+        x
+      </PanelBody>,
+    );
     const body = screen.getByTestId("body");
     sized(body, { scrollHeight: 1000, clientHeight: 400 });
     const scrollBy = vi.fn();
@@ -262,7 +274,7 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
 describe("panel correction laws", () => {
   it("DP-U12 the cue cannot add to the scroller height when it disappears", () => {
     render(
-      <PanelBody testId="body">
+      <PanelBody cueLabel="dialog.moreBelow" testId="body">
         <p>Content</p>
       </PanelBody>,
     );
@@ -373,4 +385,34 @@ describe("panel Escape belongs to its open list", () => {
       await waitFor(() => expect(screen.queryByTestId("held-panel")).toBeNull());
     });
   }
+});
+
+describe("Part D body and subject rules", () => {
+  it("DP-U19 nothing produces no body, including after content leaves", () => {
+    const { container, rerender } = render(<PanelBody cueLabel="More">{null}</PanelBody>);
+    expect(container).toBeEmptyDOMElement();
+    rerender(<PanelBody cueLabel="More">Content</PanelBody>);
+    expect(container).toHaveTextContent("Content");
+    rerender(<PanelBody cueLabel="More">{[null, false, undefined]}</PanelBody>);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("DP-U20 the subject retains three held lines and discards only subsequent lines", () => {
+    render(
+      <PanelSubject testId="subject" title="Held" lines={["First", "Second", "Third", "Fourth"]} />,
+    );
+    expect(screen.getByTestId("subject").textContent).toBe("HeldFirstSecondThird");
+  });
+
+  it("DP-U21 the real body uses the supplied cue words without app state", () => {
+    render(
+      <PanelBody cueLabel="Supplied cue" testId="body">
+        Content
+      </PanelBody>,
+    );
+    const body = screen.getByTestId("body");
+    sized(body, { scrollHeight: 1000, clientHeight: 400 });
+    fireEvent.scroll(body);
+    expect(screen.getByRole("button", { name: "Supplied cue" })).toBeInTheDocument();
+  });
 });

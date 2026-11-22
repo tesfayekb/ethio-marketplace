@@ -1,6 +1,6 @@
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { AdminScreeningPage } from "./screening-page";
 import { StepUpCancelled, StepUpUnavailable } from "@/features/auth/mfa/use-step-up";
@@ -9,6 +9,13 @@ const seams = vi.hoisted(() => ({
   decide: vi.fn(),
   refresh: vi.fn(),
   abort: null as string | null,
+  rows: [] as import("./use-screening").ScreeningRow[],
+  photoRead: {
+    data: [] as { id: string }[] | undefined,
+    error: null as Error | null,
+    isLoading: false,
+  },
+  subject: vi.fn(),
 }));
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
@@ -38,9 +45,24 @@ vi.mock("@/components/shell/location-data", () => ({ useOpenMarkets: () => ({ ma
 vi.mock("@/features/levels/use-level-rows", () => ({ useLevelRows: () => ({ rows: [] }) }));
 vi.mock("@/features/categories/category-tree", () => ({
   useCategoryTree: () => ({ tree: [] }),
-  nearestCategoryPicture: () => null,
+  nearestCategoryPicture: () => "https://example.test/category.jpg",
 }));
-vi.mock("@/features/posting/use-photo-links", () => ({ usePhotoLinks: () => undefined }));
+vi.mock("@/features/posting/use-photo-links", () => ({
+  usePhotoLinks: (photos: { id: string }[]) =>
+    Object.fromEntries(
+      photos.map((photo) => [photo.id, { thumb: `https://example.test/${photo.id}.jpg` }]),
+    ),
+}));
+vi.mock("@/components/ui/dialog-parts-facade", async (original) => {
+  const real = await original<typeof import("@/components/ui/dialog-parts-facade")>();
+  return {
+    ...real,
+    PanelSubject: (props: ComponentProps<typeof real.PanelSubject>) => {
+      seams.subject(props);
+      return <real.PanelSubject {...props} />;
+    },
+  };
+});
 vi.mock("@/features/posting/use-price-unit-labels", () => ({ usePriceUnitLabels: () => [] }));
 vi.mock("@/features/posting/preview/preview-sheet", () => ({ PreviewSheet: () => null }));
 vi.mock("@/features/admin-listings/listing-photos", () => ({ ListingPhotos: () => null }));
@@ -51,8 +73,12 @@ vi.mock("./use-photo-changes", () => ({ useWarnedListings: () => ({ data: new Se
 vi.mock("./use-screening", async (original) => ({
   ...(await original<typeof import("./use-screening")>()),
   decideListing: seams.decide,
-  useScreeningQueue: () => ({ data: { rows: [], total: 0 }, error: null, isLoading: false }),
-  useScreeningPhotos: () => ({ data: [] }),
+  useScreeningQueue: () => ({
+    data: { rows: seams.rows, total: seams.rows.length },
+    error: null,
+    isLoading: false,
+  }),
+  useScreeningPhotos: () => seams.photoRead,
   useScreeningFacts: () => ({ data: null }),
   useScreeningSchema: () => ({ data: null }),
   useNameCheckSummary: () => ({ isLoading: true }),
@@ -86,6 +112,9 @@ beforeEach(() => {
   seams.decide.mockReset();
   seams.refresh.mockReset();
   seams.abort = null;
+  seams.rows = [];
+  seams.photoRead = { data: [], error: null, isLoading: false };
+  seams.subject.mockClear();
 });
 function open(ids: string[]) {
   render(<AdminScreeningPage />);
@@ -152,3 +181,77 @@ it("SDR-10 cancelling step-up leaves the decision open silently and writes nothi
   expect(screen.queryByTestId("admin-screening-confirm-problem")).toBeNull();
   expect(seams.decide).not.toHaveBeenCalled();
 });
+
+// Held row copied by script from use-screening.test.ts SF-5, not a database write.
+const held = {
+  id: "l-1",
+  countryCode: "ET",
+  tier: null,
+  title: "Fridge",
+  description: "Cold",
+  categoryId: "c-1",
+  locationId: "p-1",
+  priceMode: "fixed",
+  priceAmount: 1500,
+  priceCurrency: "ETB",
+  pricePeriod: "once",
+  priceBp: null,
+  priceNegotiable: false,
+  priceUnit: null,
+  priceUnitText: null,
+  attributes: { colour: "red" },
+  photosSoon: false,
+  updatedAt: "2026-10-16T00:00:00Z",
+  category: { name_en: "Fridges", name_am: null },
+  place: { name_en: "Bole", name_am: null },
+} satisfies import("./use-screening").ScreeningRow;
+
+function ask(ids: string[]) {
+  render(<AdminScreeningPage />);
+  for (const id of ids) fireEvent.click(screen.getByRole("checkbox", { name: id }));
+  fireEvent.click(screen.getByTestId("admin-screening-bulk-approve"));
+}
+
+it("DP-U25 several held ads make one counted subject with three held titles", () => {
+  seams.rows = ["first", "refused", "last"].map((id) => ({ ...held, id }));
+  ask(["first", "refused", "last"]);
+  expect(seams.subject).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      title: "3 prim.table.selected",
+      lines: [held.title, held.title, held.title],
+    }),
+  );
+});
+
+it.each([
+  ["unanswered", undefined, null, false, 0],
+  ["loading", [], null, true, 0],
+  ["failed", [], new Error("offline"), false, 0],
+  ["empty", [], null, false, 1],
+  ["one", [{ id: "first" }], null, false, 1],
+  ["two", [{ id: "first" }, { id: "refused" }], null, false, 2],
+  ["three", [{ id: "first" }, { id: "refused" }, { id: "last" }], null, false, 3],
+] as const)(
+  "DP-U26 the %s photos state never substitutes a category picture for a pending or failed read",
+  (_name, data, error, isLoading, count) => {
+    seams.rows = [{ ...held, id: "first" }];
+    seams.photoRead = { data: data === undefined ? undefined : [...data], error, isLoading };
+    ask(["first"]);
+    const panel = screen.getByTestId("admin-screening-confirm");
+    expect(panel.querySelectorAll("[data-picture-frame]")).toHaveLength(count);
+    const pictures = Array.from(panel.querySelectorAll("img"), (image) =>
+      image.getAttribute("src"),
+    );
+    expect(pictures).toEqual(
+      count === 0
+        ? []
+        : data?.length === 0
+          ? ["https://example.test/category.jpg"]
+          : (data ?? []).map((photo) => `https://example.test/${photo.id}.jpg`),
+    );
+    if (error !== null)
+      expect(seams.subject).toHaveBeenLastCalledWith(
+        expect.objectContaining({ picture: undefined }),
+      );
+  },
+);

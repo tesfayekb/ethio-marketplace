@@ -4,7 +4,6 @@ import { Check, ChevronDown } from "lucide-react";
 import { Button, type ButtonProps } from "./button";
 
 import { LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
-import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import {
@@ -61,7 +60,7 @@ export function PanelHeader({
   );
 }
 
-/** What the dialog acts on, on a white card: a picture and one or two lines the opener holds. */
+/** What the dialog acts on, on a white card: a picture and up to three lines the opener holds. */
 export function PanelSubject({
   picture,
   title,
@@ -84,7 +83,7 @@ export function PanelSubject({
       )}
       <div className="min-w-0">
         <p className="truncate font-semibold text-foreground">{title}</p>
-        {lines.slice(0, 2).map((line, index) => (
+        {lines.slice(0, 3).map((line, index) => (
           <p key={index} className="truncate text-sm text-muted-foreground">
             {line}
           </p>
@@ -104,12 +103,14 @@ export function PanelBody({
   children,
   className,
   testId,
+  cueLabel,
 }: {
   children: React.ReactNode;
+  cueLabel: string;
   className?: string;
   testId?: string;
 }) {
-  const { t } = useI18n();
+  const empty = React.Children.toArray(children).length === 0;
   const ref = React.useRef<HTMLDivElement | null>(null);
   const [more, setMore] = React.useState(false);
   React.useEffect(() => {
@@ -128,7 +129,8 @@ export function PanelBody({
       body.removeEventListener("scroll", judge);
       watch?.disconnect();
     };
-  }, []);
+  }, [empty]);
+  if (empty) return null;
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
       <div ref={ref} data-panel-body="" data-testid={testId} className={cn(BANDS_BODY, className)}>
@@ -149,7 +151,7 @@ export function PanelBody({
             }}
           >
             <ChevronDown aria-hidden="true" className="size-4" />
-            {t("dialog.moreBelow")}
+            {cueLabel}
           </button>
         </div>
       ) : null}

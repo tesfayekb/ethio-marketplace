@@ -129,28 +129,30 @@ async function expectPanel(page: Page, panel: Locator, where: string) {
     const head = panel.locator("[data-panel-head]");
     const body = panel.locator("[data-panel-body]");
     await expect(head).toHaveCount(1);
-    await expect(body).toHaveCount(1);
+    expect(await body.count(), `${where} optional body band`).toBeLessThanOrEqual(1);
     expect((await lookOf(head)).background, `${where} header surface`).toBe(
       await tokenValue(page, "--card", "background-color"),
     );
-    const insets = await body.evaluate((element) => {
-      const css = getComputedStyle(element);
-      return [
-        css.paddingBlockStart,
-        css.paddingInlineStart,
-        css.paddingBlockEnd,
-        css.paddingInlineEnd,
-      ];
-    });
-    expect(insets, `${where} body padding`).toEqual(["16px", "24px", "16px", "24px"]);
     expect(
       await panel.evaluate((element) => getComputedStyle(element).overflowY),
       `${where} panel does not scroll`,
     ).toBe("hidden");
-    expect(
-      await body.evaluate((element) => getComputedStyle(element).overflowY),
-      `${where} body scrolls`,
-    ).toBe("auto");
+    if (await body.count()) {
+      const insets = await body.evaluate((element) => {
+        const css = getComputedStyle(element);
+        return [
+          css.paddingBlockStart,
+          css.paddingInlineStart,
+          css.paddingBlockEnd,
+          css.paddingInlineEnd,
+        ];
+      });
+      expect(insets, `${where} body padding`).toEqual(["16px", "24px", "16px", "24px"]);
+      expect(
+        await body.evaluate((element) => getComputedStyle(element).overflowY),
+        `${where} body scrolls`,
+      ).toBe("auto");
+    }
   }
   const scrim = page.locator("[data-dialog-scrim][data-state='open']");
   await expect(scrim).toHaveCount(1);

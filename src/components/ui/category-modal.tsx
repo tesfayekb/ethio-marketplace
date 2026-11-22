@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Children, type ReactNode } from "react";
 
 import {
   Dialog,
@@ -68,8 +68,15 @@ export function CategoryModal({
               )}
             </PanelHeader>
             <PanelBody>
-              {subject}
-              <div className="min-w-0 space-y-3">{children}</div>
+              {Children.toArray(subject).length === 0 &&
+              Children.toArray(children).length === 0 ? null : (
+                <>
+                  {subject}
+                  {Children.toArray(children).length === 0 ? null : (
+                    <div className="min-w-0 space-y-3">{children}</div>
+                  )}
+                </>
+              )}
             </PanelBody>
             {footer === undefined ? null : <PanelFooter>{footer}</PanelFooter>}
           </>

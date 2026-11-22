@@ -63,7 +63,7 @@ import {
   PanelHeader,
   PanelSubject,
   StepTrack,
-} from "@/components/ui/dialog-parts";
+} from "@/components/ui/dialog-parts-facade";
 import {
   Dialog,
   DialogClose,

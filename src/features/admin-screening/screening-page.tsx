@@ -193,7 +193,8 @@ export function AdminScreeningPage({
   const photos = useScreeningPhotos(previewRow?.id ?? null);
   const decidingOne = decision?.ids.length === 1 ? decision.subjects[0] : undefined;
   const decisionPhotos = useScreeningPhotos(decidingOne?.id ?? null);
-  const firstDecisionPhotos = decisionPhotos.error ? [] : (decisionPhotos.data ?? []).slice(0, 3);
+  const firstDecisionPhotos =
+    decisionPhotos.error || decisionPhotos.isLoading ? [] : (decisionPhotos.data ?? []).slice(0, 3);
   const decisionLinks = usePhotoLinks(firstDecisionPhotos);
   // Bundle 16 turn 4b (D178) — only photos held while checking was off are approved with
   // the ad; a photo the check judged carries its own mark and Allow.
@@ -437,14 +438,10 @@ export function AdminScreeningPage({
 
   const decisionSubject =
     decision === null ? null : decidingOne === undefined ? (
-      <div className="space-y-2">
-        <PanelSubject title={t("prim.table.selected")} lines={[String(decision.ids.length)]} />
-        {decision.subjects.slice(0, 3).map((row) => (
-          <p key={row.id} className="break-words text-sm">
-            {row.title}
-          </p>
-        ))}
-      </div>
+      <PanelSubject
+        title={`${decision.ids.length} ${t("prim.table.selected")}`}
+        lines={decision.subjects.slice(0, 3).map((row) => row.title)}
+      />
     ) : (
       <>
         <PanelSubject
@@ -471,29 +468,37 @@ export function AdminScreeningPage({
             named(decidingOne.place),
           ]}
           picture={
-            <Picture
-              src={
-                (firstDecisionPhotos[0] === undefined
-                  ? null
-                  : photoUrl(firstDecisionPhotos[0], ["thumb", "card", "cover"], decisionLinks)) ??
-                nearestCategoryPicture(tree, decidingOne.categoryId)
-              }
-              fit="cover"
-              width={160}
-              height={160}
-              className="size-full"
-            />
+            decisionPhotos.error ? undefined : decisionPhotos.isLoading ||
+              decisionPhotos.data === undefined ? (
+              <span />
+            ) : (
+              <Picture
+                src={
+                  (firstDecisionPhotos[0] === undefined
+                    ? null
+                    : photoUrl(
+                        firstDecisionPhotos[0],
+                        ["thumb", "card", "cover"],
+                        decisionLinks,
+                      )) ??
+                  (firstDecisionPhotos.length === 0
+                    ? nearestCategoryPicture(tree, decidingOne.categoryId)
+                    : null)
+                }
+                fit="cover"
+                width={160}
+                height={160}
+                className="size-full"
+              />
+            )
           }
         />
-        {firstDecisionPhotos.length === 0 ? null : (
+        {firstDecisionPhotos.length < 2 ? null : (
           <div className="flex gap-2">
             {firstDecisionPhotos.slice(1).map((photo) => (
               <Picture
                 key={photo.id}
-                src={
-                  photoUrl(photo, ["thumb", "card", "cover"], decisionLinks) ??
-                  nearestCategoryPicture(tree, decidingOne.categoryId)
-                }
+                src={photoUrl(photo, ["thumb", "card", "cover"], decisionLinks)}
                 fit="contain"
                 width={160}
                 height={160}

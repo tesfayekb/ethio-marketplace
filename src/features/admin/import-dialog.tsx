@@ -446,19 +446,6 @@ export function ImportDialog({
       description={<span data-testid={`${idPrefix}-guidance`}>{t(key("guidance"))}</span>}
       footer={
         <>
-          {" "}
-          {state === "ready" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="touch"
-              data-testid={`${idPrefix}-preview`}
-              disabled={!chosen || busy}
-              onClick={() => void runPreview()}
-            >
-              {busy ? t(key("busy")) : t(key("preview"))}
-            </Button>
-          ) : null}{" "}
           {state === "applied" ? (
             <>
               {committed === null ? null : (
@@ -494,6 +481,18 @@ export function ImportDialog({
               >
                 {t(key("discard"))}
               </Button>
+              {state === "ready" ? (
+                <Button
+                  type="button"
+                  size="touch"
+                  data-testid={`${idPrefix}-preview`}
+                  disabled={!chosen || busy}
+                  onClick={() => void runPreview()}
+                >
+                  {busy ? t(key("busy")) : t(key("preview"))}
+                </Button>
+              ) : null}
+
               {state !== "previewed" ? null : (
                 <Button
                   type="button"
@@ -506,12 +505,12 @@ export function ImportDialog({
                 </Button>
               )}
             </>
-          )}{" "}
+          )}
         </>
       }
     >
       <StepTrack
-        steps={[t(key("preview")), t(key("confirm")), t(key("close"))]}
+        steps={[t(key("preview")), t(key("confirm"))]}
         current={state === "ready" ? 0 : state === "previewed" ? 1 : 2}
         label={title ?? t(key("title"))}
       />

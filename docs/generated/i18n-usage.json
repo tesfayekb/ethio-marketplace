@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 758,
-  "dynamicCallSites": 423,
+  "dynamicCallSites": 422,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -4586,7 +4586,6 @@
       "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/legal",
-      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -4594,14 +4593,11 @@
       "/admin/monetisation",
       "/admin/places",
       "/admin/roles",
-      "/admin/roles/$roleId",
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
-      "/admin/users/$userId",
       "/auth",
-      "/auth/reset",
       "/c/$slug",
       "/dev/primitives",
       "/dev/style",

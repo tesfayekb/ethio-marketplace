@@ -1,9 +1,24 @@
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { useEffect } from "react";
+import type { ShareAdProps } from "./share-ad";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { ownValue } from "@/lib/own-key";
 const countShare = vi.hoisted(() => vi.fn());
+const lifetime = vi.hoisted(() => ({ render: vi.fn(), leave: vi.fn() }));
+vi.mock("./share-ad-dialog-lazy", async (original) => {
+  const real = await original<typeof import("./share-ad-dialog-lazy")>();
+  return {
+    LazyShareAdDialog: (
+      props: ShareAdProps & { open: boolean; onOpenChange: (open: boolean) => void },
+    ) => {
+      lifetime.render(props.open);
+      useEffect(() => () => lifetime.leave(), []);
+      return <real.LazyShareAdDialog {...props} />;
+    },
+  };
+});
 vi.mock("./count-view", () => ({ countShare }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => ownValue(en, key) ?? key }) }));
 import { ShareAd } from "./share-ad";
@@ -144,4 +159,22 @@ describe("Sage S5 the ghost opener's ink", () => {
     expect(screen.getByTestId("listing-share-open")).toHaveClass("text-tier-premium-ink");
     expect(screen.getByTestId("listing-share-open")).not.toHaveClass("text-primary");
   });
+});
+
+it("DP-U23 the once-opened Share stays mounted closed and resets its content on reopening", async () => {
+  render(<ShareAd {...props} />);
+  const opener = screen.getByTestId("listing-share-open");
+  opener.focus();
+  fireEvent.click(opener);
+  await screen.findByTestId("listing-share-copy");
+  fireEvent.click(screen.getByTestId("listing-share-qr"));
+  expect(screen.getByTestId("listing-share-qr-image")).toBeInTheDocument();
+  fireEvent.keyDown(document.body, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(opener).toHaveFocus());
+  expect(lifetime.render).toHaveBeenLastCalledWith(false);
+  expect(lifetime.leave).not.toHaveBeenCalled();
+  fireEvent.click(opener);
+  await screen.findByTestId("listing-share-copy");
+  expect(screen.queryByTestId("listing-share-qr-image")).toBeNull();
 });

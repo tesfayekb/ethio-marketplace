@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { render as renderView, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render as renderView, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { CategoryModal } from "./category-modal";
@@ -50,4 +50,44 @@ describe("CategoryModal's panel anatomy (bundle 2)", () => {
     expect(panel.querySelector("[data-panel-body] [data-panel-subject]")).not.toBeNull();
     expect(panel.querySelector("[data-panel-foot]")).toHaveTextContent("Delete");
   });
+});
+
+it("CMD-8 a described question without subject or children has no body band", async () => {
+  render(
+    <CategoryModal
+      testid="empty"
+      title="Question"
+      openedBy="test"
+      onClose={() => {}}
+      description="Question details"
+      footer={<button type="button">Cancel</button>}
+    >
+      {null}
+    </CategoryModal>,
+  );
+  const panel = await screen.findByTestId("empty");
+  expect(panel.querySelector("[data-panel-body]")).toBeNull();
+  expect(panel.querySelector("[data-panel-head]")).toBeInTheDocument();
+  expect(panel.querySelector("[data-panel-foot]")).toBeInTheDocument();
+});
+
+it("CMD-9 the thin body supplies the page's translated cue to the arriving implementation", async () => {
+  render(
+    <CategoryModal
+      testid="scrolling"
+      title="Question"
+      openedBy="test"
+      onClose={() => {}}
+      description="Details"
+    >
+      Content
+    </CategoryModal>,
+  );
+  const panel = await screen.findByTestId("scrolling");
+  const body = panel.querySelector("[data-panel-body]");
+  if (!(body instanceof HTMLElement)) throw new Error("Body did not arrive");
+  Object.defineProperty(body, "scrollHeight", { configurable: true, value: 1000 });
+  Object.defineProperty(body, "clientHeight", { configurable: true, value: 400 });
+  fireEvent.scroll(body);
+  expect(screen.getByRole("button", { name: "dialog.moreBelow" })).toBeInTheDocument();
 });

@@ -103,3 +103,27 @@ describe("ToolbarPanel", () => {
     expect(screen.queryByTestId("g-panel")).toBeNull();
   });
 });
+
+it("FP-U16 a toolbar panel with no answers opens and closes without a body band", async () => {
+  render(
+    <ToolbarPanel
+      testid="empty-filter"
+      title="Filters"
+      description="Details"
+      state="all"
+      trigger={<button type="button" data-testid="empty-filter" />}
+      footer={(close) => (
+        <button type="button" onClick={close}>
+          Done
+        </button>
+      )}
+    >
+      {null}
+    </ToolbarPanel>,
+  );
+  fireEvent.click(screen.getByTestId("empty-filter"));
+  const panel = await screen.findByTestId("empty-filter-panel");
+  expect(panel.querySelector("[data-panel-body]")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Done" }));
+  expect(screen.queryByTestId("empty-filter-panel")).toBeNull();
+});

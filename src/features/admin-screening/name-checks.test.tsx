@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -138,4 +138,20 @@ describe("column shares (L18)", () => {
     wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
     expectLargestShare("name");
   });
+});
+
+it("DP-U24 the name subject exists only while its opener holds the name", async () => {
+  state.queue.mockReturnValue(answered({ rows: [row], next: null }));
+  wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
+  fireEvent.pointerDown(
+    within(screen.getByTestId("admin-name-check-p1")).getByTestId(
+      "admin-name-check-p1-actions-more",
+    ),
+    { button: 0, ctrlKey: false },
+  );
+  fireEvent.click(await screen.findByTestId("admin-name-check-p1-actions-more-allow"));
+  const panel = await screen.findByTestId("admin-name-check-allow");
+  expect(panel.querySelector("[data-panel-subject]")).toHaveTextContent(row.name);
+  fireEvent.keyDown(document.body, { key: "Escape" });
+  await waitFor(() => expect(screen.queryByTestId("admin-name-check-allow")).toBeNull());
 });

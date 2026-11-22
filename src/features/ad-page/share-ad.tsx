@@ -1,6 +1,5 @@
 import { Suspense, useState } from "react";
 import { Share2 } from "lucide-react";
-import { Spinner } from "@/components/brand/spinner";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { LazyShareAdDialog } from "./share-ad-dialog-lazy";
@@ -38,6 +37,8 @@ export function ShareAd({
   const callerHeld = open !== undefined && onOpenChange !== undefined;
   const [innerOpen, setInnerOpen] = useState(false);
   const shown = callerHeld ? open : innerOpen;
+  const [opened, setOpened] = useState(shown);
+  if (shown && !opened) setOpened(true);
   const changeOpen = (next: boolean) => {
     if (callerHeld) onOpenChange(next);
     else setInnerOpen(next);
@@ -59,8 +60,8 @@ export function ShareAd({
           {t("adPage.share.open")}
         </Button>
       )}
-      {shown && (
-        <Suspense fallback={<Spinner label={t("common.loading")} />}>
+      {opened && (
+        <Suspense fallback={null}>
           <LazyShareAdDialog
             publicId={publicId}
             canonicalPath={canonicalPath}
