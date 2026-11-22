@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { useState } from "react";
 import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
 import { ColumnsButton } from "@/components/shell/columns-button";
@@ -6,7 +7,6 @@ import { TableToolbar } from "@/components/shell/table-toolbar";
 import { CutText } from "@/components/ui/cut-text";
 import { Button } from "@/components/ui/button";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FilterChoices } from "@/components/shell/filter-choices";
 import { useI18n } from "@/i18n";
 import { dateFormatter, numberFormatter } from "@/lib/format";
 import {
@@ -20,37 +20,57 @@ import { useAiCalls } from "./use-ai-calls";
 
 export function AiCalls() {
   const { t, language } = useI18n();
-  const [feature, setFeature] = useState("");
-  const [outcome, setOutcome] = useState("");
+  const [rawFeature, setFeature] = useState("");
+  const [rawOutcome, setOutcome] = useState("");
   const [hidden, toggleColumn] = useHiddenColumns("admin-ai-calls");
   const [history, setHistory] = useState<Array<AiCallsCursor | null>>([null]);
   const before = history[history.length - 1] ?? null;
-  const query = useAiCalls(feature, outcome, before);
   const name = (id: string) => {
     const key = featureLabelKey(id);
     return key ? t(key) : id;
   };
-  // INC-987 — the two choices narrow the rows, so they live in Filters (T2b),
-  // shown as chips under the toolbar; any change goes back to the first page.
   const choose = (set: (value: string) => void) => (value: string) => {
     set(value);
     setHistory([null]);
   };
-  const chips = [
-    ...(feature === ""
-      ? []
-      : [{ key: "feature", label: name(feature), onRemove: () => choose(setFeature)("") }]),
-    ...AI_OUTCOMES.filter((id) => id === outcome).map((id) => ({
-      key: "outcome",
-      label: t(`admin.ai.log.outcome.${id}`),
-      onRemove: () => choose(setOutcome)(""),
-    })),
-  ];
-  const clearAll = () => {
-    setFeature("");
-    setOutcome("");
-    setHistory([null]);
-  };
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-ai-calls", [
+    {
+      kind: "select",
+      id: "ai-calls-feature",
+      chipKey: "feature",
+      name: t("admin.ai.col.feature"),
+      kept: true,
+      value: rawFeature === "" || rawFeature === null ? [] : [rawFeature],
+      onChange: (next: string[]) => choose(setFeature)(next[0] ?? ""),
+      options: [
+        { value: "", label: t("admin.ai.days.all") },
+        ...AI_FEATURE_ORDER.map((id) => ({ value: id, label: name(id) })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "select",
+      id: "ai-calls-outcome",
+      chipKey: "outcome",
+      name: t("admin.ai.log.col.outcome"),
+      kept: true,
+      value: rawOutcome === "" || rawOutcome === null ? [] : [rawOutcome],
+      onChange: (next: string[]) => choose(setOutcome)(next[0] ?? ""),
+      options: [
+        { value: "", label: t("admin.ai.log.allOutcomes") },
+        ...AI_OUTCOMES.map((id) => ({
+          value: id,
+          label: t(`admin.ai.log.outcome.${id}`),
+        })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+  ]);
+  const feature = filterValues(tableFilters, "ai-calls-feature")[0] ?? "";
+  const outcome = filterValues(tableFilters, "ai-calls-outcome")[0] ?? "";
+  const query = useAiCalls(feature, outcome, before, filtersReady);
+
+  // INC-987 — the two choices narrow the rows, so they live in Filters (T2b),
+  // shown as chips under the toolbar; any change goes back to the first page.
+
   const date = dateFormatter("moment", language);
   const number = numberFormatter("count", language);
   const columns: DataTableColumn<AiCallRow>[] = [
@@ -143,39 +163,8 @@ export function AiCalls() {
         toolbar={
           <TableToolbar
             testid="ai-calls-toolbar"
-            filters={
-              <FiltersButton
-                testid="ai-calls-filters"
-                count={chips.length}
-                state={`${feature}|${outcome}`}
-                onClearAll={clearAll}
-              >
-                <FilterChoices
-                  testid="ai-calls-feature"
-                  label={t("admin.ai.col.feature")}
-                  value={feature}
-                  onChange={choose(setFeature)}
-                  options={[
-                    { value: "", label: t("admin.ai.days.all") },
-                    ...AI_FEATURE_ORDER.map((id) => ({ value: id, label: name(id) })),
-                  ]}
-                />
-                <FilterChoices
-                  testid="ai-calls-outcome"
-                  label={t("admin.ai.log.col.outcome")}
-                  value={outcome}
-                  onChange={choose(setOutcome)}
-                  options={[
-                    { value: "", label: t("admin.ai.log.allOutcomes") },
-                    ...AI_OUTCOMES.map((id) => ({
-                      value: id,
-                      label: t(`admin.ai.log.outcome.${id}`),
-                    })),
-                  ]}
-                />
-              </FiltersButton>
-            }
-            chips={<FilterChips testid="ai-calls-chips" chips={chips} onClearAll={clearAll} />}
+            filters={<FiltersButton testid={"ai-calls-filters"} filters={tableFilters} />}
+            chips={<FilterChips testid={"ai-calls-chips"} filters={tableFilters} />}
             columns={
               <ColumnsButton
                 testid="ai-calls-columns"

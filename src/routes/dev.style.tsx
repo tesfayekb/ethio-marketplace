@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Check,
@@ -26,7 +27,6 @@ import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { ColumnsList } from "@/components/shell/columns-button";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FilterChoices } from "@/components/shell/filter-choices";
 import { FilterDates } from "@/components/shell/filter-dates";
 import { FilterRow } from "@/components/shell/filter-row";
 import { FilterSelect } from "@/components/shell/filter-select";
@@ -376,7 +376,18 @@ function DarkCardChoice() {
 const SAMPLE_ROWS = ["Alpha", "Beta", "Gamma"] as const;
 const TONES: IconButtonTone[] = ["neutral", "danger", "success", "warning", "info"];
 const PAGER_TOTAL = 300;
-const COLOURS = ["Red", "Blue"] as const;
+const COLOURS = [
+  "Red",
+  "Blue",
+  "Green",
+  "Yellow",
+  "Black",
+  "White",
+  "Pink",
+  "Orange",
+  "Grey",
+  "Silver",
+] as const;
 const SIZES = ["Small", "Large"] as const;
 /** Fixture words (a dev page, English only). */
 const COLOUR_LABEL = "Colour";
@@ -1014,12 +1025,40 @@ function StyleFixture() {
   const [last, setLast] = useState("");
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const [colour, setColour] = useState("");
-  const [size, setSize] = useState("");
-  const chips = [
-    ...(colour ? [{ key: "colour", label: colour, onRemove: () => setColour("") }] : []),
-    ...(size ? [{ key: "size", label: size, onRemove: () => setSize("") }] : []),
-  ];
+  const [rawColour, setColour] = useState<string[]>([]);
+  const [rawSize, setSize] = useState("");
+  const { filters: tableFilters } = useTableFilters("style-filters", [
+    {
+      kind: "select",
+      id: "style-filters-colour",
+      chipKey: "colour",
+      name: COLOUR_LABEL,
+      kept: true,
+      multiple: true,
+      value: rawColour,
+      onChange: (next: string[]) => {
+        setColour(next);
+      },
+      options: [{ value: "", label: ANY }, ...COLOURS.map((c) => ({ value: c, label: c }))].filter(
+        (option) => option.value !== "" && option.value !== "all",
+      ),
+    },
+    {
+      kind: "select",
+      id: "style-filters-size",
+      chipKey: "size",
+      name: SIZE_LABEL,
+      kept: true,
+      value: rawSize === "" || rawSize === null ? [] : [rawSize],
+      onChange: (next: string[]) => setSize(next[0] ?? ""),
+      options: [{ value: "", label: ANY }, ...SIZES.map((c) => ({ value: c, label: c }))].filter(
+        (option) => option.value !== "" && option.value !== "all",
+      ),
+    },
+  ]);
+  const colour = filterValues(tableFilters, "style-filters-colour");
+  const size = filterValues(tableFilters, "style-filters-size")[0] ?? "";
+
   return (
     <PageShell as="main" data-testid="dev-style">
       <div className="flex flex-col gap-6">
@@ -1176,41 +1215,8 @@ function StyleFixture() {
         <Section title={"Filters"} testid="style-filters-section">
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {/* Bundle 11 V2 (INC-543) — each filter a row of pills, never a dropdown. */}
-            <FiltersButton
-              testid="style-filters"
-              count={chips.length}
-              state={`${colour}|${size}`}
-              onClearAll={() => {
-                setColour("");
-                setSize("");
-              }}
-            >
-              <FilterChoices
-                testid="style-filters-colour"
-                label={COLOUR_LABEL}
-                value={colour}
-                onChange={setColour}
-                options={[
-                  { value: "", label: ANY },
-                  ...COLOURS.map((c) => ({ value: c, label: c })),
-                ]}
-              />
-              <FilterChoices
-                testid="style-filters-size"
-                label={SIZE_LABEL}
-                value={size}
-                onChange={setSize}
-                options={[{ value: "", label: ANY }, ...SIZES.map((c) => ({ value: c, label: c }))]}
-              />
-            </FiltersButton>
-            <FilterChips
-              testid="style-filters-chips"
-              chips={chips}
-              onClearAll={() => {
-                setColour("");
-                setSize("");
-              }}
-            />
+            <FiltersButton testid={"style-filters"} filters={tableFilters} />
+            <FilterChips testid={"style-filters-chips"} filters={tableFilters} />
           </div>
         </Section>
       </div>

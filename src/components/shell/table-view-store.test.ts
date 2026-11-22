@@ -1,8 +1,9 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook as renderBareHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useHiddenColumns } from "./columns-state";
-import { reportTableViewAccount } from "./table-view-account";
+import { tableViewTestShell } from "./table-view-test-shell";
+import { forgetTableViewsForTests } from "./table-view-store";
 import { parseTableViewEntry, tableOfPageKey, useTableView } from "./table-view-store";
 import { useKeptPage } from "./use-kept-page";
 
@@ -10,10 +11,16 @@ const KEY = (account: string, table: string) => `ethio:view:${account}:${table}`
 const stored = (account: string, table: string): unknown =>
   JSON.parse(window.localStorage.getItem(KEY(account, table)) ?? "null");
 
+let account: string | null | undefined = "acc-a";
+function renderHook<T>(callback: () => T) {
+  return renderBareHook(callback, { wrapper: (props) => tableViewTestShell(account)(props) });
+}
+
 /** INC-1238 (DEC-420) — the kept view, one store per account and table. */
 describe("table-view-store", () => {
   beforeEach(() => {
-    reportTableViewAccount("acc-a");
+    account = "acc-a";
+    forgetTableViewsForTests();
   });
   afterEach(() => {
     window.localStorage.clear();
@@ -84,7 +91,7 @@ describe("table-view-store", () => {
   });
 
   it("TV-U6 signed out: nothing is read and nothing is written", () => {
-    reportTableViewAccount(null);
+    account = null;
     window.localStorage.setItem(KEY("acc-a", "t-out"), JSON.stringify({ v: 1, hidden: ["x"] }));
     const setItem = vi.spyOn(Storage.prototype, "setItem");
     const getItem = vi.spyOn(Storage.prototype, "getItem");
@@ -99,11 +106,20 @@ describe("table-view-store", () => {
   it("TV-U7 another account on the same device never reads the entry; sign-out removes nothing", () => {
     const first = renderHook(() => useHiddenColumns("t-two"));
     act(() => first.result.current[1]("a", false));
-    act(() => reportTableViewAccount(null));
+    act(() => {
+      account = null;
+      first.rerender();
+    });
     expect(window.localStorage.getItem(KEY("acc-a", "t-two"))).not.toBeNull();
-    act(() => reportTableViewAccount("acc-b"));
+    act(() => {
+      account = "acc-b";
+      first.rerender();
+    });
     expect(first.result.current[0]).toEqual([]);
-    act(() => reportTableViewAccount("acc-a"));
+    act(() => {
+      account = "acc-a";
+      first.rerender();
+    });
     expect(first.result.current[0]).toEqual(["a"]);
   });
 
@@ -125,7 +141,7 @@ describe("table-view-store", () => {
   });
 
   it("TV-U9 not known yet: the defaults, not ready, and nothing read", () => {
-    reportTableViewAccount(undefined);
+    account = undefined;
     const getItem = vi.spyOn(Storage.prototype, "getItem");
     const view = renderHook(() => useTableView("t-wait", { f: ["a"] }));
     expect(view.result.current.ready).toBe(false);
@@ -133,6 +149,28 @@ describe("table-view-store", () => {
     act(() => view.result.current.setFilter("f", ["a"]));
     expect(view.result.current.filters).toEqual({});
     expect(getItem).not.toHaveBeenCalled();
+  });
+
+  it("TV-U11 without a shell each mounted hook owns its choices and remounts forget them", () => {
+    const first = renderBareHook(() => useHiddenColumns("detached"));
+    const second = renderBareHook(() => useHiddenColumns("detached"));
+    act(() => first.result.current[1]("seller", false));
+    expect(first.result.current[0]).toEqual(["seller"]);
+    expect(second.result.current[0]).toEqual([]);
+    first.unmount();
+    expect(renderBareHook(() => useHiddenColumns("detached")).result.current[0]).toEqual([]);
+  });
+
+  it("TV-U12 a handed-out setter stays bound to its account after the holder changes", () => {
+    const first = renderHook(() => useHiddenColumns("bound"));
+    const oldSetter = first.result.current[1];
+    act(() => {
+      account = "acc-b";
+      first.rerender();
+    });
+    act(() => oldSetter("seller", false));
+    expect(first.result.current[0]).toEqual([]);
+    expect(stored("acc-a", "bound")).toMatchObject({ hidden: ["seller"] });
   });
 
   it("TV-U10 every page-size key of a table with a columns id names that table's one entry", () => {

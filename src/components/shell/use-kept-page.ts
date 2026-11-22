@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { PAGE_SIZE_OPTIONS } from "@/features/admin-locations/locations-toolbar";
 
-import { setKeptPageSize, tableOfPageKey, useTableEntry } from "./table-view-store";
+import { tableOfPageKey, useTableEntry } from "./table-view-store";
 
 /**
  * Bundle 11 G3a (the operator's walk, 2026-10-11: "I don't see page count,
@@ -22,14 +22,14 @@ export function useKeptPage(
   options: readonly number[] = PAGE_SIZE_OPTIONS,
 ) {
   const tableId = tableOfPageKey(storageKey);
-  const { ready, entry } = useTableEntry(tableId);
+  const { ready, entry, setPageSize: keepSize } = useTableEntry(tableId);
   const [page, setPage] = useState(0);
   const kept = entry.pageSize;
   const pageSize = kept !== null && options.includes(kept) ? kept : defaultSize;
 
   const setPageSizeKept = (next: number) => {
     setPage(0);
-    setKeptPageSize(tableId, next);
+    keepSize(next);
   };
 
   return {

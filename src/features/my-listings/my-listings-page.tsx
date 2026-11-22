@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { readerFailure } from "@/lib/reader-failure";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -160,7 +161,8 @@ type Notice = { text: string; tone: "done" | "error" } | null;
 
 export function MyListingsPage() {
   const { t, language, entities } = useI18n();
-  const { tree } = useCategoryTree();
+  const categoryTree = useCategoryTree();
+  const { tree } = categoryTree;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const paging = useKeptPage("ethio.myListings.pageSize");
@@ -168,8 +170,8 @@ export function MyListingsPage() {
 
   const [group, setGroup] = useState<ListingGroup>("live");
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [mark, setMark] = useState<ListingMark | null>(null);
+  const [rawCategory, setCategory] = useState<string[]>([]);
+  const [rawMark, setMark] = useState<ListingMark | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [asking, setAsking] = useState<Asking>(null);
   const [renewing, setRenewing] = useState<MyListingRow | null>(null);
@@ -180,11 +182,63 @@ export function MyListingsPage() {
   // P-2 (b) — the row whose Promote sheet is open; one sheet serves the whole list.
   const [promoting, setPromoting] = useState<MyListingRow | null>(null);
   const debouncedSearch = useDebounced(search);
+  const roots = rootsOf(tree);
+  const both = (en: string | null, am: string | null) =>
+    en === null ? "—" : catalogText(en, am, language);
+  const reset = () => {
+    paging.setPage(0);
+    setSelected([]);
+  };
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("my-listings", [
+    {
+      kind: "select",
+      id: "my-listings-filter-category",
+      choicesReady: !categoryTree.isLoading,
+      chipKey: "category",
+      name: t("admin.listings.filter.category"),
+      kept: true,
+      multiple: true,
+      value: rawCategory,
+      onChange: (next: string[]) => {
+        setCategory(next);
+        reset();
+      },
+      options: [
+        { value: "", label: t("prim.table.all") },
+        ...roots.map((node) => ({
+          value: node.id,
+          label: both(node.nameEn, node.nameAm),
+        })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "select",
+      id: "my-listings-filter-mark",
+      chipKey: "mark",
+      name: t("myListings.filter.mark"),
+      kept: true,
+      value: rawMark === null ? [] : [rawMark],
+      onChange: (next: string[]) =>
+        ((value) => {
+          setMark(LISTING_MARKS.find((entry) => entry === value) ?? null);
+          reset();
+        })(next[0] ?? ""),
+      options: [
+        { value: "", label: t("prim.table.all") },
+        ...LISTING_MARKS.map((value) => ({ value, label: t(MARK_LABEL[value]) })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+  ]);
+  const category = filterValues(tableFilters, "my-listings-filter-category");
+  const mark =
+    LISTING_MARKS.find(
+      (value) => value === filterValues(tableFilters, "my-listings-filter-mark")[0],
+    ) ?? null;
   const filters: MyListingsFilters = { search: debouncedSearch, category, mark };
 
   const query = useQuery({
     // INC-1238 (ruling 1 decision 5) — no read before the kept view is known.
-    enabled: paging.ready,
+    enabled: paging.ready && filtersReady,
     queryKey: authKey("my-listings", {
       group,
       page: paging.page,
@@ -226,19 +280,12 @@ export function MyListingsPage() {
         {dateFormatter("day", language).format(new Date(iso))}
       </time>
     );
-  const roots = rootsOf(tree);
-  const both = (en: string | null, am: string | null) =>
-    en === null ? "—" : catalogText(en, am, language);
+
   const categoryName = (id: string) => {
     const node = tree.byId.get(id);
     return node
       ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
       : id;
-  };
-
-  const reset = () => {
-    paging.setPage(0);
-    setSelected([]);
   };
 
   const picture = (row: MyListingRow) => (
@@ -619,26 +666,6 @@ export function MyListingsPage() {
   ];
   const columns = visibleColumns(allColumns, hidden, LOCKED);
 
-  const chips = [
-    ...(category === null
-      ? []
-      : [
-          {
-            key: "category",
-            label: categoryName(category),
-            onRemove: () => (setCategory(null), reset()),
-          },
-        ]),
-    ...(mark === null
-      ? []
-      : [{ key: "mark", label: t(MARK_LABEL[mark]), onRemove: () => (setMark(null), reset()) }]),
-  ];
-  const clearAll = () => {
-    setCategory(null);
-    setMark(null);
-    reset();
-  };
-
   const askingRows = asking?.rows ?? [];
   const askingFirst = askingRows[0];
   const confirmTitle =
@@ -764,42 +791,10 @@ export function MyListingsPage() {
               }
               filters={
                 <FiltersButton
-                  testid="my-listings-filters"
-                  count={chips.length}
-                  state={`${category ?? ""}|${mark ?? ""}`}
+                  testid={"my-listings-filters"}
                   resultCount={counts[group]}
-                  onClearAll={clearAll}
-                >
-                  <FilterChoices
-                    testid="my-listings-filter-category"
-                    label={t("admin.listings.filter.category")}
-                    value={category ?? ""}
-                    onChange={(value) => {
-                      setCategory(value === "" ? null : value);
-                      reset();
-                    }}
-                    options={[
-                      { value: "", label: t("prim.table.all") },
-                      ...roots.map((node) => ({
-                        value: node.id,
-                        label: both(node.nameEn, node.nameAm),
-                      })),
-                    ]}
-                  />
-                  <FilterChoices
-                    testid="my-listings-filter-mark"
-                    label={t("myListings.filter.mark")}
-                    value={mark ?? ""}
-                    onChange={(value) => {
-                      setMark(LISTING_MARKS.find((entry) => entry === value) ?? null);
-                      reset();
-                    }}
-                    options={[
-                      { value: "", label: t("prim.table.all") },
-                      ...LISTING_MARKS.map((value) => ({ value, label: t(MARK_LABEL[value]) })),
-                    ]}
-                  />
-                </FiltersButton>
+                  filters={tableFilters}
+                />
               }
               columns={
                 <ColumnsButton
@@ -813,7 +808,7 @@ export function MyListingsPage() {
                   onToggle={toggleColumn}
                 />
               }
-              chips={<FilterChips testid="my-listings-chips" chips={chips} onClearAll={clearAll} />}
+              chips={<FilterChips testid={"my-listings-chips"} filters={tableFilters} />}
             />
           }
           selection={{

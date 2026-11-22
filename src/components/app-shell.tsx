@@ -74,7 +74,6 @@ import { createHomeAhead, SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
-import { reportTableViewAccount } from "./shell/table-view-account";
 
 /** Body shown for panels whose real pages are later features. */
 function PanelPlaceholder() {
@@ -137,15 +136,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { collapsed, toggle } = useRailCollapsed();
   const { t } = useI18n();
   const { user, loading: authLoading, hadSession, signOut } = useAuth();
-  /**
-   * INC-1238 (DEC-420) — the kept table views belong to the signed-in account: reported from what
-   * the shell already holds, after the first paint (the server's render knows no account). While
-   * the session is being read the account is not known, and a table that waits for it waits.
-   */
-  const viewAccount = authLoading ? undefined : (user?.id ?? null);
-  useEffect(() => {
-    reportTableViewAccount(viewAccount);
-  }, [viewAccount]);
   const router = useRouter();
   /**
    * DEC-279 (INC-930; Foundations turn 34c-4) — the Home page's code is fetched ahead of time for a

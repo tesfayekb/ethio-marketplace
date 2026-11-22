@@ -132,44 +132,44 @@ describe("parseScreeningFacts", () => {
 describe("listScreening", () => {
   it("SF-2 a market filter is a list of one on the queue's door; no market sends no country", async () => {
     answerRows([]);
-    await listScreening(0, "", 25, { country: "ET", tier: null });
+    await listScreening(0, "", 25, { country: ["ET"], tier: null });
     expect(doors.calls).toEqual([
       ["admin_screening_queue", { p_country: ["ET"], p_limit: 25, p_offset: 0 }],
     ]);
     expect(JSON.stringify(doors.calls)).not.toContain("home_country_code");
 
     answerRows([]);
-    await listScreening(0, "", 25, { country: null, tier: null });
+    await listScreening(0, "", 25, { country: [], tier: null });
     expect(doors.calls).toEqual([["admin_screening_queue", { p_limit: 25, p_offset: 0 }]]);
   });
 
   /** P-1 W4 — the tier filter the listings table has, on the door's own argument. */
   it("SF-7 a tier filter is the door's p_tier; no tier sends none", async () => {
     answerRows([]);
-    await listScreening(0, "", 25, { country: null, tier: "premium" });
+    await listScreening(0, "", 25, { country: [], tier: "premium" });
     expect(doors.calls[0]?.[1]).toEqual({ p_tier: "premium", p_limit: 25, p_offset: 0 });
 
     answerRows([]);
-    await listScreening(0, "", 25, { country: "ET", tier: null });
+    await listScreening(0, "", 25, { country: ["ET"], tier: null });
     expect(doors.calls[0]?.[1]).not.toHaveProperty("p_tier");
   });
 
   it("SF-11 a page past the end keeps the door's total, and the page is sent as the offset (DEC-422)", async () => {
     answerRows([], 41);
-    const past = await listScreening(3, "", 25, { country: null, tier: null });
+    const past = await listScreening(3, "", 25, { country: [], tier: null });
     expect(past).toEqual({ rows: [], total: 41 });
     expect(doors.calls[0]?.[1]).toEqual({ p_limit: 25, p_offset: 75 });
   });
 
   it("SF-14 the search and the seller are trimmed and sent only when asked", () => {
     expect(
-      screeningQueueArgs(2, "  fridge ", 50, { country: null, tier: null, seller: " abe " }),
+      screeningQueueArgs(2, "  fridge ", 50, { country: [], tier: null, seller: " abe " }),
     ).toEqual({ p_search: "fridge", p_seller: "abe", p_limit: 50, p_offset: 100 });
-    expect(screeningQueueArgs(0, "   ", 25, { country: null, tier: null, seller: "  " })).toEqual({
+    expect(screeningQueueArgs(0, "   ", 25, { country: [], tier: null, seller: "  " })).toEqual({
       p_limit: 25,
       p_offset: 0,
     });
-    expect(screeningQueueArgs(0, "", 25, { country: null, tier: null })).toEqual({
+    expect(screeningQueueArgs(0, "", 25, { country: [], tier: null })).toEqual({
       p_limit: 25,
       p_offset: 0,
     });
@@ -187,7 +187,7 @@ describe("listScreening — the row's market", () => {
       }),
       doorRow("l-2", { seller_alias: null, seller_business_name: null, seller_email: null }),
     ]);
-    const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
+    const { rows } = await listScreening(0, "", 25, { country: [], tier: null });
     expect(rows.map((row) => [row.sellerAlias, row.sellerBusinessName, row.sellerEmail])).toEqual([
       ["abebe", "Abebe Trading", "abebe@example.test"],
       [null, null, null],
@@ -209,7 +209,7 @@ describe("listScreening — the row's market", () => {
       ],
       41,
     );
-    const { rows, total } = await listScreening(0, "", 25, { country: null, tier: null });
+    const { rows, total } = await listScreening(0, "", 25, { country: [], tier: null });
     expect(total).toBe(41);
     expect(rows.map((row) => row.countryCode)).toEqual(["ET", null]);
     expect(rows.map((row) => row.place)).toEqual([{ name_en: "Bole", name_am: null }, null]);
@@ -366,7 +366,7 @@ describe("the screening row's tier", () => {
       ],
       4,
     );
-    const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
+    const { rows } = await listScreening(0, "", 25, { country: [], tier: null });
     expect(rows.map((r) => r.tier)).toEqual(["lvl-a", "lvl-fourth", null, null]);
   });
 });
@@ -391,7 +391,7 @@ describe("the queue's reader failures", () => {
       expect(parseScreeningQueue(bad), JSON.stringify(bad)).toBeNull();
       doors.calls.length = 0;
       doors.answer = { data: bad, error: null };
-      await expect(listScreening(0, "", 25, { country: null, tier: null })).rejects.toMatchObject({
+      await expect(listScreening(0, "", 25, { country: [], tier: null })).rejects.toMatchObject({
         name: "ReaderError",
         failure: { class: "malformed" },
       });
@@ -400,7 +400,7 @@ describe("the queue's reader failures", () => {
 
   it("SF-13 a refusal or a failed read is a ReaderError whose class the one reader decides, on every reader of the file", async () => {
     doors.answer = { data: null, error: { message: "permissionDenied" } };
-    const refused = await listScreening(0, "", 25, { country: null, tier: null }).catch(
+    const refused = await listScreening(0, "", 25, { country: [], tier: null }).catch(
       (error: unknown) => error,
     );
     expect(refused).toBeInstanceOf(ReaderError);

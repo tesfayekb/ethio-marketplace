@@ -1,6 +1,4 @@
-import { useCallback } from "react";
-
-import { setKeptHidden, useTableEntry } from "./table-view-store";
+import { useTableEntry } from "./table-view-store";
 
 /**
  * BUNDLE 11 A2 (D128) — which columns a table hides, for the Columns button (columns-button.tsx).
@@ -11,12 +9,8 @@ import { setKeptHidden, useTableEntry } from "./table-view-store";
 export function useHiddenColumns(
   tableId: string,
 ): [string[], (key: string, visible: boolean) => void] {
-  const { entry } = useTableEntry(tableId);
-  const toggle = useCallback(
-    (key: string, visible: boolean) => setKeptHidden(tableId, key, visible),
-    [tableId],
-  );
-  return [entry.hidden as string[], toggle];
+  const { entry, setHidden } = useTableEntry(tableId);
+  return [entry.hidden as string[], setHidden];
 }
 
 /** The columns a table draws: every locked column, and the others not hidden. */

@@ -71,8 +71,9 @@ export function useTranslationStats(lang?: string) {
   });
 }
 
-export function useTranslations(filters: TranslationFilters) {
+export function useTranslations(filters: TranslationFilters, ready = true) {
   return useQuery({
+    enabled: ready,
     queryKey: [...TRANSLATION_ROWS_KEY, filters],
     queryFn: () => listTranslations(filters),
     staleTime: 10_000,

@@ -16,3 +16,5 @@ export * as submenu from "./submenu-impl";
 export * as submenuLevels from "./submenu-levels";
 export * as dialogParts from "./dialog-parts";
 export * as dialogRules from "./dialog-rules";
+
+export * as filterPanel from "../shell/filter-panel-facade";

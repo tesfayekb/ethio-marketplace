@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { CircleHelp } from "lucide-react";
 import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { fill } from "@/features/posting/refusal-text";
@@ -17,7 +18,6 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { todayIso } from "@/components/shell/date-day";
-import { DateField } from "@/components/shell/date-field";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
 import { useOpenMarkets } from "@/components/shell/location-data";
@@ -122,18 +122,19 @@ export function AdminListingsPage() {
   const navigate = useNavigate();
   const section = sectionById("listings");
   const markets = useOpenMarkets();
-  const { tree } = useCategoryTree();
+  const categoryTree = useCategoryTree();
+  const { tree } = categoryTree;
   const paging = useKeptPage("ethio.admin.listings.pageSize");
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   const [view, setView] = useState<ListingView>("all");
   const [search, setSearch] = useState("");
-  const [country, setCountry] = useState<string | null>(null);
-  const [category, setCategory] = useState<string | null>(null);
+  const [rawCountry, setCountry] = useState<string[]>([]);
+  const [rawCategory, setCategory] = useState<string[]>([]);
   const [seller, setSeller] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [tier, setTier] = useState<string | null>(null);
+  const [rawTier, setTier] = useState<string | null>(null);
   const levels = useLevelRows({ looks: false });
   const [selected, setSelected] = useState<string[]>([]);
   const [move, setMove] = useState<Move>(null);
@@ -150,6 +151,125 @@ export function AdminListingsPage() {
   const debouncedSeller = useDebounced(seller);
   const today = todayIso();
 
+  const reset = () => {
+    paging.setPage(0);
+    setSelected([]);
+  };
+  const both = (en: string | null, am: string | null) =>
+    en === null ? "—" : catalogText(en, am, language);
+  const marketName = (code: string) => {
+    const market = markets.markets.find((m) => m.code === code);
+    if (!market) return code;
+    return market.anchorId === null
+      ? market.nameEn
+      : entityName(
+          "location",
+          { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+          entities,
+        );
+  };
+  const roots = rootsOf(tree);
+  const tierLabel = (value: string) =>
+    levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-listings", [
+    {
+      kind: "select",
+      id: "listings-filter-country",
+      choicesReady: !markets.isLoading,
+      chipKey: "country",
+      name: t("location.country"),
+      kept: true,
+      multiple: true,
+      value: rawCountry,
+      onChange: (next: string[]) => {
+        setCountry(next);
+        reset();
+      },
+      options: [
+        { value: "", label: t("prim.table.all") },
+        ...markets.markets.map((market) => ({
+          value: market.code,
+          label: marketName(market.code),
+        })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "select",
+      id: "listings-filter-category",
+      choicesReady: !categoryTree.isLoading,
+      chipKey: "category",
+      name: t("admin.listings.filter.category"),
+      kept: true,
+      multiple: true,
+      value: rawCategory,
+      onChange: (next: string[]) => {
+        setCategory(next);
+        reset();
+      },
+      options: [
+        { value: "", label: t("prim.table.all") },
+        ...roots.map((node) => ({
+          value: node.id,
+          label: both(node.nameEn, node.nameAm),
+        })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "text",
+      id: "listings-filter-seller",
+      chipKey: "seller",
+      name: t("admin.listings.filter.seller"),
+      kept: false,
+      value: seller,
+      onChange: (next) => {
+        setSeller(next);
+        reset();
+      },
+      placeholder: mayReadEmail
+        ? t("admin.listings.filter.sellerPlaceholderEmail")
+        : t("admin.listings.filter.sellerPlaceholder"),
+    },
+    {
+      kind: "select",
+      id: "listings-filter-tier",
+      choicesReady: !levels.isLoading,
+      chipKey: "tier",
+      name: t("admin.listings.filter.level"),
+      kept: true,
+      value: rawTier === "" || rawTier === null ? [] : [rawTier],
+      onChange: (next: string[]) =>
+        ((value) => {
+          setTier(value === "" ? null : value);
+          reset();
+        })(next[0] ?? ""),
+      options: [
+        { value: "", label: t("prim.table.all") },
+        ...levels.rows.map((row) => ({
+          value: row.key,
+          label: tierLabel(row.key),
+        })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "dates",
+      id: "listings-filter",
+      chipKey: "dates",
+      name: t("admin.listings.filter.from"),
+      kept: false,
+      value: { from, to },
+      onChange: (next) => {
+        setFrom(next.from);
+        setTo(next.to);
+        reset();
+      },
+      fromLabel: t("admin.listings.filter.from"),
+      toLabel: t("admin.listings.filter.to"),
+      maxDate: today,
+    },
+  ]);
+  const country = filterValues(tableFilters, "listings-filter-country");
+  const category = filterValues(tableFilters, "listings-filter-category");
+  const tier = filterValues(tableFilters, "listings-filter-tier")[0] ?? null;
   const query = useAdminListings(
     {
       view,
@@ -163,7 +283,7 @@ export function AdminListingsPage() {
       limit: paging.pageSize,
       offset: paging.page * paging.pageSize,
     },
-    paging.ready,
+    paging.ready && filtersReady,
   );
   const rows = query.data?.rows ?? [];
   const total = query.data?.total ?? 0;
@@ -178,10 +298,6 @@ export function AdminListingsPage() {
   // INC-553 — the unit words load only when a row on this page holds a unit (the card's rule).
   const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
 
-  const reset = () => {
-    paging.setPage(0);
-    setSelected([]);
-  };
   const dateFmt = dateFormatter("day", language);
   const fullFmt = dateFormatter("dayFull", language);
   const shortFmt = dateFormatter("dayMonth", language);
@@ -202,21 +318,7 @@ export function AdminListingsPage() {
       </time>
     );
   };
-  const both = (en: string | null, am: string | null) =>
-    en === null ? "—" : catalogText(en, am, language);
 
-  const marketName = (code: string) => {
-    const market = markets.markets.find((m) => m.code === code);
-    if (!market) return code;
-    return market.anchorId === null
-      ? market.nameEn
-      : entityName(
-          "location",
-          { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
-          entities,
-        );
-  };
-  const roots = rootsOf(tree);
   const categoryName = (id: string) => {
     const node = tree.byId.get(id);
     return node
@@ -224,8 +326,7 @@ export function AdminListingsPage() {
       : id;
   };
   // P-2 (c) c2a — the levels are the enabled level rows, named by their own names.
-  const tierLabel = (value: string) =>
-    levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
+
   const viewLabel = (value: ListingView) =>
     value === "all" ? t("prim.table.all") : t(`admin.listings.view.${value}` as MessageKey);
   const sellerName = (row: AdminListingRow) => row.sellerBusinessName ?? row.sellerAlias ?? "—";
@@ -533,66 +634,6 @@ export function AdminListingsPage() {
   ];
   const columns = visibleColumns(allColumns, hidden, LOCKED);
 
-  const chips = [
-    ...(country === null
-      ? []
-      : [
-          {
-            key: "country",
-            label: marketName(country),
-            onRemove: () => (setCountry(null), reset()),
-          },
-        ]),
-    ...(category === null
-      ? []
-      : [
-          {
-            key: "category",
-            label: categoryName(category),
-            onRemove: () => (setCategory(null), reset()),
-          },
-        ]),
-    ...(seller.trim() === ""
-      ? []
-      : [
-          {
-            key: "seller",
-            label: `${t("admin.listings.filter.seller")}: ${seller.trim()}`,
-            onRemove: () => (setSeller(""), reset()),
-          },
-        ]),
-    ...(from === ""
-      ? []
-      : [
-          {
-            key: "from",
-            label: `${t("admin.listings.filter.from")} ${from}`,
-            onRemove: () => (setFrom(""), reset()),
-          },
-        ]),
-    ...(to === ""
-      ? []
-      : [
-          {
-            key: "to",
-            label: `${t("admin.listings.filter.to")} ${to}`,
-            onRemove: () => (setTo(""), reset()),
-          },
-        ]),
-    ...(tier === null
-      ? []
-      : [{ key: "tier", label: tierLabel(tier), onRemove: () => (setTier(null), reset()) }]),
-  ];
-  const clearAll = () => {
-    setCountry(null);
-    setCategory(null);
-    setSeller("");
-    setFrom("");
-    setTo("");
-    setTier(null);
-    reset();
-  };
-
   return (
     <StepUpGate>
       {(guard) => (
@@ -684,122 +725,10 @@ export function AdminListingsPage() {
                 }
                 filters={
                   <FiltersButton
-                    testid="listings-filters"
-                    count={chips.length}
-                    state={`${country ?? ""}|${category ?? ""}|${seller}|${from}|${to}|${tier ?? ""}`}
+                    testid={"listings-filters"}
                     resultCount={total}
-                    onClearAll={clearAll}
-                  >
-                    <FilterChoices
-                      testid="listings-filter-country"
-                      label={t("location.country")}
-                      value={country ?? ""}
-                      onChange={(value) => {
-                        setCountry(value === "" ? null : value);
-                        reset();
-                      }}
-                      options={[
-                        { value: "", label: t("prim.table.all") },
-                        ...markets.markets.map((market) => ({
-                          value: market.code,
-                          label: marketName(market.code),
-                        })),
-                      ]}
-                    />
-                    <FilterChoices
-                      testid="listings-filter-category"
-                      label={t("admin.listings.filter.category")}
-                      value={category ?? ""}
-                      onChange={(value) => {
-                        setCategory(value === "" ? null : value);
-                        reset();
-                      }}
-                      options={[
-                        { value: "", label: t("prim.table.all") },
-                        ...roots.map((node) => ({
-                          value: node.id,
-                          label: both(node.nameEn, node.nameAm),
-                        })),
-                      ]}
-                    />
-                    <div className="flex min-w-0 flex-col gap-2">
-                      <label
-                        htmlFor="listings-filter-seller"
-                        className="text-sm font-semibold text-foreground"
-                      >
-                        {t("admin.listings.filter.seller")}
-                      </label>
-                      <Input
-                        id="listings-filter-seller"
-                        data-testid="listings-filter-seller"
-                        value={seller}
-                        placeholder={
-                          mayReadEmail
-                            ? t("admin.listings.filter.sellerPlaceholderEmail")
-                            : t("admin.listings.filter.sellerPlaceholder")
-                        }
-                        onChange={(event) => {
-                          setSeller(event.target.value);
-                          reset();
-                        }}
-                      />
-                    </div>
-                    <div className="grid min-w-0 grid-cols-1 gap-3">
-                      <div className="flex min-w-0 flex-col gap-2">
-                        <label
-                          htmlFor="listings-filter-from"
-                          className="text-sm font-semibold text-foreground"
-                        >
-                          {t("admin.listings.filter.from")}
-                        </label>
-                        <DateField
-                          id="listings-filter-from"
-                          testid="listings-filter-from"
-                          value={from}
-                          max={to !== "" && to < today ? to : today}
-                          onChange={(next) => {
-                            setFrom(next);
-                            reset();
-                          }}
-                        />
-                      </div>
-                      <div className="flex min-w-0 flex-col gap-2">
-                        <label
-                          htmlFor="listings-filter-to"
-                          className="text-sm font-semibold text-foreground"
-                        >
-                          {t("admin.listings.filter.to")}
-                        </label>
-                        <DateField
-                          id="listings-filter-to"
-                          testid="listings-filter-to"
-                          value={to}
-                          min={from !== "" ? from : undefined}
-                          max={today}
-                          onChange={(next) => {
-                            setTo(next);
-                            reset();
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <FilterChoices
-                      testid="listings-filter-tier"
-                      label={t("admin.listings.filter.level")}
-                      value={tier ?? ""}
-                      onChange={(value) => {
-                        setTier(value === "" ? null : value);
-                        reset();
-                      }}
-                      options={[
-                        { value: "", label: t("prim.table.all") },
-                        ...levels.rows.map((row) => ({
-                          value: row.key,
-                          label: tierLabel(row.key),
-                        })),
-                      ]}
-                    />
-                  </FiltersButton>
+                    filters={tableFilters}
+                  />
                 }
                 columns={
                   <ColumnsButton
@@ -813,7 +742,7 @@ export function AdminListingsPage() {
                     onToggle={toggleColumn}
                   />
                 }
-                chips={<FilterChips testid="listings-chips" chips={chips} onClearAll={clearAll} />}
+                chips={<FilterChips testid={"listings-chips"} filters={tableFilters} />}
               />
             }
             selection={

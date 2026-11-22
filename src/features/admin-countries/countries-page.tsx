@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { Download, Globe, Upload } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
@@ -21,7 +22,6 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
 import { downloadRoute } from "@/lib/route-client";
 
-import { CountryFilters } from "./countries-toolbar";
 import { COUNTRY_COLUMN_PRIORITIES, filterCountries, type CountryRow } from "./countries-service";
 import { CountryEditorDialog } from "./country-editor";
 import { ImportCountriesDialog } from "./country-import-dialog";
@@ -77,7 +77,7 @@ export function AdminCountriesPage() {
 
   const query = useAdminCountries();
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [rawStatus, setStatus] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
@@ -90,6 +90,25 @@ export function AdminCountriesPage() {
   const byCode = useMemo(() => new Map(roster.map((row) => [row.code, row])), [roster]);
   /** A keystroke sieves, never fetches; deferring keeps typing smooth. */
   const deferredSearch = useDeferredValue(search);
+  const { filters: tableFilters } = useTableFilters("admin-countries", [
+    {
+      kind: "select",
+      id: "country-status-filter",
+      chipKey: "status",
+      name: t("admin.countries.filter.status"),
+      kept: true,
+      value: rawStatus === "" ? [] : [rawStatus],
+      onChange: (next) => {
+        setStatus(next[0] ?? "");
+        setPage(0);
+      },
+      options: [
+        { value: "open", label: t("admin.countries.filter.openOnly") },
+        { value: "closed", label: t("admin.countries.filter.closedOnly") },
+      ],
+    },
+  ]);
+  const status = filterValues(tableFilters, "country-status-filter")[0] ?? "";
   const rows = useMemo(
     () => filterCountries(roster, { search: deferredSearch, status }),
     [roster, deferredSearch, status],
@@ -257,24 +276,6 @@ export function AdminCountriesPage() {
     />
   );
 
-  const chips =
-    status === ""
-      ? []
-      : [
-          {
-            key: "status",
-            label: t(
-              status === "open"
-                ? "admin.countries.filter.openOnly"
-                : "admin.countries.filter.closedOnly",
-            ),
-            onRemove: () => {
-              setStatus("");
-              setPage(0);
-            },
-          },
-        ];
-
   return (
     <StepUpGate>
       {(guard) => (
@@ -360,23 +361,10 @@ export function AdminCountriesPage() {
                   }
                   filters={
                     <FiltersButton
-                      testid="country-filters"
-                      count={chips.length}
-                      state={status}
+                      testid={"country-filters"}
                       resultCount={rows.length}
-                      onClearAll={() => {
-                        setStatus("");
-                        setPage(0);
-                      }}
-                    >
-                      <CountryFilters
-                        status={status}
-                        onStatus={(value) => {
-                          setStatus(value);
-                          setPage(0);
-                        }}
-                      />
-                    </FiltersButton>
+                      filters={tableFilters}
+                    />
                   }
                   columns={
                     <ColumnsButton
@@ -390,16 +378,7 @@ export function AdminCountriesPage() {
                       onToggle={toggleColumn}
                     />
                   }
-                  chips={
-                    <FilterChips
-                      testid="country-chips"
-                      chips={chips}
-                      onClearAll={() => {
-                        setStatus("");
-                        setPage(0);
-                      }}
-                    />
-                  }
+                  chips={<FilterChips testid={"country-chips"} filters={tableFilters} />}
                 />
                 <p
                   className="basis-full text-xs text-muted-foreground"

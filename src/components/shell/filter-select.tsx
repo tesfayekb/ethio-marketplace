@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { pickerPopClass, usePickerKeys, usePickerPlacement } from "@/components/picker-popup";
 import { LIST_SCROLLER, PickerOption } from "@/components/searchable-picker";
 import { DIALOG_FIELD } from "@/components/ui/dialog-look";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface FilterOption {
@@ -31,6 +32,8 @@ export function FilterSelect({
   placeholder,
   searchLabel,
   noneLabel,
+  maxLabel,
+  allLabel,
   testId,
   defaultOpen = false,
 }: {
@@ -45,6 +48,8 @@ export function FilterSelect({
   /** The search box's name, and the line when nothing matches: the consumer's words. */
   searchLabel: string;
   noneLabel: string;
+  maxLabel?: string;
+  allLabel?: string;
   testId: string;
   /** Opens on first draw (the board shows one select open). */
   defaultOpen?: boolean;
@@ -132,7 +137,8 @@ export function FilterSelect({
         if (open && !wrapRef.current?.contains(event.relatedTarget as Node | null)) close();
       }}
     >
-      <button
+      <Button
+        variant="outline"
         id={id}
         type="button"
         data-testid={testId}
@@ -152,7 +158,10 @@ export function FilterSelect({
           {chosen.length === 0 ? placeholder : chosen.join(", ")}
         </span>
         <ChevronDown aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-      </button>
+      </Button>
+      {multiple && value.length >= max && maxLabel ? (
+        <p className="mt-1 text-sm text-muted-foreground">{maxLabel.replace("{n}", String(max))}</p>
+      ) : null}
       {open ? (
         <div
           data-picker-popup=""
@@ -198,7 +207,7 @@ export function FilterSelect({
                   if (!multiple) close();
                 }}
               >
-                <span className="min-w-0 grow truncate">{placeholder}</span>
+                <span className="min-w-0 grow truncate">{allLabel ?? placeholder}</span>
               </PickerOption>
             </li>
             {shown.length === 0 ? (

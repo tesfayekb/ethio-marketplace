@@ -24,8 +24,8 @@ const answer = (listing: Record<string, unknown>) => ({
 const FILTERS: AdminListingFilters = {
   view: "all",
   search: "",
-  country: null,
-  category: null,
+  country: [],
+  category: [],
   seller: "",
   from: "",
   to: "",

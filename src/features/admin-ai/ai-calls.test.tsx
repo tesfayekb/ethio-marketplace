@@ -1,15 +1,34 @@
-import type React from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ query: vi.fn(), refetch: vi.fn() }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => vi.fn(), Link: () => null }));
 vi.mock("./use-ai-calls", () => ({ useAiCalls: state.query }));
-// The Filters panel opens on demand (overlay loader); its choices are drawn in place here.
+// The unit harness draws declared controls directly; real panels remain on demand.
 vi.mock("@/components/shell/filter-chips", async (real) => ({
   ...(await real<typeof import("@/components/shell/filter-chips")>()),
-  FiltersButton: ({ testid, children }: { testid: string; children: React.ReactNode }) => (
-    <div data-testid={testid}>{children}</div>
+  FiltersButton: ({
+    testid,
+    filters,
+  }: {
+    testid: string;
+    filters: readonly import("@/components/shell/table-filters").TableFilter[];
+  }) => (
+    <div data-testid={testid}>
+      {filters.map((filter) =>
+        filter.kind === "select"
+          ? filter.options.map((option) => (
+              <button
+                key={option.value}
+                data-testid={`${filter.id}-${option.value}`}
+                onClick={() => filter.onChange([option.value])}
+              >
+                {option.label}
+              </button>
+            ))
+          : null,
+      )}
+    </div>
   ),
 }));
 import { AiCalls } from "./ai-calls";
@@ -34,9 +53,9 @@ describe("AI call consumer", () => {
     render(<AiCalls />);
     expect(within(screen.getByRole("table")).getByText("admin.ai.log.personHidden")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "prim.table.next" }));
-    expect(state.query).toHaveBeenLastCalledWith("", "", { at: row.created_at, id: row.id });
+    expect(state.query).toHaveBeenLastCalledWith("", "", { at: row.created_at, id: row.id }, true);
     fireEvent.click(screen.getByTestId("ai-calls-outcome-timeout"));
-    expect(state.query).toHaveBeenLastCalledWith("", "timeout", null);
+    expect(state.query).toHaveBeenLastCalledWith("", "timeout", null, true);
   });
   it("TBS-3 the feature and outcome choices sit in Filters, show as chips, and a cleared chip goes back to the first page", () => {
     state.query.mockReturnValue({
@@ -54,12 +73,17 @@ describe("AI call consumer", () => {
     expect(screen.getByTestId("ai-calls-chips-chip-feature")).toBeTruthy();
     expect(screen.getByTestId("ai-calls-chips-chip-outcome")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "prim.table.next" }));
-    expect(state.query).toHaveBeenLastCalledWith("name_check", "timeout", {
-      at: row.created_at,
-      id: row.id,
-    });
+    expect(state.query).toHaveBeenLastCalledWith(
+      "name_check",
+      "timeout",
+      {
+        at: row.created_at,
+        id: row.id,
+      },
+      true,
+    );
     fireEvent.click(screen.getByTestId("ai-calls-chips-chip-outcome-remove"));
-    expect(state.query).toHaveBeenLastCalledWith("name_check", "", null);
+    expect(state.query).toHaveBeenLastCalledWith("name_check", "", null, true);
     expect(screen.queryByTestId("ai-calls-chips-chip-outcome")).toBeNull();
   });
   it("ACR-4 a failed read remains an error with retry, never an empty success", () => {

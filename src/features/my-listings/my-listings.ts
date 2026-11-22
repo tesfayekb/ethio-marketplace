@@ -104,11 +104,11 @@ export interface MyListingsFilters {
   /** Words of the title (the door trims it and ignores case; at most 100 characters). */
   search: string;
   /** A top category; the door reads everything under it. */
-  category: string | null;
+  category: readonly string[];
   mark: ListingMark | null;
 }
 
-export const NO_FILTERS: MyListingsFilters = { search: "", category: null, mark: null };
+export const NO_FILTERS: MyListingsFilters = { search: "", category: [], mark: null };
 
 /** The longest search the door takes. */
 export const SEARCH_MAX = 100;
@@ -234,7 +234,7 @@ export function filterArgs(filters: MyListingsFilters): {
   return {
     ...(search === "" ? {} : { p_search: search }),
     // DEC-420 — the door's category filter is a list; the screen's one category is a list of one.
-    ...(filters.category === null ? {} : { p_category: [filters.category] }),
+    ...(filters.category.length === 0 ? {} : { p_category: filters.category.slice(0, 20) }),
     ...(filters.mark === null ? {} : { p_mark: filters.mark }),
   };
 }

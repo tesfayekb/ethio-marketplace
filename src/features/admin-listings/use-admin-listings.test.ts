@@ -25,8 +25,8 @@ import { listAdminListings, type AdminListingFilters } from "./use-admin-listing
 const NONE: AdminListingFilters = {
   view: "all",
   search: "",
-  country: null,
-  category: null,
+  country: [],
+  category: [],
   seller: "",
   from: "",
   to: "",
@@ -43,7 +43,7 @@ beforeEach(() => {
 describe("the All listings reader (DEC-420)", () => {
   it("ALR-1 the country and the category are lists of one on the door; none asked sends no list", async () => {
     const category = "6d1f1c2e-0000-4000-8000-000000000030";
-    await listAdminListings({ ...NONE, country: "ET", category });
+    await listAdminListings({ ...NONE, country: ["ET"], category: [category] });
     await listAdminListings(NONE);
     expect(door.calls).toEqual([
       [

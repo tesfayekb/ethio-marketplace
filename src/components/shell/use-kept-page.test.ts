@@ -1,8 +1,14 @@
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook as renderBareHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { reportTableViewAccount } from "./table-view-account";
+import { tableViewTestShell } from "./table-view-test-shell";
+import { forgetTableViewsForTests } from "./table-view-store";
 import { useKeptPage } from "./use-kept-page";
+
+let account: string | null | undefined = "acc-1";
+function renderHook<T>(callback: () => T) {
+  return renderBareHook(callback, { wrapper: (props) => tableViewTestShell(account)(props) });
+}
 
 /**
  * Bundle 11 G3a — a table's page and its kept page size. INC-1238 — kept per ACCOUNT in the one
@@ -10,7 +16,8 @@ import { useKeptPage } from "./use-kept-page";
  */
 describe("useKeptPage", () => {
   beforeEach(() => {
-    reportTableViewAccount("acc-1");
+    account = "acc-1";
+    forgetTableViewsForTests();
   });
   afterEach(() => {
     window.localStorage.clear();
@@ -74,7 +81,7 @@ describe("useKeptPage", () => {
   });
 
   it("KP-4 is not ready while the account is unknown, then reads the account's kept size", () => {
-    reportTableViewAccount(undefined);
+    account = undefined;
     window.localStorage.setItem(
       "ethio:view:acc-2:kp-wait",
       JSON.stringify({ v: 1, hidden: [], pageSize: 50, filters: {} }),
@@ -82,7 +89,10 @@ describe("useKeptPage", () => {
     const hook = renderHook(() => useKeptPage("kp-wait"));
     expect(hook.result.current.ready).toBe(false);
     expect(hook.result.current.pageSize).toBe(25);
-    act(() => reportTableViewAccount("acc-2"));
+    act(() => {
+      account = "acc-2";
+      hook.rerender();
+    });
     expect(hook.result.current.ready).toBe(true);
     expect(hook.result.current.pageSize).toBe(50);
   });

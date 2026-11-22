@@ -1,3 +1,4 @@
+import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { Picture } from "@/components/ui/picture";
 import { photoUrl } from "@/features/posting/photo-links";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
@@ -21,7 +22,6 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
-import { FilterChoices } from "@/components/shell/filter-choices";
 import { useOpenMarkets } from "@/components/shell/location-data";
 import { RowActions } from "@/components/shell/row-actions";
 import { TableActions } from "@/components/shell/table-actions";
@@ -144,9 +144,9 @@ export function AdminScreeningPage({
   const markets = useOpenMarkets();
 
   const [search, setSearch] = useState("");
-  const [country, setCountry] = useState<string | null>(null);
+  const [rawCountry, setCountry] = useState<string[]>([]);
   // P-1 W4 — the tier filter, as Admin › Listings has it (P-2 (c) c2a: the enabled level rows).
-  const [tier, setTier] = useState<string | null>(null);
+  const [rawTier, setTier] = useState<string | null>(null);
   const levels = useLevelRows({ looks: false });
   const tierLabel = (value: string) =>
     levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
@@ -192,7 +192,74 @@ export function AdminScreeningPage({
   const { tree } = useCategoryTree();
   const unitLabels = usePriceUnitLabels(previewRow !== null && previewRow.priceUnit !== null);
 
-  const query = useScreeningQueue(page, search, pageSize, { country, tier }, keptReady);
+  const marketName = (code: string) => {
+    const market = markets.markets.find((m) => m.code === code);
+    if (!market) return code;
+    return market.anchorId === null
+      ? market.nameEn
+      : entityName(
+          "location",
+          { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
+          entities,
+        );
+  };
+  const resetPaging = () => {
+    setPage(0);
+    setSelected([]);
+  };
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-screening", [
+    {
+      kind: "select",
+      id: "admin-screening-filter-country",
+      choicesReady: !markets.isLoading,
+      chipKey: "country",
+      name: t("location.country"),
+      kept: true,
+      multiple: true,
+      value: rawCountry,
+      onChange: (next: string[]) => {
+        setCountry(next);
+        resetPaging();
+      },
+      options: [
+        { value: "", label: t("prim.table.all") },
+        ...markets.markets.map((market) => ({
+          value: market.code,
+          label: marketName(market.code),
+        })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+    {
+      kind: "select",
+      id: "admin-screening-filter-tier",
+      choicesReady: !levels.isLoading,
+      chipKey: "tier",
+      name: t("admin.listings.filter.level"),
+      kept: true,
+      value: rawTier === "" || rawTier === null ? [] : [rawTier],
+      onChange: (next: string[]) =>
+        ((value) => {
+          setTier(exactLevel(levels.rows, value) === null ? null : value);
+          resetPaging();
+        })(next[0] ?? ""),
+      options: [
+        { value: "", label: t("prim.table.all") },
+        ...levels.rows.map((row) => ({
+          value: row.key,
+          label: tierLabel(row.key),
+        })),
+      ].filter((option) => option.value !== "" && option.value !== "all"),
+    },
+  ]);
+  const country = filterValues(tableFilters, "admin-screening-filter-country");
+  const tier = filterValues(tableFilters, "admin-screening-filter-tier")[0] ?? null;
+  const query = useScreeningQueue(
+    page,
+    search,
+    pageSize,
+    { country, tier },
+    keptReady && filtersReady,
+  );
   const photos = useScreeningPhotos(previewRow?.id ?? null);
   const decidingOne = decision?.ids.length === 1 ? decision.subjects[0] : undefined;
   const decisionPhotos = useScreeningPhotos(decidingOne?.id ?? null);
@@ -212,18 +279,6 @@ export function AdminScreeningPage({
     value === null ? "—" : catalogText(value.name_en, value.name_am, language);
 
   const sentAt = (iso: string) => dateFormatter("dayTimeNumeric", language).format(new Date(iso));
-
-  const marketName = (code: string) => {
-    const market = markets.markets.find((m) => m.code === code);
-    if (!market) return code;
-    return market.anchorId === null
-      ? market.nameEn
-      : entityName(
-          "location",
-          { id: market.anchorId, nameEn: market.nameEn, nameAm: null },
-          entities,
-        );
-  };
 
   const allColumns: DataTableColumn<ScreeningRow>[] = [
     {
@@ -273,11 +328,6 @@ export function AdminScreeningPage({
     },
   ];
   const columns = visibleColumns(allColumns, hidden, LOCKED);
-
-  const resetPaging = () => {
-    setPage(0);
-    setSelected([]);
-  };
 
   const openPreview = (row: ScreeningRow) => {
     setRevealed({});
@@ -513,33 +563,6 @@ export function AdminScreeningPage({
       </>
     );
 
-  const chips = [
-    ...(country === null
-      ? []
-      : [
-          {
-            key: "country",
-            label: marketName(country),
-            onRemove: () => {
-              setCountry(null);
-              resetPaging();
-            },
-          },
-        ]),
-    ...(tier === null
-      ? []
-      : [
-          {
-            key: "tier",
-            label: tierLabel(tier),
-            onRemove: () => {
-              setTier(null);
-              resetPaging();
-            },
-          },
-        ]),
-  ];
-
   return (
     <StepUpGate>
       {(guard) => {
@@ -672,51 +695,7 @@ export function AdminScreeningPage({
                     />
                   }
                   filters={
-                    <FiltersButton
-                      testid="admin-screening-filters"
-                      count={chips.length}
-                      state={`${country ?? ""}|${tier ?? ""}`}
-                      onClearAll={() => {
-                        setCountry(null);
-                        setTier(null);
-                        resetPaging();
-                      }}
-                    >
-                      {/* Bundle 11 V2 (INC-543) — one pill per market, never a dropdown. */}
-                      <FilterChoices
-                        testid="admin-screening-filter-country"
-                        label={t("location.country")}
-                        value={country ?? ""}
-                        onChange={(value) => {
-                          setCountry(value === "" ? null : value);
-                          resetPaging();
-                        }}
-                        options={[
-                          { value: "", label: t("prim.table.all") },
-                          ...markets.markets.map((market) => ({
-                            value: market.code,
-                            label: marketName(market.code),
-                          })),
-                        ]}
-                      />
-                      {/* P-1 W4 — the listings table's tier filter, the same words. */}
-                      <FilterChoices
-                        testid="admin-screening-filter-tier"
-                        label={t("admin.listings.filter.level")}
-                        value={tier ?? ""}
-                        onChange={(value) => {
-                          setTier(exactLevel(levels.rows, value) === null ? null : value);
-                          resetPaging();
-                        }}
-                        options={[
-                          { value: "", label: t("prim.table.all") },
-                          ...levels.rows.map((row) => ({
-                            value: row.key,
-                            label: tierLabel(row.key),
-                          })),
-                        ]}
-                      />
-                    </FiltersButton>
+                    <FiltersButton testid={"admin-screening-filters"} filters={tableFilters} />
                   }
                   columns={
                     <ColumnsButton
@@ -730,16 +709,7 @@ export function AdminScreeningPage({
                       onToggle={toggleColumn}
                     />
                   }
-                  chips={
-                    <FilterChips
-                      testid="admin-screening-chips"
-                      chips={chips}
-                      onClearAll={() => {
-                        setCountry(null);
-                        resetPaging();
-                      }}
-                    />
-                  }
+                  chips={<FilterChips testid={"admin-screening-chips"} filters={tableFilters} />}
                 />
               }
               selection={

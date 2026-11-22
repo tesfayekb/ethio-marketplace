@@ -1,19 +1,17 @@
-import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useContext, useMemo, useState, useSyncExternalStore } from "react";
 
-import {
-  subscribeTableViewAccount,
-  tableViewAccount,
-  type TableViewAccount,
-} from "./table-view-account";
+import { ShellContext } from "@/components/shell-context";
+
+type TableViewAccount = string | null | undefined;
 
 /**
  * INC-1238 (DEC-420) — THE KEPT VIEW, ONE STORE. Per ACCOUNT and per TABLE: the hidden columns,
  * the rows per page and the filters' closed-list choices. `useHiddenColumns` (columns-state.ts)
  * and `useKeptPage` (use-kept-page.ts) are readers of it; `useTableView` is the whole view.
  *
- * - The account comes from table-view-account.ts (the shell's `useAuth`). Not known yet: the
+ * - The account comes from the shell's existing context, with no new subscription or read. Not known yet: the
  *   view is the defaults and `ready` is false. No account: nothing read or written, the view
- *   lives in memory for the visit. Sign-out removes nothing; another account reads its own key.
+ *   lives only in the hook's own state while mounted. Sign-out removes nothing; another account reads its own key.
  * - ONE COPY IN MEMORY (ruling 1, decision 3): one entry per account and table, every hook a
  *   subscriber (`useSyncExternalStore`), every write a merge into the current entry.
  * - KEPT: column keys, the page size, closed-list filter values. NEVER kept: anything typed,
@@ -24,7 +22,7 @@ import {
  *   characters; a filter value the table does not offer today is dropped by `useTableView`. An
  *   entry that fails a guard reads as nothing.
  * - The server's render and the first browser render agree: the server snapshot is the defaults
- *   with `ready` false, and the account is reported after the first paint.
+ *   with `ready` false, and useSyncExternalStore reconciles the account entry after hydration.
  */
 
 export const TABLE_VIEW_PREFIX = "ethio:view:";
@@ -183,11 +181,10 @@ function readLegacy(tableId: string): TableViewEntry | null {
 const memory = new Map<string, TableViewEntry>();
 const listeners = new Set<() => void>();
 
-const slotOf = (account: string | null, tableId: string) =>
-  account === null ? `visit\u0000${tableId}` : `${account}\u0000${tableId}`;
+const slotOf = (account: string, tableId: string) => `${account}\u0000${tableId}`;
 
 function entryOf(account: TableViewAccount, tableId: string): TableViewEntry {
-  if (account === undefined) return EMPTY;
+  if (account === undefined || account === null) return EMPTY;
   const slot = slotOf(account, tableId);
   const held = memory.get(slot);
   if (held !== undefined) return held;
@@ -209,9 +206,11 @@ function entryOf(account: TableViewAccount, tableId: string): TableViewEntry {
   return entry;
 }
 
-function writeEntry(tableId: string, change: (current: TableViewEntry) => TableViewEntry): void {
-  const account = tableViewAccount();
-  if (account === undefined) return;
+function writeEntry(
+  account: string,
+  tableId: string,
+  change: (current: TableViewEntry) => TableViewEntry,
+): void {
   const next = change(entryOf(account, tableId));
   memory.set(slotOf(account, tableId), next);
   if (account !== null) storageWrite(`${TABLE_VIEW_PREFIX}${account}:${tableId}`, serialise(next));
@@ -220,16 +219,15 @@ function writeEntry(tableId: string, change: (current: TableViewEntry) => TableV
 
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
-  const leave = subscribeTableViewAccount(listener);
   return () => {
     listeners.delete(listener);
-    leave();
   };
 }
 
 /** Unit tests only: every test starts with no account known and nothing in memory. */
 export function forgetTableViewsForTests(): void {
   memory.clear();
+  snapshots.clear();
 }
 
 interface Snapshot {
@@ -239,51 +237,71 @@ interface Snapshot {
 const SERVER_SNAPSHOT: Snapshot = Object.freeze({ ready: false, entry: EMPTY });
 const snapshots = new Map<string, Snapshot>();
 
-function snapshotOf(tableId: string): Snapshot {
-  const account = tableViewAccount();
+function snapshotOf(account: TableViewAccount, tableId: string): Snapshot {
+  if (account === undefined) return SERVER_SNAPSHOT;
   const entry = entryOf(account, tableId);
-  const ready = account !== undefined;
   const id = `${String(account)}\u0000${tableId}`;
   const held = snapshots.get(id);
-  if (held !== undefined && held.entry === entry && held.ready === ready) return held;
-  const next = { ready, entry };
+  if (held !== undefined && held.entry === entry) return held;
+  const next = { ready: true, entry };
   snapshots.set(id, next);
   return next;
 }
 
-/** One table's entry as a subscription. */
-export function useTableEntry(tableId: string): Snapshot {
-  const read = useCallback(() => snapshotOf(tableId), [tableId]);
-  return useSyncExternalStore(subscribe, read, () => SERVER_SNAPSHOT);
-}
-
-export function setKeptHidden(tableId: string, key: string, visible: boolean): void {
-  writeEntry(tableId, (current) => {
-    const hidden = visible
-      ? current.hidden.filter((k) => k !== key)
-      : [...new Set([...current.hidden, key])].slice(0, MAX_KEPT_COLUMNS);
-    return { ...current, hidden };
-  });
-}
-
-export function setKeptPageSize(tableId: string, size: number): void {
-  writeEntry(tableId, (current) => ({ ...current, pageSize: size }));
-}
-
-/** `values` from a closed list only; never typed text, never a date (decision 4). */
-export function setKeptFilter(tableId: string, filterId: string, values: readonly string[]): void {
-  if (!isText(filterId)) return;
-  const kept = values.filter(isText).slice(0, MAX_KEPT_VALUES);
-  writeEntry(tableId, (current) => {
-    const filters = { ...current.filters };
-    if (kept.length === 0) delete filters[filterId];
-    else filters[filterId] = kept;
-    return { ...current, filters };
-  });
-}
-
-export function clearKeptFilters(tableId: string): void {
-  writeEntry(tableId, (current) => ({ ...current, filters: {} }));
+/** Account-bound writers: a detached table keeps only its own mounted state. */
+export function useTableEntry(tableId: string) {
+  const shell = useContext(ShellContext);
+  const account = shell?.authLoading ? undefined : (shell?.user?.id ?? null);
+  const [local, setLocal] = useState<TableViewEntry>(EMPTY);
+  const read = useCallback(() => snapshotOf(account, tableId), [account, tableId]);
+  const snapshot = useSyncExternalStore(subscribe, read, () => SERVER_SNAPSHOT);
+  const write = useCallback(
+    (change: (current: TableViewEntry) => TableViewEntry) => {
+      if (account === undefined) return;
+      if (account === null) setLocal(change);
+      else writeEntry(account, tableId, change);
+    },
+    [account, tableId],
+  );
+  const setHidden = useCallback(
+    (key: string, visible: boolean) =>
+      write((current) => ({
+        ...current,
+        hidden: visible
+          ? current.hidden.filter((k) => k !== key)
+          : [...new Set([...current.hidden, key])].slice(0, MAX_KEPT_COLUMNS),
+      })),
+    [write],
+  );
+  const setPageSize = useCallback(
+    (size: number) => write((current) => ({ ...current, pageSize: size })),
+    [write],
+  );
+  const setFilter = useCallback(
+    (filterId: string, values: readonly string[]) => {
+      if (!isText(filterId)) return;
+      const kept = values.filter(isText).slice(0, MAX_KEPT_VALUES);
+      write((current) => {
+        const filters = { ...current.filters };
+        if (kept.length === 0) delete filters[filterId];
+        else filters[filterId] = kept;
+        return { ...current, filters };
+      });
+    },
+    [write],
+  );
+  const clearFilters = useCallback(
+    () => write((current) => ({ ...current, filters: {} })),
+    [write],
+  );
+  return {
+    ready: account !== undefined && (account === null || snapshot.ready),
+    entry: account === null ? local : snapshot.entry,
+    setHidden,
+    setPageSize,
+    setFilter,
+    clearFilters,
+  };
 }
 
 /** Per filter id, the values the table offers TODAY; a kept value outside it is dropped. */
@@ -294,7 +312,7 @@ export type TableViewOffer = Readonly<Record<string, readonly string[]>>;
  * category or a market no longer open is never drawn and never sent to a door.
  */
 export function useTableView(tableId: string, offer: TableViewOffer) {
-  const { ready, entry } = useTableEntry(tableId);
+  const { ready, entry, setFilter, clearFilters } = useTableEntry(tableId);
   const offerKey = JSON.stringify(offer);
   const filters = useMemo(() => {
     const allowed: TableViewOffer = JSON.parse(offerKey) as TableViewOffer;
@@ -307,11 +325,6 @@ export function useTableView(tableId: string, offer: TableViewOffer) {
     }
     return out;
   }, [entry.filters, offerKey]);
-  const setFilter = useCallback(
-    (filterId: string, values: readonly string[]) => setKeptFilter(tableId, filterId, values),
-    [tableId],
-  );
-  const clearFilters = useCallback(() => clearKeptFilters(tableId), [tableId]);
   return {
     ready,
     hidden: entry.hidden,
