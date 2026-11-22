@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import type { PinPrecision } from "../src/features/posting/map/pin";
 import { expect, test } from "./fixtures";
+import { inBrowserClient } from "./helpers/browser-client";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
@@ -1381,19 +1382,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
       const stranger = await leaseSeller();
       sellers.push(stranger.id);
       await signInViaSession(otherPage, stranger.email, stranger.password);
-      const seen = await otherPage.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              rpc: (name: string) => Promise<{ data: unknown; error: unknown }>;
-              from: (table: string) => {
-                select: (
-                  cols: string,
-                ) => Promise<{ data: unknown; error: { message: string } | null }>;
-              };
-            };
-          }
-        ).__ethioSupabase;
+      const seen = await inBrowserClient(otherPage, async (client) => {
         const mine = await client.rpc("my_seller_place");
         const direct = await client.from("seller_places").select("user_id");
         return {

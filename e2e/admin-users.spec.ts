@@ -43,20 +43,7 @@ async function describeUserDetail(page: Page): Promise<string> {
   let cache = "(query cache unavailable)";
   try {
     cache = await page.evaluate(() => {
-      type Q = {
-        queryKey: unknown[];
-        state: {
-          status: string;
-          error: unknown;
-          dataUpdatedAt: number;
-          data: unknown;
-        };
-      };
-      const client = (
-        window as unknown as {
-          __ethioQueryClient?: { getQueryCache: () => { getAll: () => Q[] } };
-        }
-      ).__ethioQueryClient;
+      const client = window.__ethioQueryClient;
       if (!client) return "(no __ethioQueryClient — not an E2E build?)";
       return client
         .getQueryCache()

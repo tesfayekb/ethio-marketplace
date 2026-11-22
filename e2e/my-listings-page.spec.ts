@@ -64,7 +64,7 @@ async function listingTruth(listingId: string) {
     .maybeSingle();
   if (error) throw new Error(`[e2e:mlp] listing read failed: ${error.message}`);
   if (!data) throw new Error(`[e2e:mlp] listing ${listingId} not found`);
-  return data as unknown as Row;
+  return { ...data };
 }
 
 type Counts = Record<"live" | "review" | "attention" | "closed" | "sold" | "drafts", number>;
@@ -861,9 +861,9 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     if (truth.error || !truth.data) {
       throw new Error(`[e2e:mlp] X truth failed: ${truth.error?.message ?? "no row"}`);
     }
-    const publicId = (truth.data as unknown as Row)["public_id"];
+    const publicId = truth.data.public_id;
     expect(typeof publicId, "[e2e:mlp] X carries its public id").toBe("string");
-    expect((truth.data as unknown as Row)["status"], "[e2e:mlp] X live").toBe("active");
+    expect(truth.data.status, "[e2e:mlp] X live").toBe("active");
 
     await signInViaSession(page, seller.email, seller.password);
     await gotoReady(page, "/my-listings");
