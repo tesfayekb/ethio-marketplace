@@ -187,7 +187,6 @@ export function AdminAuditPage() {
 
   const stats = useAuditStats(14);
 
-  const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
 
   const timeFmt = dateFormatter("dayTimeNumeric", language);
@@ -332,7 +331,12 @@ export function AdminAuditPage() {
       <DataTable<AuditRow>
         guide={{ prefix: "admin.audit", next: { section: "roles" } }}
         columns={columns}
-        rows={rows}
+        serverPage={{
+          rows: list.data?.rows,
+          busy: list.isFetching || list.isPlaceholderData,
+          first: page === 0,
+          onFirst: () => setPage(0),
+        }}
         rowKey={(row) => row.id}
         rowTestId={(row) => `audit-row-${row.id}`}
         caption={t("admin.audit.caption")}

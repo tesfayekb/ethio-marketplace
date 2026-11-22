@@ -391,7 +391,12 @@ export function AdminTranslationsStringsPage({
               <DataTable
                 guide={{ prefix: "admin.translations.strings", next: { section: "translations" } }}
                 columns={visibleColumns(allStringColumns, hidden, ["key"])}
-                rows={rows}
+                serverPage={{
+                  rows: list.data?.rows,
+                  busy: list.isFetching || list.isPlaceholderData,
+                  first: page === 0,
+                  onFirst: () => setPage(0),
+                }}
                 rowKey={(row) => row.key}
                 rowTestId={(row) => `string-row-${slug(row.key)}`}
                 caption={t("admin.translations.strings.caption")}

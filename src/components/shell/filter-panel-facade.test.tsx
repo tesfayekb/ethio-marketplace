@@ -12,11 +12,11 @@ vi.mock("./filter-panel-body", async () => {
       resolve({ FilterPanelBody: () => <div data-testid="loaded-filter-rows" /> });
   });
 });
-vi.mock("./filter-panel-facade", async (original) => {
-  const real = await original<typeof import("./filter-panel-facade")>();
+vi.mock("./filter-panel-loader", async (original) => {
+  const real = await original<typeof import("./filter-panel-loader")>();
   return { ...real, preloadFilterPanel: vi.fn(real.preloadFilterPanel) };
 });
-import { preloadFilterPanel } from "./filter-panel-facade";
+import { preloadFilterPanel } from "./filter-panel-loader";
 import { FiltersButton } from "./filter-chips";
 
 it("FP-U25 pointer and focus warm the rows; each declaration holds a placeholder until arrival", async () => {

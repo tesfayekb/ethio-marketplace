@@ -25,6 +25,8 @@ import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { RowActions } from "@/components/shell/row-actions";
 import { useKeptPage } from "@/components/shell/use-kept-page";
+import { SellerCell } from "@/components/shell/seller-cell";
+import { useSellerFilter } from "@/components/shell/use-seller-filter";
 import { ActionMessage } from "@/components/ui/action-message";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -169,6 +171,15 @@ export function AdminListingsPage() {
         );
   };
   const roots = rootsOf(tree);
+  const sellerFilter = useSellerFilter(
+    "listings-filter-seller",
+    seller,
+    (next) => {
+      setSeller(next);
+      reset();
+    },
+    mayReadEmail,
+  );
   const tierLabel = (value: string) =>
     levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
   const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-listings", [
@@ -214,21 +225,7 @@ export function AdminListingsPage() {
         })),
       ].filter((option) => option.value !== "" && option.value !== "all"),
     },
-    {
-      kind: "text",
-      id: "listings-filter-seller",
-      chipKey: "seller",
-      name: t("admin.listings.filter.seller"),
-      kept: false,
-      value: seller,
-      onChange: (next) => {
-        setSeller(next);
-        reset();
-      },
-      placeholder: mayReadEmail
-        ? t("admin.listings.filter.sellerPlaceholderEmail")
-        : t("admin.listings.filter.sellerPlaceholder"),
-    },
+    sellerFilter,
     {
       kind: "select",
       id: "listings-filter-tier",
@@ -329,7 +326,6 @@ export function AdminListingsPage() {
 
   const viewLabel = (value: ListingView) =>
     value === "all" ? t("prim.table.all") : t(`admin.listings.view.${value}` as MessageKey);
-  const sellerName = (row: AdminListingRow) => row.sellerBusinessName ?? row.sellerAlias ?? "—";
 
   // The admin's own listings get no move: the door changes them the seller's way.
   const own = (row: AdminListingRow) => user !== null && row.sellerId === user.id;
@@ -521,18 +517,7 @@ export function AdminListingsPage() {
       priority: "primary",
       size: "name",
       card: "sub",
-      cell: (row) => (
-        <span className="block min-w-0 max-w-full">
-          <span className="block truncate text-foreground" title={sellerName(row)}>
-            {sellerName(row)}
-          </span>
-          {row.sellerEmail !== null ? (
-            <span className="block truncate text-xs text-muted-foreground" title={row.sellerEmail}>
-              {row.sellerEmail}
-            </span>
-          ) : null}
-        </span>
-      ),
+      cell: (row) => <SellerCell {...row} />,
     },
     {
       key: "place",
@@ -674,7 +659,15 @@ export function AdminListingsPage() {
           <DataTable<AdminListingRow>
             guide={{ prefix: "admin.listings", next: { section: "screening" } }}
             columns={columns}
-            rows={rows}
+            serverPage={{
+              rows: query.data?.rows,
+              busy: query.isFetching || query.isPlaceholderData,
+              first: paging.page === 0,
+              onFirst: () => {
+                paging.setPage(0);
+                setSelected([]);
+              },
+            }}
             rowKey={(row) => row.id}
             rowTestId={(row) => `listing-row-${row.id}`}
             cardUntil="xl"

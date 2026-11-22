@@ -1,6 +1,6 @@
 import * as React from "react";
 import { act, fireEvent, render as renderView, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
+import { afterEach, describe, expect, expectTypeOf, it, onTestFinished, vi } from "vitest";
 
 import {
   AlertDialog,
@@ -272,6 +272,40 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
 });
 
 describe("panel correction laws", () => {
+  it("DP-U31 busy disables the closed primary, names the busy state and admits no disabled prop", () => {
+    expectTypeOf<
+      Extract<keyof React.ComponentProps<typeof ClosedPrimary>, "disabled">
+    >().toEqualTypeOf<never>();
+    const closed = vi.fn();
+    const submit = vi.fn();
+    const { rerender } = render(
+      <ClosedPrimary closed busy onClosedPress={closed} onClick={submit}>
+        Save
+      </ClosedPrimary>,
+    );
+    const button = screen.getByRole("button", { name: "Save" });
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+    fireEvent.click(button);
+    expect(closed).not.toHaveBeenCalled();
+    expect(submit).not.toHaveBeenCalled();
+    rerender(
+      <ClosedPrimary closed onClosedPress={closed} onClick={submit}>
+        Save
+      </ClosedPrimary>,
+    );
+    expect(button).not.toBeDisabled();
+    fireEvent.click(button);
+    expect(closed).toHaveBeenCalledTimes(1);
+    expect(submit).not.toHaveBeenCalled();
+    rerender(
+      <ClosedPrimary closed={false} onClosedPress={closed} onClick={submit}>
+        Save
+      </ClosedPrimary>,
+    );
+    fireEvent.click(button);
+    expect(submit).toHaveBeenCalledTimes(1);
+  });
   it("DP-U12 the cue is a zero-height anchor stuck to the scroller's end, so it adds no height", () => {
     render(
       <PanelBody cueLabel="dialog.moreBelow" testId="body">

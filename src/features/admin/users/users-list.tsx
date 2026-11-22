@@ -129,7 +129,7 @@ export function AdminUsersList() {
   ]);
   const status = filterValues(tableFilters, "users-status-filter")[0] ?? "";
   const role = filterValues(tableFilters, "users-role-filter")[0] ?? "";
-  const { data, isLoading, error } = useAdminUsers(
+  const { data, isLoading, isFetching, error } = useAdminUsers(
     {
       search: debouncedSearch,
       status: status === "" ? "all" : status,
@@ -144,7 +144,6 @@ export function AdminUsersList() {
   // even before the roster resolves — labelled from the roster once it loads,
   // by its raw name until then.
 
-  const users = data?.users ?? [];
   const total = data?.totalCount ?? 0;
   const dateFmt = dateFormatter("dayNumeric", language);
 
@@ -224,7 +223,12 @@ export function AdminUsersList() {
       <DataTable<AdminUserRow>
         guide={{ prefix: "admin.users", next: { section: "roles" } }}
         columns={columns}
-        rows={users}
+        serverPage={{
+          rows: data?.users,
+          busy: isFetching,
+          first: page === 0,
+          onFirst: () => setPage(0),
+        }}
         rowKey={(user) => user.userId}
         rowTestId={(user) => `user-row-${user.userId}`}
         rowHref={(user) => ({

@@ -16,6 +16,8 @@ const seams = vi.hoisted(() => ({
     isLoading: false,
   },
   subject: vi.fn(),
+  readRow: vi.fn(),
+  queueError: null as Error | null,
 }));
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
@@ -73,9 +75,10 @@ vi.mock("./use-photo-changes", () => ({ useWarnedListings: () => ({ data: new Se
 vi.mock("./use-screening", async (original) => ({
   ...(await original<typeof import("./use-screening")>()),
   decideListing: seams.decide,
+  readScreeningRow: seams.readRow,
   useScreeningQueue: () => ({
     data: { rows: seams.rows, total: seams.rows.length },
-    error: null,
+    error: seams.queueError,
     isLoading: false,
   }),
   useScreeningPhotos: () => seams.photoRead,
@@ -88,23 +91,30 @@ vi.mock("@/components/shell/data-table", () => ({
   DataTable: ({
     selection,
     selectionActions,
+    error,
+    errorState,
   }: {
     selection: { selectedKeys: string[]; onToggleRow: (row: { id: string }, on: boolean) => void };
     selectionActions: ReactNode;
-  }) => (
-    <div>
-      {["first", "refused", "last"].map((id) => (
-        <input
-          key={id}
-          type="checkbox"
-          aria-label={id}
-          checked={selection.selectedKeys.includes(id)}
-          onChange={(event) => selection.onToggleRow({ id }, event.target.checked)}
-        />
-      ))}
-      {selectionActions}
-    </div>
-  ),
+    error: unknown;
+    errorState: ReactNode;
+  }) =>
+    error ? (
+      errorState
+    ) : (
+      <div>
+        {["first", "refused", "last"].map((id) => (
+          <input
+            key={id}
+            type="checkbox"
+            aria-label={id}
+            checked={selection.selectedKeys.includes(id)}
+            onChange={(event) => selection.onToggleRow({ id }, event.target.checked)}
+          />
+        ))}
+        {selectionActions}
+      </div>
+    ),
   DataTablePagination: () => null,
 }));
 
@@ -115,6 +125,8 @@ beforeEach(() => {
   seams.rows = [];
   seams.photoRead = { data: [], error: null, isLoading: false };
   seams.subject.mockClear();
+  seams.readRow.mockReset();
+  seams.queueError = null;
 });
 function open(ids: string[]) {
   render(<AdminScreeningPage />);
@@ -122,6 +134,24 @@ function open(ids: string[]) {
   fireEvent.click(screen.getByTestId("admin-screening-bulk-approve"));
   fireEvent.click(screen.getByTestId("admin-screening-confirm-go"));
 }
+
+it("SF-16 a failed reopening read is surfaced through the shared refusal reader", async () => {
+  seams.readRow.mockRejectedValue(new Error("permissionDenied"));
+  render(<AdminScreeningPage openId="refused" />);
+  await waitFor(() =>
+    expect(screen.getByTestId("admin-screening-notice")).toHaveTextContent(
+      "admin.listings.move.error.denied",
+    ),
+  );
+  expect(seams.readRow).toHaveBeenCalledWith("refused");
+});
+
+it("SF-17 the queue's failed read uses the same refusal reader, not an empty page", () => {
+  seams.queueError = new Error("permissionDenied");
+  render(<AdminScreeningPage />);
+  expect(screen.getByRole("alert")).toHaveTextContent("admin.listings.move.error.denied");
+  expect(screen.queryByTestId("admin-screening-empty")).toBeNull();
+});
 
 it("SDR-7 a refused decision stays in its open dialog, not the page notice; Cancel closes it", async () => {
   seams.decide.mockRejectedValue({ message: "ownListing" });

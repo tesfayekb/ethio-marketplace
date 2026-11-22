@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 764,
-  "dynamicCallSites": 416,
+  "scanned": 767,
+  "dynamicCallSites": 417,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2174,7 +2174,8 @@
     ],
     "admin.listings.col.seller": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/admin/screening"
     ],
     "admin.listings.col.status": [
       "/admin/listings",
@@ -2253,13 +2254,16 @@
       "/admin/screening"
     ],
     "admin.listings.filter.seller": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/screening"
     ],
     "admin.listings.filter.sellerPlaceholder": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/screening"
     ],
     "admin.listings.filter.sellerPlaceholderEmail": [
-      "/admin/listings"
+      "/admin/listings",
+      "/admin/screening"
     ],
     "admin.listings.filter.to": [
       "/admin/listings"
@@ -6334,6 +6338,12 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.pin.chooseShow": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.pin.clearedCityChanged": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
@@ -6371,6 +6381,12 @@
       "/post/$listingId"
     ],
     "post.pin.outsidePlace": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.pin.placeFirst": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",

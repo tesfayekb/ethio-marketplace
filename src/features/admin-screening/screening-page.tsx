@@ -27,6 +27,9 @@ import { RowActions } from "@/components/shell/row-actions";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
+import { SellerCell } from "@/components/shell/seller-cell";
+import { useSellerFilter } from "@/components/shell/use-seller-filter";
+import { useDebounced } from "@/features/admin/users/use-admin-users";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -131,6 +134,7 @@ export function AdminScreeningPage({
   const navigate = useNavigate();
   const { permissions } = useAdminShell();
   const mayReview = permissions.includes("listings:review");
+  const mayReadEmail = permissions.includes("profiles:view");
   /** Bundle 13 turn 8 (D154 B4) — staff who may edit a listing see its photos with their marks. */
   const mayEnforce = permissions.includes("listings:enforce");
   /** D169 — the preview links to the ad's own page in Admin › Listings, where Edit removes a photo. */
@@ -144,6 +148,8 @@ export function AdminScreeningPage({
   const markets = useOpenMarkets();
 
   const [search, setSearch] = useState("");
+  const [seller, setSeller] = useState("");
+  const debouncedSeller = useDebounced(seller);
   const [rawCountry, setCountry] = useState<string[]>([]);
   // P-1 W4 — the tier filter, as Admin › Listings has it (P-2 (c) c2a: the enabled level rows).
   const [rawTier, setTier] = useState<string | null>(null);
@@ -207,7 +213,17 @@ export function AdminScreeningPage({
     setPage(0);
     setSelected([]);
   };
+  const sellerFilter = useSellerFilter(
+    "admin-screening-filter-seller",
+    seller,
+    (next) => {
+      setSeller(next);
+      resetPaging();
+    },
+    mayReadEmail,
+  );
   const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-screening", [
+    sellerFilter,
     {
       kind: "select",
       id: "admin-screening-filter-country",
@@ -257,7 +273,7 @@ export function AdminScreeningPage({
     page,
     search,
     pageSize,
-    { country, tier },
+    { country, tier, seller: debouncedSeller },
     keptReady && filtersReady,
   );
   const photos = useScreeningPhotos(previewRow?.id ?? null);
@@ -301,6 +317,14 @@ export function AdminScreeningPage({
           ) : null}
         </span>
       ),
+    },
+    {
+      key: "seller",
+      header: t("admin.listings.col.seller"),
+      priority: "primary",
+      size: "name",
+      card: "sub",
+      cell: (row) => <SellerCell {...row} />,
     },
     {
       key: "category",
@@ -351,8 +375,9 @@ export function AdminScreeningPage({
         const row = await readScreeningRow(openId);
         if (cancelled) return;
         if (row !== null) openPreview(row);
-      } catch {
-        // The queue stands; the reviewer opens the row from its menu.
+      } catch (error) {
+        if (cancelled) return;
+        setNotice({ key: decisionRefusalKey(error), tone: "error" });
       }
       // Turn 4 — the ad was edited on another page: the queue's rows are read again too.
       void refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
@@ -650,7 +675,12 @@ export function AdminScreeningPage({
                 next: { section: "screening", block: "admin-screening-names" },
               }}
               columns={columns}
-              rows={rows}
+              serverPage={{
+                rows: query.data?.rows,
+                busy: query.isFetching || query.isPlaceholderData,
+                first: page === 0,
+                onFirst: resetPaging,
+              }}
               rowKey={(row) => row.id}
               rowTestId={(row) => `admin-screening-row-${row.id}`}
               caption={t(section.titleKey)}
@@ -662,7 +692,7 @@ export function AdminScreeningPage({
               errorState={
                 <div className="flex flex-wrap items-center gap-2">
                   <p role="alert" className="text-sm text-destructive">
-                    {t("common.error")}
+                    {t(decisionRefusalKey(query.error))}
                   </p>
                   <Button
                     type="button"

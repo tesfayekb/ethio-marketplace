@@ -3,8 +3,6 @@ import { useI18n, type MessageKey } from "@/i18n";
 
 import { LISTED_LEVELS } from "./locations-service";
 
-export { PAGE_SIZE_OPTIONS } from "@/components/shell/page-size-options";
-
 /**
  * Bundle 11 B1 (D118) — THE PLACES TOOLBAR'S OWN PARTS, placed by the shared
  * TableToolbar:

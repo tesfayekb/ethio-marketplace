@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
 import { useI18n } from "@/i18n";
 
-import { FilterPanelBody, preloadFilterPanel } from "./filter-panel-facade";
+import { FilterPanelBody } from "./filter-panel-facade";
+import { preloadFilterPanel } from "./filter-panel-loader";
 import {
   clearTableFilters,
   tableFilterChips,

@@ -1,7 +1,14 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { Link, useNavigate, type LinkProps } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cloneElement, Fragment, isValidElement, type KeyboardEvent, type ReactNode } from "react";
+import {
+  cloneElement,
+  Fragment,
+  isValidElement,
+  useEffect,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -139,9 +146,22 @@ export interface DataTableSelection<T> {
   onToggleAll: (selected: boolean) => void;
 }
 
-export interface DataTableProps<T> {
+export interface ServerTablePage<T> {
+  /** The read's own answer, never an empty default while it is pending or failed. */
+  rows: readonly T[] | undefined;
+  busy: boolean;
+  first: boolean;
+  onFirst: () => void;
+}
+
+export type DataTableProps<T> = DataTableBaseProps<T> &
+  (
+    | { rows: T[]; serverPage?: never }
+    | { rows?: never; serverPage: ServerTablePage<T>; error: unknown }
+  );
+
+interface DataTableBaseProps<T> {
   columns: DataTableColumn<T>[];
-  rows: T[];
   rowKey: (row: T) => string;
   rowTestId: (row: T) => string;
   /**
@@ -507,7 +527,8 @@ function splitRowActions(node: ReactNode): { top: ReactNode; foot: ReactNode } {
 
 export function DataTable<T>({
   columns,
-  rows: allRows,
+  rows: localRows,
+  serverPage,
   rowKey,
   rowTestId,
   rowHref,
@@ -540,9 +561,21 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const answeredRows = serverPage?.rows;
+  const serverBusy = serverPage?.busy;
+  const first = serverPage?.first;
+  const onFirst = serverPage?.onFirst;
+  // INC-1240: only a completed, successful empty answer past the first page recovers.
+  // The same rule serves offset and cursor tables; local rosters never opt out of a read rule.
+  useEffect(() => {
+    if (answeredRows?.length === 0 && !serverBusy && first === false && !loading && !error) {
+      onFirst?.();
+    }
+  }, [answeredRows, serverBusy, first, onFirst, loading, error]);
+  const allRows = answeredRows ?? localRows ?? [];
   /** INC-172 — the primitive owns the page window. */
   const rows =
-    !keyset && pageSize && pageSize > 0
+    !serverPage && !keyset && pageSize && pageSize > 0
       ? allRows.slice((page ?? 0) * pageSize, (page ?? 0) * pageSize + pageSize)
       : allRows;
   // P-1c (D313) — a row's expansion mounts in the drawn twin only (use-drawn-twin.ts).

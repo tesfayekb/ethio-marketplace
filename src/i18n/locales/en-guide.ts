@@ -10,6 +10,8 @@
  * wizard's parts are the posting wizard's (`post.guide.part.*`, by partsPrefix).
  */
 export const enGuide = {
+  "admin.screening.guide.col.seller":
+    "The seller's public name — a business's name when they post as one — and their e-mail when you may see it.",
   "admin.monetisation.markets.guide.what":
     "One row per country, plus a default row for any country without its own. Each row sets what sellers there get for free and whether paid levels are switched on.",
   "admin.monetisation.markets.guide.col.market":

@@ -733,7 +733,12 @@ export function MyListingsPage() {
 
         <DataTable<MyListingRow>
           columns={columns}
-          rows={rows}
+          serverPage={{
+            rows: query.data?.rows,
+            busy: query.isFetching || query.isPlaceholderData,
+            first: paging.page === 0,
+            onFirst: () => paging.setPage(0),
+          }}
           rowKey={(row) => row.id}
           rowTestId={(row) => `my-listing-${row.id}`}
           cardUntil="xl"

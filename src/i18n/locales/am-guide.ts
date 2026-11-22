@@ -2,6 +2,7 @@ import type { enGuide } from "./en-guide";
 
 /** P-1c (D313) — the Guide layer in Amharic; typed to every English guide key (en-guide.ts). */
 export const amGuide: { [K in keyof typeof enGuide]: string } = {
+  "admin.screening.guide.col.seller": "የሻጩ የሕዝብ ስም — እንደ ንግድ ሲለጥፉ የንግዱ ስም — እና ማየት ሲፈቀድልዎ ኢሜይላቸው።",
   "admin.monetisation.markets.guide.what":
     "በየሀገሩ አንድ ረድፍ፣ ከዚያም የራሱ ረድፍ ለሌለው ማንኛውም ሀገር ነባሪ ረድፍ። እያንዳንዱ ረድፍ እዚያ ያሉ ሻጮች በነጻ ምን እንደሚያገኙ እና የሚከፈልባቸው ደረጃዎች መብራታቸውን ይወስናል።",
   "admin.monetisation.markets.guide.col.market":

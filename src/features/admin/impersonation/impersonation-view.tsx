@@ -219,7 +219,12 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       <DataTable<ImpersonatedListing>
         guide={{ prefix: "impersonation.listings", next: { section: "users" } }}
         columns={visible}
-        rows={listings.data?.rows ?? []}
+        serverPage={{
+          rows: listings.data?.rows,
+          busy: listings.isFetching || listings.isPlaceholderData,
+          first: paging.page === 0,
+          onFirst: () => paging.setPage(0),
+        }}
         pagination={
           <DataTablePagination
             testid="impersonation-listings-pagination"

@@ -16,7 +16,7 @@ export function FilterPanelBody({
 }) {
   const [openSelect, setOpenSelect] = useState<string | null>(null);
   return (
-    <div className="flex min-w-0 flex-col gap-3">
+    <div data-filter-rows="" className="flex min-w-0 flex-col gap-3">
       {filters.map((filter) =>
         filter.kind === "select" ? (
           <FilterSelect

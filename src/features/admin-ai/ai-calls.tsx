@@ -137,7 +137,12 @@ export function AiCalls() {
       <DataTable
         guide={{ prefix: "admin.ai.log", next: { section: "audit" } }}
         columns={visibleColumns(columns, hidden, ["time", "feature", "outcome"])}
-        rows={query.data?.rows ?? []}
+        serverPage={{
+          rows: query.data?.rows,
+          busy: query.isFetching || query.isPlaceholderData,
+          first: history.length === 1,
+          onFirst: () => setHistory([null]),
+        }}
         rowKey={(row) => row.id}
         rowTestId={(row) => `ai-call-${row.id}`}
         caption={t("admin.ai.log.title")}

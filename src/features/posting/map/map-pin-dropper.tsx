@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { MapPin } from "lucide-react";
-import { PanelBody, PanelFooter, PanelHeader } from "@/components/ui/dialog-parts-facade";
+import {
+  ClosedPrimary,
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+} from "@/components/ui/dialog-parts-facade";
 import type * as Leaflet from "leaflet";
 
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
@@ -127,6 +132,7 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
   const { t } = useI18n();
 
   const boxRef = useRef<HTMLDivElement | null>(null);
+  const precisionRef = useRef<HTMLFieldSetElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
   const markerRef = useRef<Leaflet.Marker | null>(null);
   const layersRef = useRef<Leaflet.TileLayer[]>([]);
@@ -141,6 +147,8 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
   );
   // INC-958 — a saved pin keeps its own precision; only a NEW pin starts at NEW_PIN_PRECISION.
   const [precision, setPrecision] = useState<PinPrecision>(saved?.precision ?? NEW_PIN_PRECISION);
+  const [precisionChosen, setPrecisionChosen] = useState(saved !== null);
+  const [markPrecision, setMarkPrecision] = useState(false);
   const [tile, setTile] = useState<TileKind>("street");
   const [backup, setBackup] = useState(false);
   const [credit, setCredit] = useState("");
@@ -356,7 +364,7 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
   }
 
   async function save() {
-    if (position === null) return;
+    if (position === null || (saved === null && !precisionChosen) || state === "busy") return;
     setState("busy");
     const zoom = Math.min(20, Math.max(3, Math.round(mapRef.current?.getZoom() ?? 16)));
     const ok = await onSave({ lat: position.lat, lng: position.lng, precision, zoom });
@@ -525,7 +533,7 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
           )}
         </Field>
 
-        <fieldset className="space-y-1">
+        <fieldset ref={precisionRef} className="space-y-1">
           <legend
             className="text-sm font-medium text-foreground"
             data-testid="post-pin-precision-label"
@@ -547,8 +555,8 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
                 id={`post-pin-precision-${value}`}
                 field="precision"
                 label={<span>{t(key)}</span>}
-                required={false}
-                marked={false}
+                required={saved === null}
+                marked={markPrecision && !precisionChosen}
                 refusal={null}
                 layout="choice"
               >
@@ -558,9 +566,10 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
                     {...field}
                     name="post-pin-precision"
                     value={value}
-                    checked={precision === value}
+                    checked={precisionChosen && precision === value}
                     onChange={() => {
                       setPrecision(value);
+                      setPrecisionChosen(true);
                       setState("idle");
                     }}
                     data-testid={`post-pin-precision-${value}`}
@@ -589,15 +598,26 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
         >
           {t("post.pin.cancel")}
         </Button>
-        <Button
-          type="button"
-          size="touch"
-          disabled={position === null || state === "busy"}
+        <ClosedPrimary
+          closed={saved === null && (position === null || !precisionChosen)}
+          busy={state === "busy"}
+          missing={position === null ? t("post.pin.placeFirst") : t("post.pin.chooseShow")}
+          onClosedPress={() => {
+            if (position === null) {
+              boxRef.current?.scrollIntoView({ block: "nearest" });
+            } else {
+              setMarkPrecision(true);
+              precisionRef.current?.scrollIntoView({ block: "nearest" });
+              precisionRef.current
+                ?.querySelector<HTMLInputElement>("input")
+                ?.focus({ preventScroll: true });
+            }
+          }}
           onClick={() => void save()}
           data-testid="post-pin-save"
         >
           {state === "busy" ? t("post.pin.saving") : t("post.pin.saveLocation")}
-        </Button>
+        </ClosedPrimary>
       </PanelFooter>
     </>
   );

@@ -1,4 +1,6 @@
 export const enMember = {
+  "post.pin.chooseShow": "Choose how the pin shows on your ad.",
+  "post.pin.placeFirst": "Place the pin on the map.",
   "head.account.description": "Review your ethio.com account and listing activity.",
   "head.continuePost.description": "Finish the listing you started on ethio.com.",
   "head.continuePost.title": "Continue your listing",

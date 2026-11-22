@@ -8,6 +8,7 @@ import {
   TEXT_MEASURE,
   type ColumnSize,
   type DataTableColumn,
+  type ServerTablePage,
 } from "./data-table";
 import { RowActions } from "./row-actions";
 
@@ -62,7 +63,9 @@ function columns(minWidth?: string): DataTableColumn<Row>[] {
   ];
 }
 
-function renderTable(props: Partial<React.ComponentProps<typeof DataTable<Row>>> = {}) {
+function renderTable(
+  props: Partial<Omit<React.ComponentProps<typeof DataTable<Row>>, "serverPage">> = {},
+) {
   return render(
     <DataTable<Row>
       columns={columns()}
@@ -79,6 +82,67 @@ function renderTable(props: Partial<React.ComponentProps<typeof DataTable<Row>>>
 }
 
 describe("DataTable C7 contract", () => {
+  it("DTK-11 a successful empty server page past the first requests the first page", () => {
+    const onFirst = vi.fn();
+    render(
+      <DataTable<Row>
+        columns={columns()}
+        serverPage={{ rows: [], first: false, busy: false, onFirst }}
+        error={null}
+        rowKey={(row) => row.id}
+        rowTestId={(row) => row.id}
+        caption="fixture"
+        emptyState={null}
+      />,
+    );
+    expect(onFirst).toHaveBeenCalledTimes(1);
+    expectTypeOf<ServerTablePage<Row>>().toEqualTypeOf<{
+      rows: readonly Row[] | undefined;
+      first: boolean;
+      busy: boolean;
+      onFirst: () => void;
+    }>();
+  });
+  it.each([
+    ["first", [], true, false, null],
+    ["unanswered", undefined, false, false, null],
+    ["pending", [], false, true, null],
+    ["failed", [], false, false, new Error("offline")],
+    ["nonempty", ROWS, false, false, null],
+  ] as const)(
+    "DTK-12 a %s read never recovers as an empty past-end page",
+    (_name, rows, first, busy, error) => {
+      const onFirst = vi.fn();
+      render(
+        <DataTable<Row>
+          columns={columns()}
+          serverPage={{ rows, first, busy, onFirst }}
+          error={error}
+          rowKey={(row) => row.id}
+          rowTestId={(row) => row.id}
+          caption="fixture"
+          emptyState={null}
+        />,
+      );
+      expect(onFirst).not.toHaveBeenCalled();
+    },
+  );
+  it("DTK-13 the cursor table's empty completed page uses the same first-page recovery", () => {
+    const onFirst = vi.fn();
+    render(
+      <DataTable<Row>
+        columns={columns()}
+        serverPage={{ rows: [], first: false, busy: false, onFirst }}
+        error={null}
+        keyset={{ hasPrevious: true, hasNext: false, onPrevious: vi.fn(), onNext: vi.fn() }}
+        rowKey={(row) => row.id}
+        rowTestId={(row) => row.id}
+        caption="fixture"
+        emptyState={null}
+      />,
+    );
+    expect(onFirst).toHaveBeenCalledTimes(1);
+  });
   it("ACR-5 keyset mode preserves the whole server page and only permits available navigation", () => {
     const next = vi.fn();
     const previous = vi.fn();
@@ -391,7 +455,9 @@ const placeColumns: DataTableColumn<Place>[] = [
   },
 ];
 
-function renderPlaces(props: Partial<React.ComponentProps<typeof DataTable<Place>>> = {}) {
+function renderPlaces(
+  props: Partial<Omit<React.ComponentProps<typeof DataTable<Place>>, "serverPage">> = {},
+) {
   return render(
     <DataTable<Place>
       columns={placeColumns}

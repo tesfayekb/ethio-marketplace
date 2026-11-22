@@ -63,6 +63,7 @@ export function FilterSelect({
 }) {
   const listId = useId();
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const controlRef = useRef<HTMLButtonElement | null>(null);
   const [localOpen, setLocalOpen] = useState(defaultOpen);
   const open = controlledOpen ?? localOpen;
   const setOpen = (next: boolean) => {
@@ -72,9 +73,14 @@ export function FilterSelect({
   const popupRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!open) return;
-    const popup = popupRef.current;
-    if (popup && typeof popup.scrollIntoView === "function")
-      popup.scrollIntoView({ block: "nearest" });
+    const row = wrapRef.current;
+    const body = row?.closest<HTMLElement>("[data-panel-body]");
+    if (row === null) return;
+    if (body && row.getBoundingClientRect().height > body.clientHeight) {
+      body.scrollTop += row.getBoundingClientRect().top - body.getBoundingClientRect().top;
+    } else if (typeof row.scrollIntoView === "function") {
+      row.scrollIntoView({ block: "nearest" });
+    }
   }, [open]);
   const [query, setQuery] = useState("");
   const searchable = options.length > SEARCH_FROM;
@@ -88,13 +94,17 @@ export function FilterSelect({
     setOpen(false);
     setQuery("");
   };
+  const closeToControl = () => {
+    close();
+    controlRef.current?.focus({ preventScroll: true });
+  };
   const unavailable = (option: FilterOption) =>
     multiple && !value.includes(option.value) && value.length >= max;
   const pick = (option: FilterOption) => {
     if (unavailable(option)) return;
     if (!multiple) {
       onChange(value.includes(option.value) ? [] : [option.value]);
-      close();
+      closeToControl();
       return;
     }
     onChange(
@@ -108,20 +118,20 @@ export function FilterSelect({
     onPick: (index) => {
       if (index === 0) {
         onChange([]);
-        if (!multiple) close();
+        if (!multiple) closeToControl();
         return;
       }
       const option = shown[index - 1];
       if (option !== undefined) pick(option);
     },
-    onEscape: close,
+    onEscape: closeToControl,
     onOpen: () => setOpen(true),
   });
   const keys = (event: KeyboardEvent<HTMLElement>) => {
     if (event.key === "Escape" && open) {
       event.preventDefault();
       event.stopPropagation();
-      close();
+      closeToControl();
       return;
     }
     if (!open) {
@@ -147,6 +157,7 @@ export function FilterSelect({
   const chosen = options.filter((option) => value.includes(option.value)).map((o) => o.label);
   const trigger = (
     <Button
+      ref={controlRef}
       variant="outline"
       id={id}
       type="button"
@@ -172,7 +183,8 @@ export function FilterSelect({
       ref={wrapRef}
       className="relative min-w-0"
       onBlur={(event) => {
-        if (open && !wrapRef.current?.contains(event.relatedTarget as Node | null)) close();
+        const rows = wrapRef.current?.closest("[data-filter-rows]") ?? wrapRef.current;
+        if (open && !rows?.contains(event.relatedTarget as Node | null)) close();
       }}
     >
       {rowLabel === undefined ? (
@@ -228,7 +240,7 @@ export function FilterSelect({
                 data={{ value: "" }}
                 onPick={() => {
                   onChange([]);
-                  if (!multiple) close();
+                  if (!multiple) closeToControl();
                 }}
               >
                 <span className="min-w-0 grow truncate">{allLabel ?? placeholder}</span>

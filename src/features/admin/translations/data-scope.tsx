@@ -179,7 +179,6 @@ export function DataScope({
   /** The entity layer has no flags: everything machine|edited is approvable. */
   const reviewable = (langStats?.machineCount ?? 0) + (langStats?.edited ?? 0);
 
-  const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
   const allColumns = dataColumns(t, rtl);
   /** Bundle 11 G3e — the Filters panel's status pills; the chosen one is a chip. */
@@ -225,7 +224,12 @@ export function DataScope({
       <DataTable
         guide={{ prefix: "admin.translations.data", next: { section: "translations" } }}
         columns={visibleColumns(allColumns, hidden, ["entity"])}
-        rows={rows}
+        serverPage={{
+          rows: list.data?.rows,
+          busy: list.isFetching || list.isPlaceholderData,
+          first: page === 0,
+          onFirst: () => setPage(0),
+        }}
         rowKey={(row) => row.key}
         rowTestId={(row) => `entity-row-${entityRowSlug(row)}`}
         caption={t("admin.translations.data.caption")}

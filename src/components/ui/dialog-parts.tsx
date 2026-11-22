@@ -281,13 +281,18 @@ export function ActionRow({
 
 /**
  * The closed primary (DEC-418): the posting wizard's closed Next as a shared part. Drawn closed
- * (`data-closed="1"`) while `closed`, never disabled: a press calls `onClosedPress` (the consumer
+ * (`data-closed="1"`) while `closed`: a press calls `onClosedPress` (the consumer
  * marks the missing choice and scrolls to it) and nothing is sent; open, it calls `onClick`.
  */
 export const ClosedPrimary = React.forwardRef<
   HTMLButtonElement,
-  ButtonProps & { closed: boolean; missing?: string; onClosedPress: () => void }
->(({ closed, missing, onClosedPress, onClick, className, disabled: _disabled, ...props }, ref) => {
+  Omit<ButtonProps, "disabled"> & {
+    closed: boolean;
+    busy?: boolean;
+    missing?: string;
+    onClosedPress: () => void;
+  }
+>(({ closed, busy = false, missing, onClosedPress, onClick, className, ...props }, ref) => {
   const lineId = React.useId();
   return (
     <>
@@ -296,6 +301,8 @@ export const ClosedPrimary = React.forwardRef<
         ref={ref}
         type="button"
         size="touch"
+        disabled={busy}
+        aria-busy={busy ? "true" : undefined}
         data-closed={closed ? "1" : undefined}
         className={cn(className, CLOSED_PRIMARY)}
         aria-describedby={closed && missing ? lineId : undefined}

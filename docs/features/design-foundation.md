@@ -2,6 +2,22 @@
 
 The first substantial frontend build. Every later page inherits from it.
 
+## Bundle 3 — filter behavior and server-page recovery
+
+- Filter rows own the one open select. A sibling control's pointer-down never removes an in-flow
+  list; leaving the whole rows region closes it. Escape and single-choice selection focus the
+  select control. A row taller than the body's room is scrolled to the body's top.
+- The filter-panel loader owns preload separately from the component facade; no global overlay
+  import carries the filter rows. Page-size options belong to the shell, with no feature re-export.
+- All listings and Screening share `SellerCell` and `useSellerFilter`; the row receives their held
+  `profiles:view` permission and typed seller text is never kept.
+- `ClosedPrimary` accepts `busy`, not `disabled`. A new pin needs placement and an explicit show
+  choice; its closed press reveals the missing answer. Saved pins keep their precision ungated.
+- Door-paged tables use the required `ServerTablePage` answer/navigation shape instead of local
+  `rows`. DataTable requests the first page only for a successful, completed empty answer past
+  the first page, using one rule for offset and cursor consumers. Unanswered, busy, placeholder
+  and failed reads never count as empty. Screening reopening failures use its shared refusal reader.
+
 ## Palette — "coffee on cool slate"
 
 > Superseded by the Sage 3D look (DEC-289; turn SAGE-S1, ruling C of SAGE-S0): the values
