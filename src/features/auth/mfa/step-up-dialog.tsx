@@ -3,14 +3,8 @@ import { useRef, useState } from "react";
 
 import { Field } from "@/components/forms/field";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { PanelBody, PanelFooter, PanelHeader } from "@/components/ui/dialog-parts-facade";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
 import type { Refusal } from "@/lib/refusal";
@@ -37,6 +31,11 @@ export type StepUpDialogProps = {
  * the dedicated TOP layer (`layer="top"`, layers.ts Z_TOP) with focus moved to the code input,
  * so a Radix dialog that ARMED the action (the delete confirm) stays visible beneath and
  * step-up is usable.
+ *
+ * Bundle 3, Part 3 — the dialog anatomy (`bands`): the header part holds the title and the
+ * description, the body part the code field (it draws no band in the no-factor mode, where it is
+ * empty), the footer part the buttons. A look only: the layer, the test ids, the words, the
+ * focus and the state are as they were.
  *
  * Turn S6-3 (row 48) — its own file, fetched on the first step-up: the pages that draw the gate
  * no longer carry the dialog's code on their first download.
@@ -67,6 +66,7 @@ export function StepUpDialog({
       }}
     >
       <DialogContent
+        bands
         data-testid="step-up-modal"
         layer="top"
         size="narrow"
@@ -76,7 +76,7 @@ export function StepUpDialog({
           codeRef.current?.focus();
         }}
       >
-        <DialogHeader>
+        <PanelHeader>
           <DialogTitle id="step-up-title">
             {mode === "code" ? t("mfa.stepUpTitle") : t("mfa.stepUpNoFactorTitle")}
           </DialogTitle>
@@ -87,35 +87,37 @@ export function StepUpDialog({
               {t("mfa.stepUpNoFactorBody")}
             </DialogDescription>
           )}
-        </DialogHeader>
+        </PanelHeader>
 
-        {mode === "code" ? (
-          <Field
-            id="step-up-code"
-            field="code"
-            label={t("mfa.codeLabel")}
-            required
-            refusal={refusal}
-            family={MFA_REFUSALS}
-            refusalTestId="step-up-error"
-          >
-            {(control) => (
-              <Input
-                {...control}
-                ref={codeRef}
-                data-testid="step-up-code"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                maxLength={6}
-                placeholder={t("mfa.codePlaceholder")}
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
-              />
-            )}
-          </Field>
-        ) : null}
+        <PanelBody>
+          {mode === "code" ? (
+            <Field
+              id="step-up-code"
+              field="code"
+              label={t("mfa.codeLabel")}
+              required
+              refusal={refusal}
+              family={MFA_REFUSALS}
+              refusalTestId="step-up-error"
+            >
+              {(control) => (
+                <Input
+                  {...control}
+                  ref={codeRef}
+                  data-testid="step-up-code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder={t("mfa.codePlaceholder")}
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                />
+              )}
+            </Field>
+          ) : null}
+        </PanelBody>
 
-        <DialogFooter>
+        <PanelFooter>
           <Button
             variant="outline"
             size="touch"
@@ -145,7 +147,7 @@ export function StepUpDialog({
               </Link>
             </Button>
           )}
-        </DialogFooter>
+        </PanelFooter>
       </DialogContent>
     </Dialog>
   );

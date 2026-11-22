@@ -15,8 +15,6 @@ vi.mock("@/components/ui/dialog", () => {
     Dialog: Box,
     DialogContent: Box,
     DialogDescription: Box,
-    DialogFooter: Box,
-    DialogHeader: Box,
     DialogTitle: Box,
   };
 });
