@@ -1536,3 +1536,43 @@ reader's census (CF-KIT-7: it hands its census's keys). The census counts casts 
 so its numbers can differ from `rg -n "as unknown as"` where the words sit in a comment or a string.
 `e2e/helpers/browser-client.ts` gained what the moved specs needed: `BrowserClient.from(table)
 .select(columns)` and `window.__ethioQueryClient` (`BrowserQuery`).
+
+## The dialog anatomy's laws — CF-OV-7, CF-OV-8, DG-8 → DG-11 (cursor-bundle-3, Part 1)
+
+Six laws over the one anatomy (`dialog-parts.tsx`, `dialog-parts-look.ts`, `dialog-parts-facade.tsx`,
+`overlays-impl.ts`). Each is proven on a planted bypass. A permanent exception is written in the
+law's own table with its reason (DEC-426); an allowlist line is only for a finding that must go away.
+
+- **CF-OV-7** (`overlays.test.ts`, `overlayClosure`): the value-import closure of
+  `src/components/ui/overlays-impl.ts` — `import`, a re-export and `import()`, never a type-only
+  reach, aliased and relative paths resolved, packages left outside. No module in it imports the
+  language provider (`@/i18n`), a door (`src/lib/supabase-door.ts`, `src/lib/route-client.ts`,
+  `src/integrations/supabase/**`, `src/server/**`, a `*-service` module) or a query module
+  (`@tanstack/react-query`, `@tanstack/query-core`): the words arrive as props. `src/test/setup.ts`
+  loads this module before every test file, which is why one import of the provider reddened six
+  files that never touched it.
+- **CF-OV-8** (`overlays.test.ts`, `partsReaches`): the real parts are reached by value only by the
+  two readers of `PARTS_READERS`, each with its reason — `overlays-impl.ts` (the one module loaded on
+  demand) and `dialog-parts.test.tsx` (the parts' own unit test). A page or a primitive takes the
+  thin parts from `dialog-parts-facade.tsx`; a type-only reach passes.
+- **DG-8** (`dialogs.test.ts`): the body's one form. `BANDS_BODY` holds `relative`, `grow`, `min-h-0`
+  and `overflow-y-auto` and never `flex-1`; only `PanelBody` reads it, once, by the element it
+  returns — never behind a wrapper. A zero basis or a wrapper gives WebKit no height.
+- **DG-9**: a `PanelBody` with no footer part after it (`PanelFooter`, `DialogFooter`,
+  `AlertDialogFooter`, `SheetFooter`) carries `end` (`BANDS_END`, the phone's bottom inset). A `fill`
+  body is exempt (`END_EXEMPT`): it runs to the frame's edge by design.
+- **DG-10**: inside a panel, and the same file's components it draws, no element keeps a vertical
+  scroller of its own in its className (`overflow-auto`, `overflow-scroll`, `overflow-y-auto`,
+  `overflow-y-scroll`, after variants); a sideways strip passes (`SCROLLER_EXEMPT`); the pickers' one
+  list popup is a constant (`LIST_SCROLLER`). Its limit, stated in the law's header: a scroller in a
+  child component's own file is not seen.
+- **DG-11**: a panel has a description — a Description part (or a same-file component's), a
+  wrapper's `description=`, an `aria-describedby` naming an `id` the file draws — or is one of the
+  four `DESCRIPTION_EXCEPTIONS` the design-foundation doc names, each under a
+  `// Description exception: <why>` line in its own file. A table entry with no marked panel fails.
+  Non-modal content (`modal={false}`) is skipped, as DG-1 skips it.
+
+Findings at the base (`9d9748da3`), by the census: DG-8, DG-9, DG-10, CF-OV-7 and CF-OV-8 none; DG-11
+four — `src/components/shell/toolbar-panel.tsx` (its popover form draws the description as a
+paragraph the panel does not name) and the three specimens of `src/routes/dev.style.tsx`. Both are
+files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
