@@ -135,18 +135,27 @@ export function AdminTranslationsLanguagesPage() {
             <StatCard
               testid="translations-stat-keys"
               loading={stats.isLoading || languages.isLoading}
+              failed={stats.isError || languages.isError}
+              onRetry={() => {
+                if (stats.isError) void stats.refetch();
+                if (languages.isError) void languages.refetch();
+              }}
               label={t("admin.translations.stat.totalKeys")}
               value={baseTotal}
             />
             <StatCard
               testid="translations-stat-languages"
               loading={languages.isLoading}
+              failed={languages.isError}
+              onRetry={() => void languages.refetch()}
               label={t("admin.translations.stat.languages")}
               value={enabledCount}
             />
             <StatCard
               testid="translations-stat-approved"
               loading={stats.isLoading}
+              failed={stats.isError}
+              onRetry={() => void stats.refetch()}
               label={t("admin.translations.stat.approved")}
               value={`${approvedPct}%`}
             />

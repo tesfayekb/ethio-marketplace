@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -21,9 +22,13 @@ export interface StatCardProps {
   value: ReactNode;
   delta?: string;
   trend?: StatTrend;
-  hint?: string;
+  hint?: ReactNode;
   icon?: ReactNode;
   loading?: boolean;
+  /** INC-1144 — the tile's read failed: the label stays, no number is drawn. */
+  failed?: boolean;
+  /** Shown as Retry on a failed tile, only when passed. */
+  onRetry?: () => void;
   testid?: string;
   className?: string;
 }
@@ -44,6 +49,8 @@ export function StatCard({
   hint,
   icon,
   loading = false,
+  failed = false,
+  onRetry,
   testid = "stat-card",
   className,
 }: StatCardProps) {
@@ -56,6 +63,26 @@ export function StatCard({
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-7 w-1/2" />
         <Skeleton className="h-3 w-1/3" />
+      </PageCard>
+    );
+  }
+
+  if (failed) {
+    return (
+      <PageCard testid={`${testid}-failed`} className={cn("min-w-0 space-y-2 p-4", className)}>
+        <span className="block min-w-0 break-words text-sm text-muted-foreground">{label}</span>
+        <p className="min-w-0 break-words text-sm text-foreground">{t("prim.stat.failed")}</p>
+        {onRetry ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid={`${testid}-retry`}
+            onClick={onRetry}
+          >
+            {t("common.retry")}
+          </Button>
+        ) : null}
       </PageCard>
     );
   }
@@ -81,7 +108,9 @@ export function StatCard({
           <span>{delta}</span>
         </div>
       ) : null}
-      {hint ? <p className="min-w-0 break-words text-xs text-muted-foreground">{hint}</p> : null}
+      {hint ? (
+        <div className="min-w-0 break-words text-xs text-muted-foreground">{hint}</div>
+      ) : null}
     </PageCard>
   );
 }

@@ -1135,7 +1135,7 @@ export function AdminCategoriesPage() {
                 filters={
                   <FiltersButton
                     testid={"category-filters"}
-                    resultCount={filtered.length}
+                    resultCount={data !== undefined && !error ? filtered.length : undefined}
                     filters={tableFilters}
                   />
                 }

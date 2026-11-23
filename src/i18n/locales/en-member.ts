@@ -143,6 +143,7 @@ export const enMember = {
   "account.legal.body": "The Terms and policies you accepted, and the legal e-mails we sent you.",
   "account.legal.open": "Open",
   "prim.state.loading": "Loading…",
+  "prim.stat.failed": "Couldn't load",
   "prim.state.empty": "Nothing to show yet.",
   "prim.state.error": "Something went wrong.",
   "prim.date.pick": "Choose date",

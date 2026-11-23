@@ -40,7 +40,8 @@ All U1c additions are optional — the existing users list is unaffected.
 
 ## StatCard / StatGrid (`src/components/shell/stat-card.tsx`)
 
-`StatCard({ label, value, delta?, trend?: 'up'|'down'|'flat', hint?, icon?, loading?, testid?, className? })` — tabular figures, wrapping labels, skeleton while loading.
+`StatCard({ label, value, delta?, trend?: 'up'|'down'|'flat', hint?, icon?, loading?, failed?, onRetry?, testid?, className? })` — tabular figures, wrapping labels, skeleton while loading.
+A tile has three states, in this order: loading (`${testid}-loading`), failed (`${testid}-failed`: the label, the words `prim.stat.failed`, and Retry as `${testid}-retry` when `onRetry` is passed) and answered; a failed tile draws no number (INC-1144).
 `StatGrid({ children, testid?, className? })` — 2-up at 360, 3-up at md, 4-up at lg.
 
 ## ChartFrame (`src/components/shell/chart-frame.tsx`)

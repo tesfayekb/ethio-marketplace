@@ -255,24 +255,32 @@ export function AdminAuditPage() {
         <StatCard
           testid="audit-stat-24h"
           loading={stats.isLoading}
+          failed={stats.isError}
+          onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.events24h")}
           value={stats.data?.count24h ?? 0}
         />
         <StatCard
           testid="audit-stat-7d"
           loading={stats.isLoading}
+          failed={stats.isError}
+          onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.events7d")}
           value={stats.data?.count7d ?? 0}
         />
         <StatCard
           testid="audit-stat-impersonations"
           loading={stats.isLoading}
+          failed={stats.isError}
+          onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.activeImpersonations")}
           value={stats.data?.activeImpersonations ?? 0}
         />
         <StatCard
           testid="audit-stat-top-action"
           loading={stats.isLoading}
+          failed={stats.isError}
+          onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.topAction")}
           value={topAction?.action ?? "—"}
           hint={topAction ? String(topAction.count) : undefined}
@@ -339,7 +347,7 @@ export function AdminAuditPage() {
             filters={
               <FiltersButton
                 testid={"audit-filters"}
-                resultCount={total > 10000 ? undefined : total}
+                resultCount={list.isSuccess && total <= 10000 ? total : undefined}
                 filters={tableFilters}
               />
             }

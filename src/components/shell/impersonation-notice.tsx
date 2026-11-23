@@ -8,6 +8,7 @@ import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { resilientLazy } from "@/lib/resilient-lazy";
+import { VIEW_AS_BAR_CLASS } from "./view-as-bar-look";
 
 const SERVICE_LABEL = "the impersonation service";
 const SERVICE = loadOnce(() => import("@/features/admin/impersonation/impersonation-service"));
@@ -56,11 +57,7 @@ export function ImpersonationNotice() {
   if (outcome === "ended") return null;
 
   return (
-    <div
-      data-testid="impersonation-notice"
-      role="status"
-      className="fixed inset-x-0 top-0 z-[60] flex min-w-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-destructive px-3 py-2 text-destructive-foreground"
-    >
+    <div data-testid="impersonation-notice" role="status" className={VIEW_AS_BAR_CLASS}>
       <p className="min-w-0 break-words text-sm font-medium">
         {outcome === "none" ? t("impersonation.noneActive") : t("impersonation.mayBeActive")}
       </p>

@@ -1,4 +1,5 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
+import { StatCard } from "@/components/shell/stat-card";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -80,23 +81,33 @@ export function LocationsOverview() {
         className="grid grid-cols-1 gap-3 sm:grid-cols-2"
         aria-label={t("admin.overview.stats")}
       >
-        <article className={cn(CARD_SURFACE, "p-4")} data-testid="overview-stat-markets">
-          <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.markets")}</h2>
-          <p className="mt-2 text-2xl font-semibold tabular-nums">{`${marketStats.open} · ${marketStats.closed}`}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t("admin.overview.markets.caption")}
-          </p>
-        </article>
-        <article className={cn(CARD_SURFACE, "p-4")} data-testid="overview-stat-places">
-          <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.places")}</h2>
-          <p className="mt-2 text-2xl font-semibold tabular-nums">{`${placeStats.active} · ${placeStats.total}`}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{t("admin.overview.places.caption")}</p>
-          <p className="mt-2 text-xs tabular-nums text-muted-foreground">
-            {placeStats.levels
-              .map(({ level, count }) => `${t(`admin.locations.level.${level}`)} ${count}`)
-              .join(" · ")}
-          </p>
-        </article>
+        <StatCard
+          testid="overview-stat-markets"
+          loading={countries.isLoading}
+          failed={countries.isError}
+          onRetry={() => void countries.refetch()}
+          label={t("admin.overview.markets")}
+          value={`${marketStats.open} · ${marketStats.closed}`}
+          hint={t("admin.overview.markets.caption")}
+        />
+        <StatCard
+          testid="overview-stat-places"
+          loading={places.isLoading}
+          failed={places.isError}
+          onRetry={() => void places.refetch()}
+          label={t("admin.overview.places")}
+          value={`${placeStats.active} · ${placeStats.total}`}
+          hint={
+            <>
+              <span className="block">{t("admin.overview.places.caption")}</span>
+              <span className="mt-2 block tabular-nums">
+                {placeStats.levels
+                  .map(({ level, count }) => `${t(`admin.locations.level.${level}`)} ${count}`)
+                  .join(" · ")}
+              </span>
+            </>
+          }
+        />
       </section>
 
       <nav className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label={t("admin.overview.links")}>

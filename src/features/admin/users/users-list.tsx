@@ -268,7 +268,11 @@ export function AdminUsersList() {
               />
             }
             filters={
-              <FiltersButton testid={"users-filters"} resultCount={total} filters={tableFilters} />
+              <FiltersButton
+                testid={"users-filters"}
+                resultCount={data !== undefined && !error ? total : undefined}
+                filters={tableFilters}
+              />
             }
             columns={
               <ColumnsButton
