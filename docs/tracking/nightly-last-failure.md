@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 45044657807 passed
+last E2E run 45218392625 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45044657807
-- Commit: `9d9748da37bdacda648d3f1a9888bf831dab8b07`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45218392625
+- Commit: `92fee7d1a4df49feeee9d3879946fdef44a33317`
 - Attempt: 1
-- Written (UTC): 2026-11-22T16:40:15.464Z
+- Written (UTC): 2026-11-23T16:57:30.744Z
 - Post-test warnings: 3
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): none
@@ -32,7 +32,7 @@ Results read: nightly · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-22T16:36:27.896Z | 3.8 min |
+| nightly | 2026-11-23T16:53:54.173Z | 3.6 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
@@ -42,4 +42,4 @@ Results read: nightly · unavailable: none
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.6 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.8 s |
