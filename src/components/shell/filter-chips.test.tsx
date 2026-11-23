@@ -21,6 +21,8 @@ const select = (values: string[], onChange: (next: string[]) => void = vi.fn()):
   ],
   value: values,
   onChange,
+  clear: () => onChange([]),
+  changed: () => {},
 });
 
 describe("FilterChips and FiltersButton", () => {

@@ -104,8 +104,6 @@ export function AdminLocationsPage() {
   const countries = useAllCountries();
   const [country, setCountry] = useState("");
   const [search, setSearch] = useState("");
-  const [rawLevel, setLevel] = useState("");
-  const [rawStatus, setStatus] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
@@ -133,40 +131,34 @@ export function AdminLocationsPage() {
   const byId = useMemo(() => new Map(places.map((row) => [row.id, row])), [places]);
   /** A keystroke sieves, never fetches; deferring keeps typing smooth. */
   const deferredSearch = useDeferredValue(search);
-  const { filters: tableFilters } = useTableFilters("admin-places", [
-    {
-      kind: "select",
-      id: "location-level-filter",
-      chipKey: "level",
-      name: t("admin.locations.filter.level"),
-      kept: true,
-      value: rawLevel === "" ? [] : [rawLevel],
-      onChange: (next) => {
-        setLevel(next[0] ?? "");
-        setPage(0);
+  const { filters: tableFilters } = useTableFilters(
+    "admin-places",
+    [
+      {
+        kind: "select",
+        id: "location-level-filter",
+        chipKey: "level",
+        name: t("admin.locations.filter.level"),
+        kept: true,
+        options: LISTED_LEVELS.map((name) => ({
+          value: name,
+          label: t(`admin.locations.level.${name}` as MessageKey),
+        })),
       },
-      options: LISTED_LEVELS.map((name) => ({
-        value: name,
-        label: t(`admin.locations.level.${name}` as MessageKey),
-      })),
-    },
-    {
-      kind: "select",
-      id: "location-active-filter",
-      chipKey: "status",
-      name: t("admin.locations.filter.status"),
-      kept: true,
-      value: rawStatus === "" ? [] : [rawStatus],
-      onChange: (next) => {
-        setStatus(next[0] ?? "");
-        setPage(0);
+      {
+        kind: "select",
+        id: "location-active-filter",
+        chipKey: "status",
+        name: t("admin.locations.filter.status"),
+        kept: true,
+        options: [
+          { value: "active", label: t("admin.locations.filter.activeOnly") },
+          { value: "retired", label: t("admin.locations.filter.retiredOnly") },
+        ],
       },
-      options: [
-        { value: "active", label: t("admin.locations.filter.activeOnly") },
-        { value: "retired", label: t("admin.locations.filter.retiredOnly") },
-      ],
-    },
-  ]);
+    ],
+    { onAnyChange: () => setPage(0) },
+  );
   const level = filterValues(tableFilters, "location-level-filter")[0] ?? "";
   const status = filterValues(tableFilters, "location-active-filter")[0] ?? "";
   const rows = useMemo(

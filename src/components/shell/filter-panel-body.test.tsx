@@ -17,6 +17,8 @@ const choices = (id: string, onChange = vi.fn()): TableSelectFilter => ({
   value: [],
   multiple: true,
   onChange,
+  clear: vi.fn(),
+  changed: vi.fn(),
   options,
 });
 
@@ -102,7 +104,7 @@ describe("a small panel's filter lists", () => {
       else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
     }
   });
-  it("FP-U27 the missing-picture switch keeps its id, test id and pressed-state behavior", () => {
+  it("FP-U27 the missing-picture switch keeps its id and test id, is the product's switch named by its row, and its row presses it", () => {
     function Harness() {
       const [value, onChange] = useState(false);
       return (
@@ -117,6 +119,8 @@ describe("a small panel's filter lists", () => {
               kept: true,
               value,
               onChange,
+              clear: vi.fn(),
+              changed: vi.fn(),
             },
           ]}
         />
@@ -125,11 +129,16 @@ describe("a small panel's filter lists", () => {
     render(<Harness />);
     const control = screen.getByTestId("category-missing-filter");
     expect(control).toHaveAttribute("id", "category-missing-filter");
-    expect(control).toHaveAttribute("aria-pressed", "false");
+    // INC-1253: the product's one switch, named by its row.
+    expect(screen.getByRole("switch", { name: "Missing picture" })).toBe(control);
+    expect(control).toHaveAttribute("aria-checked", "false");
     fireEvent.click(control);
-    expect(control).toHaveAttribute("aria-pressed", "true");
+    expect(control).toHaveAttribute("aria-checked", "true");
     fireEvent.click(control);
-    expect(control).toHaveAttribute("aria-pressed", "false");
+    expect(control).toHaveAttribute("aria-checked", "false");
+    // The row's name presses it too.
+    fireEvent.click(screen.getByText("Missing picture"));
+    expect(control).toHaveAttribute("aria-checked", "true");
   });
 });
 
@@ -146,6 +155,8 @@ it.each(["text", "dates", "switch"] as const)(
             kept: false as const,
             value: "",
             onChange: vi.fn(),
+            clear: vi.fn(),
+            changed: vi.fn(),
             placeholder: "Seller",
           }
         : kind === "dates"
@@ -156,6 +167,8 @@ it.each(["text", "dates", "switch"] as const)(
               kept: false as const,
               value: { from: "", to: "" },
               onChange: vi.fn(),
+              clear: vi.fn(),
+              changed: vi.fn(),
               fromLabel: "From",
               toLabel: "To",
               maxDate: "2026-11-22",
@@ -168,6 +181,8 @@ it.each(["text", "dates", "switch"] as const)(
               kept: true,
               value: false,
               onChange: vi.fn(),
+              clear: vi.fn(),
+              changed: vi.fn(),
             };
     render(<FilterPanelBody filters={[choices("first"), filter]} words={words} />);
     fireEvent.click(screen.getByTestId("first"));
@@ -191,6 +206,8 @@ it("FP-U37 a dates declaration has only its two box labels and no third row name
           kept: false,
           value: { from: "", to: "" },
           onChange: vi.fn(),
+          clear: vi.fn(),
+          changed: vi.fn(),
           fromLabel: "Posted from",
           toLabel: "Posted to",
           maxDate: "2026-11-22",

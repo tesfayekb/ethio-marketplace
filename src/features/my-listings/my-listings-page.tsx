@@ -170,8 +170,6 @@ export function MyListingsPage() {
 
   const [group, setGroup] = useState<ListingGroup>("live");
   const [search, setSearch] = useState("");
-  const [rawCategory, setCategory] = useState<string[]>([]);
-  const [rawMark, setMark] = useState<ListingMark | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [asking, setAsking] = useState<Asking>(null);
   const [renewing, setRenewing] = useState<MyListingRow | null>(null);
@@ -189,46 +187,33 @@ export function MyListingsPage() {
     paging.setPage(0);
     setSelected([]);
   };
-  const { filters: tableFilters, ready: filtersReady } = useTableFilters("my-listings", [
-    {
-      kind: "select",
-      id: "my-listings-filter-category",
-      choicesReady: !categoryTree.isLoading,
-      chipKey: "category",
-      name: t("admin.listings.filter.category"),
-      kept: true,
-      multiple: true,
-      value: rawCategory,
-      onChange: (next: string[]) => {
-        setCategory(next);
-        reset();
-      },
-      options: [
-        { value: "", label: t("prim.table.all") },
-        ...roots.map((node) => ({
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters(
+    "my-listings",
+    [
+      {
+        kind: "select",
+        id: "my-listings-filter-category",
+        choicesReady: !categoryTree.isLoading,
+        chipKey: "category",
+        name: t("admin.listings.filter.category"),
+        kept: true,
+        multiple: true,
+        options: roots.map((node) => ({
           value: node.id,
           label: both(node.nameEn, node.nameAm),
         })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-    {
-      kind: "select",
-      id: "my-listings-filter-mark",
-      chipKey: "mark",
-      name: t("myListings.filter.mark"),
-      kept: true,
-      value: rawMark === null ? [] : [rawMark],
-      onChange: (next: string[]) =>
-        ((value) => {
-          setMark(LISTING_MARKS.find((entry) => entry === value) ?? null);
-          reset();
-        })(next[0] ?? ""),
-      options: [
-        { value: "", label: t("prim.table.all") },
-        ...LISTING_MARKS.map((value) => ({ value, label: t(MARK_LABEL[value]) })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-  ]);
+      },
+      {
+        kind: "select",
+        id: "my-listings-filter-mark",
+        chipKey: "mark",
+        name: t("myListings.filter.mark"),
+        kept: true,
+        options: LISTING_MARKS.map((value) => ({ value, label: t(MARK_LABEL[value]) })),
+      },
+    ],
+    { onAnyChange: reset },
+  );
   const category = filterValues(tableFilters, "my-listings-filter-category");
   const mark =
     LISTING_MARKS.find(

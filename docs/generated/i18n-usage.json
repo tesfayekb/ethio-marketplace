@@ -598,9 +598,6 @@
     "admin.ai.loading": [
       "/admin/ai"
     ],
-    "admin.ai.log.allOutcomes": [
-      "/admin/ai"
-    ],
     "admin.ai.log.col.latency": [
       "/admin/ai"
     ],
@@ -1279,9 +1276,6 @@
       "/admin/audit"
     ],
     "admin.audit.filter.actor": [
-      "/admin/audit"
-    ],
-    "admin.audit.filter.all": [
       "/admin/audit"
     ],
     "admin.audit.filter.entity": [
@@ -3998,9 +3992,6 @@
     "admin.users.error": [
       "/admin/users",
       "/admin/users/$userId"
-    ],
-    "admin.users.filter.all": [
-      "/admin/users"
     ],
     "admin.users.legal.accepted": [
       "/admin/users/$userId"

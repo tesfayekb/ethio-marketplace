@@ -29,6 +29,8 @@ it("FP-U25 pointer and focus warm the rows; each declaration holds a placeholder
     value: [],
     options: [],
     onChange: vi.fn(),
+    clear: vi.fn(),
+    changed: vi.fn(),
   }));
   render(<FiltersButton testid="warming" filters={filters} />);
   expect(pending.requested).toBe(0);

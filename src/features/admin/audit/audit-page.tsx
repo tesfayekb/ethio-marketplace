@@ -99,8 +99,6 @@ function DayBars({
 export function AdminAuditPage() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
-  const [rawAction, setAction] = useState("");
-  const [rawEntityType, setEntityType] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
@@ -116,61 +114,45 @@ export function AdminAuditPage() {
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   const facets = useAuditFacets();
-  const resetPage = () => setPage(0);
   const today = todayIso();
-  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-audit", [
-    {
-      kind: "select",
-      id: "audit-filter-action",
-      choicesReady: !facets.isLoading,
-      chipKey: "action",
-      name: t("admin.audit.filter.action"),
-      kept: true,
-      value: rawAction === "" || rawAction === null ? [] : [rawAction],
-      onChange: (next: string[]) =>
-        ((value) => {
-          setAction(value);
-          resetPage();
-        })(next[0] ?? ""),
-      options: [
-        { value: "", label: t("admin.audit.filter.all") },
-        ...(facets.data?.actions ?? []).map((value) => ({ value, label: value })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-    {
-      kind: "select",
-      id: "audit-filter-entity",
-      choicesReady: !facets.isLoading,
-      chipKey: "entity",
-      name: t("admin.audit.filter.entity"),
-      kept: true,
-      value: rawEntityType === "" || rawEntityType === null ? [] : [rawEntityType],
-      onChange: (next: string[]) =>
-        ((value) => {
-          setEntityType(value);
-          resetPage();
-        })(next[0] ?? ""),
-      options: [
-        { value: "", label: t("admin.audit.filter.all") },
-        ...(facets.data?.entityTypes ?? []).map((value) => ({ value, label: value })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-    {
-      kind: "dates",
-      id: "audit-filter",
-      chipKey: "dates",
-      kept: false,
-      value: { from, to },
-      onChange: (next) => {
-        setFrom(next.from);
-        setTo(next.to);
-        resetPage();
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters(
+    "admin-audit",
+    [
+      {
+        kind: "select",
+        id: "audit-filter-action",
+        choicesReady: !facets.isLoading,
+        chipKey: "action",
+        name: t("admin.audit.filter.action"),
+        kept: true,
+        options: (facets.data?.actions ?? []).map((value) => ({ value, label: value })),
       },
-      fromLabel: t("admin.audit.filter.from"),
-      toLabel: t("admin.audit.filter.to"),
-      maxDate: today,
-    },
-  ]);
+      {
+        kind: "select",
+        id: "audit-filter-entity",
+        choicesReady: !facets.isLoading,
+        chipKey: "entity",
+        name: t("admin.audit.filter.entity"),
+        kept: true,
+        options: (facets.data?.entityTypes ?? []).map((value) => ({ value, label: value })),
+      },
+      {
+        kind: "dates",
+        id: "audit-filter",
+        chipKey: "dates",
+        kept: false,
+        value: { from, to },
+        onChange: (next) => {
+          setFrom(next.from);
+          setTo(next.to);
+        },
+        fromLabel: t("admin.audit.filter.from"),
+        toLabel: t("admin.audit.filter.to"),
+        maxDate: today,
+      },
+    ],
+    { onAnyChange: () => setPage(0) },
+  );
   const action = filterValues(tableFilters, "audit-filter-action")[0] ?? "";
   const entityType = filterValues(tableFilters, "audit-filter-entity")[0] ?? "";
   const filters = {

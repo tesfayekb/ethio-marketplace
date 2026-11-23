@@ -46,7 +46,6 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import { levelLabel } from "@/features/admin-listings/tier-reasons";
-import { exactLevel } from "@/features/levels/levels-store";
 import { useLevelRows } from "@/features/levels/use-level-rows";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { heldWithAd } from "@/features/posting/posting-service";
@@ -150,9 +149,7 @@ export function AdminScreeningPage({
   const [search, setSearch] = useState("");
   const [seller, setSeller] = useState("");
   const debouncedSeller = useDebounced(seller);
-  const [rawCountry, setCountry] = useState<string[]>([]);
   // P-1 W4 — the tier filter, as Admin › Listings has it (P-2 (c) c2a: the enabled level rows).
-  const [rawTier, setTier] = useState<string | null>(null);
   const levels = useLevelRows({ looks: false });
   const tierLabel = (value: string) =>
     levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
@@ -216,57 +213,41 @@ export function AdminScreeningPage({
   const sellerFilter = useSellerFilter(
     "admin-screening-filter-seller",
     seller,
-    (next) => {
-      setSeller(next);
-      resetPaging();
-    },
+    setSeller,
     mayReadEmail,
   );
-  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-screening", [
-    {
-      kind: "select",
-      id: "admin-screening-filter-country",
-      choicesReady: !markets.isLoading,
-      chipKey: "country",
-      name: t("location.country"),
-      kept: true,
-      multiple: true,
-      value: rawCountry,
-      onChange: (next: string[]) => {
-        setCountry(next);
-        resetPaging();
-      },
-      options: [
-        { value: "", label: t("prim.table.all") },
-        ...markets.markets.map((market) => ({
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters(
+    "admin-screening",
+    [
+      {
+        kind: "select",
+        id: "admin-screening-filter-country",
+        choicesReady: !markets.isLoading,
+        chipKey: "country",
+        name: t("location.country"),
+        kept: true,
+        multiple: true,
+        options: markets.markets.map((market) => ({
           value: market.code,
           label: marketName(market.code),
         })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-    sellerFilter,
-    {
-      kind: "select",
-      id: "admin-screening-filter-tier",
-      choicesReady: !levels.isLoading,
-      chipKey: "tier",
-      name: t("admin.listings.filter.level"),
-      kept: true,
-      value: rawTier === "" || rawTier === null ? [] : [rawTier],
-      onChange: (next: string[]) =>
-        ((value) => {
-          setTier(exactLevel(levels.rows, value) === null ? null : value);
-          resetPaging();
-        })(next[0] ?? ""),
-      options: [
-        { value: "", label: t("prim.table.all") },
-        ...levels.rows.map((row) => ({
+      },
+      sellerFilter,
+      {
+        kind: "select",
+        id: "admin-screening-filter-tier",
+        choicesReady: !levels.isLoading,
+        chipKey: "tier",
+        name: t("admin.listings.filter.level"),
+        kept: true,
+        options: levels.rows.map((row) => ({
           value: row.key,
           label: tierLabel(row.key),
         })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-  ]);
+      },
+    ],
+    { onAnyChange: resetPaging },
+  );
   const country = filterValues(tableFilters, "admin-screening-filter-country");
   const tier = filterValues(tableFilters, "admin-screening-filter-tier")[0] ?? null;
   const query = useScreeningQueue(

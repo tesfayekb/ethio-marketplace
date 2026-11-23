@@ -77,7 +77,6 @@ export function AdminCountriesPage() {
 
   const query = useAdminCountries();
   const [search, setSearch] = useState("");
-  const [rawStatus, setStatus] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
@@ -90,24 +89,23 @@ export function AdminCountriesPage() {
   const byCode = useMemo(() => new Map(roster.map((row) => [row.code, row])), [roster]);
   /** A keystroke sieves, never fetches; deferring keeps typing smooth. */
   const deferredSearch = useDeferredValue(search);
-  const { filters: tableFilters } = useTableFilters("admin-countries", [
-    {
-      kind: "select",
-      id: "country-status-filter",
-      chipKey: "status",
-      name: t("admin.countries.filter.status"),
-      kept: true,
-      value: rawStatus === "" ? [] : [rawStatus],
-      onChange: (next) => {
-        setStatus(next[0] ?? "");
-        setPage(0);
+  const { filters: tableFilters } = useTableFilters(
+    "admin-countries",
+    [
+      {
+        kind: "select",
+        id: "country-status-filter",
+        chipKey: "status",
+        name: t("admin.countries.filter.status"),
+        kept: true,
+        options: [
+          { value: "open", label: t("admin.countries.filter.openOnly") },
+          { value: "closed", label: t("admin.countries.filter.closedOnly") },
+        ],
       },
-      options: [
-        { value: "open", label: t("admin.countries.filter.openOnly") },
-        { value: "closed", label: t("admin.countries.filter.closedOnly") },
-      ],
-    },
-  ]);
+    ],
+    { onAnyChange: () => setPage(0) },
+  );
   const status = filterValues(tableFilters, "country-status-filter")[0] ?? "";
   const rows = useMemo(
     () => filterCountries(roster, { search: deferredSearch, status }),

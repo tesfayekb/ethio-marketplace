@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { useTableView } from "./table-view-store";
 
 export interface TableFilterOption {
@@ -9,17 +11,22 @@ interface FilterBase {
   name: string;
   chipKey: string;
 }
-export interface TableSelectFilter extends FilterBase {
+/** INC-1251: a select's value is the hook's alone; the declaration carries none of its own. */
+export interface TableSelectDeclaration extends FilterBase {
   kind: "select";
-  value: readonly string[];
-  onChange: (value: string[]) => void;
   options: readonly TableFilterOption[];
   multiple?: boolean;
   choicesReady?: boolean;
-  /** INC-073: a named address choice overrides kept state without writing it. */
+  /** INC-073: a named address choice overrides the held value without writing it. */
   addressValue?: readonly string[];
+  /** INC-073: a choice writes the address too (the held value is written as well). */
+  onAddress?: (next: string[]) => void;
   allLabel?: string;
   max?: number;
+  kept: boolean;
+}
+export interface TableSwitchDeclaration extends FilterBase {
+  kind: "switch";
   kept: boolean;
 }
 export interface TableTextFilter extends FilterBase {
@@ -38,26 +45,57 @@ export interface TableDatesFilter extends Omit<FilterBase, "name"> {
   maxDate: string;
   kept: false;
 }
-export interface TableSwitchFilter extends FilterBase {
-  kind: "switch";
+export type TableFilterDeclaration =
+  | TableSelectDeclaration
+  | TableSwitchDeclaration
+  | TableTextFilter
+  | TableDatesFilter;
+
+/** What the hook answers: every filter with its one value, its setter and a silent clear. */
+interface Answered {
+  /** Empties this filter without saying "the first page" (Clear all says it once). */
+  clear: () => void;
+  /** The table's one "a filter changed" (the first page); a no-op when the page names none. */
+  changed: () => void;
+}
+export interface TableSelectFilter extends TableSelectDeclaration, Answered {
+  value: readonly string[];
+  onChange: (value: string[]) => void;
+}
+export interface TableSwitchFilter extends TableSwitchDeclaration, Answered {
   value: boolean;
   onChange: (value: boolean) => void;
-  kept: boolean;
 }
 export type TableFilter =
   | TableSelectFilter
-  | TableTextFilter
-  | TableDatesFilter
-  | TableSwitchFilter;
+  | TableSwitchFilter
+  | (TableTextFilter & Answered)
+  | (TableDatesFilter & Answered);
 export interface TableFilterWords {
   all: string;
   search: string;
   none: string;
   max: string;
 }
+export interface TableFiltersOptions {
+  /** Said once a table: a filter change (or Clear all) shows the first page. */
+  onAnyChange?: () => void;
+}
 
-/** DEC-419/420: one declaration drives rows, chips, count, state, clearing and today's offer. */
-export function useTableFilters(tableId: string, declarations: readonly TableFilter[]) {
+const has = (record: Readonly<Record<string, readonly string[]>>, id: string) =>
+  Object.prototype.hasOwnProperty.call(record, id);
+
+/**
+ * DEC-419/420, INC-1251: one declaration drives rows, chips, count, state, clearing and today's
+ * offer. ONE PLACE A FILTER: a kept filter's value lives only in the kept view (signed out, in the
+ * view's own memory); a select or switch that is not kept lives only in this hook's map. Nothing is
+ * copied from one to the other. Text and dates stay the page's own (never kept, never stored).
+ */
+export function useTableFilters(
+  tableId: string,
+  declarations: readonly TableFilterDeclaration[],
+  options: TableFiltersOptions = {},
+) {
   const offer = Object.fromEntries(
     declarations.flatMap((filter) => {
       if (!filter.kept) return [];
@@ -65,38 +103,70 @@ export function useTableFilters(tableId: string, declarations: readonly TableFil
     }),
   );
   const view = useTableView(tableId, offer);
-  const filters: TableFilter[] = declarations.map((filter) => {
-    if (!filter.kept) return filter;
-    const kept = Object.prototype.hasOwnProperty.call(view.filters, filter.id)
-      ? view.filters[filter.id]
-      : undefined;
-    if (filter.kind === "switch")
+  const [local, setLocal] = useState<Readonly<Record<string, readonly string[]>>>({});
+  const changed = () => options.onAnyChange?.();
+  const held = (filter: TableSelectDeclaration | TableSwitchDeclaration): readonly string[] => {
+    const source = filter.kept ? view.filters : local;
+    return (has(source, filter.id) ? source[filter.id] : undefined) ?? [];
+  };
+  const hold = (filter: TableSelectDeclaration | TableSwitchDeclaration, next: string[]) => {
+    if (filter.kept) view.setFilter(filter.id, next);
+    else setLocal((current) => ({ ...current, [filter.id]: next }));
+  };
+  const filters: TableFilter[] = declarations.map((filter): TableFilter => {
+    if (filter.kind === "switch") {
+      const set = (next: boolean) => hold(filter, next ? ["on"] : []);
       return {
         ...filter,
-        value: kept === undefined ? filter.value : kept.includes("on"),
+        value: held(filter).includes("on"),
         onChange: (next: boolean) => {
-          view.setFilter(filter.id, next ? ["on"] : []);
-          filter.onChange(next);
+          set(next);
+          changed();
         },
-      };
-    if (filter.kind === "select") {
-      const allowed = filter.options.map((o) => o.value);
-      const value = (filter.addressValue?.length ? filter.addressValue : (kept ?? filter.value))
-        .filter((v) => allowed.includes(v))
-        .slice(0, filter.multiple ? (filter.max ?? 20) : 1);
-      return {
-        ...filter,
-        value,
-        onChange: (next: string[]) => {
-          const checked = next
-            .filter((v) => allowed.includes(v))
-            .slice(0, filter.multiple ? (filter.max ?? 20) : 1);
-          view.setFilter(filter.id, checked);
-          filter.onChange(checked);
-        },
+        clear: () => set(false),
+        changed,
       };
     }
-    return filter;
+    if (filter.kind === "select") {
+      const allowed = filter.options.map((o) => o.value);
+      const cap = filter.multiple ? (filter.max ?? 20) : 1;
+      const check = (values: readonly string[]) =>
+        values.filter((v) => allowed.includes(v)).slice(0, cap);
+      const set = (next: readonly string[]) => {
+        const checked = check(next);
+        hold(filter, checked);
+        filter.onAddress?.(checked);
+      };
+      return {
+        ...filter,
+        value: check(filter.addressValue?.length ? filter.addressValue : held(filter)),
+        onChange: (next: string[]) => {
+          set(next);
+          changed();
+        },
+        clear: () => set([]),
+        changed,
+      };
+    }
+    if (filter.kind === "text")
+      return {
+        ...filter,
+        onChange: (next: string) => {
+          filter.onChange(next);
+          changed();
+        },
+        clear: () => filter.onChange(""),
+        changed,
+      };
+    return {
+      ...filter,
+      onChange: (next: { from: string; to: string }) => {
+        filter.onChange(next);
+        changed();
+      },
+      clear: () => filter.onChange({ from: "", to: "" }),
+      changed,
+    };
   });
   return {
     ready:
@@ -116,13 +186,10 @@ export function filterOn(filters: readonly TableFilter[], id: string): boolean {
   return filter?.kind === "switch" && filter.value;
 }
 
+/** Clear all empties every filter, then says "the first page" ONCE (ruling 1, decision 4). */
 export function clearTableFilters(filters: readonly TableFilter[]): void {
-  for (const filter of filters) {
-    if (filter.kind === "select") filter.onChange([]);
-    else if (filter.kind === "switch") filter.onChange(false);
-    else if (filter.kind === "dates") filter.onChange({ from: "", to: "" });
-    else filter.onChange("");
-  }
+  for (const filter of filters) filter.clear();
+  filters[0]?.changed();
 }
 
 export function tableFilterState(filters: readonly TableFilter[]): string {

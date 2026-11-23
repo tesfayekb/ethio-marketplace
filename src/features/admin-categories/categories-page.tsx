@@ -206,24 +206,22 @@ export function AdminCategoriesPage() {
   const reactivate = useReactivateCategory();
   const [search, setSearch] = useState("");
   const [rootFilter, setRootFilter] = useState("");
-  const [rawMissingOnly, setMissingOnly] = useState(false);
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } =
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
-  const { filters: tableFilters } = useTableFilters("admin-categories", [
-    {
-      kind: "switch",
-      id: "category-missing-filter",
-      chipKey: "missing",
-      name: t("admin.categories.filter.missingAssets"),
-      kept: true,
-      value: rawMissingOnly,
-      onChange: (next) => {
-        setMissingOnly(next);
-        setPage(0);
+  const { filters: tableFilters } = useTableFilters(
+    "admin-categories",
+    [
+      {
+        kind: "switch",
+        id: "category-missing-filter",
+        chipKey: "missing",
+        name: t("admin.categories.filter.missingAssets"),
+        kept: true,
       },
-    },
-  ]);
+    ],
+    { onAnyChange: () => setPage(0) },
+  );
   const missingOnly = filterOn(tableFilters, "category-missing-filter");
   const offset = page * pageSize;
 

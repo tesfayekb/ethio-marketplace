@@ -392,7 +392,6 @@ const SIZES = ["Small", "Large"] as const;
 /** Fixture words (a dev page, English only). */
 const COLOUR_LABEL = "Colour";
 const SIZE_LABEL = "Size";
-const ANY = "Any";
 
 /** Turn S6-1 (ruling 13) — a dialog, an alert dialog and two sheets in the one look, drawn
  *  from existing keys; e2e/dialogs.spec.ts measures them. */
@@ -1047,8 +1046,6 @@ function StyleFixture() {
   const [last, setLast] = useState("");
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const [rawColour, setColour] = useState<string[]>([]);
-  const [rawSize, setSize] = useState("");
   const { filters: tableFilters } = useTableFilters("style-filters", [
     {
       kind: "select",
@@ -1057,13 +1054,7 @@ function StyleFixture() {
       name: COLOUR_LABEL,
       kept: true,
       multiple: true,
-      value: rawColour,
-      onChange: (next: string[]) => {
-        setColour(next);
-      },
-      options: [{ value: "", label: ANY }, ...COLOURS.map((c) => ({ value: c, label: c }))].filter(
-        (option) => option.value !== "" && option.value !== "all",
-      ),
+      options: COLOURS.map((c) => ({ value: c, label: c })),
     },
     {
       kind: "select",
@@ -1071,19 +1062,11 @@ function StyleFixture() {
       chipKey: "size",
       name: SIZE_LABEL,
       kept: true,
-      value: rawSize === "" || rawSize === null ? [] : [rawSize],
-      onChange: (next: string[]) => setSize(next[0] ?? ""),
-      options: [{ value: "", label: ANY }, ...SIZES.map((c) => ({ value: c, label: c }))].filter(
-        (option) => option.value !== "" && option.value !== "all",
-      ),
+      options: SIZES.map((c) => ({ value: c, label: c })),
     },
   ]);
-  const [fullCountry, setFullCountry] = useState<string[]>([]);
-  const [fullCategory, setFullCategory] = useState<string[]>([]);
   const [fullSeller, setFullSeller] = useState("");
-  const [fullLevel, setFullLevel] = useState<string[]>([]);
   const [fullDates, setFullDates] = useState({ from: "", to: "" });
-  const [fullMissing, setFullMissing] = useState(false);
   const { filters: fullFilters } = useTableFilters("style-filters-full", [
     {
       kind: "select",
@@ -1092,8 +1075,6 @@ function StyleFixture() {
       name: "Country",
       kept: true,
       multiple: true,
-      value: fullCountry,
-      onChange: setFullCountry,
       options: Array.from({ length: 12 }, (_, index) => ({
         value: `market-${index}`,
         label: `Market ${index + 1}`,
@@ -1106,8 +1087,6 @@ function StyleFixture() {
       name: "Category",
       kept: true,
       multiple: true,
-      value: fullCategory,
-      onChange: setFullCategory,
       options: ["Vehicles", "Homes", "Electronics"].map((value) => ({ value, label: value })),
     },
     {
@@ -1126,8 +1105,6 @@ function StyleFixture() {
       chipKey: "level",
       name: "Level",
       kept: true,
-      value: fullLevel,
-      onChange: setFullLevel,
       options: ["Regular", "Premium"].map((value) => ({ value, label: value })),
     },
     {
@@ -1147,8 +1124,6 @@ function StyleFixture() {
       chipKey: "missing",
       name: "Missing picture",
       kept: true,
-      value: fullMissing,
-      onChange: setFullMissing,
     },
   ]);
   const colour = filterValues(tableFilters, "style-filters-colour");

@@ -159,39 +159,41 @@ export function AdminTranslationsStringsPage({
     flagged: langStats?.flagged ?? 0,
     orphaned: langStats?.orphaned ?? 0,
   };
-  const chooseFilter = (value: string) => {
-    setPage(0);
+  const writeStatus = (value: string) => {
     setSearchParams({
       ...(value === "all" || value === "orphaned" ? {} : { status: value }),
       ...(query === "" ? {} : { q: query }),
     });
   };
-  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-strings", [
-    {
-      kind: "select",
-      id: "strings-status-filter",
-      addressValue: addressStatus === "all" ? [] : [addressStatus],
-      chipKey: "",
-      name: t("admin.translations.col.status"),
-      kept: true,
-      allLabel: `${t("prim.table.all")} · ${counts["all"] ?? 0}`,
-      value: [],
-      onChange: (next: string[]) => chooseFilter(next[0] ?? "all"),
-      options: [
-        ...STATUS_CHIPS.map((chip) => ({
-          value: chip.value,
-          label: `${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`,
-        })),
-        {
-          value: "orphaned",
-          label: t("admin.translations.orphaned.chip").replace(
-            "{count}",
-            String(counts["orphaned"] ?? 0),
-          ),
-        },
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-  ]);
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters(
+    "admin-strings",
+    [
+      {
+        kind: "select",
+        id: "strings-status-filter",
+        addressValue: addressStatus === "all" ? [] : [addressStatus],
+        onAddress: (next: string[]) => writeStatus(next[0] ?? "all"),
+        chipKey: "",
+        name: t("admin.translations.col.status"),
+        kept: true,
+        allLabel: `${t("prim.table.all")} · ${counts["all"] ?? 0}`,
+        options: [
+          ...STATUS_CHIPS.map((chip) => ({
+            value: chip.value,
+            label: `${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`,
+          })),
+          {
+            value: "orphaned",
+            label: t("admin.translations.orphaned.chip").replace(
+              "{count}",
+              String(counts["orphaned"] ?? 0),
+            ),
+          },
+        ],
+      },
+    ],
+    { onAnyChange: () => setPage(0) },
+  );
   const filterValue = filterValues(tableFilters, "strings-status-filter")[0] ?? "all";
   const status = filterValue === "orphaned" ? "all" : filterValue;
   const flagged = status === "flagged";
@@ -352,7 +354,6 @@ export function AdminTranslationsStringsPage({
               <DataScope
                 lang={lang}
                 rtl={known?.rtl ?? false}
-                status="all"
                 query={query}
                 search={
                   <Input

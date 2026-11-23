@@ -71,7 +71,6 @@ function RoleChips({ roles }: { roles: string[] }) {
 export function AdminUsersList() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
-  const [rawStatus, setStatus] = useState("");
   // INC-073 law: a role named by the address wins; arriving never changes the kept view.
   const navigate = useNavigate();
   const { role: roleParam } = useSearch({ from: "/admin/users" });
@@ -98,49 +97,41 @@ export function AdminUsersList() {
   // by its raw name until then.
   if (rawRole !== "" && !roleOptions.some((item) => item.name === rawRole))
     roleOptions.unshift({ name: rawRole, label: rawRole });
-  const setRole = (next: string) => {
-    setPage(0);
+  const writeRole = (next: string) => {
     void navigate({
       to: "/admin/users",
       search: next === "" ? {} : { role: next },
       replace: true,
     });
   };
-  const setStatusFilter = (next: string) => {
-    setPage(0);
-    setStatus(next);
-  };
-  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-users", [
-    {
-      kind: "select",
-      id: "users-status-filter",
-      chipKey: "status",
-      name: t("admin.users.statusFilter"),
-      kept: true,
-      value: rawStatus === "" || rawStatus === null ? [] : [rawStatus],
-      onChange: (next: string[]) => setStatusFilter(next[0] ?? ""),
-      options: [
-        { value: "", label: t("admin.users.filter.all") },
-        { value: "active", label: t("admin.users.status.active") },
-        { value: "deactivated", label: t("admin.users.status.deactivated") },
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-    {
-      kind: "select",
-      id: "users-role-filter",
-      addressValue: rawRole === "" ? [] : [rawRole],
-      choicesReady: !roles.isLoading,
-      chipKey: "role",
-      name: t("admin.users.roleFilter"),
-      kept: true,
-      value: rawRole === "" || rawRole === null ? [] : [rawRole],
-      onChange: (next: string[]) => setRole(next[0] ?? ""),
-      options: [
-        { value: "", label: t("admin.users.filter.all") },
-        ...roleOptions.map((item) => ({ value: item.name, label: item.label })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-  ]);
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters(
+    "admin-users",
+    [
+      {
+        kind: "select",
+        id: "users-status-filter",
+        chipKey: "status",
+        name: t("admin.users.statusFilter"),
+        kept: true,
+        options: [
+          { value: "active", label: t("admin.users.status.active") },
+          { value: "deactivated", label: t("admin.users.status.deactivated") },
+        ],
+      },
+      {
+        kind: "select",
+        id: "users-role-filter",
+        addressValue: rawRole === "" ? [] : [rawRole],
+        onAddress: (next: string[]) => writeRole(next[0] ?? ""),
+        choicesReady: !roles.isLoading,
+        chipKey: "role",
+        name: t("admin.users.roleFilter"),
+        kept: true,
+        options: roleOptions.map((item) => ({ value: item.name, label: item.label })),
+      },
+    ],
+    { onAnyChange: () => setPage(0) },
+  );
   const status = filterValues(tableFilters, "users-status-filter")[0] ?? "";
   const role = filterValues(tableFilters, "users-role-filter")[0] ?? "";
   const { data, isLoading, isFetching, error } = useAdminUsers(

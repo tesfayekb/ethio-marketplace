@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { FilterRow } from "./filter-row";
 import { FilterSelect } from "./filter-select";
 import { FilterText } from "./filter-text";
@@ -68,25 +68,17 @@ export function FilterPanelBody({
                 placeholder={filter.placeholder}
               />
             ) : (
-              <Button
-                id={filter.id}
-                data-testid={filter.id}
-                type="button"
-                variant="ghost"
-                aria-label={filter.name}
-                aria-pressed={filter.value}
-                className="size-11 px-0 md:pointer-fine:size-9"
-                onClick={() => filter.onChange(!filter.value)}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`inline-flex h-6 w-10 items-center rounded-full p-1 ${filter.value ? "bg-primary" : "bg-input"}`}
-                >
-                  <span
-                    className={`size-4 rounded-full bg-card shadow-control transition-transform motion-reduce:transition-none ${filter.value ? "translate-x-4 rtl:-translate-x-4" : "translate-x-0"}`}
-                  />
-                </span>
-              </Button>
+              // INC-1253: the product's one switch, named by the row's label (which presses it
+              // too); its press area is 44 px tall on touch and 36 on a fine pointer.
+              <div className="flex min-h-11 items-center md:pointer-fine:min-h-9">
+                <Switch
+                  id={filter.id}
+                  data-testid={filter.id}
+                  checked={filter.value}
+                  onCheckedChange={filter.onChange}
+                  className="relative after:absolute after:inset-x-0 after:-inset-y-3 after:content-[''] md:pointer-fine:after:-inset-y-2"
+                />
+              </div>
             )}
           </FilterRow>
         ),
