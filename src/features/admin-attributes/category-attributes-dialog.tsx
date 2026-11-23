@@ -235,9 +235,6 @@ export function CategoryAttributesDialog({
       subject={<PanelSubject title={categoryName} />}
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground" data-testid="category-attributes-autosave">
-            {t("admin.attributes.links.autosave")}
-          </p>
           <Button
             type="button"
             variant="outline"
@@ -250,6 +247,9 @@ export function CategoryAttributesDialog({
         </div>
       }
     >
+      <p className="text-xs text-muted-foreground" data-testid="category-attributes-autosave">
+        {t("admin.attributes.links.autosave")}
+      </p>
       {/* THE TWO-MUST-DISPLAY CAPTION: what a listing card will actually show. */}
       <p data-testid="category-attributes-card-caption" className="text-sm text-muted-foreground">
         {carded.length === 0

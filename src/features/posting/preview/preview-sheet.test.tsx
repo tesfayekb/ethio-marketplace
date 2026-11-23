@@ -2,6 +2,7 @@ import { renderPanel as render } from "@/components/ui/dialog-parts-test-render"
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DIALOG_LAYER, SCREEN_PANEL } from "@/components/ui/dialog-look";
 
@@ -24,6 +25,7 @@ vi.mock("./listing-detail", () => ({
 import { PreviewSheet } from "./preview-sheet";
 
 const VIEW = {} as ListingDetailView;
+const SLOT_WORDS = { staff: "Staff", action: "Act", edit: "Edit" } as const;
 
 /** The sheet, and the step-up's dialog over it when `over` (INC-618's page). */
 function Page({ onClose, over = false }: { onClose: () => void; over?: boolean }) {
@@ -71,4 +73,38 @@ describe("PreviewSheet (INC-618, turn S6-4)", () => {
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledTimes(1);
   });
+});
+
+it("PS-U1 staff follows the buyer preview in the scrolling body, while only the action stays in the footer", async () => {
+  render(
+    <PreviewSheet
+      view={VIEW}
+      onClose={() => {}}
+      staff={<p data-testid="staff-stub">{SLOT_WORDS.staff}</p>}
+      footer={<Button>{SLOT_WORDS.action}</Button>}
+    />,
+  );
+  const buyer = await screen.findByTestId("listing-detail-stub");
+  const staff = screen.getByTestId("staff-stub");
+  const body = buyer.closest("[data-panel-body]");
+  expect(body).not.toBeNull();
+  expect(body).toContainElement(staff);
+  expect(buyer.compareDocumentPosition(staff) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  const footer = screen.getByTestId("post-preview-footer");
+  expect(footer).not.toContainElement(staff);
+  expect(footer).toContainElement(screen.getByRole("button", { name: SLOT_WORDS.action }));
+});
+it("PS-U2 the owner preview without a staff slot stays buyer-only and keeps the edit-body replacement", async () => {
+  const { rerender } = render(<PreviewSheet view={VIEW} onClose={() => {}} />);
+  expect(await screen.findByTestId("listing-detail-stub")).toBeInTheDocument();
+  expect(screen.queryByTestId("post-preview-footer")).toBeNull();
+  rerender(
+    <PreviewSheet
+      view={VIEW}
+      onClose={() => {}}
+      body={<p data-testid="edit-body-stub">{SLOT_WORDS.edit}</p>}
+    />,
+  );
+  expect(screen.getByTestId("edit-body-stub")).toBeInTheDocument();
+  expect(screen.queryByTestId("listing-detail-stub")).toBeNull();
 });

@@ -869,8 +869,8 @@ export function AdminScreeningPage({
             {previewRow !== null ? (
               <PreviewSheet
                 onClose={closePreview}
-                footer={
-                  mayReview || mayEnforce ? (
+                staff={
+                  mayEnforce || (mayReview && heldCount > 0) ? (
                     <>
                       {/* Bundle 13 turn 8 (D154 B4) — the ad's photos with their marks. D169
                           (the operator, 2026-10-14) kept the preview view-only; D188 (2026-10-15)
@@ -878,7 +878,7 @@ export function AdminScreeningPage({
                           edit mode instead, and a photo's removal is on the ad's own page
                           (`admin-screening-open-listing`), as D169 placed it. */}
                       {mayEnforce ? (
-                        <div className="basis-full">
+                        <div className="min-w-0">
                           <ListingPhotos
                             listingId={previewRow.id}
                             mayRemove={false}
@@ -889,6 +889,22 @@ export function AdminScreeningPage({
                           />
                         </div>
                       ) : null}
+                      {/* D158 (bundle 13 turn 6) — photos held while photo screening was
+                          off: approving the ad approves them (the operator's answer). */}
+                      {mayReview && heldCount > 0 ? (
+                        <p
+                          className="basis-full text-sm text-muted-foreground"
+                          data-testid="admin-screening-preview-unscreened"
+                        >
+                          {fill(t("admin.screening.unscreenedNote"), { count: heldCount })}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : undefined
+                }
+                footer={
+                  mayReview || mayEnforce ? (
+                    <>
                       {mayEnforce ? (
                         <Button
                           type="button"
@@ -916,16 +932,6 @@ export function AdminScreeningPage({
                         >
                           {t("admin.screening.openListing")}
                         </Link>
-                      ) : null}
-                      {/* D158 (bundle 13 turn 6) — photos held while photo screening was
-                          off: approving the ad approves them (the operator's answer). */}
-                      {mayReview && heldCount > 0 ? (
-                        <p
-                          className="basis-full text-sm text-muted-foreground"
-                          data-testid="admin-screening-preview-unscreened"
-                        >
-                          {fill(t("admin.screening.unscreenedNote"), { count: heldCount })}
-                        </p>
                       ) : null}
                       {mayReview ? (
                         <>

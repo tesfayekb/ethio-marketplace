@@ -772,3 +772,17 @@ The closed line, its count and its limit note ride the page; the open list — t
 rows and the keys, `src/components/select-list-body.tsx` — is fetched on intent (hover, focus or
 press of the line) through `src/components/select-list-loader.ts`, and the Filters body starts that
 fetch as it mounts (register rows 48 and 52).
+
+## Panel footers — actions only (Bundle 5, INC-1265)
+
+`PanelFooter` holds buttons and acting links only; explanatory text, alerts and staff
+content belong in the scrolling body. `PreviewSheet` accepts an optional `staff` body
+slot after the buyer preview: Screening keeps its permission-gated photo grid and held
+note there, with Edit, Approve, Reject and the acting listing link in the footer.
+Step-review passes no staff slot. Photo reads show `common.loading` with `aria-busy`,
+or `common.loadFailed` and `common.retry` to refetch; a successful empty read stays
+empty. Country-scoped and category-attribute autosave notes, and impersonation errors,
+remain in the body. The photo gallery thumbnail strip is the named footer exception;
+auth step-up remains actions-only and unchanged. FormLayout's wizard bar and
+ChartFrame's labels are not panel footers. The board places Filters beside Columns
+and includes a long staff-body preview with only actions in its footer.

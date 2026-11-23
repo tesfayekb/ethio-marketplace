@@ -1,7 +1,6 @@
 import { OneLineSlot } from "@/components/ui/one-line-slot";
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { cn } from "@/lib/utils";
-import { refreshPage } from "@/lib/on-demand-failure";
 import { Suspense, useEffect, useId, useRef, type ReactNode } from "react";
 import { preload } from "react-dom";
 import { Await, useRouterState } from "@tanstack/react-router";
@@ -204,7 +203,7 @@ export function Feed() {
       </PageCard>
     );
   } else if (categoryLookup === "failed") {
-    body = <FeedError testid="feed-category-failed" onRetry={refreshPage} />;
+    body = <FeedError testid="feed-category-failed" onRetry={() => window.location.reload()} />;
   } else if (isLoading && !showHeld) {
     body = (
       <div className="flex justify-center py-12">

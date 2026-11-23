@@ -37,8 +37,8 @@ vi.mock("@/components/ui/category-modal", () => ({
     <div data-testid={testid}>
       {description}
       {subject}
-      {children}
-      {footer}
+      <div data-testid="country-test-body">{children}</div>
+      <div data-testid="country-test-footer">{footer}</div>
     </div>
   ),
 }));
@@ -156,6 +156,15 @@ describe("CountryActiveDialog (INC-815)", () => {
     // The refusal is a plain object, not an Error: the force-close choice must still appear.
     expect(await screen.findByTestId("country-close-force")).toBeInTheDocument();
     expect(screen.getByTestId("country-verb-error")).toBeInTheDocument();
+    expect(screen.getByTestId("country-test-body")).toContainElement(
+      screen.getByTestId("country-close-scoped"),
+    );
+    expect(screen.getByTestId("country-test-footer")).not.toContainElement(
+      screen.getByTestId("country-close-scoped"),
+    );
+    expect(screen.getByTestId("country-test-footer")).toContainElement(
+      screen.getByTestId("country-close-force"),
+    );
     expect(vi.mocked(setCountryActive)).toHaveBeenCalledWith(
       expect.objectContaining({ code: "ET", active: false, forceHide: false }),
     );
