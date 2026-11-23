@@ -30,9 +30,6 @@ export const enMember = {
   "settings.providerGoogle": "Google",
   "settings.lastUsed": "Last used {when}",
   "settings.lastUsedNever": "Not used yet",
-  "settings.linkGoogle": "Link Google",
-  "settings.unlink": "Unlink",
-  "settings.unlinked": "Sign-in method removed.",
   "settings.lastMethodGuard":
     "This is your only sign-in method. Add another one before removing it.",
   "settings.security": "Security",
@@ -51,6 +48,9 @@ export const enMember = {
   "settings.signOutOthersConfirmYes": "Yes, sign out",
   "settings.cancel": "Cancel",
   "settings.signOutOthersDone": "Other devices have been signed out.",
+  "settings.othersStillSignedIn":
+    "Done, but other devices are still signed in. Use Sign out others below.",
+  "settings.emailChangePending": "A change to {email} is waiting for both confirmation links.",
   "account.overview.title": "Account",
   "account.overview.loadError": "Your account overview couldn't be loaded.",
   "account.overview.profile": "Profile",

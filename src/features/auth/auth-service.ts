@@ -1,4 +1,4 @@
-import type { EmailOtpType, UserIdentity } from "@supabase/supabase-js";
+import type { EmailOtpType } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { clearSessionClocks } from "@/features/session/session-policy";
@@ -20,9 +20,11 @@ import { CLIENT_FAILED } from "./auth-result";
 
 import type {
   AuthResult,
+  CredentialChangeResult,
   Credentials,
   IdentitiesResult,
   PasswordStateResult,
+  PendingEmailResult,
   VerificationResult,
 } from "./types";
 
@@ -268,7 +270,10 @@ export async function signOutOtherDevices(): Promise<AuthResult> {
   return { ok: true };
 }
 
-/** Linked sign-in methods, flattened. Read-only. */
+/**
+ * Linked sign-in methods, flattened. Read-only (DEC-435): no screen links or unlinks a sign-in
+ * method, and the server has manual linking off in every project (CF-AUTH-1).
+ */
 export async function getIdentities(): Promise<IdentitiesResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
@@ -285,71 +290,47 @@ export async function getIdentities(): Promise<IdentitiesResult> {
 }
 
 /**
- * Adds Google as a second sign-in method for the CURRENT user. Same minimal
- * scopes and same return target as the sign-in door — one source of truth.
+ * Ends every OTHER device's session after a credential changed (U0k session hardening (c)). The change
+ * IS already made, so a failure here never turns it into a failed change: it is answered `false` and the
+ * page tells the person to use "Sign out others" (DEC-435; the three sites share this one answer).
  */
-export async function linkGoogleIdentity(): Promise<AuthResult> {
-  const supabase = await authClient();
-  if (supabase === null) return CLIENT_FAILED;
-  const { error } = await supabase.auth.linkIdentity({
-    provider: "google",
-    options: { redirectTo: emailRedirectUrl(), scopes: "email profile openid" },
-  });
-  if (error) return failure(error);
-  return { ok: true };
+async function endOtherSessions(supabase: Client): Promise<boolean> {
+  const { error } = await supabase.auth.signOut({ scope: "others" });
+  return error === null;
 }
 
 /**
- * Removes a sign-in method. GoTrue refuses to delete the last identity
- * (`single_identity_not_deletable`); that server refusal is the real guard and
- * is surfaced through `auth.errorLastMethod`.
- */
-export async function unlinkProviderIdentity(identityId: string): Promise<AuthResult> {
-  const supabase = await authClient();
-  if (supabase === null) return CLIENT_FAILED;
-  const { data, error: readError } = await supabase.auth.getUserIdentities();
-  if (readError || !data) return failure(readError ?? { message: "" });
-
-  const identity = data.identities.find((item) => item.identity_id === identityId);
-  if (!identity) return { ok: false, errorKey: "auth.errorGeneric" };
-
-  const { error } = await supabase.auth.unlinkIdentity(identity as UserIdentity);
-  if (error) return failure(error);
-  return { ok: true };
-}
-
-/**
- * Current-password verification mechanism.
+ * Changes the password — only after a check the sign-in server makes itself (CF-AUTH-1).
  *
- * "Secure password change" (enabled in P1-c) makes GoTrue require a
- * reauthentication NONCE only when the session is older than 24h — it never
- * accepts a current password. We therefore verify the current password
- * ourselves, on a THROWAWAY client that persists nothing: a wrong password
- * fails there and `updateUser` is never reached, so nothing changes. The
- * throwaway client cannot disturb the signed-in session in this browser.
+ * The current password travels with the change as `current_password`: where the project requires it
+ * (`security_update_password_require_current_password`), the server judges it before anything is
+ * written and answers `current_password_invalid` / `current_password_required`. DEC-436 keeps the
+ * browser's own proof beside it: the current password is also checked on a THROWAWAY client that
+ * persists nothing, so a wrong password fails there, `updateUser` is never reached and nothing changes
+ * — in a project that does not yet require the field too. The throwaway client cannot disturb the
+ * signed-in session in this browser. A session older than the hosted "Secure password change" window
+ * answers `reauthentication_needed` (its own word, INC-1267).
  */
 export async function changePassword(
   currentPassword: string,
   newPassword: string,
-): Promise<AuthResult> {
+): Promise<CredentialChangeResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
   const verified = await verifyCurrentPassword(supabase, currentPassword);
   if (!verified.ok) return verified;
 
-  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+    current_password: currentPassword,
+  });
   if (error) return failure(error);
-  // U0k session hardening (c): a credential change invalidates every OTHER
-  // device's session. Best-effort — the password IS already changed, so a
-  // failure here is reported to the console, never surfaced as a failed change.
-  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
-  if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
-  return { ok: true };
+  return { ok: true, othersSignedOut: await endOtherSessions(supabase) };
 }
 
 /**
  * The signed-in person's current password, checked on a THROWAWAY client that
- * persists nothing (see `changePassword`): a wrong password answers
+ * persists nothing (see `changePassword`, DEC-436): a wrong password answers
  * `auth.errorWrongCurrentPassword` and nothing else runs. Bundle 11 turn C4
  * (D143): Remove password asks for it too.
  */
@@ -401,6 +382,21 @@ export async function changeEmail(newEmail: string): Promise<AuthResult> {
   );
   if (error) return failure(error);
   return { ok: true };
+}
+
+/**
+ * The address an e-mail change is still waiting on (INC-1258, DEC-439): the server's own record
+ * (`new_email`), because a change confirmed on another device is not yet in this device's session.
+ * Read once on load and once after a change; a failed read is typed and said in the e-mail section,
+ * never "nothing waits". The one `getUser()` of the Settings page (CF-SESSION-3's line names it).
+ */
+export async function pendingEmail(): Promise<PendingEmailResult> {
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return { ok: false, errorKey: toErrorKey(error) };
+  const waiting = data.user?.new_email;
+  return { ok: true, pendingEmail: typeof waiting === "string" && waiting !== "" ? waiting : null };
 }
 
 /**
@@ -508,7 +504,7 @@ export async function hasPassword(): Promise<PasswordStateResult> {
  * identity remains — the door code `lastSignInMethod` (DEC-333, F1-1; the
  * shell answers it as the error's message) — surfaced as `auth.errorLastMethod`.
  */
-export async function removeOwnPassword(currentPassword: string): Promise<AuthResult> {
+export async function removeOwnPassword(currentPassword: string): Promise<CredentialChangeResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
   // DEC-242: keep GoTrue's password-proof session alive until the door answers.
@@ -519,9 +515,7 @@ export async function removeOwnPassword(currentPassword: string): Promise<AuthRe
     const { error } = await supabase.rpc("remove_own_password");
     if (!error) {
       removed = true;
-      const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
-      if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
-      return { ok: true };
+      return { ok: true, othersSignedOut: await endOtherSessions(supabase) };
     }
     if (doorCode(error).code === "lastSignInMethod")
       return { ok: false, errorKey: "auth.errorLastMethod" };
@@ -567,7 +561,7 @@ export async function requestPasswordReset(email: string): Promise<AuthResult> {
  * link established. Without such a session GoTrue refuses, and that refusal is
  * surfaced — never swallowed.
  */
-export async function completePasswordReset(newPassword: string): Promise<AuthResult> {
+export async function completePasswordReset(newPassword: string): Promise<CredentialChangeResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
   // Turn 34c-5 (INC-933) — the recovery session through the door: a read that failed (its
@@ -576,11 +570,11 @@ export async function completePasswordReset(newPassword: string): Promise<AuthRe
   if (read.failed) return { ok: false, errorKey: "auth.errorGeneric" };
   if (!read.session) return { ok: false, errorKey: "auth.errorResetLinkInvalid" };
 
+  // CF-AUTH-1's one exception: a recovery session sets a password without the current one
+  // (the server exempts it); every other password change goes through `changePassword`.
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) return failure(error);
   // U0k session hardening (c): finishing a recovery also ends every other
   // device's session (the recovery may itself be an account takeover recovery).
-  const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
-  if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
-  return { ok: true };
+  return { ok: true, othersSignedOut: await endOtherSessions(supabase) };
 }

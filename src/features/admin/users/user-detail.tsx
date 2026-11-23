@@ -15,7 +15,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { useAuth } from "@/features/auth/use-auth";
+import { useShell } from "@/components/shell-context";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
@@ -44,7 +44,7 @@ import { dateFormatter } from "@/lib/format";
 export function AdminUserDetailPage({ userId }: { userId: string }) {
   const { t, language } = useI18n();
   const { permissions } = useAdminShell();
-  const { user: authUser } = useAuth();
+  const { user: authUser } = useShell();
   /** U1d (INC-077): never offer status controls on your OWN record. */
   const isOwnAccount = authUser?.id === userId;
   const mayUpdate = permissions.includes("profiles:update");

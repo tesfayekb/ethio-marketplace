@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 773,
-  "dynamicCallSites": 418,
+  "scanned": 777,
+  "dynamicCallSites": 419,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1849,6 +1849,21 @@
     ],
     "admin.countries.transfer.scope": [
       "/admin/countries"
+    ],
+    "admin.factorCode.body": [
+      "/admin"
+    ],
+    "admin.factorNeeded.action": [
+      "/admin"
+    ],
+    "admin.factorNeeded.body": [
+      "/admin"
+    ],
+    "admin.factorNeeded.title": [
+      "/admin"
+    ],
+    "admin.factorReadFailed": [
+      "/admin"
     ],
     "admin.landing.body": [
       "/admin"
@@ -4211,6 +4226,9 @@
     "auth.resetNewTitle": [
       "/auth/reset"
     ],
+    "auth.resetOthersStillSignedIn": [
+      "/auth/reset"
+    ],
     "auth.resetSend": [
       "/auth"
     ],
@@ -4281,6 +4299,7 @@
       "/$name",
       "/account",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4335,6 +4354,7 @@
       "/$name",
       "/account",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4413,6 +4433,7 @@
       "/$name",
       "/account",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4997,6 +5018,7 @@
       "/settings"
     ],
     "mfa.codeLabel": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5018,6 +5040,7 @@
       "/settings"
     ],
     "mfa.codePlaceholder": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5101,6 +5124,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpConfirm": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5182,6 +5206,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpTitle": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5891,6 +5916,7 @@
       "/post/$listingId"
     ],
     "post.field.required": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -6031,6 +6057,7 @@
       "/post/$listingId"
     ],
     "post.optional": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -8582,6 +8609,9 @@
     "settings.email": [
       "/settings"
     ],
+    "settings.emailChangePending": [
+      "/settings"
+    ],
     "settings.identity": [
       "/settings"
     ],
@@ -8592,9 +8622,6 @@
       "/settings"
     ],
     "settings.lastUsedNever": [
-      "/settings"
-    ],
-    "settings.linkGoogle": [
       "/settings"
     ],
     "settings.memberSince": [
@@ -8663,9 +8690,6 @@
       "/settings"
     ],
     "settings.title": [
-      "/settings"
-    ],
-    "settings.unlink": [
       "/settings"
     ],
     "shell.accountMenu": [

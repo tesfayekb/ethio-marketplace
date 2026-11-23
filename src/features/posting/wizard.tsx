@@ -18,7 +18,7 @@ import {
   useCategoryTree,
 } from "@/features/categories/category-tree";
 import { entityName } from "@/i18n/entity";
-import { useAuth } from "@/features/auth/use-auth";
+import { useShell } from "@/components/shell-context";
 import { useI18n } from "@/i18n";
 
 import { RefusalSummary } from "./field";
@@ -216,7 +216,7 @@ function WizardShell({
   routeListingId: string | null;
 }) {
   const { t, entities, language } = useI18n();
-  const { user, loading: authLoading } = useAuth();
+  const { user, authLoading } = useShell();
   const listingId = routeListingId;
   // Bundle 22 turn 4 — a seller's edit save carries the publishing certification (L1 v2 item 4).
   const sellerEdit = edit !== null && edit.actor === "seller" && listingId !== null;

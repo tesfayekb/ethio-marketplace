@@ -268,6 +268,11 @@ export const enBase = {
 
   "auth.errorWrongCurrentPassword": "That current password is not correct.",
   "auth.errorLastMethod": "You can't remove your only sign-in method. Add another one first.",
+  "auth.errorSamePassword": "Choose a password different from your current one.",
+  "auth.errorReauthNeeded":
+    "For your safety, sign out and sign in again, then change your password.",
+  "auth.resetOthersStillSignedIn":
+    "Your password is changed, but other devices are still signed in. Open Settings and use Sign out others.",
   "auth.errorPasswordTooShort": "Use at least 8 characters.",
   "auth.errorPasswordMismatch": "The passwords do not match.",
   "auth.forgotPassword": "Forgot your password?",

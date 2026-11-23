@@ -105,6 +105,9 @@ export type EnrollResult =
 /** The current session's assurance level, as GoTrue reports it. */
 export type AalState = { current: string | null; next: string | null };
 
+/** A read of the assurance level: the level, or the failure — never "no level" for a failed read. */
+export type AalRead = ({ ok: true } & AalState) | MfaFailure;
+
 /** The field every two-factor refusal belongs to: the six-digit code. */
 const CODE_FIELD = "code";
 
@@ -218,15 +221,21 @@ export function isStepUpRequiredError(error: unknown): boolean {
   return candidate.code === "P0009" || (candidate.message ?? "").includes("step-up required");
 }
 
-export async function getAal(): Promise<AalState> {
+/**
+ * The session's assurance level (DEC-434: a staff screen needs a session that used its second factor).
+ * A read that fails is a typed failure (cursor-bundle-5, INC-1264's class), never the success-shaped
+ * "no level" it used to answer.
+ */
+export async function getAal(): Promise<AalRead> {
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (error || !data) return { current: null, next: null };
-  return { current: data.currentLevel, next: data.nextLevel };
+  if (error || !data) return refusalOf("unknown");
+  return { ok: true, current: data.currentLevel, next: data.nextLevel };
 }
 
 /** True only when this session has actually completed a second-factor challenge. */
 export async function isSteppedUp(): Promise<boolean> {
-  return (await getAal()).current === "aal2";
+  const read = await getAal();
+  return read.ok && read.current === "aal2";
 }
 
 /**

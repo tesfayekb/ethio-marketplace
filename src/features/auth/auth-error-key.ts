@@ -57,6 +57,14 @@ export const AUTH_REFUSALS: RefusalFamily = {
     validation_failed: "auth.errorInvalidEmail",
     [RATE_LIMITED]: "auth.errorRateLimited",
     over_email_send_rate_limit: "auth.errorRateLimited",
+    // INC-1267 / DEC-435 — the server's own refusals of a password change, each with its word:
+    // the current password it asks for (missing or wrong), the same password again, and a session
+    // older than the hosted "Secure password change" window. `manual_linking_disabled` has no word:
+    // no caller reaches it once no screen links or unlinks a sign-in method.
+    current_password_invalid: "auth.errorWrongCurrentPassword",
+    current_password_required: "auth.errorWrongCurrentPassword",
+    same_password: "auth.errorSamePassword",
+    reauthentication_needed: "auth.errorReauthNeeded",
   },
   sentences: [
     [/email not confirmed/i, "auth.errorEmailNotConfirmed"],
@@ -98,7 +106,7 @@ export function toErrorKey(error: AuthErrorLike): MessageKey {
 }
 
 /** An auth action's failure as the answer every action shares (the service's own import). */
-export function failure(error: AuthErrorLike): AuthResult {
+export function failure(error: AuthErrorLike): Extract<AuthResult, { ok: false }> {
   return {
     ok: false,
     errorKey: toErrorKey(error),

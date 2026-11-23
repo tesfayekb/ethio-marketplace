@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 
 import { clearSessionClocks } from "@/features/session/session-policy";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
-import { currentSession, getSupabase, onAuthChange } from "@/lib/supabase-door";
+import { currentSession, onAuthChange } from "@/lib/supabase-door";
 
+import { readAccountStatus } from "./account-status";
 import { markDeactivatedSignOut } from "./deactivated";
 import { noteSignIn } from "./session-end";
 // The leaf by its namespace so the call keeps the action's name (auth-answers census, INC-915).
@@ -74,22 +75,26 @@ export function useAuth() {
       // bundle 16 turn S3 (D189), the account's status: a deactivated account is
       // signed out at every auth event (the first load, a sign-in, a token
       // refresh), so a session deactivated while open ends on its own.
-      // DEC-261 — the client is here for a signed-in visitor (the door started it); a
-      // client that did not load is a read that failed: fail-open, as above. INC-911 — it is
-      // reported to the shell's one notice, which offers to refresh the page.
-      const { data } = await getSupabase().then(
-        (supabase) =>
-          supabase
-            .from("profiles")
-            .select("display_name, account_status")
-            .eq("user_id", userId)
-            .maybeSingle(),
-        (error: unknown) => {
-          reportOnDemandFailure("the account's code", error);
-          return { data: null };
-        },
-      );
+      // INC-1264 / the runtime-stability law — an auth-state callback never calls Supabase: the
+      // read waits one macrotask (the ticket above is already taken, so ordering is unchanged),
+      // goes out only with the session attached (account-status.ts), and its failure is typed.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
       if (stale()) return;
+      const status = await readAccountStatus(userId);
+      if (stale()) return;
+      if (status.kind === "noSession") {
+        // The session ended before the read: the sign-out's own event settles it; nothing was sent.
+        setState({ user: null, loading: false });
+        return;
+      }
+      // A failed read keeps the person signed in (the doors refuse a deactivated account
+      // regardless, F3); it is named and reported to the shell's one notice, which offers to
+      // refresh the page. The signed-in screen never waits on it.
+      if (status.kind === "failed") reportOnDemandFailure("the account's status", status.failure);
+      const data =
+        status.kind === "read"
+          ? { display_name: status.displayName, account_status: status.status }
+          : null;
       if (data?.account_status === "deactivated") {
         // INC-650 — the sign-out goes FIRST: the shell navigates to /auth the
         // moment the user is cleared, and /auth sends anyone who still has a

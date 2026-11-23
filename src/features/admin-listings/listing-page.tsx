@@ -19,7 +19,7 @@ import { useScreeningPhotos, useScreeningSchema } from "@/features/admin-screeni
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { useAuth } from "@/features/auth/use-auth";
+import { useShell } from "@/components/shell-context";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
@@ -136,7 +136,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const mayEnforce = permissions.includes("listings:enforce");
   const mayViewAs = permissions.includes("impersonation:use");
   const mayOpenSeller = permissions.includes("profiles:view");
-  const { user } = useAuth();
+  const { user } = useShell();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const query = useAdminListing(listingId);

@@ -248,6 +248,10 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
 
   "auth.errorWrongCurrentPassword": "አሁን ያለው የይለፍ ቃል ትክክል አይደለም።",
   "auth.errorLastMethod": "ብቸኛውን የመግቢያ መንገድዎን ማስወገድ አይችሉም። መጀመሪያ ሌላ ይጨምሩ።",
+  "auth.errorSamePassword": "አሁን ካለው የይለፍ ቃልዎ የተለየ የይለፍ ቃል ይምረጡ።",
+  "auth.errorReauthNeeded": "ለደህንነትዎ ሲባል ይውጡና እንደገና ይግቡ፣ ከዚያ የይለፍ ቃልዎን ይቀይሩ።",
+  "auth.resetOthersStillSignedIn":
+    "የይለፍ ቃልዎ ተቀይሯል፣ ነገር ግን ሌሎች መሣሪያዎች አሁንም እንደገቡ ናቸው። ቅንብሮችን ከፍተው ከሌሎች መሣሪያዎች ይውጡ የሚለውን ይጠቀሙ።",
   "auth.errorPasswordTooShort": "ቢያንስ 8 ቁምፊዎችን ይጠቀሙ።",
   "auth.errorPasswordMismatch": "የይለፍ ቃሎቹ አይመሳሰሉም።",
   "auth.forgotPassword": "የይለፍ ቃልዎን ረሱት?",

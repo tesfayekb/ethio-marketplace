@@ -52,7 +52,9 @@ export function useMfa() {
       setReadFailed(true);
       setErrorKey(result.errorKey);
     }
-    setAal(await getAal());
+    // A failed level read leaves the level unknown (never "aal1"): nothing here depends on it.
+    const level = await getAal();
+    setAal(level.ok ? { current: level.current, next: level.next } : { current: null, next: null });
   }, []);
 
   useEffect(() => {

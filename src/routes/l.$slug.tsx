@@ -17,7 +17,7 @@ import { saveListing, unsaveListing } from "@/features/ad-page/save";
 import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
 import { readSellerReview } from "@/features/seller/seller-review";
-import { useAuth } from "@/features/auth/use-auth";
+import { useShell } from "@/components/shell-context";
 import { fill } from "@/features/posting/refusal-text";
 import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
@@ -131,7 +131,7 @@ function AdPage() {
   const navigate = useNavigate();
   const { doc, canonical, photoLinks } = Route.useLoaderData();
   const countedId = useRef<string | null>(null);
-  const { user, loading: authLoading } = useAuth();
+  const { user, authLoading } = useShell();
   // the reveal is a tap: a signed-in tap on Show contact, or a signed-out tap on
   // Contact seller in this tab within the last 15 minutes, carried through the
   // sign-in by a tab-only intent (D201 §14 — never an address)
