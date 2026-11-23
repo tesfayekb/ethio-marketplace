@@ -1122,3 +1122,25 @@ The "Delete language" confirmation is drawn red (`destructive`), as every button
 An answer option's words in any language other than English and Amharic are the attribute's entity translation with field `option:<value>`: listed in Admin › Translations' Data scope as 'Answer option' with the option's English as the source, filled by AI or by hand and approved like category names; get_entity_bundle carries them, and optionLabel reads the reader's language first, then the catalogue's English or Amharic. The curator's files and the importer keep only English and Amharic. A switched-off option is not listed; its translation stays and answers again if the option comes back.
 
 Amharic is not one of those languages (INC-820, M19): an option's Amharic is the catalogue's label_am, from the curator's files through the importer. The Amharic Data view lists no option row, its totals count none, and the save and AI doors refuse an option field in Amharic with 'unknown entity field'.
+
+## The two list doors read "after this key" (cursor-bundle-5 part 2, INC-1141)
+
+A collector that walks a list page by page with an OFFSET skips or repeats a row when the list changes between two pages.
+Both list doors take a trailing optional argument that names the last row already read; with none they answer what they
+answered. `admin_list_translations(…, p_after text DEFAULT NULL)`: the page is the language's rows whose `key` sorts after
+`p_after` (order `key`, unique within a language). `admin_list_entity_translations(…, p_after jsonb DEFAULT NULL)`:
+`p_after` is `{etype, elabel, eid, efield}` of the last row read (a string `etype`, `eid` (a uuid) and `efield`, a string or
+null `elabel`, no other field; anything else answers `badValue:after` after the gate has answered) and the page is the rows
+after it by `(etype, elabel, eid, efield)`. `efield` is the order's last tie-breaker (an attribute and one of its options
+can share a label and an id), and a NULL label reads as `''` in the order and in the comparison. `total_count` counts the
+rows the page is cut from, so with an `after` it counts the rows after that key. The migration proves, on scratch rows, that
+a row inserted before the cursor and one after it between two pages is neither skipped nor repeated (and that an OFFSET
+page over the same list repeats a row), and that rows tied on `(etype, elabel, eid)` are read across a page edge. The plan
+of the keyset read serves the language by an index and filters the key (a page still reads the language's rows for its
+`total_count`, as the OFFSET read did).
+
+The bulk translate's collectors (`src/features/admin/translations/bulk-collect.ts`, `collectUi` and `collectEntities`)
+read the untranslated work by that key (cursor-bundle-5 part 3): each next page asks for the rows after the last key read
+(`listTranslations({ after })`, `listEntityTranslations({ after: entityAfterOf(lastRow) })`), a page shorter than
+`AI_CHUNK_SIZE` is the last, and a page that fails stops the collection with its own failure (the bar's guard reports it).
+BT-U1 (`ai-bulk-bar.test.tsx`) walks a fake door whose list changes between two pages.

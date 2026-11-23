@@ -180,4 +180,27 @@ describe("L11 — the auth forms on the one Field and gate", () => {
     expect(screen.getAllByRole("alert")).toHaveLength(1);
     expect(service.completePasswordReset).not.toHaveBeenCalled();
   });
+
+  async function submitReset() {
+    draw(componentOf(ResetRoute));
+    await screen.findByText("auth.resetNewTitle");
+    type("reset-password", "pw-12345678");
+    type("reset-password-confirm", "pw-12345678");
+    fireEvent.submit(formOf("reset-password"));
+    await screen.findByText("auth.resetDone");
+  }
+
+  it("ARP-1: a reset that ended the other devices' sessions says nothing more", async () => {
+    service.completePasswordReset.mockResolvedValue({ ok: true, othersSignedOut: true });
+    await submitReset();
+    expect(screen.queryByTestId("auth-reset-others-still-signed-in")).toBeNull();
+  });
+
+  it("ARP-2: a reset whose other sessions could not be ended says so and where to end them", async () => {
+    service.completePasswordReset.mockResolvedValue({ ok: true, othersSignedOut: false });
+    await submitReset();
+    expect(screen.getByTestId("auth-reset-others-still-signed-in")).toHaveTextContent(
+      "auth.resetOthersStillSignedIn",
+    );
+  });
 });

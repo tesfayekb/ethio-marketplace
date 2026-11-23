@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
-import { chooseFilter } from "./helpers/filters";
+import { chooseFilter, chooseInList, openSelectList } from "./helpers/filters";
 
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
@@ -453,7 +453,7 @@ test.describe("U4b translations console", () => {
       await gotoReady(page, `/admin/users/${target.id}`);
       const langLine = page.getByTestId("translator-lang");
       await expect(langLine).toBeEnabled({ timeout: 20000 });
-      await langLine.click();
+      await openSelectList(page, "translator-lang");
       const amBox = page.getByTestId("translator-lang-am");
       await expect(amBox).toBeVisible({ timeout: 20000 });
       // INC-380: a dirty leased account fails here, clearly, instead of flaking.
@@ -964,15 +964,13 @@ test.describe("U4b translations console", () => {
         const { secret } = await signInJobSuperAdmin(page);
         await gotoReady(page, "/admin/translations");
         await expect(page.getByTestId("translations-add-picker")).toBeVisible({ timeout: 20000 });
-        await page.getByTestId("translations-add-option").click();
-        await page.getByTestId(`translations-add-option-${code}`).click();
+        await chooseInList(page, "translations-add-option", code);
 
         await expect(page.getByTestId("translations-add-code")).toHaveValue(code);
         await expect(page.getByTestId("translations-add-name-en")).toHaveValue("Swahili");
         // The native name is DERIVED, never left blank for the operator to guess.
         expect(await page.getByTestId("translations-add-name-native").inputValue()).not.toBe("");
-        await page.getByTestId("translations-add-country").click();
-        await page.getByTestId("translations-add-country-ET").click();
+        await chooseInList(page, "translations-add-country", "ET", { multiple: true });
         await page.getByTestId("translations-add-submit").click();
         await stepUpIfPrompted(page, secret);
         await expect(page.getByTestId("translations-add-saved")).toBeVisible({ timeout: 20000 });

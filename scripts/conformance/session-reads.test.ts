@@ -17,6 +17,11 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * or `.auth.getUser()` call in the browser tree (src/ but the server's code, its API routes and
  * the generated client) takes the client's answer without the door's `failed`, so it is a
  * finding unless its allowlist line (`<file> <function> | reason | until`) says why.
+ *
+ * Cursor bundle 5 (INC-1247, CF-SESSION-5) — and who is signed in comes from ONE session store: the
+ * shell's context (`useShell()`, src/components/shell-context.ts), fed by the one `useAuth()` of
+ * src/components/app-shell.tsx. A feature that calls `useAuth()` itself subscribes to the sign-in events
+ * again and repeats the account-status read; the census reads every call of it in the browser tree.
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -152,6 +157,25 @@ const browser = walkFiles(["src"], {
   skip: /^src[\\/](?:server|integrations|routes[\\/]api)(?:[\\/]|$)/,
 }).filter((file) => file !== "src/lib/supabase-door.ts");
 
+/** The one caller of `useAuth()`: the shell (the hook's own file defines it and calls nothing). */
+const SESSION_STORE_CALLERS = new Set(["src/components/app-shell.tsx"]);
+
+/** Every call of `useAuth(`, by file and line, in the files given. */
+export function useAuthCalls(files: string[]): Array<{ file: string; line: number }> {
+  const found: Array<{ file: string; line: number }> = [];
+  for (const file of files) {
+    visitTs(file, (node, source) => {
+      if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression)) return;
+      if (node.expression.text !== "useAuth") return;
+      found.push({
+        file,
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+      });
+    });
+  }
+  return found;
+}
+
 describe("a session that could not be read is unknown, never signed out (INC-914)", () => {
   it(
     "CF-SESSION-1 every reader of currentSession() reads its `failed`",
@@ -254,6 +278,46 @@ describe("a session that could not be read is unknown, never signed out (INC-914
           `${files.then}:3 reads the session without its \`failed\` (a failed read is unknown, never signed out)`,
         ].join("\n"),
       );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it(
+    "CF-SESSION-5 `useAuth()` is called only by the shell: who is signed in is one store (INC-1247)",
+    () => {
+      const calls = useAuthCalls(browser);
+      const findings = calls
+        .filter(({ file }) => !SESSION_STORE_CALLERS.has(file))
+        .map(({ file, line }) => ({
+          file,
+          line,
+          what: "calls useAuth() — read the shell's one store, `useShell()` (src/components/shell-context.ts)",
+        }));
+      console.log(
+        `[session-reads] useAuth() calls: ${calls.length}; outside the shell: ${findings.length}`,
+      );
+      expect(calls.map(({ file }) => file)).toEqual([...SESSION_STORE_CALLERS]);
+      expect(report(findings)).toBe("");
+    },
+    TREE_SCAN_MS,
+  );
+
+  it("CF-SESSION-6 the census names a planted feature that calls useAuth() and passes useShell()", () => {
+    const dir = "node_modules/.cache/session-store";
+    mkdirSync(dir, { recursive: true });
+    const bad = `${dir}/ss-bad.tsx`;
+    const good = `${dir}/ss-good.tsx`;
+    try {
+      writeFileSync(
+        bad,
+        'import { useAuth } from "@/features/auth/use-auth";\nexport function A() {\n  const { user } = useAuth();\n  return user;\n}\n',
+      );
+      writeFileSync(
+        good,
+        'import { useShell } from "@/components/shell-context";\nexport function B() {\n  const { user } = useShell();\n  return user;\n}\n',
+      );
+      expect(useAuthCalls([bad, good])).toEqual([{ file: bad, line: 3 }]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

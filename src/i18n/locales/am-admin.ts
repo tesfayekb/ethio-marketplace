@@ -2036,6 +2036,12 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.users.legal.consent": "መረጃው በአሜሪካ እንዲቀመጥ ተስማምቷል።",
 
   "admin.loading": "መዳረሻዎን በመፈተሽ ላይ…",
+  "admin.factorNeeded.title": "ባለ ሁለት ደረጃ ማረጋገጫ ያስፈልጋል",
+  "admin.factorNeeded.body":
+    "የሠራተኞች ገጾች የሚከፈቱት ባለ ሁለት ደረጃ ማረጋገጫ ላለው አካውንት ብቻ ነው። በቅንብሮች ውስጥ ያዋቅሩት፣ ከዚያ ይመለሱ።",
+  "admin.factorNeeded.action": "ያዋቅሩት",
+  "admin.factorCode.body": "የሠራተኞች ገጾችን ለመክፈት ከማረጋገጫ መተግበሪያዎ ኮዱን ያስገቡ።",
+  "admin.factorReadFailed": "ባለ ሁለት ደረጃ ማረጋገጫዎን መፈተሽ አልቻልንም። እንደገና ለመሞከር ገጹን ያድሱ።",
   "mfa.stepUpTitle": "ባለ ሁለት ደረጃ ማረጋገጫ ያስፈልጋል",
   "mfa.stepUpBody": "ይህ እርምጃ ባለ ሁለት ደረጃ ማረጋገጫ ይፈልጋል። ከማረጋገጫ መተግበሪያዎ አሁን ያለውን ኮድ ያስገቡ።",
   "mfa.stepUpConfirm": "አረጋግጠው ይቀጥሉ",

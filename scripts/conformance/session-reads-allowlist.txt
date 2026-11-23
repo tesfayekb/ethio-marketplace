@@ -2,3 +2,4 @@
 # `<client>.auth.getUser()` in the browser tree (scripts/conformance/session-reads.test.ts, CF-SESSION-3).
 # Key: `<file> <function>` | reason | until. Every other read goes through currentSession() and reads its `failed`.
 src/features/auth/auth-service.ts currentPasswordProof | the server's own answer of the account's e-mail for the password proof — a server read by design (an e-mail confirmed on another device is not yet in this device's session); a failed read answers the generic error | DEC-274
+src/features/auth/auth-service.ts pendingEmail | the Settings page reads the server's user once on load and once after an e-mail change, for `new_email`; the local session may be stale when the change is confirmed on another device; its failure is typed and said in the e-mail section | DEC-439

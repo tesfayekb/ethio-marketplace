@@ -19,7 +19,10 @@ vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
 vi.mock("@/features/admin/admin-context", () => ({ useAdminShell: () => ({ permissions: [] }) }));
-vi.mock("@/features/auth/use-auth", () => ({ useAuth: () => ({ user: null }) }));
+vi.mock("@/components/shell-context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/components/shell-context")>()),
+  useShell: () => ({ user: null, authLoading: false }),
+}));
 vi.mock("@/features/auth/mfa/step-up-gate", () => ({ StepUpGate: () => null }));
 vi.mock("@/components/shell/location-data", () => ({
   useOpenMarkets: () => ({ markets: [], isLoading: false }),

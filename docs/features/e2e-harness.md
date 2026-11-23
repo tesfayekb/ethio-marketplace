@@ -744,3 +744,7 @@ A level's word is read through the one helper, `levelNameFor(key, language)` (e2
 ### DEC-313 (Foundations turn CI-4): the backend's migrations apply with nothing else running
 
 The CI backend now starts on an empty schema, holds pg_cron's jobs and autovacuum, applies the migrations in one session, then restores both and proves REST, the sign-up hook and the scheduler before any test (docs/features/ci-local-backend.md). A failed apply prints the CF-CI-START-1 line (cron jobs, appliers, autovacuum, other sessions). Migration proofs key scratch rows on their own scratch key (CF-PROOF-KEY-1, scripts/conformance/migration-proof-keys.test.ts).
+
+### The mail sink and the account tests (cursor bundle 5; DEC-437)
+
+`e2e/helpers/mail-sink.ts` (`hasMailSink`, `mailFor(address)`) reads the subjects of the messages the temporary backend's auth service sent to one address, from the sink at 127.0.0.1:31324; it is for `E2E_LOCAL_BACKEND=1` only, and a test that needs it skips elsewhere (staging has none). ACS-E3 (a pending e-mail change survives a reload) and ACS-E4 (the password-changed notice arrives with the subject `supabase/templates/subjects.json` holds) use it; ACS-E1 and ACS-E2 run on staging too.

@@ -145,3 +145,5 @@ src/features/admin-countries/country-dialog-state.ts
 scripts/fixtures/e2e-results-staging-sink.json
 # L3 forms-locations [intentional-delete] (DEC-339): the places editor's sentinel parser leaves; latitude, longitude and order are read by the one parser (src/lib/parse-input.ts)
 src/features/admin-locations/location-dialog-state.ts
+# cursor-bundle-5 ruling 3 [intentional-delete] (DEC-451): the staff gate's harness helper leaves with STAFF-E1 and STAFF-E2; bundle 6 brings them back from this lane's commits with the one helper that signs staff in at aal2
+e2e/helpers/staff-factor.ts

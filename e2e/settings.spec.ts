@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
@@ -9,10 +11,19 @@ import {
   expectSignedOut,
   signIn,
   signedInMarker,
+  signInViaSession,
   signOutViaUi,
   waitForHydration,
 } from "./helpers/ui";
-import { leaseUser } from "./helpers/users";
+import { hasMailSink, mailFor } from "./helpers/mail-sink";
+import { leaseUser, mintEmail } from "./helpers/users";
+
+/**
+ * DEC-435 — the two buttons the page no longer has (their catalogue keys went with them): the texts they
+ * carried, so a regression that brings either back is named by what a person would read.
+ */
+const GONE_LINK_GOOGLE = /^link google$/i;
+const GONE_UNLINK = /^unlink$/i;
 
 /**
  * Settings surface (P1-f). Google-identity paths are NOT covered here: a linked
@@ -48,7 +59,9 @@ for (const path of SIGNED_IN_PAGES) {
   });
 }
 
-test("S-2: settings renders all three sections and guards the only method", async ({ page }) => {
+test("S-2: settings renders all three sections and offers no Link Google and no Unlink", async ({
+  page,
+}) => {
   const user = await leaseUser();
   await signIn(page, user.email, user.password);
   await expectSignedIn(page, user.displayName);
@@ -63,13 +76,13 @@ test("S-2: settings renders all three sections and guards the only method", asyn
   await expect(page.getByRole("heading", { name: en["settings.methods"] })).toBeVisible();
   await expect(page.getByRole("heading", { name: en["settings.security"] })).toBeVisible();
 
-  // The email identity row, with its unlink control disabled (single method).
+  // The email identity row; DEC-435 — the browser links and unlinks no sign-in method, so the page has
+  // neither button.
   await expect(page.getByText(en["settings.providerEmail"], { exact: true })).toBeVisible();
-  const unlink = page.getByRole("button", { name: en["settings.unlink"] });
-  await expect(unlink).toHaveCount(1);
-  await expect(unlink).toBeDisabled();
-  // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
-  await expect(page.getByText(en["settings.lastMethodGuard"]).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: GONE_UNLINK })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: GONE_LINK_GOOGLE })).toHaveCount(0);
+  // The only method cannot be removed: S-4 holds the password row and its disabled Remove.
+  await expect(page.getByTestId("password-method")).toBeVisible({ timeout: 15000 });
 });
 
 test("S-3 (U-4): wrong current password is rejected; correct one rotates the password", async ({
@@ -170,4 +183,111 @@ test("S-4: the password renders as its own method and cannot be removed alone", 
   const remove = page.getByRole("button", { name: en["settings.removePassword"] });
   await expect(remove).toHaveCount(1);
   await expect(remove).toBeDisabled();
+});
+
+/**
+ * DEC-435 (cursor bundle 5, part 4) — THE PASSWORD CHANGE IS PROVED TWICE, AND THE PAGE OFFERS NO LINKING.
+ * ACS-E1: a wrong current password is refused and the old password still signs in. ACS-E2: no Link Google.
+ */
+test("ACS-E1: a password change with a wrong current password is refused and the old password still signs in", async ({
+  page,
+}) => {
+  const user = await leaseUser();
+  await signIn(page, user.email, user.password, { uiLogin: true });
+  await expectSignedIn(page, user.displayName);
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: en["settings.title"] })).toBeVisible({
+    timeout: 15000,
+  });
+  const current = page.locator("#current-password");
+  const form = page.locator("form").filter({ has: current });
+  const attempt = `${user.password}-attempt`;
+  await current.fill("definitely-not-the-password");
+  await page.locator("#new-password").fill(attempt);
+  await page.locator("#new-password-confirm").fill(attempt);
+  await page.getByRole("button", { name: en["settings.changePassword"] }).click();
+  await expect(form.getByRole("alert")).toHaveText(en["auth.errorWrongCurrentPassword"], {
+    timeout: 15000,
+  });
+
+  await signOutViaUi(page);
+  await expectSignedOut(page);
+  // The refused change changed nothing: the old password signs in, the attempted one does not.
+  await attemptSignIn(page, user.email, attempt);
+  await expect(page.getByRole("alert")).toBeVisible({ timeout: 15000 });
+  await expectSignedOut(page);
+  await signIn(page, user.email, user.password, { uiLogin: true });
+  await expectSignedIn(page, user.displayName);
+});
+
+test("ACS-E2: the Settings page offers no Link Google", async ({ page }) => {
+  const user = await leaseUser();
+  await signInViaSession(page, user.email, user.password);
+  await page.goto("/settings");
+  await expect(page.getByRole("heading", { name: en["settings.methods"] })).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(page.getByTestId("password-method")).toBeVisible({ timeout: 15000 });
+  await expect(page.getByRole("button", { name: GONE_LINK_GOOGLE })).toHaveCount(0);
+  await expect(page.getByText(GONE_LINK_GOOGLE)).toHaveCount(0);
+});
+
+/**
+ * ACS-E3 and ACS-E4 need the temporary backend (E2E_LOCAL_BACKEND=1): a real e-mail change or notice is
+ * sent, and ethio-staging's mail provider refuses recipients that are not its owner's (INC-013). CI's
+ * lanes run on the temporary backend, where the mail sink holds what was sent.
+ */
+test.describe("account mail (needs the temporary backend's mail sink)", () => {
+  test.skip(
+    !hasMailSink(),
+    "INC-013: ethio-staging's mail provider refuses non-owner recipients; run with the temporary backend (E2E_LOCAL_BACKEND=1).",
+  );
+
+  test("ACS-E3: after an e-mail change, a reload still says the change waits for both confirmations", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    const next = mintEmail(3);
+    await signInViaSession(page, user.email, user.password);
+    await page.goto("/settings");
+    await expect(page.locator("#new-email")).toBeVisible({ timeout: 15000 });
+    await page.locator("#new-email").fill(next);
+    await page.getByRole("button", { name: en["settings.changeEmail"] }).click();
+    const waiting = page.getByTestId("settings-email-pending");
+    await expect(waiting).toContainText(next, { timeout: 15000 });
+    await page.reload();
+    await waitForHydration(page);
+    await expect(waiting).toContainText(next, { timeout: 15000 });
+    await expect(waiting).toContainText(en["settings.emailChangePending"].replace("{email}", next));
+  });
+
+  test("ACS-E4: a password change sends the password-changed notice to the account's address, with the subject the repository holds", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    const subjects: unknown = JSON.parse(readFileSync("supabase/templates/subjects.json", "utf8"));
+    const expected =
+      typeof subjects === "object" && subjects !== null && "password_changed" in subjects
+        ? subjects.password_changed
+        : undefined;
+    expect(typeof expected, "supabase/templates/subjects.json has password_changed").toBe("string");
+    await signIn(page, user.email, user.password, { uiLogin: true });
+    await expectSignedIn(page, user.displayName);
+    await page.goto("/settings");
+    const current = page.locator("#current-password");
+    const form = page.locator("form").filter({ has: current });
+    const rotated = `${user.password}-rotated`;
+    await current.fill(user.password);
+    await page.locator("#new-password").fill(rotated);
+    await page.locator("#new-password-confirm").fill(rotated);
+    await page.getByRole("button", { name: en["settings.changePassword"] }).click();
+    await expect(form.getByRole("status")).toHaveText(en["settings.passwordChanged"], {
+      timeout: 15000,
+    });
+    await expect
+      .poll(async () => (await mailFor(user.email)).map((mail) => mail.subject), {
+        timeout: 15000,
+      })
+      .toContain(expected);
+  });
 });

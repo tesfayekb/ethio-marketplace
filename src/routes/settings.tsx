@@ -10,6 +10,7 @@ import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { ContentGrid } from "@/components/layout/content-grid";
+import { useShell } from "@/components/shell-context";
 import { ActionMessage } from "@/components/ui/action-message";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
@@ -22,14 +23,12 @@ import {
   changePassword,
   getIdentities,
   hasPassword,
-  linkGoogleIdentity,
+  pendingEmail,
   removeOwnPassword,
   signOutOtherDevices,
-  unlinkProviderIdentity,
 } from "@/features/auth/auth-service";
 import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
-import { useAuth } from "@/features/auth/use-auth";
 import { requireSignedIn } from "@/lib/signed-in-route";
 import type { Refusal, RefusalFamily } from "@/lib/refusal";
 import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
@@ -44,7 +43,12 @@ import { dateFormatter } from "@/lib/format";
 const MIN_PASSWORD_LENGTH = 8;
 
 /** Shared shape of every settings action result (see law F4). */
-type ActionOutcome = { ok: boolean; errorKey?: MessageKey };
+type ActionOutcome = {
+  ok: boolean;
+  errorKey?: MessageKey;
+  /** A credential change that ended the other devices' sessions says whether it did (DEC-435). */
+  othersSignedOut?: boolean;
+};
 
 /** An action the surface can run; call-signature form keeps the scanner quiet. */
 type SettingsAction = { (): Promise<ActionOutcome> };
@@ -130,7 +134,8 @@ const GUIDE_PARTS: readonly GuidePart[] = [
 function SettingsScreen() {
   const { t, language, star, publicLanguages } = useI18n();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  // INC-1247 — who is signed in comes from the shell's one session store, never a second subscription.
+  const { user, authLoading } = useShell();
 
   const [checkingSession, setCheckingSession] = useState(true);
   const [memberSince, setMemberSince] = useState<string | null>(null);
@@ -138,6 +143,9 @@ function SettingsScreen() {
   const [accountDeactivated, setAccountDeactivated] = useState(false);
   const [identities, setIdentities] = useState<IdentitySummary[] | null>(null);
   const [identitiesErrorKey, setIdentitiesErrorKey] = useState<MessageKey | null>(null);
+  /** INC-1258 — the address an e-mail change still waits on, read from the server's own record. */
+  const [pendingAddress, setPendingAddress] = useState<string | null>(null);
+  const [pendingErrorKey, setPendingErrorKey] = useState<MessageKey | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<SlotMessage | null>(null);
@@ -219,6 +227,9 @@ function SettingsScreen() {
         .eq("user_id", user.id)
         .maybeSingle();
       if (!active) return;
+      // INC-1264 — a failed read is named, never an account taken for active: the person stays
+      // signed in and the shell's one notice offers the refresh; the screen never waits on it.
+      if (profile.error) reportOnDemandFailure("the account's status", profile.error);
       setAccountDeactivated(profile.data?.account_status === "deactivated");
       setCheckingSession(false);
     })();
@@ -238,6 +249,18 @@ function SettingsScreen() {
     setIdentities(result.identities);
   }, []);
 
+  /** DEC-439 — the one server read of the page: once on load, once after an e-mail change. */
+  const loadPendingEmail = useCallback(async () => {
+    const result = await pendingEmail();
+    if (!result.ok) {
+      setPendingAddress(null);
+      setPendingErrorKey(result.errorKey);
+      return;
+    }
+    setPendingErrorKey(null);
+    setPendingAddress(result.pendingEmail);
+  }, []);
+
   const loadPasswordState = useCallback(async () => {
     const result = await hasPassword();
     if (!result.ok) {
@@ -253,7 +276,8 @@ function SettingsScreen() {
     if (checkingSession) return;
     void loadIdentities();
     void loadPasswordState();
-  }, [checkingSession, loadIdentities, loadPasswordState]);
+    void loadPendingEmail();
+  }, [checkingSession, loadIdentities, loadPasswordState, loadPendingEmail]);
 
   function reset() {
     setMessage(null);
@@ -283,6 +307,12 @@ function SettingsScreen() {
       refuse(slot, result.errorKey ?? "auth.errorGeneric");
       return false;
     }
+    // DEC-435 — the change is made but the other devices were not signed out: said beside the action
+    // that fixes it, never only a console line.
+    if (result.othersSignedOut === false) {
+      setMessage({ slot: doneSlot, tone: "error", key: "settings.othersStillSignedIn" });
+      return true;
+    }
     setMessage({ slot: doneSlot, tone: "done", key: done });
     return true;
   }
@@ -298,20 +328,6 @@ function SettingsScreen() {
         className={className}
       />
     );
-  }
-
-  async function handleUnlink(identity: IdentitySummary) {
-    const ok = await run(
-      () => unlinkProviderIdentity(identity.identityId),
-      "settings.unlinked",
-      "methods",
-    );
-    if (ok) {
-      await loadIdentities();
-      // INC-024: unlinking the email identity also kills the password. Re-read
-      // instead of assuming — the list must keep telling the whole truth.
-      await loadPasswordState();
-    }
   }
 
   /**
@@ -331,18 +347,6 @@ function SettingsScreen() {
     setRemovePasswordCurrent("");
     await loadPasswordState();
     await loadIdentities();
-  }
-
-  async function handleLinkGoogle() {
-    if (busy) return;
-    reset();
-    setBusy(true);
-    const result = await linkGoogleIdentity();
-    if (!result.ok) {
-      setBusy(false);
-      refuse("methods", result.errorKey);
-    }
-    // On success the browser navigates away; busy stays engaged deliberately.
   }
 
   async function handleChangePassword(event: FormEvent<HTMLFormElement>) {
@@ -374,7 +378,10 @@ function SettingsScreen() {
     const address = newEmail.trim();
     if (!emailGate.try()) return;
     const ok = await run(() => changeEmail(address), "settings.emailChangeSent", "email");
-    if (ok) setNewEmail("");
+    if (ok) {
+      setNewEmail("");
+      await loadPendingEmail();
+    }
   }
 
   async function handleSignOutOthers() {
@@ -390,8 +397,6 @@ function SettingsScreen() {
     );
   }
 
-  // GoTrue's own rule: the last IDENTITY cannot be unlinked (U-1, HTTP 422).
-  const onlyOneMethod = (identities?.length ?? 0) <= 1;
   // The password is a door in its own right ONLY when no email identity backs
   // it — an email identity's door IS its password (INC-024 ties them together).
   const hasFallbackIdentity = (identities ?? []).some((i) => i.provider !== "email");
@@ -490,15 +495,6 @@ function SettingsScreen() {
                         : t("settings.lastUsedNever")}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => void handleUnlink(identity)}
-                    disabled={busy || onlyOneMethod}
-                    title={onlyOneMethod ? t("settings.lastMethodGuard") : undefined}
-                    className={dangerOutlineClass}
-                  >
-                    {t("settings.unlink")}
-                  </button>
                 </li>
               ))}
             </ul>
@@ -602,20 +598,6 @@ function SettingsScreen() {
             </div>
           ) : null}
 
-          {onlyOneMethod && identities !== null ? (
-            <p className="mt-3 text-xs text-muted-foreground">{t("settings.lastMethodGuard")}</p>
-          ) : null}
-
-          {identities !== null && !identities.some((i) => i.provider === "google") ? (
-            <button
-              type="button"
-              onClick={() => void handleLinkGoogle()}
-              disabled={busy}
-              className={`${secondaryButtonClass} mt-4`}
-            >
-              {busy ? t("auth.working") : t("settings.linkGoogle")}
-            </button>
-          ) : null}
           {messageAt("methods", "mt-3")}
         </Section>
 
@@ -983,6 +965,24 @@ function SettingsScreen() {
                 />
               )}
             </Field>
+            {pendingAddress !== null ? (
+              <p
+                role="status"
+                data-testid="settings-email-pending"
+                className="text-sm text-muted-foreground"
+              >
+                {t("settings.emailChangePending").replace("{email}", pendingAddress)}
+              </p>
+            ) : null}
+            {pendingErrorKey !== null ? (
+              <p
+                role="alert"
+                data-testid="settings-email-pending-error"
+                className="text-sm text-destructive"
+              >
+                {t(pendingErrorKey)}
+              </p>
+            ) : null}
             {messageAt("email")}
             <button type="submit" disabled={busy} className={secondaryButtonClass}>
               {busy ? t("auth.working") : t("settings.changeEmail")}

@@ -75,6 +75,7 @@ function ResetScreen() {
   const [passwordAgain, setPasswordAgain] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const [othersStillSignedIn, setOthersStillSignedIn] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
   /** L11 — the too-short refusal belongs to the password field, not the form. */
   const [tooShort, setTooShort] = useState(false);
@@ -133,6 +134,7 @@ function ResetScreen() {
     }
     setPassword("");
     setPasswordAgain("");
+    setOthersStillSignedIn(!result.othersSignedOut);
     setDone(true);
   }
 
@@ -151,6 +153,15 @@ function ResetScreen() {
         <p role="status" className="mt-2 text-sm text-muted-foreground">
           {t("auth.resetDone")}
         </p>
+        {othersStillSignedIn ? (
+          <p
+            role="status"
+            data-testid="auth-reset-others-still-signed-in"
+            className="mt-2 text-sm text-muted-foreground"
+          >
+            {t("auth.resetOthersStillSignedIn")}
+          </p>
+        ) : null}
         <button
           type="button"
           onClick={() => void landAfterSignIn({ navigate, href: "/", client })}

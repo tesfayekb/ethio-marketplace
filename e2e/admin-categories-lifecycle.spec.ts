@@ -1,6 +1,7 @@
 import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { withinPreviewBudget } from "./helpers/rate-window";
+import { chooseInList } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
@@ -746,8 +747,7 @@ import { errorText } from "../src/lib/error-text";
         page.getByTestId("category-create-visible-from").fill(fromLocal),
       );
       await step("CT-17 ET exclusion", async () => {
-        await page.getByTestId("category-create-exclusion").click();
-        await page.getByTestId("category-create-exclusion-ET").click();
+        await chooseInList(page, "category-create-exclusion", "ET", { multiple: true });
         await expect(page.getByTestId("category-create-exclusion-ET")).toHaveAttribute(
           "aria-selected",
           "true",

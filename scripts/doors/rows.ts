@@ -85,6 +85,12 @@ export const LIVE_OPEN_RULES_QUERY_FILE = join(
   "live-open-rules.sql",
 );
 export const LIVE_OPEN_RULES_QUERY = readFileSync(LIVE_OPEN_RULES_QUERY_FILE, "utf8");
+/** The third live query (cursor-bundle-5, ACT-032): the live role rules (`pg_policies`), read verbatim like the others. */
+export const LIVE_STAFF_RULES_QUERY_FILE = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "live-staff-rules.sql",
+);
+export const LIVE_STAFF_RULES_QUERY = readFileSync(LIVE_STAFF_RULES_QUERY_FILE, "utf8");
 
 /** The rows of a LIVE_QUERY answer; a malformed row is an error, never a skipped door. */
 export function liveRows(tsv: string): DoorRow[] {

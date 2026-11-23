@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 773,
-  "dynamicCallSites": 418,
+  "scanned": 777,
+  "dynamicCallSites": 419,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1850,6 +1850,21 @@
     "admin.countries.transfer.scope": [
       "/admin/countries"
     ],
+    "admin.factorCode.body": [
+      "component: staff-factor-gate"
+    ],
+    "admin.factorNeeded.action": [
+      "component: staff-factor-gate"
+    ],
+    "admin.factorNeeded.body": [
+      "component: staff-factor-gate"
+    ],
+    "admin.factorNeeded.title": [
+      "component: staff-factor-gate"
+    ],
+    "admin.factorReadFailed": [
+      "component: staff-factor-gate"
+    ],
     "admin.landing.body": [
       "/admin"
     ],
@@ -2494,7 +2509,8 @@
       "/admin/listings"
     ],
     "admin.loading": [
-      "/admin"
+      "/admin",
+      "component: staff-factor-gate"
     ],
     "admin.locations.action.createChild": [
       "/admin/places"
@@ -4211,6 +4227,9 @@
     "auth.resetNewTitle": [
       "/auth/reset"
     ],
+    "auth.resetOthersStillSignedIn": [
+      "/auth/reset"
+    ],
     "auth.resetSend": [
       "/auth"
     ],
@@ -5015,7 +5034,8 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
-      "/settings"
+      "/settings",
+      "component: staff-factor-gate"
     ],
     "mfa.codePlaceholder": [
       "/admin/ai",
@@ -5036,7 +5056,8 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
-      "/settings"
+      "/settings",
+      "component: staff-factor-gate"
     ],
     "mfa.description": [
       "/settings"
@@ -5118,7 +5139,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users/$userId"
+      "/admin/users/$userId",
+      "component: staff-factor-gate"
     ],
     "mfa.stepUpGoToSettings": [
       "/admin/ai",
@@ -5199,7 +5221,8 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users/$userId"
+      "/admin/users/$userId",
+      "component: staff-factor-gate"
     ],
     "mfa.title": [
       "/settings"
@@ -8582,6 +8605,9 @@
     "settings.email": [
       "/settings"
     ],
+    "settings.emailChangePending": [
+      "/settings"
+    ],
     "settings.identity": [
       "/settings"
     ],
@@ -8592,9 +8618,6 @@
       "/settings"
     ],
     "settings.lastUsedNever": [
-      "/settings"
-    ],
-    "settings.linkGoogle": [
       "/settings"
     ],
     "settings.memberSince": [
@@ -8663,9 +8686,6 @@
       "/settings"
     ],
     "settings.title": [
-      "/settings"
-    ],
-    "settings.unlink": [
       "/settings"
     ],
     "shell.accountMenu": [

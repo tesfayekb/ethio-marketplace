@@ -26,7 +26,10 @@ vi.mock("@/features/admin/admin-context", () => ({
     permissions: ["profiles:update", "impersonation:use", "roles:create"],
   }),
 }));
-vi.mock("@/features/auth/use-auth", () => ({ useAuth: () => ({ user: { id: "scratch-staff" } }) }));
+vi.mock("@/components/shell-context", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/components/shell-context")>()),
+  useShell: () => ({ user: { id: "scratch-staff" }, authLoading: false }),
+}));
 vi.mock("@/features/auth/mfa/step-up-gate", () => ({
   StepUpGate: ({ children }: { children: (guard: GuardFn) => ReactNode }) =>
     children(async (run) => run()),

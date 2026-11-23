@@ -16,6 +16,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
+import { collectEntities, collectUi } from "./bulk-collect";
 import {
   AI_CHUNK_SIZE,
   listEntityTranslations,
@@ -116,63 +117,13 @@ export function AiBulkBar({
     enabled: filtered,
   });
 
-  /** Collect the untranslated work up front so the progress count is honest. */
-  const collectUi = async (): Promise<AiTranslateItem[]> => {
-    const items: AiTranslateItem[] = [];
-    let offset = 0;
-    for (;;) {
-      const page = await listTranslations({
-        lang,
-        status: "untranslated",
-        search,
-        limit: AI_CHUNK_SIZE,
-        offset,
-      });
-      for (const row of page.rows) {
-        if (row.sourceValue !== null && row.sourceValue !== "") {
-          items.push({ key: row.key, source: row.sourceValue });
-        }
-      }
-      offset += page.rows.length;
-      if (page.rows.length === 0 || offset >= page.totalCount) break;
-    }
-    return items;
-  };
-
-  const collectEntities = async (): Promise<AiEntityItem[]> => {
-    const items: AiEntityItem[] = [];
-    let offset = 0;
-    for (;;) {
-      const page = await listEntityTranslations({
-        lang,
-        status: "untranslated",
-        search,
-        limit: AI_CHUNK_SIZE,
-        offset,
-      });
-      for (const row of page.rows) {
-        if (row.sourceValue !== null && row.sourceValue !== "") {
-          items.push({
-            key: `${row.entityType}:${row.entityId}`,
-            source: row.sourceValue,
-            type: row.entityType,
-            id: row.entityId,
-            field: row.field,
-          });
-        }
-      }
-      offset += page.rows.length;
-      if (page.rows.length === 0 || offset >= page.totalCount) break;
-    }
-    return items;
-  };
-
   const run = async () => {
     setSummary(null);
     setErrorKey(null);
     setErrorDetail(null);
 
-    const items = scope === "entity" ? await collectEntities() : await collectUi();
+    const items =
+      scope === "entity" ? await collectEntities(lang, search) : await collectUi(lang, search);
 
     if (items.length === 0) {
       setSummary({ done: 0, flagged: 0, failed: [] });

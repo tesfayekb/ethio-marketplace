@@ -2173,6 +2173,13 @@ export const enAdmin = {
   "admin.users.legal.consent": "Agreed to storage in the United States.",
 
   "admin.loading": "Checking your access…",
+  "admin.factorNeeded.title": "Two-factor authentication needed",
+  "admin.factorNeeded.body":
+    "Staff screens open only for an account with two-factor authentication. Set it up in Settings, then come back.",
+  "admin.factorNeeded.action": "Set it up",
+  "admin.factorCode.body": "Enter the code from your authenticator app to open staff screens.",
+  "admin.factorReadFailed":
+    "We couldn't check your two-factor authentication. Refresh the page to try again.",
   "mfa.stepUpTitle": "Two-factor verification required",
   "mfa.stepUpBody":
     "This action requires two-factor verification. Enter the current code from your authenticator app.",

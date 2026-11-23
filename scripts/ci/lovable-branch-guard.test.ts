@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
@@ -866,4 +867,256 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
     expect(beside.out).toContain("package.json — modified");
     expect(beside.out).not.toContain(`${BUNDLE} —`);
   }, 60_000);
+});
+
+/**
+ * DEC-432 (cursor-bundle-5) — THE RECORDS EXCEPTION. The body's one line names a list in the head;
+ * each ledger path is admitted by its head content's sha256 against the list's line for it. The body
+ * is the planted `gh`'s answer (a fake `gh` on PATH, as the step's token would read it); the head's
+ * files come from a planted remote. INC-1201: every text here is the test's own.
+ */
+const RECORDS_LIST_PATH = "docs/governance/briefs/fixture-turn.records.sha256";
+const LEDGERS: Record<string, string> = {
+  "docs/_changelog.md": "# changelog\n- a planted line\n",
+  "roadmap.md": "line 1\nline 2\nline 3\n[x] a planted tick\n",
+  "docs/tracking/incidental-findings.md": "INC-9001 — a planted finding\n",
+  "docs/governance/mechanisms.md": "| planted | row |\n",
+};
+const sha256 = (text: string | Buffer) => createHash("sha256").update(text).digest("hex");
+const listOf = (files: Record<string, string>) =>
+  `${Object.entries(files)
+    .map(([path, body]) => `${sha256(body)}  ${path}`)
+    .join("\n")}\n`;
+const bodyLine = (path: string, sha: string) => `Records list: ${path} sha256 ${sha}`;
+const FAKE_GH = `#!/usr/bin/env bash
+if [ -n "\${FAKE_GH_FAIL:-}" ]; then exit 1; fi
+if [ "$1" != "api" ] || [ "$2" != "repos/owner/name/pulls/7" ]; then echo "unexpected: $*" >&2; exit 1; fi
+cat "$FAKE_GH_BODY"
+`;
+const ghBin = (() => {
+  const dir = mkdtempSync(join(SCRATCH, "gh-"));
+  writeFileSync(join(dir, "gh"), FAKE_GH, { mode: 0o755 });
+  return dir;
+})();
+let bodies = 0;
+
+/** The records plant: the base holds nothing of the ledgers; the head holds them and the list. */
+function recordsRun(options: {
+  head?: Record<string, string>;
+  list?: string | null;
+  body: (listSha: string) => string;
+  entries?: string[];
+  ghFails?: boolean;
+}) {
+  const head: Side = { ...(options.head ?? LEDGERS) };
+  const list = options.list === undefined ? listOf(options.head ?? LEDGERS) : options.list;
+  if (list !== null) head[RECORDS_LIST_PATH] = list;
+  const tree = plant({ "README.md": "base\n" }, head);
+  const bodyFile = join(SCRATCH, `body-${(bodies += 1)}.txt`);
+  writeFileSync(bodyFile, options.body(sha256(list ?? "")));
+  const paths = options.entries ?? Object.keys(options.head ?? LEDGERS);
+  return runInGit([paths.map((path) => modified(path))], tree, {
+    PATH: `${ghBin}:${process.env.PATH ?? ""}`,
+    REPO: "owner/name",
+    PR_NUMBER: "7",
+    FAKE_GH_BODY: bodyFile,
+    ...(options.ghFails ? { FAKE_GH_FAIL: "1" } : {}),
+  });
+}
+const OLD = (path: string, rule: string) => `${path} — modified: ${path} — ${rule}`;
+const LEDGER_RULES: Record<string, string> = {
+  "docs/_changelog.md": "a ledger (DEC-386)",
+  "roadmap.md": "a ledger (DEC-386)",
+  "docs/tracking/incidental-findings.md":
+    "docs/tracking/** — a ledger (DEC-386; the one exception: a deletion's line, DEC-390)",
+  "docs/governance/mechanisms.md": "a ledger (DEC-386)",
+};
+const oldRefusal = (path: string) => {
+  const rule = LEDGER_RULES[path] ?? "";
+  return rule.startsWith("docs/tracking/") ? `${path} — modified: ${rule}` : OLD(path, rule);
+};
+
+describe("the records exception (DEC-432)", () => {
+  it("CF-LVB-19 every ledger path equal to the list's line passes; the file beside it keeps its own verdict", () => {
+    const passes = recordsRun({
+      body: (sha) => `Records turn.\n\n${bodyLine(RECORDS_LIST_PATH, sha)}\n`,
+    });
+    expect(passes.code, passes.out).toBe(0);
+    expect(passes.out).toContain(
+      "lovable-branch-guard: 4 file(s), none outside what a Lovable branch may change (DEC-394).",
+    );
+    // A CRLF body reads the same; the line may stand anywhere in it.
+    const crlf = recordsRun({
+      body: (sha) => `first\r\n${bodyLine(RECORDS_LIST_PATH, sha)}\r\nlast\r\n`,
+    });
+    expect(crlf.code, crlf.out).toBe(0);
+    // Beside a path no list can admit: its refusal stands, even with a correct line for it.
+    const beside = {
+      ...LEDGERS,
+      "supabase/config.toml": "planted = true\n",
+      "package.json": "{}\n",
+    };
+    const refused = recordsRun({
+      head: beside,
+      body: (sha) => bodyLine(RECORDS_LIST_PATH, sha),
+    });
+    expect(refused.code).toBe(1);
+    expect(refused.out).toContain("2 change(s) outside what a Lovable branch may change (DEC-394)");
+    expect(refused.out).toContain(
+      "supabase/config.toml — modified: supabase/** — the database (DEC-386)",
+    );
+    expect(refused.out).toContain("package.json — modified: package.json — dependencies (DEC-386)");
+    for (const path of Object.keys(LEDGERS)) expect(refused.out).not.toContain(`${path} —`);
+  }, 60_000);
+
+  it("CF-LVB-20 one byte off, a list whose hash differs, a path with no line, no body line, a bad path, a deleted file and an unreadable list or body each leave the ledger refused", () => {
+    const stated = (sha: string) => bodyLine(RECORDS_LIST_PATH, sha);
+    const refuses = (
+      what: string,
+      result: { code: number | null; out: string },
+      paths: string[],
+      why?: string,
+    ) => {
+      expect(result.code, `${what}\n${result.out}`).toBe(1);
+      expect(result.out, what).toContain(
+        `${paths.length} change(s) outside what a Lovable branch may change (DEC-394)`,
+      );
+      for (const path of paths) expect(result.out, what).toContain(oldRefusal(path));
+      if (why !== undefined) expect(result.out, what).toContain(`does not admit it: ${why}`);
+    };
+    const all = Object.keys(LEDGERS);
+
+    // One byte off: the head's content differs from the list's line for it.
+    const bytes = recordsRun({
+      head: { ...LEDGERS, "roadmap.md": `${LEDGERS["roadmap.md"] ?? ""} ` },
+      list: listOf(LEDGERS),
+      body: stated,
+    });
+    refuses(
+      "one byte off",
+      bytes,
+      ["roadmap.md"],
+      "its head content is not the list's line for it",
+    );
+
+    // A list whose sha256 differs from the body's.
+    const forged = recordsRun({ body: () => stated("0".repeat(64)) });
+    refuses(
+      "a list that differs from the body's",
+      forged,
+      all,
+      `the list ${RECORDS_LIST_PATH} does not hash to the body's sha256`,
+    );
+    const swapped = recordsRun({
+      list: listOf({ ...LEDGERS, "roadmap.md": "something else\n" }),
+      body: () => stated(sha256(listOf(LEDGERS))),
+    });
+    refuses("a list swapped after the body's line", swapped, all);
+
+    // A ledger path the list holds no line for; a path it names twice.
+    const missing = recordsRun({
+      list: listOf({ "docs/_changelog.md": LEDGERS["docs/_changelog.md"] ?? "" }),
+      body: stated,
+    });
+    refuses(
+      "a path with no line",
+      missing,
+      all.filter((path) => path !== "docs/_changelog.md"),
+      "the list holds 0 lines for it, not one",
+    );
+    const twice = `${listOf(LEDGERS)}${sha256(LEDGERS["roadmap.md"] ?? "")}  roadmap.md\n`;
+    refuses(
+      "a path with two lines",
+      recordsRun({ list: twice, body: stated }),
+      ["roadmap.md"],
+      "the list holds 2 lines for it, not one",
+    );
+
+    // No body line: the old refusals, with nothing said of a list.
+    for (const body of [
+      "",
+      "no list here\n",
+      `${stated("0".repeat(63))}\n`,
+      ` ${stated("0".repeat(64))}\n`,
+      `${stated("0".repeat(64))} \n`,
+      `records list: ${RECORDS_LIST_PATH} sha256 ${"0".repeat(64)}\n`,
+    ]) {
+      const none = recordsRun({ body: () => body });
+      refuses(`no body line: ${JSON.stringify(body)}`, none, all);
+      expect(none.out).not.toContain("DEC-432");
+    }
+
+    // A body path with `..`, a space, another folder or another suffix never matches the one pattern.
+    for (const path of [
+      "docs/governance/briefs/../fixture-turn.records.sha256",
+      "docs/governance/briefs/fixture turn.records.sha256",
+      "docs/governance/briefs/fixture-turn.records.sha256 ",
+      "docs/governance/fixture-turn.records.sha256",
+      "docs/governance/briefs/Fixture.records.sha256",
+      "docs/governance/briefs/fixture-turn.records.txt",
+      "docs/governance/briefs/a/b.records.sha256",
+    ]) {
+      const bad = recordsRun({ body: (sha) => `${bodyLine(path, sha)}\n` });
+      refuses(`a body path ${JSON.stringify(path)}`, bad, all);
+    }
+
+    // Two lines in the body: ambiguity is a refusal.
+    refuses(
+      "two body lines",
+      recordsRun({ body: (sha) => `${stated(sha)}\n${stated("1".repeat(64))}\n` }),
+      all,
+      "the body states more than one records list",
+    );
+
+    // An unreadable list, an unreadable body, a malformed list line.
+    refuses(
+      "no list in the head",
+      recordsRun({ list: null, body: stated }),
+      all,
+      `the list ${RECORDS_LIST_PATH} cannot be read from the head`,
+    );
+    refuses(
+      "an unreadable body",
+      recordsRun({ body: stated, ghFails: true }),
+      all,
+      "the pull request's body could not be read",
+    );
+    refuses(
+      "a malformed list line",
+      recordsRun({ list: `${listOf(LEDGERS)}not a line\n`, body: (sha) => stated(sha) }),
+      all,
+      `the list ${RECORDS_LIST_PATH} holds a line that is not '<sha256>  <path>'`,
+    );
+    refuses(
+      "a one-space separator",
+      recordsRun({ list: `${sha256("x")} roadmap.md\n`, body: (sha) => stated(sha) }),
+      all,
+    );
+
+    // A deleted ledger file has no content to prove, whatever the list says.
+    const tree = plant(
+      { "README.md": "base\n" },
+      { ...LEDGERS, [RECORDS_LIST_PATH]: listOf(LEDGERS) },
+    );
+    const bodyFile = join(SCRATCH, `body-${(bodies += 1)}.txt`);
+    writeFileSync(bodyFile, `${stated(sha256(listOf(LEDGERS)))}\n`);
+    const gone = runInGit([[{ filename: "roadmap.md", status: "removed" }]], tree, {
+      PATH: `${ghBin}:${process.env.PATH ?? ""}`,
+      REPO: "owner/name",
+      PR_NUMBER: "7",
+      FAKE_GH_BODY: bodyFile,
+    });
+    expect(gone.code, gone.out).toBe(1);
+    expect(gone.out).toContain("a deleted ledger file has no content to prove");
+
+    // The exception reads the pull request only for a ledger path: a screen file asks for nothing.
+    const screen = runInGit([[modified("src/routes/index.tsx")]], tree, {
+      PATH: `${ghBin}:${process.env.PATH ?? ""}`,
+      REPO: "owner/name",
+      PR_NUMBER: "7",
+      FAKE_GH_BODY: join(SCRATCH, "absent.txt"),
+      FAKE_GH_FAIL: "1",
+    });
+    expect(screen.code, screen.out).toBe(0);
+  }, 120_000);
 });

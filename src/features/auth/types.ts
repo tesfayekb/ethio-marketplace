@@ -17,6 +17,24 @@ export type AuthResult =
   | { ok: true }
   | { ok: false; errorKey: MessageKey; emailNotConfirmed?: boolean };
 
+/**
+ * DEC-435 / ACS — the answer of an action that changes a credential and then ends the person's OTHER
+ * devices' sessions. The change itself happened (`ok: true`); `othersSignedOut: false` says the
+ * sign-out of the other devices failed, so the page tells the person and names the action that fixes it
+ * — never only a line in the console.
+ */
+export type CredentialChangeResult =
+  | { ok: true; othersSignedOut: boolean }
+  | { ok: false; errorKey: MessageKey; emailNotConfirmed?: boolean };
+
+/**
+ * DEC-439 — the address an e-mail change is waiting on, read from the server's own record
+ * (`new_email`; null when no change waits). A failed read is typed, never "nothing waits".
+ */
+export type PendingEmailResult =
+  | { ok: true; pendingEmail: string | null }
+  | { ok: false; errorKey: MessageKey };
+
 /** Session view used by the UI layer. */
 export type AuthUser = {
   id: string;

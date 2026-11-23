@@ -98,3 +98,7 @@ production send remains a launch-gate item alongside custom SMTP.
 ## The new password typed twice (bundle 11 turn C4; D143, 2026-10-12)
 
 The reset page asks for the new password twice (`#reset-password-confirm`); two that differ are refused on the form ("The passwords do not match.") and nothing is sent. Sign-up does the same (`#auth-password-confirm`, shown only in the sign-up view). The rule is `passwordPairProblem` (src/features/auth/password-pair.ts; PPR-1). Tests: R-3 (a mismatch refused, then the reset), R-9, SU-1 (a mismatch on sign-up sends no request), A-1+A-2 and the nightly A-3 fill both fields.
+
+## The reset keeps its exemption, and says when the others stayed signed in (cursor bundle 5; DEC-435, DEC-436)
+
+A recovery session sets a password without the current one (the server exempts it), so `completePasswordReset` is the one password write CF-AUTH-1 (scripts/conformance/auth-credentials.test.ts) lets skip `current_password`; every other password change goes through `changePassword`. It answers `othersSignedOut` like the other two credential changes: when ending the other devices' sessions failed, the reset page shows `auth.resetOthersStillSignedIn` under the confirmation (ARP-1, ARP-2).

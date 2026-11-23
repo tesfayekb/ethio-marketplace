@@ -23,3 +23,9 @@ empty captions rather than invented counts.
 ## Reading the list (INC-459)
 
 The list is read whole, page by page, by key (`readAllPages`), and names are ordered by the one pinned collator (src/lib/name-collator.ts).
+
+## The status read and the session store (cursor bundle 5; INC-1247, INC-1264, INC-1266)
+
+Who is signed in comes from the shell's one session store, `useShell()` (fed by the single `useAuth()` call in `app-shell.tsx`): the nine screens that used to call `useAuth()` themselves read the store, and CF-SESSION-5 (scripts/conformance/session-reads.test.ts) fails a tenth.
+
+The account's own status (display name and `account_status`) is read by `readAccountStatus` (src/features/auth/account-status.ts): the auth listener waits one macrotask, the session is read through the door (`currentSession`, its `failed` read), and no session means no read. A failed read keeps the person signed in and is named through `reportOnDemandFailure("the account's status", error)`, which offers the page's Refresh; it is never an account taken for active. Because `use-auth.ts` sits on every page's first download, this module imports nothing from `@/lib/reader-failure` (INC-1266): its `failed` answer carries the error as it arrived. Proofs: ACS-U5, ACS-U6 (use-auth.test.tsx), ACS-U7 (account-status.test.ts).

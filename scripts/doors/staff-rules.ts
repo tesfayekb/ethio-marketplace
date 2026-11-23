@@ -18,8 +18,9 @@ import type { RoleRule } from "./policies";
  *   needs the rule; the reason is free text without `|`;
  * - a line whose policy no longer stands as a role rule fails (`staff-rule-gone`).
  *
- * The static half only: the live catalogue's `pg_policies` is a workflow step the supervisor schedules
- * (ACT-032). Each kind is planted in check-doors' self-test (DEC-334).
+ * Two halves, one judge: the static half reads the migrations; the live half (cursor-bundle-5, ACT-032) reads
+ * the live catalogue's `pg_policies` (live-staff-rules.sql, `liveRoleRules`) on the smoke lane and judges it
+ * against the same file. Each kind is planted in check-doors' self-test (DEC-334).
  */
 
 export const STAFF_RULE_KINDS = [
@@ -117,6 +118,41 @@ export function parseStaffRules(text: string): StaffRulesFile {
     });
   });
   return file;
+}
+
+/**
+ * The role rules of a live-staff-rules.sql answer (ACT-032): one row per standing policy that calls a
+ * role helper — schema, table, policy, command, roles. The table reads as the migrations' census names
+ * it (bare for schema public, `schema.table` otherwise), so the live and the static half judge by the
+ * same code. A malformed row throws: a live answer the guard cannot read judges nothing and fails.
+ */
+export function liveRoleRules(tsv: string): RoleRule[] {
+  const rules: RoleRule[] = [];
+  tsv
+    .split(/\r?\n/)
+    .filter((row) => row.trim() !== "")
+    .forEach((row, index) => {
+      const cells = row.split("\t");
+      const [schema = "", table = "", policy = "", command = "", roles = ""] = cells;
+      if (
+        cells.length !== 5 ||
+        !IDENT.test(schema) ||
+        !IDENT.test(table) ||
+        policy === "" ||
+        !COMMANDS.includes(command) ||
+        roles === "" ||
+        roles.split(",").some((role) => !IDENT.test(role))
+      )
+        throw new Error(`live-staff-rules row ${String(index + 1)} is malformed: ${row}`);
+      rules.push({
+        table: schema === "public" ? table : `${schema}.${table}`,
+        policy,
+        command,
+        roles,
+        file: "the live catalogue (pg_policies)",
+      });
+    });
+  return rules.sort((a, b) => `${a.table} ${a.policy}`.localeCompare(`${b.table} ${b.policy}`));
 }
 
 export type StaffRuleEvidence = {

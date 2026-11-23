@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/features/auth/use-auth";
+import { useShell } from "@/components/shell-context";
 import { useI18n, type MessageKey } from "@/i18n";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ownValue } from "@/lib/own-key";
@@ -21,7 +21,7 @@ const STATUS_KEYS: Record<string, MessageKey> = {
 /** Bundle 22 turn 3 — the person's legal documents: what he accepted and the legal e-mails sent to him. */
 export function MyLegalPage() {
   const { t, language, publicLanguages } = useI18n();
-  const { user } = useAuth();
+  const { user } = useShell();
   const history = useQuery({
     queryKey: [AUTH_DERIVED_ROOT, "legal", "history", user?.id ?? ""],
     queryFn: myLegalHistory,

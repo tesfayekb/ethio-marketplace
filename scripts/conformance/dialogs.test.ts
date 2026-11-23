@@ -44,6 +44,13 @@ import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *    aria-describedby naming an id the file draws, or one of DESCRIPTION_EXCEPTIONS (the four the
  *    feature doc names, each under a `// Description exception: <why>` line). Non-modal content is
  *    skipped, as DG-1 skips it.
+ * Cursor-bundle-5 (Part 1) adds two laws over the same census:
+ *  - DG-12: a panel footer holds actions only — every `PanelFooter` and every `footer=` value on
+ *    CategoryModal, ToolbarPanel and PreviewSheet (FOOTER_HOSTS); content lives in the scrolling
+ *    body. The gallery viewer's thumbnail strip is the one finding, on an allowlist line with its
+ *    reason and expiry (DG-6).
+ *  - DG-13: the product has one switch (src/components/ui/switch.tsx); a `role="switch"` or an
+ *    import of the Radix switch anywhere else is a hand-drawn one.
  * DG-1 reads the low-level parts too (turn S6-3): a part of a namespace imported from
  * dialog-primitive (`<NS.Content>`, `<NS.Title>`, …) outside the primitives, skipping the
  * subtree of a `<NS.Root modal={false}>` (non-modal content: the phone menu, the plan's
@@ -252,6 +259,27 @@ const DESCRIBED_WRAPPERS = new Set(["CategoryModal", "ToolbarPanel"]);
 const EXCEPTION_MARK = "// Description exception:";
 
 /**
+ * DG-12 (cursor-bundle-5, ruling 1 item 12): a panel footer holds its actions only. The footer's
+ * element children are actions — a button, the dialog's own action and close parts, the closed
+ * primary (its own missing-choice line is the button's, DEC-418), a feature's `…DialogActions`
+ * (its cancel and its submit), a link (it goes somewhere: the action's other form) — alone, in a fragment, a conditional or a mapped list, or inside a plain
+ * layout `div`/`span` whose own children are all actions. Anything else (a strip, a list, an
+ * image) is content and lives in the scrolling body. The footers by definition: every `PanelFooter`
+ * and every `footer=` value on the three hosts that hand it to one.
+ */
+const FOOTER_HOSTS = new Set(["CategoryModal", "ToolbarPanel", "PreviewSheet"]);
+const ACTIONS = new Set([...BUTTONS, "ClosedPrimary", "DialogActions"]);
+const FOOTER_LAYOUT = new Set(["div", "span"]);
+
+/**
+ * DG-13 (cursor-bundle-5): the product has ONE switch, src/components/ui/switch.tsx (the Radix
+ * switch behind the design system's look). A `role="switch"` or an import of the Radix switch
+ * anywhere else is a hand-drawn one.
+ */
+export const SWITCH_HOME = "src/components/ui/switch.tsx";
+const SWITCH_PACKAGE = "@radix-ui/react-switch";
+
+/**
  * DG-11's permanent exceptions (DEC-426), the four `docs/features/design-foundation.md` names
  * under "Dialog anatomy": a panel in this file may say `aria-describedby={undefined}` under a
  * `// Description exception: <why>` line. Each entry says why; one with no marked panel fails.
@@ -316,6 +344,11 @@ const MAPPED = new WeakSet<ts.Node>();
 /** A JSX element's element children, through fragments, `{cond && …}`, `{a ? … : …}` and
  *  `{list.map((x) => …)}`. */
 function elementChildren(node: ts.JsxElement | ts.JsxFragment): ts.JsxOpeningLikeElement[] {
+  return elementsOf([...node.children]);
+}
+
+/** The elements a list of nodes draws (the body of `elementChildren`, also read for a `footer=` value). */
+function elementsOf(nodes: readonly ts.Node[]): ts.JsxOpeningLikeElement[] {
   const out: ts.JsxOpeningLikeElement[] = [];
   const take = (child: ts.Node, mapped: boolean) => {
     const open = opening(child);
@@ -347,7 +380,7 @@ function elementChildren(node: ts.JsxElement | ts.JsxFragment): ts.JsxOpeningLik
             take(statement.expression, true);
     }
   };
-  node.children.forEach((c) => take(c, false));
+  nodes.forEach((c) => take(c, false));
   return out;
 }
 
@@ -674,6 +707,59 @@ function descriptionRefusal(
   return `${tag}: a panel with no description (a Description part, a description prop, an aria-describedby naming one the file draws, or a marked exception)`;
 }
 
+/** DG-12: whether a footer child is an action (see FOOTER_LAYOUT for the wrappers). */
+function isAction(open: ts.JsxOpeningLikeElement, source: ts.SourceFile): boolean {
+  const tag = tagOf(open, source);
+  if (ACTIONS.has(tag) || tag.endsWith("DialogActions") || tag === "Link" || tag === "a")
+    return true;
+  if (!FOOTER_LAYOUT.has(tag)) return false;
+  const element = elementOf(open);
+  if (element === null) return false;
+  const kids = elementChildren(element);
+  return kids.length > 0 && kids.every((kid) => isAction(kid, source));
+}
+
+/** DG-13's findings in one file: each line once. */
+function switchSurfaces(source: ts.SourceFile): { line: number; what: string }[] {
+  const out = new Map<number, string>();
+  const at = (node: ts.Node, what: string) => {
+    const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
+    if (!out.has(line)) out.set(line, what);
+  };
+  const walk = (node: ts.Node) => {
+    if (ts.isJsxAttribute(node) && node.name.getText(source) === "role") {
+      const init = node.initializer;
+      const role =
+        init === undefined ? null : ts.isJsxExpression(init) ? literalOf(init) : literalText(init);
+      if (role === "switch") at(node, 'role="switch"');
+    } else if (ts.isPropertyAssignment(node)) {
+      const key = ts.isIdentifier(node.name) || ts.isStringLiteral(node.name) ? node.name.text : "";
+      if (key === "role" && literalText(node.initializer) === "switch") at(node, 'role="switch"');
+    } else if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.name.text === "setAttribute"
+    ) {
+      const [first, second] = node.arguments.map((arg) => literalText(arg));
+      if (first === "role" && second === "switch") at(node, 'role="switch"');
+    } else if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier !== undefined &&
+      ts.isStringLiteral(node.moduleSpecifier) &&
+      node.moduleSpecifier.text === SWITCH_PACKAGE
+    )
+      at(node, `the ${SWITCH_PACKAGE} package`);
+    ts.forEachChild(node, walk);
+  };
+  walk(source);
+  return [...out].map(([line, what]) => ({ line, what }));
+}
+
+/** A `{"switch"}` attribute value's literal, or null. */
+function literalOf(node: ts.JsxExpression): string | null {
+  return node.expression === undefined ? null : literalText(node.expression);
+}
+
 /** The census: one finding per refusal, each keyed `file#rule`. */
 export function dialogFindings(files: Src[]): { findings: Finding[]; keys: string[] } {
   const findings: Finding[] = [];
@@ -693,9 +779,20 @@ export function dialogFindings(files: Src[]): { findings: Finding[]; keys: strin
       }
     }
     const script = name.endsWith(".tsx") || name.endsWith(".ts");
-    if (script && !MODAL_OWNERS.has(name)) {
-      const kind = name.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-      const read = ts.createSourceFile(name, text, ts.ScriptTarget.Latest, true, kind);
+    const kind = name.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+    const read = script
+      ? ts.createSourceFile(name, text, ts.ScriptTarget.Latest, true, kind)
+      : null;
+    if (read !== null && name !== SWITCH_HOME)
+      for (const { line, what } of switchSurfaces(read)) {
+        keys.push(`${name}#DG-13`);
+        findings.push({
+          file: name,
+          line,
+          what: `DG-13 a switch of its own: ${what} (use Switch, src/components/ui/switch.tsx)`,
+        });
+      }
+    if (read !== null && !MODAL_OWNERS.has(name)) {
       for (const { line, what } of modalSurfaces(read)) {
         keys.push(`${name}#DG-2`);
         findings.push({
@@ -806,6 +903,36 @@ export function dialogFindings(files: Src[]): { findings: Finding[]; keys: strin
       nonModal -= modeless;
     };
     walk(source);
+    const footerWalk = (node: ts.Node) => {
+      const open = opening(node);
+      if (open !== null) {
+        const tag = tagOf(open, source);
+        const element = elementOf(open);
+        const content = (kids: ts.JsxOpeningLikeElement[], where: string) => {
+          for (const kid of kids)
+            if (!isAction(kid, source))
+              push(
+                kid,
+                "DG-12",
+                `${where}: ${tagOf(kid, source)} is content, not an action (the body scrolls it)`,
+              );
+        };
+        if (tag === "PanelFooter" && element !== null)
+          content(elementChildren(element), "PanelFooter");
+        if (FOOTER_HOSTS.has(tag))
+          for (const prop of open.attributes.properties)
+            if (
+              ts.isJsxAttribute(prop) &&
+              prop.name.getText(source) === "footer" &&
+              prop.initializer !== undefined &&
+              ts.isJsxExpression(prop.initializer) &&
+              prop.initializer.expression !== undefined
+            )
+              content(elementsOf([prop.initializer.expression]), `${tag} footer=`);
+      }
+      ts.forEachChild(node, footerWalk);
+    };
+    footerWalk(source);
     for (const body of bodiesWithoutEnd(source))
       push(
         body,
@@ -1176,6 +1303,61 @@ describe("CF-DIALOG-1 — every dialog, alert dialog and sheet reads one look (D
     ).toBe(
       `${viewer}:1 DG-11 DESCRIPTION_EXCEPTIONS names this file but no panel in it carries the mark`,
     );
+  });
+
+  it("DG-12 planted: content in a panel footer fails, in PanelFooter and in a host's footer=; actions, a feature's DialogActions, a link, a closed primary and a forwarded footer pass", () => {
+    const { findings } = dialogFindings([
+      {
+        name: "src/x.tsx",
+        text:
+          `const a = <PanelFooter><Button>x</Button><ClosedPrimary closed={c} onClosedPress={f} missing="m">y</ClosedPrimary></PanelFooter>;\n` +
+          `const b = <PanelFooter><Thumbs photos={p} /></PanelFooter>;\n` +
+          `const c = <PanelFooter>{ok ? <Button>x</Button> : <img src="a" />}</PanelFooter>;\n` +
+          `const d = <CategoryModal footer={<><Button>a</Button><AlertDialogAction>b</AlertDialogAction></>}>x</CategoryModal>;\n` +
+          `const e = <CategoryModal footer={<StripArrows />}>x</CategoryModal>;\n` +
+          `const f = <PanelFooter><div className="flex"><Button>a</Button><LocationDialogActions /></div><Link to="/x">go</Link></PanelFooter>;\n` +
+          `const g = <PanelFooter><div><p>text</p><Button>a</Button></div></PanelFooter>;\n` +
+          `const h = <PreviewSheet footer={footerNode}>x</PreviewSheet>;\n` +
+          `const i = <ToolbarPanel footer={list.map((one) => <Button key={one}>{one}</Button>)}>x</ToolbarPanel>;\n` +
+          `const j = <PanelFooter>{shown}</PanelFooter>;\n`,
+      },
+    ]);
+    expect(report(findings.filter((finding) => finding.what.startsWith("DG-12 ")))).toBe(
+      [
+        "src/x.tsx:2 DG-12 PanelFooter: Thumbs is content, not an action (the body scrolls it)",
+        "src/x.tsx:3 DG-12 PanelFooter: img is content, not an action (the body scrolls it)",
+        "src/x.tsx:5 DG-12 CategoryModal footer=: StripArrows is content, not an action (the body scrolls it)",
+        "src/x.tsx:7 DG-12 PanelFooter: div is content, not an action (the body scrolls it)",
+      ].join("\n"),
+    );
+  });
+
+  it("DG-13 planted: a role=switch in any spelling and an import of the Radix switch fail outside src/components/ui/switch.tsx; its own file and other roles pass", () => {
+    const text =
+      `import * as S from "@radix-ui/react-switch";\n` +
+      `const a = <div role="switch" aria-checked={on} />;\n` +
+      `const b = <button role={"switch"} />;\n` +
+      `const c = { role: "switch" };\n` +
+      `el.setAttribute("role", "switch");\n` +
+      `const d = <div role="radio" />;\n`;
+    const judged = (name: string) =>
+      report(
+        dialogFindings([{ name, text }]).findings.filter((finding) =>
+          finding.what.startsWith("DG-13 "),
+        ),
+      );
+    const use = "(use Switch, src/components/ui/switch.tsx)";
+    expect(judged("src/x.tsx")).toBe(
+      [
+        `src/x.tsx:1 DG-13 a switch of its own: the @radix-ui/react-switch package ${use}`,
+        `src/x.tsx:2 DG-13 a switch of its own: role="switch" ${use}`,
+        `src/x.tsx:3 DG-13 a switch of its own: role="switch" ${use}`,
+        `src/x.tsx:4 DG-13 a switch of its own: role="switch" ${use}`,
+        `src/x.tsx:5 DG-13 a switch of its own: role="switch" ${use}`,
+      ].join("\n"),
+    );
+    expect(judged(SWITCH_HOME)).toBe("");
+    expect(judged("src/x.ts")).not.toBe("");
   });
 
   it("DG-6 planted: a stale allowlist line fails, and so does an expired one", () => {

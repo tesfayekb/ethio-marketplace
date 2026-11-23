@@ -19,6 +19,10 @@ const door = vi.hoisted(() => ({
   forgetStoredSession: vi.fn(),
 }));
 
+/** The throwaway client of the browser's own current-password proof (DEC-436). */
+const verifier = vi.hoisted(() => ({ signInWithPassword: vi.fn(), signOut: vi.fn() }));
+vi.mock("@supabase/supabase-js", () => ({ createClient: () => ({ auth: verifier }) }));
+
 vi.mock("@/lib/supabase-door", async (importOriginal) => {
   const real = await importOriginal<typeof import("@/lib/supabase-door")>();
   return {
@@ -46,10 +50,9 @@ const ANSWERS: Record<string, unknown> = {
   signOut: LOAD_FAILED,
   signOutOtherDevices: LOAD_FAILED,
   getIdentities: LOAD_FAILED,
-  linkGoogleIdentity: LOAD_FAILED,
-  unlinkProviderIdentity: LOAD_FAILED,
   changePassword: LOAD_FAILED,
   changeEmail: LOAD_FAILED,
+  pendingEmail: LOAD_FAILED,
   hasSessionRehydrating: false,
   sessionRehydration: "unavailable",
   completeEmailVerification: { ok: false, unavailable: true },
@@ -73,7 +76,6 @@ const ARGS: Record<string, unknown[]> = {
   signInWithPassword: [{ email: "nobody@example.test", password: "not-a-real-password-1" }],
   signInWithGoogle: ["/"],
   resendConfirmation: ["nobody@example.test"],
-  unlinkProviderIdentity: ["identity-1"],
   changePassword: ["old-password-1", "new-password-1"],
   changeEmail: ["nobody@example.test"],
   removeOwnPassword: ["old-password-1"],
@@ -323,5 +325,124 @@ describe("a sign-out ends the session on this device whatever the server answers
       }
       expect(body, names[index]).toMatch(/forgetStoredSession\(\)/);
     }
+  });
+});
+
+/**
+ * Cursor bundle 5 (DEC-435, DEC-436, DEC-439) — a password changes only after the server's own check,
+ * a half-done change is typed, and the pending address is the server's record. The client is a fake the
+ * test hands the door; nothing reaches a network.
+ */
+describe("account security answers (cursor-bundle-5)", () => {
+  const ok = { error: null };
+
+  /** A signed-in client: the person's e-mail, and every call the three password actions make. */
+  function signedInClient(overrides: Record<string, unknown> = {}) {
+    const auth = {
+      getUser: vi
+        .fn()
+        .mockResolvedValue({ data: { user: { email: "me@example.test" } }, error: null }),
+      updateUser: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      signOut: vi.fn().mockResolvedValue(ok),
+      ...overrides,
+    };
+    door.getSupabase.mockReset().mockResolvedValue({ auth, rpc: vi.fn().mockResolvedValue(ok) });
+    return auth;
+  }
+
+  beforeEach(() => {
+    verifier.signInWithPassword.mockReset().mockResolvedValue(ok);
+    verifier.signOut.mockReset().mockResolvedValue(ok);
+  });
+
+  it("ACS-U1 a password change sends the current password with the new one, after the browser's own proof", async () => {
+    const auth = signedInClient();
+    const answer = await service.changePassword("old-password-1", "new-password-1");
+    expect(answer).toEqual({ ok: true, othersSignedOut: true });
+    expect(verifier.signInWithPassword).toHaveBeenCalledWith({
+      email: "me@example.test",
+      password: "old-password-1",
+    });
+    expect(auth.updateUser).toHaveBeenCalledTimes(1);
+    expect(auth.updateUser).toHaveBeenCalledWith({
+      password: "new-password-1",
+      current_password: "old-password-1",
+    });
+    // The proof came first: a wrong current password never reaches the change.
+    verifier.signInWithPassword.mockResolvedValue({
+      error: { message: "Invalid login credentials" },
+    });
+    auth.updateUser.mockClear();
+    expect(await service.changePassword("wrong-password-1", "new-password-1")).toEqual({
+      ok: false,
+      errorKey: "auth.errorWrongCurrentPassword",
+    });
+    expect(auth.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("ACS-U2 the server's own refusals of a password change each read their own words", async () => {
+    const auth = signedInClient();
+    const refusals: Array<[string, string]> = [
+      ["current_password_invalid", "auth.errorWrongCurrentPassword"],
+      ["current_password_required", "auth.errorWrongCurrentPassword"],
+      ["same_password", "auth.errorSamePassword"],
+      ["reauthentication_needed", "auth.errorReauthNeeded"],
+    ];
+    for (const [code, key] of refusals) {
+      auth.updateUser.mockResolvedValueOnce({ data: {}, error: { message: "refused", code } });
+      const answer = await service.changePassword("old-password-1", "new-password-1");
+      expect(answer, code).toMatchObject({ ok: false, errorKey: key });
+    }
+    // No other device was touched by a refused change.
+    expect(auth.signOut).not.toHaveBeenCalled();
+  });
+
+  it("ACS-U3 a sign-out of the other devices that fails is answered typed at all three sites, never only logged", async () => {
+    const failed = { error: { message: "Failed to fetch", status: 0 } };
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      // 1 — Change password.
+      const auth = signedInClient({ signOut: vi.fn().mockResolvedValue(failed) });
+      expect(await service.changePassword("old-password-1", "new-password-1")).toEqual({
+        ok: true,
+        othersSignedOut: false,
+      });
+      expect(auth.signOut).toHaveBeenCalledWith({ scope: "others" });
+      // 2 — Remove password.
+      signedInClient({ signOut: vi.fn().mockResolvedValue(failed) });
+      expect(await service.removeOwnPassword("old-password-1")).toEqual({
+        ok: true,
+        othersSignedOut: false,
+      });
+      // 3 — the reset's recovery session.
+      signedInClient({ signOut: vi.fn().mockResolvedValue(failed) });
+      expect(await service.completePasswordReset("new-password-1")).toEqual({
+        ok: true,
+        othersSignedOut: false,
+      });
+      // And the same three, when it worked.
+      signedInClient();
+      expect(await service.completePasswordReset("new-password-1")).toEqual({
+        ok: true,
+        othersSignedOut: true,
+      });
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("ACS-U4 the pending address is the server's record: an address, none, or a typed failure", async () => {
+    const auth = signedInClient();
+    auth.getUser.mockResolvedValueOnce({
+      data: { user: { email: "me@example.test", new_email: "next@example.test" } },
+      error: null,
+    });
+    expect(await service.pendingEmail()).toEqual({ ok: true, pendingEmail: "next@example.test" });
+    expect(await service.pendingEmail()).toEqual({ ok: true, pendingEmail: null });
+    auth.getUser.mockResolvedValueOnce({
+      data: { user: null },
+      error: { message: "Failed to fetch", status: 0 },
+    });
+    expect(await service.pendingEmail()).toEqual({ ok: false, errorKey: "auth.errorGeneric" });
   });
 });

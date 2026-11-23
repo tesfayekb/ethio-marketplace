@@ -380,21 +380,50 @@ function granted(path: string, grants: string[]): boolean {
   });
 }
 
+const WIDENING = /THE BRIEF'S SCOPE GROWS BY\b/;
+
 /**
- * CF-BRIEF-19 (app-fixes ruling 2, built by the CI turn's ruling 1 item 5) — for every INC or DEC a
- * brief's RECORDS say it fixes or changes, each file under `scripts/` that names that id lies inside
- * the brief's SCOPE, or the brief says why not. An id is fixed or changed when a RECORDS line opens
- * with it (`INC-n —`, `DEC-n (…) —`, `- DEC-n …`) or when "fixes", "changes", "amends",
+ * The paths a text widens its brief's SCOPE by (INC-1260): the first sentence after "THE BRIEF'S
+ * SCOPE GROWS BY" on a line, and a paragraph opening `SCOPE` (a ruling's own, read as a widening and
+ * never a replacement). Their code spans outside a "read only" or "never" sentence.
+ */
+function wideningGrants(text: string): string[] {
+  const lines = linesOf(text);
+  const grants = lines.flatMap((line, index) => {
+    const at = line.search(WIDENING);
+    if (at < 0) return [];
+    const continued: string[] = [line.slice(at)];
+    for (let next = index + 1; next < lines.length && /^\s+\S/.test(lines[next] ?? ""); next += 1)
+      continued.push(lines[next] ?? "");
+    return scopeGrants(continued.join(" ").split(SENTENCE).slice(0, 1).join(" "));
+  });
+  const own = scopeOf(text);
+  return own === null ? grants : [...grants, ...scopeGrants(own.scope)];
+}
+
+/**
+ * CF-BRIEF-19 (app-fixes ruling 2, built by the CI turn's ruling 1 item 5; INC-1260) — for every INC
+ * or DEC a brief's RECORDS say it fixes or changes, each file under `scripts/` that names that id
+ * lies inside the brief's SCOPE, or the brief says why not. An id is fixed or changed when a RECORDS
+ * line opens with it (`INC-n —`, `DEC-n (…) —`, `- DEC-n …`) or when "fixes", "changes", "amends",
  * "supersedes" or "revises" precedes it. SCOPE grants the code spans of its paragraph outside a
  * "read only" or "never" sentence (a path ending in `/` or holding `*` grants what starts with it);
  * the brief says why not by naming the file on a line that says "not in SCOPE", "outside SCOPE" or
- * "out of scope". A ruling has no SCOPE of its own (it builds inside its brief's): nothing to judge.
+ * "out of scope". The SCOPE is the brief's joined with every ruling's widening (`joined`: the texts
+ * of the brief in force and its other rulings): a ruling that widens its brief needs no allowlist
+ * line, and a ruling's RECORDS are judged against the joined SCOPE. With no SCOPE anywhere in the
+ * joined texts there is nothing to judge.
  */
-export function recordScopeFindings(text: string, file: string, root: string): Finding[] {
-  const paragraph = scopeOf(text);
-  if (paragraph === null) return [];
-  const grants = scopeGrants(paragraph.scope);
-  const whyNot = linesOf(text).filter((line) => WHY_NOT.test(line));
+export function recordScopeFindings(
+  text: string,
+  file: string,
+  root: string,
+  joined: string[] = [],
+): Finding[] {
+  const texts = [text, ...joined];
+  if (!texts.some((one) => scopeOf(one) !== null)) return [];
+  const grants = texts.flatMap((one) => wideningGrants(one));
+  const whyNot = texts.flatMap((one) => linesOf(one)).filter((line) => WHY_NOT.test(line));
   const ids = new Map<string, number>();
   for (const { line, content } of recordsOf(text)) {
     const head = RECORD_ID.exec(content.trim())?.[1];
@@ -898,6 +927,7 @@ export function treeFindings(
   file: string,
   root: string,
   repository: string = root,
+  joined: string[] = [],
 ): Finding[] {
   const problem = treeRootProblem(root);
   if (problem !== null)
@@ -917,7 +947,7 @@ export function treeFindings(
   return [
     ...newTestFindings(text, file, root),
     ...settingDecisionFindings(text, file, root),
-    ...recordScopeFindings(text, file, root),
+    ...recordScopeFindings(text, file, root, joined),
     ...listReaderFindings(text, file, root),
     ...firstDownloadFindings(text, file, root),
     ...citedPathFindings(text, file, root),

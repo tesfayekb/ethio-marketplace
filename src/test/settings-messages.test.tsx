@@ -19,8 +19,7 @@ const service = vi.hoisted(() => ({
   changeEmail: vi.fn(),
   removeOwnPassword: vi.fn(),
   signOutOtherDevices: vi.fn(),
-  unlinkProviderIdentity: vi.fn(),
-  linkGoogleIdentity: vi.fn(),
+  pendingEmail: vi.fn(),
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -37,8 +36,8 @@ vi.mock("@/i18n", () => ({
   }),
 }));
 
-vi.mock("@/features/auth/use-auth", () => ({
-  useAuth: () => ({ user: { id: "u-1", displayName: "Test person" }, loading: false }),
+vi.mock("@/components/shell-context", () => ({
+  useShell: () => ({ user: { id: "u-1", displayName: "Test person" }, authLoading: false }),
 }));
 
 vi.mock("@/features/auth/mfa/use-mfa", () => ({
@@ -116,6 +115,7 @@ function type(id: string, value: string) {
 describe("Settings — each outcome beside its control (INC-570)", () => {
   beforeEach(() => {
     for (const fn of Object.values(service)) fn.mockReset();
+    service.pendingEmail.mockResolvedValue({ ok: true, pendingEmail: null });
     Element.prototype.scrollIntoView = vi.fn();
   });
 
@@ -197,6 +197,45 @@ describe("Settings — each outcome beside its control (INC-570)", () => {
     await waitFor(() =>
       expect(within(devices).getByRole("status")).toHaveTextContent("settings.signOutOthersDone"),
     );
+  });
+
+  it("SETM-5: a password change that could not end the other devices says so beside the form", async () => {
+    const { passwordForm } = await renderSettings();
+    service.changePassword.mockResolvedValueOnce({ ok: true, othersSignedOut: false });
+    type("current-password", "old-password-1");
+    type("new-password", "new-password-1");
+    type("new-password-confirm", "new-password-1");
+    fireEvent.submit(passwordForm);
+    await waitFor(() =>
+      expect(within(passwordForm).getByRole("alert")).toHaveTextContent(
+        "settings.othersStillSignedIn",
+      ),
+    );
+    expect(within(passwordForm).queryByText("settings.passwordChanged")).toBeNull();
+  });
+
+  it("SETM-6: an e-mail change waiting on its confirmations is shown from the server's answer on every load", async () => {
+    service.pendingEmail.mockResolvedValue({ ok: true, pendingEmail: "next@example.test" });
+    await renderSettings();
+    expect(await screen.findByTestId("settings-email-pending")).toHaveTextContent(
+      "settings.emailChangePending",
+    );
+  });
+
+  it("SETM-7: a failed pending-address read is said in the e-mail section, never read as nothing waiting", async () => {
+    service.pendingEmail.mockResolvedValue({ ok: false, errorKey: "auth.errorGeneric" });
+    await renderSettings();
+    expect(await screen.findByTestId("settings-email-pending-error")).toHaveTextContent(
+      "auth.errorGeneric",
+    );
+    expect(screen.queryByTestId("settings-email-pending")).toBeNull();
+  });
+
+  it("SETM-8: the methods list offers no Link Google and no Unlink (DEC-435)", async () => {
+    await renderSettings();
+    expect(screen.queryByText("settings.linkGoogle")).toBeNull();
+    expect(screen.queryByText("settings.unlink")).toBeNull();
+    expect(screen.queryByRole("button", { name: /settings\.(?:link|unlink)/ })).toBeNull();
   });
 
   it("KAU-7: a blank Change email is refused under its field and nothing is sent", async () => {

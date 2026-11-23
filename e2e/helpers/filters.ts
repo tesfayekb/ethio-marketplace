@@ -1,6 +1,46 @@
-import { type Page } from "@playwright/test";
+import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
+
+/**
+ * cursor-bundle-5 (INC-1261) — OPENING A SELECT LIST, THE ONE STEP.
+ *
+ * A `SelectList` (`src/components/select-list.tsx`) is a trigger `<list>` and, once open, its list
+ * `<list>-list` with a row `<list>-<value>` for every option (`""` is `<list>-all`); its search box
+ * `<list>-search` shows only above eight options (`SEARCH_FROM`, `select-list-body.tsx`), and the
+ * rows are all there either way. Presses the trigger when `<list>-list` is not open and waits for
+ * the list. A list the test already opened is not pressed again (a press would close it).
+ */
+export async function openSelectList(scope: Page | Locator, list: string): Promise<void> {
+  const body = scope.getByTestId(`${list}-list`);
+  if (await body.isVisible()) return;
+  await scope.getByTestId(list).click();
+  await expect(body, `openSelectList: ${list} did not open its list`).toBeVisible();
+}
+
+/**
+ * cursor-bundle-5 (INC-1261) — THE ONE STEP THAT CHOOSES IN A SELECT LIST.
+ *
+ * In order: open the list (`openSelectList`), press the row by the option's VALUE test id
+ * `<list>-<value>` (J5: structure, never the option's words — so a list of seven options and one of
+ * nine, whose search box shows or does not, are chosen the same way), and for a single choice
+ * expect the list closed. `multiple` is a list that stays open after a choice (the test closes it,
+ * or the caller's own step does); the row's `aria-selected` is the caller's to assert.
+ */
+export async function chooseInList(
+  scope: Page | Locator,
+  list: string,
+  value: string,
+  options: { multiple?: boolean } = {},
+): Promise<void> {
+  await openSelectList(scope, list);
+  await scope.getByTestId(`${list}-${value === "" ? "all" : value}`).click();
+  if (options.multiple !== true)
+    await expect(
+      scope.getByTestId(`${list}-list`),
+      `chooseInList: ${list} did not close after the choice`,
+    ).toHaveCount(0);
+}
 
 /**
  * cursor-bundle-2 item 4 (INC-1237) — THE ONE STEP THAT CHOOSES A FILTER VALUE.
@@ -39,9 +79,11 @@ export async function chooseFilter(
   const choiceId = value === undefined ? filter : `${filter}-${value === "" ? "all" : value}`;
   const choice = open.getByTestId(choiceId);
   if (value !== undefined && !(await choice.isVisible())) {
-    await open.getByTestId(filter).click();
+    // The filter's own list: chosen by the one list step; the Escape loop below closes the panel.
+    await chooseInList(open, filter, value, { multiple: true });
+  } else {
+    await choice.click();
   }
-  await choice.click();
   for (let press = 0; press < 2 && (await open.isVisible()); press += 1) {
     await page.keyboard.press("Escape");
   }

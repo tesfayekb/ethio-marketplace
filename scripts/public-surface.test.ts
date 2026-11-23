@@ -84,6 +84,53 @@ describe("shared public-surface parser", () => {
     const real = parseSurface(readFileSync("scripts/public-surface-allowlist.txt", "utf8"));
     expect(real.filter(({ name }) => name === "transition_listing")).toHaveLength(1);
   });
+  it("SLB-10 a GRANT then a REVOKE of the same role in one file is closed; a REVOKE then a GRANT, or a REVOKE of another role, is open (INC-1262)", () => {
+    const none = parseSurface("known | authenticated | read");
+    const grant = "GRANT EXECUTE ON FUNCTION public.planted(uuid) TO anon, authenticated;\n";
+    const revoke =
+      "REVOKE ALL ON FUNCTION public.planted(uuid) FROM PUBLIC, anon, authenticated;\n";
+    expect(migrationSurfaceOffenders(grant + revoke, none)).toEqual([]);
+    expect(migrationSurfaceOffenders(revoke + grant, none)).toEqual([
+      "planted (anon)",
+      "planted (authenticated)",
+    ]);
+    expect(
+      migrationSurfaceOffenders(
+        `${grant}REVOKE EXECUTE ON FUNCTION public.planted(uuid) FROM anon;\n`,
+        none,
+      ),
+      "only the revoked role closes",
+    ).toEqual(["planted (authenticated)"]);
+    expect(
+      migrationSurfaceOffenders(
+        `${grant}-- REVOKE ALL ON FUNCTION public.planted(uuid) FROM anon, authenticated;\n`,
+        none,
+      ),
+      "a revoke in a comment closes nothing",
+    ).toEqual(["planted (anon)", "planted (authenticated)"]);
+    expect(
+      migrationSurfaceOffenders(
+        grant + "REVOKE EXECUTE ON FUNCTION public.other(uuid) FROM anon, authenticated;\n",
+        none,
+      ),
+      "another object's revoke closes nothing",
+    ).toEqual(["planted (anon)", "planted (authenticated)"]);
+    expect(
+      migrationSurfaceOffenders(
+        "FOREACH f IN ARRAY ARRAY['public.planted()'] LOOP EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO anon', f); END LOOP;\n" +
+          "REVOKE EXECUTE ON FUNCTION public.planted() FROM anon;\n",
+        none,
+      ),
+      "a format-grant loop is closed by a later revoke",
+    ).toEqual([]);
+    // The file the self-test of check-migrations.sh reads, through the CLI.
+    expect(
+      migrationSurfaceOffenders(
+        readFileSync("scripts/fixtures/public-grant-revoked-example.sql", "utf8"),
+        none,
+      ),
+    ).toEqual([]);
+  });
   it("refuses malformed roles and the old two-field shape", () => {
     expect(() => parseSurface("known | owner | read")).toThrow("invalid role");
     expect(() => parseSurface("known | read")).toThrow("malformed line");

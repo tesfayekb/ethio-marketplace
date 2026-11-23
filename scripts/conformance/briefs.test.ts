@@ -109,7 +109,15 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       const text = readFileSync(file, "utf8");
       findings.push(...textFindings(text, file).filter((f) => f.law !== "CF-BRIEF-1"));
       findings.push(...settingDecisionFindings(text, file, process.cwd()));
-      findings.push(...recordScopeFindings(text, file, process.cwd()));
+      const others = [brief, ...rulings].filter((other) => other !== file);
+      findings.push(
+        ...recordScopeFindings(
+          text,
+          file,
+          process.cwd(),
+          others.map((other) => readFileSync(other, "utf8")),
+        ),
+      );
       findings.push(...listReaderFindings(text, file, process.cwd()));
       findings.push(...firstDownloadFindings(text, file, process.cwd()));
     }
@@ -545,6 +553,49 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(green.status, green.stdout).toBe(0);
       expect(green.stdout).toContain("[check-go] no finding");
     }, 60_000);
+
+    it("CF-BRIEF-19 (INC-1260) a ruling's widening joins its brief's SCOPE: the ruling's records and the brief's are judged against the joined paths, a path neither grants is still named", () => {
+      const brief = [
+        "PLANTED — a GO. Base: dev 2b11a9d29",
+        "",
+        "SCOPE: `scripts/ci/`",
+        "",
+        "RECORDS (word for word)",
+        "INC-901 — the planted defect; FIXED.",
+        "",
+      ].join("\n");
+      const widened = [
+        "RULING — planted, stop 1: the answers. Base: cursor/planted 2b11a9d29",
+        "",
+        "6. THE BRIEF'S SCOPE GROWS BY `scripts/lib/other.ts`. Never `scripts/lib/else.ts`.",
+        "",
+        "RECORDS (word for word)",
+        "- INC-901 — the planted defect, built in the widened file.",
+        "",
+      ].join("\n");
+      const unwidened = widened.replace("THE BRIEF'S SCOPE GROWS BY", "Nothing grows BY");
+      const texts = (text: string, file: string, joined: string[]) =>
+        recordScopeFindings(text, file, root, joined).map((x) => x.text);
+      // The ruling's own records, judged against the brief's SCOPE and its own widening: no allowlist line.
+      expect(texts(widened, "r.md", [brief])).toEqual([]);
+      // The brief's records, judged with the ruling's widening joined.
+      expect(texts(brief, "b.md", [widened])).toEqual([]);
+      // The same ruling without its widening: the file neither grants is named, on both sides.
+      expect(texts(unwidened, "r.md", [brief])).toEqual([
+        "INC-901 (RECORDS) is named by scripts/lib/other.ts, outside SCOPE",
+      ]);
+      expect(texts(brief, "b.md", [unwidened])).toEqual([
+        "INC-901 (RECORDS) is named by scripts/lib/other.ts, outside SCOPE",
+      ]);
+      // A "never" sentence grants nothing, and a ruling's own SCOPE paragraph widens, never replaces.
+      const own = widened.replace(
+        /6\. THE BRIEF'S SCOPE GROWS BY.*\n/,
+        "SCOPE: `scripts/lib/other.ts`\n",
+      );
+      expect(texts(own, "r.md", [brief])).toEqual([]);
+      // With no SCOPE in any joined text there is nothing to judge.
+      expect(texts(unwidened, "r.md", [])).toEqual([]);
+    });
 
     it("CF-BRIEF-16 a SCOPE path rule 00 forbids: `.claude/`, `CLAUDE.md`, and `supabase/migrations/` under no-migration", () => {
       const brief = (flags: string, scope: string) =>

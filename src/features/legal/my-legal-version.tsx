@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/features/auth/use-auth";
+import { useShell } from "@/components/shell-context";
 import { useI18n } from "@/i18n";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { legalDocName } from "./legal-kinds";
@@ -13,7 +13,7 @@ import { LegalText } from "./legal-text";
 /** Bundle 22 turn 3 — one version the person accepted or was sent. */
 export function MyLegalVersion({ versionId }: { versionId: string }) {
   const { t, language } = useI18n();
-  const { user } = useAuth();
+  const { user } = useShell();
   const version = useQuery({
     queryKey: [AUTH_DERIVED_ROOT, "legal", "version", user?.id ?? "", versionId],
     queryFn: () => myLegalVersion(versionId),
