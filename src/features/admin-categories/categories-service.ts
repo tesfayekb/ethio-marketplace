@@ -1,3 +1,4 @@
+import { readFailed } from "@/lib/reader-failure";
 import { answeredId } from "@/lib/answered-id";
 import { compareNames } from "@/lib/name-collator";
 import { supabase } from "@/integrations/supabase/client";
@@ -124,7 +125,7 @@ export async function createCategory(input: CreateCategoryInput): Promise<string
     p_visible_from: input.visibleFrom ?? null,
     p_visible_until: input.visibleUntil ?? null,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return answeredId("admin_create_category", data);
 }
 
@@ -149,7 +150,7 @@ export async function updateCategory(input: UpdateCategoryInput): Promise<void> 
     p_price_enabled: input.priceEnabled,
     p_expiry_days: input.expiryDays,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function setCategoryWindow(input: {
@@ -162,7 +163,7 @@ export async function setCategoryWindow(input: {
     p_visible_from: input.visibleFrom,
     p_visible_until: input.visibleUntil,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function setCountryExclusions(input: {
@@ -173,7 +174,7 @@ export async function setCountryExclusions(input: {
     p_id: input.id,
     p_country_codes: input.countryCodes,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function retireCategory(input: {
@@ -184,7 +185,7 @@ export async function retireCategory(input: {
     p_id: input.id,
     p_reassign_to: input.reassignTo,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function addCategoryPointer(input: {
@@ -195,7 +196,7 @@ export async function addCategoryPointer(input: {
     p_parent_id: input.parentId,
     p_child_id: input.childId,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return answeredId("admin_add_category_pointer", data);
 }
 
@@ -214,7 +215,7 @@ export async function listCategoryPointers(categoryId: string): Promise<Category
   const { data, error } = await supabase.rpc("admin_list_category_pointers", {
     p_category_id: categoryId,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     pointerId: row.pointer_id,
     parentId: row.parent_id ?? null,
@@ -233,20 +234,20 @@ export async function moveCategoryPointer(input: {
     p_pointer_id: input.pointerId,
     p_new_parent_id: input.newParentId,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /** ES5 — makes this edge the category's home path. */
 export async function setPrimaryPointer(pointerId: string): Promise<void> {
   const { error } = await rpc("admin_set_primary_pointer", { p_pointer_id: pointerId });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function removeCategoryPointer(pointerId: string): Promise<void> {
   const { error } = await rpc("admin_remove_category_pointer", {
     p_pointer_id: pointerId,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function reorderCategories(input: {
@@ -257,7 +258,7 @@ export async function reorderCategories(input: {
     p_parent_id: input.parentId,
     p_ordered_child_ids: input.orderedChildIds,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /**
@@ -340,7 +341,7 @@ export function activeParentOptions(roster: CategoryNode[], excludeId?: string):
  */
 export async function reactivateCategory(input: { id: string }): Promise<void> {
   const { error } = await rpc("admin_reactivate_category", { p_id: input.id });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function deleteCategory(input: { id: string; confirmSlug: string }): Promise<void> {
@@ -348,7 +349,7 @@ export async function deleteCategory(input: { id: string; confirmSlug: string })
     p_id: input.id,
     p_confirm_slug: input.confirmSlug,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /**

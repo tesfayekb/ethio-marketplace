@@ -154,10 +154,13 @@ export function gateRefusal(error: unknown): GateRefusal | null {
 
 export class ReaderError extends Error {
   readonly failure: ReaderFailure;
+  /** INC-1256 — the database's own code, where every reader of a database error looks for it. */
+  readonly code: string | undefined;
   constructor(failure: ReaderFailure) {
     super(failure.message);
     this.name = "ReaderError";
     this.failure = failure;
+    this.code = failure.code;
   }
 }
 

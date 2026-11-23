@@ -5,7 +5,13 @@ import { describe, expect, it, vi } from "vitest";
 const door = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: door.rpc }));
 
-import { createCategory, retireCategory, ROSTER_COLUMN_PRIORITIES } from "./categories-service";
+import { ReaderError } from "@/lib/reader-failure";
+import {
+  createCategory,
+  retireCategory,
+  ROSTER_COLUMN_PRIORITIES,
+  reactivateCategory,
+} from "./categories-service";
 
 describe("the categories doors' answers and arguments (F1-4a)", () => {
   it("CSD-1 a create answers the door's `{ ok: true, id }`; an answer without one is a failure, never a phantom id", async () => {
@@ -29,7 +35,7 @@ describe("the categories doors' answers and arguments (F1-4a)", () => {
     ).rejects.toThrow("admin_create_category answered without an id");
   });
 
-  it("CSD-2 a retire with nothing to move sends NULL; a refusal is thrown as the door's own error", async () => {
+  it("CSD-2 a retire with nothing to move sends NULL; a refusal is the door's own error, typed (INC-1256)", async () => {
     door.rpc.mockResolvedValueOnce({ data: { ok: true }, error: null });
     await retireCategory({ id: "c-1", reassignTo: null });
     expect(door.rpc).toHaveBeenLastCalledWith("admin_retire_category", {
@@ -38,7 +44,7 @@ describe("the categories doors' answers and arguments (F1-4a)", () => {
     });
     const refusal = { message: "reassignRequired", code: "P0D01", details: "", hint: "" };
     door.rpc.mockResolvedValueOnce({ data: null, error: refusal });
-    await expect(retireCategory({ id: "c-1", reassignTo: null })).rejects.toBe(refusal);
+    await expectTypedRefusal(retireCategory({ id: "c-1", reassignTo: null }), refusal);
   });
 });
 
@@ -73,5 +79,30 @@ describe("categories roster column contract", () => {
       listings: "detail",
       exclusions: "detail",
     });
+  });
+});
+
+/** INC-1256 — a refusal rejects as the typed failure, carrying the door's message and code. */
+async function expectTypedRefusal(
+  pending: Promise<unknown>,
+  refusal: { message: string; code: string },
+): Promise<void> {
+  const thrown: unknown = await pending.then(
+    () => null,
+    (error: unknown) => error,
+  );
+  expect(thrown).toBeInstanceOf(ReaderError);
+  expect(thrown).toMatchObject({
+    message: refusal.message,
+    code: refusal.code,
+    failure: { code: refusal.code },
+  });
+}
+
+describe("a failed door call is the typed failure (INC-1256)", () => {
+  it("RFT-U1 a failed reactivate rejects as a ReaderError with the database's code and message", async () => {
+    const raw = { message: "duplicate key", code: "23505", details: "d", hint: "h" };
+    door.rpc.mockResolvedValueOnce({ data: null, error: raw });
+    await expectTypedRefusal(reactivateCategory({ id: "c-1" }), raw);
   });
 });
