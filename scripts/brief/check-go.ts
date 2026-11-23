@@ -97,9 +97,14 @@ function check(file: string, root: string, tree: string): Finding[] {
   const ruling = RULING.exec(file);
   const brief = ruling === null ? file : `${ruling[1]}.md`;
   const rulings = rulingsOf(brief);
+  // INC-1260: the brief's SCOPE joined with every ruling's widening, judged from either side.
+  const joined = [
+    ...(ruling !== null && existsSync(brief) ? [readFileSync(brief, "utf8")] : []),
+    ...rulings.filter((r) => resolve(r.file) !== resolve(file)).map((r) => r.text),
+  ];
   const findings = [
     ...textFindings(text, file).filter((f) => ruling === null || f.law !== "CF-BRIEF-1"),
-    ...treeFindings(text, file, tree, root),
+    ...treeFindings(text, file, tree, root, joined),
   ];
 
   const allowlist = join(root, ALLOWLIST);
