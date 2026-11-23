@@ -1379,6 +1379,11 @@ function StyleFixture() {
           </Dialog>
         </Section>
 
+        {/* Filters stays the board's last section: DLG-E12 opens its panel from the window's middle. */}
+        <Section title={"Select lists"} testid="style-select-section">
+          <SelectSpecimens />
+        </Section>
+
         <Section title={"Filters"} testid="style-filters-section">
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {/* Bundle 11 V2 (INC-543) — each filter a row of pills, never a dropdown. */}
@@ -1407,10 +1412,6 @@ function StyleFixture() {
             <FiltersButton testid="style-filters-full" filters={fullFilters} />
             <FilterChips testid="style-filters-full-chips" filters={fullFilters} />
           </div>
-        </Section>
-
-        <Section title={"Select lists"} testid="style-select-section">
-          <SelectSpecimens />
         </Section>
       </div>
     </PageShell>
