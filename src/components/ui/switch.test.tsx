@@ -22,4 +22,21 @@ describe("the one switch", () => {
     ]);
     expect(thumb?.getAttribute("data-state")).toBe("checked");
   });
+
+  it("SW-U2 the press area is 44 px tall on touch and 36 px on a fine pointer, the track unchanged", () => {
+    render(<Switch aria-label="On" checked={false} onCheckedChange={() => {}} />);
+    const classes = screen.getByRole("switch", { name: "On" }).className.split(/\s+/);
+    // h-5 (20 px) track; -inset-y-3 adds 12 px each side (44), the fine pointer -inset-y-2 (36).
+    expect(classes).toEqual(
+      expect.arrayContaining([
+        "relative",
+        "h-5",
+        "w-9",
+        "after:absolute",
+        "after:-inset-y-3",
+        "pointer-fine:after:-inset-y-2",
+        "after:-inset-x-1",
+      ]),
+    );
+  });
 });
