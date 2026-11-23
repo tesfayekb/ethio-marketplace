@@ -1,13 +1,87 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45187492568
-- Commit: `adb10b7c35a4e21e3488acbd565a3d3daa388ec5`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45214184929
+- Commit: `67331d799763475cc5a3f914cf06d56429d25dbe`
 - Attempt: 1
-- Written (UTC): 2026-11-23T14:10:11.854Z
+- Written (UTC): 2026-11-23T16:54:04.821Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
+
+## First-paint bundle budget (gzipped ceiling) — failure
+
+### Evidence lines
+
+```text
+[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+dist/server/_ssr/admin.places-DP9tcWOL.mjs                       62.08 kB │ gzip:  14.97 kB
+dist/server/_libs/@radix-ui/react-dropdown-menu+[...].mjs        62.30 kB │ gzip:  12.42 kB
+dist/server/_ssr/admin.screening-K2QBd-Nw.mjs                    71.68 kB │ gzip:  16.90 kB
+dist/server/index.mjs                                            73.89 kB │ gzip:  16.59 kB
+dist/server/_libs/tanstack__query-core.mjs                       74.06 kB │ gzip:  15.48 kB
+dist/server/_libs/supabase__realtime-js+unenv.mjs                79.24 kB │ gzip:  20.28 kB
+dist/server/_ssr/admin.translations_._lang-U0bQLouJ.mjs          81.05 kB │ gzip:  18.13 kB
+dist/server/_libs/tailwind-merge.mjs                             85.65 kB │ gzip:  15.21 kB
+dist/server/_libs/@radix-ui/react-alert-dialog+[...].mjs         87.72 kB │ gzip:  20.52 kB
+dist/server/_ssr/listing-detail-CFuPY_7X.mjs                     90.37 kB │ gzip:  23.78 kB
+dist/server/_libs/date-fns.mjs                                  104.02 kB │ gzip:  18.42 kB
+dist/server/_ssr/attribute-dialogs-DDgl4zQ7.mjs                 104.63 kB │ gzip:  22.52 kB
+dist/server/_libs/supabase__postgrest-js.mjs                    105.44 kB │ gzip:  21.67 kB
+dist/server/_ssr/location-data-BfaHnh1v.mjs                     118.20 kB │ gzip:  37.17 kB
+dist/server/_libs/lucide-react.mjs                              118.45 kB │ gzip:  23.10 kB
+dist/server/_libs/@supabase/storage-js+[...].mjs                119.52 kB │ gzip:  22.35 kB
+dist/server/_ssr/admin.monetisation-D-U026KS.mjs                124.96 kB │ gzip:  26.77 kB
+dist/server/_ssr/en-admin-DmlDiGIF.mjs                          133.08 kB │ gzip:  30.08 kB
+dist/server/_libs/react-day-picker.mjs                          135.36 kB │ gzip:  26.50 kB
+dist/server/_ssr/admin.categories-DWxKBhnL.mjs                  137.70 kB │ gzip:  31.20 kB
+dist/server/_ssr/am-admin-CxlytSgs.mjs                          175.77 kB │ gzip:  36.71 kB
+dist/server/_libs/zod.mjs                                       185.47 kB │ gzip:  40.81 kB
+dist/server/_libs/leaflet.mjs                                   242.42 kB │ gzip:  54.53 kB
+dist/server/_libs/supabase__auth-js.mjs                         312.24 kB │ gzip:  62.80 kB
+dist/server/_libs/libphonenumber-js.mjs                         317.38 kB │ gzip:  62.73 kB
+dist/server/_ssr/wizard-CoF3YvbZ.mjs                            502.63 kB │ gzip: 129.80 kB
+dist/server/_ssr/router-CbhUDBVw.mjs                            506.22 kB │ gzip: 145.79 kB
+dist/server/_libs/@tanstack/react-router+[...].mjs              755.75 kB │ gzip: 160.39 kB
+
+[32m✓ built in 938ms[39m
+[info] [nitro] Using auto generated worker name: `tesfayekb-ethio-marketplace`
+[info] Generated [36mdist/server/wrangler.json[39m
+[info] Generated [36m.wrangler/deploy/config.json[39m
+[info] Generated [36mdist/client/_headers[39m
+[info] Generated [36mdist/nitro.json[39m
+[success] [nitro] You can preview this build using `npx vite preview`
+[success] [nitro] You can deploy this build using `npx nitro deploy --prebuilt`
+##[group]Run node scripts/check-bundle-size.mjs
+[36;1mnode scripts/check-bundle-size.mjs[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+Bundle budget: the first-paint closure of index-Cf_gl8D9.js no longer matches ENTRY_CLOSURE (scripts/route-budgets.mjs, DEC-362):
+  door-refused-key: 1 in the entry's closure, ENTRY_CLOSURE lists 0 (a chunk joined the first download, DEC-362)
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.1
+Temporarily overriding HOME='/home/runner/work/_temp/0b4ba9a5-d5e5-46e8-82cc-5c4aacd0b0d7' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -37,7 +111,7 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), INC-1175 STAGING-SINK label (the spliced capture's failure labelled, its sibling and the unspliced capture not), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (20/20 source(s) with usable results, 5 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (20/20 source(s) with usable results, 210 context file(s) found).
 Verdict class: TESTS (e2e-verdict-class.txt).
 publish-evidence: published docs/tracking/branches/cursor/bundle-5/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
@@ -65,7 +139,7 @@ publish-evidence: published docs/tracking/branches/cursor/bundle-5/e2e-last-fail
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-a579f106ddf3… (0 read)
+  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-3cb69b835305… (0 read)
   EVIDENCE_REF: cursor/bundle-5
 ##[endgroup]
 lanes=failure
@@ -74,7 +148,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/c9988629-a9e8-466a-84d1-e30f201d5c73' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/d190c5f2-11f1-42ff-943b-c3b139ce0346' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
