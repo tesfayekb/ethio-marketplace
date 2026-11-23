@@ -11,6 +11,7 @@ The first substantial frontend build. Every later page inherits from it.
   import carries the filter rows. Page-size options belong to the shell, with no feature re-export.
 - All listings and Screening share `SellerCell` and `useSellerFilter`; the row receives their held
   `profiles:view` permission and typed seller text is never kept.
+- A table's two dates are kept per account like its other filters and checked when read back (DEC-428).
 - `ClosedPrimary` accepts `busy`, not `disabled`. A new pin needs placement and an explicit show
   choice; its closed press reveals the missing answer. Saved pins keep their precision ungated.
 - Door-paged tables use the required `ServerTablePage` answer/navigation shape instead of local
@@ -641,9 +642,10 @@ passes the translated `dialog.moreBelow` cue label to the real body.
   squeezes a fixed-height clipped child in Chromium (the pin map fell to its border); and
   unless it is `relative`, a screen-reader-only label inside it is laid out against the
   frame, which then has hidden room below its footer and can be scrolled off its header.
-  The cue is a zero-height sticky anchor, the scroller's last child. While it shows, the
-  body keeps the cue's room as scroll padding, so what is brought into view stands clear
-  of it (WCAG 2.2, 2.4.11; INC-1254).
+  The hint is a zero-height sticky anchor, the scroller's last child: plain, aria-hidden,
+  pointer-transparent and 2rem tall, shown only while more lies below in a body at least
+  5rem tall. While it shows, the body keeps its room as scroll padding, leaving 3rem clear
+  (WCAG 2.2, 2.4.11; INC-1254); it has no button or press behavior.
 - A frame's last band carries the bottom inset: the footer does; a body with no footer
   says `end`. The toolbar panel says it on a phone only (its desktop form is a popover).
 - A change of a dialog's frame never changes its content's width: the buyer's preview

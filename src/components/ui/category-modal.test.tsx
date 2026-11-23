@@ -89,5 +89,5 @@ it("CMD-9 the thin body supplies the page's translated cue to the arriving imple
   Object.defineProperty(body, "scrollHeight", { configurable: true, value: 1000 });
   Object.defineProperty(body, "clientHeight", { configurable: true, value: 400 });
   fireEvent.scroll(body);
-  expect(screen.getByRole("button", { name: "dialog.moreBelow" })).toBeInTheDocument();
+  expect(screen.getByText("dialog.moreBelow")).toBeInTheDocument();
 });

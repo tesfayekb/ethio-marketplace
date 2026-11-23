@@ -1,4 +1,4 @@
-import { useTableFilters, filterValues } from "@/components/shell/table-filters";
+import { useTableFilters, filterValues, filterDates } from "@/components/shell/table-filters";
 import { CircleHelp } from "lucide-react";
 import { PanelSubject } from "@/components/ui/dialog-parts-facade";
 import { fill } from "@/features/posting/refusal-text";
@@ -132,8 +132,6 @@ export function AdminListingsPage() {
   const [view, setView] = useState<ListingView>("all");
   const [search, setSearch] = useState("");
   const [seller, setSeller] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
   const levels = useLevelRows({ looks: false });
   const [selected, setSelected] = useState<string[]>([]);
   const [move, setMove] = useState<Move>(null);
@@ -217,12 +215,7 @@ export function AdminListingsPage() {
         kind: "dates",
         id: "listings-filter",
         chipKey: "dates",
-        kept: false,
-        value: { from, to },
-        onChange: (next) => {
-          setFrom(next.from);
-          setTo(next.to);
-        },
+        kept: true,
         fromLabel: t("admin.listings.filter.from"),
         toLabel: t("admin.listings.filter.to"),
         maxDate: today,
@@ -233,6 +226,7 @@ export function AdminListingsPage() {
   const country = filterValues(tableFilters, "listings-filter-country");
   const category = filterValues(tableFilters, "listings-filter-category");
   const tier = filterValues(tableFilters, "listings-filter-tier")[0] ?? null;
+  const { from, to } = filterDates(tableFilters, "listings-filter");
   const query = useAdminListings(
     {
       view,

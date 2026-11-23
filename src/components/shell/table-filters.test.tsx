@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { describe, expect, expectTypeOf, it, vi } from "vitest";
 import {
   clearTableFilters,
+  filterDates,
   tableFilterChips,
   tableFilterState,
   useTableFilters,
@@ -9,6 +10,7 @@ import {
   type TableFilterDeclaration,
   type TableSelectDeclaration,
   type TableSelectFilter,
+  type TableDatesDeclaration,
 } from "./table-filters";
 import { tableViewTestShell } from "./table-view-test-shell";
 import { forgetTableViewsForTests } from "./table-view-store";
@@ -61,7 +63,7 @@ describe("one table filter declaration", () => {
     act(() => clearTableFilters(hook.result.current.filters));
     expect(hook.result.current.filters[0]?.value).toEqual([]);
   });
-  it("FP-U20 typed text and dates never enter the account-backed kept offer", () => {
+  it("FP-U20 typed text and unkept dates never enter the account-backed kept offer", () => {
     forgetTableViewsForTests();
     const filters: TableFilterDeclaration[] = [
       declaration(),
@@ -241,4 +243,92 @@ describe("one value per filter (INC-1251)", () => {
     hook.rerender({ offered: options.filter((option) => option.value !== "v1") });
     expect(hook.result.current.filters[0]?.value).toEqual(["v2"]);
   });
+});
+
+const datesDeclaration: TableDatesDeclaration = {
+  kind: "dates",
+  id: "made",
+  chipKey: "dates",
+  kept: true,
+  fromLabel: "From",
+  toLabel: "To",
+  maxDate: "2026-11-22",
+};
+function keptDates(table: string, pair: { from: string; to: string }) {
+  forgetTableViewsForTests();
+  localStorage.setItem(
+    `ethio:view:date-account:${table}`,
+    JSON.stringify({ v: 1, dates: { made: pair } }),
+  );
+  return renderHook(() => useTableFilters(table, [datesDeclaration]), {
+    wrapper: tableViewTestShell("date-account"),
+  });
+}
+it("FP-U46 a stored date after maxDate is dropped before the hook answers", () => {
+  const hook = keptDates("date-max", { from: "2026-11-01", to: "2026-11-23" });
+  expect(filterDates(hook.result.current.filters, "made")).toEqual({ from: "2026-11-01", to: "" });
+});
+it("FP-U47 a stored from after to is dropped whole", () => {
+  const hook = keptDates("date-order", { from: "2026-11-22", to: "2026-11-01" });
+  expect(filterDates(hook.result.current.filters, "made")).toEqual({ from: "", to: "" });
+});
+it("FP-U48 a kept pair lives only in the view, shared by both readers, with chips and one clear notification", () => {
+  forgetTableViewsForTests();
+  const shell = tableViewTestShell("date-shared");
+  const firstPage = vi.fn();
+  const one = renderHook(
+    () => useTableFilters("date-shared", [datesDeclaration], { onAnyChange: firstPage }),
+    { wrapper: shell },
+  );
+  const two = renderHook(() => useTableFilters("date-shared", [datesDeclaration]), {
+    wrapper: shell,
+  });
+  const date = one.result.current.filters[0];
+  if (date?.kind !== "dates") throw new Error("dates missing");
+  act(() => date.onChange({ from: "2026-11-01", to: "2026-11-22" }));
+  expect(filterDates(two.result.current.filters, "made")).toEqual({
+    from: "2026-11-01",
+    to: "2026-11-22",
+  });
+  expect(JSON.parse(localStorage.getItem("ethio:view:date-shared:date-shared") ?? "null")).toEqual({
+    v: 1,
+    hidden: [],
+    filters: {},
+    dates: { made: { from: "2026-11-01", to: "2026-11-22" } },
+  });
+  expect(tableFilterChips(one.result.current.filters)).toHaveLength(2);
+  act(() => tableFilterChips(one.result.current.filters)[0]?.onRemove());
+  expect(filterDates(two.result.current.filters, "made")).toEqual({ from: "", to: "2026-11-22" });
+  firstPage.mockClear();
+  act(() => clearTableFilters(one.result.current.filters));
+  expect(firstPage).toHaveBeenCalledTimes(1);
+  expect(filterDates(two.result.current.filters, "made")).toEqual({ from: "", to: "" });
+  expectTypeOf<Extract<TableDatesDeclaration, { kept: true }>>().not.toHaveProperty("value");
+  expectTypeOf<Extract<TableDatesDeclaration, { kept: true }>>().not.toHaveProperty("onChange");
+});
+it("FP-U49 the first read waits for the account's kept dates and never sends empty dates first", () => {
+  forgetTableViewsForTests();
+  localStorage.setItem(
+    "ethio:view:date-ready:date-ready",
+    JSON.stringify({ v: 1, dates: { made: { from: "2026-11-01", to: "2026-11-22" } } }),
+  );
+  const account: { id: string | undefined } = { id: undefined };
+  const reads = vi.fn();
+  const hook = renderHook(
+    () => {
+      const result = useTableFilters("date-ready", [datesDeclaration]);
+      if (result.ready) reads(filterDates(result.filters, "made"));
+      return result;
+    },
+    { wrapper: (props) => tableViewTestShell(account.id)(props) },
+  );
+  expect(hook.result.current.ready).toBe(false);
+  expect(reads).not.toHaveBeenCalled();
+  account.id = "date-ready";
+  hook.rerender();
+  expect(hook.result.current.ready).toBe(true);
+  expect(reads).toHaveBeenCalled();
+  expect(
+    reads.mock.calls.every(([pair]) => pair.from === "2026-11-01" && pair.to === "2026-11-22"),
+  ).toBe(true);
 });

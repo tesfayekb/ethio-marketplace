@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 import { useTableView } from "./table-view-store";
+import type { TableDatePair } from "./table-view-store";
+import { parseDay } from "./date-day";
 
 export interface TableFilterOption {
   value: string;
@@ -36,20 +38,27 @@ export interface TableTextFilter extends FilterBase {
   placeholder: string;
   kept: false;
 }
-export interface TableDatesFilter extends Omit<FilterBase, "name"> {
+interface DatesBase extends Omit<FilterBase, "name"> {
   kind: "dates";
-  value: { from: string; to: string };
-  onChange: (value: { from: string; to: string }) => void;
   fromLabel: string;
   toLabel: string;
   maxDate: string;
-  kept: false;
+}
+export type TableDatesDeclaration = DatesBase &
+  (
+    | { kept: true }
+    | { kept: false; value: TableDatePair; onChange: (value: TableDatePair) => void }
+  );
+export interface TableDatesFilter extends DatesBase {
+  kept: boolean;
+  value: TableDatePair;
+  onChange: (value: TableDatePair) => void;
 }
 export type TableFilterDeclaration =
   | TableSelectDeclaration
   | TableSwitchDeclaration
   | TableTextFilter
-  | TableDatesFilter;
+  | TableDatesDeclaration;
 
 /** What the hook answers: every filter with its one value, its setter and a silent clear. */
 interface Answered {
@@ -89,7 +98,7 @@ const has = (record: Readonly<Record<string, readonly string[]>>, id: string) =>
  * DEC-419/420, INC-1251: one declaration drives rows, chips, count, state, clearing and today's
  * offer. ONE PLACE A FILTER: a kept filter's value lives only in the kept view (signed out, in the
  * view's own memory); a select or switch that is not kept lives only in this hook's map. Nothing is
- * copied from one to the other. Text and dates stay the page's own (never kept, never stored).
+ * copied from one to the other. Text stays the page's own; kept dates live only in the view (DEC-428).
  */
 export function useTableFilters(
   tableId: string,
@@ -98,7 +107,7 @@ export function useTableFilters(
 ) {
   const offer = Object.fromEntries(
     declarations.flatMap((filter) => {
-      if (!filter.kept) return [];
+      if (!filter.kept || filter.kind === "dates") return [];
       return [[filter.id, filter.kind === "select" ? filter.options.map((o) => o.value) : ["on"]]];
     }),
   );
@@ -158,13 +167,31 @@ export function useTableFilters(
         clear: () => filter.onChange(""),
         changed,
       };
+    // DEC-428: check both stored sides before either the panel or a reader receives them.
+    const check = (pair: TableDatePair): TableDatePair => {
+      const side = (value: string) =>
+        parseDay(value) !== null && value <= filter.maxDate ? value : "";
+      const from = side(pair.from);
+      const to = side(pair.to);
+      return from !== "" && to !== "" && from > to ? { from: "", to: "" } : { from, to };
+    };
+    const source = filter.kept
+      ? ((view.dates && Object.prototype.hasOwnProperty.call(view.dates, filter.id)
+          ? view.dates[filter.id]
+          : undefined) ?? { from: "", to: "" })
+      : filter.value;
+    const set = (next: TableDatePair) => {
+      if (filter.kept) view.setDates(filter.id, check(next));
+      else filter.onChange(next);
+    };
     return {
       ...filter,
-      onChange: (next: { from: string; to: string }) => {
-        filter.onChange(next);
+      value: filter.kept ? check(source) : source,
+      onChange: (next: TableDatePair) => {
+        set(next);
         changed();
       },
-      clear: () => filter.onChange({ from: "", to: "" }),
+      clear: () => set({ from: "", to: "" }),
       changed,
     };
   });
@@ -184,6 +211,10 @@ export function filterValues(filters: readonly TableFilter[], id: string): reado
 export function filterOn(filters: readonly TableFilter[], id: string): boolean {
   const filter = filters.find((f) => f.id === id);
   return filter?.kind === "switch" && filter.value;
+}
+export function filterDates(filters: readonly TableFilter[], id: string): TableDatePair {
+  const filter = filters.find((f) => f.id === id);
+  return filter?.kind === "dates" ? filter.value : { from: "", to: "" };
 }
 
 /** Clear all empties every filter, then says "the first page" ONCE (ruling 1, decision 4). */

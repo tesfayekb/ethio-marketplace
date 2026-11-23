@@ -18,7 +18,7 @@ import {
   BANDS_INSET_Y,
   CLOSED_PRIMARY,
   CUE_ANCHOR,
-  CUE_BUTTON,
+  CUE_MIN_BODY_REM,
   CUE_ROOM,
   CUE_SPAN,
   CUE_WRAP,
@@ -103,11 +103,6 @@ export function PanelSubject({
   );
 }
 
-const reducedMotion = () =>
-  typeof window !== "undefined" &&
-  typeof window.matchMedia === "function" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
 /**
  * The body: the panel's only scroller, with the scroll cue while more lies below (DEC-418). ONE
  * element, a direct child of the panel, so it scrolls in every engine; its content keeps its own
@@ -139,7 +134,10 @@ export function PanelBody({
     const body = ref.current;
     if (body === null || fill) return;
     const judge = () => {
-      const next = body.scrollTop + body.clientHeight < body.scrollHeight - 4;
+      const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const next =
+        body.clientHeight >= CUE_MIN_BODY_REM * rem &&
+        body.scrollTop + body.clientHeight < body.scrollHeight - 4;
       setMore((prev) => (prev === next ? prev : next));
     };
     judge();
@@ -175,23 +173,10 @@ export function PanelBody({
     >
       <div className={cn(BANDS_FLOW, !flush && BANDS_INSET_Y, end && BANDS_END)}>{children}</div>
       {more ? (
-        <div className={cn(CUE_ANCHOR, !flush && CUE_SPAN)}>
+        <div aria-hidden="true" className={cn(CUE_ANCHOR, !flush && CUE_SPAN)}>
           <div data-scroll-cue="" className={CUE_WRAP}>
-            <button
-              type="button"
-              className={CUE_BUTTON}
-              onClick={() => {
-                const body = ref.current;
-                if (body === null) return;
-                body.scrollBy({
-                  top: Math.round(body.clientHeight * 0.85),
-                  behavior: reducedMotion() ? "auto" : "smooth",
-                });
-              }}
-            >
-              <ChevronDown aria-hidden="true" className="size-4" />
-              {cueLabel}
-            </button>
+            <ChevronDown aria-hidden="true" className="size-4" />
+            <span>{cueLabel}</span>
           </div>
         </div>
       ) : null}

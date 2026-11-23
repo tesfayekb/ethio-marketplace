@@ -1,4 +1,4 @@
-import { useTableFilters, filterValues } from "@/components/shell/table-filters";
+import { useTableFilters, filterValues, filterDates } from "@/components/shell/table-filters";
 import { History } from "lucide-react";
 import { useState } from "react";
 
@@ -99,8 +99,6 @@ function DayBars({
 export function AdminAuditPage() {
   const { t, language } = useI18n();
   const [search, setSearch] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const {
     ready: keptReady,
@@ -140,12 +138,7 @@ export function AdminAuditPage() {
         kind: "dates",
         id: "audit-filter",
         chipKey: "dates",
-        kept: false,
-        value: { from, to },
-        onChange: (next) => {
-          setFrom(next.from);
-          setTo(next.to);
-        },
+        kept: true,
         fromLabel: t("admin.audit.filter.from"),
         toLabel: t("admin.audit.filter.to"),
         maxDate: today,
@@ -155,6 +148,7 @@ export function AdminAuditPage() {
   );
   const action = filterValues(tableFilters, "audit-filter-action")[0] ?? "";
   const entityType = filterValues(tableFilters, "audit-filter-entity")[0] ?? "";
+  const { from, to } = filterDates(tableFilters, "audit-filter");
   const filters = {
     search,
     action: action === "" ? "all" : action,
