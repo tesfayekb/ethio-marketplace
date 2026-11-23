@@ -96,6 +96,34 @@ it("LSP-U5 a sibling opens on the landed click or key, not the preceding focus c
   expect(screen.getByTestId("first-list")).toBeInTheDocument();
 });
 
+it("LSP-U10 the limit note stays under the closed line once the limit is reached", () => {
+  function Capped() {
+    const [value, setValue] = useState<string[]>([]);
+    return (
+      <SelectList
+        id="cap"
+        testId="cap"
+        options={options.slice(0, 3)}
+        value={value}
+        onChange={setValue}
+        multiple
+        max={1}
+        maxLabel="Up to {n}"
+        placeholder="Choose"
+        searchLabel="Search"
+        noneLabel="None"
+      />
+    );
+  }
+  render(<Capped />);
+  expect(screen.queryByText("Up to 1")).toBeNull();
+  fireEvent.click(screen.getByTestId("cap"));
+  fireEvent.click(screen.getByTestId("cap-v0"));
+  fireEvent.keyDown(screen.getByTestId("cap"), { key: "Escape" });
+  expect(screen.queryByTestId("cap-list")).toBeNull();
+  expect(screen.getByText("Up to 1")).toBeInTheDocument();
+});
+
 // The existing choice assertions run after the intent-fetched module has arrived.
 beforeEach(async () => {
   await loadSelectList();

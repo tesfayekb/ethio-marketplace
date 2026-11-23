@@ -201,6 +201,9 @@ export function SelectList({
       }}
     >
       {renderControl === undefined ? trigger : renderControl(trigger)}
+      {multiple && value.length >= max && maxLabel ? (
+        <p className="mt-1 text-sm text-muted-foreground">{maxLabel.replace("{n}", String(max))}</p>
+      ) : null}
       {open ? (
         implementation === null ? (
           <div
@@ -227,7 +230,6 @@ export function SelectList({
             {...(allLabel === undefined ? {} : { allLabel })}
             {...(label === undefined ? {} : { label })}
             {...(labelId === undefined ? {} : { labelId })}
-            {...(maxLabel === undefined ? {} : { maxLabel })}
           />
         )
       ) : null}

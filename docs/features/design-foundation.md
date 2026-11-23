@@ -768,3 +768,7 @@ It reads the shared words once; loading and failure use the form's own words on 
 show search and use `FLOW_LIST_SCROLLER`, and Escape returns focus to the line. Only the form line
 shows an uncut count after the cut chosen names when several are chosen; Filters retain their chips
 and badge. The board's form includes one and several choices, with long and short lists.
+The closed line, its count and its limit note ride the page; the open list — the search box, the
+rows and the keys, `src/components/select-list-body.tsx` — is fetched on intent (hover, focus or
+press of the line) through `src/components/select-list-loader.ts`, and the Filters body starts that
+fetch as it mounts (register rows 48 and 52).

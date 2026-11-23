@@ -24,7 +24,6 @@ export type SelectListBodyProps = Pick<
   | "labelId"
   | "placeholder"
   | "testId"
-  | "maxLabel"
 > & {
   multiple: boolean;
   max: number;
@@ -53,7 +52,6 @@ export function SelectListBody({
   onClose,
   keysRef,
   rowRef,
-  maxLabel,
 }: SelectListBodyProps) {
   const [query, setQuery] = useState("");
   const searchable = options.length > SEARCH_FROM;
@@ -128,9 +126,6 @@ export function SelectListBody({
   }, [rowRef]);
   return (
     <>
-      {multiple && value.length >= max && maxLabel ? (
-        <p className="mt-1 text-sm text-muted-foreground">{maxLabel.replace("{n}", String(max))}</p>
-      ) : null}
       <div
         data-picker-popup=""
         data-placement="flow"
