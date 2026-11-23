@@ -226,7 +226,7 @@ export async function suggestCategoryIcon(input: {
  */
 export async function acceptCategoryImage(categoryId: string): Promise<string> {
   const { data, error } = await rpc("admin_accept_category_image", { p_id: categoryId });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   if (typeof data === "object" && data !== null && Reflect.get(data, "ok") === true) {
     const at: unknown = Reflect.get(data, "accepted_at");
     if (typeof at === "string" && at !== "") return at;

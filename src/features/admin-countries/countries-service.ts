@@ -1,3 +1,4 @@
+import { readFailed } from "@/lib/reader-failure";
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/supabase-door";
 
@@ -44,7 +45,7 @@ export interface CountryRow {
 
 export async function listCountries(): Promise<CountryRow[]> {
   const { data, error } = await supabase.rpc("admin_list_countries");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     code: row.code,
     nameEn: row.name_en,
@@ -78,7 +79,7 @@ export async function upsertCountry(input: UpsertCountryInput): Promise<void> {
     p_currency_code: input.currencyCode,
     p_display_order: input.displayOrder,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /**
@@ -97,7 +98,7 @@ export async function setCountryActive(input: {
     p_active: input.active,
     p_force_hide: input.forceHide === true,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /** An EMPTY id list resets the market to the global root order. */
@@ -109,7 +110,7 @@ export async function setCountryRootOrder(input: {
     p_code: input.code,
     p_category_ids: input.categoryIds,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /* -------------------------------- sieve ---------------------------------- */

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const door = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: door.rpc }));
 
+import { ReaderError } from "@/lib/reader-failure";
 import { setCountryActive, setCountryRootOrder, upsertCountry } from "./countries-service";
 
 describe("the markets doors' calls (F1-4b)", () => {
@@ -37,12 +38,12 @@ describe("the markets doors' calls (F1-4b)", () => {
     ]);
   });
 
-  it("KSV-2 a refusal is thrown as it arrived, for every write door", async () => {
+  it("KSV-2 a refusal is the door's own error, typed (INC-1256), for every write door", async () => {
     const refusal = { message: "scopedRolesExist", code: "P0D01", details: "", hint: "" };
     door.rpc.mockResolvedValue({ data: null, error: refusal });
-    await expect(setCountryActive({ code: "KE", active: false })).rejects.toBe(refusal);
-    await expect(setCountryRootOrder({ code: "KE", categoryIds: ["c-1"] })).rejects.toBe(refusal);
-    await expect(
+    await expectTypedRefusal(setCountryActive({ code: "KE", active: false }), refusal);
+    await expectTypedRefusal(setCountryRootOrder({ code: "KE", categoryIds: ["c-1"] }), refusal);
+    await expectTypedRefusal(
       upsertCountry({
         code: "KE",
         nameEn: "K",
@@ -50,6 +51,32 @@ describe("the markets doors' calls (F1-4b)", () => {
         currencyCode: null,
         displayOrder: 0,
       }),
-    ).rejects.toBe(refusal);
+      refusal,
+    );
+  });
+});
+
+/** INC-1256 — a refusal rejects as the typed failure, carrying the door's message and code. */
+async function expectTypedRefusal(
+  pending: Promise<unknown>,
+  refusal: { message: string; code: string },
+): Promise<void> {
+  const thrown: unknown = await pending.then(
+    () => null,
+    (error: unknown) => error,
+  );
+  expect(thrown).toBeInstanceOf(ReaderError);
+  expect(thrown).toMatchObject({
+    message: refusal.message,
+    code: refusal.code,
+    failure: { code: refusal.code },
+  });
+}
+
+describe("a failed door call is the typed failure (INC-1256)", () => {
+  it("RFT-U5 a failed activate rejects as a ReaderError with the database's code and message", async () => {
+    const raw = { message: "duplicate key", code: "23505", details: "d", hint: "h" };
+    door.rpc.mockResolvedValueOnce({ data: null, error: raw });
+    await expectTypedRefusal(setCountryActive({ code: "KE", active: true }), raw);
   });
 });

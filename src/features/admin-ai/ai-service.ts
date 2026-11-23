@@ -163,7 +163,7 @@ export function aiFeaturesOf(payload: unknown): AiFeatureRow[] {
 
 export async function listAiFeatures(): Promise<AiFeatureRow[]> {
   const { data, error } = await supabase.rpc("admin_ai_features");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return aiFeaturesOf(data);
 }
 
@@ -208,7 +208,7 @@ export function aiSpendDaysOf(payload: unknown): AiSpendDay[] {
 
 export async function listAiSpendDays(days: number = SPEND_DAYS): Promise<AiSpendDay[]> {
   const { data, error } = await supabase.rpc("admin_ai_spend_days", { p_days: days });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return aiSpendDaysOf(data);
 }
 
@@ -249,7 +249,7 @@ export async function setAiFeature(input: SetAiFeatureInput): Promise<void> {
     p_monthly_budget_cents: input.monthlyBudgetCents as number,
     p_unit_cost_microusd: input.unitCostMicrousd,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /* --------------------------------- money --------------------------------- */

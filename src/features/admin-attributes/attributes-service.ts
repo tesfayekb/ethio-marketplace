@@ -1,3 +1,4 @@
+import { readFailed } from "@/lib/reader-failure";
 import { compareCodes } from "@/lib/reader-locale";
 import { supabase } from "@/integrations/supabase/client";
 import { shapeCondition, type VisibleWhen } from "@/features/posting/visible-when";
@@ -311,7 +312,7 @@ export async function upsertAttribute(input: UpsertAttributeInput): Promise<stri
     p_preset: input.preset,
     p_max_length: input.maxLength,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return answeredId("admin_upsert_attribute", data);
 }
 
@@ -320,7 +321,7 @@ export async function deleteAttribute(input: { id: string; confirmKey: string })
     p_id: input.id,
     p_confirm_key: input.confirmKey,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export interface MergeCounts {
@@ -337,7 +338,7 @@ export async function mergeAttributes(input: {
     p_target: input.targetId,
     p_sources: input.sourceIds,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const counts = (data ?? {}) as Record<string, number>;
   return {
     moved: Number(counts.moved ?? 0),
@@ -438,7 +439,7 @@ export async function linkAttribute(input: {
     p_default_value: (input.defaultValue ?? null) as Json,
     p_visible_when: (input.visibleWhen ?? null) as Json,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return answeredId("admin_link_attribute", data);
 }
 
@@ -468,7 +469,7 @@ export async function updateAttributeLink(input: {
     p_visible_when: (input.visibleWhen ?? null) as Json,
     p_clear_cells: input.clearCells ?? null,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /** ES1 — listings holding an answer to the attribute (through one link when given). */
@@ -483,7 +484,7 @@ export async function readAttributeHolders(input: {
     ...(input.linkId === null ? {} : { p_link_id: input.linkId }),
     ...(input.value === undefined ? {} : { p_value: input.value }),
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   // Turn 7b item 4a — a null or non-numeric answer is a FAILED read, never zero.
   // Turn 8 item 3 — so is an empty or blank string (Number("") is 0).
   const raw: unknown = data;
@@ -501,7 +502,7 @@ export async function readAttributeHolders(input: {
 
 export async function unlinkAttribute(linkId: string): Promise<void> {
   const { error } = await rpc("admin_unlink_attribute", { p_link_id: linkId });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function setFactAttributes(input: {
@@ -512,7 +513,7 @@ export async function setFactAttributes(input: {
     p_category_id: input.categoryId,
     p_ordered_attribute_ids: input.orderedAttributeIds,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function setCardAttributes(input: {
@@ -523,7 +524,7 @@ export async function setCardAttributes(input: {
     p_category_id: input.categoryId,
     p_ordered_attribute_ids: input.orderedAttributeIds,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /**
@@ -556,7 +557,7 @@ export async function setAttributeLinkOrder(input: {
     p_category_id: input.categoryId,
     p_ordered_link_ids: input.orderedLinkIds,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 /* ---------------------- C3-UX-1c — used-by, by NAME ----------------------- */

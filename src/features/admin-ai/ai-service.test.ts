@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+const client = vi.hoisted(() => ({ rpc: vi.fn() }));
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: client.rpc } }));
+
+import { ReaderError } from "@/lib/reader-failure";
 import { readRefusal, refusalText } from "@/lib/refusal";
 
 import { AI_DOOR_REFUSALS, aiRefusalOf } from "./ai-refusals";
@@ -17,6 +21,7 @@ import {
   priceText,
   spendByDay,
   spendText,
+  setAiFeature,
   unitCostOf,
 } from "./ai-service";
 
@@ -271,5 +276,28 @@ describe("the AI console's seam (D158)", () => {
     expect(featureLabelKey("toString")).toBeNull();
     expect(featureLabelKey("constructor")).toBeNull();
     expect(featureLabelKey("background_removal")).toBe("admin.ai.feature.background_removal");
+  });
+});
+
+describe("a failed door call is the typed failure (INC-1256)", () => {
+  it("RFT-U6 a failed feature save rejects as a ReaderError with the database's code and message", async () => {
+    const raw = { message: "recent sign-in required", code: "P0009", details: "", hint: "" };
+    client.rpc.mockResolvedValueOnce({ data: null, error: raw });
+    const thrown: unknown = await setAiFeature({
+      feature: "f",
+      enabled: true,
+      monthlyBudgetCents: null,
+      unitCostMicrousd: 1,
+    }).then(
+      () => null,
+      (error: unknown) => error,
+    );
+    expect(thrown).toBeInstanceOf(ReaderError);
+    expect(thrown).toMatchObject({
+      message: raw.message,
+      code: "P0009",
+      failure: { code: "P0009" },
+    });
+    expect(readRefusal(thrown, AI_DOOR_REFUSALS).key).toBe("admin.ai.error.stepUp");
   });
 });

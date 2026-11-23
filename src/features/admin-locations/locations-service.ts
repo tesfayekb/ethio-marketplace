@@ -1,3 +1,4 @@
+import { readFailed } from "@/lib/reader-failure";
 import { compareCodes } from "@/lib/reader-locale";
 import { supabase } from "@/integrations/supabase/client";
 import { answeredId } from "@/lib/answered-id";
@@ -170,7 +171,7 @@ export async function upsertLocation(input: UpsertLocationInput): Promise<string
     p_center_lat: input.centerLat,
     p_center_lng: input.centerLng,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return answeredId("admin_upsert_location", data);
 }
 
@@ -179,7 +180,7 @@ export async function setLocationActive(input: { id: string; active: boolean }):
     p_id: input.id,
     p_active: input.active,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function moveLocation(input: { id: string; newParentId: string }): Promise<void> {
@@ -187,7 +188,7 @@ export async function moveLocation(input: { id: string; newParentId: string }): 
     p_id: input.id,
     p_new_parent_id: input.newParentId,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function reorderLocations(input: { parentId: string; ids: string[] }): Promise<void> {
@@ -195,7 +196,7 @@ export async function reorderLocations(input: { parentId: string; ids: string[] 
     p_parent_id: input.parentId,
     p_ids: input.ids,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export async function deleteLocation(input: { id: string; slug: string }): Promise<void> {
@@ -203,7 +204,7 @@ export async function deleteLocation(input: { id: string; slug: string }): Promi
     p_id: input.id,
     p_slug: input.slug,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 export interface CountryOption {
@@ -225,7 +226,7 @@ export async function listAllCountries(): Promise<CountryOption[]> {
     .select("code, name_en, is_active, display_order")
     .order("display_order")
     .order("code");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     code: row.code,
     nameEn: row.name_en,
