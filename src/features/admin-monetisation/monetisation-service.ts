@@ -1,4 +1,4 @@
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { rpc } from "@/lib/supabase-door";
 
 import {
@@ -54,7 +54,7 @@ export interface MonetisationConsole {
 /** The ONE read: the four tables in one round trip, as the console shows them. */
 export async function listMonetisation(): Promise<MonetisationConsole> {
   const { data, error } = await rpc("admin_list_monetisation");
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const answer = rowOf(data, "admin_list_monetisation");
   return {
     markets: readRows(answer, "markets", readMarket),

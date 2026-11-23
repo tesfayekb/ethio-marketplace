@@ -71,8 +71,11 @@ export const TABLE_CHROME = new Set([
   "src/components/shell/columns-button.tsx",
 ]);
 
-/** DEC-338 — a list filter: a control drawn inside one of these, or handed to one of these props. */
-const FILTER_HOSTS = new Set(["TableToolbar", "ToolbarPanel"]);
+/**
+ * DEC-338 — a list filter: a control drawn inside one of these, or handed to one of these props. `FilterRow`
+ * is the Filters panel's row (INC-1259, cursor-bundle-4): a switch drawn inside it is a list filter.
+ */
+const FILTER_HOSTS = new Set(["TableToolbar", "ToolbarPanel", "FilterRow"]);
 const FILTER_PROPS = new Set(["toolbar", "search", "filters"]);
 
 const MAPPER_NAME = /(?:ErrorKey|ErrorLine|RefusalKey)$|^use[A-Z]\w*(?:Error|Failure)$|^ErrorLine$/;

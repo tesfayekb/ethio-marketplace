@@ -1,4 +1,4 @@
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -252,7 +252,7 @@ export async function readMyListings(
     p_offset: offset,
     ...filterArgs(filters),
   });
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const page = parseMyListings(data);
   if (page === null)
     throw new ReaderError({ class: "malformed", message: "my_listings malformed" });

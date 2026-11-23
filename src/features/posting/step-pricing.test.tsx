@@ -1,8 +1,16 @@
 import { act, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { ReaderError } from "@/lib/reader-failure";
 import { StepPricing, type PricingValues } from "./step-pricing";
 import type { CategoryFacts } from "./types";
+
+/** INC-1257 — the hints the price step's currency chain reads, and the failure of the first. */
+const hints = vi.hoisted(() => ({
+  last: null as string | null,
+  lastFailure: null as Error | null,
+  home: null as string | null,
+}));
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
@@ -13,8 +21,11 @@ vi.mock("./pricing-data", async (original) => ({
   useSellerHome: () => ({ home: null }),
   useMarketCurrencies: () => ({ markets: [] }),
   readGuessCurrency: async () => "",
-  readSellerHome: async () => ({ countryCode: null, currencyCode: null }),
-  readLastListingCurrency: async () => null,
+  readSellerHome: async () => ({ countryCode: null, currencyCode: hints.home }),
+  readLastListingCurrency: async () => {
+    if (hints.lastFailure !== null) throw hints.lastFailure;
+    return hints.last;
+  },
 }));
 
 const FACTS: CategoryFacts = {
@@ -78,5 +89,36 @@ describe("StepPricing — the refusal still reaches its selects (turn S6-2)", ()
       expect(scale).toHaveClass(cls);
     for (const cls of ["shadow-xs", "bg-card", "md:pointer-fine:h-9"])
       expect(scale).not.toHaveClass(cls);
+  });
+});
+
+/**
+ * INC-1257 — a failed hint is no hint. The seller's last currency is a prefill: when its read
+ * fails the chain goes on to the next source, one line says why, and nothing blocks the step.
+ */
+describe("StepPricing — a failed last-currency read is no hint (INC-1257)", () => {
+  it("SPR-2 the failed read writes one line and the currency comes from the next source", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    hints.last = "USD";
+    hints.lastFailure = new ReaderError({ class: "server", status: 503, message: "Unavailable" });
+    hints.home = "ETB";
+    const onChange = vi.fn();
+    try {
+      await act(async () => {
+        render(<StepPricing facts={FACTS} values={VALUES} refusals={[]} onChange={onChange} />);
+      });
+      await vi.waitFor(() =>
+        expect(onChange).toHaveBeenCalledWith({ priceCurrency: "ETB" }, false),
+      );
+      expect(onChange).not.toHaveBeenCalledWith({ priceCurrency: "USD" }, false);
+      expect(
+        logged.mock.calls.filter(([line]) => String(line).startsWith("[client-error]")),
+      ).toEqual([["[client-error] last listing currency", "server"]]);
+    } finally {
+      logged.mockRestore();
+      hints.last = null;
+      hints.lastFailure = null;
+      hints.home = null;
+    }
   });
 });

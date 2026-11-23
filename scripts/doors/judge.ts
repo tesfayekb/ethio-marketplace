@@ -2,6 +2,7 @@ import { splitTopLevel, type DroppedGrant, type UnseenGrant } from "./catalogue"
 import { pattern } from "../lib/pattern";
 import { CONTEXT_CLASS, scopeModeOf, type Manifest, type ManifestLine } from "./manifest";
 import { OPEN_RULE_KINDS, openRuleFindings, type OpenRuleEvidence } from "./open-rules";
+import { STAFF_RULE_KINDS, staffRuleFindings, type StaffRuleEvidence } from "./staff-rules";
 import { browserCallable, type DoorRow } from "./rows";
 
 /**
@@ -59,7 +60,13 @@ import { browserCallable, type DoorRow } from "./rows";
  *                          `WITH CHECK (true)` policy with no line (or a line that differs), a
  *                          line whose policy is gone, an open policy built by dynamic SQL no
  *                          `(computed)` line names, and (live) a line whose grants are not the
- *                          catalogue's.
+ *                          catalogue's;
+ * - staff-rule-on-table / staff-rule-undeclared / staff-rule-gone
+ *                          the three kinds of scripts/doors/staff-rules.txt (staff-rules.ts,
+ *                          cursor-bundle-4, INC-1242): a standing role rule (a policy that calls
+ *                          `has_permission(`, `has_permission_scoped(` or `is_super_admin(`) on a
+ *                          table of schema public — which no line can declare —, one elsewhere with
+ *                          no line (or a line that differs), and a line whose policy is gone.
  *
  * A legacy body (no door_context yet) is judged by the old rule only; its line
  * is the promise its family's turn keeps (plan §5).
@@ -81,6 +88,7 @@ export const FINDING_KINDS = [
   "dial-shell-mismatch",
   "filter-off-helper",
   ...OPEN_RULE_KINDS,
+  ...STAFF_RULE_KINDS,
 ] as const;
 export type FindingKind = (typeof FINDING_KINDS)[number];
 
@@ -230,6 +238,8 @@ export type Evidence = {
   policies?: (policy: string, fn: string) => boolean;
   /** The standing open rules, their dynamic twins and their file (open-rules.ts). */
   openRules?: OpenRuleEvidence;
+  /** The standing role rules and their file (staff-rules.ts). */
+  staffRules?: StaffRuleEvidence;
 };
 
 /** A body's read of its caller: an `auth.` identity call or a `request.` setting. */
@@ -427,5 +437,6 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
         });
     }
   if (evidence.openRules !== undefined) found.push(...openRuleFindings(evidence.openRules));
+  if (evidence.staffRules !== undefined) found.push(...staffRuleFindings(evidence.staffRules));
   return found.sort((a, b) => a.kind.localeCompare(b.kind) || a.key.localeCompare(b.key));
 }

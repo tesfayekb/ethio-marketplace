@@ -8,25 +8,13 @@ const doors = vi.hoisted(() => ({
     error: { message: string; code?: string } | null;
   },
 }));
-/** DEC-422 — what the photos' table read answers with. */
-const table = vi.hoisted(() => ({
-  answer: { data: [] as unknown[] | null, error: null } as {
-    data: unknown[] | null;
-    error: { message: string } | null;
-  },
-}));
-
 vi.mock("@/integrations/supabase/client", () => {
-  const builder: Record<string, (...args: unknown[]) => unknown> = {};
-  for (const name of ["select", "eq"]) builder[name] = () => builder;
-  builder["order"] = () => Promise.resolve(table.answer);
   return {
     supabase: {
       rpc: (name: string, args: unknown) => {
         doors.calls.push([name, args]);
         return Promise.resolve(doors.answer);
       },
-      from: () => builder,
     },
   };
 });
@@ -425,9 +413,12 @@ describe("the queue's reader failures", () => {
     await expect(readScreeningFacts("l-1")).rejects.toMatchObject({
       failure: { class: "malformed" },
     });
-    table.answer = { data: null, error: { message: "boom" } };
-    await expect(listScreeningPhotos("l-1")).rejects.toBeInstanceOf(ReaderError);
-    table.answer = { data: [], error: null };
+    // INC-1242 — the photos are read through their door: a refusal is a typed failure of its class.
+    doors.answer = { data: null, error: { message: "permissionDenied" } };
+    await expect(listScreeningPhotos("l-1")).rejects.toMatchObject({
+      failure: { class: "refused", message: "permissionDenied" },
+    });
+    expect(doors.calls.at(-1)).toEqual(["admin_listing_photos", { p_listing_id: "l-1" }]);
   });
 });
 

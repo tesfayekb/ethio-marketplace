@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
+
 // The posting doors' transport is the route client (Foundations turn 14); the
 // tests mock IT, not fetch/XHR — the request bytes are route-client's own
 // contract (RCL-1…15). Assertions on RESULTS stay byte for byte.
@@ -331,9 +333,18 @@ describe("the owner's draft read (turn T1)", () => {
     try {
       tables.doorAnswer = { data: null, error: { message: "notYourListing", code: "P0D01" } };
       expect(await readDraft("psv-10")).toBeNull();
-      for (const message of ["notSignedIn", "accountDeactivated", "not your listing", "boom"]) {
+      // DEC-429 — the failure is typed and its class is read from the door's mark: the gate's two
+      // session codes are `auth`, a code-shaped head is `refused`, a sentence is `malformed`.
+      for (const [message, failureClass] of [
+        ["notSignedIn", "auth"],
+        ["accountDeactivated", "auth"],
+        ["not your listing", "malformed"],
+        ["boom", "refused"],
+      ] as const) {
         tables.doorAnswer = { data: null, error: { message, code: "P0D01" } };
-        await expect(readDraft("psv-10"), message).rejects.toThrow(message);
+        const thrown = await readDraft("psv-10").catch((caught: unknown) => caught);
+        expect(thrown, message).toBeInstanceOf(ReaderError);
+        expect(readerFailure(thrown), message).toMatchObject({ class: failureClass, message });
       }
     } finally {
       tables.rows = {};

@@ -21,6 +21,7 @@ import {
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
+import { readerFailure } from "@/lib/reader-failure";
 
 import {
   clearPin,
@@ -1054,7 +1055,15 @@ export function StepWhere({
         console.error("[seller-place] read failed", error);
         if (!cancelled) setSellerPlace(null);
       }
-      const found = saved ?? (await readLastListingPlaces(listingId));
+      // INC-1257 — a failed last-post read is no prefill: one line, the step is never held.
+      let found = saved;
+      if (found === null) {
+        try {
+          found = await readLastListingPlaces(listingId);
+        } catch (error) {
+          console.error("[client-error] last post places", readerFailure(error).class);
+        }
+      }
       if (!cancelled) setLast(found);
     })();
     return () => {

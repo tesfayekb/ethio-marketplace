@@ -19,6 +19,7 @@ import {
   type MyListingRow,
   type SoldWord,
 } from "./my-listings";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS, its history and its actions (D138;
@@ -86,7 +87,7 @@ export async function readMyListing(listingId: string): Promise<MyListing | "not
   if (error) {
     // F1-7a — the gate's code, cut at its first colon (the one reader's cut), not the old sentence.
     if (splitRefusal(error.message.trim()).key === "notYourListing") return "notYours";
-    throw new Error(error.message);
+    throw readFailed(error);
   }
   const parsed = parseMyListing(data);
   if (parsed === null) throw new Error("my_listing: malformed answer");
@@ -147,7 +148,7 @@ export function parseHistory(value: unknown): HistoryLine[] | null {
 
 export async function readHistory(listingId: string): Promise<HistoryLine[]> {
   const { data, error } = await supabase.rpc("listing_history", { p_listing_id: listingId });
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const lines = parseHistory(data);
   if (lines === null) throw new Error("listing_history: malformed answer");
   return lines;
@@ -171,7 +172,7 @@ export function parseListingCounts(value: unknown): ListingCounts | null {
 
 export async function readListingCounts(listingId: string): Promise<ListingCounts> {
   const { data, error } = await supabase.rpc("listing_counts", { p_listing_id: listingId });
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const counts = parseListingCounts(data);
   if (counts === null) throw new Error("listing_counts: malformed answer");
   return counts;

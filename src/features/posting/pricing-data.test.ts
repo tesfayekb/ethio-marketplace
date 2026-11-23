@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const calls: Array<{ table: string; eq: Array<[string, unknown]> }> = [];
 let sessionUser: string | null = "seller-1";
 let sessionFailed = false;
+let readError: { message: string; code?: string; status?: number } | null = null;
 
 function chain(table: string, row: unknown) {
   const record = { table, eq: [] as Array<[string, unknown]> };
@@ -19,7 +20,8 @@ function chain(table: string, row: unknown) {
     record.eq.push([column, value]);
     return builder;
   };
-  builder["maybeSingle"] = () => Promise.resolve({ data: row, error: null });
+  builder["maybeSingle"] = () =>
+    Promise.resolve({ data: readError === null ? row : null, error: readError });
   return builder;
 }
 
@@ -48,12 +50,14 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 const { readLastListingCurrency, readSellerHome } = await import("./pricing-data");
+const { ReaderError, readerFailure } = await import("@/lib/reader-failure");
 
 describe("INC-330 — the currency pre-fill reads only the signed-in seller's rows", () => {
   beforeEach(() => {
     calls.length = 0;
     sessionUser = "seller-1";
     sessionFailed = false;
+    readError = null;
   });
 
   it("filters the last listing by seller_id", async () => {
@@ -78,5 +82,19 @@ describe("INC-330 — the currency pre-fill reads only the signed-in seller's ro
     expect(await readLastListingCurrency()).toBe(null);
     expect(await readSellerHome()).toEqual({ countryCode: null, currencyCode: null });
     expect(calls).toHaveLength(0);
+  });
+
+  it("INC-1257 a failed last-currency read throws the typed failure, classed by the mark; nothing found is still null", async () => {
+    for (const [error, failureClass] of [
+      [{ message: "permissionDenied", code: "P0D01", status: 403 }, "refused"],
+      [{ message: "Unavailable", status: 503 }, "server"],
+    ] as const) {
+      readError = error;
+      const thrown = await readLastListingCurrency().catch((caught: unknown) => caught);
+      expect(thrown).toBeInstanceOf(ReaderError);
+      expect(readerFailure(thrown)).toMatchObject({ class: failureClass, message: error.message });
+    }
+    readError = null;
+    expect(await readLastListingCurrency()).toBe("USD");
   });
 });

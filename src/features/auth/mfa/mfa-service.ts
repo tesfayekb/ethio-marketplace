@@ -129,9 +129,22 @@ export const MFA_REFUSALS: RefusalFamily = {
     mfa_verified_factor_exists: "mfa.errorFactorExists",
     mfa_totp_enroll_not_enabled: "mfa.errorMethodOff",
     mfa_totp_verify_not_enabled: "mfa.errorMethodOff",
+    // Cursor bundle 4 (INC-1147, class 2): the clear of an unfinished setup that did not go through.
+    clearFailed: "mfa.errorClearFailed",
   },
   sentences: [[/invalid|expired|code/i, "mfa.errorInvalidCode"]],
   generic: "mfa.errorGeneric",
+};
+
+/**
+ * The words of the code a setup's own confirmation reads (cursor bundle 4, INC-1147 class 2): a newer
+ * start clears the pending setup, so the code the first screen then sends meets a factor that no longer
+ * exists, and says so in its own words. Only the confirmation reads this family: a step-up or a removal
+ * that meets a missing factor keeps the generic line.
+ */
+export const MFA_ENROLL_REFUSALS: RefusalFamily = {
+  ...MFA_REFUSALS,
+  words: { ...MFA_REFUSALS.words, mfa_factor_not_found: "mfa.errorSetupReplaced" },
 };
 
 /** The provider's error as the service reads it (auth-js `AuthError`, or none). */
@@ -149,14 +162,14 @@ function refusalOf(reason: string): MfaFailure {
  * happens to hold "code"); else the error is handed over whole (its message by the sentence, its
  * code by the provider words).
  */
-function failure(error: ProviderError): MfaFailure {
+function failure(error: ProviderError, family: RefusalFamily = MFA_REFUSALS): MfaFailure {
   const code = error?.code;
   const named =
-    code !== undefined && MFA_REFUSALS.words !== undefined
-      ? ownValue(MFA_REFUSALS.words, code) !== undefined
+    code !== undefined && family.words !== undefined
+      ? ownValue(family.words, code) !== undefined
       : false;
   const heard: unknown = named ? code : error;
-  const read = readRefusal(heard, MFA_REFUSALS);
+  const read = readRefusal(heard, family);
   const reason =
     named && code !== undefined ? code : read.branch === "sentence" ? "invalidCode" : "unknown";
   return { ok: false, errorKey: read.key, refusal: { field: CODE_FIELD, reason } };
@@ -241,20 +254,58 @@ export async function isStepUpFresh(): Promise<boolean> {
   return factors.ok && factors.factors.length > 0;
 }
 
-export async function listFactors(): Promise<{ ok: true; factors: MfaFactor[] } | MfaFailure> {
+/** One factor as the page draws it. */
+function factorOf(factor: { id: string; friendly_name?: string; created_at: string }): MfaFactor {
+  return {
+    id: factor.id,
+    friendlyName: factor.friendly_name ?? null,
+    createdAt: factor.created_at,
+  };
+}
+
+/**
+ * The account's authenticator apps, the verified ones and the unfinished ones apart (cursor bundle 4,
+ * INC-1147 class 2): `factors` are the verified TOTP factors, `pending` the TOTP factors the provider
+ * holds as unverified — a setup that was started and not finished, on this device or another. A read
+ * that failed is a failure, never an empty list.
+ */
+export async function listFactors(): Promise<
+  { ok: true; factors: MfaFactor[]; pending: MfaFactor[] } | MfaFailure
+> {
   const { data, error } = await supabase.auth.mfa.listFactors();
   if (error || !data) return refusalOf("unknown");
   return {
     ok: true,
-    factors: (data.totp ?? []).map((factor) => ({
-      id: factor.id,
-      friendlyName: factor.friendly_name ?? null,
-      createdAt: factor.created_at,
-    })),
+    factors: (data.totp ?? []).map(factorOf),
+    pending: (data.all ?? [])
+      .filter((factor) => factor.factor_type === "totp" && factor.status === "unverified")
+      .map(factorOf),
   };
 }
 
+/**
+ * Clear the unfinished setups of the account: each factor the SAME read gave as unverified and of the
+ * TOTP kind is unenrolled, and no other (a verified factor is never touched, and removing one still
+ * asks the second factor). A pending setup needs no second factor to go: it was never a factor of the
+ * account. A read or an unenrol that fails answers a failure and clears nothing further.
+ */
+export async function clearPendingFactors(): Promise<MfaOutcome> {
+  const read = await listFactors();
+  if (!read.ok) return read;
+  for (const factor of read.pending) {
+    const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+    if (error) return refusalOf("clearFailed");
+  }
+  return { ok: true };
+}
+
+/**
+ * Start a setup. The unfinished one is cleared first (a pending setup cannot be continued: the provider
+ * gives its secret once), so a second start always works; a clear that failed makes no enrolment.
+ */
 export async function enrollTotp(friendlyName: string): Promise<EnrollResult> {
+  const cleared = await clearPendingFactors();
+  if (!cleared.ok) return cleared;
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: "totp",
     friendlyName,
@@ -274,15 +325,19 @@ export async function enrollTotp(friendlyName: string): Promise<EnrollResult> {
  * enrollment and stepping an existing session up to aal2 — GoTrue treats them
  * identically, and a successful verify raises the session's AAL either way.
  */
-export async function verifyFactor(factorId: string, code: string): Promise<MfaOutcome> {
+export async function verifyFactor(
+  factorId: string,
+  code: string,
+  family: RefusalFamily = MFA_REFUSALS,
+): Promise<MfaOutcome> {
   const challenge = await supabase.auth.mfa.challenge({ factorId });
-  if (challenge.error || !challenge.data) return failure(challenge.error);
+  if (challenge.error || !challenge.data) return failure(challenge.error, family);
   const verify = await supabase.auth.mfa.verify({
     factorId,
     challengeId: challenge.data.id,
     code: code.trim(),
   });
-  if (verify.error) return failure(verify.error);
+  if (verify.error) return failure(verify.error, family);
   // L5: no hint is written — the refreshed token now carries the totp `amr`
   // entry that `isStepUpFresh` reads.
   return { ok: true };

@@ -31,6 +31,7 @@ import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
 import { ownValue } from "@/lib/own-key";
 import { numberFormatter } from "@/lib/format";
 import { numberOf, parseNumber } from "@/lib/parse-input";
+import { readerFailure } from "@/lib/reader-failure";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -242,7 +243,13 @@ export function StepPricing({
      * leave `resolvedRef` set and the seller with no currency at all.
      */
     void (async () => {
-      const last = await readLastListingCurrency();
+      // INC-1257 — a failed last-currency read is no hint: one line, the chain goes on.
+      let last: string | null = null;
+      try {
+        last = await readLastListingCurrency();
+      } catch (error) {
+        console.error("[client-error] last listing currency", readerFailure(error).class);
+      }
       if (last !== null) {
         onChange({ priceCurrency: last }, false);
         return;

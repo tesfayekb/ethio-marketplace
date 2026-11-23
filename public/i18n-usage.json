@@ -5063,6 +5063,12 @@
     "mfa.secretLabel": [
       "/settings"
     ],
+    "mfa.setupInProgress": [
+      "/settings"
+    ],
+    "mfa.startAgain": [
+      "/settings"
+    ],
     "mfa.statusOff": [
       "/settings"
     ],

@@ -4,3 +4,5 @@
 # The kit's grammar takes no turn name: a line a later turn removes is until INC-1189 and its reason names
 # that turn (ruling 2 of F1-7d, decision 3).
 src/lib/door-error.ts:22 | REASON_CODE keeps a plain-token detail joined to its code (tooManyPhotos:10, door-error.test.ts) while any other detail is cut (deleteHasDependents:a, b); splitRefusal and CODE_HEAD alone cannot tell the two, so the branch stays until the door codes carry their detail one way (INC-1220's rule) | INC-1189
+# CF-REFUSAL-3 (CFRR-5, DEC-429) — a thrown Error built from a message that is no database call's.
+src/lib/signed-in-route.ts:20 | the session read failed, not a database call: requireSignedIn says so in its own sentence for the route's error view (INC-914); the line moves to the typed failure with the raw rethrows of INC-1256 | INC-1256

@@ -5,18 +5,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 13 turn 10 — D154 B3 and B5, staff's reads.
  *
- * B3: which ads carry a photo the screen warned `not_relevant` about
- * (`listing_photo_warnings`, RLS: listings:view). B5: the photo changes sellers
- * made on live ads that no one has reviewed yet (`listing_photo_changes`, RLS:
- * listings:review), oldest first, and the door that marks one reviewed
+ * B3: which ads carry a photo the screen warned `not_relevant` about (the door
+ * `admin_warned_listings`: listings:view, the ads in the caller's countries).
+ * B5: the photo changes sellers made on live ads that no one has reviewed yet
+ * (the door `admin_photo_changes`: listings:review, the ads in the caller's
+ * countries), oldest first, and the door that marks one reviewed
  * (`admin_review_photo_change`, which re-checks listings:review and audits).
+ * INC-1242: both reads are doors; an answer out of shape is a `malformed`
+ * failure, never an empty list.
  */
 
-/** B5 — how many waiting changes one read shows (oldest first; the rest follow as these are reviewed). */
+/** B5 — how many waiting changes one read shows: the door `admin_photo_changes`' own limit (oldest first; the rest follow as these are reviewed). */
 export const PHOTO_CHANGES_LIMIT = 100;
 
 export type PhotoChangeKind = "added" | "edited" | "removed";
@@ -63,19 +67,28 @@ export function parsePhotoChange(raw: Record<string, unknown>): PhotoChange | nu
   };
 }
 
+function malformed(door: string): ReaderError {
+  return new ReaderError({ class: "malformed", message: `${door} malformed` });
+}
+
+/** The door's rows as plain objects, or null when the answer is not a list of them. */
+function rowsOf(data: unknown): Record<string, unknown>[] | null {
+  if (!Array.isArray(data)) return null;
+  const rows: Record<string, unknown>[] = [];
+  for (const item of data as unknown[]) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) return null;
+    rows.push(item as Record<string, unknown>);
+  }
+  return rows;
+}
+
 export async function listPhotoChanges(): Promise<PhotoChange[]> {
-  const { data, error } = await supabase
-    .from("listing_photo_changes")
-    .select("id,kind,photo_id,replaced_photo_id,codes,created_at,listing:listings(id,title,status)")
-    .is("reviewed_at", null)
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true })
-    .limit(PHOTO_CHANGES_LIMIT);
+  const { data, error } = await supabase.rpc("admin_photo_changes");
   // F4 — a failed read is an error, never an empty list.
-  if (error) throw new Error(error.message);
-  return (data ?? [])
-    .map((row) => parsePhotoChange(row as unknown as Record<string, unknown>))
-    .filter((row): row is PhotoChange => row !== null);
+  if (error) throw readFailed(error);
+  const rows = rowsOf(data);
+  if (rows === null) throw malformed("admin_photo_changes");
+  return rows.map((row) => parsePhotoChange(row)).filter((row): row is PhotoChange => row !== null);
 }
 
 export function usePhotoChanges(enabled: boolean) {
@@ -107,16 +120,19 @@ export function photoChangeErrorKey(refusal: unknown): MessageKey {
 /** B3 — of these ads, the ones holding a photo the screen warned `not_relevant` about. */
 export async function listWarnedListings(listingIds: readonly string[]): Promise<Set<string>> {
   if (listingIds.length === 0) return new Set();
-  const { data, error } = await supabase
-    .from("listing_photo_warnings")
-    .select("listing_id,codes")
-    .in("listing_id", [...listingIds]);
-  if (error) throw new Error(error.message);
-  return new Set(
-    (data ?? [])
-      .filter((row) => codesOf(row.codes).includes("not_relevant"))
-      .map((row) => row.listing_id),
-  );
+  const { data, error } = await supabase.rpc("admin_warned_listings", {
+    p_listing_ids: [...listingIds],
+  });
+  if (error) throw readFailed(error);
+  const rows = rowsOf(data);
+  if (rows === null) throw malformed("admin_warned_listings");
+  const warned = new Set<string>();
+  for (const row of rows) {
+    const id = row["listing_id"];
+    if (typeof id !== "string") throw malformed("admin_warned_listings");
+    if (codesOf(row["codes"]).includes("not_relevant")) warned.add(id);
+  }
+  return warned;
 }
 
 export function useWarnedListings(listingIds: readonly string[]) {

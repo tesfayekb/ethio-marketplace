@@ -5,7 +5,8 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: { rpc: (...args: unknown[]) => rpc(...args) },
 }));
 
-import { detailOf } from "./use-admin-listing";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { detailOf, readAdminListing, readAdminListingCertifications } from "./use-admin-listing";
 import { listAdminListings, type AdminListingFilters } from "./use-admin-listings";
 
 /**
@@ -59,5 +60,25 @@ describe("the staff readers' level (P-2 (b))", () => {
     });
     const { rows } = await listAdminListings(FILTERS);
     expect(rows.map((row) => row.tier)).toEqual(["featured", null]);
+  });
+});
+
+describe("the staff detail's reads fail as one typed failure (DEC-429)", () => {
+  it("ALV-3 a refused admin_listing_detail or admin_listing_certifications is a ReaderError classed by the mark, never an empty listing", async () => {
+    for (const read of [() => readAdminListing("l1"), () => readAdminListingCertifications("l1")]) {
+      for (const [error, failureClass] of [
+        [{ message: "permissionDenied", code: "P0D01", status: 403 }, "refused"],
+        [{ message: "notSignedIn", code: "P0D01", status: 401 }, "auth"],
+        [{ message: "listingNotFound", code: "P0D01", status: 400 }, "refused"],
+      ] as const) {
+        rpc.mockResolvedValueOnce({ data: null, error });
+        const thrown = await read().catch((caught: unknown) => caught);
+        expect(thrown).toBeInstanceOf(ReaderError);
+        expect(readerFailure(thrown), error.message).toMatchObject({
+          class: failureClass,
+          message: error.message,
+        });
+      }
+    }
   });
 });

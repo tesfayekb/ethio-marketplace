@@ -160,7 +160,7 @@ Each through `upstream()`; a timeout takes the branch a network error takes:
 
 ## Paged public readers and signed-in options (INC-862 T3, Foundations turn 7)
 
-The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), using `readerFailure` for raw or typed errors; `readFailed(error, status)` (reader-failure.ts) constructs the typed database failure. CF-RT-7 rejects local mapping/factory copies; CF-RT-6 recognises generic boundary calls. ANS-10 proves 503/500 without diagnostic text.
+The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), using `readerFailure` for raw or typed errors; `readFailed(error, status?)` (reader-failure.ts) is the one factory of the typed database failure for the client's readers and the routes alike: its class is read from the door mechanism's mark (DEC-429), the given status taken as the error's own. CF-RT-7 rejects local mapping/factory copies; CF-RT-6 recognises generic boundary calls. ANS-10 proves 503/500 without diagnostic text.
 
 | Route                         | Auth | Shape                                                                                     | Cache / success                                                                                                                        | Refusals                                                                              |
 | ----------------------------- | ---- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |

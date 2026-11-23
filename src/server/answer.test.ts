@@ -217,6 +217,18 @@ describe("the route answers (B2)", () => {
         [{ message: "permissionDenied", status: 403 }, 403, { error: "permissionDenied" }],
         [{ message: "rateLimited:60", status: 429 }, 429, { error: "rateLimited", detail: "60" }],
         [{ message: "badValue:field" }, 400, { error: "badValue", detail: "field" }],
+        // DEC-429 — a family code the client names nowhere is a refusal by its mark, at its status.
+        [{ message: "listingNotFound", code: "P0D01" }, 400, { error: "listingNotFound" }],
+        [
+          readFailed({ message: "badOption:price", code: "P0D01" }, 400),
+          400,
+          { error: "badOption", detail: "price" },
+        ],
+        [
+          readFailed({ message: "listingNotFound", code: "P0D01" }),
+          400,
+          { error: "listingNotFound" },
+        ],
       ];
       for (const [error, status, body] of refusals) {
         const response = readFailure("/api/test", "database read", error);
@@ -230,6 +242,7 @@ describe("the route answers (B2)", () => {
       // that only names a code are not refusals: a server error with its incident.
       for (const error of [
         readFailed({ message: "rateLimited" }, 500),
+        readFailed({ message: "listingNotFound", code: "P0D01" }, 500),
         { message: "JWT expired", status: 401 },
         { message: "the reader said rateLimited" },
       ]) {

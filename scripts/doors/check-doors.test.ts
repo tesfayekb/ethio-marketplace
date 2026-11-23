@@ -18,8 +18,11 @@ import {
   PLANTED_OPEN_LINES,
   PLANTED_POLICIES,
   PLANTED_PUBLIC_DATA_LINE,
+  PLANTED_PUBLIC_ROLE_FILES,
   PLANTED_READER_LINE,
+  PLANTED_ROLE_LINES,
   PLANTED_STEP_UPS,
+  PLANTED_STORAGE_FILES,
   READER_SHELL_BODY,
   allow,
   liveFindings,
@@ -29,6 +32,7 @@ import {
   plantedListBody,
   plantedOpenRules,
   plantedReaders,
+  plantedStaffRules,
   selfTest,
   staticFindings,
 } from "./check-doors";
@@ -36,7 +40,13 @@ import { columnsOf, declaredColumns } from "./columns";
 import { FINDING_KINDS, doorContextCall, judge, reasonPolicies } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
 import { liveGrants, openRuleFindings, parseOpenRules, type OpenRuleEvidence } from "./open-rules";
-import { declaredPolicyCalls, openRulesOf, policyCallsOf } from "./policies";
+import {
+  declaredPolicyCalls,
+  declaredRoleRules,
+  openRulesOf,
+  policyCallsOf,
+  roleRulesOf,
+} from "./policies";
 import {
   LIVE_OPEN_RULES_QUERY,
   LIVE_OPEN_RULES_QUERY_FILE,
@@ -49,11 +59,12 @@ import {
   treeCallers,
   type DoorRow,
 } from "./rows";
+import { parseStaffRules, staffRuleFindings } from "./staff-rules";
 import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
- * the eighteen finding kinds each fire on their planted bypass and a clean pair
+ * the finding kinds each fire on their planted bypass and a clean pair
  * fires nothing (DOORS-1); the manifest's grammar refuses what it must
  * (DOORS-2); the live reader answers the same rows the judge reads and refuses
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
@@ -580,7 +591,8 @@ describe("check-doors (CF-DOORS)", () => {
       // The tree: the two helper lines left after F1-7a hold by their policies.
       const tree = declaredPolicyCalls(ROOT);
       expect(tree("listings_public_read", "sold_cutoff")).toBe(true);
-      expect(tree("user_roles_read", "has_permission")).toBe(true);
+      expect(tree("category_assets_public_read", "has_permission")).toBe(true);
+      expect(tree("user_roles_read", "has_permission")).toBe(false);
       expect(tree("listings_public_read", "has_permission")).toBe(false);
     },
   );
@@ -867,6 +879,92 @@ describe("check-doors (CF-DOORS)", () => {
         parseManifest(PLANTED_LIST_LINE.replace("| badValue |", "| - |")),
       ).map((finding) => finding.kind),
     ).toEqual(["class-mismatch"]);
+  });
+
+  it(
+    "DOORS-19 the role rules: no policy of a table of schema public asks a role helper, and each one elsewhere stands on a line of staff-rules.txt (cursor-bundle-4, INC-1242)",
+    { timeout: TREE_READ_MS },
+    () => {
+      const file = parseStaffRules(
+        readFileSync(join(ROOT, "scripts", "doors", "staff-rules.txt"), "utf8"),
+      );
+      expect(file.errors).toEqual([]);
+      const standing = declaredRoleRules(ROOT);
+      // The census on the real tree: nothing but the category bucket's four rules stands, each declared.
+      expect(standing.map((rule) => `${rule.table} ${rule.policy} ${rule.command}`)).toEqual([
+        "storage.objects category_assets_assets_delete DELETE",
+        "storage.objects category_assets_assets_insert INSERT",
+        "storage.objects category_assets_assets_update UPDATE",
+        "storage.objects category_assets_public_read SELECT",
+      ]);
+      expect(
+        staffRuleFindings({ standing, file }).map((finding) => `${finding.kind} ${finding.key}`),
+      ).toEqual([]);
+      // Each line's reader is a file of the tree with that line in it.
+      for (const line of file.lines.values()) {
+        const text = readFileSync(join(ROOT, line.reader.file), "utf8").split("\n");
+        expect(
+          text[line.reader.line - 1] ?? "",
+          `${line.reader.file}:${String(line.reader.line)}`,
+        ).toMatch(/\bstorage\.(?:upload|list|remove)\(/);
+      }
+    },
+  );
+
+  it("DOORS-20 each kind of the role-rule check fires on its own planted case, and a public-table rule is allowed by no line (cursor-bundle-4, INC-1242)", () => {
+    // The reader: a rule of the storage schema, a policy that calls no helper, a dropped one.
+    expect(
+      roleRulesOf(PLANTED_STORAGE_FILES).map(
+        (rule) => `${rule.table} ${rule.policy} ${rule.command}`,
+      ),
+    ).toEqual(["storage.objects e2e_planted_obj INSERT"]);
+    const kindsOf = (files: typeof PLANTED_STORAGE_FILES, lines: string) =>
+      staffRuleFindings(plantedStaffRules(files, lines)).map(
+        (finding) => `${finding.kind} ${finding.key}`,
+      );
+    expect(kindsOf(PLANTED_STORAGE_FILES, PLANTED_ROLE_LINES)).toEqual([]);
+    expect(kindsOf(PLANTED_PUBLIC_ROLE_FILES, PLANTED_ROLE_LINES)).toEqual([
+      "staff-rule-on-table e2e_planted_s e2e_planted_staff",
+    ]);
+    expect(kindsOf(PLANTED_STORAGE_FILES, "")).toEqual([
+      "staff-rule-undeclared storage.objects e2e_planted_obj",
+    ]);
+    expect(
+      kindsOf(PLANTED_STORAGE_FILES, PLANTED_ROLE_LINES.replace("INSERT to", "UPDATE to")),
+    ).toEqual(["staff-rule-undeclared storage.objects e2e_planted_obj"]);
+    expect(
+      kindsOf(
+        PLANTED_STORAGE_FILES,
+        `${PLANTED_ROLE_LINES}\nstorage.objects e2e_planted_gone | SELECT to authenticated | reader src/planted.ts:2 | planted`,
+      ),
+    ).toEqual(["staff-rule-gone storage.objects e2e_planted_gone"]);
+    // A line cannot declare a public-table rule, and a malformed line is a finding, never a skipped rule.
+    for (const bad of [
+      "public.e2e_planted_s e2e_planted_staff | SELECT to authenticated | reader src/planted.ts:1 | r",
+      "e2e_planted_s e2e_planted_staff | SELECT to authenticated | reader src/planted.ts:1 | r",
+      "storage.objects e2e_planted_obj | INSERT to authenticated | src/planted.ts:1 | r",
+      "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts | r",
+      "storage.objects e2e_planted_obj | INSERT to authenticated,anon | reader src/planted.ts:1 | r",
+      "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts:1",
+    ])
+      expect(parseStaffRules(bad).errors, bad).toHaveLength(1);
+    // The allowlist cannot clear a rule on a public table: the finding stays, whatever line names it.
+    const dir = mkdtempSync(join(tmpdir(), "doors-staff-rules-"));
+    try {
+      const allowlist = join(dir, "allow.txt");
+      writeFileSync(
+        allowlist,
+        "staff-rule-on-table e2e_planted_s e2e_planted_staff | planted | 2999-01-01\n",
+      );
+      const findings = staffRuleFindings(
+        plantedStaffRules(PLANTED_PUBLIC_ROLE_FILES, PLANTED_ROLE_LINES),
+      );
+      expect(allow(findings, allowlist).map((finding) => finding.kind)).toEqual([
+        "staff-rule-on-table",
+      ]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it(

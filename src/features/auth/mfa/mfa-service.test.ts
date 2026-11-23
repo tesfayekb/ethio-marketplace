@@ -89,6 +89,8 @@ describe("the two-factor service's refusals (INC-1147 class 1)", () => {
   });
 
   it("MSV-3 every callee's refusal carries the code: enroll, challenge, verify and unenroll", async () => {
+    // A start reads the account's unfinished setups first (INC-1147 class 2): none here.
+    auth.mfa.listFactors.mockResolvedValue({ data: { all: [], totp: [] }, error: null });
     auth.mfa.enroll.mockResolvedValue({
       data: null,
       error: { message: "A factor with this name exists", code: "mfa_factor_name_conflict" },
@@ -146,5 +148,123 @@ describe("the two-factor service's refusals (INC-1147 class 1)", () => {
     for (const other of [new Error("boom"), "notSignedIn", { message: "x" }, null, undefined]) {
       expect(service.stepUpAbortKey(other)).toBeUndefined();
     }
+  });
+});
+
+describe("a setup the provider holds half-done (cursor bundle 4, INC-1147 class 2)", () => {
+  /** A factor as the provider lists it. */
+  const factor = (id: string, status: "verified" | "unverified", factor_type = "totp") => ({
+    id,
+    friendly_name: `name-${id}`,
+    factor_type,
+    status,
+    created_at: "2026-11-23T00:00:00Z",
+    updated_at: "2026-11-23T00:00:00Z",
+  });
+  const listed = (...all: ReturnType<typeof factor>[]) => ({
+    data: { all, totp: all.filter((f) => f.factor_type === "totp" && f.status === "verified") },
+    error: null,
+  });
+  const enrolled = {
+    data: { id: "new-1", totp: { qr_code: "qr", secret: "secret", uri: "uri" } },
+    error: null,
+  };
+
+  it("MSV-6 the list gives the verified factors and the unfinished ones apart, and a read that failed is a failure, never an empty list", async () => {
+    auth.mfa.listFactors.mockResolvedValue(
+      listed(
+        factor("v-1", "verified"),
+        factor("p-1", "unverified"),
+        factor("ph-1", "unverified", "phone"),
+      ),
+    );
+    const read = await service.listFactors();
+    if (!read.ok) throw new Error("the read was expected to answer");
+    expect(read.factors.map((f) => f.id)).toEqual(["v-1"]);
+    expect(read.pending.map((f) => f.id)).toEqual(["p-1"]);
+    auth.mfa.listFactors.mockResolvedValue({ data: null, error: { message: "down" } });
+    expect(await service.listFactors()).toEqual({
+      ok: false,
+      errorKey: "mfa.errorGeneric",
+      refusal: { field: "code", reason: "unknown" },
+    });
+  });
+
+  it("MSV-7 a start clears the unfinished setups first, only those the same read gave as unverified and of the TOTP kind, then enrols", async () => {
+    auth.mfa.listFactors.mockResolvedValue(
+      listed(
+        factor("v-1", "verified"),
+        factor("p-1", "unverified"),
+        factor("p-2", "unverified"),
+        factor("ph-1", "unverified", "phone"),
+      ),
+    );
+    auth.mfa.unenroll.mockResolvedValue({ data: {}, error: null });
+    auth.mfa.enroll.mockResolvedValue(enrolled);
+    const answer = await service.enrollTotp("Authenticator app");
+    expect(answer).toEqual({
+      ok: true,
+      factorId: "new-1",
+      qrCode: "qr",
+      secret: "secret",
+      uri: "uri",
+    });
+    expect(auth.mfa.unenroll.mock.calls).toEqual([[{ factorId: "p-1" }], [{ factorId: "p-2" }]]);
+    expect(auth.mfa.enroll).toHaveBeenCalledTimes(1);
+    expect(auth.mfa.unenroll.mock.invocationCallOrder.at(-1) ?? 0).toBeLessThan(
+      auth.mfa.enroll.mock.invocationCallOrder[0] ?? 0,
+    );
+    // Nothing unfinished: nothing cleared, the setup begins.
+    auth.mfa.unenroll.mockClear();
+    auth.mfa.listFactors.mockResolvedValue(listed(factor("v-1", "verified")));
+    expect((await service.enrollTotp("Authenticator app")).ok).toBe(true);
+    expect(auth.mfa.unenroll).not.toHaveBeenCalled();
+  });
+
+  it("MSV-8 a clear that fails shows its own words and makes no enrolment; a factor list that fails makes none either", async () => {
+    auth.mfa.listFactors.mockResolvedValue(
+      listed(factor("p-1", "unverified"), factor("p-2", "unverified")),
+    );
+    auth.mfa.unenroll.mockResolvedValue({
+      data: null,
+      error: { message: "gone wrong", code: "x" },
+    });
+    expect(await service.enrollTotp("Authenticator app")).toEqual({
+      ok: false,
+      errorKey: "mfa.errorClearFailed",
+      refusal: { field: "code", reason: "clearFailed" },
+    });
+    // The first failure ends the clear: the second setup is not asked either.
+    expect(auth.mfa.unenroll).toHaveBeenCalledTimes(1);
+    expect(auth.mfa.enroll).not.toHaveBeenCalled();
+    auth.mfa.unenroll.mockClear();
+    auth.mfa.listFactors.mockResolvedValue({ data: null, error: { message: "down" } });
+    expect(await service.enrollTotp("Authenticator app")).toEqual({
+      ok: false,
+      errorKey: "mfa.errorGeneric",
+      refusal: { field: "code", reason: "unknown" },
+    });
+    expect(auth.mfa.unenroll).not.toHaveBeenCalled();
+    expect(auth.mfa.enroll).not.toHaveBeenCalled();
+  });
+
+  it("MSV-9 the confirmation of a setup that a newer start replaced says so in its own words; any other step meeting a missing factor keeps the generic line", async () => {
+    auth.mfa.challenge.mockResolvedValue({
+      data: null,
+      error: { message: "MFA factor not found", code: "mfa_factor_not_found" },
+    });
+    const confirmed = await service.verifyFactor("p-1", "123456", service.MFA_ENROLL_REFUSALS);
+    expect(confirmed).toEqual({
+      ok: false,
+      errorKey: "mfa.errorSetupReplaced",
+      refusal: { field: "code", reason: "mfa_factor_not_found" },
+    });
+    const stepUp = await service.verifyFactor("p-1", "123456");
+    expect(stepUp).toEqual({
+      ok: false,
+      errorKey: "mfa.errorGeneric",
+      refusal: { field: "code", reason: "unknown" },
+    });
+    expect(auth.mfa.verify).not.toHaveBeenCalled();
   });
 });

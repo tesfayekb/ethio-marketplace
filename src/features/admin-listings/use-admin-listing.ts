@@ -5,6 +5,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { Refusal } from "@/features/posting/types";
 
 import { ADMIN_LISTINGS_KEY } from "./use-admin-listings";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — one listing for
@@ -176,7 +177,7 @@ export function detailOf(data: unknown): AdminListingDetail {
 export async function readAdminListing(listingId: string): Promise<AdminListingDetail> {
   const { data, error } = await supabase.rpc("admin_listing_detail", { p_listing_id: listingId });
   // F4 — a refusal is an error the page names, never an empty listing.
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   return detailOf(data);
 }
 
@@ -352,7 +353,7 @@ export async function readAdminListingCertifications(
     p_listing_id: listingId,
   });
   // F4 — a refusal is an error the page names, never an empty record.
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   return certificationsOf(data);
 }
 

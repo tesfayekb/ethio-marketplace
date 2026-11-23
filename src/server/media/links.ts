@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { gateRefusal, ReaderError, readFailed } from "@/lib/reader-failure";
 import { readLinks, type Partition } from "./storage";
 
 /**
@@ -11,10 +12,10 @@ import { readLinks, type Partition } from "./storage";
  * private (the operator's choice of 2026-10-13: links that expire, D151). A
  * reader therefore asks for links: the CALLER's own client reads the photo
  * rows first, so `listing_photos`' policies decide whose rows come back — the
- * seller's own (`listing_photos_seller_read`), staff who may view listings
- * (`listing_photos_admin_read`), and anyone for an active listing's stripped
- * photos, and a sold one's for 30 days after it sold (`listing_photos_public_read`,
- * bundle 16 turn 3c) — and only then does the service
+ * seller's own (`listing_photos_seller_read`) and anyone's for an active
+ * listing's stripped photos, and a sold one's for 30 days after it sold
+ * (`listing_photos_public_read`, bundle 16 turn 3c). Staff read the others through
+ * the door `admin_photo_link_rows` (INC-1242; below). Only then does the service
  * client sign the keys of the rows that came back. Nobody is shown a photo
  * they could not already read; only stripped rows are signed, as the
  * bucket's own public rule requires.
@@ -84,25 +85,74 @@ export function photoIdsOf(raw: unknown): string[] | null {
 }
 
 /**
+ * INC-1242 — THE STAFF'S ROWS, THROUGH THEIR DOOR. A staff member's own read of
+ * `listing_photos` no longer returns other people's photos (the staff rule is
+ * gone from the table); the ids the caller's read did not answer are asked once
+ * of `admin_photo_link_rows` as the caller (listings:view, the ads in the
+ * caller's countries). A gate refusal means the caller is not staff: those ids
+ * are absent, as they are for any photo the caller may not read, and nothing is
+ * logged as a route error. Any other failure is thrown for the route's 503; an
+ * answer out of shape is a `malformed` failure.
+ */
+async function readStaffLinkRows(
+  reader: SupabaseClient<Database>,
+  photoIds: readonly string[],
+): Promise<PhotoRowForLinks[]> {
+  const { data, error } = await reader.rpc("admin_photo_link_rows", {
+    p_photo_ids: [...photoIds],
+  });
+  if (error) {
+    if (gateRefusal(error) !== null) return [];
+    throw readFailed(error);
+  }
+  if (!Array.isArray(data)) {
+    throw new ReaderError({ class: "malformed", message: "admin_photo_link_rows malformed" });
+  }
+  const rows: PhotoRowForLinks[] = [];
+  for (const item of data as unknown[]) {
+    const row =
+      item !== null && typeof item === "object" ? (item as Record<string, unknown>) : null;
+    const stripped = row?.["exif_stripped"];
+    if (
+      row === null ||
+      typeof row["id"] !== "string" ||
+      (stripped !== null && typeof stripped !== "boolean")
+    ) {
+      throw new ReaderError({ class: "malformed", message: "admin_photo_link_rows malformed" });
+    }
+    rows.push({ id: row["id"], paths: row["paths"], exif_stripped: stripped });
+  }
+  return rows;
+}
+
+/**
  * DEC-195 (bundle 19 turn 27) — ONE READER-AND-SIGNER for every door that
  * hands out photo links: the rows are read as the CALLER's client (so
  * `listing_photos`' own policies decide what comes back), then signed by the
  * service client for PHOTO_LINK_SECONDS. Throws on a failed read or a failed
  * signature — each door turns that into its own refusal (the photo-links
- * route a 503; the feed an answer without `coverLinks`).
+ * route a 503; the feed an answer without `coverLinks`). A signed-in caller's
+ * route passes `staffDoor`: the ids its own read left out are then asked of the
+ * staff door (INC-1242); the feed never does.
  */
 export async function readAndSignPhotoLinks(
   reader: SupabaseClient<Database>,
   photoIds: readonly string[],
   variants: readonly string[] = READ_VARIANTS,
+  options: { staffDoor?: boolean } = {},
 ): Promise<Record<string, Record<string, string>>> {
   const { data: rows, error } = await reader
     .from("listing_photos")
     .select("id, paths, exif_stripped")
     .in("id", [...photoIds]);
-  if (error) throw new Error(`listing_photos read: ${error.message}`);
+  if (error) throw readFailed(error);
+  const own: PhotoRowForLinks[] = rows ?? [];
+  const answered = new Set(own.map((row) => row.id));
+  const left = photoIds.filter((id) => !answered.has(id));
+  const staff =
+    options.staffDoor === true && left.length > 0 ? await readStaffLinkRows(reader, left) : [];
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return signPhotoRows(supabaseAdmin, rows ?? [], variants);
+  return signPhotoRows(supabaseAdmin, [...own, ...staff], variants);
 }
 
 /**

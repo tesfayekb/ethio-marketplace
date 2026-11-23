@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { MessageKey } from "@/i18n";
 import { rpc } from "@/lib/supabase-door";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
 
@@ -117,7 +117,7 @@ export async function fetchNameQueue(after: NameQueueCursor | null): Promise<Nam
     ...(after ? { p_after_since: after.since, p_after_profile: after.profileId } : {}),
     p_limit: NAME_QUEUE_LIMIT,
   });
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   return nameQueuePageOf(data);
 }
 
@@ -235,7 +235,7 @@ export function jobLineOf(raw: unknown): JobLine {
 
 export async function fetchJobLine(): Promise<JobLine> {
   const { data, error } = await rpc("admin_job_health", { p_job: NAME_JOB });
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   return jobLineOf(data);
 }
 

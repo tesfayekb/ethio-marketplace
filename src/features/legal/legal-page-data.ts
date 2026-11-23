@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { parseLegalVersion, type PublicLegalVersion } from "./legal-reader";
 
 /**
@@ -38,7 +38,7 @@ export async function legalPageData(
   ]);
   if (performance.now() - started > 5000) console.error(`[slow-rpc] /${kind} legal_page`);
   for (const answer of [inForce, scheduled]) {
-    if (answer.error) throw new ReaderError(readerFailure(answer.error));
+    if (answer.error) throw readFailed(answer.error);
   }
   return {
     inForce: inForce.data == null ? null : parseLegalVersion(inForce.data, "legal_in_force"),

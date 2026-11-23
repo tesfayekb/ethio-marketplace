@@ -642,7 +642,9 @@ function SettingsScreen() {
           ) : null}
 
           {mfa.factors === null ? (
-            <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+            mfa.readFailed ? null : (
+              <p className="mt-3 text-sm text-muted-foreground">{t("common.loading")}</p>
+            )
           ) : (
             <p data-testid="mfa-status" className="mt-3 text-sm font-medium text-foreground">
               {mfa.factors.length > 0 ? t("mfa.statusOn") : t("mfa.statusOff")}
@@ -738,7 +740,32 @@ function SettingsScreen() {
             </div>
           ) : null}
 
-          {mfa.pending === null && (mfa.factors ?? []).length === 0 ? (
+          {/* INC-1147 class 2 — a setup the provider holds half-done (another tab, a reload) cannot be
+              continued: the card says so and offers Start again, which clears it before it begins. */}
+          {mfa.pending === null &&
+          mfa.factors !== null &&
+          mfa.factors.length === 0 &&
+          mfa.unfinished ? (
+            <div data-testid="mfa-unfinished" className="mt-4 flex flex-col gap-3">
+              <p role="status" className="text-sm text-foreground">
+                {t("mfa.setupInProgress")}
+              </p>
+              <button
+                type="button"
+                data-testid="mfa-start-again"
+                disabled={mfa.busy}
+                onClick={() => void mfa.startEnrollment(t("mfa.factorName"))}
+                className={primaryButtonClass}
+              >
+                {mfa.busy ? t("auth.working") : t("mfa.startAgain")}
+              </button>
+            </div>
+          ) : null}
+
+          {mfa.pending === null &&
+          mfa.factors !== null &&
+          mfa.factors.length === 0 &&
+          !mfa.unfinished ? (
             <button
               type="button"
               data-testid="mfa-enroll"

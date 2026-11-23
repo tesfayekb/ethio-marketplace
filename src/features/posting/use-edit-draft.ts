@@ -19,12 +19,14 @@ import {
 import {
   PHOTO_ROW_SELECT,
   photoRowOf,
+  readStaffPhotos,
   readDraft,
   type DraftPhotoRow,
   type PlanCaps,
 } from "./posting-service";
 import { TOTAL_STEPS, type Refusal, type SaveState } from "./types";
 import type { DraftPin, DraftValues, UseDraft } from "./use-draft";
+import { readerFailure, readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 17 turn 2 (D194) — THE EDIT IS THE WIZARD. This hook stands where
@@ -125,22 +127,28 @@ function stepOfPatch(patch: Partial<DraftValues>): number | null {
 
 /**
  * Staff read the ad through the console's own door (`admin_listing_detail`,
- * listings:view — use-admin-listing.ts) and the photos under their listings
- * policy; the door's refusal is thrown as it came and the hook says "failed".
+ * listings:view — use-admin-listing.ts) and the photos through `admin_listing_photos`
+ * (readStaffPhotos); a door's refusal is thrown as it came and the hook says "failed".
  */
 async function readForStaff(listingId: string) {
   const detail = await readAdminListing(listingId);
-  const { data: photos, error: photoError } = await supabase
+  return {
+    listing: detail.listing,
+    channels: detail.channels,
+    photos: await readStaffPhotos(listingId),
+  };
+}
+
+/** The photo grid's read after a change: the staff's door for staff, the owner's own rows otherwise. */
+async function readPhotosFor(listingId: string, actor: EditActor) {
+  if (actor === "admin") return readStaffPhotos(listingId);
+  const { data, error } = await supabase
     .from("listing_photos")
     .select(PHOTO_ROW_SELECT)
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
-  if (photoError) throw new Error(photoError.message);
-  return {
-    listing: detail.listing,
-    channels: detail.channels,
-    photos: (photos ?? []).map(photoRowOf),
-  };
+  if (error) throw readFailed(error);
+  return (data ?? []).map(photoRowOf);
 }
 
 export function useEditDraft(
@@ -316,20 +324,17 @@ export function useEditDraft(
     let cancelled = false;
     void (async () => {
       try {
-        const { data, error } = await supabase
-          .from("listing_photos")
-          .select(PHOTO_ROW_SELECT)
-          .eq("listing_id", listingId)
-          .order("display_order", { ascending: true });
-        if (!cancelled && !error) setPhotos((data ?? []).map(photoRowOf));
-      } catch {
-        // The grid keeps its rows; the next action refetches again.
+        const rows = await readPhotosFor(listingId, actor);
+        if (!cancelled) setPhotos(rows);
+      } catch (error) {
+        // INC-1257 — the grid keeps its rows (the last rows read); one line says why.
+        console.error("[client-error] photo reload", readerFailure(error).class);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [listingId, photoNonce]);
+  }, [listingId, photoNonce, actor]);
 
   const goTo = useCallback(
     (next: number) => {

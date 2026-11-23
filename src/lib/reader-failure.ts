@@ -34,18 +34,30 @@ export function refusalStatus(code: string): number {
 }
 
 /**
- * F1-7a (ruling 2, decision 11), F1-7c — A GATE REFUSAL IS READ BY ITS CODE
- * BEFORE ITS STATUS. A reader on `door_context` raises `door_refuse(code,
- * detail)` (SQLSTATE P0D01 under the door shell, `PGRST` under a reader; message
- * `code[:detail]`). The codes a reader on the gate can raise: the two gates say
- * the caller is not allowed in (`auth`); the readers' own codes say the request
- * was refused (`refused`), as their sentences did.
+ * DEC-429 — THE DATABASE HOLDS THE LIST OF REFUSAL CODES; THIS MODULE READS ITS MARK.
+ * `door_refuse(code, detail)` writes the code `P0D01` on every refusal it raises (its message
+ * `code[:detail]`, the code a camelCase word): as the body's `code` under a reader (SQLSTATE
+ * PGRST, answered at the status `door_refusal_status` gives it) and as the SQLSTATE otherwise.
+ * A failure is MARKED when its `code` is that mark and the head of its message has the shape
+ * `door_refuse` enforces; a marked failure is a refusal whatever code it carries, so a code the
+ * database raises needs no name here and the client holds no second copy of the list (and no
+ * page gains the list's chunk: this module does not import `src/lib/door-codes.ts`).
  *
- * The status must AGREE with the code (`refusalStatus`): a refusal that arrives
- * at 500 (or at any status its code does not carry) is not a refusal the
- * database answered, so the code does not decide — a 500 classes `server`. An
- * answer with no status (the browser's `rpc()` drops it) is read by its code.
+ * Read in this order: one of the two session codes → `auth`; MARKED, or named in
+ * `GATE_REFUSED_CODES` → `refused`; the lines below, as they were. The status must AGREE with
+ * the code (`refusalStatus`): a refusal that arrives at 500 (or at any status its code does not
+ * carry) is not a refusal the database answered, so the code does not decide — a marked failure
+ * at 500 classes `server`. An answer with no status (the browser's `rpc()` drops it) is read by
+ * its mark.
+ *
+ * The named sets below serve ONLY an answer that carries no code: one of our own routes'
+ * answers (`{ error: "rateLimited" }`, read by `callRoute`) and `stepUpRequired`, which keeps its
+ * own SQLSTATE (P0009). A name in them must be raised by the database; CF-REFUSAL-4
+ * (scripts/conformance/refusal-readers.test.ts) reads the mark and every code from the
+ * migrations' last declarations and fails when they differ.
  */
+const DOOR_MARK = "P0D01";
+const MARKED_HEAD = /^[a-z][A-Za-z]*$/;
 const GATE_AUTH_CODES = new Set(["notSignedIn", "accountDeactivated"]);
 const GATE_REFUSED_CODES = new Set([
   "notYourListing",
@@ -55,16 +67,12 @@ const GATE_REFUSED_CODES = new Set([
   "permissionDenied",
   "stepUpRequired",
   "rateLimited",
-  "acceptancePending",
-  "legalAcceptancePending",
   "notInForce",
 ]);
 /** The codes read as a refusal even when their status disagrees (below 500). */
 const FALLBACK_REFUSED_CODES = new Set([
   "rateLimited",
   "permissionDenied",
-  "acceptancePending",
-  "legalAcceptancePending",
   "stepUpRequired",
   "notInForce",
 ]);
@@ -74,13 +82,19 @@ function gateCodeOf(message: string): string {
   return splitRefusal(message.trim()).key;
 }
 
-export function readerFailure(error: unknown): ReaderFailure {
+/** The failure carries the door mechanism's mark and a code-shaped head (`door_refuse`'s own shape). */
+function isMarked(code: string | undefined, head: string): boolean {
+  return code === DOOR_MARK && MARKED_HEAD.test(head);
+}
+
+/** `status` is the error's own when it carries one; a status given by the caller replaces it. */
+function classify(error: unknown, given?: number): ReaderFailure {
   if (error instanceof ReaderError) return error.failure;
   const fields =
     error !== null && typeof error === "object"
       ? (error as { status?: unknown; code?: unknown })
       : {};
-  const status = typeof fields.status === "number" ? fields.status : undefined;
+  const status = given ?? (typeof fields.status === "number" ? fields.status : undefined);
   const code = typeof fields.code === "string" ? fields.code : undefined;
   const message = errorText(error);
   const gate = gateCodeOf(message);
@@ -88,7 +102,7 @@ export function readerFailure(error: unknown): ReaderFailure {
   const kind: ReaderFailure["class"] =
     agrees && GATE_AUTH_CODES.has(gate)
       ? "auth"
-      : agrees && GATE_REFUSED_CODES.has(gate)
+      : agrees && (isMarked(code, gate) || GATE_REFUSED_CODES.has(gate))
         ? "refused"
         : status === 401 ||
             status === 403 ||
@@ -111,6 +125,10 @@ export function readerFailure(error: unknown): ReaderFailure {
   };
 }
 
+export function readerFailure(error: unknown): ReaderFailure {
+  return classify(error);
+}
+
 /** A refusal's detail answered to a client: a short code-like tail, never a sentence. */
 export const REFUSAL_DETAIL = /^[A-Za-z0-9_.:+ -]{1,64}$/;
 
@@ -124,7 +142,8 @@ export type GateRefusal = { code: string; status: number; detail?: string };
 export function gateRefusal(error: unknown): GateRefusal | null {
   const failure = readerFailure(error);
   const { key, tail } = splitRefusal(failure.message.trim());
-  if (!GATE_AUTH_CODES.has(key) && !GATE_REFUSED_CODES.has(key)) return null;
+  if (!GATE_AUTH_CODES.has(key) && !GATE_REFUSED_CODES.has(key) && !isMarked(failure.code, key))
+    return null;
   const status = refusalStatus(key);
   if (failure.status !== undefined && failure.status !== status) return null;
   const detail = tail?.trim();
@@ -142,7 +161,12 @@ export class ReaderError extends Error {
   }
 }
 
-/** The one typed database-read failure factory. */
-export function readFailed(error: unknown, status: number): ReaderError {
-  return new ReaderError({ class: "server", status, message: errorText(error) });
+/**
+ * The one typed database-read failure factory (DEC-429). A `ReaderError` passes through; any
+ * other error is `readerFailure`'s reading of it — its class decided by the door mechanism's
+ * mark, never by the caller — with the given status taken as the error's own when one is given
+ * (a server route that knows the status its call answered at).
+ */
+export function readFailed(error: unknown, status?: number): ReaderError {
+  return error instanceof ReaderError ? error : new ReaderError(classify(error, status));
 }

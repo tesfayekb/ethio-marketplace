@@ -3,6 +3,7 @@ import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TreeNode } from "@/components/shell/location-data";
+import { ReaderError } from "@/lib/reader-failure";
 
 /**
  * W6 (R4/R5) — THE NESTED PLACE LAYOUT, as a component (DEC-026).
@@ -46,6 +47,8 @@ const TREES: Record<string, TreeNode[]> = {
 
 const lastPlaces = vi.hoisted(() => ({
   value: null as null | { country: string; itemId: string; placeIds: string[] },
+  /** INC-1257 — a failed last-post read: thrown in place of the places. */
+  failure: null as Error | null,
 }));
 
 vi.mock("@/components/shell/location-data", () => ({
@@ -80,7 +83,10 @@ vi.mock("@/i18n/entity", () => ({
 vi.mock("./posting-service", () => ({
   savePin: vi.fn(async () => true),
   clearPin: vi.fn(async () => true),
-  readLastListingPlaces: vi.fn(async () => lastPlaces.value),
+  readLastListingPlaces: vi.fn(async () => {
+    if (lastPlaces.failure !== null) throw lastPlaces.failure;
+    return lastPlaces.value;
+  }),
 }));
 
 const { StepWhere } = await import("./step-where");
@@ -110,6 +116,7 @@ function Harness({
 
 beforeEach(() => {
   lastPlaces.value = null;
+  lastPlaces.failure = null;
   vi.stubGlobal(
     "fetch",
     vi.fn(async () => new Response(JSON.stringify({}), { status: 200 })),
@@ -304,6 +311,25 @@ describe("StepWhere — the ad's places and the item tick (W6b-1)", () => {
     expect(screen.getByTestId("coverage")).toHaveTextContent(/^c3$/);
     expect(ticks()[0]!.checked).toBe(true);
     expect(primaryBox()).toHaveAttribute("data-empty", "0");
+  });
+
+  it("INC-1257 a failed last-post read is no prefill: one logged line, nothing ticked from it, the step is never held", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    lastPlaces.value = { country: "ET", itemId: "c3", placeIds: ["c3"] };
+    lastPlaces.failure = new ReaderError({ class: "server", status: 503, message: "Unavailable" });
+    try {
+      await mount();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(screen.getByTestId("coverage")).not.toHaveTextContent("c3");
+      expect(primaryBox()).toBeInTheDocument();
+      expect(
+        logged.mock.calls.filter(([line]) => String(line).startsWith("[client-error]")),
+      ).toEqual([["[client-error] last post places", "server"]]);
+    } finally {
+      logged.mockRestore();
+    }
   });
 });
 

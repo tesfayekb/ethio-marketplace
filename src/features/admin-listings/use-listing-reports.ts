@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 import { ADMIN_LISTINGS_KEY } from "./use-admin-listings";
+import { readFailed } from "@/lib/reader-failure";
 
 export function useOpenReportCounts(listingIds: readonly string[], enabled: boolean) {
   const ids = [...new Set(listingIds)].sort();
@@ -11,7 +12,7 @@ export function useOpenReportCounts(listingIds: readonly string[], enabled: bool
       const { data, error } = await supabase.rpc("admin_open_report_counts", {
         p_listing_ids: ids,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw readFailed(error);
       if (data === null || typeof data !== "object" || Array.isArray(data))
         throw new Error("invalid report counts");
       return new Map(
@@ -40,7 +41,7 @@ export function useListingReports(listingId: string, enabled: boolean) {
       const { data, error } = await supabase.rpc("admin_listing_reports", {
         p_listing_id: listingId,
       });
-      if (error) throw new Error(error.message);
+      if (error) throw readFailed(error);
       if (!Array.isArray(data)) throw new Error("invalid listing reports");
       return data.map((value) => {
         if (value === null || typeof value !== "object" || Array.isArray(value))

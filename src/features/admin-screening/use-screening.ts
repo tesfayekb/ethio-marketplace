@@ -3,17 +3,15 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { loadAttributeOptions, type AttrOption } from "@/features/posting/attribute-options";
 import {
-  PHOTO_ROW_SELECT,
-  photoReviewOf,
-  photoWarningsOf,
   readPostingSchema,
+  readStaffPhotos,
   type AttrDef,
   type DraftPhotoRow,
 } from "@/features/posting/posting-service";
 import { supabase } from "@/integrations/supabase/client";
 import { tierOf } from "@/components/marketplace/card-tier";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { SHARED_REFUSAL_WORDS } from "@/features/admin-listings/listing-refusals";
 
@@ -25,7 +23,8 @@ import { SHARED_REFUSAL_WORDS } from "@/features/admin-listings/listing-refusals
  * answers `{ total, rows }`, oldest change first by updated_at then id, one page
  * of the server's own offset; the title search (or an ad's id) and the filters
  * run in the door, so a row is found whatever page it sits on. The photos' read
- * is `listing_photos_admin_read` (listings:view, RLS, F3).
+ * is `admin_listing_photos` (listings:view, the ad in the caller's countries;
+ * posting-service.ts `readStaffPhotos`).
  */
 export const ADMIN_SCREENING_KEY = [AUTH_DERIVED_ROOT, "admin", "screening"] as const;
 export const SCREENING_PAGE_SIZE = 25;
@@ -198,7 +197,7 @@ export function screeningQueueArgs(
 /** One page of the queue through its door; a typed failure on a refusal or an answer out of shape (F4). */
 async function readQueue(args: ReturnType<typeof screeningQueueArgs>) {
   const { data, error } = await supabase.rpc("admin_screening_queue", args);
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const answer = parseScreeningQueue(data);
   if (answer === null) {
     throw new ReaderError({ class: "malformed", message: "admin_screening_queue malformed" });
@@ -255,27 +254,7 @@ export function useScreeningQueue(
 }
 
 export async function listScreeningPhotos(listingId: string): Promise<DraftPhotoRow[]> {
-  const { data, error } = await supabase
-    .from("listing_photos")
-    .select(PHOTO_ROW_SELECT)
-    .eq("listing_id", listingId)
-    .order("display_order", { ascending: true });
-  if (error) throw new ReaderError(readerFailure(error));
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    displayOrder: row.display_order,
-    paths:
-      row.paths !== null && typeof row.paths === "object"
-        ? (row.paths as Record<string, unknown>)
-        : null,
-    storagePath: row.storage_path,
-    // D158 — held while photo screening was off; approving the ad approves it.
-    unscreened: row.unscreened === true,
-    // D154 B3 — the screen's warnings: staff see the photo marked.
-    warnings: photoWarningsOf(row.warning),
-    // Bundle 16 turn 4b (D178) — why it is hidden, while no person has decided.
-    review: photoReviewOf(row.review),
-  }));
+  return readStaffPhotos(listingId);
 }
 
 export function useScreeningPhotos(listingId: string | null) {
@@ -353,7 +332,7 @@ export async function readScreeningFacts(listingId: string): Promise<ScreeningFa
   const { data, error } = await supabase.rpc("admin_screening_facts", {
     p_listing_id: listingId,
   });
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const facts = parseScreeningFacts(data);
   if (facts === null) {
     throw new ReaderError({ class: "malformed", message: "admin_screening_facts malformed" });

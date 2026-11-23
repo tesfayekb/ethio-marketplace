@@ -22,6 +22,7 @@ import {
   settingsErrorKey,
   type ListingPolicy,
 } from "./listing-policy";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 16 turn R2 (D174 3, D175 2; spec v2 §2) — ADMIN › LISTINGS › SETTINGS:
@@ -42,7 +43,7 @@ async function readPolicy(): Promise<ListingPolicy> {
     .from("listing_policy")
     .select("renew_allowed, renew_days")
     .maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const policy = parsePolicy(data);
   if (policy === null) throw new Error("listing_policy: malformed answer");
   return policy;

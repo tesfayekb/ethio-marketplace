@@ -8,7 +8,7 @@ The ads whose status is `screening`, oldest first (the order they were sent: `up
 
 ## Who may use it
 
-`listings:review` opens the section (DEC-163) and renders Approve and Reject. The queue's read also needs `listings:view` (RLS `listings_admin_read`, `listing_photos_admin_read`), so a role given review should hold view too. No role holds `listings:review` or `listings:enforce` today; a super admin passes `has_permission`. Granting them is the operator's choice in Admin › Roles.
+`listings:review` opens the section (DEC-163) and renders Approve and Reject. The queue's own read is the door `admin_screening_queue` (`listings:review`); its photos are read through `admin_listing_photos` and the photo-links route's staff rows through `admin_photo_link_rows` (`listings:view`, the ad in the caller's countries; cursor-bundle-4, INC-1242), so a role given review should hold view too. No role holds `listings:review` or `listings:enforce` today; a super admin passes `has_permission`. Granting them is the operator's choice in Admin › Roles.
 
 ## What Approve and Reject do
 
@@ -122,3 +122,15 @@ The operator (2026-10-16): the staff's Edit is the "same review page as the firs
 - Marking a photo change reviewed asks the second factor (`guard` + `stepUpAbortKey`): a
   cancelled prompt is silent, a missing factor says so.
 - Tests: SF-8, SF-9, PCH-7; e2e SC-4, SC-8, SC-9, SC-10, SC-16, SC-17, SC-19, SC-21, SC-23.
+
+## Reads through doors (cursor-bundle-4, INC-1242)
+
+The screen reads no table directly. A listing's photos with the screen's warning and review
+(`admin_listing_photos`), the open photo changes (`admin_photo_changes`), the open photo reviews
+(`admin_photo_reviews`), the ads that hold a warned photo (`admin_warned_listings`) and the rows the
+photo-links route signs for staff (`admin_photo_link_rows`) are `staff-reader` doors: caller,
+deactivation, the permission with its countries, no second factor, no dial. A refusal reads as a typed
+failure (`readFailed`, class `refused`), a malformed answer as `malformed`. A country grant reads its
+countries' ads; the review of a photo is read by a holder of `listings:review` for the ad's country. PSD-1…5
+(`photo-doors.test.ts`), SF-13, EW-9 and PLK-5…9 prove the readers and the route; the doors' proofs are in the
+two migrations of the bundle.

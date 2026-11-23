@@ -180,6 +180,11 @@ export const enMember = {
   "mfa.errorFactorExists":
     "This account already has an authenticator app. Remove it before adding another.",
   "mfa.errorMethodOff": "Two-factor codes are switched off for now. Please try again later.",
+  "mfa.setupInProgress": "A two-factor setup was started and not finished.",
+  "mfa.startAgain": "Start again",
+  "mfa.errorSetupReplaced":
+    "This setup was replaced by a newer one. Start again to get a new code.",
+  "mfa.errorClearFailed": "We couldn't clear the unfinished setup. Please try again.",
   "mfa.title": "Two-factor authentication",
   "mfa.description": "Add a one-time code from an authenticator app to protect sensitive actions.",
   "mfa.statusOn": "Two-factor authentication is on",
