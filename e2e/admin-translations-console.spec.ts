@@ -965,7 +965,6 @@ test.describe("U4b translations console", () => {
         await gotoReady(page, "/admin/translations");
         await expect(page.getByTestId("translations-add-picker")).toBeVisible({ timeout: 20000 });
         await page.getByTestId("translations-add-option").click();
-        await page.getByTestId("translations-add-option-search").fill("Swahili");
         await page.getByTestId(`translations-add-option-${code}`).click();
 
         await expect(page.getByTestId("translations-add-code")).toHaveValue(code);
