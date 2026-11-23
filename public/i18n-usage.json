@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 772,
+  "scanned": 773,
   "dynamicCallSites": 418,
   "keys": {
     "account.deactivatedBanner": [
@@ -2928,13 +2928,7 @@
     "admin.noSections.title": [
       "/admin"
     ],
-    "admin.overview.error": [
-      "/admin/locations"
-    ],
     "admin.overview.links": [
-      "/admin/locations"
-    ],
-    "admin.overview.loading": [
       "/admin/locations"
     ],
     "admin.overview.locations.body": [
@@ -3724,7 +3718,7 @@
     "admin.translations.order.up": [
       "/admin/translations"
     ],
-    "admin.translations.orphaned.chip": [
+    "admin.translations.orphaned.label": [
       "/admin/translations/$lang"
     ],
     "admin.translations.orphaned.note": [

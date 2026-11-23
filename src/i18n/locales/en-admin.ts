@@ -69,8 +69,6 @@ export const enAdmin = {
   "admin.comingSoon": "Not built yet",
   "admin.overview.locations.title": "Locations",
   "admin.overview.locations.body": "Markets, places and seller coverage at a glance.",
-  "admin.overview.loading": "Loading location totals…",
-  "admin.overview.error": "The location overview could not be loaded.",
   "admin.overview.stats": "Location totals",
   "admin.overview.links": "Location sections",
   "admin.overview.markets": "Markets",
@@ -801,7 +799,7 @@ export const enAdmin = {
   "admin.translations.order.note":
     "This order drives the public language switcher; the base language stays first.",
   "admin.translations.order.saved": "Order saved.",
-  "admin.translations.orphaned.chip": "Orphaned · {count}",
+  "admin.translations.orphaned.label": "Orphaned",
   "admin.translations.orphaned.note":
     "These keys are no longer in the app catalog; they are excluded from coverage and never shipped.",
   "admin.categories.title": "Categories",

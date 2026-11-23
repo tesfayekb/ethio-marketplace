@@ -56,9 +56,6 @@ export function LocationsOverview() {
     };
   }, [places.data]);
 
-  const loading = countries.isLoading || places.isLoading;
-  const error = countries.error ?? places.error;
-
   return (
     <div data-testid="admin-overview-locations" className="min-w-0 space-y-6">
       <div>
@@ -67,15 +64,6 @@ export function LocationsOverview() {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("admin.overview.locations.body")}</p>
       </div>
-
-      {loading ? (
-        <p className="text-sm text-muted-foreground">{t("admin.overview.loading")}</p>
-      ) : null}
-      {error ? (
-        <p role="alert" className="text-sm text-destructive">
-          {t("admin.overview.error")}
-        </p>
-      ) : null}
 
       <section
         className="grid grid-cols-1 gap-3 sm:grid-cols-2"

@@ -57,6 +57,7 @@ import {
   useTranslationStats,
   TRANSLATION_ROWS_KEY,
 } from "./use-translations";
+import { countedLabel } from "./counted-label";
 import { ownValue } from "@/lib/own-key";
 
 interface MutationAction {
@@ -150,9 +151,9 @@ export function AdminTranslationsStringsPage({
    */
 
   const langStats = (stats.data ?? [])[0];
-  // INC-1144: a count is drawn only from a read that answered.
+  // INC-1144: a count is drawn only from a read that answered (counted-label.ts).
   const counted = (label: string, count: number | undefined) =>
-    stats.isSuccess ? `${label} · ${count ?? 0}` : label;
+    countedLabel(label, count, stats.isSuccess);
   const counts: Record<string, number> = {
     all: langStats?.total ?? 0,
     untranslated: langStats?.untranslated ?? 0,
@@ -187,10 +188,7 @@ export function AdminTranslationsStringsPage({
           })),
           {
             value: "orphaned",
-            label: t("admin.translations.orphaned.chip").replace(
-              "{count}",
-              String(counts["orphaned"] ?? 0),
-            ),
+            label: counted(t("admin.translations.orphaned.label"), counts["orphaned"]),
           },
         ],
       },

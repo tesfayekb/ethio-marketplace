@@ -76,7 +76,7 @@ export function StatCard({
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="touch"
             data-testid={`${testid}-retry`}
             onClick={onRetry}
           >

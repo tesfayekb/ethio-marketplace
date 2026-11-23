@@ -38,6 +38,7 @@ import {
   useSaveEntityTranslation,
   ENTITY_ROWS_KEY,
 } from "./use-translations";
+import { countedLabel } from "./counted-label";
 import { ownValue } from "@/lib/own-key";
 import { useFollowingDraft } from "@/lib/use-following-draft";
 import { useSettling } from "@/lib/use-settling";
@@ -111,9 +112,9 @@ export function DataScope({
    */
   const stats = useEntityTranslationStats(lang);
   const langStats = pickEntityStats(stats.data, lang);
-  // INC-1144: a count is drawn only from a read that answered.
+  // INC-1144: a count is drawn only from a read that answered (counted-label.ts).
   const counted = (label: string, count: number | undefined) =>
-    stats.isSuccess ? `${label} · ${count ?? 0}` : label;
+    countedLabel(label, count, stats.isSuccess);
   const chipCounts: Record<string, number> = {
     all: langStats?.total ?? 0,
     untranslated: langStats?.untranslated ?? 0,
