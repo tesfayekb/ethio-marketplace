@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `71077f3871daae9b99a0bf98f4fbee8e8398aee0`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45154868271
+- Commit: `701957d63f0ae25fee414e4ec17fb82d1569fe45`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45171123972
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 543 | 67 | applied 552/552 | 38 | 0 | 0 | 16 | 54 |
-| email | 246 | 64 | applied 552/552 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 966 | 86 | applied 552/552 | 80 | 0 | 0 | 24 | 104 |
-| 1 | 560 | 71 | applied 552/552 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 521 | 65 | applied 552/552 | 169 | 0 | 0 | 21 | 190 |
-| 3 | 715 | 88 | applied 552/552 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 724 | 66 | applied 552/552 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 779 | 68 | applied 552/552 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 618 | 81 | applied 552/552 | 159 | 0 | 0 | 41 | 200 |
-| 7 | 535 | 65 | applied 552/552 | 149 | 0 | 0 | 77 | 226 |
-| 8 | 599 | 65 | applied 552/552 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 598 | 67 | applied 552/552 | 129 | 0 | 0 | 1 | 130 |
-| 10 | 591 | 66 | applied 552/552 | 176 | 0 | 0 | 2 | 178 |
-| 11 | 655 | 86 | applied 552/552 | 122 | 0 | 0 | 8 | 130 |
-| 12 | 692 | 67 | applied 552/552 | 163 | 0 | 0 | 18 | 181 |
-| 13 | 590 | 78 | applied 552/552 | 156 | 0 | 0 | 8 | 164 |
-| 14 | 539 | 68 | applied 552/552 | 187 | 0 | 0 | 3 | 190 |
-| 15 | 686 | 88 | applied 552/552 | 128 | 0 | 0 | 6 | 134 |
-| 16 | 546 | 69 | applied 552/552 | 172 | 0 | 0 | 48 | 220 |
+| smoke | 483 | 69 | applied 552/552 | 38 | 0 | 0 | 16 | 54 |
+| email | 270 | 67 | applied 552/552 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 1549 | 67 | applied 552/552 | 80 | 0 | 0 | 24 | 104 |
+| 1 | 629 | 66 | applied 552/552 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 556 | 69 | applied 552/552 | 169 | 0 | 0 | 21 | 190 |
+| 3 | 637 | 73 | applied 552/552 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 679 | 87 | applied 552/552 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 734 | 64 | applied 552/552 | 93 | 0 | 0 | 1 | 94 |
+| 6 | 537 | 66 | applied 552/552 | 159 | 0 | 0 | 41 | 200 |
+| 7 | 684 | 67 | applied 552/552 | 149 | 0 | 0 | 77 | 226 |
+| 8 | 736 | 66 | applied 552/552 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 631 | 66 | applied 552/552 | 129 | 0 | 0 | 1 | 130 |
+| 10 | 696 | 65 | applied 552/552 | 176 | 0 | 0 | 2 | 178 |
+| 11 | 839 | 65 | applied 552/552 | 121 | 0 | 1 | 8 | 130 |
+| 12 | 554 | 66 | applied 552/552 | 163 | 0 | 0 | 18 | 181 |
+| 13 | 590 | 64 | applied 552/552 | 156 | 0 | 0 | 8 | 164 |
+| 14 | 582 | 68 | applied 552/552 | 187 | 0 | 0 | 3 | 190 |
+| 15 | 1041 | 66 | applied 552/552 | 128 | 0 | 0 | 6 | 134 |
+| 16 | 601 | 73 | applied 552/552 | 171 | 1 | 0 | 48 | 220 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2600 | 0 | 0 | 360 | 2960 |
+| TOTAL | — | — | — | 2598 | 1 | 1 | 360 | 2960 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: webkit 966 s
+- Slowest lane: webkit 1549 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 7, email 7, webkit 11, 1 8, 2 7, 3 12, 4 7, 5 8, 6 10, 7 7, 8 7, 9 7, 10 7, 11 11, 12 7, 13 10, 14 7, 15 11, 16 8, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/360, 2 641/327, 3 641/511, 4 640/344, 5 640/377, 6 641/422, 7 641/324, 8 641/332, 9 641/380, 10 643/358, 11 640/452, 12 641/349, 13 640/387, 14 641/337, 15 641/472, 16 641/366
+- Database session samples during each start (INC-944): smoke 8, email 7, webkit 7, 1 7, 2 8, 3 9, 4 11, 5 7, 6 7, 7 7, 8 7, 9 7, 10 7, 11 7, 12 7, 13 7, 14 7, 15 7, 16 9, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/334, 2 641/363, 3 641/432, 4 640/474, 5 640/371, 6 641/342, 7 641/328, 8 641/343, 9 641/385, 10 643/353, 11 640/370, 12 641/355, 13 640/304, 14 641/322, 15 641/393, 16 641/404
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45154868271-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 45154868271-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45154868271-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45154868271-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 45154868271-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 45154868271-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 45154868271-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 45154868271-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45154868271-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 45154868271-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 45154868271-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 45154868271-local-9
-  - 10: [e2e:teardown] deleted 7 user(s) owned by process 45154868271-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45154868271-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45154868271-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 45154868271-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 45154868271-local-14
-  - 15: [e2e:teardown] deleted 49 user(s) owned by process 45154868271-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 45154868271-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45171123972-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 45171123972-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45171123972-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45171123972-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 45171123972-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 45171123972-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 45171123972-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 45171123972-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45171123972-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 45171123972-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 45171123972-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 45171123972-local-9
+  - 10: [e2e:teardown] deleted 7 user(s) owned by process 45171123972-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45171123972-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45171123972-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 45171123972-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 45171123972-local-14
+  - 15: [e2e:teardown] deleted 49 user(s) owned by process 45171123972-local-15
+  - 16: [e2e:teardown] deleted 24 user(s) owned by process 45171123972-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -77,5 +77,14 @@ Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
+
+## Lane 11
+- post-wizard-place.spec.ts / POSTING WIZARD / PW-30 review and buyer preview render option labels, units, multi-values and booleans / mobile-360 — Error: expect(locator).toBeVisible() failed
+
+## Lane 16
+- Step failure:
+Step smoke: outcome failure
+  
+- admin-users.spec.ts / U1 admin users / AU-3 detail: reason required, deactivate, audit row, reactivate / desktop-1280 — Error: expect(locator).toHaveText(expected) failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
