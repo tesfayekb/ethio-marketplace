@@ -6,18 +6,16 @@ import { pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 
 import { expectPicturesFit } from "./helpers/pictures";
-import { enrolVerifiedTotp } from "./helpers/staff-factor";
-import { totp, totpStep, wrongCode } from "./helpers/totp";
+import { totp, wrongCode } from "./helpers/totp";
 import {
   expectAal2,
   gotoReady,
   isMobile,
   signInJobSuperAdmin,
-  signInViaSession,
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, createUser, grantRole, leaseUser } from "./helpers/users";
+import { adminClient, createUser, grantRole } from "./helpers/users";
 
 /**
  * U1f — STEP-UP AUTHENTICATION (MF-1..MF-5).
@@ -533,52 +531,4 @@ test.describe("INC-1147 a two-factor setup that survives a reload", () => {
       });
     },
   );
-});
-
-/**
- * DEC-434 (cursor bundle 5, part 4) — A STAFF SCREEN OPENS ONLY FOR A STAFF ACCOUNT WITH A SECOND
- * FACTOR, IN A SESSION THAT USED IT. The gate (src/features/auth/mfa/staff-factor-gate.tsx) sits in the
- * admin layout; nothing of a staff screen is drawn before it says ready. The server half (the staff
- * classes of `door_context` refusing a session below aal2) is a later bundle (DEC-438): these two prove
- * the screen's half, with the account and its session made in node.
- */
-test.describe("the staff second-factor gate", () => {
-  test("STAFF-E1: a staff account with no factor that opens /admin meets the setup and no staff screen", async ({
-    page,
-  }) => {
-    const staff = await leaseUser();
-    await grantRole(staff.id, "admin");
-    await signInViaSession(page, staff.email, staff.password);
-    await page.goto("/admin");
-    await waitForHydration(page);
-    await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("admin-factor-setup-link")).toBeVisible();
-    // Nothing of a staff screen: neither the section cards nor a section's body.
-    await expect(page.getByTestId("admin-nav-cards")).toHaveCount(0);
-    await gotoReady(page, "/admin/users");
-    await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("users-search")).toHaveCount(0);
-  });
-
-  test("STAFF-E2: a staff account with a factor whose session has not used it is asked for its code before /admin draws", async ({
-    page,
-  }) => {
-    const staff = await leaseUser();
-    await grantRole(staff.id, "admin");
-    const { secret, step } = await enrolVerifiedTotp(staff.email, staff.password);
-    // The browser signs in at the first level: the account has a factor, the session has not used it.
-    await signInViaSession(page, staff.email, staff.password);
-    await page.goto("/admin");
-    await waitForHydration(page);
-    await expect(page.getByTestId("admin-factor-code-panel")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("admin-nav-cards")).toHaveCount(0);
-    await expect(page.getByTestId("admin-factor-setup")).toHaveCount(0);
-
-    // A factor accepts each code once: the first code the gate is given comes from a later step.
-    await expect.poll(() => totpStep(), { timeout: 40000 }).toBeGreaterThan(step);
-    await page.getByTestId("admin-factor-code").fill(totp(secret));
-    await page.getByTestId("admin-factor-submit").click();
-    await expect(page.getByTestId("admin-nav-cards")).toBeVisible({ timeout: 20000 });
-    await expect(page.getByTestId("admin-factor-code-panel")).toHaveCount(0);
-  });
 });

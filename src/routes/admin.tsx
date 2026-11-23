@@ -2,9 +2,8 @@ import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { useShell } from "@/components/shell-context";
 import { sectionAt } from "@/components/shell/admin-nav-layer";
 import { AdminShellProvider } from "@/features/admin/admin-shell-provider";
@@ -12,25 +11,7 @@ import { ADMIN_NAV_LAYER } from "@/features/admin/nav-layer";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
-import { resilientLazy } from "@/lib/resilient-lazy";
 import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
-
-/**
- * DEC-434 — the second-factor gate (src/features/auth/mfa/staff-factor-gate.tsx) is fetched once the
- * permission read says the person is staff, so no member page and no other first download carries it.
- * A download that fails says so in place of every staff screen, with its one cure, Refresh (fail
- * closed: the screens never draw without the check).
- */
-function StaffFactorUnreachable() {
-  return <LoadFailedHere testid="admin-factor-read-failed" refreshTestid="admin-factor-refresh" />;
-}
-
-const StaffFactorGate = resilientLazy(
-  () => import("@/features/auth/mfa/staff-factor-gate").then((module) => module.StaffFactorGate),
-  "the staff screens' two-factor check",
-  StaffFactorUnreachable,
-  { inPlace: true },
-);
 
 /**
  * The admin LAYOUT (Phase U0). This route file IS the admin chunk: it is the
@@ -65,19 +46,6 @@ export const Route = createFileRoute("/admin")({
   staticData: { strings: ["admin", "member"], adminNav: true },
   component: AdminGate,
 });
-
-function AdminChecking() {
-  const { t } = useI18n();
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="flex min-h-40 items-center justify-center text-sm text-muted-foreground"
-    >
-      {t("admin.loading")}
-    </div>
-  );
-}
 
 function AdminGate() {
   const { t } = useI18n();
@@ -126,18 +94,24 @@ function AdminGate() {
   }, [section, sectionAllowed]);
 
   // No flash of sections while the permission read settles.
-  if (pending || signedOut || !allowed || !sectionAllowed) return <AdminChecking />;
+  if (pending || signedOut || !allowed || !sectionAllowed) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex min-h-40 items-center justify-center text-sm text-muted-foreground"
+      >
+        {t("admin.loading")}
+      </div>
+    );
+  }
 
   return (
     <AdminShellProvider permissions={permissions} accessDenied={accessDenied}>
       {/* U0b (INC-069): section navigation lives in the SHELL rail/drawer like
           every sibling panel — this route renders only the section body. */}
       <div data-testid="admin-panel-root" className="min-w-0">
-        <Suspense fallback={<AdminChecking />}>
-          <StaffFactorGate>
-            <Outlet />
-          </StaffFactorGate>
-        </Suspense>
+        <Outlet />
       </div>
     </AdminShellProvider>
   );
