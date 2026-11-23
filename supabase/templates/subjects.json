@@ -1,0 +1,8 @@
+{
+  "password_changed": "Your ethio.com password was changed · የ ethio.com የይለፍ ቃልዎ ተቀይሯል",
+  "email_changed": "Your ethio.com email address was changed · የ ethio.com ኢሜይል አድራሻዎ ተቀይሯል",
+  "identity_linked": "A sign-in method was added to your ethio.com account · ወደ ethio.com አካውንትዎ የመግቢያ መንገድ ታክሏል",
+  "identity_unlinked": "A sign-in method was removed from your ethio.com account · ከ ethio.com አካውንትዎ የመግቢያ መንገድ ተወግዷል",
+  "mfa_factor_enrolled": "Two-factor authentication was turned on for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ በርቷል",
+  "mfa_factor_unenrolled": "Two-factor authentication was turned off for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ ጠፍቷል"
+}

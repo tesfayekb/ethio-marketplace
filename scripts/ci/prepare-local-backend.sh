@@ -149,5 +149,8 @@ SELECT c.id, 'sub_city', c.country_code, 'Bole', 'bole', true, c.region_id, c.id
   FROM public.locations c WHERE c.level = 'city' AND c.slug = 'addis-ababa';
 SQL
 fixture 20260929201600 "the sub-city Bole under Addis Ababa"
+# DEC-437: the account-change notices' bodies (the config's notification content_path is relative to the working copy's supabase/ folder).
+mkdir -p "$root/supabase/templates"
+cp supabase/templates/*.html "$root/supabase/templates/"
 # DEC-309: the config is one file, read here and by the backend-images job (its hash is in the images' cache key).
 cp scripts/ci/local-backend-config.toml "$root/supabase/config.toml"

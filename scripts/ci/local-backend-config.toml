@@ -43,11 +43,48 @@ jwt_expiry = 3600
 enable_refresh_token_rotation = true
 enable_signup = true
 minimum_password_length = 8
+# DEC-435 — the browser links and unlinks no sign-in method; the setting is written out so the
+# temporary backend refuses what the hosted projects refuse.
+enable_manual_linking = false
 
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = true
+
+# DEC-437 — the account-change notices (bundle 5): six kinds on, `phone_changed` stays off. Subjects are
+# supabase/templates/subjects.json's, the bodies supabase/templates/<kind>.html — no variables, no links;
+# prepare-local-backend.sh copies the folder beside this file. content_path is relative to the working
+# copy's supabase/ folder.
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Your ethio.com password was changed · የ ethio.com የይለፍ ቃልዎ ተቀይሯል"
+content_path = "templates/password_changed.html"
+
+[auth.email.notification.email_changed]
+enabled = true
+subject = "Your ethio.com email address was changed · የ ethio.com ኢሜይል አድራሻዎ ተቀይሯል"
+content_path = "templates/email_changed.html"
+
+[auth.email.notification.identity_linked]
+enabled = true
+subject = "A sign-in method was added to your ethio.com account · ወደ ethio.com አካውንትዎ የመግቢያ መንገድ ታክሏል"
+content_path = "templates/identity_linked.html"
+
+[auth.email.notification.identity_unlinked]
+enabled = true
+subject = "A sign-in method was removed from your ethio.com account · ከ ethio.com አካውንትዎ የመግቢያ መንገድ ተወግዷል"
+content_path = "templates/identity_unlinked.html"
+
+[auth.email.notification.mfa_factor_enrolled]
+enabled = true
+subject = "Two-factor authentication was turned on for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ በርቷል"
+content_path = "templates/mfa_factor_enrolled.html"
+
+[auth.email.notification.mfa_factor_unenrolled]
+enabled = true
+subject = "Two-factor authentication was turned off for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ ጠፍቷል"
+content_path = "templates/mfa_factor_unenrolled.html"
 
 [auth.rate_limit]
 email_sent = 30

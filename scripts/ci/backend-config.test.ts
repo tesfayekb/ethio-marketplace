@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Housekeeping turn 3 (concern 5c, ruling 1 Q13) — THE ONE DERIVATION of a temporary backend config
- * variant: scripts/ci/backend-config.py. The `images` variant is the toml with TLS and the
- * before_user_created hook off and nothing else changed; a switch not found once fails loudly. The
+ * variant: scripts/ci/backend-config.py. The `images` variant is the toml with TLS, the
+ * before_user_created hook and the six account-change notices (DEC-437) off and nothing else changed; a switch not found once fails loudly. The
  * backend-images job calls it and its cache key hashes it.
  */
 
@@ -38,7 +38,7 @@ function derive(
 }
 
 describe("one derivation of the backend config (housekeeping turn 3)", () => {
-  it("CF-BCFG-1 images: TLS and the hook off, every other line unchanged", () => {
+  it("CF-BCFG-1 images: TLS, the hook and the six notices off, every other line unchanged", () => {
     const source = readFileSync(TOML, "utf8").split("\n");
     const derived = derive("images");
     expect(derived.status, derived.err).toBe(0);
@@ -50,6 +50,12 @@ describe("one derivation of the backend config (housekeeping turn 3)", () => {
       .map(({ line, index }) => `${source[index - 1] ?? ""} → ${line}`);
     expect(changed).toEqual([
       "[api.tls] → enabled = false",
+      "[auth.email.notification.password_changed] → enabled = false",
+      "[auth.email.notification.email_changed] → enabled = false",
+      "[auth.email.notification.identity_linked] → enabled = false",
+      "[auth.email.notification.identity_unlinked] → enabled = false",
+      "[auth.email.notification.mfa_factor_enrolled] → enabled = false",
+      "[auth.email.notification.mfa_factor_unenrolled] → enabled = false",
       "[auth.hook.before_user_created] → enabled = false",
     ]);
   });

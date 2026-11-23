@@ -2,8 +2,8 @@
 
 scripts/ci/prepare-local-backend.sh copies scripts/ci/local-backend-config.toml whole (the
 identity); a variant is derived only here. `images` (the backend-images job's learning start, on
-an empty working copy): TLS and the before_user_created hook off, because neither changes the
-image set and both need files that copy lacks. Each switch must be found exactly once, or the
+an empty working copy): TLS, the before_user_created hook and the six account-change notices (DEC-437)
+off, because none changes the image set and each needs files that copy lacks. Each switch must be found exactly once, or the
 derivation fails loudly. scripts/ci/backend-config.test.ts proves the derived text.
 
 Usage: python3 scripts/ci/backend-config.py <variant> <out> [source]
@@ -13,7 +13,13 @@ import re
 import sys
 
 SOURCE = 'scripts/ci/local-backend-config.toml'
-VARIANTS = {'images': ('api.tls', 'auth.hook.before_user_created')}
+NOTICES = ('auth.email.notification.password_changed',
+           'auth.email.notification.email_changed',
+           'auth.email.notification.identity_linked',
+           'auth.email.notification.identity_unlinked',
+           'auth.email.notification.mfa_factor_enrolled',
+           'auth.email.notification.mfa_factor_unenrolled')
+VARIANTS = {'images': ('api.tls', 'auth.hook.before_user_created') + NOTICES}
 
 
 def derive(text, variant):
