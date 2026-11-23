@@ -309,6 +309,27 @@ status?)` is the one factory: a `ReaderError` passes through, any other error is
   CFRR-6) fails a client file that throws a bare `Error` built from a failed call's message or
   builds a typed failure by hand (its one held line: the session read of `requireSignedIn`,
   until INC-1256).
+- **cursor-bundle-4 — the staff's reads behind doors; a role rule on a table is a door bypass**
+  (`cursor-bundle-4-ruling-1.md` decisions 14-22, `cursor-bundle-4-ruling-2.md` decisions 1-3, 6; INC-1242,
+  DEC-430): the staff screens' five photo reads are the `staff-reader` doors `admin_listing_photos`
+  (`listings:view`), `admin_photo_changes`, `admin_photo_reviews` (`listings:review`),
+  `admin_warned_listings` and `admin_photo_link_rows` (`listings:view`), each answering for the ads in
+  the caller's reach (`door_context`'s countries; NULL is global). A photo's review is read by a holder
+  of `listings:review` FOR THE AD'S COUNTRY (`has_permission_scoped`, `match`), so the door's reach and
+  the review's are one. The links route asks the caller's own read first and, for a signed-in caller
+  with photos left unanswered, the door `admin_photo_link_rows`; a gate refusal reads as no rows. Once
+  the readers moved, the migration that follows drops the eighteen public-table rules that called
+  `has_permission` and revokes SELECT on the eight tables no rule reads for a browser role any more
+  (`audit_log`, `listing_photo_changes`, `permissions`, `resources`, `reveal_flags`,
+  `role_permissions`, `roles`, `user_roles`). `has_permission`'s `policy` reason now names the four
+  storage-bucket rules that still call it (DOORS-13). THE STANDING CHECK (`staff-rules.ts`, DOORS-19
+  and DOORS-20; kinds `staff-rule-on-table`, `staff-rule-undeclared`, `staff-rule-gone`): a role rule
+  is a standing policy whose text calls `has_permission(`, `has_permission_scoped(` or
+  `is_super_admin(`; one on a table of schema `public` fails with no line able to declare it (the
+  allowlist cannot clear it), and one elsewhere stands only as a line of
+  `scripts/doors/staff-rules.txt` (`schema.table policy | command to roles | reader file:line |
+reason`). The static half only; the live `pg_policies` half is a workflow step the supervisor
+  schedules (ACT-032). `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
 
 ## Tests
 

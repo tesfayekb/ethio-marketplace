@@ -159,6 +159,20 @@ describe("the form kit's laws (DEC-339)", () => {
     expect(readFileSync(ALLOWLIST, "utf8").split("\n").filter(isLine)).toEqual([]);
   });
 
+  it("CF-FORM-7 a switch inside the Filters panel's row is a list filter; one in a bare div is not (INC-1259)", () => {
+    const file = "src/features/x/filters.tsx";
+    const hosted = [
+      'import { Switch } from "@/components/ui/switch";',
+      "export const A = () => <FilterRow label={label}><Switch checked={on} /></FilterRow>;",
+    ].join("\n");
+    const bare = [
+      'import { Switch } from "@/components/ui/switch";',
+      "export const A = () => <div><Switch checked={on} /></div>;",
+    ].join("\n");
+    expect(planted(file, hosted, "CF-FORM-1")).toBe("");
+    expect(planted(file, bare, "CF-FORM-1")).toBe(`${file}:2 <Switch> outside the one Field`);
+  });
+
   it("CF-FORM-5b the allowlist only falls: a risen count is a finding, a fallen one a stale line", () => {
     const file = "src/features/x/form.tsx";
     const two = formFindings(file, "export const A = () => <><input /><input /></>;");

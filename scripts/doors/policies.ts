@@ -149,6 +149,40 @@ export function openRulesOf(files: Array<{ file: string; sql: string }>): {
   return { standing, computed };
 }
 
+/**
+ * Cursor bundle 4 (INC-1242) — THE ROLE RULES. A role rule is a standing policy whose text asks who the caller is
+ * by a role helper: `has_permission(`, `has_permission_scoped(` or `is_super_admin(`. Staff reads and writes go
+ * through doors (the gate's caller check, deactivation test and country reach); a role rule on a table lets a
+ * holder past all three, so none stands on a public table and each other one is a line of
+ * scripts/doors/staff-rules.txt (staff-rules.ts judges). Read through the same standing reader as `policiesOf`.
+ */
+const ROLE_CALL = /\b(?:has_permission|has_permission_scoped|is_super_admin)\s*\(/i;
+
+export type RoleRule = {
+  /** The table as the migrations name it: bare for schema public, `schema.table` otherwise. */
+  table: string;
+  policy: string;
+  /** SELECT, INSERT, UPDATE, DELETE or ALL (the policy's FOR; ALL when it names none). */
+  command: string;
+  /** The roles the policy names, lower-case, sorted, comma-joined (`public` when it names none). */
+  roles: string;
+  file: string;
+};
+
+/** The role rules standing after `files`, by table then name. */
+export function roleRulesOf(files: Array<{ file: string; sql: string }>): RoleRule[] {
+  return standingPolicies(files)
+    .filter((policy) => ROLE_CALL.test(policy.text))
+    .map(({ table, policy, text, file }) => ({
+      table,
+      policy,
+      command: (POLICY_COMMAND.exec(text)?.[1] ?? "ALL").toUpperCase(),
+      roles: rolesOf(text),
+      file,
+    }))
+    .sort((a, b) => `${a.table} ${a.policy}`.localeCompare(`${b.table} ${b.policy}`));
+}
+
 /** Whether a standing policy named `policy` calls `fn` in its text. */
 export function policyCallsOf(
   files: Array<{ file: string; sql: string }>,
@@ -174,6 +208,11 @@ export function declaredOpenRules(
   options?: OnceOptions,
 ): ReturnType<typeof openRulesOf> {
   return readOnce("open-rules", root, () => openRulesOf(migrationFiles(root)), options);
+}
+
+/** The repository's role rules, read once per root (once.ts). */
+export function declaredRoleRules(root: string, options?: OnceOptions): RoleRule[] {
+  return readOnce("role-rules", root, () => roleRulesOf(migrationFiles(root)), options);
 }
 
 /** The repository's migrations, read once per root (once.ts). */

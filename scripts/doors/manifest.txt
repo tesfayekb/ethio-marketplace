@@ -180,7 +180,7 @@ get_posting_schema(uuid) | owner | authenticated | - | - | schema_read | - | - |
 get_ui_bundle_parts(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 get_ui_bundle_version(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 has_password() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-has_permission(uuid,text,text) | helper | authenticated | - | - | - | - | - | - | - | policy audit_log_read, category_assets_assets_delete, category_assets_assets_insert, category_assets_assets_update, category_assets_public_read, listing_locations_admin_read, listing_packages_staff_read, listing_photo_changes_admin_read, listing_photo_reviews_admin_read, listing_photo_warnings_admin_read, listing_photos_admin_read, listing_reports_staff_read, listings_admin_read, listings_admin_update, package_prices_staff_read, permissions_rbac_select, profiles_admin_read, resources_rbac_select, reveal_flags_staff_read, role_permissions_rbac_select, roles_rbac_select, user_roles_read
+has_permission(uuid,text,text) | helper | authenticated | - | - | - | - | - | - | - | policy category_assets_assets_delete, category_assets_assets_insert, category_assets_assets_update, category_assets_public_read
 impersonated_get_profile(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 impersonated_list_listings(uuid,integer,integer) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 legal_in_force(text,character) | public-reader | anon,authenticated | - | - | - | - | - | - | notSignedIn | -

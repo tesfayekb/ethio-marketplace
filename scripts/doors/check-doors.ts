@@ -8,7 +8,14 @@ import { declaredColumns } from "./columns";
 import { FINDING_KINDS, judge, type Finding, type FindingKind } from "./judge";
 import { parseManifest } from "./manifest";
 import { liveGrants, parseOpenRules, type OpenRuleEvidence } from "./open-rules";
-import { declaredOpenRules, declaredPolicyCalls, openRulesOf, policyCallsOf } from "./policies";
+import {
+  declaredOpenRules,
+  declaredPolicyCalls,
+  declaredRoleRules,
+  openRulesOf,
+  policyCallsOf,
+  roleRulesOf,
+} from "./policies";
 import {
   LIVE_OPEN_RULES_QUERY,
   LIVE_QUERY,
@@ -17,6 +24,7 @@ import {
   treeCallers,
   type DoorRow,
 } from "./rows";
+import { parseStaffRules, type StaffRuleEvidence } from "./staff-rules";
 import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
@@ -34,7 +42,7 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
- * process — each of the eighteen finding kinds must fire on its planted fixture
+ * process — each of the finding kinds must fire on its planted fixture
  * and a clean planted pair must fire nothing — and judges nothing until it has.
  * A guard that cannot prove itself gates nothing and fails loudly.
  *
@@ -46,6 +54,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "doors", "check-doors-allowlist.txt");
 const MANIFEST = join(ROOT, "scripts", "doors", "manifest.txt");
 const OPEN_RULES = join("scripts", "doors", "open-rules.txt");
+const STAFF_RULES = join("scripts", "doors", "staff-rules.txt");
 
 const row = (over: Partial<DoorRow> & Pick<DoorRow, "key" | "body">): DoorRow => ({
   name: over.key.slice(0, over.key.indexOf("(")),
@@ -206,6 +215,42 @@ export const PLANTED_LIVE_COLUMN_GRANTS =
   "e2e_planted_t\tanon\tSELECT\ta,b\ne2e_planted_t\tauthenticated\tSELECT\ta,b\n";
 
 /**
+ * The planted role rules (cursor-bundle-4, INC-1242): a rule of the storage schema that calls a role helper, a
+ * policy that calls none, and one a later file drops — and the same with a role rule on a table of schema public.
+ */
+export const PLANTED_STORAGE_FILES = [
+  {
+    file: "supabase/migrations/20260101000000_a.sql",
+    sql: [
+      "CREATE POLICY e2e_planted_obj ON storage.objects FOR INSERT TO authenticated WITH CHECK (public.has_permission_scoped(auth.uid(), 'a', 'b', NULL, 'match'));",
+      "CREATE POLICY e2e_planted_plain ON public.e2e_planted_s FOR SELECT TO authenticated USING (auth.uid() = user_id);",
+      "CREATE POLICY e2e_planted_dead ON public.e2e_planted_s FOR UPDATE TO authenticated USING (public.is_super_admin(auth.uid()));",
+    ].join("\n"),
+  },
+  {
+    file: "supabase/migrations/20260102000000_b.sql",
+    sql: "DROP POLICY e2e_planted_dead ON public.e2e_planted_s;",
+  },
+];
+export const PLANTED_PUBLIC_ROLE_FILES = [
+  ...PLANTED_STORAGE_FILES,
+  {
+    file: "supabase/migrations/20260103000000_c.sql",
+    sql: "CREATE POLICY e2e_planted_staff ON public.e2e_planted_s FOR SELECT TO authenticated USING (public.has_permission(auth.uid(), 'a', 'b'));",
+  },
+];
+/** The line of the planted storage rule: the one standing role rule of PLANTED_STORAGE_FILES, kept. */
+export const PLANTED_ROLE_LINES =
+  "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts:1 | planted";
+/** The planted evidence of a role-rules judgement: the files read, the file's text. */
+export function plantedStaffRules(
+  files: Array<{ file: string; sql: string }>,
+  lines: string,
+): StaffRuleEvidence {
+  return { standing: roleRulesOf(files), file: parseStaffRules(lines) };
+}
+
+/**
  * The planted list doors of `filter-off-helper` (cursor-bundle-2, DEC-423): the same door twice — one that
  * reads its country list through the list rule, and one that compares the argument itself.
  */
@@ -229,6 +274,7 @@ export function plantedCases(): Array<{
   stepUps?: (permission: string) => boolean | null | undefined;
   policies?: (policy: string, fn: string) => boolean;
   openRules?: OpenRuleEvidence;
+  staffRules?: StaffRuleEvidence;
 }> {
   const openFiles = PLANTED_OPEN_FILES;
   return [
@@ -425,6 +471,34 @@ export function plantedCases(): Array<{
         PLANTED_LIVE_COLUMN_GRANTS,
       ),
     },
+    {
+      // The one standing role rule kept by its line; a policy that calls no helper, a dropped one: nothing fires.
+      kind: "clean",
+      rows: [],
+      manifest: "",
+      staffRules: plantedStaffRules(PLANTED_STORAGE_FILES, PLANTED_ROLE_LINES),
+    },
+    {
+      kind: "staff-rule-on-table",
+      rows: [],
+      manifest: "",
+      staffRules: plantedStaffRules(PLANTED_PUBLIC_ROLE_FILES, PLANTED_ROLE_LINES),
+    },
+    {
+      kind: "staff-rule-undeclared",
+      rows: [],
+      manifest: "",
+      staffRules: plantedStaffRules(PLANTED_STORAGE_FILES, ""),
+    },
+    {
+      kind: "staff-rule-gone",
+      rows: [],
+      manifest: "",
+      staffRules: plantedStaffRules(
+        PLANTED_STORAGE_FILES,
+        `${PLANTED_ROLE_LINES}\nstorage.objects e2e_planted_gone | SELECT to authenticated | reader src/planted.ts:2 | planted`,
+      ),
+    },
   ];
 }
 
@@ -451,6 +525,7 @@ export function selfTest(): string[] {
             stepUps: planted.stepUps,
             policies: planted.policies,
             openRules: planted.openRules,
+            staffRules: planted.staffRules,
           };
     const findings = judge(planted.rows, parseManifest(planted.manifest), evidence);
     if (planted.kind === "clean") {
@@ -472,7 +547,11 @@ export function selfTest(): string[] {
 export function allow(findings: Finding[], allowlistPath = ALLOWLIST): Finding[] {
   const keys = findings.map((finding) => `${finding.kind} ${finding.key}`);
   const allowances = readAllowlist(allowlistPath, keys);
-  return findings.filter((finding) => !allowances.has(`${finding.kind} ${finding.key}`));
+  // A role rule on a public table is allowed by no line (staff-rules.ts): its finding stays.
+  return findings.filter(
+    (finding) =>
+      finding.kind === "staff-rule-on-table" || !allowances.has(`${finding.kind} ${finding.key}`),
+  );
 }
 
 export function staticFindings(root = ROOT): Finding[] {
@@ -488,6 +567,7 @@ export function staticFindings(root = ROOT): Finding[] {
     stepUps: declaredStepUps(root),
     policies: declaredPolicyCalls(root),
     openRules: declaredOpenRulesFile(root),
+    staffRules: declaredStaffRulesFile(root),
   });
 }
 
@@ -497,6 +577,14 @@ function declaredOpenRulesFile(root: string, grantsTsv?: string): OpenRuleEviden
     ...declaredOpenRules(root),
     file: parseOpenRules(readFileSync(join(root, OPEN_RULES), "utf8")),
     live: grantsTsv === undefined ? undefined : liveGrants(grantsTsv),
+  };
+}
+
+/** The role rules the migrations leave standing, beside the file that declares them. */
+export function declaredStaffRulesFile(root: string): StaffRuleEvidence {
+  return {
+    standing: declaredRoleRules(root),
+    file: parseStaffRules(readFileSync(join(root, STAFF_RULES), "utf8")),
   };
 }
 
@@ -514,6 +602,7 @@ export function liveFindings(tsv: string, root = ROOT, grantsTsv?: string): Find
     stepUps: declaredStepUps(root),
     policies: declaredPolicyCalls(root),
     openRules: declaredOpenRulesFile(root, grantsTsv),
+    staffRules: declaredStaffRulesFile(root),
   });
 }
 
