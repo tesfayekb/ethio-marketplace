@@ -1,6 +1,6 @@
 # Cursor bundle 4 — a failed read is one typed failure read by one code list, staff reads behind the checked doors, a two-factor setup that survives a reload — report
-Base: ce25a77513c7aed2ce500159dacb54f2c813545d · Final commit: ac920b756 · Brief: docs/governance/briefs/cursor-bundle-4.md (rulings: cursor-bundle-4-ruling-1.md, cursor-bundle-4-ruling-2.md sha256 c786eb7c7c8450d08b72bcdcdb0e3f771b5c8b98c08f61794228b3cf8321e840)
-Review: READY · 0 BLOCKER · 0 MAJOR · 4 MINOR · on ac920b7
+Base: ce25a77513c7aed2ce500159dacb54f2c813545d · Final commit: the ruling-3 commit, the head of `cursor/bundle-4` (last code before it: ac920b756) · Brief: docs/governance/briefs/cursor-bundle-4.md (rulings: cursor-bundle-4-ruling-1.md, cursor-bundle-4-ruling-2.md sha256 c786eb7c7c8450d08b72bcdcdb0e3f771b5c8b98c08f61794228b3cf8321e840)
+Review: READY · 0 BLOCKER · 0 MAJOR · 4 MINOR · on ac920b7 (ruling 3 changes two ceiling lines and this report only)
 
 CI at the base: ce25a77 SUCCESS (run 45084055511), read from the ci-evidence branch (`git show origin/ci-evidence:docs/tracking/ci-status.md`). CI on this branch's last code commit `ac920b7`: run 45107326396, 42 checks pass, 1 fail (E2E preflight, the expected STAGING BEHIND of file 2, §11), 2 skipping (Lovable branch guard, promote).
 
@@ -201,15 +201,18 @@ Last `bun run db:proof --fresh` line, with both files (file 2's text has not cha
 4. Part 3's `enrollTotp` reads the provider's list before every start: one extra read per start (a pending setup cannot be told apart otherwise).
 5. The card has no retry control for a failed factor list (it shows the error; reload retries): no new word was ruled for it.
 6. Browser tests not run locally (§12).
+7. **The final push went before the release line that the brief's SIDE BY SIDE and STEP 8 name** (ruling 3, CLASS 2). My push of `ac920b756` (03:40 UTC) did not wait for it; Lovable's bundle 4 merged into dev at 04:10 (`46d4e7b21`). Each bundle alone is inside every limit; built together, `/admin/ai` and `/admin/screening` sit inside the NEAR band. The release line is not named in my earlier §10; it is named here.
+8. **Ruling 3 (two ceiling lines, `scripts/route-budgets.mjs`)**: `/admin/ai` 304 → 305 = ceilingForLocal(303.673) and `/admin/screening` 349 → 350 = ceilingForLocal(348.697), applied by the supervisor's `/tmp/ceilings.py` (`--check` printed `CHECK OK: 2 lines`, the run printed `APPLIED: 2 lines`); the file's sha256 is `4e171cfd580e1dab275d27521e9c578a8da833d26a2ec2b20d43fe8eba619417`, as the ruling states; Prettier left it unchanged. Nothing else in the file moves. The five tests that read it (`turn-checks`, `lovable-branch-guard`, `bundle-closure`, `wired`, `card-tiers`): 5 files, 60 tests passed. Ruling 3 is saved bare at `docs/governance/briefs/cursor-bundle-4-ruling-3.md` (sha256 `6778a0288941f86a3fff816a18f23582601fb3177385f4c315ddc5950c14169e`, equal to the carrier's). The pull request stays a draft until the supervisor says it is ready.
 
-Rulings in this turn: ruling 1 (decisions 1–25), ruling 2 (decisions 1–8 and the scope growth `scripts/conformance/forms.ts`, `forms.test.ts`).
+Rulings in this turn: ruling 1 (decisions 1–25), ruling 2 (decisions 1–8 and the scope growth `scripts/conformance/forms.ts`, `forms.test.ts`), ruling 3 (decisions 1–2, the two ceilings and the record numbers).
 
 ## 11. CI
 
 - Base `ce25a77`: `# CI Status … Commit ce25a77513c7aed2ce500159dacb54f2c813545d · Conclusion SUCCESS · Completed (UTC) 2026-11-22T23:44:00Z · Run https://github.com/tesfayekb/ethio-marketplace/actions/runs/45084055511`. The branch's own `ci-evidence` line for `740a40f`: SUCCESS (run 45099823721).
 - Reds of an earlier turn fixed: none (the base is green).
 - This pull request's run on the last code commit `ac920b7` (https://github.com/tesfayekb/ethio-marketplace/actions/runs/45107326396): all 16 lanes, the webkit, e-mail, repeat and smoke lanes, build/typecheck/lint, component tests, every guard, semgrep, gitleaks, dependency audit, bundle budget, i18n map and migration linter PASS (`gh pr checks 96`: 42 pass, 1 fail, 2 skipping). MF-10 and MF-11 ran in the lanes on the temporary backend and passed.
-- The one red: **E2E preflight (migration parity, staging)** — class: expected state, not a code defect. Its log reads `STAGING BEHIND: apply 20261123020700_ffed7b34-03eb-495f-a743-c0c02e79d393.sql to ethio-staging before E2E can pass`: file 2 is written and never applied by me (rule 30, rule 50). It turns green when the operator applies file 2 to ethio-staging (pairing line §9) and the job is re-run; no code commit fixes it and I did not re-run it. The "Promote to main" job skips for the same reason.
+- The one red: **E2E preflight (migration parity, staging)** — class: expected state, not a code defect. Its log reads `STAGING BEHIND: apply 20261123020700_ffed7b34-03eb-495f-a743-c0c02e79d393.sql to ethio-staging before E2E can pass`: file 2 is written and never applied by me (rule 30, rule 50). It was red because file 2 was not yet on ethio-staging; ruling 3 states the operator has since applied it and the supervisor read it back, so the run of the ruling-3 push is the first to judge the preflight with it present. I did not re-run the red run. The "Promote to main" job skipped for the same reason.
+- The run of the ruling-3 push builds the merge with dev `46d4e7b21` (Lovable's bundle 4), the migration preflight included. Its verdict is given in the chat and in the pull request's comment, not here: the ruling asks for one push, so this report is committed with it and is not edited after it.
 
 ## 12. Limits
 
@@ -228,11 +231,11 @@ Rulings in this turn: ruling 1 (decisions 1–25), ruling 2 (decisions 1–8 and
 
 ## 14. Records
 
-- DEC — Cursor bundle 4 concern 1: a failed read is built by `readFailed(error, status?)` (`src/lib/reader-failure.ts`) and classed by one list; the mark of a refusal the database raises is `P0D01` with a camelCase head.
-- DEC — Cursor bundle 4 concern 2: the five staff photo reads are `staff-reader` doors; the eighteen public-table role rules are dropped and SELECT is revoked on eight tables; a staff role rule on a public table is a finding of the doors guard (`staff-rule-on-table`), the four storage rules are declared lines (`scripts/doors/staff-rules.txt`).
-- DEC — Cursor bundle 4 concern 3: a two-factor setup the provider holds unfinished is cleared before a new start; the confirmation of a replaced setup has its own words; a failed factor list is an error, never "off".
-- INC — The public-surface guard ignores REVOKE; a revoked browser grant keeps its allowlist line until the object is dropped (`scripts/public-surface.ts`).
-- INC — `signedInId` (`src/features/posting/pricing-data.ts:148`) turns a failed session read into null.
+- DEC-429 — Cursor bundle 4 concern 1: a failed read is built by `readFailed(error, status?)` (`src/lib/reader-failure.ts`) and classed by one list; the mark of a refusal the database raises is `P0D01` with a camelCase head.
+- DEC-430 (concern 2 joins it: the order, and with it the doors, the drops and the standing check) — Cursor bundle 4 concern 2: the five staff photo reads are `staff-reader` doors; the eighteen public-table role rules are dropped and SELECT is revoked on eight tables; a staff role rule on a public table is a finding of the doors guard (`staff-rule-on-table`), the four storage rules are declared lines (`scripts/doors/staff-rules.txt`).
+- DEC-431 — Cursor bundle 4 concern 3: a two-factor setup the provider holds unfinished is cleared before a new start; the confirmation of a replaced setup has its own words; a failed factor list is an error, never "off".
+- INC-1262 — OPEN (owner: the tests-and-CI turn): the public-surface guard ignores REVOKE; a revoked browser grant keeps its allowlist line until the object is dropped (`scripts/public-surface.ts`).
+- INC-1263 — OPEN (owner: ACT-027, with INC-1256): `signedInId` (`src/features/posting/pricing-data.ts:148`) turns a failed session read into null on an identity path.
 - register row — `staff-reader` doors for the Screening reads: `admin_listing_photos`, `admin_photo_changes`, `admin_photo_reviews`, `admin_warned_listings`, `admin_photo_link_rows` (`supabase/migrations/20261123020600_…`, `…020700_…`); standing check DOORS-19/20 (`scripts/doors/staff-rules.ts`); `clearPendingFactors` / `MFA_ENROLL_REFUSALS` (`src/features/auth/mfa/mfa-service.ts`).
 - changelog — Cursor bundle 4: one typed failure for a failed read; the Screening reads behind checked doors and the staff table rules dropped; a two-factor setup that survives a reload (Start again).
 - roadmap — Cursor bundle 4 done (concerns 1, 2 and 3).
