@@ -84,16 +84,6 @@ export function ImpersonationStarter({
       >
         {t("impersonation.start")}
       </Button>
-      {errorKey ? (
-        <p
-          id="impersonation-error"
-          role="alert"
-          data-testid="impersonation-error"
-          className="text-sm text-destructive"
-        >
-          {t(errorKey)}
-        </p>
-      ) : null}
     </>
   );
   const body = (
@@ -129,6 +119,16 @@ export function ImpersonationStarter({
           />
         )}
       </Field>
+      {errorKey ? (
+        <p
+          id="impersonation-error"
+          role="alert"
+          data-testid="impersonation-error"
+          className="text-sm text-destructive"
+        >
+          {t(errorKey)}
+        </p>
+      ) : null}
     </FormSection>
   );
   return renderPanel === undefined

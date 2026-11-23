@@ -18,6 +18,8 @@ const seams = vi.hoisted(() => ({
   subject: vi.fn(),
   readRow: vi.fn(),
   queueError: null as Error | null,
+  permissions: ["listings:review"],
+  photoProps: vi.fn(),
 }));
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
@@ -29,7 +31,7 @@ vi.mock("@tanstack/react-query", async (original) => ({
 }));
 vi.mock("@/lib/refresh-after-write", () => ({ refreshAfterWrite: seams.refresh }));
 vi.mock("@/features/admin/admin-context", () => ({
-  useAdminShell: () => ({ permissions: ["listings:review"] }),
+  useAdminShell: () => ({ permissions: seams.permissions }),
 }));
 vi.mock("@/features/auth/mfa/step-up-gate", () => ({
   StepUpGate: ({
@@ -66,8 +68,20 @@ vi.mock("@/components/ui/dialog-parts-facade", async (original) => {
   };
 });
 vi.mock("@/features/posting/use-price-unit-labels", () => ({ usePriceUnitLabels: () => [] }));
-vi.mock("@/features/posting/preview/preview-sheet", () => ({ PreviewSheet: () => null }));
-vi.mock("@/features/admin-listings/listing-photos", () => ({ ListingPhotos: () => null }));
+vi.mock("@/features/posting/preview/preview-sheet", () => ({
+  PreviewSheet: ({ staff, footer }: { staff?: ReactNode; footer?: ReactNode }) => (
+    <div>
+      <div data-testid="preview-body-slot">{staff}</div>
+      <div data-testid="preview-footer-slot">{footer}</div>
+    </div>
+  ),
+}));
+vi.mock("@/features/admin-listings/listing-photos", () => ({
+  ListingPhotos: (props: unknown) => {
+    seams.photoProps(props);
+    return <div data-testid="photos-stub" />;
+  },
+}));
 vi.mock("./name-checks", () => ({ NameChecks: () => null }));
 vi.mock("./photo-changes", () => ({ PhotoChanges: () => null }));
 vi.mock("./photo-reviews", () => ({ PhotoReviews: () => null }));
@@ -94,7 +108,7 @@ vi.mock("@/components/shell/data-table", () => ({
     error,
     errorState,
   }: {
-    selection: { selectedKeys: string[]; onToggleRow: (row: { id: string }, on: boolean) => void };
+    selection?: { selectedKeys: string[]; onToggleRow: (row: { id: string }, on: boolean) => void };
     selectionActions: ReactNode;
     error: unknown;
     errorState: ReactNode;
@@ -103,15 +117,17 @@ vi.mock("@/components/shell/data-table", () => ({
       errorState
     ) : (
       <div>
-        {["first", "refused", "last"].map((id) => (
-          <input
-            key={id}
-            type="checkbox"
-            aria-label={id}
-            checked={selection.selectedKeys.includes(id)}
-            onChange={(event) => selection.onToggleRow({ id }, event.target.checked)}
-          />
-        ))}
+        {selection
+          ? ["first", "refused", "last"].map((id) => (
+              <input
+                key={id}
+                type="checkbox"
+                aria-label={id}
+                checked={selection.selectedKeys.includes(id)}
+                onChange={(event) => selection.onToggleRow({ id }, event.target.checked)}
+              />
+            ))
+          : null}
         {selectionActions}
       </div>
     ),
@@ -127,6 +143,8 @@ beforeEach(() => {
   seams.subject.mockClear();
   seams.readRow.mockReset();
   seams.queueError = null;
+  seams.permissions = ["listings:review"];
+  seams.photoProps.mockClear();
 });
 function open(ids: string[]) {
   render(<AdminScreeningPage />);
@@ -285,6 +303,34 @@ it.each([
     if (error !== null)
       expect(seams.subject).toHaveBeenLastCalledWith(
         expect.objectContaining({ picture: undefined }),
+      );
+  },
+);
+
+it.each([
+  [[], false, false, false, false],
+  [["listings:review"], false, true, false, true],
+  [["listings:enforce"], true, false, true, false],
+  [["listings:review", "listings:enforce"], true, true, true, true],
+] as const)(
+  "SCP-U1 staff content and footer actions keep the existing permissions %j",
+  async (permissions, photos, note, edit, review) => {
+    seams.permissions = [...permissions];
+    seams.photoRead.data = [{ id: "photo", unscreened: true } as { id: string }];
+    seams.readRow.mockResolvedValue(held);
+    render(<AdminScreeningPage openId={held.id} />);
+    const body = await screen.findByTestId("preview-body-slot");
+    const footer = screen.getByTestId("preview-footer-slot");
+    expect(within(body).queryByTestId("photos-stub") !== null).toBe(photos);
+    expect(within(body).queryByTestId("admin-screening-preview-unscreened") !== null).toBe(note);
+    expect(within(footer).queryByTestId("admin-screening-preview-edit") !== null).toBe(edit);
+    expect(within(footer).queryByTestId("admin-screening-preview-approve") !== null).toBe(review);
+    expect(within(footer).queryByTestId("admin-screening-preview-reject") !== null).toBe(review);
+    expect(within(footer).queryByTestId("photos-stub")).toBeNull();
+    expect(within(footer).queryByTestId("admin-screening-preview-unscreened")).toBeNull();
+    if (photos)
+      expect(seams.photoProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ listingId: held.id, mayRemove: false, mayAllow: review }),
       );
   },
 );

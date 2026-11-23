@@ -76,16 +76,6 @@ export function CountryActiveDialog({
       footer={
         forced ? (
           <>
-            <p
-              role="status"
-              data-testid="country-close-scoped"
-              className="text-sm text-muted-foreground"
-            >
-              {t("admin.countries.close.scopedHint").replace(
-                "{count}",
-                String(row.scopedRoleCount),
-              )}
-            </p>
             <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
               <Button
                 type="button"
@@ -112,6 +102,15 @@ export function CountryActiveDialog({
         )
       }
     >
+      {forced ? (
+        <p
+          role="status"
+          data-testid="country-close-scoped"
+          className="text-sm text-muted-foreground"
+        >
+          {t("admin.countries.close.scopedHint").replace("{count}", String(row.scopedRoleCount))}
+        </p>
+      ) : null}
       <CountryDialogAlert message={message} testid="country-verb-error" />
     </CategoryModal>
   );

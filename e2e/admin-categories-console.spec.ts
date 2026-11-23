@@ -743,7 +743,7 @@ test.describe("C2 categories console", () => {
     await expect(page.getByTestId("category-filters-count")).toHaveText("1");
     await page.getByTestId("category-filters").click();
     await expect(page.getByTestId("category-missing-filter")).toHaveAttribute(
-      "aria-pressed",
+      "aria-checked",
       "true",
     );
     await page.keyboard.press("Escape");

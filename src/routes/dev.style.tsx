@@ -26,7 +26,7 @@ import { CARD_LOOKS } from "@/components/marketplace/card-tier";
 import { PLAIN_LOOK } from "@/features/levels/level-fields";
 import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
-import { ColumnsList } from "@/components/shell/columns-button";
+import { ColumnsButton, ColumnsList } from "@/components/shell/columns-button";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterDates } from "@/components/shell/filter-dates";
 import { FilterRow } from "@/components/shell/filter-row";
@@ -1069,9 +1069,11 @@ function AnatomyBoard() {
 }
 
 function StyleFixture() {
+  const { t } = useI18n();
   const [last, setLast] = useState("");
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(25);
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
   const { filters: tableFilters } = useTableFilters("style-filters", [
     {
       kind: "select",
@@ -1308,10 +1310,59 @@ function StyleFixture() {
           <AnatomyBoard />
         </Section>
 
+        <Section title={t("post.preview.title")} testid="style-staff-preview-section">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" data-testid="style-staff-preview-open">
+                {BOARD.open}
+              </Button>
+            </DialogTrigger>
+            <DialogContent bands variant="screen" data-testid="style-staff-preview">
+              <PanelHeader>
+                <DialogTitle>{t("post.preview.title")}</DialogTitle>
+                <DialogDescription>{BOARD.shareText}</DialogDescription>
+              </PanelHeader>
+              <PanelBody>
+                <div className="mx-auto w-full max-w-2xl space-y-4 p-4">
+                  <p>{FIXTURE_TITLE}</p>
+                  <div data-testid="style-staff-preview-body" className="space-y-4">
+                    {Array.from({ length: 24 }, (_, index) => (
+                      <p key={index}>{BOARD.sheetText}</p>
+                    ))}
+                  </div>
+                </div>
+              </PanelBody>
+              <PanelFooter>
+                <DialogClose asChild>
+                  <Button size="touch">{BOARD.done}</Button>
+                </DialogClose>
+              </PanelFooter>
+            </DialogContent>
+          </Dialog>
+        </Section>
+
         <Section title={"Filters"} testid="style-filters-section">
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {/* Bundle 11 V2 (INC-543) — each filter a row of pills, never a dropdown. */}
             <FiltersButton testid={"style-filters"} filters={tableFilters} />
+            <ColumnsButton
+              testid="style-filters-columns"
+              columns={BOARD.columns.map((label, index) => ({
+                key: label,
+                label,
+                locked: index === 0,
+              }))}
+              hidden={hiddenColumns}
+              onToggle={(key, visible) =>
+                setHiddenColumns((current) =>
+                  visible
+                    ? current.filter((item) => item !== key)
+                    : current.includes(key)
+                      ? current
+                      : [...current, key],
+                )
+              }
+            />
             <FilterChips testid={"style-filters-chips"} filters={tableFilters} />
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">

@@ -1,3 +1,4 @@
+import { Switch } from "@/components/ui/switch";
 import { loadSelectList } from "@/components/select-list-loader";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
@@ -130,11 +131,55 @@ describe("a small panel's filter lists", () => {
     render(<Harness />);
     const control = screen.getByTestId("category-missing-filter");
     expect(control).toHaveAttribute("id", "category-missing-filter");
-    expect(control).toHaveAttribute("aria-pressed", "false");
+    expect(control).toHaveAttribute("aria-checked", "false");
     fireEvent.click(control);
-    expect(control).toHaveAttribute("aria-pressed", "true");
+    expect(control).toHaveAttribute("aria-checked", "true");
     fireEvent.click(control);
-    expect(control).toHaveAttribute("aria-pressed", "false");
+    expect(control).toHaveAttribute("aria-checked", "false");
+  });
+
+  function SwitchHarness() {
+    const [value, onChange] = useState(false);
+    return (
+      <FilterPanelBody
+        words={words}
+        filters={[
+          {
+            kind: "switch",
+            id: "category-missing-filter",
+            chipKey: "missing",
+            name: "Missing picture",
+            kept: true,
+            value,
+            onChange,
+            clear: vi.fn(),
+            changed: vi.fn(),
+          },
+        ]}
+      />
+    );
+  }
+
+  it("FP-U51 the switch row is a switch named by its row's label, and the label presses it", () => {
+    render(<SwitchHarness />);
+    const control = screen.getByRole("switch", { name: "Missing picture" });
+    expect(control).toBe(screen.getByTestId("category-missing-filter"));
+    expect(control).not.toHaveAttribute("aria-label");
+    expect(control).not.toHaveAttribute("aria-pressed");
+    fireEvent.click(screen.getByText("Missing picture"));
+    expect(control).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("FP-U52 the Filters row draws the product's switch, class for class as Columns does", () => {
+    render(
+      <>
+        <SwitchHarness />
+        <Switch data-testid="product" checked={false} onCheckedChange={() => {}} />
+      </>,
+    );
+    expect(screen.getByTestId("category-missing-filter").className).toBe(
+      screen.getByTestId("product").className,
+    );
   });
 });
 

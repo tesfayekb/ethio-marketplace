@@ -22,6 +22,7 @@ export function PreviewSheet({
   onClose,
   footer,
   body,
+  staff,
 }: {
   /** P-2 (c) c2a — the look is the store's (the level row's base look), read here. */
   view: Omit<ListingDetailView, "look">;
@@ -34,6 +35,8 @@ export function PreviewSheet({
    * listing as buyers see it.
    */
   body?: ReactNode;
+  /** Staff-only content after the buyer preview, inside the scrolling body. */
+  staff?: ReactNode;
 }) {
   const { t } = useI18n();
   const look = useLevelLook(view.tier);
@@ -58,6 +61,9 @@ export function PreviewSheet({
         <PanelBody flush end={!footer}>
           <div className="mx-auto w-full max-w-2xl space-y-4 p-4">
             {body ?? <ListingDetail {...view} look={look} />}
+            {staff ? (
+              <div className="min-w-0 space-y-4 border-t border-border pt-4">{staff}</div>
+            ) : null}
           </div>
         </PanelBody>
         {footer ? <PanelFooter data-testid="post-preview-footer">{footer}</PanelFooter> : null}

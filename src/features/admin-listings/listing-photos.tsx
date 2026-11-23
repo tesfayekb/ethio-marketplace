@@ -89,6 +89,27 @@ export function ListingPhotos({
   const [allowing, setAllowing] = useState<string | null>(null);
   const [allowProblem, setAllowProblem] = useState<{ id: string; key: MessageKey } | null>(null);
 
+  if (photos.isLoading) {
+    return (
+      <PageCard testid={testid} className="min-w-0" aria-busy="true">
+        <p role="status" className="text-sm text-muted-foreground">
+          {t("common.loading")}
+        </p>
+      </PageCard>
+    );
+  }
+  if (photos.error) {
+    return (
+      <PageCard testid={testid} className="min-w-0 space-y-2">
+        <p role="alert" className="text-sm text-destructive">
+          {t("common.loadFailed")}
+        </p>
+        <Button type="button" variant="outline" size="touch" onClick={() => void photos.refetch()}>
+          {t("common.retry")}
+        </Button>
+      </PageCard>
+    );
+  }
   if (rows.length === 0) return null;
 
   // Bundle 16 turn 4b (D178) — show one photo kept hidden for review.

@@ -20,10 +20,20 @@ const BASE_ROWS = [
   { id: "p1", displayOrder: 0, paths: null, storagePath: "s/p1", unscreened: false },
   { id: "p2", displayOrder: 1, paths: null, storagePath: "s/p2", unscreened: true },
 ];
-const state = vi.hoisted(() => ({ rows: [] as Record<string, unknown>[] }));
+const state = vi.hoisted(() => ({
+  rows: [] as Record<string, unknown>[],
+  isLoading: false,
+  error: null as Error | null,
+  refetch: vi.fn(),
+}));
 vi.mock("@/features/admin-screening/use-screening", () => ({
   ADMIN_SCREENING_KEY: ["admin", "screening"],
-  useScreeningPhotos: () => ({ data: state.rows }),
+  useScreeningPhotos: () => ({
+    data: state.rows,
+    isLoading: state.isLoading,
+    error: state.error,
+    refetch: state.refetch,
+  }),
 }));
 vi.mock("@/features/posting/use-photo-links", () => ({
   usePhotoLinks: () => ({
@@ -42,6 +52,9 @@ vi.mock("@/features/admin-screening/use-photo-reviews", async (original) => ({
 
 state.rows = BASE_ROWS;
 afterEach(() => {
+  state.isLoading = false;
+  state.error = null;
+  state.refetch.mockClear();
   state.rows = BASE_ROWS;
 });
 
@@ -227,4 +240,33 @@ describe("ListingPhotos (D178)", () => {
     );
     expect(door.allow).toHaveBeenLastCalledWith("p3");
   });
+});
+
+// Failed and pending reads are not successful empty reads.
+it("LPH-U1 a loading photo read says loading, marks the card busy, and draws no stale photos", () => {
+  state.isLoading = true;
+  mount(false);
+  expect(screen.getByTestId("listing-photos")).toHaveAttribute("aria-busy", "true");
+  expect(screen.getByRole("status")).toHaveTextContent("common.loading");
+  expect(screen.queryByTestId("listing-photos-item")).toBeNull();
+});
+it("LPH-U2 a failed photo read says failure and Retry refetches that query; a successful empty read stays null", () => {
+  state.error = new Error("offline");
+  const { unmount } = (() => {
+    const guard: GuardFn = async (run) => run();
+    return render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ListingPhotos listingId="L1" mayRemove={false} guard={guard} onRemoved={() => {}} />
+      </QueryClientProvider>,
+    );
+  })();
+  expect(screen.getByRole("alert")).toHaveTextContent("common.loadFailed");
+  fireEvent.click(screen.getByRole("button", { name: "common.retry" }));
+  expect(state.refetch).toHaveBeenCalledTimes(1);
+  expect(screen.queryByTestId("listing-photos-item")).toBeNull();
+  unmount();
+  state.error = null;
+  state.rows = [];
+  mount(false);
+  expect(screen.queryByTestId("listing-photos")).toBeNull();
 });
