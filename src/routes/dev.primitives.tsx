@@ -318,6 +318,20 @@ function PrimitivesFixture() {
         </StatGrid>
       </div>
 
+      <div data-testid="prim-stat-states" className="min-w-0">
+        <StatGrid>
+          <StatCard label={"Pending ads"} value={"0"} loading testid="prim-stat-state-loading" />
+          <StatCard
+            label={"Pending ads"}
+            value={"0"}
+            failed
+            onRetry={() => {}}
+            testid="prim-stat-state-failed"
+          />
+          <StatCard label={"Pending ads"} value={"42"} testid="prim-stat-state-ready" />
+        </StatGrid>
+      </div>
+
       <div data-testid="prim-chart-frame" className="min-w-0">
         <ChartFrame
           title={"Weekly listing volume"}

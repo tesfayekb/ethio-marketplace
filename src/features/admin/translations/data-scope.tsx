@@ -38,6 +38,7 @@ import {
   useSaveEntityTranslation,
   ENTITY_ROWS_KEY,
 } from "./use-translations";
+import { countedLabel } from "./counted-label";
 import { ownValue } from "@/lib/own-key";
 import { useFollowingDraft } from "@/lib/use-following-draft";
 import { useSettling } from "@/lib/use-settling";
@@ -111,6 +112,9 @@ export function DataScope({
    */
   const stats = useEntityTranslationStats(lang);
   const langStats = pickEntityStats(stats.data, lang);
+  // INC-1144: a count is drawn only from a read that answered (counted-label.ts).
+  const counted = (label: string, count: number | undefined) =>
+    countedLabel(label, count, stats.isSuccess);
   const chipCounts: Record<string, number> = {
     all: langStats?.total ?? 0,
     untranslated: langStats?.untranslated ?? 0,
@@ -127,10 +131,10 @@ export function DataScope({
         chipKey: "",
         name: t("admin.translations.col.status"),
         kept: true,
-        allLabel: `${t("prim.table.all")} · ${chipCounts["all"] ?? 0}`,
+        allLabel: counted(t("prim.table.all"), chipCounts["all"]),
         options: DATA_STATUS_CHIPS.map((entry) => ({
           value: entry.value,
-          label: `${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`,
+          label: counted(t(entry.labelKey), chipCounts[entry.value]),
         })).filter((option) => option.value !== "all"),
       },
     ],
@@ -187,11 +191,13 @@ export function DataScope({
         data-total={langStats ? String(langStats.total) : "unknown"}
         data-error={stats.error === null || stats.error === undefined ? "" : errorText(stats.error)}
       />
-      <p data-testid="data-coverage" className="text-sm text-muted-foreground">
-        {t("admin.translations.data.coverage")
-          .replace("{approved}", String(langStats?.approved ?? 0))
-          .replace("{total}", String(langStats?.total ?? 0))}
-      </p>
+      {stats.isSuccess ? (
+        <p data-testid="data-coverage" className="text-sm text-muted-foreground">
+          {t("admin.translations.data.coverage")
+            .replace("{approved}", String(langStats?.approved ?? 0))
+            .replace("{total}", String(langStats?.total ?? 0))}
+        </p>
+      ) : null}
       <p data-testid="data-ai-note" className="text-sm text-muted-foreground">
         {t("admin.translations.data.aiNote")}
       </p>
@@ -240,7 +246,11 @@ export function DataScope({
             testid="data-toolbar"
             search={search}
             filters={
-              <FiltersButton testid={"data-filters"} resultCount={total} filters={tableFilters} />
+              <FiltersButton
+                testid={"data-filters"}
+                resultCount={list.isSuccess ? total : undefined}
+                filters={tableFilters}
+              />
             }
             columns={
               <ColumnsButton

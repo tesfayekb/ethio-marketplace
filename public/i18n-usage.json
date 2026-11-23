@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 771,
+  "scanned": 773,
   "dynamicCallSites": 418,
   "keys": {
     "account.deactivatedBanner": [
@@ -2928,13 +2928,7 @@
     "admin.noSections.title": [
       "/admin"
     ],
-    "admin.overview.error": [
-      "/admin/locations"
-    ],
     "admin.overview.links": [
-      "/admin/locations"
-    ],
-    "admin.overview.loading": [
       "/admin/locations"
     ],
     "admin.overview.locations.body": [
@@ -3724,7 +3718,7 @@
     "admin.translations.order.up": [
       "/admin/translations"
     ],
-    "admin.translations.orphaned.chip": [
+    "admin.translations.orphaned.label": [
       "/admin/translations/$lang"
     ],
     "admin.translations.orphaned.note": [
@@ -4454,11 +4448,15 @@
       "/",
       "/$name",
       "/admin/ai",
+      "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/locations",
       "/admin/screening",
+      "/admin/translations",
       "/c/$slug",
+      "/dev/primitives",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
@@ -8180,6 +8178,12 @@
       "/admin/users/$userId",
       "/dev/style"
     ],
+    "prim.stat.failed": [
+      "/admin/audit",
+      "/admin/locations",
+      "/admin/translations",
+      "/dev/primitives"
+    ],
     "prim.state.empty": [
       "/admin/audit",
       "/admin/impersonation/$sessionId",
@@ -8193,6 +8197,7 @@
     "prim.state.loading": [
       "/admin/audit",
       "/admin/impersonation/$sessionId",
+      "/admin/locations",
       "/admin/translations",
       "/dev/primitives"
     ],

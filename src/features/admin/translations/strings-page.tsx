@@ -57,6 +57,7 @@ import {
   useTranslationStats,
   TRANSLATION_ROWS_KEY,
 } from "./use-translations";
+import { countedLabel } from "./counted-label";
 import { ownValue } from "@/lib/own-key";
 
 interface MutationAction {
@@ -150,6 +151,9 @@ export function AdminTranslationsStringsPage({
    */
 
   const langStats = (stats.data ?? [])[0];
+  // INC-1144: a count is drawn only from a read that answered (counted-label.ts).
+  const counted = (label: string, count: number | undefined) =>
+    countedLabel(label, count, stats.isSuccess);
   const counts: Record<string, number> = {
     all: langStats?.total ?? 0,
     untranslated: langStats?.untranslated ?? 0,
@@ -176,18 +180,15 @@ export function AdminTranslationsStringsPage({
         chipKey: "",
         name: t("admin.translations.col.status"),
         kept: true,
-        allLabel: `${t("prim.table.all")} · ${counts["all"] ?? 0}`,
+        allLabel: counted(t("prim.table.all"), counts["all"]),
         options: [
           ...STATUS_CHIPS.map((chip) => ({
             value: chip.value,
-            label: `${t(chip.labelKey)} · ${counts[chip.value] ?? 0}`,
+            label: counted(t(chip.labelKey), counts[chip.value]),
           })),
           {
             value: "orphaned",
-            label: t("admin.translations.orphaned.chip").replace(
-              "{count}",
-              String(counts["orphaned"] ?? 0),
-            ),
+            label: counted(t("admin.translations.orphaned.label"), counts["orphaned"]),
           },
         ],
       },
@@ -301,19 +302,23 @@ export function AdminTranslationsStringsPage({
                 known?.nameNative ?? lang,
               )}
             />
-            <p data-testid="strings-coverage" className="text-sm text-muted-foreground">
-              {t("admin.translations.coverage")
-                .replace("{approved}", String(counts["approved"] ?? 0))
-                .replace("{total}", String(counts["all"] ?? 0))}
-            </p>
+            {stats.isSuccess ? (
+              <p data-testid="strings-coverage" className="text-sm text-muted-foreground">
+                {t("admin.translations.coverage")
+                  .replace("{approved}", String(counts["approved"] ?? 0))
+                  .replace("{total}", String(counts["all"] ?? 0))}
+              </p>
+            ) : null}
             {/* U4k — both meters side by side: interface AND content names. */}
-            <p data-testid="strings-meters" className="text-sm text-muted-foreground">
-              {t("admin.translations.meters")
-                .replace("{uiApproved}", String(counts["approved"] ?? 0))
-                .replace("{uiTotal}", String(counts["all"] ?? 0))
-                .replace("{dataApproved}", String(dataStats?.approved ?? 0))
-                .replace("{dataTotal}", String(dataStats?.total ?? 0))}
-            </p>
+            {stats.isSuccess && entityStats.isSuccess ? (
+              <p data-testid="strings-meters" className="text-sm text-muted-foreground">
+                {t("admin.translations.meters")
+                  .replace("{uiApproved}", String(counts["approved"] ?? 0))
+                  .replace("{uiTotal}", String(counts["all"] ?? 0))
+                  .replace("{dataApproved}", String(dataStats?.approved ?? 0))
+                  .replace("{dataTotal}", String(dataStats?.total ?? 0))}
+              </p>
+            ) : null}
           </div>
 
           {/**
@@ -445,7 +450,7 @@ export function AdminTranslationsStringsPage({
                       filters={
                         <FiltersButton
                           testid={"strings-filters"}
-                          resultCount={total}
+                          resultCount={list.isSuccess ? total : undefined}
                           filters={tableFilters}
                         />
                       }

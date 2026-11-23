@@ -360,7 +360,7 @@ export function AdminCountriesPage() {
                   filters={
                     <FiltersButton
                       testid={"country-filters"}
-                      resultCount={rows.length}
+                      resultCount={query.isSuccess ? rows.length : undefined}
                       filters={tableFilters}
                     />
                   }

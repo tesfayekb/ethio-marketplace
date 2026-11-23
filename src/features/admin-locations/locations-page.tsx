@@ -484,7 +484,7 @@ export function AdminLocationsPage() {
                   filters={
                     <FiltersButton
                       testid={"location-filters"}
-                      resultCount={rows.length}
+                      resultCount={query.isSuccess && countries.isSuccess ? rows.length : undefined}
                       filters={tableFilters}
                     />
                   }
