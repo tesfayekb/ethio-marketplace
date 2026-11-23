@@ -1138,3 +1138,9 @@ a row inserted before the cursor and one after it between two pages is neither s
 page over the same list repeats a row), and that rows tied on `(etype, elabel, eid)` are read across a page edge. The plan
 of the keyset read serves the language by an index and filters the key (a page still reads the language's rows for its
 `total_count`, as the OFFSET read did).
+
+The bulk translate's collectors (`src/features/admin/translations/bulk-collect.ts`, `collectUi` and `collectEntities`)
+read the untranslated work by that key (cursor-bundle-5 part 3): each next page asks for the rows after the last key read
+(`listTranslations({ after })`, `listEntityTranslations({ after: entityAfterOf(lastRow) })`), a page shorter than
+`AI_CHUNK_SIZE` is the last, and a page that fails stops the collection with its own failure (the bar's guard reports it).
+BT-U1 (`ai-bulk-bar.test.tsx`) walks a fake door whose list changes between two pages.

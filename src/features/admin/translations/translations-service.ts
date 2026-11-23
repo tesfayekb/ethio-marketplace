@@ -155,6 +155,12 @@ export interface TranslationFilters {
   limit?: number;
   offset?: number;
   /**
+   * INC-1141 — read the rows that sort AFTER this key (a row's `key`), never
+   * by position: a row added while a long read pages is neither skipped nor
+   * read twice. The door's own order is by key.
+   */
+  after?: string;
+  /**
    * U4g — undefined/false = the live catalog; true = the orphaned set only.
    * INC-141 — `null` means NO orphan filter at all (the WHOLE catalog): the
    * export must serialise every row the language owns, orphans included.
@@ -196,6 +202,7 @@ export async function listTranslations({
   search = "",
   limit = 25,
   offset = 0,
+  after,
   orphaned = false,
 }: TranslationFilters): Promise<TranslationPage> {
   const { data, error } = await supabase.rpc("admin_list_translations", {
@@ -205,6 +212,7 @@ export async function listTranslations({
     p_search: search,
     p_limit: limit,
     p_offset: offset,
+    ...(after === undefined ? {} : { p_after: after }),
     // `null` = the RPC's own default: no orphan predicate, the whole catalog.
     ...(orphaned === null ? {} : { p_orphaned: orphaned }),
   });
@@ -691,12 +699,30 @@ export interface EntityTranslationPage {
   totalCount: number;
 }
 
+/**
+ * INC-1141 — the entity list's "after this row" key: the four parts the door
+ * orders by (`etype`, `elabel`, `eid`, `efield`), read off the last row of a page.
+ */
+export interface EntityAfter {
+  etype: EntityType;
+  elabel: string;
+  eid: string;
+  efield: string;
+}
+
+/** The key that continues a read after `row`. */
+export function entityAfterOf(row: EntityTranslationRow): EntityAfter {
+  return { etype: row.entityType, elabel: row.label, eid: row.entityId, efield: row.field };
+}
+
 export interface EntityTranslationFilters {
   lang: string;
   status?: string;
   search?: string;
   limit?: number;
   offset?: number;
+  /** INC-1141 — the rows after this key; the count is then the rows remaining. */
+  after?: EntityAfter;
 }
 
 export async function listEntityTranslations({
@@ -705,6 +731,7 @@ export async function listEntityTranslations({
   search = "",
   limit = 25,
   offset = 0,
+  after,
 }: EntityTranslationFilters): Promise<EntityTranslationPage> {
   const { data, error } = await supabase.rpc("admin_list_entity_translations", {
     p_lang: lang,
@@ -712,6 +739,7 @@ export async function listEntityTranslations({
     p_search: search,
     p_limit: limit,
     p_offset: offset,
+    ...(after === undefined ? {} : { p_after: { ...after } }),
   });
   if (error) throw error;
   const rows = data ?? [];
