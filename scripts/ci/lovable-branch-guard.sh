@@ -51,6 +51,26 @@
 # judges the changed lines of `git diff` by the very rule it applies to an API patch. A side that
 # cannot be read (no shas, a refused fetch, a failed or binary diff) refuses; it is never a pass.
 # A patchless file under no exception keeps its path rule, unchanged; git is not read for it.
+#
+# A fifth exception, DEC-432 (cursor-bundle-5): THE RECORDS EXCEPTION. The weekly records turn runs in
+# Lovable and lands only what the supervisor's package holds, byte for byte. A ledger path (roadmap.md,
+# docs/tracking/**, docs/governance/mechanisms.md, docs/_changelog.md, docs/spec/**) is admitted when
+# the pull request's body states the sha256 of a committed expected list and the head's content of that
+# path hashes to the list's line for it:
+#   body line   Records list: docs/governance/briefs/<stem>.records.sha256 sha256 <64 hex>
+#   the list    one line per ledger path, `<64 hex>  <path>` (two spaces), in the head
+# The body line is read at run time (`gh api repos/$REPO/pulls/$PR_NUMBER`, the token the step already
+# holds) and parsed by ONE anchored pattern (RECORDS_LINE); neither of its groups reaches a shell
+# unquoted and nothing in the body is evaluated. The list is read from the head by `git cat-file blob`
+# (the two commits come from fetch_sides, DEC-398), must hash to the body's value, and must hold only
+# well-formed lines; each ledger file's head content must hash to its one line. Anything else — no body
+# line, two body lines, an unreadable body or list, a list whose hash differs, a path with no line or
+# two, a content one byte off, a deleted file — leaves the refusal of rule_for as it stands. Only the
+# five ledger paths are ever admitted: no other path rule (supabase/**, scripts/**, …) reads the list.
+# TRUST BASIS: the pull request's body is written only by the supervisor when it opens the pull request
+# (G76: the supervisor opens every Lovable pull request), and Lovable has no path to it; the list is
+# pinned by the sha256 in that body, so a list the branch itself writes admits nothing the supervisor's
+# line does not name.
 set -euo pipefail
 
 readonly DELETIONS="docs/tracking/intentional-deletions.txt"
@@ -63,11 +83,25 @@ readonly CEILING_LINE='^  "[^"]+": \{ ceiling: [0-9]+, public: (true|false) \}, 
 readonly CSS_LINE='^  css: ([0-9]+),$'
 readonly CSS_COMMENT='^  // DEC-296 \(.+\): .*CSS (local|CI) [0-9.]+ KiB.*; ([0-9]+) → ([0-9]+) = ceilingFor(Local)?\([0-9.]+\); was ([0-9]+)\.$'
 
+# DEC-432 — the body's one line, and one line of the list it names (groups: the list's path and its
+# sha256; a line's sha256 and its path).
+readonly RECORDS_LINE='^Records list: (docs/governance/briefs/[a-z0-9-]+\.records\.sha256) sha256 ([0-9a-f]{64})$'
+readonly RECORDS_ENTRY='^([0-9a-f]{64})  ([A-Za-z0-9._/-]+)$'
+
 # A conformance allowlist (DEC-396): `scripts/conformance/` + one name ending `-allowlist.txt`. The
 # `case` glob alone would let `*` cross a slash, so a nested path is ruled out beside it.
 is_allowlist() {
   case "$1" in
     scripts/conformance/*-allowlist.txt) [[ "${1#scripts/conformance/}" != */* ]] ;;
+    *) return 1 ;;
+  esac
+}
+
+# DEC-432 — the five ledger paths the records exception may admit (the same paths rule_for names as
+# ledgers). A path under any other rule is never read against the list.
+is_ledger() {
+  case "$1" in
+    roadmap.md | docs/tracking/* | docs/governance/mechanisms.md | docs/_changelog.md | docs/spec/*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -112,6 +146,121 @@ fetch_sides() {
   if ! out="$(git fetch --no-tags --depth=1 --filter=blob:none --quiet origin "$base" "$head" 2>&1)"; then
     sides_error="git fetch of the base and head commits failed: ${out//$'\n'/ }"
   fi
+}
+
+# DEC-432 — the sha256 of stdin, as 64 hex digits (GNU's tool on the runner, the BSD one on a laptop).
+sha256_stdin() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | awk '{ print $1 }'
+  else
+    shasum -a 256 | awk '{ print $1 }'
+  fi
+}
+
+# DEC-432 — the records list in force, read once in the main shell. `records_state` is `none` (the body
+# states no list, or there is no pull request to read: the old refusals stand, silently), `error` (a list
+# was stated and cannot be had: `records_error` says why) or `listed` (`records_list` holds the list's
+# lines, `<sha256> <path>`, each already well-formed).
+records_state="unset"
+records_error=""
+records_list=""
+load_records() {
+  if [ "$records_state" != "unset" ]; then return; fi
+  records_state="none"
+  local repo="${REPO:-}" number="${PR_NUMBER:-}" body line list_path="" want="" matches=0
+  local blob="" digest entry sha path
+  if [ -z "$repo" ] || [ -z "$number" ]; then return; fi
+  if ! [[ "$repo" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ && "$number" =~ ^[0-9]+$ ]]; then
+    records_state="error"
+    records_error="REPO and PR_NUMBER are not an owner/name and a number"
+    return
+  fi
+  if ! body="$(gh api "repos/${repo}/pulls/${number}" --jq '.body // ""' </dev/null 2>/dev/null)"; then
+    records_state="error"
+    records_error="the pull request's body could not be read"
+    return
+  fi
+  while IFS= read -r line; do
+    line="${line%$'\r'}"
+    if [[ "$line" =~ $RECORDS_LINE ]]; then
+      matches=$((matches + 1))
+      list_path="${BASH_REMATCH[1]}"
+      want="${BASH_REMATCH[2]}"
+    fi
+  done <<<"$body"
+  if [ "$matches" = "0" ]; then return; fi
+  records_state="error"
+  if [ "$matches" != "1" ]; then
+    records_error="the body states more than one records list"
+    return
+  fi
+  fetch_sides
+  if [ -n "$sides_error" ]; then
+    records_error="the head's commit could not be had: $sides_error"
+    return
+  fi
+  blob="$(git cat-file blob "${PR_HEAD_SHA}:${list_path}" 2>/dev/null && printf x)" || true
+  if [ "${blob: -1}" != "x" ]; then
+    records_error="the list ${list_path} cannot be read from the head"
+    return
+  fi
+  blob="${blob%x}"
+  digest="$(printf '%s' "$blob" | sha256_stdin)"
+  if [ "$digest" != "$want" ]; then
+    records_error="the list ${list_path} does not hash to the body's sha256"
+    return
+  fi
+  while IFS= read -r entry; do
+    if [ -z "$entry" ]; then continue; fi
+    if ! [[ "$entry" =~ $RECORDS_ENTRY ]]; then
+      records_error="the list ${list_path} holds a line that is not '<sha256>  <path>'"
+      return
+    fi
+    sha="${BASH_REMATCH[1]}"
+    path="${BASH_REMATCH[2]}"
+    records_list+="${sha} ${path}"$'\n'
+  done <<<"$blob"
+  records_state="listed"
+}
+
+# DEC-432 — exit 0 when the records list admits the ledger path (its head content hashes to the list's one
+# line for it), else exit 1 with `records_why` the reason (empty when no list was stated). Runs in the main
+# shell: it reads the memo load_records set.
+records_why=""
+records_admits() {
+  local path="$1" status="$2" sha entry want="" matches=0 got
+  records_why=""
+  load_records
+  case "$records_state" in
+    none) return 1 ;;
+    error)
+      records_why="$records_error"
+      return 1
+      ;;
+  esac
+  if [ "$status" = "removed" ]; then
+    records_why="a deleted ledger file has no content to prove"
+    return 1
+  fi
+  while IFS=' ' read -r sha entry; do
+    if [ "$entry" = "$path" ]; then
+      matches=$((matches + 1))
+      want="$sha"
+    fi
+  done <<<"$records_list"
+  if [ "$matches" != "1" ]; then
+    records_why="the list holds ${matches} lines for it, not one"
+    return 1
+  fi
+  if ! got="$(git cat-file blob "${PR_HEAD_SHA}:${path}" 2>/dev/null | sha256_stdin)"; then
+    records_why="its content cannot be read from the head"
+    return 1
+  fi
+  if [ "$got" != "$want" ]; then
+    records_why="its head content is not the list's line for it"
+    return 1
+  fi
+  return 0
 }
 
 # The patch of one file between the two sides, in the API's shape: the hunks of `git diff`, the
@@ -299,7 +448,16 @@ while IFS=$'\x1f' read -r filename previous status has_patch; do
     if [ -n "$reason" ]; then refusals+=("$reason"); fi
   else
     rule="$(rule_for "$filename")"
-    if [ -n "$rule" ]; then refusals+=("${filename} — ${status}: ${rule}"); fi
+    if [ -n "$rule" ]; then
+      records_why=""
+      if is_ledger "$filename" && records_admits "$filename" "$status"; then
+        :
+      elif [ -n "$records_why" ]; then
+        refusals+=("${filename} — ${status}: ${rule}; the records list (DEC-432) does not admit it: ${records_why}")
+      else
+        refusals+=("${filename} — ${status}: ${rule}")
+      fi
+    fi
   fi
   if [ -n "$previous" ]; then
     rule="$(rule_for "$previous")"

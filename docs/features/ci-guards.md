@@ -1375,7 +1375,7 @@ was <old>.`), agreeing with the two css lines. The comment's line must fall afte
 - **The verdict:** every offending change listed with its rule, exit 1; a pass names the file
   count. Input that is not the API's JSON arrays (an empty answer, an error object) is exit 2,
   never a pass.
-- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…14, 17 and 18 on planted API answers —
+- **Tests:** `scripts/ci/lovable-branch-guard.test.ts`, CF-LVB-1…14 and 17…20 on planted API answers —
   every rule, a `.sql` outside `supabase/`, an added versus a removed or changed deletions line, a
   real ceiling line grown versus any other edit of the ceilings file, `.lovable/**`, screen files
   across two pages, a missing patch, a rename away from a forbidden path, input that is not the
@@ -1403,6 +1403,22 @@ was <old>.`), agreeing with the two css lines. The comment's line must fall afte
   where git may write `.git` (CI; locally outside a write-restricted sandbox).
   `scripts/conformance/wired.test.ts` finds the script in `lovable-branch-guard.yml` and not in
   `ci.yml`.
+- **The records exception (cursor-bundle-5, DEC-432; CF-LVB-19, CF-LVB-20):** the weekly records turn
+  runs in Lovable and lands only what the supervisor's package holds. A ledger path (`roadmap.md`,
+  `docs/tracking/**`, `docs/governance/mechanisms.md`, `docs/_changelog.md`, `docs/spec/**`) is admitted
+  when the pull request's body holds the one line `Records list: docs/governance/briefs/<stem>.records.sha256
+sha256 <64 hex>` and the head's content of the path hashes to the list's line for it. The script
+  reads the body at run time (`gh api repos/$REPO/pulls/$PR_NUMBER`, the token the step already holds),
+  parses it by one anchored pattern (a path with `..`, a space, another folder or another suffix never
+  matches; neither group reaches a shell unquoted; nothing in the body is evaluated), reads the list
+  from the head by `git cat-file blob` (the commits `fetch_sides` fetches), requires it to hash to the
+  body's value and to hold only `<sha256>  <path>` lines, and compares each ledger file's head content
+  with its one line. No line in the body, two lines, an unreadable body or list, a list whose hash
+  differs, a path with no line or two, one byte off and a deleted file each leave the old refusal
+  (with the reason added when a list was stated); no other path rule (`supabase/**`, `scripts/**`, …)
+  ever reads the list. The trust basis is in the script's header: the body is written only by the
+  supervisor when it opens the pull request (G76) and Lovable has no path to it. CF-LVB-19 / 20 run
+  the script against a planted remote and a fake `gh` on `PATH`.
 - **Its fixtures are its own (INC-1201):** the four `CF-FORM-1` lines and the ceiling line the
   tests remove, keep and grow are written in the test (invented paths in
   `scripts/conformance/forms-allowlist.txt`'s line form; a `/fixture-page` line in DEC-296's form
