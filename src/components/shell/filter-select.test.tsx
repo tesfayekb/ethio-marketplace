@@ -1,5 +1,6 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FilterSelect } from "./filter-select";
 
@@ -207,4 +208,9 @@ it("FP-U39 a row select tells its name followed by its value and names its list 
 it("FP-U40 a row select with no choices announces its name followed by All", () => {
   draw({ rowLabel: "Colour" });
   expect(screen.getByRole("button", { name: "Colour All" })).toBeInTheDocument();
+});
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
 });

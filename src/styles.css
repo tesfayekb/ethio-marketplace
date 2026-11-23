@@ -46,7 +46,12 @@
    panel's bottom edge. Written by hand: the framework's gradient utilities would add their
    whole machinery to every page's stylesheet for this one fade. */
 @utility cue-fade {
-  background: linear-gradient(to top, var(--background), transparent);
+  background: linear-gradient(
+    to top,
+    var(--background) 0,
+    var(--background) 1.5rem,
+    transparent 2rem
+  );
 }
 [data-testid="shell-subband"]:has(+ [data-testid="shell-location-band"]):not(
     [data-location-covered]

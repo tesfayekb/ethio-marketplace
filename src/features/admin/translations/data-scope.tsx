@@ -81,7 +81,6 @@ const ENTITY_LABELS: Record<string, MessageKey> = {
 export function DataScope({
   lang,
   rtl,
-  status,
   query,
   search,
   mayUpdate,
@@ -91,7 +90,6 @@ export function DataScope({
 }: {
   lang: string;
   rtl: boolean;
-  status: string;
   query: string;
   /** Bundle 11 G3e — the page's search box (it drives the URL), drawn in this table's toolbar. */
   search?: ReactNode;
@@ -108,14 +106,9 @@ export function DataScope({
   const [hidden, toggleColumn] = useHiddenColumns("admin-data");
   const [expanded, setExpanded] = useState<string | null>(null);
   /**
-   * U4k — the STATUS CHIPS of the Data scope, mirroring the Interface ones.
-   * They are component state rather than a URL filter because the route file
-   * (the single parse point for search params, INC-073) is outside this task's
-   * scope; the incoming `status` prop remains the initial truth.
+   * U4k — the STATUS CHIPS of the Data scope, mirroring the Interface ones: not in the address
+   * (INC-073 names only the strings page's status); held by the table's filters (INC-1251).
    */
-  const [chip, setChip] = useState(status === "flagged" ? "all" : status);
-  const rawActiveStatus = chip;
-
   const stats = useEntityTranslationStats(lang);
   const langStats = pickEntityStats(stats.data, lang);
   const chipCounts: Record<string, number> = {
@@ -125,26 +118,24 @@ export function DataScope({
     edited: langStats?.edited ?? 0,
     approved: langStats?.approved ?? 0,
   };
-  const chooseStatus = (value: string) => {
-    setPage(0);
-    setChip(value);
-  };
-  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-data", [
-    {
-      kind: "select",
-      id: "data-status-filter",
-      chipKey: "",
-      name: t("admin.translations.col.status"),
-      kept: true,
-      allLabel: `${t("prim.table.all")} · ${chipCounts["all"] ?? 0}`,
-      value: rawActiveStatus === "all" || rawActiveStatus === null ? [] : [rawActiveStatus],
-      onChange: (next: string[]) => chooseStatus(next[0] ?? "all"),
-      options: DATA_STATUS_CHIPS.map((entry) => ({
-        value: entry.value,
-        label: `${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`,
-      })).filter((option) => option.value !== "all"),
-    },
-  ]);
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters(
+    "admin-data",
+    [
+      {
+        kind: "select",
+        id: "data-status-filter",
+        chipKey: "",
+        name: t("admin.translations.col.status"),
+        kept: true,
+        allLabel: `${t("prim.table.all")} · ${chipCounts["all"] ?? 0}`,
+        options: DATA_STATUS_CHIPS.map((entry) => ({
+          value: entry.value,
+          label: `${t(entry.labelKey)} · ${chipCounts[entry.value] ?? 0}`,
+        })).filter((option) => option.value !== "all"),
+      },
+    ],
+    { onAnyChange: () => setPage(0) },
+  );
   const activeStatus = filterValues(tableFilters, "data-status-filter")[0] ?? "all";
   const list = useEntityTranslations(
     {

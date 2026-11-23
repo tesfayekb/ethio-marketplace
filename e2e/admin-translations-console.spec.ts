@@ -428,7 +428,7 @@ test.describe("U4b translations console", () => {
    * no longer holds — a target with no translations permission renders the
    * muted `translator-no-role` line and NO controls.
    *
-   * STATE A: fresh scratch user, no role → no-role line, zero checkboxes, no
+   * STATE A: fresh scratch user, no role → no-role line, no language select, no
    * save button. STATE B: grant `translations:view` via a SCRATCH CUSTOM ROLE
    * (service-role inserts, the established fixture path — scratch-key law's
    * roles analogue) → checkboxes render → assign am → save behind step-up →
@@ -451,26 +451,28 @@ test.describe("U4b translations console", () => {
       await grantScratchRole(target.id, [["translations", "view"]], reap);
 
       await gotoReady(page, `/admin/users/${target.id}`);
+      const langLine = page.getByTestId("translator-lang");
+      await expect(langLine).toBeEnabled({ timeout: 20000 });
+      await langLine.click();
       const amBox = page.getByTestId("translator-lang-am");
       await expect(amBox).toBeVisible({ timeout: 20000 });
       // INC-380: a dirty leased account fails here, clearly, instead of flaking.
       await expect(amBox, "leased target already holds am (pool reset incomplete)").toHaveAttribute(
-        "aria-checked",
+        "aria-selected",
         "false",
       );
       await amBox.click();
+      await expect(amBox).toHaveAttribute("aria-selected", "true");
       await page.getByTestId("translator-save").click();
       await stepUpIfPrompted(page, secret);
       await expect(page.getByTestId("translator-saved")).toBeVisible({ timeout: 20000 });
-      await expect(amBox).toHaveAttribute("aria-checked", "true");
+      await expect(langLine).toContainText("(am)");
 
       // PERSISTENCE (INC-095n) — the card used to never read existing
       // assignments, so a replace-set save could silently wipe scope. After a
-      // reload the checkbox must come back CHECKED from server-loaded state.
+      // reload the line must come back holding am from server-loaded state.
       await gotoReady(page, `/admin/users/${target.id}`);
-      const reloadedBox = page.getByTestId("translator-lang-am");
-      await expect(reloadedBox).toBeVisible({ timeout: 20000 });
-      await expect(reloadedBox).toHaveAttribute("aria-checked", "true");
+      await expect(page.getByTestId("translator-lang")).toContainText("(am)", { timeout: 20000 });
       await expectNoHorizontalOverflow(page);
     } finally {
       await supabase.from("translator_languages").delete().eq("user_id", target.id);
@@ -962,14 +964,15 @@ test.describe("U4b translations console", () => {
         const { secret } = await signInJobSuperAdmin(page);
         await gotoReady(page, "/admin/translations");
         await expect(page.getByTestId("translations-add-picker")).toBeVisible({ timeout: 20000 });
-        await page.getByTestId("translations-add-search").fill("Swahili");
+        await page.getByTestId("translations-add-option").click();
         await page.getByTestId(`translations-add-option-${code}`).click();
 
         await expect(page.getByTestId("translations-add-code")).toHaveValue(code);
         await expect(page.getByTestId("translations-add-name-en")).toHaveValue("Swahili");
         // The native name is DERIVED, never left blank for the operator to guess.
         expect(await page.getByTestId("translations-add-name-native").inputValue()).not.toBe("");
-        await page.getByTestId("translations-add-country-ET").check();
+        await page.getByTestId("translations-add-country").click();
+        await page.getByTestId("translations-add-country-ET").click();
         await page.getByTestId("translations-add-submit").click();
         await stepUpIfPrompted(page, secret);
         await expect(page.getByTestId("translations-add-saved")).toBeVisible({ timeout: 20000 });

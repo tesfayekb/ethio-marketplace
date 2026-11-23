@@ -1,6 +1,7 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FilterPanelBody } from "./filter-panel-body";
 import type { TableSelectFilter, TableFilterWords } from "./table-filters";
 
@@ -17,6 +18,8 @@ const choices = (id: string, onChange = vi.fn()): TableSelectFilter => ({
   value: [],
   multiple: true,
   onChange,
+  clear: vi.fn(),
+  changed: vi.fn(),
   options,
 });
 
@@ -117,6 +120,8 @@ describe("a small panel's filter lists", () => {
               kept: true,
               value,
               onChange,
+              clear: vi.fn(),
+              changed: vi.fn(),
             },
           ]}
         />
@@ -146,6 +151,8 @@ it.each(["text", "dates", "switch"] as const)(
             kept: false as const,
             value: "",
             onChange: vi.fn(),
+            clear: vi.fn(),
+            changed: vi.fn(),
             placeholder: "Seller",
           }
         : kind === "dates"
@@ -156,6 +163,8 @@ it.each(["text", "dates", "switch"] as const)(
               kept: false as const,
               value: { from: "", to: "" },
               onChange: vi.fn(),
+              clear: vi.fn(),
+              changed: vi.fn(),
               fromLabel: "From",
               toLabel: "To",
               maxDate: "2026-11-22",
@@ -168,6 +177,8 @@ it.each(["text", "dates", "switch"] as const)(
               kept: true,
               value: false,
               onChange: vi.fn(),
+              clear: vi.fn(),
+              changed: vi.fn(),
             };
     render(<FilterPanelBody filters={[choices("first"), filter]} words={words} />);
     fireEvent.click(screen.getByTestId("first"));
@@ -191,6 +202,8 @@ it("FP-U37 a dates declaration has only its two box labels and no third row name
           kept: false,
           value: { from: "", to: "" },
           onChange: vi.fn(),
+          clear: vi.fn(),
+          changed: vi.fn(),
           fromLabel: "Posted from",
           toLabel: "Posted to",
           maxDate: "2026-11-22",
@@ -201,4 +214,9 @@ it("FP-U37 a dates declaration has only its two box labels and no third row name
   expect(screen.getByLabelText("Posted from")).toHaveAttribute("data-testid", "made-from");
   expect(screen.getByLabelText("Posted to")).toHaveAttribute("data-testid", "made-to");
   expect(screen.getByTestId("made").querySelectorAll("label")).toHaveLength(2);
+});
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
 });

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 767,
-  "dynamicCallSites": 417,
+  "scanned": 771,
+  "dynamicCallSites": 418,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -596,9 +596,6 @@
       "/admin/ai"
     ],
     "admin.ai.loading": [
-      "/admin/ai"
-    ],
-    "admin.ai.log.allOutcomes": [
       "/admin/ai"
     ],
     "admin.ai.log.col.latency": [
@@ -1281,9 +1278,6 @@
     "admin.audit.filter.actor": [
       "/admin/audit"
     ],
-    "admin.audit.filter.all": [
-      "/admin/audit"
-    ],
     "admin.audit.filter.entity": [
       "/admin/audit"
     ],
@@ -1769,7 +1763,8 @@
       "/admin/countries"
     ],
     "admin.countries.error": [
-      "/admin/countries"
+      "/admin/countries",
+      "/admin/translations"
     ],
     "admin.countries.field.currency": [
       "/admin/countries"
@@ -3420,16 +3415,10 @@
     "admin.translations.add.pick": [
       "/admin/translations"
     ],
-    "admin.translations.add.pickEmpty": [
-      "/admin/translations"
-    ],
     "admin.translations.add.pickError": [
       "/admin/translations"
     ],
     "admin.translations.add.pickLoading": [
-      "/admin/translations"
-    ],
-    "admin.translations.add.pickPlaceholder": [
       "/admin/translations"
     ],
     "admin.translations.add.pickSelected": [
@@ -3885,10 +3874,10 @@
     "admin.translations.translator.audit": [
       "/admin/users/$userId"
     ],
-    "admin.translations.translator.checkError": [
+    "admin.translations.translator.empty": [
       "/admin/users/$userId"
     ],
-    "admin.translations.translator.empty": [
+    "admin.translations.translator.languages": [
       "/admin/users/$userId"
     ],
     "admin.translations.translator.noRole": [
@@ -3998,9 +3987,6 @@
     "admin.users.error": [
       "/admin/users",
       "/admin/users/$userId"
-    ],
-    "admin.users.filter.all": [
-      "/admin/users"
     ],
     "admin.users.legal.accepted": [
       "/admin/users/$userId"
@@ -7942,8 +7928,10 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/admin/users/$userId",
       "/dev/style",
       "/my-listings"
     ],
@@ -7955,8 +7943,10 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/admin/users/$userId",
       "/dev/style",
       "/my-listings"
     ],
@@ -7968,8 +7958,10 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/admin/users/$userId",
       "/dev/style",
       "/my-listings"
     ],
@@ -8167,6 +8159,18 @@
     ],
     "prim.orderStrip.label": [
       "/admin/monetisation"
+    ],
+    "prim.select.choose": [
+      "/admin/categories",
+      "/admin/translations",
+      "/admin/users/$userId",
+      "/dev/style"
+    ],
+    "prim.select.count": [
+      "/admin/categories",
+      "/admin/translations",
+      "/admin/users/$userId",
+      "/dev/style"
     ],
     "prim.state.empty": [
       "/admin/audit",

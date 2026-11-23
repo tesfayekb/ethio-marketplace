@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Field } from "@/components/forms/field";
+import { FieldSelect } from "@/components/forms/field-select";
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { cn } from "@/lib/utils";
 
@@ -392,7 +393,6 @@ const SIZES = ["Small", "Large"] as const;
 /** Fixture words (a dev page, English only). */
 const COLOUR_LABEL = "Colour";
 const SIZE_LABEL = "Size";
-const ANY = "Any";
 
 /** Turn S6-1 (ruling 13) — a dialog, an alert dialog and two sheets in the one look, drawn
  *  from existing keys; e2e/dialogs.spec.ts measures them. */
@@ -533,6 +533,8 @@ const BOARD = {
   deleteTitle: "Delete this category?",
   deleteText: "It is removed for good. Ads in it move to its parent.",
   delete: "Delete",
+  formOne: "One choice",
+  formMany: "Several choices",
   formTitle: "Edit category",
   formText: "Change its names and its place in the tree. Save keeps them.",
   save: "Save",
@@ -609,6 +611,8 @@ interface Archetype {
 function FormArchetype({ Title, Text }: BoardParts) {
   const [name, setName] = useState("");
   const [marked, setMarked] = useState(false);
+  const [oneChoice, setOneChoice] = useState<string[]>([]);
+  const [manyChoices, setManyChoices] = useState<string[]>(["addis-ababa", "adama"]);
   const nameRef = useRef<HTMLInputElement | null>(null);
   return (
     <>
@@ -618,6 +622,27 @@ function FormArchetype({ Title, Text }: BoardParts) {
       </PanelHeader>
       <PanelBody className="max-h-64">
         <div className={cn(DIALOG_CARD, "flex flex-col gap-3")}>
+          <FieldSelect
+            id="style-form-one"
+            field="one"
+            label={BOARD.formOne}
+            required={false}
+            refusal={null}
+            options={BOARD_PLACES}
+            value={oneChoice}
+            onChange={setOneChoice}
+          />
+          <FieldSelect
+            id="style-form-many"
+            field="many"
+            label={BOARD.formMany}
+            required={false}
+            refusal={null}
+            multiple
+            options={BOARD_PLACES.slice(0, 4)}
+            value={manyChoices}
+            onChange={setManyChoices}
+          />
           {BOARD_FIELDS.map((label) => (
             <Field key={label} id={`board-${label}`} label={label} required={false} refusal={null}>
               {(control) => <Input {...control} />}
@@ -1047,8 +1072,6 @@ function StyleFixture() {
   const [last, setLast] = useState("");
   const [offset, setOffset] = useState(0);
   const [pageSize, setPageSize] = useState(25);
-  const [rawColour, setColour] = useState<string[]>([]);
-  const [rawSize, setSize] = useState("");
   const { filters: tableFilters } = useTableFilters("style-filters", [
     {
       kind: "select",
@@ -1057,13 +1080,7 @@ function StyleFixture() {
       name: COLOUR_LABEL,
       kept: true,
       multiple: true,
-      value: rawColour,
-      onChange: (next: string[]) => {
-        setColour(next);
-      },
-      options: [{ value: "", label: ANY }, ...COLOURS.map((c) => ({ value: c, label: c }))].filter(
-        (option) => option.value !== "" && option.value !== "all",
-      ),
+      options: COLOURS.map((c) => ({ value: c, label: c })),
     },
     {
       kind: "select",
@@ -1071,19 +1088,11 @@ function StyleFixture() {
       chipKey: "size",
       name: SIZE_LABEL,
       kept: true,
-      value: rawSize === "" || rawSize === null ? [] : [rawSize],
-      onChange: (next: string[]) => setSize(next[0] ?? ""),
-      options: [{ value: "", label: ANY }, ...SIZES.map((c) => ({ value: c, label: c }))].filter(
-        (option) => option.value !== "" && option.value !== "all",
-      ),
+      options: SIZES.map((c) => ({ value: c, label: c })),
     },
   ]);
-  const [fullCountry, setFullCountry] = useState<string[]>([]);
-  const [fullCategory, setFullCategory] = useState<string[]>([]);
   const [fullSeller, setFullSeller] = useState("");
-  const [fullLevel, setFullLevel] = useState<string[]>([]);
   const [fullDates, setFullDates] = useState({ from: "", to: "" });
-  const [fullMissing, setFullMissing] = useState(false);
   const { filters: fullFilters } = useTableFilters("style-filters-full", [
     {
       kind: "select",
@@ -1092,8 +1101,6 @@ function StyleFixture() {
       name: "Country",
       kept: true,
       multiple: true,
-      value: fullCountry,
-      onChange: setFullCountry,
       options: Array.from({ length: 12 }, (_, index) => ({
         value: `market-${index}`,
         label: `Market ${index + 1}`,
@@ -1106,8 +1113,6 @@ function StyleFixture() {
       name: "Category",
       kept: true,
       multiple: true,
-      value: fullCategory,
-      onChange: setFullCategory,
       options: ["Vehicles", "Homes", "Electronics"].map((value) => ({ value, label: value })),
     },
     {
@@ -1126,8 +1131,6 @@ function StyleFixture() {
       chipKey: "level",
       name: "Level",
       kept: true,
-      value: fullLevel,
-      onChange: setFullLevel,
       options: ["Regular", "Premium"].map((value) => ({ value, label: value })),
     },
     {
@@ -1147,8 +1150,6 @@ function StyleFixture() {
       chipKey: "missing",
       name: "Missing picture",
       kept: true,
-      value: fullMissing,
-      onChange: setFullMissing,
     },
   ]);
   const colour = filterValues(tableFilters, "style-filters-colour");

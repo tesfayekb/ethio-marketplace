@@ -1,6 +1,7 @@
 import { useCallback, useContext, useMemo, useState, useSyncExternalStore } from "react";
 
 import { ShellContext } from "@/components/shell-context";
+import { parseDay } from "./date-day";
 
 type TableViewAccount = string | null | undefined;
 
@@ -14,9 +15,8 @@ type TableViewAccount = string | null | undefined;
  *   lives only in the hook's own state while mounted. Sign-out removes nothing; another account reads its own key.
  * - ONE COPY IN MEMORY (ruling 1, decision 3): one entry per account and table, every hook a
  *   subscriber (`useSyncExternalStore`), every write a merge into the current entry.
- * - KEPT: column keys, the page size, closed-list filter values. NEVER kept: anything typed,
- *   dates (decision 4) — the caller never hands them to `setFilter`, and `offer` has no place for
- *   them.
+ * - KEPT: column keys, the page size, closed-list filter values and calendar-day pairs (DEC-428).
+ *   NEVER kept: freely typed text. Dates are checked here and against the declaration in the hook.
  * - READ BACK IS CHECKED by hand-written guards (decision 2: no schema library on a page's first
  *   download): version 1, at most 50 column keys, at most 20 values a filter, each at most 64
  *   characters; a filter value the table does not offer today is dropped by `useTableView`. An
@@ -80,6 +80,12 @@ export interface TableViewEntry {
   readonly hidden: readonly string[];
   readonly pageSize: number | null;
   readonly filters: Readonly<Record<string, readonly string[]>>;
+  readonly dates?: Readonly<Record<string, TableDatePair>>;
+}
+
+export interface TableDatePair {
+  readonly from: string;
+  readonly to: string;
 }
 
 const EMPTY: TableViewEntry = Object.freeze({ hidden: [], pageSize: null, filters: {} });
@@ -103,7 +109,14 @@ export function parseTableViewEntry(raw: string | null): TableViewEntry | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   for (const key of Object.keys(record)) {
-    if (key !== "v" && key !== "hidden" && key !== "pageSize" && key !== "filters") return null;
+    if (
+      key !== "v" &&
+      key !== "hidden" &&
+      key !== "pageSize" &&
+      key !== "filters" &&
+      key !== "dates"
+    )
+      return null;
   }
   if (record["v"] !== VERSION) return null;
   const hidden = record["hidden"] ?? [];
@@ -119,7 +132,28 @@ export function parseTableViewEntry(raw: string | null): TableViewEntry | null {
     if (!isText(id) || !isTextList(values, MAX_KEPT_VALUES)) return null;
     filters[id] = [...values];
   }
-  return { hidden: [...hidden], pageSize: pageSize as number | null, filters };
+  const datesRaw = record["dates"];
+  const dates: Record<string, TableDatePair> = {};
+  if (datesRaw !== undefined) {
+    if (typeof datesRaw !== "object" || datesRaw === null || Array.isArray(datesRaw)) return null;
+    for (const [id, pair] of Object.entries(datesRaw as Record<string, unknown>)) {
+      if (!isText(id) || typeof pair !== "object" || pair === null || Array.isArray(pair))
+        return null;
+      const sides = pair as Record<string, unknown>;
+      if (Object.keys(sides).some((key) => key !== "from" && key !== "to")) return null;
+      const from =
+        typeof sides["from"] === "string" && parseDay(sides["from"]) !== null ? sides["from"] : "";
+      const to =
+        typeof sides["to"] === "string" && parseDay(sides["to"]) !== null ? sides["to"] : "";
+      if (from !== "" || to !== "") dates[id] = { from, to };
+    }
+  }
+  return {
+    hidden: [...hidden],
+    pageSize: pageSize as number | null,
+    filters,
+    ...(Object.keys(dates).length ? { dates } : {}),
+  };
 }
 
 function serialise(entry: TableViewEntry): string {
@@ -128,6 +162,7 @@ function serialise(entry: TableViewEntry): string {
     hidden: entry.hidden,
     ...(entry.pageSize === null ? {} : { pageSize: entry.pageSize }),
     filters: entry.filters,
+    ...(entry.dates === undefined ? {} : { dates: entry.dates }),
   });
 }
 
@@ -291,7 +326,21 @@ export function useTableEntry(tableId: string) {
     [write],
   );
   const clearFilters = useCallback(
-    () => write((current) => ({ ...current, filters: {} })),
+    () => write((current) => ({ ...current, filters: {}, dates: {} })),
+    [write],
+  );
+  const setDates = useCallback(
+    (filterId: string, pair: TableDatePair) => {
+      if (!isText(filterId)) return;
+      const from = parseDay(pair.from) === null ? "" : pair.from;
+      const to = parseDay(pair.to) === null ? "" : pair.to;
+      write((current) => {
+        const dates = { ...current.dates };
+        if (from === "" && to === "") delete dates[filterId];
+        else dates[filterId] = { from, to };
+        return { ...current, dates };
+      });
+    },
     [write],
   );
   return {
@@ -301,6 +350,7 @@ export function useTableEntry(tableId: string) {
     setPageSize,
     setFilter,
     clearFilters,
+    setDates,
   };
 }
 
@@ -312,7 +362,7 @@ export type TableViewOffer = Readonly<Record<string, readonly string[]>>;
  * category or a market no longer open is never drawn and never sent to a door.
  */
 export function useTableView(tableId: string, offer: TableViewOffer) {
-  const { ready, entry, setFilter, clearFilters } = useTableEntry(tableId);
+  const { ready, entry, setFilter, clearFilters, setDates } = useTableEntry(tableId);
   const offerKey = JSON.stringify(offer);
   const filters = useMemo(() => {
     const allowed: TableViewOffer = JSON.parse(offerKey) as TableViewOffer;
@@ -330,6 +380,8 @@ export function useTableView(tableId: string, offer: TableViewOffer) {
     hidden: entry.hidden,
     pageSize: entry.pageSize,
     filters,
+    dates: entry.dates,
+    setDates,
     setFilter,
     clearFilters,
   };

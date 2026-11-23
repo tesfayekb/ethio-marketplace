@@ -4,7 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useHiddenColumns } from "./columns-state";
 import { tableViewTestShell } from "./table-view-test-shell";
 import { forgetTableViewsForTests } from "./table-view-store";
-import { parseTableViewEntry, tableOfPageKey, useTableView } from "./table-view-store";
+import {
+  parseTableViewEntry,
+  tableOfPageKey,
+  useTableView,
+  useTableEntry,
+} from "./table-view-store";
 import { useKeptPage } from "./use-kept-page";
 
 const KEY = (account: string, table: string) => `ethio:view:${account}:${table}`;
@@ -18,6 +23,51 @@ function renderHook<T>(callback: () => T) {
 
 /** INC-1238 (DEC-420) — the kept view, one store per account and table. */
 describe("table-view-store", () => {
+  it("TV-U13 a date pair is stored once and read back for its account and table, surviving sign-out", () => {
+    const hook = renderHook(() => useTableEntry("date-pair"));
+    act(() => hook.result.current.setDates("made", { from: "2026-11-01", to: "2026-11-22" }));
+    expect(stored("acc-a", "date-pair")).toMatchObject({
+      dates: { made: { from: "2026-11-01", to: "2026-11-22" } },
+    });
+    hook.unmount();
+    forgetTableViewsForTests();
+    account = null;
+    expect(renderHook(() => useTableEntry("date-pair")).result.current.entry.dates).toBeUndefined();
+    account = "acc-b";
+    expect(renderHook(() => useTableEntry("date-pair")).result.current.entry.dates).toBeUndefined();
+    account = "acc-a";
+    expect(renderHook(() => useTableEntry("date-pair")).result.current.entry.dates).toEqual({
+      made: { from: "2026-11-01", to: "2026-11-22" },
+    });
+  });
+  it("TV-U14 a broken calendar day reads without that side, preserving its valid partner", () => {
+    expect(
+      parseTableViewEntry(
+        JSON.stringify({ v: 1, dates: { made: { from: "2026-02-30", to: "2026-11-22" } } }),
+      )?.dates,
+    ).toEqual({ made: { from: "", to: "2026-11-22" } });
+  });
+  it("TV-U15 anything not an exact YYYY-MM-DD day is refused as a stored date side", () => {
+    for (const from of [
+      "2026-2-01",
+      "2026-11-01T00:00:00Z",
+      " 2026-11-01",
+      "private seller",
+      20261101,
+      null,
+      { text: "private" },
+    ]) {
+      expect(
+        parseTableViewEntry(JSON.stringify({ v: 1, dates: { made: { from, to: "2026-11-22" } } }))
+          ?.dates,
+      ).toEqual({ made: { from: "", to: "2026-11-22" } });
+    }
+    const hook = renderHook(() => useTableEntry("date-write"));
+    act(() => hook.result.current.setDates("made", { from: "private seller", to: "2026-11-22" }));
+    expect(stored("acc-a", "date-write")).toMatchObject({
+      dates: { made: { from: "", to: "2026-11-22" } },
+    });
+  });
   beforeEach(() => {
     account = "acc-a";
     forgetTableViewsForTests();
