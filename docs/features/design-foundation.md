@@ -755,3 +755,16 @@ body between its header and its last band, with a height.
 R: INC-073 keeps the Users role and interface-strings status/flagged in the address; a named address choice overrides the kept view without changing it on arrival. One optional `addressValue` declaration field supplies that precedence, and a panel, chip or Clear choice writes the address with replacement and the kept view together; no synchronization effect copies either source.
 
 S: Filters panels stack From and To at full-row width, each with its own label and its calendar in the content flow. A landed click on a text box, date box or switch closes the select through the rows' owner without moving content on pointer-down.
+
+## The select in forms
+
+One choice from a fixed or data list stays the product's native select (DEC-427). The shared
+`FieldSelect` is only for several choices from data or one searchable catalogue choice: new-category
+countries, the Countries dialog, new-language countries, translator languages, and the language to
+add. Short fixed checkbox groups stay unchanged. `FieldSelect` keeps the control `id` separate from
+the door's `field`, reports blank required answers to `Field`'s gate, and carries its refusal marks.
+It reads the shared words once; loading and failure use the form's own words on a closed line.
+`SelectList` owns both the form and Filters list: choices open in flow under the line, long lists
+show search and use `FLOW_LIST_SCROLLER`, and Escape returns focus to the line. Only the form line
+shows an uncut count after the cut chosen names when several are chosen; Filters retain their chips
+and badge. The board's form includes one and several choices, with long and short lists.

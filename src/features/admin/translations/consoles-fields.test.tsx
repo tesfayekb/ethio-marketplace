@@ -6,8 +6,9 @@ import { describe, expect, it, vi } from "vitest";
 import type { DataTableColumn } from "@/components/shell/data-table";
 import type { LanguageRow } from "./translations-service";
 
-const { calls, row } = vi.hoisted(() => ({
+const { calls, row, countries } = vi.hoisted(() => ({
   calls: { upsert: vi.fn(), remove: vi.fn() },
+  countries: [{ code: "AA", nameEn: "Scratch country" }],
   row: {
     code: "zxy-l6",
     nameEn: "Scratch language",
@@ -35,7 +36,7 @@ vi.mock("@/features/admin/admin-context", () => ({
   useAdminShell: () => ({ permissions: ["translations:manage"] }),
 }));
 vi.mock("@/features/admin/users/use-admin-users", () => ({
-  useCountries: () => ({ data: [], isLoading: false }),
+  useCountries: () => ({ data: countries, isLoading: false, error: null }),
 }));
 vi.mock("@/features/auth/mfa/step-up-gate", () => ({
   StepUpGate: ({
@@ -198,4 +199,33 @@ describe("language form gates", () => {
     await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
     expect(calls.remove).toHaveBeenCalledWith("zxy-l6");
   });
+});
+
+it("KFC2-9 new-language countries answer the same countryCodes door field", async () => {
+  calls.upsert.mockClear();
+  calls.upsert.mockResolvedValue(undefined);
+  open();
+  fireEvent.change(screen.getByTestId("translations-add-code"), { target: { value: "zxy-l6" } });
+  fireEvent.change(screen.getByTestId("translations-add-name-en"), {
+    target: { value: "Scratch language" },
+  });
+  fireEvent.change(screen.getByTestId("translations-add-name-native"), {
+    target: { value: "Scratch name" },
+  });
+  fireEvent.click(screen.getByTestId("translations-add-country"));
+  fireEvent.click(screen.getByTestId("translations-add-country-AA"));
+  expect(screen.getByTestId("translations-add-country-AA")).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  fireEvent.click(screen.getByTestId("translations-add-submit"));
+  await waitFor(() =>
+    expect(calls.upsert).toHaveBeenCalledWith({
+      code: "zxy-l6",
+      nameEn: "Scratch language",
+      nameNative: "Scratch name",
+      rtl: false,
+      countryCodes: ["AA"],
+    }),
+  );
 });

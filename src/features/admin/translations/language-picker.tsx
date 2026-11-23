@@ -1,8 +1,6 @@
-import { Field } from "@/components/forms/field";
-import { useState } from "react";
+import { FieldSelect } from "@/components/forms/field-select";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
 
 import type { ProviderLanguage } from "./translations-service";
@@ -20,7 +18,6 @@ import { useProviderLanguages } from "./use-translations";
  * are never offered here even if a provider ever returned such a subtag.
  */
 const FENCE_RE = /^zx[a-z]/i;
-const MAX_VISIBLE = 40;
 
 export function LanguagePicker({
   onSelect,
@@ -30,83 +27,35 @@ export function LanguagePicker({
   onManual: () => void;
 }) {
   const { t } = useI18n();
-  const [query, setQuery] = useState("");
   const list = useProviderLanguages(true);
 
-  const needle = query.trim().toLowerCase();
   const all = (list.data ?? []).filter((entry) => !FENCE_RE.test(entry.code));
-  const matches = all
-    .filter(
-      (entry) =>
-        needle === "" ||
-        entry.code.toLowerCase().includes(needle) ||
-        entry.name.toLowerCase().includes(needle),
-    )
-    .slice(0, MAX_VISIBLE);
 
   return (
     <div className="min-w-0 space-y-2" data-testid="translations-add-picker">
-      <Field
-        id={"translations-add-search"}
-        label={<span className="sr-only">{t("admin.translations.add.pickPlaceholder")}</span>}
+      <FieldSelect
+        id="translations-add-option"
+        field="code"
+        label={t("admin.translations.add.pick")}
         required={false}
         refusal={null}
-        layout="inline"
-      >
-        {(control) => (
-          <Input
-            {...control}
-            data-testid="translations-add-search"
-            value={query}
-            aria-label={t("admin.translations.add.pickPlaceholder")}
-            placeholder={t("admin.translations.add.pickPlaceholder")}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        )}
-      </Field>
-
-      {list.isLoading ? (
-        <p className="text-sm text-muted-foreground" data-testid="translations-add-picker-loading">
-          {t("admin.translations.add.pickLoading")}
-        </p>
-      ) : null}
-
-      {list.error ? (
-        <p
-          role="alert"
-          className="text-sm text-destructive"
-          data-testid="translations-add-picker-error"
-        >
-          {t("admin.translations.add.pickError")}
-        </p>
-      ) : null}
-
-      {!list.isLoading && !list.error ? (
-        <ul
-          className="max-h-64 min-w-0 space-y-1 overflow-y-auto"
-          data-testid="translations-add-options"
-        >
-          {matches.map((entry) => (
-            <li key={entry.code}>
-              <Button
-                type="button"
-                variant="outline"
-                className="min-h-11 w-full justify-start"
-                data-testid={`translations-add-option-${entry.code}`}
-                onClick={() => onSelect(entry)}
-              >
-                <span className="truncate">{entry.name}</span>
-                <span className="ms-2 font-mono text-xs text-muted-foreground">{entry.code}</span>
-              </Button>
-            </li>
-          ))}
-          {matches.length === 0 ? (
-            <li className="text-sm text-muted-foreground" data-testid="translations-add-no-match">
-              {t("admin.translations.add.pickEmpty")}
-            </li>
-          ) : null}
-        </ul>
-      ) : null}
+        options={all.map((entry) => ({
+          value: entry.code,
+          label: `${entry.name} (${entry.code})`,
+        }))}
+        value={[]}
+        onChange={(next) => {
+          const entry = all.find((language) => language.code === next[0]);
+          if (entry !== undefined) onSelect(entry);
+        }}
+        placeholder={t("admin.translations.add.pickPlaceholder")}
+        state={list.error ? "failed" : list.isLoading ? "loading" : "ready"}
+        loadingLabel={t("admin.translations.add.pickLoading")}
+        failedLabel={t("admin.translations.add.pickError")}
+        statusTestId={
+          list.error ? "translations-add-picker-error" : "translations-add-picker-loading"
+        }
+      />
 
       <Button
         type="button"

@@ -43,7 +43,7 @@ export const CUE_SPAN = "-mx-6";
 export const CUE_ROOM = "clamp(0px, 100% - 3rem, 2rem)";
 export const CUE_MIN_BODY_REM = 5;
 export const CUE_WRAP =
-  "pointer-events-none absolute inset-x-0 bottom-0 flex h-8 items-center justify-center gap-1 cue-fade px-6 text-sm font-medium text-foreground";
+  "pointer-events-none absolute inset-x-0 bottom-0 flex h-8 items-end justify-center gap-1 pb-0.5 cue-fade px-6 text-sm font-medium text-foreground";
 export const STEP_TRACK = "flex min-w-0 items-center gap-2 text-xs text-muted-foreground";
 export const STEP_MARK =
   "inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted font-semibold [&_svg]:size-4";

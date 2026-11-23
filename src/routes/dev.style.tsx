@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Field } from "@/components/forms/field";
+import { FieldSelect } from "@/components/forms/field-select";
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { cn } from "@/lib/utils";
 
@@ -532,6 +533,8 @@ const BOARD = {
   deleteTitle: "Delete this category?",
   deleteText: "It is removed for good. Ads in it move to its parent.",
   delete: "Delete",
+  formOne: "One choice",
+  formMany: "Several choices",
   formTitle: "Edit category",
   formText: "Change its names and its place in the tree. Save keeps them.",
   save: "Save",
@@ -608,6 +611,8 @@ interface Archetype {
 function FormArchetype({ Title, Text }: BoardParts) {
   const [name, setName] = useState("");
   const [marked, setMarked] = useState(false);
+  const [oneChoice, setOneChoice] = useState<string[]>([]);
+  const [manyChoices, setManyChoices] = useState<string[]>(["addis-ababa", "adama"]);
   const nameRef = useRef<HTMLInputElement | null>(null);
   return (
     <>
@@ -617,6 +622,27 @@ function FormArchetype({ Title, Text }: BoardParts) {
       </PanelHeader>
       <PanelBody className="max-h-64">
         <div className={cn(DIALOG_CARD, "flex flex-col gap-3")}>
+          <FieldSelect
+            id="style-form-one"
+            field="one"
+            label={BOARD.formOne}
+            required={false}
+            refusal={null}
+            options={BOARD_PLACES}
+            value={oneChoice}
+            onChange={setOneChoice}
+          />
+          <FieldSelect
+            id="style-form-many"
+            field="many"
+            label={BOARD.formMany}
+            required={false}
+            refusal={null}
+            multiple
+            options={BOARD_PLACES.slice(0, 4)}
+            value={manyChoices}
+            onChange={setManyChoices}
+          />
           {BOARD_FIELDS.map((label) => (
             <Field key={label} id={`board-${label}`} label={label} required={false} refusal={null}>
               {(control) => <Input {...control} />}

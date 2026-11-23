@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 
 import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
+import { FieldSelect } from "@/components/forms/field-select";
 import type { FormGate } from "@/components/forms/use-form-gate";
 import { categoryGlyph, isKnownCategoryIcon } from "@/components/shell/category-glyphs";
 import { Button } from "@/components/ui/button";
@@ -114,12 +115,6 @@ export function CategoryFormFields({
   const refusalOf = (field: keyof CategoryFormValues) => refusals[field] ?? null;
   const p = mode === "create" ? "category-create" : "category-edit";
   const showIconInput = mode === "edit" || iconOpen === true;
-  const toggleCode = (code: string, on: boolean) =>
-    onChange({
-      excludedCodes: on
-        ? [...values.excludedCodes, code]
-        : values.excludedCodes.filter((entry) => entry !== code),
-    });
 
   return (
     <>
@@ -375,8 +370,8 @@ export function CategoryFormFields({
           {countries !== undefined ? (
             /* C5l PART A — INLINE COUNTRIES: the same exclusion set the editor's
                Countries verb manages, chained after the create call. */
-            <Field
-              id="category-create-countries"
+            <FieldSelect
+              id="category-create-exclusion"
               field="excludedCodes"
               label={t("admin.categories.create.countries")}
               required={false}
@@ -387,30 +382,15 @@ export function CategoryFormFields({
               }
               refusal={refusalOf("excludedCodes")}
               family={CATEGORY_REFUSALS}
-            >
-              {(control) => (
-                <div
-                  id={control.id}
-                  aria-describedby={control["aria-describedby"]}
-                  data-testid="category-create-countries"
-                  className="grid max-h-48 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2"
-                >
-                  {countries.map((country) => (
-                    <label
-                      key={country.code}
-                      className="flex min-h-11 items-center gap-2 text-sm text-foreground"
-                    >
-                      <Checkbox
-                        data-testid={`category-create-exclusion-${country.code}`}
-                        checked={values.excludedCodes.includes(country.code)}
-                        onCheckedChange={(checked) => toggleCode(country.code, checked === true)}
-                      />
-                      <span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </Field>
+              gate={gate}
+              multiple
+              options={countries.map((country) => ({
+                value: country.code,
+                label: `${country.code} — ${country.nameEn}`,
+              }))}
+              value={values.excludedCodes}
+              onChange={(excludedCodes) => onChange({ excludedCodes })}
+            />
           ) : null}
         </>
       ) : null}

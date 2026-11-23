@@ -100,6 +100,9 @@ export const LIST_PANEL = `z-50 ${LIST_SURFACE} max-w-[calc(100vw-2rem)] overflo
 /** D267 (F4a-2) — a picker's row scroller: fills the panel's bounded column under any search
  *  box, so the rows scroll inside the room the visible area leaves. */
 export const LIST_SCROLLER = "min-h-0 flex-1 overflow-y-auto";
+/** DEC-427 — in-flow lists grow the panel body; seven visible rows before their own scroll. */
+export const FLOW_LIST_SCROLLER =
+  "max-h-77 overflow-y-auto overscroll-contain md:pointer-fine:max-h-63";
 /** The control while its list is open: one style, from here (ruling 1). */
 export const OPEN_CONTROL =
   "data-[state=open]:bg-nav-pill data-[state=open]:text-nav-ink aria-expanded:bg-nav-pill aria-expanded:text-nav-ink";

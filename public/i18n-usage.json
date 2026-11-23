@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 767,
-  "dynamicCallSites": 417,
+  "scanned": 769,
+  "dynamicCallSites": 418,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1763,7 +1763,8 @@
       "/admin/countries"
     ],
     "admin.countries.error": [
-      "/admin/countries"
+      "/admin/countries",
+      "/admin/translations"
     ],
     "admin.countries.field.currency": [
       "/admin/countries"
@@ -3414,9 +3415,6 @@
     "admin.translations.add.pick": [
       "/admin/translations"
     ],
-    "admin.translations.add.pickEmpty": [
-      "/admin/translations"
-    ],
     "admin.translations.add.pickError": [
       "/admin/translations"
     ],
@@ -3877,9 +3875,6 @@
       "/admin/translations/$lang"
     ],
     "admin.translations.translator.audit": [
-      "/admin/users/$userId"
-    ],
-    "admin.translations.translator.checkError": [
       "/admin/users/$userId"
     ],
     "admin.translations.translator.empty": [
@@ -7933,8 +7928,10 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/admin/users/$userId",
       "/dev/style",
       "/my-listings"
     ],
@@ -7946,8 +7943,10 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/admin/users/$userId",
       "/dev/style",
       "/my-listings"
     ],
@@ -7959,8 +7958,10 @@
       "/admin/listings",
       "/admin/places",
       "/admin/screening",
+      "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users",
+      "/admin/users/$userId",
       "/dev/style",
       "/my-listings"
     ],
@@ -8158,6 +8159,18 @@
     ],
     "prim.orderStrip.label": [
       "/admin/monetisation"
+    ],
+    "prim.select.choose": [
+      "/admin/categories",
+      "/admin/translations",
+      "/admin/users/$userId",
+      "/dev/style"
+    ],
+    "prim.select.count": [
+      "/admin/categories",
+      "/admin/translations",
+      "/admin/users/$userId",
+      "/dev/style"
     ],
     "prim.state.empty": [
       "/admin/audit",

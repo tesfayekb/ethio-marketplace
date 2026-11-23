@@ -1,11 +1,10 @@
-import { Field } from "@/components/forms/field";
+import { FieldSelect } from "@/components/forms/field-select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
@@ -81,13 +80,6 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
   const assignable = (languages.data ?? []).filter((row) => !row.isBase && row.enabledAdmin);
   const eligible = scope.data?.eligible === true;
 
-  const toggle = (code: string, checked: boolean) => {
-    setSaved(false);
-    setSelected((current) =>
-      checked ? [...new Set([...current, code])] : current.filter((item) => item !== code),
-    );
-  };
-
   return (
     <PageCard className="space-y-3" testid="user-translator-card">
       <h2 className="text-sm font-semibold text-foreground">
@@ -97,56 +89,58 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         {t("admin.translations.translator.scopeNote")}
       </p>
 
-      {scope.isLoading || languages.isLoading ? (
-        <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
-      ) : scope.isError ? (
-        /* Law F4 — a failed check surfaces; it never impersonates absence. */
-        <p
-          role="alert"
-          data-testid="translator-check-error"
-          className="text-sm text-muted-foreground"
-        >
-          {t("admin.translations.translator.checkError")}
-        </p>
-      ) : !eligible ? (
-        /* No translations:* permission via any role: scoping has nothing to
-           attach to. One muted line, no controls. */
+      {!scope.isLoading && !scope.isError && !eligible ? (
         <p data-testid="translator-no-role" className="text-sm text-muted-foreground">
           {t("admin.translations.translator.noRole")}
         </p>
-      ) : assignable.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
       ) : (
         <>
-          {/* INC-095(l): the empty state is a CAPTION above the controls —
-              never a replacement for them. */}
-          {(serverLanguages?.length ?? 0) === 0 ? (
+          {/* INC-095(l): the empty state remains a caption above the controls. */}
+          {!scope.isLoading && !scope.isError && (serverLanguages?.length ?? 0) === 0 ? (
             <p data-testid="translator-empty-caption" className="text-sm text-muted-foreground">
               {t("admin.translations.translator.empty")}
             </p>
           ) : null}
-          <ul className="flex flex-wrap gap-3">
-            {assignable.map((row) => (
-              <li key={row.code} className="flex min-h-11 items-center gap-2">
-                <Field
-                  id={`translator-lang-${row.code}`}
-                  label={<>{`${row.nameNative} (${row.code})`}</>}
-                  required={false}
-                  refusal={null}
-                  layout="choice"
-                >
-                  {(control) => (
-                    <Checkbox
-                      {...control}
-                      data-testid={`translator-lang-${row.code}`}
-                      checked={selected.includes(row.code)}
-                      onCheckedChange={(checked) => toggle(row.code, checked === true)}
-                    />
-                  )}
-                </Field>
-              </li>
-            ))}
-          </ul>
+          {!scope.isLoading &&
+          !languages.isLoading &&
+          !languages.error &&
+          !scope.isError &&
+          assignable.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("admin.translations.translator.none")}
+            </p>
+          ) : null}
+          <FieldSelect
+            id="translator-lang"
+            field="langs"
+            label={t("admin.translations.translator.title")}
+            required={false}
+            refusal={null}
+            multiple
+            options={assignable.map((row) => ({
+              value: row.code,
+              label: `${row.nameNative} (${row.code})`,
+            }))}
+            value={selected}
+            onChange={(next) => {
+              setSaved(false);
+              setSelected(next);
+            }}
+            state={
+              scope.isError || languages.error
+                ? "failed"
+                : scope.isLoading || languages.isLoading
+                  ? "loading"
+                  : "ready"
+            }
+            loadingLabel={t("admin.translations.loading")}
+            failedLabel={t(
+              scope.isError
+                ? "admin.translations.translator.checkError"
+                : "admin.translations.error",
+            )}
+            {...(scope.isError ? { statusTestId: "translator-check-error" } : {})}
+          />
         </>
       )}
 

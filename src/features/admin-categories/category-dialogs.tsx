@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { controlClass } from "@/components/forms/control-class";
 import { Field } from "@/components/forms/field";
+import { FieldSelect } from "@/components/forms/field-select";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { CategoryModal } from "@/components/ui/category-modal";
 import { Badge } from "@/components/ui/badge";
@@ -570,9 +571,6 @@ export function CategoryExclusionsDialog({
   const { message, setMessage, fail } = useCategoryRefusal();
   const [codes, setCodes] = useState<string[]>(category.excludedCountryCodes);
 
-  const toggle = (code: string, on: boolean) =>
-    setCodes((prev) => (on ? [...prev, code] : prev.filter((entry) => entry !== code)));
-
   const submit = () => {
     setMessage(null);
     void guard(async () => {
@@ -606,31 +604,21 @@ export function CategoryExclusionsDialog({
       <p data-testid="category-exclusions-current" className="text-sm text-foreground">
         {`${t("admin.categories.exclusions.current")}: ${category.exclusionCount}`}
       </p>
-      <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
-        {countries.map((country) => (
-          <Field
-            key={country.code}
-            id={`category-exclusion-${country.code}`}
-            field="excludedCodes"
-            label={
-              <span className="min-w-0 break-words">{`${country.code} — ${country.nameEn}`}</span>
-            }
-            required={false}
-            layout="choice"
-            refusal={null}
-            family={CATEGORY_REFUSALS}
-          >
-            {(control) => (
-              <Checkbox
-                {...control}
-                data-testid={`category-exclusion-${country.code}`}
-                checked={codes.includes(country.code)}
-                onCheckedChange={(checked) => toggle(country.code, checked === true)}
-              />
-            )}
-          </Field>
-        ))}
-      </div>
+      <FieldSelect
+        id="category-exclusion"
+        field="excludedCodes"
+        label={t("admin.categories.exclusions.title")}
+        required={false}
+        refusal={null}
+        family={CATEGORY_REFUSALS}
+        multiple
+        options={countries.map((country) => ({
+          value: country.code,
+          label: `${country.code} — ${country.nameEn}`,
+        }))}
+        value={codes}
+        onChange={setCodes}
+      />
       <CategoryDialogAlert message={message} />
     </CategoryModal>
   );

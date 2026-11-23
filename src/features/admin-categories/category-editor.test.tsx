@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 const create = vi.fn((_input: unknown) => Promise.resolve("new-id"));
+const exclusions = vi.fn((_input: unknown) => Promise.resolve());
 const update = vi.fn((_input: unknown) => Promise.resolve());
 const retire = vi.fn((_input: unknown) => Promise.resolve());
 const addPointer = vi.fn((_input: unknown) => Promise.resolve());
@@ -26,7 +27,7 @@ vi.mock("./use-categories", () => ({
   ADMIN_CATEGORIES_KEY: ["admin-categories"],
   useCreateCategory: () => idle(create),
   useUpdateCategory: () => idle(update),
-  useSetCountryExclusions: () => idle(() => Promise.resolve()),
+  useSetCountryExclusions: () => idle(exclusions),
   useReorderCategories: () => idle(() => Promise.resolve()),
   useRetireCategory: () => idle(retire),
   useAddCategoryPointer: () => idle(addPointer),
@@ -42,6 +43,7 @@ import type { CategoryNode } from "./categories-service";
 import {
   AddPointerDialog,
   CategoryEditorDialog,
+  CategoryExclusionsDialog,
   CategoryPathsDialog,
   DeleteCategoryDialog,
   RetireCategoryDialog,
@@ -94,7 +96,7 @@ function mountEditor(category: CategoryNode | null) {
 }
 
 beforeEach(() => {
-  for (const fn of [create, update, retire, addPointer, remove]) fn.mockClear();
+  for (const fn of [create, update, retire, addPointer, remove, exclusions]) fn.mockClear();
 });
 
 describe("the categories console's forms on the one Field (L4, DEC-339)", () => {
@@ -216,4 +218,52 @@ describe("the categories console's forms on the one Field (L4, DEC-339)", () => 
     expect(retire).not.toHaveBeenCalled();
     expect(addPointer).not.toHaveBeenCalled();
   });
+});
+
+it("KFC-7 new-category countries use one select and send the same chained exclusions", async () => {
+  render(
+    <CategoryEditorDialog
+      mode="create"
+      category={null}
+      parents={[]}
+      countries={[{ code: "AA", nameEn: "Scratch country" }]}
+      guard={guard}
+      openedBy="test"
+      onClose={() => {}}
+    />,
+  );
+  fireEvent.change(await waitFor(() => screen.getByTestId("category-create-name")), {
+    target: { value: "Scratch category" },
+  });
+  fireEvent.click(screen.getByTestId("category-create-exclusion"));
+  fireEvent.click(screen.getByTestId("category-create-exclusion-AA"));
+  expect(screen.getByTestId("category-create-exclusion-AA")).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  fireEvent.click(screen.getByTestId("category-create-submit"));
+  await waitFor(() =>
+    expect(exclusions).toHaveBeenCalledWith({ id: "new-id", countryCodes: ["AA"] }),
+  );
+});
+it("KFC-8 Countries select preserves the stored set and sends the replacement set", async () => {
+  render(
+    <CategoryExclusionsDialog
+      category={node("cat-a", { excludedCountryCodes: ["AA"] })}
+      countries={[
+        { code: "AA", nameEn: "Scratch A" },
+        { code: "BB", nameEn: "Scratch B" },
+      ]}
+      guard={guard}
+      openedBy="test"
+      onClose={() => {}}
+    />,
+  );
+  fireEvent.click(await waitFor(() => screen.getByTestId("category-exclusion")));
+  expect(screen.getByTestId("category-exclusion-AA")).toHaveAttribute("aria-selected", "true");
+  fireEvent.click(screen.getByTestId("category-exclusion-BB"));
+  fireEvent.click(screen.getByTestId("category-exclusions-submit"));
+  await waitFor(() =>
+    expect(exclusions).toHaveBeenCalledWith({ id: "cat-a", countryCodes: ["AA", "BB"] }),
+  );
 });

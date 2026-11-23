@@ -1,6 +1,8 @@
 import type { enMember } from "./en-member";
 
 export const amMember: { [K in keyof typeof enMember]: string } = {
+  "prim.select.choose": "ይምረጡ",
+  "prim.select.count": "{n} ተመርጠዋል",
   "post.pin.chooseShow": "ምልክቱ በማስታወቂያዎ ላይ እንዴት እንደሚታይ ይምረጡ።",
   "post.pin.placeFirst": "ምልክቱን በካርታው ላይ ያስቀምጡ።",
   "head.account.description": "የ ethio.com አካውንትዎን እና የማስታወቂያ እንቅስቃሴዎን ይመልከቱ።",

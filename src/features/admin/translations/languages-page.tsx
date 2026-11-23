@@ -1,4 +1,5 @@
 import { Field } from "@/components/forms/field";
+import { FieldSelect } from "@/components/forms/field-select";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { compareCodes } from "@/lib/reader-locale";
@@ -825,13 +826,6 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
     setErrorKey(null);
   };
 
-  const toggleCountry = (value: string) =>
-    setCountryCodes((current) =>
-      current.includes(value)
-        ? current.filter((entry) => entry !== value)
-        : [...current, value].sort(),
-    );
-
   const showForm = manual || picked !== null;
   const gate = useFormGate(showForm ? 1 : 0);
 
@@ -1017,63 +1011,29 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
               </>
             )}
           </Field>
-          <Field
-            id={"translations-add-countries"}
+          <FieldSelect
+            id="translations-add-country"
             field="countryCodes"
             label={t("admin.translations.add.countries")}
             required={false}
             refusal={null}
+            gate={gate}
             hint={
               <p className="text-xs text-muted-foreground">
                 {t("admin.translations.add.countriesHint")}
               </p>
             }
-          >
-            {(control) => (
-              <>
-                {countries.isLoading ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t("admin.translations.add.countriesLoading")}
-                  </p>
-                ) : (
-                  <div
-                    {...control}
-                    data-testid="translations-add-countries"
-                    className="max-h-48 min-w-0 space-y-1 overflow-y-auto"
-                  >
-                    {(countries.data ?? []).map((country) => (
-                      <Field
-                        key={country.code}
-                        id={`translations-add-country-${country.code}`}
-                        field="countryCodes"
-                        label={
-                          <>
-                            <span className="truncate">{country.nameEn}</span>
-                            <span className="ms-2 font-mono text-xs text-muted-foreground">
-                              {country.code}
-                            </span>
-                          </>
-                        }
-                        required={false}
-                        refusal={null}
-                        layout="choice"
-                      >
-                        {(control) => (
-                          <input
-                            {...control}
-                            type="checkbox"
-                            data-testid={`translations-add-country-${country.code}`}
-                            checked={countryCodes.includes(country.code)}
-                            onChange={() => toggleCountry(country.code)}
-                          />
-                        )}
-                      </Field>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </Field>
+            multiple
+            options={(countries.data ?? []).map((country) => ({
+              value: country.code,
+              label: `${country.nameEn} (${country.code})`,
+            }))}
+            value={countryCodes}
+            onChange={(next) => setCountryCodes([...next].sort())}
+            state={countries.error ? "failed" : countries.isLoading ? "loading" : "ready"}
+            loadingLabel={t("admin.translations.add.countriesLoading")}
+            failedLabel={t("admin.countries.error")}
+          />
         </>
       ) : null}
     </FormSection>
