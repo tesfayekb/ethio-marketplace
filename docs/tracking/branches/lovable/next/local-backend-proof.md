@@ -1,58 +1,58 @@
 # Local backend proof (non-gating)
 
-- Commit: `ee5a1f1f29032940f870fcb4143ac9200392e2a7`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45053440887
+- Commit: `2c16001c4fbd0323284a1fbbe37b09142bdcc21d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45103676472
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 506 | 88 | applied 550/550 | 38 | 0 | 0 | 16 | 54 |
-| email | 189 | 64 | applied 550/550 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 874 | 60 | applied 550/550 | 80 | 0 | 0 | 24 | 104 |
-| 1 | 531 | 68 | applied 550/550 | 188 | 0 | 0 | 69 | 257 |
-| 2 | 645 | 69 | applied 550/550 | 169 | 0 | 0 | 21 | 190 |
-| 3 | 535 | 64 | applied 550/550 | 169 | 0 | 0 | 5 | 174 |
-| 4 | 509 | 64 | applied 550/550 | 137 | 0 | 0 | 5 | 142 |
-| 5 | 558 | 67 | applied 550/550 | 93 | 0 | 0 | 1 | 94 |
-| 6 | 635 | 87 | applied 550/550 | 159 | 0 | 0 | 41 | 200 |
-| 7 | 518 | 67 | applied 550/550 | 149 | 0 | 0 | 77 | 226 |
-| 8 | 652 | 87 | applied 550/550 | 179 | 0 | 0 | 7 | 186 |
-| 9 | 684 | 82 | applied 550/550 | 129 | 0 | 0 | 1 | 130 |
-| 10 | 673 | 87 | applied 550/550 | 176 | 0 | 0 | 2 | 178 |
-| 11 | 624 | 63 | applied 550/550 | 122 | 0 | 0 | 8 | 130 |
-| 12 | 547 | 66 | applied 550/550 | 163 | 0 | 0 | 18 | 181 |
-| 13 | 479 | 67 | applied 550/550 | 156 | 0 | 0 | 8 | 164 |
-| 14 | 504 | 65 | applied 550/550 | 187 | 0 | 0 | 3 | 190 |
-| 15 | 648 | 84 | applied 550/550 | 124 | 0 | 0 | 6 | 130 |
-| 16 | 629 | 87 | applied 550/550 | 172 | 0 | 0 | 48 | 220 |
-| repeat | 957 | 69 | applied 550/550 | 94 | 0 | 0 | 42 | 136 |
-| TOTAL | — | — | — | 2690 | 0 | 0 | 402 | 3092 |
+| smoke | 670 | 67 | applied 550/550 | 37 | 1 | 0 | 16 | 54 |
+| email | 181 | 65 | applied 550/550 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 730 | 66 | applied 550/550 | 80 | 0 | 0 | 24 | 104 |
+| 1 | 522 | 66 | applied 550/550 | 188 | 0 | 0 | 69 | 257 |
+| 2 | 646 | 87 | applied 550/550 | 169 | 0 | 0 | 21 | 190 |
+| 3 | 658 | 81 | applied 550/550 | 169 | 0 | 0 | 5 | 174 |
+| 4 | 550 | 68 | applied 550/550 | 137 | 0 | 0 | 5 | 142 |
+| 5 | 602 | 76 | applied 550/550 | 92 | 0 | 1 | 1 | 94 |
+| 6 | 609 | 62 | applied 550/550 | 159 | 0 | 0 | 41 | 200 |
+| 7 | 504 | 66 | applied 550/550 | 149 | 0 | 0 | 77 | 226 |
+| 8 | 542 | 66 | applied 550/550 | 179 | 0 | 0 | 7 | 186 |
+| 9 | 567 | 66 | applied 550/550 | 129 | 0 | 0 | 1 | 130 |
+| 10 | 526 | 67 | applied 550/550 | 176 | 0 | 0 | 2 | 178 |
+| 11 | 576 | 68 | applied 550/550 | 122 | 0 | 0 | 8 | 130 |
+| 12 | 692 | 88 | applied 550/550 | 163 | 0 | 0 | 18 | 181 |
+| 13 | 598 | 86 | applied 550/550 | 156 | 0 | 0 | 8 | 164 |
+| 14 | 632 | 79 | applied 550/550 | 187 | 0 | 0 | 3 | 190 |
+| 15 | 575 | 66 | applied 550/550 | 124 | 0 | 0 | 6 | 130 |
+| 16 | 637 | 86 | applied 550/550 | 172 | 0 | 0 | 48 | 220 |
+| repeat | 648 | 65 | applied 550/550 | 62 | 0 | 0 | 6 | 68 |
+| TOTAL | — | — | — | 2656 | 1 | 1 | 366 | 3024 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: repeat 957 s
-- Repeat lane (DEC-283): Not repeated: e2e/admin-screening.spec.ts (32 tests); Not repeated: e2e/admin-translations-governance.spec.ts (10 tests); Not repeated: e2e/admin-users.spec.ts (14 tests); Not repeated: e2e/dialogs.spec.ts (18 tests); Repeat: each 2 on both projects; 108 tests selected, 34 repeated; budget 643 s at 4.7 s a test; directly changed: 4 of 8 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 2 on mobile-360 and desktop-1280 at one worker after the parallel pass; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / AS-1 gating: a plain user is refused, a moderator reads the log / desktop-1280; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / AS-2 filters: an action filter narrows the list / desktop-1280; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / AS-3 the log on the agreed blocks: heading, toolbar, Filters with pills and dates, Columns, page size / desktop-1280; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / IMP-1 impersonation: super admin opens a read-only session and ends it / desktop-1280; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / IMP-2 dual-actor audit: start and end are both recorded / desktop-1280; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / IMP-3 server refusals: self and a super-admin target / desktop-1280; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / IMP-5 server refusal: a caller who is not a super admin / desktop-1280; Not repeated (time cap): admin-audit.spec.ts / U3 audit & security / IMP-6 the active-session check runs for staff only, never on a member's page / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-10 members link preselects the role filter via the URL / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-11 DEC-017: a reserved permission is locked in the matrix and refused by the RPC / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-16 the roles list on the agreed blocks: heading, Create role, Columns, Open and View members / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-17 P-1: the matrix shows the packages resource with View and Update, Update marked step-up / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-2 create: a super admin creates a custom role through step-up / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-3 matrix: grant then revoke a benign permission, persisted across reload / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-4 system lock: super_admin role is read-only in UI and refused by the RPCs / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-5 delete guards: members block deletion; typed confirm deletes / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-6 revocation path: unenrolling the factor refuses the next change / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-7 registration: DEC-016 permissions appear as grantable rows / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-8 Amharic + no horizontal overflow / desktop-1280; Not repeated (time cap): admin-roles.spec.ts / U2 roles console / RP-9 delete confirm: the expected key renders adjacent and arms only on an exact match / desktop-1280; Not repeated (time cap): admin-translations-data.spec.ts / TR-42 answer-option translations (DEC-233) / TR-42 the Data scope saves and approves an answer option, excluding switched-off options and Amharic (INC-820) / desktop-1280; Not repeated (time cap): admin-translations-data.spec.ts / U4b translations console / TR-14 the Data scope edits and approves a location name / desktop-1280; Not repeated (time cap): admin-translations-data.spec.ts / U4b translations console / TR-24 the Data scope machine-translates one row and then every untranslated one / desktop-1280; Not repeated (time cap): admin-translations-data.spec.ts / U4b translations console / TR-26 the Data scope approves every machine-filled content name / desktop-1280; Not repeated (time cap): admin-translations-data.spec.ts / U4b translations console / TR-34 the Data roster names each row's identity and changes nothing else / desktop-1280; Not repeated (time cap): house-style.spec.ts / house style fixture / HS-1 no horizontal overflow and the new badges render / desktop-1280; Not repeated (time cap): house-style.spec.ts / house style fixture / HS-2 axe is clean in light and in dark mode / desktop-1280; Not repeated (time cap): house-style.spec.ts / house style fixture / HS-29 Escape closes the open filter list before its panel / desktop-1280; Not repeated (time cap): house-style.spec.ts / house style fixture / HS-3 row actions are named, sized and keyboard-safe / desktop-1280; Not repeated (time cap): house-style.spec.ts / house style fixture / HS-4 the pager moves by page and by rows per page / desktop-1280; Not repeated (time cap): house-style.spec.ts / house style fixture / HS-5 the filters button counts and its chips clear / desktop-1280; Not repeated (time cap): house-style.spec.ts / house style fixture / HS-6 the focus ring shows after keyboard use only / desktop-1280
-- Database session samples during each start (INC-944): smoke 12, email 7, webkit 6, 1 8, 2 8, 3 7, 4 7, 5 7, 6 11, 7 7, 8 11, 9 10, 10 11, 11 7, 12 7, 13 7, 14 7, 15 11, 16 11, repeat 8
-- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/347, 2 641/438, 3 641/370, 4 640/341, 5 640/372, 6 641/436, 7 641/332, 8 641/448, 9 641/484, 10 643/466, 11 640/438, 12 641/367, 13 640/303, 14 641/322, 15 641/446, 16 641/430
+- Slowest lane: webkit 730 s
+- Repeat lane (DEC-283): Not repeated: e2e/admin-categories-lifecycle.spec.ts (26 tests); Not repeated: e2e/admin-translations-console.spec.ts (23 tests); Repeat: each 2 on both projects; 66 tests selected, 17 repeated; budget 643 s at 4.7 s a test; directly changed: 1 of 3 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 2 on mobile-360 and desktop-1280 at one worker after the parallel pass
+- Database session samples during each start (INC-944): smoke 7, email 7, webkit 7, 1 7, 2 11, 3 10, 4 8, 5 9, 6 6, 7 7, 8 7, 9 7, 10 7, 11 8, 12 12, 13 11, 14 10, 15 7, 16 11, repeat 7
+- Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/339, 2 641/437, 3 641/465, 4 640/362, 5 640/408, 6 641/404, 7 641/331, 8 641/349, 9 641/399, 10 643/363, 11 640/402, 12 641/475, 13 640/390, 14 641/425, 15 641/388, 16 641/436
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45053440887-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 45053440887-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45053440887-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45053440887-local-1
-  - 2: [e2e:teardown] deleted 9 user(s) owned by process 45053440887-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 45053440887-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 45053440887-local-4
-  - 5: [e2e:teardown] deleted 15 user(s) owned by process 45053440887-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45053440887-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 45053440887-local-7
-  - 8: [e2e:teardown] deleted 8 user(s) owned by process 45053440887-local-8
-  - 9: [e2e:teardown] deleted 13 user(s) owned by process 45053440887-local-9
-  - 10: [e2e:teardown] deleted 7 user(s) owned by process 45053440887-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45053440887-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45053440887-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 45053440887-local-13
-  - 14: [e2e:teardown] deleted 11 user(s) owned by process 45053440887-local-14
-  - 15: [e2e:teardown] deleted 45 user(s) owned by process 45053440887-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 45053440887-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45103676472-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 45103676472-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45103676472-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45103676472-local-1
+  - 2: [e2e:teardown] deleted 9 user(s) owned by process 45103676472-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 45103676472-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 45103676472-local-4
+  - 5: [e2e:teardown] deleted 15 user(s) owned by process 45103676472-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45103676472-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 45103676472-local-7
+  - 8: [e2e:teardown] deleted 8 user(s) owned by process 45103676472-local-8
+  - 9: [e2e:teardown] deleted 13 user(s) owned by process 45103676472-local-9
+  - 10: [e2e:teardown] deleted 7 user(s) owned by process 45103676472-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45103676472-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45103676472-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 45103676472-local-13
+  - 14: [e2e:teardown] deleted 11 user(s) owned by process 45103676472-local-14
+  - 15: [e2e:teardown] deleted 45 user(s) owned by process 45103676472-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 45103676472-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 45103676472-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -78,8 +78,13 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane repeat
-- Outside test — Timed out waiting 763s for the test suite to run
-- Outside test — Timed out waiting 763s for the teardown for test suite to run
+## Lane smoke
+- Step failure:
+Step smoke: outcome failure
+  
+- admin-translations-console.spec.ts / U4b translations console / TR-25 the picker creates a language with a native name and countries / desktop-1280 — Test timeout of 120000ms exceeded.
+
+## Lane 5
+- admin-translations-data.spec.ts / U4b translations console / TR-26 the Data scope approves every machine-filled content name / desktop-1280 — Error: approve-all never approved scratch location [account id]
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
