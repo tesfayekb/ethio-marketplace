@@ -4646,6 +4646,7 @@ export type Database = {
       }
       admin_list_entity_translations: {
         Args: {
+          p_after?: Json
           p_lang: string
           p_limit?: number
           p_offset?: number
@@ -4800,6 +4801,7 @@ export type Database = {
       }
       admin_list_translations: {
         Args: {
+          p_after?: string
           p_flagged?: boolean
           p_lang: string
           p_limit?: number
