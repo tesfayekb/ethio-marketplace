@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { MessageKey } from "@/i18n";
 
 import {
+  MFA_ENROLL_REFUSALS,
   enrollTotp,
   getAal,
   listFactors,
@@ -17,12 +18,21 @@ import {
  * U1f — the settings-side MFA state (enroll / list / unenroll).
  * The step-up gate has its own hook (use-step-up.ts); this one never gates
  * anything, it only manages the enrollment surface.
+ *
+ * Cursor bundle 4 (INC-1147, class 2) — A SETUP THE PROVIDER HOLDS HALF-DONE IS OFFERED BACK. The
+ * page's own `pending` holds the setup this screen started (its QR and its secret, given once); the
+ * provider's list holds every unfinished setup, here, in another tab or on another device, and is read
+ * on load into `unfinished`. A setup the page cannot show again cannot be continued: it says one is in
+ * progress and offers Start again, which clears it before it begins. A failed read is `readFailed` —
+ * an error on the card, never "off".
  */
 
 type PendingEnrollment = { factorId: string; qrCode: string; secret: string; uri: string };
 
 export function useMfa() {
   const [factors, setFactors] = useState<MfaFactor[] | null>(null);
+  const [unfinished, setUnfinished] = useState(false);
+  const [readFailed, setReadFailed] = useState(false);
   const [aal, setAal] = useState<AalState>({ current: null, next: null });
   const [pending, setPending] = useState<PendingEnrollment | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,8 +41,17 @@ export function useMfa() {
 
   const refresh = useCallback(async () => {
     const result = await listFactors();
-    setFactors(result.ok ? result.factors : []);
-    if (!result.ok) setErrorKey(result.errorKey);
+    if (result.ok) {
+      setFactors(result.factors);
+      setUnfinished(result.pending.length > 0);
+      setReadFailed(false);
+    } else {
+      // Unknown, never "off": the card says the read failed and offers nothing that depends on it.
+      setFactors(null);
+      setUnfinished(false);
+      setReadFailed(true);
+      setErrorKey(result.errorKey);
+    }
     setAal(await getAal());
   }, []);
 
@@ -50,6 +69,7 @@ export function useMfa() {
       setErrorKey(result.errorKey);
       return false;
     }
+    setUnfinished(false);
     setPending({
       factorId: result.factorId,
       qrCode: result.qrCode,
@@ -72,7 +92,7 @@ export function useMfa() {
       if (!pending) return false;
       setErrorKey(null);
       setBusy(true);
-      const result = await verifyFactor(pending.factorId, code);
+      const result = await verifyFactor(pending.factorId, code, MFA_ENROLL_REFUSALS);
       setBusy(false);
       if (!result.ok) {
         setErrorKey(result.errorKey);
@@ -112,6 +132,8 @@ export function useMfa() {
 
   return {
     factors,
+    unfinished,
+    readFailed,
     aal,
     pending,
     busy,

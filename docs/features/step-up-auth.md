@@ -215,3 +215,14 @@ re-enabled with the hint, DB unchanged).
 
 - **INC-621.** `stepUpWindowMs()` (src/features/auth/mfa/mfa-service.ts) read `window.__ethioStepUp` in every build. It now reads it only when `isE2E` (DEC-018), so a production build drops it, as it drops the other window instruments. The server's window was never affected (law F3: `public.require_step_up_if_needed` decides). HOOK-1 (src/lib/env-flags.test.ts) is the census of every window instrument the app code names; each file that holds one takes the flag.
 - **INC-620.** The E2E helper `clearStepUpFreshness` wrote the local stamp retired by INC-167 and did nothing; it is removed, with its two calls in MF-2 and MF-7b (their fresh sign-ins are aal1, so their modal never depended on it). A test that needs the modal over an injected session calls `staleStepUpOnClient(page)` (the client window, 1 ms, for the current document; the server's window untouched) and, before typing the code, `afterTotpStep(spentStep)`, with `spentStep = totpStep()` read as `signInJobSuperAdmin` returns: a factor accepts each code once, and the injected session's own verification spent the current step's code. Both live in e2e/helpers/ui.ts; `totpStep` in e2e/helpers/totp.ts.
+
+## Cursor bundle 4 — a setup that survives a reload (INC-1147, second class)
+
+The provider gives a TOTP setup's secret once, so a reload (or a second tab) in the middle of a setup left a pending factor that the page could neither show again nor finish, and the next start answered "a factor with this name exists". Now:
+
+- **`listFactors`** (`mfa-service.ts`) returns the verified factors as `factors` and the provider's unverified TOTP factors as `pending`; a failed read is a failure, never an empty list.
+- **`clearPendingFactors`** unenrols exactly the `pending` factors of that same read (a verified factor is never touched, and removing one still asks the second factor). **`enrollTotp`** calls it first and makes no enrolment when the clear or the read failed (`mfa.errorClearFailed`, family word `clearFailed`).
+- **`MFA_ENROLL_REFUSALS`** is the confirmation's own family: `mfa_factor_not_found` (the setup a newer start replaced) says `mfa.errorSetupReplaced`; a step-up or a removal meeting a missing factor keeps the generic line.
+- **Settings card** (`use-mfa.ts`, `settings.tsx`): `unfinished` (the provider holds a setup this screen does not) shows `mfa.setupInProgress` and the Start again button (`mfa-start-again`) in place of Enable; a failed list is `readFailed` with no factors, an error on the card, never "off".
+
+Proofs: MSV-6..MSV-9 (`mfa-service.test.ts`), MFH-1..MFH-4 (`use-mfa.test.ts`), MF-10 (reload mid-setup, Start again confirms), MF-11 (a replaced setup says so; the newer one confirms).

@@ -461,3 +461,74 @@ test.describe("INC-1234 one step-up, one prompt", () => {
     },
   );
 });
+
+/*
+ * MF-10, MF-11 (cursor bundle 4; INC-1147, class 2) — A SETUP THAT WAS STARTED AND NOT FINISHED. The
+ * provider gives a setup's secret once, so a reload mid-setup left a pending factor the page could
+ * neither show nor finish, and the next start met "a factor with this name exists". The card now says
+ * a setup is in progress and offers Start again, which clears it first; and a first screen whose setup
+ * a newer start replaced says so in its own words. Both read the card's own states (the account has no
+ * verified factor in either).
+ */
+test.describe("INC-1147 a two-factor setup that survives a reload", () => {
+  test(
+    "MF-10 a reload mid-setup offers the setup back, and Start again begins a new one that confirms",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const user = await createUser({ confirmed: true });
+      await switchUser(page, user.email, user.password);
+      await gotoReady(page, "/settings");
+      await page.getByTestId("mfa-enroll").click();
+      await expect(page.getByTestId("mfa-qr")).toBeVisible({ timeout: 15000 });
+
+      await gotoReady(page, "/settings");
+      await expect(page.getByTestId("mfa-unfinished")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("mfa-unfinished")).toContainText(en["mfa.setupInProgress"]);
+      await expect(page.getByTestId("mfa-enroll")).toHaveCount(0);
+
+      await page.getByTestId("mfa-start-again").click();
+      await expect(page.getByTestId("mfa-qr")).toBeVisible({ timeout: 15000 });
+      const secret = await page.getByTestId("mfa-secret").inputValue();
+      await page.getByTestId("mfa-code").fill(totp(secret));
+      await page.getByTestId("mfa-verify").click();
+      await expect(page.getByTestId("mfa-status")).toHaveText(en["mfa.statusOn"], {
+        timeout: 20000,
+      });
+      await expect(page.getByTestId("mfa-unfinished")).toHaveCount(0);
+    },
+  );
+
+  test(
+    "MF-11 a setup that a newer start replaced says so, and the newer one still confirms",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const user = await createUser({ confirmed: true });
+      await switchUser(page, user.email, user.password);
+      await gotoReady(page, "/settings");
+      await page.getByTestId("mfa-enroll").click();
+      await expect(page.getByTestId("mfa-qr")).toBeVisible({ timeout: 15000 });
+      const firstSecret = await page.getByTestId("mfa-secret").inputValue();
+
+      // A second tab of the same session starts again: the first tab's setup is cleared.
+      const other = await page.context().newPage();
+      await gotoReady(other, "/settings");
+      await expect(other.getByTestId("mfa-unfinished")).toBeVisible({ timeout: 20000 });
+      await other.getByTestId("mfa-start-again").click();
+      await expect(other.getByTestId("mfa-qr")).toBeVisible({ timeout: 15000 });
+      const secondSecret = await other.getByTestId("mfa-secret").inputValue();
+      expect(secondSecret).not.toBe(firstSecret);
+
+      await page.getByTestId("mfa-code").fill(totp(firstSecret));
+      await page.getByTestId("mfa-verify").click();
+      await expect(page.getByTestId("mfa-error")).toHaveText(en["mfa.errorSetupReplaced"], {
+        timeout: 15000,
+      });
+
+      await other.getByTestId("mfa-code").fill(totp(secondSecret));
+      await other.getByTestId("mfa-verify").click();
+      await expect(other.getByTestId("mfa-status")).toHaveText(en["mfa.statusOn"], {
+        timeout: 20000,
+      });
+    },
+  );
+});
