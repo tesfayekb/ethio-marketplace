@@ -42,10 +42,3 @@ filter-off-helper legal_scheduled(text,character) | one country's scheduled lega
 filter-off-helper save_posting_identity(text,text,text,text,text,jsonb,character) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
 filter-off-helper submit_listing(uuid,smallint,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
 filter-off-helper suggest_seller_aliases(text,text,text,uuid) | the one subject the door acts on or reads for (a value it writes or names), never a list filter | 2027-05-31
-# cursor-bundle-4 part 2 (INC-1242): the five staff photo readers' doors land one file ahead of the readers that call them;
-# each line leaves with its caller's move (the next step of the same turn).
-grant-without-caller admin_listing_photos(uuid) | the door lands in file 1 of cursor-bundle-4 part 2 and its reader moves onto it in the step that follows, the same turn | 2026-12-31
-grant-without-caller admin_photo_changes() | the door lands in file 1 of cursor-bundle-4 part 2 and its reader moves onto it in the step that follows, the same turn | 2026-12-31
-grant-without-caller admin_photo_link_rows(uuid[]) | the door lands in file 1 of cursor-bundle-4 part 2 and its reader moves onto it in the step that follows, the same turn | 2026-12-31
-grant-without-caller admin_photo_reviews() | the door lands in file 1 of cursor-bundle-4 part 2 and its reader moves onto it in the step that follows, the same turn | 2026-12-31
-grant-without-caller admin_warned_listings(uuid[]) | the door lands in file 1 of cursor-bundle-4 part 2 and its reader moves onto it in the step that follows, the same turn | 2026-12-31

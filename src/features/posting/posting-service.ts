@@ -470,6 +470,54 @@ export function photoRowOf(row: {
   };
 }
 
+/**
+ * INC-1242 — the staff's read of one ad's photos: the door `admin_listing_photos`
+ * (listings:view, the ad in the caller's countries; the review only for a holder
+ * of listings:review for the ad's country). The door answers the columns of
+ * `PHOTO_ROW_SELECT`, the warning and the review as objects, so `photoRowOf`
+ * reads them as it reads the owner's. Null when the answer is out of shape.
+ */
+export function parseStaffPhotos(value: unknown): DraftPhotoRow[] | null {
+  if (!Array.isArray(value)) return null;
+  const rows: DraftPhotoRow[] = [];
+  for (const item of value as unknown[]) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) return null;
+    const row = item as Record<string, unknown>;
+    const order = row["display_order"];
+    const paths = row["paths"];
+    const path = row["storage_path"];
+    if (typeof row["id"] !== "string" || typeof order !== "number" || !Number.isFinite(order)) {
+      return null;
+    }
+    if (paths !== null && (typeof paths !== "object" || Array.isArray(paths))) return null;
+    if (path !== null && typeof path !== "string") return null;
+    if (typeof row["unscreened"] !== "boolean") return null;
+    rows.push(
+      photoRowOf({
+        id: row["id"],
+        display_order: order,
+        paths,
+        storage_path: path,
+        unscreened: row["unscreened"],
+        warning: row["warning"],
+        review: row["review"],
+      }),
+    );
+  }
+  return rows;
+}
+
+/** A typed failure on a refusal or an answer out of shape; never an empty list for either. */
+export async function readStaffPhotos(listingId: string): Promise<DraftPhotoRow[]> {
+  const { data, error } = await supabase.rpc("admin_listing_photos", { p_listing_id: listingId });
+  if (error) throw readFailed(error);
+  const rows = parseStaffPhotos(data);
+  if (rows === null) {
+    throw new ReaderError({ class: "malformed", message: "admin_listing_photos malformed" });
+  }
+  return rows;
+}
+
 /** W6b-1 R4 — the places of the seller's most recent OTHER listing. */
 export interface LastPlaces {
   /** The market the item place sits in. */

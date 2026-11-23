@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
-import { readFailed } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 16 turn 4b — D178 (the operator, 2026-10-14): THE PHOTOS KEPT HIDDEN FOR A
@@ -21,11 +21,11 @@ import { readFailed } from "@/lib/reader-failure";
  * with the second factor, never the caller's own ad) shows one photo and audits it.
  */
 
-/** How many waiting photos one read shows (oldest first; the rest follow as these are decided). */
+/**
+ * How many waiting photos one read shows (oldest first; the rest follow as these are decided):
+ * the door `admin_photo_reviews`' own limit, which also holds the statuses that hide an ad (INC-1242).
+ */
 export const PHOTO_REVIEWS_LIMIT = 100;
-
-/** The ads whose photos wait here: not a draft, a removed ad or a refused one. */
-export const PHOTO_REVIEW_HIDDEN_STATUSES = ["draft", "removed", "rejected"] as const;
 
 export interface PhotoReviewRow {
   photoId: string;
@@ -60,18 +60,21 @@ export function parsePhotoReview(raw: Record<string, unknown>): PhotoReviewRow |
 }
 
 export async function listPhotoReviews(): Promise<PhotoReviewRow[]> {
-  const { data, error } = await supabase
-    .from("listing_photo_reviews")
-    .select("photo_id,label,code,evidence,created_at,listing:listings!inner(id,title,status)")
-    .is("decided_at", null)
-    .not("listing.status", "in", `(${PHOTO_REVIEW_HIDDEN_STATUSES.join(",")})`)
-    .order("created_at", { ascending: true })
-    .order("photo_id", { ascending: true })
-    .limit(PHOTO_REVIEWS_LIMIT);
+  const { data, error } = await supabase.rpc("admin_photo_reviews");
   // F4 — a failed read is an error, never an empty list.
   if (error) throw readFailed(error);
-  return (data ?? [])
-    .map((row) => parsePhotoReview(row as unknown as Record<string, unknown>))
+  if (!Array.isArray(data)) {
+    throw new ReaderError({ class: "malformed", message: "admin_photo_reviews malformed" });
+  }
+  const rows: Record<string, unknown>[] = [];
+  for (const item of data as unknown[]) {
+    if (item === null || typeof item !== "object" || Array.isArray(item)) {
+      throw new ReaderError({ class: "malformed", message: "admin_photo_reviews malformed" });
+    }
+    rows.push(item as Record<string, unknown>);
+  }
+  return rows
+    .map((row) => parsePhotoReview(row))
     .filter((row): row is PhotoReviewRow => row !== null);
 }
 

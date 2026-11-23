@@ -22,10 +22,13 @@ import { logRouteError } from "@/server/supabase/user-client";
  *     →  { ok: true, links: { [photoId]: { card?, thumb?, cover? } }, expiresIn }
  *
  * The photo rows are read as the CALLER, so `listing_photos`' own policies
- * decide which come back (the seller's own, staff who may view listings, an
- * active listing's stripped photos for anyone, and a sold one's for 30 days after
- * it sold — bundle 16 turn 3c); only those rows are signed, by
- * the service client, for one hour (src/server/media/links.ts). A photo the
+ * decide which come back (the seller's own, an active listing's stripped photos
+ * for anyone, and a sold one's for 30 days after it sold — bundle 16 turn 3c).
+ * For a signed-in caller, the ids that read did not answer are asked once of the
+ * staff door `admin_photo_link_rows` as the caller (listings:view, the ad in the
+ * caller's countries; INC-1242); a gate refusal means the caller is not staff and
+ * those ids are absent, never logged as an error. Only the rows that came back are
+ * signed, by the service client, for one hour (src/server/media/links.ts). A photo the
  * caller may not read is simply absent from `links` — the same answer as a
  * photo that does not exist, so the route tells nobody what exists. A failed
  * read or signature is a 503 the client retries, never an empty success (F4).
@@ -79,7 +82,9 @@ async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
   // DEC-195 — the read-and-sign moved to src/server/media/links.ts whole
   // (G1: moved code, not behaviour); the feed route signs through the same door.
   try {
-    const links = await readAndSignPhotoLinks(supabase, photoIds, variants);
+    const links = await readAndSignPhotoLinks(supabase, photoIds, variants, {
+      staffDoor: ctx.userId !== null,
+    });
     return ok({ ok: true, links, expiresIn: PHOTO_LINK_SECONDS });
   } catch (signError) {
     logRouteError(PATH, signError);

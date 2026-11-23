@@ -6,10 +6,11 @@ const editMyListing = vi.hoisted(() => vi.fn());
 const editAdminListing = vi.hoisted(() => vi.fn());
 const readAdminListing = vi.hoisted(() => vi.fn());
 const photosRead = vi.hoisted(() => vi.fn());
+const readStaffPhotos = vi.hoisted(() => vi.fn());
 
 vi.mock("./posting-service", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./posting-service")>();
-  return { ...actual, readDraft };
+  return { ...actual, readDraft, readStaffPhotos };
 });
 vi.mock("@/features/my-listings/my-listing", () => ({ editMyListing }));
 vi.mock("@/features/admin-listings/use-admin-listing", () => ({
@@ -29,6 +30,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import { ReaderError } from "@/lib/reader-failure";
 
 const { useEditDraft } = await import("./use-edit-draft");
 const { TOTAL_STEPS } = await import("./types");
@@ -253,6 +255,9 @@ describe("useEditDraft (the seller)", () => {
 
 describe("useEditDraft (staff)", () => {
   beforeEach(() => {
+    readStaffPhotos.mockReset();
+    readStaffPhotos.mockResolvedValue([]);
+    photosRead.mockReset();
     readAdminListing.mockReset();
     editAdminListing.mockReset();
     photosRead.mockReset();
@@ -319,5 +324,44 @@ describe("useEditDraft (staff)", () => {
     act(() => result.current.change({ description: "Other words" }, false));
     await act(async () => expect(await result.current.saveAt(5)).toBe(false));
     expect(result.current.problem).toBe("admin.listings.edit.nothing");
+  });
+
+  it("EW-9 INC-1242 staff read the photos through the door, first read and reload; the seller's reload stays on the table", async () => {
+    const photo = {
+      id: "ph-s",
+      displayOrder: 0,
+      paths: null,
+      storagePath: null,
+      unscreened: false,
+      warnings: [],
+      review: null,
+    };
+    readStaffPhotos.mockResolvedValue([photo]);
+    const { result } = renderHook(() => useEditDraft("l-1", { actor: "admin" }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(readStaffPhotos).toHaveBeenCalledWith("l-1");
+    expect(result.current.photos.map((row) => row.id)).toEqual(["ph-s"]);
+    readStaffPhotos.mockResolvedValue([{ ...photo, id: "ph-t" }]);
+    act(() => result.current.reloadPhotos());
+    await waitFor(() => expect(result.current.photos.map((row) => row.id)).toEqual(["ph-t"]));
+    expect(readStaffPhotos).toHaveBeenCalledTimes(2);
+    // A refused reload keeps the rows and writes one line; the table is never asked.
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      readStaffPhotos.mockRejectedValueOnce(
+        new ReaderError({ class: "refused", message: "permissionDenied" }),
+      );
+      act(() => result.current.reloadPhotos());
+      await waitFor(() =>
+        expect(logged.mock.calls.map(([line, cls]) => [line, cls])).toContainEqual([
+          "[client-error] photo reload",
+          "refused",
+        ]),
+      );
+      expect(result.current.photos.map((row) => row.id)).toEqual(["ph-t"]);
+    } finally {
+      logged.mockRestore();
+    }
+    expect(photosRead).not.toHaveBeenCalled();
   });
 });

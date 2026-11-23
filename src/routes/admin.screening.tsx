@@ -5,8 +5,9 @@ import { AdminScreeningPage } from "@/features/admin-screening/screening-page";
 
 /**
  * Bundle 10 E3a — the Screening section (D109). `listings:review` opens the
- * section (the /admin layout's gate, DEC-163); the queue's rows are read under
- * `listings:view` (RLS `listings_admin_read`); Approve and Reject are decided by
+ * section (the /admin layout's gate, DEC-163); the queue's rows are read through
+ * the staff door `admin_screening_queue` (`listings:review`, the caller's countries; DEC-422), its
+ * photos through `admin_listing_photos` (INC-1242); Approve and Reject are decided by
  * transition_listing, which re-checks `listings:review` and a fresh second
  * factor (F3).
  *

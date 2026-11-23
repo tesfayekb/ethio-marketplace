@@ -42,8 +42,6 @@ src/features/admin-listings/listing-photos.test.tsx (1) | the double cast was wr
 src/features/admin-locations/location-editor.test.tsx (3) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
 src/features/admin-locations/location-import-dialog.test.tsx (1) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
 src/features/admin-screening/name-checks.test.tsx (1) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
-src/features/admin-screening/use-photo-changes.ts (1) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
-src/features/admin-screening/use-photo-reviews.ts (1) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
 src/features/admin/import-dialog.test.tsx (1) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
 src/features/admin/import-dialog.tsx (1) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
 src/features/admin/legal/legal-service.test.ts (6) | the double cast was written before the rule was judged; it is narrowed with a shape guard when the file is next changed | INC-1239
