@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
+import { VIEW_AS_BAR_CLASS } from "@/components/shell/view-as-bar-look";
 import { useI18n } from "@/i18n";
 
 import { useActiveImpersonation, useCountdown, useEndImpersonation } from "./use-impersonation";
@@ -28,7 +29,7 @@ export function ImpersonationBanner() {
       data-testid="impersonation-banner"
       role="status"
       aria-live="polite"
-      className="fixed inset-x-0 top-0 z-[60] flex min-w-0 flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-destructive px-3 py-2 text-destructive-foreground"
+      className={VIEW_AS_BAR_CLASS}
     >
       <p className="min-w-0 break-words text-sm font-medium">
         {t("impersonation.banner")

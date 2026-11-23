@@ -782,7 +782,7 @@ export function MyListingsPage() {
               filters={
                 <FiltersButton
                   testid={"my-listings-filters"}
-                  resultCount={counts[group]}
+                  resultCount={query.isSuccess ? counts[group] : undefined}
                   filters={tableFilters}
                 />
               }

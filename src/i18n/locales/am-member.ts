@@ -141,6 +141,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "account.legal.body": "የተቀበሏቸው ውሎች እና መመሪያዎች፣ እንዲሁም የላክንልዎ ሕጋዊ ኢሜይሎች።",
   "account.legal.open": "ይክፈቱ",
   "prim.state.loading": "በመጫን ላይ…",
+  "prim.stat.failed": "መጫን አልተቻለም",
   "prim.state.empty": "ገና የሚታይ ነገር የለም።",
   "prim.state.error": "የሆነ ችግር ተፈጥሯል።",
   "prim.date.pick": "ቀን ይምረጡ",
