@@ -3,6 +3,7 @@ import type { Locator, Page } from "@playwright/test";
 
 import en from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
+import { chooseInList, openSelectList } from "./helpers/filters";
 import { gotoReady, settled, stillPage } from "./helpers/ui";
 
 /**
@@ -257,5 +258,39 @@ test.describe("house style fixture", () => {
     await expect(panel).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
+  });
+
+  /**
+   * INC-1261 — the shared step that chooses in a select list, on the board's two lists of fixed data:
+   * seven options (no search box) and nine (the box shows above eight). Both are chosen by the row's
+   * value test id, and a single choice closes the list.
+   */
+  test("SLH-1 chooseInList chooses in a list of seven options, which shows no search box", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/dev/style");
+    await openSelectList(page, "style-select-7");
+    await expect(page.getByTestId("style-select-7-list")).toBeVisible();
+    await expect(page.getByTestId("style-select-7-search")).toHaveCount(0);
+    await chooseInList(page, "style-select-7", "jimma");
+    await expect(page.getByTestId("style-select-7-list")).toHaveCount(0);
+    await openSelectList(page, "style-select-7");
+    await expect(page.getByTestId("style-select-7-jimma")).toHaveAttribute("aria-selected", "true");
+  });
+
+  test("SLH-2 chooseInList chooses in a list of nine options, which shows its search box", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/dev/style");
+    await openSelectList(page, "style-select-9");
+    await expect(page.getByTestId("style-select-9-list")).toBeVisible();
+    await expect(page.getByTestId("style-select-9-search")).toBeVisible();
+    await chooseInList(page, "style-select-9", "asmara");
+    await expect(page.getByTestId("style-select-9-list")).toHaveCount(0);
+    await openSelectList(page, "style-select-9");
+    await expect(page.getByTestId("style-select-9-asmara")).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

@@ -16,6 +16,7 @@ import {
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Field } from "@/components/forms/field";
 import { FieldSelect } from "@/components/forms/field-select";
+import { SelectList } from "@/components/select-list";
 import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { cn } from "@/lib/utils";
 
@@ -1068,6 +1069,43 @@ function AnatomyBoard() {
   );
 }
 
+/**
+ * Cursor bundle 5 (INC-1261, ruling 1 item 10) — two SelectLists of fixed data, one of 7 options
+ * (no search box) and one of 9 (the box shows above eight, `SEARCH_FROM`), so the shared step that
+ * chooses in a list (`chooseInList`, e2e/helpers/filters.ts) is proven on both. They sit in plain
+ * rows, outside every grid a law counts.
+ */
+function SelectSpecimens() {
+  const [seven, setSeven] = useState<string[]>([]);
+  const [nine, setNine] = useState<string[]>([]);
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      <SelectList
+        id="style-select-7-control"
+        testId="style-select-7"
+        label={BOARD.formOne}
+        options={BOARD_PLACES.slice(0, 7)}
+        value={seven}
+        onChange={setSeven}
+        placeholder={BOARD.all}
+        searchLabel={BOARD.search}
+        noneLabel={BOARD.none}
+      />
+      <SelectList
+        id="style-select-9-control"
+        testId="style-select-9"
+        label={BOARD.formOne}
+        options={BOARD_PLACES.slice(0, 9)}
+        value={nine}
+        onChange={setNine}
+        placeholder={BOARD.all}
+        searchLabel={BOARD.search}
+        noneLabel={BOARD.none}
+      />
+    </div>
+  );
+}
+
 function StyleFixture() {
   const { t } = useI18n();
   const [last, setLast] = useState("");
@@ -1369,6 +1407,10 @@ function StyleFixture() {
             <FiltersButton testid="style-filters-full" filters={fullFilters} />
             <FilterChips testid="style-filters-full-chips" filters={fullFilters} />
           </div>
+        </Section>
+
+        <Section title={"Select lists"} testid="style-select-section">
+          <SelectSpecimens />
         </Section>
       </div>
     </PageShell>

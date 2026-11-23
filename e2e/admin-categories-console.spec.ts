@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { inBrowserClient } from "./helpers/browser-client";
-import { chooseFilter } from "./helpers/filters";
+import { chooseFilter, chooseInList } from "./helpers/filters";
 import { withinPreviewBudget } from "./helpers/rate-window";
 
 import { en } from "../src/i18n/locales/en";
@@ -339,8 +339,7 @@ test.describe("C2 categories console", () => {
       slug = await createViaUi(page, secret);
       await openEditor(page, slug);
       await action(page, slug, "exclusions").click();
-      await page.getByTestId("category-exclusion").click();
-      await page.getByTestId("category-exclusion-ET").click();
+      await chooseInList(page, "category-exclusion", "ET", { multiple: true });
       await expect(page.getByTestId("category-exclusion-ET")).toHaveAttribute(
         "aria-selected",
         "true",
