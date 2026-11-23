@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { walkFiles } from "../../scripts/conformance/kit";
+import { AI_DOOR_REFUSALS } from "@/features/admin-ai/ai-refusals";
+import { isStepUpRequiredError } from "@/features/auth/mfa/mfa-service";
+import { readRefusal } from "./refusal";
 import {
   gateRefusal,
   readerFailure,
@@ -215,5 +218,19 @@ describe("INC-847 reader failure classes", () => {
       .filter((path) => /if\s*\(error\)\s*(?:\{\s*)?return null/.test(readFileSync(path, "utf8")))
       .map((path) => relative(process.cwd(), path));
     expect(found).toEqual([]);
+  });
+});
+
+describe("the typed failure carries the database's code (INC-1256)", () => {
+  it("RFE-U1 a ReaderError's code is its failure's; the provider words and the step-up check still hear it", () => {
+    const typed = readFailed({ message: "mfa please", code: "P0009" });
+    expect(typed.code).toBe("P0009");
+    expect(typed.code).toBe(typed.failure.code);
+    const read = readRefusal(typed, AI_DOOR_REFUSALS);
+    expect(read.key).toBe("admin.ai.error.stepUp");
+    expect(read.branch).toBe("provider");
+    expect(
+      isStepUpRequiredError(readFailed({ message: "recent sign-in required", code: "P0009" })),
+    ).toBe(true);
   });
 });

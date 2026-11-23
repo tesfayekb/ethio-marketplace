@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ReaderError } from "@/lib/reader-failure";
 import { useLocationRefusal } from "./location-refusals";
 
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
@@ -122,7 +123,7 @@ describe("the places doors' calls (F1-4b)", () => {
     }
   });
 
-  it("PL-5 each other door is called with its own arguments, and a refusal is thrown as it arrived", async () => {
+  it("PL-5 each other door is called with its own arguments, and a refusal is the door's own error, typed (INC-1256)", async () => {
     door.rpc.mockResolvedValue({ data: { ok: true }, error: null });
     await setLocationActive({ id: "p-1", active: true });
     await moveLocation({ id: "p-1", newParentId: "p-2" });
@@ -136,8 +137,8 @@ describe("the places doors' calls (F1-4b)", () => {
     ]);
     const refusal = { message: "retireInstead:hasChildren", code: "P0D01", details: "", hint: "" };
     door.rpc.mockResolvedValue({ data: null, error: refusal });
-    await expect(deleteLocation({ id: "p-1", slug: "adama" })).rejects.toBe(refusal);
-    await expect(moveLocation({ id: "p-1", newParentId: "p-2" })).rejects.toBe(refusal);
+    await expectTypedRefusal(deleteLocation({ id: "p-1", slug: "adama" }), refusal);
+    await expectTypedRefusal(moveLocation({ id: "p-1", newParentId: "p-2" }), refusal);
   });
 });
 
@@ -164,5 +165,30 @@ describe("the places list's country argument (DEC-420)", () => {
       ["admin_list_locations", { p_country_code: ["ET"] }],
       ["admin_list_locations", {}],
     ]);
+  });
+});
+
+/** INC-1256 — a refusal rejects as the typed failure, carrying the door's message and code. */
+async function expectTypedRefusal(
+  pending: Promise<unknown>,
+  refusal: { message: string; code: string },
+): Promise<void> {
+  const thrown: unknown = await pending.then(
+    () => null,
+    (error: unknown) => error,
+  );
+  expect(thrown).toBeInstanceOf(ReaderError);
+  expect(thrown).toMatchObject({
+    message: refusal.message,
+    code: refusal.code,
+    failure: { code: refusal.code },
+  });
+}
+
+describe("a failed door call is the typed failure (INC-1256)", () => {
+  it("RFT-U4 a failed activate rejects as a ReaderError with the database's code and message", async () => {
+    const raw = { message: "duplicate key", code: "23505", details: "d", hint: "h" };
+    door.rpc.mockResolvedValueOnce({ data: null, error: raw });
+    await expectTypedRefusal(setLocationActive({ id: "p-1", active: false }), raw);
   });
 });
