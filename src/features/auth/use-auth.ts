@@ -77,7 +77,7 @@ export function useAuth() {
       // refresh), so a session deactivated while open ends on its own.
       // INC-1264 / the runtime-stability law — an auth-state callback never calls Supabase: the
       // read waits one macrotask (the ticket above is already taken, so ordering is unchanged),
-      // goes out only with the session attached (account-status.ts), and its failure is typed.
+      // goes out only with the session attached (account-status.ts), and its failure is named (INC-1266: not typed, this file is on the first download).
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
       if (stale()) return;
       const status = await readAccountStatus(userId);
@@ -90,7 +90,7 @@ export function useAuth() {
       // A failed read keeps the person signed in (the doors refuse a deactivated account
       // regardless, F3); it is named and reported to the shell's one notice, which offers to
       // refresh the page. The signed-in screen never waits on it.
-      if (status.kind === "failed") reportOnDemandFailure("the account's status", status.failure);
+      if (status.kind === "failed") reportOnDemandFailure("the account's status", status.error);
       const data =
         status.kind === "read"
           ? { display_name: status.displayName, account_status: status.status }

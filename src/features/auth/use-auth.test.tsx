@@ -66,7 +66,7 @@ it("ACS-U5 the status read goes out only with the session attached, and not at a
   expect(door.profile).not.toHaveBeenCalled();
 });
 
-it("ACS-U6 a status read that fails is typed and reported, and the person stays signed in", async () => {
+it("ACS-U6 a status read that fails is named and reported, and the person stays signed in", async () => {
   door.read.mockResolvedValue({ session: SESSION, failed: false });
   const error = { message: "JWT expired", code: "401" };
   door.profile.mockResolvedValue({ data: null, error });
