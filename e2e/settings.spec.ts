@@ -59,7 +59,7 @@ for (const path of SIGNED_IN_PAGES) {
   });
 }
 
-test("S-2: settings renders all three sections, offers no Link Google and no Unlink, and guards the only method", async ({
+test("S-2: settings renders all three sections and offers no Link Google and no Unlink", async ({
   page,
 }) => {
   const user = await leaseUser();
@@ -81,8 +81,8 @@ test("S-2: settings renders all three sections, offers no Link Google and no Unl
   await expect(page.getByText(en["settings.providerEmail"], { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: GONE_UNLINK })).toHaveCount(0);
   await expect(page.getByRole("button", { name: GONE_LINK_GOOGLE })).toHaveCount(0);
-  // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
-  await expect(page.getByText(en["settings.lastMethodGuard"]).first()).toBeVisible();
+  // The only method cannot be removed: S-4 holds the password row and its disabled Remove.
+  await expect(page.getByTestId("password-method")).toBeVisible({ timeout: 15000 });
 });
 
 test("S-3 (U-4): wrong current password is rejected; correct one rotates the password", async ({
