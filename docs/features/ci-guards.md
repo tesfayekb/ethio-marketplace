@@ -1633,3 +1633,9 @@ files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
   `e2e/helpers/` (the helpers every test calls) take their error: a helper throws with its name and
   the error's text; `rosterDump` and `lifecycleDump` build a failure's own text and name the failed
   read inside it. At the base of this change 142 reads in 25 specs stay on the allowlist.
+
+### Cursor bundle 5: the credential census and the session store (DEC-435, DEC-439, INC-1247)
+
+- **CF-AUTH-1** (scripts/conformance/auth-credentials.test.ts, allowlist `auth-credentials-allowlist.txt`): every call in the browser tree that sets a `password` also sends `current_password`, unless its allowlist line (`<file> <function> | reason | until`) says why (the recovery path's one); no call of `linkIdentity` or `unlinkIdentity` is allowed, and there is no allowlist for them. **CF-AUTH-2** plants a bypass and proves the census sees it.
+- **CF-SESSION-5** (scripts/conformance/session-reads.test.ts): the callers of `useAuth()` are the shell's one (`SESSION_STORE_CALLERS`); every other screen reads `useShell()`. **CF-SESSION-6** plants a second caller. The Settings page's `getUser()` is a line of `session-reads-allowlist.txt` (DEC-439).
+- **CF-BCFG-1** lists the six notice sections the images variant carries (docs/features/auth-email-door.md).

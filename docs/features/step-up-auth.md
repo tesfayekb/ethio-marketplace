@@ -226,3 +226,7 @@ The provider gives a TOTP setup's secret once, so a reload (or a second tab) in 
 - **Settings card** (`use-mfa.ts`, `settings.tsx`): `unfinished` (the provider holds a setup this screen does not) shows `mfa.setupInProgress` and the Start again button (`mfa-start-again`) in place of Enable; a failed list is `readFailed` with no factors, an error on the card, never "off".
 
 Proofs: MSV-6..MSV-9 (`mfa-service.test.ts`), MFH-1..MFH-4 (`use-mfa.test.ts`), MF-10 (reload mid-setup, Start again confirms), MF-11 (a replaced setup says so; the newer one confirms).
+
+## The staff second-factor gate: built, not mounted (cursor bundle 5; DEC-434, DEC-451)
+
+`src/features/auth/mfa/staff-factor.ts` (`readStaffFactor`: failed, setupNeeded, codeNeeded or ready; a missing, failed or unverified factor never reads as ready) and `staff-factor-gate.tsx` (the setup panel, the code panel, the failure) are built and unit-tested (AG-U1..AG-U4). Nothing mounts the gate until Cursor bundle 6 (DEC-451): it reaches the staff sign-ins of thirty-one spec files, so it lands there with its one harness helper (signing staff in at aal2) and the server half (DEC-438). STAFF-E1 and STAFF-E2 and their helper return in bundle 6 from this lane's commits.
