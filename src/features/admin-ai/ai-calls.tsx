@@ -20,8 +20,6 @@ import { useAiCalls } from "./use-ai-calls";
 
 export function AiCalls() {
   const { t, language } = useI18n();
-  const [rawFeature, setFeature] = useState("");
-  const [rawOutcome, setOutcome] = useState("");
   const [hidden, toggleColumn] = useHiddenColumns("admin-ai-calls");
   const [history, setHistory] = useState<Array<AiCallsCursor | null>>([null]);
   const before = history[history.length - 1] ?? null;
@@ -29,41 +27,31 @@ export function AiCalls() {
     const key = featureLabelKey(id);
     return key ? t(key) : id;
   };
-  const choose = (set: (value: string) => void) => (value: string) => {
-    set(value);
-    setHistory([null]);
-  };
-  const { filters: tableFilters, ready: filtersReady } = useTableFilters("admin-ai-calls", [
-    {
-      kind: "select",
-      id: "ai-calls-feature",
-      chipKey: "feature",
-      name: t("admin.ai.col.feature"),
-      kept: true,
-      value: rawFeature === "" || rawFeature === null ? [] : [rawFeature],
-      onChange: (next: string[]) => choose(setFeature)(next[0] ?? ""),
-      options: [
-        { value: "", label: t("admin.ai.days.all") },
-        ...AI_FEATURE_ORDER.map((id) => ({ value: id, label: name(id) })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-    {
-      kind: "select",
-      id: "ai-calls-outcome",
-      chipKey: "outcome",
-      name: t("admin.ai.log.col.outcome"),
-      kept: true,
-      value: rawOutcome === "" || rawOutcome === null ? [] : [rawOutcome],
-      onChange: (next: string[]) => choose(setOutcome)(next[0] ?? ""),
-      options: [
-        { value: "", label: t("admin.ai.log.allOutcomes") },
-        ...AI_OUTCOMES.map((id) => ({
+  const { filters: tableFilters, ready: filtersReady } = useTableFilters(
+    "admin-ai-calls",
+    [
+      {
+        kind: "select",
+        id: "ai-calls-feature",
+        chipKey: "feature",
+        name: t("admin.ai.col.feature"),
+        kept: true,
+        options: AI_FEATURE_ORDER.map((id) => ({ value: id, label: name(id) })),
+      },
+      {
+        kind: "select",
+        id: "ai-calls-outcome",
+        chipKey: "outcome",
+        name: t("admin.ai.log.col.outcome"),
+        kept: true,
+        options: AI_OUTCOMES.map((id) => ({
           value: id,
           label: t(`admin.ai.log.outcome.${id}`),
         })),
-      ].filter((option) => option.value !== "" && option.value !== "all"),
-    },
-  ]);
+      },
+    ],
+    { onAnyChange: () => setHistory([null]) },
+  );
   const feature = filterValues(tableFilters, "ai-calls-feature")[0] ?? "";
   const outcome = filterValues(tableFilters, "ai-calls-outcome")[0] ?? "";
   const query = useAiCalls(feature, outcome, before, filtersReady);

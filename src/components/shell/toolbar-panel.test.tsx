@@ -1,7 +1,8 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { fireEvent, screen } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
 import { FilterSelect } from "./filter-select";
 import { ToolbarPanel } from "./toolbar-panel";
@@ -203,3 +204,8 @@ it.each([360, 1280])(
     );
   },
 );
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
+});

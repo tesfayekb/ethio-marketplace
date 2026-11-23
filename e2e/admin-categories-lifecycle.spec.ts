@@ -745,9 +745,14 @@ import { errorText } from "../src/lib/error-text";
       await step("CT-17 window fill", () =>
         page.getByTestId("category-create-visible-from").fill(fromLocal),
       );
-      await step("CT-17 ET exclusion", () =>
-        page.getByTestId("category-create-exclusion-ET").check(),
-      );
+      await step("CT-17 ET exclusion", async () => {
+        await page.getByTestId("category-create-exclusion").click();
+        await page.getByTestId("category-create-exclusion-ET").click();
+        await expect(page.getByTestId("category-create-exclusion-ET")).toHaveAttribute(
+          "aria-selected",
+          "true",
+        );
+      });
 
       await step("CT-17 save", async () => {
         await page.getByTestId("category-create-submit").click();

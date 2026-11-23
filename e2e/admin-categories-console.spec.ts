@@ -339,7 +339,12 @@ test.describe("C2 categories console", () => {
       slug = await createViaUi(page, secret);
       await openEditor(page, slug);
       await action(page, slug, "exclusions").click();
-      await page.getByTestId("category-exclusion-ET").check();
+      await page.getByTestId("category-exclusion").click();
+      await page.getByTestId("category-exclusion-ET").click();
+      await expect(page.getByTestId("category-exclusion-ET")).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
       await page.getByTestId("category-exclusions-submit").click();
       await stepUpIfPrompted(page, secret);
 

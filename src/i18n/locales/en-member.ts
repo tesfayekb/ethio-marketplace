@@ -1,4 +1,6 @@
 export const enMember = {
+  "prim.select.choose": "Choose",
+  "prim.select.count": "{n} chosen",
   "post.pin.chooseShow": "Choose how the pin shows on your ad.",
   "post.pin.placeFirst": "Place the pin on the map.",
   "head.account.description": "Review your ethio.com account and listing activity.",

@@ -11,6 +11,7 @@ The first substantial frontend build. Every later page inherits from it.
   import carries the filter rows. Page-size options belong to the shell, with no feature re-export.
 - All listings and Screening share `SellerCell` and `useSellerFilter`; the row receives their held
   `profiles:view` permission and typed seller text is never kept.
+- A table's two dates are kept per account like its other filters and checked when read back (DEC-428).
 - `ClosedPrimary` accepts `busy`, not `disabled`. A new pin needs placement and an explicit show
   choice; its closed press reveals the missing answer. Saved pins keep their precision ungated.
 - Door-paged tables use the required `ServerTablePage` answer/navigation shape instead of local
@@ -641,9 +642,10 @@ passes the translated `dialog.moreBelow` cue label to the real body.
   squeezes a fixed-height clipped child in Chromium (the pin map fell to its border); and
   unless it is `relative`, a screen-reader-only label inside it is laid out against the
   frame, which then has hidden room below its footer and can be scrolled off its header.
-  The cue is a zero-height sticky anchor, the scroller's last child. While it shows, the
-  body keeps the cue's room as scroll padding, so what is brought into view stands clear
-  of it (WCAG 2.2, 2.4.11; INC-1254).
+  The hint is a zero-height sticky anchor, the scroller's last child: plain, aria-hidden,
+  pointer-transparent and 2rem tall, shown only while more lies below in a body at least
+  5rem tall. While it shows, the body keeps its room as scroll padding, leaving 3rem clear
+  (WCAG 2.2, 2.4.11; INC-1254); it has no button or press behavior.
 - A frame's last band carries the bottom inset: the footer does; a body with no footer
   says `end`. The toolbar panel says it on a phone only (its desktop form is a popover).
 - A change of a dialog's frame never changes its content's width: the buyer's preview
@@ -753,3 +755,20 @@ body between its header and its last band, with a height.
 R: INC-073 keeps the Users role and interface-strings status/flagged in the address; a named address choice overrides the kept view without changing it on arrival. One optional `addressValue` declaration field supplies that precedence, and a panel, chip or Clear choice writes the address with replacement and the kept view together; no synchronization effect copies either source.
 
 S: Filters panels stack From and To at full-row width, each with its own label and its calendar in the content flow. A landed click on a text box, date box or switch closes the select through the rows' owner without moving content on pointer-down.
+
+## The select in forms
+
+One choice from a fixed or data list stays the product's native select (DEC-427). The shared
+`FieldSelect` is only for several choices from data or one searchable catalogue choice: new-category
+countries, the Countries dialog, new-language countries, translator languages, and the language to
+add. Short fixed checkbox groups stay unchanged. `FieldSelect` keeps the control `id` separate from
+the door's `field`, reports blank required answers to `Field`'s gate, and carries its refusal marks.
+It reads the shared words once; loading and failure use the form's own words on a closed line.
+`SelectList` owns both the form and Filters list: choices open in flow under the line, long lists
+show search and use `FLOW_LIST_SCROLLER`, and Escape returns focus to the line. Only the form line
+shows an uncut count after the cut chosen names when several are chosen; Filters retain their chips
+and badge. The board's form includes one and several choices, with long and short lists.
+The closed line, its count and its limit note ride the page; the open list — the search box, the
+rows and the keys, `src/components/select-list-body.tsx` — is fetched on intent (hover, focus or
+press of the line) through `src/components/select-list-loader.ts`, and the Filters body starts that
+fetch as it mounts (register rows 48 and 52).

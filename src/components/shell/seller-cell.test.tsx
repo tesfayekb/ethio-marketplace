@@ -31,7 +31,7 @@ it.each([true, false])(
     );
     render(
       <FilterPanelBody
-        filters={[result.current]}
+        filters={[{ ...result.current, clear: vi.fn(), changed: vi.fn() }]}
         words={{ all: "All", search: "Search", none: "None", max: "Max" }}
       />,
     );

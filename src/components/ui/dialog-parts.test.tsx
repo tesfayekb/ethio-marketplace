@@ -12,7 +12,7 @@ import {
 import { Button } from "./button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "./dialog";
 import { BANDS_PANEL } from "./dialog-look";
-import { CLOSED_PRIMARY, CUE_ROOM, DIALOG_TONE } from "./dialog-parts-look";
+import { CLOSED_PRIMARY, CUE_MIN_BODY_REM, CUE_ROOM, DIALOG_TONE } from "./dialog-parts-look";
 import {
   ActionRow,
   ClosedPrimary,
@@ -105,7 +105,7 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     expect(subject).not.toHaveTextContent("fourth");
   });
 
-  it("DP-U4 the scroll cue: shown while more lies below, a button that scrolls about one screen, gone at the end", async () => {
+  it("DP-U4 the plain hint shows while more lies below, never takes a press and goes at the end", async () => {
     render(
       <PanelBody cueLabel="dialog.moreBelow" testId="body">
         <p>long</p>
@@ -118,15 +118,16 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     act(() => {
       body.dispatchEvent(new Event("scroll"));
     });
-    const cue = await screen.findByRole("button", { name: "dialog.moreBelow" });
-    expect(cue.className).toContain("min-h-11");
+    const cue = await screen.findByText("dialog.moreBelow");
+    expect(cue.closest("[aria-hidden=true]")).not.toBeNull();
+    expect(body.querySelector("[data-scroll-cue] button")).toBeNull();
     fireEvent.click(cue);
-    expect(scrollBy).toHaveBeenCalledWith({ top: 340, behavior: "smooth" });
+    expect(scrollBy).not.toHaveBeenCalled();
     act(() => {
       body.scrollTop = 600;
       body.dispatchEvent(new Event("scroll"));
     });
-    expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+    expect(screen.queryByText("dialog.moreBelow")).toBeNull();
   });
 
   it("DP-U32 while the cue shows the body keeps its room as scroll padding; at the end and in the fill form none", async () => {
@@ -140,13 +141,13 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     act(() => {
       body.dispatchEvent(new Event("scroll"));
     });
-    await screen.findByRole("button", { name: "dialog.moreBelow" });
+    await screen.findByText("dialog.moreBelow");
     expect(body.style.scrollPaddingBottom).toBe(CUE_ROOM);
     act(() => {
       body.scrollTop = 600;
       body.dispatchEvent(new Event("scroll"));
     });
-    expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+    expect(screen.queryByText("dialog.moreBelow")).toBeNull();
     expect(body.style.scrollPaddingBottom).toBe("");
     unmount();
     render(
@@ -160,7 +161,7 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     expect(fill.style.scrollPaddingBottom).toBe("");
   });
 
-  it("DP-U5 with reduced motion the cue scrolls without a smooth scroll", async () => {
+  it("DP-U5 with reduced motion the hint still never scrolls on press", async () => {
     const before = window.matchMedia;
     window.matchMedia = ((query: string) =>
       ({ matches: query.includes("reduce") }) as MediaQueryList) as typeof window.matchMedia;
@@ -179,8 +180,31 @@ describe("the panel anatomy (bundle 2, INC-1146)", () => {
     act(() => {
       body.dispatchEvent(new Event("scroll"));
     });
-    fireEvent.click(await screen.findByRole("button", { name: "dialog.moreBelow" }));
-    expect(scrollBy).toHaveBeenCalledWith({ top: 340, behavior: "auto" });
+    fireEvent.click(await screen.findByText("dialog.moreBelow"));
+    expect(scrollBy).not.toHaveBeenCalled();
+  });
+
+  it("DP-U33 below 5rem the body has no hint or padding; at 5rem both appear", () => {
+    render(
+      <PanelBody cueLabel="Hint" testId="threshold">
+        Content
+      </PanelBody>,
+    );
+    const body = screen.getByTestId("threshold");
+    expect(CUE_MIN_BODY_REM).toBe(5);
+    expect(CUE_ROOM).toBe("clamp(0px, 100% - 3rem, 2rem)");
+    sized(body, { scrollHeight: 1000, clientHeight: 79 });
+    fireEvent.scroll(body);
+    expect(body.querySelector("[data-scroll-cue]")).toBeNull();
+    expect(body.style.scrollPaddingBottom).toBe("");
+    sized(body, { scrollHeight: 1000, clientHeight: 80 });
+    fireEvent.scroll(body);
+    const hint = body.querySelector("[data-scroll-cue]");
+    expect(hint).not.toBeNull();
+    expect(hint?.closest("[aria-hidden=true]")).not.toBeNull();
+    expect(hint?.querySelector("button, a, input, [tabindex]")).toBeNull();
+    expect(hint?.className).toContain("pointer-events-none");
+    expect(body.style.scrollPaddingBottom).toBe(CUE_ROOM);
   });
 
   it("DP-U6 the closed primary is never disabled: closed, a press marks what is missing and sends nothing; open, it sends", () => {
@@ -346,7 +370,7 @@ describe("panel correction laws", () => {
     const body = screen.getByTestId("body");
     sized(body, { scrollHeight: 1000, clientHeight: 400 });
     fireEvent.scroll(body);
-    const pill = screen.getByRole("button", { name: "dialog.moreBelow" });
+    const pill = screen.getByText("dialog.moreBelow");
     const anchor = pill.closest("[data-scroll-cue]")?.parentElement as HTMLElement;
     // The anchor is the scroller's own last child, after the content; it is zero tall and sticks
     // to the bottom edge, so the content does not move when it comes or goes (the browser proof
@@ -358,7 +382,7 @@ describe("panel correction laws", () => {
     );
     body.scrollTop = 600;
     fireEvent.scroll(body);
-    expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+    expect(screen.queryByText("dialog.moreBelow")).toBeNull();
     expect(body.children).toHaveLength(1);
   });
   it("DP-U27 the body is one element and a block scroller; its content is never its flex item", () => {
@@ -394,7 +418,7 @@ describe("panel correction laws", () => {
     const body = screen.getByTestId("body");
     sized(body, { scrollHeight: 1000, clientHeight: 400 });
     fireEvent.scroll(body);
-    expect(screen.queryByRole("button", { name: "dialog.moreBelow" })).toBeNull();
+    expect(screen.queryByText("dialog.moreBelow")).toBeNull();
     expect(screen.getByTestId("map").parentElement).toBe(body);
     expect(classes(body.className)).toEqual(
       expect.arrayContaining(["flex", "flex-col", "min-h-0", "flex-1", "overflow-hidden"]),
@@ -565,6 +589,6 @@ describe("Part D body and subject rules", () => {
     const body = screen.getByTestId("body");
     sized(body, { scrollHeight: 1000, clientHeight: 400 });
     fireEvent.scroll(body);
-    expect(screen.getByRole("button", { name: "Supplied cue" })).toBeInTheDocument();
+    expect(screen.getByText("Supplied cue")).toBeInTheDocument();
   });
 });

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { preloadSelectList } from "../select-list-loader";
 import { FilterRow } from "./filter-row";
 import { FilterSelect } from "./filter-select";
 import { FilterText } from "./filter-text";
@@ -15,6 +16,11 @@ export function FilterPanelBody({
   words: TableFilterWords;
 }) {
   const [openSelect, setOpenSelect] = useState<string | null>(null);
+  // The panel's body arrives on demand; it fetches its selects' open list as it mounts, so a
+  // filter's list never waits twice (register row 48).
+  useEffect(() => {
+    preloadSelectList();
+  }, []);
   return (
     <div
       data-filter-rows=""
