@@ -36,6 +36,9 @@ vi.mock("@/features/categories/category-tree", () => ({
   useCategoryTree: () => ({ tree: { byId: new Map() } }),
 }));
 vi.mock("@/components/shell/favourite-category", () => ({ useFavouriteCategory: () => null }));
+vi.mock("@/i18n", () => ({
+  useI18n: () => ({ t: (key: string) => key, entities: {}, language: "en" }),
+}));
 vi.mock("@/components/shell/page-guide", () => ({ PageGuide: () => null }));
 
 import { Feed } from "./feed";
