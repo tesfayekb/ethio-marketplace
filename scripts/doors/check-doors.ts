@@ -19,12 +19,13 @@ import {
 import {
   LIVE_OPEN_RULES_QUERY,
   LIVE_QUERY,
+  LIVE_STAFF_RULES_QUERY,
   liveRows,
   staticRows,
   treeCallers,
   type DoorRow,
 } from "./rows";
-import { parseStaffRules, type StaffRuleEvidence } from "./staff-rules";
+import { liveRoleRules, parseStaffRules, type StaffRuleEvidence } from "./staff-rules";
 import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
@@ -32,13 +33,16 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  * scripts/doors/manifest.txt against the rows (judge.ts):
  *
  *   bun scripts/doors/check-doors.ts                 static: the migrations' catalogue + the tree's callers
- *   bun scripts/doors/check-doors.ts --live <tsv> <grants tsv>
- *                                                    live: the smoke lane's catalogue (LIVE_QUERY's answer) and the
+ *   bun scripts/doors/check-doors.ts --live <tsv> <grants tsv> <staff rules tsv>
+ *                                                    live: the smoke lane's catalogue (LIVE_QUERY's answer), the
  *                                                    browser roles' grants on the open rules' tables
- *                                                    (LIVE_OPEN_RULES_QUERY's answer)
+ *                                                    (LIVE_OPEN_RULES_QUERY's answer) and the live role rules
+ *                                                    (LIVE_STAFF_RULES_QUERY's answer, ACT-032)
  *   bun scripts/doors/check-doors.ts --live-query    prints scripts/doors/live-query.sql verbatim for the workflow's psql
  *   bun scripts/doors/check-doors.ts --live-open-rules-query
  *                                                    prints scripts/doors/live-open-rules.sql verbatim
+ *   bun scripts/doors/check-doors.ts --live-staff-rules-query
+ *                                                    prints scripts/doors/live-staff-rules.sql verbatim
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
@@ -588,7 +592,23 @@ export function declaredStaffRulesFile(root: string): StaffRuleEvidence {
   };
 }
 
-export function liveFindings(tsv: string, root = ROOT, grantsTsv?: string): Finding[] {
+/**
+ * The role rules the live catalogue holds (`pg_policies`, ACT-032), beside the file that declares them: the
+ * same judge as the migrations' census, over what is really standing.
+ */
+function liveStaffRulesFile(root: string, staffRulesTsv: string): StaffRuleEvidence {
+  return {
+    standing: liveRoleRules(staffRulesTsv),
+    file: parseStaffRules(readFileSync(join(root, STAFF_RULES), "utf8")),
+  };
+}
+
+export function liveFindings(
+  tsv: string,
+  root = ROOT,
+  grantsTsv?: string,
+  staffRulesTsv?: string,
+): Finding[] {
   const manifest = parseManifest(
     readFileSync(join(root, "scripts", "doors", "manifest.txt"), "utf8"),
   );
@@ -602,7 +622,10 @@ export function liveFindings(tsv: string, root = ROOT, grantsTsv?: string): Find
     stepUps: declaredStepUps(root),
     policies: declaredPolicyCalls(root),
     openRules: declaredOpenRulesFile(root, grantsTsv),
-    staffRules: declaredStaffRulesFile(root),
+    staffRules:
+      staffRulesTsv === undefined
+        ? declaredStaffRulesFile(root)
+        : liveStaffRulesFile(root, staffRulesTsv),
   });
 }
 
@@ -614,7 +637,7 @@ function print(label: string, findings: Finding[]): void {
 }
 
 if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const [mode, path, grantsPath] = process.argv.slice(2);
+  const [mode, path, grantsPath, staffRulesPath] = process.argv.slice(2);
   if (mode === "--live-query") {
     // INC-1070: the file's bytes as they are — the workflow hands them to psql.
     process.stdout.write(LIVE_QUERY);
@@ -623,6 +646,11 @@ if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.
   if (mode === "--live-open-rules-query") {
     // The file's bytes as they are — the workflow hands them to psql (INC-1070).
     process.stdout.write(LIVE_OPEN_RULES_QUERY);
+    process.exit(0);
+  }
+  if (mode === "--live-staff-rules-query") {
+    // ACT-032: the file's bytes as they are — the workflow hands them to psql (INC-1070).
+    process.stdout.write(LIVE_STAFF_RULES_QUERY);
     process.exit(0);
   }
   const proof = selfTest();
@@ -637,19 +665,24 @@ if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.
   if (process.env["SELF_TEST"] === "1") process.exit(0);
   const manifestLines = parseManifest(readFileSync(MANIFEST, "utf8")).lines.size;
   if (mode === "--live") {
-    if (path === undefined || grantsPath === undefined)
+    if (path === undefined || grantsPath === undefined || staffRulesPath === undefined)
       throw new Error(
-        "check-doors --live requires the catalogue TSV path and the open rules' grants TSV path",
+        "check-doors --live requires the catalogue TSV path, the open rules' grants TSV path and the live role rules' TSV path",
       );
     const findings = allow(
-      liveFindings(readFileSync(path, "utf8"), ROOT, readFileSync(grantsPath, "utf8")),
+      liveFindings(
+        readFileSync(path, "utf8"),
+        ROOT,
+        readFileSync(grantsPath, "utf8"),
+        readFileSync(staffRulesPath, "utf8"),
+      ),
     );
     if (findings.length > 0) {
       print("live", findings);
       process.exit(1);
     }
     console.log(
-      `check-doors live OK: ${manifestLines} manifest lines reconcile with the live catalogue; the open rules' grants are the catalogue's`,
+      `check-doors live OK: ${manifestLines} manifest lines reconcile with the live catalogue; the open rules' grants and the role rules are the catalogue's`,
     );
   } else {
     const findings = allow(staticFindings());

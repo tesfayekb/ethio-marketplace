@@ -328,8 +328,11 @@ status?)` is the one factory: a `ReaderError` passes through, any other error is
   `is_super_admin(`; one on a table of schema `public` fails with no line able to declare it (the
   allowlist cannot clear it), and one elsewhere stands only as a line of
   `scripts/doors/staff-rules.txt` (`schema.table policy | command to roles | reader file:line |
-reason`). The static half only; the live `pg_policies` half is a workflow step the supervisor
-  schedules (ACT-032). `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
+reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane reads `pg_policies` by
+  `scripts/doors/live-staff-rules.sql` (`--live-staff-rules-query`, printed verbatim; the answer is
+  the third TSV of `--live <tsv> <grants tsv> <staff rules tsv>`, which refuses to run without it),
+  and `liveRoleRules` hands the same judge the rules really standing — a rule created by computed
+  text, which the migrations' census cannot name, is judged too. `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
 
 ## Tests
 

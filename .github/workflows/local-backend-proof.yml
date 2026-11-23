@@ -692,7 +692,11 @@ jobs:
           # rules, judged against scripts/doors/open-rules.txt in the same run.
           grants_query=$(bun scripts/doors/check-doors.ts --live-open-rules-query)
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$grants_query" > "$RUNNER_TEMP/open-rule-grants.tsv"
-          bun scripts/doors/check-doors.ts --live "$RUNNER_TEMP/doors.tsv" "$RUNNER_TEMP/open-rule-grants.tsv"
+          # Cursor bundle 5 (ACT-032): the role rules the live catalogue holds (pg_policies), judged
+          # against scripts/doors/staff-rules.txt in the same run.
+          staff_rules_query=$(bun scripts/doors/check-doors.ts --live-staff-rules-query)
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$staff_rules_query" > "$RUNNER_TEMP/staff-rules.tsv"
+          bun scripts/doors/check-doors.ts --live "$RUNNER_TEMP/doors.tsv" "$RUNNER_TEMP/open-rule-grants.tsv" "$RUNNER_TEMP/staff-rules.tsv"
       # DEC-359: the seller-name law's live half judges every live body of schema public, the
       # computed ones the file census cannot read included (INC-1083). The script runs its
       # self-test first and judges nothing until it passes. Live names stay in RUNNER_TEMP

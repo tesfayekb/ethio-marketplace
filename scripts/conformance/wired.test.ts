@@ -342,6 +342,16 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "check-doors.ts --live-open-rules-query",
     );
+    // DOORS-21 (cursor-bundle-5, ACT-032): the live role rules (pg_policies), judged by check-doors.ts against
+    // scripts/doors/staff-rules.txt; the smoke lane hands its live half the query of scripts/doors/live-staff-rules.sql,
+    // printed by `--live-staff-rules-query`.
+    expect(doorsTests).toContain("DOORS-21");
+    expect(readFileSync(join(ROOT, "scripts/doors/check-doors.ts"), "utf8")).toContain(
+      "liveStaffRulesFile(root, staffRulesTsv)",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "check-doors.ts --live-staff-rules-query",
+    );
     // DOORS-18 (cursor-bundle-2, DEC-423): the list rule's guard — `filter-off-helper`, judged by
     // check-doors.ts in both modes (the arguments' names come from the static declaration and from the
     // live definition), so a country or category argument is read through door_filter_countries /

@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -52,6 +52,8 @@ import {
   LIVE_OPEN_RULES_QUERY_FILE,
   LIVE_QUERY,
   LIVE_QUERY_FILE,
+  LIVE_STAFF_RULES_QUERY,
+  LIVE_STAFF_RULES_QUERY_FILE,
   browserCallable,
   chunkBodiesOf,
   liveRows,
@@ -59,7 +61,7 @@ import {
   treeCallers,
   type DoorRow,
 } from "./rows";
-import { parseStaffRules, staffRuleFindings } from "./staff-rules";
+import { liveRoleRules, parseStaffRules, staffRuleFindings } from "./staff-rules";
 import { declaredStepUps, stepUpsOf } from "./step-ups";
 
 /**
@@ -965,6 +967,79 @@ describe("check-doors (CF-DOORS)", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it("DOORS-21 the live role rules (ACT-032): --live-staff-rules-query prints its file as it is; the standing set reads clean, and an undeclared, a vanished, a changed and a public-table rule each fire; a malformed row and a --live without its file fail", () => {
+    const printed = execFileSync(
+      "bun",
+      ["scripts/doors/check-doors.ts", "--live-staff-rules-query"],
+      {
+        cwd: ROOT,
+        encoding: "utf8",
+      },
+    );
+    expect(printed).toBe(readFileSync(LIVE_STAFF_RULES_QUERY_FILE, "utf8"));
+    expect(printed).toBe(LIVE_STAFF_RULES_QUERY);
+    expect(printed.trimEnd().endsWith(";")).toBe(true);
+    const statement = printed
+      .split("\n")
+      .filter((line) => !line.startsWith("--"))
+      .join("\n");
+    expect(statement).toMatch(
+      /^select [\s\S]*\nfrom pg_policies p\nwhere [\s\S]*\norder by 1, 2, 3;\n$/,
+    );
+    // The live answer of the real file's rules, parsed to the census's own form.
+    const file = parseStaffRules(
+      readFileSync(join(ROOT, "scripts", "doors", "staff-rules.txt"), "utf8"),
+    );
+    expect(file.errors).toEqual([]);
+    const rows = [...file.lines.values()].map((line) => {
+      const [schema = "", table = ""] = line.table.split(".");
+      return [schema, table, line.policy, line.command, line.roles].join("\t");
+    });
+    const kinds = (answer: string[]) =>
+      staffRuleFindings({ standing: liveRoleRules(answer.join("\n")), file }).map(
+        (finding) => `${finding.kind} ${finding.key}`,
+      );
+    expect(rows).toHaveLength(4);
+    expect(kinds(rows)).toEqual([]);
+    expect(liveRoleRules(rows.join("\n")).map((rule) => rule.table)).toEqual(
+      Array(4).fill("storage.objects"),
+    );
+    // A rule the live catalogue holds and no line declares.
+    expect(kinds([...rows, "storage\tobjects\te2e_planted_live\tINSERT\tauthenticated"])).toEqual([
+      "staff-rule-undeclared storage.objects e2e_planted_live",
+    ]);
+    // A line whose policy the live catalogue lost.
+    expect(kinds(rows.slice(1))).toEqual([
+      "staff-rule-gone storage.objects category_assets_assets_delete",
+    ]);
+    // A policy whose command changed live.
+    expect(kinds([rows[0]?.replace("\tDELETE\t", "\tALL\t") ?? "", ...rows.slice(1)])).toEqual([
+      "staff-rule-undeclared storage.objects category_assets_assets_delete",
+    ]);
+    // A rule on a table of schema public: no line can declare it.
+    expect(
+      kinds([...rows, "public\te2e_planted_s\te2e_planted_staff\tSELECT\tauthenticated"]),
+    ).toEqual(["staff-rule-on-table e2e_planted_s e2e_planted_staff"]);
+    // A nothing-standing catalogue: every declared line is gone.
+    expect(kinds([])).toHaveLength(4);
+    // A row the guard cannot read judges nothing: it throws.
+    for (const bad of [
+      "storage\tobjects\tp\tINSERT",
+      "storage\tobjects\tp\tTRUNCATE\tauthenticated",
+      "Storage\tobjects\tp\tINSERT\tauthenticated",
+      "storage\tobjects\t\tINSERT\tauthenticated",
+      "storage\tobjects\tp\tINSERT\t",
+    ])
+      expect(() => liveRoleRules(bad), bad).toThrow(/live-staff-rules row 1 is malformed/);
+    // --live without the third file names what it needs and judges nothing.
+    const run = spawnSync("bun", ["scripts/doors/check-doors.ts", "--live", "a.tsv", "b.tsv"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    expect(run.status).not.toBe(0);
+    expect(run.stderr).toContain("the live role rules' TSV path");
   });
 
   it(
