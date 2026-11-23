@@ -44,31 +44,45 @@ export function coversRole(entry: SurfaceEntry, role: BrowserRole): boolean {
   return entry.roles.includes(role) || entry.roles.includes("public");
 }
 
+/** The browser roles a grant or revoke clause names (anything else is no browser role). */
+function rolesIn(text: string): BrowserRole[] {
+  const roles: BrowserRole[] = [];
+  for (const role of text.toLowerCase().match(/\b(?:anon|authenticated|public)\b/g) ?? [])
+    if (role === "anon" || role === "authenticated" || role === "public") roles.push(role);
+  return roles;
+}
+
 /**
- * Whole statements plus the existing FOREACH format-grant form (INC-443). A
- * grant on a name in `dropped` (an object a later migration drops) is no
- * offender: the live lint's stale-line rule is the authority for it (DEC-357).
+ * Whole statements plus the existing FOREACH format-grant form (INC-443),
+ * read in the file's own order (INC-1262): a GRANT opens a name for a role and
+ * a later REVOKE of the same role closes it again; a REVOKE before the GRANT
+ * closes nothing. A grant on a name in `dropped` (an object a later migration
+ * drops) is no offender: the live lint's stale-line rule is the authority for
+ * it (DEC-357).
  */
 export function migrationSurfaceOffenders(
   sql: string,
   entries: SurfaceEntry[],
   dropped: ReadonlySet<string> = new Set(),
 ): string[] {
-  const offenders = new Set<string>();
-  const check = (name: string, text: string) => {
-    if (dropped.has(name)) return;
-    for (const role of text.toLowerCase().match(/\b(?:anon|authenticated|public)\b/g) ?? []) {
-      if (role !== "anon" && role !== "authenticated" && role !== "public") continue;
-      if (!entries.some((entry) => entry.name === name && coversRole(entry, role)))
-        offenders.add(`${name} (${role})`);
-    }
-  };
-  for (const statement of sql.replace(/--[^\n]*/g, "").split(";")) {
+  // Comments become blanks of the same length, so a position means the same in both texts.
+  const masked = sql.replace(/--[^\n]*/g, (comment) => " ".repeat(comment.length));
+  const events: Array<{ at: number; open: boolean; name: string; roles: BrowserRole[] }> = [];
+  let at = 0;
+  for (const statement of masked.split(";")) {
     const grant =
       /\bgrant\s+(?:select|execute|all)\b[\s\S]*?\bon\s+(?:function\s+|table\s+|sequence\s+)?public\.([a-z0-9_]+)[\s\S]*?\bto\s+([^;]+)/i.exec(
         statement,
       );
-    if (grant?.[1] && grant[2]) check(grant[1].toLowerCase(), grant[2]);
+    if (grant?.[1] && grant[2])
+      events.push({ at, open: true, name: grant[1].toLowerCase(), roles: rolesIn(grant[2]) });
+    const revoke =
+      /\brevoke\s+(?:grant\s+option\s+for\s+)?(?:select|execute|all)\b[\s\S]*?\bon\s+(?:function\s+|table\s+|sequence\s+)?public\.([a-z0-9_]+)[\s\S]*?\bfrom\s+([^;]+)/i.exec(
+        statement,
+      );
+    if (revoke?.[1] && revoke[2])
+      events.push({ at, open: false, name: revoke[1].toLowerCase(), roles: rolesIn(revoke[2]) });
+    at += statement.length + 1;
   }
   for (const loop of sql.matchAll(
     /FOREACH\s+\w+\s+IN\s+ARRAY\s+ARRAY\[([\s\S]*?)\]\s*LOOP([\s\S]*?)END\s+LOOP/gi,
@@ -79,9 +93,25 @@ export function migrationSurfaceOffenders(
       );
     if (!grant?.[1]) continue;
     for (const object of (loop[1] ?? "").matchAll(/'public\.([a-z0-9_]+)\s*\(/gi))
-      if (object[1]) check(object[1].toLowerCase(), grant[1]);
+      if (object[1])
+        events.push({
+          at: loop.index ?? 0,
+          open: true,
+          name: object[1].toLowerCase(),
+          roles: rolesIn(grant[1]),
+        });
   }
-  return [...offenders];
+  const opened = new Set<string>();
+  for (const event of events.sort((a, b) => a.at - b.at)) {
+    if (dropped.has(event.name)) continue;
+    for (const role of event.roles) {
+      const key = `${event.name} (${role})`;
+      if (!event.open) opened.delete(key);
+      else if (!entries.some((entry) => entry.name === event.name && coversRole(entry, role)))
+        opened.add(key);
+    }
+  }
+  return [...opened];
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

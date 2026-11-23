@@ -688,6 +688,21 @@ if ! grep -q 'e2e_fixture_dropped_fn (authenticated)' <<<"$ps_kept" \
 fi
 echo "Public-surface guard self-test OK (a grant whose object a later file drops is no offender; without the drop it is)."
 
+# INC-1262: the file's own REVOKE after a GRANT closes it; a REVOKE before the GRANT closes nothing.
+ps_revoked="$(public_surface_offenders "$FIXTURE_DIR/public-grant-revoked-example.sql")"
+PS_ORDER_FILE="$(mktemp)"
+cat > "$PS_ORDER_FILE" <<'SQL'
+REVOKE EXECUTE ON FUNCTION public.e2e_fixture_closed_fn(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.e2e_fixture_closed_fn(uuid) TO anon;
+SQL
+ps_reopened="$(public_surface_offenders "$PS_ORDER_FILE")"
+rm -f "$PS_ORDER_FILE"
+if [ -n "$ps_revoked" ] || ! grep -q 'e2e_fixture_closed_fn (anon)' <<<"$ps_reopened"; then
+  echo "Public-surface guard self-test FAILED: a GRANT then REVOKE was judged open, or a REVOKE then GRANT was judged closed."
+  exit 1
+fi
+echo "Public-surface guard self-test OK (a GRANT then REVOKE in one file is closed; a REVOKE then GRANT is open)."
+
 MIGRATIONS_ROOT="$(cd "$MIGRATIONS_DIR/../.." && pwd)"
 surface_offenders=""
 while IFS= read -r -d '' file; do
