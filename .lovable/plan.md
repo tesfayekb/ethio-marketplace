@@ -1,77 +1,89 @@
-# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
+# Lovable bundle 5 — plan (base `1b0af44c4`, branch `lovable/next`)
 
-(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
+CI at the base: `1b0af44c4` SUCCESS (run 45123082781). Nothing changed this turn.
 
-## CI first
-- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
-- No completed run on 836d1030 yet. Read again before the build turn's push.
+## (a) Files per part, each with its tests
 
-## What the operator will see
-Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
+- **Part A**: `src/components/ui/switch.tsx` (press area, once) + `switch.test.tsx` (SW-U2); `src/components/shell/filter-panel-body.tsx` + `filter-panel-body.test.tsx` (FP-U50, FP-U51; FP-U27 rewritten to the switch). The board's Filters/Columns pair: `src/routes/dev.style.tsx`.
+- **Part B**: `src/features/posting/preview/preview-sheet.tsx` + `preview-sheet.test.tsx` (PS-U1, PS-U2); `src/features/admin-screening/screening-page.tsx` + `screening-decisions.test.tsx` (SCP-U1); `src/features/admin-listings/listing-photos.tsx` + `listing-photos.test.tsx` (LPH-U1, LPH-U2); `src/features/admin-countries/country-verb-dialogs.tsx` + its test; `src/features/admin-attributes/category-attributes-dialog.tsx` + its test; `src/features/admin/impersonation/impersonation-starter.tsx` + its test; `src/components/ui/dialog-parts.tsx` test file only (PFT-U1, the footer-holds-actions census held in my folders); `src/routes/dev.style.tsx` (board); `docs/features/design-foundation.md` (one section).
+- **Part C**: `src/components/marketplace/feed.tsx` + `feed.test.tsx` (FD-U1); `src/features/admin/translations/use-translations.ts` + test (UM-U1) — only if decision C-3 rules option (i).
 
-## Census (836d1030; build turn pastes full file:line)
-Primitive consumers — "uses the primitive":
-- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
-- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
-- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
-- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
-- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
+## (b) Part A — the switch as built
 
-"Draws its own":
-- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
-- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
-- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
-- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
+```tsx
+<Switch
+  id={filter.id}
+  data-testid={filter.id}
+  checked={filter.value}
+  onCheckedChange={filter.onChange}
+/>
+```
+- Name: `FilterRow` already renders `<label htmlFor={filter.id}>` (`htmlFor={filter.id}` at :67), so the switch is named by the row's label and the label presses it; the hand `aria-label` goes (no duplicate name). Radix gives `role="switch"` and `aria-checked`.
+- Press area, in the primitive once (so Columns, settings, listing settings, languages and step-review switches gain it too): the root gets `relative after:absolute after:-inset-x-1 after:-inset-y-3 pointer-fine:after:-inset-y-2 after:content-['']` — the 20 px track presses over 44 px tall on touch, 36 px on a fine pointer; nothing in the drawn track changes, so the five existing consumers look the same. Direction already in the primitive (`rtl:data-[state=checked]:-translate-x-4`).
+- Filters and Columns then draw the same element, same classes.
+- Spec lines reading `aria-pressed` on it (for the supervisor's script): `e2e/dialogs.spec.ts:979` (`style-filters-full-missing`), `e2e/admin-categories-console.spec.ts:745-748` (`category-missing-filter`). `e2e/helpers/filters.ts` reads none. `e2e/admin-categories-images.spec.ts:268` presses only (unchanged contract).
 
-Own classes on dialog parts outside the primitive:
-- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
+## (c) Part B — footer census (every `PanelFooter`, every `footer` prop ending in one)
 
-Unused primitives:
-- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
-- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
+Actions only (buttons, AlertDialog Cancel/Action, shared `*DialogActions`, `ClosedPrimary`, link-variant buttons):
+admin.listings_.$listingId_.edit.tsx:150 · dev.style.tsx:667, 737, 788, 818, 880 · photo-editor.tsx:348 · background-dialog.tsx:223 · map-pin-dropper.tsx:590 · promote-sheet.tsx:129 · columns-button.tsx:72 · filter-chips.tsx:108 · my-listings-page.tsx:890 · my-listing-page.tsx:828 · product-editor.tsx:182 · market-dialog.tsx:115 · price-end-dialog.tsx:70 · price-dialog.tsx:134 · override-dialog.tsx:148 · tier-dialog.tsx:79 · move-dialog.tsx:87 · undo-dialog.tsx:50 · listing-photos.tsx:343 · listing-settings.tsx:137 · country-verb-dialogs.tsx:194 · country-editor.tsx:93 · location-verb-dialogs.tsx:83, 158, 278, 378 · location-editor.tsx:105 · location-dialogs.tsx:171 · category-dialogs.tsx:284, 502, 595, 686, 784, 888, 1100 · category-image-dialog.tsx:331 · attribute-dialogs.tsx:346, 687, 799, 973, 1095 · category-move-dialog.tsx:45 · listing-detail.tsx:1412 · screening-page.tsx:851 · name-checks.tsx:343 · pseudo-bar.tsx:122 · approve-bar.tsx:163 · ai-bulk-bar.tsx:355 · delete-language-dialog.tsx:161 · legal-publish-dialog.tsx:163 · legal-editor-form.tsx:409 · legal-page.tsx:468 · certify-confirm.tsx:83 · report-ad-dialog.tsx:154 · import-dialog.tsx:447 · ai-editor.tsx:75 (from `ai-feature-form.tsx` `actions`: buttons; its error lines are in the body) · toolbar-panel.tsx:78, category-modal.tsx:81, preview-sheet.tsx:63 (pass-through parts).
 
-Allowlists:
-- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
-- look-values-allowlist :3 (drawer) goes with drawer.tsx.
+Holds content, and where it goes:
+| File:line | Holds | Moves to |
+|---|---|---|
+| screening-page.tsx:872 (PreviewSheet `footer`) | `ListingPhotos` grid; held-photos note `admin-screening-preview-unscreened`; "Open the ad's page" link | grid + note into the body under the preview (Part B first); link stays (it acts) |
+| impersonation-starter.tsx:87 (`actions`, used by listings-page.tsx:811 and listing-page.tsx:944) | error alert `impersonation-error` | the body, under the reason field |
+| country-verb-dialogs.tsx:76 | status note `country-close-scoped` | the body, after the existing text |
+| category-attributes-dialog.tsx:236 | autosave note `category-attributes-autosave` | the body's end |
+| photo-gallery.tsx:442 | thumbnail strip + strip arrows | **kept**, reason: each thumb is a button that picks the shown photo — the viewer's own controls; in the body it would scroll away with the photo it steers |
+| auth: step-up-dialog.tsx:120 | Button + acting Link | actions only; reported, not touched |
 
-## Mechanism
-1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
-   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
-2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
-3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
-4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
-5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
-6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
+Outside the definition (not a panel footer), reported: `wizard.tsx:1240` (`FormLayout` page action bar, holds `CertifyBlock`), `audit-page.tsx:290` (`ChartFrame` axis labels).
 
-## Guard
-- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
-- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
+A footer that becomes empty: none does in this census; `PreviewSheet` keeps `end={!footer}` for DG-9.
 
-## Tests
-- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
-- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
-- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
-- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
-- DLG-E6 reduced motion: no transition.
-- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
-- Touched specs whole, both projects, retries 0.
+## (d) Part B — PreviewSheet's shape
 
-## G38 list (build turn greps and names old → new)
-- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
+```ts
+PreviewSheet({ view, onClose, footer?, body?, staff? }: { ...; staff?: ReactNode })
+```
+- `staff`: drawn in the body after `ListingDetail`, in the same `max-w-2xl` column, under a separator; absent for the owner (step-review passes nothing — unchanged). Screening passes `<ListingPhotos …>` and the held note; the heading is the grid's own `admin.listings.detail.photos` ("Photos", already drawn by `ListingPhotos`), so no new heading.
+- `footer` stays, now actions only: Edit, Approve, Reject and the link. Layout is `BANDS_FOOT` (`flex-wrap-reverse justify-end gap-2`, `max-sm:[&>button]:flex-1`): on a phone the buttons share the row and the link (no longer `basis-full`) wraps above them at the start; on a large screen all four sit in one row at the end, the link first, `min-h-11 inline-flex items-center`. Logical properties only; no count of actions assumed.
+- Permissions unchanged: grid still only under `mayEnforce`, `mayAllow={mayReview}`, note under `mayReview && heldCount > 0`.
+- Failure lens: `ListingPhotos` today returns `null` while loading and on failure (`listing-photos.tsx:92`, `if (rows.length === 0) return null`) — silent. In the body it draws its card with `common.loading` (aria-busy) while loading, and `common.loadFailed` with Retry (`common.retry`) on failure; empty stays nothing. Both consumers (screening, listing-page) gain it — see (j).
 
-## Growth
-- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
-- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
+## (e) Part C
 
-## Turns
-- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
-- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
-- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
+- **INC-1140 stands**: `src/components/marketplace/feed.tsx:206` `onRetry={() => window.location.reload()}`. Fix: `onRetry={refreshPage}` imported from `src/lib/on-demand-failure.ts` (its own chunk already in the shell). Then the allowlist line in `scripts/conformance/stale-reload-allowlist.txt` for feed.tsx is removed by the supervisor's text (DEC-396).
+- **INC-1141 stands**: `ai-bulk-bar.tsx:122-138` and `:144-166` page by `offset` until `totalCount`. The keyed reader is `readAllPages` (`src/lib/read-all-pages.ts:15`, `after` cursor). `listTranslations`/`listEntityTranslations` call `admin_list_translations` / its entity twin with `p_offset` only; no keyed door exists for a filtered (untranslated + search) list. The fix needs a door argument (SQL, Cursor's). Proposal: Cursor adds `p_after` to both doors; then I switch both collectors to `readAllPages` keyed by `key` / `entityType:entityId:field`. Not buildable by me alone — STOP item for Part C.
+- **INC-1142 stands**: `use-translations.ts:390` bare `fetch("/i18n-usage.json")`, allowlisted in `scripts/conformance/route-client-allowlist.txt:3` until 2027-04-24, beside `src/i18n/bundle.ts:158` (same kind, line 4). The app's one way to fetch is `callRoute` (`src/lib/route-client.ts:154`, its one `fetch` at :115), which takes `/api/…` paths only. Options for the ruling: (i) Cursor adds a static-asset reader to `route-client.ts` (or `/api/` route) and I move both callers onto it; (ii) leave both as the allowlist says. I propose (i), built after Cursor's piece lands.
 
-## Open points for the ruling
-1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
-2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
-3. Map pin dropper on the Radix dialog, or allowlisted.
+## (f) Exported types changed
 
-## Technical scope (build)
-src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.
+- `PreviewSheet` props gain `staff?: ReactNode` (inline type; no exported type name).
+- `Switch` props unchanged (className only).
+- No reader, store, filter or route type changes.
+
+## (g) Laws of the base and guard laws for Cursor
+
+- Part A: CF-FORM-1..7 read `filter-panel-body.tsx` (`FILTER_HOSTS` admits `Switch` in `FilterRow`); CF-OV-* read nothing new. Guard law: no `aria-pressed` toggle drawn as a switch; `role="switch"` only from `ui/switch.tsx`. Held meanwhile by FP-U50.
+- Part B: DG-1..11 read every changed dialog (DG-9 body end on PreviewSheet). Guard law: a `PanelFooter` (and any `footer` prop reaching one) has only `Button`, `ClosedPrimary`, `AlertDialogAction/Cancel`, `DialogClose`, shared `*DialogActions`, or a `Link` as children. Held meanwhile by PFT-U1 (a source census in `dialog-parts` tests over `src`, photo-gallery as its one named exception).
+- Part C: CF-STALE-1 reads feed.tsx; routes.test/route-client census read use-translations. Guard law: no `location.reload` outside `stale-chunk.ts`, `refreshPage`, the root error page; no offset paging loop in `src/features`.
+No allowlist line is added.
+
+## (h) New test ids (each searched in `src`, `e2e`, `scripts`: 0 hits)
+
+SW-U2, FP-U50, FP-U51, PS-U1, PS-U2, SCP-U1, LPH-U1, LPH-U2, PFT-U1, FD-U1, UM-U1. (FP-U47–49 are taken; FP-U50 onward free.)
+
+## (i) Words
+
+No new key. Reused: `admin.listings.detail.photos`, `common.loading`, `common.loadFailed`, `common.retry`, `admin.screening.openListing`. No Amharic written.
+
+## (j) Not answered / wrong in the task
+
+1. INC-1141 and INC-1142 cannot be fixed inside my folders: both need a Cursor piece (a keyed door argument; a static reader). Ruling needed: defer, or order Cursor first.
+2. The task says the grid "still says so" when loading or failed — today it says nothing (returns null). The plan adds both states; that changes what staff see on the listing page too.
+3. The thumbnail strip footer: kept with a reason; operator to accept or overrule.
+4. The impersonation error moving into the body changes both "view as seller" dialogs.
+5. The primitive's larger press area reaches all five Switch consumers; none overlaps neighbours at their row heights (min-h-12 rows) — to be measured on the board.
+6. Build order proposed: Turn 1 Part A; Turn 2 Part B + board + doc; Turn 3 Part C (feed only unless Cursor's pieces land); last turn spec script, ceilings, platform write-back (`package.json`, `bun.lock`, `src/integrations/supabase/**`, `.lovable/**`) with the two empty proofs; no pull request.
