@@ -338,7 +338,7 @@ export function AdminAuditPage() {
                 aria-label={t("admin.audit.filter.actor")}
                 onChange={(event) => {
                   setSearch(event.target.value);
-                  resetPage();
+                  setPage(0);
                 }}
               />
             }
