@@ -292,6 +292,23 @@ P0D01`, `message: code[:detail]`), and `P0D01` otherwise, so a door's shell hand
   of a refusal's text in `src/` (a whole-text compare, a code or sentence matched inside it, a
   colon split, a code-shaped regex), its lines in `refusal-readers-allowlist.txt`; CF-REFUSAL-2
   holds `refusalStatus`'s rows to `door_refusal_status`'s last declaration in both directions.
+- **cursor-bundle-4 — the database holds the list of refusal codes; the client reads its mark**
+  (`docs/governance/briefs/cursor-bundle-4.md`, `cursor-bundle-4-ruling-1.md`; DEC-429):
+  `door_refuse` writes the code `P0D01` on every refusal (the body's `code` under a reader, the
+  SQLSTATE otherwise). `readerFailure` reads a failure as MARKED when its `code` is that mark and
+  its message's head has the shape `door_refuse` enforces; a marked failure is `auth` (the two
+  session codes) or `refused` (every other) at the status its code carries, and `server` at 500.
+  `gateRefusal` answers the same failures. The named sets (`GATE_AUTH_CODES`,
+  `GATE_REFUSED_CODES`, `FALLBACK_REFUSED_CODES`) serve only an answer with no code (one of our
+  own routes' answers; `stepUpRequired`, which keeps its own SQLSTATE). `src/lib/door-codes.ts` is
+  unchanged and the reader does not import it, so no page gains the list's chunk. CF-REFUSAL-4
+  (CFRR-7, CFRR-8) reads the mark and every literal code from the migrations' last declarations
+  and fails when the mark, a code's class or a name in the sets differs. `readFailed(error,
+status?)` is the one factory: a `ReaderError` passes through, any other error is
+  `readerFailure`'s reading with the given status taken as its own. CF-REFUSAL-3 (CFRR-5,
+  CFRR-6) fails a client file that throws a bare `Error` built from a failed call's message or
+  builds a typed failure by hand (its one held line: the session read of `requireSignedIn`,
+  until INC-1256).
 
 ## Tests
 

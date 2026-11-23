@@ -4,6 +4,7 @@ import { isCountryCode, isCurrencyCode } from "@/lib/locale";
 import { callRoute } from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
 import { supabase } from "@/integrations/supabase/client";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * U6-C2a — THE PRICING STEP'S REFERENCE DATA (D13).
@@ -65,7 +66,7 @@ async function fetchCurrencies(): Promise<CurrencyRow[]> {
     .from("currencies")
     .select("code,name_en,symbol,display_order")
     .order("code", { ascending: true });
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const rows = (data ?? []).map((row) => ({
     code: row.code,
     nameEn: row.name_en,
@@ -226,7 +227,8 @@ export async function readGuessCurrency(): Promise<string> {
  * means ETB again, wherever the edge thinks they are today — so their OWN last
  * listing outranks the guess market. Filtered by `seller_id` (INC-330): RLS
  * also shows every ACTIVE listing, so the filter — not the policy — is what
- * keeps another seller's currency out. A failure simply yields `null`.
+ * keeps another seller's currency out. "Nothing found" is `null`; a failed read throws the typed
+ * failure (`readFailed`, INC-1257) and the caller treats it as no hint, with one logged line.
  */
 export async function readLastListingCurrency(): Promise<string | null> {
   const userId = await signedInId();
@@ -239,7 +241,8 @@ export async function readLastListingCurrency(): Promise<string | null> {
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error || data === null) return null;
+  if (error) throw readFailed(error);
+  if (data === null) return null;
   const code = data.price_currency;
   return typeof code === "string" && code.length === 3 ? code.toUpperCase() : null;
 }

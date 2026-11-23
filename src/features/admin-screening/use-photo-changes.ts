@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 13 turn 10 — D154 B3 and B5, staff's reads.
@@ -72,7 +73,7 @@ export async function listPhotoChanges(): Promise<PhotoChange[]> {
     .order("id", { ascending: true })
     .limit(PHOTO_CHANGES_LIMIT);
   // F4 — a failed read is an error, never an empty list.
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   return (data ?? [])
     .map((row) => parsePhotoChange(row as unknown as Record<string, unknown>))
     .filter((row): row is PhotoChange => row !== null);
@@ -111,7 +112,7 @@ export async function listWarnedListings(listingIds: readonly string[]): Promise
     .from("listing_photo_warnings")
     .select("listing_id,codes")
     .in("listing_id", [...listingIds]);
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   return new Set(
     (data ?? [])
       .filter((row) => codesOf(row.codes).includes("not_relevant"))

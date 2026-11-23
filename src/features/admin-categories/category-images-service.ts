@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import { errorText } from "@/lib/error-text";
+import { readFailed } from "@/lib/reader-failure";
 import { callRoute, type RoutePath } from "@/lib/route-client";
 import { rpc } from "@/lib/supabase-door";
 
@@ -86,6 +87,34 @@ function fromBase64(value: string): Uint8Array {
 }
 
 /**
+ * C5e PART B — the prune of a category's older asset sets. It throws nothing: a failed list or
+ * remove writes one log line and the prune ends (the row already points at the new set).
+ */
+export async function pruneStaleAssets(
+  storage: Pick<ReturnType<typeof supabase.storage.from>, "list" | "remove">,
+  base: string,
+  keep: ReadonlySet<string>,
+): Promise<void> {
+  const logFailure = (error: unknown): void =>
+    console.error(
+      `[category-images] image_prune_failed ${error === null || error === undefined ? "unknown" : errorText(error)}`,
+    );
+  try {
+    const { data: existing, error: listError } = await storage.list(base);
+    if (listError) return logFailure(listError);
+    const stale = (existing ?? [])
+      .map((entry) => entry.name)
+      .filter((name) => !keep.has(name))
+      .map((name) => `${base}/${name}`);
+    if (stale.length === 0) return;
+    const { error: removeError } = await storage.remove(stale);
+    if (removeError) logFailure(removeError);
+  } catch (error) {
+    logFailure(error);
+  }
+}
+
+/**
  * DEC-082 (INC-308) — THE DIVISION OF LABOUR. The route only calls the
  * provider and answers the image; this browser cuts the variants and writes
  * them under the admin's OWN session (storage policies + the gated definer
@@ -162,23 +191,7 @@ export async function generateCategoryImage(input: {
   if (persistError) throw new CategoryImageError(persistError.message, 0, "persist");
 
   // C5e PART B — PRUNE. Best effort: the row already points at the new set.
-  try {
-    const { data: existing, error: listError } = await storage.list(base);
-    if (listError) throw new Error(listError.message);
-    const keep = new Set([names.card, names.thumb, names.og]);
-    const stale = (existing ?? [])
-      .map((entry) => entry.name)
-      .filter((name) => !keep.has(name))
-      .map((name) => `${base}/${name}`);
-    if (stale.length > 0) {
-      const { error: removeError } = await storage.remove(stale);
-      if (removeError) throw new Error(removeError.message);
-    }
-  } catch (error) {
-    console.error(
-      `[category-images] image_prune_failed ${error === null || error === undefined ? "unknown" : errorText(error)}`,
-    );
-  }
+  await pruneStaleAssets(storage, base, new Set([names.card, names.thumb, names.og]));
 
   const genMs = Math.round(payload.genMs ?? 0);
   return {
@@ -236,7 +249,7 @@ export interface StoredAssets {
 
 export async function loadCategoryImages(categoryId: string): Promise<StoredAssets | null> {
   const { data, error } = await supabase.rpc("admin_get_category_images", { p_id: categoryId });
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const row = (data ?? [])[0];
   if (!row) return null;
   return {

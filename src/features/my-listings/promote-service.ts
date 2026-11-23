@@ -1,7 +1,7 @@
 import type { MessageKey } from "@/i18n";
 import { DOOR_REFUSED_KEY, doorCode } from "@/lib/door-codes";
 import { ownValue } from "@/lib/own-key";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed, readerFailure } from "@/lib/reader-failure";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 import { rpc } from "@/lib/supabase-door";
 
@@ -170,7 +170,7 @@ export function parsePromoteOptions(value: unknown): PromoteOptions | null {
 /** The sheet's one read; a refusal or a malformed answer throws a ReaderError. */
 export async function readPromoteOptions(listingId: string): Promise<PromoteOptions> {
   const { data, error } = await rpc("promote_options", { p_listing_id: listingId });
-  if (error !== null) throw new ReaderError(readerFailure(error));
+  if (error !== null) throw readFailed(error);
   const options = parsePromoteOptions(data);
   if (options === null)
     throw new ReaderError({ class: "malformed", message: "promote_options: malformed answer" });

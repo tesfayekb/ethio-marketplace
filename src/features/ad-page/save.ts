@@ -4,6 +4,7 @@ import { rpc } from "@/lib/supabase-door";
 import type { Json } from "@/integrations/supabase/types";
 import { rateUntilOf } from "@/lib/refusal";
 import { saveRefusal, type SaveRefusal } from "./ad-page-refusals";
+import { readFailed } from "@/lib/reader-failure";
 
 export type SaveAnswer =
   | { ok: true; saved: boolean; count: number }
@@ -114,7 +115,7 @@ export async function mySaved(
     p_after: after as Json,
     p_size: size,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   if (
     data === null ||
     typeof data !== "object" ||

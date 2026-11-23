@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 16 turn 4b — D178 (the operator, 2026-10-14): THE PHOTOS KEPT HIDDEN FOR A
@@ -68,7 +69,7 @@ export async function listPhotoReviews(): Promise<PhotoReviewRow[]> {
     .order("photo_id", { ascending: true })
     .limit(PHOTO_REVIEWS_LIMIT);
   // F4 — a failed read is an error, never an empty list.
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   return (data ?? [])
     .map((row) => parsePhotoReview(row as unknown as Record<string, unknown>))
     .filter((row): row is PhotoReviewRow => row !== null);

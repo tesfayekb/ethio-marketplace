@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
+const rpc = vi.hoisted(() => vi.fn());
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc } }));
+
 import { en } from "@/i18n/locales/en";
 
 import {
@@ -32,7 +35,14 @@ import {
   type MyListing,
 } from "./my-listing";
 import { REASON_WORD, REMOVAL_REASON, SOLD_ON, stateLine } from "./state-line";
-import { actionErrorRead, actionOutcomeText } from "./my-listing";
+import {
+  actionErrorRead,
+  actionOutcomeText,
+  readHistory,
+  readListingCounts,
+  readMyListing,
+} from "./my-listing";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 
 /** Bundle 16 turn 3 — one ad's answer, its history and its actions. */
 const row = {
@@ -402,5 +412,32 @@ describe("L22b RTW-13", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("the seller's reads fail as one typed failure (DEC-429)", () => {
+  it("MYL-R1 a failed my_listing, listing_history or listing_counts throws a ReaderError classed by the door's mark; notYourListing is still notYours", async () => {
+    const reads = [
+      () => readMyListing("l1"),
+      () => readHistory("l1"),
+      () => readListingCounts("l1"),
+    ];
+    for (const read of reads) {
+      for (const [error, failureClass] of [
+        [{ message: "permissionDenied", code: "P0D01", status: 403 }, "refused"],
+        [{ message: "notSignedIn", code: "P0D01", status: 401 }, "auth"],
+        [{ message: "Unavailable", status: 503 }, "server"],
+      ] as const) {
+        rpc.mockResolvedValueOnce({ data: null, error });
+        const thrown = await read().catch((caught: unknown) => caught);
+        expect(thrown).toBeInstanceOf(ReaderError);
+        expect(readerFailure(thrown), error.message).toMatchObject({
+          class: failureClass,
+          message: error.message,
+        });
+      }
+    }
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "notYourListing", code: "P0D01" } });
+    expect(await readMyListing("l1")).toBe("notYours");
   });
 });

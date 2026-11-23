@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134) — All listings' read, through
@@ -80,7 +80,7 @@ export async function listAdminListings(
     p_offset: filters.offset,
   });
   // F4 — a failed read is a typed failure, never an empty table (INC-847).
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const raw = (data ?? []) as Array<Record<string, unknown>>;
   const rows = raw.map((row) => ({
     id: String(row["id"]),

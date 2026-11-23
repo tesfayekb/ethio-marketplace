@@ -1,4 +1,4 @@
-import { readerFailure, ReaderError } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { rpc } from "@/lib/supabase-door";
 
 /**
@@ -9,7 +9,7 @@ import { rpc } from "@/lib/supabase-door";
  */
 export async function readSellerReview(): Promise<boolean> {
   const { data, error } = await rpc("my_seller_line");
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const row =
     data !== null && typeof data === "object" && !Array.isArray(data)
       ? (data as Record<string, unknown>)

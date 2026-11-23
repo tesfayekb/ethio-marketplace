@@ -5,6 +5,7 @@ vi.mock("@/lib/supabase-door", () => ({
   rpc: (...args: unknown[]) => rpc(...args),
 }));
 const { saveListing, unsaveListing, listingViewerState, mySaved } = await import("./save");
+const { ReaderError, readerFailure } = await import("@/lib/reader-failure");
 beforeEach(() => rpc.mockReset());
 describe("Save answers", () => {
   it("SAVE-1 (SV-1) the ok shape for saving and removing", async () => {
@@ -95,7 +96,19 @@ describe("Save answers", () => {
     rpc.mockResolvedValueOnce({ data: { cards, next }, error: null });
     expect(await mySaved(null, 20)).toEqual({ cards, next });
     expect(rpc).toHaveBeenLastCalledWith("my_saved_listings", { p_after: null, p_size: 20 });
-    rpc.mockResolvedValueOnce({ data: null, error: { message: "boom" } });
-    await expect(mySaved(next, 20)).rejects.toThrow("boom");
+    // DEC-429 — a failed read is the typed failure, its class read from the door's mark.
+    for (const [error, failureClass] of [
+      [{ message: "boom" }, "malformed"],
+      [{ message: "notSignedIn", code: "P0D01" }, "auth"],
+      [{ message: "listingNotFound", code: "P0D01" }, "refused"],
+    ] as const) {
+      rpc.mockResolvedValueOnce({ data: null, error });
+      const thrown = await mySaved(next, 20).catch((caught: unknown) => caught);
+      expect(thrown).toBeInstanceOf(ReaderError);
+      expect(readerFailure(thrown), error.message).toMatchObject({
+        class: failureClass,
+        message: error.message,
+      });
+    }
   });
 });

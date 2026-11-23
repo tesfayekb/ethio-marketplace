@@ -1,5 +1,5 @@
 import { errorText } from "@/lib/error-text";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { rateUntilOf, refusalsOf, splitRefusal } from "@/lib/refusal";
 import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
@@ -352,7 +352,7 @@ async function readOwnPrivate(listingId: string): Promise<Record<string, unknown
   if (error) {
     // F1-7a — the gate's code, cut at its first colon (the one reader's cut), not the old sentence.
     if (splitRefusal(error.message.trim()).key === "notYourListing") return null;
-    throw new Error(error.message);
+    throw readFailed(error);
   }
   return data !== null && typeof data === "object" && !Array.isArray(data)
     ? (data as Record<string, unknown>)
@@ -378,7 +378,7 @@ export async function readDraft(listingId: string): Promise<{
     )
     .eq("id", listingId)
     .maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   if (!data) return null;
 
   // INC-389 — contact_pref and the true pin are private columns: the owner reads
@@ -391,7 +391,7 @@ export async function readDraft(listingId: string): Promise<{
     .select(PHOTO_ROW_SELECT)
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
-  if (photoError) throw new Error(photoError.message);
+  if (photoError) throw readFailed(photoError);
 
   // The coverage rows are the seller's own (`listing_locations` is scoped by the
   // listing's owner), read by the door's own `position` (M10), then created_at,
@@ -403,7 +403,7 @@ export async function readDraft(listingId: string): Promise<{
     .order("position", { ascending: true })
     .order("created_at", { ascending: true })
     .order("id", { ascending: true });
-  if (placeError) throw new Error(placeError.message);
+  if (placeError) throw readFailed(placeError);
 
   return {
     coverage: (places ?? []).map((row) => row.location_id),
@@ -522,7 +522,7 @@ export async function readPlaceCountry(placeId: string): Promise<string | null> 
  */
 async function signedInSellerId(): Promise<string | null> {
   const read = await currentSession();
-  if (read.failed) throw new ReaderError(readerFailure(read.error));
+  if (read.failed) throw readFailed(read.error);
   return read.session?.user.id ?? null;
 }
 
@@ -533,61 +533,58 @@ async function signedInSellerId(): Promise<string | null> {
  * post yet, so only listings past the draft stage count; `excludeId` keeps the
  * draft on screen out. Only the place's `country_code` is read from
  * `locations` (the public read), so the step can open the right market; names
- * still come from the cached tree. A failure is simply no prefill (`null`), logged (F4).
+ * still come from the cached tree. "Nothing found" is `null`; a failed read throws the typed
+ * failure (`readFailed`, INC-1257) and the caller treats it as no prefill, with one logged line (F4).
  */
 export async function readLastListingPlaces(excludeId: string | null): Promise<LastPlaces | null> {
-  try {
-    const userId = await signedInSellerId();
-    if (userId === null) return null;
-    let query = supabase
-      .from("listings")
-      .select("id,location_id,created_at,pin_precision,pin_zoom,street_address,directions")
-      .eq("seller_id", userId)
-      .neq("status", "draft")
-      .not("location_id", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(1);
-    if (excludeId !== null) query = query.neq("id", excludeId);
-    const { data: last, error } = await query.maybeSingle();
-    if (error || last === null || last.location_id === null) return null;
-    const { data: rows, error: rowError } = await supabase
-      .from("listing_locations")
-      .select("location_id,created_at,locations(country_code)")
-      .eq("listing_id", last.id)
-      .order("position", { ascending: true })
-      .order("created_at", { ascending: true })
-      .order("id", { ascending: true });
-    if (rowError) return null;
-    const countryOf = (row: { locations: unknown }) => {
-      const place = row.locations as { country_code?: unknown } | null;
-      return typeof place?.country_code === "string" ? place.country_code : null;
-    };
-    const item = (rows ?? []).find((row) => row.location_id === last.location_id);
-    const country = item === undefined ? null : countryOf(item);
-    if (country === null) return null;
-    const others = (rows ?? [])
-      .filter((row) => row.location_id !== last.location_id && countryOf(row) === country)
-      .map((row) => row.location_id);
-    const own = last.pin_precision === null ? null : await readOwnPrivate(last.id);
-    // INC-958 — the pin whole or absent; an unreadable private row is no prefill, as before.
-    const read =
-      own === null
-        ? null
-        : readPin(own["pin_lat"], own["pin_lng"], last.pin_precision, "the last post's pin");
-    const pin: LastPin | null =
-      read === null
-        ? null
-        : {
-            ...read,
-            zoom: last.pin_zoom ?? null,
-            street: last.street_address ?? null,
-            directions: last.directions ?? null,
-          };
-    return { country, itemId: last.location_id, placeIds: [last.location_id, ...others], pin };
-  } catch (error) {
-    console.warn(`[post-where] the last post's places could not be read: ${errorText(error)}`);
-    return null;
-  }
+  const userId = await signedInSellerId();
+  if (userId === null) return null;
+  let query = supabase
+    .from("listings")
+    .select("id,location_id,created_at,pin_precision,pin_zoom,street_address,directions")
+    .eq("seller_id", userId)
+    .neq("status", "draft")
+    .not("location_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (excludeId !== null) query = query.neq("id", excludeId);
+  const { data: last, error } = await query.maybeSingle();
+  if (error) throw readFailed(error);
+  if (last === null || last.location_id === null) return null;
+  const { data: rows, error: rowError } = await supabase
+    .from("listing_locations")
+    .select("location_id,created_at,locations(country_code)")
+    .eq("listing_id", last.id)
+    .order("position", { ascending: true })
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
+  if (rowError) throw readFailed(rowError);
+  const countryOf = (row: { locations: unknown }) => {
+    const place = row.locations as { country_code?: unknown } | null;
+    return typeof place?.country_code === "string" ? place.country_code : null;
+  };
+  const item = (rows ?? []).find((row) => row.location_id === last.location_id);
+  const country = item === undefined ? null : countryOf(item);
+  if (country === null) return null;
+  const others = (rows ?? [])
+    .filter((row) => row.location_id !== last.location_id && countryOf(row) === country)
+    .map((row) => row.location_id);
+  const own = last.pin_precision === null ? null : await readOwnPrivate(last.id);
+  // INC-958 — the pin whole or absent; an unreadable private row is no prefill, as before.
+  const read =
+    own === null
+      ? null
+      : readPin(own["pin_lat"], own["pin_lng"], last.pin_precision, "the last post's pin");
+  const pin: LastPin | null =
+    read === null
+      ? null
+      : {
+          ...read,
+          zoom: last.pin_zoom ?? null,
+          street: last.street_address ?? null,
+          directions: last.directions ?? null,
+        };
+  return { country, itemId: last.location_id, placeIds: [last.location_id, ...others], pin };
 }
 
 /**
@@ -662,7 +659,7 @@ export async function readPlaceFacts(ids: string[]): Promise<PlaceFact[] | null>
 
 export async function readSellerPlace(): Promise<SellerPlace | null> {
   const { data, error } = await supabase.rpc("my_seller_place");
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const row =
     data !== null && typeof data === "object" && !Array.isArray(data)
       ? (data as Record<string, unknown>)
@@ -729,7 +726,7 @@ export async function readLastListingContact(
   const { data, error } = await supabase.rpc("my_last_listing_private", {
     p_exclude: excludeId ?? undefined,
   });
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const row = data !== null && typeof data === "object" && !Array.isArray(data) ? data : null;
   const pref = (row as Record<string, unknown> | null)?.["contact_pref"];
   if (pref === null || pref === undefined || typeof pref !== "object" || Array.isArray(pref)) {
@@ -951,7 +948,7 @@ export interface SellerLineFacts {
 export async function readSellerLine(): Promise<SellerLineFacts | null> {
   if ((await signedInSellerId()) === null) return null;
   const { data, error } = await supabase.rpc("my_seller_line");
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   const row =
     data !== null && typeof data === "object" && !Array.isArray(data)
       ? (data as Record<string, unknown>)
@@ -978,7 +975,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
     )
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   if (!data) {
     return {
       alias: null,
@@ -1087,7 +1084,7 @@ export async function readCountries(): Promise<CountryRow[]> {
     .from("countries")
     .select("code,name_en,is_active")
     .order("name_en");
-  if (error) throw new Error(error.message);
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     code: row.code,
     nameEn: row.name_en,
@@ -1229,7 +1226,7 @@ export async function readPlaceText(listingId: string): Promise<PlaceText> {
     .maybeSingle();
   if (error !== null) {
     console.error("[pin] place text read failed:", error.message);
-    throw new Error(error.message);
+    throw readFailed(error);
   }
   return {
     street: typeof data?.street_address === "string" ? data.street_address : null,

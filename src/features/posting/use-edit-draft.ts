@@ -25,6 +25,7 @@ import {
 } from "./posting-service";
 import { TOTAL_STEPS, type Refusal, type SaveState } from "./types";
 import type { DraftPin, DraftValues, UseDraft } from "./use-draft";
+import { readerFailure, readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 17 turn 2 (D194) — THE EDIT IS THE WIZARD. This hook stands where
@@ -135,7 +136,7 @@ async function readForStaff(listingId: string) {
     .select(PHOTO_ROW_SELECT)
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
-  if (photoError) throw new Error(photoError.message);
+  if (photoError) throw readFailed(photoError);
   return {
     listing: detail.listing,
     channels: detail.channels,
@@ -321,9 +322,11 @@ export function useEditDraft(
           .select(PHOTO_ROW_SELECT)
           .eq("listing_id", listingId)
           .order("display_order", { ascending: true });
-        if (!cancelled && !error) setPhotos((data ?? []).map(photoRowOf));
-      } catch {
-        // The grid keeps its rows; the next action refetches again.
+        if (error) throw readFailed(error);
+        if (!cancelled) setPhotos((data ?? []).map(photoRowOf));
+      } catch (error) {
+        // INC-1257 — the grid keeps its rows (the last rows read); one line says why.
+        console.error("[client-error] photo reload", readerFailure(error).class);
       }
     })();
     return () => {

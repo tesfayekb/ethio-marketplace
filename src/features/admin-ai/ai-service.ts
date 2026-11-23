@@ -2,7 +2,7 @@ import { compareCodes } from "@/lib/reader-locale";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 
 /**
  * Bundle 13 turn 5 (D158) — THE AI SERVICES CONSOLE CLIENT SEAM.
@@ -406,7 +406,7 @@ export async function fetchAiCalls(
     ...(before ? { p_before_at: before.at, p_before_id: before.id } : {}),
     p_limit: 50,
   });
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   return aiCallsOf(data);
 }
 

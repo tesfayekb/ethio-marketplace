@@ -203,6 +203,46 @@ describe("useEditDraft (the seller)", () => {
     expect(unknown.result.current.caps).toBeNull();
   });
 
+  it("EW-8 INC-1257 a failed photo reload keeps the grid's rows (the last rows read) and writes one line", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      const { result } = renderHook(() => useEditDraft("l-1", { actor: "seller" }));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+      photosRead.mockResolvedValueOnce({
+        data: [
+          {
+            id: "ph-1",
+            display_order: 1,
+            paths: null,
+            storage_path: null,
+            unscreened: false,
+            warning: null,
+            review: null,
+          },
+        ],
+        error: null,
+      });
+      act(() => result.current.reloadPhotos());
+      await waitFor(() => expect(result.current.photos.map((photo) => photo.id)).toEqual(["ph-1"]));
+      expect(
+        logged.mock.calls.filter(([line]) => String(line).startsWith("[client-error]")),
+      ).toEqual([]);
+      photosRead.mockResolvedValueOnce({
+        data: null,
+        error: { message: "permissionDenied", code: "P0D01", status: 403 },
+      });
+      act(() => result.current.reloadPhotos());
+      await waitFor(() =>
+        expect(
+          logged.mock.calls.filter(([line]) => String(line).startsWith("[client-error]")),
+        ).toEqual([["[client-error] photo reload", "refused"]]),
+      );
+      expect(result.current.photos.map((photo) => photo.id)).toEqual(["ph-1"]);
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
   it("EW-4 an ad that is not the caller's is a refusal to load, never an empty form", async () => {
     readDraft.mockResolvedValueOnce(null);
     const { result } = renderHook(() => useEditDraft("l-2", { actor: "seller" }));

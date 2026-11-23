@@ -45,8 +45,6 @@ describe("INC-847 reader failure classes", () => {
     ["badValue:mark", 400, "refused"],
     ["badValue:cursor", 400, "refused"],
     ["badSize", 400, "refused"],
-    ["acceptancePending", 400, "refused"],
-    ["legalAcceptancePending", 400, "refused"],
     ["notInForce", 400, "refused"],
   ] as const)("RF-1 the code %s arrives at HTTP %i and is %s", (message, status, expected) => {
     const failure = readerFailure({ status, code: "P0D01", message });
@@ -129,6 +127,83 @@ describe("INC-847 reader failure classes", () => {
     expect(gateRefusal({ message: "unknownCategory" })).toBeNull();
     expect(gateRefusal({ message: "JWT expired", status: 401 })).toBeNull();
     expect(gateRefusal(new Error("the reader said notSignedIn"))).toBeNull();
+  });
+  it("RF-7 DEC-429 — a MARKED refusal is a refusal by its mark: any code the database raises, the two session codes apart", () => {
+    // `listingNotFound` is on no client list: the mark classes it.
+    for (const message of ["listingNotFound", "badOption:x", "levelNotAvailable", "boom"]) {
+      expect(readerFailure({ status: 400, code: "P0D01", message }).class, message).toBe("refused");
+      expect(readerFailure({ code: "P0D01", message }).class, message).toBe("refused");
+    }
+    expect(readerFailure({ code: "P0D01", message: "notSignedIn" }).class).toBe("auth");
+    expect(readerFailure({ status: 403, code: "P0D01", message: "accountDeactivated" }).class).toBe(
+      "auth",
+    );
+    // A marked failure at 500 is still the server's; one that is not code-shaped is not marked.
+    expect(readerFailure({ status: 500, code: "P0D01", message: "listingNotFound" }).class).toBe(
+      "server",
+    );
+    for (const message of ["Not A Code", "9lives", "with space:detail", ""]) {
+      expect(readerFailure({ code: "P0D01", message }).class, message).not.toBe("refused");
+    }
+    // The same text with no mark is no refusal (a name the client holds apart): a sentence is malformed.
+    expect(readerFailure({ status: 400, message: "listingNotFound" }).class).toBe("malformed");
+    expect(readerFailure({ code: "XX000", message: "listingNotFound" }).class).toBe("malformed");
+  });
+  it("RF-8 DEC-429 — a marked refusal is a gate refusal at its code's status, as a named one is", () => {
+    expect(gateRefusal({ code: "P0D01", message: "listingNotFound" })).toEqual({
+      code: "listingNotFound",
+      status: 400,
+    });
+    expect(gateRefusal({ code: "P0D01", status: 400, message: "badOption:price" })).toEqual({
+      code: "badOption",
+      status: 400,
+      detail: "price",
+    });
+    expect(gateRefusal({ code: "P0D01", status: 403, message: "accountDeactivated" })).toEqual({
+      code: "accountDeactivated",
+      status: 403,
+    });
+    // A status its code does not carry, or no mark, or a head that is no code: not a refusal.
+    expect(gateRefusal({ code: "P0D01", status: 500, message: "listingNotFound" })).toBeNull();
+    expect(gateRefusal({ code: "P0D01", status: 401, message: "listingNotFound" })).toBeNull();
+    expect(gateRefusal({ message: "listingNotFound" })).toBeNull();
+    expect(gateRefusal({ code: "P0D01", message: "a sentence here" })).toBeNull();
+  });
+  it("RF-9 DEC-429 — the named sets serve an answer with no code; acceptancePending and legalAcceptancePending are no names", () => {
+    expect(readerFailure({ message: "rateLimited" }).class).toBe("refused");
+    expect(readerFailure({ message: "notYours" }).class).toBe("refused");
+    expect(readerFailure({ message: "acceptancePending" }).class).toBe("malformed");
+    expect(readerFailure({ message: "legalAcceptancePending" }).class).toBe("malformed");
+  });
+  it("RF-10 DEC-429 — readFailed: a ReaderError passes through; otherwise readerFailure's reading, the given status the error's own", () => {
+    const typed = new ReaderError({ class: "malformed", message: "bad shape" });
+    expect(readFailed(typed)).toBe(typed);
+    expect(readFailed(typed, 500)).toBe(typed);
+    // A marked family code with no status: refused, its code kept, no status invented.
+    const marked = readFailed({ code: "P0D01", message: "listingNotFound" });
+    expect(marked).toBeInstanceOf(ReaderError);
+    expect(marked.failure).toEqual({
+      class: "refused",
+      code: "P0D01",
+      message: "listingNotFound",
+    });
+    // The given status is the error's own: at its code's status it is a refusal, at 500 the server's.
+    expect(readFailed({ code: "P0D01", message: "permissionDenied" }, 403).failure).toMatchObject({
+      class: "refused",
+      status: 403,
+    });
+    expect(readFailed({ code: "P0D01", message: "permissionDenied" }, 500).failure).toMatchObject({
+      class: "server",
+      status: 500,
+    });
+    // An error that is no refusal keeps the reading it always had: a network failure, a server one.
+    expect(readFailed(new TypeError("Failed to fetch")).failure.class).toBe("network");
+    expect(readFailed({ message: "Unavailable" }, 503).failure).toEqual({
+      class: "server",
+      status: 503,
+      message: "Unavailable",
+    });
+    expect(readFailed(new Error("boom")).failure.class).toBe("malformed");
   });
   it("ReaderError retains the exact typed failure", () => {
     const failure = { class: "malformed" as const, message: "bad shape" };

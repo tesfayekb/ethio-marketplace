@@ -13,7 +13,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { tierOf } from "@/components/marketplace/card-tier";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
 import { SHARED_REFUSAL_WORDS } from "@/features/admin-listings/listing-refusals";
 
@@ -198,7 +198,7 @@ export function screeningQueueArgs(
 /** One page of the queue through its door; a typed failure on a refusal or an answer out of shape (F4). */
 async function readQueue(args: ReturnType<typeof screeningQueueArgs>) {
   const { data, error } = await supabase.rpc("admin_screening_queue", args);
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const answer = parseScreeningQueue(data);
   if (answer === null) {
     throw new ReaderError({ class: "malformed", message: "admin_screening_queue malformed" });
@@ -260,7 +260,7 @@ export async function listScreeningPhotos(listingId: string): Promise<DraftPhoto
     .select(PHOTO_ROW_SELECT)
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     id: row.id,
     displayOrder: row.display_order,
@@ -353,7 +353,7 @@ export async function readScreeningFacts(listingId: string): Promise<ScreeningFa
   const { data, error } = await supabase.rpc("admin_screening_facts", {
     p_listing_id: listingId,
   });
-  if (error) throw new ReaderError(readerFailure(error));
+  if (error) throw readFailed(error);
   const facts = parseScreeningFacts(data);
   if (facts === null) {
     throw new ReaderError({ class: "malformed", message: "admin_screening_facts malformed" });
