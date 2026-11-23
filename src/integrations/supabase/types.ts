@@ -4850,6 +4850,18 @@ export type Database = {
         Returns: Json
       }
       admin_listing_detail: { Args: { p_listing_id: string }; Returns: Json }
+      admin_listing_photos: {
+        Args: { p_listing_id: string }
+        Returns: {
+          display_order: number
+          id: string
+          paths: Json
+          review: Json
+          storage_path: string
+          unscreened: boolean
+          warning: Json
+        }[]
+      }
       admin_listing_reports: { Args: { p_listing_id: string }; Returns: Json }
       admin_machine_entity_translation: {
         Args: {
@@ -4938,6 +4950,37 @@ export type Database = {
       admin_open_report_counts: {
         Args: { p_listing_ids: string[] }
         Returns: Json
+      }
+      admin_photo_changes: {
+        Args: never
+        Returns: {
+          codes: string[]
+          created_at: string
+          id: string
+          kind: string
+          listing: Json
+          photo_id: string
+          replaced_photo_id: string
+        }[]
+      }
+      admin_photo_link_rows: {
+        Args: { p_photo_ids: string[] }
+        Returns: {
+          exif_stripped: boolean
+          id: string
+          paths: Json
+        }[]
+      }
+      admin_photo_reviews: {
+        Args: never
+        Returns: {
+          code: string
+          created_at: string
+          evidence: string
+          label: string
+          listing: Json
+          photo_id: string
+        }[]
       }
       admin_preview_attribute_import: {
         Args: { p_definitions: Json; p_links: Json; p_scope?: string }
@@ -5381,6 +5424,13 @@ export type Database = {
         }[]
       }
       admin_user_legal_history: { Args: { p_user_id: string }; Returns: Json }
+      admin_warned_listings: {
+        Args: { p_listing_ids: string[] }
+        Returns: {
+          codes: string[]
+          listing_id: string
+        }[]
+      }
       ai_calls_prune: { Args: never; Returns: number }
       ai_feature_gate: { Args: { p_feature: string }; Returns: Json }
       ai_record_call: {
