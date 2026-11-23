@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { preloadSelectList } from "../select-list-loader";
 import { FilterRow } from "./filter-row";
 import { FilterSelect } from "./filter-select";
@@ -74,25 +74,12 @@ export function FilterPanelBody({
                 placeholder={filter.placeholder}
               />
             ) : (
-              <Button
+              <Switch
                 id={filter.id}
                 data-testid={filter.id}
-                type="button"
-                variant="ghost"
-                aria-label={filter.name}
-                aria-pressed={filter.value}
-                className="size-11 px-0 md:pointer-fine:size-9"
-                onClick={() => filter.onChange(!filter.value)}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`inline-flex h-6 w-10 items-center rounded-full p-1 ${filter.value ? "bg-primary" : "bg-input"}`}
-                >
-                  <span
-                    className={`size-4 rounded-full bg-card shadow-control transition-transform motion-reduce:transition-none ${filter.value ? "translate-x-4 rtl:-translate-x-4" : "translate-x-0"}`}
-                  />
-                </span>
-              </Button>
+                checked={filter.value}
+                onCheckedChange={filter.onChange}
+              />
             )}
           </FilterRow>
         ),
