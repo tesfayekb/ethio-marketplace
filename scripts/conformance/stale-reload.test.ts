@@ -63,7 +63,6 @@ describe("one reloader for a failed download (INC-1128)", () => {
     () => {
       const findings = reloadFindings(process.cwd());
       expect(findings.map(({ file }) => file).sort()).toEqual([
-        "src/components/marketplace/feed.tsx",
         "src/lib/error-page.ts",
         "src/lib/on-demand-failure.ts",
       ]);

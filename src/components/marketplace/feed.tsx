@@ -22,6 +22,7 @@ import { useFeed, useHeldFirstPage } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { entityName } from "@/i18n/entity";
+import { refreshPage } from "@/lib/on-demand-failure";
 
 /** Today's in-panel error block (Law F4: a soft failure stays VISIBLE). */
 function FeedError({
@@ -203,7 +204,8 @@ export function Feed() {
       </PageCard>
     );
   } else if (categoryLookup === "failed") {
-    body = <FeedError testid="feed-category-failed" onRetry={() => window.location.reload()} />;
+    // INC-1140 — the page's one cure, never the feed's own reload.
+    body = <FeedError testid="feed-category-failed" onRetry={refreshPage} />;
   } else if (isLoading && !showHeld) {
     body = (
       <div className="flex justify-center py-12">
