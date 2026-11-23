@@ -1,28 +1,16 @@
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type ReactNode,
-} from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
-import { usePickerKeys } from "@/components/picker-popup";
-import { PickerOption } from "@/components/searchable-picker";
 import { DIALOG_FIELD } from "@/components/ui/dialog-look";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { FLOW_LIST_SCROLLER } from "./shell/menu-row";
+import { loadSelectList, readySelectList } from "./select-list-loader";
+import type { SelectListKeys } from "./select-list-body";
 
 export interface SelectListOption {
   value: string;
   label: string;
 }
-
-/** A list longer than this shows its search box. */
-const SEARCH_FROM = 8;
 
 /**
  * DEC-427 — the shared in-flow SELECT, one or several choices (`multiple`), on the one
@@ -91,7 +79,31 @@ export function SelectList({
     if (onOpenChange) onOpenChange(next);
     else setLocalOpen(next);
   };
-  const popupRef = useRef<HTMLDivElement | null>(null);
+  const keysRef = useRef<SelectListKeys | null>(null);
+  const [implementation, setImplementation] = useState(readySelectList);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const warm = () => {
+    if (disabled || implementation !== null) return;
+    void loadSelectList().then((loaded) => {
+      if (mounted.current) setImplementation(loaded);
+    });
+  };
+  useEffect(() => {
+    if (!open || implementation !== null) return;
+    let active = true;
+    void loadSelectList().then((loaded) => {
+      if (active) setImplementation(loaded);
+    });
+    return () => {
+      active = false;
+    };
+  }, [open, implementation]);
   // A form sibling changes the flow only on its landed click, never on blur/pointer-down.
   useEffect(() => {
     if (!open || controlledOpen !== undefined) return;
@@ -100,7 +112,6 @@ export function SelectList({
         return;
       if (event.target instanceof Node && !wrapRef.current?.contains(event.target)) {
         setLocalOpen(false);
-        setQuery("");
       }
     };
     document.addEventListener("click", landed, true);
@@ -110,88 +121,26 @@ export function SelectList({
       document.removeEventListener("keydown", landed, true);
     };
   }, [open, controlledOpen]);
-  useEffect(() => {
-    if (!open) return;
-    const row = wrapRef.current;
-    const body = row?.closest<HTMLElement>("[data-panel-body]");
-    if (row === null) return;
-    if (body && row.getBoundingClientRect().height > body.clientHeight) {
-      body.scrollTop += row.getBoundingClientRect().top - body.getBoundingClientRect().top;
-    } else if (typeof row.scrollIntoView === "function") {
-      row.scrollIntoView({ block: "nearest" });
-    }
-  }, [open]);
-  const [query, setQuery] = useState("");
-  const searchable = options.length > SEARCH_FROM;
-  const shown = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase();
-    return needle === ""
-      ? options
-      : options.filter((option) => option.label.toLocaleLowerCase().includes(needle));
-  }, [options, query]);
-  const close = () => {
-    setOpen(false);
-    setQuery("");
-  };
+  const close = () => setOpen(false);
   const closeToControl = () => {
     close();
     controlRef.current?.focus({ preventScroll: true });
   };
-  const unavailable = (option: SelectListOption) =>
-    multiple && !value.includes(option.value) && value.length >= max;
-  const pick = (option: SelectListOption) => {
-    if (unavailable(option)) return;
-    if (!multiple) {
-      onChange(value.includes(option.value) ? [] : [option.value]);
-      closeToControl();
-      return;
-    }
-    onChange(
-      value.includes(option.value)
-        ? value.filter((chosen) => chosen !== option.value)
-        : [...value, option.value],
-    );
-  };
-  const { highlight, setHighlight, onKeyDown } = usePickerKeys({
-    count: shown.length + (allLabel === undefined ? 0 : 1),
-    onPick: (index) => {
-      if (allLabel !== undefined && index === 0) {
-        onChange([]);
-        if (!multiple) closeToControl();
-        return;
-      }
-      const option = shown[index - (allLabel === undefined ? 0 : 1)];
-      if (option !== undefined) pick(option);
-    },
-    onEscape: closeToControl,
-    onOpen: () => setOpen(true),
-  });
   const keys = (event: KeyboardEvent<HTMLElement>) => {
-    if (event.key === "Escape" && open) {
-      event.preventDefault();
-      event.stopPropagation();
-      closeToControl();
-      return;
-    }
-    if (!open) {
-      if (["ArrowDown", "Enter", " "].includes(event.key)) {
+    if (open) {
+      if (keysRef.current !== null) keysRef.current(event);
+      else if (event.key === "Escape") {
         event.preventDefault();
-        setHighlight(0);
-        setOpen(true);
+        event.stopPropagation();
+        closeToControl();
       }
       return;
     }
-    // Reuse the picker's arrows and selection; Space is Enter outside the text search.
-    if (event.key === " " && !(event.target instanceof HTMLInputElement)) {
+    if (["ArrowDown", "Enter", " "].includes(event.key)) {
       event.preventDefault();
-      onKeyDown({
-        ...event,
-        key: "Enter",
-        preventDefault: () => event.preventDefault(),
-      } as KeyboardEvent<HTMLInputElement>);
-      return;
+      warm();
+      setOpen(true);
     }
-    onKeyDown(event as KeyboardEvent<HTMLInputElement>);
   };
   const chosen = options.filter((option) => value.includes(option.value)).map((o) => o.label);
   const trigger = (
@@ -217,7 +166,13 @@ export function SelectList({
         DIALOG_FIELD,
       )}
       onKeyDown={keys}
-      onClick={() => (open ? close() : setOpen(true))}
+      onMouseEnter={warm}
+      onFocus={warm}
+      onClick={() => {
+        warm();
+        if (open) close();
+        else setOpen(true);
+      }}
     >
       <span className={cn("min-w-0 grow truncate", chosen.length === 0 && "text-muted-foreground")}>
         {chosen.length === 0 ? placeholder : chosen.join(", ")}
@@ -246,81 +201,35 @@ export function SelectList({
       }}
     >
       {renderControl === undefined ? trigger : renderControl(trigger)}
-      {multiple && value.length >= max && maxLabel ? (
-        <p className="mt-1 text-sm text-muted-foreground">{maxLabel.replace("{n}", String(max))}</p>
-      ) : null}
       {open ? (
-        <div
-          data-picker-popup=""
-          ref={popupRef}
-          data-placement="flow"
-          className="mt-3 w-full min-w-0 overflow-hidden rounded-md border border-border bg-popover shadow-control"
-        >
-          {searchable ? (
-            <input
-              type="search"
-              autoFocus
-              data-testid={`${testId}-search`}
-              role="combobox"
-              aria-expanded={true}
-              aria-controls={listId}
-              aria-label={searchLabel}
-              placeholder={searchLabel}
-              autoComplete="off"
-              className="mb-1 min-h-11 w-full rounded-list-row border-b border-border bg-popover px-3 text-base text-foreground focus-visible:outline-none"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setHighlight(allLabel === undefined ? 0 : 1);
-              }}
-              onKeyDown={keys}
-            />
-          ) : null}
-          <ul
-            id={listId}
-            role="listbox"
-            aria-labelledby={labelId}
-            aria-label={labelId === undefined ? (label ?? placeholder) : undefined}
-            aria-multiselectable={multiple || undefined}
-            data-testid={`${testId}-list`}
-            className={FLOW_LIST_SCROLLER}
-            onKeyDown={keys}
-          >
-            {allLabel !== undefined ? (
-              <li role="presentation">
-                <PickerOption
-                  selected={value.length === 0}
-                  highlighted={highlight === 0}
-                  testId={`${testId}-all`}
-                  data={{ value: "" }}
-                  onPick={() => {
-                    onChange([]);
-                    if (!multiple) closeToControl();
-                  }}
-                >
-                  <span className="min-w-0 grow truncate">{allLabel ?? placeholder}</span>
-                </PickerOption>
-              </li>
-            ) : null}
-            {shown.length === 0 ? (
-              <li className="px-3 py-2 text-sm text-muted-foreground">{noneLabel}</li>
-            ) : null}
-            {shown.map((option, index) => (
-              <li key={option.value} role="presentation">
-                <PickerOption
-                  selected={value.includes(option.value)}
-                  highlighted={index + (allLabel === undefined ? 0 : 1) === highlight}
-                  unavailable={unavailable(option)}
-                  testId={`${testId}-${option.value}`}
-                  data={{ value: option.value }}
-                  onPick={() => pick(option)}
-                >
-                  <span className="min-w-0 grow truncate">{option.label}</span>
-                </PickerOption>
-              </li>
-            ))}
-          </ul>
-        </div>
+        implementation === null ? (
+          <div
+            aria-busy="true"
+            data-select-list-loading=""
+            data-testid={`${testId}-loading`}
+            className="mt-3 h-11 w-full md:pointer-fine:h-10"
+          />
+        ) : (
+          <implementation.SelectListBody
+            options={options}
+            value={value}
+            onChange={onChange}
+            multiple={multiple}
+            max={max}
+            searchLabel={searchLabel}
+            noneLabel={noneLabel}
+            placeholder={placeholder}
+            testId={testId}
+            listId={listId}
+            onClose={closeToControl}
+            keysRef={keysRef}
+            rowRef={wrapRef}
+            {...(allLabel === undefined ? {} : { allLabel })}
+            {...(label === undefined ? {} : { label })}
+            {...(labelId === undefined ? {} : { labelId })}
+            {...(maxLabel === undefined ? {} : { maxLabel })}
+          />
+        )
       ) : null}
     </div>
   );

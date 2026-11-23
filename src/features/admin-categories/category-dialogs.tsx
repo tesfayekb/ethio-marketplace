@@ -607,7 +607,7 @@ export function CategoryExclusionsDialog({
       <FieldSelect
         id="category-exclusion"
         field="excludedCodes"
-        label={t("admin.categories.exclusions.title")}
+        label={t("admin.categories.create.countries")}
         required={false}
         refusal={null}
         family={CATEGORY_REFUSALS}

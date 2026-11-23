@@ -79,6 +79,12 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
 
   const assignable = (languages.data ?? []).filter((row) => !row.isBase && row.enabledAdmin);
   const eligible = scope.data?.eligible === true;
+  const nothingAssignable =
+    !scope.isLoading &&
+    !scope.isError &&
+    !languages.isLoading &&
+    !languages.error &&
+    assignable.length === 0;
 
   return (
     <PageCard className="space-y-3" testid="user-translator-card">
@@ -93,6 +99,8 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         <p data-testid="translator-no-role" className="text-sm text-muted-foreground">
           {t("admin.translations.translator.noRole")}
         </p>
+      ) : nothingAssignable ? (
+        <p className="text-sm text-muted-foreground">{t("admin.translations.translator.none")}</p>
       ) : (
         <>
           {/* INC-095(l): the empty state remains a caption above the controls. */}
@@ -101,19 +109,10 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
               {t("admin.translations.translator.empty")}
             </p>
           ) : null}
-          {!scope.isLoading &&
-          !languages.isLoading &&
-          !languages.error &&
-          !scope.isError &&
-          assignable.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("admin.translations.translator.none")}
-            </p>
-          ) : null}
           <FieldSelect
             id="translator-lang"
             field="langs"
-            label={t("admin.translations.translator.title")}
+            label={t("admin.translations.translator.languages")}
             required={false}
             refusal={null}
             multiple

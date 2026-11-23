@@ -1,6 +1,7 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
 import { FieldSelect } from "./field-select";
 import { useFormGate } from "./use-form-gate";
@@ -102,4 +103,9 @@ it("FSL-U3 the form line shows a count only for several answers, and permits the
   expect(screen.getByTestId("control-count")).toBeInTheDocument();
   expect(screen.getByTestId("control-a")).toHaveAttribute("aria-selected", "true");
   expect(screen.getByTestId("control-b")).toHaveAttribute("aria-selected", "true");
+});
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
 });

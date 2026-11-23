@@ -1,3 +1,4 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -266,4 +267,9 @@ it("KFC-8 Countries select preserves the stored set and sends the replacement se
   await waitFor(() =>
     expect(exclusions).toHaveBeenCalledWith({ id: "cat-a", countryCodes: ["AA", "BB"] }),
   );
+});
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
 });

@@ -86,7 +86,8 @@ import { catalogText } from "@/i18n/entity";
  * (D118, D128).
  *
  * `listings:review` opens the section (the /admin layout's gate, DEC-163); the
- * queue's rows are read under `listings:view` (RLS `listings_admin_read`); the
+ * queue's rows come from `admin_screening_queue` (`listings:review`, limited
+ * to the caller's countries); the
  * decisions render only with `listings:review`, and the door
  * (`transition_listing`) re-checks `listings:review` and a fresh second factor
  * (F3). The outcome line is an inline live region: no <Toaster/> is mounted in

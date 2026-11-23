@@ -1,8 +1,9 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { renderPanel as render } from "@/components/ui/dialog-parts-test-render";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { DataTableColumn } from "@/components/shell/data-table";
 import type { LanguageRow } from "./translations-service";
 
@@ -228,4 +229,9 @@ it("KFC2-9 new-language countries answer the same countryCodes door field", asyn
       countryCodes: ["AA"],
     }),
   );
+});
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
 });

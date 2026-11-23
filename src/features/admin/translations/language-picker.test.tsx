@@ -1,3 +1,4 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ loading: false, error: false }));
@@ -36,3 +37,8 @@ it.each(["loading", "error"] as const)(
     expect(manual).toHaveBeenCalledTimes(1);
   },
 );
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
+});

@@ -572,7 +572,6 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.translations.add.submit": "ቋንቋ ጨምር",
   "admin.translations.add.added": "ቋንቋ ተቀምጧል።",
   "admin.translations.add.pick": "ቋንቋ",
-  "admin.translations.add.pickPlaceholder": "ቋንቋዎችን ይፈልጉ",
   "admin.translations.add.pickLoading": "የአቅራቢው የቋንቋ ዝርዝር እየተጫነ ነው…",
   "admin.translations.add.pickError": "የአቅራቢው የቋንቋ ዝርዝር አይገኝም — ቋንቋውን በእጅ ያስገቡ።",
   "admin.translations.add.pickEmpty": "ከዚያ ፍለጋ ጋር የሚዛመድ ቋንቋ የለም።",
@@ -703,6 +702,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.translations.ai.error": "የማሽን ትርጉሙን ማጠናቀቅ አልተቻለም።",
   "admin.error.rateLimited": "ባለፈው ሰዓት ውስጥ ብዙ ለውጦች ተደርገዋል። ቆይተው እንደገና ይሞክሩ።",
   "admin.error.rateLimitedWhen": "ባለፈው ሰዓት ውስጥ ብዙ ለውጦች ተደርገዋል። {when} እንደገና ይሞክሩ።",
+  "admin.translations.translator.languages": "ቋንቋዎች",
   "admin.translations.translator.title": "የተርጓሚ ቋንቋዎች",
   "admin.translations.translator.scopeNote":
     "ለትርጉም አስተዳዳሪዎች ብቻ የታይ። የተመደቡ ቋንቋዎች ይህ ሰው የትኞቹን ቋንቋዎች ሊያስተካክል እንደሚችል ይወስናል፤ የተርጓሚው ሚና ራሱ የማስተካከል ፈቃድ ይሰጣል።",

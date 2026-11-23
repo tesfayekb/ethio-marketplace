@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 769,
+  "scanned": 771,
   "dynamicCallSites": 418,
   "keys": {
     "account.deactivatedBanner": [
@@ -3421,9 +3421,6 @@
     "admin.translations.add.pickLoading": [
       "/admin/translations"
     ],
-    "admin.translations.add.pickPlaceholder": [
-      "/admin/translations"
-    ],
     "admin.translations.add.pickSelected": [
       "/admin/translations"
     ],
@@ -3878,6 +3875,9 @@
       "/admin/users/$userId"
     ],
     "admin.translations.translator.empty": [
+      "/admin/users/$userId"
+    ],
+    "admin.translations.translator.languages": [
       "/admin/users/$userId"
     ],
     "admin.translations.translator.noRole": [

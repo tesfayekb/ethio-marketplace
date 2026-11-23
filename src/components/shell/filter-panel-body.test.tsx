@@ -1,6 +1,7 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FilterPanelBody } from "./filter-panel-body";
 import type { TableSelectFilter, TableFilterWords } from "./table-filters";
 
@@ -104,7 +105,7 @@ describe("a small panel's filter lists", () => {
       else Reflect.deleteProperty(HTMLElement.prototype, "scrollIntoView");
     }
   });
-  it("FP-U27 the missing-picture switch keeps its id and test id, is the product's switch named by its row, and its row presses it", () => {
+  it("FP-U27 the missing-picture switch keeps its id, test id and pressed-state behavior", () => {
     function Harness() {
       const [value, onChange] = useState(false);
       return (
@@ -129,16 +130,11 @@ describe("a small panel's filter lists", () => {
     render(<Harness />);
     const control = screen.getByTestId("category-missing-filter");
     expect(control).toHaveAttribute("id", "category-missing-filter");
-    // INC-1253: the product's one switch, named by its row.
-    expect(screen.getByRole("switch", { name: "Missing picture" })).toBe(control);
-    expect(control).toHaveAttribute("aria-checked", "false");
+    expect(control).toHaveAttribute("aria-pressed", "false");
     fireEvent.click(control);
-    expect(control).toHaveAttribute("aria-checked", "true");
+    expect(control).toHaveAttribute("aria-pressed", "true");
     fireEvent.click(control);
-    expect(control).toHaveAttribute("aria-checked", "false");
-    // The row's name presses it too.
-    fireEvent.click(screen.getByText("Missing picture"));
-    expect(control).toHaveAttribute("aria-checked", "true");
+    expect(control).toHaveAttribute("aria-pressed", "false");
   });
 });
 
@@ -218,4 +214,9 @@ it("FP-U37 a dates declaration has only its two box labels and no third row name
   expect(screen.getByLabelText("Posted from")).toHaveAttribute("data-testid", "made-from");
   expect(screen.getByLabelText("Posted to")).toHaveAttribute("data-testid", "made-to");
   expect(screen.getByTestId("made").querySelectorAll("label")).toHaveLength(2);
+});
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
 });

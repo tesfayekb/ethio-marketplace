@@ -1,6 +1,7 @@
+import { loadSelectList } from "@/components/select-list-loader";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SelectList } from "./select-list";
 const options = Array.from({ length: 12 }, (_, n) => ({ value: `v${n}`, label: `Choice ${n}` }));
 function draw(multiple = false, max = 12) {
@@ -93,4 +94,9 @@ it("LSP-U5 a sibling opens on the landed click or key, not the preceding focus c
   fireEvent.keyDown(screen.getByTestId("first"), { key: "ArrowDown" });
   expect(screen.queryByTestId("second-list")).toBeNull();
   expect(screen.getByTestId("first-list")).toBeInTheDocument();
+});
+
+// The existing choice assertions run after the intent-fetched module has arrived.
+beforeEach(async () => {
+  await loadSelectList();
 });

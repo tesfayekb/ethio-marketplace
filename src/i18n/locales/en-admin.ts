@@ -594,7 +594,6 @@ export const enAdmin = {
   "admin.translations.add.submit": "Add language",
   "admin.translations.add.added": "Language saved.",
   "admin.translations.add.pick": "Language",
-  "admin.translations.add.pickPlaceholder": "Search languages",
   "admin.translations.add.pickLoading": "Loading the provider's language list…",
   "admin.translations.add.pickError":
     "The provider's language list is unavailable — enter the language manually.",
@@ -735,6 +734,7 @@ export const enAdmin = {
   "admin.translations.ai.error": "Machine translation could not be completed.",
   "admin.error.rateLimited": "Too many changes in the last hour. Try again later.",
   "admin.error.rateLimitedWhen": "Too many changes in the last hour. Try again {when}.",
+  "admin.translations.translator.languages": "Languages",
   "admin.translations.translator.title": "Translator languages",
   "admin.translations.translator.scopeNote":
     "Visible to translation managers only. Assignments scope which languages this person may edit; the translator role grants the editing permission itself.",

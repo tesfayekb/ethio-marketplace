@@ -48,7 +48,6 @@ export function LanguagePicker({
           const entry = all.find((language) => language.code === next[0]);
           if (entry !== undefined) onSelect(entry);
         }}
-        placeholder={t("admin.translations.add.pickPlaceholder")}
         state={list.error ? "failed" : list.isLoading ? "loading" : "ready"}
         loadingLabel={t("admin.translations.add.pickLoading")}
         failedLabel={t("admin.translations.add.pickError")}
