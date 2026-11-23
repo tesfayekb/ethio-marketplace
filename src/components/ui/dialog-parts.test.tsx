@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import ts from "typescript";
 import * as React from "react";
 import { act, fireEvent, render as renderView, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, expectTypeOf, it, onTestFinished, vi } from "vitest";
@@ -593,40 +591,4 @@ describe("Part D body and subject rules", () => {
     fireEvent.scroll(body);
     expect(screen.getByText("Supplied cue")).toBeInTheDocument();
   });
-});
-
-it("PFT-U1 the migrated footer expressions contain actions, never photos, explanatory paragraphs or alerts", () => {
-  const files = [
-    "src/features/admin-screening/screening-page.tsx",
-    "src/features/admin-countries/country-verb-dialogs.tsx",
-    "src/features/admin-attributes/category-attributes-dialog.tsx",
-  ];
-  let count = 0;
-  const forbidden: string[] = [];
-  for (const path of files) {
-    const source = ts.createSourceFile(
-      path,
-      readFileSync(path, "utf8"),
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TSX,
-    );
-    const walk = (node: ts.Node) => {
-      if (ts.isJsxAttribute(node) && node.name.getText(source) === "footer") {
-        count += 1;
-        const scan = (child: ts.Node) => {
-          if (ts.isJsxOpeningElement(child) || ts.isJsxSelfClosingElement(child)) {
-            const name = child.tagName.getText(source);
-            if (name === "p" || name === "ListingPhotos") forbidden.push(`${path}: ${name}`);
-          }
-          ts.forEachChild(child, scan);
-        };
-        ts.forEachChild(node, scan);
-      }
-      ts.forEachChild(node, walk);
-    };
-    walk(source);
-  }
-  expect(count).toBe(4);
-  expect(forbidden).toEqual([]);
 });

@@ -13,4 +13,14 @@ describe("FilterRow (bundle 2)", () => {
     expect(screen.getByLabelText("Status").id).toBe("s");
     expect(screen.getByTestId("row")).toHaveAttribute("data-filter-row");
   });
+
+  it("FP-U53 the row is as tall as a row control: 44 px on touch, 36 on a fine pointer, whatever its control", () => {
+    render(
+      <FilterRow label="Missing picture" htmlFor="m" testId="row">
+        <button id="m" type="button" role="switch" aria-checked="false" />
+      </FilterRow>,
+    );
+    const classes = screen.getByTestId("row").className.split(/\s+/);
+    expect(classes).toEqual(expect.arrayContaining(["min-h-11", "md:pointer-fine:min-h-9"]));
+  });
 });

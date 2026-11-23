@@ -24,7 +24,7 @@ export function FilterRow({
     <div
       data-filter-row=""
       data-testid={testId}
-      className="flex min-w-0 flex-wrap items-center gap-3"
+      className="flex min-h-11 min-w-0 flex-wrap items-center gap-3 md:pointer-fine:min-h-9"
     >
       <label
         id={labelId}

@@ -1314,7 +1314,7 @@ function StyleFixture() {
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="outline" data-testid="style-staff-preview-open">
-                {t("post.preview.title")}
+                {BOARD.open}
               </Button>
             </DialogTrigger>
             <DialogContent bands variant="screen" data-testid="style-staff-preview">

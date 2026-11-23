@@ -893,7 +893,7 @@ export function AdminScreeningPage({
                           off: approving the ad approves them (the operator's answer). */}
                       {mayReview && heldCount > 0 ? (
                         <p
-                          className="basis-full text-sm text-muted-foreground"
+                          className="text-sm text-muted-foreground"
                           data-testid="admin-screening-preview-unscreened"
                         >
                           {fill(t("admin.screening.unscreenedNote"), { count: heldCount })}
@@ -928,7 +928,7 @@ export function AdminScreeningPage({
                           to="/admin/listings/$listingId"
                           params={{ listingId: previewRow.id }}
                           data-testid="admin-screening-open-listing"
-                          className="basis-full text-sm text-primary underline underline-offset-4"
+                          className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
                         >
                           {t("admin.screening.openListing")}
                         </Link>

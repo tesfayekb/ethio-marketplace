@@ -976,7 +976,7 @@ test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
       await expect(levelList).toBeVisible();
       await pressClear(missing);
       await expect(levelList).toHaveCount(0);
-      await expect(missing).toHaveAttribute("aria-pressed", "true");
+      await expect(missing).toHaveAttribute("aria-checked", "true");
 
       await pressClear(country);
       await expect(countryList).toBeVisible();
