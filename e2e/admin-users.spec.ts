@@ -131,6 +131,48 @@ async function expectActivity(page: Page, action: string, userId: string) {
   }
 }
 
+/**
+ * INC-1269 — AU-3's reactivate failed once with the status still "Deactivated" and the page showing
+ * the failed-status line, its cause unproven. The instrument records, from the moment it is armed,
+ * every request that failed or answered 4xx/5xx and the status door's own answer (status and body),
+ * so the next red names its cause. It changes no budget and no assertion.
+ */
+function watchStatusDoor(page: Page): () => Promise<string> {
+  const seen: string[] = [];
+  const reading: Promise<void>[] = [];
+  const door = "admin_set_account_status";
+  const path = (url: string) => new URL(url).pathname;
+  page.on("requestfailed", (request) => {
+    if (seen.length < 20)
+      seen.push(
+        `requestfailed ${request.method()} ${path(request.url())} ${request.failure()?.errorText ?? ""}`,
+      );
+  });
+  page.on("response", (response) => {
+    const url = response.url();
+    const isDoor = url.includes(door);
+    if (!isDoor && response.status() < 400) return;
+    if (seen.length >= 20) return;
+    const line = `${response.status()} ${response.request().method()} ${path(url)}`;
+    if (!isDoor) {
+      seen.push(line);
+      return;
+    }
+    reading.push(
+      response.text().then(
+        (body) => void seen.push(`${line} body=${body.slice(0, 300)}`),
+        (error: unknown) => void seen.push(`${line} body unreadable: ${errorText(error)}`),
+      ),
+    );
+  });
+  return async () => {
+    await Promise.all(reading);
+    return `[INC-1269] requests since armed (failed, 4xx/5xx, and the status door):\n${
+      seen.length === 0 ? "  (none)" : seen.map((line) => `  ${line}`).join("\n")
+    }`;
+  };
+}
+
 /** AU-12 — removes a scratch user and its alias history; throws on failure (J3). */
 async function destroyScratchWithAliases(userId: string) {
   const supabase = adminClient();
@@ -218,16 +260,23 @@ test.describe("U1 admin users", () => {
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
 
     await signInStaff(page, staff);
+    const doorAnswers = watchStatusDoor(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("activate-user").click();
     // Cursor bundle 6 — the new session used its factor, so the step-up is answered only if asked.
     await stepUpIfPrompted(page, secret);
     await expectAal2(page);
-    await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
-      en["admin.users.status.active"],
-      { timeout: 15000 },
-    );
+    try {
+      await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
+        en["admin.users.status.active"],
+        { timeout: 15000 },
+      );
+    } catch (error) {
+      throw new Error(
+        `${errorText(error)}\n\n${await doorAnswers()}\n${await describeUserDetail(page)}`,
+      );
+    }
   });
 
   test("AU-7 crumb: Home > Admin > Users > <name>, Users navigates back", async ({ page }) => {
