@@ -1,6 +1,6 @@
-# Bundle 9 — area 1 census (public screens), part 1 of N
+# Bundle 9 — area 1 census (public screens), parts 1 and 2
 
-Base `1bbfc7dad` (HEAD verified with `git rev-parse`). No file changed except this plan. Projects in `playwright.config.ts:66-124`: mobile-360, desktop-1280, email-serial (360), webkit-1280, webkit-390. **No project runs at 768 px**, so every "768" case below is NONE.
+Base `1bbfc7dad` (HEAD verified with `git rev-parse`). No file changed except this plan. Projects in `playwright.config.ts:66-124`: mobile-360, desktop-1280, email-serial (360), webkit-1280, webkit-390. **No project runs at 768 px.** A 768 case exists only where a test resizes the window itself.
 
 The area is too large for one plan. This plan covers ONE whole screen: the feed (`/` and `/c/$slug`), which share one component. **Screens left:** `l.$slug`, `$name`, `legal.$kind`, `privacy`, `terms`, `legal.accept`, `legal.publishing`, and the shell (`app-shell.tsx`, 1,200 lines: header search, language, theme, sign-in, menu, rail, categories).
 
@@ -35,11 +35,11 @@ Server refusals for `/api/feed`: shape errors 400 `badCategory|badPlace|badSize|
 | 21 | Sign-in ending mid-way | The feed does not depend on the session | — | NONE | none |
 | 22 | Amharic page | All words above come from am-base | partly (row 4 only) | i18n-coverage.spec.ts:377 (hint only); the rest NONE | none |
 
-**Browser tests that visit this screen:** feed-screens.spec.ts (FS-1…FS-18), shell.spec.ts (FV-1, FV-2, invitation rows), sage-cards, sage-tiers, sage-bands, sage-shell, press, ad-page:196, i18n-coverage:377, smoke-auth-i18n (rg `goto("/"`). **Sideways scrolling or clipped controls at 360 px: none of them checks.** The only page-level `documentElement.scrollWidth` checks are ad-page.spec.ts:976 and :2063, and house-style.spec.ts:68 (HS-1 on `/dev/style`).
+**Browser tests that visit this screen:** feed-screens.spec.ts (FS-1…FS-18), shell.spec.ts (FV-1, FV-2, invitation rows), sage-cards, sage-tiers, sage-bands, sage-shell, press, ad-page:196, i18n-coverage:377, smoke-auth-i18n. **Sideways scrolling at 360 px (corrected):** two tests in shell.spec.ts measure `document.documentElement.scrollWidth` on the feed. (a) :1712 "location row is present on Marketplace and absent on Account". It signs in and opens `/` (:1716), then measures at the project's width (:1731-:1736). It then sets 360, 768 and 1280 × 900 and measures the panel tabs row and the page at each width (:1738-:1745). This is the screen's only check at 768. It runs signed in on the Marketplace panel. (b) The test that starts at :2719 ("long location names share one band row line"; `test.skip` unless the width is 360, :2720). It opens `/` (:2735), measures the page at 360 (:2750), then at 320 × 800 (:2791, measured at :2802). Neither checks for clipped controls on the feed's cards, invitation or Retry. Both run only with no category; no test measures `/c/$slug`.
 
 ## Summary (screen 1)
 
-**Rows marked NONE:** 7 (browser), 8 (spinner), 10, 11, 12 (screen), 14 (shown case), 19, 21, 22 (all but the hint); 768 px for every row; the 360 px overflow check for the screen.
+**Rows marked NONE:** 7 (browser), 8 (spinner), 10, 11, 12 (screen), 14 (shown case), 19, 21, 22 (all but the hint); 768 px for every row; 768 px for every row except the page width (shell.spec.ts:1738); no 360 px overflow check on `/c/$slug`.
 
 **Defects seen while reading:**
 - D1: use-feed.ts:38 turns every non-200 into null, so 404 `unknownPlace` / `unknownCategory` (api/feed.ts:82) show "We couldn't load listings" with a Retry that can never succeed (feed.tsx:215-216). A kept place that has since been removed has no way out on this screen.
@@ -48,4 +48,119 @@ Server refusals for `/api/feed`: shape errors 400 `badCategory|badPlace|badSize|
 
 **Could not read in this turn:** the Guide's controls (`page-guide.tsx`); the ids in `src/routes/api/feed.test.ts`; whether `smoke-auth-i18n.spec.ts` runs this screen in Amharic.
 
-**Screens left for the next plan:** `l.$slug` (363 lines), `$name`, `legal.$kind`, `privacy`, `terms`, `legal.accept`, `legal.publishing`, the shell.
+Part 2 below covers screens 2 to 5. The shell is left (see the end).
+
+---
+
+## Screen 2 — the ad page: `src/routes/l.$slug.tsx` (363 lines)
+
+The page reads `readAdPage` on the server (l.$slug.tsx:38). A changed address redirects with 301 (:49); a gone ad draws `ad-page-gone` (:98-106). The body is `ListingDetail` (src/features/posting/preview/listing-detail.tsx). Buyer doors (browser `rpc` through supabase-door): `save_listing` / `unsave_listing` (save.ts:25), `listing_viewer_state` (save.ts:72), `reveal_listing_contact` (contact.ts:41), `report_listing` (report.ts:26). Counting: `/api/listings/view` and `/api/listings/share` (count-view.ts:25, :38). Words families: ad-page-refusals.ts:11-35.
+
+Door refusals from SQL:
+- save: `listingNotAvailable`, `ownListing` (migration 20261117040400:50, :58, :61); the dial through `door_refused(...,'save')` (:72).
+- report: `listingNotAvailable`, `badReason`, `noteTooLong`, `ownListing`, `alreadyReported` (20261117040500:44-63); dial (:70).
+- contact: `listingNotAvailable`, `acceptanceRequired` (20261117040600:50-62); dials `contact_reveal_sellers` / `contact_reveal` (:76, :125).
+
+| # | Control or event (key EN / AM; place) | What it must do | Cases that exist | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Gone page: `adPage.gone.title` "This ad is no longer available" / "ይህ ማስታወቂያ ከእንግዲህ አይገኝም" (en-base:260, am-base:241); link `adPage.gone.home` "Back to Home" / "ወደ መነሻ ተመለስ" (en:263, am:243); l.$slug.tsx:98-106 | Link to `/` | works | ad-page.spec.ts:133 AP-11 | none |
+| 2 | Photo gallery: main photo, previous/next, thumbnails, viewer (photo-gallery.tsx:142-429) | Changes the photo; opens the full viewer | works; 360/1280 | AP-9 :74-79; AP-56 :1630-1635; photo-pipeline PP-22 :1251; dialogs.spec :580 | none |
+| 3 | Save `adPage.save.add` "Save" / "አስቀምጥ" ↔ `adPage.save.saved` "Saved" / "ተቀምጧል" (en:207/256, am:188/237); action row, listing-detail.tsx:919-956 | Saves or unsaves (l.$slug.tsx:158-174) and updates the count `adPage.save.count` (:964) | works; signed in/out; owner sees no Save | AP-26 :503; SAVE-1…4 save.test.ts:11-54 | none |
+| 4 | Save signed out: Link with label `adPage.save.signIn` "Sign in to save this ad" / "ይህን ማስታወቂያ ለማስቀመጥ ይግቡ" (en:209, am:190) to `/auth?return=…#save` (l.$slug.tsx:325) | After sign-in, saves once (save-intent, l.$slug.tsx:176-195) | sign-in mid-way | AP-26; SAI-1…SAI-9 save-intent.test.ts:7-34 | none |
+| 5 | Save refusal `listing-save-refusal` (listing-detail.tsx:797-804): `adPage.save.rateLimited` / `…rateLimitedWhen`, `adPage.save.failed` "The ad could not be saved — try again." (en:211-212, am:192-193) | Shows the reason | rateLimited, failed | words: RTW-15 ad-page-refusals.test.ts:125; screen NONE | D4 |
+| 6 | Contact signed out: `adPage.contact.link` "Contact seller" / "ሻጩን ያግኙ" (en:206, am:187), listing-detail.tsx:1453 | Goes to sign in and remembers the reveal intent (l.$slug.tsx:344) | sign-in mid-way | AP-9 :91; AP-23 :422; RI-1…RI-5 reveal-intent.test.ts | none |
+| 7 | Show contact `adPage.contact.show` "Show contact" / "ግንኙነት አሳይ" (en:200, am:181), listing-detail.tsx:1482 | Calls `reveal_listing_contact` and lists phone / Telegram / WhatsApp (`post.who.channel.*`) | works | AP-23 :445; doors AP-20 :381, AP-21 :458, AP-22 :545 | none |
+| 8 | Contact refusal `listing-contact-refusal` (listing-detail.tsx:1534-1540): `adPage.contact.sellersCap`, `adPage.contact.rateLimited` (+When), `adPage.contact.failed` (en:201-204, am:182-185) | Shows the reason | caps; failed | words RTW-17 :137; doors AP-21/22 (SQL answer); **screen NONE** | D4 |
+| 9 | Contact `acceptanceRequired` (SQL :62) | `certifyRefusal` sends the person to accept (l.$slug.tsx:225-227) | — | NONE | none |
+| 10 | Share `adPage.share.open` "Share" / "አጋራ" (en:232, am:213), share-ad.tsx:56 | Opens the dialog: Telegram, WhatsApp, Facebook, Copy link `adPage.share.copy`, QR `adPage.share.qr`, More apps `adPage.share.more` (share-ad-dialog.tsx:89-184); each one is counted | works | AP-30 :666-679; DLG-E7 dialogs:398; AP-57 :1650 (QR); share-ad.test.tsx | none |
+| 11 | QR download `listing-share-qr-download` (share-ad-dialog.tsx:163) | Downloads the QR | — | NONE | none |
+| 12 | Copy failed / status `listing-share-status` (share-ad-dialog.tsx:131) | Says copied, or that it could not | — | MLP-8 my-listings-page:873 (copy only); failure NONE | none |
+| 13 | Report signed out: `adPage.report.open` "Report this ad" / "ማስታወቂያውን ሪፖርት አድርግ" (en:214, am:195), report-ad.tsx:32 | To `/auth?return=…#report` | sign-in mid-way | AP-29 :581 | none |
+| 14 | Report dialog: reasons, note `adPage.report.note`, Send `adPage.report.send` "Send report" / "ሪፖርቱን ላክ" (en:226, am:207); report-ad-dialog.tsx:95-175 | Calls `report_listing` once | works; empty reason → Send disabled | AP-29 :597-602; KRA-1…3 report-ad.test.tsx:117-148; doors AP-27 :798 | none |
+| 15 | Report refusals `listing-report-status`: `adPage.report.already`, `…rateLimited` (+When), `…failed` (en:228-231, am:209-212); `badReason` / `noteTooLong` → generic (ad-page-refusals.ts:69-75) | Shows the reason | already; rate; failed | words RTW-16 :130; doors AP-27; screen: AP-29 checks status after the first send only | none |
+| 16 | Seller block and `adPage.seller.allAds` "All ads by this seller" / "የዚህ ሻጭ ሁሉም ማስታወቂያዎች" (en:259, am:240), listing-detail.tsx:1074 | Link to `/$name` | works | AP-35 :824; SPA-E2E-1 seller-name-hidden:40 | none |
+| 17 | Map: enlarge, dialog, Google link, places-maps chooser (app / web / cancel) (listing-detail.tsx:1285-1414) | Opens a larger map or the maps app | works; map fails | AP-39 :1135-1149; AP-41 :1304-1309; listing-detail-map-failed.test.tsx; **maps-app / web / cancel NONE** | none |
+| 18 | Section nav `adPage.sections.label` (listing-detail.tsx:1092-1110) | Jumps to a section | works | AP-36 :906; sage-ad-page :278 | none |
+| 19 | Counts / failed counts `adPage.counts.unavailable` "The view count could not be loaded." / "የእይታ ቆጠራውን መጫን አልተቻለም።" (en:194, am:175), listing-detail.tsx:663-694 | Owner sees counts; a failed read says so | works | AP-17 :275; AP-22 doors :570; failed-count NONE | none |
+| 20 | Owner's own page: no Save/Report (l.$slug.tsx:315, :329); name-under-review notice (:197-213) | — | owner | AP-26 (owner, no heart); seller-review.test.ts; review notice in browser NONE | none |
+| 21 | Similar ads `listing-similar` (similar-ads.tsx:69) | Never for a sold ad or the owner (l.$slug.tsx:354) | works | AP-32 :771; STG-4 sage-tiers:688; similar-ads.test.tsx | none |
+| 22 | Owner's edit or manage controls on this page | Not drawn here: the route passes none to ListingDetail (l.$slug.tsx:285-349) | — | — | none |
+| 23 | Amharic; 768 | — | — | NONE for the ad page in Amharic; NONE at 768 | none |
+
+**Browser tests that visit it:** ad-page.spec.ts (AP-9…AP-57, OVW-1), ad-page-doors.spec.ts (door level), sage-ad-page, photo-pipeline PP-22, dialogs DLG-E7, seller-name-hidden, supabase-door SBE-1. **360 px sideways:** AP-36 (:851; page check at :976) at the project widths plus 1100 (:984); OVW-1 (:1986; skipped on desktop, :1992; page width ≤ 390 at :2063-:2073) at 360 and webkit-390.
+
+## Screen 3 — a seller's page: `src/routes/$name.tsx` (72 lines)
+
+The loader checks `sellerExists`, refuses a path holding a slash (:30), and lowercases with 301 (:31-32). Not found → `SellerGonePage` (:60-63). Body: seller-page.tsx; reads `/api/seller`. The route's refusals: 404 `unknownSeller`, 400 `badCursor` / `badKey`, else `readFailure` (api/seller.ts:61-64, :102).
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Gone page `sellerPage.notFound` "This seller was not found." / "ሻጩ አልተገኘም።" (en:266, am:246) + `adPage.gone.home` link ($name.tsx:60-63) | Link to `/` | works | SPA-E2E-1 seller-name-hidden:61 | none |
+| 2 | Title `sellerPage.title` "Ads by {name}" / "የ{name} ማስታወቂያዎች" (en:264, am:244), seller-page.tsx:88-91 | Business name, else the alias | works | AP-35 :827; SL-4 seller-page.test.tsx:97 | none |
+| 3 | Cards (`ListingCard`), seller-page.tsx:117 | Link to the ad | works | AP-35 :828 | none |
+| 4 | Empty `sellerPage.empty` (en:265, am:245) | — | empty | SL-4 (unit); browser NONE | none |
+| 5 | Not found after the loader passed (`seller-page-not-found`, :54) | — | 404 race | SL-4 (unit); browser NONE | none |
+| 6 | Error `sellerPage.failed` + Retry `common.retry` (:58-70) | Reads again | failed | SL-4 (unit); browser NONE | none |
+| 7 | Next page on scroll (:126-130) | Loads more; a failure must show | failure | NONE | D5 |
+| 8 | Signed in/out; Amharic; 768 | — | — | NONE | none |
+
+**Browser tests:** ad-page.spec AP-35, seller-name-hidden SPA-E2E-1. **360 px sideways: none.**
+
+## Screen 4 — `legal.$kind`, `privacy`, `terms` (one table)
+
+They share their parts: all three render `LegalDocumentPage` (legal.$kind.tsx:3, privacy.tsx:4, terms.tsx:4), read by `legalPage` on the server. `legal.$kind` also gives 301 / notFound (:36-38) and per-country sections. Its title is the raw `kind` (:62, :73), not a key.
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Title `legal.kind.privacy` "Privacy Policy" / "የግላዊነት መመሪያ", `legal.kind.terms` "Terms of Service" / "የአገልግሎት ውሎች" (en:712-713, am:656-657) | — | works | LGP-1 legal-pages:120 | D6 (`$kind`) |
+| 2 | None yet `legal.page.none` "The {document} will be published here soon." (en:716, am:660); legal-document-page.tsx:51 | — | empty | LGP-1 :123 | D6 |
+| 3 | Version switch `legal.page.showCurrent` / `showUpcoming` (en:718-719, am:662-663); :79-93 | Shows the version in force or the next one | works | LGP-2 :204-206 | none |
+| 4 | Fallback note `legal.fallbackNote` (am-base:22, en-base:23) | Shown when the text is in English | Amharic | LGC-6 legal-certify:1362 | none |
+| 5 | Load error `legal.page.loadError` "This page could not be loaded." (en:720, am:664); :47, :135 | — | failure | NONE | D7 |
+| 6 | Per-country section `legal-public-section` (:126) | — | — | NONE | none |
+| 7 | 360 / 768 / signed in | — | — | NONE | none |
+
+**Browser tests:** legal-pages LGP-1…3, legal-certify LGC-6, legal-accept LAC-3 :217. **360 px sideways: none.**
+
+## Screen 5 — `legal.accept` and `legal.publishing`
+
+`legal.accept`: `ssr:false`, `requireSignedIn` (:13-14), status `my_legal_status`; if nothing is owed, redirect to `next` (:30-31). Door `accept_legal` refuses `emptyList`, `adultRequired`, `badLanguage`, `notInForce`, `notApplicable` (migration 20261117040700:94-118); only `notInForce` has words (legal-accept-refusals.ts:14-17). `legal.publishing`: `requireSignedIn`, data via `legalPageData` (:47-48), same LegalDocumentPage.
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Title `legal.accept.title` "Before you continue" / "ከመቀጠልዎ በፊት" (en:721, am:665) | — | works | LAC-1 legal-accept:140; SU-3 auth-signup:275 | D8 |
+| 2 | Read / Hide `legal.accept.read` / `hide` (en:727-728, am:670-671), legal-accept-screen.tsx:131-137 | Opens the document's text | works | LAC-1 :172 | none |
+| 3 | Document text load error `legal.accept.loadError` (:26-30) | — | failure; no Retry | NONE | D7 |
+| 4 | Agree tick (`AgreeToDocument`, :144-154) and `legal.accept.submit` "Agree and continue" / "ተስማምቼ እቀጥላለሁ" (en:741, am:683), :164-199 | Unticked → marks the tick; ticked → `accept_legal`, then goes to `next` | works; empty tick | LAC-1 :145; SU-3 :283 | none |
+| 5 | Refusal `legal-accept-error`: `legal.accept.changed` (notInForce) / `legal.accept.error` (en:745-746, am:686-687) | Changed → untick and re-read | failed | NONE | none |
+| 6 | Status load error + `common.tryAgain` "Try again" / "እንደገና ይሞክሩ" (en:43, am:40), :100-105 | Reads again | failure | NONE | none |
+| 7 | Decline `legal.accept.decline` "Decline, sign out" / "ውድቅ አድርገው ይውጡ" (en:742, am:684), :204 | Signs out | works | LAC-3 :225 | none |
+| 8 | Signed out → sign in with the way back | — | signed out | LGP-4 legal-pages:135 (publishing); accept: NONE | none |
+| 9 | Publishing page title `legal.kind.publishing` "Publishing statement" / "የማስታወቂያ ማረጋገጫ ቃል" (en:714, am:658) | — | works | LGP-4 :145 | none |
+| 10 | Publishing read fails (`PublishingError`, legal.publishing.tsx:87-100) | Shows the error | failure | NONE | D9 |
+| 11 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** legal-accept LAC-1…3, auth-signup SU-3, legal-pages LGP-4, legal-certify (links :575-587). **360 px sideways: none.**
+
+## Summary (parts 1 and 2)
+
+**Rows marked NONE:**
+- Feed: see part 1.
+- Ad page: 5 (screen), 8 (screen), 9, 11, 12 (failure), 17 (maps app/web/cancel), 19 (failed counts), 20 (review notice), 23.
+- Seller page: 4-6 (browser), 7, 8.
+- Legal pages: 5, 6, 7.
+- Accept / publishing: 3, 5, 6, 8 (accept), 10, 11.
+
+**Defects seen while reading (new):**
+- D4: l.$slug.tsx:167-169 and listing-detail.tsx:1535-1540. A `listingNotAvailable` refusal (an ad sold or removed while open; SQL :50-58) shows "could not be saved / loaded — try again". Retry cannot succeed.
+- D5: seller-page.tsx:31 never reads `moreError` from use-seller-feed.ts:158-163. A failed next page goes silent: no words and no Retry (law F4). The feed's equivalent is feed.tsx:285.
+- D6: legal.$kind.tsx:62 and :73 pass the address word (`kind`) as the title. `legal.page.none`'s `{document}` then shows an untranslated slug (law D1).
+- D7: legal-document-page.tsx:47, :135 and legal-accept-screen.tsx:26-30. The load errors have no Retry (law C4).
+- D8: legal.accept.tsx:44 passes the English literal "Before you continue — ethio.com" to `pageHead`. Its role was not read; it is a literal in app code (law D1) — to confirm.
+- D9: legal.publishing.tsx:95-97 shows the raw failure class and status (for example " (network 503)") to the person, untranslated.
+
+**Could not read in this turn:** the Guide controls on the feed and the ad page (page-guide.tsx); the ids in api/feed.test.ts; whether AP-29 reaches each report refusal on screen; the role of `pageHead`'s fifth argument.
+
+**Screen left for the next plan:** the shell (`src/components/app-shell.tsx`, 1,200 lines). Its parts at :973-1193: AppHeader (search, language, theme, sign-in), the rail toggle (:1088), AppRail and its categories, SearchRow, PanelTabs, Breadcrumbs, LocationSelector, PlaceNotice, the session idle warning and notice (:997-1034), BottomBar, OnDemandNotice and AppFooter. It is too large to list together with screens 1-4 in this plan.
+
+Note: this request also asked for a line in roadmap.md. Plan mode allows writing only this plan, so roadmap.md is unchanged.
