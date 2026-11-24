@@ -653,7 +653,59 @@ Rail sections and their permissions (sections.ts): Locations `/admin/locations` 
 
 **360 px sideways (A1–A2): none.**
 
-**Left for the next parts:**
-- `admin.users`, `admin.users_.$userId`.
+## Screen A3 — Users: `src/routes/admin.users.tsx` (41 lines) → users/users-list.tsx (310 lines)
+
+Section permission is `profiles:view` (sections.ts:96-97). The list reads `admin_list_users` (admin-users-service.ts:81), behind `door_context('staff-reader','profiles','view')` (migration 20261114070800:59).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Enter the page | `profiles:view` (sections.ts:97; door :59) | Sent to /admin with the access notice (A1 row 2) | refused | AU-1 admin-users:144 | none |
+| 2 | Search `admin.users.searchPlaceholder` (:260-263) | same | — | works | AU-2 :165 | none |
+| 3 | Status filter `admin.users.statusFilter` (:114) and role filter `admin.users.roleFilter` (:128) | same | — | works | AU-2; users-role-filter.test.tsx | none |
+| 4 | Columns: name, email, country, status, roles, joined (:154-207); row opens the person | same | — | works | AU-13 :499 | none |
+| 5 | Loading `admin.users.loading` / failed `admin.users.error` "Users could not be loaded." (en-admin:86) / empty `admin.users.empty` (en-admin:87), :244-253 | — | — | failed; empty | users-count.test.tsx; browser NONE | none |
+| 6 | Pager and page size (DataTable keyset) | — | — | works | AU-13 | none |
+| 7 | Amharic; 360 / 768 / 1280 | — | — | — | NONE | none |
+
+## Screen A4 — one person: `src/routes/admin.users_.$userId.tsx` (34 lines) → users/user-detail.tsx (661 lines)
+
+Doors (admin-users-service.ts:105-229):
+- `admin_get_user`: `profiles:view` (migration 20261114070800:107).
+- `admin_user_activity`: `profiles:view` and `audit_logs:view` (:225, :286).
+- `admin_set_account_status`: `profiles:update` (20261114070600:50). It refuses `badValue` (:53), `required` reason (:56) and `unknownUser` (:64).
+- `assign_role`: `roles:assign` (20261120100100:37). It refuses `roleReserved` (:40), `unknownRole` (:43), `badCountryCode` (:47) and `unknownUser` (:50).
+- `revoke_role`: `roles:assign` (20261114070400:89). It refuses `roleReserved` (:92) and `unknownRole` (:95).
+- `admin_update_profile`: `profiles:update` (20261114070900:57). It refuses `nameRequired` (:61), `unknownCountry` (:68), `unknownUser` (:76), `aliasShape` (:84), `aliasTaken` (:87) and `aliasReserved` (:90).
+- `begin_impersonation`: `impersonation:use` (20261114070700:65). It refuses `impersonateSelf` (:66), the super-admin target (:67), `unknownUser` (:69), `badLength` reason (:73) and `sessionActive` (:77).
+
+The UI hides controls by `profiles:update` (user-detail.tsx:50), `roles:assign` (:51), `impersonation:use` (:175) and `translations:manage` (:370).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Back `admin.users.detail.back` (:87), crumb | `profiles:view` | — | works | AU-7 :235 | none |
+| 2 | Loading / failed `admin.users.error` / not found `admin.users.detail.notFound` "This user does not exist." (en-admin:98), :93-104 | `profiles:view` | — | failed; unknown | NONE (failed); not found NONE | none |
+| 3 | Identity: email, alias, country, joined, last sign-in (:143-149) | `profiles:view` | — | works | AU-3 :183 | none |
+| 4 | Status: reason `deactivate-reason` (:206-219), "reason required" `admin.users.status.reasonRequired` (en-admin:108), :231-234; Deactivate / Activate (:240-267) | `profiles:update` (:50; door :50) | Status shown, no controls; own row `admin.users.status.ownAccount` (:159-196) | works; own row | AU-3; AU-8 :252; AU-6 :335 (door) | none |
+| 5 | Status refused: `badValue`, `required`, `unknownUser` | — | — | refused | NONE (screen) | D30 — all show "The status could not be changed." (`admin.users.status.failed`, en-admin:112, :270-272) |
+| 6 | Roles: chips, System role `admin.users.roles.locked` (en-admin:120), Remove `role-remove-<role>` (:293-311); Assign select + `assign-role` (:326-357) | `roles:assign` (:51; doors :37, :89) | Chips without Remove / Assign | works | AU-4 :265 | none |
+| 7 | Role refused: `roleReserved`, `unknownRole`, `badCountryCode`, `unknownUser` | — | — | refused | NONE (screen) | D30 — all show "The role change failed." (`admin.users.roles.failed`, en-admin:121, :361-363) |
+| 8 | View as (ImpersonationStarter): Start `impersonation-begin`, reason `impersonation-reason` (impersonation-starter.tsx:55-114); short reason `impersonation.reasonTooShort` (:60) | `impersonation:use` (:175; door :65) | Not drawn; never on own row | works | admin-audit spec; i18n-sign-in-language spec | none |
+| 9 | View-as refused: `impersonateSelf`, super-admin target, `unknownUser`, `badLength`, `sessionActive` | — | — | refused | NONE | D31 — `readRefusal(failure, { generic: "impersonation.failed" })` (:80) has no words, so every code shows the generic |
+| 10 | Activity list `user-activity-list` (:381-420), loading / error / empty | `audit_logs:view` (door :286) | Error line `admin.users.error` "Users could not be loaded." (:413-416) | works; failed | AU-3 (audit row); AU-9 :350 | D32 |
+| 11 | Edit profile: name, alias, alias reason, country, Save `edit-save`, saved `edit-saved`, error `edit-error` (:480-637) | `profiles:update` (:50; door :57) | Not drawn; own row: no form | works; own row | AU-9; AU-11 :481 | none |
+| 12 | Edit refused (`PROFILE_EDIT_REFUSALS`, admin-users-service.ts:247-262): `permissionDenied`, `nameRequired`, `unknownCountry`, `aliasShape`, `aliasTaken`, `aliasReserved` → "This name needs a reason before it can be set." (en-base:442), step-up; `unknownUser` / `rateLimited` → generic `admin.users.edit.failed` | — | — | refused | AU-10 :378 (aliasTaken); AU-12 :418 (aliasReserved); others NONE | none |
+| 13 | Translator block (:370) | `translations:manage` | Not drawn | works | NONE | none |
+| 14 | Deactivated staff hold no permission | — | — | — | AU-14 :562 | none |
+| 15 | Amharic; 360 / 768 | — | — | — | NONE | none |
+
+**Browser tests (A3–A4):** admin-users (AU-1…AU-14), admin-audit, i18n-sign-in-language. **360 px sideways: none.**
+
+- D30: on one person's page, the status and role doors' codes (`badValue`, `required`, `unknownUser`; `roleReserved`, `unknownRole`, `badCountryCode`) reach no words. user-detail.tsx:270-272 and :361-363 show one sentence each, whatever the code.
+- D31: View as (impersonation-starter.tsx:80) reads the refusal with no words. `impersonateSelf`, the super-admin target, `unknownUser`, `badLength` and `sessionActive` (migration 20261114070700:66-77) all show `impersonation.failed`.
+- D32: a failed activity read on one person's page (user-detail.tsx:413-416) says "Users could not be loaded." (en-admin:86). Those are the list's words, not the activity's, and there is no Retry.
+
+**Left for the next parts (area 3):**
 - `admin.listings`, `admin.listings_.$listingId`, `admin.listings_.$listingId_.edit`.
-- The other 20 `admin*` route files.
+- `admin.screening`; `admin.roles`, `admin.roles_.$roleId`; `admin.audit`; `admin.impersonation_.$sessionId`.
+- The other `admin*` route files.
+
