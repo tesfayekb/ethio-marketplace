@@ -247,3 +247,71 @@ Parts drawn at app-shell.tsx:973-1193: LegalGate (:988, signed in), session warn
 - D14 app-footer.tsx:82: About, Contact and Safety are drawn with the link look and a 44 px target but do nothing. The comment at :19-20 says this is intended until those pages exist; it is reported, not judged.
 
 **Could not read:** the Guide controls (page-guide.tsx); the api/feed.test.ts ids; `pageHead`'s fifth argument; every message `sessionNotice` can hold (app-shell.tsx:686); the admin alerts and submenu layer inside the rail (app-rail.tsx:225, :717); LegalGate's own screen (app-shell.tsx:988).
+
+---
+
+# Area 2 — posting and member pages, part 1
+
+Base `1bbfc7dad`. This part covers the wizard's frame (what every step shares) and step 1. The wizard is about 12,200 lines (wizard.tsx 1,789; step files 476–2,265 each; posting-service.ts 1,316), so the census stops after step 1. Steps are named in types.ts:12-21.
+
+Routes: `post.tsx` and `post_.$listingId.tsx` are both `ssr:false` and guarded by `requireSignedIn` (post.tsx:22-23, post_.$listingId.tsx:30-31). Both render `PostingWizard` (wizard.tsx). Saving a step goes through `POST /api/listings/draft` → `submit_listing` (draft.ts:162). That door refuses `badValue:step`, `notYourListing`, `notADraft`, `listingNotFound` (migration 20261115204200:60-129). Field refusals arrive in the answer and are worded by refusal-text.ts:28-102 (e.g. `required` → `post.refusal.required`; any door failure → `post.refusal.doorError`). Publishing goes through `/api/listings/publish` → `publish_listing` (publish.ts:52-53). That door refuses `notYourListing`, `illegalTransition`, `listingNotPlaced` (migration 20261115203900:169-193).
+
+## Screen 7 — the wizard frame (every step)
+
+| # | Control or event (key EN / AM; place) | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Signed out on `/post` or `/post/$id` | Goes to sign in with the way back | signed out | (route guard) — NONE in post-wizard specs found by this census | none |
+| 2 | Loading `post.loading` "Opening the form…" / "ቅጹ እየተከፈተ ነው…" (en-member:295, am-member:286), wizard.tsx:848 | — | slow | NONE | none |
+| 3 | Load error `post.error.load` "This draft could not be opened." / `post.error.notYours` "This draft belongs to another account." (en-member:296-297, am-member:287-288), wizard.tsx:860-861 | Says why | notFound; failed | PW-7 post-wizard-category:738 | D15 |
+| 4 | Step list (desktop aside, `post-step-list-item`, wizard.tsx:977-985) and progress `post.stepOf` (:1049-1059) | Goes to a reached step | works | post-wizard-pricing:919 | none |
+| 5 | Save state `post.save.saving` "Saving…" / `saved` "Saved" / `unsaved` "Not saved yet — we keep trying." (en-member:299-301, am-member:290-292), wizard.tsx:1101-1106 | Shows the draft's state | works; failed | post-wizard-category:184; PW-8 :860-865 | D16 |
+| 6 | Retry `post.action.retry` "Try again" / "እንደገና ይሞክሩ" (en-member:294, am-member:285), wizard.tsx:1141-1145 | Saves again | failed | PW-8 post-wizard-category:865 | none |
+| 7 | Paused `post.save.paused` "Saving paused for {seconds} s" (en-member:520, am-member:498), wizard.tsx:1134-1135 | Shown while the draft dial holds saves | rateLimited | NONE | none |
+| 8 | Edit problem `post-edit-problem` (wizard.tsx:1126) | — | — | NONE | none |
+| 9 | Category chip and Change `post.category.change` "Change" / "ቀይር" (en-member:308, am-member:299), wizard.tsx:1155-1169 | Returns to step 1 | works | PW-2 post-wizard-category:236 | none |
+| 10 | Category-changed notice: Undo `post.specs.resetUndo`, dismiss `post.category.changedDismiss`, photos recheck (wizard.tsx:1187-1233) | Undoes the dropped answers; dismisses | works | PW-72 post-wizard-resets:340; PW-26 :282 | none |
+| 11 | Back `post.action.back` "Back" / "ተመለስ" (en-member:292, am-member:283), wizard.tsx:1279-1314; Back to review (:1327-1336) | Previous step / review | works | PW-123 post-wizard-bundle2:951; PP-12 photo-pipeline:603; PW-13 post-wizard-place:588 | none |
+| 12 | Next `post.action.next` "Next" / "ቀጥል" (en-member:293, am-member:284); in an edit `myListings.editBox.save`; wizard.tsx:1342-1384 | Saves the step through `submit_listing`, then moves on | works | A11Y-2 a11y:90; AL-20 admin-listings:1390 | none |
+| 13 | Next blocked `post.category.nextBlocked` "Choose a category to continue." / `post.nextBlocked.required` "Fill in what is needed to continue." (en-member:603-604, am-member:578-579), wizard.tsx:1400-1412 | Says what is missing | invalid input | PW-1 post-wizard-category:205; PW-192 post-wizard-pricing:1239; MLA-17 | none |
+| 14 | Next unreachable (`post-next-unreachable`, `post.save.unsaved`), wizard.tsx:1391-1394 | — | network failed | PW-8 :860; PW-162 post-wizard-pricing:788 | D16 |
+| 15 | Door refusals `notYourListing` / `notADraft` / `listingNotFound` from `submit_listing` | Words from refusal-text.ts (`notYourListing` → `post.refusal.notYourListing`, :54); others `post.refusal.doorError` | — | unit: refusal-text.test.ts (ids not read); browser NONE | none |
+| 16 | Sign-in ends mid-way | — | posting-service.ts:56-57 turns "signed out" into the unreachable answer (status 401) | NONE | D16 |
+| 17 | Amharic; 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-*.spec.ts (12 files), photo-pipeline, a11y A11Y-2, admin-listings AL-20/21, my-listings-ad MLA-17. **360 px sideways:** only post-wizard-where.spec.ts:857 (step 6). The frame and step 1 have none.
+
+## Screen 7, step 1 — Category (step-category.tsx, 476 lines)
+
+The tree comes from the category store. Search calls `GET /api/catalog/find` (catalog-finder.ts:62); a failure becomes `failed` (catalog-finder.ts:105) and the list falls back to name matches.
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Why line `post.category.why` "The category decides which details buyers can search by." (en-member:302, am-member:293), :247 | — | — | — | none |
+| 2 | Used before `post.category.recentLabel` "Used before:" / "ከዚህ በፊት የተጠቀሙባቸው፦" (en-member:303, am-member:294); chips `post-category-recent` (:253-277); read `my_recent_categories` (posting-service.ts:656) | Picks a recent category | works | post-wizard-recent:56 | none |
+| 3 | Search, placeholder `post.category.searchPlaceholder` "e.g. phone" / "ለምሳሌ ስልክ" (en-member:304, am-member:295), :300-305 | Filters; hits show their match line | works | A11Y-2 a11y:82; choice-lists:325; photo-pipeline:1085 | none |
+| 4 | Searching `post.category.searching` (:372-375) / no hits `post.category.noHits` "Nothing matched. Try another word, or browse below." (en-member:306, am-member:297) | — | empty | PW-105 post-wizard-finder:168-172 | none |
+| 5 | Search failed → `post.category.nameMatchesOnly` "Showing name matches only." (en-member:608, am-member:583), :364-366 | Keeps name matches and says so | failed | PW-86 post-wizard-finder:138 | none |
+| 6 | Browse: folders, leaves, trail, `post.category.allRoots` "All categories" (en-member:625, am-member:599), :404-463 | Drills in; a leaf chooses | works | PW-52 post-wizard-category:248-258; PW-62 :408; PW-87 post-wizard-finder:190-204 | none |
+| 7 | Current choice and Keep it `post.category.keepIt` "Keep it" / "ይህንኑ ያቆዩ" (en-member:607, am-member:582), :324-334 | Returns to the chosen branch | works | PW-87 :218 | none |
+| 8 | Choose one `post.category.chooseOne` "Choose a category from the list." (en-member:605, am-member:580), :358-359 | Shown after Next with none chosen | invalid | PW-1 :212 | none |
+| 9 | Tree failed `post.category.treeError` "The categories could not be loaded." / "ምድቦቹ መጫን አልቻሉም።" (en-member:309, am-member:300), :229-234 | Says so | failed | NONE | D15 |
+| 10 | Door refusal `categoryNotPostable` → `post.refusal.categoryNotPostable` (refusal-text.ts:47) | Shown at Next | — | NONE (browser) | none |
+| 11 | AI assist | Not on this step (assist is `/api/listings/assist`, posting-service.ts:946; its steps not read yet) | — | — | — |
+| 12 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-category, post-wizard-finder, post-wizard-recent, a11y, choice-lists, photo-pipeline. **360 px sideways: none.**
+
+## Summary — area 2, part 1
+
+**NONE rows:**
+- Frame: 1, 2, 7, 8, 15 (browser), 16, 17.
+- Step 1: 9, 10, 12.
+
+**Defects:**
+- D15: wizard.tsx:860-861 and step-category.tsx:229-234. "This draft could not be opened." and "The categories could not be loaded." offer no Retry (law C4).
+- D16: posting-service.ts:56-57. A sign-in that ends mid-way is treated as an unreachable server (status 401), so the wizard shows "Not saved yet — we keep trying." (wizard.tsx:1106, :1391-1394) and never asks the person to sign in again. This is from reading; the retry loop was not traced through use-draft.ts.
+
+**Left for the next parts:**
+- Wizard steps 2 Photos (step-photos.tsx), 3 Specifications, 4 Price, 5 Details, 6 Place, 7 Contact, 8 Review and Publish. The AI assist and `publish_listing`'s refusals belong to these steps.
+- `my-listings`, `my-listings_.$listingId`, `my-listings_.$listingId_.edit`.
+- `account`, `account_.saved`, `account_.legal`, `account_.legal_.$versionId`.
