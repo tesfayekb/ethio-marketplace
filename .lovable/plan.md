@@ -502,7 +502,7 @@ Reads `my_listing`, `listing_history`, `listing_counts` (my-listing.ts:86-174). 
 | 5 | State actions (reserve, sold, close, reopen, renew, resume, delete) in the action bar (:467-575) | Doors of screen 8 | works | MLA-3, MLA-4 :424, MLA-5, MLA-6, MLA-7, MLA-9 :677, MLA-12 :826; FSL-3 | none |
 | 6 | Promote `myListings.action.promote` (:548-553) → promote-sheet.tsx: level and reach choices | `set_listing_level` / `set_listing_reach` | works; each refusal | LVP-1 :298, LVP-2 :354, LVP-5 :410; LDR-2 my-listings-levels:385 (door); promote-sheet.test.tsx | none |
 | 7 | Post similar (:562-567) | `copy_my_listing` → new draft | works; `notCopied` | MLA-14 :970; ML-13 doors:921; refusal NONE | D24 |
-| 8 | Share (row ⋯ / share sheet) | Share dialog | works | MLP-8; MLA-8? (not read) | none |
+| 8 | Share (row ⋯ / share sheet) | Share dialog | works | MLP-8 my-listings-page:837 | none |
 | 9 | Problem line `my-listing-problem` (:587); paused help `myListings.pausedHelp` (:615-616); in review `myListings.ad.waiting` (en-base:121) | Explains the state | works | MLA-11 :767 | none |
 | 10 | Visibility, dates, sold days (:621-659) | — | works | MLA-3; MLA-4 | none |
 | 11 | As buyers see it, identity failed + raw class (:667-671) | — | failed | NONE | D23 |
