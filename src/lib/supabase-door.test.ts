@@ -326,6 +326,32 @@ describe("the client's door (DEC-261)", () => {
     expect(state.imported).toBe(0);
   });
 
+  it("SBD-23 INC-1274 — a removal of the stored session reaches the shell's listener; any other storage event does not", async () => {
+    const { onStoredSessionRemoved } = await door();
+    expect(storageListeners).toHaveLength(1);
+    const removed = vi.fn();
+    const off = onStoredSessionRemoved(removed);
+    // The session key emptied by another tab: heard, and no download starts.
+    window.dispatchEvent(new StorageEvent("storage", { key: STORED, newValue: null }));
+    expect(removed).toHaveBeenCalledTimes(1);
+    expect(state.imported).toBe(0);
+    // Another key's removal, and a write of the session key, are not the session's removal.
+    window.dispatchEvent(new StorageEvent("storage", { key: "ethio:other", newValue: null }));
+    window.dispatchEvent(new StorageEvent("storage", { key: STORED, newValue: "{}" }));
+    expect(removed).toHaveBeenCalledTimes(1);
+    // A clear of the whole store names no key: heard when the store holds no session.
+    window.dispatchEvent(new StorageEvent("storage", { key: null, newValue: null }));
+    expect(removed).toHaveBeenCalledTimes(2);
+    // A clear while the store still holds the session is not its removal.
+    window.localStorage.setItem(STORED, "{}");
+    window.dispatchEvent(new StorageEvent("storage", { key: null, newValue: null }));
+    expect(removed).toHaveBeenCalledTimes(2);
+    off();
+    window.localStorage.removeItem(STORED);
+    window.dispatchEvent(new StorageEvent("storage", { key: STORED, newValue: null }));
+    expect(removed).toHaveBeenCalledTimes(2);
+  });
+
   it("SBD-18 DEC-268 — forgetting the stored session removes it and the two items beside it, and nothing else", async () => {
     for (const item of [STORED, `${STORED}-code-verifier`, `${STORED}-user`, "ethio:other"])
       window.localStorage.setItem(item, "{}");

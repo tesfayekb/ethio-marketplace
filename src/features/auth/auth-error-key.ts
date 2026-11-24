@@ -1,6 +1,8 @@
 import type { MessageKey } from "@/i18n";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
+import { reportUnauthorised, sessionGone } from "./session-end";
+
 import type { AuthResult } from "./types";
 
 /**
@@ -103,8 +105,12 @@ function heardOf(error: AuthErrorLike): unknown {
   return error;
 }
 
+/** INC-1274 — the words of a session that ended: the one verdict every ended session reads. */
+const SESSION_ENDED_KEY = "session.expired";
+
 /** Map a Supabase auth error onto a translation key, through the one reader. */
 export function toErrorKey(error: AuthErrorLike): MessageKey {
+  if (sessionGone(error)) return SESSION_ENDED_KEY;
   const read = readRefusal(heardOf(error), AUTH_REFUSALS);
   // A 429 whose words nothing above names is still a rate refusal.
   if (read.branch === "generic" && error.status === 429) return "auth.errorRateLimited";
@@ -113,6 +119,9 @@ export function toErrorKey(error: AuthErrorLike): MessageKey {
 
 /** An auth action's failure as the answer every action shares (the service's own import). */
 export function failure(error: AuthErrorLike): Extract<AuthResult, { ok: false }> {
+  // INC-1274: an error that says the session is gone is reported to the shell — the one cure for an
+  // ended session (session-end.ts) ends it on the page — and answers its own words.
+  if (sessionGone(error)) reportUnauthorised(error);
   return {
     ok: false,
     errorKey: toErrorKey(error),

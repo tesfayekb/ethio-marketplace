@@ -180,6 +180,24 @@ export function forgetStoredSession(): boolean {
   }
 }
 
+type RemovalListener = () => void;
+const removalListeners = new Set<RemovalListener>();
+
+/**
+ * INC-1274 (SBD-23) — HEARS A REMOVAL OF THE STORED SESSION. Another tab of the same browser that
+ * signs out, whose renewal was refused, or that clears the store removes this project's session key
+ * from the shared storage; this tab then holds a session the browser no longer has, and no auth event
+ * says so (the client's own channel carries only what the client itself announced). The removal
+ * reaches every OTHER tab as a `storage` event whose `newValue` is null: the listener is called then.
+ * What it hears decides nothing: the shell reads the session after it (INC-914).
+ */
+export function onStoredSessionRemoved(listener: RemovalListener): () => void {
+  removalListeners.add(listener);
+  return () => {
+    removalListeners.delete(listener);
+  };
+}
+
 /** The client's onAuthStateChange, without fetching the client for a signed-out visitor. */
 export function onAuthChange(listener: AuthListener): AuthSubscription {
   let cancelled = false;
@@ -338,7 +356,13 @@ if (typeof window !== "undefined") {
   if (hasStoredSession()) void getSupabase().catch(logLoadFailure);
   // A sign-in in another tab writes the key: the client arrives and reports it.
   window.addEventListener("storage", (event) => {
-    if (door.ready() !== null || event.newValue === null) return;
+    // A removal: the session key itself, or the whole store (a `clear()` names no key).
+    if (event.newValue === null) {
+      const own = event.key === null ? !hasStoredSession() : event.key === storedSessionKey();
+      if (own) for (const listener of [...removalListeners]) listener();
+      return;
+    }
+    if (door.ready() !== null) return;
     if (event.key === storedSessionKey()) void getSupabase().catch(logLoadFailure);
   });
 }

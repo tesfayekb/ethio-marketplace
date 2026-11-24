@@ -47,6 +47,7 @@ import { takeDeactivatedSignOut } from "@/features/auth/deactivated";
 import {
   endSession,
   onUnauthorised,
+  reportSessionMissing,
   sessionStarted,
   unauthorisedVerdict,
   type SessionEndEvent,
@@ -68,7 +69,7 @@ import type { MessageKey } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { errorText } from "@/lib/error-text";
-import { currentSession, getSupabase } from "@/lib/supabase-door";
+import { currentSession, getSupabase, onStoredSessionRemoved } from "@/lib/supabase-door";
 import { sendsToSignIn } from "@/lib/signed-in-pages";
 import { createHomeAhead, SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
@@ -786,6 +787,15 @@ export function AppShell({ children }: { children: ReactNode }) {
    * session still stored has its failed reads read again once.
    */
   const recoveredFor = useRef<string | null>(null);
+  /**
+   * INC-1274 — A STORE ANOTHER TAB EMPTIED ENDS THIS SESSION TOO. A removal of the stored session
+   * that no auth event announced (another tab's sign-out or refused renewal) is told to the same
+   * cure as a 401: the session read after it decides, and no session left is the end.
+   */
+  useEffect(() => {
+    if (user === null || signingOut) return;
+    return onStoredSessionRemoved(reportSessionMissing);
+  }, [user, signingOut]);
   useEffect(() => {
     if (user === null || signingOut) return;
     return onUnauthorised((code) => {

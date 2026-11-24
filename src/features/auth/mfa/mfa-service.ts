@@ -5,6 +5,8 @@ import { ownValue } from "@/lib/own-key";
 import { readRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
 import { currentSession } from "@/lib/supabase-door";
 
+import { reportUnauthorised, sessionGone } from "../session-end";
+
 /**
  * U1f-4 (INC-081) — A BEARER CLAIM IS NOT A STEP-UP.
  *
@@ -165,6 +167,16 @@ function refusalOf(reason: string): MfaFailure {
  * that happens to hold "code", INC-1275), else the message by the sentence, else the generic line.
  */
 function failure(error: ProviderError, family: RefusalFamily = MFA_REFUSALS): MfaFailure {
+  // INC-1274 — a call made with no session, or against one the server no longer knows, is the
+  // person's ended sign-in: reported to the shell (the one cure) and answered in its own words.
+  if (sessionGone(error)) {
+    reportUnauthorised(error);
+    return {
+      ok: false,
+      errorKey: "session.expired",
+      refusal: { field: CODE_FIELD, reason: "sessionEnded" },
+    };
+  }
   const read = readRefusal(error, family);
   const code = error?.code;
   const reason =
@@ -226,7 +238,7 @@ export function isStepUpRequiredError(error: unknown): boolean {
  */
 export async function getAal(): Promise<AalRead> {
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (error || !data) return refusalOf("unknown");
+  if (error || !data) return error ? failure(error) : refusalOf("unknown");
   return { ok: true, current: data.currentLevel, next: data.nextLevel };
 }
 
@@ -280,7 +292,7 @@ export async function listFactors(): Promise<
   { ok: true; factors: MfaFactor[]; pending: MfaFactor[] } | MfaFailure
 > {
   const { data, error } = await supabase.auth.mfa.listFactors();
-  if (error || !data) return refusalOf("unknown");
+  if (error || !data) return error ? failure(error) : refusalOf("unknown");
   return {
     ok: true,
     factors: (data.totp ?? []).map(factorOf),
@@ -301,7 +313,7 @@ export async function clearPendingFactors(): Promise<MfaOutcome> {
   if (!read.ok) return read;
   for (const factor of read.pending) {
     const { error } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
-    if (error) return refusalOf("clearFailed");
+    if (error) return sessionGone(error) ? failure(error) : refusalOf("clearFailed");
   }
   return { ok: true };
 }

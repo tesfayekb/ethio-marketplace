@@ -67,12 +67,50 @@ describe("the two-factor service's refusals (INC-1147 class 1)", () => {
       "mfa_factor_not_found",
       "mfa_ip_address_mismatch",
       "insufficient_aal",
-      "session_expired",
       "unexpected_failure",
     ]) {
       const answer = await verifyRefused({ message: "Something else happened", code });
       expect(answer.errorKey, code).toBe("mfa.errorGeneric");
       expect(answer.refusal, code).toEqual({ field: "code", reason: "unknown" });
+    }
+  });
+
+  it("MSV-10 a call made with no session, or against one the server no longer knows, says the sign-in ended and tells the shell (INC-1274)", async () => {
+    const { onUnauthorised } = await import("../session-end");
+    const heard: Array<string | null> = [];
+    const off = onUnauthorised((code) => heard.push(code));
+    const ended = {
+      ok: false,
+      errorKey: "session.expired",
+      refusal: { field: "code", reason: "sessionEnded" },
+    };
+    try {
+      for (const name of [
+        "AuthSessionMissingError",
+        "session_not_found",
+        "session_expired",
+        "refresh_token_not_found",
+      ] as const) {
+        auth.mfa.verify.mockResolvedValue({ data: null, error: providerError(name) });
+        expect(await service.verifyFactor("factor-1", "123456"), name).toEqual(ended);
+      }
+      auth.mfa.listFactors.mockResolvedValue({
+        data: null,
+        error: providerError("AuthSessionMissingError"),
+      });
+      expect(await service.listFactors()).toEqual(ended);
+      auth.mfa.unenroll.mockResolvedValue({ error: providerError("session_not_found") });
+      expect(await service.unenrollFactor("factor-1")).toEqual(ended);
+      expect(heard).toEqual([
+        "session_missing",
+        "session_not_found",
+        "session_expired",
+        "refresh_token_not_found",
+        "session_missing",
+        "session_not_found",
+      ]);
+    } finally {
+      off();
     }
   });
 

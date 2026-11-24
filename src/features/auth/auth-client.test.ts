@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { onUnauthorised } from "@/features/auth/session-end";
 import { errorText } from "@/lib/error-text";
 import { providerError, type ProviderErrorName } from "@/test/provider-errors";
 
@@ -433,6 +434,95 @@ describe("account security answers (cursor-bundle-5)", () => {
     }
   });
 
+  /**
+   * INC-1274 — an action whose sign-in has ended says so: each of the three ways the server and the
+   * library say it (src/test/provider-errors.ts), through every action that reads the session, answers
+   * `session.expired` and tells the shell once — never "Something went wrong".
+   */
+  async function expectEnded(name: ProviderErrorName, expectedCode: string) {
+    const gone = providerError(name);
+    const heard: Array<string | null> = [];
+    const off = onUnauthorised((code) => heard.push(code));
+    const ended = { ok: false, errorKey: "session.expired", emailNotConfirmed: false };
+    try {
+      // Change password: the browser's own proof asks for the user first.
+      signedInClient({ getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: gone }) });
+      expect(await service.changePassword("old-password-1", "new-password-1")).toMatchObject(ended);
+      // …and the change itself, the proof having passed.
+      const auth = signedInClient({
+        updateUser: vi.fn().mockResolvedValue({ data: { user: null }, error: gone }),
+      });
+      expect(await service.changePassword("old-password-1", "new-password-1")).toMatchObject(ended);
+      expect(auth.signOut).not.toHaveBeenCalled();
+      // Change e-mail.
+      signedInClient({
+        updateUser: vi.fn().mockResolvedValue({ data: { user: null }, error: gone }),
+      });
+      expect(await service.changeEmail("next@example.test")).toMatchObject(ended);
+      // Remove password: the proof asks for the user first.
+      signedInClient({ getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: gone }) });
+      expect(await service.removeOwnPassword("old-password-1")).toMatchObject(ended);
+      // Sign out the other devices.
+      signedInClient({ signOut: vi.fn().mockResolvedValue({ error: gone }) });
+      expect(await service.signOutOtherDevices()).toMatchObject(ended);
+      // The pending address and the linked sign-in methods.
+      signedInClient({ getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: gone }) });
+      expect(await service.pendingEmail()).toEqual(ended);
+      signedInClient({
+        getUserIdentities: vi.fn().mockResolvedValue({ data: null, error: gone }),
+      });
+      expect(await service.getIdentities()).toEqual(ended);
+      // The reset page's new password, its recovery session gone.
+      signedInClient({
+        updateUser: vi.fn().mockResolvedValue({ data: { user: null }, error: gone }),
+      });
+      expect(await service.completePasswordReset("new-password-1")).toMatchObject(ended);
+      expect(heard).toEqual(Array.from({ length: 8 }, () => expectedCode));
+    } finally {
+      off();
+    }
+  }
+
+  it("ACS-U8 an action made with no session in the store says the sign-in ended and tells the shell", async () => {
+    await expectEnded("AuthSessionMissingError", "session_missing");
+  });
+
+  it("ACS-U9 the server's session_not_found is the same end", async () => {
+    await expectEnded("session_not_found", "session_not_found");
+  });
+
+  it("ACS-U10 a renewal the server refused is the same end", async () => {
+    await expectEnded("refresh_token_not_found", "refresh_token_not_found");
+  });
+
+  it("ACS-U11 a user missing behind a session the shell still holds is the same end, and a failed read is not", async () => {
+    const heard: Array<string | null> = [];
+    const off = onUnauthorised((code) => heard.push(code));
+    try {
+      signedInClient({ getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }) });
+      expect(await service.changePassword("old-password-1", "new-password-1")).toEqual({
+        ok: false,
+        errorKey: "session.expired",
+      });
+      expect(heard).toEqual(["session_missing"]);
+      // A read that did not reach the server proves nothing about the session (INC-914).
+      heard.length = 0;
+      signedInClient({
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: null },
+          error: { name: "AuthRetryableFetchError", message: "Failed to fetch", status: 0 },
+        }),
+      });
+      expect(await service.changePassword("old-password-1", "new-password-1")).toMatchObject({
+        ok: false,
+        errorKey: "auth.errorGeneric",
+      });
+      expect(heard).toEqual([]);
+    } finally {
+      off();
+    }
+  });
+
   it("ACS-U4 the pending address is the server's record: an address, none, or a typed failure", async () => {
     const auth = signedInClient();
     auth.getUser.mockResolvedValueOnce({
@@ -445,6 +535,10 @@ describe("account security answers (cursor-bundle-5)", () => {
       data: { user: null },
       error: { message: "Failed to fetch", status: 0 },
     });
-    expect(await service.pendingEmail()).toEqual({ ok: false, errorKey: "auth.errorGeneric" });
+    expect(await service.pendingEmail()).toEqual({
+      ok: false,
+      errorKey: "auth.errorGeneric",
+      emailNotConfirmed: false,
+    });
   });
 });

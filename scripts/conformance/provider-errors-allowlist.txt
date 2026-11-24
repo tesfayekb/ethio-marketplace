@@ -4,13 +4,14 @@ src/features/ad-page/report.test.ts:60 | an outage text: the failure reads as th
 src/features/admin-categories/category-images-service.test.ts:60 | an outage text: the failure reads as the generic word and no reader draws its words ("list down") | INC-1278
 src/features/admin-categories/category-images-service.test.ts:67 | an outage text: the failure reads as the generic word and no reader draws its words ("remove down") | INC-1278
 src/features/admin-listings/tier-dialog.test.tsx:189 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("permission denied") | INC-1278
-src/features/auth/auth-client.test.ts:241 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
-src/features/auth/auth-client.test.ts:403 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
-src/features/auth/auth-client.test.ts:446 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
-src/features/auth/mfa/mfa-service.test.ts:136 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
-src/features/auth/mfa/mfa-service.test.ts:186 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
-src/features/auth/mfa/mfa-service.test.ts:231 | an outage text: the failure reads as the generic word and no reader draws its words ("gone wrong") | INC-1278
-src/features/auth/mfa/mfa-service.test.ts:242 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/features/auth/auth-client.test.ts:242 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
+src/features/auth/auth-client.test.ts:404 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
+src/features/auth/auth-client.test.ts:513 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
+src/features/auth/auth-client.test.ts:536 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:174 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:224 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:269 | an outage text: the failure reads as the generic word and no reader draws its words ("gone wrong") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:280 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
 src/features/levels/levels-store.test.ts:166 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("permission denied") | INC-1278
 src/features/my-listings/my-listing-edit.test.ts:201 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("unavailable") | INC-1278
 src/features/my-listings/promote-sheet.test.tsx:171 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("account is deactivated") | INC-1278

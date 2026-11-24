@@ -168,6 +168,12 @@ export const PROVIDER_ERRORS = {
     status: 400,
     source: `${AUTH}internal/tokens/service.go:234`,
   },
+  session_expired: {
+    code: "session_expired",
+    message: "Session is no longer valid",
+    status: 403,
+    source: `${AUTH}internal/api/middleware.go:223`,
+  },
   refresh_token_not_found: {
     code: "refresh_token_not_found",
     message: "Invalid Refresh Token: Refresh Token Not Found",
