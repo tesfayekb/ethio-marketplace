@@ -527,7 +527,58 @@ It is the posting wizard in edit mode (route comment :8-11; `requireSignedIn` :2
 
 **360 px sideways: none.**
 
-## Summary — area 2 (the wizard and My listings)
+## Screen 11 — Account: `src/routes/account.tsx` (30 lines, `requireSignedIn` :10) → account-overview.tsx (276 lines)
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Loading `common.loading` / failed `account.overview.loadError` "Your account overview couldn't be loaded." (en-member:55, am-member:56), :130-134 | Says so | failed | NONE | D26 (no Retry) |
+| 2 | Profile: alias, seller type, business, member since, home country, full name, channels (:138-194); `account.overview.notSet` | Shows the profile | works | layout / press specs (account-profile-name); PW bundle2 | none |
+| 3 | Edit profile `account.overview.editProfile` (:216) | Opens the edit | works | NONE | none |
+| 4 | Listings counts `account-listings-counts` (:219-237); none `account.overview.noListings`; Open `account-open-listings` | → /my-listings | works; empty | MLP-4 my-listings-page:450 | none |
+| 5 | Saved and notifications cards; empty `account.overview.nothingSaved` / `noNotifications` (:242-249) | — | empty | NONE | none |
+| 6 | Legal card, Open `account.legal.open` "Open" (en-member:144), :252-256 | → /account/legal | works | LGH-1 legal-history:122 | none |
+| 7 | Quick actions `nav.postListing`, `nav.signInSecurity` (:260-266) | Links | works | NONE | none |
+| 8 | Seller review notice (`SellerReviewNotice`, :24-25) | Shows the review state | works | NONE (browser) | none |
+| 9 | Amharic; 360 / 768 / 1280 | — | — | NONE | none |
+
+## Screen 12 — Saved: `src/routes/account_.saved.tsx` (29 lines, `requireSignedIn` :9) → saved-page.tsx (155 lines)
+
+Reads `mySaved`; Remove calls `unsaveListing` (ad-page/save.ts). The door is `unsave_listing` (migration 20261117040400). It refuses through `door_context('owner', …, 'save')` codes (`ownListing`, `rateLimited`, header :6-10).
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Loading / failed `account.saved.failed` "Your saved ads could not be loaded — try again." (en-member:80, am-member:81), :88-93 | Says so | failed | NONE | D26 (no Retry) |
+| 2 | Empty `account.saved.empty` (en-member:76), :96-97 | — | empty | SAVED-2 account-saved:97 | none |
+| 3 | Saved card (`saved-item`, :104), opens the ad; sold ribbon | — | works | SAVED-1 :20 | none |
+| 4 | Gone ad: `account.saved.unavailable` "No longer available" (en-member:77), :118-121 | Shows the card without a link | gone | SAVED-1 | none |
+| 5 | Remove `account.saved.remove` "Remove" (en-member:78), :129-133 | Unsaves and drops the card (:55-70) | works; refused; no public id (:51-53) | SAVED-1 (works); refused NONE | D27 |
+| 6 | Show more `account.saved.more` (en-member:79), :146-150 | Next page | works | NONE | none |
+| 7 | Signed out: sign-in return | — | signed out | SAVED-1 | none |
+| 8 | Amharic; 360 / 768 | — | — | NONE | none |
+
+## Screen 13 — My legal documents: `src/routes/account_.legal.tsx` (29 lines) → my-legal-page.tsx (130 lines)
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Loading / failed `myLegal.loadError` "Your legal documents could not be loaded." (en-member:656, am-member:630), :46-51 | Says so | failed | NONE | D26 (no Retry) |
+| 2 | Acceptances, with meta `myLegal.acceptedMeta`, adult line, consent (:54-86); none `myLegal.noAcceptances` | — | works; empty | LGH-1 :122; LGH-3 :187 | none |
+| 3 | Open a version `myLegal.open` (:35-36) | → version | works | LGH-1 | none |
+| 4 | Notices `myLegal.notices` / none `myLegal.noNotices` (:95-114) | — | works; empty | LGH-1; LGH-3 | none |
+| 5 | Amharic; 360 / 768 | — | — | NONE | none |
+
+## Screen 14 — one version: `src/routes/account_.legal_.$versionId.tsx` (34 lines) → my-legal-version.tsx (74 lines)
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Back `myLegal.back` (:25-26) | → list | works | LGH-2 legal-history:160 | none |
+| 2 | Not his / bad id: `myLegal.notFound` "This document is not available." (en-member:655), :38-39 | — | not his | LGH-2 | D28 |
+| 3 | Failed `myLegal.loadError` (:41-43) | — | failed | NONE | D26 (no Retry) |
+| 4 | Text with version and frozen facts; fallback note `legal.fallbackNote` (:53-59) | Shows in the site's language | works | LGH-2 | none |
+| 5 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests (11–14):** account-saved (SAVED-1, SAVED-2), legal-history (LGH-1…3), my-listings-page MLP-4, layout, press. **360 px sideways: none for 11–14.**
+
+## Summary — area 2 (closed)
 
 **NONE rows:**
 - Frame: 1, 2, 7, 8, 15 (browser), 16, 17.
@@ -542,6 +593,9 @@ It is the posting wizard in edit mode (route comment :8-11; `requireSignedIn` :2
 - My listings (8): 4 (empty), 5, 9 (most codes on screen), 10, 11 (Amharic).
 - One ad (9): 2 (load error), 7 (refusal), 11, 13.
 - Edit (10): 3 (screen).
+- Account (11): 1, 3, 5, 7, 8, 9.
+- Saved (12): 1, 5 (refused), 6, 8.
+- Legal (13): 1, 5. Version (14): 3, 5.
 
 **Defects:**
 - D15: wizard.tsx:860-861 and step-category.tsx:229-234. "This draft could not be opened." and "The categories could not be loaded." offer no Retry (law C4).
@@ -557,7 +611,49 @@ It is the posting wizard in edit mode (route comment :8-11; `requireSignedIn` :2
 
 - D23: my-listings-page.tsx:746 and my-listing-page.tsx:671 show the raw failure class and status to the seller. Same kind as D9 and D20.
 - D24: `badValue` (mark_sold / set_listing_reserved / transition_listing, migrations 20261115203600:89, 20261118012600:78) and `notCopied` (20261115203800:93) have no line in SELLER_DOOR_REFUSALS (my-listing.ts:268-288). They show "That did not work. Try again." (en-base:144).
-- D25: `edit_my_listing`'s `notEditable`, `draftNotEdited`, `renewFirst`, `listingNotEditable`, `badShape` and `streetTooLong` (migration 20261115204100:78-134) have no seller words in my-listing.ts:268-288. Which family the edit screen reads them through was not traced; it is to confirm.
+- D25 (confirmed): the edit saves through my-listing.ts:686-688. That reads a raised refusal with `actionErrorKey` (:292-293), which reads `SELLER_DOOR_REFUSALS` (:266-288). So `notEditable`, `draftNotEdited`, `renewFirst`, `listingNotEditable`, `badShape`, `streetTooLong`, `contactInNote` and `directionsTooLong` (migration 20261115204100:78-142) all show "That did not work. Try again." (en-base:144).
+
+- D26: the account overview (account-overview.tsx:131-134), Saved (saved-page.tsx:90-93), My legal (my-legal-page.tsx:48-51) and the version (my-legal-version.tsx:41-43) say a read failed but offer no Retry. Same kind as D18.
+- D27: a failed or refused Remove on Saved (saved-page.tsx:51-58) shows the page's load words, "Your saved ads could not be loaded — try again." (:135-137, en-member:80). The door's code (`rateLimited` etc.) is dropped, so it never reaches the refusal reader.
+- D28: my-legal-version.tsx:38 tells "not found" from failure by comparing the raw database message "invalid input syntax for type uuid". It should use a typed code.
+
+Area 2 is closed: every member screen listed for it is in the census (settings excepted, Cursor's).
+
+# AREA 3 — admin consoles (27 `admin*` route files)
+
+## Screen A1 — admin shell: `src/routes/admin.tsx` (118 lines)
+
+Gate (`AdminGate`, :37-83):
+- It reads `usePermissions` (permissions/usePermissions.ts:64-67).
+- Signed out, or without `admin_panel:access` (`ADMIN_PANEL_PERMISSION`, permissions/service.ts:21), it replaces the page with `SIGN_OUT_LANDING` = "/" (sign-out-landing.ts:20). That is admin.tsx:55-58.
+- A section without its permission (`sectionAt`, sections.ts) sets `accessDenied` and replaces the page with /admin (:60-62).
+- While anything is pending it draws `admin.loading` "Checking your access…" (en-admin:2175, am-admin:2038), :66-76.
+
+Rail sections and their permissions (sections.ts): Locations `/admin/locations` (:46); All listings `listings:view` (:68-69); Screening `listings:review` (:76-77); Monetisation `packages:view` (:88-89); Users `profiles:view` (:96-97); Roles `roles:view` (:103-104); Audit `audit_logs:view` (:110-111); Places `locations:view` (:117-118); Countries `countries:view` (:125-126); Categories / Attributes / Images `categories:view` (:133-150); Translations `translations:view` (:157-158); Legal `legal:view` with alert `legalReview` (:164-168); AI `services:view` (:172-173). Alerts are read by `useNavAlerts` (sections' `alert`).
+
+| # | Control / event | Permission (file:line) | Without it, the staff member sees | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Enter /admin | `admin_panel:access` (admin.tsx:47) | Sent to "/" (:56); regular user | works; refused | A-6 admin-shell:90; A-8 :274 | none |
+| 2 | Deep link to a section | that section's permission (:48) | Sent to /admin with `admin.accessDenied` "You don't have access to that section." (en-admin:65, am-admin:64) | refused | A-7 :193 | none |
+| 3 | Permission read fails | — | `usePermissions` error (:67) is not read by the gate (:40-47). Empty permissions count as "not allowed", so the person is sent to "/" as if refused | failed | NONE | D29 |
+| 4 | Rail items and groups (Categories group with sub-items) | per section | Item not drawn | works | A-5 :295; IN-1 :414 | none |
+| 5 | Admin tab from the marketplace | `admin_panel:access` | Tab hidden | works | A-4 :255 | none |
+| 6 | Menu alert (`legalReview`) | `legal:view` | Not drawn | works | NONE (browser) | none |
+| 7 | Amharic; 360 / 768 / 1280 | — | — | — | i18n-coverage (strings only); widths NONE | none |
+
+## Screen A2 — dashboard: `src/routes/admin.index.tsx` (73 lines)
+
+| # | Control / event | Permission | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Title `admin.landing.title`, body `admin.landing.body` (:43, :64) | `admin_panel:access` (gate) | not reached | works | A-6 | none |
+| 2 | Access notice `admin-access-notice` (:45-53) | — | shown after a refused section | refused | A-7 | none |
+| 3 | Section cards `admin-section-link-<id>` (admin-nav.tsx:24-30), filtered by permission (`useAdminSections`) | each section's | card not drawn | works | A-6; A-7 | none |
+| 4 | No sections `admin.noSections.title` / `body` (:56-61) | — | panel access with no section | empty | NONE | none |
+| 5 | Amharic; 360 / 768 | — | — | — | NONE | none |
+
+**360 px sideways (A1–A2): none.**
 
 **Left for the next parts:**
-- `account`, `account_.saved`, `account_.legal`, `account_.legal_.$versionId`.
+- `admin.users`, `admin.users_.$userId`.
+- `admin.listings`, `admin.listings_.$listingId`, `admin.listings_.$listingId_.edit`.
+- The other 20 `admin*` route files.
