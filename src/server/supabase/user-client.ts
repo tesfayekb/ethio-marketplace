@@ -135,29 +135,47 @@ export async function userClientFromRequest(request: Request): Promise<UserClien
 }
 
 /**
- * Foundations turn 11 (DEC-237) — THE ONE STAFF CHECK. `has_permission` is the
- * function every gated RPC calls; it is asked AS THE CALLER, so a route checks
- * exactly what its door checks — no stricter, no weaker. A permission is
- * "resource:action"; any other form throws (a coding error, never a pass). An
- * rpc error throws: the caller's boundary answers it, never as a refusal (F4).
+ * DEC-465 — THE FOUR ANSWERS A STAFF ROUTE CAN GET. `denied`: the caller does not hold the
+ * permission; `allowed`: it holds it and its session used its second factor (or the permission
+ * is a member's); `stepUp`: it holds it, the session has not used the factor it has;
+ * `stepUpNoFactor`: it holds it and has no verified factor. A door answers the same three ways
+ * from the same core and rule (`door_context`); the route never rebuilds the kind itself.
+ */
+export type PermissionAnswer = "denied" | "allowed" | "stepUp" | "stepUpNoFactor";
+
+const PERMISSION_ANSWERS: readonly PermissionAnswer[] = [
+  "denied",
+  "allowed",
+  "stepUp",
+  "stepUpNoFactor",
+];
+
+/**
+ * Foundations turn 11 (DEC-237) → DEC-465 — THE ONE STAFF CHECK. `my_permission_answer` is the
+ * function the route asks: the same core and the same staff-session rule as every door
+ * (`door_context`), asked AS THE CALLER (its own `auth.uid()`), so a route checks exactly what
+ * its door checks — no stricter, no weaker — and gets the same three answers. A permission is
+ * "resource:action"; any other form throws (a coding error, never a pass). An rpc error — or an
+ * answer that is none of the four words — throws: the caller's boundary answers it, never as a
+ * refusal (F4).
  */
 export async function callerHasPermission(
   supabase: SupabaseClient<Database>,
-  userId: string,
   permission: string,
-): Promise<boolean> {
+): Promise<PermissionAnswer> {
   const parts = permission.split(":");
   if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
     throw new Error(`malformed permission ${permission}`);
   }
   const [resource, action] = parts;
-  const { data, error } = await supabase.rpc("has_permission", {
-    p_user_id: userId,
+  const { data, error } = await supabase.rpc("my_permission_answer", {
     p_resource: resource,
     p_action: action,
   });
   if (error) throw error;
-  return data === true;
+  const answer = PERMISSION_ANSWERS.find((word) => word === data);
+  if (answer === undefined) throw new Error("my_permission_answer answered no known word");
+  return answer;
 }
 
 /* ------------------------- the route's shared shapes ---------------------- */

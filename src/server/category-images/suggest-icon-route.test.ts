@@ -14,7 +14,7 @@ const asked = { count: 0 };
 vi.mock("@/server/supabase/user-client", () => ({
   userClientFromRequest: async () => ({ supabase: {}, userId: "staff-1" }),
   refuseUserClient: () => null,
-  callerHasPermission: async () => true,
+  callerHasPermission: async () => "allowed",
   logRouteError: () => undefined,
   routeJson: (body: unknown, status: number) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }),

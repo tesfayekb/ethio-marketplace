@@ -73,8 +73,8 @@ vi.mock("@/server/supabase/user-client", async (original) => {
       reason: null,
       message: "",
     }),
-    callerHasPermission: async (_client: unknown, _user: string, permission: string) =>
-      state.permissions.has(permission),
+    callerHasPermission: async (_client: unknown, permission: string) =>
+      state.permissions.has(permission) ? "allowed" : "denied",
     logRouteError: (_path: string, error: unknown) => {
       state.logs.push(errorText(error));
     },

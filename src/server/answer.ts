@@ -136,9 +136,20 @@ export function providerRefusal(status: number, extra?: Record<string, string | 
   return refused("modelCallFailed", 502, extra);
 }
 
-/** Foundations turn 12 — the step-up answer every staff door gives (428, P0009). */
-export function stepUpRequired(): Response {
-  return routeJson({ error: "step-up required", code: "P0009" }, 428);
+/**
+ * Foundations turn 12 — the step-up answer every staff door gives (428, P0009). DEC-465: a staff
+ * route answers the same, carrying the sentence the door raises for the same case — `noFactor`
+ * for an account with no verified factor (`step-up required: no verified factor`), otherwise
+ * `step-up required`.
+ */
+export function stepUpRequired(noFactor = false): Response {
+  return routeJson(
+    {
+      error: noFactor ? "step-up required: no verified factor" : "step-up required",
+      code: "P0009",
+    },
+    428,
+  );
 }
 
 /**

@@ -48,13 +48,18 @@ export function exportFindings(file: string, text: string): Finding[] {
   return [];
 }
 
-/** IMD-3 — has_permission through .rpc( outside the one staff check. */
+/**
+ * IMD-3 — has_permission, or (DEC-465) my_permission_answer, the function the one staff check asks,
+ * through .rpc( outside the one staff check.
+ */
 export function permissionFindings(file: string, text: string): Finding[] {
   if (file === HOME) return [];
   const code = codeOf(text);
   const findings: Finding[] = [];
-  for (const match of code.matchAll(/\.rpc\s*\(\s*["'`]has_permission["'`]/g))
-    findings.push({ file, line: lineOf(code, match.index ?? 0), what: "calls has_permission" });
+  for (const match of code.matchAll(
+    /\.rpc\s*\(\s*["'`](has_permission|my_permission_answer)["'`]/g,
+  ))
+    findings.push({ file, line: lineOf(code, match.index ?? 0), what: `calls ${match[1]}` });
   return findings;
 }
 
@@ -173,7 +178,7 @@ describe("the staff file doors", () => {
     expect(report(exports.flatMap((file) => exportFindings(file, read(file))))).toBe("");
   });
 
-  it("IMD-3 has_permission is asked through callerHasPermission (or an allowlisted caller)", () => {
+  it("IMD-3 the permission is asked through callerHasPermission (or an allowlisted caller)", () => {
     const findings = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true }).flatMap((file) =>
       permissionFindings(file, read(file)),
     );
@@ -183,7 +188,7 @@ describe("the staff file doors", () => {
     );
     expect(report(findings.filter((finding) => !allowed.has(finding.file)))).toBe("");
     expect(permissionFindings(HOME, read(HOME))).toEqual([]);
-    expect(read(HOME)).toMatch(/rpc\("has_permission"/);
+    expect(read(HOME)).toMatch(/rpc\("my_permission_answer"/);
   });
 
   it("IMD-4 a planted hand-written import route is reported", () => {
@@ -204,6 +209,9 @@ describe("the staff file doors", () => {
     expect(
       permissionFindings("planted.ts", 'await supabase.rpc(\n  "has_permission", {});'),
     ).toEqual([{ file: "planted.ts", line: 1, what: "calls has_permission" }]);
+    expect(
+      permissionFindings("planted.ts", 'await supabase.rpc("my_permission_answer", {});'),
+    ).toEqual([{ file: "planted.ts", line: 1, what: "calls my_permission_answer" }]);
     expect(exportFindings("planted/export.ts", "createFileRoute(PATH)")).toHaveLength(1);
   });
 
