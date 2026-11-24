@@ -1,4 +1,4 @@
-# Bundle 9 — area 1 census (public screens), parts 1 and 2
+# Bundle 9 — area 1 census (public screens), parts 1–3
 
 Base `1bbfc7dad` (HEAD verified with `git rev-parse`). No file changed except this plan. Projects in `playwright.config.ts:66-124`: mobile-360, desktop-1280, email-serial (360), webkit-1280, webkit-390. **No project runs at 768 px.** A 768 case exists only where a test resizes the window itself.
 
@@ -48,7 +48,7 @@ Server refusals for `/api/feed`: shape errors 400 `badCategory|badPlace|badSize|
 
 **Could not read in this turn:** the Guide's controls (`page-guide.tsx`); the ids in `src/routes/api/feed.test.ts`; whether `smoke-auth-i18n.spec.ts` runs this screen in Amharic.
 
-Part 2 below covers screens 2 to 5. The shell is left (see the end).
+Part 2 below covers screens 2 to 5; part 3 covers screen 6, the shell.
 
 ---
 
@@ -161,6 +161,89 @@ They share their parts: all three render `LegalDocumentPage` (legal.$kind.tsx:3,
 
 **Could not read in this turn:** the Guide controls on the feed and the ad page (page-guide.tsx); the ids in api/feed.test.ts; whether AP-29 reaches each report refusal on screen; the role of `pageHead`'s fifth argument.
 
-**Screen left for the next plan:** the shell (`src/components/app-shell.tsx`, 1,200 lines). Its parts at :973-1193: AppHeader (search, language, theme, sign-in), the rail toggle (:1088), AppRail and its categories, SearchRow, PanelTabs, Breadcrumbs, LocationSelector, PlaceNotice, the session idle warning and notice (:997-1034), BottomBar, OnDemandNotice and AppFooter. It is too large to list together with screens 1-4 in this plan.
 
-Note: this request also asked for a line in roadmap.md. Plan mode allows writing only this plan, so roadmap.md is unchanged.
+---
+
+## Screen 6 — the shell on public pages: `src/components/app-shell.tsx` (1,200 lines)
+
+Parts drawn at app-shell.tsx:973-1193: LegalGate (:988, signed in), session warning and notice (:997-1034), band with the rail toggle (:1088) and logo (:1096), AppHeader (:1116), AppRail (:1121), SearchRow (:1143), PanelTabs (:1144), Breadcrumbs (:1150), LocationSelector (:1164), PlaceNotice (:1166), BottomBar (:1186), OnDemandNotice (:1188), AppFooter (:1193). Test widths: the projects run 360 (mobile-360) and 1280 (desktop-1280). The only 768 runs are shell.spec.ts:891 (`test.use` 768 × 1024: :893 "tablets get the persistent rail and the FULL controls", :930 top bar band, :963 theme toggle), shell.spec.ts:1738 (panel tabs and page width), and press.spec.ts:382/:414 (PS-7, PS-9 panel tabs).
+
+### 6a Header — src/components/shell/app-header.tsx (286 lines), language-switcher.tsx, theme-toggle.tsx (33 lines)
+
+| # | Control or event | What it must do | Cases | Test today (360 / 1280 / 768) | Defect |
+|---|---|---|---|---|---|
+| 1 | Inline search `shell.searchLabel` / `shell.searchPlaceholder` "Search listings" / "ማስታወቂያዎችን ይፈልጉ" (en-base:343-344, am-base:321-322); app-header.tsx:162-178, from md | Search listings | typing; Enter | 1280: sage-shell:89, shell.spec:914 (present only) / 360: hidden / 768: :893 | D10 |
+| 2 | Phone search toggle `search-toggle` (aria `shell.searchLabel`), :195-203; row `search-row`, close `shell.searchClose` "Close search" / "ፍለጋን ዝጋ" (en:346, am:324), Escape (:64-66) | Opens and closes the search row | open, close, Escape | 360: SR-1 shell.spec:1460; sage-shell:107 / 768: NONE | D10 |
+| 3 | Language switch `language.label` "Language" / "ቋንቋ" (en:27, am:25), language-switcher.tsx:53; options `language-option-<code>` (:95) | Switches the page's language | works; Amharic | smoke-auth-i18n:78; choice-lists:348; one-line-slots-admin:32 (360) / 768: :893 (FULL label) | none |
+| 4 | Theme `shell.themeToggle` "Switch light or dark theme" / "ብሩህ ወይም ጨለማ ገጽታ ቀይር" (en:347, am:325), theme-toggle.tsx:20-21 | Flips light/dark | works | FS-16 feed-screens:568 (1280/360); 768: shell.spec:963 | none |
+| 5 | Sign in `auth.signIn` "Sign in" / "ይግቡ" (en:49, am:45), app-header.tsx:273-278, from md only; hidden while the session is unknown (:272) | Goes to `/auth` | signed out | no test id on the link; reached through the bottom bar on phones (row 6e-3); 1280 / 768: NONE | D11 |
+| 6 | Account menu `shell.accountMenu` "Account menu" / "የአካውንት ዝርዝር" (en:345, am:323), :218-270: identity, Profile `nav.profile` → /account, Settings `settings.navLabel` → /settings, Sign out `auth.signOut` "Sign out" / "ይውጡ" (en:84, am:77) | Opens the menu; signs out | signed in | SO-3 auth-signout:113; shell.spec:1301; AU-3 admin-users:220; 768: NONE | none |
+
+### 6b Rail toggle, left rail and categories — app-rail.tsx (1,183 lines), favourite-category.ts
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Rail toggle `shell.collapseRail` / `shell.expandRail` "Collapse sidebar" / "Expand sidebar" (en:372-373, am:350-351), app-shell.tsx:1086-1095, from md; phone menu (app-header.tsx:130) | Collapses or expands the rail; opens the phone menu | works | IN-1 admin-shell:454; phone-frame:110; shell-bands:22; 768: shell.spec:893 | none |
+| 2 | Categories `shell.categoriesLabel` "Categories" / "ምድቦች" (en:352, am:330): rows, submenu trigger, back `shell.mainMenu` "Main Menu" / "ዋና ዝርዝር" (en:336, am:314), app-rail.tsx:333-361, :494, :635 | Drills in and out; a row goes to `/c/$slug` | works | shell.spec:745 (submenus), RM-1 :1266, :1049 strip; press.spec:198 (360); i18n-coverage:279 (Amharic) | none |
+| 3 | Favourite category row (app-rail.tsx:666) | Leads the list | works | FV-1 shell.spec:4054 | none |
+| 4 | Loading skeleton (:680) / empty `shell.categoriesEmpty` "No categories yet" / "እስካሁን ምድብ የለም" (en:353, am:331), :711-713 | — | empty | NONE | D12 |
+| 5 | Tree read failed: `common.error` "Something went wrong" / "የሆነ ስህተት ተከስቷል" (en:34, am:32), :725-728 | Says it failed | failure | NONE (no test id) | D12 |
+| 6 | Rail sign-out `rail-sign-out` / `strip-sign-out` `auth.signOut` (:942-959) | Signs out | signed in | SO-4 auth-signout:146; shell.spec:884 (absent signed out) | none |
+
+### 6c Search row, panel tabs, breadcrumbs, location row and its notice
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Panel tabs `shell.panelLabel` "Section" / "ክፍል" (en:350, am:328), panel-tabs.tsx:45-70 | Switches the panel; the tab is current before the page lands | works; 360/768/1280 | shell.spec:1712 (360/768/1280, sideways :1731-:1745); PS-7/PS-9 press:375-418 (768); shell-bands:59 | none |
+| 2 | Breadcrumbs `shell.breadcrumbLabel` "Breadcrumb", Home `nav.home` "Home" / "መነሻ" (en:32, am:30); breadcrumbs.tsx:141-279 (home, ad, auth, account, admin crumbs) | Home link; the current page cut to one line | works | AP-9 ad-page:106; A-6 admin-shell:126; BND-E2 shell-bands:90 (360); 768: NONE | none |
+| 3 | Location row `location.rowLabel` "Showing listings in" / "ማስታወቂያዎች በ" (en:365, am:343); levels, `location.anyArea` "Any area" (en:358, am:336); location-selector.tsx:249-292 | Chooses the place; the feed follows | works; 320/360/1280 | shell.spec:2719 (360 + 320, sideways :2750, :2802); shell-bands:63; FS-11 | none |
+| 4 | Location read failed `location.readFailed` "Areas could not be loaded — try again shortly" (en:364, am:342), :280-286; empty `location.empty` (en:363, am:341) | Says so | failure; empty | NONE | D13 |
+| 5 | Place notice `location.noticeAsk` "Show listings in {place}?" with Switch / Keep `location.noticeSwitch` / `noticeKeep` (en:367-369, am:345-347), location-selector.tsx:343-364 | Switches to the guessed place or keeps the current one | works; Amharic | shell.spec:3094-3126; i18n-coverage:358-362 | none |
+
+### 6d Session idle warning and notice — app-shell.tsx:997-1034
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Warning `session.idleWarning` "You'll be signed out for inactivity in {s}s" (en:438, am:414); `session.staySignedIn` "Stay signed in" / "ገብቼ ልቆይ" (en:439, am:415) | Extends the session | works | SP-1 auth-signout:411; SP-2 :425 | none |
+| 2 | Notice (`t(sessionNotice)`, :1022-1042); `common.dismiss` "Dismiss" / "ዝጋ" (en:437, am:413) | Says why the session ended; Dismiss closes it | ended | SP-1 :416 (shown); Dismiss NONE | none |
+
+### 6e Bottom bar, on-demand notice, footer
+
+| # | Control or event | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Bottom bar (`shell.panelLabel`), bottom-bar.tsx:106-173; phones only | Home, My listing `panel.myListingsShort` (en:294, am:272), Post → /post, Account / Sign in, Admin | 360 | auth-signout:566; shell.spec:1583 (signed out); PW-15 post-wizard-category:1196 | none |
+| 2 | Bottom Sign in → `/auth` (:160-161) | — | signed out | press.spec:358 (360); shell.spec:1303 | D11 |
+| 3 | On-demand notice `common.loadFailed` with Refresh `common.refreshPage` "Refresh page" / "ገጹን ያድሱ" (en:39-41, am:37-38) and Close `common.close`; on-demand-notice.tsx:37-60 | A failed piece offers Refresh; Close hides it | failure | on-demand-failure.spec:27-38; SBE-6 supabase-door:207 | none |
+| 4 | Footer: Terms `footer.terms` → /terms, Privacy `footer.privacy` → /privacy (app-footer.tsx:9-11); About `footer.about`, Contact, Safety drawn as text (:82); copyright `footer.rights` (:94) | Links to the two pages | works | LGP-1 legal-pages:126-130; FT-1 shell.spec:578; FTE-E1 shell-bands:167; About/Contact/Safety NONE | D14 |
+
+**Sideways scrolling or clipped controls:**
+- Checked: panel tabs (shell.spec:1731-:1745 at 360/768/1280); location row (shell.spec:2750, :2802 at 360 and 320); the ad page's frame (AP-36, OVW-1).
+- No test checks them: the header (search, language, theme, sign-in, account menu); the rail and its categories; the search row; breadcrumbs outside the ad page; the place notice; the session warning and notice; the bottom bar; the on-demand notice; the footer.
+
+## Summary — area 1 as a whole
+
+**NONE rows by screen:**
+- Feed (1): 7 (browser), 8, 10, 11, 12 (screen), 14 (shown), 19, 21, 22; 768 except the page width.
+- Ad page (2): 5, 8 (screen), 9, 11, 12 (failure), 17 (maps app/web/cancel), 19 (failed counts), 20 (review notice), 23.
+- Seller page (3): 4-6 (browser), 7, 8.
+- Legal / privacy / terms (4): 5, 6, 7.
+- Accept / publishing (5): 3, 5, 6, 8 (accept), 10, 11.
+- Shell (6): 6a-1 (search results), 6a-2 at 768, 6a-5, 6a-6 at 768; 6b-4, 6b-5; 6c-2 at 768, 6c-4; 6d-2 (Dismiss); 6e-4 (About, Contact, Safety).
+
+**Defects:**
+- D1 use-feed.ts:38 / feed.tsx:215-216: 404 `unknownPlace` / `unknownCategory` (api/feed.ts:82) shows a Retry that can never succeed.
+- D2 feed.tsx:286: the next-page Retry has no test id.
+- D3 feed.tsx:149: no IntersectionObserver means no next page and no button.
+- D4 l.$slug.tsx:167-169, listing-detail.tsx:1535-1540: `listingNotAvailable` shows "try again".
+- D5 seller-page.tsx:31 (use-seller-feed.ts:158-163): a next-page failure is silent.
+- D6 legal.$kind.tsx:62, :73: the raw slug is the title.
+- D7 legal-document-page.tsx:47, :135; legal-accept-screen.tsx:26-30: load errors with no Retry.
+- D8 legal.accept.tsx:44: English literal handed to `pageHead` (to confirm).
+- D9 legal.publishing.tsx:95-97: raw failure class and status shown to the person.
+- D10 app-header.tsx:54, :167: both search forms only `preventDefault`; typing and Enter do nothing, and no route or door is called.
+- D11 app-header.tsx:273-278 (and bottom-bar.tsx:160): Sign in goes to `/auth` with no `return`, so the person lands away from the page they were on. The header link has no test id (law C9).
+- D12 app-rail.tsx:711-713 with :725-728: a failed category read shows "No categories yet" as well as "Something went wrong". There is no Retry and no test id (law F4: a failed read never reads as empty).
+- D13 location-selector.tsx:280-286: "try again shortly" with no Retry (law C4).
+- D14 app-footer.tsx:82: About, Contact and Safety are drawn with the link look and a 44 px target but do nothing. The comment at :19-20 says this is intended until those pages exist; it is reported, not judged.
+
+**Could not read:** the Guide controls (page-guide.tsx); the api/feed.test.ts ids; `pageHead`'s fifth argument; every message `sessionNotice` can hold (app-shell.tsx:686); the admin alerts and submenu layer inside the rail (app-rail.tsx:225, :717); LegalGate's own screen (app-shell.tsx:988).
