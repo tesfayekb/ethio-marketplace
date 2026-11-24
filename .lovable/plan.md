@@ -301,17 +301,45 @@ The tree comes from the category store. Search calls `GET /api/catalog/find` (ca
 
 **Browser tests:** post-wizard-category, post-wizard-finder, post-wizard-recent, a11y, choice-lists, photo-pipeline. **360 px sideways: none.**
 
-## Summary — area 2, part 1
+## Screen 7, step 2 — Photos (step-photos.tsx, 1,066 lines)
+
+Uploads go through `POST /api/upload/photo` (posting-service.ts:62). The route's own refusals: `required`, `badValue`, `publishFirst`, `levelNotAvailable`, `tooManyPhotos`, `tooLarge`, `stripFailed`, plus the screening verdict's code with `retry` only for `providerUnavailable` (api/upload/photo.ts:161-313, :360-362). Words: `PHOTO_REASONS` (refusal-text.ts:111-138), dial `post.photo.refusal.rateLimitedWhen`, generic `post.photo.refusal.unknown` "This photo was not accepted." / "ይህ ፎቶ አልተቀበለም።" (en-base:561, am-base:518) (refusal-text.ts:163-167). Remove: `DELETE /api/listings/photos/$id` (posting-service.ts:217). Photos-soon tick: `set_listing_photos_soon` (posting-service.ts:1184).
+
+| # | Control or event (key EN / AM; place) | What it must do | Cases | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Why line `post.photos.why` (en-member:311, am-member:302), :879; count `post.photos.count` "{count} of {max}" (en-member:314, am-member:304), :885-886 | — | works | PW-29 post-wizard-category:1315; MLA-19 my-listings-ad:1340 | none |
+| 2 | Add `post.photos.add` "Add photos" / "ፎቶዎች ጨምር" (en-member:313, am-member:303); input `post-photos-input`, drop zone `post-photos-drop` (:854, :975-984) | Prepares, shrinks and sends each photo | works | PP-10 photo-pipeline:481; PW-4 post-wizard-category:554; LGC-5 legal-certify:1316 | none |
+| 3 | Row state `post.photos.preparing` / `post.photos.uploading` "Sending… {percent}%" / `post.photos.done` (en-member:322, am-member:312), :664-668 | Shows progress | slow network | PP-10 :490 | none |
+| 4 | Final refusal `post.photos.refusedFinal` "This photo can't be used. Choose a different one." / "ይህ ፎቶ መጠቀም አይቻልም። ሌላ ይምረጡ።" (en-member:463, am-member:444), :675-676 | Never retried; holds Next until removed | refused | PP-10 :462-488; PP-11 :535 | none |
+| 5 | Row refusal reason (`post-photo-row-refusal`, :682) — words by code: `unsupportedFormat` "Only JPEG, PNG and WebP photos are accepted." (en-base:549, am-base:509), `tooLarge` "This photo is too large." (en-base:551, am-base:511), `tooManyPhotos` (en-base:554, am-base:513), screening codes (`nudity` … `not_a_photo`), `rateLimited`, `publishFirst`, `photoGone`, `screeningPaused` | Shows the reason for the code | type, size, count, scan, dial | words: PRK-1 photo-refusal.test.ts:9 (2 tests); **screen NONE** | D17 |
+| 6 | Send again `post.photos.retry` "Send again" / "እንደገና ላክ" (en-member:324, am-member:314), :691-697 | Offered for a 5xx or `providerUnavailable`; sent once more | failed upload | PP-10 :494 | none |
+| 7 | Make cover `post.photos.makeCover` "Make cover" / "ሽፋን አድርግ" (en-member:317, am-member:307), :703-707, :761-766 | Moves the photo first | works | PP-15 :783-810 | none |
+| 8 | Remove `post.photos.remove` "Remove" / "አስወግድ" (en-member:318, am-member:308), :712-716, :771-776 | Deletes the photo | works | PP-11 :569; PW-4 :586; PP-15 | none |
+| 9 | Move earlier / later `post.photos.moveUp` "Move earlier" (en-member:319, am-member:309) / `moveDown`, :798-818 | Reorders; the first is the cover | works | PP-17 :883-907 | none |
+| 10 | Edit `post.photos.edit` "Edit photo" (en-member:326, am-member:316), :822-832 | Opens the photo editor | works | PP-27 :1698 | none |
+| 11 | Background `post.photos.background`, :837-845; hint `post.photos.backgroundCoverOnly` (:961-962) | Opens the background tool (`/api/listings/background`, posting-service.ts:179) | works | PP-30 :1924 | none |
+| 12 | Hidden photo and why (`post-photo-review`, :616-621); not-relevant warning `post.photos.notRelevant` (:584-590) | Tells the seller why | held | PP-33 :2139-2159; PP-29 :1887 | none |
+| 13 | No photos `post.photos.none` (en-member:315, am-member:305), stand-in `post.photos.standIn`, photos-soon tick `post.photos.soonTick` (:892-920) | Saves "photos soon" | works | MLA-16 my-listings-ad:1167; post-wizard-category:611 | none |
+| 14 | Photos-soon failed `post.photos.soonFailed` "That could not be saved. Please try again." (en-member:519, am-member:497), :942-944 | Says so | failed | NONE | none |
+| 15 | Sign-in ends mid-way during an upload | — | — | NONE | D16 (same path) |
+| 16 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** photo-pipeline.spec.ts (PP-10…PP-33), post-wizard-category PW-4/PW-29, my-listings-ad MLA-16/19, legal-certify LGC-5. **360 px sideways: none.**
+
+## Summary — area 2, parts 1 and 2
 
 **NONE rows:**
 - Frame: 1, 2, 7, 8, 15 (browser), 16, 17.
 - Step 1: 9, 10, 12.
+- Step 2: 5 (screen), 14, 15, 16.
 
 **Defects:**
 - D15: wizard.tsx:860-861 and step-category.tsx:229-234. "This draft could not be opened." and "The categories could not be loaded." offer no Retry (law C4).
 - D16: posting-service.ts:56-57. A sign-in that ends mid-way is treated as an unreachable server (status 401), so the wizard shows "Not saved yet — we keep trying." (wizard.tsx:1106, :1391-1394) and never asks the person to sign in again. This is from reading; the retry loop was not traced through use-draft.ts.
 
+- D17: api/upload/photo.ts:279 answers `levelNotAvailable`, which has no line in `PHOTO_REASONS` (refusal-text.ts:111-138), so the seller sees only "This photo was not accepted." (en-base:561). No test shows any row refusal's words on screen (`post-photo-row-refusal`, step-photos.tsx:682).
+
 **Left for the next parts:**
-- Wizard steps 2 Photos (step-photos.tsx), 3 Specifications, 4 Price, 5 Details, 6 Place, 7 Contact, 8 Review and Publish. The AI assist and `publish_listing`'s refusals belong to these steps.
+- Wizard steps 3 Specifications, 4 Price, 5 Details, 6 Place, 7 Contact, 8 Review and Publish. The AI assist and `publish_listing`'s refusals belong to these steps.
 - `my-listings`, `my-listings_.$listingId`, `my-listings_.$listingId_.edit`.
 - `account`, `account_.saved`, `account_.legal`, `account_.legal_.$versionId`.
