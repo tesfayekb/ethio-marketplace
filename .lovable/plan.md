@@ -462,7 +462,72 @@ Publish: `/api/listings/publish` → `publish_listing`. The live body is migrati
 
 **Browser tests:** post-wizard-bundle2 PW-123/PS-1, legal-certify LGC-1, dialogs, photo-pipeline, admin-listings AL-20, admin-screening SC-25. **360 px sideways: none.**
 
-## Summary — area 2, parts 1–4 (the wizard)
+## Screen 8 — My listings: `src/routes/my-listings.tsx` (36 lines) → my-listings-page.tsx (965 lines)
+
+The list reads `my_listings` (my-listings.ts:249). Row actions (my-listing.ts:342-376):
+- `set_listing_reserved` refuses `notYourListing`, `badValue`, `notLive` (migration 20261115203600:88-92).
+- `mark_sold` refuses `notYourListing`, `illegalTransition`, `badValue`, `notLive` (same file :52-92).
+- `transition_listing` (close / reopen / delete) refuses `notYourListing`, `badValue` (20261118012600:55, :78).
+- `renew_listing` / `resume_listing` refuse `notYourListing`, `notPaused` (20261115203700:58-120).
+- `copy_my_listing` refuses `notYourListing`, `listingNotFound`, `notCopied`, `residencyUnknown` (20261115203800:91-98).
+
+Words: `SELLER_DOOR_REFUSALS` (my-listing.ts:268-288). Generic is `myListings.error.failed` "That did not work. Try again." (en-base:144, am-base:133). Mapped codes: `notYourListing` / `listingNotFound` → `myListings.error.notYours` "This ad could not be found." (en-base:142); `illegalTransition` / `notLive` / `notPaused` / `renewNeedsExpired` / `ownerOnly` → `myListings.error.changed` (en-base:143); `rateLimited`; `severeRemove` → `myListings.error.severe` (en-base:160); `renewOff` (en-base:123); `residencyUnknown`; `noFreeSlot`. Unmapped, so they show the generic words: `badValue`, `notCopied` (D24).
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Signed out | Asks to sign in | signed out | MLP-3 my-listings-page:396 | none |
+| 2 | Header `nav.myListings`; Post `nav.postListing` (:683-690) | → /post | works | MLP-6 :626 | none |
+| 3 | Groups, search `myListings.searchPlaceholder` (:770-774), Filters (category, mark `myListings.filter.mark`, :198-210), Columns | Filters the list (keyset pages) | works | MLP-2 :314; MLP-5 :474; MLP-6; MLP-10 :580 | none |
+| 4 | Loading `common.loading` (:737) / empty `myListings.empty` "No listings here yet." (en-member:82, am-member:83), :760 | — | empty | MLP-2 (rows); empty NONE | none |
+| 5 | Failed `myListings.loadError` "Your listings could not be loaded." + raw class + Retry `common.retry` (:743-755) | Retry refetches | failed | NONE | D23 |
+| 6 | Row ⋯: Edit `myListings.edit` (:499), Open `myListings.open` (:530), Share `adPage.share.open` (:542), Promote `myListings.action.promote` "Promote ad" (:559), Post similar `myListings.action.copy` (:569), Delete `myListings.action.delete` (:518), and the state actions (reserve, sold, close, reopen, renew, resume) via `take(action)` (:553) | Each door above | works | MLP-6; MLP-8 :837 (Share); MLA-14 my-listings-ad:970 (Edit, Post similar); LVP-1 my-listings-promote:298 | none |
+| 7 | Confirm `my-listings-confirm` with Cancel / Yes (:875-896) | Asks before delete or sold | works | MLA-5 :473; MLA-7 :593 | none |
+| 8 | Bulk actions (`my-listings-bulk-*`, :660, :825), from tablet width | Acts on several ads | 360 / 768 | MLP-7 :767 | none |
+| 9 | Action refusals in the seller family (above) | Words per code | refused | doors ML-2 my-listings-doors:321, ML-3, ML-7; screen: MLA-10 :745 (severe), FSL-3 my-listings-levels:848 (noFreeSlot); others NONE | D24 |
+| 10 | Pager (DataTable keyset) | Pages | works | NONE (browser) | none |
+| 11 | Amharic; 768 | — | — | MLP-7 (768 bulk); Amharic NONE | none |
+
+**Browser tests:** my-listings-page (MLP-1…MLP-11), my-listings-ad, my-listings-doors, my-listings-levels, my-listings-promote. **360 px sideways: none** (MLP-7 checks a phone acts one ad at a time, not overflow).
+
+## Screen 9 — one ad: `src/routes/my-listings_.$listingId.tsx` (45 lines) → my-listing-page.tsx (875 lines)
+
+Reads `my_listing`, `listing_history`, `listing_counts` (my-listing.ts:86-174). Actions use the same doors and words as screen 8. Promote: `promote_options` / `set_listing_level` / `set_listing_reach` (promote-service.ts:172-272). Refusals (migration 20261115204000:64-169): `notYourListing`, `notLive`, `unknownLevel`, `sameLevel`, `lowerLevel`, `listingNotPlaced`, `levelNotAvailable`, `seasonEnded`, `notOffered`, `creditsNotAvailable`, `unknownReach`, `includedReach`, `sameReach`, `lowerReach`. Every one has words in REFUSAL_KEY / REACH_REFUSAL_KEY (promote-service.ts:180-205); the generic is `door.refused` (en-base:765).
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Back `nav.myListings` (:163-167) | → list | works | MLA-3 :349 | none |
+| 2 | Loading / error `myListings.ad.loadError` "This ad could not be loaded." + Retry (:361-375) / not found `myListings.ad.notFound` (en-member:104-105, am-member:105-106), :385 | — | failed; not yours | MLA-6 :519 (another seller's); load error NONE | none |
+| 3 | Open public page `myListings.ad.openPublic` (:475-478) | → /l/$slug | works | MLA-3 | none |
+| 4 | Edit (:499-506) / Continue on a draft `myListings.continue` (:515-517) | → edit / wizard | works | MLA-13 :872; MLA-6 | none |
+| 5 | State actions (reserve, sold, close, reopen, renew, resume, delete) in the action bar (:467-575) | Doors of screen 8 | works | MLA-3, MLA-4 :424, MLA-5, MLA-6, MLA-7, MLA-9 :677, MLA-12 :826; FSL-3 | none |
+| 6 | Promote `myListings.action.promote` (:548-553) → promote-sheet.tsx: level and reach choices | `set_listing_level` / `set_listing_reach` | works; each refusal | LVP-1 :298, LVP-2 :354, LVP-5 :410; LDR-2 my-listings-levels:385 (door); promote-sheet.test.tsx | none |
+| 7 | Post similar (:562-567) | `copy_my_listing` → new draft | works; `notCopied` | MLA-14 :970; ML-13 doors:921; refusal NONE | D24 |
+| 8 | Share (row ⋯ / share sheet) | Share dialog | works | MLP-8 my-listings-page:837 | none |
+| 9 | Problem line `my-listing-problem` (:587); paused help `myListings.pausedHelp` (:615-616); in review `myListings.ad.waiting` (en-base:121) | Explains the state | works | MLA-11 :767 | none |
+| 10 | Visibility, dates, sold days (:621-659) | — | works | MLA-3; MLA-4 | none |
+| 11 | As buyers see it, identity failed + raw class (:667-671) | — | failed | NONE | D23 |
+| 12 | History lines (:767-792) / empty `myListings.history.empty` | — | works | ML-9 doors:637; MLA-2 :323 | none |
+| 13 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** my-listings-ad (MLA-1…MLA-19), my-listings-promote (LVP-1…5), my-listings-levels, my-listings-doors. **360 px sideways: none.**
+
+## Screen 10 — edit: `src/routes/my-listings_.$listingId_.edit.tsx` (59 lines)
+
+It is the posting wizard in edit mode (route comment :8-11; `requireSignedIn` :27). It opens on Review, with no Edit on Category. Each step saves on Next through `edit_my_listing` (my-listing.ts:680). Every row of the wizard's steps 2–8 applies as written above. Only the differences are listed here.
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Opens on Review; Category has no Edit | — | works | MLA-13 :872; MLA-14 :970 | none |
+| 2 | Next reads `myListings.editBox.save`; Done `myListings.editBox.done` / `doneReview` (wizard.tsx:1117-1118, :1384) | Saves through `edit_my_listing` | works | MLA-13; MLA-15 :1014 | none |
+| 3 | `edit_my_listing` refusals (migration 20261115204100:72-142): `nothingChanged` → `myListings.editBox.nothing` "Nothing has changed yet." (en-base:168); `inReview` → `myListings.ad.waiting`; `notYourListing` / `listingNotFound` → notYours; `notEditable`, `draftNotEdited`, `renewFirst`, `listingNotEditable`, `badShape`, `streetTooLong` → no line in SELLER_DOOR_REFUSALS (my-listing.ts:268-288); `contactInNote`, `directionsTooLong` → posting words / generic | Words per code | refused | ML-11 doors:759, ML-12 :849, ML-14 :1015 (door only); screen NONE | D25 |
+| 4 | Photos soon on a closed ad | Tick saves | works | MLA-16 :1144 | none |
+| 5 | Place with no city closes Save | — | invalid | MLA-17 :1194 | none |
+| 6 | Assist tries read before a click | — | works | MLA-18 :1258 | none |
+| 7 | Photo cap at the ad's level | — | works | MLA-19 :1310 | none |
+
+**360 px sideways: none.**
+
+## Summary — area 2 (the wizard and My listings)
 
 **NONE rows:**
 - Frame: 1, 2, 7, 8, 15 (browser), 16, 17.
@@ -474,6 +539,9 @@ Publish: `/api/listings/publish` → `publish_listing`. The live body is migrati
 - Step 6: 1, 2, 4, 9 (no results, satellite), 10, 11, 12.
 - Step 7: 1, 3 (refusal), 6 (available), 7, 10, 11, 12, 13.
 - Step 8: 2, 4, 7, 8, 9, 11.
+- My listings (8): 4 (empty), 5, 9 (most codes on screen), 10, 11 (Amharic).
+- One ad (9): 2 (load error), 7 (refusal), 11, 13.
+- Edit (10): 3 (screen).
 
 **Defects:**
 - D15: wizard.tsx:860-861 and step-category.tsx:229-234. "This draft could not be opened." and "The categories could not be loaded." offer no Retry (law C4).
@@ -485,8 +553,11 @@ Publish: `/api/listings/publish` → `publish_listing`. The live body is migrati
 
 - D20: step-who.tsx:687 and step-review.tsx:597-598 show the raw failure class and status (for example " (network 503)") to the seller, untranslated. Same kind as D9.
 - D21: the pin door's `badLatitude`, `badLongitude`, `badPrecision`, `badZoom` and `directionsTooLong` (migration 20261115203900:85-109) have no line in `DRAFT_REASONS` (refusal-text.ts:27-102). They fall to the generic "That could not be saved." (en-base:586). Step-where's market and tree failures (:1571-1574, :1627-1631) also offer no Retry (D18's kind).
-- D22: `publish_listing`'s `illegalTransition` (:171) and `listingNotPlaced` (:193) have no words (refusal-text.ts:27-102), so Publish shows "That could not be saved." No test shows any publish refusal on screen (`post-review-refusal`, step-review.tsx:835).
+- D22: `publish_listing`'s `illegalTransition` (:171) and `listingNotPlaced` (:193) have no words (refusal-text.ts:27-102), so Publish shows "That could not be saved." No test shows any publish refusal on screen (`post-review-refusal`, step-review.tsx:835). Other families already have words for the same codes: my-listing.ts:282 maps `illegalTransition` → `myListings.error.changed`, and promote-service.ts:190 maps `listingNotPlaced` → `myListings.promote.error.listingNotPlaced` "Add the ad's place before promoting it." (en-member:672).
+
+- D23: my-listings-page.tsx:746 and my-listing-page.tsx:671 show the raw failure class and status to the seller. Same kind as D9 and D20.
+- D24: `badValue` (mark_sold / set_listing_reserved / transition_listing, migrations 20261115203600:89, 20261118012600:78) and `notCopied` (20261115203800:93) have no line in SELLER_DOOR_REFUSALS (my-listing.ts:268-288). They show "That did not work. Try again." (en-base:144).
+- D25: `edit_my_listing`'s `notEditable`, `draftNotEdited`, `renewFirst`, `listingNotEditable`, `badShape` and `streetTooLong` (migration 20261115204100:78-134) have no seller words in my-listing.ts:268-288. Which family the edit screen reads them through was not traced; it is to confirm.
 
 **Left for the next parts:**
-- `my-listings`, `my-listings_.$listingId`, `my-listings_.$listingId_.edit`.
 - `account`, `account_.saved`, `account_.legal`, `account_.legal_.$versionId`.
