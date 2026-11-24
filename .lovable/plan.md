@@ -781,6 +781,189 @@ Gate: `listings:review` (sections.ts:75-79). Queue: `admin_screening_queue` (202
 - D36: a failed warned-ads read draws no line, on Screening (screening-page.tsx:497) and on All listings (listings-page.tsx:254). The photo warnings vanish silently.
 - D37 (notes, not behaviour): admin.screening.tsx:10-12 and the staff edit route's opening comment name `transition_listing`, but the code calls `admin_review_listing`. use-screening.ts:382-385 says Show number needs review, but the door checks reveal.
 
+## Screen A9 — Roles: `admin.roles.tsx` → admin/roles/roles-list.tsx (RL)
+
+Gate: `roles:view` (sections.ts:102-106). Reads `admin_list_roles_detailed` (migration 20261114070800:153, `roles:view`; no refusals). Create: `admin_create_role` (20261114070500:50, `roles:create`). It refuses `nameRequired` (:54) → "A role key is required.", `badSlug` (:57) → "Use lowercase letters, digits, dash or underscore." and `duplicateKey` (:60) → "That role key is already taken." (en-base:456-458; map roles-service.ts:155-176). Other codes → "The role could not be created." (en-admin:164).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Heading, search, Columns, rows (name, display, kind, members, permissions), row Open / View members, pager (RL:60-230) | `roles:view` | page refused (A1) | works | RP-1 admin-roles:133; RP-2 :166; RP-16 :496; search NONE | none |
+| 2 | Create: key, display name, description, submit (step-up), cancel, error (RL:158-375) | `roles:create` (RL:55) | button and form hidden | works; refused | RP-2 (works); refusals NONE | none |
+| 3 | Loading / failed `admin.roles.error` / empty / no match (RL:231-246) | — | — | failed | NONE | D38 |
+| 4 | Amharic; 360 | — | — | — | RP-8 :353-366; RP-11/12/17 (360 sideways via e2e/helpers/ui.ts:50-55) | none |
+
+## Screen A10 — one role: `admin.roles_.$roleId.tsx` → role-detail.tsx (RD), permission-matrix.tsx (PM)
+
+Doors (20261114070500):
+- `admin_update_role` (:94, `roles:update`) refuses `unknownRole` (:97) and `systemRole` (:100).
+- `admin_delete_role` (:131, `roles:delete`) refuses `unknownRole` (:134), `systemRole` (:135) and `hasDependents` (:137).
+- `admin_set_role_permission` (:171, `roles:update`) refuses `unknownRole` (:174), `systemRole` (:175), `unknownPermission` (:182), `permissionReserved` (:188) and `corePermission` (:202).
+
+Words:
+- `systemRole` → "System roles cannot be changed." (en-base:453).
+- `hasDependents` → "This role still has members." (:455).
+- `permissionReserved` → "System-managed — cannot be granted to custom roles" (:450).
+- `corePermission` → "This core permission cannot be revoked." (:454).
+- `permissionDenied` (:452) and step-up (:451) have their own words.
+- `unknownRole` / `unknownPermission` → the operation's generic: "The role could not be saved." / "deleted." / "That permission change failed." (en-admin:172, :234, :185).
+
+Roles are assigned on one person's page (A4 rows 6–7).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Loading / failed / not found (RD:29-53); Back (RD:71-76) | `roles:view` | — | failed; unknown | NONE | D38 |
+| 2 | Metadata: display name, description, Save (step-up) (RD:93-201) | `roles:update` and not a system role (RD:57, :91) | read-only, with the system-role note `admin.roles.systemLockedNote` (RD:115-116) | works; refused | RP-4 :209; edit NONE | D41 |
+| 3 | Permission grid: grant / revoke per permission; locked, core, reserved and baseline marks (PM:79-187) | `roles:update` (RD:64-66) | locked text instead of buttons | works; refused | RP-3 :179; RP-6 :281; RP-7 :330; RP-11 :417; RP-12 :458; RP-17 :556 | D41 |
+| 4 | Members count and link to Users (RD:212-225) | — (destination needs `profiles:view`) | link drawn; Users then refuses | works | RP-10 :395 | none |
+| 5 | Danger: typed key, Delete (step-up); members block it (RD:239-317) | `roles:delete` and custom role (RD:58, :69) | section hidden | works; has members | RP-5 :249; RP-9 :369 | none |
+| 6 | Amharic; 360 | — | — | — | RP-17 :591 (360) | none |
+
+## Screen A11 — Audit: `admin.audit.tsx` → admin/audit/audit-page.tsx (AP)
+
+Gate: `audit_logs:view` (sections.ts:109-113). Reads `admin_list_audit`, `admin_audit_facets` and `admin_audit_stats` (migration 20261114070800:286, :341, :357; no refusals). There is no export.
+
+| # | Control / event | Permission | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Four counts with loading / failed / Retry (AP:254-287) | `audit_logs:view` | page refused | works; failed | AS-1 admin-audit:48; failed NONE | none |
+| 2 | Trend chart with loading / failed / empty (AP:290-311; chart-frame.tsx:102-120) | — | — | failed | NONE | D38 |
+| 3 | Search, action / entity / date filters, chips, Columns (AP:119-366) | — | — | works | AS-2 :68; AS-3 :113 | none |
+| 4 | Facets read fails: the action / entity choices are silently empty (AP:122-135) | — | — | failed | NONE | D42 |
+| 5 | Rows; expand detail (AP:323-400); pager with capped total (:403-418) | — | — | works | AS-2; AS-3; expand NONE | none |
+| 6 | Loading / failed `admin.audit.error` / empty (AP:327-331) | — | — | failed | NONE | D38 |
+| 7 | Amharic; 360 | — | — | — | AS-1 :65 (360) | none |
+
+## Screen A12 — View as: `admin.impersonation_.$sessionId.tsx` → impersonation-view.tsx (IV), banner (IB), fallback notice (IN)
+
+Reads `get_active_impersonation` (20261114070700:135), `impersonated_get_profile` and `impersonated_list_listings` (20261119150500:43, :63). End: `end_impersonation` (20261114070900:160; `noActiveSession` :163). Begin is covered in A4 (D31).
+
+| # | Control / event | Permission | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Heading, countdown, read-only note (IV:152-170) | session check on the server | — | works | IMP-1 admin-audit:193 | none |
+| 2 | End now on the page (IV:172-188) | session owner | — | works; refused | IMP-1 (works); failure NONE | D39 |
+| 3 | Profile panel; loading / error / empty (IV:192-215; detail-panel.tsx:41-61) | — | — | failed | NONE | D38 |
+| 4 | Ad list, Columns, pager (IV:91-258); empty `impersonation.listings.empty` | — | — | works; empty | IMP-1; empty NONE | none |
+| 5 | Ad list loading / error: no words supplied (IV:262-263) | — | — | failed | NONE | D40 |
+| 6 | Session ended: `impersonation.expired` "This impersonation session has ended." (en-admin:2201) + back (IV:65-85) | — | — | ended | NONE | none |
+| 7 | Bar across pages: banner, Open, End now (IB:25-55); polls every 30 s (use-impersonation.ts:25-46) | staff only | not drawn | works; refused | IMP-1; IMP-6 :345; Open / End NONE | D39 |
+| 8 | Fallback bar (on-demand failure): End, failed `door.refused` (en-base:765) + Refresh page (IN:33-95) | — | — | failed | NONE | none |
+| 9 | Amharic; 360 | — | — | — | IMP-1 :241 (360) | none |
+
+## Screen A13 — Translations: `admin.translations.tsx` → admin/translations/languages-page.tsx (L)
+
+Gate: `translations:view` (sections.ts:156-160). Words: translations-service.ts:419-496 (en-base:488-508). Unknown codes → "That change could not be saved." (en-base:503).
+
+Doors and their codes:
+- `admin_set_language_flags` (20261114114100:160, manage): `badLanguage` (:163), `pseudoLanguage` (:168), `catalogEmpty` (:176) and `notFullyApproved` (:183). `notFullyApproved` → "This language cannot be published until every key is approved." `catalogEmpty` → the sync-first words (L:60-64). The other two → generic.
+- `admin_upsert_language` (:47): `badValue:code` (:51) → "Enter a valid language code (2–8 letters)."; `nameRequired` (:54) → generic.
+- `admin_delete_language` (:94): `badLanguage` (:98) → generic; `baseLanguage` (:101) → "The base language cannot be deleted."; `languagePublished` (:104) → "Unpublish this language before deleting it."
+- `admin_sync_ui_keys` (20261114114000:53): `badValue:en` (:55) → generic.
+- `admin_set_language_order` (20261114114100:211): no codes.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Language rows: coverage meters, badges, Open strings, Columns, pager (L:127-666) | `translations:view` | page refused | works | TR-1 admin-translations-console:102; TR-2 :147; TR-3 :164; TR-38 :124 | none |
+| 2 | Three counts with Retry (L:134-160) | — | — | failed | NONE | none |
+| 3 | Staff / public switches, public gate (L:497-570) | `translations:manage` (L:101-102) | switches disabled | works; refused | TR-6 :249 | none |
+| 4 | Move up / down; Delete + dialog (typed confirm, counts) (L:295-302, :668-680; delete-language-dialog.tsx:100-178) | manage | items hidden | works; published | TR-20 governance:305; TR-20m :461; TR-31 :1141 | none |
+| 5 | Sync keys (step-up) (L:727-789) | manage | absent | works | TR-7 :297; TR-7b :321; TR-21 governance:506; TR-40 :1149 | none |
+| 6 | Add language: picker (no Retry; manual instead), code, names, RTL, countries, submit (L:852-1044; language-picker.tsx:35-66) | manage | absent | works; refused | TR-25 :947; manual NONE | none |
+| 7 | Pseudo language generate + confirm, progress (pseudo-bar.tsx:88-151) | manage | absent | works | TR-30 governance:1270 | D43 |
+| 8 | Loading / failed / empty (L:627-632); flags error (L:706) | — | — | failed | NONE | D38 |
+| 9 | Amharic; 360 | — | — | — | NONE (governance:458 is a comment) | none |
+
+## Screen A14 — one language: `admin.translations_.$lang.tsx` → strings-page.tsx (P), data-scope.tsx
+
+Doors and their codes:
+- `admin_set_translation_status` (20261114130400:37, approve): `permissionDenied:language` (:39) → "You are not assigned to this language."; `badValue:action` (:42) → generic; `unknownTranslation` (:48, :65) → generic; `translationFlagged` (:50) → "Flagged strings can't be approved — fix the placeholders first."
+- `admin_set_entity_translation_status` (:88): the same codes (:90-99).
+- `admin_save_translation` / `admin_save_entity_translation` (update), `admin_machine_translation` (machine) and `admin_approve_all_*` (approve; `permissionDenied:language`): codes come from delegated bodies.
+- `admin_set_key_context` (20261114114000:139, manage): `tooLong:context` (:143) and `unknownKey` (:152) → generic.
+- `admin_export_translations` (20261114114500:175, view): `badValue:limit` (:177).
+- `admin_import_translations` (20261114113900:57, update): `permissionDenied:language` (:59); `badValue:items` (:63); `tooManyRows` (:66) → "That was too much at once…"; `baseLocked` (:71) → "English is the source language and changes only through a key sync."
+- `admin_undo_import` (:166, manage): `required:batch` (:168) → "This is needed."; `unknownBatch` (:176) → generic.
+- File refusals (server/imports/gate.ts:591-826) → `fileRejected` / `fileShape` / `fileEmpty` (en-base:496-500).
+- /api/translate (routes/api/translate.ts:95-169) sends sentences. Machine-translation rate → "Too many machine translations in the last hour." (en-base:754); others → generic.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Interface / Data scope; status, flagged and orphaned filters; search; Columns; rows (P:68-485, :624-628) | `translations:view` | page refused; unknown language → `admin.translations.strings.unknown` and back to the list (P:250-268) | works | TR-5 console:200; TR-14 data:188; TR-21 governance:571; TR-39 :217 | none |
+| 2 | Not assigned to this language: notice `admin.translations.editor.notAssigned` (P:278-282) | update / approve without assignment | notice; actions still drawn, server refuses | refused | TR-4 :180 | none |
+| 3 | Expand a row: source, context, used on; translation box (P:512-853) | view | box can be typed in, but no Save | works | TR-8 :352 | D44 |
+| 4 | Context edit / save (P:777-813) | `translations:manage` (P:114-117) | hidden | works | NONE | none |
+| 5 | Save; AI per row; Approve; Clear; placeholder repair (P:888-978) | update / machine / approve / update (P:114-117, :498) | each hidden | works; flagged | TR-8; TR-11 :499; TR-23 :782; TR-35 :745; Clear NONE | none |
+| 6 | History: list, restore, clear-instead; failed, no Retry (history-drawer.tsx:115-250) | view; restore update; clear approve | buttons hidden | works; failed | TR-16 :1003; failed NONE | D38, D43 |
+| 7 | Approve all + confirm (approve-bar.tsx:84-168) | approve, non-base (P:380-382) | absent | works | TR-19 governance:120 | none |
+| 8 | AI bulk: count, confirm, progress, failures (ai-bulk-bar.tsx:218-316) | machine, non-base (P:384-400) | absent | works; failed count | TR-12 :565; failed NONE | none |
+| 9 | Export CSV / XLIFF; Import; Undo import (transfer-bar.tsx:157-244) | UI `translations:manage` (P:403); export door `view` | bar absent for viewers | works; refused | TR-29 governance:758; TR-32 :993; TR-33 :1122; XLIFF NONE | D43, D44 |
+| 10 | Data scope rows: save / AI / approve / clear; approve all; coverage (data-scope.tsx:182-593) | as row 5 | hidden | works | TR-14; TR-24 data:271; TR-26 :453; TR-34 :598; TR-42 :724 | D43 |
+| 11 | Loading / failed / empty (P:423-438) | — | — | failed | NONE | D38 |
+| 12 | Amharic; 360 | — | — | — | NONE | none |
+
+## Screen A15 — Legal: `admin.legal.tsx` → admin/legal/legal-page.tsx (P), legal-facts-card.tsx (C)
+
+Gate: `legal:view` (sections.ts:163-168). Words: legal-service.ts:124-147 (en-admin:57-58, :2131-2144). Codes without words → "That did not work. Try again." (en-admin:2140).
+
+Doors and their codes:
+- Reads: `admin_legal_documents` and `admin_legal_settings` (20261114114600:48, :145; no codes); the menu alert's `legal_review_overdue` (:162).
+- `admin_mark_legal_reviewed` (20261114114300:98, `legal:edit`): `nothingToReview` (:101) → "This document has no published version to review."; `badValue` (:103) → generic.
+- `admin_set_legal_settings` (20261114114400:44, edit): `badValue` (:45-170) → generic, after local checks (C:95-108).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Documents by kind and country; status, metadata, unaccepted count (P:95-203, :323-406) | `legal:view` | page refused | works | legal-admin:250, :356, :586, :691-731 | none |
+| 2 | Read in place, view, history list (P:204-291) | view | — | works | :587-591; :1040 | none |
+| 3 | Add translation (P:235-248) | `legal:publish` | absent | works | :1048-1099 | none |
+| 4 | Edit draft / New version / Add country (P:253-393) | `legal:edit` (P:69) | absent | works | :382; :949; Add country NONE | none |
+| 5 | Review: due / overdue, Mark reviewed + note dialog (P:101-141, :415-500) | edit | Mark absent | works; refused | :750-759; :838-849 | none |
+| 6 | Menu alert "Review due" (nav-alerts.ts:22-33) | view | no mark; a failed read also shows no mark | works | :786-849 | none |
+| 7 | Legal facts: values, edit, local errors, Save / Cancel (C:26-190) | edit | read-only | works; invalid | :288-292; :426-459; server error NONE | D45 |
+| 8 | Loading / failed `admin.legal.error.load` (P:315-321) | — | — | failed | NONE | D38 |
+| 9 | Amharic; 360 | — | — | — | NONE | none |
+
+## Screen A16 — one legal version: `admin.legal_.$versionId.tsx` → legal-version-view.tsx (V)
+
+Doors and their codes:
+- `admin_legal_version` (20261114114600:106): `unknownVersion` (:108) → "This version does not exist." (en-admin:2080).
+- `admin_add_legal_translation` (20261114114300:54, `legal:publish`): `unknownVersion` (:56), `notPublished` (:57), `badLanguage` (:60) → "That language cannot take a legal text.", `badValue` (:61), `tooLong` (:62), `translationExists` (:64) → "This version already has a text in that language.", `unknownFact` (:67) and `factMissing` (:68) → their own words. `unknownVersion`, `notPublished`, `badValue` and `tooLong` → generic.
+- `admin_export_legal_acceptances` (:139, `legal:export`): `badValue` (:140-141) and `unknownVersion` (:146). Every export failure shows the generic (V:513-529).
+
+| # | Control / event | Permission | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Changelog, language tabs, Download, Print, Compare with diff (V:65-285) | view | — | works | :476-478; :610-636 | none |
+| 2 | Add translation: language, text, import, preview, Save (V:290-485) | `legal:publish` | section absent | works; refused | :978-993 | D45 |
+| 3 | Export acceptances (V:489-529) | `legal:export` | absent | works; failed | :650; :667; failed NONE | D45 |
+| 4 | Frozen facts; draft's Edit (V:534-563) | Edit needs `legal:edit` | Edit absent | works | :477; :949; :480 | none |
+| 5 | Loading / not found / failed; compare load (V:49-54, :183-191) | — | — | failed | NONE | D38 |
+| 6 | Amharic; 360 | — | — | — | NONE | none |
+
+## Screen A17 — legal editor: `admin.legal_.edit.tsx` → legal-editor.tsx (E), legal-editor-form.tsx (F), legal-publish-dialog.tsx (D)
+
+Doors and their codes:
+- `admin_save_legal_draft` (20261114114200:48, `legal:edit`): `badValue` (:49-61), `badLanguage` (:53), `tooLong` (:55), `labelRequired` (:70) → "Give the version a name." and `labelTaken` (:74, :80) → "Another version of this document already has this name."
+- `admin_discard_legal_draft` (:123): `unknownVersion` (:125) and `notDraft` (:126) → "This version is already published."
+- `admin_publish_legal_version` (:155, `legal:publish`): `badValue` (:156), `unknownVersion` (:158), `notDraft` (:159), `labelRequired` (:161), `bothLanguages` (:165) → "Publishing needs both the English and the Amharic text.", `changelogRequired` (:168) → "Say what changed before publishing.", `unknownFact` (:174), `factMissing` (:175) and `noticeTooShort` (:179) → "A material change cannot take effect before {date}."
+- Server `tooLong` and `badValue` → generic, though local "Too long: at most {max} characters." exists (en-admin:2138).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Bad kind / country `admin.legal.badDocument` (E:17-18); loading / failed (E:21-29; F:156-161) | view | — | invalid; failed | NONE | D38 |
+| 2 | Name, language tabs, write / preview, text per language, import, change note (F:116-316) | `legal:edit` (F:94) | fields disabled | works | :171-176; :320-326; :680-686; :922-924 | none |
+| 3 | Preview warnings: unknown tokens, empty facts (F:103-109, :278-286) | view | — | works | :326; empty NONE | none |
+| 4 | Save draft; Discard + confirm (F:319-429) | edit | absent | works; refused | :177; :343; :493-494 | D45 |
+| 5 | Publish → dialog: material / correction, date, confirm (F:375-389; D:56-183) | `legal:publish` | absent; disabled until saved | works; refused | :178; :328-348; :395-402; :941; correction NONE | none |
+| 6 | Back (F:384-386) | — | — | works | NONE | none |
+| 7 | Amharic; 360 | — | — | — | NONE | none |
+
+**360 px sideways (A9–A17):** Roles RP-8/11/12/17, Audit AS-1, View as IMP-1 (e2e/helpers/ui.ts:50-55). None for Translations or Legal.
+
+- D38: these admin reads fail with no Retry: the roles list and one role (roles-list.tsx:237-242; role-detail.tsx:29-53); audit rows and chart (audit-page.tsx:327-331; chart-frame.tsx:111-115); the view-as profile (detail-panel.tsx:51-55); the language list and strings (languages-page.tsx:627-632; strings-page.tsx:423-438; history-drawer.tsx:137-143); and legal (legal-page.tsx:315-321; legal-version-view.tsx:183-191; legal-editor.tsx:21-29). Same kind as D18 and D26.
+- D39: a failed End now is never shown, on the view-as page (impersonation-view.tsx:175-188) or on its bar (impersonation-banner.tsx:48-55). `noActiveSession` (migration 20261114070900:163) has no words there.
+- D40: the view-as ad list passes no loading or error words (impersonation-view.tsx:262-263), so both states draw blank (data-table.tsx:684-692).
+- D41: a custom role that a staff member may not change shows the system-role note (role-detail.tsx:64-66, :115-116; permission-matrix.tsx). Without `roles:update` the role is passed as `isSystem`, so the note says it is a system role when it is not.
+- D42: a failed audit facets read leaves the action and entity choices silently empty (audit-page.tsx:122-135).
+- D43: on Translations, an unrecognised failure shows its raw message under the generic line (transfer-bar.tsx:241-244; history-drawer.tsx:242-250; pseudo-bar.tsx:148-151; translations-service.ts:503-507). The data scope also writes raw error text into the page (data-scope.tsx:186-192). Same kind as D20.
+- D44: on Translations, the translation box can be typed in without `translations:update` (strings-page.tsx:837-853). The export bar is drawn only for `translations:manage` (strings-page.tsx:403), while its door needs only `translations:view` (migration 20261114114500:175).
+- D45: in Legal, the server's `tooLong`, `badValue`, `notPublished` and `unknownVersion` (mutations) have no words in legal-service.ts:124-140. They show "That did not work. Try again." (en-admin:2140), even though "Too long: at most {max} characters." exists (en-admin:2138). Export shows the generic for every failure (legal-version-view.tsx:513-529).
+
 **Left for the next parts (area 3):**
-- `admin.roles`, `admin.roles_.$roleId`; `admin.audit`; `admin.impersonation_.$sessionId`.
-- The other `admin*` route files (locations, places, countries, categories, attributes, images, translations, legal, monetisation, AI and their sub-pages).
+- `admin.locations`, `admin.places`, `admin.countries`, `admin.categories` (and sub-pages), `admin.attributes`, `admin.images`, `admin.monetisation`, `admin.ai`, and any other `admin*` route file not covered in A1–A17.
