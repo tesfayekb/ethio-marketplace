@@ -326,20 +326,88 @@ Uploads go through `POST /api/upload/photo` (posting-service.ts:62). The route's
 
 **Browser tests:** photo-pipeline.spec.ts (PP-10…PP-33), post-wizard-category PW-4/PW-29, my-listings-ad MLA-16/19, legal-certify LGC-5. **360 px sideways: none.**
 
-## Summary — area 2, parts 1 and 2
+## Screen 7, step 3 — Specifications (step-specifications.tsx, 1,921 lines)
+
+The schema comes from `get_posting_schema` (posting-service.ts:892). Field refusals come back from `submit_listing` and are worded by refusal-text.ts:28-102: `required` "This is needed." (en-base:562, am-base:519), `outOfBounds` (en-base:592, am-base:546), `badPreset`, `badDecimals`, `badMulti`, `dependentMissing`, `inactiveOption`, `otherNeedsText`, `unknownOption`, `unknownAttribute`, `notPositive`.
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | No category `post.specs.needCategory` (:1190) | — | — | NONE | none |
+| 2 | Load failed `post.specs.loadFailed` "These details could not be loaded." (en-member:439, am-member:421), or the dial text; :1197-1198 | Says so | failed; rateLimited | NONE | D18 |
+| 3 | None `post.specs.none` "This category asks for no extra details." (en-member:434, am-member:418), :1226 | — | empty | PW-8 post-wizard-category:895 | none |
+| 4 | Field control (select `post.specs.choose` "Choose", number, text, year) `post-attr-control`, :1369-1400 | Answer stored | works | PW-44 post-wizard-category:1530; AL-23 | none |
+| 5 | Unit `post-attr-unit` (:1432) | — | works | PW-161 post-wizard-units:86 | none |
+| 6 | Colour swatches (:1537-1573) | — | works | PW-34 post-wizard-specs:1985 | none |
+| 7 | Other + text `post.specs.otherPlaceholder` "Say what it is" (en-member:443, am-member:425), :1601-1606 | Needs text (`otherNeedsText`) | invalid | PW-108 post-wizard-pricing:435 | none |
+| 8 | Checks, multi `post-attr-check` (:1634-1642) | — | works | PW-120 post-wizard-specs:619 | none |
+| 9 | Dependent: `post.specs.parentFirst` "Choose {parent} first." (en-member:565, am-member:540), :1701; none for parent `post.specs.noneForParent` (:1710-1713) | — | dependent | PW-21 :1318; no-options NONE | none |
+| 10 | Model values: set by model (:1689), from model (:1721), differs + `post.specs.useModelValue` "Use model's value" (en-member:568, am-member:543), :1734-1748 | Fills from the model | works | NONE | none |
+| 11 | Options failed `post.specs.optionsFailed` "The choices could not be loaded. Tap again to retry." / `post.specs.rateLimited` (en-member:442, am-member:424), :1756-1762 | Retry by tapping | failed; rate | PW-145 post-wizard-specs:399 | none |
+| 12 | Help and More (:1769-1793) | Shows the field's help | — | NONE | none |
+| 13 | Bounds and hints `post.specs.boundsHint` / `lengthHint` / `presetHint` / `multiHint` (:1803-1819) | — | invalid | PW-5 post-wizard-specs:261 | none |
+| 14 | Model reset `post.specs.resetForModel` "Details reset for {model}" (en-member:570, am-member:545) + Undo `post.specs.resetUndo` (:1879-1909) | Undo restores | works | PW-32 post-wizard-resets:1053 | none |
+| 15 | Required gate: Next shows `post.nextBlocked.required` (wizard.tsx:1400-1412) and the field's `required` words | — | invalid | PW-192 post-wizard-pricing:1239 | none |
+| 16 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-specs, -units, -resets, -category, -pricing, admin-listings AL-23. **360 px sideways: none.**
+
+## Screen 7, step 4 — Price (step-pricing.tsx, 726 lines)
+
+Refusals (refusal-text.ts:34-44): `unknownCurrency` "That currency is not in use." (en-base:568, am-base:525), `periodLocked` "The price period is fixed for this category." (en-base:570, am-base:527), `periodFollowsBasis`, `modeFollowsBasis`, `commissionNotOffered`, `priceBasisAmbiguous`, `commissionRange` "Enter a commission between 0.01% and 100%." (en-base:574, am-base:531), `commissionRequired`, `priceNotAllowed`.
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Mode `post.price.modeLabel` "How are you pricing it?" (en-member:698, am-member:670); buttons `post-price-mode-<mode>` (:408-435) | A no-price mode clears the amount (:426-430) | works | post-wizard-bundle2:1605; post-wizard-specs:200 | none |
+| 2 | Not allowed `post.price.notAllowed` "This category is posted without a price." (en-member:359, am-member:345), :440 | — | — | NONE | none |
+| 3 | Mode refusal `post-price-mode-refusal` (`draftRefusalKey`), :445-446 | Shows the reason | refused | NONE | none |
+| 4 | Currency `post.price.currencyLabel` "Currency" (en-member:696, am-member:668); search `post.price.currencySearch` "Search by code or name" (en-member:366); More currencies `post.price.moreCurrencies` (en-member:610, am-member:585); :456-545 | Picks a currency | works | PW-10 post-wizard-pricing:266; PW-17 :1447; choice-lists:450 | none |
+| 5 | Currency list failed `post.price.currencyFailed` "The currency list could not be loaded. Try again in a moment." (en-member:368, am-member:354), :461-462 | Says so | failed | NONE | D18 |
+| 6 | Amount `post.price.amountLabel` "Amount" (en-member:695, am-member:667), :578; scale `post.price.scaleLabel` "Amount in" + none / thousand / million (:601-613) | — | works; invalid (`notPositive`) | MLA-13 my-listings-ad:916; PW-89 post-wizard-where:486 | none |
+| 7 | Commission `post.price.commissionLabel` "Commission (%)" (en-member:372, am-member:358), :624-631 | — | range | PW-55 :363 | none |
+| 8 | Negotiable `post.price.negotiableToggle` "Price is negotiable" / "ዋጋው የሚደራደር ነው" (en-member:356, am-member:342), :652-661 | — | works | PW-64 :583 | none |
+| 9 | Period `post.price.periodLabel` "Per" (en-member:699, am-member:671), :674-681; fixed `post.price.periodFixed` "This category is always priced {period}." (en-member:369, am-member:355), :700-714 | — | locked | PW-10 :249-250 | none |
+| 10 | Door refusals listed above, shown at Next | Field words | refused | `periodLocked` / `commissionRange` / `unknownCurrency` on screen: NONE (rg found no spec reading them) | none |
+| 11 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-pricing (PW-10…PW-192), -bundle2, -where, my-listings-ad MLA-13. **360 px sideways: none.**
+
+## Screen 7, step 5 — Details and the AI assist (step-details.tsx, 462 lines)
+
+Assist: `GET /api/listings/assist` (posting-service.ts:946). It answers `assistBudgetSpent` (api/listings/assist.ts:277, :322), `featureOff` when the switch is off or the budget is out (:324-325), else `providerUnavailable` (:328); and rate verdicts (:337, :343). Words: `post.refusal.assistBudgetSpent` (en-base:676, am-base:620), `featureOff` "The writing help is switched off for now." (en-base:677, am-base:621), `providerUnavailable` "The writing help is unavailable right now." (en-base:623, am-base:575).
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Title `post.details.titleLabel` "Title" (en-member:693, am-member:665), :288-310; built note `post.details.titleBuilt` "Written from your answers. Change it as you like." (en-member:451, am-member:433), :294; count `post.details.count` (:299) | Stored; built from the answers | works; `tooLong`; `required` | PW-140 post-wizard-pricing:1312; AL-20 :1399 | none |
+| 2 | Description `post.details.descriptionLabel` "Description" (en-member:692, am-member:664), :327-343 | — | works | PW-121 post-wizard-bundle2:1608; choice-lists:469 | none |
+| 3 | Phone in text (`judgeContact`, :226, :319, :355) → `post.refusal.contactInText` "Leave phone numbers out. Buyers contact you through the app." (en-base:597, am-base:551) | Warns | invalid | door level only: admin-listings:481, :1335; screen NONE | none |
+| 4 | Write for me `post.assist.action` "Write for me" / "ለእኔ ይጻፍልኝ" (en-member:457, am-member:438); again `post.assist.again` (en-member:537); working (:429); :413-432 | Asks the assist | works | PW-6 post-wizard-specs:436-437; MLA-18 my-listings-ad:1302 | none |
+| 5 | Suggestions and Use this one `post.assist.use` "Use this one" / "እሱን ተጠቀም" (en-member:536, am-member:513), :367-403 | Fills title and description | works | PW-6 :475 | none |
+| 6 | Tries `post.assist.triesLeft` "{left} of {max} tries left" / `post.assist.exhausted` (en-member:533-534, am-member:510-511), :444-449; button disabled when spent (:416) | Budget shown | budget | PW-6 :458; MLA-18 :1294 | none |
+| 7 | Assist refusal `post-assist-refusal` `t(draftRefusalKey(...))`, :453-454: budget, featureOff, providerUnavailable, rate | Shows the reason | refused; failed | NONE | D19 |
+| 8 | Switch off | The button is still drawn whenever a category is chosen (:416); "off" is learnt only after a press | off | NONE | D19 |
+| 9 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-specs PW-6, -pricing PW-140, -bundle2 PW-121, my-listings-ad MLA-18, admin-listings AL-20. **360 px sideways: none.**
+
+## Summary — area 2, parts 1–3
 
 **NONE rows:**
 - Frame: 1, 2, 7, 8, 15 (browser), 16, 17.
 - Step 1: 9, 10, 12.
 - Step 2: 5 (screen), 14, 15, 16.
+- Step 3: 1, 2, 9 (no options), 10, 12, 16.
+- Step 4: 2, 3, 5, 10, 11.
+- Step 5: 3 (screen), 7, 8, 9.
 
 **Defects:**
 - D15: wizard.tsx:860-861 and step-category.tsx:229-234. "This draft could not be opened." and "The categories could not be loaded." offer no Retry (law C4).
 - D16: posting-service.ts:56-57. A sign-in that ends mid-way is treated as an unreachable server (status 401), so the wizard shows "Not saved yet — we keep trying." (wizard.tsx:1106, :1391-1394) and never asks the person to sign in again. This is from reading; the retry loop was not traced through use-draft.ts.
 
 - D17: api/upload/photo.ts:279 answers `levelNotAvailable`, which has no line in `PHOTO_REASONS` (refusal-text.ts:111-138), so the seller sees only "This photo was not accepted." (en-base:561). No test shows any row refusal's words on screen (`post-photo-row-refusal`, step-photos.tsx:682).
+- D18: step-specifications.tsx:1197-1198 and step-pricing.tsx:461-462. "These details could not be loaded." and "The currency list could not be loaded. Try again in a moment." offer no Retry (law C4). No test covers either.
+- D19: step-details.tsx:411-416. The assist button is drawn even when the writing help is switched off (assist.ts:324-325), so the seller learns it is off only after pressing. No test shows any assist refusal (`post-assist-refusal`, :453).
 
 **Left for the next parts:**
-- Wizard steps 3 Specifications, 4 Price, 5 Details, 6 Place, 7 Contact, 8 Review and Publish. The AI assist and `publish_listing`'s refusals belong to these steps.
+- Wizard steps 4 Price, 5 Details, 6 Place, 7 Contact, 8 Review and Publish. The AI assist and `publish_listing`'s refusals belong to these steps.
 - `my-listings`, `my-listings_.$listingId`, `my-listings_.$listingId_.edit`.
 - `account`, `account_.saved`, `account_.legal`, `account_.legal_.$versionId`.
