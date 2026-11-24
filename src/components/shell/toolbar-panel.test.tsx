@@ -209,3 +209,49 @@ it.each([360, 1280])(
 beforeEach(async () => {
   await loadSelectList();
 });
+
+/** Lovable bundle 8 (INC-1271) — the wide panel's side follows the room around its button. */
+describe("the wide panel's side", () => {
+  const HEIGHT = window.innerHeight;
+  afterEach(() => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: HEIGHT });
+    vi.restoreAllMocks();
+  });
+
+  async function sideAt(top: number, height = 40) {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    // The window's box as Radix's placement reads it (jsdom's is 0 × 0, which flips every side).
+    vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(900);
+    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(1280);
+    render(
+      <ToolbarPanel
+        testid="sided"
+        title="Filters"
+        state="all"
+        trigger={<button data-testid="sided" />}
+      >
+        <span />
+      </ToolbarPanel>,
+    );
+    const button = screen.getByTestId("sided");
+    vi.spyOn(button, "getBoundingClientRect").mockReturnValue(
+      DOMRect.fromRect({ x: 0, y: top, width: 80, height }),
+    );
+    fireEvent.click(button);
+    return (await screen.findByTestId("sided-panel")).getAttribute("data-side");
+  }
+
+  it("TBP-U1 a button at two-thirds of a 900-pixel window opens the panel above it", async () => {
+    expect(await sideAt(580)).toBe("top");
+  });
+
+  it("TBP-U2 a button near the window's top opens the panel below it", async () => {
+    expect(await sideAt(100)).toBe("bottom");
+  });
+
+  it("TBP-U3 a button below the middle still opens below while the panel's floor fits there", async () => {
+    // 448 px below (the 28rem floor at 16 px) and 452 px above: the floor fits, so below.
+    expect(await sideAt(452, 0)).toBe("bottom");
+  });
+});

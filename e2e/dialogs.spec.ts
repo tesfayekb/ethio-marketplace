@@ -870,6 +870,45 @@ test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
       await expect(short).toHaveCount(0);
+
+      // A LOW button (INC-1271): its centre at two-thirds of a 900-pixel window. The panel
+      // opens on the side with the room — above it — and its list still shows six choices.
+      await page.setViewportSize({ width, height: 900 });
+      const button = page.getByTestId("style-filters");
+      await button.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        window.scrollBy(0, box.top + box.height / 2 - (window.innerHeight * 2) / 3);
+      });
+      await settled(page);
+      const centre = await button.evaluate((element) => {
+        const box = element.getBoundingClientRect();
+        return box.top + box.height / 2;
+      });
+      expect(
+        Math.abs(centre - 600),
+        "DLG-E12 the button's centre @ 2/3 of 900",
+      ).toBeLessThanOrEqual(2);
+      const low = await open(page, "style-filters", "style-filters-panel");
+      await expect(low).toHaveAttribute("data-side", "top");
+      await low.getByTestId("style-filters-colour").click();
+      await expect(low.getByTestId("style-filters-colour-list")).toBeVisible();
+      await settled(page);
+      const lowFacts = await listFacts(low, "style-filters-colour");
+      expect(lowFacts, `DLG-E12 the open list under a low button @ ${width} x 900`).toMatchObject({
+        inTheFlow: true,
+        underItsRow: true,
+        rowInView: true,
+        bodyEndsAtFooter: true,
+        footerInsidePanel: true,
+        panelInsideWindow: true,
+      });
+      expect(
+        lowFacts?.choicesInView ?? 0,
+        `DLG-E12 the choices a person sees under a low button @ ${width} x 900`,
+      ).toBeGreaterThanOrEqual(Math.min(lowFacts?.choices ?? 0, 6));
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await expect(low).toHaveCount(0);
     },
   );
 

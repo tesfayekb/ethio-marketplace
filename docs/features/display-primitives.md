@@ -78,6 +78,7 @@ Re-landed 2026-09-03 (the U4i-10 contract was recorded but absent from the primi
 - `cardUntil?: "md" | "lg"` — where the card twin gives way to the table twin. `"md"` is the default, so every pre-existing consumer renders byte-identically with the prop absent. Dense tables declare `cardUntil="lg"` and keep cards through the tablet band (768–1023), which is where they used to crush.
 - `DataTableColumn.minWidth?: string` — a design-token min-width utility (`min-w-24`, `min-w-56`, …). When ANY column declares one the table drops `table-fixed` for auto layout and the primitive's OWN `overflow-x-auto` wrapper (`data-table-scroller`) absorbs the excess. Consumers never add a per-page width hack — the primitive owns scroll-not-cramp. The value is exactly one `min-w-*` class (ACT-023): `scripts/check-datatable-minwidth.sh` reads every `minWidth:` through `scripts/datatable-minwidth.ts` and refuses `w-fit`, `max-w-*`, two classes or a value it cannot read (`docs/features/ci-guards.md`, "A column's minWidth is one min-w class").
 - `DataTablePagination({ totalLabel })` — replaces the numeric total in the range string (the audit console's capped `10,000+` from INC-129). Paging arithmetic is unchanged.
+- `DataTablePagination({ total: undefined })` — an unanswered count (Lovable bundle 8, INC-1144): no range and no page buttons, Previous and Next disabled, rows per page kept. A table passes `undefined` until its count read answers, so a pending or failed read never draws a number. Tests: PGN-U1, PGN-U2.
 
 Proof: `src/components/shell/data-table.test.tsx` (DEC-025 floor) covers the default split, the `lg` split, min-width layout, and the label substitution; law L9 in `e2e/primitives-law.spec.ts` proves the variant geometry on `/dev/primitives?variant=lg` (cards at 360 AND 768, table at 1280) without touching L3's default case.
 
@@ -348,6 +349,12 @@ card's footer, depth Soft, page tone Cool grey (tokens: docs/features/design-fou
   Escape closes both. Filters' footer: Clear all and "Show N results" (when the
   page gives `resultCount`; else "Done"). Columns: one switch per column (the
   locked one on and greyed), footer Show all and Done.
+  From md the popover's side is chosen once, as it opens, from the room around
+  its button (Lovable bundle 8, INC-1271): below when the panel's 28rem floor
+  fits there or the room below is at least the room above, else above; its
+  height bound follows that side. DLG-E12 opens it under a button whose centre
+  sits at two-thirds of a 900-pixel window (`data-side="top"`, six choices in
+  view). Tests: TBP-U1, TBP-U2, TBP-U3.
 - **Filters are pills** (`FilterChoices`, `src/components/shell/filter-choices.tsx`):
   a labelled row of pills, the chosen one filled with a tick, one tap applies
   it. Never a dropdown inside a panel. Testids `<testid>-<value>`; the empty

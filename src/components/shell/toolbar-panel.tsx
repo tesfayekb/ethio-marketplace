@@ -44,6 +44,23 @@ import { useIsMobile } from "@/hooks/use-mobile";
  * footer part, in one row.
  */
 
+/**
+ * Lovable bundle 8 (INC-1271) — from md the panel's SIDE is chosen once, when it opens, from the
+ * room the window leaves its button: below when the panel's floor (28rem) fits there or there is
+ * at least as much room below as above, else above. Its height bound (Radix's available height)
+ * follows that side, so a button low in the window no longer opens a panel squeezed to a few rows.
+ */
+const PANEL_FLOOR_REM = 28;
+
+function sideFor(anchor: HTMLElement | null): "top" | "bottom" {
+  if (anchor === null) return "bottom";
+  const box = anchor.getBoundingClientRect();
+  const above = box.top;
+  const below = window.innerHeight - box.bottom;
+  const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  return below >= PANEL_FLOOR_REM * rem || below >= above ? "bottom" : "top";
+}
+
 export function ToolbarPanel({
   testid,
   title,
@@ -68,8 +85,13 @@ export function ToolbarPanel({
   const opener = useRef({});
   const [open, setOpen] = useState(false);
   const [openedWith, setOpenedWith] = useState(state);
+  const anchor = useRef<HTMLElement | null>(null);
+  const [side, setSide] = useState<"top" | "bottom">("bottom");
   const onOpenChange = (next: boolean) => {
-    if (next) setOpenedWith(state);
+    if (next) {
+      setOpenedWith(state);
+      if (!isMobile) setSide(sideFor(anchor.current));
+    }
     setOpen(next);
   };
   const close = () => setOpen(false);
@@ -103,9 +125,12 @@ export function ToolbarPanel({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+      <PopoverTrigger asChild ref={anchor}>
+        {trigger}
+      </PopoverTrigger>
       <PopoverContent
         variant="panel"
+        side={side}
         align={align}
         data-testid={`${testid}-panel`}
         className={BANDS_PANEL}
