@@ -32,6 +32,8 @@ export const RAW = [
   /\{\s*(?:\w+\.)?error\s*\.\s*message\s*\}/,
   /\{\s*String\(\s*\w*[eE]rr\w*\s*\)\s*\}/,
   /\{\s*errorText\(/,
+  // INC-1280 — a refusal code with no words, drawn as `code — detail`.
+  /\?\s*code\s*:\s*`\$\{code\} — /,
 ];
 
 /** Each `<Tag …>` element's props, up to its own closing line (same indentation), or its line. */
@@ -68,6 +70,9 @@ export function trips(text: string): string[] {
     if (/\berror=/.test(b) && !/\bretry=/.test(b)) why.push("datatable-without-retry");
   for (const b of block(text, "StatCard"))
     if (/\bfailed=/.test(b) && !/\bonRetry=/.test(b)) why.push("statcard-without-retry");
+  // The tile's old path (failed, no error) bypasses the notice; it is deleted in bundle 10b.
+  for (const b of block(text, "StatCard"))
+    if (/\bfailed(?:=|\s|\/>)/.test(b) && !/\berror=/.test(b)) why.push("statcard-without-error");
   for (const tag of ["DetailPanel", "ChartFrame"])
     for (const b of block(text, tag))
       if (/\berror=/.test(b) && !/\bonRetry=/.test(b)) why.push(`${tag}-without-retry`);
@@ -96,6 +101,7 @@ const ALLOW: ReadonlyArray<string> = [
   `src/components/app-shell.tsx | excluded | ${UNTIL_10B}`,
   // LEFT (ruling 1 decision 9 / not a reader)
   `src/routes/auth.tsx | excluded (auth) | ${UNTIL_10B}`,
+  `src/features/admin/import-dialog.tsx | a code with no words drawn as data (INC-1280) | INC-1280 until bundle 7`,
   `src/components/shell/impersonation-notice.tsx | the view-as bar, D39's concern (excluded impersonation) | ${UNTIL_10B}`,
   `src/features/posting/step-photos.tsx | a photo's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
   `src/features/posting/photo-editor.tsx | the editor's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
@@ -127,6 +133,11 @@ describe("failure notice census (DEC-464)", () => {
     );
     expect(trips("<StatCard failed={q.isError} />")).toContain("statcard-without-retry");
     expect(trips("<DataTable error={q.error} retry={q.refetch} />")).toEqual([]);
+    expect(trips("<StatCard failed={q.isError} onRetry={r} />")).toContain(
+      "statcard-without-error",
+    );
+    expect(trips("<StatCard failed={q.isError} error={q.error} onRetry={r} />")).toEqual([]);
+    expect(trips('return detail === "" ? code : `${code} — ${detail}`;')[0]).toMatch(/^raw/);
     expect(trips("<p data-failure={failure.class}>x</p>")).toEqual([]);
   });
 

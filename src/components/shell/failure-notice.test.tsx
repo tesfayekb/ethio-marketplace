@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
@@ -102,4 +102,41 @@ it("FN-U7 an ended sign-in links to sign in with the current path", () => {
     "/auth?return=%2Fmy-listings%3Fx%3D1",
   );
   expect(screen.queryByTestId("f-retry")).toBeNull();
+});
+
+vi.mock("@/features/auth/mfa/step-up-gate", () => ({
+  StepUpGate: ({
+    children,
+  }: {
+    children: (guard: (run: () => unknown) => Promise<unknown>) => React.ReactNode;
+  }) => children((run) => Promise.resolve(run())),
+}));
+
+it("FN-U8 changed: its words and Reload, which calls the caller's refetch", () => {
+  const onRetry = vi.fn();
+  render(
+    <FailureNotice
+      error={Object.assign(new Error("x"), { status: 409 })}
+      testid="f"
+      onRetry={onRetry}
+    />,
+  );
+  expect(screen.getByTestId("f")).toHaveTextContent("failure.changed");
+  expect(screen.queryByTestId("f-retry")).toBeNull();
+  fireEvent.click(screen.getByTestId("f-reload"));
+  expect(onRetry).toHaveBeenCalledTimes(1);
+});
+
+it("FN-U9 step-up: Retry runs through the gate, then reads again", async () => {
+  const onRetry = vi.fn();
+  render(
+    <FailureNotice
+      error={Object.assign(new Error("x"), { status: 428 })}
+      testid="f"
+      onRetry={onRetry}
+    />,
+  );
+  expect(screen.getByTestId("f")).toHaveTextContent("failure.stepUp");
+  fireEvent.click(await screen.findByTestId("f-retry"));
+  await waitFor(() => expect(onRetry).toHaveBeenCalledTimes(1));
 });

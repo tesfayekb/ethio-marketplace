@@ -1,12 +1,14 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n, type MessageKey } from "@/i18n";
 import { refusalText } from "@/lib/refusal";
 import { cn } from "@/lib/utils";
 
-import { rateRead, readFailure, REASONS } from "./failure-reason";
+import { failureKind, isRetryable, KINDS, rateRead } from "./failure-reason";
+import { LoadFailedHere } from "./on-demand-notice";
+import { resilientLazy } from "@/lib/resilient-lazy";
 import { signInReturn } from "./sign-in-return";
 
 /**
@@ -26,13 +28,22 @@ export interface FailureNoticeProps {
   onRetry?: () => void;
   /** The way out for a gone answer (Go home when omitted). */
   exit?: { label: MessageKey; to?: string; onPress?: () => void };
-  /** This caller's extra codes that mean "gone". */
-  gone?: readonly string[];
   /** What failed, in the caller's words, drawn before the reason. */
   subject?: ReactNode;
   size?: "block" | "tile" | "line";
   className?: string;
 }
+
+/** DEC-464 — the step-up Retry, on demand: the gate never rides a public page's first download. */
+function StepUpUnavailable({ testid }: { testid: string; onRetry: () => void }) {
+  return <LoadFailedHere testid={`${testid}-unavailable`} refreshTestid={`${testid}-refresh`} />;
+}
+const StepUpRetry = resilientLazy(
+  () => import("./failure-step-up").then((mod) => mod.FailureStepUp),
+  "the step-up retry",
+  StepUpUnavailable,
+  { inPlace: true },
+);
 
 function useNow(until: string | undefined): number {
   const at = until === undefined ? Number.NaN : Date.parse(until);
@@ -54,26 +65,25 @@ export function FailureNotice({
   retryTestid,
   onRetry,
   exit,
-  gone,
   subject,
   size = "block",
   className,
 }: FailureNoticeProps) {
   const { t, language } = useI18n();
-  const reading = useMemo(() => readFailure(error, gone), [error, gone]);
-  const row = REASONS[reading.reason];
+  const reading = useMemo(() => failureKind(error), [error]);
+  const row = KINDS[reading.kind];
   const now = useNow(reading.until);
   const [path, setPath] = useState("/");
   useEffect(() => {
-    if (reading.reason === "signedOut")
+    if (reading.kind === "signedOut")
       setPath(`${window.location.pathname}${window.location.search}`);
-  }, [reading.reason]);
+  }, [reading.kind]);
   useEffect(() => {
     console.warn("failure-notice", testid, reading.diagnostic);
   }, [testid, reading.diagnostic]);
 
   const words =
-    reading.reason === "rateLimited"
+    reading.kind === "rateLimited"
       ? refusalText(rateRead(error), t, undefined, language)
       : t(row.words);
   const waiting = reading.until !== undefined && Date.parse(reading.until) > now;
@@ -84,7 +94,7 @@ export function FailureNotice({
     switch (row.step) {
       case "retry":
       case "retryLater":
-        return onRetry ? (
+        return onRetry && (isRetryable(reading.kind) || row.step === "retryLater") ? (
           <Button
             type="button"
             variant="outline"
@@ -118,6 +128,25 @@ export function FailureNotice({
             </Link>
           </Button>
         );
+      case "reload":
+        return onRetry ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            className={touch}
+            data-testid={`${testid}-reload`}
+            onClick={onRetry}
+          >
+            {t("failure.reload")}
+          </Button>
+        ) : null;
+      case "stepUp":
+        return onRetry ? (
+          <Suspense fallback={null}>
+            <StepUpRetry testid={retryId} onRetry={onRetry} />
+          </Suspense>
+        ) : null;
       case "back":
         return (
           <Button
@@ -146,7 +175,7 @@ export function FailureNotice({
     <div
       role="alert"
       data-testid={testid}
-      data-failure-reason={reading.reason}
+      data-failure-reason={reading.kind}
       data-failure-class={reading.diagnostic}
       className={cn(
         "flex min-w-0 max-w-full flex-wrap items-center gap-2 break-words",

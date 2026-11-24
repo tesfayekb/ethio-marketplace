@@ -137,6 +137,7 @@ export function AdminTranslationsLanguagesPage() {
               testid="translations-stat-keys"
               loading={stats.isLoading || languages.isLoading}
               failed={stats.isError || languages.isError}
+              error={stats.error ?? languages.error}
               onRetry={() => {
                 if (stats.isError) void stats.refetch();
                 if (languages.isError) void languages.refetch();
@@ -148,6 +149,7 @@ export function AdminTranslationsLanguagesPage() {
               testid="translations-stat-languages"
               loading={languages.isLoading}
               failed={languages.isError}
+              error={languages.error}
               onRetry={() => void languages.refetch()}
               label={t("admin.translations.stat.languages")}
               value={enabledCount}
@@ -156,6 +158,7 @@ export function AdminTranslationsLanguagesPage() {
               testid="translations-stat-approved"
               loading={stats.isLoading}
               failed={stats.isError}
+              error={stats.error}
               onRetry={() => void stats.refetch()}
               label={t("admin.translations.stat.approved")}
               value={`${approvedPct}%`}
