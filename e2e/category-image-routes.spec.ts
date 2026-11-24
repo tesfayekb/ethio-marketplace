@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 
 import type { Database } from "../src/integrations/supabase/types";
 
+import { staffSession } from "./helpers/staff-factor";
 import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
 /**
@@ -38,27 +39,12 @@ function callerClient(token: string) {
   });
 }
 
-function anonClient() {
-  const url = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
-  const key =
-    process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  if (url === "" || key === "") throw new Error("[e2e:c5a] supabase env missing");
-  return createClient(url, key, { auth: { persistSession: false } });
-}
-
 /** A signed-in bearer token for a principal holding `categories:assets`. */
 async function assetsToken(): Promise<string> {
   const user = await leaseUser();
   await grantRole(user.id, "super_admin");
-  const { data, error } = await anonClient().auth.signInWithPassword({
-    email: user.email,
-    password: user.password,
-  });
-  const token = data.session?.access_token;
-  if (error || !token) {
-    throw new Error(`[e2e:c5a] sign-in failed: ${error?.message ?? "no session"}`);
-  }
-  return token;
+  // Cursor bundle 6 — a staff route and its doors answer a session that used its factor (aal2).
+  return (await staffSession(user)).access_token;
 }
 
 /** Seeds a scratch leaf category (J7 — before any call). */
