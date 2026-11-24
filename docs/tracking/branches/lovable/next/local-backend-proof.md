@@ -24,12 +24,12 @@
 | 14 | 638 | 87 | applied 553/553 | 187 | 0 | 0 | 3 | 190 |
 | 15 | 870 | 65 | applied 553/553 | 128 | 0 | 0 | 6 | 134 |
 | 16 | 786 | 65 | applied 553/553 | 172 | 0 | 0 | 48 | 220 |
-| repeat | not run | 68 | applied 553/553 | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2608 | 0 | 0 | 360 | 2968 |
+| repeat | 989 | 67 | applied 553/553 | 101 | 0 | 0 | 7 | 108 |
+| TOTAL | — | — | — | 2709 | 0 | 0 | 367 | 3076 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
 - Slowest lane: webkit 1048 s
-- Repeat lane (DEC-283): Repeat: each 3 on both projects; 18 tests selected, 18 repeated; budget 643 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 6 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 3 on mobile-360 and desktop-1280 at one worker after the parallel pass
+- Repeat lane (DEC-283): Repeat: each 3 on both projects; 18 tests selected, 18 repeated; budget 643 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 6 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 3 on mobile-360 and desktop-1280 at one worker after the parallel pass; Not repeated (time cap): dialogs.spec.ts / a Filters panel in rows (Lovable bundle 3) / DLG-E12 a filter row's list opens in the panel's flow under its row with its choices in view above the footer; one press opens another row's list; Escape closes the list, then the panel / webkit-390; Not repeated (time cap): dialogs.spec.ts / a Filters panel in rows (Lovable bundle 3) / DLG-E13 the fullest Filters panel: each date box's calendar opens inside the panel with its seven days in view, a chosen date is read whole, and a press on another row closes the open list / webkit-390; Not repeated (time cap): dialogs.spec.ts / one dialog look on a real surface (turn S6-1) / DLG-E9 a small panel opened from state gives the focus back to its opener, by Escape and by its close button / webkit-390; Not repeated (time cap): dialogs.spec.ts / the banded panel's body (Lovable bundle 2) / DLG-E10 a tall banded panel in a short window: the body alone scrolls, its last control is reached and pressed, the cue takes no room / webkit-390; Not repeated (time cap): dialogs.spec.ts / the banded panel's body (Lovable bundle 2) / DLG-E11 every banded panel of the board: the body has its content's height or scrolls, between the header and the last band, inside the window / webkit-390; Not repeated (time cap): dialogs.spec.ts / the full-screen surfaces on the one primitive (turn S6-4) / DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected / webkit-390
 - Database session samples during each start (INC-944): smoke 8, email 7, webkit 12, 1 7, 2 7, 3 7, 4 7, 5 7, 6 7, 7 12, 8 7, 9 7, 10 7, 11 7, 12 7, 13 7, 14 11, 15 7, 16 7, repeat 7
 - Lane plan (DEC-375 b): 16 lanes over 115 files, weights from run 43431755160 (2026-11-13); mean 641 s, largest 643 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 643 s; planned/test seconds: 1 642/339, 2 641/318, 3 641/362, 4 640/310, 5 640/370, 6 641/341, 7 641/460, 8 641/336, 9 641/385, 10 643/350, 11 640/361, 12 641/353, 13 640/300, 14 641/430, 15 641/394, 16 641/325
 - Teardown:
@@ -79,27 +79,7 @@ Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
 ## Lane repeat
-- Step failure:
-Step install-chromium-s-system-libraries: outcome failure
-  Get:133 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libfreeaptx0 amd64 0.1.1-2build1 [13.5 kB]
-  Get:134 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libgraphene-1.0-0 amd64 1.10.8-3build2 [46.2 kB]
-  Get:135 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libgssdp-1.6-0 amd64 1.6.3-1build3 [40.4 kB]
-  Get:136 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libegl1 amd64 1.7.0-1build1 [28.7 kB]
-  Get:137 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgstreamer-gl1.0-0 amd64 1.24.2-1ubuntu0.7 [214 kB]
-  Get:138 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgtk-4-common all 4.14.5+ds-0ubuntu0.10 [1497 kB]
-  Get:139 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libgtk-4-1 amd64 4.14.5+ds-0ubuntu0.10 [3295 kB]
-  Get:140 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libgupnp-1.6-0 amd64 1.6.6-1build3 [92.7 kB]
-  Get:141 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libgupnp-igd-1.6-0 amd64 1.6.0-3build3 [16.5 kB]
-  Get:142 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libharfbuzz-icu0 amd64 8.3.0-2build2 [13.3 kB]
-  Get:143 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libhyphen0 amd64 2.8.8-7build3 [26.5 kB]
-  Get:144 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libimath-3-1-29t64 amd64 3.1.9-3.1ubuntu2 [72.2 kB]
-  Get:145 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 liblc3-1 amd64 1.0.4-3build1 [69.7 kB]
-  Get:146 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libldacbt-enc2 amd64 2.0.2.3+git20200429+ed310a0-4ubuntu2 [27.1 kB]
-  Get:147 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 libraptor2-0 amd64 2.0.16-3ubuntu0.1 [165 kB]
-  Get:148 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 liblrdf0 amd64 0.6.1-4build1 [18.5 kB]
-  Get:149 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libltc11 amd64 1.3.2-1build1 [13.0 kB]
-  Get:150 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/main amd64 libmanette-0.2-0 amd64 0.2.7-1build2 [30.6 kB]
-  Get:151 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble/universe amd64 libmfx1 amd64 22.5.4-1 [3124 kB]
-  ::error title=ci-deadline::bash scripts/ci/install-browser-deps.sh chromium webkit ran past its 1500s deadline on try 1 of 1
+- Outside test — Timed out waiting 763s for the test suite to run
+- Outside test — Timed out waiting 763s for the teardown for test suite to run
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
