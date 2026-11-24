@@ -5915,7 +5915,25 @@ export type Database = {
         Args: { p_action: string; p_resource: string; p_user_id: string }
         Returns: boolean
       }
+      has_permission_core: {
+        Args: { p_action: string; p_resource: string; p_user_id: string }
+        Returns: boolean
+      }
       has_permission_scoped: {
+        Args: {
+          p_action: string
+          p_country?: string
+          p_mode?: string
+          p_resource: string
+          p_user_id: string
+        }
+        Returns: {
+          allowed: boolean
+          countries: string[]
+          detail: string
+        }[]
+      }
+      has_permission_scoped_core: {
         Args: {
           p_action: string
           p_country?: string
@@ -6183,6 +6201,10 @@ export type Database = {
         }
         Returns: Json
       }
+      my_permission_answer: {
+        Args: { p_action: string; p_resource: string }
+        Returns: string
+      }
       my_recent_categories: { Args: never; Returns: Json }
       my_saved_listings: {
         Args: { p_after?: Json; p_size?: number }
@@ -6444,6 +6466,10 @@ export type Database = {
       show_trgm: { Args: { "": string }; Returns: string[] }
       sold_cutoff: { Args: never; Returns: string }
       sold_visible_days: { Args: never; Returns: number }
+      staff_session_holds: {
+        Args: { p_action: string; p_resource: string; p_user_id: string }
+        Returns: boolean
+      }
       submit_listing: {
         Args: {
           p_attributes: Json
