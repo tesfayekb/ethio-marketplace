@@ -294,7 +294,7 @@ export function AdminUsersList() {
             testid="users-pagination"
             offset={page * pageSize}
             pageSize={pageSize}
-            total={total}
+            total={data !== undefined && !error ? total : undefined}
             onPrevious={() => setPage((current) => Math.max(0, current - 1))}
             onNext={() => setPage((current) => current + 1)}
             onPage={setPage}

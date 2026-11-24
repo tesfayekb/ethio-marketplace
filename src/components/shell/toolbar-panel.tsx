@@ -44,6 +44,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
  * footer part, in one row.
  */
 
+/**
+ * Lovable bundle 8 (INC-1271, ruling 2) — from md the panel is placed by its room
+ * (popover-impl.tsx `placeByRoom`): below its button when the room there holds the floor, else
+ * above, else inside the visible area over its button. The floor is the panel's height with
+ * six choices of a filter row's list in view (measured on /dev/style, Chromium, 1280 × 900).
+ */
+const PANEL_FLOOR_PX = 532;
+
 export function ToolbarPanel({
   testid,
   title,
@@ -68,6 +76,7 @@ export function ToolbarPanel({
   const opener = useRef({});
   const [open, setOpen] = useState(false);
   const [openedWith, setOpenedWith] = useState(state);
+  const anchor = useRef<HTMLButtonElement | null>(null);
   const onOpenChange = (next: boolean) => {
     if (next) setOpenedWith(state);
     setOpen(next);
@@ -103,30 +112,36 @@ export function ToolbarPanel({
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent
-        variant="panel"
-        align={align}
-        data-testid={`${testid}-panel`}
-        className={BANDS_PANEL}
-        aria-labelledby={`${testid}-title`}
-        aria-describedby={description === undefined ? undefined : `${testid}-description`}
-        onOpenAutoFocus={(event) => impl?.dialogRules.recordPanel(event, opener.current)}
-        onEscapeKeyDown={(event) => impl?.dialogRules.keepOpenList(event, opener.current)}
-      >
-        <PanelHeader>
-          <h2 id={`${testid}-title`} className="font-semibold">
-            {title}
-          </h2>
-          {description === undefined ? null : (
-            <p id={`${testid}-description`} className="text-sm text-muted-foreground">
-              {description}
-            </p>
-          )}
-        </PanelHeader>
-        {body}
-        {footPart}
-      </PopoverContent>
+      <PopoverTrigger asChild ref={anchor}>
+        {trigger}
+      </PopoverTrigger>
+      {/* INC-1271: unmount the placement reader on close; every opening reads today's room. */}
+      {open ? (
+        <PopoverContent
+          variant="panel"
+          room={{ from: anchor, floor: PANEL_FLOOR_PX }}
+          align={align}
+          data-testid={`${testid}-panel`}
+          className={BANDS_PANEL}
+          aria-labelledby={`${testid}-title`}
+          aria-describedby={description === undefined ? undefined : `${testid}-description`}
+          onOpenAutoFocus={(event) => impl?.dialogRules.recordPanel(event, opener.current)}
+          onEscapeKeyDown={(event) => impl?.dialogRules.keepOpenList(event, opener.current)}
+        >
+          <PanelHeader>
+            <h2 id={`${testid}-title`} className="font-semibold">
+              {title}
+            </h2>
+            {description === undefined ? null : (
+              <p id={`${testid}-description`} className="text-sm text-muted-foreground">
+                {description}
+              </p>
+            )}
+          </PanelHeader>
+          {body}
+          {footPart}
+        </PopoverContent>
+      ) : null}
     </Popover>
   );
 }

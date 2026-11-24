@@ -23,7 +23,10 @@ vi.mock("@/components/shell-context", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/components/shell-context")>()),
   useShell: () => ({ user: null, authLoading: false }),
 }));
-vi.mock("@/features/auth/mfa/step-up-gate", () => ({ StepUpGate: () => null }));
+vi.mock("@/features/auth/mfa/step-up-gate", () => ({
+  StepUpGate: ({ children }: { children: (guard: unknown) => React.ReactNode }) =>
+    children(vi.fn()),
+}));
 vi.mock("@/components/shell/location-data", () => ({
   useOpenMarkets: () => ({ markets: [], isLoading: false }),
 }));
@@ -34,7 +37,10 @@ vi.mock("@/features/categories/category-tree", () => ({
 vi.mock("@/features/levels/use-level-rows", () => ({
   useLevelRows: () => ({ rows: [], isLoading: false }),
 }));
-vi.mock("./use-admin-listings", () => ({ useAdminListings: reads.list }));
+vi.mock("./use-admin-listings", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./use-admin-listings")>()),
+  useAdminListings: reads.list,
+}));
 vi.mock("./use-listing-reports", () => ({ useOpenReportCounts: () => ({ data: undefined }) }));
 vi.mock("@/features/admin-screening/use-photo-changes", () => ({
   useWarnedListings: () => ({ data: undefined }),
@@ -62,4 +68,54 @@ it("ALP-U1 All listings' first enabled read carries its account's kept date pair
   expect(enabled.length).toBeGreaterThan(0);
   for (const call of enabled)
     expect(call[0]).toMatchObject({ from: "2026-11-01", to: "2026-11-02" });
+});
+
+/** A row shaped like the reader's answer; its values are a stand-in, never a real ad. */
+const ROW = {
+  id: "00000000-0000-4000-8000-000000000001",
+  title: "Row",
+  status: "active",
+  tier: null,
+  severe: false,
+  sellerId: "00000000-0000-4000-8000-000000000002",
+  sellerAlias: null,
+  sellerBusinessName: null,
+  sellerEmail: null,
+  categoryId: null,
+  categoryNameEn: null,
+  categoryNameAm: null,
+  placeNameEn: null,
+  placeNameAm: null,
+  countryCode: null,
+  priceMode: "fixed",
+  priceAmount: null,
+  priceCurrency: null,
+  pricePeriod: null,
+  priceBp: null,
+  priceUnit: null,
+  priceUnitText: null,
+  photoCount: 0,
+  createdAt: "2026-11-01T00:00:00Z",
+  publishedAt: null,
+  expiresAt: null,
+};
+
+it("ALT-U1 a read that has not answered draws no total: no range, and Next stays disabled", () => {
+  reads.list.mockImplementation(
+    () =>
+      ({
+        data: { rows: [ROW], total: 40 },
+        isSuccess: false,
+        isLoading: false,
+        isFetching: true,
+        error: null,
+      }) as never,
+  );
+  render(<AdminListingsPage />, { wrapper: tableViewTestShell("listings-unanswered") });
+  expect(document.body.textContent ?? "").not.toMatch(/prim\.table\.of 40/);
+  expect(document.querySelector('[data-testid="listings-pagination-range"]')).toBeNull();
+  expect(document.querySelector('[data-testid="listings-pagination-next"]')).toHaveProperty(
+    "disabled",
+    true,
+  );
 });

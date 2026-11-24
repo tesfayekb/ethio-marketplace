@@ -20,6 +20,8 @@ const seams = vi.hoisted(() => ({
   queueError: null as Error | null,
   permissions: ["listings:review"],
   photoProps: vi.fn(),
+  pager: vi.fn(),
+  queueSuccess: true,
 }));
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
@@ -94,6 +96,7 @@ vi.mock("./use-screening", async (original) => ({
     data: { rows: seams.rows, total: seams.rows.length },
     error: seams.queueError,
     isLoading: false,
+    isSuccess: seams.queueSuccess && seams.queueError === null,
   }),
   useScreeningPhotos: () => seams.photoRead,
   useScreeningFacts: () => ({ data: null }),
@@ -107,11 +110,13 @@ vi.mock("@/components/shell/data-table", () => ({
     selectionActions,
     error,
     errorState,
+    pagination,
   }: {
     selection?: { selectedKeys: string[]; onToggleRow: (row: { id: string }, on: boolean) => void };
     selectionActions: ReactNode;
     error: unknown;
     errorState: ReactNode;
+    pagination?: ReactNode;
   }) =>
     error ? (
       errorState
@@ -129,9 +134,13 @@ vi.mock("@/components/shell/data-table", () => ({
             ))
           : null}
         {selectionActions}
+        {pagination}
       </div>
     ),
-  DataTablePagination: () => null,
+  DataTablePagination: (props: { total: number | undefined }) => {
+    seams.pager(props);
+    return null;
+  },
 }));
 
 beforeEach(() => {
@@ -145,6 +154,8 @@ beforeEach(() => {
   seams.queueError = null;
   seams.permissions = ["listings:review"];
   seams.photoProps.mockClear();
+  seams.pager.mockClear();
+  seams.queueSuccess = true;
 });
 function open(ids: string[]) {
   render(<AdminScreeningPage />);
@@ -334,3 +345,10 @@ it.each([
       );
   },
 );
+
+it("SCRN-U1 the queue's pager gets no total until the queue's read has answered", () => {
+  seams.queueSuccess = false;
+  render(<AdminScreeningPage />);
+  expect(seams.pager).toHaveBeenCalled();
+  for (const [props] of seams.pager.mock.calls) expect(props.total).toBeUndefined();
+});

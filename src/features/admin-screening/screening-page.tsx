@@ -767,7 +767,7 @@ export function AdminScreeningPage({
                   testid="admin-screening-pagination"
                   offset={page * pageSize}
                   pageSize={pageSize}
-                  total={data?.total ?? 0}
+                  total={query.isSuccess ? data?.total : undefined}
                   onPrevious={() => {
                     setPage((current) => Math.max(0, current - 1));
                     setSelected([]);

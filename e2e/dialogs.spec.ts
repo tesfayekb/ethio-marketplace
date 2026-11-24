@@ -870,6 +870,48 @@ test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
       await expect(short).toHaveCount(0);
+
+      // The button anywhere in the window (INC-1271): the page is padded below the board so the
+      // Filters button can sit at the window's middle, then at two-thirds of it. Each time the
+      // panel is reopened there and the Colour list still shows six choices.
+      await page.setViewportSize({ width, height: 900 });
+      await page.evaluate(() => {
+        document.body.style.paddingBottom = "1200px";
+      });
+      const button = page.getByTestId("style-filters");
+      for (const [label, at] of [
+        ["middle", 1 / 2],
+        ["low", 2 / 3],
+      ] as const) {
+        await expect(page.getByTestId("style-filters-panel")).toHaveCount(0);
+        await button.evaluate((element, at) => {
+          const box = element.getBoundingClientRect();
+          window.scrollBy(0, box.top + box.height / 2 - window.innerHeight * at);
+        }, at);
+        await settled(page);
+        const placed = await open(page, "style-filters", "style-filters-panel");
+        await placed.getByTestId("style-filters-colour").click();
+        await expect(placed.getByTestId("style-filters-colour-list")).toBeVisible();
+        await settled(page);
+        const facts = await listFacts(placed, "style-filters-colour");
+        expect(facts, `DLG-E12 the open list @ ${width} x 900 ${label}`).toMatchObject({
+          inTheFlow: true,
+          underItsRow: true,
+          asWideAsItsRow: true,
+          rowInView: true,
+          searchInView: true,
+          bodyEndsAtFooter: true,
+          footerInsidePanel: true,
+          panelInsideWindow: true,
+        });
+        expect(
+          facts?.choicesInView ?? 0,
+          `DLG-E12 the choices a person sees @ ${width} x 900 ${label}`,
+        ).toBeGreaterThanOrEqual(Math.min(facts?.choices ?? 0, 6));
+        await page.keyboard.press("Escape");
+        await page.keyboard.press("Escape");
+        await expect(placed).toHaveCount(0);
+      }
     },
   );
 

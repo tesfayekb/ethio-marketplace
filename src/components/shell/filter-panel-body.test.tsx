@@ -265,3 +265,37 @@ it("FP-U37 a dates declaration has only its two box labels and no third row name
 beforeEach(async () => {
   await loadSelectList();
 });
+
+describe("one press opens another row's list on every engine (INC-1273)", () => {
+  it("SL-U40 a pointer-down that blurs with no relatedTarget (macOS WebKit) keeps the open list until the press lands", () => {
+    render(<FilterPanelBody filters={[choices("colour"), choices("size")]} words={words} />);
+    fireEvent.click(screen.getByTestId("colour"));
+    const search = screen.getByTestId("colour-search");
+    const size = screen.getByTestId("size");
+    fireEvent.pointerDown(size);
+    fireEvent.mouseDown(size);
+    fireEvent.blur(search, { relatedTarget: null });
+    expect(screen.getByTestId("colour-list")).toBeInTheDocument();
+    fireEvent.pointerUp(size);
+    fireEvent.mouseUp(size);
+    fireEvent.click(size);
+    expect(screen.queryByTestId("colour-list")).toBeNull();
+    expect(screen.getByTestId("size-list")).toBeInTheDocument();
+  });
+
+  it("FP-U56 focus moving to an element outside the rows still closes the open list", () => {
+    render(
+      <div>
+        <FilterPanelBody filters={[choices("colour")]} words={words} />
+        <button type="button" data-testid="outside">
+          Outside
+        </button>
+      </div>,
+    );
+    fireEvent.click(screen.getByTestId("colour"));
+    fireEvent.blur(screen.getByTestId("colour-search"), {
+      relatedTarget: screen.getByTestId("outside"),
+    });
+    expect(screen.queryByTestId("colour-list")).toBeNull();
+  });
+});

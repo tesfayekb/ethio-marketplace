@@ -209,3 +209,91 @@ it.each([360, 1280])(
 beforeEach(async () => {
   await loadSelectList();
 });
+
+/**
+ * Lovable bundle 8 (INC-1271, ruling 2) — the wide panel is placed by its room. jsdom draws no
+ * chrome, so the visible area is the 900-pixel window 8 px inside each edge (8 to 892); the
+ * floor is 532 px.
+ */
+describe("the wide panel's place", () => {
+  const HEIGHT = window.innerHeight;
+  afterEach(() => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: HEIGHT });
+    vi.restoreAllMocks();
+  });
+
+  async function placeAt(top: number) {
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    // The window's box as Radix's placement reads it (jsdom's is 0 × 0, which flips every side).
+    vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(900);
+    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(1280);
+    render(
+      <ToolbarPanel
+        testid="placed"
+        title="Filters"
+        state="all"
+        trigger={<button data-testid="placed" />}
+      >
+        <span />
+      </ToolbarPanel>,
+    );
+    const button = screen.getByTestId("placed");
+    vi.spyOn(button, "getBoundingClientRect").mockReturnValue(
+      DOMRect.fromRect({ x: 40, y: top, width: 80, height: 40 }),
+    );
+    fireEvent.click(button);
+    const panel = await screen.findByTestId("placed-panel");
+    // Radix places its wrapper by a translate: its vertical part is the panel's top.
+    await new Promise((done) => setTimeout(done, 0));
+    const wrapper = panel.closest<HTMLElement>("[data-radix-popper-content-wrapper]");
+    const placedTop = /translate\([^,]+,\s*([-\d.]+)px\)/.exec(wrapper?.style.transform ?? "")?.[1];
+    return {
+      side: panel.getAttribute("data-side"),
+      maxHeight: panel.style.maxHeight,
+      top: placedTop,
+    };
+  }
+
+  it("TBP-U1 the room below holds the floor: the panel opens below, as tall as that room", async () => {
+    // 892 - 140 = 752 px below.
+    expect(await placeAt(100)).toEqual({ side: "bottom", maxHeight: "752px", top: "140" });
+  });
+
+  it("TBP-U2 only the room above holds the floor: the panel opens above, as tall as that room", async () => {
+    // 152 px below, 700 - 8 = 692 px above (jsdom's panel has no height, so its top is the button's).
+    expect(await placeAt(700)).toEqual({ side: "top", maxHeight: "692px", top: "700" });
+  });
+
+  it("TBP-U3 neither side holds the floor: the panel covers its button from the visible area's top", async () => {
+    // 422 px on each side; the whole visible area, 892 - 8 = 884 px, from its top edge (8 px).
+    expect(await placeAt(430)).toEqual({ side: "bottom", maxHeight: "884px", top: "8" });
+  });
+
+  it("TBP-U4 reopening after the window and button move reads the new place", async () => {
+    expect(await placeAt(700)).toEqual({ side: "top", maxHeight: "692px", top: "700" });
+    fireEvent.keyDown(screen.getByTestId("placed-panel"), { key: "Escape" });
+    expect(screen.queryByTestId("placed-panel")).toBeNull();
+
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 560 });
+    vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(560);
+    const button = screen.getByTestId("placed");
+    vi.spyOn(button, "getBoundingClientRect").mockReturnValue(
+      DOMRect.fromRect({ x: 40, y: 330, width: 80, height: 40 }),
+    );
+    fireEvent.click(button);
+    const panel = await screen.findByTestId("placed-panel");
+    await new Promise((done) => setTimeout(done, 0));
+    const wrapper = panel.closest<HTMLElement>("[data-radix-popper-content-wrapper]");
+    const top = /translate\([^,]+,\s*([-\d.]+)px\)/.exec(wrapper?.style.transform ?? "")?.[1];
+    expect({
+      side: panel.getAttribute("data-side"),
+      maxHeight: panel.style.maxHeight,
+      top,
+    }).toEqual({
+      side: "bottom",
+      maxHeight: "544px",
+      top: "8",
+    });
+  });
+});

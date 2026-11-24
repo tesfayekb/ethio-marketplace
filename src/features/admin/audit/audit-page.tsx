@@ -405,7 +405,7 @@ export function AdminAuditPage() {
             testid="audit-pagination"
             offset={page * pageSize}
             pageSize={pageSize}
-            total={total}
+            total={list.isSuccess ? total : undefined}
             /* INC-129 — admin_list_audit caps the count at 10,001; the raw
                boundary number is never rendered as truth (C7 totalLabel). */
             totalLabel={total > 10000 ? t("admin.audit.total.capped") : undefined}
