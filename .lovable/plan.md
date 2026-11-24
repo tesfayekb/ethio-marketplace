@@ -965,5 +965,274 @@ Doors and their codes:
 - D44: on Translations, the translation box can be typed in without `translations:update` (strings-page.tsx:837-853). The export bar is drawn only for `translations:manage` (strings-page.tsx:403), while its door needs only `translations:view` (migration 20261114114500:175).
 - D45: in Legal, the server's `tooLong`, `badValue`, `notPublished` and `unknownVersion` (mutations) have no words in legal-service.ts:124-140. They show "That did not work. Try again." (en-admin:2140), even though "Too long: at most {max} characters." exists (en-admin:2138). Export shows the generic for every failure (legal-version-view.tsx:513-529).
 
-**Left for the next parts (area 3):**
-- `admin.locations`, `admin.places`, `admin.countries`, `admin.categories` (and sub-pages), `admin.attributes`, `admin.images`, `admin.monetisation`, `admin.ai`, and any other `admin*` route file not covered in A1–A17.
+## Screen A18 — Categories: `admin.categories.tsx` → admin-categories/categories-page.tsx (CP), category-dialogs.tsx (CD)
+
+Section `categories:view` (sections.ts:156-163); without it the shell sends staff to `/admin` (admin.tsx:71-99). Door permissions are `door_context` actions on `categories`. Migrations M214…M232, M304 = `supabase/migrations/2026111502{14..32}00_*.sql`, `20261120030400_*.sql`.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Roster rows `category-row-*`, actions `category-actions-*` (CP:433-655, :1070-1099); `admin_list_categories` (M231:42) | view | redirected | works | CT-2 console:122; CT-9a/b :615, :656 | none |
+| 2 | Search, subtree, missing-assets filter, chips (CP:211-225, :1100-1162) | view | — | works | CT-2; CT-31 :151; CT-11 :717 | none |
+| 3 | Columns, pagination, page size (CP:1151-1183) | view | — | works | CT-9a/b; CT-11; column toggle NONE | none |
+| 4 | Add / edit / save (CD:277-395; category-form-fields.tsx:124-390); `admin_create_category` M220:89 (core refusals M220:29-74), `admin_update_category` M214:86 | create (CP:261-265) / update (CP:751-761) | opener absent | works; refused | CT-3 :271; CT-17 lifecycle:569 | D50 |
+| 5 | Visibility window, country exclusions (CD:495-604); M216:166, M221:75 | update (CP:672-693) | absent | works | CT-4/5 :303, :334; CT-16 :523 | none |
+| 6 | Move up / down (CP:702-727); `admin_reorder_categories` M216:111 | UI restructure; door **update** (M216:111-118) | restructure-only staff see a move the door refuses | refused | NONE | D47 |
+| 7 | Parent paths, add pointer, primary, move/remove pointer (CD:777-988); M220:137, M221:95 (`unknownPointer` :110, `parentInactive` :113), M217:95/146 | restructure (CP:702-727) | absent | works; refused | CT-14/15 :233, :290; CT-39 home:117; CT-44 :420 | D50 |
+| 8 | Retire / reactivate / delete with typed slug (CD:677-731, :1083); M214:149, M215:144/94 | restructure (CP:729-770) | absent; delete disabled while active | works; refused | CT-6 :369; CT-12/13 :60, :155; CT-40; CT-43 | none |
+| 9 | Category attributes dialog (category-attributes-dialog.tsx:229-645) — rows in A19 | update (CP:688-692) | absent | works | AT-3/4; AT-42/80/84; AT-76 | D46 |
+| 10 | Image dialog: generate, accept (category-image-dialog.tsx:130-340); `admin_set_category_images` M222:38 (`unknownCategory` :63), accept M222:95 (`acceptNoImage` :116); api/admin/categories/generate-image.ts:23-44 | assets (CP:697-701) | absent | works; refused | images spec :44, :169 | none |
+| 11 | Bulk generate, progress, failures (CP:974-1055) | assets (CP:974-984) | absent | works; failed | NONE | D51 |
+| 12 | Import dialog: file, preview, confirm, undo, discard (category-import-dialog.tsx:70-95; import-dialog.tsx:438-684); preview M231:240, commit M218:43 (`importRunning` :77, `unknownParent` :164), undo M219:41 (`unknownBatch` :69) | import (CP:265, :998-1005) | absent | works; refused | CT-28 :2491; CT-22 :1845; CT-19 :1109; CT-21 :1648 | D51 |
+| 13 | Export `category-export`; `admin_export_categories` M304:31 (`unknownCategory` :44); export.ts:40-41 (`forbidden`, `unknownCategory`) | view | — | works; failed → `admin.categories.export.error` (CP:307-315) | CT-18 :1037 | D55 |
+| 14 | Loading / empty / failed (CP:1080-1098); paths dialog (CD:907-916) | view | — | failed | NONE | D46 |
+| 15 | Amharic; 360 | — | — | — | CT-8 console:549-588 (360/768/1024/1240) | none |
+
+Refusal words (category-refusals.ts:14-30): `acceptNoImage`, `catchallParent`, `reassignRequired`, `deleteActive`, `deleteSlugMismatch`, `deleteHasListings`, `deleteHasChildren`, `required`, `rateLimited` have their own words (en-admin:909, :1051-1053, :867-872; en-base:562; en-admin:733). `unknownCategory`, `unknownPointer`, `parentInactive` and every unmapped code → "The change could not be saved." (en-admin:1049). Import `importRunning` → its busy words (import-dialog.tsx:270-271); `unknownBatch` and `unknownParent` → NONE (the code shows as the reason, import-dialog.tsx:253-254).
+
+## Screen A19 — Attributes: `admin.attributes.tsx` → admin-attributes/attributes-page.tsx (AP), attribute-dialogs.tsx (AD)
+
+Section `categories:view` (sections.ts:165-172). Category filter in the address (admin.attributes.tsx:29-32).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Library rows, options, coverage, used by, inherited (AP:245-392, :538-566); `admin_list_attributes` M232:102 | view | redirected | works | AT-9 library:423; AT-17/19 | none |
+| 2 | Coverage column; `admin_attribute_option_coverage` M232:171 | read on page load (AP:188-197); door **update** | view-only staff: refused read, shown as no coverage | failed | NONE | D49 |
+| 3 | Search, category filter, clear (AP:578-620) | view | — | works | AT-7 :342; search NONE | none |
+| 4 | Columns, pagination (AP:95-105, :620-650) | view | — | works | AT-79 :494 | none |
+| 5 | Add / edit definition (AD:330-442, :568-591); `admin_upsert_attribute` M223:39, 17 refusals :62-205 | update (AP:119, :452-458, :515-523) | absent | works; refused | AT-2 :72; AT-31 editor:199; AT-81 | none |
+| 6 | Number / text fields, presets (attribute-v2-fields.tsx:60-340) | update (editor) | — | works | NONE per field | none |
+| 7 | Options, dependencies, bounds, allowed values (attribute-option-rows.tsx:119-183; attribute-option-row.tsx:87-319; attribute-allowed-values.tsx:78-179) | update (editor) | — | works; refused | AT-31; AT-33 editor:275 | none |
+| 8 | Assign to category (AD:961-1012); `admin_link_attribute` M224:37 (`unknownCategory` :52, `unknownAttribute` :55/:70, `alreadyLinked` :59, `badAllowedOption` :67, `badDefault` :68, `badVisibleWhen` :69, `priceBasisDuplicate` :80) | update (AP:429-436) | absent | works; refused | AT-8 :384 | D50 |
+| 9 | Remove from category (AD:1081-1146); `admin_unlink_attribute` M226:87 (`unknownLink` :99, `unlinkHasDependents` :109) | UI restructure (AP:437-447); door **update** | restructure-only see a refused verb; update-only lack it | works; refused | AT-11 :624; AT-73/73b safety:188, :239 | D48 |
+| 10 | Delete, merge (AD:673-718, :786-887); M226:39 (`unknownAttribute` :51, `confirmMismatch` :55, `deleteHasDependents` :62, `deleteHasLinks` :68); M227:130 (`mergeAcrossDependency` :151, `mergeHasHolders` :158) | restructure (AP:461-487) | absent | works; refused | AT-5/6 :223, :289; AT-74 :280 | none |
+| 11 | Link cells: allowed, default, visible-when, card / fact ranks, order (attribute-link-cells.tsx:173-433); M225:36 (`badClearCell` :65, `unknownLink` :71, `badAllowedOption` :91, `badDefault` :92, `badVisibleWhen` :93, `unknownAttribute` :94); M228:112/40/168 (`factLimit` :128, `cardLimit` :59, `rankInherited` :76, `unknownLink` :67/:136, `orderMismatch` :190) | update (category manager) | inherited links read only | works; refused | AT-59/60/66 links:782, :887, :1459; AT-76b | D50 |
+| 12 | Import: definitions and links files, preview, confirm, undo (attributes import-dialog.tsx:147-193); M232:201; M229:39 (`importRunning` :70); M230:40 (`required` :60, `unknownBatch` :65) | import (AP:122, :506-513) | absent | works; refused | AT-40/61; AT-21/23/24 import:491, :1191, :1237 | D51 |
+| 13 | Export (two files) (AP:208-237); M232:237; export.ts:43-44 (`forbidden`, `unknownCategory`) | view | — | works; failed → `admin.attributes.export.error` | AT-15/16/18 | D55 |
+| 14 | Loading / empty / failed (AP:548-566); link manager (category-attributes-dialog.tsx:278-286) | view | — | failed | NONE | D46 |
+| 15 | Secondary reads: category roster (AP:95-96, :125), effective links (:140-143), used by (:182-184) | view | — | failed → drawn as empty | NONE | D49 |
+| 16 | Amharic; 360 | — | — | — | AT-9 `expectNoHorizontalOverflow` (library:423-444, mobile-360 project) | none |
+
+Refusal words (attribute-refusals.ts:17-64): every code in rows 5, 7, 10 and 11 has its own sentence (en-admin:1454-1507, :875-876) except `unknownCategory`, `badAllowedOption`, `badDefault`, `badVisibleWhen`, `priceBasisDuplicate`, `badClearCell` → "The change could not be saved." (en-admin:1473). `required` → "This is needed." (en-base:562).
+
+## Screen A20 — Images: `admin.images.tsx` → admin/section-page.tsx
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Placeholder `admin-section-images`: `admin.comingSoon` "Not built yet" (en-admin:69), `admin.section.images.body` "Image tooling arrives in U8." (en-base:436); admin.images.tsx:29-30, section-page.tsx:20-28 | `categories:view` (sections.ts:174-181) | redirected | shown | NONE | none |
+| 2 | No controls, door or states (section-page.tsx:15-31) | — | — | — | — | none |
+
+**360 px sideways: none** (nothing to measure).
+
+## Screen A21 — Locations overview: `admin.locations.tsx` → admin-overview/locations-overview.tsx (LO)
+
+No section of its own (sections.ts:39-47); the panel gate only (admin.tsx:71).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Heading `admin-overview-locations` (LO:60-65) | panel | — | works | OV-1 admin-locations:1264-1267 | none |
+| 2 | Markets tile `overview-stat-markets` (LO:39-45, :72-79); read enabled with `countries:view` (:35-36) | countries:view for the read | tile still drawn, as 0 | works; no permission | OV-1 :1269-1275; no-permission NONE | D52 |
+| 3 | Places tile `overview-stat-places`, levels (LO:46-57, :81-98) | locations:view for the read (:34, :37) | tile still drawn, as 0 | works; no permission | OV-1; NONE | D52 |
+| 4 | Tile loading / failed / Retry (stat-card.tsx:60-81; LO:74-85) | — | — | failed | NONE | none |
+| 5 | Links `overview-link-locations`, `overview-link-countries` (LO:101-115) | filtered per view permission (:102) | link absent | works | OV-1 :1271-1284; filtering NONE | none |
+| 6 | Amharic; 360 | — | — | — | NONE | none |
+
+**360 px sideways: none.**
+
+## Screen A22 — Places: `admin.places.tsx` → admin-locations/locations-page.tsx (LP)
+
+Section id `locations`, `locations:view` (sections.ts:115-121). Migrations A–K as in the census aliases: A `20261122023300`, B `20261115122700`, C `20261115122900`, D `20261115122800`, G `20261120030400`, H `20261115123300`, J `20261115123400`, K `20261120030600`.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Roster rows `location-*` (LP:205-294, :426-444); `admin_list_locations` A:28 | view | redirected | works | LT-2 :171; LT-9a/b; LT-10 | none |
+| 2 | Market, search, level / status filters, chips (LP:133-168, :449-503) | view | — | works | LT-2; LT-11 :998; LT-13 :1089 | none |
+| 3 | Columns, pagination (LP:493-532) | view | — | works | LT-9a :909; columns NONE | none |
+| 4 | Add / add child (location-dialogs.tsx:164-244); `admin_upsert_location` B:37 (`badLevel` :59, `isoOnRegionsOnly` :62/:113, `nameRequired` :65/:116, `rootMustBeCountry` :69, `unknownCountry` :73, `parentMissing` :78, `locationMissing` :105, `useMoveDoor` :108/:110) | `locations:create` (LP:99, :303-310) | absent | works; refused | LT-3 :249; LT-16 :1205 | none |
+| 5 | Edit fields, aliases (location-editor.tsx:98-143; location-form-fields.tsx:76-264) | `locations:update` (LP:100, :344-350) | absent | works; refused | LT-7b :807; LT-8 :853 | none |
+| 6 | Activate / retire (C:80, `locationMissing` :94); reorder (C:39, `orderCountriesInProfile` :52, `notAChild` :58) | update (LP:311-338) | absent | works; refused | LT-3; LT-4 :360; reorder NONE | none |
+| 7 | Move (D:38: `locationMissing` :53, `cannotMoveCountry` :54, `parentMissing` :57, `crossCountry` :58) | `locations:restructure` | absent | works; refused | LT-6 :516 | none |
+| 8 | Delete with typed slug (D:79: `locationMissing` :93, `slugMismatch` :94, `retireInstead` :97-106) | restructure (LP:353-360) | absent; blocked rows disabled | works; refused | LT-5 :434 | none |
+| 9 | Export `location-export-locations` (LP:180-204, :386-394); G:52 (`unknownCountry` :66); export.ts:44-46, :68-69 | view | — | works; failed → one generic flag, no Retry | LT-7 :613; LT-12; LT-13 | D55 |
+| 10 | Import dialog: file, preview, confirm, undo (location-import-dialog.tsx:94-115; import-dialog.tsx); H:36; J:37 (`importRunning` :52, `planHasRefusals` :57); K:27 (`unknownBatch` :54, `batchAlreadyUndone` :58, `permissionDenied` :69, `undoBlocked` :136) | `locations:import` (LP:102, :396-403) | absent | works; refused | LT-7; LT-15 :753 | D51 |
+| 11 | Loading / empty / failed (LP:435-444) | view | — | failed | NONE | D46 |
+| 12 | Amharic; 360 | — | — | — | LT-2 :201-213 (roster scrollWidth, mobile-360) | none |
+
+Refusal words (location-refusals.ts:24-55): every code in rows 4–8 has its own sentence (en-admin:1524-1546); `permissionDenied` → "You do not have permission to do that." (:1528). Import: `importRunning` → "Another import is already running." (:1667); `planHasRefusals`, `unknownBatch`, `batchAlreadyUndone`, `undoBlocked` → their own words (:1720-1728); 403 → "You do not have permission to import places." (:1664).
+
+## Screen A23 — Countries: `admin.countries.tsx` → admin-countries/countries-page.tsx (CN)
+
+Section `countries:view` (sections.ts:123-129). Migrations E `20261115123200`, F `20261120030500`, G as above.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Roster rows, badges, counts (CN:142-234, :327-342); `admin_list_countries` E:100 | view | redirected | works | CO-2 :85 | none |
+| 2 | Search, status filter, chips, columns, pagination (CN:347-395) | view | — | works | CO-2 :85-150; CO-9 :464-501 | none |
+| 3 | No Add / Delete (creation by import) | — | — | absent | CO-3 :154-161 | none |
+| 4 | Edit name, unit, currency, order (country-editor.tsx:86-123); F:83 (`badCountryCode` :96, `badUnitSystem` :99, `badCurrency` :102, `nameRequired` :107) | `countries:update` (CN:74, :243-250) | absent | works; refused | CO-5 :224-240 | none |
+| 5 | Open / close, force (country-verb-dialogs.tsx:67-114); F:138 (`badCountryCode` :154, `unknownCountry` :157, `scopedRolesExist` :179) | `countries:activate` (CN:75, :252-262) | absent | works; refused | CO-4 :164-201 | none |
+| 6 | Rail order, reset (country-verb-dialogs.tsx:186-265); F:199 (`badCountryCode` :216, `unknownCountry` :219, `duplicateCategory` :224, `notARoot` :233) | update (CN:263-274) | absent | works; refused | CO-6 :254-353 | none |
+| 7 | Rail dialog root-category read (country-verb-dialogs.tsx:135-149, :224-227) | update | — | failed → drawn as empty | NONE | D54 |
+| 8 | Export, scope (CN:283-301); G:52 (`unknownCountry` :66); export.ts:64 needs `locations:view` | UI: none | countries-only staff see Export the route refuses | works; failed → generic | CO-7 :361-375; mismatch NONE | D53, D55 |
+| 9 | Import dialog (country-import-dialog.tsx:62-79); doors as A22 row 10 | `locations:import` (CN:76, :304-312) | absent | works; refused | CO-7 :361-407 | D51 |
+| 10 | Loading / empty / failed (CN:333-342) | view | — | failed | NONE | D46 |
+| 11 | Amharic; 360 | — | — | — | CO-8 :416-435 (mobile-360) | none |
+
+Refusal words (country-refusals.ts:17-33): every code in rows 4–6 has its own sentence (en-admin:1802-1812).
+
+## Screen A24 — Coverage: `admin.coverage.tsx` (redirect)
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | `beforeLoad` redirects to `/admin/monetisation` (admin.coverage.tsx:8-12); nothing drawn | target `packages:view` (sections.ts:83-92) | as A25 | works | MON-3 admin-monetisation:634-638 | none |
+
+**360 px sideways: none** (nothing drawn).
+
+## Screen A25 — Monetisation: `admin.monetisation.tsx` → admin-monetisation/monetisation-page.tsx (MP)
+
+Section `packages:view` (sections.ts:83-93). Every write needs `packages:update` (MP:35-36); without it the tables stay readable and the add / edit / clear / end verbs are absent. Writes sit behind `StepUpGate` (MP:64-92). Migrations S305…S310 = `20261119030{5..9}00_*.sql`, `20261119031000_*.sql`.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Header, order strip (MP:66-88); `admin_list_monetisation` S310:35 | view | redirected | works | MON-1 :490; MON-16/17 | none |
+| 2 | Markets list (markets-section.tsx:60-187) | view | — | works | MON-1; MON-12 :1220 | none |
+| 3 | Market add / edit (market-dialog.tsx:104-218); S308:171 (`unknownCountry` :190, `badFreeAds` :193, `unknownReach` :198, `launchRequired` :201, `badLaunch` :204) | update (markets-section.tsx:154-163, :212-220) | absent | works; refused | MON-12; MON-2 :555 | none |
+| 4 | Levels / Reach lists, details (products-section.tsx:85-342) | view | — | works | MON-1; MON-4/5; MON-18 | none |
+| 5 | Product add / edit with switches (product-editor.tsx:167-327); S308:36 (`badKey` :60, `unknownKind` :63, `badName` :66, `badDays` :69, `kindChange` :75, `capsOnLevel` :82, `badPhotos` :92, `unknownPlacement` :95, `perksOnReach` :99, `badCaps` :109-123) | update (products-section.tsx:307-316, :387-400) | absent | works; refused | MON-4 :646; MON-5 :767; MON-18 :1583 | none |
+| 6 | Overrides add / edit / clear (level-overrides-table.tsx:154-248; override-dialog.tsx:166-278); S307:34 (`unknownLevel` :53, `notMainCategory` :59, `unknownCountry` :62, `badDays` :65, `badPhotos` :68, `unknownPlacement` :71, `emptyOverride` :74); S307:108 (`overrideNotFound` :128) | update (level-overrides-table.tsx:160-169, :209-230) | absent | works; refused | MON-6 :819 | none |
+| 7 | Prices: search, columns, paging (product-prices-table.tsx:76-295) | view | — | works | MON-8 :986; paging NONE | none |
+| 8 | Price add / edit / end (price-dialog.tsx:123-353; price-end-dialog.tsx:61-92); S305:33 (`unknownPackage` :52, `badAmount` :55, `badCreditCost` :58, `unknownCurrency` :61, `unknownCountry` :64, `unknownCategory` :67, `badWindow` :70, `overlappingWindow` :78); S306:37 (`priceNotFound` :67, `permissionDenied` :78, `priceInUse` :84, `priceEnded` :87, and the S305 codes :91-115); S306:137 (`priceNotFound` :166, `permissionDenied` :173, `priceEnded` :177, `badWindow` :180, `overlappingWindow` :189) | update (product-prices-table.tsx:203-212, :264-289); edit only unused | absent; used prices keep End only | works; refused | MON-8/9/10/11 :986-1170 | none |
+| 9 | Unmapped save failure: generic plus "Reason: {reason}" with the raw text (use-monetisation-error.ts:25-40; monetisation-dialogs.tsx:33-40) | — | — | failed | NONE | D51 |
+| 10 | Loading / empty / failed (markets-section.tsx:178-187; products-section.tsx:345-365) | view | — | failed | NONE | D46 |
+| 11 | No seasons, import or delete (override-dialog.tsx:251-283; product-editor.tsx:64-68) | — | — | absent | MON-7 :953 is the resolver, not a screen | none |
+| 12 | Amharic; 360 | — | — | — | MON-1 :538-552 (`expectNoHorizontalOverflow`, mobile-360) | none |
+
+Refusal words (monetisation-refusals.ts:76-132): every code in rows 3, 5, 6 and 8 has its own sentence (en-admin:1888-1904, :1966-1985); `permissionDenied` → "You do not have permission to do that." (:1888); `stepUpRequired` / `P0009` → "Verify a code and try again." (:1889). Unmapped → "That could not be saved." (:1904) + reason.
+
+## Screen A26 — Packages: `admin.packages.tsx` (redirect)
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | `beforeLoad` redirects to `/admin/monetisation` (admin.packages.tsx:7-10); nothing drawn | target `packages:view` | as A25 | works | MON-3 :634 | none |
+
+**360 px sideways: none** (nothing drawn).
+
+## Screen A27 — AI: `admin.ai.tsx` → admin-ai/ai-page.tsx (AI)
+
+Section `services:view` (sections.ts:170-177); writes need `services:manage` (AI:63-64).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Feature rows, state, spend, calls, price, alert badges (AI:73-204, :239-250); `admin_ai_features` S310:80 | view | redirected | works | SV-4 admin-services:279; SV-3 :218 | none |
+| 2 | Search, columns, paging (AI:262-305) | view | — | works | NONE | none |
+| 3 | Edit `ai-actions-*` (AI:219-233) | manage (AI:224-231) | absent | works | SV-4 | none |
+| 4 | Editor: on / off, screening note, budget, price, save / cancel (ai-feature-form.tsx:117-205; ai-editor.tsx:47-56); `admin_set_ai_feature` S309:33 (`badValue:enabled` :51, `badValue:unitCost` :53, `badValue:budget` :56, `unknownFeature` :59, `overBudget` :72) | manage | — | works; refused | SV-2 :153 (door only); UI save NONE | D56 |
+| 5 | Unmapped save failure: generic plus raw reason (ai-refusals.ts:48-59; ai-feature-form.tsx:194-205) | — | — | failed | NONE | D51 |
+| 6 | Daily spend, feature picker, Retry (ai-spend-days.tsx:44-127); S310:125 (`badValue:days` :137) | view | — | works; failed + Retry | SV-5 :327; failed NONE | none |
+| 7 | Call history, filters, previous / next, Retry (ai-calls.tsx:33-184); S310:156 (`badValue:limit/feature/outcome/cursor` :165-168) | view | — | works; empty; failed + Retry | ACR-E1 admin-ai-calls:8, :29; failed NONE | none |
+| 8 | Feature list loading / empty / failed (AI:253-261) | view | — | failed | NONE | D46 |
+| 9 | Amharic; 360 | — | — | — | NONE | none |
+
+Refusal words (ai-refusals.ts:17-59): `permissionDenied` → "You do not hold the right to do this." (en-admin:319); `stepUpRequired` → :320; `unknownFeature` :325; `overBudget` :323-324; `badValue:budget` :326; `badValue:unitCost` :328; `badValue:enabled` → generic "That could not be saved." (:321) + reason. Read failures → their own load words (:264, :337, :36).
+
+**360 px sideways (A18–A27):** Categories CT-8, Attributes AT-9, Places LT-2, Countries CO-8, Monetisation MON-1. None for Images, Locations overview, Coverage, Packages, AI.
+
+- D46: these admin reads fail with no Retry: Categories list and paths (categories-page.tsx:1086-1098; category-dialogs.tsx:907-916); Attributes list and link manager (attributes-page.tsx:554-566; category-attributes-dialog.tsx:278-286); Places (locations-page.tsx:435-444); Countries (countries-page.tsx:333-342); Monetisation (markets-section.tsx:178-187; products-section.tsx:345-365); AI features (ai-page.tsx:253-261). Same kind as D38.
+- D47: Categories' Move up / down is drawn for `categories:restructure` (categories-page.tsx:702-727); `admin_reorder_categories` checks `categories:update` (migration 20261115021600:111-118).
+- D48: Attributes' Remove from category is drawn for `categories:restructure` (attributes-page.tsx:437-447); `admin_unlink_attribute` checks `categories:update` (migration 20261115022600:87-99). Update-only staff lack a verb they may use.
+- D49: Attributes reads coverage on every load (attributes-page.tsx:188-197) through a door that needs `categories:update` (migration 20261115023200:171); its error, and those of the category roster (:95-96, :125), effective links (:140-143) and used by (:182-184), are not read, so a failure draws as empty.
+- D50: `unknownCategory`, `unknownPointer`, `parentInactive` (category-refusals.ts:14-30; migration 20261115022100:110, :113) and `badAllowedOption`, `badDefault`, `badVisibleWhen`, `priceBasisDuplicate`, `badClearCell` (attribute-refusals.ts:17-64; migrations 20261115022400:67-80, 20261115022500:65-93) show "The change could not be saved." (en-admin:1049, :1473).
+- D51: raw technical text under the generic line: category bulk image failures (categories-page.tsx:789-792, :1052-1055); the shared import dialog's `code — detail` reason (import-dialog.tsx:243-255, :670-678; Categories, Attributes, Places, Countries); Monetisation's reason (use-monetisation-error.ts:25-40; monetisation-dialogs.tsx:33-40); AI's reason (ai-refusals.ts:48-59; ai-feature-form.tsx:194-205). Same kind as D43.
+- D52: the Locations overview draws both tiles without the permission their reads need, so they show 0 (locations-overview.tsx:34-43, :60-98).
+- D53: Countries' Export is drawn without a `locations:view` check (countries-page.tsx:283-301); the route needs it (api/admin/locations/export.ts:64).
+- D54: the rail-order dialog never reads the root categories' error (country-verb-dialogs.tsx:135-149, :224-227), so a failure draws as an empty list.
+- D55: export failures drop their code (`forbidden`, `unknownCountry`, `unknownCategory`): Places and Countries (locations-page.tsx:180-204; countries-page.tsx:283-301), Categories (categories-page.tsx:307-315), Attributes (attributes-page.tsx:224-234) show one generic export line.
+- D56: AI's `badValue:enabled` (migration 20261119030900:51) has no words in ai-refusals.ts:17-59; it shows "That could not be saved." (en-admin:321) plus the raw reason.
+
+# CENSUS SUMMARY — all three areas
+
+## 1. Counts (counted from this file: a row is a numbered table line `| n |`; NONE = the line contains NONE)
+
+| Area | Screens | Rows | Rows with NONE |
+|---|---|---|---|
+| 1 — public | 6 (screen 6 in five parts, 6a–6e) | 94 | 41 |
+| 2 — posting and member | 8 (screen 7 in nine parts: frame and steps 1–8) | 175 | 74 |
+| 3 — admin | 27 (A1–A27, one per `admin*` route file) | 229 | 101 |
+| **All** | **41** | **498** | **216** |
+
+## 2. Defects D1–D56, by kind
+
+**A failed load with no Retry**
+- D7 legal-document-page.tsx:47, :135; legal-accept-screen.tsx:26-30.
+- D12 app-rail.tsx:711-713, :725-728 (also reads as empty).
+- D13 location-selector.tsx:280-286.
+- D15 wizard.tsx:860-861; step-category.tsx:229-234.
+- D18 step-specifications.tsx:1197-1198; step-pricing.tsx:461-462.
+- D26 account-overview.tsx:131-134; saved-page.tsx:90-93; my-legal-page.tsx:48-51; my-legal-version.tsx:41-43.
+- D32 user-detail.tsx:413-416 (also the list's words).
+- D38 roles-list.tsx:237-242; role-detail.tsx:29-53; audit-page.tsx:327-331; chart-frame.tsx:111-115; detail-panel.tsx:51-55; languages-page.tsx:627-632; strings and legal readers.
+- D46 categories-page.tsx:1086-1098; attributes-page.tsx:554-566; locations-page.tsx:435-444; countries-page.tsx:333-342; markets-section.tsx:178-187; products-section.tsx:345-365; ai-page.tsx:253-261.
+
+**A refusal shown in the wrong words, or the generic**
+- D1 use-feed.ts:38; feed.tsx:215-216 (404 shows a Retry that cannot succeed).
+- D4 l.$slug.tsx:167-169; listing-detail.tsx:1535-1540.
+- D16 posting-service.ts:56-57 (ended sign-in read as unreachable; Cursor's).
+- D17 api/upload/photo.ts:279; refusal-text.ts:111-138.
+- D21 migration 20261115203900:85-109; refusal-text.ts:27-102.
+- D22 publish_listing :171, :193; refusal-text.ts:27-102 (words exist in my-listing.ts:282, promote-service.ts:190).
+- D24 my-listing.ts:268-288 (`badValue`, `notCopied`).
+- D25 my-listing.ts:686-688, :292-293, :266-288; migration 20261115204100:78-142.
+- D27 saved-page.tsx:51-58, :135-137.
+- D30 user-detail.tsx:270-272, :361-363.
+- D31 impersonation-starter.tsx:80; migration 20261114070700:66-77.
+- D33 undo-edit.ts:34-45; migration 20261118012200:75.
+- D45 legal-service.ts:124-140.
+- D50 category-refusals.ts:14-30; attribute-refusals.ts:17-64.
+- D55 locations-page.tsx:180-204; countries-page.tsx:283-301; categories-page.tsx:307-315; attributes-page.tsx:224-234.
+- D56 ai-refusals.ts:17-59; migration 20261119030900:51.
+
+**Raw technical text on screen**
+- D6 legal.$kind.tsx:62, :73 (address slug as title).
+- D9 legal.publishing.tsx:95-97.
+- D20 step-who.tsx:687; step-review.tsx:597-598.
+- D23 my-listings-page.tsx:746; my-listing-page.tsx:671.
+- D43 transfer-bar.tsx:241-244; history-drawer.tsx:242-250; pseudo-bar.tsx:148-151; data-scope.tsx:186-192.
+- D51 categories-page.tsx:789-792, :1052-1055; import-dialog.tsx:243-255, :670-678; use-monetisation-error.ts:25-40; ai-refusals.ts:48-59.
+
+**A control that does nothing, or is shown when it cannot work**
+- D3 feed.tsx:149 (no next page without IntersectionObserver).
+- D10 app-header.tsx:54, :167 (search forms).
+- D14 app-footer.tsx:82 (About, Contact, Safety; intended, :19-20).
+- D19 step-details.tsx:411-416 (assist drawn when switched off).
+- D34 screening-page.tsx:136, :440 (Show number; door needs reveal).
+- D35 screening-page.tsx:843-850; use-screening.ts:274-277 (Reject sends no reason).
+- D41 role-detail.tsx:64-66, :115-116 (system-role note on a custom role).
+- D44 strings-page.tsx:837-853, :403.
+- D47 categories-page.tsx:702-727.
+- D48 attributes-page.tsx:437-447.
+- D52 locations-overview.tsx:34-43, :60-98.
+- D53 countries-page.tsx:283-301.
+
+**A silent failure**
+- D5 seller-page.tsx:31; use-seller-feed.ts:158-163.
+- D29 admin.tsx gate :40-47 with usePermissions :67 (failed read treated as refused).
+- D36 screening-page.tsx:497; listings-page.tsx:254.
+- D39 impersonation-view.tsx:175-188; impersonation-banner.tsx:48-55.
+- D40 impersonation-view.tsx:262-263.
+- D42 audit-page.tsx:122-135.
+- D49 attributes-page.tsx:95-96, :125, :140-143, :182-197.
+- D54 country-verb-dialogs.tsx:135-149, :224-227.
+
+**Other**
+- D2 feed.tsx:286 (Retry without a test id).
+- D11 app-header.tsx:273-278; bottom-bar.tsx:160 (Sign in without return; no test id).
+- D28 my-legal-version.tsx:38 (raw database message compared).
+- D37 admin.screening.tsx:10-12; use-screening.ts:382-385 (stale comments; note only).
+
+**Withdrawn**
+- D8 legal.accept.tsx:44 — a deliberate fallback title.
+
+## 3. Screens whose 360 px sideways check is NONE
+
+- Area 1: screen 2 (ad page), 3 (seller), 4 (legal pages), 5 (accept, publishing). Screens 1 and 6 are covered (shell.spec.ts:1712, :2720).
+- Area 2: screen 7 frame and steps 1, 2, 3, 4, 5, 7, 8 (only step 6 has one, post-wizard-where.spec.ts:857); screens 8, 9, 10, 11, 12, 13, 14.
+- Area 3: A1 shell, A2 dashboard, A3 Users, A4 one person, A5 All listings, A6 one listing, A7 staff edit, A8 Screening, A13 Translations, A14 one language, A15 Legal, A16 one version, A17 legal editor, A20 Images, A21 Locations overview, A24 Coverage, A26 Packages, A27 AI.
