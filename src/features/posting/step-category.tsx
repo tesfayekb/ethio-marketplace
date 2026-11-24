@@ -122,6 +122,8 @@ export function StepCategory({
   tree,
   isLoading,
   treeError,
+  treeFailure = null,
+  onTreeRetry,
   onChoose,
   invalid = false,
   cursor,
@@ -134,6 +136,9 @@ export function StepCategory({
   tree: CategoryTree;
   isLoading: boolean;
   treeError: boolean;
+  /** DEC-464 — the tree read's own error and its own Retry (useCategoryTree's). */
+  treeFailure?: unknown;
+  onTreeRetry?: () => void;
   /** D37-2 — a finder hit carries its matches; the wizard revalidates them. */
   onChoose: (categoryId: string, matches?: FinderMatch[]) => void;
   /**
@@ -230,10 +235,10 @@ export function StepCategory({
   if (treeError) {
     return (
       <FailureNotice
-        error={null}
+        error={treeFailure}
         testid="post-category-error"
         subject={t("post.category.treeError")}
-        onRetry={() => window.location.reload()}
+        {...(onTreeRetry ? { onRetry: onTreeRetry } : {})}
       />
     );
   }

@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { gateRefusal, readerFailure } from "@/lib/reader-failure";
-import { rateUntilOf, readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { rateUntilOf, readRefusal, type RefusalFamily, type RefusalRead } from "@/lib/refusal";
 
 /**
  * DEC-464 / INC-1279 — THE FAILURE NOTICE'S ONE READING. A query's or an action's failure becomes
@@ -71,9 +71,7 @@ function codeOf(error: unknown): string | undefined {
   const gate = gateRefusal(error);
   if (gate !== null) return gate.code;
   const failure = readerFailure(error);
-  if (failure.code !== undefined && CODE.test(failure.code)) return failure.code;
-  const head = failure.message.trim().split(":")[0]?.trim() ?? "";
-  return CODE.test(head) ? head : undefined;
+  return failure.code !== undefined && CODE.test(failure.code) ? failure.code : undefined;
 }
 
 function decide(status: number | undefined, code: string | undefined, cls: string): FailureKind {
@@ -108,4 +106,26 @@ export function failureKind(error: unknown): FailureReading {
 /** The rate words' read, for `refusalText` (the one place `{when}` is filled). */
 export function rateRead(error: unknown) {
   return readRefusal(error, RATE_FAMILY);
+}
+
+/** DEC-464 — a read that answered and found nothing: the caller's read already decided it. */
+export function goneReading(): FailureReading {
+  return { kind: "gone", diagnostic: "answered none", until: undefined };
+}
+
+/** DEC-464 — a service that already answered a rate refusal, with its reset instant if named. */
+export function rateReading(until: string | undefined): FailureReading {
+  return { kind: "rateLimited", diagnostic: "refused 429", until };
+}
+
+/** The rate words for a reading, `{when}` only for an instant still to come. */
+export function rateWords(until: string | undefined): RefusalRead {
+  return {
+    key: RATE_FAMILY.words?.rateLimited ?? "failure.rateLimitedSoon",
+    tail: until,
+    field: null,
+    silent: false,
+    branch: "family",
+    when: RATE_FAMILY.when?.rateLimited,
+  };
 }

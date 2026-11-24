@@ -1,5 +1,5 @@
 import { compareCodes } from "@/lib/reader-locale";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { distanceKm } from "@/lib/geo-distance";
 import { callRoute } from "@/lib/route-client";
@@ -242,10 +242,21 @@ function countryTreeOnce(country: string): Promise<TreeNode[]> {
   return promise;
 }
 
-export function useOpenMarkets(): { markets: OpenMarket[]; isLoading: boolean; failed: boolean } {
+export function useOpenMarkets(): {
+  markets: OpenMarket[];
+  isLoading: boolean;
+  failed: boolean;
+  /** DEC-464 — the failed read's own error; null otherwise. */
+  failure: unknown;
+  /** DEC-464 — asks for the markets again. */
+  retry: () => void;
+} {
   const [markets, setMarkets] = useState<OpenMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -255,22 +266,24 @@ export function useOpenMarkets(): { markets: OpenMarket[]; isLoading: boolean; f
         if (cancelled) return;
         setMarkets(rows);
         setFailed(false);
+        setFailure(null);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         // C4/F4 — a failed read renders the translated caption, never a blank
         // picker and never a throw through the shell.
         if (cancelled) return;
         setMarkets([]);
+        setFailure(error);
         setFailed(true);
         setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
-  return { markets, isLoading, failed };
+  return { markets, isLoading, failed, failure, retry };
 }
 
 export function useCountryTree(country: string | null): {
@@ -285,7 +298,14 @@ export function useCountryTree(country: string | null): {
   loadedCountry: string | null;
   isLoading: boolean;
   failed: boolean;
+  /** DEC-464 — the failed read's own error; null otherwise. */
+  failure: unknown;
+  /** DEC-464 — asks for this market's tree again. */
+  retry: () => void;
 } {
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loadedCountry, setLoadedCountry] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -308,6 +328,7 @@ export function useCountryTree(country: string | null): {
     setNodes([]);
     setLoadedCountry(null);
     setFailed(false);
+    setFailure(null);
     setIsLoading(true);
     countryTreeOnce(country)
       .then((rows) => {
@@ -317,19 +338,20 @@ export function useCountryTree(country: string | null): {
         setFailed(false);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (cancelled) return;
         setNodes([]);
         setLoadedCountry(null);
+        setFailure(error);
         setFailed(true);
         setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [country]);
+  }, [country, attempt]);
 
-  return { nodes, loadedCountry, isLoading, failed };
+  return { nodes, loadedCountry, isLoading, failed, failure, retry };
 }
 
 /* -------------------------------- the shapes ------------------------------ */

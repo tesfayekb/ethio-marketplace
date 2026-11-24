@@ -460,11 +460,11 @@ export function StepPricing({
             hint={
               currencies.failed ? (
                 <FailureNotice
-                  error={null}
+                  error={currencies.failure}
                   testid="post-price-currency-error"
                   size="line"
                   subject={t("post.price.currencyFailed")}
-                  onRetry={() => window.location.reload()}
+                  onRetry={currencies.retry}
                 />
               ) : undefined
             }

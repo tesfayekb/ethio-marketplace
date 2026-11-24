@@ -86,6 +86,23 @@ describe("the page's held category tree", () => {
     );
   }
 
+  it("CTR-U1 (DEC-464) a failed read keeps its error, and retry asks for the tree again", async () => {
+    const down = new TypeError("Failed to fetch");
+    const fetchTree = vi
+      .fn()
+      .mockRejectedValueOnce(down)
+      .mockResolvedValueOnce(answer("v1", ["A"]));
+    vi.stubGlobal("fetch", fetchTree);
+    const hook = renderHook(() => useCategoryTree());
+    await waitFor(() => expect(hook.result.current.error).toBe(true));
+    expect(hook.result.current.failure).not.toBeNull();
+    hook.result.current.retry();
+    await waitFor(() => expect(hook.result.current.error).toBe(false));
+    await waitFor(() => expect(hook.result.current.tree.byId.has("A")).toBe(true));
+    expect(hook.result.current.failure).toBeNull();
+    expect(fetchTree).toHaveBeenCalledTimes(2);
+  });
+
   it("INC-788 — a later mount's newer tree reaches an earlier mount", async () => {
     const fetchTree = vi
       .fn()

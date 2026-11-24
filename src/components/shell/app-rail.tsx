@@ -56,7 +56,6 @@ import {
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
 import { FailureNotice } from "./failure-notice";
-import { refreshPage } from "@/lib/on-demand-failure";
 
 /**
  * COLLAPSE — an OPTION on md+, never the default and never on mobile.
@@ -517,7 +516,14 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const compact = variant === "strip" || variant === "menu";
   const hide = useHide();
   const { t, entities } = useI18n();
-  const { tree, isLoading: treeLoading, error, firstRail } = useCategoryTree();
+  const {
+    tree,
+    isLoading: treeLoading,
+    error,
+    failure,
+    retry: retryTree,
+    firstRail,
+  } = useCategoryTree();
   // INC-974 (row 60) — the names draw at once (the server's first-rail seed or the read);
   // the glyph map arrives after the first paint and fills each row's fixed box.
   const glyphs = useCategoryGlyphs();
@@ -725,12 +731,12 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         />
       ) : null}
       {error ? (
-        // D12 — a failed read is never also "No categories yet"; the read's one cure is the page's.
+        // D12 — a failed read is never also "No categories yet"; Retry asks for the tree again.
         <FailureNotice
-          error={null}
+          error={failure}
           testid="rail-categories-failed"
           className={cn("px-3", hide)}
-          onRetry={refreshPage}
+          onRetry={retryTree}
         />
       ) : null}
     </nav>

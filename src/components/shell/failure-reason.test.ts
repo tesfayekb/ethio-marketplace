@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { failureKind, isRetryable } from "./failure-reason";
 
 const withStatus = (status: number, message = "x") => Object.assign(new Error(message), { status });
-const coded = (code: string) => Object.assign(new Error(code), { code: "P0D01", status: 400 });
+const coded = (code: string) => Object.assign(new Error(code), { code: "P0D01" });
 
 describe("failureKind (DEC-464, status first)", () => {
   it("FR-U1 401 or notSignedIn → signedOut", () => {

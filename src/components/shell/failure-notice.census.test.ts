@@ -1,7 +1,9 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { relative } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { walkFiles } from "../../../scripts/conformance/kit";
 
 /**
  * DEC-464 / INC-1279 — THE FAILURE NOTICE'S CENSUS. Every `.tsx` under src/features,
@@ -76,16 +78,13 @@ export function trips(text: string): string[] {
   for (const tag of ["DetailPanel", "ChartFrame"])
     for (const b of block(text, tag))
       if (/\berror=/.test(b) && !/\bonRetry=/.test(b)) why.push(`${tag}-without-retry`);
-  return why;
-}
-
-function walk(dir: string, out: string[]): string[] {
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) walk(path, out);
-    else if (path.endsWith(".tsx") && !/\.(test|spec)\.tsx$/.test(path)) out.push(path);
+  // A made-up error hides the read's own answer; a page reload hides its own retry.
+  for (const b of block(text, "FailureNotice")) {
+    if (/\berror=\{[^}]*\bnew\s+Error\(/.test(b)) why.push("notice-made-up-error");
+    if (/\bonRetry=\{[^}]*(?:location\.reload|refreshPage)\b/.test(b))
+      why.push("notice-retry-reloads");
   }
-  return out;
+  return why;
 }
 
 const UNTIL_10B = "INC-1279 until bundle 10b";
@@ -141,7 +140,9 @@ describe("failure notice census (DEC-464)", () => {
     expect(trips("<p data-failure={failure.class}>x</p>")).toEqual([]);
   });
 
-  const files = ROOTS.flatMap((root) => walk(root, [])).map((p) => relative(process.cwd(), p));
+  const files = walkFiles(ROOTS, { ext: ["tsx"], skipTests: true }).map((p) =>
+    relative(process.cwd(), p),
+  );
 
   it("FNC-2 every failure render goes through the notice", () => {
     const bad = files

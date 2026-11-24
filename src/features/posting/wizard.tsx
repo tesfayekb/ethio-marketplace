@@ -108,6 +108,7 @@ import {
 } from "./types";
 import { EDIT_GUIDE, POST_GUIDE, WIZARD_GUIDE_PARTS, stepPartKey } from "./wizard-guide";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { goneReading } from "@/components/shell/failure-reason";
 
 /** D39 — the rails walk the seller's order; each entry keeps its door number. */
 const WALK = SEQUENCE.map((step) => STEPS[step - 1]);
@@ -229,7 +230,13 @@ function WizardShell({
   useEffect(() => {
     setEditCertification?.(certifyArgs(certify, language));
   }, [certify, language, setEditCertification]);
-  const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
+  const {
+    tree,
+    isLoading: treeLoading,
+    error: treeError,
+    failure: treeFailure,
+    retry: retryTree,
+  } = useCategoryTree();
 
   // Which detail keys step 3 renders: refusals naming one of them are shown
   // under that control, and every other refusal still reaches the seller (F4).
@@ -859,15 +866,22 @@ function WizardShell({
       <PageShell as="main" width="narrow">
         <PageCard>
           {/* D15 — a draft that is not the seller's is gone (a way out); any other failure retries. */}
-          <FailureNotice
-            error={draft.loadError === "notFound" ? new Error("notYours") : null}
-            testid="post-load-error"
-            subject={
-              draft.loadError === "notFound" ? t("post.error.notYours") : t("post.error.load")
-            }
-            exit={{ label: "nav.myListings", to: "/my-listings" }}
-            onRetry={() => window.location.reload()}
-          />
+          {draft.loadError === "notFound" ? (
+            <FailureNotice
+              reading={goneReading()}
+              testid="post-load-error"
+              subject={t("post.error.notYours")}
+              exit={{ label: "nav.myListings", to: "/my-listings" }}
+            />
+          ) : (
+            <FailureNotice
+              error={draft.loadFailure}
+              testid="post-load-error"
+              subject={t("post.error.load")}
+              exit={{ label: "nav.myListings", to: "/my-listings" }}
+              onRetry={draft.reload}
+            />
+          )}
         </PageCard>
       </PageShell>
     );
@@ -1463,6 +1477,8 @@ function WizardShell({
                             tree={tree}
                             isLoading={treeLoading}
                             treeError={treeError}
+                            treeFailure={treeFailure}
+                            onTreeRetry={retryTree}
                             cursor={categoryCursor}
                             onCursor={setCategoryCursor}
                             term={categoryTerm}

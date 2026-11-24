@@ -930,6 +930,8 @@ it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordi
   vi.mocked(useCountryTree).mockReturnValue({
     loadedCountry: "ET",
     nodes,
+    failure: null,
+    retry: () => {},
     isLoading: false,
     failed: false,
   });
@@ -984,6 +986,8 @@ it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordi
     vi.mocked(useCountryTree).mockReturnValue({
       loadedCountry: null,
       nodes: [],
+      failure: null,
+      retry: () => {},
       isLoading: false,
       failed: false,
     });

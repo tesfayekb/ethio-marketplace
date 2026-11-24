@@ -33,7 +33,6 @@ import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { OPEN_CONTROL } from "@/components/shell/menu-row";
 import { FailureNotice } from "./failure-notice";
-import { refreshPage } from "@/lib/on-demand-failure";
 
 /**
  * LOCATION SELECTOR — band 3 of the shell's vertical stack.
@@ -280,14 +279,14 @@ export function LocationSelector() {
           {t("common.loading")}
         </span>
       ) : failed ? (
-        // D13 — the reason in words and Retry (the page's one cure; the reads have none of their own).
+        // D13 — the reason in words and Retry: the failed read asks again (DEC-464).
         <FailureNotice
-          error={null}
+          error={markets.failed ? markets.failure : tree.failure}
           testid="location-error"
           size="line"
           className="min-h-8 flex-nowrap"
           subject={t("location.readFailed")}
-          onRetry={refreshPage}
+          onRetry={markets.failed ? markets.retry : tree.retry}
         />
       ) : marketOptions.length === 0 ? (
         <span className="min-h-8 content-center text-sm text-muted-foreground">

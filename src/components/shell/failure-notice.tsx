@@ -1,15 +1,22 @@
 import { Link } from "@tanstack/react-router";
-import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n, type MessageKey } from "@/i18n";
 import { refusalText } from "@/lib/refusal";
 import { cn } from "@/lib/utils";
 
-import { failureKind, isRetryable, KINDS, rateRead } from "./failure-reason";
-import { LoadFailedHere } from "./on-demand-notice";
-import { resilientLazy } from "@/lib/resilient-lazy";
-import { signInReturn } from "./sign-in-return";
+import { refreshPage } from "@/lib/on-demand-failure";
+
+import {
+  failureKind,
+  isRetryable,
+  KINDS,
+  rateRead,
+  rateWords,
+  type FailureReading,
+} from "./failure-reason";
+import { SignInLink } from "./sign-in-link";
 
 /**
  * DEC-464 / INC-1279 — THE ONE FAILURE NOTICE. Every failed load or action on a screen draws
@@ -18,8 +25,14 @@ import { signInReturn } from "./sign-in-return";
  * Retry that cannot succeed. `role="alert"`, never takes focus, 44 px targets. It is not lazy: a
  * network failure must still be able to show its words. failure-notice.census.test.ts judges.
  */
-export interface FailureNoticeProps {
-  error: unknown;
+/** DEC-464 — the read's own error, or a reading the caller's read already decided; never both. */
+type FailureSource =
+  | { error: unknown; reading?: never }
+  | { reading: FailureReading; error?: never };
+
+export type FailureNoticeProps = FailureSource & FailureNoticeBase;
+
+interface FailureNoticeBase {
   /** The failure element's existing test id (its contract with the tests). */
   testid: string;
   /** The Retry's test id; `${testid}-retry` when omitted. */
@@ -33,17 +46,6 @@ export interface FailureNoticeProps {
   size?: "block" | "tile" | "line";
   className?: string;
 }
-
-/** DEC-464 — the step-up Retry, on demand: the gate never rides a public page's first download. */
-function StepUpUnavailable({ testid }: { testid: string; onRetry: () => void }) {
-  return <LoadFailedHere testid={`${testid}-unavailable`} refreshTestid={`${testid}-refresh`} />;
-}
-const StepUpRetry = resilientLazy(
-  () => import("./failure-step-up").then((mod) => mod.FailureStepUp),
-  "the step-up retry",
-  StepUpUnavailable,
-  { inPlace: true },
-);
 
 function useNow(until: string | undefined): number {
   const at = until === undefined ? Number.NaN : Date.parse(until);
@@ -61,6 +63,7 @@ function useNow(until: string | undefined): number {
 
 export function FailureNotice({
   error,
+  reading: given,
   testid,
   retryTestid,
   onRetry,
@@ -70,21 +73,16 @@ export function FailureNotice({
   className,
 }: FailureNoticeProps) {
   const { t, language } = useI18n();
-  const reading = useMemo(() => failureKind(error), [error]);
+  const reading = useMemo(() => given ?? failureKind(error), [given, error]);
   const row = KINDS[reading.kind];
   const now = useNow(reading.until);
-  const [path, setPath] = useState("/");
-  useEffect(() => {
-    if (reading.kind === "signedOut")
-      setPath(`${window.location.pathname}${window.location.search}`);
-  }, [reading.kind]);
   useEffect(() => {
     console.warn("failure-notice", testid, reading.diagnostic);
   }, [testid, reading.diagnostic]);
 
   const words =
     reading.kind === "rateLimited"
-      ? refusalText(rateRead(error), t, undefined, language)
+      ? refusalText(given ? rateWords(given.until) : rateRead(error), t, undefined, language)
       : t(row.words);
   const waiting = reading.until !== undefined && Date.parse(reading.until) > now;
   const retryId = retryTestid ?? `${testid}-retry`;
@@ -142,11 +140,19 @@ export function FailureNotice({
           </Button>
         ) : null;
       case "stepUp":
-        return onRetry ? (
-          <Suspense fallback={null}>
-            <StepUpRetry testid={retryId} onRetry={onRetry} />
-          </Suspense>
-        ) : null;
+        // DEC-464 — a staff screen asks for the code on load; Reload lets that gate ask again.
+        return (
+          <Button
+            type="button"
+            variant="outline"
+            size="touch"
+            className={touch}
+            data-testid={`${testid}-reload`}
+            onClick={() => refreshPage()}
+          >
+            {t("failure.reload")}
+          </Button>
+        );
       case "back":
         return (
           <Button
@@ -163,9 +169,7 @@ export function FailureNotice({
       case "signIn":
         return (
           <Button asChild variant="outline" size="touch" className={touch}>
-            <Link to="/auth" search={signInReturn(path)} data-testid={`${testid}-sign-in`}>
-              {t("auth.signIn")}
-            </Link>
+            <SignInLink data-testid={`${testid}-sign-in`}>{t("auth.signIn")}</SignInLink>
           </Button>
         );
     }

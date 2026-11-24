@@ -2,7 +2,11 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, expect, it, vi } from "vitest";
 
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
+const refresh = vi.hoisted(() => ({ refreshPage: vi.fn() }));
+vi.mock("@/lib/on-demand-failure", () => refresh);
 vi.mock("@tanstack/react-router", () => ({
+  useRouterState: ({ select }: { select: (s: { location: { href: string } }) => string }) =>
+    select({ location: { href: `${window.location.pathname}${window.location.search}` } }),
   Link: ({
     to,
     search,
@@ -19,6 +23,7 @@ vi.mock("@tanstack/react-router", () => ({
   ),
 }));
 import { FailureNotice } from "./failure-notice";
+import { goneReading, rateReading } from "./failure-reason";
 
 afterEach(() => vi.useRealTimers());
 
@@ -58,14 +63,14 @@ it("FN-U3 gone and no access offer no Retry", () => {
 it("FN-U4 Retry waits for the rate gate's reset time", () => {
   vi.useFakeTimers();
   const until = new Date(Date.now() + 60_000).toISOString();
-  render(<FailureNotice error={new Error(`rateLimited:${until}`)} testid="f" onRetry={() => {}} />);
+  render(<FailureNotice reading={rateReading(until)} testid="f" onRetry={() => {}} />);
   expect(screen.getByTestId("f-retry")).toBeDisabled();
   act(() => vi.advanceTimersByTime(61_000));
   expect(screen.getByTestId("f-retry")).not.toBeDisabled();
 });
 
 it("FN-U4b a rate refusal with no time says 'in a little while' and Retry is enabled", () => {
-  render(<FailureNotice error={new Error("rateLimited")} testid="f" onRetry={() => {}} />);
+  render(<FailureNotice reading={rateReading(undefined)} testid="f" onRetry={() => {}} />);
   expect(screen.getByTestId("f")).toHaveTextContent("failure.rateLimitedSoon");
   expect(screen.getByTestId("f-retry")).not.toBeDisabled();
 });
@@ -104,14 +109,6 @@ it("FN-U7 an ended sign-in links to sign in with the current path", () => {
   expect(screen.queryByTestId("f-retry")).toBeNull();
 });
 
-vi.mock("@/features/auth/mfa/step-up-gate", () => ({
-  StepUpGate: ({
-    children,
-  }: {
-    children: (guard: (run: () => unknown) => Promise<unknown>) => React.ReactNode;
-  }) => children((run) => Promise.resolve(run())),
-}));
-
 it("FN-U8 changed: its words and Reload, which calls the caller's refetch", () => {
   const onRetry = vi.fn();
   render(
@@ -127,7 +124,7 @@ it("FN-U8 changed: its words and Reload, which calls the caller's refetch", () =
   expect(onRetry).toHaveBeenCalledTimes(1);
 });
 
-it("FN-U9 step-up: Retry runs through the gate, then reads again", async () => {
+it("FN-U9 step-up: its words and Reload, which reloads the page so its gate asks", () => {
   const onRetry = vi.fn();
   render(
     <FailureNotice
@@ -137,6 +134,15 @@ it("FN-U9 step-up: Retry runs through the gate, then reads again", async () => {
     />,
   );
   expect(screen.getByTestId("f")).toHaveTextContent("failure.stepUp");
-  fireEvent.click(await screen.findByTestId("f-retry"));
-  await waitFor(() => expect(onRetry).toHaveBeenCalledTimes(1));
+  expect(screen.queryByTestId("f-retry")).toBeNull();
+  fireEvent.click(screen.getByTestId("f-reload"));
+  expect(refresh.refreshPage).toHaveBeenCalledTimes(1);
+  expect(onRetry).not.toHaveBeenCalled();
+});
+
+it("FN-U10 a read that answered none: gone words and the way out, no Retry", () => {
+  render(<FailureNotice reading={goneReading()} testid="f" onRetry={() => {}} />);
+  expect(screen.getByTestId("f")).toHaveTextContent("failure.gone");
+  expect(screen.getByTestId("f-exit")).toHaveAttribute("href", "/");
+  expect(screen.queryByTestId("f-retry")).toBeNull();
 });

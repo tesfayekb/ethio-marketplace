@@ -251,6 +251,18 @@ describe("useEditDraft (the seller)", () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.loadError).toBe("notFound");
   });
+
+  it("EW-10 (DEC-464) a failed load keeps its error, and reload reads the ad again", async () => {
+    const down = new TypeError("Failed to fetch");
+    readDraft.mockRejectedValueOnce(down);
+    const { result } = renderHook(() => useEditDraft("l-3", { actor: "seller" }));
+    await waitFor(() => expect(result.current.loadError).toBe("failed"));
+    expect(result.current.loadFailure).toBe(down);
+    act(() => result.current.reload());
+    await waitFor(() => expect(result.current.loadError).toBeNull());
+    expect(readDraft).toHaveBeenCalledTimes(2);
+    expect(result.current.loadFailure).toBeNull();
+  });
 });
 
 describe("useEditDraft (staff)", () => {

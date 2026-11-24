@@ -40,6 +40,7 @@ import {
 } from "./reset-scope";
 import type { MessageKey } from "@/i18n";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { rateReading } from "@/components/shell/failure-reason";
 
 /** DEC-109 — one headed group of the price page's rows (the door's `deal` lists). */
 export interface DealGroup {
@@ -175,6 +176,9 @@ export function StepSpecifications({
   const [rateLimited, setRateLimited] = useState(false);
   /** L22 — the dial's reset instant, when its refusal named one. */
   const [rateUntil, setRateUntil] = useState<string | undefined>(undefined);
+  /** DEC-464 — the schema read's own Retry: a key its effect depends on. */
+  const [schemaAttempt, setSchemaAttempt] = useState(0);
+  const retrySchema = useCallback(() => setSchemaAttempt((n) => n + 1), []);
   const [options, setOptions] = useState<Record<string, OptionState>>({});
   /**
    * INC-240 — WHO WROTE THIS ANSWER. For every detail this screen filled in from
@@ -251,7 +255,7 @@ export function StepSpecifications({
     return () => {
       cancelled = true;
     };
-  }, [categoryId]);
+  }, [categoryId, schemaAttempt]);
 
   /**
    * D36 — an opened guidance belongs to the definitions that have just been
@@ -1196,10 +1200,10 @@ export function StepSpecifications({
       <div className="space-y-5" data-testid={testId} data-options="0">
         {failed ? (
           <FailureNotice
-            error={rateLimited ? new Error(`rateLimited${rateUntil ? `:${rateUntil}` : ""}`) : null}
+            {...(rateLimited ? { reading: rateReading(rateUntil) } : { error: undefined })}
             testid="post-specs-error"
             subject={rateLimited ? undefined : t("post.specs.loadFailed")}
-            onRetry={() => window.location.reload()}
+            onRetry={retrySchema}
           />
         ) : (
           <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
@@ -1212,10 +1216,10 @@ export function StepSpecifications({
   if (failed) {
     return (
       <FailureNotice
-        error={rateLimited ? new Error(`rateLimited${rateUntil ? `:${rateUntil}` : ""}`) : null}
+        {...(rateLimited ? { reading: rateReading(rateUntil) } : { error: undefined })}
         testid="post-specs-error"
         subject={rateLimited ? undefined : t("post.specs.loadFailed")}
-        onRetry={() => window.location.reload()}
+        onRetry={retrySchema}
       />
     );
   }

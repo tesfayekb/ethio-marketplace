@@ -1,3 +1,4 @@
+import { useRouter } from "@tanstack/react-router";
 import { formatCountryName } from "@/lib/reader-locale";
 import { useState } from "react";
 import { PageShell } from "@/components/layout/page-shell";
@@ -8,7 +9,6 @@ import { legalDate } from "./legal-dates";
 import { LegalText } from "./legal-text";
 import { legalTextFor, type PublicLegalVersion } from "./legal-reader";
 import { FailureNotice } from "@/components/shell/failure-notice";
-import { refreshPage } from "@/lib/on-demand-failure";
 
 export type LegalPageAnswer = {
   inForce: PublicLegalVersion | null;
@@ -30,6 +30,9 @@ export function LegalDocumentPage({
   sections?: Array<{ countryCode: string; data: LegalPageAnswer | null }>;
 }) {
   const { t, language } = useI18n();
+  // DEC-464 — the route's loader is the read: Retry runs it again, never the whole page.
+  const router = useRouter();
+  const retryRead = () => void router.invalidate();
   const [showUpcoming, setShowUpcoming] = useState(false);
   const shown = showUpcoming && data?.scheduled ? data.scheduled : (data?.inForce ?? null);
   const selected = shown ? legalTextFor(shown, language) : null;
@@ -50,7 +53,7 @@ export function LegalDocumentPage({
             error={null}
             testid="legal-public-load-error"
             subject={t("legal.page.loadError")}
-            onRetry={refreshPage}
+            onRetry={retryRead}
           />
         ) : !data.inForce ? (
           <p data-testid="legal-public-none" className="text-muted-foreground">
@@ -141,7 +144,7 @@ export function LegalDocumentPage({
                   error={null}
                   testid="legal-public-load-error"
                   subject={t("legal.page.loadError")}
-                  onRetry={refreshPage}
+                  onRetry={retryRead}
                 />
               ) : !version ? (
                 <p data-testid="legal-public-none" className="text-muted-foreground">

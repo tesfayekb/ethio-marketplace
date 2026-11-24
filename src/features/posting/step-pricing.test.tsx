@@ -10,6 +10,19 @@ const hints = vi.hoisted(() => ({
   last: null as string | null,
   lastFailure: null as Error | null,
   home: null as string | null,
+  currencies: {
+    currencies: [],
+    isLoading: false,
+    failed: false,
+    failure: null,
+    retry: () => {},
+  } as {
+    currencies: never[];
+    isLoading: boolean;
+    failed: boolean;
+    failure: unknown;
+    retry: () => void;
+  },
 }));
 
 vi.mock("@/i18n", () => ({
@@ -17,7 +30,7 @@ vi.mock("@/i18n", () => ({
 }));
 vi.mock("./pricing-data", async (original) => ({
   ...(await original<typeof import("./pricing-data")>()),
-  useCurrencies: () => ({ currencies: [], isLoading: false, failed: false }),
+  useCurrencies: () => hints.currencies,
   useSellerHome: () => ({ home: null }),
   useMarketCurrencies: () => ({ markets: [] }),
   readGuessCurrency: async () => "",
@@ -119,6 +132,34 @@ describe("StepPricing — a failed last-currency read is no hint (INC-1257)", ()
       hints.last = null;
       hints.lastFailure = null;
       hints.home = null;
+    }
+  });
+
+  it("SPR-3 (DEC-464) the currency read's Retry calls useCurrencies' retry, not a reload", async () => {
+    const retry = vi.fn();
+    hints.currencies = {
+      currencies: [],
+      isLoading: false,
+      failed: true,
+      failure: new TypeError("Failed to fetch"),
+      retry,
+    };
+    try {
+      await act(async () => {
+        render(<StepPricing facts={FACTS} values={VALUES} refusals={[]} onChange={() => {}} />);
+      });
+      const box = screen.getByTestId("post-price-currency-error");
+      expect(box).toHaveAttribute("data-failure-reason", "network");
+      act(() => screen.getByTestId("post-price-currency-error-retry").click());
+      expect(retry).toHaveBeenCalledTimes(1);
+    } finally {
+      hints.currencies = {
+        currencies: [],
+        isLoading: false,
+        failed: false,
+        failure: null,
+        retry: () => {},
+      };
     }
   });
 });
