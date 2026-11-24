@@ -408,6 +408,6 @@ Assist: `GET /api/listings/assist` (posting-service.ts:946). It answers `assistB
 - D19: step-details.tsx:411-416. The assist button is drawn even when the writing help is switched off (assist.ts:324-325), so the seller learns it is off only after pressing. No test shows any assist refusal (`post-assist-refusal`, :453).
 
 **Left for the next parts:**
-- Wizard steps 4 Price, 5 Details, 6 Place, 7 Contact, 8 Review and Publish. The AI assist and `publish_listing`'s refusals belong to these steps.
+- Wizard steps 6 Place (step-where.tsx, 2,265 lines), 7 Contact (step-who.tsx, 1,255 lines), 8 Review and Publish (step-review.tsx, 952 lines; `publish_listing` refusals at migration 20261115203900:169-193). They did not fit after steps 3–5.
 - `my-listings`, `my-listings_.$listingId`, `my-listings_.$listingId_.edit`.
 - `account`, `account_.saved`, `account_.legal`, `account_.legal_.$versionId`.
