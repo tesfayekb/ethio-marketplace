@@ -72,6 +72,7 @@ import {
   useReorderCategories,
 } from "./use-categories";
 import { errorText } from "@/lib/error-text";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 /**
  * C2-UI — THE CATEGORIES CONSOLE.
@@ -194,6 +195,7 @@ function tipBadge(
 
 export function AdminCategoriesPage() {
   const { t } = useI18n();
+  const retryFailed = useRetryFailed();
   const { permissions } = useAdminShell();
   const { data, isLoading, error } = useAdminCategories();
   /**
@@ -788,8 +790,13 @@ export function AdminCategoriesPage() {
         generated += 1;
       } catch (error) {
         const stage = error instanceof CategoryImageError && error.stage ? ` ${error.stage}` : "";
-        const detail = error === null || error === undefined ? "" : errorText(error);
-        failures.push(`${row.slug}: ${t("admin.categories.image.stageLabel")}${stage} ${detail}`);
+        // D51 (DEC-464) — the failure's own text goes to the console, never to the words.
+        console.warn(
+          "[categories] bulk image failed",
+          row.slug,
+          error === null || error === undefined ? "" : errorText(error),
+        );
+        failures.push(`${row.slug}: ${t("admin.categories.image.stageLabel")}${stage}`);
       }
       setBulkProgress({ done: index + 1, total: batch.length });
     }
@@ -1084,6 +1091,7 @@ export function AdminCategoriesPage() {
               </p>
             }
             error={error ? true : undefined}
+            retry={retryFailed}
             errorState={
               <p role="alert" className="text-sm text-destructive">
                 {t("admin.categories.error")}

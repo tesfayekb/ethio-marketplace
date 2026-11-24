@@ -503,7 +503,9 @@ export function translationRefusalKey(
 export function serverMessage(error: unknown): string | null {
   if (readRefusal(error, TRANSLATION_REFUSALS).branch !== "generic") return null;
   const message = (error as { message?: string } | null)?.message ?? "";
-  return message.trim() === "" ? null : message;
+  // D43 (DEC-464) — the failure's own text goes to the console, never to the words.
+  if (message.trim() !== "") console.warn("[translations] unmapped failure", message);
+  return null;
 }
 
 /**

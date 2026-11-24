@@ -163,7 +163,7 @@ describe("the rail's first paint (INC-974)", () => {
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
-    expect(screen.getByRole("alert").textContent).toBe("common.error");
+    expect(screen.getByRole("alert").getAttribute("data-failure-reason")).not.toBeNull();
     expect(screen.queryByText("Name vehicles")).toBeNull();
   });
 

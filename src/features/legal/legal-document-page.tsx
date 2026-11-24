@@ -7,6 +7,8 @@ import { useI18n } from "@/i18n";
 import { legalDate } from "./legal-dates";
 import { LegalText } from "./legal-text";
 import { legalTextFor, type PublicLegalVersion } from "./legal-reader";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { refreshPage } from "@/lib/on-demand-failure";
 
 export type LegalPageAnswer = {
   inForce: PublicLegalVersion | null;
@@ -44,9 +46,12 @@ export function LegalDocumentPage({
           </p>
         ) : null}
         {data === null ? (
-          <p role="alert" data-testid="legal-public-load-error" className="text-destructive">
-            {t("legal.page.loadError")}
-          </p>
+          <FailureNotice
+            error={null}
+            testid="legal-public-load-error"
+            subject={t("legal.page.loadError")}
+            onRetry={refreshPage}
+          />
         ) : !data.inForce ? (
           <p data-testid="legal-public-none" className="text-muted-foreground">
             {t("legal.page.none").replace("{document}", title)}
@@ -132,9 +137,12 @@ export function LegalDocumentPage({
                 )}
               </p>
               {section.data === null ? (
-                <p role="alert" data-testid="legal-public-load-error" className="text-destructive">
-                  {t("legal.page.loadError")}
-                </p>
+                <FailureNotice
+                  error={null}
+                  testid="legal-public-load-error"
+                  subject={t("legal.page.loadError")}
+                  onRetry={refreshPage}
+                />
               ) : !version ? (
                 <p data-testid="legal-public-none" className="text-muted-foreground">
                   {t("legal.page.none").replace("{document}", title)}

@@ -23,6 +23,7 @@ import { pageWindow } from "./page-window";
 import { RowActions, type RowActionsProps } from "./row-actions";
 import { TableToolbar } from "./table-toolbar";
 import { useDrawnTwin } from "./use-drawn-twin";
+import { FailureNotice } from "./failure-notice";
 
 /**
  * U1b/U1c — THE DATATABLE PRIMITIVE (shell law).
@@ -178,7 +179,10 @@ interface DataTableBaseProps<T> {
   loading?: boolean;
   loadingState?: ReactNode;
   error?: unknown;
+  /** What failed, in the caller's words; the failure notice adds the reason and next step. */
   errorState?: ReactNode;
+  /** DEC-464 — the caller's refetch, drawn as Retry (the census guard requires it with `error`). */
+  retry?: () => void;
   /** Search + filter controls rendered above the list. */
   toolbar?: ReactNode;
   /**
@@ -549,6 +553,7 @@ export function DataTable<T>({
   loading = false,
   loadingState,
   error,
+  retry,
   errorState,
   toolbar,
   guide,
@@ -689,7 +694,17 @@ export function DataTable<T>({
     );
 
   if (loading) return stateBox("data-table-loading", loadingState);
-  if (error) return stateBox("data-table-error", errorState);
+  if (error)
+    return frame(
+      <div className={cn(CARD_SURFACE, "min-w-0 p-6", STATE_AT[cardUntil])}>
+        <FailureNotice
+          error={error}
+          testid="data-table-error"
+          subject={errorState}
+          {...(retry ? { onRetry: retry } : {})}
+        />
+      </div>,
+    );
   // A2 — the keyset footer; an empty keyset page keeps it, so Previous stays reachable.
   const keysetFooter = keyset ? (
     <div

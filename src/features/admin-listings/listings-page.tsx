@@ -63,6 +63,7 @@ import {
   type ListingView,
 } from "./use-admin-listings";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134, D136) — ADMIN › LISTINGS ›
@@ -251,7 +252,8 @@ export function AdminListingsPage() {
   );
   const reports = reportsQuery.data;
   // D154 B3 (bundle 13 turn 10) — the page's ads that hold a photo the screen warned about.
-  const warned = useWarnedListings(rows.map((row) => row.id)).data ?? new Set<string>();
+  const warnedRead = useWarnedListings(rows.map((row) => row.id));
+  const warned = warnedRead.data ?? new Set<string>();
   // INC-553 — the unit words load only when a row on this page holds a unit (the card's rule).
   const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
 
@@ -616,6 +618,15 @@ export function AdminListingsPage() {
             options={LISTING_VIEWS.map((value) => ({ value, label: viewLabel(value) }))}
           />
 
+          {/* D36 — a failed warned-photos read is said, never a silent missing mark. */}
+          {warnedRead.error ? (
+            <FailureNotice
+              error={warnedRead.error}
+              testid="listings-warned-failed"
+              size="line"
+              onRetry={() => void warnedRead.refetch()}
+            />
+          ) : null}
           <DataTable<AdminListingRow>
             guide={{ prefix: "admin.listings", next: { section: "screening" } }}
             columns={columns}
@@ -640,21 +651,8 @@ export function AdminListingsPage() {
               </p>
             }
             error={query.error}
-            errorState={
-              <div className="flex flex-wrap items-center gap-2">
-                <p role="alert" className="text-sm text-destructive">
-                  {t("common.error")}
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
-                  onClick={() => void query.refetch()}
-                >
-                  {t("common.retry")}
-                </Button>
-              </div>
-            }
+            retry={() => void query.refetch()}
+            errorState={<span>{t("common.error")}</span>}
             emptyState={
               <p data-testid="listings-empty" className="text-sm text-muted-foreground">
                 {t("admin.listings.empty")}

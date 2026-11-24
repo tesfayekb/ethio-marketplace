@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import { PageCard } from "./page-card";
+import { FailureNotice } from "./failure-notice";
 
 /**
  * U1c — DETAIL PANEL (DEC-015 display primitive).
@@ -24,6 +25,8 @@ export interface DetailPanelProps {
   pairs: DetailPair[];
   loading?: boolean;
   error?: unknown;
+  /** DEC-464 — the caller's refetch, drawn as Retry by the failure notice. */
+  onRetry?: () => void;
   testid?: string;
   className?: string;
 }
@@ -33,6 +36,7 @@ export function DetailPanel({
   pairs,
   loading = false,
   error,
+  onRetry,
   testid = "detail-panel",
   className,
 }: DetailPanelProps) {
@@ -50,8 +54,8 @@ export function DetailPanel({
   }
   if (error) {
     return (
-      <PageCard testid={`${testid}-error`} className={cn("min-w-0", className)}>
-        <p className="text-sm text-destructive">{t("prim.state.error")}</p>
+      <PageCard className={cn("min-w-0", className)}>
+        <FailureNotice error={error} testid={`${testid}-error`} {...(onRetry ? { onRetry } : {})} />
       </PageCard>
     );
   }

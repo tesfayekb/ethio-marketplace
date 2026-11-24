@@ -229,15 +229,9 @@ export function NameChecks({
           loading={query.isLoading}
           loadingState={<p>{t("common.loading")}</p>}
           error={query.error}
+          retry={() => void query.refetch()}
           errorState={
-            <div className="flex flex-wrap items-center gap-2">
-              <p role="alert" className="text-destructive" data-testid="admin-name-checks-error">
-                {t("admin.screening.names.error")}
-              </p>
-              <Button variant="outline" size="touch" onClick={() => void query.refetch()}>
-                {t("common.retry")}
-              </Button>
-            </div>
+            <span data-testid="admin-name-checks-error">{t("admin.screening.names.error")}</span>
           }
           emptyState={
             <p className="text-muted-foreground" data-testid="admin-name-checks-empty">

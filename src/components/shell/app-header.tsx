@@ -1,7 +1,7 @@
 import { CutText } from "@/components/ui/cut-text";
 import { PRESSED } from "@/components/shell/menu-row";
 import { BAR_GAP, BAR_HEADER_INSET } from "@/components/shell/bar-spacing";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 
@@ -22,6 +22,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { CONTROL_LOOK, OPEN_CONTROL, SEARCH_FIELD } from "@/components/shell/menu-row";
 import { useShell } from "@/components/shell-context";
+import { signInReturn } from "@/components/shell/sign-in-return";
 
 /** Sage §1 (turn SAGE-S1) — the top bar's controls take the one control look (menu-row.ts,
  *  shared with the dialog's close button since turn S6-1). */
@@ -97,6 +98,7 @@ export function SearchRow({ onClose }: { onClose: () => void }) {
  */
 export function AppHeader() {
   const { t } = useI18n();
+  const here = useRouterState({ select: (state) => state.location.href });
   const {
     auth,
     authLoading,
@@ -272,6 +274,9 @@ export function AppHeader() {
           ) : authLoading ? null : (
             <Link
               to="/auth"
+              // D11 — Sign in brings the person back to the page they were on.
+              search={signInReturn(here)}
+              data-testid="header-sign-in"
               className="hidden min-h-11 shrink-0 items-center rounded-md bg-primary px-2 md:inline-flex text-sm font-semibold text-primary-foreground shadow-button hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"
             >
               {t("auth.signIn")}

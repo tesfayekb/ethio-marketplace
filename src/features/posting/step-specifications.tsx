@@ -39,6 +39,7 @@ import {
   type FactBound,
 } from "./reset-scope";
 import type { MessageKey } from "@/i18n";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /** DEC-109 — one headed group of the price page's rows (the door's `deal` lists). */
 export interface DealGroup {
@@ -1194,9 +1195,12 @@ export function StepSpecifications({
     return (
       <div className="space-y-5" data-testid={testId} data-options="0">
         {failed ? (
-          <p className="text-sm text-destructive" data-testid="post-specs-error">
-            {rateLimited ? specsRateText(rateUntil, t, language) : t("post.specs.loadFailed")}
-          </p>
+          <FailureNotice
+            error={rateLimited ? new Error(`rateLimited${rateUntil ? `:${rateUntil}` : ""}`) : null}
+            testid="post-specs-error"
+            subject={rateLimited ? undefined : t("post.specs.loadFailed")}
+            onRetry={() => window.location.reload()}
+          />
         ) : (
           <p className="text-sm text-muted-foreground">{t("post.loading")}</p>
         )}
@@ -1207,9 +1211,12 @@ export function StepSpecifications({
 
   if (failed) {
     return (
-      <p className="text-sm text-destructive" data-testid="post-specs-error">
-        {rateLimited ? specsRateText(rateUntil, t, language) : t("post.specs.loadFailed")}
-      </p>
+      <FailureNotice
+        error={rateLimited ? new Error(`rateLimited${rateUntil ? `:${rateUntil}` : ""}`) : null}
+        testid="post-specs-error"
+        subject={rateLimited ? undefined : t("post.specs.loadFailed")}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 

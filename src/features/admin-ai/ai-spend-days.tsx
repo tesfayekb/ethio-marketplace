@@ -15,6 +15,7 @@ import {
   SPEND_DAYS,
 } from "./ai-service";
 import { useAiSpendDays } from "./use-ai-features";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 13 turn 14 (the operator, 2026-10-14: "so we can see daily charges with
@@ -78,14 +79,12 @@ export function AiSpendDays() {
 
       {query.isLoading ? <p className="text-sm">{t("common.loading")}</p> : null}
       {query.error ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <p role="alert" className="text-sm text-destructive">
-            {t("admin.ai.days.error")}
-          </p>
-          <Button type="button" variant="outline" size="touch" onClick={() => void query.refetch()}>
-            {t("common.retry")}
-          </Button>
-        </div>
+        <FailureNotice
+          error={query.error}
+          testid="ai-days-error"
+          subject={t("admin.ai.days.error")}
+          onRetry={() => void query.refetch()}
+        />
       ) : null}
       {!query.isLoading && !query.error && days.length === 0 ? (
         <p className="text-sm text-muted-foreground" data-testid="ai-days-empty">

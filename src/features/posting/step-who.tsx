@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
-import { readerFailure, type ReaderFailure } from "@/lib/reader-failure";
+import { ReaderError, readerFailure, type ReaderFailure } from "@/lib/reader-failure";
 import type { MessageKey } from "@/i18n";
 
 import { Field } from "./field";
@@ -35,6 +35,7 @@ import { dateFormatter } from "@/lib/format";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -159,6 +160,8 @@ export function StepWho({
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
   const [identityFailed, setIdentityFailed] = useState(false);
   const [identityFailure, setIdentityFailure] = useState<ReaderFailure | null>(null);
+  // DEC-464 — Retry reads the identity again.
+  const [identityAttempt, setIdentityAttempt] = useState(0);
   /** A stored identity is CONFIRMED, not re-asked, until the seller opens it. */
   const [editing, setEditing] = useState(false);
 
@@ -281,7 +284,7 @@ export function StepWho({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [identityAttempt]);
 
   /**
    * Bundle 2 step 15 (Q3) — a new post opens with the channels of the seller's
@@ -681,12 +684,16 @@ export function StepWho({
       <p className="text-sm text-muted-foreground">{t("post.who.why")}</p>
 
       {identityFailed && (
-        <p className="text-sm text-destructive" data-testid="post-who-read-failed">
-          {t("post.who.readFailed")}
-          {identityFailure ? (
-            <span data-testid="post-who-error-class">{` (${identityFailure.class}${identityFailure.status ? " " + identityFailure.status : ""})`}</span>
-          ) : null}
-        </p>
+        <FailureNotice
+          error={identityFailure ? new ReaderError(identityFailure) : null}
+          testid="post-who-read-failed"
+          subject={t("post.who.readFailed")}
+          onRetry={() => {
+            setIdentityFailed(false);
+            setIdentityFailure(null);
+            setIdentityAttempt((n) => n + 1);
+          }}
+        />
       )}
 
       {/* ------------------------- the stored identity ------------------------ */}

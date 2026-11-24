@@ -260,7 +260,7 @@ it("LPH-U2 a failed photo read says failure and Retry refetches that query; a su
       </QueryClientProvider>,
     );
   })();
-  expect(screen.getByRole("alert")).toHaveTextContent("common.loadFailed");
+  expect(screen.getByRole("alert")).toHaveTextContent("failure.server");
   fireEvent.click(screen.getByRole("button", { name: "common.retry" }));
   expect(state.refetch).toHaveBeenCalledTimes(1);
   expect(screen.queryByTestId("listing-photos-item")).toBeNull();

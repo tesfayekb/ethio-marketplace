@@ -1,122 +1,77 @@
-# Bundle 10a — the one failure notice (DEC-464, INC-1278, INC-1279)
+# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
 
-Base `lovable/next` (app files = dev `1bbfc7dad`). Plan only. Nothing is built before ruling 1.
+(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
 
-## 1. Census of consumers (definition: a `.tsx` under src/features, src/routes, src/components that draws a query's or an action's failure)
+## CI first
+- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
+- No completed run on 836d1030 yet. Read again before the build turn's push.
 
-Honest limit: this census is a read-only scan with file:line for every site found (148 confirmed, 16 in EXCLUDED paths). It is **not yet proven exhaustive**. Still to trace before Part A lands: action-refusal outlets in admin dialogs and posting fields, `features/ad-page`, state → child prop chains, and every Retry marked `?`. The guard (section 3) is what closes the gap. It fails on any site this list missed.
+## What the operator will see
+Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
 
-Legend: **M** = moves here (renders through the notice). **L** = left, with the reason. **X** = EXCLUDED, allowlisted `| INC-1279 until bundle 10b`.
+## Census (836d1030; build turn pastes full file:line)
+Primitive consumers — "uses the primitive":
+- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
+- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
+- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
+- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
+- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
 
-**Shared outlets (components)**
-- M `components/shell/data-table.tsx:181, :692`: the failed state draws the notice. `retry` becomes required whenever `error` is set (D38, D46).
-- M `components/shell/stat-card.tsx:29-31, :70`: `failed` draws the notice in tile size. `onRetry` is required with `failed`.
-- M `components/shell/detail-panel.tsx:54`, `chart-frame.tsx:112`: they take `error` and `onRetry`.
-- M `components/forms/field-select.tsx:39, :62`: the `failed` line gains the notice's compact form and a Retry.
-- M `components/marketplace/feed.tsx:39, :206` (FeedError), `:286` (D2: next-page Retry gains `retryTestid`), `:149` (D3: "Show more" button when IntersectionObserver is missing).
-- M `components/shell/app-rail.tsx:711-713, :726` (D12: failed is never also "No categories yet").
-- M `components/shell/location-selector.tsx:280-286` (D13, D21: the place lists).
-- L `components/shell/strings-layer-gate.tsx:42`, `date-field.tsx:183`, `components/ui/picture.tsx:70-79`: on-demand download failures already go through `LoadFailedHere`/INC-911, or are an image fallback, not a read.
+"Draws its own":
+- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
+- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
+- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
+- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
 
-**Public and member**
-- M feed reader `use-feed.ts:38` (D1): keeps the 404 code. A kept place that is gone is cleared, the feed reloads, and one line says so.
-- M `features/seller/seller-page.tsx:31, :61` (D5: next page failure gets words and Retry).
-- M `routes/l.$slug.tsx:167-169`, `listing-detail.tsx:1535-1540` (D4: gone → "no longer available" + Go home).
-- M `routes/legal.$kind.tsx:62, :73` (D6), `routes/legal.publishing.tsx:95-97` (D9), `features/legal/legal-document-page.tsx:47, :135`, `legal-accept-screen.tsx:27, :99` (D7), `my-legal-page.tsx:48` (D26), `my-legal-version.tsx:37-38` (D28: gone by gate code), `certify-block.tsx:53`.
-- M `features/account/account-overview.tsx:131`, `saved-page.tsx:90, :135` (D26; :135 stays an action failure, D27's words are bundle 10b's unless ruled).
-- M `features/posting/wizard.tsx:860-861`, `step-category.tsx:229-234` (D15), `step-specifications.tsx:1196, :1208, :1753`, `step-pricing.tsx:461-462` (D18), `step-where.tsx:1572, :1629` (D21), `step-who.tsx:684-687`, `step-review.tsx:596-599` (D20).
-- L `step-who.tsx:990`, `map/*` (`LoadFailedHere`); `step-photos.tsx:669`, `step-where.tsx:1946, :2146, :2248`, `step-who.tsx:1247`, `step-review.tsx:823`, `photo-editor.tsx:246`: field- and save-level refusals with their own words (refusal reader); census will re-check each for raw text.
-- M `features/my-listings/my-listings-page.tsx:740-746`, `my-listing-page.tsx:366, :668-671, :677, :690, :771` (D23), `promote-sheet.tsx:113`.
+Own classes on dialog parts outside the primitive:
+- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
 
-**Admin**
-- M `features/admin/users/users-list.tsx:247`, `user-detail.tsx:98, :410-416` (D32).
-- M `features/admin/roles/roles-list.tsx:237`, `role-detail.tsx:29-53` (D38).
-- M `features/admin/translations/*`: `languages-page.tsx:169, :629, :1042`, `strings-page.tsx:429`, `data-scope.tsx:186-192, :237, :588`, `history-drawer.tsx:137, :242-250`, `transfer-bar.tsx:241-244`, `pseudo-bar.tsx:148-151`, `ai-bulk-bar.tsx:247, :273, :290`, `delete-language-dialog.tsx:114`, `language-picker.tsx:51`, `translator-card.tsx:129` (D38, D43). Raw detail goes to a `data-` attribute and the console.
-- M `features/admin/legal/*`: `legal-page.tsx:41, :318`, `legal-version-view.tsx:50, :188`, `legal-editor.tsx:24`, `legal-editor-form.tsx:156`, `user-legal-card.tsx:45` (D38).
-- M `features/admin/import-dialog.tsx:243-255, :664-678` (D51: `code — detail` leaves the words).
-- M `features/admin-categories/categories-page.tsx:789-792, :1052-1055` (D51), `:1086`, `category-dialogs.tsx:907-916` (D46).
-- M `features/admin-locations/locations-page.tsx:435-444`, `admin-countries/countries-page.tsx:333-342` (D46), `country-verb-dialogs.tsx:135-149, :224-227` (D54).
-- M `features/admin-overview/locations-overview.tsx:34-43, :60-98` (D52: a tile is drawn only when its read may run).
-- M `features/admin-monetisation/markets-section.tsx:179`, `products-section.tsx:350` (D46), `use-monetisation-error.ts:25-40`, `monetisation-dialogs.tsx:33-40` (D51).
-- M `features/admin-ai/ai-page.tsx:253-261` (D46), `ai-refusals.ts:48-59`, `ai-feature-form.tsx:194-205` (D51).
-- M `features/admin-listings/listing-page.tsx:216, :616, :1002`, `listing-settings.tsx:163`, `listings-page.tsx:254, :553, :642`, `tier-dialog.tsx:158`; `admin-screening/screening-page.tsx:497` (D36), `:633`, `job-line.tsx:100`. Already-retrying sites (`name-checks.tsx:231`, `photo-changes.tsx:99`, `photo-reviews.tsx:109`, `listing-photos.tsx:101`, `ai-calls.tsx:140`, `ai-spend-days.tsx:80`) move for one look.
-- M comments only: `routes/admin.screening.tsx:10-12`, `use-screening.ts:382-385` (D37).
-- L `routes/dev.primitives.tsx:327-428`: the board shows the notice's states; allowlisted as a demonstration.
-- L `routes/__root.tsx:291`: the route error boundary (Refresh), not a reader.
-- X `features/admin/audit/*`, `features/admin/impersonation/*`, `features/admin-attributes/*`, `features/auth/*`, `routes/auth*`, `routes/settings.tsx`, `routes/admin.tsx` (D29, D31, D39, D40, D42, D49, audit part of D38, attributes part of D46).
+Unused primitives:
+- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
+- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
 
-## 2. The notice
+Allowlists:
+- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
+- look-values-allowlist :3 (drawer) goes with drawer.tsx.
 
-`src/components/shell/failure-notice.tsx` (new), one component, no new dependency.
+## Mechanism
+1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
+   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
+2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
+3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
+4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
+5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
+6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
 
-```text
-FailureNotice({
-  error: unknown;              // read once with readerFailure + gateRefusal
-  testid: string;              // `${testid}-failed`, `-retry`, `-exit`
-  onRetry?: () => void;        // caller's own refetch
-  exit?: { label: StringKey; to?: LinkProps; onPress?: () => void }; // gone / no access
-  gone?: readonly string[];    // extra codes that mean "gone" for this caller
-  size?: "block" | "tile" | "line";
-})
-```
+## Guard
+- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
+- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
 
-Reason map (one row each; growth = one row):
+## Tests
+- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
+- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
+- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
+- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
+- DLG-E6 reduced motion: no transition.
+- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
+- Touched specs whole, both projects, retries 0.
 
-| Reason (from `readerFailure`) | Words | Next step |
-|---|---|---|
-| `network` | failure.network | Retry (onRetry) |
-| `server`, `malformed`, unknown | failure.server | Retry |
-| `refused`, code in gone set (`listingNotFound`, `listingNotAvailable`, `unknownPlace`, `unknownCategory`, `notYours` + `gone`) | failure.gone | caller's exit, else Go home. Never Retry |
-| `auth` 403 / `permissionDenied` | failure.noAccess | Go back. Never Retry |
-| `auth` 401 | nothing new: hands to the existing sign-in-ended path; draws failure.server words while it does | — |
-| `rateLimited` | failure.rateLimited `{when}` (formatLocale) | Retry, disabled until that time |
-| other `refused` | failure.refused | Go back |
+## G38 list (build turn greps and names old → new)
+- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
 
-Rules: `role="alert"`, never takes focus, targets 44 px (`size="touch"`). The class and status go only to `data-failure-class` / `data-failure-status` and `console.warn`. Detail is shown only through a key that takes it. The notice never throws: a read that throws falls to the `server` row.
+## Growth
+- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
+- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
 
-New keys (en-base.ts after `"common.retry"` :35; am-base.ts after :33 from the supervisor's file). Existing `common.retry` and `common.goHome` are reused (searched).
+## Turns
+- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
+- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
+- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
 
-| Key | English |
-|---|---|
-| failure.network | We couldn't reach ethio.com. Check your connection and try again. |
-| failure.server | Something went wrong on our side. Try again. |
-| failure.gone | This is no longer available. |
-| failure.noAccess | You don't have access to this. |
-| failure.refused | This couldn't be done. |
-| failure.rateLimited | Too many tries. You can try again {when}. |
-| failure.goBack | Go back |
-| failure.showMore | Show more |
-| failure.placeCleared | That place is no longer listed, so we're showing all areas. |
+## Open points for the ruling
+1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
+2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
+3. Map pin dropper on the Radix dialog, or allowlisted.
 
-## 3. The guard
-
-`src/components/shell/failure-notice.census.test.ts` (new). Reads every non-test `.tsx` under src/features, src/routes, src/components. Fails when a file matches a failure pattern and does not render `<FailureNotice` or a shared outlet that does (DataTable `error=` with `retry=`, StatCard `failed` with `onRetry`, DetailPanel/ChartFrame `error=` with `onRetry=`). Fails always on a diagnostic drawn as words.
-
-Patterns:
-- failure branch: `/\.\s*(?:error|isError|isFailed)\b|===\s*["'](?:failed|error)["']|\bfailed\s*[?&]/`
-- failure prop: `/\b(?:error|failed|errorState|failedLabel)\s*=/`
-- diagnostics (always red): `/\b\w*[Ff]ailure\s*\.\s*(?:class|status)\b(?![^<]*data-)/`, `/\berror\s*\.\s*message\b/`, `/\bString\(\s*error\s*\)/`, and `errorText(` inside JSX.
-- allowlist `path | reason | until`; stale or expired lines fail; EXCLUDED files `| INC-1279 until bundle 10b`.
-- proven on a planted bypass (a temp file string fed to the same matcher) before it lands.
-
-It misses: an error renamed to any other variable (`problem`, `phase`) and drawn; a catch → helper → state → child chain; toasts; a Retry drawn that cannot succeed (behaviour, not text). Those are covered by the notice's tests and browser tests, not the guard.
-
-## 4. Parts in order
-
-- **Part A** — `failure-notice.tsx`, `failure-notice.test.tsx` (FN-U1 each reason's words/step; FN-U2 Retry calls refetch; FN-U3 no Retry on gone/no access; FN-U4 Retry waits for the rate time; FN-U5 unknown error draws server; FN-U6 no class/status in text), the guard + planted proof, `data-table.tsx`, `stat-card.tsx`, `detail-panel.tsx`, `chart-frame.tsx`, `field-select.tsx`, keys, the board's states in `dev.primitives.tsx`, docs/features/display-primitives.md.
-- **Part B — public**: feed (`feed.tsx`, `use-feed.ts`), `app-rail.tsx`, `location-selector.tsx`, ad page, seller page, legal routes/pages (D1–D7, D9, D12, D13).
-- **Part C — posting and member**: wizard and steps, my-listings, account, my legal (D15, D18, D20, D21, D23, D26, D28).
-- **Part D — admin**: users, roles, translations, legal, listings, screening, categories, locations, countries, overview, monetisation, AI, import dialog, comments (D32, D36–D38, D43, D46, D51, D52, D54).
-
-User cases per changed screen (works; network; server; gone; no access; rate; empty; signed out/in; EN/AM; 360/768/1280) get their unit ids in each part's report; every browser case is NONE today and is named for Cursor's bundle 7: FEED-F1 gone place cleared, AD-F1 gone ad, RAIL-F1, LOC-F1, SELL-F1, LEGAL-F1, WIZ-F1, MYL-F1, ACC-F1, ADM-F1 (one per console, a DataTable failure + Retry).
-
-## 5. Conflicts with the rules
-
-1. roadmap.md: the message asks for it; Knowledge ROLE never touches it. Not written.
-2. Guards: Knowledge says a guard is a `scripts/conformance` census (kit.ts, wired.test.ts); scripts/ is never-touch. The ruling places it in src/components/shell. Ruling needed: keep it there, or Cursor wires a scripts census.
-3. Performance vs failure: lazy-loading the notice means a network failure may not be able to fetch it. Proposal: the notice stays in the shell chunk (small, words only); the size cost is NOT RUN here (plan mode, no build) and is named per page at the build turn.
-4. DataTable/StatCard "retry required": EXCLUDED callers (audit, impersonation, attributes) would break the type. Proposal: required by the guard, optional in the type until bundle 10b.
-5. `reportUnauthorised` lives in `src/features/auth/session-end.ts` (EXCLUDED): imported, never edited.
-6. `use-feed.ts` and `my-legal-version.tsx` reads may need a service change (E2: no new database call). D1 and D28 use the codes already returned; if not, STOP.
-7. D27 and the action refusals in posting are a refusal reader's concern (E3); left unless ruled.
-8. Census not proven exhaustive (section 1).
+## Technical scope (build)
+src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.

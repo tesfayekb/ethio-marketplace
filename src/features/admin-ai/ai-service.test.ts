@@ -176,7 +176,7 @@ describe("the AI console's seam (D158)", () => {
     // Bundle 13 turn 6 — the door no longer refuses photo screening off.
     expect(aiRefusalOf("screeningStaysOn")).toEqual({
       key: "admin.ai.error.unknown",
-      raw: "screeningStaysOn",
+      raw: null,
     });
     expect(aiRefusalOf("overBudget").key).toBe("admin.ai.error.overBudget");
     expect(aiRefusalOf("unknownFeature").key).toBe("admin.ai.error.unknownFeature");
@@ -184,12 +184,12 @@ describe("the AI console's seam (D158)", () => {
     expect(aiRefusalOf("badValue:unitCost").key).toBe("admin.ai.error.badPriceDoor");
     expect(aiRefusalOf("badValue:enabled")).toEqual({
       key: "admin.ai.error.unknown",
-      raw: "badValue:enabled",
+      raw: null,
     });
     expect(aiRefusalOf({ message: "overBudget", code: "P0D01" }).key).toBe(
       "admin.ai.error.overBudget",
     );
-    expect(aiRefusalOf("boom")).toEqual({ key: "admin.ai.error.unknown", raw: "boom" });
+    expect(aiRefusalOf("boom")).toEqual({ key: "admin.ai.error.unknown", raw: null });
     expect(aiRefusalOf("")).toEqual({ key: "admin.ai.error.unknown", raw: null });
     expect(aiRefusalOf(undefined)).toEqual({ key: "admin.ai.error.unknown", raw: null });
   });

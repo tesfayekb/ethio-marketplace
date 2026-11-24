@@ -27,6 +27,7 @@ import type { MessageKey } from "@/i18n/types";
 
 import { ROLE_REFUSALS, roleRefusalKey, type RoleSummary } from "./roles-service";
 import { useAdminRolesDetailed, useCreateRole } from "./use-admin-roles";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 const TABLE_ID = "admin-roles";
 const LOCKED = ["name"];
@@ -50,6 +51,7 @@ const LOCKED = ["name"];
  */
 export function AdminRolesList() {
   const { t } = useI18n();
+  const retryFailed = useRetryFailed();
   const navigate = useNavigate();
   const { permissions } = useAdminShell();
   const mayCreate = permissions.includes("roles:create");
@@ -235,6 +237,7 @@ export function AdminRolesList() {
           </p>
         }
         error={error ? true : undefined}
+        retry={retryFailed}
         errorState={
           <p role="alert" className="text-sm text-destructive">
             {t("admin.roles.error")}

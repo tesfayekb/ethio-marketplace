@@ -26,6 +26,7 @@ import {
 } from "./use-photo-reviews";
 import { ADMIN_SCREENING_KEY } from "./use-screening";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 16 turn 4b — D178 (the operator, 2026-10-14): "FAILED PHOTO WILL NOT GO
@@ -107,19 +108,11 @@ export function PhotoReviews({ mayReview, guard }: { mayReview: boolean; guard: 
 
       {reviews.isLoading ? <p className="text-sm">{t("common.loading")}</p> : null}
       {reviews.error ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <p role="alert" className="text-sm text-destructive">
-            {t("common.error")}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            onClick={() => void reviews.refetch()}
-          >
-            {t("common.retry")}
-          </Button>
-        </div>
+        <FailureNotice
+          error={reviews.error}
+          testid="admin-photo-reviews-error"
+          onRetry={() => void reviews.refetch()}
+        />
       ) : null}
       {!reviews.isLoading && !reviews.error && rows.length === 0 ? (
         <p className="text-sm text-muted-foreground" data-testid="admin-photo-reviews-empty">

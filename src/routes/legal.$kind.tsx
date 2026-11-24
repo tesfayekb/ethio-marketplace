@@ -6,6 +6,7 @@ import { useI18n } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
 import { safeReturnPath } from "@/lib/return-path";
 import { LegalScratchInputSchema } from "@/lib/schemas/server-fns";
+import { legalDocName } from "@/features/legal/legal-kinds";
 
 const scratchPageFn = createServerFn({ method: "GET" })
   .validator(LegalScratchInputSchema)
@@ -53,13 +54,22 @@ export const Route = createFileRoute("/legal/$kind")({
   component: LegalKindPage,
 });
 
+/** D6 — the document's name in the reader's words, never the address word. */
+function useKindTitle(kind: string): string {
+  const { t, language } = useI18n();
+  return kind === "publishing"
+    ? t("legal.kind.publishing")
+    : legalDocName({ kind, country_code: null }, t, language);
+}
+
 function LegalKindPage() {
   const { kind } = Route.useParams();
+  const title = useKindTitle(kind);
   const answer = Route.useLoaderData();
   return (
     <LegalDocumentPage
       kind={kind}
-      title={kind}
+      title={title}
       data={answer.global ?? null}
       sections={answer.countries.map((section) => ({
         countryCode: section.code,
@@ -70,5 +80,6 @@ function LegalKindPage() {
 }
 function LegalKindError() {
   const { kind } = Route.useParams();
-  return <LegalDocumentPage kind={kind} title={kind} data={null} />;
+  const title = useKindTitle(kind);
+  return <LegalDocumentPage kind={kind} title={title} data={null} />;
 }

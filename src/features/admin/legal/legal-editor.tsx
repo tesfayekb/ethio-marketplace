@@ -2,9 +2,12 @@ import { useI18n } from "@/i18n";
 import { validDocument } from "./legal-service";
 import { LegalEditorForm } from "./legal-editor-form";
 import { useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 export function LegalEditor({ kind, country }: { kind: string; country?: string }) {
   const { t } = useI18n();
+  const retryFailed = useRetryFailed();
   const documents = useLegalDocuments();
   const settings = useLegalSettings();
   const doc = documents.data?.find((d) => d.kind === kind && d.country_code === (country ?? null));
@@ -22,9 +25,12 @@ export function LegalEditor({ kind, country }: { kind: string; country?: string 
         <p role="status">{t("common.loading")}</p>
       ) : null}
       {documents.error || settings.error || source.error ? (
-        <p role="alert" className="text-destructive">
-          {t("admin.legal.error.load")}
-        </p>
+        <FailureNotice
+          error={documents.error ?? settings.error ?? source.error}
+          testid="legal-editor-failed"
+          subject={t("admin.legal.error.load")}
+          onRetry={retryFailed}
+        />
       ) : null}
       {documents.data && settings.data && (!sourceId || source.data) ? (
         <LegalEditorForm

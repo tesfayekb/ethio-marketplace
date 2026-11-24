@@ -1,6 +1,6 @@
 import { CURRENT_PILL } from "@/components/shell/band-row";
 import { CutText } from "@/components/ui/cut-text";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   CircleUser,
   ClipboardList,
@@ -21,6 +21,7 @@ import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { signInReturn } from "@/components/shell/sign-in-return";
 
 const ITEM = `${PRESSED.bar} flex min-h-15 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`;
 
@@ -83,6 +84,7 @@ function ItemBody({
  */
 export function BottomBar() {
   const { t } = useI18n();
+  const here = useRouterState({ select: (state) => state.location.href });
   const { auth, authLoading, signingOut } = useShell();
   const switchPanel = useSwitchPanel();
   const at = useMenuAt();
@@ -158,6 +160,8 @@ export function BottomBar() {
       ) : (
         <Link
           to="/auth"
+          // D11 — Sign in brings the person back to the page they were on.
+          search={signInReturn(here)}
           data-testid="bottom-bar-sign-in"
           data-tick=""
           aria-label={label("auth.signIn")}

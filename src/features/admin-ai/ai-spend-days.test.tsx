@@ -78,7 +78,7 @@ describe("AiSpendDays (bundle 13 turn 14)", () => {
     read.data = undefined;
     read.error = new Error("permission denied");
     render(<AiSpendDays />);
-    expect(screen.getByRole("alert").textContent).toBe("admin.ai.days.error");
+    expect(screen.getByRole("alert").textContent).toContain("admin.ai.days.error");
     expect(screen.queryByTestId("ai-days-table")).toBeNull();
     expect(screen.queryByTestId("ai-days-empty")).toBeNull();
     fireEvent.click(screen.getByText("common.retry"));

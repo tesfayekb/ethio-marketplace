@@ -21,6 +21,7 @@ import { finderPending, useCatalogFinder, useMatchLine, type FinderMatch } from 
 import { RequiredMark } from "./field";
 import { readRecentCategories } from "./posting-service";
 import { recentChips } from "./recent-categories";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * U6-C1-R1 — STEP 1: ONE CONTROL (operator walk 2026-09-18).
@@ -228,9 +229,12 @@ export function StepCategory({
 
   if (treeError) {
     return (
-      <p data-testid="post-category-error" className="text-sm text-destructive">
-        {t("post.category.treeError")}
-      </p>
+      <FailureNotice
+        error={null}
+        testid="post-category-error"
+        subject={t("post.category.treeError")}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 

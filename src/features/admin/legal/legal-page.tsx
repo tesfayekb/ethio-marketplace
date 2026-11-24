@@ -32,6 +32,8 @@ import {
 import { LegalFactsCard } from "./legal-facts-card";
 import { useLegalDocuments, useLegalSettings, useLegalVersion, useLegalWrites } from "./use-legal";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 /** Bundle 22 turn 13 — the text in force, read in place (its facts as frozen at publishing). */
 function InForceText({ id }: { id: string }) {
@@ -40,9 +42,12 @@ function InForceText({ id }: { id: string }) {
   if (version.isPending) return <p role="status">{t("common.loading")}</p>;
   if (version.error)
     return (
-      <p role="alert" className="text-destructive">
-        {t("admin.legal.error.load")}
-      </p>
+      <FailureNotice
+        error={version.error}
+        testid="legal-version-failed"
+        subject={t("admin.legal.error.load")}
+        onRetry={() => void version.refetch()}
+      />
     );
   const selected = legalTextFor(version.data, language);
   return (
@@ -59,6 +64,7 @@ function InForceText({ id }: { id: string }) {
 
 export function LegalPage() {
   const { t, language } = useI18n();
+  const retryFailed = useRetryFailed();
   const feedback = useSearch({ from: "/admin/legal" });
   const { permissions } = useAdminShell();
   const documents = useLegalDocuments();
@@ -316,9 +322,12 @@ export function LegalPage() {
             <p role="status">{t("common.loading")}</p>
           ) : null}
           {documents.error || settings.error || countries.error ? (
-            <p role="alert" className="text-destructive">
-              {t("admin.legal.error.load")}
-            </p>
+            <FailureNotice
+              error={documents.error ?? settings.error ?? countries.error}
+              testid="legal-page-failed"
+              subject={t("admin.legal.error.load")}
+              onRetry={retryFailed}
+            />
           ) : null}
           {LEGAL_KINDS.map((kind) => {
             const docs = (documents.data ?? [])

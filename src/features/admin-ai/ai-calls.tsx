@@ -138,16 +138,8 @@ export function AiCalls() {
         loading={query.isLoading}
         loadingState={<p>{t("admin.ai.log.loading")}</p>}
         error={query.error}
-        errorState={
-          <div className="flex flex-wrap items-center gap-2">
-            <p role="alert" className="text-destructive">
-              {t("admin.ai.log.error")}
-            </p>
-            <Button variant="outline" size="touch" onClick={() => void query.refetch()}>
-              {t("common.retry")}
-            </Button>
-          </div>
-        }
+        retry={() => void query.refetch()}
+        errorState={<span>{t("admin.ai.log.error")}</span>}
         emptyState={
           <p className="text-muted-foreground">
             {t("admin.ai.days.empty").replace("{days}", "90")}

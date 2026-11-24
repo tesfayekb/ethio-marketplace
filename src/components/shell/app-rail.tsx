@@ -55,6 +55,8 @@ import {
 } from "@/components/shell/menu-row";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
+import { FailureNotice } from "./failure-notice";
+import { refreshPage } from "@/lib/on-demand-failure";
 
 /**
  * COLLAPSE — an OPTION on md+, never the default and never on mobile.
@@ -708,7 +710,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
               .map((node, index) => (
                 <RailRow key={node.key} node={node} depth={level && !strip && index > 0 ? 1 : 0} />
               ))}
-        {!compact && !isLoading && roots.length === 0 ? (
+        {!compact && !isLoading && !error && roots.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", hide)}>
             {t("shell.categoriesEmpty")}
           </li>
@@ -723,9 +725,13 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         />
       ) : null}
       {error ? (
-        <p role="alert" className="px-3 text-sm text-destructive">
-          {t("common.error")}
-        </p>
+        // D12 — a failed read is never also "No categories yet"; the read's one cure is the page's.
+        <FailureNotice
+          error={null}
+          testid="rail-categories-failed"
+          className={cn("px-3", hide)}
+          onRetry={refreshPage}
+        />
       ) : null}
     </nav>
   );

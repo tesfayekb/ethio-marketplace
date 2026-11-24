@@ -55,5 +55,7 @@ export function aiRefusalOf(error: unknown): AiRefusal {
       : error === null || error === undefined
         ? ""
         : errorText(error).trim();
-  return { key: read.key, raw: read.branch === "generic" && text !== "" ? text : null };
+  // D51 (DEC-464) — an unmapped refusal's text goes to the console, never to the words.
+  if (read.branch === "generic" && text !== "") console.warn("[ai] unmapped refusal", text);
+  return { key: read.key, raw: null };
 }

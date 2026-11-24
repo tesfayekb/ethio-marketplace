@@ -11,6 +11,7 @@ import { legalMoment } from "./legal-dates";
 import { legalDocName } from "./legal-kinds";
 import { myLegalHistory } from "./legal-reader";
 import { languageRowName } from "@/lib/format-locale";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 const STATUS_KEYS: Record<string, MessageKey> = {
   sent: "myLegal.status.sent",
@@ -46,9 +47,12 @@ export function MyLegalPage() {
         {history.isPending ? (
           <p role="status">{t("common.loading")}</p>
         ) : history.error ? (
-          <p role="alert" className="text-destructive">
-            {t("myLegal.loadError")}
-          </p>
+          <FailureNotice
+            error={history.error}
+            testid="my-legal-failed"
+            subject={t("myLegal.loadError")}
+            onRetry={() => void history.refetch()}
+          />
         ) : (
           <>
             <Section title={t("myLegal.accepted")} className="space-y-3">

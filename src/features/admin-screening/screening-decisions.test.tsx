@@ -178,7 +178,7 @@ it("SF-16 a failed reopening read is surfaced through the shared refusal reader"
 it("SF-17 the queue's failed read uses the same refusal reader, not an empty page", () => {
   seams.queueError = new Error("permissionDenied");
   render(<AdminScreeningPage />);
-  expect(screen.getByRole("alert")).toHaveTextContent("admin.listings.move.error.denied");
+  expect(screen.getByText("admin.listings.move.error.denied")).toBeInTheDocument();
   expect(screen.queryByTestId("admin-screening-empty")).toBeNull();
 });
 

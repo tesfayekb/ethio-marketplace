@@ -23,6 +23,7 @@ import { dateFormatter } from "@/lib/format";
 import { currentSession } from "@/lib/supabase-door";
 import { readSellerReview } from "@/features/seller/seller-review";
 import { SellerReviewNotice } from "@/features/seller/seller-review-notice";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 type Profile = {
   seller_alias: string | null;
@@ -72,6 +73,9 @@ export function AccountOverview() {
   const { user } = useShell();
   const [state, setState] = useState<State>(initialState);
   const [loading, setLoading] = useState(true);
+  // DEC-464 — the failure itself, for the notice's reason, and the attempt Retry starts again.
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (user === null) return;
@@ -103,6 +107,7 @@ export function AccountOverview() {
       ]);
       if (!active) return;
       if (read.failed || profile.error || listings === null || review === null) {
+        setFailure(read.failed ? new TypeError("Failed to fetch") : (profile.error ?? null));
         setState((current) => ({ ...current, error: true }));
         setLoading(false);
         return;
@@ -119,7 +124,7 @@ export function AccountOverview() {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, attempt]);
 
   return (
     <PageShell as="main" width="wide" data-testid="account-page-shell">
@@ -129,9 +134,17 @@ export function AccountOverview() {
       />
       {loading ? <p className="mt-4 text-sm text-muted-foreground">{t("common.loading")}</p> : null}
       {state.error ? (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          {t("account.overview.loadError")}
-        </p>
+        <FailureNotice
+          error={failure}
+          testid="account-overview-failed"
+          className="mt-4"
+          subject={t("account.overview.loadError")}
+          onRetry={() => {
+            setLoading(true);
+            setState((current) => ({ ...current, error: false }));
+            setAttempt((n) => n + 1);
+          }}
+        />
       ) : null}
       {!loading && !state.error ? (
         <ContentGrid className="mt-6">

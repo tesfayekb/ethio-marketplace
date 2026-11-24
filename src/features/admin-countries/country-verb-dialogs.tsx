@@ -21,6 +21,7 @@ import {
   useSetCountryActive,
   useSetCountryRootOrder,
 } from "./use-countries";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * L2b-C1 — THE COUNTRY VERBS: opening and closing a market, and the rail order.
@@ -222,7 +223,15 @@ export function CountryRailOrderDialog({
       ) : null}
 
       {roots.isLoading ? <p className="text-sm">{t("admin.countries.loading")}</p> : null}
-      {!roots.isLoading && ids.length === 0 ? (
+      {roots.error ? (
+        // D54 — a failed read is never drawn as an empty roster.
+        <FailureNotice
+          error={roots.error}
+          testid="country-rail-failed"
+          onRetry={() => void roots.refetch()}
+        />
+      ) : null}
+      {!roots.isLoading && !roots.error && ids.length === 0 ? (
         <p className="text-sm text-muted-foreground" data-testid="country-rail-empty">
           {t("admin.countries.rail.empty")}
         </p>

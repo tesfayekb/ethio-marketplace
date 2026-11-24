@@ -380,7 +380,7 @@ export function useScreeningSchema(categoryId: string | null) {
 
 /**
  * Bundle 11 A2 (D120) — "Show number": the door logs every reveal (Admin ›
- * Audit). A3 (D129) — it asks for no second factor; listings:review, the
+ * Audit). A3 (D129) — it asks for no second factor; listings:reveal (the door's check), the
  * review_reveal dial (60 an hour) and the log stand.
  */
 export type RevealAnswer =

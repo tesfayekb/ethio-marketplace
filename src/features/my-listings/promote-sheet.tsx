@@ -30,6 +30,7 @@ import {
   type PromoteOptions,
   type PromoteReach,
 } from "./promote-service";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * P-2 turn (b) (DEC-349) — THE PROMOTE SHEET, one for the list's row menu and
@@ -111,9 +112,12 @@ export function PromoteSheet({
               {t("common.loading")}
             </p>
           ) : query.isError ? (
-            <p role="alert" data-testid="promote-load-error" className="text-sm text-destructive">
-              {t(promoteReadErrorKey(query.error))}
-            </p>
+            <FailureNotice
+              error={query.error}
+              testid="promote-load-error"
+              subject={t(promoteReadErrorKey(query.error))}
+              onRetry={() => void query.refetch()}
+            />
           ) : (
             <PromoteChoices
               listingId={listingId}

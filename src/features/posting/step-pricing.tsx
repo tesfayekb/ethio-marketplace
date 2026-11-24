@@ -32,6 +32,7 @@ import { ownValue } from "@/lib/own-key";
 import { numberFormatter } from "@/lib/format";
 import { numberOf, parseNumber } from "@/lib/parse-input";
 import { readerFailure } from "@/lib/reader-failure";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -458,9 +459,13 @@ export function StepPricing({
             refusal={currencyRefusal}
             hint={
               currencies.failed ? (
-                <p className="text-sm text-destructive" data-testid="post-price-currency-error">
-                  {t("post.price.currencyFailed")}
-                </p>
+                <FailureNotice
+                  error={null}
+                  testid="post-price-currency-error"
+                  size="line"
+                  subject={t("post.price.currencyFailed")}
+                  onRetry={() => window.location.reload()}
+                />
               ) : undefined
             }
           >

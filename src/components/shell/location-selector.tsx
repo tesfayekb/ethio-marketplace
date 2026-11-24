@@ -32,6 +32,8 @@ import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { OPEN_CONTROL } from "@/components/shell/menu-row";
+import { FailureNotice } from "./failure-notice";
+import { refreshPage } from "@/lib/on-demand-failure";
 
 /**
  * LOCATION SELECTOR — band 3 of the shell's vertical stack.
@@ -278,12 +280,15 @@ export function LocationSelector() {
           {t("common.loading")}
         </span>
       ) : failed ? (
-        <span
-          data-testid="location-error"
-          className="min-h-8 content-center text-sm text-muted-foreground"
-        >
-          {t("location.readFailed")}
-        </span>
+        // D13 — the reason in words and Retry (the page's one cure; the reads have none of their own).
+        <FailureNotice
+          error={null}
+          testid="location-error"
+          size="line"
+          className="min-h-8 flex-nowrap"
+          subject={t("location.readFailed")}
+          onRetry={refreshPage}
+        />
       ) : marketOptions.length === 0 ? (
         <span className="min-h-8 content-center text-sm text-muted-foreground">
           {t("location.empty")}

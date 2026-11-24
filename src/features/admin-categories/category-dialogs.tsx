@@ -50,6 +50,7 @@ import {
 } from "./use-categories";
 
 import { CategoryImagePanel } from "./category-image-dialog";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * C2-UI — the categories console's write surfaces.
@@ -909,9 +910,12 @@ export function CategoryPathsDialog({
           {t("admin.categories.paths.loading")}
         </p>
       ) : pointers.error ? (
-        <p role="alert" className="text-sm text-destructive">
-          {t("admin.categories.paths.error")}
-        </p>
+        <FailureNotice
+          error={pointers.error}
+          testid="category-paths-failed"
+          subject={t("admin.categories.paths.error")}
+          onRetry={() => void pointers.refetch()}
+        />
       ) : (pointers.data ?? []).length === 0 ? (
         <p data-testid="category-paths-empty" className="text-sm text-muted-foreground">
           {t("admin.categories.paths.empty")}

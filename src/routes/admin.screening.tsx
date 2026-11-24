@@ -8,7 +8,7 @@ import { AdminScreeningPage } from "@/features/admin-screening/screening-page";
  * section (the /admin layout's gate, DEC-163); the queue's rows are read through
  * the staff door `admin_screening_queue` (`listings:review`, the caller's countries; DEC-422), its
  * photos through `admin_listing_photos` (INC-1242); Approve and Reject are decided by
- * transition_listing, which re-checks `listings:review` and a fresh second
+ * admin_review_listing, which re-checks `listings:review` and a fresh second
  * factor (F3).
  *
  * Bundle 17 turn 2 (D194) — `?open=<id>` re-opens the ad's preview when the

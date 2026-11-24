@@ -80,6 +80,7 @@ import {
 } from "./use-screening";
 import { dateFormatter } from "@/lib/format";
 import { catalogText } from "@/i18n/entity";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (D109); bundle 11 A2 — on the agreed blocks
@@ -494,7 +495,8 @@ export function AdminScreeningPage({
   const data = query.data;
   const rows = data?.rows ?? [];
   // D154 B3 — the page's ads that hold a photo the screen warned about.
-  const warned = useWarnedListings(rows.map((row) => row.id)).data ?? new Set<string>();
+  const warnedRead = useWarnedListings(rows.map((row) => row.id));
+  const warned = warnedRead.data ?? new Set<string>();
 
   const decisionSubject =
     decision === null ? null : decidingOne === undefined ? (
@@ -651,6 +653,15 @@ export function AdminScreeningPage({
               className={notice?.tone === "error" ? undefined : "text-foreground"}
             />
 
+            {/* D36 — a failed warned-photos read is said, never a silent missing mark. */}
+            {warnedRead.error ? (
+              <FailureNotice
+                error={warnedRead.error}
+                testid="admin-screening-warned-failed"
+                size="line"
+                onRetry={() => void warnedRead.refetch()}
+              />
+            ) : null}
             <DataTable<ScreeningRow>
               guide={{
                 prefix: "admin.screening",
@@ -671,21 +682,8 @@ export function AdminScreeningPage({
               loading={query.isLoading || !keptReady}
               loadingState={<p className="text-sm">{t("common.loading")}</p>}
               error={query.error}
-              errorState={
-                <div className="flex flex-wrap items-center gap-2">
-                  <p role="alert" className="text-sm text-destructive">
-                    {t(decisionRefusalKey(query.error))}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="touch"
-                    onClick={() => void query.refetch()}
-                  >
-                    {t("common.retry")}
-                  </Button>
-                </div>
-              }
+              retry={() => void query.refetch()}
+              errorState={<span>{t(decisionRefusalKey(query.error))}</span>}
               emptyState={
                 <p data-testid="admin-screening-empty" className="text-sm text-muted-foreground">
                   {t("admin.screening.empty")}

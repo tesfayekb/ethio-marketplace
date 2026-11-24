@@ -253,6 +253,7 @@ export function AdminAiPage() {
             loading={query.isLoading}
             loadingState={<p className="text-sm">{t("admin.ai.loading")}</p>}
             error={query.error}
+            retry={() => void query.refetch()}
             errorState={
               <p role="alert" className="text-sm text-destructive">
                 {t("admin.ai.error")}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { mySaved, unsaveListing } from "@/features/ad-page/save";
 import { useCardPhotos } from "@/features/feed/use-card-photos";
 import { useI18n } from "@/i18n";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 type SavedPageData = Awaited<ReturnType<typeof mySaved>>;
 const KEY = ["my-saved-listings"] as const;
@@ -88,9 +89,13 @@ export function SavedPage() {
         </p>
       )}
       {query.isError && (
-        <p role="alert" data-testid="saved-failed" className="mt-4 text-sm text-destructive">
-          {t("account.saved.failed")}
-        </p>
+        <FailureNotice
+          error={query.error}
+          testid="saved-failed"
+          className="mt-4"
+          subject={t("account.saved.failed")}
+          onRetry={() => void query.refetch()}
+        />
       )}
       {query.isSuccess && cards.length === 0 && (
         <p data-testid="saved-empty" className="mt-4 text-sm text-muted-foreground">

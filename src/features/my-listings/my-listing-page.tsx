@@ -1,4 +1,3 @@
-import { readerFailure } from "@/lib/reader-failure";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CircleHelp, Copy, Eye, EyeOff, Pencil, Trash2, TrendingUp } from "lucide-react";
@@ -78,6 +77,7 @@ import { GROUP_LABEL, shareable } from "./my-listings";
 import { LazyPromoteSheet } from "./promote-sheet-lazy";
 import { REASON_WORD, SOLD_ON, SOLD_SHOWN_DAYS, stateLine, visibilityOf } from "./state-line";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
@@ -367,14 +367,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     return (
       <PageShell as="main" width="wide" data-testid="my-listing-page">
         <BackLink />
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <p role="alert" data-testid="my-listing-error" className="text-sm text-destructive">
-            {t("myListings.ad.loadError")}
-          </p>
-          <Button type="button" variant="outline" size="touch" onClick={() => void query.refetch()}>
-            {t("common.retry")}
-          </Button>
-        </div>
+        <FailureNotice
+          error={query.error}
+          testid="my-listing-error"
+          className="mt-4"
+          subject={t("myListings.ad.loadError")}
+          onRetry={() => void query.refetch()}
+        />
       </PageShell>
     );
   }
@@ -666,18 +665,27 @@ export function MyListingPage({ listingId }: { listingId: string }) {
         <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
           <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
           {identity.error ? (
-            <p role="alert" className="text-sm text-destructive">
-              {t("myListings.ad.loadError")}
-              <span data-testid="my-listing-identity-error-class">{` (${readerFailure(identity.error).class}${readerFailure(identity.error).status ? " " + readerFailure(identity.error).status : ""})`}</span>
-            </p>
+            <FailureNotice
+              error={identity.error}
+              testid="my-listing-identity-error"
+              subject={t("myListings.ad.loadError")}
+              onRetry={() => void identity.refetch()}
+            />
           ) : null}
           {draft === null ? (
-            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-              {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
-              {content.isError || content.isSuccess
-                ? t("myListings.ad.loadError")
-                : t("common.loading")}
-            </p>
+            content.isError ? (
+              <FailureNotice
+                error={content.error}
+                testid="my-listing-content-error"
+                subject={t("myListings.ad.loadError")}
+                onRetry={() => void content.refetch()}
+              />
+            ) : (
+              <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+                {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}
+                {content.isSuccess ? t("myListings.ad.loadError") : t("common.loading")}
+              </p>
+            )
           ) : (
             <ListingDetail
               actor="owner"
@@ -767,9 +775,18 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             {t("admin.listings.detail.history")}
           </h2>
           {lines === undefined ? (
-            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-              {history.isError ? t("myListings.ad.loadError") : t("common.loading")}
-            </p>
+            history.isError ? (
+              <FailureNotice
+                error={history.error}
+                testid="my-listing-history-error"
+                subject={t("myListings.ad.loadError")}
+                onRetry={() => void history.refetch()}
+              />
+            ) : (
+              <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+                {t("common.loading")}
+              </p>
+            )
           ) : lines.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("myListings.history.empty")}</p>
           ) : (

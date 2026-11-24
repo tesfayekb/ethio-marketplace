@@ -16,6 +16,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
+import { FailureNotice } from "@/components/shell/failure-notice";
+
+/** DEC-464 — one failure per reason, for the board (built once, never at render). */
+const BOARD_FAILURES: ReadonlyArray<readonly [string, unknown]> = [
+  ["network", new TypeError("Failed to fetch")],
+  ["server", Object.assign(new Error("server"), { status: 500 })],
+  ["gone", Object.assign(new Error("listingNotAvailable"), { code: "P0D01", status: 400 })],
+  ["no-access", Object.assign(new Error("permissionDenied"), { code: "P0D01", status: 403 })],
+  ["signed-out", Object.assign(new Error("JWT expired"), { status: 401 })],
+  ["rate", new Error(`rateLimited:${new Date(Date.UTC(2030, 0, 1)).toISOString()}`)],
+  ["rate-soon", new Error("rateLimited")],
+];
 
 /**
  * U1c — THE PRIMITIVES FIXTURE (DEC-015).
@@ -330,6 +342,13 @@ function PrimitivesFixture() {
           />
           <StatCard label={"Pending ads"} value={"42"} testid="prim-stat-state-ready" />
         </StatGrid>
+      </div>
+
+      {/* DEC-464 — the failure notice, one per reason (wraps at 360, 44 px targets). */}
+      <div data-testid="prim-failure-states" className="min-w-0 space-y-3">
+        {BOARD_FAILURES.map(([id, error]) => (
+          <FailureNotice key={id} error={error} testid={`prim-failure-${id}`} onRetry={() => {}} />
+        ))}
       </div>
 
       <div data-testid="prim-chart-frame" className="min-w-0">

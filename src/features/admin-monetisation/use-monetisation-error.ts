@@ -33,9 +33,12 @@ export function useMonetisationError() {
         : error === null || error === undefined
           ? ""
           : errorText(error).trim();
+    if (read.branch === "generic" && text !== "")
+      console.warn("[monetisation] unmapped refusal", text);
     setRefusal({
       key: read.key,
-      raw: read.branch === "generic" && text !== "" ? text : null,
+      // D51 (DEC-464) — an unmapped refusal's text goes to the console, never to the words.
+      raw: null,
       // L22b — the read rides along only when it can say when (other shapes unchanged).
       ...(read.when === undefined || read.tail === undefined ? {} : { read }),
     });

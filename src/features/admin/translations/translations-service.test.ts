@@ -97,7 +97,7 @@ describe("the machine-translation client (Foundations turn 19)", () => {
     expect(translationRefusalKey(new Error("constructor"))).toBe(
       "admin.translations.error.generic",
     );
-    expect(serverMessage(new Error("constructor"))).toBe("constructor");
+    expect(serverMessage(new Error("constructor"))).toBeNull();
   });
 
   it("TRS-6 the press dial's 429 shows admin.translations.ai.rateLimited, with no detail line", async () => {
@@ -240,7 +240,7 @@ describe("the family's doors on codes (DEC-333, F1-3)", () => {
   it("TRS-8 a failure the reader does not know is the generic key and keeps its own text beneath", () => {
     const failure = new Error("Failed to fetch");
     expect(translationRefusalKey(failure)).toBe("admin.translations.error.generic");
-    expect(serverMessage(failure)).toBe("Failed to fetch");
+    expect(serverMessage(failure)).toBeNull();
     expect(serverMessage(new Error("  "))).toBeNull();
   });
 

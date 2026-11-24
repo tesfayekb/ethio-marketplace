@@ -333,6 +333,7 @@ export function AdminCountriesPage() {
             loading={query.isLoading}
             loadingState={<p className="text-sm">{t("admin.countries.loading")}</p>}
             error={query.error}
+            retry={() => void query.refetch()}
             errorState={
               <p role="alert" className="text-sm text-destructive">
                 {t("admin.countries.error")}

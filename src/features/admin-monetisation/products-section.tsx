@@ -26,6 +26,7 @@ import { ProductEditorDialog } from "./product-editor";
 import { ProductNameToggle } from "./product-name-toggle";
 import { ProductPriceCell } from "./product-price-cell";
 import { useMonetisationNames } from "./use-monetisation-names";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 /**
  * P-1b (D290, D295) — THE PRODUCTS of one kind: LEVELS (an ad's level with its
@@ -78,6 +79,7 @@ export function ProductsSection({
   guard: GuardFn;
 }) {
   const { t, language } = useI18n();
+  const retryFailed = useRetryFailed();
   const { productName } = useMonetisationNames(products);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const date = dateFormatter("day", language);
@@ -348,6 +350,7 @@ export function ProductsSection({
           loading={loading}
           loadingState={<p className="text-sm">{t("admin.monetisation.loading")}</p>}
           error={error}
+          retry={retryFailed}
           errorState={
             <p role="alert" className="text-sm text-destructive">
               {t("admin.monetisation.error")}

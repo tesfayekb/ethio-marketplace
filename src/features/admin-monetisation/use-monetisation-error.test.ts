@@ -46,7 +46,7 @@ describe("useMonetisationError (F1-6b — the codes read through the one reader)
   it("MNS-10 a code with no words draws the generic line with the code beneath it", () => {
     expect(failWith(new MonetisationDoorError("somethingNew", "P0D01"))).toEqual({
       key: "admin.packages.error.unknown",
-      raw: "somethingNew",
+      raw: null,
     });
     expect(failWith(undefined)).toEqual({ key: "admin.packages.error.unknown", raw: null });
     expect(failWith(null)).toEqual({ key: "admin.packages.error.unknown", raw: null });

@@ -213,6 +213,6 @@ describe("the server's first page drawn until the feed's own read lands (D234 S6
     callRoute.mockResolvedValueOnce({ ...answered([]), status: 500, ok: false });
     const failed = renderHook(() => useFeed({ placeId: PLACE }));
     await waitFor(() => expect(failed.result.current.firstReadDone).toBe(true));
-    expect(failed.result.current.error).toBe(true);
+    expect(failed.result.current.error).not.toBeNull();
   });
 });

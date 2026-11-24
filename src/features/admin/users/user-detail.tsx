@@ -35,6 +35,7 @@ import {
   useUpdateProfile,
 } from "./use-admin-users";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * The per-user detail (Phase U1). Buttons are hidden without the matching
@@ -268,9 +269,11 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                   </Button>
                 )}
                 {status.error ? (
-                  <p role="alert" data-testid="status-error" className="text-sm text-destructive">
-                    {t("admin.users.status.failed")}
-                  </p>
+                  <FailureNotice
+                    error={status.error}
+                    testid="status-error"
+                    subject={t("admin.users.status.failed")}
+                  />
                 ) : null}
               </div>
             ) : null}
@@ -359,9 +362,11 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               </div>
             ) : null}
             {assign.error || revoke.error ? (
-              <p role="alert" data-testid="roles-error" className="text-sm text-destructive">
-                {t("admin.users.roles.failed")}
-              </p>
+              <FailureNotice
+                error={assign.error ?? revoke.error}
+                testid="roles-error"
+                subject={t("admin.users.roles.failed")}
+              />
             ) : null}
           </PageCard>
 
@@ -408,13 +413,11 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                 {t("admin.users.activity.loading")}
               </p>
             ) : activity.error ? (
-              <p
-                role="alert"
-                data-testid="user-activity-error"
-                className="text-sm text-destructive"
-              >
-                {t("admin.users.error")}
-              </p>
+              <FailureNotice
+                error={activity.error}
+                testid="user-activity-error"
+                onRetry={() => void activity.refetch()}
+              />
             ) : (activity.data ?? []).length === 0 ? (
               <p data-testid="user-activity-empty" className="text-sm text-muted-foreground">
                 {t("admin.users.activity.empty")}

@@ -20,6 +20,7 @@ import {
   useTranslationStatusAction,
 } from "./use-translations";
 import { ownValue } from "@/lib/own-key";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * U4e — THE HISTORY DRAWER.
@@ -135,9 +136,12 @@ export function HistoryDrawer({
                 {t("admin.translations.history.loading")}
               </p>
             ) : history.error ? (
-              <p role="alert" className="text-sm text-destructive">
-                {t("admin.translations.history.error")}
-              </p>
+              <FailureNotice
+                error={history.error}
+                testid="history-failed"
+                subject={t("admin.translations.history.error")}
+                onRetry={() => void history.refetch()}
+              />
             ) : rows.length === 0 ? (
               <p className="text-sm text-muted-foreground" data-testid={`history-empty-${testId}`}>
                 {t("admin.translations.history.empty")}

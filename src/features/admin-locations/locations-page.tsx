@@ -46,6 +46,7 @@ import {
   type LocationNode,
 } from "./locations-service";
 import { ADMIN_LOCATIONS_KEY, useAdminLocations, useAllCountries } from "./use-locations";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 /**
  * LOCATIONS ERA L2a-R — THE LOCATIONS CONSOLE, PART 1, RECONCILED.
@@ -89,6 +90,7 @@ type Dialog =
 
 export function AdminLocationsPage() {
   const { t } = useI18n();
+  const retryFailed = useRetryFailed();
   /**
    * INC-558's class (turn G3c) — the editors open on this read and send whole
    * records: their openers wait while it re-reads or a write to it is in flight.
@@ -435,6 +437,7 @@ export function AdminLocationsPage() {
             loading={query.isLoading || countries.isLoading}
             loadingState={<p className="text-sm">{t("admin.locations.loading")}</p>}
             error={query.error ?? countries.error}
+            retry={retryFailed}
             errorState={
               <p role="alert" className="text-sm text-destructive">
                 {t("admin.locations.error")}

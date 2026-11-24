@@ -6,6 +6,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import { PageCard } from "./page-card";
+import { FailureNotice } from "./failure-notice";
 
 /**
  * U1c — STAT CARD / STAT GRID (DEC-015 display primitive).
@@ -27,7 +28,9 @@ export interface StatCardProps {
   loading?: boolean;
   /** INC-1144 — the tile's read failed: the label stays, no number is drawn. */
   failed?: boolean;
-  /** Shown as Retry on a failed tile, only when passed. */
+  /** DEC-464 — the failure itself, read by the failure notice (a missing one reads as `server`). */
+  error?: unknown;
+  /** Shown as Retry on a failed tile (the census guard requires it with `failed`). */
   onRetry?: () => void;
   testid?: string;
   className?: string;
@@ -50,6 +53,7 @@ export function StatCard({
   icon,
   loading = false,
   failed = false,
+  error,
   onRetry,
   testid = "stat-card",
   className,
@@ -67,7 +71,9 @@ export function StatCard({
     );
   }
 
-  if (failed) {
+  // DEC-464 — a tile whose caller names no error keeps the tile's own failed words (bundle 6);
+  // a tile given its error says that failure's reason through the notice.
+  if (failed && error === undefined) {
     return (
       <PageCard testid={`${testid}-failed`} className={cn("min-w-0 space-y-2 p-4", className)}>
         <span className="block min-w-0 break-words text-sm text-muted-foreground">{label}</span>
@@ -83,6 +89,23 @@ export function StatCard({
             {t("common.retry")}
           </Button>
         ) : null}
+      </PageCard>
+    );
+  }
+
+  if (failed) {
+    return (
+      <PageCard className={cn("min-w-0 space-y-2 p-4", className)}>
+        <FailureNotice
+          error={error}
+          testid={`${testid}-failed`}
+          retryTestid={`${testid}-retry`}
+          size="tile"
+          subject={
+            <span className="block min-w-0 break-words text-sm text-muted-foreground">{label}</span>
+          }
+          {...(onRetry ? { onRetry } : {})}
+        />
       </PageCard>
     );
   }

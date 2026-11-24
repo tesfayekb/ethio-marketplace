@@ -29,6 +29,8 @@ import {
 import { useLegalWrites, useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
 import { dateFormatter } from "@/lib/format";
 import { isUnknownVersion } from "./unknown-version";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
 function CompareText({
@@ -49,9 +51,12 @@ function CompareText({
   if (previous.isPending) return <p role="status">{t("common.loading")}</p>;
   if (previous.error)
     return (
-      <p role="alert" className="text-destructive">
-        {t("admin.legal.error.load")}
-      </p>
+      <FailureNotice
+        error={previous.error}
+        testid="legal-previous-failed"
+        subject={t("admin.legal.error.load")}
+        onRetry={() => void previous.refetch()}
+      />
     );
   const previousText =
     lang === "en"
@@ -115,6 +120,7 @@ export function LegalVersionView({
   openTranslation?: boolean;
 }) {
   const { t, language } = useI18n();
+  const retryFailed = useRetryFailed();
   const { permissions } = useAdminShell();
   const version = useLegalVersion(versionId);
   const settings = useLegalSettings();
@@ -186,9 +192,12 @@ export function LegalVersionView({
           {unknown ? (
             <p data-testid="legal-version-not-found">{t("admin.legal.notFound")}</p>
           ) : version.error || settings.error || documents.error ? (
-            <p role="alert" className="text-destructive">
-              {t("admin.legal.error.load")}
-            </p>
+            <FailureNotice
+              error={version.error ?? settings.error ?? documents.error}
+              testid="legal-version-view-failed"
+              subject={t("admin.legal.error.load")}
+              onRetry={retryFailed}
+            />
           ) : null}
           {row ? (
             <>
