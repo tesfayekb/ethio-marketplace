@@ -269,4 +269,31 @@ describe("the wide panel's place", () => {
     // 422 px on each side; the whole visible area, 892 - 8 = 884 px, from its top edge (8 px).
     expect(await placeAt(430)).toEqual({ side: "bottom", maxHeight: "884px", top: "8" });
   });
+
+  it("TBP-U4 reopening after the window and button move reads the new place", async () => {
+    expect(await placeAt(700)).toEqual({ side: "top", maxHeight: "692px", top: "700" });
+    fireEvent.keyDown(screen.getByTestId("placed-panel"), { key: "Escape" });
+    expect(screen.queryByTestId("placed-panel")).toBeNull();
+
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 560 });
+    vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(560);
+    const button = screen.getByTestId("placed");
+    vi.spyOn(button, "getBoundingClientRect").mockReturnValue(
+      DOMRect.fromRect({ x: 40, y: 330, width: 80, height: 40 }),
+    );
+    fireEvent.click(button);
+    const panel = await screen.findByTestId("placed-panel");
+    await new Promise((done) => setTimeout(done, 0));
+    const wrapper = panel.closest<HTMLElement>("[data-radix-popper-content-wrapper]");
+    const top = /translate\([^,]+,\s*([-\d.]+)px\)/.exec(wrapper?.style.transform ?? "")?.[1];
+    expect({
+      side: panel.getAttribute("data-side"),
+      maxHeight: panel.style.maxHeight,
+      top,
+    }).toEqual({
+      side: "bottom",
+      maxHeight: "544px",
+      top: "8",
+    });
+  });
 });

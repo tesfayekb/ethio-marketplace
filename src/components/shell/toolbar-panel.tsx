@@ -115,30 +115,33 @@ export function ToolbarPanel({
       <PopoverTrigger asChild ref={anchor}>
         {trigger}
       </PopoverTrigger>
-      <PopoverContent
-        variant="panel"
-        room={{ from: anchor, floor: PANEL_FLOOR_PX }}
-        align={align}
-        data-testid={`${testid}-panel`}
-        className={BANDS_PANEL}
-        aria-labelledby={`${testid}-title`}
-        aria-describedby={description === undefined ? undefined : `${testid}-description`}
-        onOpenAutoFocus={(event) => impl?.dialogRules.recordPanel(event, opener.current)}
-        onEscapeKeyDown={(event) => impl?.dialogRules.keepOpenList(event, opener.current)}
-      >
-        <PanelHeader>
-          <h2 id={`${testid}-title`} className="font-semibold">
-            {title}
-          </h2>
-          {description === undefined ? null : (
-            <p id={`${testid}-description`} className="text-sm text-muted-foreground">
-              {description}
-            </p>
-          )}
-        </PanelHeader>
-        {body}
-        {footPart}
-      </PopoverContent>
+      {/* INC-1271: unmount the placement reader on close; every opening reads today's room. */}
+      {open ? (
+        <PopoverContent
+          variant="panel"
+          room={{ from: anchor, floor: PANEL_FLOOR_PX }}
+          align={align}
+          data-testid={`${testid}-panel`}
+          className={BANDS_PANEL}
+          aria-labelledby={`${testid}-title`}
+          aria-describedby={description === undefined ? undefined : `${testid}-description`}
+          onOpenAutoFocus={(event) => impl?.dialogRules.recordPanel(event, opener.current)}
+          onEscapeKeyDown={(event) => impl?.dialogRules.keepOpenList(event, opener.current)}
+        >
+          <PanelHeader>
+            <h2 id={`${testid}-title`} className="font-semibold">
+              {title}
+            </h2>
+            {description === undefined ? null : (
+              <p id={`${testid}-description`} className="text-sm text-muted-foreground">
+                {description}
+              </p>
+            )}
+          </PanelHeader>
+          {body}
+          {footPart}
+        </PopoverContent>
+      ) : null}
     </Popover>
   );
 }
