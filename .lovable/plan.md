@@ -389,7 +389,80 @@ Assist: `GET /api/listings/assist` (posting-service.ts:946). It answers `assistB
 
 **Browser tests:** post-wizard-specs PW-6, -pricing PW-140, -bundle2 PW-121, my-listings-ad MLA-18, admin-listings AL-20. **360 px sideways: none.**
 
-## Summary — area 2, parts 1–3
+## Screen 7, step 6 — Place (step-where.tsx, 2,265 lines; map under src/features/posting/map/)
+
+Place answers go through `submit_listing`. `cityRequired` → `post.refusal.cityRequired` (step-where.tsx:1726-1731), `unknownPlace` → `post.refusal.unknownPlace`, `coverageExceedsPlan` → `post.refusal.coverageExceedsReach` (refusal-text.ts:35, :51, :75). The pin door `set_listing_pin` (posting-service.ts:1237-1307) refuses `notYourListing`, `contactInNote`, `directionsTooLong`, `badLatitude`, `badLongitude`, `badPrecision`, `badZoom` (migration 20261115203900:62-109).
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Market `post.where.marketLabel` / `marketChoose` (:725-744); loading `post.where.marketLoading`; failed `post.where.marketFailed` (:1571-1574); unresolved `post.where.marketUnresolved` (:1622-1623) | Picks the market | failed; unresolved | NONE (all four) | D18-kind: no Retry |
+| 2 | Tree loading / failed `post.where.treeLoading` / `treeFailed` (:1627-1631) | Says so | failed | NONE | D18-kind: no Retry |
+| 3 | Add country / region / city / sub-city `post.where.addCountry` / `addRegion` / `addCity` / `addSubCity` (:352-357, :663-688, :1715-1719) | Adds a level | works | PW-11 post-wizard-place:345-347; PW-117 post-wizard-bundle2:1491 | none |
+| 4 | No regions `post.where.noRegions` (:451-453); "All of" `post.where.allOf` (:581-582) | — | empty | NONE | none |
+| 5 | Remove `post.where.removePlace` (:391-396) | Removes a place | works | PW-20 :928; PW-117 :1518 | none |
+| 6 | Prefilled `post.where.prefilled` (:1738-1739) | Says the place came from the last ad | works | PW-116 bundle2:1281; PW-180 post-wizard-where:307 | none |
+| 7 | Reach / plan line and toggle (`post.where.planLine*`, :1756-1795) | Shows the reach the level allows | works | PW-90 post-wizard-where:530 | none |
+| 8 | Place refusal `post-where-refusal` (`cityRequired` etc., :1726-1731) | Shows at Next | invalid | PW-80 post-wizard-place:1049; MLA-17 my-listings-ad:1238 | none |
+| 9 | Map pin: open sheet `post-pin-sheet`, search `post-pin-search`, results / none `post-pin-noresults`, locate me `post-pin-locate`, street / satellite layers, Save `post-pin-save`, Cancel `post-pin-cancel` (map/*.tsx) | Places and saves a pin through `set_listing_pin` | works | PW-37 post-wizard-place:1351; PW-38 :1384; PW-160 :1490; PW-97 post-wizard-where:717; PW-92 :633 (fallback); no results / satellite NONE | none |
+| 10 | Pin outside the market `post-pin-outside`; pin error `post-pin-error`; map failed (`MapFailedHere`, step-where.tsx:49) | Says so | failed | NONE | none |
+| 11 | Pin door refusals `badLatitude` / `badLongitude` / `badPrecision` / `badZoom` / `directionsTooLong` | Words for each | refused | NONE | D21 |
+| 12 | Amharic; 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-place, -where, -bundle2, dialogs :612, my-listings-ad MLA-17. **360 px sideways:** post-wizard-where.spec.ts:857 (in PW-97's file; the project width).
+
+## Screen 7, step 7 — Contact (step-who.tsx, 1,255 lines)
+
+Identity reads: `my_seller_line` (posting-service.ts:998). Refusals by key (refusal-text.ts:53, :79-98): `messagesRequired`, `aliasReserved`, `aliasTaken`, `aliasShape`, `aliasEthio`, `aliasRole`, `aliasClaim`, `aliasTooSoon`, `businessEthio`, `businessReserved`, `businessClaim`, `badLength`, `badHandle`, `showNeedsValue`, `aliasLatinOnly`. The alias check is `/api/listings/alias`.
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Identity read failed `post.who.readFailed` + raw class (:684-688) | Says so | failed | NONE | D20 |
+| 2 | Saved identity and Edit `post.who.edit` (:694-705) | Opens the fields | works | PW-150 post-wizard-bundle2:693 | none |
+| 3 | Type person / business `post.who.typeLabel` / `typeBusiness` (:724-754) + type refusal | — | works; refused | PW-148 :779; refusal NONE | none |
+| 4 | Business name `post.who.businessLabel` (:763-771) | — | works; `business*` refusals | PW-148 :783 | none |
+| 5 | First / last name `post.who.firstNameLabel` / `lastNameLabel` (:798-831) + hint | — | works | PW-134 :511; PW-12 post-wizard-place:452 | none |
+| 6 | Alias `post.who.aliasLabel`, rules, checking `post.who.aliasChecking`, available `post.who.aliasAvailable`, suggestions (:860-949) | Checks and suggests | works; taken / shape | PW-134 :517; PW-12 :436; PW-130 :575; "available" NONE | none |
+| 7 | Alias change rule `post.who.aliasChangeFirst` / `aliasCorrectionWindow` / `aliasNextChange` (:920-935) | — | too soon | NONE | none |
+| 8 | Channels: messages (always on, `post.who.messagesCannotOff`), phone / second phone / Telegram / WhatsApp (`post-who-channel-*`, :969-1062) | Turns ways on | works | PW-114 :865; PW-12 :429 | none |
+| 9 | Values `post-who-value-*` (phone field, :1081) | Phone checked by the phone library | invalid; `badHandle` | MLA-15 my-listings-ad:1092; choice-lists:480 | none |
+| 10 | Phone library failed `post.who.phoneLibFailed` + `common.refreshPage` (:990-1001) | Refresh | failed | NONE | none |
+| 11 | Carried contact `post.who.contactFromLastPost` (:1006-1007) | — | works | NONE | none |
+| 12 | Messages refusal (`messagesRequired`, :1011) | — | refused | NONE | none |
+| 13 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-bundle2 (PW-114…PW-150), -place PW-12, my-listings-ad MLA-15, choice-lists. **360 px sideways: none.**
+
+## Screen 7, step 8 — Review and Publish (step-review.tsx, 952 lines)
+
+Publish: `/api/listings/publish` → `publish_listing`. The live body is migration 20261115203900:150-219 (the later of the two files declaring it). Its codes and the words the screen shows (`draftRefusalKey`, step-review.tsx:841; legal codes via `certifyRefusal`, :939):
+
+| Code (file:line) | Screen words |
+|---|---|
+| `notYourListing` (:169) | `post.refusal.notYourListing` "This listing belongs to another account." (en-base:585, am-base:540) |
+| `illegalTransition` (:171) | none of its own; generic `post.refusal.unknown` "That could not be saved." (en-base:586, am-base:541) — D22 |
+| the judge's field refusals (:175-186) | each field's words (refusal-text.ts:28-102), plus "Open step {step}" `post.review.fixStep` (en-member:507, am-member:486) |
+| `listingNotPlaced` (:193) | generic `post.refusal.unknown` — D22 |
+| `noFreeSlot` (:196-197) | `post.refusal.noFreeSlot` (en-base:694, am-base:638) |
+| `acceptanceRequired` / `certificationRequired` from `legal_certify` (:201-202) | navigates to `/legal/accept`, or re-reads the certification (certify-refusal.ts:61-69); no line on this screen |
+| other errors `door_refused` (:219) | `post.save.unsaved` (step-review.tsx:824-825) |
+
+| # | Control / event | Must do | Cases | Test | Defect |
+|---|---|---|---|---|---|
+| 1 | Summary rows and Edit `post.review.edit` "Edit" / "አስተካክል" (en-member:563, am-member:538), :611-659; not given `post.review.notGiven` | Goes to the step | works | AL-20 admin-listings:1384; SC-25 | none |
+| 2 | Identity failed in the summary + raw class (:597-598) | — | failed | NONE | D20 |
+| 3 | Preview as buyer `post.review.previewAsBuyer` (en-member:627, am-member:601), :696-700 | Opens the preview | works | dialogs:592; photo-pipeline:1248 | none |
+| 4 | Active window and take-down switch `post.review.takeDownSwitch` "Take it down on a date" (en-member:527, am-member:504), :754-802 | Sets the end date | works | NONE | none |
+| 5 | Statement `post.review.statement` (en-member:524), :898-899; certification tick | A tap without the tick marks it refused and sends nothing (:906-907) | invalid | LGC-1 legal-certify:588 | none |
+| 6 | Publish `post.review.publish` "Publish" / "አውጣ", busy `post.review.publishing` (en-member:505-506, am-member:484-485), :904-944 | Calls `publish_listing` | works | LGC-1 :588; PW-123 post-wizard-bundle2:948 | none |
+| 7 | Refusals `post-review-refusal` + fix button `post-review-fix` (:835-848) | Shows each refusal and opens its step | refused | NONE | D22 |
+| 8 | Unreachable `post-review-failed` (:824-825) | — | network | NONE | none |
+| 9 | Acceptance asked mid-publish (`acceptanceRequired`) | Goes to `/legal/accept` and back | — | NONE (browser) | none |
+| 10 | Success: in review `post.review.reviewBody` (:484-489); share (checking / wait, :492-527); My listings `nav.myListings`, Home (:539-550) | Says it is in review; links | works | PW-123 :949-950; LGC-1 :602; PS-1 :985 | none |
+| 11 | Amharic; 360 / 768 | — | — | NONE | none |
+
+**Browser tests:** post-wizard-bundle2 PW-123/PS-1, legal-certify LGC-1, dialogs, photo-pipeline, admin-listings AL-20, admin-screening SC-25. **360 px sideways: none.**
+
+## Summary — area 2, parts 1–4 (the wizard)
 
 **NONE rows:**
 - Frame: 1, 2, 7, 8, 15 (browser), 16, 17.
@@ -398,6 +471,9 @@ Assist: `GET /api/listings/assist` (posting-service.ts:946). It answers `assistB
 - Step 3: 1, 2, 9 (no options), 10, 12, 16.
 - Step 4: 2, 3, 5, 10, 11.
 - Step 5: 3 (screen), 7, 8, 9.
+- Step 6: 1, 2, 4, 9 (no results, satellite), 10, 11, 12.
+- Step 7: 1, 3 (refusal), 6 (available), 7, 10, 11, 12, 13.
+- Step 8: 2, 4, 7, 8, 9, 11.
 
 **Defects:**
 - D15: wizard.tsx:860-861 and step-category.tsx:229-234. "This draft could not be opened." and "The categories could not be loaded." offer no Retry (law C4).
@@ -407,7 +483,10 @@ Assist: `GET /api/listings/assist` (posting-service.ts:946). It answers `assistB
 - D18: step-specifications.tsx:1197-1198 and step-pricing.tsx:461-462. "These details could not be loaded." and "The currency list could not be loaded. Try again in a moment." offer no Retry (law C4). No test covers either.
 - D19: step-details.tsx:411-416. The assist button is drawn even when the writing help is switched off (assist.ts:324-325), so the seller learns it is off only after pressing. No test shows any assist refusal (`post-assist-refusal`, :453).
 
+- D20: step-who.tsx:687 and step-review.tsx:597-598 show the raw failure class and status (for example " (network 503)") to the seller, untranslated. Same kind as D9.
+- D21: the pin door's `badLatitude`, `badLongitude`, `badPrecision`, `badZoom` and `directionsTooLong` (migration 20261115203900:85-109) have no line in `DRAFT_REASONS` (refusal-text.ts:27-102). They fall to the generic "That could not be saved." (en-base:586). Step-where's market and tree failures (:1571-1574, :1627-1631) also offer no Retry (D18's kind).
+- D22: `publish_listing`'s `illegalTransition` (:171) and `listingNotPlaced` (:193) have no words (refusal-text.ts:27-102), so Publish shows "That could not be saved." No test shows any publish refusal on screen (`post-review-refusal`, step-review.tsx:835).
+
 **Left for the next parts:**
-- Wizard steps 6 Place (step-where.tsx, 2,265 lines), 7 Contact (step-who.tsx, 1,255 lines), 8 Review and Publish (step-review.tsx, 952 lines; `publish_listing` refusals at migration 20261115203900:169-193). They did not fit after steps 3–5.
 - `my-listings`, `my-listings_.$listingId`, `my-listings_.$listingId_.edit`.
 - `account`, `account_.saved`, `account_.legal`, `account_.legal_.$versionId`.
