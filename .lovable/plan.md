@@ -629,7 +629,7 @@ Gate (`AdminGate`, :37-83):
 - A section without its permission (`sectionAt`, sections.ts) sets `accessDenied` and replaces the page with /admin (:60-62).
 - While anything is pending it draws `admin.loading` "Checking your access…" (en-admin:2175, am-admin:2038), :66-76.
 
-Rail sections and their permissions (sections.ts): Locations `/admin/locations` (:46); All listings `listings:view` (:69-70); Screening `listings:review` (:77-78); Monetisation `packages:view` (:89-90); Users `profiles:view` (:97-98); Roles `roles:view` (:104-105); Audit `audit_logs:view` (:111-112); Places `locations:view` (:118-119); Countries `countries:view` (:126-127); Categories / Attributes / Images `categories:view` (:134-151); Translations `translations:view` (:158-159); Legal `legal:view` with alert `legalReview` (:165-169); AI `services:view` (:173-174). Alerts are read by `useNavAlerts` (sections' `alert`).
+Rail sections and their permissions (sections.ts): Locations `/admin/locations` (:46); All listings `listings:view` (:68-69); Screening `listings:review` (:76-77); Monetisation `packages:view` (:88-89); Users `profiles:view` (:96-97); Roles `roles:view` (:103-104); Audit `audit_logs:view` (:110-111); Places `locations:view` (:117-118); Countries `countries:view` (:125-126); Categories / Attributes / Images `categories:view` (:133-150); Translations `translations:view` (:157-158); Legal `legal:view` with alert `legalReview` (:164-168); AI `services:view` (:172-173). Alerts are read by `useNavAlerts` (sections' `alert`).
 
 | # | Control / event | Permission (file:line) | Without it, the staff member sees | Cases | Test | Defect |
 |---|---|---|---|---|---|---|
