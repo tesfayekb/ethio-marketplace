@@ -1,127 +1,77 @@
-# Bundle 8 — plan (base `4af9f0dc8`, branch `lovable/next`; nothing changed)
+# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
 
-HEAD = `4af9f0dc88c2fb48ca9ef9c924377eb718a85cb7`, and the diff to the base is empty. My sandbox cannot run a browser against a built page in a way that gives evidence, so the browser reds on the base are the supervisor's.
+(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
 
-## (a) Files I touch, with their tests
-| File | Tests |
-|---|---|
-| `src/components/shell/data-table.tsx` (DataTablePagination) | `data-table-pagination.test.tsx`, `data-table.test.tsx` |
-| `src/features/admin-listings/listings-page.tsx` | `listings-page.test.tsx` |
-| `src/features/admin-screening/screening-page.tsx` | its page test (`screening-page.test.tsx`, or a new one if none) |
-| `src/features/admin/translations/strings-page.tsx` (passes `countState` to AiBulkBar) | `strings-page.test.tsx` |
-| `src/features/admin/users/users-list.tsx`, `src/features/admin/audit/audit-page.tsx`, `src/features/my-listings/my-listings-page.tsx`, `src/features/admin/translations/data-scope.tsx` (pagination `total` gets `undefined` when the read has not answered) | each one's own test |
-| `src/components/shell/toolbar-panel.tsx` (side read at open) | new `toolbar-panel-side.test.tsx` |
-| `src/components/select-list.tsx` (blur path) | `select-list.test.tsx`, `filter-panel-body.test.tsx` |
-| `e2e/dialogs.spec.ts` | only the lines the ruling names (DLG-E12 mid-window case) |
-| `docs/features/display-primitives.md` | the pagination's unknown state, the panel side rule, the blur rule |
-| `docs/generated/i18n-usage.json`, `public/i18n-usage.json` | regenerated only if a file is added |
+## CI first
+- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
+- No completed run on 836d1030 yet. Read again before the build turn's push.
 
-Impersonation (`impersonation-view.tsx:233`) is Tier A. I list it below and touch it only if the ruling says so.
+## What the operator will see
+Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
 
-## (b) Part A census: every number drawn from a read (src/features and src/routes)
-| File:line | Read | Loading | Failed | Disabled / not started | Verdict |
-|---|---|---|---|---|---|
-| admin-listings/listings-page.tsx:246 → :682 `resultCount={total}`, :748 `total={total}` | useAdminListings (`paging.ready && filtersReady`) | "Show 0 results", "0–0 of 0" | same | same (the query waits on `filtersReady`) | **BYPASSES** |
-| admin-screening/screening-page.tsx:770 `total={data?.total ?? 0}` | useScreening | "0 of 0" if the pager is drawn | the pager is hidden on error (Bundle 6) | 0 | **BYPASSES** (pager) |
-| admin/impersonation/impersonation-view.tsx:233 `totalCount ?? 0` | listings | 0 | hidden on error | 0 while `!paging.ready` | **BYPASSES** (Tier A, ruling decides) |
-| admin/translations/strings-page.tsx:385–387 `<AiBulkBar untranslated={counts.untranslated ?? 0}>` with no `countState` (default `"success"`) | langStats | the bar believes 0 | the bar believes 0 | 0 | **BYPASSES** (the gap in ai-bulk-bar is its caller) |
-| admin/translations/ai-bulk-bar.tsx:187–195 | filteredCount / caller | `pending` | `error` | `pending` (`data === undefined`) | uses (correct once the caller passes a state) |
-| admin/translations/data-scope.tsx:207–211 | langStats | `countState` passed | passed | passed | uses |
-| admin/users/user-detail.tsx:383–422 (activity) | activity | loading line | error line | n/a (always enabled on the page) | uses (confirmed) |
-| admin-listings/listing-page.tsx:616–622 (reports) | useListingReports(listingId, mayReview) | null | failed | **cannot happen**: the card draws only when `mayReview` is true, and that is the query's `enabled`. `listingId` comes from the route param and is always set. | uses (confirmed; see (j)) |
-| users-list.tsx:148/273/297 | users | resultCount `undefined`; pager `total=0` | pager hidden; resultCount `undefined` | — | Filters uses; **pager bypasses while loading** |
-| audit-page.tsx:165/350/408 | audit list | resultCount `undefined`; pager 0 | hidden | — | Filters uses; **pager bypasses while loading** |
-| strings-page.tsx:277/453/522 | list | same shape | | | Filters uses; **pager bypasses while loading** |
-| data-scope.tsx:177 + its pager | list | same shape | | | Filters uses; **pager bypasses while loading** |
-| my-listings-page.tsx:785/845 `counts[group]` | my listings | resultCount `undefined`; pager counts 0 | | | Filters uses; **pager bypasses while loading** |
-| strings-page.tsx:308–319 coverage line; :158–164 choice counts; data-scope.tsx:119–123 | langStats / dataStats | fixed in Bundle 6 through `counted-label` and the coverage gate | | | uses. I re-read each one at the build, and any `?? 0` I find drawn without a gate is named in the build answer. |
-| countries / locations / categories / ai-page / markets / products / product-prices / level-overrides / languages `total={rows.length}` and similar | client lists already loaded | the table is in its loading state, and `rows.length` counts what was read | error | — | uses (a local count of rows that answered; DataTable owns its error) |
-| dev.style.tsx:1334, dev.primitives.tsx:461 | constants | — | — | — | not a read |
-| translator-card.tsx:107, legal gate, posting | not a drawn number, or gated by `isLoading`/`isError` | | | | not in scope |
+## Census (836d1030; build turn pastes full file:line)
+Primitive consumers — "uses the primitive":
+- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
+- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
+- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
+- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
+- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
 
-## (c) Pagination's unknown state, at the primitive
-- The one form is `total: number | undefined`. When it is `undefined`, the range text is not drawn (no "of N"), the page buttons and the page-number picker are not drawn, and Prev/Next are disabled. The page-size choice stays (it is not a number from the read). `totalLabel` only matters when there is a total.
-- Callers:
-  - Pass `undefined` until the read answers: listings (`query.isSuccess ? total : undefined`), screening, users-list, audit, strings, data-scope and my-listings, each on its own read's `isSuccess`.
-  - Unchanged, because they count rows that already answered: countries, locations, categories, ai-page, markets, products, product-prices, level-overrides and languages.
-  - Impersonation only by ruling.
-  - Boards keep their numbers.
-- Listings' Filters button: `resultCount={query.isSuccess ? total : undefined}`.
-- Strings' AiBulkBar: passes `countState` from langStats (`pending` / `error` / `success`), the way data-scope already does.
+"Draws its own":
+- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
+- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
+- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
+- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
 
-## (d) Part B: the panel's room
-- Callers: `PopoverContent variant="panel"` has exactly one caller, `toolbar-panel.tsx:108`. ToolbarPanel has exactly two callers, `filter-chips.tsx:82` (FiltersButton, used by every table's Filters) and `columns-button.tsx:55`.
-- The cause: the panel's `max-h` equals the available height on its side, so it always "fits" below and Radix never flips it.
-- The one rule, in ToolbarPanel, read once at open (like the padding at D267):
-  - Measure the room below and above the button inside `visibleArea()`.
-  - `side` is `"bottom"` when the room below holds the panel's floor, `min(28rem, room above)`, or when the room below is at least the room above. Otherwise it is `"top"`.
-  - The `max-h` stays the available height on the chosen side.
-- Why this rule: it is deterministic and read once. A pure CSS floor would push the panel out of the window when neither side holds the floor, and that breaks `panelInsideWindow`.
-- DLG-E12 additions (lines named in the ruling): after the tall-window case, close the panel and scroll the Filters button to the middle of the 900-px window (`scrollIntoView({block:"center"})` + `settled`). Then reopen the panel, open Colour, and repeat the same `listFacts` match and the same "six choices" assertion with the label `@ ${width} x 900 mid-window`.
-- The red on the base is the supervisor's, in its own clone. It should be 2–3 choices, as in run 45187492568.
+Own classes on dialog parts outside the primitive:
+- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
 
-## (e) Part C: one press on another row
-- The path:
-  - `filter-panel-body.tsx:28–32` closes on the landed click (capture).
-  - `select-list.tsx:171–175`: the trigger toggles on click.
-  - `select-list.tsx:193–201` (`onBlur`): a controlled list closes when focus leaves the rows **and `relatedTarget` is null counts as leaving**.
-- Finding: the hypothesis holds, by a more precise route.
-  - On macOS WebKit, pressing a button does not focus it. So pointer-down on the Size row blurs the focused element in the Colour list with `relatedTarget === null`.
-  - The `onBlur` then closes Colour **on pointer-down**, and the Size row moves up before pointer-up, so the click does not land on Size.
-  - Linux WebKit (CI) and Chromium focus the button. There `relatedTarget` is the Size button, which is inside the rows, so nothing closes until the click. That is why CI passes and the Mac fails.
-- The fix, at the list mechanism: a blur whose `relatedTarget` is null does not close. Only focus that moves to an element outside the rows closes the list (Tab out). A press outside the rows is already closed by the panel's landed-click capture, and a press outside the panel is closed by the panel itself.
-- Unit test SL-U40, red first on the base:
-  1. Render the panel body and open Colour.
-  2. Fire `pointerdown`, then a `blur` with `relatedTarget: null` (the Mac WebKit order), and assert the Colour list is still in the document and the Size row has not moved (the list node is still present).
-  3. Fire `click` on Size and assert the Size list is open and Colour is gone.
-- A second test, FP-U56: Tab from the open list to an element outside the rows still closes it.
+Unused primitives:
+- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
+- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
 
-## (f) Exported types changed
-- `DataTablePagination`'s props: `total: number` becomes `total: number | undefined` (the props are typed inline; if a named props type is exported, it is that type).
-- Nothing else. ToolbarPanel's props, SelectListProps and FilterSelectProps are unchanged.
+Allowlists:
+- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
+- look-values-allowlist :3 (drawer) goes with drawer.tsx.
 
-## (g) Laws
-- Laws of the base that read what I change:
-  - C7 ("never NaN/undefined drawn"; INC-130 `totalLabel`).
-  - D267 (padding read at open).
-  - Decision M (rows move only on the landed click).
-  - DLG-E12.
-  - F4 (no phantom state).
-- The guard law for Cursor, LAW-NUM-1: no screen passes `?? 0` (or `?? []).length`) of a query's data to `resultCount`, `total` or a StatCard `value`. An unanswered read passes `undefined`, and DataTablePagination draws no range for `undefined`.
-- Meanwhile it is held by PGN-U1/PGN-U2 and ALT-U1.
+## Mechanism
+1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
+   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
+2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
+3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
+4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
+5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
+6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
 
-## (h) New test ids (each searched as an exact string in src, e2e and scripts: 0 hits)
-| Id | What it checks |
-|---|---|
-| PGN-U1 | the pager with an unknown total draws no range |
-| PGN-U2 | Prev/Next are disabled when the total is unknown |
-| ALT-U1 | listings loading or failed: no "0" in Filters or the pager |
-| SCRN-U1 | screening's pager while loading |
-| TBP-U1 | the panel opens below when there is room |
-| TBP-U2 | the panel opens above when the room below is short of its floor |
-| TBP-U3 | the panel opens below when below ≥ above |
-| SL-U40 | the Mac WebKit order |
-| FP-U56 | Tab out of the rows still closes |
-| IMPV-U1 | impersonation (only if ruled) |
+## Guard
+- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
+- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
 
-DLG-E12 gains a case, and its id does not change.
+## Tests
+- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
+- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
+- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
+- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
+- DLG-E6 reduced motion: no transition.
+- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
+- Touched specs whole, both projects, retries 0.
 
-## (i) First download
-- Part A: a few bytes on the listings, screening, users, audit, strings, my-listings and data-scope pages, plus DataTable's chunk (on every table page).
-- Part B: about 0.2 KB in ToolbarPanel. It rides the pages that draw a Filters or Columns button; the shell entry is not affected.
-- Part C: a few bytes less in SelectList's on-demand chunk.
-- If my local page-size check names `/admin/roles_/$roleId` in its NEAR band, I will report it.
+## G38 list (build turn greps and names old → new)
+- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
 
-## (j) Open points and possible errors in the task
-1. The brief's ai-bulk-bar reading is right about the bar, but the gap is its Strings caller, which passes no `countState`.
-2. listing-page reports: "disabled reads as none" cannot happen at the base, because `enabled === mayReview` gates the card itself. I propose no change.
-3. Several pagers already hide on *failure* (Bundle 6), but they draw "0 of 0" while *loading*. The primitive form fixes both.
-4. Part B's floor of 28rem is my proposal; the supervisor may prefer another value.
-5. Whether macOS WebKit fires blur with a null `relatedTarget` was not observed in a browser here. It is inferred from the platform's focus convention, and the unit test simulates that order.
-6. The Strings "orphaned" label from Bundle 6 (`{count}` can show 0 on a stats failure) is still open and outside this brief unless the ruling adds it.
+## Growth
+- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
+- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
 
-## Build order (after the ruling)
-- Turn 1: Part A + Part C, with their unit tests and folder runs.
-- Turn 2: Part B, the ruled DLG-E12 lines and the doc, then the whole scripts suite.
-- Then commit and stop.
-- The last step, on the supervisor's script, writes back the platform paths, runs both empty proofs and commits.
+## Turns
+- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
+- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
+- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
+
+## Open points for the ruling
+1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
+2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
+3. Map pin dropper on the Radix dialog, or allowlisted.
+
+## Technical scope (build)
+src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.
