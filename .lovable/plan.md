@@ -704,8 +704,83 @@ The UI hides controls by `profiles:update` (user-detail.tsx:50), `roles:assign` 
 - D31: View as (impersonation-starter.tsx:80) reads the refusal with no words. `impersonateSelf`, the super-admin target, `unknownUser`, `badLength` and `sessionActive` (migration 20261114070700:66-77) all show `impersonation.failed`.
 - D32: a failed activity read on one person's page (user-detail.tsx:413-416) says "Users could not be loaded." (en-admin:86). Those are the list's words, not the activity's, and there is no Retry.
 
-**Left for the next parts (area 3):**
-- `admin.listings`, `admin.listings_.$listingId`, `admin.listings_.$listingId_.edit`.
-- `admin.screening`; `admin.roles`, `admin.roles_.$roleId`; `admin.audit`; `admin.impersonation_.$sessionId`.
-- The other `admin*` route files.
+## Screen A5 — All listings: `src/routes/admin.listings.tsx` → admin-listings/listings-page.tsx (LP)
 
+Gate: `listings:view` (sections.ts:67-71; admin.tsx:72-97). The list reads `admin_list_listings` (use-admin-listings.ts:69; migration 20261122023200:67 `listings:view`). It refuses `badValue:view` (:76) and `badValue:tier` (:81). Moves go through `admin_move_listing` (20261118012400:43, `listings:enforce`), which delegates to `_core`. The level is `admin_set_listing_tier` (20261118012500:55, `listings:enforce`). Settings are `admin_set_listing_policy` (same file :154), which refuses `badValue:renew_days` (:156). Words come from `listing-refusals.ts:17-45` (en-member:231-279); the generic is `common.error` "Something went wrong" (en-base:34).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Views all / live / waiting / ended / removed (LP:287-288, :608-619); search (:669-678) | `listings:view` | page refused (A1 row 2) | works | AL-10 admin-listings:727; AL-11 :812; AL-13 :903 | none |
+| 2 | Filters: country, category (multi), seller, level, from / to dates; chips; Columns (LP:175-221, :681-698) | seller email `profiles:view` (LP:119) | non-email seller placeholder | works | AL-10; ATR-6 :2475; AL-32 :2171 (door); dates UI NONE | none |
+| 3 | Row open; ⋯ menu: Send back, Remove, Restore (move-reasons.ts:42-48), Set level, View as seller (LP:307-343) | moves/level `listings:enforce` (LP:120), not own; View as `impersonation:use` (LP:121) | items omitted (menu keeps Open) | works | AL-13; AL-14 :958; AL-17 :1165; ATR-6; ATR-7 :2553 | none |
+| 4 | Move dialog: reason, note (Other requires a note, max 500 characters), confirm (move-dialog.tsx:72-143) | inherits | — | invalid | AL-14 | none |
+| 5 | Move refusals: `listingNotFound`, `ownListing`, `illegalTransition`, `severeRestore`, `rateLimited`(+when), `permissionDenied`, `noteRequired`, `noteTooLong`, `noFreeSlot` → own words (en-member:231-279); others → generic | — | — | refused | AL-7/8/9 :552-665 (door); screen AL-13/14 | none |
+| 6 | Level dialog: pick, days, reason, note (tier-dialog.tsx:70-217). Refusals: `badValue:tier` → "Unknown level."; `nothingChanged` → "The ad already has this level."; `listingRemoved` → "A removed ad takes no level." (en-admin:367-369); `badDays` (en-admin:2219); `ownListing`, `listingNotFound`, `noteRequired`, `noteTooLong` → shared words; `badValue:reason` → `admin.listings.move.pickReason` | `listings:enforce` | — | works; refused | ATR-1…ATR-4 :2259-2403 | none |
+| 7 | Selection and bulk Remove / Restore, one guarded move per ad (LP:345-391, :704-740) | `listings:enforce` | no selection | works | AL-15 :998; absence AL-11 :841 | none |
+| 8 | Settings: renew allowed and days (listing-settings.tsx:124-239). `badValue:renew_days` → "A whole number from 1 to 365." (en-admin:393); others → "The settings were not saved." (en-admin:397) | `listings:enforce` | button omitted | works | AL-30 :2012 | none |
+| 9 | Report count per row (LP:547-555), `admin_open_report_counts` (`listings:review`, 20261118012900:256; `badSize` :258) | `listings:review` (LP:247-250) | column absent | works; failed | AL-31 :2081 | none |
+| 10 | Photo warning per row (LP:466-468), `admin_warned_listings` | `listings:view` | — | failed | SC-22 admin-screening:1102 | D36 |
+| 11 | Loading / empty `listings-empty` / failed `common.error` + Retry (LP:635-661); pager (DataTable) | — | — | failed; empty | AL-15 :1048 (empty); failed NONE; Prev/Next NONE | none |
+| 12 | Amharic; 360 / 768 / 1280 | — | — | — | NONE (shell-table-law.spec.ts:18 visits /admin/users only) | none |
+
+## Screen A6 — one listing: `admin.listings_.$listingId.tsx` → admin-listings/listing-page.tsx (DP)
+
+Reads `admin_listing_detail` (20261118012900:96, `listings:view`; `listingNotFound` :100). Also `admin_listing_photos` (20261123020700:56; `listingNotFound` :59), `admin_listing_reports` (20261118012900:207, `listings:review`) and `admin_listing_certifications` (:46). Undo: `admin_undo_listing_edit` (20261118012200:48, `listings:enforce`). It refuses `listingNotFound` (:53), `nothingToUndo` (:62, :72, :94), `listingChanged` (:65, :82) and `photoRemovalFinal` (:75). Photo Allow: `admin_allow_listing_photo` (20261118012300:45, `listings:review`). This page has no Approve / Reject of its own (DP:487-549); those live in the staff edit coming from Screening.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Loading; not found `admin.listings.detail.notFound`, else `common.error` (DP:208-225); Back | `listings:view` | — | unknown; failed | AL-16 :1059; AL-18 :1229 | none |
+| 2 | Edit (DP:487-504); Send back / Remove / Restore (:506-519); Set level (:521-535); View as seller (:537-549) | `listings:enforce` and not own (DP:136, :230-235); View as `impersonation:use` (:137) | buttons omitted | works | AL-17; AL-20 :1347; ATR-1…4; View as positive NONE | none |
+| 3 | Move / level refusals | — | — | refused | as A5 rows 5–6 | none |
+| 4 | Buyer preview `listing-as-seen` (DP:563-601) | `listings:view` | — | works | AL-17 | none |
+| 5 | Photos: remove one (reason / note; `admin_edit_listing` remove_photos); Allow a held photo; load failed + Retry (listing-photos.tsx:92-417) | remove `listings:enforce`; Allow `listings:review` (DP:143-144, :237) | controls absent | works; failed | AL-28 :1856; AL-6 :496 (door); Allow on this page NONE; failed NONE | none |
+| 6 | Reports card (DP:612-655) | `listings:review` | card absent | works; failed | AL-31 | none |
+| 7 | Seller link (DP:664-690) | `profiles:view` (DP:138) | plain seller text | works | AL-18 (restricted) | none |
+| 8 | History lines, show / hide changes (DP:767-850) | — | — | works | AL-17/18/20/26; toggle NONE | none |
+| 9 | Undo the newest staff edit + dialog (DP:859-876; undo-dialog.tsx:39-95). `listingChanged` / `nothingToUndo` → "The listing has changed since this edit, so it cannot be undone." (en-admin:453); `photoRemovalFinal` → generic | `listings:enforce` (undo-edit.ts:22-30) | absent | works; refused | AL-26 :1670; AL-27 :1755 (door) | D33 |
+| 10 | Certifications (DP:996-1045) | links need `legal:view` (DP:987) | text, no link | works | NONE | none |
+| 11 | Amharic; 360 / 768 | — | — | — | NONE | none |
+
+## Screen A7 — staff edit: `admin.listings_.$listingId_.edit.tsx` (171 lines)
+
+This is the posting wizard as staff, following the area 2 rows. Staff may edit Specifications, Price and Details; Category, Photos, Place and Contact have no Edit (step-review.tsx:630-660). Saves go through `admin_edit_listing` (20261118012400:64, `listings:enforce`, delegates to `_core`). The route reaches Approve / Reject when opened `?from=screening` (route :77), through `admin_review_listing` (20261118013000:253, `listings:review`; `badValue:status` :255).
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Reason and note box (needed before a change) (step-review.tsx:565-583) | backend `listings:enforce` | the save is refused | invalid | AL-20 :1347 | none |
+| 2 | Step navigation; Next saves the changed fields (use-edit-draft.ts:436-438); edit refusals `nothingChanged` → "Nothing has changed." / `listingRemoved` → "A removed listing is not edited. Restore it first." (en-member:275-276) | — | — | works; refused | AL-21 :1460; AL-22 :1531; AL-23 :1577; AL-3/24/25 :331-355 (door) | none |
+| 3 | Identity failed + raw class (step-review.tsx:595-601) | — | — | failed | NONE | D20 (shared) |
+| 4 | Done (step-review.tsx:856-865) → detail, or Screening with the ad open | — | — | works | AL-20; SC-25 admin-screening:1318 | none |
+| 5 | Approve / Reject + confirm (route :87-184; step-review.tsx:867-884). `ownListing` → "This is your own ad. Another reviewer must approve or reject it." (en-admin:549-550); shared decision words; `badValue:status` → generic | `from=screening` and `listings:review` (route :77) | absent | works; refused | SC-26 :1393; refusal line NONE | none |
+| 6 | Route opens directly without `listings:enforce` | section gate `listings:view` only | wizard opens; save refused by the server | refused | NONE | none |
+
+## Screen A8 — Screening: `admin.screening.tsx` → admin-screening/screening-page.tsx (S)
+
+Gate: `listings:review` (sections.ts:75-79). Queue: `admin_screening_queue` (20261122023400:52; `badValue:tier` :56). Decisions: `admin_review_listing` (20261118013000:253; `badValue:status` :255). Facts: `admin_screening_facts` (20261118012800:152; `listingNotFound` :157). Show number: `admin_reveal_listing_contact` (20261118012700:76, `listings:reveal`; `badValue:channel` :78, `listingNotFound` :83). Name checks: list / summary (20261118012900:225, :240, `listings:view`) and clear (20261118012700:116, `profiles:update`; `badValue` :117-118). Photo reviews / changes (20261123020600:93, :121; Allow and review 20261118012300:45, :64, `listings:review`). Job health / resume (20261119031000:185 `services:view`; 20261119030900:109 `services:manage`, `badValue:job` :110). Decision words come from use-screening.ts:281-291 with listing-refusals.ts:19-29. Show-number words are `revealLimited`(+When) and `revealNotShown` (en-admin:545-548). Photo words: `reviewGone` → "This photo was already decided." (en-admin:422); `changeGone` → "This change was already reviewed." (en-admin:530). Every other code shows `common.error`.
+
+| # | Control / event | Permission (file:line) | Without it | Cases | Test | Defect |
+|---|---|---|---|---|---|---|
+| 1 | Header; queue rows (S:281-334, :628-667) | `listings:review` | page refused | works | SC-1 admin-screening:224 | none |
+| 2 | Search; Filters: Country, Seller, Level; chips; Columns (S:214-259, :699-724) | seller email `profiles:view` (S:137) | non-email placeholder | works | SC-5 :316; SC-11 :486; SC-27 :1472; SC-28/29 :1543-1587; SC-30 :1614 | none |
+| 3 | Row ⋯ Preview / Approve / Reject; selection and bulk Approve / Reject; confirm (S:469-489, :727-865) | `listings:review` (S:136) | actions and selection omitted | works; refused | SC-2 :237; SC-3 :256; SC-4 :279; SC-12 :557; SC-16 :297 (step-up); bulk Reject NONE | D35 |
+| 4 | Decision refusals: `listingNotFound`, `ownListing`, `illegalTransition`, `severeRestore`, `rateLimited`, `permissionDenied`, `noteRequired`, `noteTooLong`, `noFreeSlot` → own words; `badValue:status` → generic | — | — | refused | SC-4 (role); others NONE | none |
+| 5 | Preview: facts, photos, held-photo note, marked photos (S:870-939) | marked photos and Edit `listings:enforce` (S:139); Open listing `listings:view` (S:141) | omitted | works | SC-6 :327; SC-7 :358; SC-13 :600; SC-18 :849; SC-20 :916; SC-23 :1151; SC-25 | none |
+| 6 | Show number per channel (S:440-462) | UI `listings:review` (S:440); door `listings:reveal` (migration :76) | a reviewer without reveal sees the button, then "Something went wrong" | works; limited; not shown | SC-9 :440; SC-15 :720; SC-17 :409 | D34 |
+| 7 | Name checks: count, list, Allow (reason) / Rename (N:103-352) | list `listings:view`; Allow / Rename `profiles:update` (S:143) | Allow / Rename drawn but disabled (N:269-281) | works | NCQ-E2E-1…4 name-check-queue:65-206 | none |
+| 8 | Photos to review: Allow (R:91-210); live-ad photo changes: Mark reviewed (C:81-203) | `listings:review` | sections omitted | works; gone | SC-21 :985; SC-24 :1239 | none |
+| 9 | Job line, Resume when paused (J:43-115) | view `services:view`; Resume `services:manage` | omitted | works | NCQ-E2E-3 :206 | none |
+| 10 | Queue loading / empty / failed + Retry (S:671-692); pager | — | — | failed; empty | SC-5 (empty); failed NONE; pager NONE | none |
+| 11 | Name / photo / change / job read failures use their section's fixed words + Retry; the warned-ads read failure becomes an empty set (S:497) | — | — | failed | NONE | D36 |
+| 12 | Amharic; 360 / 768 | — | — | — | NONE | none |
+
+**360 px sideways (A5–A8): none.** shell-table-law.spec.ts:18-32 checks /admin/users only.
+
+- D33: `admin_undo_listing_edit`'s `photoRemovalFinal` (migration 20261118012200:75) has no line in `UNDO_REFUSALS` (undo-edit.ts:34-45). It shows "Something went wrong" (en-base:34).
+- D34: Screening's Show number is drawn for `listings:review` (screening-page.tsx:136, :440). The door checks `listings:reveal` (migration 20261118012700:76), so a reviewer without it gets "Something went wrong". The same mismatch on the screen: `badValue:channel` and `listingNotFound` (:78, :83) also fall to `common.error` (screening-page.tsx:417-420).
+- D35: Screening's Reject sends no reason or note (screening-page.tsx:843-850; use-screening.ts:274-277). The listings console's moves require both (move-reasons.ts:52-56). No bulk Reject browser test.
+- D36: a failed warned-ads read draws no line, on Screening (screening-page.tsx:497) and on All listings (listings-page.tsx:254). The photo warnings vanish silently.
+- D37 (notes, not behaviour): admin.screening.tsx:10-12 and the staff edit route's opening comment name `transition_listing`, but the code calls `admin_review_listing`. use-screening.ts:382-385 says Show number needs review, but the door checks reveal.
+
+**Left for the next parts (area 3):**
+- `admin.roles`, `admin.roles_.$roleId`; `admin.audit`; `admin.impersonation_.$sessionId`.
+- The other `admin*` route files (locations, places, countries, categories, attributes, images, translations, legal, monetisation, AI and their sub-pages).
