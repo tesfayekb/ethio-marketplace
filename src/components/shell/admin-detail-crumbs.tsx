@@ -25,7 +25,7 @@ const CURRENT = BAND_CRUMB_CURRENT;
  * link back to the listing's page and "Edit" follows it as the current segment.
  */
 export function AdminListingCrumb({ listingId, link }: { listingId: string; link: boolean }) {
-  const { data } = useAdminListing(listingId);
+  const { data } = useAdminListing(listingId, { cacheOnly: true });
   if (link) {
     return (
       <BreadcrumbLink asChild className={BAND_CRUMB}>
@@ -54,7 +54,7 @@ export function AdminListingCrumb({ listingId, link }: { listingId: string; link
 
 /** A language's strings page: the language's own name, from the roster's read. */
 export function AdminLanguageCrumb({ code }: { code: string }) {
-  const { data } = useLanguages();
+  const { data } = useLanguages({ cacheOnly: true });
   const row = (data ?? []).find((entry) => entry.code === code);
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-language" className={CURRENT}>
@@ -72,7 +72,7 @@ const CURRENT_CUT = BAND_CRUMB_CURRENT;
 
 /** U1d — the 4th admin crumb; reads the detail page's cached row. */
 export function AdminUserCrumb({ userId }: { userId: string }) {
-  const { data } = useAdminUser(userId);
+  const { data } = useAdminUser(userId, { cacheOnly: true });
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-user" className={CURRENT_CUT}>
       <CutText text={data?.displayName ?? "—"} />
@@ -82,7 +82,7 @@ export function AdminUserCrumb({ userId }: { userId: string }) {
 
 /** U2 — the 4th admin crumb for a role; reads the detail page's cached row. */
 export function AdminRoleCrumb({ roleId }: { roleId: string }) {
-  const { data } = useAdminRole(roleId);
+  const { data } = useAdminRole(roleId, { cacheOnly: true });
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-role" className={CURRENT_CUT}>
       <CutText text={data?.displayName ?? data?.name ?? "—"} />
