@@ -351,7 +351,11 @@ export function DataTablePagination({
 }: {
   offset: number;
   pageSize: number;
-  total: number;
+  /**
+   * INC-1144 — the read's answered total; `undefined` while the read has not answered
+   * (loading, failed, not started): no range, no page run, Prev/Next disabled.
+   */
+  total: number | undefined;
   /**
    * C7 / INC-130 — replaces the numeric total in the range string (the audit
    * console's capped "10,000+"). Paging arithmetic is unchanged.
@@ -366,9 +370,10 @@ export function DataTablePagination({
   onPageSize?: (size: number) => void;
 }) {
   const { t } = useI18n();
-  const from = total === 0 ? 0 : offset + 1;
-  const to = Math.min(offset + pageSize, total);
-  const pageCount = total === 0 || pageSize <= 0 ? 0 : Math.ceil(total / pageSize);
+  const known = total !== undefined;
+  const from = !known || total === 0 ? 0 : offset + 1;
+  const to = known ? Math.min(offset + pageSize, total) : 0;
+  const pageCount = !known || total === 0 || pageSize <= 0 ? 0 : Math.ceil(total / pageSize);
   const currentPage = pageSize > 0 ? Math.floor(offset / pageSize) : 0;
   const pages = onPage ? pageWindow(currentPage, pageCount) : [];
   const hasRun = onPage !== undefined && pages.length > 0;
@@ -377,9 +382,16 @@ export function DataTablePagination({
       data-testid={testid}
       className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 md:grid md:grid-cols-[1fr_auto_1fr]"
     >
-      <span data-testid={`${testid}-range`} className="text-sm tabular-nums text-muted-foreground">
-        {`${from}–${to} ${t("prim.table.of")} ${totalLabel ?? total}`}
-      </span>
+      {known ? (
+        <span
+          data-testid={`${testid}-range`}
+          className="text-sm tabular-nums text-muted-foreground"
+        >
+          {`${from}–${to} ${t("prim.table.of")} ${totalLabel ?? total}`}
+        </span>
+      ) : (
+        <span aria-hidden="true" />
+      )}
 
       {pageSizeOptions && onPageSize ? (
         <label className="ms-auto flex items-center gap-2 text-sm text-muted-foreground md:ms-0">
@@ -413,7 +425,7 @@ export function DataTablePagination({
           className="size-11 p-0 md:pointer-fine:size-9 md:rounded-e-none"
           data-testid={`${testid}-prev`}
           aria-label={t("prim.table.previous")}
-          disabled={offset === 0}
+          disabled={!known || offset === 0}
           onClick={onPrevious}
         >
           <ChevronLeft aria-hidden="true" className="rtl:rotate-180" />
@@ -460,7 +472,7 @@ export function DataTablePagination({
           className="size-11 p-0 md:pointer-fine:size-9 md:-ms-px md:rounded-s-none"
           data-testid={`${testid}-next`}
           aria-label={t("prim.table.next")}
-          disabled={to >= total}
+          disabled={!known || to >= total}
           onClick={onNext}
         >
           <ChevronRight aria-hidden="true" className="rtl:rotate-180" />

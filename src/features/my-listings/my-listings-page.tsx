@@ -842,7 +842,7 @@ export function MyListingsPage() {
               testid="my-listings-pagination"
               offset={paging.page * paging.pageSize}
               pageSize={paging.pageSize}
-              total={counts[group]}
+              total={query.isSuccess ? counts[group] : undefined}
               onPrevious={() => {
                 paging.setPage((current) => Math.max(0, current - 1));
                 setSelected([]);

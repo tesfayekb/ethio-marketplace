@@ -191,12 +191,12 @@ export function SelectList({
       data-select-list={id}
       className="relative min-w-0"
       onBlur={(event) => {
+        // INC-1273 (Decision M): a press on an engine that does not focus a pressed button
+        // (macOS WebKit) blurs with no relatedTarget on pointer-DOWN; closing then would move the
+        // rows before the press lands. Only focus that moves to an element outside the rows closes.
         const rows = wrapRef.current?.closest("[data-filter-rows]") ?? wrapRef.current;
-        if (
-          controlledOpen !== undefined &&
-          open &&
-          !rows?.contains(event.relatedTarget as Node | null)
-        )
+        const next = event.relatedTarget;
+        if (controlledOpen !== undefined && open && next instanceof Node && !rows?.contains(next))
           close();
       }}
     >

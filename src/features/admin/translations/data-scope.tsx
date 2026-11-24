@@ -299,7 +299,7 @@ export function DataScope({
             testid="data-pagination"
             offset={page * pageSize}
             pageSize={pageSize}
-            total={total}
+            total={list.isSuccess ? total : undefined}
             onPrevious={() => setPage((current) => Math.max(0, current - 1))}
             onNext={() =>
               setPage((current) => ((current + 1) * pageSize < total ? current + 1 : current))

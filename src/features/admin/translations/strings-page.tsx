@@ -385,6 +385,15 @@ export function AdminTranslationsStringsPage({
                 <AiBulkBar
                   lang={lang}
                   untranslated={counts["untranslated"] ?? 0}
+                  countState={
+                    langStats
+                      ? "success"
+                      : stats.isError
+                        ? "error"
+                        : stats.isPending
+                          ? "pending"
+                          : "missing"
+                  }
                   filter={query}
                   guard={guard}
                 />
@@ -519,7 +528,7 @@ export function AdminTranslationsStringsPage({
                     testid="strings-pagination"
                     offset={page * pageSize}
                     pageSize={pageSize}
-                    total={total}
+                    total={list.isSuccess ? total : undefined}
                     onPrevious={() => setPage((current) => Math.max(0, current - 1))}
                     onNext={() =>
                       setPage((current) =>

@@ -90,3 +90,19 @@ describe("DataTablePagination", () => {
     expect(run.className).toContain("md:flex");
   });
 });
+
+describe("DataTablePagination — an unanswered total (INC-1144)", () => {
+  it("PGN-U1 an unknown total draws no range and no page run; the page size stays", () => {
+    pager({ total: undefined, onPage: () => {}, pageSizeOptions: [25, 50], onPageSize: () => {} });
+    expect(screen.queryByTestId("data-table-pagination-range")).toBeNull();
+    expect(screen.queryByTestId("data-table-pagination-page-1")).toBeNull();
+    expect(screen.getByTestId("data-table-pagination-size")).toBeTruthy();
+    expect(screen.getByTestId("data-table-pagination").textContent).not.toMatch(/\d+–\d+/);
+  });
+
+  it("PGN-U2 an unknown total disables Previous and Next", () => {
+    pager({ total: undefined, offset: 25 });
+    expect(screen.getByTestId("data-table-pagination-prev")).toHaveProperty("disabled", true);
+    expect(screen.getByTestId("data-table-pagination-next")).toHaveProperty("disabled", true);
+  });
+});

@@ -679,7 +679,7 @@ export function AdminListingsPage() {
                 filters={
                   <FiltersButton
                     testid={"listings-filters"}
-                    resultCount={total}
+                    resultCount={query.isSuccess ? total : undefined}
                     filters={tableFilters}
                   />
                 }
@@ -745,7 +745,7 @@ export function AdminListingsPage() {
                 testid="listings-pagination"
                 offset={paging.page * paging.pageSize}
                 pageSize={paging.pageSize}
-                total={total}
+                total={query.isSuccess ? total : undefined}
                 onPrevious={() => {
                   paging.setPage((current) => Math.max(0, current - 1));
                   setSelected([]);
