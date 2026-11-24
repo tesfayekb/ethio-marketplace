@@ -29,10 +29,12 @@ import {
   allowanceFindings,
   censusFindings,
   type Finding,
+  gateReachFindings,
   type Ruling,
   templateKeys,
   textFindings,
   treeFindings,
+  userCasesFindings,
 } from "./go-laws";
 
 const TEMPLATE = "docs/governance/go-template.md";
@@ -118,6 +120,10 @@ function check(file: string, root: string, tree: string): Finding[] {
     findings.push({ law: "CF-BRIEF-13", file, line: 1, text: `the root holds no ${ALLOWLIST}` });
 
   if (ruling !== null) return findings;
+  findings.push(
+    ...gateReachFindings(text, file, rulings),
+    ...userCasesFindings(text, file, rulings),
+  );
   const template = join(root, TEMPLATE);
   if (existsSync(template)) {
     const keys = templateKeys(readFileSync(template, "utf8"));

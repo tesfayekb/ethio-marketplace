@@ -12,7 +12,8 @@
  * holds), CF-BRIEF-5 cited path, CF-BRIEF-6 cited line, CF-BRIEF-7 free id, CF-BRIEF-8 option,
  * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision, CF-BRIEF-19 a
  * record's files inside SCOPE, CF-BRIEF-20 a cited list's reader, CF-BRIEF-21 the first-download
- * sentence (DEC-355's, read from the ledger). CF-BRIEF-4 and CF-BRIEF-14 are the
+ * sentence (DEC-355's, read from the ledger), CF-BRIEF-22 a gate's census item `gate-reach`, CF-BRIEF-23 a user-facing
+ * SCOPE's `user-cases`, CF-BRIEF-24 a CONFORMANCE GUARD's path. CF-BRIEF-4 and CF-BRIEF-14 are the
  * self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
  * is not a claim (laws 2, 7, 10; law 11 keeps code spans, the titles' own form), and a sentence
@@ -572,6 +573,132 @@ export function censusFindings(
     }));
 }
 
+const GATE_MECHANISM =
+  /\b(?:AdminGate|door_context|has_permission(?:_scoped)?|callerHasPermission|requireSignedIn)\b/;
+const GATE_VERB = /\b(?:gates?|gated|refus\w*|requires?|required)\b/i;
+const USER_FACING = /(?<![\w/.-])src\/(?:routes|components|features)\//;
+
+/** A census item's key as a pattern: a hyphen may be a space (CF-BRIEF-15's reading). */
+function itemWords(key: string): RegExp {
+  const pieces = key.split("-");
+  return flaggedPattern("i")(
+    ["(?<![\\w-])", ...pieces.slice(1).map(() => "[- ]"), "(?![\\w-])"],
+    ...pieces,
+  );
+}
+
+/**
+ * The shared half of CF-BRIEF-22 and CF-BRIEF-23: a census item the brief's own words make
+ * necessary is ANSWERED — the brief's STEP 1 names it, or one of its rulings does, and no line
+ * `CENSUS-ITEM <key>: not applicable` says it does not apply. One finding, at `where`.
+ */
+function answeredItemFindings(
+  law: string,
+  key: string,
+  text: string,
+  file: string,
+  rulings: Ruling[],
+  trigger: { line: number; what: string } | null,
+): Finding[] {
+  if (trigger === null || EXEMPT_TITLE.test(titleOf(text))) return [];
+  const step = stepOneOf(text);
+  const words = itemWords(key);
+  const notApplicable = flaggedPattern("i")(["CENSUS-ITEM\\s+", "\\s*:\\s*not applicable"], key);
+  const answers = [text, ...rulings.map((r) => r.text)].join("\n");
+  const named =
+    (step !== null && words.test(step.text)) ||
+    rulings.some((r) => flaggedPattern("i")(["CENSUS-ITEM\\s+", "\\s*:"], key).test(r.text));
+  if (named && !notApplicable.test(answers)) return [];
+  return [
+    {
+      law,
+      file,
+      line: trigger.line,
+      text: `${trigger.what}, so the census item ${key} is answered, never marked not applicable`,
+    },
+  ];
+}
+
+/**
+ * CF-BRIEF-22 (cursor bundle 6, decision 2; BRIEF-22) — a brief whose text adds a gate (a line
+ * naming `AdminGate`, `door_context`, `has_permission`, `callerHasPermission` or `requireSignedIn`
+ * beside a word that gates, refuses or requires) answers the census item `gate-reach`: every
+ * sign-in a new gate reaches, and every path the gated authority is reachable by.
+ */
+export function gateReachFindings(text: string, file: string, rulings: Ruling[] = []): Finding[] {
+  const lines = linesOf(text);
+  const at = lines.findIndex(
+    (line) => !/^STEP 1\b/.test(line) && GATE_MECHANISM.test(line) && GATE_VERB.test(line),
+  );
+  const mechanism = at < 0 ? null : (GATE_MECHANISM.exec(lines[at] ?? "")?.[0] ?? null);
+  return answeredItemFindings(
+    "CF-BRIEF-22",
+    "gate-reach",
+    text,
+    file,
+    rulings,
+    at < 0 ? null : { line: at + 1, what: `the brief gates through ${mechanism ?? "a gate"}` },
+  );
+}
+
+/**
+ * CF-BRIEF-23 (cursor bundle 6, decision 12; BRIEF-23) — a brief whose SCOPE names a route or a
+ * component under `src/routes/`, `src/components/` or `src/features/` answers the census item
+ * `user-cases`: every case a person can produce for each user-facing action the turn touches.
+ */
+export function userCasesFindings(text: string, file: string, rulings: Ruling[] = []): Finding[] {
+  const paragraph = scopeOf(text);
+  const hit = paragraph === null ? null : USER_FACING.exec(paragraph.scope);
+  return answeredItemFindings(
+    "CF-BRIEF-23",
+    "user-cases",
+    text,
+    file,
+    rulings,
+    paragraph === null || hit === null
+      ? null
+      : { line: paragraph.start + 1, what: "SCOPE names a route or component" },
+  );
+}
+
+const GUARD_HEAD = /^CONFORMANCE GUARD:/;
+const GUARD_PATH =
+  /(?<![\w/.-])`?((?:src|e2e|scripts|docs|supabase|\.github)\/[\w$./*-]*[\w$*-])`?(\s*\((?:new|exists)\b[^)]*\))?/g;
+
+/**
+ * CF-BRIEF-24 (cursor bundle 6, decision 17; BRIEF-24) — a GO's CONFORMANCE GUARD line names a
+ * path that exists at the base, or a path marked "(new)". A guard named without a path is a
+ * finding; so is a path that is neither.
+ */
+export function guardPathFindings(text: string, file: string, root: string): Finding[] {
+  const findings: Finding[] = [];
+  linesOf(text).forEach((content, index) => {
+    if (!GUARD_HEAD.test(content.trim())) return;
+    const named = [...content.matchAll(GUARD_PATH)];
+    if (named.length === 0) {
+      findings.push({
+        law: "CF-BRIEF-24",
+        file,
+        line: index + 1,
+        text: "the CONFORMANCE GUARD names no path",
+      });
+      return;
+    }
+    for (const match of named) {
+      const path = match[1] ?? "";
+      const marked = /\(new\b/.test(match[2] ?? "");
+      if (!marked && !existsSync(join(root, path)))
+        findings.push({
+          law: "CF-BRIEF-24",
+          file,
+          line: index + 1,
+          text: `the CONFORMANCE GUARD names ${path}, which the base does not hold and the line does not mark (new)`,
+        });
+    }
+  });
+  return findings;
+}
+
 /** A root the tree laws can read: a git tree, or a `git show` snapshot with the repository's markers. */
 export function treeRootProblem(root: string): string | null {
   if (!existsSync(root) || !statSync(root).isDirectory())
@@ -943,6 +1070,7 @@ export function treeFindings(
       "CF-BRIEF-19",
       "CF-BRIEF-20",
       "CF-BRIEF-21",
+      "CF-BRIEF-24",
     ].map((law) => ({ law, file, line: 1, text: problem }));
   return [
     ...newTestFindings(text, file, root),
@@ -950,6 +1078,7 @@ export function treeFindings(
     ...recordScopeFindings(text, file, root, joined),
     ...listReaderFindings(text, file, root),
     ...firstDownloadFindings(text, file, root),
+    ...guardPathFindings(text, file, root),
     ...citedPathFindings(text, file, root),
     ...citedLineFindings(text, file, root),
     ...freeIdFindings(text, file, root),

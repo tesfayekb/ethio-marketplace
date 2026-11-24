@@ -48,7 +48,7 @@ CONCERN: <one sentence — what must behave the same everywhere>
 MECHANISM: <path:line of the shared component / hook / utility / door / SQL function / constants module> | NONE YET — built in Part <x> as <path>, to <standard>
 CONSUMERS (grep of <commit>, every one, tests and SQL included): <path:line> — uses | bypasses (<how>) …
 COVERED HERE: <which bypasses move onto the mechanism, by part> | LEFT: <path:line — INC-### / roadmap line>
-CONFORMANCE GUARD: <path> — enumerates <what>; fails on <the planted bypass>; allowlist <path> (reason + expiry per line); lands in Part <x>, the same turn as the mechanism
+CONFORMANCE GUARD: <a path that exists at the base, or a path marked (new)> — enumerates <what>; fails on <the planted bypass>; allowlist <path> (reason + expiry per line); lands in Part <x>, the same turn as the mechanism
 EXCEPTIONS: <allowlist line + reason + test/brief> | DEC-### | none
 FIVE LENSES — security: <…> · performance: <…> · failure modes: <…> · consistency: <…> · future growth: <…>
 FORWARD-SCAN: <the later REQs and register rows this design meets>. REGISTER: <the row cited, or a new row — "<concern>" → <mechanism> → <guard> → exceptions: <allowlist or none>>.
@@ -86,6 +86,10 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 - callee-codes — every refusal a function a door calls can answer, and what the door does with each; not applicable when no door changes
 <!-- CENSUS-ITEM: findings -->
 - findings — what the census finds beyond the task, file:line.
+<!-- CENSUS-ITEM: gate-reach -->
+- gate-reach — a turn that adds a gate (an `AdminGate`, `door_context`, `has_permission` or route-caller change): every spec and helper that signs an account in and then reaches what the gate guards (file:line, the role, the screens, doors, routes or tables it reaches, the policies included), each marked moves | stays (why), and every PATH the gated authority is reachable by — a policy, a function, a route, a role read — each marked inherits the gate | moves onto it | named (why). CF-BRIEF-22 reads it.
+<!-- CENSUS-ITEM: user-cases -->
+- user-cases — for every user-facing action the turn touches, every case a person can produce, each mapped to a test id or NONE: it works; each refusal the server can give, with its real wording and file:line; empty or invalid input; signed out and signed in; the sign-in ending, including in another tab; both languages; 360, 768 and 1280 px; a slow or failed network. A brief whose SCOPE names a route or component under `src/routes/`, `src/components/` or `src/features/` answers it (CF-BRIEF-23).
 <!-- CENSUS-ITEM: queued -->
 - queued — every item an earlier ruling, a report's §13 or a roadmap line queued for this turn (rg the turn's name across docs/governance/briefs, docs/governance/reports, docs/features and roadmap.md), each marked built here | left (where).
 `docs/governance/reports/<stem>.stop-1.md`; STOP.
