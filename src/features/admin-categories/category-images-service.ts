@@ -49,7 +49,9 @@ async function post(
   timeoutMs?: number,
 ): Promise<Record<string, unknown> | null> {
   const answer = await callRoute(path, { method: "POST", json: body, auth: "required", timeoutMs });
-  if (answer.kind === "signedOut") throw new CategoryImageError("not signed in", 401, "model-call");
+  // INC-1274 — the sign-in has ended (the route client told the shell): the signed-out state, a 401
+  // the failure line says as that (use-image-failure.ts), never a step's "failed".
+  if (answer.kind === "signedOut") throw new CategoryImageError("notSignedIn", 401, "auth");
   if (answer.kind === "unreachable") {
     if (answer.reason === "timeout")
       throw new CategoryImageError("client-timeout", 0, "client-timeout");

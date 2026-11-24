@@ -1,6 +1,7 @@
 import type { AuthChangeEvent, Session, SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { reportEndedSignIn } from "@/lib/ended-sign-in";
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 import { authStorageKey, keyBeside } from "@/lib/session-key";
@@ -326,8 +327,22 @@ async function anonymousRpc<T>(name: string, args: object): Promise<RpcAnswer<T>
   }
 }
 
-/** A database function, called as the caller the client would have been. */
+/**
+ * A database function, called as the caller the client would have been. INC-1274 — an answer that
+ * says the caller's sign-in has ended (a 401, a stale token, the door's `notSignedIn`) is reported
+ * here, once, to the shell's one listener (src/lib/ended-sign-in.ts); the answer is returned as it
+ * was, for the consumer to map to its signed-out state.
+ */
 export async function rpc<F extends FunctionName>(
+  name: F,
+  args?: DoorArgs<F>,
+): Promise<RpcAnswer<Functions[F]["Returns"]>> {
+  const answer = await callDoor(name, args);
+  if (answer.error !== null) reportEndedSignIn(answer.error);
+  return answer;
+}
+
+async function callDoor<F extends FunctionName>(
   name: F,
   args?: DoorArgs<F>,
 ): Promise<RpcAnswer<Functions[F]["Returns"]>> {

@@ -136,6 +136,14 @@ describe("BackgroundDialog (D155b / D159)", () => {
     expect(screen.queryByTestId("post-photo-background-preview")).toBeNull();
   });
 
+  it("PBG-6b INC-1274 a signed-out answer asks the person to sign in again, not 'could not reach'", async () => {
+    open(async () => ({ ok: false, reason: "", unreachable: false, signedOut: true }));
+    fireEvent.click(screen.getByTestId("post-photo-background-start"));
+    expect(await screen.findByTestId("post-photo-background-refusal")).toHaveTextContent(
+      "session.expired",
+    );
+  });
+
   it("PBG-7 Retry asks once more while the ad has a try left; with none left it is off", async () => {
     const replies = [cut(1), cut(0)];
     const remove = vi.fn(async () => replies.shift()!);

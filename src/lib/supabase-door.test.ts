@@ -164,6 +164,41 @@ describe("the client's door (DEC-261)", () => {
     });
   });
 
+  it("SBD-24 INC-1274 — a door's ended-sign-in answer (401, `notSignedIn`) is reported once to the shell's listener; any other refusal is not", async () => {
+    window.localStorage.setItem(STORED, JSON.stringify({ access_token: "t", refresh_token: "r" }));
+    const { rpc } = await door();
+    const { onEndedSignIn } = await import("./ended-sign-in");
+    const heard: Array<string | null> = [];
+    onEndedSignIn((code) => heard.push(code));
+    await vi.waitFor(() => expect(state.imported).toBe(1));
+
+    state.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "PGRST301", message: "JWT expired", details: "", hint: "" },
+      status: 401,
+    });
+    await rpc("get_my_permissions");
+    expect(heard).toEqual(["PGRST301"]);
+
+    state.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "P0001", message: "notSignedIn", details: "", hint: "" },
+      status: 400,
+    });
+    await rpc("get_my_permissions");
+    expect(heard).toEqual(["PGRST301", "notSignedIn"]);
+
+    state.rpc.mockResolvedValue({
+      data: null,
+      error: { code: "42501", message: "permissionDenied", details: "", hint: "" },
+      status: 403,
+    });
+    await rpc("get_my_permissions");
+    state.rpc.mockResolvedValue({ data: "fine", error: null });
+    await rpc("get_my_permissions");
+    expect(heard).toEqual(["PGRST301", "notSignedIn"]);
+  });
+
   it("SBD-6 a network failure answers an error, never a throw", async () => {
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
     const { rpc } = await door();

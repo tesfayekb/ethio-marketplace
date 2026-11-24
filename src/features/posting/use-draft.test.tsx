@@ -104,6 +104,17 @@ function refused(): DoorAnswer {
   } as unknown as DoorAnswer;
 }
 
+function signedOut(): DoorAnswer {
+  return {
+    ok: false,
+    status: 401,
+    unreachable: false,
+    signedOut: true,
+    payload: {},
+    refusals: [],
+  } as unknown as DoorAnswer;
+}
+
 function took(): DoorAnswer {
   return {
     ok: true,
@@ -229,6 +240,43 @@ describe("useDraft — a Next is judged at its own step (INC-455)", () => {
       });
       await expect(specs).resolves.toBe(true);
       expect(result.current.refusals).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("INC-1274 a save answered signed-out is not retried by a timer; the draft says so, and a later successful save clears it", async () => {
+    vi.useFakeTimers();
+    try {
+      pending.length = 0;
+      sent.length = 0;
+      const { result, unmount } = renderHook(() => useDraft(null));
+      let outcome: boolean | undefined;
+      await act(async () => {
+        void result.current.saveAt(5).then((answer) => {
+          outcome = answer;
+        });
+        await settle();
+        pending[0]!(signedOut());
+        await settle();
+      });
+      expect(outcome).toBe(false);
+      expect(result.current.signedOut).toBe(true);
+      expect(result.current.saveState).toBe("unsaved");
+      expect(result.current.nextBlockedByTransport).toBe(false);
+      // Far beyond any retry interval: nothing more was sent.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10 * 60_000);
+      });
+      expect(sent).toEqual([5]);
+      await act(async () => {
+        void result.current.saveAt(5);
+        await settle();
+        pending[1]!(took());
+        await settle();
+      });
+      expect(result.current.signedOut).toBe(false);
+      unmount();
     } finally {
       vi.useRealTimers();
     }

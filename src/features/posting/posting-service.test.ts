@@ -92,12 +92,35 @@ it("INC-824 only a draft resumes posting", () => {
 });
 
 describe("the door adapter (PSV)", () => {
-  it("PSV-1 signedOut is today's no-token answer", async () => {
-    callRoute.mockResolvedValue({ kind: "signedOut" });
-    expect(await saveDraft({ listingId: null, step: 1 })).toEqual({
-      ...UNREACHABLE,
+  it("PSV-1 INC-1274 — the no-token answer and a 401 are the signed-out state, never unreachable (which retries) and never a refusal", async () => {
+    const SIGNED_OUT = {
       status: 401,
+      ok: false,
+      refusals: [],
+      payload: {},
+      unreachable: false,
+      signedOut: true,
+    };
+    callRoute.mockResolvedValue({ kind: "signedOut" });
+    expect(await saveDraft({ listingId: null, step: 1 })).toEqual(SIGNED_OUT);
+    callRoute.mockResolvedValue(answered(401, { error: "notSignedIn" }));
+    expect(await saveDraft({ listingId: null, step: 1 })).toEqual(SIGNED_OUT);
+    uploadRoute.mockResolvedValue({ kind: "signedOut" });
+    const image = new Blob(["photo"]);
+    expect(
+      await uploadPhoto("listing", { cover: image, mid: image, card: image, thumb: image }, "jpg"),
+    ).toEqual(SIGNED_OUT);
+  });
+  it("PSV-1b INC-1274 — the background tool reads the signed-out answer as signed out, not as a failure to reach the server", async () => {
+    callRoute.mockResolvedValue({ kind: "signedOut" });
+    expect(await removeBackground("l-1", "p-1")).toEqual({
+      ok: false,
+      reason: "",
+      unreachable: false,
+      signedOut: true,
     });
+    callRoute.mockResolvedValue(answered(401, null));
+    expect(await removeBackground("l-1", "p-1")).toMatchObject({ signedOut: true });
   });
   it("PSV-2 a 200 refusal keeps its refusals, attr_key resolving to field", async () => {
     callRoute.mockResolvedValue(

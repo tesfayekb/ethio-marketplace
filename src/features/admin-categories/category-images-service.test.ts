@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 const door = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: door.rpc }));
 
+const route = vi.hoisted(() => ({ callRoute: vi.fn() }));
+vi.mock("@/lib/route-client", () => ({ callRoute: route.callRoute }));
+
 const client = vi.hoisted(() => ({ rpc: vi.fn(), list: vi.fn(), remove: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
@@ -14,6 +17,8 @@ vi.mock("@/integrations/supabase/client", () => ({
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import {
   acceptCategoryImage,
+  CategoryImageError,
+  generateCategoryImage,
   loadCategoryImages,
   pruneStaleAssets,
 } from "./category-images-service";
@@ -33,6 +38,27 @@ describe("the picture accept door's answer (F1-4a)", () => {
     await expect(acceptCategoryImage("c-1")).rejects.toThrow(
       "admin_accept_category_image answered without a stamp",
     );
+  });
+});
+
+describe("an ended sign-in is the signed-out state (INC-1274)", () => {
+  it("CIS-4 the no-session answer and a 401 are one 401 error for the failure line, never a step's failure", async () => {
+    route.callRoute.mockResolvedValueOnce({ kind: "signedOut" });
+    const none = await generateCategoryImage({ categoryId: "c-1" }).catch((e: unknown) => e);
+    expect(none).toBeInstanceOf(CategoryImageError);
+    expect(none).toMatchObject({ message: "notSignedIn", status: 401, stage: "auth" });
+    route.callRoute.mockResolvedValueOnce({
+      kind: "answered",
+      status: 401,
+      ok: false,
+      payload: { error: "notSignedIn" },
+      error: "notSignedIn",
+      detail: null,
+      headers: new Headers(),
+      bytes: null,
+    });
+    const refused = await generateCategoryImage({ categoryId: "c-1" }).catch((e: unknown) => e);
+    expect(refused).toMatchObject({ message: "notSignedIn", status: 401 });
   });
 });
 
