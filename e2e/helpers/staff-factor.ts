@@ -6,6 +6,7 @@ import { asBearer } from "./door-callers";
 import {
   assertInjectedIdentity,
   besideSessionKey,
+  injectSession,
   passwordGrant,
   sessionUserId,
   storageKey,
@@ -143,7 +144,8 @@ export async function asStaff(
 /**
  * A staff account in the browser, signed in with a session that used its factor. Signs a signed-in page
  * out first (INC-074: /auth is no form for a session), writes the session where the app's client keeps
- * it with no step-up hint (a fresh sign-in's state), reloads and reads the identity and aal2 back.
+ * it with no step-up hint (a fresh sign-in's state; an init script too, so it outlives an earlier
+ * persona's), reloads and reads the identity and aal2 back.
  * Answers the factor's secret, so a later step-up prompt can be answered.
  */
 export async function signInStaff(page: Page, account: StaffAccount): Promise<{ secret: string }> {
@@ -151,6 +153,9 @@ export async function signInStaff(page: Page, account: StaffAccount): Promise<{ 
   await gotoReady(page, "/");
   await waitForHydration(page);
   if ((await page.getByTestId("account-menu").count()) > 0) await signOutViaUi(page);
+  // An earlier persona's init script (switchUser, injectSession) reruns on every load: the last one
+  // registered wins (the per-user sentinel, INC-120b), so this one is registered too.
+  await injectSession(page, session);
   await page.evaluate(
     ({ key, steppedUp, value }: { key: string; steppedUp: string; value: string }) => {
       window.localStorage.removeItem(steppedUp);

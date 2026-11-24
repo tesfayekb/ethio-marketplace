@@ -6,7 +6,13 @@ import { chooseInList } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
-import { gotoReady, stepUpIfPrompted, waitForHydration, signInJobSuperAdmin } from "./helpers/ui";
+import {
+  gotoReady,
+  stepUpIfPrompted,
+  switchUser,
+  waitForHydration,
+  signInJobSuperAdmin,
+} from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -1897,7 +1903,9 @@ test.describe("CAT-IE categories import/export", () => {
         ],
         reap,
       );
-      await signInStaff(page, importer);
+      // The subject is the aal1 session's refusal (a step-up-less importer): it keeps switchUser, as the
+      // staff helper's header says.
+      await switchUser(page, importer.email, importer.password);
       await gotoReady(page, "/admin/categories");
 
       const token = await bearerOf(page);
