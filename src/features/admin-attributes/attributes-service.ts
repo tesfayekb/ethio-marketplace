@@ -233,8 +233,9 @@ export async function listOptionCoverage(): Promise<OptionCoverage[]> {
   return data.map((row) => ({
     attributeId: row.attribute_id,
     attrKey: row.attr_key,
-    total: Number(row.options_total ?? 0),
-    withAm: Number(row.options_with_am ?? 0),
+    // The function COALESCEs both counts (admin_attribute_option_coverage): neither is ever null.
+    total: Number(row.options_total),
+    withAm: Number(row.options_with_am),
   }));
 }
 
