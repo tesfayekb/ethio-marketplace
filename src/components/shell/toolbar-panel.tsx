@@ -85,7 +85,7 @@ export function ToolbarPanel({
   const opener = useRef({});
   const [open, setOpen] = useState(false);
   const [openedWith, setOpenedWith] = useState(state);
-  const anchor = useRef<HTMLElement | null>(null);
+  const anchor = useRef<HTMLButtonElement | null>(null);
   const [side, setSide] = useState<"top" | "bottom">("bottom");
   const onOpenChange = (next: boolean) => {
     if (next) {
