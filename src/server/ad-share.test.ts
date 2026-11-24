@@ -84,9 +84,14 @@ describe("share count route", () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "gateway" }, status: 504 });
     const unavailable = await countAdShare(ctx({ publicId: ID, channel: "copy" }));
     expect(unavailable.status).toBe(503);
-    mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "refused" }, status: 400 });
+    // raised: supabase/migrations/20261117040300_e79b19f6-6059-4f30-93e5-7040e78f536e.sql:79
+    mocks.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: "unknown share channel" },
+      status: 400,
+    });
     const refused = await countAdShare(ctx({ publicId: ID, channel: "copy" }));
     expect(await refused.json()).toEqual({ counted: false });
-    expect(mocks.log).toHaveBeenCalledWith("/api/listings/share", "refused");
+    expect(mocks.log).toHaveBeenCalledWith("/api/listings/share", "unknown share channel");
   });
 });

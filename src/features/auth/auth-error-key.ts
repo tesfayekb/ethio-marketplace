@@ -37,6 +37,13 @@ const MAIL_SEND_FAILED = /^Error sending (confirmation email|recovery email|magi
 /** The word the reader is handed for a leaked-password refusal (`reasons` all `pwned`). */
 const LEAKED_PASSWORD = "leakedPassword";
 const MAIL_NOT_AUTHORIZED = "email_address_not_authorized";
+/**
+ * Bundle 16 turn S2 (D185) — the sign-up hook's refusal of a throwaway mail domain
+ * (`hook_before_user_created`) names itself in its message; the provider's code beside it (the
+ * generic `validation_failed` among them) is not its own. Read as its own word first, so that a code
+ * the family names (INC-1275) never hides it.
+ */
+const DISPOSABLE_EMAIL = "disposableEmail";
 const RATE_LIMITED = "over_request_rate_limit";
 
 /**
@@ -54,6 +61,7 @@ export const AUTH_REFUSALS: RefusalFamily = {
     weak_password: "auth.errorWeakPassword",
     [LEAKED_PASSWORD]: "auth.errorLeakedPassword",
     [MAIL_NOT_AUTHORIZED]: "auth.errorMailSend",
+    [DISPOSABLE_EMAIL]: "auth.errorDisposableEmail",
     validation_failed: "auth.errorInvalidEmail",
     [RATE_LIMITED]: "auth.errorRateLimited",
     over_email_send_rate_limit: "auth.errorRateLimited",
@@ -72,9 +80,6 @@ export const AUTH_REFUSALS: RefusalFamily = {
     [/already registered/i, "auth.errorEmailInUse"],
     [/at least 1 identity/i, "auth.errorLastMethod"],
     [/password should be/i, "auth.errorWeakPassword"],
-    // Bundle 16 turn S2 (D185) — the sign-up hook refuses a throwaway mail domain
-    // (`hook_before_user_created`); read before the generic e-mail check.
-    [/disposableEmail/, "auth.errorDisposableEmail"],
     [/invalid email|email address/i, "auth.errorInvalidEmail"],
     [/rate limit/i, "auth.errorRateLimited"],
   ],
@@ -82,13 +87,14 @@ export const AUTH_REFUSALS: RefusalFamily = {
 };
 
 /**
- * What the reader is handed: the three reads a family's table cannot say come first — the leaked
- * reason, and (INC-822, read before the generic e-mail check: the refused address's message names
+ * What the reader is handed: the reads a family's table cannot say come first — the leaked
+ * reason, the throwaway mail domain's own refusal, and (INC-822, read before the generic e-mail check: the refused address's message names
  * "Email address") the mail the server could not send or the address it refuses — then the code
  * the table names, else the error itself (its message by the sentences, then its code).
  */
 function heardOf(error: AuthErrorLike): unknown {
   if (onlyLeaked(error)) return LEAKED_PASSWORD;
+  if ((error.message ?? "").includes(DISPOSABLE_EMAIL)) return DISPOSABLE_EMAIL;
   if (
     error.code === MAIL_NOT_AUTHORIZED ||
     (error.status === 500 && MAIL_SEND_FAILED.test(error.message ?? ""))

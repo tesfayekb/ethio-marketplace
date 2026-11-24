@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { errorText } from "@/lib/error-text";
+import { providerError, type ProviderErrorName } from "@/test/provider-errors";
 
 /**
  * INC-915 (Foundations turn 34, ruling 2) — A FAILED DOWNLOAD OF THE SUPABASE CLIENT IS A
@@ -382,14 +383,15 @@ describe("account security answers (cursor-bundle-5)", () => {
 
   it("ACS-U2 the server's own refusals of a password change each read their own words", async () => {
     const auth = signedInClient();
-    const refusals: Array<[string, string]> = [
+    // Each refusal is the server's own error: its real message and code (src/test/provider-errors.ts).
+    const refusals: Array<[ProviderErrorName, string]> = [
       ["current_password_invalid", "auth.errorWrongCurrentPassword"],
       ["current_password_required", "auth.errorWrongCurrentPassword"],
       ["same_password", "auth.errorSamePassword"],
       ["reauthentication_needed", "auth.errorReauthNeeded"],
     ];
     for (const [code, key] of refusals) {
-      auth.updateUser.mockResolvedValueOnce({ data: {}, error: { message: "refused", code } });
+      auth.updateUser.mockResolvedValueOnce({ data: {}, error: providerError(code) });
       const answer = await service.changePassword("old-password-1", "new-password-1");
       expect(answer, code).toMatchObject({ ok: false, errorKey: key });
     }

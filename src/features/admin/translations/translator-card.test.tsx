@@ -49,7 +49,7 @@ it("TL-U1 the select reads existing assignments and sends the entire replacement
   await waitFor(() => expect(mocks.save).toHaveBeenCalledWith(["scratch-a", "scratch-b"]));
 });
 it("TL-U2 a failed scope read is an unavailable line, never no-role or an empty list", async () => {
-  mocks.rpc.mockResolvedValue({ data: null, error: { message: "refused" } });
+  mocks.rpc.mockResolvedValue({ data: null, error: { message: "permissionDenied" } });
   draw();
   await waitFor(() =>
     expect(screen.getByTestId("translator-check-error")).toHaveAttribute("role", "alert"),

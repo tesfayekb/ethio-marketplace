@@ -160,21 +160,19 @@ function refusalOf(reason: string): MfaFailure {
 }
 
 /**
- * The failure answer for a provider error. A code the family names is handed to the reader as
- * itself, so it is read before any sentence of the message (a code's words beat a message that
- * happens to hold "code"); else the error is handed over whole (its message by the sentence, its
- * code by the provider words).
+ * The failure answer for a provider error, read whole by the one reader (src/lib/refusal.ts): a
+ * code the family names is read before any sentence of the message (a code's words beat a message
+ * that happens to hold "code", INC-1275), else the message by the sentence, else the generic line.
  */
 function failure(error: ProviderError, family: RefusalFamily = MFA_REFUSALS): MfaFailure {
+  const read = readRefusal(error, family);
   const code = error?.code;
-  const named =
-    code !== undefined && family.words !== undefined
-      ? ownValue(family.words, code) !== undefined
-      : false;
-  const heard: unknown = named ? code : error;
-  const read = readRefusal(heard, family);
   const reason =
-    named && code !== undefined ? code : read.branch === "sentence" ? "invalidCode" : "unknown";
+    read.branch === "provider" && code !== undefined
+      ? code
+      : read.branch === "sentence"
+        ? "invalidCode"
+        : "unknown";
   return { ok: false, errorKey: read.key, refusal: { field: CODE_FIELD, reason } };
 }
 

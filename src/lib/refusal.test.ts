@@ -2,9 +2,16 @@ import { describe, expect, expectTypeOf, it, vi } from "vitest";
 
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 
-import { StepUpCancelled, StepUpUnavailable } from "@/features/auth/mfa/mfa-service";
+import { AUTH_REFUSALS } from "@/features/auth/auth-error-key";
+import {
+  MFA_ENROLL_REFUSALS,
+  MFA_REFUSALS,
+  StepUpCancelled,
+  StepUpUnavailable,
+} from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
+import { PROVIDER_ERRORS, providerError, type ProviderErrorEntry } from "@/test/provider-errors";
 
 import { rateUntilOf, readRefusal, refusalText, refusalsOf, type RefusalFamily } from "./refusal";
 import { ADMIN_REFUSALS } from "./refusal-tail";
@@ -177,6 +184,57 @@ describe("the one refusal reader (DEC-339)", () => {
     expect(refusalsOf({})).toEqual([]);
   });
 
+  it("RFR-11 a code the family names is read before the family's sentences (INC-1275)", () => {
+    // The walk's case: the server's own message for `same_password` matches the weak-password
+    // sentence, and its code is the one the family names.
+    const family: RefusalFamily = {
+      words: { same_password: "auth.errorSamePassword" },
+      sentences: [[/password should be/i, "auth.errorWeakPassword"]],
+      generic: "auth.errorGeneric",
+    };
+    expect(readRefusal(providerError("same_password"), family)).toMatchObject({
+      key: "auth.errorSamePassword",
+      branch: "provider",
+    });
+    // An error with no code the family names still reaches the sentence, then the generic word.
+    expect(
+      readRefusal({ message: "Password should be at least 6 characters." }, family),
+    ).toMatchObject({
+      key: "auth.errorWeakPassword",
+      branch: "sentence",
+    });
+    expect(
+      readRefusal({ message: "words nothing names", code: "unexpected_failure" }, family).key,
+    ).toBe("auth.errorGeneric");
+    // Planted: a family that read its sentences first would answer the weak word for the same code.
+    const sentencesFirst = family.sentences?.find(([pattern]) =>
+      pattern.test(providerError("same_password").message),
+    );
+    expect(sentencesFirst?.[1]).toBe("auth.errorWeakPassword");
+  });
+
+  it("RFR-12 every code the auth families name and the server sends with English reads its own words", () => {
+    const families: Array<[string, RefusalFamily]> = [
+      ["AUTH_REFUSALS", AUTH_REFUSALS],
+      ["MFA_REFUSALS", MFA_REFUSALS],
+      ["MFA_ENROLL_REFUSALS", MFA_ENROLL_REFUSALS],
+    ];
+    let read = 0;
+    for (const [name, family] of families) {
+      for (const [code, key] of Object.entries(family.words ?? {})) {
+        const sent = Object.entries(PROVIDER_ERRORS).find(
+          ([, entry]) => "code" in entry && entry.code === code,
+        );
+        if (sent === undefined) continue; // the family's own words (invalidCode, leakedPassword, …)
+        const entry: ProviderErrorEntry = sent[1];
+        const answer = readRefusal({ message: entry.message, code: entry.code }, family);
+        expect(answer.key, `${name} ${code} (${entry.source})`).toBe(key);
+        read += 1;
+      }
+    }
+    // The census read each code both families name that the fixture carries (not a vacuous pass).
+    expect(read).toBeGreaterThanOrEqual(20);
+  });
   it("RTW-22 the one reader of a rate refusal's reset instant reads every shape both feature readers read (INC-1229)", () => {
     const until = "2026-11-21T05:00:00+00:00";
     // A string, an error's message, a refusal's reason, the shell's envelope: the instant is the tail.

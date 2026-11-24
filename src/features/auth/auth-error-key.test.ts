@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { providerError } from "@/test/provider-errors";
+
 import { toErrorKey } from "./auth-error-key";
 
 const weak = (reasons?: string[]) => ({
@@ -122,5 +124,13 @@ describe("toErrorKey — each provider code the family names reads its words (IN
         code: "email_address_not_authorized",
       }),
     ).toBe("auth.errorMailSend");
+  });
+});
+
+describe("toErrorKey — the server's real errors (INC-1275, INC-1278)", () => {
+  it("AEK-1 the same password again reads its own word, not the weak-password word its message resembles", () => {
+    expect(toErrorKey(providerError("same_password"))).toBe("auth.errorSamePassword");
+    // The weak-password error keeps its word: its message carries the same sentence.
+    expect(toErrorKey(providerError("weak_password"))).toBe("auth.errorWeakPassword");
   });
 });

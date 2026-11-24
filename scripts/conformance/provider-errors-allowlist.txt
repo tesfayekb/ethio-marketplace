@@ -1,0 +1,55 @@
+# CF-PROVERR-1 (scripts/conformance/provider-errors.test.ts, INC-1278 b) — a mocked error object in a unit test whose message is no provider message, no code a reader knows and no quoted SQL text.
+# Grammar: <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
+src/features/ad-page/report.test.ts:60 | an outage text: the failure reads as the generic word and no reader draws its words ("scratch failure") | INC-1278
+src/features/admin-categories/category-images-service.test.ts:60 | an outage text: the failure reads as the generic word and no reader draws its words ("list down") | INC-1278
+src/features/admin-categories/category-images-service.test.ts:67 | an outage text: the failure reads as the generic word and no reader draws its words ("remove down") | INC-1278
+src/features/admin-listings/tier-dialog.test.tsx:189 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("permission denied") | INC-1278
+src/features/auth/auth-client.test.ts:241 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
+src/features/auth/auth-client.test.ts:403 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
+src/features/auth/auth-client.test.ts:446 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:136 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:186 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:231 | an outage text: the failure reads as the generic word and no reader draws its words ("gone wrong") | INC-1278
+src/features/auth/mfa/mfa-service.test.ts:242 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/features/levels/levels-store.test.ts:166 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("permission denied") | INC-1278
+src/features/my-listings/my-listing-edit.test.ts:201 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("unavailable") | INC-1278
+src/features/my-listings/promote-sheet.test.tsx:171 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("account is deactivated") | INC-1278
+src/features/my-listings/promote-sheet.test.tsx:20 | an outage text: the failure reads as the generic word and no reader draws its words ("no answer queued") | INC-1278
+src/features/seller/seller-review.test.ts:23 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("not authenticated") | INC-1278
+src/lib/supabase-door.test.ts:148 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("permission denied") | INC-1278
+src/lib/supabase-door.test.ts:156 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("JWT expired") | INC-1278
+src/lib/supabase-door.test.ts:163 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("JWT expired") | INC-1278
+src/routes/api/admin/exports.test.ts:27 | an outage text: the failure reads as the generic word and no reader draws its words ("bad jwt") | INC-1278
+src/routes/api/categories.tree.test.ts:153 | an outage text: the failure reads as the generic word and no reader draws its words ("gateway") | INC-1278
+src/routes/api/categories.tree.test.ts:155 | an outage text: the failure reads as the generic word and no reader draws its words ("boom") | INC-1278
+src/routes/api/listings/alias.test.ts:136 | a deliberately unknown sentence: the case is that no reader draws it ("an unexpected sentence") | INC-1278
+src/routes/api/listings/draft.test.ts:128 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("new row violates check constraint \"listings_price_bp_check\"") | INC-1278
+src/routes/api/listings/draft.test.ts:195 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("duplicate key value violates unique constraint \"listings_x_key\"") | INC-1278
+src/routes/api/listings/identity.test.ts:102 | an outage text: the failure reads as the generic word and no reader draws its words ("mark write failure") | INC-1278
+src/routes/api/listings/identity.test.ts:301 | a deliberately unknown sentence: the case is that no reader draws it ("an unexpected sentence") | INC-1278
+src/routes/api/listings/view.test.ts:65 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("insert or update violates foreign key constraint") | INC-1278
+src/routes/api/listings/view.test.ts:81 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("rate key required") | INC-1278
+src/routes/api/locations.test.ts:96 | an outage text: the failure reads as the generic word and no reader draws its words ("gateway") | INC-1278
+src/routes/api/locations.test.ts:98 | an outage text: the failure reads as the generic word and no reader draws its words ("boom") | INC-1278
+src/routes/api/media/photo-links.test.ts:221 | an outage text: the failure reads as the generic word and no reader draws its words ("connection reset") | INC-1278
+src/routes/api/public/jobs.test.ts:167 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("refused:replay") | INC-1278
+src/routes/api/public/jobs.test.ts:434 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("refused:replay") | INC-1278
+src/routes/api/public/jobs.test.ts:455 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line (" refused:window ") | INC-1278
+src/routes/api/publish.test.ts:141 | an outage text: the failure reads as the generic word and no reader draws its words ("<html>Bad Gateway</html>") | INC-1278
+src/routes/api/publish.test.ts:99 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("notReady:photos") | INC-1278
+src/routes/api/upload/photo.test.ts:288 | an outage text: the failure reads as the generic word and no reader draws its words ("boom") | INC-1278
+src/server/ad-share.test.ts:84 | an outage text: the failure reads as the generic word and no reader draws its words ("gateway") | INC-1278
+src/server/ad-share.test.ts:90 | a refusal word of a screen's own test, not a provider's: its reader reads it as a code of its own door; to be quoted with its SQL line ("unknown share channel") | INC-1278
+src/server/ad-view.test.ts:104 | an outage text: the failure reads as the generic word and no reader draws its words ("gateway") | INC-1278
+src/server/ai/gateway.test.ts:885 | an outage text: the failure reads as the generic word and no reader draws its words ("quota exceeded for project") | INC-1278
+src/server/ai/meter.test.ts:52 | an outage text: the failure reads as the generic word and no reader draws its words ("upstream") | INC-1278
+src/server/door.test.ts:142 | a deliberately unknown sentence: the case is that no reader draws it ("an unexpected sentence: with a colon") | INC-1278
+src/server/door.test.ts:40 | an outage text: the failure reads as the generic word and no reader draws its words ("<html>Bad Gateway</html>") | INC-1278
+src/server/door.test.ts:70 | a deliberately unknown sentence: the case is that no reader draws it ("an unexpected sentence") | INC-1278
+src/server/door.test.ts:82 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("violates check constraint \"listings_x_check\"") | INC-1278
+src/server/door.test.ts:94 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("listings_price_bp_check") | INC-1278
+src/server/imports/route.test.ts:323 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("relation cat_secret does not exist") | INC-1278
+src/server/imports/route.test.ts:608 | an outage text: the failure reads as the generic word and no reader draws its words ("nope") | INC-1278
+src/server/listings/own-listing.test.ts:53 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/server/listings/own-listing.test.ts:58 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
+src/server/supabase/user-client.test.ts:40 | an outage text: the failure reads as the generic word and no reader draws its words ("boom") | INC-1278
