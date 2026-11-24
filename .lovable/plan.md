@@ -1,77 +1,51 @@
-# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
+# Bundle 9 — area 1 census (public screens), part 1 of N
 
-(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
+Base `1bbfc7dad` (HEAD verified with `git rev-parse`). No file changed except this plan. Projects in `playwright.config.ts:66-124`: mobile-360, desktop-1280, email-serial (360), webkit-1280, webkit-390. **No project runs at 768 px**, so every "768" case below is NONE.
 
-## CI first
-- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
-- No completed run on 836d1030 yet. Read again before the build turn's push.
+The area is too large for one plan. This plan covers ONE whole screen: the feed (`/` and `/c/$slug`), which share one component. **Screens left:** `l.$slug`, `$name`, `legal.$kind`, `privacy`, `terms`, `legal.accept`, `legal.publishing`, and the shell (`app-shell.tsx`, 1,200 lines: header search, language, theme, sign-in, menu, rail, categories).
 
-## What the operator will see
-Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
+## Screen 1 — the feed: `src/routes/index.tsx` (36 lines) and `src/routes/c.$slug.tsx` (42 lines)
 
-## Census (836d1030; build turn pastes full file:line)
-Primitive consumers — "uses the primitive":
-- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
-- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
-- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
-- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
-- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
+Both routes render `<Feed/>` under Suspense with `feed.loading` (index.tsx:26-34, c.$slug.tsx:26-34). Body: `src/components/marketplace/feed.tsx` (390 lines). Reads: `use-feed.ts:37` `callRoute(feedPath(...), { auth: "none" })` to `GET /api/feed` (`src/routes/api/feed.ts`).
 
-"Draws its own":
-- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
-- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
-- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
-- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
+Server refusals for `/api/feed`: shape errors 400 `badCategory|badPlace|badSize|badCursor` (api/feed.ts:150-162); `feed_page` refusals 404 `unknownCategory|unknownPlace` and 400 `badCursor|badSize` (api/feed.ts:54-61, 80-84); every other database error goes to `readFailure` (api/feed.ts:85). The browser treats every non-200 the same way: it returns null (use-feed.ts:38), and the screen shows the generic error.
 
-Own classes on dialog parts outside the primitive:
-- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
+| # | Control or event (key EN / AM, where) | What it must do | Cases that exist | Test today | Defect |
+|---|---|---|---|---|---|
+| 1 | Page heading, `nav.allListings` "All listings" / "ሁሉም ማስታወቂያዎች" (en-base:326, am-base:304); top row, feed.tsx:305-320 | No place chosen: shows All listings | works | e2e/feed-screens.spec.ts:660 FS-14 | none |
+| 2 | Heading `feed.headingIn` "Listings in {location}" / "የ{location} ማስታወቂያዎች" (en-base:385, am-base:363); feed.tsx:310-316 | Place chosen: names the deepest place; only the place name is cut | works; 360/1280 | sage-cards.spec.ts:122, :319, :338 (one-line slot); FS-13 :612 | none |
+| 3 | Favourite star, aria `shell.favouriteAdd` "Make favourite" / "ተወዳጅ አድርግ", `shell.favouriteRemove` "Remove favourite" / "ከተወዳጅ አስወግድ" (en-base:337-338, am-base:315-316); beside the heading on a category page only, feed.tsx:321-337 | Turns the device favourite on or off (`favourite.set`), with no server call | works; survives a reload | shell.spec.ts:4054 FV-1 (:4059, :4136-4139) | none |
+| 4 | Favourite hint `shell.favouriteHint` / `shell.favouriteIs` (en-base:340-341, am-base:318-319); a tooltip with a mouse, small text without one, feed.tsx:339-350 | Explains the star | works; Amharic | shell.spec.ts:4320 FV-2; i18n-coverage.spec.ts:377 | none |
+| 5 | Page Guide button (PageGuide, feed.tsx:354-369) | Opens the feed's Guide; next step is `/post` (feed.tsx:81) | not read in this turn | NOT READ | — |
+| 6 | Unknown category address: `error.pageNotFound` / `error.pageNotFoundBody` (en-base:44-45, am-base:41-42); feed.tsx:196-205 | Shows not found and asks the feed nothing | works | feed-screens.spec.ts:359 FS-5 | none |
+| 7 | The category lookup fails: `feed.errorTitle`, `feed.errorBody`, Retry `common.retry` (en-base:389-390, :35; am-base:367-368, :33); feed.tsx:206-208 | Retry calls `refreshPage` (INC-1140) | works | src/components/marketplace/feed.test.tsx:64 FD-U1 (unit). Browser: NONE | none |
+| 8 | Loading spinner `feed.loading` "Loading listings…" / "ማስታወቂያዎች በመጫን ላይ…" (en-base:387, am-base:365); feed.tsx:209-214, :220-226 | Shown while the first read runs and the server's page is not held | works; slow network | use-feed.test.ts:171 UFS-5 (held page); spinner itself NONE | none |
+| 9 | First read fails: FeedError `feed-error` with Retry `feed-retry`; feed.tsx:215-216 | Retry reads again, never the server's held page | works; 502; bad body (`{}`) | feed-screens.spec.ts:371 FS-6; use-feed.test.ts:129 UFS-4 | see D1 |
+| 10 | Server refusal 404 `unknownPlace` (api/feed.ts:82) — a place the device keeps that no longer exists | — | refusal reaches the screen only as the generic error (use-feed.ts:38) | NONE | D1 |
+| 11 | Server refusal 404 `unknownCategory` after the lookup found the category (race) | — | generic error | NONE | D1 |
+| 12 | Refusals 400 `badCursor` / `badSize` / `badCategory` / `badPlace` (api/feed.ts:54-61, 150-162) | — | generic error | api: src/routes/api/feed.test.ts (ids not listed in this turn); screen NONE | none |
+| 13 | Empty list: the invitation alone; feed.tsx:217-219; texts `feed.invite.*` (invite-card.tsx:30-37; e.g. `feed.invite.none` en-base:404, am-base:382) | Shows only the invitation card | works | feed-screens.spec.ts:507 FS-10, :723 FS-18 | none |
+| 14 | Note `feed.emptyTitle` "Nothing here yet in your area" / "በአካባቢዎ እስካሁን ምንም የለም" (en-base:388, am-base:366); feed.tsx:231-235 | Shown when the first band is wider and there is no invitation | absent-case checks only | FS-3/FS-4 assert count 0 (:332, :353); shown case NONE | none |
+| 15 | Band headings `feed-step-label` (`nav.allListings` / `feed.headingIn`); feed.tsx:238-260 | Each wider place is headed in its own name | works | FS-3 :278, FS-13 :612 | none |
+| 16 | Invitation link `nav.postListing` "Post listing" / "ማስታወቂያ ይለጥፉ" (en-base:307, am-base:285); invite-card.tsx:55-63 | Goes to `/post` carrying place and category | works; 360 card size | FS-3 :278 (:326), shell.spec.ts:273, sage-tiers.spec.ts:756, FS-12 :577 (phones) | none |
+| 17 | Listing card link (`listing-card-link`, listing-card.tsx:204-212); price `price.contact` (en-base:411, am-base:389) | Goes to `/l/$slug` | works | press.spec.ts:127; ad-page.spec.ts:196; listing-card.test.tsx | none |
+| 18 | Next page on scroll (`feed-more`, feed.tsx:283-291; IntersectionObserver feed.tsx:147-158) | Loads 20 more when the end comes into view | works | FS-2 :163 (:197-199) | D3 |
+| 19 | Next page fails: FeedError `feed-more-error` with Retry; feed.tsx:285-286 | Retry reads the next page again | — | NONE (`feed-more-error` appears in no test; rg in e2e and src) | D2 |
+| 20 | Signed out / signed in | The read is `auth: "none"`; the place this browser chose stays after sign-out | signed out → kept place | FS-11 :532 | none |
+| 21 | Sign-in ending mid-way | The feed does not depend on the session | — | NONE | none |
+| 22 | Amharic page | All words above come from am-base | partly (row 4 only) | i18n-coverage.spec.ts:377 (hint only); the rest NONE | none |
 
-Unused primitives:
-- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
-- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
+**Browser tests that visit this screen:** feed-screens.spec.ts (FS-1…FS-18), shell.spec.ts (FV-1, FV-2, invitation rows), sage-cards, sage-tiers, sage-bands, sage-shell, press, ad-page:196, i18n-coverage:377, smoke-auth-i18n (rg `goto("/"`). **Sideways scrolling or clipped controls at 360 px: none of them checks.** The only page-level `documentElement.scrollWidth` checks are ad-page.spec.ts:976 and :2063, and house-style.spec.ts:68 (HS-1 on `/dev/style`).
 
-Allowlists:
-- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
-- look-values-allowlist :3 (drawer) goes with drawer.tsx.
+## Summary (screen 1)
 
-## Mechanism
-1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
-   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
-2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
-3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
-4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
-5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
-6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
+**Rows marked NONE:** 7 (browser), 8 (spinner), 10, 11, 12 (screen), 14 (shown case), 19, 21, 22 (all but the hint); 768 px for every row; the 360 px overflow check for the screen.
 
-## Guard
-- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
-- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
+**Defects seen while reading:**
+- D1: use-feed.ts:38 turns every non-200 into null, so 404 `unknownPlace` / `unknownCategory` (api/feed.ts:82) show "We couldn't load listings" with a Retry that can never succeed (feed.tsx:215-216). A kept place that has since been removed has no way out on this screen.
+- D2: feed.tsx:286 renders the next-page Retry with no `retryTestid`, so the button has no test id (law C9: a new control gets one), and no test covers it.
+- D3: feed.tsx:149: without IntersectionObserver no further page ever loads, and there is no button to press. This is a reading only; it affects old browsers.
 
-## Tests
-- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
-- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
-- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
-- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
-- DLG-E6 reduced motion: no transition.
-- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
-- Touched specs whole, both projects, retries 0.
+**Could not read in this turn:** the Guide's controls (`page-guide.tsx`); the ids in `src/routes/api/feed.test.ts`; whether `smoke-auth-i18n.spec.ts` runs this screen in Amharic.
 
-## G38 list (build turn greps and names old → new)
-- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
-
-## Growth
-- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
-- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
-
-## Turns
-- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
-- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
-- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
-
-## Open points for the ruling
-1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
-2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
-3. Map pin dropper on the Radix dialog, or allowlisted.
-
-## Technical scope (build)
-src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.
+**Screens left for the next plan:** `l.$slug` (363 lines), `$name`, `legal.$kind`, `privacy`, `terms`, `legal.accept`, `legal.publishing`, the shell.
