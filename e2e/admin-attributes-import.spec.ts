@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { withinPreviewBudget } from "./helpers/rate-window";
-import { gotoReady, switchUser, signInJobSuperAdmin } from "./helpers/ui";
+import { gotoReady, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -1207,7 +1208,7 @@ test.describe("C3 attributes console", () => {
         ],
         reap,
       );
-      await switchUser(page, viewer.email, viewer.password);
+      await signInStaff(page, viewer);
       await gotoReady(page, "/admin/attributes");
       await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
       await expect(page.getByTestId("attribute-import")).toHaveCount(0);

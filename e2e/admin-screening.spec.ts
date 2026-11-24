@@ -4,8 +4,9 @@ import { type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
+import { signInStaff, asStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
-import { asPerson, pageDoor } from "./helpers/door-callers";
+import { pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
@@ -422,7 +423,7 @@ test.describe("ADMIN SCREENING", () => {
       ],
       roles,
     );
-    await switchUser(page, reviewer.email, reviewer.password);
+    await signInStaff(page, reviewer);
     await gotoReady(page, "/");
     const read = await pageDoor(page, "admin_screening_facts", { p_listing_id: ad.id });
     expect(read.error, "SC-17: a reviewer reads the facts without a second factor").toBeNull();
@@ -734,7 +735,7 @@ test.describe("ADMIN SCREENING", () => {
       ],
       roles,
     );
-    await switchUser(page, reviewer.email, reviewer.password);
+    await signInStaff(page, reviewer);
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "open");
     const sheet = page.getByTestId("post-preview-sheet");
@@ -1546,7 +1547,7 @@ test.describe("ADMIN SCREENING", () => {
     const alias = await aliasOf(ad.sellerId);
     const reviewerAccount = await leaseUser();
     await grantScratchRole(reviewerAccount.id, [["listings", "review"]], roles);
-    const reviewer = await asPerson(reviewerAccount);
+    const reviewer = await asStaff(reviewerAccount);
 
     const own = await reviewer.rpc("admin_screening_queue", { p_search: ad.id });
     expect(own.error, "[e2e:sc] the reviewer's read").toBeNull();
@@ -1595,7 +1596,7 @@ test.describe("ADMIN SCREENING", () => {
       ],
       roles,
     );
-    const reviewer = await asPerson(reviewerAccount);
+    const reviewer = await asStaff(reviewerAccount);
 
     const own = await reviewer.rpc("admin_screening_queue", { p_search: ad.id });
     expect(own.error, "[e2e:sc] the reviewer's read").toBeNull();
@@ -1614,7 +1615,7 @@ test.describe("ADMIN SCREENING", () => {
   test("SC-30 the country filter is a list, OR-ed; more than twenty values are refused; viewing alone is not reviewing (DEC-420, DEC-423)", async () => {
     const ad = await seedWaiting();
     const person = await leaseUser();
-    const caller = await asPerson(person);
+    const caller = await asStaff(person);
     const many = Array.from({ length: 21 }, () => "ET");
 
     // No listings:review, with or without listings:view: refused before any list is read.

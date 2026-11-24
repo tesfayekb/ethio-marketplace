@@ -6,12 +6,15 @@ import { pageDoor } from "./helpers/door-callers";
 import { en } from "../src/i18n/locales/en";
 
 import { expectPicturesFit } from "./helpers/pictures";
-import { totp, wrongCode } from "./helpers/totp";
+import { signInStaff } from "./helpers/staff-factor";
+import { totp, totpStep, wrongCode } from "./helpers/totp";
 import {
+  afterTotpStep,
   expectAal2,
   gotoReady,
   isMobile,
   signInJobSuperAdmin,
+  staleStepUpOnClient,
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
@@ -48,12 +51,13 @@ async function enrollThroughSettings(page: Page): Promise<string> {
 }
 
 /*
- * FRESHNESS (mfa-service.isStepUpFresh, INC-167): read from the session token
- * alone. MF-2 and MF-7b sign in again (`switchUser`) after enrolling: a fresh
- * sign-in is aal1, so the modal is guaranteed; MF-7 shortens the client window
- * instead. INC-620 (bundle 14 turn 2): the `clearStepUpFreshness` calls that
- * stood after those sign-ins wrote a local stamp nothing has read since
- * INC-167, and are removed.
+ * FRESHNESS (mfa-service.isStepUpFresh, INC-167): read from the session token alone. A staff
+ * screen opens only in a session that used its factor (cursor bundle 6), so MF-2, MF-7 and MF-7b
+ * sign the account in through the staff helper (aal2) and make the modal appear the way AL-28
+ * does: MF-2 and MF-7b shorten the client's window (`staleStepUpOnClient`), MF-7 its init-script
+ * window; the code typed is one the factor has not spent (`afterTotpStep`). MF-3, MF-6, MF-7c,
+ * MF-8 and MF-9 are NOT moved: each reaches a staff page with no factor, or at aal1, and waits
+ * for the gate's own ruling (stop 2).
  */
 
 /** DB truth for the profile the edit form writes. */
@@ -103,12 +107,13 @@ test.describe("U1f step-up authentication", () => {
       const staff = await createUser({ confirmed: true });
       await grantRole(staff.id, "admin");
       const target = await createUser({ confirmed: true });
-      await switchUser(page, staff.email, staff.password);
-      const secret = await enrollThroughSettings(page);
-
-      // A fresh sign-in is aal1 again — the gate must fire.
-      await switchUser(page, staff.email, staff.password);
+      // Cursor bundle 6 — a staff screen opens only in a session that used its factor, so the
+      // account signs in with one (the staff helper) and the client is told its step-up is stale:
+      // the next guarded action finds none fresh and the gate fires (INC-620).
+      const { secret } = await signInStaff(page, staff);
+      const spentStep = totpStep();
       await gotoReady(page, `/admin/users/${target.id}`);
+      await staleStepUpOnClient(page);
       await page.getByTestId("deactivate-reason").fill("MF-2 proof");
       await page.getByTestId("deactivate-user").click();
 
@@ -118,6 +123,8 @@ test.describe("U1f step-up authentication", () => {
       await page.getByTestId("step-up-submit").click();
       await expect(page.getByTestId("step-up-error")).toBeVisible({ timeout: 15000 });
 
+      // The session's own verification spent this step's code: type one the factor has not used.
+      await afterTotpStep(spentStep);
       await page.getByTestId("step-up-code").fill(totp(secret));
       await page.getByTestId("step-up-submit").click();
       await expect(modal).toBeHidden({ timeout: 20000 });
@@ -292,10 +299,11 @@ test.describe("U1f-4 step-up freshness", () => {
           windowMs: 3000,
         };
       });
-      await switchUser(page, staff.email, staff.password);
-      const secret = await enrollThroughSettings(page);
+      // Cursor bundle 6 — the staff helper signs the account in with a factor it used (aal2).
+      const { secret } = await signInStaff(page, staff);
+      const spentStep = totpStep();
 
-      // Enrollment elevated the session; wait past the (shortened) window.
+      // The sign-in's verification is the one the window measures; wait past the (shortened) window.
       // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
       await page.waitForTimeout(4000);
 
@@ -305,6 +313,7 @@ test.describe("U1f-4 step-up freshness", () => {
 
       const modal = page.getByTestId("step-up-modal");
       await expect(modal).toBeVisible({ timeout: 15000 });
+      await afterTotpStep(spentStep);
       await page.getByTestId("step-up-code").fill(totp(secret));
       await page.getByTestId("step-up-submit").click();
       await expect(modal).toBeHidden({ timeout: 20000 });
@@ -337,12 +346,12 @@ test.describe("FIX-SCAN-1 step-up abort", () => {
       const target = await createUser({ confirmed: true });
       const before = await displayName(target.id);
 
-      await switchUser(page, staff.email, staff.password);
-      await enrollThroughSettings(page);
-      // A fresh sign-in is aal1 again — the gate must fire on the next action.
-      await switchUser(page, staff.email, staff.password);
+      // Cursor bundle 6 — the staff helper signs the account in with a factor it used; the client is
+      // told its step-up is stale, so the gate fires on the next action.
+      await signInStaff(page, staff);
 
       await gotoReady(page, `/admin/users/${target.id}`);
+      await staleStepUpOnClient(page);
       await page.getByTestId("edit-display-name").fill("MF-7b never written");
       await page.getByTestId("edit-save").click();
 

@@ -1,12 +1,12 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { authErrorText } from "./global-setup";
 
 import {
-  enrollAndStepUp,
   expectAal2,
   gotoReady,
   stepUpIfPrompted,
@@ -144,7 +144,7 @@ test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
-    await switchUser(page, moderator.email, moderator.password);
+    await signInStaff(page, moderator);
     await waitForHydration(page);
     await page.goto("/admin/users");
     await waitForHydration(page);
@@ -154,7 +154,7 @@ test.describe("U1 admin users", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     // INC-074: /auth is guarded for an authenticated session — sign out first.
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto("/admin/users");
     await waitForHydration(page);
     // DEC-097: pooled accounts are old rows; J6 — find by search, never by position.
@@ -167,7 +167,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto("/admin/users");
     await waitForHydration(page);
 
@@ -185,9 +185,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
-    // U1g: the mutation is step-up gated (U1f) — enroll and reach aal2 first.
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("user-identity-card")).toBeVisible({ timeout: 15000 });
@@ -219,11 +217,11 @@ test.describe("U1 admin users", () => {
     await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("activate-user").click();
-    // A fresh sign-in starts at aal1, so the gate fires again here.
+    // Cursor bundle 6 — the new session used its factor, so the step-up is answered only if asked.
     await stepUpIfPrompted(page, secret);
     await expectAal2(page);
     await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
@@ -237,7 +235,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -253,7 +251,7 @@ test.describe("U1 admin users", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto(`/admin/users/${staff.id}`);
     await waitForHydration(page);
 
@@ -267,8 +265,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "super_admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -295,8 +292,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 seam");
@@ -353,8 +349,7 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
     const alias = `u1g${Date.now().toString(36)}`;
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -382,8 +377,7 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
     const alias = `u1gdup${Date.now().toString(36)}`;
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
 
     await page.goto(`/admin/users/${holder.id}`);
     await waitForHydration(page);
@@ -425,8 +419,7 @@ test.describe("U1 admin users", () => {
     const reason = "Verified bank account e2e";
     const supabase = adminClient();
     try {
-      await switchUser(page, staff.email, staff.password);
-      const secret = await enrollAndStepUp(page);
+      const { secret } = await signInStaff(page, staff);
       await page.goto(`/admin/users/${scratch.id}`);
       await waitForHydration(page);
 
@@ -482,7 +475,7 @@ test.describe("U1 admin users", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto(`/admin/users/${staff.id}`);
     await waitForHydration(page);
 
@@ -501,7 +494,7 @@ test.describe("U1 admin users", () => {
   }) => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await gotoReady(page, "/admin/users");
     await expect(page.getByTestId("users-search")).toBeVisible({ timeout: 20000 });
 
@@ -573,8 +566,7 @@ test.describe("D189 deactivated staff", () => {
     expect(before.error, "AU-14: has_permission could not be read").toBeNull();
     expect(before.data, "AU-14: the admin role did not grant users:view").toBe(true);
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 D189");

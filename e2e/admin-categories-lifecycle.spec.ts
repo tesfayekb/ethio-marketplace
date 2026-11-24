@@ -1,17 +1,12 @@
 import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { withinPreviewBudget } from "./helpers/rate-window";
 import { chooseInList } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
-import {
-  gotoReady,
-  stepUpIfPrompted,
-  switchUser,
-  waitForHydration,
-  signInJobSuperAdmin,
-} from "./helpers/ui";
+import { gotoReady, stepUpIfPrompted, waitForHydration, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -1858,7 +1853,7 @@ test.describe("CAT-IE categories import/export", () => {
         ],
         reap,
       );
-      await switchUser(page, viewer.email, viewer.password);
+      await signInStaff(page, viewer);
       await gotoReady(page, "/admin/categories");
       await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20000 });
       await expect(page.getByTestId("category-import")).toHaveCount(0);
@@ -1902,7 +1897,7 @@ test.describe("CAT-IE categories import/export", () => {
         ],
         reap,
       );
-      await switchUser(page, importer.email, importer.password);
+      await signInStaff(page, importer);
       await gotoReady(page, "/admin/categories");
 
       const token = await bearerOf(page);

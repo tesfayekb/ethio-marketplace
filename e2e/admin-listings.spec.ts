@@ -3,6 +3,7 @@ import { type Page } from "@playwright/test";
 import { en } from "../src/i18n/locales/en";
 
 import { expect, test } from "./fixtures";
+import { signInStaff, asStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -18,7 +19,6 @@ import { asPerson, pageDoor } from "./helpers/door-callers";
 import { totpStep } from "./helpers/totp";
 import {
   afterTotpStep,
-  enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
   isMobile,
@@ -224,7 +224,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
 
     const viewerAccount = await leaseUser();
     await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
-    const viewer = await asPerson(viewerAccount);
+    const viewer = await asStaff(viewerAccount);
     const byId = await viewer.rpc("admin_list_listings", { p_search: live.id });
     expect(byId.error).toBeNull();
     const rows = byId.data as Row[];
@@ -638,8 +638,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       // INC-1197 — the case the title promises: the enforcer with a fresh second factor, signed in
       // on its own page, is refused the severe restore by the door's own code (no detail), and may
       // restore the ad that is not severe.
-      await signInViaSession(page, enforcerAccount.email, enforcerAccount.password);
-      await enrollAndStepUp(page);
+      await signInStaff(page, enforcerAccount);
       expect((await restore(severe.id)).error).toBe("severeRestore");
       expect((await listingTruth(severe.id))?.["status"]).toBe("removed");
       expect((await restore(plainRemoved.id)).data).toEqual({
@@ -827,7 +826,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       roles,
     );
 
-    await signInViaSession(page, viewer.email, viewer.password);
+    await signInStaff(page, viewer);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(live.id);
@@ -1084,7 +1083,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     // INC-555 — the account with no listing right is AL-3's (one leased account fewer here).
     const viewerAccount = await leaseUser();
     await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
-    const viewer = await asPerson(viewerAccount);
+    const viewer = await asStaff(viewerAccount);
     expect((await viewer.rpc("admin_listing_detail", { p_listing_id: draft.id })).error).toBe(
       "listingNotFound",
     );
@@ -1254,7 +1253,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       });
     if (revision.error) throw new Error(`[e2e:al] revision seed failed: ${revision.error.message}`);
 
-    await signInViaSession(page, viewer.email, viewer.password);
+    await signInStaff(page, viewer);
     await gotoReady(page, `/admin/listings/${live.id}`);
     await expect(page.getByTestId("listing-title")).toHaveText(live.title, { timeout: 20000 });
     await expect(page.getByTestId("listing-fact-seller")).toContainText(seller.alias);
@@ -2032,7 +2031,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ],
       roles,
     );
-    await signInViaSession(page, enforcer.email, enforcer.password);
+    await signInStaff(page, enforcer);
     await gotoReady(page, "/admin/listings");
     const open = page.getByTestId("listings-header").getByTestId("listings-settings");
     await expect(open).toBeVisible({ timeout: 20000 });
@@ -2073,7 +2072,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ],
       roles,
     );
-    await signInViaSession(page, viewer.email, viewer.password);
+    await signInStaff(page, viewer);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-header")).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("listings-settings")).toHaveCount(0);
@@ -2176,7 +2175,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const other = await seed({ ...seller, leafId: second.leaf.id as string }, "active");
     const viewerAccount = await leaseUser();
     await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
-    const viewer = await asPerson(viewerAccount);
+    const viewer = await asStaff(viewerAccount);
     const both = [first.id, other.id].sort();
     const ask = (args: Record<string, unknown>) =>
       viewer.rpc("admin_list_listings", { p_seller: seller.alias, ...args });
@@ -2383,7 +2382,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ],
       roles,
     );
-    await signInViaSession(page, reviewer.email, reviewer.password);
+    await signInStaff(page, reviewer);
     const denied = await pageDoor(page, "admin_set_listing_tier", {
       p_listing_id: ad.id,
       p_tier: "premium",
@@ -2565,7 +2564,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       ],
       roles,
     );
-    await signInViaSession(page, reviewer.email, reviewer.password);
+    await signInStaff(page, reviewer);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("listings-search").fill(ad.id);

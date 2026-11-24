@@ -1,5 +1,6 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { pageDoor } from "./helpers/door-callers";
 
 import { en } from "../src/i18n/locales/en";
@@ -54,7 +55,7 @@ test.describe("U3 audit & security", () => {
 
     const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
-    await switchUser(page, moderator.email, moderator.password);
+    await signInStaff(page, moderator);
     await gotoReady(page, "/admin/audit");
     await expect(page.getByTestId("admin-audit")).toBeVisible();
     await expect(page.getByTestId("audit-stats")).toBeVisible();
@@ -115,7 +116,7 @@ test.describe("U3 audit & security", () => {
   }) => {
     const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
-    await switchUser(page, moderator.email, moderator.password);
+    await signInStaff(page, moderator);
     await gotoReady(page, "/admin/audit");
     await expect(page.getByTestId("audit-search")).toBeVisible({ timeout: 20000 });
 

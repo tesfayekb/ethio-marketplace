@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
@@ -71,7 +72,7 @@ test.describe("L2b countries console", () => {
 
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/countries");
 
     await awaitRoster(page);

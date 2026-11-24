@@ -3,12 +3,12 @@ import type { Page } from "@playwright/test";
 import { ADMIN_SECTIONS } from "../src/features/admin/sections";
 
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { readAdminSlots, slotFaults } from "./helpers/one-line";
 import { MODES, setMode, type Mode } from "./helpers/sage-look";
 import {
   expectNoHorizontalOverflow,
   gotoReady,
-  signIn,
   switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
@@ -55,7 +55,7 @@ async function walk(page: Page, paths: string[]) {
   // services). A fresh backend then sends those paths back to the landing
   // notice. super_admin is the staff fixture the other admin specs use.
   await grantRole(staff.id, "super_admin");
-  await signIn(page, staff.email, staff.password);
+  await signInStaff(page, staff);
   let languages: string[] = [];
   for (const path of paths) {
     await gotoReady(page, path);

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { signInStaff, asStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
@@ -122,7 +123,7 @@ test.describe("L2a locations console", () => {
 
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
 
@@ -1331,7 +1332,7 @@ test.describe("L2a locations door — the country filter is a list (DEC-420, DEC
     const { first, second, placesOf } = await twoMarkets();
     const viewerAccount = await leaseUser();
     await grantScratchRole(viewerAccount.id, [["locations", "view"]], roles);
-    const viewer = await asPerson(viewerAccount);
+    const viewer = await asStaff(viewerAccount);
 
     expect(await listed(viewer, { p_country_code: [first.code, second.code] })).toEqual(
       [...placesOf(first), ...placesOf(second)].sort(),
@@ -1375,7 +1376,7 @@ test.describe("L2a locations door — the country filter is a list (DEC-420, DEC
       .eq("user_id", staff.id)
       .eq("role_id", roleId);
     expect(scoped.error, "[e2e:lt] scoping the scratch grant").toBeNull();
-    const caller = await asPerson(staff);
+    const caller = await asStaff(staff);
 
     const both = { p_country_code: [first.code, second.code] };
     expect(await listed(caller, both)).toEqual(placesOf(first));

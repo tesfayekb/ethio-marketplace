@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { inBrowserClient } from "./helpers/browser-client";
 import { chooseFilter, chooseInList } from "./helpers/filters";
 import { withinPreviewBudget } from "./helpers/rate-window";
@@ -114,7 +115,7 @@ test.describe("C2 categories console", () => {
 
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20000 });
   });
@@ -125,7 +126,7 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "any");
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
 
     // Seed-before-navigate is satisfied by the ratified C1 taxonomy: assert a
@@ -617,7 +618,7 @@ test.describe("C2 categories console", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     // G28 — the roster rendered a real root, found by search; then unscoped.
     await anchorRealRow(page, "vehicles");
@@ -657,7 +658,7 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "mobile");
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     // G28 — a real root is found by search, never by its place on page one.
     const row = await anchorRealRow(page, "vehicles");
@@ -720,7 +721,7 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "any");
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     // G28 — the roster rendered a real root, found by search; then unscoped.
     await anchorRealRow(page, "vehicles");
@@ -774,7 +775,7 @@ test.describe("C2 categories console", () => {
   }) => {
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
 
     const { data, error } = await adminClient()
