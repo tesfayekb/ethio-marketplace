@@ -24,6 +24,9 @@ import {
 import { readerFailure } from "../../src/lib/reader-failure";
 
 /**
+ * CF-REFUSAL-5 (CFRR-9) — a failed call's raw error is not re-thrown (`if (error) throw error;`); it is
+ * the same census as CFRR-5, its lines `| INC-1266` (the first-download readers) or `| INC-1256`.
+ *
  * DEC-429 (CF-REFUSAL-3, CF-REFUSAL-4) — a failed read is thrown as the typed failure through
  * `readFailed`, and the client reads the door mechanism's mark, not a second list of codes.
  *
@@ -323,5 +326,39 @@ describe("the database holds the list of refusal codes; the client reads its mar
       "REFUSAL_STATUS: alsoNeverRaised is no literal in a last declaration",
       "FALLBACK_REFUSED_CODES: notInTheRefusedSet is not in GATE_REFUSED_CODES",
     ]);
+  });
+  it("CFRR-9 the census names a failed call's raw error re-thrown inline or at the end of its block, and passes a typed failure, another condition, a catch and the server side", () => {
+    const planted = [
+      "export async function a(other: unknown) {",
+      "  if (error) throw error;",
+      "  if (error) {",
+      '    console.error("read failed", error.message);',
+      "    throw error;",
+      "  }",
+      "  if (isStepUpRequiredError(error)) throw error;",
+      "  if (error) throw readFailed(error);",
+      "  if (error) throw other;",
+      "  // if (error) throw error;",
+      "  try {",
+      "    await other;",
+      "  } catch (error) {",
+      "    throw error;",
+      "  }",
+      "}",
+    ].join("\n");
+    const planting = (file: string) => failureThrowFindings([{ file, text: planted }]);
+    expect(
+      planting("src/features/x/planted.ts").map(({ line, what }) => `${line} ${what}`),
+    ).toEqual([
+      "2 re-throws a failed call's raw error instead of readFailed(error)",
+      "5 re-throws a failed call's raw error instead of readFailed(error)",
+    ]);
+    for (const file of [
+      "src/features/x/planted.test.ts",
+      "src/server/planted.ts",
+      "src/routes/api/planted.ts",
+      "src/integrations/supabase/planted.ts",
+    ])
+      expect(planting(file), file).toEqual([]);
   });
 });
