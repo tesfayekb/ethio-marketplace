@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 45218392625 passed
+last E2E run 45438944991 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45218392625
-- Commit: `92fee7d1a4df49feeee9d3879946fdef44a33317`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45438944991
+- Commit: `1bbfc7dadd4d999a2cc292442a669bfa26680435`
 - Attempt: 1
-- Written (UTC): 2026-11-23T16:57:30.744Z
+- Written (UTC): 2026-11-24T16:41:10.963Z
 - Post-test warnings: 3
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): none
@@ -32,7 +32,7 @@ Results read: nightly · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-23T16:53:54.173Z | 3.6 min |
+| nightly | 2026-11-24T16:37:14.947Z | 3.9 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
