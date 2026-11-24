@@ -334,6 +334,27 @@ reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane rea
   and `liveRoleRules` hands the same judge the rules really standing — a rule created by computed
   text, which the migrations' census cannot name, is judged too. `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
 
+## The staff-session rule (cursor-bundle-6 Part 3, DEC-461)
+
+A staff authority holds only for a session that used its second factor. THE RULE
+(`staff_session_holds(uuid,text,text)`, service role only): when the caller asks about its OWN
+authority (`p_user_id = auth.uid()`) for a permission the default member role does not hold (read
+from that role's grants, hierarchy and `manage` included — never a literal list), the answer is
+true only when the session is `aal2` (`auth.jwt() ->> 'aal'`) AND the account has a verified totp
+factor. The service role, a session with no role, a question about another person and
+`admin_panel:access` (it only tells the app the account is staff) answer as before; a super admin
+is held to the rule too. THE FORM is cores first (G74 law 6, DEC-383): `has_permission_core` is
+the old `has_permission` body byte for byte, `has_permission_scoped_core` the old scoped body but
+for the one line that asked `has_permission`; `has_permission` and `has_permission_scoped` are
+redeclared whole as the core AND the rule; `door_context` asks the scoped core (a member still
+reads `permissionDenied` first), then for the `staff` and `staff-reader` classes refuses with
+SQLSTATE `P0009` — `step-up required: no verified factor` or `step-up required` — before the
+step-up check; the staff server routes answer it as `stepUpRequired` (428). Two migration files
+(a very large one is split by concern): the cores, the rule and the two wrappers, then
+`door_context`. The proofs (rolled back) cover every aal/factor combination, the unchanged
+answers, the catalog's grants and bodies, and that the policies naming `has_permission` are the
+four storage-bucket rules and none reads authority another way.
+
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,

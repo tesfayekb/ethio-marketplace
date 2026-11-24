@@ -1639,3 +1639,9 @@ files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
 - **CF-AUTH-1** (scripts/conformance/auth-credentials.test.ts, allowlist `auth-credentials-allowlist.txt`): every call in the browser tree that sets a `password` also sends `current_password`, unless its allowlist line (`<file> <function> | reason | until`) says why (the recovery path's one); no call of `linkIdentity` or `unlinkIdentity` is allowed, and there is no allowlist for them. **CF-AUTH-2** plants a bypass and proves the census sees it.
 - **CF-SESSION-5** (scripts/conformance/session-reads.test.ts): the callers of `useAuth()` are the shell's one (`SESSION_STORE_CALLERS`); every other screen reads `useShell()`. **CF-SESSION-6** plants a second caller. The Settings page's `getUser()` is a line of `session-reads-allowlist.txt` (DEC-439).
 - **CF-BCFG-1** lists the six notice sections the images variant carries (docs/features/auth-email-door.md).
+
+### Cursor bundle 6: the raw re-throw and the invented zero (CF-REFUSAL-5, CF-NUM-1)
+
+- **CF-REFUSAL-5** (scripts/conformance/refusal-readers.ts, CFRR-9 plants it): a reader that answers `if (error) throw error;` hands its caller the raw door error instead of `readFailed(error)`; the census lists every such line, the 80 standing ones sit in `refusal-readers-allowlist.txt` under INC-1256 (two under INC-1266).
+- **CF-NUM-1** (scripts/conformance/read-numbers.ts, CFN-2 plants it, no allowlist): a count, total or number read from a failed or missing answer is never replaced by `0` (`count ?? 0`, `|| 0`); a missing value is a typed absence.
+- `scripts/e2e-failure-report.ts` writes the gating failures first (EFR-6); `scripts/ci/install-browser-deps.sh` leaves a slow package mirror after a throughput probe and bounded apt timeouts (IBD-1).

@@ -748,3 +748,7 @@ The CI backend now starts on an empty schema, holds pg_cron's jobs and autovacuu
 ### The mail sink and the account tests (cursor bundle 5; DEC-437)
 
 `e2e/helpers/mail-sink.ts` (`hasMailSink`, `mailFor(address)`) reads the subjects of the messages the temporary backend's auth service sent to one address, from the sink at 127.0.0.1:31324; it is for `E2E_LOCAL_BACKEND=1` only, and a test that needs it skips elsewhere (staging has none). ACS-E3 (a pending e-mail change survives a reload) and ACS-E4 (the password-changed notice arrives with the subject `supabase/templates/subjects.json` holds) use it; ACS-E1 and ACS-E2 run on staging too.
+
+### The staff helper (cursor bundle 6; DEC-461)
+
+A staff session holds its authority only at aal2 with a verified factor. `e2e/helpers/staff-factor.ts` is the one way a test becomes staff: `signInStaff(page, account)` (the browser holds the aal2 session) and `staffSession(account)` (node: the session's own tokens). CI-2, CI-2b, CI-3, TR-scope, CI-4b and every gate-reach test that reads a staff table or door as a scratch account at aal1 move onto it. The moved tests run on staging before the migration is applied (aal2 is a superset of aal1); the staff-session rule's own proofs are the migration's.
