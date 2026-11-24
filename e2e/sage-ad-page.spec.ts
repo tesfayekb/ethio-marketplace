@@ -1,7 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { listingPath } from "../src/features/ad-page/address";
 import { expect, test } from "./fixtures";
-import {} from "./helpers/staff-factor";
 import { adPageFixtures } from "./helpers/ad-page";
 import { layoutOf } from "./helpers/layout";
 import { expectPicturesFit } from "./helpers/pictures";
