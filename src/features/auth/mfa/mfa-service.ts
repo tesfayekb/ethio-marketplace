@@ -34,7 +34,8 @@ type JwtClaims = {
   amr?: Array<{ method?: string; timestamp?: number }>;
 };
 
-function decodeJwt(token: string): JwtClaims | null {
+/** The token's claims, or null when it does not decode (the one decoder; nav-alerts.ts reads `aal` through it). */
+export function decodeJwt(token: string): JwtClaims | null {
   const payload = token.split(".")[1];
   if (!payload) return null;
   try {
