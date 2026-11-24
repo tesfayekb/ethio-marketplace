@@ -349,12 +349,15 @@ card's footer, depth Soft, page tone Cool grey (tokens: docs/features/design-fou
   Escape closes both. Filters' footer: Clear all and "Show N results" (when the
   page gives `resultCount`; else "Done"). Columns: one switch per column (the
   locked one on and greyed), footer Show all and Done.
-  From md the popover's side is chosen once, as it opens, from the room around
-  its button (Lovable bundle 8, INC-1271): below when the panel's 28rem floor
-  fits there or the room below is at least the room above, else above; its
-  height bound follows that side. DLG-E12 opens it under a button whose centre
-  sits at two-thirds of a 900-pixel window (`data-side="top"`, six choices in
-  view). Tests: TBP-U1, TBP-U2, TBP-U3.
+  From md the popover is placed once, as it opens, by the room around its button
+  inside the visible area (Lovable bundle 8, INC-1271, ruling 2): below when the
+  room there holds the floor (the panel's height with six choices in view,
+  532 px), else above when that room does, else inside the visible area over its
+  button — its top at the area's top edge, at the button's horizontal place (a
+  virtual anchor). Its max-height is always the room the placement gives.
+  DLG-E12 opens it with the button at the middle and at two-thirds of a
+  900-pixel window, six choices in view each time. Tests: TBP-U1, TBP-U2,
+  TBP-U3.
 - **Filters are pills** (`FilterChoices`, `src/components/shell/filter-choices.tsx`):
   a labelled row of pills, the chosen one filled with a tick, one tap applies
   it. Never a dropdown inside a panel. Testids `<testid>-<value>`; the empty

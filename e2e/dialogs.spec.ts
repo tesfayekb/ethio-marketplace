@@ -871,44 +871,47 @@ test.describe("a Filters panel in rows (Lovable bundle 3)", () => {
       await page.keyboard.press("Escape");
       await expect(short).toHaveCount(0);
 
-      // A LOW button (INC-1271): its centre at two-thirds of a 900-pixel window. The panel
-      // opens on the side with the room — above it — and its list still shows six choices.
+      // The button anywhere in the window (INC-1271): the page is padded below the board so the
+      // Filters button can sit at the window's middle, then at two-thirds of it. Each time the
+      // panel is reopened there and the Colour list still shows six choices.
       await page.setViewportSize({ width, height: 900 });
+      await page.evaluate(() => {
+        document.body.style.paddingBottom = "1200px";
+      });
       const button = page.getByTestId("style-filters");
-      await button.evaluate((element) => {
-        const box = element.getBoundingClientRect();
-        window.scrollBy(0, box.top + box.height / 2 - (window.innerHeight * 2) / 3);
-      });
-      await settled(page);
-      const centre = await button.evaluate((element) => {
-        const box = element.getBoundingClientRect();
-        return box.top + box.height / 2;
-      });
-      expect(
-        Math.abs(centre - 600),
-        "DLG-E12 the button's centre @ 2/3 of 900",
-      ).toBeLessThanOrEqual(2);
-      const low = await open(page, "style-filters", "style-filters-panel");
-      await expect(low).toHaveAttribute("data-side", "top");
-      await low.getByTestId("style-filters-colour").click();
-      await expect(low.getByTestId("style-filters-colour-list")).toBeVisible();
-      await settled(page);
-      const lowFacts = await listFacts(low, "style-filters-colour");
-      expect(lowFacts, `DLG-E12 the open list under a low button @ ${width} x 900`).toMatchObject({
-        inTheFlow: true,
-        underItsRow: true,
-        rowInView: true,
-        bodyEndsAtFooter: true,
-        footerInsidePanel: true,
-        panelInsideWindow: true,
-      });
-      expect(
-        lowFacts?.choicesInView ?? 0,
-        `DLG-E12 the choices a person sees under a low button @ ${width} x 900`,
-      ).toBeGreaterThanOrEqual(Math.min(lowFacts?.choices ?? 0, 6));
-      await page.keyboard.press("Escape");
-      await page.keyboard.press("Escape");
-      await expect(low).toHaveCount(0);
+      for (const [label, at] of [
+        ["middle", 1 / 2],
+        ["low", 2 / 3],
+      ] as const) {
+        await expect(page.getByTestId("style-filters-panel")).toHaveCount(0);
+        await button.evaluate((element, at) => {
+          const box = element.getBoundingClientRect();
+          window.scrollBy(0, box.top + box.height / 2 - window.innerHeight * at);
+        }, at);
+        await settled(page);
+        const placed = await open(page, "style-filters", "style-filters-panel");
+        await placed.getByTestId("style-filters-colour").click();
+        await expect(placed.getByTestId("style-filters-colour-list")).toBeVisible();
+        await settled(page);
+        const facts = await listFacts(placed, "style-filters-colour");
+        expect(facts, `DLG-E12 the open list @ ${width} x 900 ${label}`).toMatchObject({
+          inTheFlow: true,
+          underItsRow: true,
+          asWideAsItsRow: true,
+          rowInView: true,
+          searchInView: true,
+          bodyEndsAtFooter: true,
+          footerInsidePanel: true,
+          panelInsideWindow: true,
+        });
+        expect(
+          facts?.choicesInView ?? 0,
+          `DLG-E12 the choices a person sees @ ${width} x 900 ${label}`,
+        ).toBeGreaterThanOrEqual(Math.min(facts?.choices ?? 0, 6));
+        await page.keyboard.press("Escape");
+        await page.keyboard.press("Escape");
+        await expect(placed).toHaveCount(0);
+      }
     },
   );
 

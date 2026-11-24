@@ -45,21 +45,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
  */
 
 /**
- * Lovable bundle 8 (INC-1271) — from md the panel's SIDE is chosen once, when it opens, from the
- * room the window leaves its button: below when the panel's floor (28rem) fits there or there is
- * at least as much room below as above, else above. Its height bound (Radix's available height)
- * follows that side, so a button low in the window no longer opens a panel squeezed to a few rows.
+ * Lovable bundle 8 (INC-1271, ruling 2) — from md the panel is placed by its room
+ * (popover-impl.tsx `placeByRoom`): below its button when the room there holds the floor, else
+ * above, else inside the visible area over its button. The floor is the panel's height with
+ * six choices of a filter row's list in view (measured on /dev/style, Chromium, 1280 × 900).
  */
-const PANEL_FLOOR_REM = 28;
-
-function sideFor(anchor: HTMLElement | null): "top" | "bottom" {
-  if (anchor === null) return "bottom";
-  const box = anchor.getBoundingClientRect();
-  const above = box.top;
-  const below = window.innerHeight - box.bottom;
-  const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  return below >= PANEL_FLOOR_REM * rem || below >= above ? "bottom" : "top";
-}
+const PANEL_FLOOR_PX = 532;
 
 export function ToolbarPanel({
   testid,
@@ -86,12 +77,8 @@ export function ToolbarPanel({
   const [open, setOpen] = useState(false);
   const [openedWith, setOpenedWith] = useState(state);
   const anchor = useRef<HTMLButtonElement | null>(null);
-  const [side, setSide] = useState<"top" | "bottom">("bottom");
   const onOpenChange = (next: boolean) => {
-    if (next) {
-      setOpenedWith(state);
-      if (!isMobile) setSide(sideFor(anchor.current));
-    }
+    if (next) setOpenedWith(state);
     setOpen(next);
   };
   const close = () => setOpen(false);
@@ -130,7 +117,7 @@ export function ToolbarPanel({
       </PopoverTrigger>
       <PopoverContent
         variant="panel"
-        side={side}
+        room={{ from: anchor, floor: PANEL_FLOOR_PX }}
         align={align}
         data-testid={`${testid}-panel`}
         className={BANDS_PANEL}
