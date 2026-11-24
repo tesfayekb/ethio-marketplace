@@ -5,23 +5,20 @@ import { ReaderError } from "@/lib/reader-failure";
 
 /**
  * D239 — the account rule at session start, and every open tab follows the
- * star. The auth event, the account read and the account save are mocked; the
+ * star. The shell's identity write (INC-1268: the provider subscribes to nothing, the shell's one
+ * `useAuth()` writes who is signed in), the account read and the account save are mocked; the
  * publication gate's list is answered by a stubbed fetch.
  */
 
-type Listener = (event: string, session: { user: { id: string } } | null) => void;
+type Writer = (identity: { settled: boolean; userId: string | null }) => void;
 
 const auth = vi.hoisted(() => ({
-  listeners: new Set<(event: string, session: { user: { id: string } } | null) => void>(),
+  write: null as null | ((identity: { settled: boolean; userId: string | null }) => void),
   fetchPreferredLanguage: vi.fn(),
   savePreferredLanguage: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase-door", () => ({
-  onAuthChange: (listener: Listener) => {
-    auth.listeners.add(listener);
-    return { unsubscribe: () => auth.listeners.delete(listener) };
-  },
   projectEnv: () => ({ url: "https://abcdefghijklmnop.supabase.co", key: "publishable" }),
 }));
 vi.mock("@/features/auth/preferred-language", () => ({
@@ -34,7 +31,8 @@ vi.mock("./bundle", () => ({
 }));
 
 const { I18nProvider, LANGUAGE_STORAGE_KEY } = await import("./provider");
-const { useI18n, LANGUAGE_STAR_COOKIE, LANGUAGE_STAR_STORAGE_KEY } = await import("./i18n-context");
+const { useI18n, useAuthIdentityWriter, LANGUAGE_STAR_COOKIE, LANGUAGE_STAR_STORAGE_KEY } =
+  await import("./i18n-context");
 
 const GATE = [
   { code: "en", name_en: "English", name_native: "English", rtl: false, sort: 0 },
@@ -43,6 +41,8 @@ const GATE = [
 
 function Probe() {
   const { language, setStar } = useI18n();
+  const write: Writer = useAuthIdentityWriter();
+  auth.write = write;
   return (
     <div>
       <p data-testid="language">{language}</p>
@@ -53,9 +53,10 @@ function Probe() {
   );
 }
 
-function emit(session: { user: { id: string } } | null, event = "SIGNED_IN") {
+/** The shell's write of who is signed in once the session is known (the event name no longer reaches the provider). */
+function emit(session: { user: { id: string } } | null, _event = "SIGNED_IN") {
   act(() => {
-    for (const listener of auth.listeners) listener(event, session);
+    auth.write?.({ settled: true, userId: session?.user.id ?? null });
   });
 }
 
@@ -84,7 +85,7 @@ beforeEach(() => {
   document.documentElement.removeAttribute("data-lang-settled");
   window.localStorage.clear();
   document.cookie = `${LANGUAGE_STAR_COOKIE}=; Path=/; Max-Age=0`;
-  auth.listeners.clear();
+  auth.write = null;
   auth.fetchPreferredLanguage.mockReset();
   auth.savePreferredLanguage.mockReset().mockResolvedValue({ ok: true });
   vi.stubGlobal(

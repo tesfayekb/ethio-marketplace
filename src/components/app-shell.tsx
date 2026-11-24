@@ -64,7 +64,7 @@ import {
   type SessionExpiryReason,
 } from "@/features/session/session-policy";
 import { LegalGate } from "@/features/legal/legal-gate";
-import { useI18n } from "@/i18n";
+import { useAuthIdentityWriter, useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
@@ -137,6 +137,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { collapsed, toggle } = useRailCollapsed();
   const { t } = useI18n();
   const { user, loading: authLoading, hadSession, signOut } = useAuth();
+  // INC-1268 — who is signed in, from this ONE store, to the language provider above the shell
+  // (it subscribes to nothing). An effect, never the auth callback: no read starts under the lock.
+  const writeIdentity = useAuthIdentityWriter();
+  const signedInId = user?.id ?? null;
+  useEffect(() => {
+    writeIdentity({ settled: !authLoading, userId: signedInId });
+  }, [authLoading, signedInId, writeIdentity]);
   const router = useRouter();
   /**
    * DEC-279 (INC-930; Foundations turn 34c-4) — the Home page's code is fetched ahead of time for a
