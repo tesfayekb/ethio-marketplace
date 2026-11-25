@@ -422,6 +422,14 @@ admin only; no grant is expanded. Guard CF-GRANT-1
 (`scripts/conformance/permission-grants.ts`, test CFPG-1 → 4): no last declaration that reads
 `role_permissions` matches `manage` in place of the asked action; planted in both forms.
 
+## A save that changes nothing writes nothing (cursor-bundle-7a Part 5)
+
+`user_set_preferred_language` still gates, spends `account_pref` and locks the
+caller's profile row `FOR UPDATE`; when the stored value already equals the asked
+one it writes no update and no audit row and answers `{ok, language}`. A changed
+value updates the row and writes `profile.preferred_language` (old to new).
+CT-23 keeps its meter exclusion and loses its audit exclusion.
+
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,
