@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/features/admin/admin-context";
+import { useAdminListing } from "@/features/admin-listings/use-admin-listing";
 import { decideListing, decisionRefusalKey } from "@/features/admin-screening/use-screening";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -73,6 +74,10 @@ function AdminListingEditRoute() {
   const { t } = useI18n();
   const { permissions } = useAdminShell();
   const navigate = useNavigate();
+  // The shell's crumb for this ad reads the page's cache only (cursor bundle 6, decision 7); the wizard
+  // below reads the ad by its own door, so this page fills the crumb's key. It mounts behind the staff
+  // gate, so no staff read starts for a session that has not used its factor.
+  useAdminListing(listingId);
   const mayReview = from === "screening" && permissions.includes("listings:review");
   const [asking, setAsking] = useState<Next | null>(null);
   const [busy, setBusy] = useState(false);
