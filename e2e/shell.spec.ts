@@ -1589,7 +1589,10 @@ test.describe("mobile chrome", () => {
     }
     await expect(page.getByTestId("panel-tabs")).not.toBeVisible();
     const topbar = page.getByTestId("shell-topbar");
-    await expect(topbar.locator('a[href="/auth"]:visible')).toHaveCount(0);
+    // The sign-in address with its query too (D11, Lovable 10a, PR #104), each form visible-only.
+    await expect(topbar.locator('a[href="/auth"]:visible, a[href^="/auth?"]:visible')).toHaveCount(
+      0,
+    );
     await expect(topbar.locator('[data-testid="account-menu"]:visible')).toHaveCount(0);
   });
 

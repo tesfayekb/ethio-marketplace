@@ -375,7 +375,7 @@ export function signedInMarker(page: Page) {
 export function signInMarker(page: Page) {
   return isMobile(page)
     ? page.getByTestId("bottom-bar-sign-in")
-    : page.locator('header a[href="/auth"]');
+    : page.locator('header a[href="/auth"], header a[href^="/auth?"]');
 }
 
 type PanelKey = "marketplace" | "my-listings" | "account" | "admin";
@@ -482,8 +482,10 @@ export async function openRailScope(page: Page) {
  * INC-121 (b/c) LAW — A SHELL HELPER IS LOCALE-AGNOSTIC. The suite now runs
  * flows in an Amharic shell (the device ★), where every English accessible
  * name goes blind. The header's sign-in affordance carries no testid, so the
- * locale-free anchor is its destination (`a[href="/auth"]`); the `labels`
- * option stays for callers that want to assert a specific rendered label.
+ * locale-free anchor is its destination (`a[href="/auth"]`, or the same page with its query:
+ * the link carries the page the visitor was on, D11, Lovable 10a, PR #104 — so the address is
+ * matched with or without `?`); the `labels` option stays for callers that want to assert a
+ * specific rendered label.
  */
 export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
   if (isMobile(page)) {
