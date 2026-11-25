@@ -365,6 +365,26 @@ failure with Retry (the operator applies the migration and publishes the client 
 sitting). The routes' own statuses stay — `notYourListing` 403 and `photoGone` 409
 on the photo and background routes — until bundle 7b aligns them.
 
+## A personal door names the rule that limits its rows (cursor-bundle-7a Part 4, INC-1282's class, DEC-471)
+
+An `owner`, `signed-in-reader` or `helper` line of the manifest is a door a person calls for
+themselves, so it decides whose rows it reads or writes. CF-DOOR-ROWS-1
+(`scripts/conformance/door-rows.ts`, `door-rows.test.ts` CFDR-1 → 7) reads each one's last
+declaration (`lastDeclarations`) and passes it when it compares a column of a row it selects,
+updates or deletes with the caller: `auth.uid()` (wrapped or not, cast or not), the gate's
+`v_ctx.uid`, or a variable assigned directly from either, against `=`, `<>`, `!=` or `IS [NOT]
+DISTINCT FROM`. The column is a qualified column of a table or alias the body names, a bare column
+beside such a table, or a variable the body loaded from one (`SELECT … INTO v_seller FROM …`, a
+`%ROWTYPE` row, a `FOR` row); a literal, a function argument (`p_*`, or any name in the header) and a
+variable filled from anywhere else do not count. A body the check cannot read (built at run time, or
+no declaration) fails. The rest carry a line of `door-rows-allowlist.txt`, `door | <class>: <reason> |
+until`: `public` (the door reads no person's row: catalogue data, a pure check, a computed date) and
+`delegates` (a helper whose callee compares: `has_permission`, whose core compares `p_user_id` with
+`auth.uid()`) are permanent and carry `DEC-471`; `held` (a row the caller holds by a grant) carries a
+date or an `INC-n`. A line for a door that does compare is idle, and a line for a door that is not
+personal is stale (the kit's allowlist grammar), and both fail. Staff, public and staff-reader
+lines stay with their own judges.
+
 ## The staff-session rule (cursor-bundle-6 Part 3, DEC-461)
 
 A staff authority holds only for a session that used its second factor. THE RULE

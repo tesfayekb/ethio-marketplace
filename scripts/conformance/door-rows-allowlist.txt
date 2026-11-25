@@ -1,0 +1,16 @@
+# CF-DOOR-ROWS-1 (cursor-bundle-7a Part 4, DEC-471) — the personal doors (owner, signed-in-reader, helper) that compare no column
+# of a row they read with the caller, each with the rule that says why none is needed. Grammar: door | <class>: <reason> | until.
+#   public    — the door reads no person's row (catalogue data, a pure check, a computed date); permanent, until DEC-471.
+#   delegates — a helper whose callee compares; permanent, until DEC-471.
+#   held      — a row the caller holds by a grant; a date or an INC-n (none today).
+# A line for a door that does compare is idle and fails; a line for a door that is not personal is stale and fails.
+# Seeded from the census table of docs/governance/reports/cursor-bundle-6.report.md §13 item 2 (its reasons, word for word where short).
+check_seller_alias | public: answers whether an alias is free to the caller; no person's row returned | DEC-471
+get_attribute_options | public: an attribute's option list (catalogue data), dial options_read | DEC-471
+get_attribute_options_version_read | public: a catalogue version string; no person's data | DEC-471
+get_posting_schema | public: a category's posting schema (catalogue data), dial schema_read | DEC-471
+has_permission | delegates: has_permission_core compares p_user_id with auth.uid() | DEC-471
+listing_contact_refusals_read | public: a pure check of the argument the caller passed; reads no row | DEC-471
+sold_cutoff | public: a date computed from a setting; no row | DEC-471
+suggest_seller_aliases | public: alias suggestions from the category name and the caller's words; no person's row | DEC-471
+translation_scope_ok_read | public: a pure check of the caller's translator scope | DEC-471
