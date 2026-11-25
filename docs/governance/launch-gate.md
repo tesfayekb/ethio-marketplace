@@ -137,3 +137,10 @@ Every line above stands as written; the status notes and new lines below come fr
 ## Added 2026-10-21 (bundle 22 turn 20)
 
 - [ ] The legal phone is a real number: a placeholder was entered in the Admin › Legal facts on 2026-10-21 (the operator). Get the number (a free Google Voice number), put it in "Phone for legal matters" and in the copyright agent's line, and publish the Terms of Service as a Correction — NOT DONE (reminder 2026-10-28 20:05 New York).
+
+## Added 2026-11-25 (records turn R18)
+
+- [ ] The footer pages About, Contact and Safety exist (DEC-463): peers read first, a spec the operator approves, identity and contacts from the admin settings, a Contact form with server-side checks, rate dials, a staff queue and stated retention, both languages, stable URLs in the sitemap, 360/768/1280 — NOT DONE; until then `app-footer.tsx`'s three links stay placeholders.
+- [ ] Everything user-facing is tested (DEC-459): every control and every response on the written list, each mapped to a test, the guard green — Cursor bundle 8 builds the crawl and the missing tests.
+- [ ] The plan-gap list of 2026-11-25, each item weighed by its impact before launch: an outside security test; load tests of the write paths; a first-download reduction target; a browser and device support matrix with a low-end Android device; the server's distance from users in Ethiopia (us-east-1); an incident runbook with switches to pause sign-ups, posting and contact reveals; a key-rotation rule; DMARC beside the mail domain; assistive-technology testing; the performance advisor's unindexed foreign keys and double-read policies; INC-1297 (moved into Cursor bundle 7b) and INC-1298.
+- [ ] Decisions for the operator before launch: the Ethiopian calendar for dates, Afaan Oromo and Tigrinya, phone-number verification.

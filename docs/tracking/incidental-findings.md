@@ -3803,6 +3803,9 @@ Defect: no workflow and no unit test called scripts/check-identity-tags.sh (L4b 
 
 Registered on 2026-10-12. Their defect, evidence and fix are written here when each fix is live: until then no detail of them enters this public file (G51). The full account-security review runs in its own read-only thread; its findings become a phase of turns before launch.
 
+- **INC-564 to INC-567** (Cursor bundle 5's Records, docs/governance/reports/cursor-bundle-5.report.md §14, word for word): INC-564, INC-566, INC-567: code half built (cursor-bundle-5); closes with the hosted setting.
+- **INC-564 to INC-567** (the supervisor's later word; records turn R18): INC-564, INC-566 and INC-567 CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`; DEC-433, DEC-435, DEC-436, DEC-437) with the hosted settings the operator set on both projects on 2026-11-23. INC-565 is not among them and stays as recorded. Their defect detail enters this file at a later records turn, from the private register (G51 permits it now that the fixes are live).
+
 ## INC-568 — the translations export paged by position, so a write between two pages repeated or dropped a row (2026-10-12; Tier A translations dashboard; found by CI run 38223982726)
 
 Defect: `fetchAllTranslationRows` read `admin_list_translations` by offset, 200 rows at a time (ORDER BY key); a row added or removed in the language between two pages repeated or dropped a row of the file — TR-29: "2252 stable+own rows against a 2251-row expectation" on both attempts. INC-452's class ("a page is asked for by KEY, never by position"), missed by its census. TR-29's own count also read a shared fence after the download while other jobs' setup clears fence rows older than an hour (the 2026-10-04 "2030 against 30" line; INC-345, eleven ledger lines since 2026-09-17). Fix (turn C6; one migration): the read door `admin_export_translations(p_lang, p_after, p_limit)` (translations:view, read only, by key, at most 1,000 a page; proofs B1–B4, each shown failing on a broken copy); the export on `readAllPages`; export-all.test.ts covers a write between pages; TR-29 reads the file with the app's own CSV reader and judges it by key against the fence's stable keys before the click and after the download. A local trial with 2,500 rows and a writer between pages: 2,500 rows, none repeated, none dropped; the old offset walk under the same writes repeated one. Status (2026-10-12): FIXED when turn C6's CI is green; INC-345 closes with it after two green runs.
@@ -4921,6 +4924,9 @@ Defect: the file census of the 114 acceptance-allowlisted doors after M20 → on
 
 Defect: as titled. Fix: door_context in the Foundations doors part. Class: cross-cutting caller rules enforced in one place (authz report rule 8). Status (2026-10-23): OPEN.
 
+- **INC-838** (turn F1-7a, docs/governance/reports/f1-doors-7a.report.md §14, word for word): INC — 838: status line: the readers' rule holds for every browser-callable function — the manifest's reader lines off the gate are the eleven `public-data` readers above (proved by the checker on every push: the last body and every public function it names read no `auth.` call and no `request.` setting) and the seven closed readers; `bun scripts/doors/check-doors.ts` → `check-doors static OK: 220 manifest lines reconcile with the migrations' catalogue`.
+- **INC-838** (the supervisor's later word; records turn R18): CLOSED by F1-7a (pull request #75, merged `cca37d0cd`; DEC-408).
+
 ## INC-839 — the geocoding stand-in is honoured by any build: src/server/geo/geocode.ts :60 reads E2E_FAKE_GEOCODE directly (2026-10-23; Tier B — a stand-in on a production path, INC-828's class outside the AI calls; found by turn 29's own census (Knowledge K2), named in its report)
 
 Defect: `return process.env["E2E_FAKE_GEOCODE"] === "1";` at :60 — a production build with that flag set would answer geocoding from the fixed table; turn 29 left it because the brief's census covered the six AI decisions only. Fix (turn 30 G3): `isFakeGeocode()` returns `aiFakeMode("E2E_FAKE_GEOCODE")` (true only under isE2E); the conformance guard: src/server/ai/meter.test.ts walks src/ (tests excluded) and fails when any file but src/server/ai/meter.ts reads a `process.env["E2E_FAKE_*"]` or `GEMINI_FAKE` flag (shown red against the old line, then green). Class: a stand-in on a production path (§7, v1.14); concern: stand-ins exist only in the test build; mechanism: aiFakeMode (src/server/ai/meter.ts). Status (2026-10-23): FIXED in turn 30 (`4de3d08d`, pending its run).
@@ -5344,6 +5350,8 @@ Defect: eleven call sites cast `null` to a non-null type to pass a database func
 
 - **INC-942** (F1-5a, docs/governance/reports/f1-doors-5a.report.md §14, word for word): INC — status line: INC-942 CLOSED for the posting routes in F1-5a — the three casts of `draft.ts` and `identity.ts` are gone; CF-DOOR-ARGS's allowlist holds [`user-client.ts:318` (F1-7)] alone.
 - **INC-942** (later word, 2026-11-16; records turn R16): open for one line — `src/server/supabase/user-client.ts:318` (F1-7 types every door call's Result and retires the last line); the three `as <Args>` narrowings of `identity.ts:205`, `draft.ts:132` and `draft.ts:162` over typed `DoorArgs` objects are F1-7's with it (the report's §6 and §13).
+- **INC-942** (turn F1-7c ruling 1's RECORDS, word for word): ACT-027 — the typed `Result` for every browser `rpc()` call (INC-849, INC-942): the raw `.rpc(` sites F1-7c's census counted in browser files. Its own turn after F1-7d.
+- **INC-942** (the supervisor's later word; records turn R18): open; owner ACT-027's turn, before launch.
 
 ## INC-943 — the browser install's 300-second deadline was set without measuring, below the install's normal slow tail, and its retry after a cut-off cannot succeed (2026-10-27 14:4xZ; turn 34e's first run)
 
@@ -5680,6 +5688,8 @@ Defect: `[ssr-error] /__root gate fetch threw upstream ssr language gate timed o
 Defect: SMN-E13 (e2e/submenu-look.spec.ts :213, D254 — "a panel with one row more than the menu holds … scrolls") reads the rail's row grid on "/" (holds = round((last − first) / height)), then seeds a scratch root with holds + 1 children. The scratch root itself joins the rail as one more root, and the rail's rows share the height (D247), so every row shrinks and the menu now holds one more row: the panel of holds + 1 rows fits exactly and does not scroll ("SMN-E13 the panel scrolls": expected > 0, received 0), at desktop-1280 in shard 16 and in all repetitions of the repeat lane. Evidence: ci-evidence e2e-last-failure.md for fa5c333f. Fix: the premise is read after the fixture is in place — the grid measured on the page that already shows the scratch root, the children topped up to that capacity + 1 (or the count derived from the grid read after seeding) — and the assertions keep their bounds (G38). Class: concern "a test's premise measured before its own fixture changes the layout" (G28's sibling: a fixture that crowds the roster it measures). Status (2026-10-30): OPEN — R1d-c's CI-first item.
 
 - **INC-1015** (later word, 2026-11-19; records turn R17): SMN-E13 retried again: three lines in the flake ledger in seven days (2026-11-17 twice, 2026-11-18; matrix lanes), found by F1-6b's census finding 2. Open again; owner: the next tests and CI item, with INC-1210.
+- **INC-1015** (the tests and CI turn 2, docs/governance/reports/tests-ci-2.report.md §14, word for word): INC — INC-1015 — status line: CLOSED — SMN-E13 reads the rail after its own scratch root is in place and runs serially (`@global-state`); `category_tree_pointers` is "shared with its readers" (SMN-E4, SMN-E7, SMN-E9, SMN-E10, SMN-E13, ROWS-E1, ROWS-E3, ROWS-E4, BND-E3), and CF-LANES-4 refuses an untagged reader; the repeat lane's serial pass repeated every reader 2 times in run 44900066596 (DEC-415).
+- **INC-1015** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`).
 
 ## INC-1016 — C-8 "Home clears the category" still asserts that no rail row is current on "/", which D259 changed; red on 22f5151f in shard 11, desktop-1280 (2026-10-30 15:01Z; run 41073847634)
 
@@ -6412,17 +6422,25 @@ INC-1138 (later word, 2026-11-13; records turn R14): FIXED in the CI turn. The s
 
 INC-1140 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, page reloads.
 
+- **INC-1140** (Cursor bundle 5's Records, word for word): INC-1140 (the feed's retry calls `refreshPage`).
+- **INC-1140** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`), sent whole to it by Lovable bundle 5 (CF-STALE-1 pinned its census list in the test's own code).
+
 ## INC-1141 — `ai-bulk-bar.tsx` :122 → :165 reads a list by position (the data-API law) (2026-11-13; the app-fixes turn)
 
 - **INC-1141** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1141 — `ai-bulk-bar.tsx` :122 → :165 reads a list by position (the data-API law); not a write loop.
 
 INC-1141 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, small app laws.
 
+- **INC-1141** (Cursor bundle 5's Records, word for word): INC-1141 (the list doors read after a key, Parts 2 and 3).
+- **INC-1141** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`).
+
 ## INC-1142 — `use-translations.ts` :385 fetches a static asset by a bare fetch outside the route mechanism (2026-11-13; the app-fixes turn)
 
 - **INC-1142** (the app-fixes turn, docs/governance/reports/app-fixes.report.md §14): INC-1142 — `use-translations.ts` :385 fetches a static asset by a bare fetch outside the route mechanism.
 
 INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): the before-launch list, small app laws.
+
+- **INC-1142** (the supervisor's later word; records turn R18): stays under its dated exception in `scripts/conformance/route-client-allowlist.txt` (until 2027-04-24), as Lovable bundle 5 (pull request #98) left it.
 
 ## INC-1143 — the languages page read the base language's total with a literal (2026-11-13; the app-fixes turn)
 
@@ -6431,18 +6449,23 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 ## INC-1144 — a failed read shows "0 keys" on the translations page (2026-11-13; the app-fixes verification)
 
 - **INC-1144** (the supervisor's record; records turn R14): the stat card has no error state: a failed stats or roster read draws 0 (`src/features/admin/translations/languages-page.tsx`; `baseTotalOf`'s reader). Open, minor. Class: an absence drawn as a number. Placement (DEC-379): the before-launch list, small app laws.
+- **INC-1144** (the supervisor's later word; records turn R18): CLOSED. Lovable bundle 6 (pull request #99, merged `a14f032b6`) gave the stat tile a failed state (`StatCard` `failed` and `onRetry`, `src/components/shell/stat-card.tsx`); Lovable bundle 8 (pull request #102, merged `1bbfc7dad`) gave the pager an unknown state (`DataTablePagination`'s `total` is `number | undefined`: no range, no page buttons, Previous and Next disabled until the read answers) on the seven tables that read by page.
 
 ## INC-1145 — the view-as notice repeats the banner's look (2026-11-13; the app-fixes verification)
 
 - **INC-1145** (the supervisor's record; records turn R14): `src/components/shell/impersonation-notice.tsx` repeats the class list of `src/features/admin/impersonation/impersonation-banner.tsx`. Open, minor. Class: one look written in two places. Placement (DEC-379): the before-launch list, small app laws.
+- **INC-1145** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 6 (pull request #99, merged `a14f032b6`): the shell's notice and the admin banner both read `VIEW_AS_BAR_CLASS` (`src/components/shell/view-as-bar-look.ts`, VAB-U1).
 
 ## INC-1146 — the dialogs do not follow the house design (2026-11-13; the operator's walk)
 
 - **INC-1146** (the supervisor's record; records turn R14): the operator: "the dialog boxes need a design work as it doesn't follow the design, doesn't appear color and style based on our work and appears white, with minimal content. this is not the only dialog box but many are" — the Share panel, the ad-approval dialog without pictures, a stepped dialog; "for later before launch and needs detail look before fixing. just record". Open. Class: a shared primitive without the house style. Placement (DEC-379): with the operator's UI redesign before Stage 2 — a census of every dialog with a picture first, then one fix at the primitive. The Settings card's line "This action requires two-factor verification…", shown when no action was attempted, is reviewed with it.
+- **INC-1146** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 2 (pull request #93, merged `9d9748da3`; DEC-418, DEC-419, DEC-420): one panel anatomy for every dialog, sheet and toolbar panel, after Lovable bundle 1's census of every dialog; its laws are Cursor bundle 3's (CF-OV-7, CF-OV-8, DG-8 → DG-11; pull request #94).
 
 ## INC-1147 — a second two-factor setup is refused with a generic line (2026-11-13; the operator's walk)
 
 - **INC-1147** (the supervisor's record; records turn R14): the operator started two-factor setup on a second device while the first setup was still pending and read "We couldn't complete that. Please try again." Read: the Settings page always enrols under one fixed, translated name; the sign-in provider's table allows a name once per person (read on ethio-prod, reads only); the page keeps a pending setup only in its own state and lists verified factors only, so after a reload, a second tab or another device it offers the button again; the service maps every refusal but a wrong code to the generic line. The provider's own error line at that minute was not read: a strong HYPOTHESIS. Not a security hole — nothing is bypassed; setup is blocked until the provider clears the pending factor. Open. Three classes, each attached to its scheduled turn (DEC-379): (1) a server refusal shown as a generic failure — the form kit's one refusal reader and its sign-in and settings wave; (2) a pending server state the page forgets — the account-security phase (ACT-020), with a census of the other multi-step account flows and a test that starts, reloads and starts again; (3) a stored value taken from translated text — the messages mechanism, with a guard.
+- **INC-1147** (Cursor bundle 1's Records, word for word): INC — INC-1147 — class 1 CLOSED (`AUTH_REFUSALS` and `MFA_REFUSALS` read a server refusal by its provider code through `readRefusal`; `mfa_factor_name_conflict` reads `mfa.errorSetupPending`, `too_many_enrolled_mfa_factors` and `mfa_verified_factor_exists` read `mfa.errorFactorExists`, `mfa_totp_enroll_not_enabled` and `mfa_totp_verify_not_enabled` read `mfa.errorMethodOff`); classes 2 and 3 open (ACT-020).
+- **INC-1147** (the supervisor's later word; records turn R18): class 1 CLOSED by Cursor bundle 1 (pull request #91); class 2 CLOSED by Cursor bundle 4, Part 3 (pull request #96; DEC-431: a setup the provider holds unfinished is cleared before a new start, a replaced setup's confirmation has its own words, a failed factor list is an error, never "off"); its e-mail-change sibling is INC-1258 (closed by Cursor bundle 5). Class 3 open (ACT-020).
 
 ## INC-1148 — the failure reporter still calls the `@global-state` tests nightly-only (2026-11-13; the CI turn's finding)
 
@@ -6457,6 +6480,7 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 ## INC-1150 — a label that says "(optional)" itself also gets the Field's "Optional" word (2026-11-14; the forms-kit verification)
 
 - **INC-1150** (the supervisor's record; records turn R15): with every posting step on the one Field, a label whose text already says "(optional)" draws the kit's "Optional" mark beside it — "Directions (optional) Optional" on the Place step (`post.where.directionsLabel`); the same doubling sits on `post.price.expiryLabel` ("Take it down on (optional)"), which was on posting's own Field before the kit. Confirmed by the operator's eye on the walk of 2026-11-14. Class: one fact said twice — the label's text and the mechanism's mark. Fix in the form kit's wave 2: the label texts lose their parenthesis (a renamed string is a new key, Knowledge D5) and the mark alone says it. Placement (DEC-379): the form kit, wave 2.
+- **INC-1150** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 1, Part D (pull request #90, merged `358c691ab`): the two labels whose text said "(optional)" became new keys without the parenthesis ("Directions", "Take it down on"), so the Field's "Optional" word is said once.
 
 ## INC-1151 — `admin_update_profile`'s country scope read the country argument (2026-11-14; F1-2's migration stop)
 
@@ -6473,6 +6497,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 ## INC-1153 — `DOOR_CODES` and the gate words sit in the entry chunk (2026-11-14; F1-2's findings)
 
 - **INC-1153** (the supervisor's record, from F1-2's report §13 findings 2 and 3; records turn R15): the client's shared door code list `DOOR_CODES` and the gate's words are in the entry chunk every page downloads, so each family that adds a code grows every page's first download by a few bytes, and F1-4b's rule "the client's shared code list does not grow" (G74 (7)) is the stopgap. Class: a staff-only table on the public first download (INC-1042's class). Placement (DEC-379): the form kit's wave 2 (the reader's words by family, the list off the entry).
+- **INC-1153** (Cursor bundle 1's Records, word for word): INC — INC-1153 — status line: CLOSED — the code list and the gate words live in the reader's chunk (`refusal-*.js`, with `src/lib/refusal.ts`) and `DOOR_REFUSED_KEY` in the leaf `src/lib/door-refused-key.ts`; the entry before and after: `index-*.js` 142.5 → 142.1 KiB gzipped, shared shell 29.4 → 28.9 KiB, no page above its base, no ceiling moved.
+- **INC-1153** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 1 (pull request #91, merged `63d6bee0d`).
 
 ## INC-1154 — the entry's dependency map grows with every page (2026-11-14; F1-2's findings)
 
@@ -6487,6 +6513,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 ## INC-1156 — `assign_role` with an unknown user answers a raw foreign-key error (2026-11-14; F1-2's findings)
 
 - **INC-1156** (the supervisor's record, from F1-2's report §13; records turn R15): `assign_role` with an unknown user id reaches its insert, and the caller reads Postgres's foreign-key message instead of `unknownUser`. Found by the lane's census; not changed in F1-2 (the family's codes were fixed by ruling 1). Class: a check the database makes before the door does (INC-1163's sibling). Placement (DEC-379): F1-7.
+- **INC-1156** (turn F1-7b, docs/governance/reports/f1-doors-7b.report.md §14, word for word): INC-1156 CLOSED — `assign_role` refuses `unknownUser` before its insert; proven by migration file 6's proof (b) (`assign_role`: `unknownUser` and `badCountryCode` at 400, no role and no audit line written).
+- **INC-1156** (the supervisor's later word; records turn R18): CLOSED by F1-7b (pull request #79, merged `7e7040c99`).
 
 ## INC-1157 — SECURITY: the legal acceptances export metered and audited only its first page (2026-11-14; F1-3's census, fixed the same day)
 
@@ -6506,6 +6534,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 - **INC-1158** (F1-6a, docs/governance/reports/f1-doors-6a.report.md §14, word for word): INC-1158 — status line: the same class in this family — corrected: `admin_review_photo_change` asks the row step-up its line promised (INC-1195, DEC-401); `admin_reveal_listing_contact` moves from `listings:review` to `listings:reveal`, step-up still `none:D129` (DEC-400): it shows one seller's number to a reviewer who calls about an ad, a few times an hour, and asks no second factor; the staff move and the reviewer's decision on `staff_moderation` (not the seller's `revise`).
 - **INC-1158** (F1-6b, docs/governance/reports/f1-doors-6b.report.md §14, word for word): INC — INC-1158 status line: the same class in this family — `admin_edit_package_price` country `arg:country_code` → `row:package_prices.country_code` (the door edits an existing row found by its id; the argument is a new value for that row's country, so the gate judges the row's current country, and the new value and the locked row's own country are judged in the body by the same scoped permission); `admin_clear_level_override` country `global` → `row:level_overrides.country_code`, its reason cell → `-` (it deletes one row that carries a country, which never changes; an unknown id reads a NULL country, which a country-only grant never passes); `admin_job_resume` dial `staff_config` now spent through `door_context` (it resumes the name re-check after a pause, once or twice a day at most, so 600 an hour holds); every step-up cell, the `arg:country_code` cells of the three save doors and every `global` cell held; `admin_end_package_price`'s row scope held.
 - **INC-1158** (later word, 2026-11-19; records turn R17): open for F1-7: the class closes when the signed-in and public readers' cells have been read by meaning; the staff families' cells are all read (F1-5a → F1-6b).
+- **INC-1158** (turn F1-7a, docs/governance/reports/f1-doors-7a.report.md §14, word for word): INC — 1158: status line: the readers' cells — `translation_scope_ok`'s cell `translations:manage` did not hold; the browser's reader is `translation_scope_ok_read`, a signed-in reader with no permission cell; every other cell held. With this, no cell of the manifest is unread.
+- **INC-1158** (the supervisor's later word; records turn R18): CLOSED by F1-7a (pull request #75, merged `cca37d0cd`; DEC-409).
 
 ## INC-1159 — a manifest `row:` cell named a column that does not exist (2026-11-14; F1-3's row-cell guard)
 
@@ -6530,14 +6560,20 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 ## INC-1162 — `assert_parent_not_catchall` keeps EXECUTE for authenticated (2026-11-15; F1-4a's migration stop)
 
 - **INC-1162** (turn F1-4a, docs/governance/reports/f1-doors-4a.report.md §14; ruling 1): `assert_parent_not_catchall` keeps EXECUTE for authenticated although every caller it has runs as its owner (found at the F1-4a migration stop; it answers only whether a public category is a catch-all, so nothing is exposed). Class: a helper's grant that outlived its callers. Owner: F1-7, with the remaining readers and helpers.
+- **INC-1162** (turn F1-7a, docs/governance/reports/f1-doors-7a.report.md §14, word for word): INC — 1162: status line: CLOSED — `assert_parent_not_catchall` is executable by no browser role; the same class in the other helpers: the thirty-one helpers closed in part 10, and the two kept — `has_permission(uuid,text,text)` (22 policies) and `sold_cutoff()` (3 public-read policies) — each by the policy that proves it; the class was the whole helper list.
+- **INC-1162** (the supervisor's later word; records turn R18): CLOSED by F1-7a (pull request #75, merged `cca37d0cd`).
 
 ## INC-1163 — the country doors' code check is shadowed by a typed variable's own raise (2026-11-15; F1-4b's migration stop)
 
 - **INC-1163** (turn F1-4b, docs/governance/reports/f1-doors-4b.report.md §14; ruling 1): `admin_upsert_country`, `admin_set_country_active` and `admin_set_country_root_order` assign `upper(p_code)` to a `char(2)` variable AFTER the gate; a code longer than two characters raises 22001 there instead of `badCountryCode`, so that check answers only a short or non-letter value. Unchanged from the live bodies (found at the F1-4b migration stop); only a caller who passed the gate reads the raw error. Class: a code's check that a typed variable's own raise shadows. Owner: F1-7.
+- **INC-1163** (turn F1-7b, docs/governance/reports/f1-doors-7b.report.md §14, word for word): INC-1163 CLOSED — the three country doors check the text before any `char(2)` assignment; a long code answers `badCountryCode`; proven by file 6's proof (c).
+- **INC-1163** (the supervisor's later word; records turn R18): CLOSED by F1-7b (pull request #79, merged `7e7040c99`).
 
 ## INC-1164 — a scope's own country row written through the places import (2026-11-15; F1-4b's verification)
 
 - **INC-1164** (the supervisor's record; its full text is held back under G51 until the fix is live; records turn R15): a defect in how one import right reaches a row another family's doors gate; scoped holders of that right on both databases: 0, so no one can exercise it today. Owner (DEC-379): F1-7 (the planner's country rows take the country right). The text enters this file at the records turn after F1-7 merges.
+- **INC-1164** (turn F1-7b, docs/governance/reports/f1-doors-7b.report.md §14, word for word): INC-1164 CLOSED in F1-7b — a scope's own `countries` row is written by the places planner, its commit and the undo only for a caller holding the right the country doors require for that change (`country_row_right`); proven by file 4's proof (c) and file 7's proof (c) on scratch scoped holders, and drawn by CID-1 and LID-1.
+- **INC-1164** (the supervisor's later word; records turn R18): CLOSED by F1-7b (pull request #79, merged `7e7040c99`), live on ethio-prod and Published since 2026-11-20. The defect, now that its fix is live (G51): the places import planner, its commit and the undo wrote a scope's own `countries` row for any holder of the places import right, without the country right the country doors require for the same change; scoped holders of that right on both databases were 0 when it was found.
 
 ## INC-1165 — the operator's mailbox in tracked files of the public repository (2026-11-15; Lovable's security scan, reviewed by the supervisor)
 
@@ -6549,6 +6585,9 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 ## INC-1166 — dead `USING (true)` read rules and a legacy reader check (2026-11-15; Lovable's security scan, reviewed by the supervisor)
 
 - **INC-1166** (the supervisor's record; claude/security-review-2026-11-15-lovable-scan.md; records turn R15): the scan named nine tables with `USING (true)` read policies; on review two of them (`attributes`, `category_attribute_links`) are dead rules — the browser roles hold no grant on the table, so the policy admits nothing — and `category_attributes` keeps a legacy reader check beside the planner's. Not a hole; a posture debt: a census guard that lists every `USING (true)` rule with its grant and its reason, and the two dead rules dropped. Owner (DEC-379): the before-launch list (the RLS posture review of §9) with F1-7 for the drop.
+- **INC-1166** (turn F1-7b, docs/governance/reports/f1-doors-7b.report.md §14, word for word): INC-1166 — the three read rules `attributes_public_read`, `cal_public_read`, `category_attributes_public_read` dropped and `category_attributes`' browser SELECT grants revoked (no browser reader: census §premises); the census guard over every `USING (true)` rule stays on the before-launch list.
+- **INC-1166** (Cursor bundle 1's Records, word for word): INC — INC-1166 — status line: CLOSED — the guard (`check-doors`' three finding kinds and the smoke lane's `open-rule-grants`), `scripts/doors/open-rules.txt` (new) with six standing rules (ruling 2 says ten; the file's non-comment lines are six), the planted cases; no rule is dropped in this bundle.
+- **INC-1166** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 1 (pull request #91, merged `63d6bee0d`); Cursor bundle 2 retired two of the six standing rules (INC-1236).
 
 ## INC-1167 — a signed photo link outlives the photo's removal (2026-11-15; Lovable's security scan, reviewed by the supervisor)
 
@@ -6559,6 +6598,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 - **INC-1168** (the supervisor's record; records turn R15): on both Lovable turns the platform pushed commits of its own to the task's branch — a bump of its framework package (`@lovable.dev/vite-tanstack-config` 2.26.5 → 2.27.1), `bun.lock` rewritten with every `https://registry.npmjs.org` address stripped (DEC-363 undone; CF-LOCK-1 refused it on L2's wasted run), an edit to `src/integrations/supabase/previewAuthStorage.ts`, a regenerated `src/integrations/supabase/types.ts` (one entry collapsed to one line), and a `.lovable/north-star/north-star.md` note — and titled one of them with what had not happened ("Fixed i18n scan count stale"). Contained by the branch and pull request flow: nothing reaches dev without the supervisor's fresh-fetch diff, and each file was written back from the base (`git show <base>:<path> > <path>`) at the supervisor's ruling before the pull request was judged. Cost: three of L1's stops and L2's wasted CI run. Class: an executor platform that commits outside the task. Fix, in three parts: (a) Knowledge v3.14 — the sandbox's `edit/…` branch name is not a stop; the generic write-back of every path outside the task's files is every task's LAST step; the string scan and `bun run i18n:usage` join the touched-file checks; (b) a CI guard on `lovable/*` pull requests that refuses `package.json`, `bun.lock`, `supabase/**`, `src/integrations/supabase/**`, `.github/**`, `scripts/**` (beside the lines DEC-390 and the deletions manifest allow) — the tests and CI turn, with its DEC under G22; (c) later, a "carry" step that rebuilds the pull request from dev plus exactly the approved files. Placement (DEC-379): (a) with Knowledge v3.14; (b) the tests and CI turn.
 - **INC-1168** (the tests and CI brief's RECORDS, docs/governance/briefs/tests-ci.md, word for word): INC-1168 (b): closed by Part C; (c) stays.
 - **INC-1168** (later word, 2026-11-19; records turn R17): (b) CLOSED by the tests and CI turn's Part C (DEC-394; CF-LVB), amended twice in this block (DEC-396, DEC-398); (c) open — owner: the next tests and CI item, with INC-1186.
+- **INC-1168** (the tests and CI turn 2's Records, word for word): INC — INC-1186, INC-1168 (c) — named by number only in this report (G51); the supervisor writes their records at the records turn after the fix is live.
+- **INC-1168** (the supervisor's later word; records turn R18): (c) is still named by number only; DEC-413 (the Lovable branch guard judged from the base, on `pull_request_target`, the head read as data only) is built and its carry step is not. Every Lovable bundle since writes the platform's own commits back from the base as its last step, and the supervisor's fresh-fetch diff judges it.
 
 ## INC-1169 — the weekly Feed bench has failed at its seed since 2026-11-08 (2026-11-15; the supervisor's read of the scheduled workflows)
 
@@ -6574,6 +6615,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 - **INC-1170** (the supervisor's later word; records turn R16): Class: a refusal that loses a fact a person could use because the gate's refusal has no detail cell (mechanism: `door_context` → `door_refuse('rateLimited')`; `door_context` already holds `resets_at` in its context record and does not pass it). Owner: F1-7, with the words in the form kit's wave 2. `doorAnswer`'s `resets_at → detail` mapping (`src/server/supabase/user-client.ts:360`) has no producer left in this family; F1-7 retires or re-aims it with this incident.
 - **INC-1170** (F1-5b, docs/governance/reports/f1-doors-5b.report.md §14, word for word): INC — INC-1170 status line: widened — in F1-5b the gate's `rateLimited` of `save_listing`, `report_listing`, `reveal_listing_contact` and `user_set_viewing_location` carries no reset time (the `resets_at` assertions at AP-25, AP-27 and VP-4 left); F1-7 gives the shell's `rateLimited` its reset.
 - **INC-1170** (later word, 2026-11-19; records turn R17): open; owner F1-7, with INC-1196.
+- **INC-1170** (turn F1-7a, docs/governance/reports/f1-doors-7a.report.md §14, word for word): INC — 1170: status line: CLOSED for the gate — `door_context`'s `rateLimited` carries the reset instant as `rateLimited:<resets_at>`; PR-7, AP-25, AP-27 and VP-4 read it; `doorAnswer`'s mapping retired (identity; its callers are F1-7c's); the words that draw the time are F1-7c's.
+- **INC-1170** (the supervisor's later word; records turn R18): CLOSED. The gate's half by F1-7a (pull request #75); the words that say when, by L22, L22b and L22c (pull requests #86, #88, #89) and Lovable bundle 1, Part B (pull request #90), read through the one reader `rateUntilOf` (INC-1229).
 
 ## INC-1171 — two service-role grants lost by a DROP + CREATE (2026-11-15; F1-5a, ruling 2)
 
@@ -6620,6 +6663,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1179** (the supervisor's record): the places console's doors refuse only `missingCoordinates`; a latitude outside −90…90 or a longitude outside −180…180 is stored as sent. L3 kept the bounds as the form's parse rules (ruling L3-1), so the screen refuses them first; the doors do not.
 - **INC-1179** (the supervisor's later word; records turn R17): open. Class: a door that trusts a range only its screen checks (the route boundary's concern — the door is the authority, G54 (a)). Owner: F1-7.
+- **INC-1179** (turn F1-7b, docs/governance/reports/f1-doors-7b.report.md §14, word for word): INC-1179 CLOSED — the places trigger refuses `badCoordinates` for a coordinate out of range, for every writer; the import preview flags the row with the reason `badCoordinates` (`admin.locations.import.reason.badCoordinates`).
+- **INC-1179** (the supervisor's later word; records turn R18): CLOSED by F1-7b (pull request #79, merged `7e7040c99`).
 
 ## INC-1180 — typed numbers read without the one parser in the categories console (2026-11-16; Lovable's K2 in L3)
 
@@ -6630,11 +6675,14 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1181** (the supervisor's record): the dispatched run 43833961883 seeded 97,500 listings in 1,851.8 s (384 s on 2026-11-01): the free-slot guard's per-row count (`seller_regular_live` joins `locations` for the seller's ~380 baseline rows per insert) costs about 15 ms × 97,500 rows (ESTIMATE from the measured total).
 - **INC-1181** (the supervisor's later word; records turn R17): open. Class: a per-row trigger cost at seed scale (not a production concern — a real seller holds three free ads). Fix: more scratch sellers with fewer rows each, and the bench's `timeout-minutes` read against gate + seed + measure + cleanup. Owner: the next tests and CI item. The supervisor's slip S649.
+- **INC-1181** (the tests and CI turn 2's Records, word for word, for INC-1181 and INC-1182): INC — INC-1181, INC-1182 — status line: CLOSED — DEC-412; the dispatched run 44896403216 (3be465ac3): PASS, 100,500 listings seeded over 2,048 sellers in 1,329.9 s (sellers 116.0 s, listings 1,183.7 s), cleanup 157.1 s, leftovers 0; every shape's p95 between 2.98 and 4.51 ms (target 50); one page 15,006 bytes (target 30,720); 1,513 s from start to end.
+- **INC-1181** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`).
 
 ## INC-1182 — the Sunday Feed bench and the nightly overlap on ethio-staging (2026-11-16; the supervisor)
 
 - **INC-1182** (the supervisor's record): the Feed bench's Sunday schedule (16:10 UTC, DEC-171) and the nightly (16:30 UTC in winter, DEC-277) overlap now that the bench's seed takes 31 minutes (INC-1181): the bench yields to the nightly's staging gate (run 43833961883 yielded to the 09:18 re-run on 2026-11-16).
 - **INC-1182** (the supervisor's later word; records turn R17): open. Class: two scheduled staging jobs without a shared timetable. Fix: the bench's schedule at least two hours before the nightly (a workflow change — its DEC under G22), with INC-1181's faster seed. Owner: the next tests and CI item.
+- **INC-1182** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`; DEC-412: the bench's Sunday run at 13:10 UTC, at least two hours before the nightly) — the status line is INC-1181's.
 
 ## INC-1183 — a shared staff dialog shell inside a feature file (2026-11-16; L4, ruling L4-2)
 
@@ -6655,31 +6703,42 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1186** (the supervisor's record): recorded by number only until its fix is live (G51).
 - **INC-1186** (the supervisor's later word; records turn R17): open. Owner: the next tests and CI item, with INC-1168 (c).
+- **INC-1186** (the supervisor's later word; records turn R18): still named by number only (G51), with INC-1168 (c); DEC-413's guard is built (pull request #87); the text enters this file at the records turn after the carry step is built and live.
 
 ## INC-1187 — the feed enqueuers' one-statement insert can race a deleted listing (2026-11-17; F1-5b's finding F1)
 
 - **INC-1187** (the supervisor's record): the three feed enqueuers insert by one `INSERT … SELECT` and were left outside F1-5b's `FOR KEY SHARE` census (INC-786); a listing deleted between the select and the keyed insert raises a foreign-key error.
 - **INC-1187** (the supervisor's later word; records turn R17): open. Class: a counter keyed to a listing that can raise on a deleted listing (register row 168). Owner: the housekeeping turn's database parts (C6).
+- **INC-1187** (Cursor bundle 1's Records, word for word): INC — INC-1187 — status line: CLOSED — mark `20261121160000`; the held read (`FOR KEY SHARE OF l`; places by two CTEs); the proof deletes a scratch listing beside the enqueue and asserts no error and no row for it. Add to its entry: the lock's cost was weighed at stop 2 and accepted (ruling 2, answer 2).
+- **INC-1187** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 1 (pull request #91, merged `63d6bee0d`).
 
 ## INC-1188 — `isDeactivatedRefusal` is dead and matches a retired sentence (2026-11-17; F1-5b's findings)
 
 - **INC-1188** (the supervisor's record): `src/features/auth/deactivated.ts:38` matches a sentence no door raises since the door turns; nothing calls it but its own test.
 - **INC-1188** (the supervisor's later word; records turn R17): open. Class: a reader of a folded sentence (G74 (5)). Owner: F1-7 (the auth folder is Cursor's; DEC-379's later word at R16).
+- **INC-1188** (turn F1-7c, docs/governance/reports/f1-doors-7c.report.md §14, word for word): INC — INC-1188 status line: CLOSED — `isDeactivatedRefusal` removed with its test; the rest of `src/features/auth/deactivated.ts` stays.
+- **INC-1188** (the supervisor's later word; records turn R18): CLOSED by F1-7c (pull request #81, merged `8a2593c50`).
 
 ## INC-1189 — three readers of a refusal's code head instead of one (2026-11-17; F1-5b's findings)
 
 - **INC-1189** (the supervisor's record): three client modules split a refusal's `code:detail` by hand.
 - **INC-1189** (the supervisor's later word; records turn R17): open. Class: a reader with no shared mechanism (one `refusalCode` in `src/lib`). Owner: F1-7.
+- **INC-1189** (turn F1-7d, docs/governance/reports/f1-doors-7d.report.md §14, word for word): INC — INC-1189 — status line: the server's readers now read through `splitRefusal` (`src/routes/api/feed.ts`, `src/routes/api/seller.ts`, `src/server/seller-page.ts`, `src/server/function-refusal.ts`, `src/routes/api/attributes.$id.options.ts`, `src/routes/api/translate.ts`, `src/server/jobs/route.ts`, `src/server/imports/route.ts`, `src/lib/reader-failure.ts`); CF-REFUSAL-1 (`scripts/conformance/refusal-readers.test.ts`, built here) guards it; the client's parsers are Lovable's L21 (no line `until L21` left: L21 merged first; two lines left, `src/features/admin/legal/legal-version-view.tsx:160` until INC-1189 for Lovable's L22, and `src/lib/door-error.ts:22` until INC-1189).
+- **INC-1189** (the supervisor's later word; records turn R18): open for one line. The client's parsers moved onto the one reader in L21 (pull request #84) and the legal view's in L22 (pull request #86); `src/lib/door-error.ts:22` (`REASON_CODE`) stays on `scripts/conformance/refusal-readers-allowlist.txt` until INC-1189.
 
 ## INC-1190 — a ceiling at the NEAR band's edge on dev that dev's own run did not judge (2026-11-17; F1-5b, stop 3)
 
 - **INC-1190** (the supervisor's record): F1-5b's run 44069383485 read `/admin/users_/$userId` at 290.7 of 291 (within the 0.3 KiB NEAR band); dev `d7c242641` itself read 290.7 (L6 had grown it by 54 B), and dev's own run had skipped its lanes on a proven tree, so no run judged the budget on dev.
 - **INC-1190** (the supervisor's later word; records turn R17): open. Class: the budget job not run on a dev push whose tree changed `src/`. Owner: the next tests and CI item, with INC-1198.
+- **INC-1190** (the tests and CI turn 2's Records, word for word): INC — INC-1190 — status line: CLOSED, no defect — the dev push's tree was judged by the earlier run 44061994764 ("Bundle budget OK"); the skip stands.
+- **INC-1190** (the supervisor's later word; records turn R18): CLOSED, no defect (pull request #87).
 
 ## INC-1191 — Save is offered to the ad's own seller (2026-11-17; F1-5b's walk)
 
 - **INC-1191** (the supervisor's record): on the public ad page the owner test is `doc.viewer.owner || ownAd` (`src/routes/l.$slug.tsx` :174); the server's public read is anonymous, so `viewer.owner` is false, and `ownAd` is set only by a refused save and lost on reload. Not a hole: the door refuses `ownListing` and writes nothing.
 - **INC-1191** (the supervisor's later word; records turn R17): open. Class: a public reader that cannot know the viewer. Owner: F1-7 (the viewer-aware readers).
+- **INC-1191** (turn F1-7a, docs/governance/reports/f1-doors-7a.report.md §14, word for word): INC — 1191: status line: the ad page reads the viewer's ownership from `listing_viewer_state` (`src/features/ad-page/save.ts`, `use-saved-state.ts`, `src/routes/l.$slug.tsx`); the seller is offered no Save and no Report on reload; fixed in `bb44ba184` and proven by SVS-1…SVS-8, SAVE-4, AP-24 and AP-26.
+- **INC-1191** (the supervisor's later word; records turn R18): CLOSED by F1-7a (pull request #75, merged `cca37d0cd`).
 
 ## INC-1192 — a visitor's Save sign-in returns without the save (2026-11-17; the operator's walk of F1-5b)
 
@@ -6690,6 +6749,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1193** (the supervisor's record): Lovable's dev-server preview throws `Cannot access enBase before initialization` on `/` and `/l/*`; the published site works (walked); a circular import the dev server's module order exposes.
 - **INC-1193** (the supervisor's later word; records turn R17): open. Class: an import cycle the production build tolerates. Owner: the next tests and CI item (Lovable's own browser checks depend on the preview).
+- **INC-1193** (the tests and CI turn 2's Records, word for word): INC — INC-1193 — status line: OPEN — `src/` has no import cycle at the base or at L10 (this census); the cycle guard landed; the cause needs the preview's stack.
+- **INC-1193** (the supervisor's later word; records turn R18): open; the import-cycle guard (CF-CYCLE) stands. Owner (G71): the before-launch list.
 
 ## INC-1194 — the dependency audit red on every branch: picomatch has no patch (2026-11-17; L10's pull request #63)
 
@@ -6705,6 +6766,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1196** (`docs/governance/reports/f1-doors-6a.report.md` §14, word for word): INC-1196: the shell's `door_refused` re-counts a `rateLimited` refusal, so a rate-limited call spends one more unit of a spent dial; class: the shell's refusal accounting (mechanism `door_refused`, F1-1); owner: F1-7, with INC-1170.
 - **INC-1196** (the supervisor's later word; records turn R17): open. Owner: F1-7, with INC-1170.
+- **INC-1196** (turn F1-7a, docs/governance/reports/f1-doors-7a.report.md §14, word for word): INC — 1196: status line: CLOSED — `door_refused` counts nothing more for `rateLimited`; proven by the migration's proof (b) in part 1 (the count stays at its value, and the refusal is metered once) and by `DR-RL-1` (the dial's count stays at 1 over two refused calls; `door_refusals` moves by at least two) and by AP-27's meter at 8.
+- **INC-1196** (the supervisor's later word; records turn R18): CLOSED by F1-7a (pull request #75, merged `cca37d0cd`).
 
 ## INC-1197 — no test reaches `severeRestore` since the move door asks the second factor first (2026-11-18; F1-6a's verification)
 
@@ -6716,6 +6779,8 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1198** (the supervisor's record): F1-6a's refactor folded eight vendor chunks into the entry (`ENTRY_CLOSURE`); every page's first download fell by 2.9–5.0 KiB and every ceiling sits that much higher than its page.
 - **INC-1198** (the supervisor's later word; records turn R17): open. Owner: the next tests and CI item's ratchet pass, with INC-1190.
+- **INC-1198** (the tests and CI turn 2's Records, word for word): INC — INC-1198 — status line: CLOSED — 49 of 50 page ceilings and the entry's JS (205 → 203) and CSS (40 → 23) at `ceilingForLocal(size)`; the ratchet message names `ceilingFor(size)` (DEC-296; BC-10).
+- **INC-1198** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`).
 
 ## INC-1199 — the form gate answered a submit from the last render's blanks (2026-11-18; dev's run after F1-6a's merge)
 
@@ -6751,16 +6816,21 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1205** (the supervisor's record): `scripts/check-migrations.sh` :918–:921 reads the reader's output without checking the reader's exit; `tci-overlay-guards` gave the random-text guard the three-line fix.
 - **INC-1205** (the supervisor's later word; records turn R17): open. Class: a guard that passes when its reader fails (INC-1202's guard got the fix). Owner: the next tests and CI item.
+- **INC-1205** (the tests and CI turn 2's Records, word for word, for INC-1205 and INC-1207): INC — INC-1205, INC-1207 — status line: CLOSED — the proof table rule and the real-row and real-pick rules on the migration reader (`scripts/conformance/migration-guards.ts`, four modes of `migration-reader.ts`), verdicts byte-equal on every migration; every guard checks its reader's exit; a planted reader failure proves each (six mutations).
+- **INC-1205** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`); its sibling INC-1231 closed in Cursor bundle 1.
 
 ## INC-1206 — the Lovable guard's test reads the live route budgets (2026-11-18; `tci-overlay-guards`' findings)
 
 - **INC-1206** (the supervisor's record): `scripts/ci/lovable-branch-guard.test.ts` :398–:412 builds a fixture from the live `scripts/route-budgets.mjs`.
 - **INC-1206** (the supervisor's later word; records turn R17): open. Class: a guard's test that stands on a live list its subject changes (INC-1201's class). Owner: the next tests and CI item.
+- **INC-1206** (the tests and CI turn 2's Records, word for word): INC — INC-1206 — status line: CLOSED — CF-LVB-13 and CF-LVB-14 read a ceilings fixture of their own (twelve lines of about 4 KB each), never the live `scripts/route-budgets.mjs`.
+- **INC-1206** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`).
 
 ## INC-1207 — three older guards in `check-migrations.sh` parse SQL themselves (2026-11-18; `tci-overlay-guards`' findings)
 
 - **INC-1207** (the supervisor's record): three guards in `scripts/check-migrations.sh` parse migration SQL by their own patterns instead of the migration reader (register row 125).
 - **INC-1207** (the supervisor's later word; records turn R17): open. Class: a hand-rolled reader beside the mechanism (row 125). Owner: the next tests and CI item.
+- **INC-1207** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`) — the status line is INC-1205's.
 
 ## INC-1208 — the report dialog's note says "Optional" twice (2026-11-18; L12's verification)
 
@@ -6776,10 +6846,492 @@ INC-1142 (later word, 2026-11-13; records turn R14): Open. Placement (DEC-379): 
 
 - **INC-1210** (the supervisor's record): CL-E10 has five lines in the flake ledger in seven days (2026-11-15 once, 2026-11-17 four times; matrix lanes), passing on retry, with no INC (G38's rule: three in seven days is an INC).
 - **INC-1210** (the supervisor's later word; records turn R17): open. Class: an e2e flake with no named cause yet. Owner: the next tests and CI item (with INC-1015's return).
+- **INC-1210** (the tests and CI turn 2's Records, word for word): INC — INC-1210 — status line: CL-E10's cause is INC-1226 (Lovable's); SMN-E13 fixed here (it reads the menu's rows with its own scratch root on the rail and grows its branch after, `e2e/submenu-look.spec.ts:231`; `@global-state`; `c0a7d2c3f`).
+- **INC-1210** (the supervisor's later word; records turn R18): CLOSED: SMN-E13 by the tests and CI turn 2 (pull request #87); CL-E10's cause, INC-1226, by Lovable bundle 1 (pull request #90).
 
 ## INC-1211 — the languages table's switch labels drew over the next column (2026-11-19; the operator's walk and screenshot)
 
 - **INC-1211** (the supervisor's record): on Admin → Translations, a wide screen: each row's Staff cell drew "Available to staff" beside its switch inside a `w-16` column, over the Public column's "Published to visitors" and its switch; L6 (pull request #58) had put both switches in the one Field with a visible label though the column headers name them (`src/features/admin/translations/languages-page.tsx` :485–:502, :540–:558). The Language and English-name columns declared `w-fit max-w-*`, which the shared table's fixed layout does not honour, so they took a share of the free width.
 - **INC-1211** (the supervisor's later word; records turn R17): CLOSED by L14 (pull request #72, merged `714a5d7ef`): screen-reader-only labels (the kit's form for a control whose column header names it) and fixed widths by content; walked 3/3 on ethio-prod on 2026-11-19. Lovable's census found no other table-cell Field with a visible label. Class: a control in a table cell whose column header names it; the general rule for every table is ACT-023.
 
-Numbering: next free INC-1212.
+## INC-1212 — helper lines of the door manifest named a policy no policy named (2026-11-19; F1-7a ruling 1)
+
+- **INC-1212** (the supervisor's record): thirteen `helper` lines of the door manifest gave `policy` as their reason and no policy named them; no check read the reason. Class: a declaration nobody reads against the thing it describes.
+- **INC-1212** (the supervisor's later word; records turn R18): CLOSED by F1-7a (pull request #75): every helper's grant judged by its caller — thirty-one helpers closed; the lines kept are `has_permission` (its 22 policies) and `sold_cutoff` (the three public-read policies); the checker reads policies statically and refuses a `helper` line whose policy does not name it.
+
+## INC-1213 — a reader's gate refusal reached the browser as HTTP 500 (2026-11-19; F1-7a ruling 2)
+
+- **INC-1213** (the supervisor's record): a reader's gate refusal (`door_refuse`, SQLSTATE P0D01, raised with no shell handler) reaches a browser through PostgREST as HTTP 500, on every reader on the gate since F1-1 (`e2e/legal-admin.spec.ts`'s reader test shows it). The client reads the code first from F1-7a on, so no screen misreads it; the status still says server error to a log or a monitor. Class: a refusal's status left to the transport. Owner: F1-7c — one mechanism for every reader's refusal status.
+- **INC-1213** (the supervisor's later word; records turn R18): CLOSED by F1-7c (pull request #81): `door_context` marks the outermost call and `door_refuse` raises `PGRST` with the status table's status under a reader, proven in the migration by the raised SQLSTATE and detail.
+
+## INC-1214 — a rate-limited call wrote a server-error line (2026-11-19; the F1-7a report's finding 1)
+
+- **INC-1214** (the supervisor's record): a normal rate-limited call on the posting routes writes `[ssr-error] <path> rateLimited:<instant>` because `src/server/door.ts:50` compares the reason to the whole message. Class: a log line that names a refusal as a server error.
+- **INC-1214** (the supervisor's later word; records turn R18): CLOSED by F1-7c (pull request #81): `src/server/door.ts` logs only a `doorError`; a rate-limited call writes no `[ssr-error]` line (DC-4, red on the previous code).
+
+## INC-1215 — the server's error answer wrote "[object Object]" (2026-11-19; the F1-7a report's finding 2)
+
+- **INC-1215** (the supervisor's record): `src/server/answer.ts:164` (`serverError`) writes `[object Object]` to the log for a plain-object error. Class: an error's text read without the one reader (`errorText`).
+- **INC-1215** (the supervisor's later word; records turn R18): CLOSED by F1-7c (pull request #81): `serverError` writes the error's text through `errorText` (ANS-12, red on the previous code).
+
+## INC-1216 — ethio-staging held a drifted copy of attr_import_plan (2026-11-20; F1-7b ruling 1)
+
+- **INC-1216** (the supervisor's record): ethio-staging's `attr_import_plan` held three stray blank lines inside statements (md5 `95afc874cd6bbf2ecbf78529ba9981d9`). The repository and ethio-prod hold `7a2cb3062a843c2d16ce1b5be5be90ef`. It is the only one of 531 public functions that differed between the two databases (the supervisor's census, 2026-11-20). Its last declaration is October's (`supabase/migrations/20261017093039_337a69e0-f088-40aa-8a4f-8f9120024264.sql`), and the staging copy most likely came through an editor paste (ESTIMATE: the carrier is not proven). Found by F1-7b part 3's pre-check, read before the apply. Class: a shared database that drifts from the repository, seen only when a computed redeclaration's pre-check reads it.
+- **INC-1216** (the supervisor's later word; records turn R18): CLOSED with F1-7b's staging apply (pull request #79): part 3 healed the staging copy to the repository's body first, both md5s named. The supervisor compares both databases' body md5s at every migration stop (F1-7c's GO law 7).
+
+## INC-1217 — assign_role stored a scope country without its case fold (2026-11-20; F1-7b ruling 1)
+
+- **INC-1217** (the supervisor's record): `assign_role` stores `p_scope_country` as given. A lower-case two-letter scope passes the shape check and is stored lower-case, while `has_permission_scoped` compares upper-case, so the role never matches its country. The console sends no scope today. Class: a code stored without its case fold.
+- **INC-1217** (the supervisor's later word; records turn R18): CLOSED by F1-7c (pull request #81): `assign_role` stores its scope upper-cased, redeclared whole from its live body, pre- and post-checked by md5.
+
+## INC-1218 — the session ended in the browser while the person kept working (2026-11-20; the operator's report)
+
+- **INC-1218** (the supervisor's record, F1-7c ruling 1): the cause, read by the supervisor from ethio-prod's edge log (2026-11-20): two browser auth clients with separate state; one kept a signed-out session's refresh token, was refused at 07:01:22Z, and its calls went out as anon (401), while the other client's calls carried the new session (200). Owner: F1-7d.
+- **INC-1218** (the supervisor's later word; F1-7d, pull request #85): the cause written above rests on two CORS preflights read as requests and is WITHDRAWN (the supervisor's slip S692). The facts (ethio-prod, 2026-11-20): a global sign-out at 07:00:56Z; a password sign-in at 07:01:20Z; ONE refresh at 07:01:22.102Z answered 400 `refresh_token_not_found`; the browser's calls went anon (401) from 07:01:22.174Z. CLOSED by F1-7d: the cause is unproven from the code (SO-16, two tabs with a sign-out and a fresh sign-in, is green on the unchanged code in Chromium and WebKit and stays as a guard); the fix: sign-out on this device only (DEC-411), one end of a session (`src/features/auth/session-end.ts`, `src/components/app-shell.tsx` `hardReset`), and the query client never retrying an ended session (`src/features/auth/session-query-client.ts`); browser tests SO-14, SO-15, SO-16. Its later class (another tab ends the session) is INC-1274.
+
+## INC-1219 — the shared table's headers, card pills and empty card values (2026-11-20; the operator's walk of L18)
+
+- **INC-1219** (the supervisor's record; the L19 task): the operator's walk of L18 on the published site (admin Monetisation) found three faults in the shared table: in a fixed-layout table a header word wider than its column overflows into the next column ("Placement" into "Badge"); below `cardUntil` a column in the card's `badge` slot draws its value with no label (a lone "On" — Levels' Enabled, Markets' Paid levels); the card's foot draws labels and separators with no value ("Created by · Updated by ·", Markets' "Paid since"). Class: the shared table's drawing of a header and a card value, fixed once in `src/components/shell/data-table.tsx` for every table.
+- **INC-1219** (the supervisor's later word; records turn R18): CLOSED by L19 (pull request #80, merged `70533e559`): a header's words wrap and never spill; a card value that does not name itself is drawn with its label; a blank value draws nothing in the card (`data-table.tsx` :292, :299; `e2e/admin-monetisation.spec.ts` :900).
+
+## INC-1220 — a sentence shaped "word: text" was read as a refusal code (2026-11-20; the L21 task)
+
+- **INC-1220** (the supervisor's record; the L21 task, Part 3): in `src/lib/door-error.ts` (`doorRefusal`) a message shaped "lowercaseword: any sentence" was read as a code with the text as its detail, so a Postgres or provider message of that shape would reach the screen as a reason and write no log line. Class: a refusal recognised by its shape instead of the one list of codes.
+- **INC-1220** (the supervisor's later word; records turn R18): CLOSED by L21 (pull request #84, merged `8df5d28db`; commit `43695d44e`): an unlisted head followed by a space is a sentence, answered `doorError` and logged (`door-error.ts` :46, `DOOR_CODES`); RRD-1 (`src/lib/door-error.test.ts` :64).
+
+## INC-1221 — a reader's refusal answered 500 at the server (2026-11-20; F1-7c's report)
+
+- **INC-1221** (F1-7d's Records, word for word): INC — INC-1221 — status line: CLOSED — `readFailure` answers a refusal at its code's status.
+- **INC-1221** (the supervisor's later word; records turn R18): the defect, from F1-7d's report: `readFailure` (`src/server/answer.ts`) answered a reader's 4xx refusal as 500 `serverError`. CLOSED by F1-7d (pull request #85, merged `6e34d60d3`): 428 is `stepUpRequired()`; any other gate code is `clientError(code, status)` at `door_refusal_status`'s status, with a short code-like detail (ANS-13); every other failure unchanged.
+
+## INC-1222 — the perks table's empty line kept the old wording (2026-11-20; the L21 task)
+
+- **INC-1222** (the supervisor's record; the L21 task, Part 1): L20 left one sentence in the old wording: a level with no specific perks drew `admin.monetisation.empty.overridesWhy` ("No per-category perks — every category uses this level's own perks.") at `src/features/admin-monetisation/level-overrides-table.tsx:188`. Class: a screen's words left behind by a rewording.
+- **INC-1222** (the supervisor's later word; records turn R18): CLOSED by L21 (pull request #84, merged `8df5d28db`): the new key `admin.monetisation.empty.perksWhy` ("No specific perks — every market and category uses this level's own perks."); the old key retired once nothing read it (Knowledge D5).
+
+## INC-1223 — the client mirror of the refusal statuses had no census (2026-11-20; F1-7c's report)
+
+- **INC-1223** (F1-7d's Records, word for word): INC — INC-1223 — the client mirror `REFUSAL_STATUS` (`src/lib/reader-failure.ts`) of `door_refusal_status` was guarded only by its own unit test (F1-7c's §13). Class: a mirror of a database table without a census. Status line: CLOSED — CF-REFUSAL-2 (`scripts/conformance/refusal-readers.test.ts` CFRR-3, both directions, and CFRR-4's planted drift); `CODE_STATUS` in `src/server/imports/route.ts` removed.
+- **INC-1223** (the supervisor's later word; records turn R18): CLOSED by F1-7d (pull request #85, merged `6e34d60d3`).
+
+## INC-1224 — the two feed functions raise "<function>: <code>" (2026-11-20; F1-7d's census)
+
+- **INC-1224** (F1-7d's Records, word for word): INC — INC-1224 — `feed_page` and `seller_feed_page` raise `<function>: <code>`, not `code:detail` (F1-7d's census). The servers read them through `splitRefusal` twice. Class: a refusal shape outside the door law. Owner: the before-launch list (G71).
+- **INC-1224** (the supervisor's later word; records turn R18): open. Owner (G71): the before-launch list. The servers read it by code (`functionRefusalCode`, F1-7d; FD-6, SLR-6), so no screen misreads it today.
+
+## INC-1225 — not defined in the record
+
+- **INC-1225** (the supervisor's later word; records turn R18): not defined in the record. The number falls in the days 2026-11-19 → 2026-11-21, whose running record was not saved (slip S790); no brief, ruling, report, commit or file on dev names it. It is never reused (G41).
+
+## INC-1226 — one press opened the row menu and its tooltip together (2026-11-21; tests-ci-2's census)
+
+- **INC-1226** (tests-ci-2's Records, word for word): INC — INC-1226 — a tooltip opens over an open menu when the overlay code arrives after the click, so Escape closes the tooltip and leaves the menu open (`src/components/ui/overlay-facade.tsx`; this census). Class: two overlays opened by one press. Owner: Lovable's next turn, red first.
+- **INC-1226** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 1, Part A (pull request #90, merged `358c691ab`; L23's plan): a press while the overlay code loads closes the tooltip as live Radix does (`overlay-facade.tsx` :268, :289); OVF-27 (`src/components/ui/overlay-facade.test.tsx` :276) shows the menu open, the tooltip not, and Escape closing the menu.
+
+## INC-1227 — tests that pass alone and time out under a loaded machine (2026-11-21; the supervisor's gate of L22b)
+
+- **INC-1227** (the supervisor's record): tests that pass alone and fail when the machine is loaded: KAU-6 in the supervisor's gate of L22b; CF-LANES-4 and CFRR-3 at their 5 s limit, run on `7d795e055` under load averages 3.72, 18.00, 15.80 (512 s), passing alone in 513 ms and 1,112 ms (tests-ci-2 ruling 2, decision 3; the report's measurement). The registration's own text was in the running record of 2026-11-19 → 2026-11-21, which was not saved (S790). Class: a test's time limit set for an idle machine.
+- **INC-1227** (the supervisor's later word; records turn R18): open. Owner (G71): the before-launch list.
+
+## INC-1228 — the Feed bench printed PASS and a page size it never measured (2026-11-21; tests-ci-2 ruling 4)
+
+- **INC-1228** (tests-ci-2's Records, word for word): INC — INC-1228 — the Feed bench's log printed `PASS: every target met` on two runs that yielded before measuring anything (44892283273, 44894899898), and its status file printed a page size of `0 bytes`. `verdict()` called no measured shape a pass, `main()` printed its lines after a yield or a failure, and the unmeasured page size was the number 0. The outcome line and the exit code were right. Class: a line that states a success or a measurement the run did not make (phantom success; a sentinel number). Mechanism: `verdict()` and the status renderer in `scripts/feed-bench.ts`. Fix: a PASS line only when every shape in `SHAPE_NAMES` and the page size were measured and met their targets; each value not measured gets its own `NOT MEASURED: …` line in the log and `- Not measured: …` / `Page size (…): not measured` line in the status file; the page size is `number | null`, never 0 for an absence; a run that neither failed nor yielded and measured less than everything is a MISS; FB-10, FB-11. Status: CLOSED by cdb69a574.
+- **INC-1228** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`).
+
+## INC-1229 — two readers of a rate refusal's reset instant (2026-11-21; Lovable bundle 1's review)
+
+- **INC-1229** (the supervisor's record): two readers of a rate refusal's instant — `src/features/ad-page/ad-page-refusals.ts:98` and `src/features/posting/refusal-text.ts:197` (both `rateUntilOf`). Class: one mechanism per concern. Owner: Cursor bundle 1 with INC-1153 (`src/lib` is its folder); one home without growing every page's first download.
+- **INC-1229** (Cursor bundle 1's Records, word for word): INC — INC-1229 — status line: CLOSED — the one reader, `src/lib/refusal.ts:272` `rateUntilOf`; the ad page and the posting wizard call it; RTW-22.
+- **INC-1229** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 1 (pull request #91, merged `63d6bee0d`).
+
+## INC-1230 — the Feed bench's job limit was shorter than its gate's wait plus its run (2026-11-21; tests-ci-2's self-review)
+
+- **INC-1230** (tests-ci-2's Records, word for word): INC — INC-1230 — the Feed bench's job limit was shorter than its gate's maximum wait plus its run: the gate waits up to `GATE_WAIT_MINUTES` for quiet staging inside the job, and the limit was half as much again of one measured run whose gate wait was short (60 from run 43872334867, then 38 from run 44896403216). A long wait ended in a job timeout with no honest SKIPPED status. Found by the executor's self-review. Class: a limit computed from one measured run where a part has a designed maximum. Mechanism: the job's `timeout-minutes` and the two constants in `scripts/feed-bench.ts`. Fix: the limit is the gate's whole wait plus the run's allowance, held together by CF-CID-11. Status: CLOSED by 559d4eb8a.
+- **INC-1230** (the supervisor's later word; records turn R18): CLOSED by the tests and CI turn 2 (pull request #87, merged `ca4c4581d`): `timeout-minutes: 78` = `GATE_WAIT_MINUTES` 40 + `RUN_ALLOWANCE_MINUTES` 38.
+
+## INC-1231 — a census blanked comments by its own pattern (2026-11-21; the verification of tests-ci-2)
+
+- **INC-1231** (the supervisor's record): `triggerFindings` (`scripts/conformance/shared-values.ts:145`) blanks comments by its own pattern, not the migration reader's `sqlCodeOf`; a `--` inside a quoted literal could hide a statement-level trigger from CF-LANES-4. Class INC-1205. Owner: Cursor bundle 1.
+- **INC-1231** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 1 (pull request #91, merged `63d6bee0d`): `triggerFindings` reads through `sqlCodeOf`, with its planted literal (CF-LANES-6).
+
+## INC-1232 — the serial pass's line and its cap count missed two lists (2026-11-21; the verification of tests-ci-2)
+
+- **INC-1232** (the supervisor's record): the serial pass's line `- Repeat serially (DEC-415)` does not reach `local-backend-proof.md` (the aggregator's prefix tuple, `.github/workflows/local-backend-proof.yml:1222`), and `scripts/e2e-failure-report.ts:1584` counts the serial pass's cap line as ONE test run. Class: a list a new line had to join. Owner: Cursor bundle 1, first part.
+- **INC-1232** (Cursor bundle 1's Records, word for word, for INC-1232, INC-1231 and INC-1233): INC — INC-1232, INC-1231, INC-1233 — status line: CLOSED — the summary's line (`local-backend-proof.yml`'s summary step keeps `- Repeat serially`; LFE-4) and the cap's count (`scripts/e2e-failure-report.ts` counts per-test cap lines apart from `SERIAL_CAP_LINE`, the serial pass its own clause; EFR-5); `triggerFindings` on the reader (`sqlCodeOf`) with its planted literal (CF-LANES-6); the reworded message (`a reader line is not "file::test id" (…)`, no angle brackets, no suppression comment).
+- **INC-1232** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 1 (pull request #91, merged `63d6bee0d`).
+
+## INC-1233 — a guard's message tripped the scanner's HTML-in-template warning (2026-11-21; the review comment on pull request #87)
+
+- **INC-1233** (the supervisor's record): the scanner's one review comment on pull request #87 — Semgrep OSS `html-in-template-string` at `scripts/conformance/shared-values.ts:106`, `fail(\`a reader is not <file>::<test id> (…)\`)` — is a false positive (`fail` throws an Error; nothing renders it); the message is reworded without angle brackets, no suppression needed. Owner: Cursor bundle 1, with INC-1231 (same file). Not blocking the merge.
+- **INC-1233** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 1 (pull request #91, merged `63d6bee0d`): the message reads `a reader line is not "file::test id" (…)`.
+
+## INC-1234 — a second two-factor prompt moments after the first (2026-11-15; the operator's walk)
+
+- **INC-1234** (Cursor bundle 1's Records, word for word): INC — INC-1234 — a second two-factor prompt moments after the first, on Admin, creating a category and then generating its picture (the operator's walk of 2026-11-15). Not reproduced: SU-R1 passed in `desktop-1280` and in `mobile-360`, and SU-R2 in `desktop-1280`, 0 retries, on ethio-staging, the modal opening once in each run; MF-9 then passed in both projects. The reading that `isStepUpFresh` is stale right after the code is false on both paths. Class: unknown until a trace names it. The trace to take at the next occurrence: the access token's `aal` and `amr`, and the device's `Date.now()`; the network answer just before the modal (a P0009 from a door would show the parked path, `use-step-up.ts` :123 at the base); whether `listFactors` answered (`mfa-service.ts` :185 at the base). MF-9 pins one step-up, one prompt. Status: OPEN — waits for a trace; no change in the sign-in folder.
+- **INC-1234** (the supervisor's note, 2026-11-21): CI-4 and CI-5 cannot see a second step-up prompt (`stepUpIfPrompted` passes silently, `e2e/helpers/ui.ts:1105-1113`); MF-9 is the one spec that counts prompts (Cursor's finding 3).
+- **INC-1234** (the supervisor's later word; records turn R18): open, waiting for a trace. Owner (G71): the before-launch list.
+
+## INC-1235 — the reader-failure module held its own sets of the gate codes (2026-11-21; Cursor bundle 1's finding 1)
+
+- **INC-1235** (Cursor bundle 1's Records, word for word): INC — INC-1235 — `src/lib/reader-failure.ts` holds its own sets of the gate codes beside `DOOR_CODES`. Class: one list per concern. Status: OPEN — it could read the one list without growing a first download only on the 12 of the 14 pages that carry it which already carry the reader's chunk; `/account` and `/legal/publishing` would gain the list's chunk (§13, finding 1).
+- **INC-1235** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 4, Part 1 (pull request #96, merged `1b0af44c4`; DEC-429).
+
+## INC-1236 — two tables granted to browsers that no browser reads (2026-11-21; Cursor bundle 1's census)
+
+- **INC-1236** (Cursor bundle 1's Records, word for word): INC — INC-1236 — `level_overrides` and `market_settings` grant anon and authenticated a column-level SELECT and hold an open read rule each, and nothing reads them from a browser: no commit of dev holds a direct read of either table under `src/` (`git log -S` on both spellings), and the only functions that read them as their caller, `level_perks_for` and `market_settings_for`, are closed to both browser roles (read on ethio-staging, 2026-11-21). Class: a declared public surface with no reader (DEC-407's neighbour). Not a hole: the level matrix and the free baseline, no personal data. Owner: the first part of Cursor's next bundle, by a rule frozen now — if that bundle's census still finds no browser reader and its forward-scan names none, the column grants are revoked and the two rules dropped at that bundle's migration stop, and the two allowlist lines take DEC-407's RETIRED form; otherwise each line names its reader. Open.
+- **INC-1236** (Cursor bundle 2's Records, word for word): INC-1236 — status line: CLOSED — retired: the mark `20261122040400`; the catalogue's answer after (the proof's (a)–(d)): neither anon nor authenticated holds SELECT on either table or any column, each table's policies are exactly its three write refusals, the service role reads both; the two RETIRED lines in `scripts/public-surface-allowlist.txt` (`level_overrides`, `market_settings`); the two lines removed from `scripts/doors/open-rules.txt`. INC-1236 adds: the two rules and the column grants are gone on ethio-staging (ruling 2, answer 1); ethio-prod follows the merge.
+- **INC-1236** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 2 (pull request #92, merged `0156ca877`); applied on ethio-prod after the merge.
+
+## INC-1237 — four copies of the filter step in the browser-test helpers (2026-11-21; Lovable bundle 3's planning)
+
+- **INC-1237** (the supervisor's record): four copies of `chooseFilter` in `e2e/helpers` (`countries.ts:106`, `translations.ts:88`, `locations.ts:~101`, `categories.ts:~230`), and 16 spec files that click a filter's pill by test id directly. Class: a test step with several hand-rolled copies (G0.2 in the harness). Owner: Cursor bundle 2 (one helper, every spec on it, driving the control whatever it is). Open.
+- **INC-1237** (Cursor bundle 2's Records, word for word): INC-1237 — status line: CLOSED — the one helper is `e2e/helpers/filters.ts` `chooseFilter(page, panel, filter, value?)`; the specs on it are 18 calls in 11 files (`rg -c 'chooseFilter\(' e2e/*.spec.ts`); the copies removed are `e2e/helpers/countries.ts`, `e2e/helpers/locations.ts`, `e2e/helpers/translations.ts` and `categories.ts`' `toggleMissingAssets`; `chooseFilter` joined CF-HELPERS-1's names.
+- **INC-1237** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 2 (pull request #92, merged `0156ca877`).
+
+## INC-1238 — a table's kept view had two stores, per browser (2026-11-21; Lovable bundle 3's planning)
+
+- **INC-1238** (the supervisor's record): a table's kept view has two stores and is per browser, not per account: `src/components/shell/columns-state.ts` (hidden columns) and `use-kept-page.ts` (page size); filters are not kept at all (`listings-page.tsx:127-134` useState). Class: one concern, two mechanisms, a third missing. Owner: Lovable bundle 3 (one store, keyed by account and table; the seller text and any free text never stored). Open.
+- **INC-1238** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 3, Part A (pull request #95, merged `84b6b89e1`): one store, `src/components/shell/table-view-store.ts`, holds per account and per table the hidden columns, the rows per page and the filters (closed-list values only, never typed text); `columns-state.ts` reads it.
+
+## INC-1239 — rule 10's ban on the double cast had no guard (2026-11-21; Cursor bundle 1's finding 2)
+
+- **INC-1239** (the supervisor's record): rule 10 (TypeScript) is broken at the base by 62 `as unknown as` sites in 34 e2e files; lint does not catch it (Cursor's finding 2). Class: a rule with no guard. Owner: Cursor bundle 2's test groundwork (the lint rule with a shrinking allowlist first, the sites as their specs are touched). Open.
+- **INC-1239** (Cursor bundle 2's Records, word for word): INC-1239 — status line: OPEN with its list — the guard is `scripts/conformance/type-casts.ts` over `src/`, `e2e/` and `scripts/` (generated files left out as a class), CF-CAST-1…3, its planted case CF-CAST-2; the files left on the allowlist are 110 (`rg -c '\| INC-1239' scripts/conformance/type-casts-allowlist.txt` lines), 171 casts: 30 e2e files (55; `rg -n 'as unknown as' e2e | wc -l` = 55), 76 src files (112; `rg -n 'as unknown as' src | wc -l` = 112) and 4 scripts files (4), each until INC-1239; the four e2e files this bundle touches left the list (7 casts).
+- **INC-1239** (the supervisor's later word; records turn R18): open with its allowlist; each file leaves the list as its specs are touched.
+
+## INC-1240 — a windowed total answers zero for a page past the end (2026-11-21; Cursor bundle 2's finding 2)
+
+- **INC-1240** (Cursor bundle 2's Records, word for word): INC-1240 — (the supervisor's; the build's finding 2): a list door that answers its total as a windowed count beside each row answers no total for a page past the end, and its reader then says zero. Read on ethio-prod today: five functions hold the form — `admin_list_listings`, `admin_list_users`, `admin_list_translations`, `admin_list_entity_translations`, `impersonated_list_listings`. Class: a success-shaped total. Owner: Lovable's bundle 3, at the shared table — a page that comes back empty beyond the first asks for the first page — because a kept view makes the case likelier. The queue's new door answers its total apart from its page and is not in the class.
+- **INC-1240** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 3, Part F (pull request #95, merged `84b6b89e1`): only a completed, successful, empty answer past the first page goes back to the first page, on the ten tables that read by page (`ServerTablePage`).
+
+## INC-1241 — readers that throw a bare Error from a failed read (2026-11-21; Cursor bundle 2's finding 1)
+
+- **INC-1241** (Cursor bundle 2's Records, word for word): INC-1241 — (the supervisor's; the rest of the build's finding 1): readers under `src/` that throw a bare `Error` from a failed read instead of the typed reader failure. Class: a reader outside the one failure mechanism (INC-847's). Owner: the turn that owns `src/lib/reader-failure.ts`, with INC-1235, where the class gets its census and guard. This bundle clears the two files it rewrites.
+- **INC-1241** (the supervisor's note at registration): 26 sites in 12 non-test files at `80eed9f7e`.
+- **INC-1241** (the supervisor's later word; records turn R18): CLOSED for the client's readers by Cursor bundle 4, Part 1 (pull request #96, merged `1b0af44c4`; DEC-429: `readFailed(error, status?)`, one typed failure classed by one list); its remainder, the console services, is INC-1256.
+
+## INC-1242 — staff read rules that judged a permission without its country reach (2026-11-21; the supervisor's census for Cursor bundle 2)
+
+- **INC-1242** (the supervisor's record, held out of the repository until the fix was live — G51): staff read rules that judge a permission WITHOUT the country reach. 18 policies named `has_permission(` on ethio-prod; the listing family `listings_admin_read`, `listings_admin_update` (inert: no UPDATE grant), `listing_locations_admin_read`, `listing_photos_admin_read` (then still read by the Screening photos), `listing_photo_changes`, `_reviews` and `_warnings` read rules, `listing_reports_staff_read`, `reveal_flags_staff_read`; and `profiles_admin_read`, `audit_log_read`, two on packages, four on the role tables, `user_roles_read`. Exposure on the day: none (no country-scoped role assignment on ethio-prod). Class: an authority judged by a table rule beside the door mechanism, without its reach. Owner: the account-security Cursor bundle — census each rule's reader; retire the unread, move the read ones behind doors with reach.
+- **INC-1242** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 4, Part 2 (pull request #96, merged `1b0af44c4`; DEC-430): the five staff photo reads are `staff-reader` doors with reach; the eighteen public-table role rules dropped and SELECT revoked on eight tables; a staff role rule on a public table is a finding of the doors guard (`staff-rule-on-table`, DOORS-19/20), the four storage rules declared lines (`scripts/doors/staff-rules.txt`). Applied on ethio-prod and Published on 2026-11-23; this text enters the repository only now (G51).
+
+## INC-1243 — two forms of a closed primary action (2026-11-22; Lovable bundle 2's stop)
+
+- **INC-1243** (the supervisor's record): two forms of a closed primary — the wizard's Next (`data-closed` and its line, AND three truly disabled states pinned by `e2e/post-wizard-category.spec.ts` :204, `e2e/photo-pipeline.spec.ts` :563 and :1023) and the dialog anatomy's `ClosedPrimary` (never disabled). The import's Preview joined it as a third closed form (`e2e/admin-attributes-links.spec.ts` :1183, :1273 `toBeDisabled()`). Class: one concern, two mechanisms. Owner: the turn that owns posting (the UI workup; its three spec lines are Cursor's).
+- **INC-1243** (the supervisor's later word; records turn R18): open. Lovable bundle 2 (pull request #93, merged `9d9748da3`) kept both in their own closed form. Owner: the posting UI workup.
+
+## INC-1244 — a browser test's wait keyed on a value its repetition reuses (2026-11-22; Cursor bundle 2 ruling 2)
+
+- **INC-1244** (Cursor bundle 2's Records, word for word): INC-1244 — (owner this bundle STEP 4; status as this report finds it at the final push: FIXED in `3847ae92f`, its red not shown locally, CI's repeat lane judges it: `Lane repeat on temporary Supabase` is success on `cac963863`'s run and on `d436428e6`'s run; I did not read the lane's log to see whether MON-16 was among the specs it repeated): `e2e/admin-monetisation.spec.ts` MON-16 fails under repetition — its wait for the scratch market is keyed on the market's code, which a repetition reuses, while the page names a market from the open-markets store; the Markets detail then names the previous repetition's market (CI run 44979930034, the repeat lane, both projects). Class: a wait keyed on a value a repetition reuses (the family of INC-428 and INC-1136).
+- **INC-1244** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 2 (pull request #92, merged `0156ca877`).
+
+## INC-1245 — browser tests that read data and drop the read's error (2026-11-22; the supervisor's reading for Cursor bundle 3)
+
+- **INC-1245** (the supervisor's record): `e2e/admin-categories-console.spec.ts:84` (`secondaryParentNames`) drops a read's error and would compare against an empty list. Class: a test helper that swallows a failed read. Owner: the tests and CI turn (with INC-1239's list).
+- **INC-1245** (Cursor bundle 3's Records, word for word): INC — 1245: PARTLY FIXED on this lane. The census counted 159 reads that take `data` and never `error` at the base; the console spec's 3 and the helpers' 13 take their error; 142 reads in 25 specs are on `e2e-helpers-allowlist.txt` with this number as the expiry. OPEN until the tests-and-CI turn gives them theirs.
+- **INC-1245** (the supervisor's later word; records turn R18): open, 142 reads on the allowlist (CF-HELPERS-10; Cursor bundle 3, pull request #94, merged `ce25a7751`). Owner: the tests and CI turn.
+
+## INC-1246 — the Screening page swallowed a failed open of an ad (2026-11-22; the supervisor's reading for Lovable bundle 3)
+
+- **INC-1246** (the supervisor's record): `src/features/admin-screening/screening-page.tsx:280` (:301 at `9d9748da3`): an empty `catch` around `readScreeningRow` — a reviewer who follows a link to an ad sees the queue and no word that the open failed. Class: catch-and-continue on a screen (§7 phantom success). Owner: Lovable bundle 3 (the Screening screen is its), with every empty `catch` in the files that bundle touches.
+- **INC-1246** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 3, Part G (pull request #95, merged `84b6b89e1`): the failed read reaches the screen through the one refusal reader.
+
+## INC-1247 — nine pages subscribed to the auth events beside the shell (2026-11-22; the supervisor's census)
+
+- **INC-1247** (the supervisor's record): nine files call `useAuth()` beside the shell's context (`account-overview.tsx` :72, `admin-listings/listing-page.tsx` :139, `listings-page.tsx` :120, `admin/users/user-detail.tsx` :47, `legal/my-legal-page.tsx` :24, `my-legal-version.tsx` :16, `posting/wizard.tsx` :219, `routes/l.$slug.tsx` :134, `routes/settings.tsx` :133); each call subscribes to the auth events again and repeats the account-status read (and its deactivated sign-out path). Class: one concern (who is signed in on a page), two ways — the shell's context and a self-contained hook. Owner: the account-security bundle (Cursor: sign-in code) — one shared session store, or the pages onto `useShell()`; a guard with it. Open.
+- **INC-1247** (Cursor bundle 5's Records, word for word, its closure): INC-1247 (the nine callers on the shell's one store, CF-SESSION-5).
+- **INC-1247** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`); its last sibling, the language provider's own subscription, is INC-1268.
+
+## INC-1248 — a scroller of its own inside the category form (2026-11-22; Cursor bundle 3's census)
+
+- **INC-1248** (Cursor bundle 3's Records, word for word): INC — 1248 (the supervisor's): `src/features/admin-categories/category-form-fields.tsx:396`, the country list's `max-h-48` vertical scroller inside the form panel; Lovable's next bundle. DG-10 does not see it (a scroller in a child component's own file). OPEN.
+- **INC-1248** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 4 (pull request #97, merged `46d4e7b21`; DEC-427): five forms' long checklists moved onto `FieldSelect` inside the one `Field` — the countries of a new category, the Countries dialog, a new language's countries, a translator's languages and the language to add.
+
+## INC-1249 — panels that did not name their description (2026-11-22; Cursor bundle 3's census)
+
+- **INC-1249** (Cursor bundle 3's Records, word for word): INC — 1249 (the supervisor's): DG-11's four findings at the base, `src/components/shell/toolbar-panel.tsx:104` and `src/routes/dev.style.tsx:926`, `:941`, `:959`. FIXED by Lovable bundle 3 (pull request #95, merged at `84b6b89e1`); the two allowlist lines that carried them are removed in this lane's final push (the comment line above them stays, DEC-426). On the merged tree, by the supervisor, DG-11 finds none.
+- **INC-1249** (the supervisor's later word; records turn R18): CLOSED (Lovable bundle 3, pull request #95; Cursor bundle 3, pull request #94, emptied the allowlist).
+
+## INC-1250 — the wide-screen toolbar panel had no accessible name (2026-11-22; the supervisor's measurement on Lovable bundle 3's board)
+
+- **INC-1250** (the supervisor's record): measured on the board (Chromium, axe and the aria snapshot): the table panel's popover form has no accessible name (`aria-dialog-name`, serious; `src/components/shell/toolbar-panel.tsx` — the `<h2>` is drawn and the panel does not name it; at the base too; the sheet form is named). Class: a panel that does not say what it is to a screen reader (INC-1249's class). Owner: Lovable bundle 3, same file.
+- **INC-1250** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 3 (pull request #95, merged `84b6b89e1`; ruling 5, item T): the heading has an `id` and the panel names it with `aria-labelledby`; a unit test for each form.
+
+## INC-1251 — every select and switch kept a second copy of its value (2026-11-22; the supervisor's reading of Lovable bundle 3)
+
+- **INC-1251** (the supervisor's record): every select and the switch keep a `useState` copy in the page beside the hook's kept value (`raw*`, read only as the declaration's `value`, shadowed whenever something is kept), plus the conversion's leftovers (sixteen `.filter((option) => option.value !== "" && option.value !== "all")` on lists built with an empty entry; nine comparisons with `null` of values never null; five `onChange` functions called on the spot). Class: two states for one filter. Owner: Lovable's next bundle, Part 1 (with INC-1248): a select's and the switch's value is the hook's alone; "a filter change shows the first page" said once a table. Open.
+- **INC-1251** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 4 (pull request #97, merged `46d4e7b21`): a select's and a switch's value lives in one place — the kept view for a kept filter, the hook's own map for the rest; Clear all says "the first page" once.
+
+## INC-1252 — the "More below" cue could take a press meant for the content (2026-11-22; Lovable bundle 3)
+
+- **INC-1252** (Lovable bundle 3's pull request body, word for word): INC-1252: the "More below" cue can take the up-stroke of a press that begins as it appears; the two new browser tests bring a control to the body's middle first — the anatomy's follow-ups.
+- **INC-1252** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 4 (pull request #97, merged `46d4e7b21`): "More below" is a plain hint — no button, it takes no press (a tap lands on the content under it), its words sit on a solid strip in both themes, and it shows only when the body is at least 5rem tall.
+
+## INC-1253 — the Filters switch row was drawn by hand beside the one Switch (2026-11-22; the supervisor's reading of Lovable bundle 3)
+
+- **INC-1253** (the supervisor's record): the filter row's switch is drawn by hand (a ghost Button with `aria-pressed`, its own track h-6 w-10 and thumb) beside the product's one Switch primitive `src/components/ui/switch.tsx` (five consumers, among them `shell/columns-button.tsx` in the same toolbar); four of the seven new stylesheet classes were its. Class: a second local version of a concern that has its mechanism (G0.2; §7 "unrecorded bypass"). Mechanism: `ui/switch.tsx`. Owner: Lovable's next bundle (G71 — no detour).
+- **INC-1253** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 5 (pull request #98, merged `77fa8800c`): the row draws `src/components/ui/switch.tsx`, named by its row's label (`role="switch"`, `aria-checked`); the primitive gains one press area for every switch (44 px on touch, 36 on a fine pointer); FP-U53. The forms census learnt to see the row first (INC-1259).
+
+## INC-1254 — content brought into view landed under the "More below" cue (2026-11-22; pull request #95's red)
+
+- **INC-1254** (the supervisor's record, registered before the fix): what is brought into view inside a banded panel can land under the "More below" cue — the scrolling body has no scroll padding. Evidence: PW-97 red on pull request #95 (run 45049131600, mobile-360, both tries). Class: an overlay inside a scroller without scroll padding (WCAG 2.2 SC 2.4.11 Focus Not Obscured; technique C43). Mechanism: `PanelBody` (`src/components/ui/dialog-parts.tsx`). Owner: Lovable bundle 3, now.
+- **INC-1254** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 3 (pull request #95, merged `84b6b89e1`; ruling 7, decision X): the body carries scroll padding while the cue shows; DP-U32.
+
+## INC-1255 — a board test opened a row menu on a board still growing (2026-11-22; the flake ledger)
+
+- **INC-1255** (the supervisor's record, registered before the fix): HS-6 (and HS-3 by the same steps) open the board's row menu before the board has stopped growing; the menu's item ends outside the viewport. Evidence: flake ledger ×2 on 2026-11-22; in the supervisor's harness HS-6 fails in both layouts without the wait, HS-3 and HS-6 pass with it. Class: a board test that opens an anchored overlay on a moving board (HS-5's class). Mechanism: `stillPage` (`e2e/helpers/ui.ts`).
+- **INC-1255** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 3 (pull request #95, merged `84b6b89e1`; ruling 7, decision Y, the supervisor's script, sha256-proven): `e2e/house-style.spec.ts` waits for a still board before the row menu opens.
+
+## INC-1256 — a failed database call rethrown raw or behind a prefix (2026-11-22; Cursor bundle 4's census)
+
+- **INC-1256** (the supervisor's record): a failed database call rethrown raw (`if (error) throw error;` — 46 after a read, 72 after a write) and the 11 server-side `new Error(\`<what>: ${error.message}\`)`: the value keeps its code and is classed when read (the raw form) or loses it behind the prefix (the server form); not the typed failure at its source. Class: one form per concern (K1). Not INC-1241's defect (a bare Error that lost the code); converting them moves the reader's chunk onto the entry, so a measured turn of its own. Owner: ACT-027's turn, before launch.
+- **INC-1256** (the supervisor's later word; records turn R18): open in part. Lovable bundle 7 (pull request #101, merged `92fee7d1a`) moved the six console services onto the typed failure; the rest stands as allowlist lines `| INC-1256` under CF-REFUSAL-5 (Cursor bundle 6). Owner: ACT-027's turn, before launch.
+
+## INC-1257 — a failed read answered as an absence in the posting form (2026-11-22; Cursor bundle 4's census)
+
+- **INC-1257** (the supervisor's record; Cursor bundle 4 ruling 1, decision 10): a failed read answered as an absence in `src/features/posting/posting-service.ts` (the seller's last place: its two reads), `src/features/posting/pricing-data.ts` (`readLastListingCurrency`) and the photo reload of `src/features/posting/use-edit-draft.ts`. Class: a failed read drawn as "nothing found".
+- **INC-1257** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 4, Part 1 (pull request #96, merged `1b0af44c4`): each reader throws `readFailed(error)` and "nothing found" stays `null`; a caller treats a failed hint as no hint, writes one `[client-error] <what> <class>` line and never blocks the step; the photo reload keeps its rows; EW-8.
+
+## INC-1258 — the e-mail change's pending state was read from the session (2026-11-22; Cursor bundle 4 ruling 1)
+
+- **INC-1258** (the supervisor's record; Cursor bundle 4 ruling 1, decision 25): the e-mail change's pending state, left to the account-security hardening.
+- **INC-1258** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`; DEC-439): the Settings page reads the server's user for the pending address, once on load and once after a change (CF-SESSION-3).
+
+## INC-1259 — the forms census could not see the Filters row as a list filter's host (2026-11-22; Lovable bundle 4)
+
+- **INC-1259** (the supervisor's record): the forms census could not see the Filters switch row as a list filter's host, so Lovable bundle 4 could not move the row onto the Switch (INC-1253). Owner: Cursor bundle 4.
+- **INC-1259** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 4, STEP 4 (pull request #96, merged `1b0af44c4`).
+
+## INC-1260 — a ruling's widening read as a whole scope (2026-11-23; Cursor bundle 4 ruling 2)
+
+- **INC-1260** (the supervisor's record): CF-BRIEF-19 judges a ruling's records against its paragraph that widens the scope, as if it were the whole scope; the five lines of `scripts/conformance/briefs-allowlist.txt` wait on it. Owner: the tests-and-CI turn.
+- **INC-1260** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`): a ruling's widening joins its brief's SCOPE.
+
+## INC-1261 — no shared browser-test step for choosing in a select list (2026-11-23; Lovable bundle 4's specs)
+
+- **INC-1261** (the supervisor's record): no shared e2e step for choosing in a select list; specs type into a search box whose presence depends on the option count. Class: concern "choosing in a select list from a test" — mechanism NONE YET (an e2e helper beside INC-1237's filter step). Owner: the tests-and-CI turn.
+- **INC-1261** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`): `chooseInList`; SLH-1, SLH-2.
+
+## INC-1262 — the public-surface guard honoured a DROP and not a REVOKE (2026-11-23; Cursor bundle 4's report)
+
+- **INC-1262** (Cursor bundle 4's Records, word for word): INC-1262 — OPEN (owner: the tests-and-CI turn): the public-surface guard ignores REVOKE; a revoked browser grant keeps its allowlist line until the object is dropped (`scripts/public-surface.ts`).
+- **INC-1262** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`): the public-surface guard reads REVOKE.
+
+## INC-1263 — a failed session read turned into "no one signed in" on an identity path (2026-11-23; Cursor bundle 4's report)
+
+- **INC-1263** (Cursor bundle 4's Records, word for word): INC-1263 — OPEN (owner: ACT-027, with INC-1256): `signedInId` (`src/features/posting/pricing-data.ts:148`) turns a failed session read into null on an identity path.
+- **INC-1263** (the supervisor's later word; records turn R18): open. Owner: ACT-027's turn, with INC-1256, before launch.
+
+## INC-1264 — the signed-in person's own profile read went out without the session (2026-11-23; the ethio-prod log)
+
+- **INC-1264** (the supervisor's record): on ethio-prod from 2026-11-22 23:01Z to 2026-11-23 04:26Z, 53 × `GET /rest/v1/profiles?select=display_name,account_status&user_id=eq.<the operator's id>` answered 401 ("permission denied for table profiles" in the database log): the signed-in user's own profile read goes out without the session token (as anon) — likely `src/features/auth/use-auth.ts` :83 before the session attaches. Class: concern "a signed-in read sent before the session is attached". Owner: Cursor's account-security bundle (sign-in code).
+- **INC-1264** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`): the status read waits one macrotask, reads through `currentSession` (no session, no read) and names a failure through `reportOnDemandFailure`; it carries no typed failure (INC-1266); ACS-U5, ACS-U6, ACS-U7.
+
+## INC-1265 — a panel's footer held content, so the buyer preview shrank (2026-11-23; the operator's screenshot)
+
+- **INC-1265** (the supervisor's record): a panel's footer that holds content — the Screening preview puts the staff photo grid and the held note in the footer the anatomy keeps in view, so on a large screen the buyer preview shrinks to a sliver. Class: concern "a panel's footer holds only its actions; content lives in the scrolling body" — mechanism: the dialog anatomy (`PanelFooter`); census by definition: every `PanelFooter`'s children (26 files) and `PreviewSheet`'s two callers (`step-review.tsx` :704, `screening-page.tsx` :870). Guard debt: a dialog-guard law "a footer's children are actions only" (`scripts/conformance`), Cursor's next bundle. Owner: Lovable bundle 5.
+- **INC-1265** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 5 (pull request #98, merged `77fa8800c`): a panel's footer holds only its actions. The guard law is guard debt on the before-launch list.
+
+## INC-1266 — a typed failure's chunk would join two pages' first download (2026-11-23; Lovable bundle 7 ruling 1)
+
+- **INC-1266** (the supervisor's record, Lovable bundle 7 ruling 1, decision 3): the typed failure's chunk (982 B gzip) joins the first download of every page whose reader sits there. The admin rail's alerts reader (`src/features/admin/nav-alerts.ts`) and the feed card's price-units reader (`src/features/posting/use-price-unit-labels.ts`) are held raw. Owner: the scale-and-growth performance turn (ACT-031's class, chunk placement), which decides how a first-download reader throws the typed failure without its chunk.
+- **INC-1266** (Cursor bundle 5's Records, word for word): INC — INC-1266 gains a third held reader: `src/features/auth/account-status.ts`, the signed-in person's status read, which sits on every page's first download.
+- **INC-1266** (the supervisor's later word; records turn R18): open. The three held readers stand as allowlist lines under CF-REFUSAL-5 (Cursor bundle 6). Owner: the scale-and-growth performance turn.
+
+## INC-1267 — a password change in an old session showed the generic line (2026-11-23; Cursor bundle 5)
+
+- **INC-1267** (Cursor bundle 5's Records, word for word): INC — a password change in a session older than 24 hours is refused with `reauthentication_needed` (hosted "Secure password change") and the page showed the generic line; fixed by `auth.errorReauthNeeded` (cursor-bundle-5). Class: a provider refusal with no word. Mechanism: `AUTH_REFUSALS` (`src/features/auth/auth-error-key.ts`). (INC-1267)
+- **INC-1267** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 5 (pull request #100, merged `4af9f0dc8`); "Secure password change" stays on in both projects.
+
+## INC-1268 — the language provider subscribed to the auth state on its own (2026-11-23; Cursor bundle 5 ruling 1)
+
+- **INC-1268** (Cursor bundle 5's Records, word for word): INC — `src/i18n/provider.tsx` (`useAuthIdentity`) subscribes to the auth state on its own, beside the shell's one store. Class: one session store (INC-1247). Owner: Cursor bundle 6. (INC-1268)
+- **INC-1268** (Cursor bundle 6's Records, word for word): INC — INC-1268 closed: the language provider and the sign-in page read the one session store; CF-SESSION-7.
+- **INC-1268** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 6 (pull request #103, merged `db0b43c9c`).
+
+## INC-1269 — AU-3 is intermittent (2026-11-23; Cursor bundle 5)
+
+- **INC-1269** (the supervisor's record; Cursor bundle 5 ruling 3, decision 5): AU-3 (`e2e/admin-users.spec.ts`) is intermittent. Owner: Cursor bundle 6.
+- **INC-1269** (Cursor bundle 6's Records, word for word): INC — INC-1269 left open with its cause unproven: AU-3 now records the failed requests and the status door's answer beside its assertion, so the next red names its cause.
+- **INC-1269** (the supervisor's later word; records turn R18): open, instrumented, waiting for its next red. Owner (G71): the before-launch list.
+
+## INC-1270 — a provider's safety block is read as an outage (2026-11-23; the Stage 2 AI safety review)
+
+- **INC-1270** (the supervisor's record, the Stage 2 AI safety review): a provider safety block is read as an outage. `src/server/ai/providers/gemini.ts` answers `{ kind: "status" }` for every non-2xx response (:78, :198) and `unusable` for a 2xx with no usable candidate; the gateway answers a provider error; `screenAnswerOf` (`src/server/media/policy.ts` :126–:128) maps every non-ok answer other than `featureOff`, `budget` and `reserved` to `providerUnavailable` with a retry hint. Evidence: the code at dev `92fee7d1a`; Google's safety-settings page (read 2026-11-23): a blocked request is answered with an error and a block code, and child-safety blocks cannot be turned off. Effect: the photo stays held (fail closed), but the severe signal is lost — no staff notice, no severe path, and the uploader is told to try again. Class: a provider answer with no type. Concern: every provider answer is typed. Mechanism: the AI gateway's answer (`src/server/ai/gateway.ts`). Owner: the first Stage 2 Cursor bundle (G71).
+- **INC-1270** (the supervisor's later word; records turn R18): open. Owner: the first Stage 2 Cursor bundle (DEC-458's spec).
+
+## INC-1271 — the Filters panel had too little room at mid-window (2026-11-23; Cursor bundle 5's red)
+
+- **INC-1271** (Cursor bundle 5's Records, word for word): INC — the Filters panel shows fewer than six choices when its button sits at the middle of a 900-pixel-tall window: DLG-E12 went red on run 45187492568 once the style board grew below the panel's button. Class: an anchored panel's room. Mechanism: the Filters panel (Lovable bundle 3). Owner: Lovable's next bundle; its test gains the mid-window case, red first. (INC-1271; my proof of decision 2 holds: red first on the unmoved board, green after, §1)
+- **INC-1271** (the supervisor's later word; records turn R18): CLOSED by Lovable bundle 8 (pull request #102, merged `1bbfc7dad`): on wide screens a toolbar panel is placed by the room around its button, read once as it opens (`placeByRoom`, `src/components/ui/popover-impl.tsx`).
+
+## INC-1272 — the lane's failure file listed its gating failures last (2026-11-23; Cursor bundle 5's stop 3)
+
+- **INC-1272** (the supervisor's record): a lane's `e2e-last-failure.md` lists its gating failures after the post-test sections, so a reader of its top sees none (Cursor read "no failing test" at stop 3). Class: evidence a reader must scroll for. Mechanism: the failure reporter (a closed surface, G22: its change needs its DEC). Owner: Cursor bundle 6.
+- **INC-1272** (Cursor bundle 6's Records, word for word): INC — INC-1272 closed: the failure report writes the gating failures first (EFR-6).
+- **INC-1272** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 6 (pull request #103, merged `db0b43c9c`).
+
+## INC-1273 — a filter row's list does not open on WebKit 26 (2026-11-23; DLG-E12)
+
+- **INC-1273** (the supervisor's record): one press on another row's control did not open its list: in `src/components/select-list.tsx` a blur whose `relatedTarget` is null closed the open list, and macOS WebKit does not focus a pressed button, so the blur arrived on pointer-down and closing moved the rows before the press landed (Lovable bundle 8's reading). Class: a control that works in one engine only.
+- **INC-1273** (Cursor bundle 6's Records, word for word): INC — INC-1273 open again: DLG-E12 fails on WebKit 26 on the operator's Mac with Lovable bundle 8's change in the base (§13 item 5).
+- **INC-1273** (the supervisor's later word; records turn R18): open. Lovable bundle 8 (pull request #102, SL-U40, FP-U56) fixed the blur and DLG-E12 passes on CI's WebKit lane; on the operator's Mac (WebKit 26) the click on the size control returns ok in 52 ms and its list never opens. Lovable bundle 10b left it (ruling 1, decision 5: the trace comes first). Owner: Cursor bundle 8, which records DLG-E12 with a trace on the operator's Mac; the fix follows from the trace.
+
+## INC-1274 — an action in an ended session said "Something went wrong" (2026-11-23; the operator's walk of Cursor bundle 5)
+
+- **INC-1274** (the supervisor's record): a signed-in action whose browser sign-in has ended says "Something went wrong. Please try again." instead of the truth ("Session expired — please sign in again", `session.expired`). Nothing reaches the server. Where: `src/features/auth/auth-service.ts` `currentPasswordProof` (no e-mail → `auth.errorGeneric`); `src/features/auth/auth-error-key.ts` `AUTH_REFUSALS` (no word for an ended session — auth-js `AuthSessionMissingError`; the server's `session_not_found` and `refresh_token_not_found`). Trigger seen on the walk: another tab of the same browser held the operator's ended staff sign-in, woke, had its renewal refused and cleared the shared store; the walking tab heard no sign-out, its live guard (F1-7d) did not send it to sign-in, and the operator kept acting on Settings. Evidence: the ethio-prod edge and auth logs from 03:09 to 03:16 on 24 Nov, and the session row intact. Class: concern "an auth action whose session has ended"; mechanism the auth refusal reader plus the shell's live guard, both bypassing this case. Not a security hole (the server refused every call); no data lost. Owner (G71): Cursor bundle 6, its first part, with the test that sees what the walk saw (G26).
+- **INC-1274** (Cursor bundle 6's Records, word for word): INC — INC-1274 closed with what was built: an ended sign-in said as ended, in the auth actions, the live guard, the route client, the door client and each consumer (the posting form, the category images service, the translations service, the geocode, the import dialog), with the browser tests ACS-E5, ACS-E6 and PW-8b.
+- **INC-1274** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 6 (pull request #103, merged `db0b43c9c`): the one listener `src/lib/ended-sign-in.ts`, registered by the shell.
+
+## INC-1275 — a "same password" refusal was shown as a weak password (2026-11-24; the operator's walk)
+
+- **INC-1275** (the supervisor's record): a refused password change whose server code is `same_password` is shown as "Choose a longer, stronger password." (`auth.errorWeakPassword`) instead of "Choose a password different from your current one." (`auth.errorSamePassword`). Evidence: ethio-prod auth log 03:34:28 and 03:37:05 on 24 Nov — `422`, `error_code: same_password`, "New password should be different from the old password."; the operator's screen. Cause (read at `4af9f0dc8`): `readRefusal` (`src/lib/refusal.ts`) tested the family's `sentences` (:253) before the provider code (:256–258), and `AUTH_REFUSALS.sentences` held `[/password should be/i, "auth.errorWeakPassword"]`. Why CI was green: ACS-U2 mocked each refusal with `message: "refused"`, a fixture authored from assumption (G20). Class: concern "a provider refusal read by its own code before its English sentence"; mechanism the one refusal reader with `AUTH_REFUSALS`. Owner: Cursor bundle 6, Part 1, with a guard over every code a family names and its real server message.
+- **INC-1275** (Cursor bundle 6's Records, word for word): INC — INC-1275 closed: the refusal reader takes a provider code a family names before the family's sentences; the provider-error fixture and CF-PROVERR-1.
+- **INC-1275** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 6 (pull request #103, merged `db0b43c9c`).
+
+## INC-1276 — the sign-in server's action e-mails were hosted-only, English only (2026-11-24; the operator's screenshot)
+
+- **INC-1276** (the supervisor's record): the sign-in server's action e-mails (confirm sign-up, reset password, change e-mail, magic link, reauthentication) are hosted-only text, English only, not in the repository; the six security notices are (`supabase/templates/*.html` and `subjects.json`, Cursor bundle 5). Class: concern "an e-mail the sign-in server sends a person"; mechanism `supabase/templates/` and `subjects.json` with its check — the action e-mails bypass it. Owner: Cursor bundle 6 (bilingual, the same check; the hosted settings step names each template to paste).
+- **INC-1276** (Cursor bundle 6's Records, word for word): INC — INC-1276 closed: the three action e-mails come from the repository (`supabase/templates/`, `subjects.json`), read by CI's backend, judged by CF-TPL-1; the hosted copies are set from §12.
+- **INC-1276** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 6 (pull request #103, merged `db0b43c9c`); the hosted copies are the operator's settings (§12).
+
+## INC-1277 — a lane's install step ran past its job's deadline (2026-11-24; the repeat lane)
+
+- **INC-1277** (the supervisor's record): CI infrastructure, a lane's install step without its own deadline. The repeat lane's `install-chromium-s-system-libraries` ran past the 1500 s job deadline twice (run 45332415048, and the first run on `d8e4195a1`). Its cause: a slow region mirror (50–90 kB/s). Owner: Cursor bundle 6, Part 6 (e) — an install step with its own deadline and the INFRA class (INC-1101).
+- **INC-1277** (Cursor bundle 6's Records, word for word): INC — INC-1277 closed: the browser-libraries install measures each mirror's throughput and drops a slow region mirror; apt gets a per-mirror timeout and retries (IBD-1); a package cache would need `.github/workflows/**` and is not built.
+- **INC-1277** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 6 (pull request #103, merged `db0b43c9c`).
+
+## INC-1278 — no user-facing action had a written list of the cases a person can produce (2026-11-24; the walk of Cursor bundle 5)
+
+- **INC-1278** (the supervisor's record): user-facing test coverage. No user-facing action has a written list of the cases a person can produce; tests mock provider errors with invented messages. Mechanism: NONE YET. Two parts: (a) a census item and a check-go law, `user-cases` — for every user-facing action a turn touches, the GO's census lists the cases, each mapped to a test id: success; every refusal the server can send, with its real message cited from the provider's source; empty or invalid input; an ended session, including one ended in another tab; both languages; a failed or slow network; refusals the real backend returns are proven by browser tests against it, not only by mocks. (b) One fixtures file of the provider's real errors (code, message, source line), and a conformance guard that refuses a test mocking a provider error with an invented message. Owner: Cursor bundle 6 for the account screens; the rest of the app's user-facing screens in a census turn after it, the gaps attached to their owning turns (G71) or the before-launch list.
+- **INC-1278** (the supervisor's later word; records turn R18): open in part. Cursor bundle 6 (pull request #103) built the provider-error fixture with CF-PROVERR-1 and the account screens' cases; the user-facing census of 2026-11-24 (DEC-459) listed the rest. Owner: Cursor bundle 8 — the failure crawl and the missing tests.
+
+## INC-1279 — a failure on screen shown wrongly (2026-11-24; the user-facing census)
+
+- **INC-1279** (the supervisor's record; `claude/user-facing-census-2026-11-24.md`): a failure on screen shown wrongly. Instances: no Retry: D7, D12, D13, D15, D18, D21 (place lists), D26, D32, D38, D46; the next page: D2, D3, D5; silent: D29, D36, D39, D40, D42, D49, D52, D54; raw technical text: D6, D9, D20, D23, D43, D51; a gone answer shown as temporary: D1, D4; a sentence read instead of a code: D28; stale comments: D37. Class: concern "a screen's failed load or action"; mechanism NONE YET — one failure notice (DEC-464).
+- **INC-1279** (the supervisor's later word; records turn R18): open in part. Lovable bundles 10a and 10a-2 (pull request #104, merged `1094b3d1b`) built the one failure notice and moved every screen onto it but the ones its census lines name; Lovable bundle 10b (pull request #106, merged `3123c75e4`) moved view-as, audit and the attributes console. The census guard's lines for sign-in, settings and the app shell are Cursor bundle 7b's.
+
+## INC-1280 — a server refusal code with no words in the family its screen reads (2026-11-24; the user-facing census)
+
+- **INC-1280** (the supervisor's record): a server refusal code with no words in the family the screen reads. Instances: D17, D21 (pin codes), D22, D24, D25, D27, D30, D31, D33, D34 (`badValue:channel`, `listingNotFound`), D45, D50, D55, D56. Class: a code with no word.
+- **INC-1280** (the supervisor's later word; records turn R18): open in part. Lovable bundle 10a-2 (pull request #104) gave words to the 32 codes the census found; Lovable bundle 10b (pull request #106) gave the attributes console's link and export codes theirs. The generated code types that turn a missing word into a build error, with the census of exceptions, are Cursor bundle 7b's second turn.
+
+## INC-1281 — a control's permission or switch differs from its door's (2026-11-24; the user-facing census)
+
+- **INC-1281** (the supervisor's record): a control's permission or switch differs from its door's. Instances: D19 (the assist switch), D34 (Show number: `review` versus `reveal`), D41, D44, D47, D48, D52 (permission part), D53. Class: a control shown where its door says no.
+- **INC-1281** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b's typed permission list, then Lovable bundle 10b's part 2 (each control shown only when its door may answer yes).
+
+## INC-1282 — the view-as readers sat outside the staff session rule (2026-11-24; Lovable bundle 9's note)
+
+- **INC-1282** (the supervisor's record, held out of the repository until the fix was live — G51): `impersonated_get_profile` and `impersonated_list_listings` (migration `20261119150500`) authorised by `door_context('reader')` plus `impersonation_target(p_session)` (`20261120030100` :98–113), which checks only that the session is the caller's own, open and unexpired. They did not re-check `impersonation:use` and sat outside `has_permission`, so DEC-461's session rule did not reach them: a staff member whose `impersonation:use` was revoked mid-session, or whose session had dropped to aal1, could keep reading the target's profile and listing list until the view-as session expired. A deactivated caller was refused by the reader gate. The `/admin/impersonation/$sessionId` route has no section entry, so the client gate checks only `admin_panel:access` (UI only, law F3). Class: an authority held by a row and not by a permission. Owner: Cursor bundle 6, ruling 2; `end_impersonation` stays callable (ending a session never needs the factor).
+- **INC-1282** (the supervisor's later word; records turn R18): CLOSED by Cursor bundle 6 (pull request #103, merged `db0b43c9c`; ruling 2, decisions 5 and 6): file 3 moves the two view-as readers onto the rule — `impersonation:use` through the core, plus the staff-session rule. Applied on ethio-prod, read back and Published on 2026-11-25; this text enters the repository only now (G51). The class's standing check (every `owner`, `signed-in-reader` and `helper` line says how its body decides whose rows it touches) is Cursor bundle 7a's.
+
+## INC-1283 — row policies call auth.uid() unwrapped (2026-11-24; the performance advisor)
+
+- **INC-1283** (the supervisor's record): policies call `auth.uid()` unwrapped, so it is evaluated for every row (9 on ethio-prod by the performance advisor's `auth_rls_initplan`, 2026-11-25 — `directory_owner_read`, `profiles_owner_read`, `listings_seller_read`, `listing_photos_seller_read`, `listing_locations_owner_read`, `seller_notices_own_read`, `listing_photo_warnings_seller_read`, `listing_photo_reviews_seller_read`, `listing_reports_own_read`; the supervisor's earlier "13 by my regex" superseded). Class: a policy that asks a per-query value per row.
+- **INC-1283** (Cursor bundle 6's Records, word for word): INC — INC-1283: the policies that call `auth.uid()` unwrapped are owned by Cursor bundle 7; CF-RLS-1 names the permission functions only.
+- **INC-1283** (the supervisor's later word; records turn R18): owned by Cursor bundle 7a (pull request #107, the re-land of #105, open when this record was written): `(SELECT auth.uid())` in every policy, CF-RLS-1 widened.
+
+## INC-1284 — named by number only
+
+- **INC-1284** (the supervisor's later word; records turn R18): a security finding named by its number alone until its fix is live on ethio-prod and Published (G51). Owner: Cursor bundle 7a (DEC-466).
+
+## INC-1285 — a browser's database call has no deadline (2026-11-24; the supervisor's census)
+
+- **INC-1285** (the supervisor's record): a browser's database call has no deadline (`src/integrations/supabase/client.ts:10–29`; `src/lib/supabase-door.ts:299`; the route client's is opt-in, `src/lib/route-client.ts:95`). A stalled connection spins forever with no words. Class: an outside call without a deadline (G0.6 failure modes).
+- **INC-1285** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b.
+
+## INC-1286 — offline, reads pause and nothing on screen says so (2026-11-24; the supervisor's census)
+
+- **INC-1286** (the supervisor's record): offline, the query client pauses reads and nothing on screen says so (no `onlineManager` or paused state is read anywhere in `src`). Class: a paused state with no words.
+- **INC-1286** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b.
+
+## INC-1287 — the refusal-status table had no "gone" or "changed" class (2026-11-24; the supervisor's census)
+
+- **INC-1287** (the supervisor's record): the refusal-status table has no "gone" (404) or "changed" (409) class: every code outside five is 400 (`src/lib/reader-failure.ts:16–30`, mirroring `door_refusal_status`). So a screen cannot tell the kind without a list of codes; Lovable bundle 10a's interim `GONE_CODES` list stands in until it lands.
+- **INC-1287** (the supervisor's later word; records turn R18): owned by Cursor bundle 7a (pull request #107, the re-land of #105, open when this record was written): GONE 404 and CHANGED 409 in `door_refusal_status` and its client mirror; `GONE_CODES` retires in Cursor bundle 7b.
+
+## INC-1288 — a refused read is retried three times (2026-11-24; the supervisor's census)
+
+- **INC-1288** (the supervisor's record): a refused read is retried three times by default (`src/features/auth/session-query-client.ts:15–20`, `:46`), so a refusal shows seconds late and a rate refusal is retried into the limit. Class: a retry policy that does not read the failure's kind.
+- **INC-1288** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b.
+
+## INC-1289 — the must-stay-lazy check judged by chunk file name (2026-11-24; Lovable bundle 10a's build)
+
+- **INC-1289** (the supervisor's record): the first-download guard's must-stay-lazy check (`scripts/check-bundle-size.mjs:145`, `mustStayLazyViolation` over `scripts/bundle-closure.mjs` `MUST_STAY_LAZY`) judges by chunk file name, so a must-stay-lazy module the bundler folds into the entry chunk passes unseen (`src/lib/reader-failure.ts` sat in `index-*.js` on `5ead891bd` and `adc81c034` with the check silent). Evidence: the chunk-modules records of both builds; the check fired only on `9947183cb`, where the module became its own chunk. Class: a guard that reads a name for a content.
+- **INC-1289** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b.
+
+## INC-1290 — a write that changes nothing still writes, audits and spends its dial (2026-11-24; CT-23's red)
+
+- **INC-1290** (the supervisor's record): `user_set_preferred_language` (last declared `20261106051900_a9d4c7e2…` :95–122; manifest :237, dial `account_pref`) updates, audits `profile.preferred_language` and spends `account_pref` even when the code equals the stored one. A fresh account's first session start (`src/i18n/provider.tsx` :480–560) can run the account rule on two page loads before the first save lands, leaving two audit rows and two dial counts from one sign-in. Evidence: CI run 45527306417, CT-23. Class: a write that does not check for no change.
+- **INC-1290** (Cursor bundle 6's Records, word for word): INC — INC-1290: a write that changes nothing still writes, audits and spends its dial (`user_set_preferred_language`); CT-23's two exclusions carry it until bundle 7.
+- **INC-1290** (the supervisor's later word; records turn R18): owned by Cursor bundle 7a (pull request #107, the re-land of #105, open when this record was written).
+
+## INC-1291 — the admin factor gate carried the whole database client (2026-11-24; Cursor bundle 6's report)
+
+- **INC-1291** (the supervisor's record): the admin factor gate (`src/features/auth/mfa/staff-factor-gate-lazy.tsx`, the `staff-factor-gate` chunk) reads the session level and factors through the whole Supabase client, so four admin pages carry the client in their first download (+59 KiB; `/admin` 206.5 → 266.0 KiB). Evidence: Cursor bundle 6's report §10 item 8 and §13 item 1. Class: concern "a staff screen's first download"; mechanism `MUST_NOT_CARRY` and the first-download budget. Proposal: the session level read from the stored session's token, the factor list by one light request.
+- **INC-1291** (Cursor bundle 6's Records, word for word): INC — INC-1291: the lighter read of the session's level and factors that keeps the client off the gated admin pages.
+- **INC-1291** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b.
+
+## INC-1292 — the admin Edit page read its ad twice (2026-11-24; Cursor bundle 6's report)
+
+- **INC-1292** (Cursor bundle 6's Records, word for word): INC — INC-1292: the admin Edit page reads the ad once and fills the crumb from it.
+- **INC-1292** (the supervisor's later word; records turn R18): the defect: the admin Edit page read the ad once for the wizard and again for the page's crumb. CLOSED by Lovable bundle 10b (pull request #106, merged `3123c75e4`): the wizard's one read fills `adminListingKey` with the same `readAdminListing` parse that `useAdminListing` caches; the route's second read is gone.
+
+## INC-1293 — allowlists keyed by line number break on any edit above them (2026-11-24; Cursor bundle 6's report)
+
+- **INC-1293** (the supervisor's record): allowlists keyed by line number (`door-args`, `provider-errors`, `refusal-readers`, `staff-rules`, `holds-its-box`) break on any edit above their line, so every turn that touches those files pays an allowlist round (Cursor bundle 6's report §13 item 8, §7). Class: concern "an allowlist line's key"; mechanism G55's allowlist form. Key by statement text or symbol, with a census that a key still matches exactly once.
+- **INC-1293** (Cursor bundle 6's Records, word for word): INC — INC-1293: the line-keyed allowlists break when code above them moves.
+- **INC-1293** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 8.
+
+## INC-1294 — two pairs of identical indexes, and one prefix index (2026-11-25; the performance advisor)
+
+- **INC-1294** (the supervisor's record): two pairs of identical indexes on ethio-prod — `category_tree_pointers` (`category_tree_pointers_child_idx`, `idx_ctp_child`) and `profiles` (`profiles_alias_unique`, `profiles_seller_alias_lower_key`). Evidence: the Supabase performance advisor, `duplicate_index`, 2026-11-25 07:19Z. Class: concern "one index per need"; mechanism none; guard to be decided in Cursor bundle 7a (whether the platform's performance lints can gate on CI's backend). One of each pair dropped after the census reads which backs a constraint and which name any code reads.
+- **INC-1294** (the supervisor's later word; records turn R18): built in Cursor bundle 7a (pull request #107, the re-land of #105, open when this record was written; ruling 1, decision 8): file D drops `profiles_alias_unique`, `idx_ctp_child` and `category_tree_pointers_parent_idx` (a prefix of `idx_ctp_parent`), proven on scratch rows; applied on ethio-staging and read back on 2026-11-25; the advisor step in the smoke lane (DEC-472) is the guard.
+
+## INC-1295 — two lanes conflict on the generated word maps and the page limits (2026-11-25; the trial merge of #103 and #104)
+
+- **INC-1295** (the supervisor's record): two lanes in flight that both change keys or page sizes conflict on the generated word maps (`docs/generated/i18n-usage.json`, `public/i18n-usage.json`) and on `scripts/route-budgets.mjs`, so the lane that merges second must be remade by hand (#103 and #104, 2026-11-25). Evidence: the trial merge's three conflicts. Class: concern "a generated file committed to the repository"; mechanism `scripts/i18n-usage-map.ts` with `scripts/i18n-map-guard.ts`. The census decides whether the maps stop being committed (made by the build, checked in CI); the page limits stay a committed ratchet.
+- **INC-1295** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 8.
+
+## INC-1296 — a code that moves status class reads as malformed between its apply and the Publish (2026-11-25; Cursor bundle 7a ruling 1)
+
+- **INC-1296** (the supervisor's record; Cursor bundle 7a ruling 1, class 2): one status table lives in two places (the database and the client mirror) and reaches production by two steps (a migration apply and a Publish), so a code that moves class reads as malformed between them. Before launch the operator applies and Publishes in one sitting, and a moved code reads as a failure with Retry for those minutes (decision 2). Owner: Cursor bundle 7b — the rule for after launch.
+- **INC-1296** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b.
+
+## INC-1297 — two distinct codes tell a stranger that a listing exists (2026-11-25; Cursor bundle 7a's census, finding 2)
+
+- **INC-1297** (the supervisor's record): `notYourListing` and `listingNotFound` are distinct codes, so the code tells a stranger a row exists. Class: a refusal that discloses existence. Owner: the before-launch list (G71).
+- **INC-1297** (the supervisor's later word; records turn R18): moved into Cursor bundle 7b at the operator's word (2026-11-25), which types the refusal codes and their families anyway.
+
+## INC-1298 — translator targets read direct grants without the role hierarchy (2026-11-25; Cursor bundle 7a's census, finding 4)
+
+- **INC-1298** (the supervisor's record): translator targets read direct grants without the role hierarchy. No role has a parent today. Class: a permission reader beside the cores. Owner: the before-launch list (G71).
+- **INC-1298** (the supervisor's later word; records turn R18): open. Owner: the before-launch list.
+
+## INC-1299 — a failed factor read was shown as "set up an authenticator" (2026-11-25; Cursor bundle 7a's census, finding 1)
+
+- **INC-1299** (the supervisor's record; Cursor bundle 7a ruling 1, class 4 and decision 6): a failed read shown as a state — the step-up dialog says "set up an authenticator" when the factor read failed. The no-factor mode stays for a person whose factor is gone; a failed factor read becomes a failure with an existing key and a Retry.
+- **INC-1299** (the supervisor's later word; records turn R18): built in Cursor bundle 7a (pull request #107, the re-land of #105, open when this record was written): a failed factor read shows `mfa.errorGeneric` and Retry; SUH-1 → SUH-3, SUD-3 → SUD-4, SUH-1 and SUH-2 red on the old hook.
+
+## INC-1300 — readers of policies saw CREATE POLICY and not ALTER POLICY (2026-11-25; Cursor bundle 7a's census, finding 5)
+
+- **INC-1300** (the supervisor's record; Cursor bundle 7a ruling 1, class 3): a reader that knows one statement form misses another: `scripts/doors/policies.ts` and CF-RLS-1 read `CREATE POLICY` but not `ALTER POLICY`.
+- **INC-1300** (the supervisor's later word; records turn R18): built in Cursor bundle 7a (pull request #107, the re-land of #105, open when this record was written; decision 7): both readers take `ALTER POLICY`, each expression otherwise byte for byte.
+
+## INC-1301 — the export doors' manifest lines list no codes (2026-11-25; Lovable bundle 10b's plan)
+
+- **INC-1301** (the supervisor's record): the export doors' lines in `scripts/doors/manifest.txt` (:41–42) list no codes, while their helper refuses `unknownCategory` (`supabase/migrations/20261120030200…sql:172`), so a typed code list read from the manifest misses it. Evidence: Lovable's 10b plan, finding 1. Class: concern "the door list names every code a door can answer"; mechanism the manifest with `check-doors`; the typed codes (INC-1280) take it.
+- **INC-1301** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b.
+
+## INC-1302 — two attribute failure renders pinned by an exact-text test (2026-11-25; Lovable bundle 10b's report)
+
+- **INC-1302** (the supervisor's record): two failure renders in `src/features/admin-attributes/attribute-dialogs.tsx` (:606, :1150) draw a failed read as fixed words with no next step, outside the failure notice, and cannot move because AT-73b (`e2e/admin-attributes-safety.spec.ts:266-268`) asserts `attribute-dialog-error`'s exact text equals `en["admin.attributes.links.error"]`. Evidence: Lovable 10b's report (the census line kept). Class: concern "a failure on screen says what happened and offers a next step"; mechanism `src/components/shell/failure-notice.tsx`; the census guard keeps the file's `INC-1279 until bundle 10b` line.
+- **INC-1302** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b, which moves both renders and changes AT-73b in one turn, then removes the census line.
+
+## INC-1303 — the harness's AAL2 mint fails at random on its challenge (2026-11-25; the flake ledger)
+
+- **INC-1303** (the supervisor's record): the harness's one AAL2 mint (`aal2Session`, `e2e/helpers/ui.ts` :959 → the challenge at :977) gets HTTP 500 `unexpected_failure` from the temporary backend's sign-in server at random; the challenge sits outside the attempt loop (only the verify is retried), so the setup throws and the test passes only on Playwright's retry. Evidence: the flake ledger on ci-evidence — 20 lines with this error (one on 19 Nov, one on 24 Nov, 18 on 25 Nov, after Cursor bundle 6's staff helper made many more tests mint AAL2 sessions), on different tests, across ten runs (44607286456 … 45664029304) and run 45673729426 (AT-10, CT-44). Cause: not read yet. HYPOTHESIS (G3): concurrent challenges for one factor from two workers; the lane's auth log names it. Class: concern "a harness call to the sign-in server that can fail for a moment"; mechanism `aal2Session` (Cursor bundle 6, K1). Fix: the cause first (the auth log of a lane where it happened), then the mechanism, proven by the repeat lane; never only a retry around the challenge (G38).
+- **INC-1303** (the supervisor's later word; records turn R18): open. Owner: Cursor bundle 7b, its first part.
+
+Numbering: next free INC-1304.
