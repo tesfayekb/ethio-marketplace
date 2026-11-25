@@ -339,7 +339,7 @@ reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane rea
 A staff authority holds only for a session that used its second factor. THE RULE
 (`staff_session_holds(uuid,text,text)`, service role only): when the caller asks about its OWN
 authority (`p_user_id = auth.uid()`) for a permission the default member role does not hold (read
-from that role's grants, hierarchy and `manage` included — never a literal list), the answer is
+from that role's grants and hierarchy, each grant read exactly (DEC-466) — never a literal list), the answer is
 true only when the session is `aal2` (`auth.jwt() ->> 'aal'`) AND the account has a verified totp
 factor. The service role, a session with no role, a question about another person and
 `admin_panel:access` (it only tells the app the account is staff) answer as before; a super admin
@@ -354,6 +354,22 @@ step-up check; the staff server routes answer it as `stepUpRequired` (428). Two 
 `door_context`. The proofs (rolled back) cover every aal/factor combination, the unchanged
 answers, the catalog's grants and bodies, and that the policies naming `has_permission` are the
 four storage-bucket rules and none reads authority another way.
+
+### The cores read a grant exactly (cursor-bundle-7a Part 1, DEC-466, DEC-473)
+
+The server allows an action only when a role the person holds is granted THAT action: the role
+matrix the Roles console edits is the whole truth. Until bundle 7a three readers —
+`has_permission_core` (a second `EXISTS`), `staff_session_holds` and `has_permission_scoped_core`
+(`IN (p_action, 'manage')`) — also took a grant of `manage` as a grant of any action of its
+resource, which the console and `get_my_permissions` never showed. Migration A redeclares the three
+whole (signatures and grants as they were) so a grant of `manage` answers only when `manage` is
+asked: the doors that ask `translations:manage` and `services:manage` by name. A super admin still
+holds every permission by `is_super_admin`. The same file deletes, by name, the `manage`
+permissions nothing asks (`categories`, `countries`, `listings`, `locations`, `permissions`,
+`profiles`, `roles`, `user_roles`; their grants first). DEC-473: importing categories stays super
+admin only; no grant is expanded. Guard CF-GRANT-1
+(`scripts/conformance/permission-grants.ts`, test CFPG-1 → 4): no last declaration that reads
+`role_permissions` matches `manage` in place of the asked action; planted in both forms.
 
 ## Tests
 
