@@ -1,12 +1,12 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
 import { authErrorText } from "./global-setup";
 
 import {
-  enrollAndStepUp,
   expectAal2,
   gotoReady,
   stepUpIfPrompted,
@@ -131,6 +131,48 @@ async function expectActivity(page: Page, action: string, userId: string) {
   }
 }
 
+/**
+ * INC-1269 — AU-3's reactivate failed once with the status still "Deactivated" and the page showing
+ * the failed-status line, its cause unproven. The instrument records, from the moment it is armed,
+ * every request that failed or answered 4xx/5xx and the status door's own answer (status and body),
+ * so the next red names its cause. It changes no budget and no assertion.
+ */
+function watchStatusDoor(page: Page): () => Promise<string> {
+  const seen: string[] = [];
+  const reading: Promise<void>[] = [];
+  const door = "admin_set_account_status";
+  const path = (url: string) => new URL(url).pathname;
+  page.on("requestfailed", (request) => {
+    if (seen.length < 20)
+      seen.push(
+        `requestfailed ${request.method()} ${path(request.url())} ${request.failure()?.errorText ?? ""}`,
+      );
+  });
+  page.on("response", (response) => {
+    const url = response.url();
+    const isDoor = url.includes(door);
+    if (!isDoor && response.status() < 400) return;
+    if (seen.length >= 20) return;
+    const line = `${response.status()} ${response.request().method()} ${path(url)}`;
+    if (!isDoor) {
+      seen.push(line);
+      return;
+    }
+    reading.push(
+      response.text().then(
+        (body) => void seen.push(`${line} body=${body.slice(0, 300)}`),
+        (error: unknown) => void seen.push(`${line} body unreadable: ${errorText(error)}`),
+      ),
+    );
+  });
+  return async () => {
+    await Promise.all(reading);
+    return `[INC-1269] requests since armed (failed, 4xx/5xx, and the status door):\n${
+      seen.length === 0 ? "  (none)" : seen.map((line) => `  ${line}`).join("\n")
+    }`;
+  };
+}
+
 /** AU-12 — removes a scratch user and its alias history; throws on failure (J3). */
 async function destroyScratchWithAliases(userId: string) {
   const supabase = adminClient();
@@ -144,7 +186,7 @@ test.describe("U1 admin users", () => {
   test("AU-1 permission: moderator is refused, admin sees the list", async ({ page }) => {
     const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
-    await switchUser(page, moderator.email, moderator.password);
+    await signInStaff(page, moderator);
     await waitForHydration(page);
     await page.goto("/admin/users");
     await waitForHydration(page);
@@ -154,7 +196,7 @@ test.describe("U1 admin users", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
     // INC-074: /auth is guarded for an authenticated session — sign out first.
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto("/admin/users");
     await waitForHydration(page);
     // DEC-097: pooled accounts are old rows; J6 — find by search, never by position.
@@ -167,7 +209,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto("/admin/users");
     await waitForHydration(page);
 
@@ -185,9 +227,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
-    // U1g: the mutation is step-up gated (U1f) — enroll and reach aal2 first.
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("user-identity-card")).toBeVisible({ timeout: 15000 });
@@ -219,17 +259,24 @@ test.describe("U1 admin users", () => {
     await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
+    const doorAnswers = watchStatusDoor(page);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("activate-user").click();
-    // A fresh sign-in starts at aal1, so the gate fires again here.
+    // Cursor bundle 6 — the new session used its factor, so the step-up is answered only if asked.
     await stepUpIfPrompted(page, secret);
     await expectAal2(page);
-    await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
-      en["admin.users.status.active"],
-      { timeout: 15000 },
-    );
+    try {
+      await expect(page.getByTestId("user-status-card").getByTestId("user-status")).toHaveText(
+        en["admin.users.status.active"],
+        { timeout: 15000 },
+      );
+    } catch (error) {
+      throw new Error(
+        `${errorText(error)}\n\n${await doorAnswers()}\n${await describeUserDetail(page)}`,
+      );
+    }
   });
 
   test("AU-7 crumb: Home > Admin > Users > <name>, Users navigates back", async ({ page }) => {
@@ -237,7 +284,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -253,7 +300,7 @@ test.describe("U1 admin users", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto(`/admin/users/${staff.id}`);
     await waitForHydration(page);
 
@@ -267,8 +314,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "super_admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -295,8 +341,7 @@ test.describe("U1 admin users", () => {
     await grantRole(staff.id, "admin");
     const scratch = await createUser({ confirmed: true });
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 seam");
@@ -353,8 +398,7 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
     const alias = `u1g${Date.now().toString(36)}`;
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
 
@@ -382,8 +426,7 @@ test.describe("U1 admin users", () => {
     const scratch = await createUser({ confirmed: true });
     const alias = `u1gdup${Date.now().toString(36)}`;
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
 
     await page.goto(`/admin/users/${holder.id}`);
     await waitForHydration(page);
@@ -425,8 +468,7 @@ test.describe("U1 admin users", () => {
     const reason = "Verified bank account e2e";
     const supabase = adminClient();
     try {
-      await switchUser(page, staff.email, staff.password);
-      const secret = await enrollAndStepUp(page);
+      const { secret } = await signInStaff(page, staff);
       await page.goto(`/admin/users/${scratch.id}`);
       await waitForHydration(page);
 
@@ -482,7 +524,7 @@ test.describe("U1 admin users", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.goto(`/admin/users/${staff.id}`);
     await waitForHydration(page);
 
@@ -501,7 +543,7 @@ test.describe("U1 admin users", () => {
   }) => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await gotoReady(page, "/admin/users");
     await expect(page.getByTestId("users-search")).toBeVisible({ timeout: 20000 });
 
@@ -573,8 +615,7 @@ test.describe("D189 deactivated staff", () => {
     expect(before.error, "AU-14: has_permission could not be read").toBeNull();
     expect(before.data, "AU-14: the admin role did not grant users:view").toBe(true);
 
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("U1 D189");

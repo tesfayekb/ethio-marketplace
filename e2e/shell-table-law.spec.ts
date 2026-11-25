@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 
-import { gotoReady, switchUser, userRow, waitForHydration } from "./helpers/ui";
+import { signInStaff } from "./helpers/staff-factor";
+import { gotoReady, userRow, waitForHydration } from "./helpers/ui";
 import { createUser, grantRole } from "./helpers/users";
 
 /**
@@ -20,7 +21,7 @@ test.describe("shell table law", () => {
     // test mints its staff account (DEC-097 class i) instead of leasing one.
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
-    await switchUser(page, staff.email, staff.password);
+    await signInStaff(page, staff);
 
     const original = page.viewportSize() ?? { width: 1280, height: 800 };
 

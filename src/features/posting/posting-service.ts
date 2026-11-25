@@ -45,6 +45,16 @@ const UNREACHABLE: DoorAnswer = {
   unreachable: true,
 };
 
+/** INC-1274 — the sign-in has ended: not a failure to reach a verdict, and no verdict. */
+const SIGNED_OUT: DoorAnswer = {
+  status: 401,
+  ok: false,
+  refusals: [],
+  payload: {},
+  unreachable: false,
+  signedOut: true,
+};
+
 /**
  * THE ONE ADAPTER from the route client's answer to a door's. A 5xx is not a
  * verdict, it is a failure to reach one — the caller retries rather than
@@ -53,12 +63,15 @@ const UNREACHABLE: DoorAnswer = {
  * so only the server's own breakage counts as unreachable.
  */
 function doorAnswerOf(answer: RouteAnswer): DoorAnswer {
-  // Today's no-token answer: the route would have 401'd, so the call never left.
-  if (answer.kind === "signedOut") return { ...UNREACHABLE, status: 401 };
+  // INC-1274 — the no-token answer (the call never left) and the route's own 401 say the same
+  // thing: the sign-in has ended. The route client reported it to the shell already; here it is the
+  // signed-out state, never "unreachable" (which retries) and never a refusal nobody made.
+  if (answer.kind === "signedOut") return { ...SIGNED_OUT };
   // Offline, blocked, aborted: NOT a refusal. The caller keeps the form state
   // in memory and retries (C4 — never a blank screen, never a phantom).
   if (answer.kind === "unreachable") return UNREACHABLE;
   const payload = answer.payload ?? {};
+  if (answer.status === 401) return { ...SIGNED_OUT };
   return {
     status: answer.status,
     ok: payload["ok"] === true,
@@ -161,7 +174,7 @@ export async function uploadPhoto(
 /** Bundle 13 turn 12 (D155b / D159) — the background tool's answer. */
 export type BackgroundAnswer =
   | { ok: true; picture: Blob; triesLeft: number | null }
-  | { ok: false; reason: string; unreachable: boolean };
+  | { ok: false; reason: string; unreachable: boolean; signedOut?: boolean };
 
 /** The provider can take a few seconds; past this the call is a transport failure. */
 export const BACKGROUND_TIMEOUT_MS = 60_000;
@@ -181,6 +194,8 @@ export async function removeBackground(
     timeoutMs: BACKGROUND_TIMEOUT_MS,
     expect: "bytes",
   });
+  if (answer.kind === "signedOut" || (answer.kind === "answered" && answer.status === 401))
+    return { ok: false, reason: "", unreachable: false, signedOut: true };
   if (answer.kind !== "answered") return { ok: false, reason: "", unreachable: true };
   const type = answer.headers.get("content-type") ?? "";
   if (answer.ok && type.startsWith("image/") && answer.bytes !== null) {

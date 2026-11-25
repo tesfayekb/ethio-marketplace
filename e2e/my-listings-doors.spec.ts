@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { asStaff } from "./helpers/staff-factor";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
@@ -277,7 +278,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     const viewerAccount = await leaseUser();
     await grantScratchRole(viewerAccount.id, [["listings", "view"]], roles);
-    const viewer = await asPerson(viewerAccount);
+    const viewer = await asStaff(viewerAccount);
     const view = async (p_view: string) => {
       const answer = await viewer.rpc("admin_list_listings", {
         p_seller: seller.alias,

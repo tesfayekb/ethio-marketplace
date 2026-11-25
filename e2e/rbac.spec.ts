@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 
+import { signInStaff } from "./helpers/staff-factor";
 import { expectPanelOffered, gotoReady, signIn, waitForHydration } from "./helpers/ui";
 import { leaseUser, grantRole } from "./helpers/users";
 
@@ -45,7 +46,7 @@ test.describe("RBAC client seam", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await waitForHydration(page);
 
     await expectPanelOffered(page, "admin");

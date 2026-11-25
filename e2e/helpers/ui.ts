@@ -375,7 +375,7 @@ export function signedInMarker(page: Page) {
 export function signInMarker(page: Page) {
   return isMobile(page)
     ? page.getByTestId("bottom-bar-sign-in")
-    : page.locator('header a[href="/auth"]');
+    : page.locator('header a[href="/auth"], header a[href^="/auth?"]');
 }
 
 type PanelKey = "marketplace" | "my-listings" | "account" | "admin";
@@ -482,8 +482,10 @@ export async function openRailScope(page: Page) {
  * INC-121 (b/c) LAW — A SHELL HELPER IS LOCALE-AGNOSTIC. The suite now runs
  * flows in an Amharic shell (the device ★), where every English accessible
  * name goes blind. The header's sign-in affordance carries no testid, so the
- * locale-free anchor is its destination (`a[href="/auth"]`); the `labels`
- * option stays for callers that want to assert a specific rendered label.
+ * locale-free anchor is its destination (`a[href="/auth"]`, or the same page with its query:
+ * the link carries the page the visitor was on, D11, Lovable 10a, PR #104 — so the address is
+ * matched with or without `?`); the `labels` option stays for callers that want to assert a
+ * specific rendered label.
  */
 export async function signOutViaUi(page: Page, labels: { signIn?: string } = {}) {
   if (isMobile(page)) {
@@ -767,7 +769,7 @@ export type JobSuperAdmin = {
  * select the same identity (INC-168). A pool smaller than the live worker count
  * wraps by modulo rather than crashing, and says so.
  */
-function pooledSuperAdmin(): E2ESuperAdmin {
+export function pooledSuperAdmin(): E2ESuperAdmin {
   const state = JSON.parse(readFileSync(STATE_FILE, "utf8")) as E2EUser;
   const pool = state.superAdmins ?? [];
   if (pool.length === 0) {
@@ -930,18 +932,45 @@ function declaresPrivateIdentity(): boolean {
  * and the DB challenge row is refreshed by every test's verify, so direct-RPC
  * step-up tests (RP-4, TR-6) are fresh by construction.
  */
-async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> {
+/** The TOTP step each factor's last accepted code belonged to (this worker's mints). */
+const stepsUsed = new Map<string, number>();
+
+async function untilUnusedStep(factorId: string): Promise<void> {
+  if (stepsUsed.get(factorId) !== totpStep()) return;
+  const nextMs = (totpStep() + 1) * 30_000;
+  await new Promise((resolve) => setTimeout(resolve, nextMs - Date.now() + 500));
+}
+
+export type Aal2Identity = {
+  email: string;
+  password: string;
+  factorId: string;
+  /** The factor's base32 secret. */
+  secret: string;
+  /** Names the identity in the run log and the failures ("slot 0", "staff <id>"). */
+  label: string;
+};
+
+/**
+ * Cursor bundle 6 (K1) — THE ONE NODE MINT OF AN AAL2 SESSION for an account that holds a
+ * verified factor: the pool's `freshAal2Session` and the staff helper (e2e/helpers/staff-factor.ts) both
+ * call it. The identity is named by `label`.
+ */
+export async function aal2Session(pool: Aal2Identity): Promise<PersistedSession> {
   const grant = await authFetch("/token?grant_type=password", {
     method: "POST",
     body: { email: pool.email, password: pool.password },
   });
   const accessToken = grant["access_token"];
   if (typeof accessToken !== "string") {
-    throw new Error(`[e2e:pool] password grant for slot ${pool.slot} returned no access token.`);
+    throw new Error(`[e2e:pool] password grant for ${pool.label} returned no access token.`);
   }
 
   let verified: Record<string, unknown> | null = null;
   let lastError = "";
+  // A factor accepts each code once: a second mint in the step the first one used waits for the next
+  // step instead of being refused (the staff helper mints a session per sign-in).
+  await untilUnusedStep(pool.factorId);
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     // A CHALLENGE PER ATTEMPT: a challenge is single-use and short-lived, so a
     // retry never re-presents the previous one (INC-169).
@@ -951,7 +980,7 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
     });
     const challengeId = challenge["id"];
     if (typeof challengeId !== "string") {
-      throw new Error(`[e2e:pool] TOTP challenge for slot ${pool.slot} returned no id.`);
+      throw new Error(`[e2e:pool] TOTP challenge for ${pool.label} returned no id.`);
     }
     try {
       verified = await authFetch(`/factors/${pool.factorId}/verify`, {
@@ -969,22 +998,21 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
     }
   }
   if (!verified) {
-    throw new Error(`[e2e:pool] node TOTP verify failed for slot ${pool.slot}: ${lastError}`);
+    throw new Error(`[e2e:pool] node TOTP verify failed for ${pool.label}: ${lastError}`);
   }
+  stepsUsed.set(pool.factorId, totpStep());
 
   const token = verified["access_token"];
   const refresh = verified["refresh_token"];
   if (typeof token !== "string" || typeof refresh !== "string") {
-    throw new Error(`[e2e:pool] verify for slot ${pool.slot} returned no session tokens.`);
+    throw new Error(`[e2e:pool] verify for ${pool.label} returned no session tokens.`);
   }
   const level = jwtClaim(token, "aal");
   if (level !== "aal2") {
-    throw new Error(
-      `[e2e:pool] slot ${pool.slot} session is not aal2 after verify (aal=${level}).`,
-    );
+    throw new Error(`[e2e:pool] ${pool.label} session is not aal2 after verify (aal=${level}).`);
   }
   const expiresIn = typeof verified["expires_in"] === "number" ? verified["expires_in"] : 3600;
-  console.log(`[e2e:pool] slot ${pool.slot} minted a fresh aal2 session in node (${pool.email})`);
+  console.log(`[e2e:pool] ${pool.label} minted a fresh aal2 session in node (${pool.email})`);
   return {
     access_token: token,
     refresh_token: refresh,
@@ -996,6 +1024,16 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
         : Math.floor(Date.now() / 1000) + expiresIn,
     user: (verified["user"] as Record<string, unknown> | undefined) ?? {},
   };
+}
+
+async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> {
+  return aal2Session({
+    email: pool.email,
+    password: pool.password,
+    factorId: pool.factorId,
+    secret: pool.secret,
+    label: `slot ${pool.slot}`,
+  });
 }
 
 /**

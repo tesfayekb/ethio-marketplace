@@ -113,11 +113,31 @@ describe("the machine-translation client (Foundations turn 19)", () => {
     );
   });
 
+  it("TRS-2b INC-1274 an ended sign-in (no session, or the route's 401) reads as session.expired, never raw", async () => {
+    const translate = () => aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] });
+    route.answer = { kind: "signedOut" };
+    const none = await translate().catch((error: unknown) => error);
+    expect(translationRefusalKey(none)).toBe("session.expired");
+    expect(serverMessage(none)).toBeNull();
+    route.answer = answered(401, { error: "notSignedIn" });
+    const refused = await translate().catch((error: unknown) => error);
+    expect(translationRefusalKey(refused)).toBe("session.expired");
+  });
+
+  it("TRS-2c INC-1274 the import's no-session answer and its 401 read as session.expired", async () => {
+    route.answer = { kind: "signedOut" };
+    const none = await importTranslations({ lang: "am", text: "k,v" }).catch((e: unknown) => e);
+    expect(translationRefusalKey(none)).toBe("session.expired");
+    route.answer = answered(401, {});
+    const bare = await importTranslations({ lang: "am", text: "k,v" }).catch((e: unknown) => e);
+    expect(translationRefusalKey(bare)).toBe("session.expired");
+  });
+
   it("TRS-2 the three non-answered kinds and a refusal throw today's words", async () => {
     const translate = () => aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] });
     route.answer = { kind: "signedOut" };
-    await expect(translate()).rejects.toThrow("not signed in");
-    await expect(listProviderLanguages()).rejects.toThrow("not signed in");
+    await expect(translate()).rejects.toThrow("notSignedIn");
+    await expect(listProviderLanguages()).rejects.toThrow("notSignedIn");
     route.answer = { kind: "unreachable", reason: "timeout" };
     await expect(translate()).rejects.toThrow("translation request failed (0)");
     await expect(listProviderLanguages()).rejects.toThrow("language list failed (0)");

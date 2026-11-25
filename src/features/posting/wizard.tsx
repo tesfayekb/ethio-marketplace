@@ -1408,6 +1408,16 @@ function WizardShell({
                           ) : null}
                         </div>
                         {/* D58 — a Next whose save never reached the door says so HERE. */}
+                        {/* INC-1274 — a sign-in that ended says so HERE and asks for another; nothing retries. */}
+                        {draft.signedOut === true && (
+                          <p
+                            role="alert"
+                            data-testid="post-session-ended"
+                            className="text-sm text-destructive"
+                          >
+                            {t("session.expired")}
+                          </p>
+                        )}
                         {draft.nextBlockedByTransport && (
                           <p
                             data-testid="post-next-unreachable"

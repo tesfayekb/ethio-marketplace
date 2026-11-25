@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { pageDoor } from "./helpers/door-callers";
 import { destroyCountry } from "./helpers/countries";
 import {
@@ -20,11 +21,9 @@ import {
   expectNoHorizontalOverflow,
   gotoReady,
   settled,
-  signInViaSession,
   staleStepUpOnClient,
   stepUpIfPrompted,
   switchLanguage,
-  switchUser,
   signInJobSuperAdmin,
   waitForHydration,
 } from "./helpers/ui";
@@ -568,7 +567,7 @@ test.describe("P-1b Admin › Monetisation", () => {
       ],
       roles,
     );
-    await signInViaSession(page, reviewer.email, reviewer.password);
+    await signInStaff(page, reviewer);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-nav-cards")).toBeVisible({ timeout: 20000 });
     await expect(page.getByTestId("admin-section-link-monetisation")).toHaveCount(0);
@@ -599,7 +598,7 @@ test.describe("P-1b Admin › Monetisation", () => {
       ],
       roles,
     );
-    await signInViaSession(page, viewer.email, viewer.password);
+    await signInStaff(page, viewer);
     await openConsole(page);
     for (const id of ["markets", "levels", "reach"]) {
       await expect(block(page, id), `MON-2 the viewer's ${id} block`).toBeVisible();

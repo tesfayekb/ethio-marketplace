@@ -1357,7 +1357,16 @@ was <old>.`), agreeing with the two css lines. The comment's line must fall afte
   new or a deleted file, a patch it cannot read, or a base file with no block to place the change
   in refuses with DEC-425 named. A patchless file is read from git as DEC-398 reads the ceilings
   file. The `scripts/*` rule's refusal text and the tests that pin it say "the three exceptions"
-  and name DEC-425.
+  and name DEC-425 (and DEC-468, below).
+- **The entry's limit line (DEC-468, cursor-bundle-6):** the same exception takes the `js:` number
+  of the same block on the same terms: exactly one removed and one added `  js: <n>,` line and at
+  most one added DEC-296 comment naming JS (`JS (local|CI) <size> KiB`, one `<old> → <new> =
+ceilingFor(Local)?(<size>); was <old>.`), agreeing with the js lines, above the base's `js:` line;
+  the `js:` and `css:` lines keep their places. A patch that changes both limits is judged line by
+  line by the same rule, each limit with its own comment; a comment that names both, a second
+  comment for one limit, a second or an unpaired limit line and every other changed line refuse,
+  with DEC-425 and DEC-468 named together. CF-LVB-21 and CF-LVB-22 pin it; the `scripts/*` rule's
+  refusal text names the entry's limit line beside the stylesheet's.
 - **A patchless exception file (DEC-398, INC-1185):** GitHub's files API leaves `patch` out of an
   entry whose diff is too large to carry — pull request #55's nine changed ceiling lines of about
   4 KB each — and out of a binary one (the REST page "List pull requests files" documents the
@@ -1639,3 +1648,9 @@ files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
 - **CF-AUTH-1** (scripts/conformance/auth-credentials.test.ts, allowlist `auth-credentials-allowlist.txt`): every call in the browser tree that sets a `password` also sends `current_password`, unless its allowlist line (`<file> <function> | reason | until`) says why (the recovery path's one); no call of `linkIdentity` or `unlinkIdentity` is allowed, and there is no allowlist for them. **CF-AUTH-2** plants a bypass and proves the census sees it.
 - **CF-SESSION-5** (scripts/conformance/session-reads.test.ts): the callers of `useAuth()` are the shell's one (`SESSION_STORE_CALLERS`); every other screen reads `useShell()`. **CF-SESSION-6** plants a second caller. The Settings page's `getUser()` is a line of `session-reads-allowlist.txt` (DEC-439).
 - **CF-BCFG-1** lists the six notice sections the images variant carries (docs/features/auth-email-door.md).
+
+### Cursor bundle 6: the raw re-throw and the invented zero (CF-REFUSAL-5, CF-NUM-1)
+
+- **CF-REFUSAL-5** (scripts/conformance/refusal-readers.ts, CFRR-9 plants it): a reader that answers `if (error) throw error;` hands its caller the raw door error instead of `readFailed(error)`; the census lists every such line, the 80 standing ones sit in `refusal-readers-allowlist.txt` under INC-1256 (two under INC-1266).
+- **CF-NUM-1** (scripts/conformance/read-numbers.ts, CFN-2 plants it, no allowlist): a count, total or number read from a failed or missing answer is never replaced by `0` (`count ?? 0`, `|| 0`); a missing value is a typed absence.
+- `scripts/e2e-failure-report.ts` writes the gating failures first (EFR-6); `scripts/ci/install-browser-deps.sh` leaves a slow package mirror after a throughput probe and bounded apt timeouts (IBD-1).

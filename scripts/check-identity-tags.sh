@@ -37,7 +37,6 @@ TOKENS=(
 DEFERRED=(
   'e2e/admin-categories-console.spec.ts:CT-7 (mints + enrols its own identity)'
   'e2e/admin-translations-console.spec.ts:TR-9 (conditional sync enrolment)'
-  'e2e/admin-users.spec.ts:AU-3/4/5/9/10 (inline staff mints, never pooled)'
 )
 
 scan_file() {

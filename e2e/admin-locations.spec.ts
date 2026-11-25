@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { signInStaff, asStaff } from "./helpers/staff-factor";
 import { chooseFilter } from "./helpers/filters";
 
 import { en } from "../src/i18n/locales/en";
@@ -122,7 +123,7 @@ test.describe("L2a locations console", () => {
 
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/places");
     await selectMarket(page, "ET");
 
@@ -561,15 +562,13 @@ test.describe("L2a locations console", () => {
         const weak = await leaseUser();
         await grantRole(weak.id, "super_admin");
         await switchUser(page, weak.email, weak.password);
+        // Cursor bundle 6 (DEC-434) — the subject keeps the password sign-in (aal1); with no factor the
+        // screen is the gate's setup panel, so there is no market to pick and no row to move.
         await gotoReady(page, "/admin/places");
-        await selectMarket(page, "ET");
+        await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
+        await expect(page.getByTestId("location-country-filter")).toHaveCount(0);
 
         const cityKey = `${ANCHOR}/${regionA}/${citySlug}`;
-        await openVerb(page, cityKey, "move", citySlug);
-        await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
-        await page.getByTestId("location-move-parent").selectOption(second!.id);
-        await page.getByTestId("location-move-submit").click();
-
         await expect
           .poll(async () => (await readLocation(citySlug))?.parent_id, {
             timeout: 5000,
@@ -1331,7 +1330,7 @@ test.describe("L2a locations door — the country filter is a list (DEC-420, DEC
     const { first, second, placesOf } = await twoMarkets();
     const viewerAccount = await leaseUser();
     await grantScratchRole(viewerAccount.id, [["locations", "view"]], roles);
-    const viewer = await asPerson(viewerAccount);
+    const viewer = await asStaff(viewerAccount);
 
     expect(await listed(viewer, { p_country_code: [first.code, second.code] })).toEqual(
       [...placesOf(first), ...placesOf(second)].sort(),
@@ -1375,7 +1374,7 @@ test.describe("L2a locations door — the country filter is a list (DEC-420, DEC
       .eq("user_id", staff.id)
       .eq("role_id", roleId);
     expect(scoped.error, "[e2e:lt] scoping the scratch grant").toBeNull();
-    const caller = await asPerson(staff);
+    const caller = await asStaff(staff);
 
     const both = { p_country_code: [first.code, second.code] };
     expect(await listed(caller, both)).toEqual(placesOf(first));

@@ -292,8 +292,14 @@ export async function setAdminListingTier(
   return { status: answer["status"] };
 }
 
-export function useAdminListing(listingId: string) {
+/**
+ * Cursor bundle 6, decision 7 — `cacheOnly` is the shell's crumb: it shows what the page's own read
+ * filled and asks nothing itself, so a staff session that has not used its second factor (the page's
+ * body is not mounted behind the gate) makes no staff read here and draws no failure.
+ */
+export function useAdminListing(listingId: string, options: { cacheOnly?: boolean } = {}) {
   return useQuery({
+    enabled: options.cacheOnly !== true,
     queryKey: [...ADMIN_LISTINGS_KEY, "detail", listingId],
     queryFn: () => readAdminListing(listingId),
     retry: false,

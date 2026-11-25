@@ -264,6 +264,11 @@ export function ImportDialog({
       setReason(null);
       setError(t(key(suffix)));
     };
+    // INC-1274 — an ended sign-in is said as ended (the route client told the shell), never as a failure.
+    if (status === 401 || named === "notSignedIn") {
+      setReason(null);
+      return setError(t("session.expired"));
+    }
     if (status === 403) return own("error.denied");
     if (status === 428) return own("error.stepUp");
     if (named === "wrongFile") return own("error.wrongFile");
@@ -280,6 +285,10 @@ export function ImportDialog({
 
   const post = async (body: Record<string, unknown>): Promise<unknown | null> => {
     const answer = await callRoute(path, { json: body, auth: "required" });
+    if (answer.kind === "signedOut") {
+      failed({}, 401);
+      return null;
+    }
     if (answer.kind !== "answered") {
       failed({}, 0);
       return null;

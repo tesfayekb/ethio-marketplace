@@ -27,7 +27,7 @@ const state = {
   pulls: 0,
   pullsAtRate: [] as number[],
   rpcCalls: [] as { name: string; args: unknown }[],
-  rpcAnswer: true as boolean,
+  rpcAnswer: "allowed" as string,
   logs: [] as string[],
   handlerCalls: 0,
 };
@@ -69,22 +69,20 @@ vi.mock("@/server/supabase/user-client", () => {
     },
     upstreamFailed: () => false,
     doorAnswer: (data: unknown) => data,
-    // Foundations turn 11 — the one staff check, as the real one calls it (PRM-1 pins it).
+    // Foundations turn 11 / DEC-465 — the one staff check, as the real one calls it (PRM-1 pins it).
     callerHasPermission: async (
       supabase: {
         rpc: (name: string, args: unknown) => Promise<{ data: unknown; error: unknown }>;
       },
-      userId: string,
       permission: string,
     ) => {
       const [resource, action] = permission.split(":");
-      const { data, error } = await supabase.rpc("has_permission", {
-        p_user_id: userId,
+      const { data, error } = await supabase.rpc("my_permission_answer", {
         p_resource: resource,
         p_action: action,
       });
       if (error) throw error;
-      return data === true;
+      return data;
     },
   };
 });
@@ -133,7 +131,7 @@ beforeEach(() => {
   state.pulls = 0;
   state.pullsAtRate = [];
   state.rpcCalls = [];
-  state.rpcAnswer = true;
+  state.rpcAnswer = "allowed";
   state.logs = [];
   state.handlerCalls = 0;
 });
@@ -280,28 +278,34 @@ describe("defineRoute — the one boundary (B4)", () => {
     expect(state.logs.join("\n")).toContain("secret internals");
   });
 
-  it("RT-8 staff mode calls has_permission as the caller and answers 403 on false", async () => {
+  it("RT-8 staff mode asks my_permission_answer as the caller: 403 on denied, the one 428 on a session without its second factor, the handler on allowed", async () => {
     const route = makeRoute({ auth: { staff: { resource: "listings", action: "manage" } } });
-    state.rpcAnswer = false;
-    const response = await route({
-      request: post(JSON.stringify({ listingId: LISTING })),
-      params: {},
-    });
-    expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ error: "forbidden" });
+    const call = () => route({ request: post(JSON.stringify({ listingId: LISTING })), params: {} });
+    state.rpcAnswer = "denied";
+    const denied = await call();
+    expect(denied.status).toBe(403);
+    expect(await denied.json()).toEqual({ error: "forbidden" });
     expect(state.rpcCalls).toEqual([
-      {
-        name: "has_permission",
-        args: { p_user_id: "user-1", p_resource: "listings", p_action: "manage" },
-      },
+      { name: "my_permission_answer", args: { p_resource: "listings", p_action: "manage" } },
     ]);
-    expect(state.handlerCalls).toBe(0);
-    state.rpcAnswer = true;
-    const allowed = await route({
-      request: post(JSON.stringify({ listingId: LISTING })),
-      params: {},
+    state.rpcAnswer = "stepUp";
+    const stepUp = await call();
+    expect(stepUp.status).toBe(428);
+    expect(await stepUp.json()).toEqual({ error: "step-up required", code: "P0009" });
+    state.rpcAnswer = "stepUpNoFactor";
+    const noFactor = await call();
+    expect(noFactor.status).toBe(428);
+    expect(await noFactor.json()).toEqual({
+      error: "step-up required: no verified factor",
+      code: "P0009",
     });
+    // a refusal leaves no trace: the handler never ran, no dial was spent (RT-8, G38)
+    expect(state.handlerCalls).toBe(0);
+    expect(state.rates).toEqual([]);
+    state.rpcAnswer = "allowed";
+    const allowed = await call();
     expect(allowed.status).toBe(200);
+    expect(state.handlerCalls).toBe(1);
   });
 
   it("RT-9 anon with the server environment missing answers the serverEnv 500", async () => {

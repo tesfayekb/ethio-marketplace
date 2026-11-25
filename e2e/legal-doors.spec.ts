@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { expect, test } from "./fixtures";
 
+import { asStaff } from "./helpers/staff-factor";
 import { grantRole } from "./helpers/categories";
 import { storageKey } from "./helpers/session";
 import { asAnonymous, asBearer, asPerson } from "./helpers/door-callers";
@@ -267,7 +268,7 @@ test.describe("Legal doors", () => {
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     const asPlain = await asPerson(plain);
-    const asAdmin = await asPerson(admin);
+    const asAdmin = await asStaff(admin);
     const save = {
       p_kind: kind,
       p_country: null,
@@ -700,7 +701,7 @@ test.describe("Legal doors", () => {
     expect((read.data as Row)["notice_days"]).toBe(30);
 
     const asPlain = await asPerson(plain);
-    const asAdmin = await asPerson(admin);
+    const asAdmin = await asStaff(admin);
     for (const [who, caller] of [
       ["plain user", asPlain],
       ["admin by role", asAdmin],
@@ -813,7 +814,7 @@ test.describe("Legal doors", () => {
     expect(plainRefused.error, "a plain user is refused the staff history").toContain(
       "permissionDenied",
     );
-    const asAdmin = await asPerson(admin);
+    const asAdmin = await asStaff(admin);
     const adminHistory = await asAdmin.rpc("admin_user_legal_history", { p_user_id: person.id });
     // The admin role holds profiles:view, so it sees the history (the door's own permission, D5).
     expect(adminHistory.error).toBeNull();
@@ -919,7 +920,7 @@ test.describe("Legal doors", () => {
     expect(jobVersion.error, "the service role reads the staff version").toBeNull();
 
     const asPlain = await asPerson(plain);
-    const asAdmin = await asPerson(admin);
+    const asAdmin = await asStaff(admin);
     for (const [who, caller] of [
       ["plain user", asPlain],
       ["admin by role", asAdmin],
@@ -1259,7 +1260,7 @@ test.describe("Legal doors", () => {
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     const plainCaller = await asPerson(plain);
-    const adminCaller = await asPerson(admin);
+    const adminCaller = await asStaff(admin);
     for (const [caller, language] of [
       [plainCaller, "en"],
       [adminCaller, "am"],

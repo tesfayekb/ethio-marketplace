@@ -2,12 +2,13 @@ import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
 import { useShell } from "@/components/shell-context";
 import { sectionAt } from "@/components/shell/admin-nav-layer";
 import { AdminShellProvider } from "@/features/admin/admin-shell-provider";
 import { ADMIN_NAV_LAYER } from "@/features/admin/nav-layer";
+import { LazyStaffFactorGate } from "@/features/auth/mfa/staff-factor-gate-lazy";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
@@ -47,8 +48,21 @@ export const Route = createFileRoute("/admin")({
   component: AdminGate,
 });
 
-function AdminGate() {
+/** What the layout draws while a read or a download settles. */
+function AdminChecking() {
   const { t } = useI18n();
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex min-h-40 items-center justify-center text-sm text-muted-foreground"
+    >
+      {t("admin.loading")}
+    </div>
+  );
+}
+
+function AdminGate() {
   const navigate = useNavigate();
   const { user, authLoading } = useShell();
   const { permissions, loading } = usePermissions({ enabled: user !== null });
@@ -94,25 +108,23 @@ function AdminGate() {
   }, [section, sectionAllowed]);
 
   // No flash of sections while the permission read settles.
-  if (pending || signedOut || !allowed || !sectionAllowed) {
-    return (
-      <div
-        role="status"
-        aria-live="polite"
-        className="flex min-h-40 items-center justify-center text-sm text-muted-foreground"
-      >
-        {t("admin.loading")}
-      </div>
-    );
-  }
+  if (pending || signedOut || !allowed || !sectionAllowed) return <AdminChecking />;
 
   return (
     <AdminShellProvider permissions={permissions} accessDenied={accessDenied}>
       {/* U0b (INC-069): section navigation lives in the SHELL rail/drawer like
           every sibling panel — this route renders only the section body. */}
-      <div data-testid="admin-panel-root" className="min-w-0">
-        <Outlet />
-      </div>
+      {/* DEC-434, DEC-451 — a staff screen draws only for an account with a verified second factor, in
+          a session that used it; before that the gate draws its setup or its code prompt, and the
+          body below does not mount (so no staff read starts). The server's door_context and
+          has_permission remain the authority. */}
+      <Suspense fallback={<AdminChecking />}>
+        <LazyStaffFactorGate>
+          <div data-testid="admin-panel-root" className="min-w-0">
+            <Outlet />
+          </div>
+        </LazyStaffFactorGate>
+      </Suspense>
     </AdminShellProvider>
   );
 }

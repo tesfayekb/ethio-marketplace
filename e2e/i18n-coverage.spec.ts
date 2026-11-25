@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 
+import { signInStaff } from "./helpers/staff-factor";
 import { gotoReady, openRailScope, signIn } from "./helpers/ui";
 import { ANY_MENU_ROW, catalogueRows, isScratchSlug, slugOfRow } from "./helpers/category-menu";
 import { adminClient, leaseUser, grantRole } from "./helpers/users";
@@ -213,7 +214,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     // Sign in FIRST in English: the signIn helper addresses controls by their
     // English labels. Then the account and the device are set to Amharic (INC-996:
     // the account decides at session start, D239), so /admin is measured in Amharic.
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await setAccountLanguage(page, staff.id, "am");
     await gotoReady(page, "/admin");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
@@ -238,7 +239,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
       .single();
     if (error || !role) throw new Error(`[e2e:i18n] super_admin role not found`);
 
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await setAccountLanguage(page, staff.id, "am");
     await gotoReady(page, `/admin/roles/${role.id}`);
     await expect(page.getByTestId("role-permissions")).toBeVisible({ timeout: 20000 });

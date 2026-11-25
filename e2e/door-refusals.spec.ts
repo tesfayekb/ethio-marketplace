@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 import { scratchCountryCode } from "./helpers/countries";
 import { inOneWindow } from "./helpers/rate-window";
 import { bearerClient, passwordGrant } from "./helpers/session";
+import { staffSession } from "./helpers/staff-factor";
 import { adminClient, createUser, grantRole, leaseUser } from "./helpers/users";
 import { splitRefusal } from "../src/lib/refusal";
 
@@ -130,10 +131,18 @@ test("DRF-1 has_permission answers about the caller only: another account asking
   grantedRoleIds.push({ userId: holder.id, roleName: "moderator" });
   const pair = { p_user_id: holder.id, p_resource: "listings", p_action: "view" };
 
+  // Cursor bundle 6 (DEC-461) — a staff holder's own answer is true only in a session that used its
+  // factor (aal2): the plain password session (aal1) reads false, a false answer and never a RAISE.
   const asHolder = bearerClient((await passwordGrant(holder.email, holder.password)).access_token);
   const own = await asHolder.rpc("has_permission", pair);
   expect(own.error).toBeNull();
-  expect(own.data, "the holder reads the truth about itself").toBe(true);
+  expect(own.data, "the holder's session has not used its factor").toBe(false);
+  const asHolderAal2 = bearerClient((await staffSession(holder)).access_token);
+  const ownAal2 = await asHolderAal2.rpc("has_permission", pair);
+  expect(ownAal2.error).toBeNull();
+  expect(ownAal2.data, "the holder reads the truth about itself once its factor is used").toBe(
+    true,
+  );
 
   const asOther = bearerClient((await passwordGrant(other.email, other.password)).access_token);
   const aboutHolder = await asOther.rpc("has_permission", pair);

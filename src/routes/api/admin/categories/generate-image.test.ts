@@ -30,7 +30,7 @@ vi.mock("@/server/supabase/user-client", () => ({
     },
   }),
   refuseUserClient: () => null,
-  callerHasPermission: async () => state.staff,
+  callerHasPermission: async () => (state.staff ? "allowed" : "denied"),
   logRouteError: () => undefined,
 }));
 vi.mock("@/server/ai/gateway", () => ({

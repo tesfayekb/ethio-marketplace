@@ -4,3 +4,11 @@
 # "<file>:<line> names <SETTING>; its newest decision is DEC-<n>", "<file>:<line> <id> (RECORDS) is
 # named by <path>, outside SCOPE" or "<file>:<line> cites <list>; no test it cites reads it by name…" | reason | until.
 # A line no finding needs is stale and fails. Empty at birth.
+docs/governance/briefs/cursor-bundle-6.md:14 the CONFORMANCE GUARD names no path | CF-BRIEF-24 is a law this turn adds (ruling 1, decision 17); the brief was saved before it and is never edited after STEP 0 | DEC-461
+docs/governance/briefs/cursor-bundle-6.md:24 the CONFORMANCE GUARD names no path | CF-BRIEF-24 is a law this turn adds (ruling 1, decision 17); the brief was saved before it and is never edited after STEP 0 | DEC-461
+docs/governance/briefs/cursor-bundle-6.md:34 the CONFORMANCE GUARD names no path | CF-BRIEF-24 is a law this turn adds (ruling 1, decision 17); the brief was saved before it and is never edited after STEP 0 | DEC-461
+docs/governance/briefs/cursor-bundle-6.md:44 the CONFORMANCE GUARD names no path | CF-BRIEF-24 is a law this turn adds (ruling 1, decision 17); the brief was saved before it and is never edited after STEP 0 | DEC-461
+docs/governance/briefs/cursor-bundle-6.md:55 the CONFORMANCE GUARD names no path | CF-BRIEF-24 is a law this turn adds (ruling 1, decision 17); the brief was saved before it and is never edited after STEP 0 | DEC-461
+docs/governance/briefs/cursor-bundle-6.md:65 the CONFORMANCE GUARD names no path | CF-BRIEF-24 is a law this turn adds (ruling 1, decision 17); the brief was saved before it and is never edited after STEP 0 | DEC-461
+docs/governance/briefs/cursor-bundle-6.md:70 SCOPE names a route or component, so the census item user-cases is answered, never marked not applicable | CF-BRIEF-23 is a law this turn adds (ruling 1, decision 12); the brief was saved before it and is never edited after STEP 0; the user-cases list is §12 of the report | DEC-461
+docs/governance/briefs/cursor-bundle-6.md:74 STEP 1 does not name the census item user-cases | the item is one this turn adds (ruling 1, decision 12); the brief was saved before it and is never edited after STEP 0; the user-cases list is §12 of the report | DEC-461

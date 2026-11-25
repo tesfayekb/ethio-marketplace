@@ -5,6 +5,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { am } from "../src/i18n/locales/am";
+import { signInStaff } from "./helpers/staff-factor";
 import {
   expectNoHorizontalOverflow,
   expectSignedIn,
@@ -21,7 +22,6 @@ import {
   signOutViaUi,
   settled,
   switchLanguage,
-  switchUser,
   waitForHydration,
 } from "./helpers/ui";
 import { ANY_MENU_ROW, anyMenuRows, catalogueRows, slugOfRow } from "./helpers/category-menu";
@@ -1083,7 +1083,7 @@ test.describe("mobile chrome", () => {
     await page.setViewportSize({ width: 360, height: 640 });
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin");
 
     type RowRect = { top: number; bottom: number; height: number; id: string };
@@ -1589,7 +1589,10 @@ test.describe("mobile chrome", () => {
     }
     await expect(page.getByTestId("panel-tabs")).not.toBeVisible();
     const topbar = page.getByTestId("shell-topbar");
-    await expect(topbar.locator('a[href="/auth"]:visible')).toHaveCount(0);
+    // The sign-in address with its query too (D11, Lovable 10a, PR #104), each form visible-only.
+    await expect(topbar.locator('a[href="/auth"]:visible, a[href^="/auth?"]:visible')).toHaveCount(
+      0,
+    );
     await expect(topbar.locator('[data-testid="account-menu"]:visible')).toHaveCount(0);
   });
 
@@ -1925,7 +1928,7 @@ test.describe("rail scroll regions (U0f)", () => {
     // is granted through the same service-role path rbac.spec.ts uses.
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await page.setViewportSize({ width: 1280, height: 360 });
     await gotoReady(page, "/admin");
 

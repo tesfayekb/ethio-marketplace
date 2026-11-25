@@ -128,6 +128,11 @@ export interface UseDraft {
   retry: () => void;
   /** D58 — a Next whose save ended unreachable; cleared by a later save or an edit. */
   nextBlockedByTransport: boolean;
+  /**
+   * INC-1274 — the last save was answered "your sign-in has ended" (not a verdict, not a transport
+   * failure): nothing is retried by a timer; a later edit or a successful save clears it.
+   */
+  signedOut?: boolean;
   /** INC-227 — seconds until autosave may resume; 0 when it is not paused. */
   pauseSeconds: number;
   photos: DraftPhotoRow[];
@@ -164,6 +169,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [draftStep, setDraftStep] = useState(1);
   const [values, setValues] = useState<DraftValues>(EMPTY_VALUES);
   const [nextBlockedByTransport, setNextBlockedByTransport] = useState(false);
+  const [signedOut, setSignedOut] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [photos, setPhotos] = useState<DraftPhotoRow[]>([]);
@@ -360,7 +366,18 @@ export function useDraft(initialListingId: string | null): UseDraft {
     inFlightRef.current = false;
     if (!aliveRef.current) return answer.ok;
 
+    // INC-1274 — THE SIGN-IN HAS ENDED. The route client told the shell (which ends the session and
+    // asks for a sign-in); here nothing was judged and nothing is retried by a timer — the answers
+    // stay on screen, "Not saved yet", with the words that ask the person to sign in again.
+    if (answer.signedOut === true) {
+      setSaveState("unsaved");
+      setSignedOut(true);
+      if (retryRef.current) clearTimeout(retryRef.current);
+      return false;
+    }
+
     if (answer.ok) {
+      setSignedOut(false);
       // INC-698 — a newer claim (a Next pressed while this pass was in the air) owns the queue: its own chained pass sends the latest answers once. This answer records the server's facts and arms nothing.
       const superseded = strictRef.current !== null && !current();
       setNextBlockedByTransport(false);
@@ -752,6 +769,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       rewindTo,
       retry,
       nextBlockedByTransport,
+      signedOut,
       pauseSeconds,
       photos,
       reloadPhotos,
@@ -780,6 +798,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       rewindTo,
       retry,
       nextBlockedByTransport,
+      signedOut,
       pauseSeconds,
       photos,
       reloadPhotos,

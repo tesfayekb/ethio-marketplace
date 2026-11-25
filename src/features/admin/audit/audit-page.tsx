@@ -254,31 +254,31 @@ export function AdminAuditPage() {
       <StatGrid testid="audit-stats">
         <StatCard
           testid="audit-stat-24h"
-          loading={stats.isLoading}
+          loading={stats.isPending}
           failed={stats.isError}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.events24h")}
-          value={stats.data?.count24h ?? 0}
+          value={stats.data?.count24h}
         />
         <StatCard
           testid="audit-stat-7d"
-          loading={stats.isLoading}
+          loading={stats.isPending}
           failed={stats.isError}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.events7d")}
-          value={stats.data?.count7d ?? 0}
+          value={stats.data?.count7d}
         />
         <StatCard
           testid="audit-stat-impersonations"
-          loading={stats.isLoading}
+          loading={stats.isPending}
           failed={stats.isError}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.activeImpersonations")}
-          value={stats.data?.activeImpersonations ?? 0}
+          value={stats.data?.activeImpersonations}
         />
         <StatCard
           testid="audit-stat-top-action"
-          loading={stats.isLoading}
+          loading={stats.isPending}
           failed={stats.isError}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.topAction")}
@@ -292,7 +292,7 @@ export function AdminAuditPage() {
         variant="sparkline"
         title={t("admin.audit.chart.title")}
         description={t("admin.audit.chart.description")}
-        loading={stats.isLoading}
+        loading={stats.isPending}
         error={stats.error}
         empty={days.length === 0}
         footer={

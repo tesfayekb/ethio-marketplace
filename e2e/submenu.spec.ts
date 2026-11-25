@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { catalogueRows } from "./helpers/category-menu";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
 import { grantRole } from "./helpers/categories";
@@ -239,7 +240,7 @@ test.describe("D240 the admin, account and seller menus' side panels", () => {
     test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await gotoReady(page, "/admin");
     const rail = page.getByTestId("app-rail");
     const opener = rail.getByTestId("admin-group-categories");

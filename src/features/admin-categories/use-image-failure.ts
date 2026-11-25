@@ -23,6 +23,11 @@ export function useImageFailure() {
     const failed = t("admin.categories.error.imageFailed");
     const stageOf = (stage: string | null) =>
       stage === null ? "" : ` (${t("admin.categories.image.stageLabel")} ${stage})`;
+    // INC-1274 — an ended sign-in is said as ended, whichever step answered it.
+    if (error instanceof CategoryImageError && error.status === 401) {
+      setMessage(t("session.expired"));
+      return;
+    }
     const read = readRefusal(error, CATEGORY_REFUSALS, has);
     if (read.silent) {
       setMessage(null);

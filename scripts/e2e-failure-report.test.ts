@@ -127,6 +127,28 @@ describe("the nightly's verdict without its serial run (DEC-393, INC-1175)", () 
     );
   });
 
+  it("EFR-6 the gating failures are the first section, each with its error; a run with none writes no such section (INC-1272)", () => {
+    const run = runNightlyReporter(SAMPLE);
+    const headings = run.out.split("\n").filter((line) => /^## /.test(line));
+    expect(headings[0]).toBe("## Gating failures");
+    expect(headings.filter((line) => line === "## Gating failures")).toHaveLength(1);
+    // Both failures of the capture sit under it, ahead of every later section, each with its
+    // source, project and error block.
+    const section = run.out.slice(run.out.indexOf("## Gating failures"));
+    const body = section.slice(
+      0,
+      section.indexOf("\n## ", 4) < 0 ? undefined : section.indexOf("\n## ", 4),
+    );
+    expect(body.match(/^### /gm)).toHaveLength(2);
+    expect(body.match(/^- Source: `nightly`$/gm)).toHaveLength(2);
+    expect(body.match(/^- Project: `/gm)).toHaveLength(2);
+    expect(run.out).toContain("- Gating failures: 2 ·");
+    // The headline lines stay above it.
+    expect(run.out.indexOf("- Sources without results")).toBeLessThan(
+      run.out.indexOf("## Gating failures"),
+    );
+  });
+
   it("EFR-5 the serial pass's cap line is its own clause, never a counted test run (INC-1232)", () => {
     const real = readFileSync("scripts/fixtures/local-backend-repeat.43144538685.txt", "utf8");
     const meta = (repeatSelection: string) => ({

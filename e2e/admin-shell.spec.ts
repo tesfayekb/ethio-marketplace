@@ -10,13 +10,13 @@ import { en } from "../src/i18n/locales/en";
 import { BAND_SEGMENT_CURRENT } from "../src/components/shell/band-row";
 import { ITEM_ACTIVE } from "../src/components/shell/menu-row";
 
+import { signInStaff } from "./helpers/staff-factor";
 import {
   expectPanelOffered,
   gotoReady,
   openPanel,
   openRailScope,
   signIn,
-  switchUser,
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, grantRole, leaseUser } from "./helpers/users";
@@ -96,7 +96,7 @@ test.describe("Admin shell (U0)", () => {
     const expected = expectedSectionIds(perms);
     expect(expected.length, "admin role grants no admin sections").toBeGreaterThan(0);
 
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await waitForHydration(page);
     await page.goto("/admin");
     await waitForHydration(page);
@@ -199,7 +199,7 @@ test.describe("Admin shell (U0)", () => {
     const mine = ["listings", "audit"];
     expect(expectedSectionIds(perms), "moderator section census drifted").toEqual(mine);
 
-    await signIn(page, mod.email, mod.password);
+    await signInStaff(page, mod);
     await waitForHydration(page);
 
     // admin_panel:access holds, so the tab is there.
@@ -256,7 +256,7 @@ test.describe("Admin shell (U0)", () => {
     const staff = await leaseUser();
     await grantRole(staff.id, "admin");
 
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await waitForHydration(page);
     await page.goto("/");
     await waitForHydration(page);
@@ -304,7 +304,7 @@ test.describe("Admin shell (U0)", () => {
     const visible = grouped.filter((s) => perms.includes(s.permission));
     expect(visible.length, "admin holds no grouped section").toBeGreaterThan(0);
 
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await waitForHydration(page);
     await page.goto(visible[0]!.path);
     await waitForHydration(page);
@@ -393,7 +393,7 @@ test.describe("Admin shell (U0)", () => {
     // INC-074 CLASS RULE — the second persona goes through the SAME door A-7
     // uses: sign out through the UI first, never a bare `signIn` over a live
     // session (which lands on the U0j-guarded /auth and hangs).
-    await switchUser(page, mod.email, mod.password);
+    await signInStaff(page, mod);
     await waitForHydration(page);
     await page.goto("/admin");
     await waitForHydration(page);
@@ -421,7 +421,7 @@ test.describe("Admin shell (U0)", () => {
       (item) => sectionGroupId(item) === "categories" && perms.includes(item.permission),
     );
     if (!section) throw new Error("IN-1: admin holds no grouped section");
-    await signIn(page, staff.email, staff.password);
+    await signInStaff(page, staff);
     await gotoReady(page, section.path);
     await expect(page.getByTestId(`admin-section-${section.id}`)).toBeVisible();
     const iconBox = async (scope: import("@playwright/test").Locator, id: string) => {

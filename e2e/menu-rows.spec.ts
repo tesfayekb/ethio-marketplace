@@ -1,8 +1,9 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
 import { grantRole } from "./helpers/categories";
-import { gotoReady, openRailScope, signIn } from "./helpers/ui";
+import { gotoReady, openRailScope } from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
 
 /**
@@ -176,7 +177,7 @@ test("ROWS-E2 the admin menu from 768 px fits at 32 px or more, or scrolls with 
   test.skip(testInfo.project.name !== "desktop-1280", "the persistent rail is from 768 px");
   const staff = await leaseUser();
   await grantRole(staff.id, "admin");
-  await signIn(page, staff.email, staff.password);
+  await signInStaff(page, staff);
   for (const height of [600, 400]) {
     await page.setViewportSize({ width: 1280, height });
     await gotoReady(page, "/admin");
