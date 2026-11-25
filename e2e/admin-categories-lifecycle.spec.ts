@@ -13,6 +13,7 @@ import {
   waitForHydration,
   signInJobSuperAdmin,
 } from "./helpers/ui";
+import { awaitSessionLanguage } from "./helpers/account-language";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
 import {
@@ -1916,6 +1917,10 @@ test.describe("CAT-IE categories import/export", () => {
       // staff helper's header says.
       await switchUser(page, importer.email, importer.password);
       await gotoReady(page, "/admin/categories");
+      // The account rule (D239) gives an account with no language the device's language once, at its
+      // first session start, and that save audits; after it the rule never writes the account again
+      // (INC-1290). Waiting for it puts it before the watermark, so the audit read from there stays whole.
+      await awaitSessionLanguage(importer.id);
 
       // A leased account carries the history of its earlier borrowers (audit rows keyed to it stay
       // when its roles and sessions are reaped): the proof reads every row the importer gained from
@@ -1959,9 +1964,10 @@ test.describe("CAT-IE categories import/export", () => {
 
       // A refused attempt leaves NO trace (F5): no category, no audit row and no meter row keyed to the
       // importer since the attempt began — except the one meter row a proven other writer leaves. The
-      // sign-in's account-language rule (D239) spends the `account_pref` dial when its session starts,
-      // even when nothing changes (cursor-bundle-7a ruling 1, decision 5); an unchanged save writes no
-      // audit row (INC-1290), so the audit read has no exclusion.
+      // sign-in's account-language rule (D239) has two branches: its first, changing save audits and
+      // landed before the watermark (awaited above); its unchanged saves write no audit row (INC-1290)
+      // yet still spend the `account_pref` dial (cursor-bundle-7a ruling 1, decision 5). The audit read
+      // has no exclusion.
       expect(await readCategory(slug)).toBeNull();
       let gained = adminClient().from("audit_log").select("action").eq("actor_id", importer.id);
       if (watermark !== null) gained = gained.gt("created_at", watermark);
