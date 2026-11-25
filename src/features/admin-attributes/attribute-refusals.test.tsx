@@ -14,7 +14,11 @@ vi.mock("@/i18n", () => ({
   }),
 }));
 
-import { ATTRIBUTE_REFUSALS, useAttributeRefusal } from "./attribute-refusals";
+import {
+  ATTRIBUTE_EXPORT_REFUSALS,
+  ATTRIBUTE_REFUSALS,
+  useAttributeRefusal,
+} from "./attribute-refusals";
 
 /** A shell's refusal as the browser client surfaces it: `code[:detail]` in `message`. */
 const refused = (message: string) => ({ message, code: "P0D01", details: "", hint: "" });
@@ -55,6 +59,12 @@ describe("the attribute library's refusals (F1-4a, DEC-333)", () => {
       ["allowedTargetNotColinked", "admin.attributes.error.allowedTargetNotColinked"],
       ["allowedTargetCircular", "admin.attributes.error.allowedTargetCircular"],
       ["allowedUnknownValue", "admin.attributes.error.allowedUnknownValue"],
+      ["unknownCategory", "admin.categories.error.unknownCategory"],
+      ["badAllowedOption", "admin.attributes.error.badAllowedOption"],
+      ["badDefault", "admin.attributes.error.badDefault"],
+      ["badVisibleWhen", "admin.attributes.error.badVisibleWhen"],
+      ["priceBasisDuplicate", "admin.attributes.error.priceBasisDuplicate"],
+      ["badClearCell", "admin.attributes.error.badClearCell"],
     ];
     expect(Object.keys(ATTRIBUTE_REFUSALS.words).sort()).toEqual(
       words.map(([code]) => code).sort(),
@@ -82,14 +92,10 @@ describe("the attribute library's refusals (F1-4a, DEC-333)", () => {
     ).toBe("That card position is already taken.");
   });
 
-  it("ARF-3 a code without words, a gate's code, a sentence and a failed fetch draw the generic line", () => {
+  it("ARF-3 a code no family names, a gate's code, a sentence and a failed fetch draw the generic line", () => {
     for (const message of [
-      "unknownCategory",
-      "badAllowedOption:red",
-      "badDefault:size",
-      "badVisibleWhen:colour",
-      "priceBasisDuplicate:per_day",
-      "badClearCell:nope",
+      "noSuchCode",
+      "noSuchCode:detail",
       "permissionDenied",
       "step-up required",
     ]) {
@@ -109,6 +115,41 @@ describe("the attribute library's refusals (F1-4a, DEC-333)", () => {
     expect(result.current.message).toBeNull();
     act(() => result.current.fail(refused("admin.attributes.error.parentAfterChild:leaf: a → b")));
     expect(result.current.message).toBe("T(admin.attributes.error.parentAfterChild) leaf: a → b");
+  });
+});
+
+describe("bundle 10b (D50, D55)", () => {
+  it("ATRF-1 the link doors' codes keep their words with a detail; the export's codes read their own words", () => {
+    const cases: ReadonlyArray<readonly [string, string]> = [
+      ["unknownCategory", "admin.categories.error.unknownCategory"],
+      ["badAllowedOption:red", "admin.attributes.error.badAllowedOption"],
+      ["badDefault:size", "admin.attributes.error.badDefault"],
+      ["badVisibleWhen:colour", "admin.attributes.error.badVisibleWhen"],
+      ["priceBasisDuplicate:per_day", "admin.attributes.error.priceBasisDuplicate"],
+      ["badClearCell:nope", "admin.attributes.error.badClearCell"],
+    ];
+    for (const [message, key] of cases)
+      expect([message, readRefusal(refused(message), ATTRIBUTE_REFUSALS).key]).toEqual([
+        message,
+        key,
+      ]);
+    const answer = (error: string) => ({
+      kind: "answered" as const,
+      status: 400,
+      ok: false,
+      payload: { error },
+      error,
+      detail: null,
+      headers: new Headers(),
+    });
+    const exports: ReadonlyArray<readonly [string, string]> = [
+      ["forbidden", "failure.noAccess"],
+      ["unknownCategory", "admin.categories.error.unknownCategory"],
+      ["badScope", "admin.attributes.export.badScope"],
+      ["noSuchCode", "admin.attributes.export.error"],
+    ];
+    for (const [code, key] of exports)
+      expect([code, readRefusal(answer(code), ATTRIBUTE_EXPORT_REFUSALS).key]).toEqual([code, key]);
   });
 });
 

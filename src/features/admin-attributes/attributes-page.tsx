@@ -13,6 +13,7 @@ import {
 } from "@/components/shell/data-table";
 import { RowActions, type RowMoreAction } from "@/components/shell/row-actions";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
+import { readRefusal } from "@/lib/refusal";
 import { useSettling } from "@/lib/use-settling";
 import { categoryFilterOptions } from "@/lib/category-filter-options";
 
@@ -42,6 +44,7 @@ import {
   type AttributeRow,
   type EffectiveLink,
 } from "./attributes-service";
+import { ATTRIBUTE_EXPORT_REFUSALS } from "./attribute-refusals";
 import { ImportAttributesDialog } from "./import-dialog";
 import { useAttributeLabel } from "./use-attribute-label";
 import {
@@ -92,8 +95,9 @@ export function AdminAttributesPage() {
   // entity-translation resolver; `nameEn` is the fallback, never the read.
   const attributeLabel = useAttributeLabel();
   const { permissions } = useAdminShell();
-  const { data, isLoading, error } = useAdminAttributes();
-  const { data: categoryData } = useAdminCategories();
+  const { data, isLoading, error, refetch } = useAdminAttributes();
+  const roster = useAdminCategories();
+  const categoryData = roster.data;
   const search = useSearch({ from: "/admin/attributes" });
   const navigate = useNavigate({ from: "/admin/attributes" });
   const [needleInput, setNeedleInput] = useState("");
@@ -104,7 +108,7 @@ export function AdminAttributesPage() {
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState(false);
+  const [exportError, setExportError] = useState<MessageKey | null>(null);
 
   const [dialog, setDialog] = useState<
     | { kind: "none" }
@@ -202,9 +206,32 @@ export function AdminAttributesPage() {
    * filter yields no rows: the export is the whole library, not the view.
    * A failure is a translated caption beside the controls (F4), never silence.
    */
+  /**
+   * D49 — the reads the table's own rows depend on: with a category filter, the roster that
+   * resolves its slug and that category's effective links. Their failure is the table's failure
+   * (never the whole library, never "no match"); each Retry re-runs its own read.
+   */
+  const filtering = search.category !== undefined;
+  const scopeLoading =
+    filtering && (roster.isLoading || (filterCategory !== null && links.isLoading));
+  const scopeError = filtering
+    ? (roster.error ?? (filterCategory !== null ? links.error : null))
+    : null;
+  const retryTable = () => {
+    if (error) void refetch();
+    if (roster.error) void roster.refetch();
+    if (links.error) void links.refetch();
+  };
+  /** D49 — Used by and coverage: one notice above the table, each failed read retried. */
+  const cellsError = usedBy.error ?? coverage.error;
+  const retryCells = () => {
+    if (usedBy.error) void usedBy.refetch();
+    if (coverage.error) void coverage.refetch();
+  };
+
   const runExport = async () => {
     setExporting(true);
-    setExportError(false);
+    setExportError(null);
     try {
       // C3-INH PART B — a filtered console exports THAT SUBTREE (category +
       // descendants, inherited rows included); no filter exports the library.
@@ -219,13 +246,14 @@ export function AdminAttributesPage() {
           scope === null ? `${file}.csv` : `${scope}-${file}.csv`,
         );
         if (answer.kind !== "answered" || !answer.ok) {
-          setExportError(true);
+          // D55 — the route's code in the export's own words (ATTRIBUTE_EXPORT_REFUSALS).
+          setExportError(readRefusal(answer, ATTRIBUTE_EXPORT_REFUSALS).key);
           break;
         }
       }
     } catch (error) {
       console.error("[attributes] export failed", error);
-      setExportError(true);
+      setExportError("admin.attributes.export.error");
     } finally {
       setExporting(false);
     }
@@ -313,6 +341,8 @@ export function AdminAttributesPage() {
         if (!typeHasOptions(row.attrType)) {
           return <span className="block text-muted-foreground">—</span>;
         }
+        // D49 — a count this page could not read is never drawn as 0/N.
+        if (coverage.error || coverage.isLoading) return unreadCell(coverage, t);
         const counts = coverageById.get(row.id) ?? {
           total: row.options.length,
           withAm: 0,
@@ -344,6 +374,8 @@ export function AdminAttributesPage() {
       cardLabel: false,
       /* No width: Used by takes the remainder and the chips wrap inside it. */
       cell: (row) => {
+        // D49 — a Used by this page could not read is never drawn as "none".
+        if (usedBy.error || usedBy.isLoading) return unreadCell(usedBy, t);
         const chips = chipsFor(row);
         return (
           <span className="flex min-w-0 flex-wrap items-center gap-1">
@@ -529,9 +561,12 @@ export function AdminAttributesPage() {
                 className="text-sm text-destructive"
                 data-testid="attribute-export-error"
               >
-                {t("admin.attributes.export.error")}
+                {t(exportError)}
               </p>
             </div>
+          ) : null}
+          {cellsError ? (
+            <FailureNotice error={cellsError} testid="attribute-reads-error" onRetry={retryCells} />
           ) : null}
 
           <DataTable<AttributeRow>
@@ -545,13 +580,14 @@ export function AdminAttributesPage() {
             caption={t("admin.attributes.caption")}
             cardUntil="lg"
             cardLead={() => <Tags />}
-            loading={isLoading}
+            loading={isLoading || scopeLoading}
             loadingState={
               <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
                 {t("admin.attributes.loading")}
               </p>
             }
-            error={error ? true : undefined}
+            error={error ?? scopeError ?? undefined}
+            retry={retryTable}
             errorState={
               <p role="alert" className="text-sm text-destructive">
                 {t("admin.attributes.error")}
@@ -710,3 +746,12 @@ export function AdminAttributesPage() {
 }
 
 export default AdminAttributesPage;
+
+/** D49 — a cell whose read has not answered: loading words, or the failed words (prim.state.error). */
+function unreadCell(read: { error: unknown }, t: (key: MessageKey) => string) {
+  return (
+    <span className="block text-muted-foreground">
+      {read.error ? t("prim.state.error") : t("prim.state.loading")}
+    </span>
+  );
+}

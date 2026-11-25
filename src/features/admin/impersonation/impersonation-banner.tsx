@@ -1,8 +1,12 @@
 import { Link } from "@tanstack/react-router";
 
 import { VIEW_AS_BAR_CLASS } from "@/components/shell/view-as-bar-look";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { isRetryable, useFailureKind } from "@/components/shell/failure-reason";
+import { ActionMessage } from "@/components/ui/action-message";
 import { useI18n } from "@/i18n";
 
+import { endRefusalKey } from "./impersonation-end-refusals";
 import { useActiveImpersonation, useCountdown, useEndImpersonation } from "./use-impersonation";
 
 /**
@@ -21,17 +25,18 @@ export function ImpersonationBanner() {
   const { data: session } = useActiveImpersonation(true);
   const end = useEndImpersonation();
   const countdown = useCountdown(session?.expiresAt);
+  const endKind = useFailureKind(end.error).kind;
 
   if (!session || countdown === null) return null;
+  // D39 — a failed End now says why: a refusal in the door's words (END_REFUSALS); a network or
+  // server failure through the one notice, whose Retry ends the session again.
+  const unreached = end.error !== null && isRetryable(endKind);
+  const endFailed = end.error !== null && !unreached ? endRefusalKey(end.error) : null;
 
   return (
-    <div
-      data-testid="impersonation-banner"
-      role="status"
-      aria-live="polite"
-      className={VIEW_AS_BAR_CLASS}
-    >
-      <p className="min-w-0 break-words text-sm font-medium">
+    <div data-testid="impersonation-banner" className={VIEW_AS_BAR_CLASS}>
+      {/* The bar's words are its live region; End now's failure carries its own (D39). */}
+      <p role="status" aria-live="polite" className="min-w-0 break-words text-sm font-medium">
         {t("impersonation.banner")
           .replace("{name}", session.targetName ?? t("impersonation.unknownTarget"))
           .replace("{time}", countdown)}
@@ -54,6 +59,23 @@ export function ImpersonationBanner() {
         >
           {t("impersonation.endNow")}
         </button>
+        {unreached ? (
+          <FailureNotice
+            error={end.error}
+            testid="impersonation-banner-end-error"
+            onRetry={() => end.mutate(session.id)}
+            size="line"
+            className="text-destructive-foreground"
+          />
+        ) : null}
+        {endFailed ? (
+          <ActionMessage
+            tone="error"
+            testid="impersonation-banner-end-error"
+            className="text-destructive-foreground"
+            text={t(endFailed)}
+          />
+        ) : null}
       </span>
     </div>
   );

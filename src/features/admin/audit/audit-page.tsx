@@ -13,6 +13,7 @@ import {
 } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { StatCard, StatGrid } from "@/components/shell/stat-card";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
@@ -256,6 +257,7 @@ export function AdminAuditPage() {
           testid="audit-stat-24h"
           loading={stats.isPending}
           failed={stats.isError}
+          error={stats.error}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.events24h")}
           value={stats.data?.count24h}
@@ -264,6 +266,7 @@ export function AdminAuditPage() {
           testid="audit-stat-7d"
           loading={stats.isPending}
           failed={stats.isError}
+          error={stats.error}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.events7d")}
           value={stats.data?.count7d}
@@ -272,6 +275,7 @@ export function AdminAuditPage() {
           testid="audit-stat-impersonations"
           loading={stats.isPending}
           failed={stats.isError}
+          error={stats.error}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.activeImpersonations")}
           value={stats.data?.activeImpersonations}
@@ -280,6 +284,7 @@ export function AdminAuditPage() {
           testid="audit-stat-top-action"
           loading={stats.isPending}
           failed={stats.isError}
+          error={stats.error}
           onRetry={() => void stats.refetch()}
           label={t("admin.audit.stat.topAction")}
           value={topAction?.action ?? "—"}
@@ -294,6 +299,7 @@ export function AdminAuditPage() {
         description={t("admin.audit.chart.description")}
         loading={stats.isPending}
         error={stats.error}
+        onRetry={() => void stats.refetch()}
         empty={days.length === 0}
         footer={
           <div data-testid="audit-chart-labels" className="flex min-w-0 justify-between gap-2">
@@ -327,6 +333,7 @@ export function AdminAuditPage() {
         loading={list.isLoading || !keptReady}
         loadingState={<p className="text-sm text-muted-foreground">{t("admin.audit.loading")}</p>}
         error={list.error}
+        retry={() => void list.refetch()}
         errorState={<p className="text-sm text-destructive">{t("admin.audit.error")}</p>}
         emptyState={<p className="text-sm text-muted-foreground">{t("admin.audit.empty")}</p>}
         toolbar={
@@ -363,7 +370,18 @@ export function AdminAuditPage() {
                 onToggle={toggleColumn}
               />
             }
-            chips={<FilterChips testid={"audit-chips"} filters={tableFilters} />}
+            chips={
+              <>
+                <FilterChips testid={"audit-chips"} filters={tableFilters} />
+                {facets.error ? (
+                  <FailureNotice
+                    error={facets.error}
+                    testid="audit-facets-error"
+                    onRetry={() => void facets.refetch()}
+                  />
+                ) : null}
+              </>
+            }
           />
         }
         expandedRow={(row) =>

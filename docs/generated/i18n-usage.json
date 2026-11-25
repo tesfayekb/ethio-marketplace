@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 787,
-  "dynamicCallSites": 429,
+  "scanned": 789,
+  "dynamicCallSites": 432,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -810,9 +810,6 @@
       "/admin/categories"
     ],
     "admin.attributes.export.busy": [
-      "/admin/attributes"
-    ],
-    "admin.attributes.export.error": [
       "/admin/attributes"
     ],
     "admin.attributes.export.open": [
@@ -8364,9 +8361,11 @@
       "/dev/primitives"
     ],
     "prim.state.error": [
+      "/admin/attributes",
       "/dev/primitives"
     ],
     "prim.state.loading": [
+      "/admin/attributes",
       "/admin/audit",
       "/admin/impersonation/$sessionId",
       "/admin/locations",

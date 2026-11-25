@@ -3,17 +3,22 @@ import { useState } from "react";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { ActionMessage } from "@/components/ui/action-message";
 import { useI18n } from "@/i18n";
+import type { MessageKey } from "@/i18n/types";
 import { DOOR_REFUSED_KEY } from "@/lib/door-refused-key";
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { resilientLazy } from "@/lib/resilient-lazy";
+import { FailureNotice } from "./failure-notice";
+import { failureKind, isRetryable, loadFailureReader } from "./failure-reason";
 import { VIEW_AS_BAR_CLASS } from "./view-as-bar-look";
 
 const SERVICE_LABEL = "the impersonation service";
 const SERVICE = loadOnce(() => import("@/features/admin/impersonation/impersonation-service"));
+/** D39 — End now's words (END_REFUSALS) arrive on demand with the service, off the first download. */
+const WORDS = loadOnce(() => import("@/features/admin/impersonation/impersonation-end-refusals"));
 
-type Outcome = "idle" | "ending" | "ended" | "none" | "loadFailed" | "refused";
+type Outcome = "idle" | "ending" | "ended" | "none" | "loadFailed" | "refused" | "unreached";
 
 const ON_BAR = "text-destructive-foreground";
 
@@ -29,6 +34,7 @@ const ON_BAR = "text-destructive-foreground";
 export function ImpersonationNotice() {
   const { t } = useI18n();
   const [outcome, setOutcome] = useState<Outcome>("idle");
+  const [failure, setFailure] = useState<{ error: unknown; key: MessageKey } | null>(null);
 
   async function endNow() {
     setOutcome("ending");
@@ -49,7 +55,28 @@ export function ImpersonationNotice() {
       await service.endImpersonation(session.id);
       setOutcome("ended");
     } catch (error) {
-      console.error(`[client-error] impersonation end: ${errorText(error)}`);
+      console.error("[client-error] impersonation end:", errorText(error));
+      // D39 — a network or server failure offers Retry (End now again); a refusal says why. The
+      // failure's reader arrives on demand (INC-864); if it cannot, the error's own shape decides.
+      await loadFailureReader().catch((loadError: unknown) => {
+        logOnDemandFailure("reader-failure", loadError);
+      });
+      if (isRetryable(failureKind(error).kind)) {
+        setFailure({ error, key: DOOR_REFUSED_KEY });
+        setOutcome("unreached");
+        return;
+      }
+      let key: MessageKey | null = DOOR_REFUSED_KEY;
+      try {
+        key = (await WORDS.load()).endRefusalKey(error);
+      } catch (loadError) {
+        logOnDemandFailure(SERVICE_LABEL, loadError);
+      }
+      if (key === "impersonation.noneActive") {
+        setOutcome("none");
+        return;
+      }
+      setFailure({ error, key: key ?? DOOR_REFUSED_KEY });
       setOutcome("refused");
     }
   }
@@ -73,7 +100,7 @@ export function ImpersonationNotice() {
             tone="error"
             testid="impersonation-notice-failed"
             className={ON_BAR}
-            text={t(DOOR_REFUSED_KEY)}
+            text={t(failure?.key ?? DOOR_REFUSED_KEY)}
           />
           <button
             type="button"
@@ -84,6 +111,15 @@ export function ImpersonationNotice() {
             {t("common.refreshPage")}
           </button>
         </span>
+      ) : outcome === "unreached" ? (
+        <FailureNotice
+          error={failure?.error}
+          testid="impersonation-notice-failed"
+          retryTestid="impersonation-notice-retry"
+          onRetry={() => void endNow()}
+          size="line"
+          className={ON_BAR}
+        />
       ) : outcome === "none" ? null : (
         <button
           type="button"

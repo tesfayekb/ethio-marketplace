@@ -2,7 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tierOf } from "@/components/marketplace/card-tier";
 
 import { editErrorKey } from "@/features/admin-listings/edit-listing";
-import { editAdminListing, readAdminListing } from "@/features/admin-listings/use-admin-listing";
+import {
+  editAdminListing,
+  readAdminListing,
+  type AdminListingDetail,
+} from "@/features/admin-listings/use-admin-listing";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { editMyListing, type Certification } from "@/features/my-listings/my-listing";
@@ -133,6 +137,7 @@ function stepOfPatch(patch: Partial<DraftValues>): number | null {
 async function readForStaff(listingId: string) {
   const detail = await readAdminListing(listingId);
   return {
+    detail,
     listing: detail.listing,
     channels: detail.channels,
     photos: await readStaffPhotos(listingId),
@@ -156,6 +161,11 @@ export function useEditDraft(
   options: {
     actor: EditActor;
     guard?: GuardFn;
+    /**
+     * INC-1292 — staff's one read of the ad, handed whole to the page so the shell's crumb reads it
+     * (the page writes it under `adminListingKey`); no second read of the same door.
+     */
+    onStaffRead?: (detail: AdminListingDetail) => void;
     /** Bundle 22 turn 4 — a seller door's legal refusal; true when handled (certifyRefusal). */
     onLegalRefusal?: (reason: string) => boolean;
   },
@@ -163,6 +173,8 @@ export function useEditDraft(
   const { actor, guard } = options;
   const legalRefusalRef = useRef(options.onLegalRefusal);
   legalRefusalRef.current = options.onLegalRefusal;
+  const onStaffReadRef = useRef(options.onStaffRead);
+  onStaffReadRef.current = options.onStaffRead;
   const certificationRef = useRef<Certification | undefined>(undefined);
   const setCertification = useCallback((certification: Certification | undefined) => {
     certificationRef.current = certification;
@@ -268,6 +280,7 @@ export function useEditDraft(
         } else {
           const found = await readForStaff(listingId);
           if (cancelled) return;
+          if (found !== null) onStaffReadRef.current?.(found.detail);
           if (found === null) {
             setLoadError("notFound");
             return;

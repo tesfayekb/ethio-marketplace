@@ -1,6 +1,11 @@
 import { formatCountryName } from "@/lib/reader-locale";
 import { CutText } from "@/components/ui/cut-text";
+import {
+  adminListingKey,
+  type AdminListingDetail,
+} from "@/features/admin-listings/use-admin-listing";
 import { readerFailure } from "@/lib/reader-failure";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useFormGate } from "@/components/forms/use-form-gate";
@@ -187,7 +192,14 @@ export function EditWizard({
     (reason: string) => certifyRefusal(reason, navigate),
     [navigate],
   );
-  const draft = useEditDraft(listingId, { actor, guard, onLegalRefusal });
+  // INC-1292 — staff's one read of the ad fills the console's cache key, so the shell's crumb reads
+  // it and the page makes no second read of the same door.
+  const queryClient = useQueryClient();
+  const onStaffRead = useCallback(
+    (detail: AdminListingDetail) => queryClient.setQueryData(adminListingKey(listingId), detail),
+    [queryClient, listingId],
+  );
+  const draft = useEditDraft(listingId, { actor, guard, onLegalRefusal, onStaffRead });
   return (
     <WizardShell
       draft={draft}

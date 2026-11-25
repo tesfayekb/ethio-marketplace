@@ -1008,6 +1008,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.attributes.export.open": "ባህርያትን ላክ",
   "admin.attributes.export.busy": "በመላክ ላይ…",
   "admin.attributes.export.error": "ኤክስፖርቱ ማዘጋጀት አልተቻለም።",
+  "admin.attributes.export.badScope": "የኤክስፖርቱ ማጣሪያ ትክክል አይደለም። ያጽዱትና እንደገና ይሞክሩ።",
   "admin.attributes.import.open": "ባህርያትን አስገባ",
   "admin.attributes.import.title": "ባህርያትን አስገባ",
   "admin.attributes.import.hint": "ያወጡትን ሁለቱን ፋይሎች ይምረጡ። ቅድመ-እይታውን እስኪያረጋግጡ ድረስ ምንም አይመዘገብም።",
@@ -1396,6 +1397,11 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   /* DEC-050 L3b — በበሩ የሚነሱ የአማራጭና የቅንብር እምቢታዎች። */
   "admin.attributes.error.badOption": "አንድ አማራጭ ተቀባይነት አላገኘም፦ {detail}",
   "admin.attributes.error.badCell": "አንድ ቅንብር ተቀባይነት አላገኘም፦ {detail}",
+  "admin.attributes.error.badAllowedOption": "ከተፈቀዱት አማራጮች አንዱ የዚህ ባህሪ አማራጭ አይደለም።",
+  "admin.attributes.error.badDefault": "ነባሪ እሴቱ ይህ ባህሪ የሚቀበለው እሴት አይደለም።",
+  "admin.attributes.error.badVisibleWhen": "የሚታይበት ጊዜ ሁኔታ ይህ ምድብ የሌለውን ባህሪ ወይም እሴት ይጠቅሳል።",
+  "admin.attributes.error.priceBasisDuplicate": "ይህ ምድብ የዋጋ መሠረት ባህሪ አስቀድሞ አለው።",
+  "admin.attributes.error.badClearCell": "ይህን ቅንብር እዚህ ማጽዳት አይቻልም።",
   "admin.attributes.error.boundsTargetNotNumber": "“{target}” የቁጥር ባህርይ አይደለም፤ ገደብ ማድረግ አይቻልም።",
   "admin.attributes.error.boundsTargetNotColinked":
     "“{target}” ይህ ባህርይ በሚሠራበት በማንኛውም ምድብ ውስጥ ስለማይሠራ፣ በዚህ ቦታ ገደብ ማድረግ አይቻልም።",
@@ -2052,6 +2058,9 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "impersonation.reasonTooShort": "ቢያንስ 5 ቁምፊ ያለው ምክንያት ይስጡ።",
   "impersonation.start": "ክፍለ ጊዜ ጀምር",
   "impersonation.failed": "የመወከል ክፍለ ጊዜውን መጀመር አልተቻለም።",
+  "impersonation.error.self": "እንደ ራስዎ መመልከት አይችሉም።",
+  "impersonation.error.superAdmin": "እንደ ዋና አስተዳዳሪ መመልከት አይችሉም።",
+  "impersonation.error.sessionActive": "የመወከል ክፍለ ጊዜ አስቀድሞ ንቁ ነው። መጀመሪያ ያቁሙት።",
   "impersonation.title": "እንደ {name} በመመልከት ላይ",
   "impersonation.readOnlyNote":
     "ለንባብ ብቻ የሆነ የድጋፍ እይታ — የዚህን መለያ መረጃ እያዩ ነው እንጂ እንደዚህ መለያ ሆነው እየሠሩ አይደለም። እዚህ የሚደረግ ምንም እርምጃ የእነሱን መረጃ አይለውጥም።",

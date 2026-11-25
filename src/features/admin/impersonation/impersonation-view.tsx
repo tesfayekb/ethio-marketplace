@@ -10,15 +10,19 @@ import {
   type DataTableColumn,
 } from "@/components/shell/data-table";
 import { DetailPanel } from "@/components/shell/detail-panel";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { isRetryable, useFailureKind } from "@/components/shell/failure-reason";
 import { PageCard } from "@/components/shell/page-card";
 import { TableActions } from "@/components/shell/table-actions";
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Badge } from "@/components/ui/badge";
+import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
 import { formatCommission } from "@/features/posting/price-basis";
 import { useI18n } from "@/i18n";
 
+import { endRefusalKey } from "./impersonation-end-refusals";
 import { isExpiredSessionError, type ImpersonatedListing } from "./impersonation-service";
 import {
   useActiveImpersonation,
@@ -52,6 +56,19 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
   const navigate = useNavigate();
   const profile = useImpersonatedProfile(sessionId);
+  const end = useEndImpersonation();
+  const endKind = useFailureKind(end.error).kind;
+  /** End now, and back to the person (or the list); D39's Retry runs this same press. */
+  const endNow = () => {
+    end.mutate(sessionId, {
+      onSuccess: () => {
+        const targetId = profile.data?.targetId;
+        void (targetId
+          ? navigate({ to: "/admin/users/$userId", params: { userId: targetId } })
+          : navigate({ to: "/admin/users" }));
+      },
+    });
+  };
   /** G3a (the operator's walk; INC-546) — every table has its footer; the door pages the listings. */
   const paging = useKeptPage("ethio.admin.impersonation.pageSize");
   const listings = useImpersonatedListings(
@@ -60,7 +77,6 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
     paging.page * paging.pageSize,
     paging.ready,
   );
-  const end = useEndImpersonation();
 
   const active = useActiveImpersonation(true);
   const expired =
@@ -174,19 +190,26 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
           variant="destructive"
           data-testid="impersonation-end"
           disabled={end.isPending}
-          onClick={() => {
-            end.mutate(sessionId, {
-              onSuccess: () => {
-                const targetId = profile.data?.targetId;
-                void (targetId
-                  ? navigate({ to: "/admin/users/$userId", params: { userId: targetId } })
-                  : navigate({ to: "/admin/users" }));
-              },
-            });
-          }}
+          onClick={endNow}
         >
           {t("impersonation.endNow")}
         </Button>
+        {end.error !== null && isRetryable(endKind) ? (
+          <FailureNotice
+            error={end.error}
+            testid="impersonation-end-error"
+            onRetry={endNow}
+            size="line"
+            className="mt-2"
+          />
+        ) : end.error !== null && endRefusalKey(end.error) !== null ? (
+          <ActionMessage
+            tone="error"
+            testid="impersonation-end-error"
+            className="mt-2"
+            text={t(endRefusalKey(end.error) ?? "impersonation.error.endFailed")}
+          />
+        ) : null}
       </PageCard>
 
       <DetailPanel
@@ -194,6 +217,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
         title={t("impersonation.profileTitle")}
         loading={profile.isLoading}
         error={profile.error}
+        onRetry={() => void profile.refetch()}
         pairs={
           profile.data
             ? [
@@ -260,7 +284,9 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
           />
         }
         loading={listings.isLoading || !paging.ready}
+        loadingState={<p className="text-sm text-muted-foreground">{t("prim.state.loading")}</p>}
         error={listings.error}
+        retry={() => void listings.refetch()}
         emptyState={
           <p className="text-sm text-muted-foreground">{t("impersonation.listings.empty")}</p>
         }
