@@ -66,8 +66,11 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   INC-1212): a `helper` line whose reason is `policy <name>, <name>, …` holds only when each named
   policy stands after the migrations and its text calls the function; a bare `policy` fires.
   `policies.ts` reads the migrations statically in apply order (`CREATE POLICY` sets a policy's
-  text, `DROP POLICY` removes it; no migration alters one; a policy built by dynamic SQL is not
-  read), and both modes use that reading. A helper may name `anon` (`sold_cutoff`: the three
+  text, `DROP POLICY` removes it, `ALTER POLICY … [TO …] [USING (…)] [WITH CHECK (…)]` replaces
+  the clauses it names and keeps the rest, `ALTER POLICY … RENAME TO` renames it — the last statement
+  wins, and an `ALTER` the reader cannot take apart or that names no standing policy throws, never
+  skips (cursor-bundle-7a Part 3, INC-1300; `scripts/doors/policies.test.ts`); a policy built by
+  dynamic SQL is not read), and both modes use that reading. A helper may name `anon` (`sold_cutoff`: the three
   public-read policies run for visitors). `opt-out-over-step-up` (F1-6a ruling 1, Part A; INC-1195's class): a staff line whose
   step-up cell is `none:<DEC>` holds only when the permission it names is declared
   `requires_step_up = false` — `door_context`'s staff form asks the second factor whenever the row
