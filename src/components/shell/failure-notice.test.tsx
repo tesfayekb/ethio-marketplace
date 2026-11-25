@@ -29,15 +29,16 @@ afterEach(() => vi.useRealTimers());
 
 const network = new TypeError("Failed to fetch");
 const server = Object.assign(new Error("boom"), { status: 500 });
-const gone = Object.assign(new Error("listingNotAvailable"), { code: "P0D01", status: 400 });
+const gone = Object.assign(new Error("listingNotAvailable"), { code: "P0D01", status: 404 });
+const refused = Object.assign(new Error("badValue"), { code: "P0D01", status: 400 });
 const denied = Object.assign(new Error("permissionDenied"), { code: "P0D01", status: 403 });
 const ended = Object.assign(new Error("JWT expired"), { status: 401 });
 
 // First in the file: the reader has not arrived yet (INC-864); later cases read with it.
 it("FN-U11 words at once from what the error carries, then the reader's words when it arrives", async () => {
-  render(<FailureNotice error={gone} testid="f" onRetry={() => {}} />);
+  render(<FailureNotice error={refused} testid="f" onRetry={() => {}} />);
   expect(screen.getByTestId("f")).toHaveTextContent("failure.server");
-  await waitFor(() => expect(screen.getByTestId("f")).toHaveTextContent("failure.gone"));
+  await waitFor(() => expect(screen.getByTestId("f")).toHaveTextContent("failure.refused"));
   expect(refresh.reportOnDemandFailure).not.toHaveBeenCalled();
 });
 
