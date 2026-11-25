@@ -1,451 +1,19 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45494230491
-- Commit: `9ea47373664b36797b7ba65f0de9041b5ebf8669`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45527306417
+- Commit: `0f50473551fad57105d767a27efd3527467c8fab`
 - Attempt: 1
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-17e1476d18bc… (0 read)
-- Repeat: 34 of 1490 tests repeated — specs directly changed 3/33, importers of a changed helper 0/80; budget 643 s; the time cap left 40 test runs
-- Written (UTC): 2026-11-24T22:46:49.850Z
-- Passed: 2647 · Skipped: 437 · Failed: 22
-- Gating failures: 22 · STAGING-SINK (INC-1175, still gating): 0
-- Flaky (passed on retry, DEC-030, non-gating): 1
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-8b239db74489… (0 read)
+- Repeat: 34 of 1494 tests repeated — specs directly changed 3/37, importers of a changed helper 0/77; budget 646 s; the time cap left 40 test runs
+- Written (UTC): 2026-11-25T02:09:06.340Z
+- Passed: 2671 · Skipped: 436 · Failed: 6
+- Gating failures: 6 · STAGING-SINK (INC-1175, still gating): 0
+- Flaky (passed on retry, DEC-030, non-gating): 2
 - Post-test errors (DEC-059, non-gating): smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16
 - Sources without results: none
 - Errors outside any test (INC-589): repeat (2)
 
 ## Gating failures
-
-### admin-locations.spec.ts › L2a locations console › LT-6 step-up: an unproven factor cannot move a row; once proven the move carries the descendants
-
-- Source: `shard 6`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('location-ethiopia__e2e-loc-local-6-1-lt6a-us7fm5__e2e-loc-local-6-1-lt6c-3jqurt-card')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('location-ethiopia__e2e-loc-local-6-1-lt6a-us7fm5__e2e-loc-local-6-1-lt6c-3jqurt-card')
-
-[dialog-dump findRow(ethiopia/e2e-loc-local-6-1-lt6a-us7fm5/e2e-loc-local-6-1-lt6c-3jqurt)] open dialogs: none
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('location-ethiopia__e2e-loc-local-6-1-lt6a-us7fm5__e2e-loc-local-6-1-lt6c-3jqurt-card')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('location-ethiopia__e2e-loc-local-6-1-lt6a-us7fm5__e2e-loc-local-6-1-lt6c-3jqurt-card')
-
-[dialog-dump findRow(ethiopia/e2e-loc-local-6-1-lt6a-us7fm5/e2e-loc-local-6-1-lt6c-3jqurt)] open dialogs: none
-
-   at helpers/locations.ts:135
-
-  133 |     await expect(row).toBeVisible({ timeout: 20000 });
-  134 |   } catch (error) {
-> 135 |     throw new Error(`${errorText(error)}\n${await dialogDump(page, `findRow(${key})`)}`);
-      |           ^
-  136 |   }
-```
-
-Context:
-
-```text
-          - listitem [ref=e328]:
-            - generic [ref=e329]: About
-          - listitem [ref=e330]:
-            - generic [ref=e331]: Contact
-      - navigation "Help" [ref=e332]:
-        - heading "Help" [level=2] [ref=e333]
-        - list [ref=e334]:
-          - listitem [ref=e335]:
-            - generic [ref=e336]: Safety
-      - navigation "Legal" [ref=e337]:
-        - heading "Legal" [level=2] [ref=e338]
-        - list [ref=e339]:
-          - listitem [ref=e340]:
-            - link "Terms" [ref=e341] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e342]:
-            - link "Privacy" [ref=e343] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e345]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### admin-locations.spec.ts › L2a locations console › LT-6 step-up: an unproven factor cannot move a row; once proven the move carries the descendants
-
-- Source: `shard 6`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('location-ethiopia__e2e-loc-local-6-6-lt6a-bszw7a__e2e-loc-local-6-6-lt6c-au0ghc')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('location-ethiopia__e2e-loc-local-6-6-lt6a-bszw7a__e2e-loc-local-6-6-lt6c-au0ghc')
-
-[dialog-dump findRow(ethiopia/e2e-loc-local-6-6-lt6a-bszw7a/e2e-loc-local-6-6-lt6c-au0ghc)] open dialogs: none
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('location-ethiopia__e2e-loc-local-6-6-lt6a-bszw7a__e2e-loc-local-6-6-lt6c-au0ghc')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('location-ethiopia__e2e-loc-local-6-6-lt6a-bszw7a__e2e-loc-local-6-6-lt6c-au0ghc')
-
-[dialog-dump findRow(ethiopia/e2e-loc-local-6-6-lt6a-bszw7a/e2e-loc-local-6-6-lt6c-au0ghc)] open dialogs: none
-
-   at helpers/locations.ts:135
-
-  133 |     await expect(row).toBeVisible({ timeout: 20000 });
-  134 |   } catch (error) {
-> 135 |     throw new Error(`${errorText(error)}\n${await dialogDump(page, `findRow(${key})`)}`);
-      |           ^
-  136 |   }
-```
-
-Context:
-
-```text
-          - listitem [ref=e308]:
-            - generic [ref=e309]: About
-          - listitem [ref=e310]:
-            - generic [ref=e311]: Contact
-      - navigation "Help" [ref=e312]:
-        - heading "Help" [level=2] [ref=e313]
-        - list [ref=e314]:
-          - listitem [ref=e315]:
-            - generic [ref=e316]: Safety
-      - navigation "Legal" [ref=e317]:
-        - heading "Legal" [level=2] [ref=e318]
-        - list [ref=e319]:
-          - listitem [ref=e320]:
-            - link "Terms" [ref=e321] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e322]:
-            - link "Privacy" [ref=e323] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e325]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### admin-categories-console.spec.ts › C2 categories console › CT-7b browse paths: an unproven factor cannot move a pointer
-
-- Source: `shard 7`
-- Project: `mobile-360`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-local-7-0-ym6y5v-card')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-local-7-0-ym6y5v-card')
-
-[dialog-dump findRow(e2e-cat-local-7-0-ym6y5v)] open dialogs: none
-[roster-dump e2e-cat-local-7-0-ym6y5v] page: reading=0 roster=0 shown=0 · db: row active=true pointers=1
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-local-7-0-ym6y5v-card')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByTestId('data-table-cards').getByTestId('category-row-e2e-cat-local-7-0-ym6y5v-card')
-
-[dialog-dump findRow(e2e-cat-local-7-0-ym6y5v)] open dialogs: none
-[roster-dump e2e-cat-local-7-0-ym6y5v] page: reading=0 roster=0 shown=0 · db: row active=true pointers=1
-
-   at helpers/categories.ts:102
-
-  100 |     await expect(row).toBeVisible({ timeout: 20000 });
-  101 |   } catch (error) {
-> 102 |     throw new Error(
-      |           ^
-```
-
-Context:
-
-```text
-          - listitem [ref=e329]:
-            - generic [ref=e330]: About
-          - listitem [ref=e331]:
-            - generic [ref=e332]: Contact
-      - navigation "Help" [ref=e333]:
-        - heading "Help" [level=2] [ref=e334]
-        - list [ref=e335]:
-          - listitem [ref=e336]:
-            - generic [ref=e337]: Safety
-      - navigation "Legal" [ref=e338]:
-        - heading "Legal" [level=2] [ref=e339]
-        - list [ref=e340]:
-          - listitem [ref=e341]:
-            - link "Terms" [ref=e342] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e343]:
-            - link "Privacy" [ref=e344] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e346]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### admin-categories-console.spec.ts › C2 categories console › CT-7b browse paths: an unproven factor cannot move a pointer
-
-- Source: `shard 7`
-- Project: `desktop-1280`
-
-```text
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('category-row-e2e-cat-local-7-6-c0021n')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('category-row-e2e-cat-local-7-6-c0021n')
-
-[dialog-dump findRow(e2e-cat-local-7-6-c0021n)] open dialogs: none
-[roster-dump e2e-cat-local-7-6-c0021n] page: reading=0 roster=0 shown=0 · db: row active=true pointers=1
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByRole('table').getByTestId('category-row-e2e-cat-local-7-6-c0021n')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 20000ms
-  - waiting for getByRole('table').getByTestId('category-row-e2e-cat-local-7-6-c0021n')
-
-[dialog-dump findRow(e2e-cat-local-7-6-c0021n)] open dialogs: none
-[roster-dump e2e-cat-local-7-6-c0021n] page: reading=0 roster=0 shown=0 · db: row active=true pointers=1
-
-   at helpers/categories.ts:102
-
-  100 |     await expect(row).toBeVisible({ timeout: 20000 });
-  101 |   } catch (error) {
-> 102 |     throw new Error(
-      |           ^
-```
-
-Context:
-
-```text
-          - listitem [ref=e309]:
-            - generic [ref=e310]: About
-          - listitem [ref=e311]:
-            - generic [ref=e312]: Contact
-      - navigation "Help" [ref=e313]:
-        - heading "Help" [level=2] [ref=e314]
-        - list [ref=e315]:
-          - listitem [ref=e316]:
-            - generic [ref=e317]: Safety
-      - navigation "Legal" [ref=e318]:
-        - heading "Legal" [level=2] [ref=e319]
-        - list [ref=e320]:
-          - listitem [ref=e321]:
-            - link "Terms" [ref=e322] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e323]:
-            - link "Privacy" [ref=e324] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e326]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### door-refusals.spec.ts › DRF-1 has_permission answers about the caller only: another account asking about a holder reads false
-
-- Source: `shard 7`
-- Project: `mobile-360`
-
-```text
-Error: the holder reads the truth about itself
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
---- further error 1 ---
-Error: the holder reads the truth about itself
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-
-  134 |   const own = await asHolder.rpc("has_permission", pair);
-  135 |   expect(own.error).toBeNull();
-> 136 |   expect(own.data, "the holder reads the truth about itself").toBe(true);
-      |                                                               ^
-  137 |
-  138 |   const asOther = bearerClient((await passwordGrant(other.email, other.password)).access_token);
-  139 |   const aboutHolder = await asOther.rpc("has_permission", pair);
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/door-refusals.spec.ts:136:63
-```
-
-Context: context file not found for `door-refusals-DRF-1-has_permission-answers-about-the-caller-only-another-account-asking-about-a-holder-reads-false-mobile-360` — Playwright's name `door-refusals-DRF-1-has-pe-1e3af--about-a-holder-reads-false-mobile-360`; this run carried 41 context file(s); of the same spec: none
-
-### door-refusals.spec.ts › DRF-1 has_permission answers about the caller only: another account asking about a holder reads false
-
-- Source: `shard 7`
-- Project: `desktop-1280`
-
-```text
-Error: the holder reads the truth about itself
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
---- further error 1 ---
-Error: the holder reads the truth about itself
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: false
-
-  134 |   const own = await asHolder.rpc("has_permission", pair);
-  135 |   expect(own.error).toBeNull();
-> 136 |   expect(own.data, "the holder reads the truth about itself").toBe(true);
-      |                                                               ^
-  137 |
-  138 |   const asOther = bearerClient((await passwordGrant(other.email, other.password)).access_token);
-  139 |   const aboutHolder = await asOther.rpc("has_permission", pair);
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/door-refusals.spec.ts:136:63
-```
-
-Context: context file not found for `door-refusals-DRF-1-has_permission-answers-about-the-caller-only-another-account-asking-about-a-holder-reads-false-desktop-1280` — Playwright's name `door-refusals-DRF-1-has-pe-1e3af--about-a-holder-reads-false-desktop-1280`; this run carried 41 context file(s); of the same spec: none
-
-### legal-admin.spec.ts › Admin Legal › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused
-
-- Source: `shard 7`
-- Project: `mobile-360`
-
-```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: {"code": "P0009", "details": null, "hint": "Verify a second factor (TOTP) and retry this action.", "message": "step-up required"}
---- further error 1 ---
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: {"code": "P0009", "details": null, "hint": "Verify a second factor (TOTP) and retry this action.", "message": "step-up required"}
-
-  844 |       await expect(rows.nth(i).getByTestId("rail-alert")).toHaveCount(1);
-  845 |     await page.keyboard.press("Escape");
-> 846 |     expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(true);
-      |                                                               ^
-  847 |     await block.getByTestId("legal-review-mark").click();
-  848 |     await page.getByTestId("legal-review-note").fill("LGA-17 read, no change");
-  849 |     await page.getByTestId("legal-review-save").click();
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-admin.spec.ts:846:63
-```
-
-Context:
-
-```text
-          - listitem [ref=e495]:
-            - generic [ref=e496]: About
-          - listitem [ref=e497]:
-            - generic [ref=e498]: Contact
-      - navigation "Help" [ref=e499]:
-        - heading "Help" [level=2] [ref=e500]
-        - list [ref=e501]:
-          - listitem [ref=e502]:
-            - generic [ref=e503]: Safety
-      - navigation "Legal" [ref=e504]:
-        - heading "Legal" [level=2] [ref=e505]
-        - list [ref=e506]:
-          - listitem [ref=e507]:
-            - link "Terms" [ref=e508] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e509]:
-            - link "Privacy" [ref=e510] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e512]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### legal-admin.spec.ts › Admin Legal › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused
-
-- Source: `shard 7`
-- Project: `desktop-1280`
-
-```text
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: {"code": "P0009", "details": null, "hint": "Verify a second factor (TOTP) and retry this action.", "message": "step-up required"}
---- further error 1 ---
-Error: expect(received).toBe(expected) // Object.is equality
-
-Expected: true
-Received: {"code": "P0009", "details": null, "hint": "Verify a second factor (TOTP) and retry this action.", "message": "step-up required"}
-
-  844 |       await expect(rows.nth(i).getByTestId("rail-alert")).toHaveCount(1);
-  845 |     await page.keyboard.press("Escape");
-> 846 |     expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(true);
-      |                                                               ^
-  847 |     await block.getByTestId("legal-review-mark").click();
-  848 |     await page.getByTestId("legal-review-note").fill("LGA-17 read, no change");
-  849 |     await page.getByTestId("legal-review-save").click();
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-admin.spec.ts:846:63
-```
-
-Context:
-
-```text
-          - listitem [ref=e475]:
-            - generic [ref=e476]: About
-          - listitem [ref=e477]:
-            - generic [ref=e478]: Contact
-      - navigation "Help" [ref=e479]:
-        - heading "Help" [level=2] [ref=e480]
-        - list [ref=e481]:
-          - listitem [ref=e482]:
-            - generic [ref=e483]: Safety
-      - navigation "Legal" [ref=e484]:
-        - heading "Legal" [level=2] [ref=e485]
-        - list [ref=e486]:
-          - listitem [ref=e487]:
-            - link "Terms" [ref=e488] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e489]:
-            - link "Privacy" [ref=e490] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e492]: © 2026 ethio.com — All rights reserved.
-```
-```
 
 ### admin-roles.spec.ts › U2 roles console › RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects
 
@@ -573,627 +141,299 @@ Context:
 ```
 ```
 
-### admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-31 Reports: the open count on the row and the reasons on the listing's page for listings:review; nothing for listings:view alone
+### breadcrumbs.spec.ts › breadcrumbs — the seller's and the account's pages (D198) › BR-3 the admin's listing Edit: … › All listings › <title> › Edit
 
-- Source: `shard 10`
+- Source: `shard 9`
 - Project: `mobile-360`
 
 ```text
-Error: expect(locator).toBeVisible() failed
+Error: expect(locator).toHaveText(expected) failed
 
-Locator: getByTestId('listing-row-[account id]-card')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
+Locator:  getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+Expected: "E2E breadcrumbs ad local-x bannvsqo"
+Received: "—"
+Timeout:  20000ms
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('listing-row-[account id]-card')
+  - Expect "toHaveText" with timeout 20000ms
+  - waiting for getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+    24 × locator resolved to <a data-tick="" aria-current="page" data-status="active" data-testid="breadcrumb-admin-listing" href="/admin/listings/[account id]" class="transition-colors hover:text-foreground data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-segment data-[pressed]:transition-none data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none inline-flex h-7 shrink items-center rou…>…</a>
+       - unexpected value "—"
 
 --- further error 1 ---
-Error: expect(locator).toBeVisible() failed
+Error: expect(locator).toHaveText(expected) failed
 
-Locator: getByTestId('listing-row-[account id]-card')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
+Locator:  getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+Expected: "E2E breadcrumbs ad local-x bannvsqo"
+Received: "—"
+Timeout:  20000ms
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('listing-row-[account id]-card')
+  - Expect "toHaveText" with timeout 20000ms
+  - waiting for getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+    24 × locator resolved to <a data-tick="" aria-current="page" data-status="active" data-testid="breadcrumb-admin-listing" href="/admin/listings/[account id]" class="transition-colors hover:text-foreground data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-segment data-[pressed]:transition-none data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none inline-flex h-7 shrink items-center rou…>…</a>
+       - unexpected value "—"
 
 
-  2129 |     await page.getByTestId("listings-search").fill(ad.id);
-  2130 |     const row = listingRow(page, ad.id);
-> 2131 |     await expect(row).toBeVisible();
-       |                       ^
-  2132 |     await expect(row.getByTestId(`listing-row-${ad.id}-reports`)).toHaveText("Reports: 2");
-  2133 |     await gotoReady(page, `/admin/listings/${ad.id}`);
-  2134 |     const card = page.getByTestId("listing-reports");
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:2131:23
+  211 |     // The step-up gate may hold the page's body: the trail is read regardless.
+  212 |     const adCrumb = trail.getByTestId("breadcrumb-admin-listing");
+> 213 |     await expect(adCrumb).toHaveText(ad.title, { timeout: 20000 });
+      |                           ^
+  214 |     expect(await adCrumb.evaluate((node) => node.tagName)).toBe("A");
+  215 |     await expect(adCrumb).toHaveAttribute("href", new RegExp(`/admin/listings/${ad.id}$`));
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e189]:
-            - generic [ref=e190]: About
-          - listitem [ref=e191]:
-            - generic [ref=e192]: Contact
-      - navigation "Help" [ref=e193]:
-        - heading "Help" [level=2] [ref=e194]
-        - list [ref=e195]:
-          - listitem [ref=e196]:
-            - generic [ref=e197]: Safety
-      - navigation "Legal" [ref=e198]:
-        - heading "Legal" [level=2] [ref=e199]
-        - list [ref=e200]:
-          - listitem [ref=e201]:
-            - link "Terms" [ref=e202] [cursor=pointer]:
+          - listitem [ref=e455]:
+            - generic [ref=e456]: About
+          - listitem [ref=e457]:
+            - generic [ref=e458]: Contact
+      - navigation "Help" [ref=e459]:
+        - heading "Help" [level=2] [ref=e460]
+        - list [ref=e461]:
+          - listitem [ref=e462]:
+            - generic [ref=e463]: Safety
+      - navigation "Legal" [ref=e464]:
+        - heading "Legal" [level=2] [ref=e465]
+        - list [ref=e466]:
+          - listitem [ref=e467]:
+            - link "Terms" [ref=e468] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e203]:
-            - link "Privacy" [ref=e204] [cursor=pointer]:
+          - listitem [ref=e469]:
+            - link "Privacy" [ref=e470] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e206]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e472]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-### admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-31 Reports: the open count on the row and the reasons on the listing's page for listings:review; nothing for listings:view alone
+### breadcrumbs.spec.ts › breadcrumbs — the seller's and the account's pages (D198) › BR-3 the admin's listing Edit: … › All listings › <title> › Edit
 
-- Source: `shard 10`
+- Source: `shard 9`
 - Project: `desktop-1280`
 
 ```text
-Error: expect(locator).toBeVisible() failed
+Error: expect(locator).toHaveText(expected) failed
 
-Locator: getByTestId('listing-row-[account id]')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
-
-Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('listing-row-[account id]')
-
---- further error 1 ---
-Error: expect(locator).toBeVisible() failed
-
-Locator: getByTestId('listing-row-[account id]')
-Expected: visible
-Timeout: 10000ms
-Error: element(s) not found
+Locator:  getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+Expected: "E2E breadcrumbs ad local-x ffukbsou"
+Received: "—"
+Timeout:  20000ms
 
 Call log:
-  - Expect "toBeVisible" with timeout 10000ms
-  - waiting for getByTestId('listing-row-[account id]')
+  - Expect "toHaveText" with timeout 20000ms
+  - waiting for getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+    24 × locator resolved to <a data-tick="" aria-current="page" data-status="active" data-testid="breadcrumb-admin-listing" href="/admin/listings/[account id]" class="transition-colors hover:text-foreground data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-segment data-[pressed]:transition-none data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none inline-flex h-7 shrink items-center rou…>…</a>
+       - unexpected value "—"
 
-
-  2129 |     await page.getByTestId("listings-search").fill(ad.id);
-  2130 |     const row = listingRow(page, ad.id);
-> 2131 |     await expect(row).toBeVisible();
-       |                       ^
-  2132 |     await expect(row.getByTestId(`listing-row-${ad.id}-reports`)).toHaveText("Reports: 2");
-  2133 |     await gotoReady(page, `/admin/listings/${ad.id}`);
-  2134 |     const card = page.getByTestId("listing-reports");
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:2131:23
-```
-
-Context:
-
-```text
-          - listitem [ref=e223]:
-            - generic [ref=e224]: About
-          - listitem [ref=e225]:
-            - generic [ref=e226]: Contact
-      - navigation "Help" [ref=e227]:
-        - heading "Help" [level=2] [ref=e228]
-        - list [ref=e229]:
-          - listitem [ref=e230]:
-            - generic [ref=e231]: Safety
-      - navigation "Legal" [ref=e232]:
-        - heading "Legal" [level=2] [ref=e233]
-        - list [ref=e234]:
-          - listitem [ref=e235]:
-            - link "Terms" [ref=e236] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e237]:
-            - link "Privacy" [ref=e238] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e240]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-23 a commit without step-up is refused and writes nothing
-
-- Source: `shard 15`
-- Project: `mobile-360`
-
-```text
-Error: {"error":"forbidden"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 200
-Received: 403
 --- further error 1 ---
-Error: {"error":"forbidden"}
+Error: expect(locator).toHaveText(expected) failed
 
-expect(received).toBe(expected) // Object.is equality
+Locator:  getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+Expected: "E2E breadcrumbs ad local-x ffukbsou"
+Received: "—"
+Timeout:  20000ms
 
-Expected: 200
-Received: 403
+Call log:
+  - Expect "toHaveText" with timeout 20000ms
+  - waiting for getByTestId('breadcrumbs').getByTestId('breadcrumb-admin-listing')
+    24 × locator resolved to <a data-tick="" aria-current="page" data-status="active" data-testid="breadcrumb-admin-listing" href="/admin/listings/[account id]" class="transition-colors hover:text-foreground data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-segment data-[pressed]:transition-none data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none inline-flex h-7 shrink items-center rou…>…</a>
+       - unexpected value "—"
 
-  1912 |       const categories = file([line({ category_slug: slug, name_en: slug })]);
-  1913 |       const preview = await importPost(page, token, { mode: "preview", categories });
-> 1914 |       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
-       |                                                               ^
-  1915 |
-  1916 |       const commit = await importPost(page, token, {
-  1917 |         mode: "commit",
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-categories-lifecycle.spec.ts:1914:63
+
+  211 |     // The step-up gate may hold the page's body: the trail is read regardless.
+  212 |     const adCrumb = trail.getByTestId("breadcrumb-admin-listing");
+> 213 |     await expect(adCrumb).toHaveText(ad.title, { timeout: 20000 });
+      |                           ^
+  214 |     expect(await adCrumb.evaluate((node) => node.tagName)).toBe("A");
+  215 |     await expect(adCrumb).toHaveAttribute("href", new RegExp(`/admin/listings/${ad.id}$`));
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e191]:
-            - generic [ref=e192]: About
-          - listitem [ref=e193]:
-            - generic [ref=e194]: Contact
-      - navigation "Help" [ref=e195]:
-        - heading "Help" [level=2] [ref=e196]
-        - list [ref=e197]:
-          - listitem [ref=e198]:
-            - generic [ref=e199]: Safety
-      - navigation "Legal" [ref=e200]:
-        - heading "Legal" [level=2] [ref=e201]
-        - list [ref=e202]:
-          - listitem [ref=e203]:
-            - link "Terms" [ref=e204] [cursor=pointer]:
+          - listitem [ref=e442]:
+            - generic [ref=e443]: About
+          - listitem [ref=e444]:
+            - generic [ref=e445]: Contact
+      - navigation "Help" [ref=e446]:
+        - heading "Help" [level=2] [ref=e447]
+        - list [ref=e448]:
+          - listitem [ref=e449]:
+            - generic [ref=e450]: Safety
+      - navigation "Legal" [ref=e451]:
+        - heading "Legal" [level=2] [ref=e452]
+        - list [ref=e453]:
+          - listitem [ref=e454]:
+            - link "Terms" [ref=e455] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e205]:
-            - link "Privacy" [ref=e206] [cursor=pointer]:
+          - listitem [ref=e456]:
+            - link "Privacy" [ref=e457] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e208]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e459]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-### admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-23 a commit without step-up is refused and writes nothing
-
-- Source: `shard 15`
-- Project: `desktop-1280`
-
-```text
-Error: {"error":"forbidden"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 200
-Received: 403
---- further error 1 ---
-Error: {"error":"forbidden"}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 200
-Received: 403
-
-  1912 |       const categories = file([line({ category_slug: slug, name_en: slug })]);
-  1913 |       const preview = await importPost(page, token, { mode: "preview", categories });
-> 1914 |       expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
-       |                                                               ^
-  1915 |
-  1916 |       const commit = await importPost(page, token, {
-  1917 |         mode: "commit",
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-categories-lifecycle.spec.ts:1914:63
-```
-
-Context:
-
-```text
-          - listitem [ref=e215]:
-            - generic [ref=e216]: About
-          - listitem [ref=e217]:
-            - generic [ref=e218]: Contact
-      - navigation "Help" [ref=e219]:
-        - heading "Help" [level=2] [ref=e220]
-        - list [ref=e221]:
-          - listitem [ref=e222]:
-            - generic [ref=e223]: Safety
-      - navigation "Legal" [ref=e224]:
-        - heading "Legal" [level=2] [ref=e225]
-        - list [ref=e226]:
-          - listitem [ref=e227]:
-            - link "Terms" [ref=e228] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e229]:
-            - link "Privacy" [ref=e230] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e232]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### mfa-stepup.spec.ts › U1f step-up authentication › MF-3 no factor: the modal explains and the RPC is never called
+### admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-23 an importer without step-up is refused at the preview and writes nothing
 
 - Source: `shard 15`
 - Project: `mobile-360`
 
 ```text
-Test timeout of 60000ms exceeded.
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  - 1
++ Received  + 8
+
+- Array []
++ Array [
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++ ]
 --- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('deactivate-reason')
+Error: expect(received).toEqual(expected) // deep equality
 
+- Expected  - 1
++ Received  + 8
 
-  146 |
-  147 |     await gotoReady(page, `/admin/users/${target.id}`);
-> 148 |     await page.getByTestId("deactivate-reason").fill("MF-3 proof");
-      |                                                 ^
-  149 |     await page.getByTestId("deactivate-user").click();
-  150 |
-  151 |     await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:148:49
+- Array []
++ Array [
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++ ]
+
+  1940 |         .eq("actor_id", importer.id);
+  1941 |       expect(audit.error).toBeNull();
+> 1942 |       expect(audit.data ?? []).toEqual([]);
+       |                                ^
+  1943 |       const meters = await adminClient()
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e230]:
-            - generic [ref=e231]: About
-          - listitem [ref=e232]:
-            - generic [ref=e233]: Contact
-      - navigation "Help" [ref=e234]:
-        - heading "Help" [level=2] [ref=e235]
-        - list [ref=e236]:
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Safety
-      - navigation "Legal" [ref=e239]:
-        - heading "Legal" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - link "Terms" [ref=e243] [cursor=pointer]:
+          - listitem [ref=e156]:
+            - generic [ref=e157]: About
+          - listitem [ref=e158]:
+            - generic [ref=e159]: Contact
+      - navigation "Help" [ref=e160]:
+        - heading "Help" [level=2] [ref=e161]
+        - list [ref=e162]:
+          - listitem [ref=e163]:
+            - generic [ref=e164]: Safety
+      - navigation "Legal" [ref=e165]:
+        - heading "Legal" [level=2] [ref=e166]
+        - list [ref=e167]:
+          - listitem [ref=e168]:
+            - link "Terms" [ref=e169] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e244]:
-            - link "Privacy" [ref=e245] [cursor=pointer]:
+          - listitem [ref=e170]:
+            - link "Privacy" [ref=e171] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e247]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e173]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
-### mfa-stepup.spec.ts › U1f step-up authentication › MF-8 the gate's dialog is not in the page's first download; the first step-up fetches it and draws it on the top layer
-
-- Source: `shard 15`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('deactivate-reason')
-
-
-  178 |
-  179 |     await gotoReady(page, `/admin/users/${target.id}`);
-> 180 |     await page.getByTestId("deactivate-reason").fill("MF-8 proof");
-      |                                                 ^
-  181 |     expect(await asked()).toEqual({ preloaded: [], fetched: [] });
-  182 |     await page.getByTestId("deactivate-user").click();
-  183 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:180:49
-```
-
-Context:
-
-```text
-          - listitem [ref=e230]:
-            - generic [ref=e231]: About
-          - listitem [ref=e232]:
-            - generic [ref=e233]: Contact
-      - navigation "Help" [ref=e234]:
-        - heading "Help" [level=2] [ref=e235]
-        - list [ref=e236]:
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Safety
-      - navigation "Legal" [ref=e239]:
-        - heading "Legal" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - link "Terms" [ref=e243] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e244]:
-            - link "Privacy" [ref=e245] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e247]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### mfa-stepup.spec.ts › U1f step-up authentication › MF-3 no factor: the modal explains and the RPC is never called
+### admin-categories-lifecycle.spec.ts › CAT-IE categories import/export › CT-23 an importer without step-up is refused at the preview and writes nothing
 
 - Source: `shard 15`
 - Project: `desktop-1280`
 
 ```text
-Test timeout of 60000ms exceeded.
+Error: expect(received).toEqual(expected) // deep equality
+
+- Expected  -  1
++ Received  + 68
+
+- Array []
++ Array [
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
 --- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('deactivate-reason')
+Error: expect(received).toEqual(expected) // deep equality
 
+- Expected  -  1
++ Received  + 68
 
-  146 |
-  147 |     await gotoReady(page, `/admin/users/${target.id}`);
-> 148 |     await page.getByTestId("deactivate-reason").fill("MF-3 proof");
-      |                                                 ^
-  149 |     await page.getByTestId("deactivate-user").click();
-  150 |
-  151 |     await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:148:49
+- Array []
++ Array [
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
++     "action": "profile.preferred_language",
++   },
++   Object {
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e235]:
-            - generic [ref=e236]: About
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Contact
-      - navigation "Help" [ref=e239]:
-        - heading "Help" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - generic [ref=e243]: Safety
-      - navigation "Legal" [ref=e244]:
-        - heading "Legal" [level=2] [ref=e245]
-        - list [ref=e246]:
-          - listitem [ref=e247]:
-            - link "Terms" [ref=e248] [cursor=pointer]:
+          - listitem [ref=e183]:
+            - generic [ref=e184]: About
+          - listitem [ref=e185]:
+            - generic [ref=e186]: Contact
+      - navigation "Help" [ref=e187]:
+        - heading "Help" [level=2] [ref=e188]
+        - list [ref=e189]:
+          - listitem [ref=e190]:
+            - generic [ref=e191]: Safety
+      - navigation "Legal" [ref=e192]:
+        - heading "Legal" [level=2] [ref=e193]
+        - list [ref=e194]:
+          - listitem [ref=e195]:
+            - link "Terms" [ref=e196] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e249]:
-            - link "Privacy" [ref=e250] [cursor=pointer]:
+          - listitem [ref=e197]:
+            - link "Privacy" [ref=e198] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e252]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### mfa-stepup.spec.ts › U1f step-up authentication › MF-8 the gate's dialog is not in the page's first download; the first step-up fetches it and draws it on the top layer
-
-- Source: `shard 15`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('deactivate-reason')
-
-
-  178 |
-  179 |     await gotoReady(page, `/admin/users/${target.id}`);
-> 180 |     await page.getByTestId("deactivate-reason").fill("MF-8 proof");
-      |                                                 ^
-  181 |     expect(await asked()).toEqual({ preloaded: [], fetched: [] });
-  182 |     await page.getByTestId("deactivate-user").click();
-  183 |
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:180:49
-```
-
-Context:
-
-```text
-          - listitem [ref=e235]:
-            - generic [ref=e236]: About
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Contact
-      - navigation "Help" [ref=e239]:
-        - heading "Help" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - generic [ref=e243]: Safety
-      - navigation "Legal" [ref=e244]:
-        - heading "Legal" [level=2] [ref=e245]
-        - list [ref=e246]:
-          - listitem [ref=e247]:
-            - link "Terms" [ref=e248] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e249]:
-            - link "Privacy" [ref=e250] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e252]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### mfa-stepup.spec.ts › U1f-4 step-up freshness › MF-6 unenrolling the only factor drops the stepped-up state
-
-- Source: `shard 15`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('deactivate-reason')
-
-
-  280 |
-  281 |       await gotoReady(page, `/admin/users/${target.id}`);
-> 282 |       await page.getByTestId("deactivate-reason").fill("MF-6 proof");
-      |                                                   ^
-  283 |       await page.getByTestId("deactivate-user").click();
-  284 |
-  285 |       await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:282:51
-```
-
-Context:
-
-```text
-          - listitem [ref=e230]:
-            - generic [ref=e231]: About
-          - listitem [ref=e232]:
-            - generic [ref=e233]: Contact
-      - navigation "Help" [ref=e234]:
-        - heading "Help" [level=2] [ref=e235]
-        - list [ref=e236]:
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Safety
-      - navigation "Legal" [ref=e239]:
-        - heading "Legal" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - link "Terms" [ref=e243] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e244]:
-            - link "Privacy" [ref=e245] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e247]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### mfa-stepup.spec.ts › U1f-4 step-up freshness › MF-6 unenrolling the only factor drops the stepped-up state
-
-- Source: `shard 15`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('deactivate-reason')
-
-
-  280 |
-  281 |       await gotoReady(page, `/admin/users/${target.id}`);
-> 282 |       await page.getByTestId("deactivate-reason").fill("MF-6 proof");
-      |                                                   ^
-  283 |       await page.getByTestId("deactivate-user").click();
-  284 |
-  285 |       await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:282:51
-```
-
-Context:
-
-```text
-          - listitem [ref=e235]:
-            - generic [ref=e236]: About
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Contact
-      - navigation "Help" [ref=e239]:
-        - heading "Help" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - generic [ref=e243]: Safety
-      - navigation "Legal" [ref=e244]:
-        - heading "Legal" [level=2] [ref=e245]
-        - list [ref=e246]:
-          - listitem [ref=e247]:
-            - link "Terms" [ref=e248] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e249]:
-            - link "Privacy" [ref=e250] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e252]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### mfa-stepup.spec.ts › FIX-SCAN-1 step-up abort › MF-7c a no-factor identity is released with the hint
-
-- Source: `shard 15`
-- Project: `mobile-360`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('edit-display-name')
-
-
-  380 |       await switchUser(page, staff.email, staff.password);
-  381 |       await gotoReady(page, `/admin/users/${target.id}`);
-> 382 |       await page.getByTestId("edit-display-name").fill("MF-7c never written");
-      |                                                   ^
-  383 |       await page.getByTestId("edit-save").click();
-  384 |
-  385 |       await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:382:51
-```
-
-Context:
-
-```text
-          - listitem [ref=e230]:
-            - generic [ref=e231]: About
-          - listitem [ref=e232]:
-            - generic [ref=e233]: Contact
-      - navigation "Help" [ref=e234]:
-        - heading "Help" [level=2] [ref=e235]
-        - list [ref=e236]:
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Safety
-      - navigation "Legal" [ref=e239]:
-        - heading "Legal" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - link "Terms" [ref=e243] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e244]:
-            - link "Privacy" [ref=e245] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e247]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### mfa-stepup.spec.ts › FIX-SCAN-1 step-up abort › MF-7c a no-factor identity is released with the hint
-
-- Source: `shard 15`
-- Project: `desktop-1280`
-
-```text
-Test timeout of 60000ms exceeded.
---- further error 1 ---
-Error: locator.fill: Test timeout of 60000ms exceeded.
-Call log:
-  - waiting for getByTestId('edit-display-name')
-
-
-  380 |       await switchUser(page, staff.email, staff.password);
-  381 |       await gotoReady(page, `/admin/users/${target.id}`);
-> 382 |       await page.getByTestId("edit-display-name").fill("MF-7c never written");
-      |                                                   ^
-  383 |       await page.getByTestId("edit-save").click();
-  384 |
-  385 |       await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/mfa-stepup.spec.ts:382:51
-```
-
-Context:
-
-```text
-          - listitem [ref=e235]:
-            - generic [ref=e236]: About
-          - listitem [ref=e237]:
-            - generic [ref=e238]: Contact
-      - navigation "Help" [ref=e239]:
-        - heading "Help" [level=2] [ref=e240]
-        - list [ref=e241]:
-          - listitem [ref=e242]:
-            - generic [ref=e243]: Safety
-      - navigation "Legal" [ref=e244]:
-        - heading "Legal" [level=2] [ref=e245]
-        - list [ref=e246]:
-          - listitem [ref=e247]:
-            - link "Terms" [ref=e248] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e249]:
-            - link "Privacy" [ref=e250] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e252]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e200]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -1202,64 +442,91 @@ Context:
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `webkit-390` · source `webkit` · sage-ad-page.spec.ts › Sage ad page at 390, dark › SAP-1 each tier's ad page reads its tokens (390, dark) — Error: regular ad: the segment
+- FLAKY (passed on retry) · `mobile-360` · source `shard 7` · legal-admin.spec.ts › Admin Legal › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish — Test timeout of 60000ms exceeded.
+- FLAKY (passed on retry) · `desktop-1280` · source `shard 13` · admin-attributes-links.spec.ts › C3 attributes console › AT-59 the link editor's Save reflects change, saved and error — Error: [e2e:setup] POST /factors/[account id]/challenge failed (500): {"code":500,"error_code":"unexpected_failure","msg":"Unexpected failure, please check server logs for more information"}
 
 ## Flaky bodies (DEC-078)
 
-### sage-ad-page.spec.ts › Sage ad page at 390, dark › SAP-1 each tier's ad page reads its tokens (390, dark)
+### legal-admin.spec.ts › Admin Legal › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish
 
-- Source: `webkit`
-- Project: `webkit-390`
+- Source: `shard 7`
+- Project: `mobile-360`
 
 ```text
-Error: regular ad: the segment
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: "oklch(0.273 0.024 164.199997)"
-Received: "oklab(0.273 -0.023093 0.006535 / 0.124013)"
+Test timeout of 60000ms exceeded.
 --- further error 1 ---
-Error: regular ad: the segment
+Error: expect(locator).toBeVisible() failed
 
-expect(received).toBe(expected) // Object.is equality
+Locator: getByTestId('legal-doc-e2e-al-localx7-n5wcf-1-m-card-global').getByTestId('legal-view-inforce')
+Expected: visible
+Error: element(s) not found
 
-Expected: "oklch(0.273 0.024 164.199997)"
-Received: "oklab(0.273 -0.023093 0.006535 / 0.124013)"
+Call log:
+  - Expect "toBeVisible" with timeout 10000ms
+  - waiting for getByTestId('legal-doc-e2e-al-localx7-n5wcf-1-m-card-global').getByTestId('legal-view-inforce')
 
-  283 |             await page.mouse.move(0, 0);
-  284 |             await settled(page);
-> 285 |             expect(await style(description, "background-color"), `${at}: the segment`).toBe(
-      |                                                                                        ^
-  286 |               await tokenStyle(
-  287 |                 page,
-  288 |                 mode,
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/sage-ad-page.spec.ts:285:88
+
+  1104 |       await gotoReady(page, "/admin/legal");
+  1105 |       const translatedCard = page.getByTestId(`legal-doc-${kind}-global`);
+> 1106 |       await expect(translatedCard.getByTestId("legal-view-inforce")).toBeVisible();
+       |                                                                      ^
+  1107 |       // J6 — another worker's scratch language may still be offered; nothing this test wrote,
+  1108 |       // and no language the product ships, is. The control names every missing language.
+  1109 |       const translate = translatedCard.getByTestId("legal-translate-inforce");
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/legal-admin.spec.ts:1106:70
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e328]:
-            - generic [ref=e329]: About
-          - listitem [ref=e330]:
-            - generic [ref=e331]: Contact
-      - navigation "Help" [ref=e332]:
-        - heading "Help" [level=2] [ref=e333]
-        - list [ref=e334]:
-          - listitem [ref=e335]:
-            - generic [ref=e336]: Safety
-      - navigation "Legal" [ref=e337]:
-        - heading "Legal" [level=2] [ref=e338]
-        - list [ref=e339]:
-          - listitem [ref=e340]:
-            - link "Terms" [ref=e341]:
+          - listitem [ref=e139]:
+            - generic [ref=e140]: About
+          - listitem [ref=e141]:
+            - generic [ref=e142]: Contact
+      - navigation "Help" [ref=e143]:
+        - heading "Help" [level=2] [ref=e144]
+        - list [ref=e145]:
+          - listitem [ref=e146]:
+            - generic [ref=e147]: Safety
+      - navigation "Legal" [ref=e148]:
+        - heading "Legal" [level=2] [ref=e149]
+        - list [ref=e150]:
+          - listitem [ref=e151]:
+            - link "Terms" [ref=e152] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e342]:
-            - link "Privacy" [ref=e343]:
+          - listitem [ref=e153]:
+            - link "Privacy" [ref=e154] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e345]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e156]: © 2026 ethio.com — All rights reserved.
 ```
 ```
+
+### admin-attributes-links.spec.ts › C3 attributes console › AT-59 the link editor's Save reflects change, saved and error
+
+- Source: `shard 13`
+- Project: `desktop-1280`
+
+```text
+Error: [e2e:setup] POST /factors/[account id]/challenge failed (500): {"code":500,"error_code":"unexpected_failure","msg":"Unexpected failure, please check server logs for more information"}
+--- further error 1 ---
+Error: [e2e:setup] POST /factors/[account id]/challenge failed (500): {"code":500,"error_code":"unexpected_failure","msg":"Unexpected failure, please check server logs for more information"}
+
+   at global-setup.ts:255
+
+  253 |   const text = await response.text();
+  254 |   if (!response.ok) {
+> 255 |     throw new Error(`[e2e:setup] ${init.method} ${path} failed (${response.status}): ${text}`);
+      |           ^
+  256 |   }
+  257 |   return text ? (JSON.parse(text) as Record<string, unknown>) : {};
+  258 | }
+    at authFetch (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/global-setup.ts:255:11)
+    at aal2Session (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/ui.ts:975:23)
+    at signInJobSuperAdmin (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/ui.ts:1112:19)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-attributes-links.spec.ts:785:24
+```
+
+Context: context file not found for `admin-attributes-links-C3-attributes-console-AT-59-the-link-editor-s-Save-reflects-change-saved-and-error-desktop-1280` — Playwright's name `admin-attributes-links-C3--ebac8-ects-change-saved-and-error-desktop-1280`; this run carried 13 context file(s); of the same spec: none
 
 ## Errors outside any test (INC-589)
 
@@ -1268,12 +535,12 @@ Playwright fails a run whose every test passed when an error happens outside any
 ### repeat: 2 in the results file; the log's summary says 2
 
 ```text
-Timed out waiting 763s for the test suite to run
+Timed out waiting 766s for the test suite to run
 (no place given)
 ```
 
 ```text
-Timed out waiting 763s for the teardown for test suite to run
+Timed out waiting 766s for the teardown for test suite to run
 (no place given)
 ```
 
@@ -1329,166 +596,167 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-24T22:19:51.168Z | 6.9 min |
-| email | 2026-11-24T22:20:30.923Z | 0.3 min |
-| webkit | 2026-11-24T22:20:51.209Z | 14.5 min |
-| shard 1 | 2026-11-24T22:21:05.256Z | 7.0 min |
-| shard 2 | 2026-11-24T22:20:35.524Z | 11.9 min |
-| shard 3 | 2026-11-24T22:19:52.172Z | 7.2 min |
-| shard 4 | 2026-11-24T22:20:32.898Z | 12.0 min |
-| shard 5 | 2026-11-24T22:22:06.266Z | 9.1 min |
-| shard 6 | 2026-11-24T22:20:06.864Z | 16.0 min |
-| shard 7 | 2026-11-24T22:20:17.602Z | 20.3 min |
-| shard 8 | 2026-11-24T22:20:33.728Z | 25.0 min |
-| shard 9 | 2026-11-24T22:19:51.470Z | 11.3 min |
-| shard 10 | 2026-11-24T22:24:32.426Z | 21.2 min |
-| shard 11 | 2026-11-24T22:20:09.521Z | 5.8 min |
-| shard 12 | 2026-11-24T22:22:22.362Z | 5.8 min |
-| shard 13 | 2026-11-24T22:20:45.525Z | 12.9 min |
-| shard 14 | 2026-11-24T22:20:12.173Z | 20.4 min |
-| shard 15 | 2026-11-24T22:20:38.644Z | 23.9 min |
-| shard 16 | 2026-11-24T22:20:39.123Z | 7.3 min |
-| repeat | 2026-11-24T22:20:45.013Z | 12.7 min |
+| smoke | 2026-11-25T01:43:13.889Z | 7.4 min |
+| email | 2026-11-25T01:42:32.462Z | 0.3 min |
+| webkit | 2026-11-25T01:43:26.852Z | 10.2 min |
+| shard 1 | 2026-11-25T01:43:14.386Z | 6.2 min |
+| shard 2 | 2026-11-25T01:43:09.449Z | 12.0 min |
+| shard 3 | 2026-11-25T01:43:00.630Z | 7.2 min |
+| shard 4 | 2026-11-25T01:48:25.783Z | 12.1 min |
+| shard 5 | 2026-11-25T01:43:08.162Z | 8.8 min |
+| shard 6 | 2026-11-25T01:42:44.141Z | 14.8 min |
+| shard 7 | 2026-11-25T01:43:14.463Z | 24.9 min |
+| shard 8 | 2026-11-25T01:43:12.091Z | 20.3 min |
+| shard 9 | 2026-11-25T01:42:33.607Z | 12.1 min |
+| shard 10 | 2026-11-25T01:44:36.099Z | 21.1 min |
+| shard 11 | 2026-11-25T01:44:18.625Z | 6.4 min |
+| shard 12 | 2026-11-25T01:43:07.616Z | 6.0 min |
+| shard 13 | 2026-11-25T01:43:10.643Z | 12.5 min |
+| shard 14 | 2026-11-25T01:42:28.333Z | 20.1 min |
+| shard 15 | 2026-11-25T01:46:37.041Z | 15.6 min |
+| shard 16 | 2026-11-25T01:45:05.577Z | 6.1 min |
+| repeat | 2026-11-25T01:43:23.071Z | 12.8 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `admin-attributes-editor.spec.ts` | 108 | 26.9 min | shard 14, repeat |
-| `admin-listings.spec.ts` | 82 | 25.9 min | webkit, shard 10 |
+| `admin-attributes-editor.spec.ts` | 108 | 27.2 min | shard 14, repeat |
+| `admin-listings.spec.ts` | 82 | 26.3 min | webkit, shard 10 |
+| `legal-admin.spec.ts` | 44 | 21.7 min | shard 7 |
 | `admin-screening.spec.ts` | 64 | 21.3 min | webkit, shard 14 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 20.8 min | shard 15 |
-| `admin-translations-console.spec.ts` | 46 | 19.2 min | smoke, shard 8 |
-| `legal-admin.spec.ts` | 44 | 18.4 min | shard 7 |
-| `mfa-stepup.spec.ts` | 28 | 18.4 min | webkit, shard 15 |
-| `admin-attributes-import.spec.ts` | 40 | 17.6 min | shard 8 |
-| `admin-attributes-library.spec.ts` | 42 | 16.9 min | shard 2 |
-| `admin-locations.spec.ts` | 44 | 15.7 min | shard 6 |
-| `admin-attributes-links.spec.ts` | 34 | 15.7 min | shard 13 |
-| `admin-monetisation.spec.ts` | 34 | 13.1 min | smoke, shard 10 |
-| `admin-roles.spec.ts` | 28 | 12.2 min | shard 9 |
-| `import-security.spec.ts` | 36 | 12.0 min | shard 4 |
-| `shell.spec.ts` | 234 | 10.6 min | shard 1 |
-| `legal-doors.spec.ts` | 34 | 9.8 min | smoke, shard 8 |
-| `admin-categories-console.spec.ts` | 34 | 9.6 min | shard 7 |
-| `admin-attributes-safety.spec.ts` | 18 | 7.0 min | shard 5 |
-| `admin-countries.spec.ts` | 18 | 6.7 min | shard 6 |
-| `dialogs.spec.ts` | 36 | 6.4 min | webkit, shard 10 |
-| `admin-translations-governance.spec.ts` | 20 | 6.0 min | smoke, shard 16 |
-| `photo-pipeline.spec.ts` | 74 | 5.6 min | webkit, shard 16 |
-| `ad-page.spec.ts` | 104 | 5.5 min | webkit, shard 13 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 20.9 min | shard 15 |
+| `admin-translations-console.spec.ts` | 46 | 19.3 min | smoke, shard 8 |
+| `admin-attributes-import.spec.ts` | 40 | 17.4 min | shard 8 |
+| `admin-attributes-library.spec.ts` | 42 | 16.7 min | shard 2 |
+| `admin-attributes-links.spec.ts` | 34 | 15.6 min | shard 13 |
+| `admin-locations.spec.ts` | 44 | 14.7 min | shard 6 |
+| `admin-monetisation.spec.ts` | 34 | 13.0 min | smoke, shard 10 |
+| `admin-roles.spec.ts` | 28 | 11.9 min | shard 9 |
+| `import-security.spec.ts` | 36 | 11.9 min | shard 4 |
+| `shell.spec.ts` | 234 | 10.7 min | shard 1 |
+| `admin-categories-console.spec.ts` | 34 | 9.0 min | shard 7 |
+| `legal-doors.spec.ts` | 34 | 9.0 min | smoke, shard 7 |
+| `admin-attributes-safety.spec.ts` | 18 | 7.1 min | shard 5 |
+| `admin-countries.spec.ts` | 18 | 6.8 min | shard 6 |
+| `admin-translations-governance.spec.ts` | 20 | 6.5 min | smoke, shard 16 |
 | `auth-signout.spec.ts` | 44 | 5.2 min | webkit, shard 9 |
-| `post-wizard-bundle2.spec.ts` | 70 | 5.1 min | shard 3 |
-| `feed-screens.spec.ts` | 40 | 4.9 min | webkit, shard 5 |
-| `post-wizard-specs.spec.ts` | 82 | 4.3 min | shard 12 |
-| `admin-guides.spec.ts` | 14 | 4.2 min | shard 3 |
+| `feed-screens.spec.ts` | 40 | 4.8 min | webkit, shard 5 |
+| `admin-guides.spec.ts` | 14 | 4.7 min | shard 3 |
+| `dialogs.spec.ts` | 36 | 4.6 min | webkit, shard 10 |
+| `post-wizard-specs.spec.ts` | 82 | 4.4 min | shard 12 |
+| `post-wizard-bundle2.spec.ts` | 70 | 4.4 min | shard 3 |
+| `ad-page.spec.ts` | 104 | 4.4 min | webkit, shard 13 |
 | `post-wizard-place.spec.ts` | 40 | 4.2 min | shard 11 |
-| `admin-users.spec.ts` | 28 | 4.2 min | shard 16 |
-| `viewing-place.spec.ts` | 22 | 4.0 min | shard 15 |
-| `post-wizard-where.spec.ts` | 32 | 3.8 min | shard 11 |
+| `viewing-place.spec.ts` | 22 | 4.1 min | shard 15 |
+| `admin-categories-home.spec.ts` | 10 | 4.0 min | shard 4 |
+| `admin-users.spec.ts` | 28 | 3.9 min | shard 16 |
+| `photo-pipeline.spec.ts` | 74 | 3.7 min | webkit, shard 16 |
 | `admin-translations-data.spec.ts` | 10 | 3.7 min | shard 5 |
-| `admin-categories-home.spec.ts` | 10 | 3.5 min | shard 4 |
-| `my-listings-ad.spec.ts` | 38 | 3.3 min | shard 12 |
-| `posting-routes.spec.ts` | 80 | 3.0 min | shard 2 |
-| `post-wizard-pricing.spec.ts` | 52 | 2.7 min | shard 8 |
-| `post-wizard-category.spec.ts` | 52 | 2.6 min | webkit, shard 4 |
-| `post-wizard-resets.spec.ts` | 34 | 2.5 min | shard 3 |
-| `choice-lists.spec.ts` | 96 | 2.4 min | shard 7 |
-| `sage-ad-page.spec.ts` | 30 | 2.3 min | webkit, shard 11 |
-| `sage-bands.spec.ts` | 76 | 2.3 min | shard 6 |
-| `sage-tiers.spec.ts` | 52 | 2.2 min | webkit, shard 2 |
-| `name-check-queue.spec.ts` | 8 | 2.0 min | smoke, shard 9 |
-| `admin-services.spec.ts` | 10 | 1.8 min | shard 1 |
-| `legal-certify.spec.ts` | 44 | 1.7 min | shard 14 |
-| `admin-categories-images.spec.ts` | 6 | 1.5 min | smoke, webkit, shard 12 |
-| `admin-audit.spec.ts` | 16 | 1.5 min | shard 9 |
-| `admin-shell.spec.ts` | 12 | 1.4 min | shard 2 |
-| `my-listings-page.spec.ts` | 24 | 1.2 min | webkit, shard 10 |
-| `my-listings-promote.spec.ts` | 10 | 1.1 min | shard 11 |
-| `phone-frame.spec.ts` | 18 | 1.1 min | shard 12 |
-| `press.spec.ts` | 22 | 1.0 min | shard 12 |
-| `sage-shell.spec.ts` | 80 | 1.0 min | shard 16 |
+| `post-wizard-where.spec.ts` | 32 | 3.6 min | shard 11 |
+| `my-listings-ad.spec.ts` | 38 | 3.4 min | shard 12 |
+| `choice-lists.spec.ts` | 96 | 3.4 min | shard 7 |
+| `mfa-stepup.spec.ts` | 28 | 3.1 min | webkit, shard 15 |
+| `post-wizard-pricing.spec.ts` | 52 | 3.0 min | shard 8 |
+| `post-wizard-category.spec.ts` | 54 | 2.6 min | webkit, shard 4 |
+| `post-wizard-resets.spec.ts` | 34 | 2.3 min | shard 3 |
+| `sage-bands.spec.ts` | 76 | 2.2 min | shard 6 |
+| `admin-services.spec.ts` | 10 | 2.2 min | shard 2 |
+| `name-check-queue.spec.ts` | 8 | 2.2 min | smoke, shard 9 |
+| `posting-routes.spec.ts` | 80 | 1.9 min | shard 2 |
+| `sage-ad-page.spec.ts` | 30 | 1.8 min | webkit, shard 11 |
+| `admin-audit.spec.ts` | 16 | 1.6 min | shard 9 |
+| `breadcrumbs.spec.ts` | 6 | 1.6 min | shard 9 |
+| `legal-certify.spec.ts` | 44 | 1.6 min | shard 14 |
+| `admin-categories-images.spec.ts` | 6 | 1.5 min | smoke, webkit, shard 2 |
+| `my-listings-doors.spec.ts` | 28 | 1.3 min | shard 11 |
+| `sage-tiers.spec.ts` | 52 | 1.2 min | webkit, shard 2 |
+| `my-listings-promote.spec.ts` | 10 | 1.2 min | shard 11 |
+| `admin-shell.spec.ts` | 12 | 1.1 min | shard 2 |
+| `locations-tree.spec.ts` | 8 | 1.1 min | shard 13 |
+| `my-listings-levels.spec.ts` | 28 | 1.1 min | shard 16 |
+| `press.spec.ts` | 22 | 1.1 min | shard 12 |
+| `phone-frame.spec.ts` | 18 | 1.0 min | shard 12 |
 | `i18n-sign-in-language.spec.ts` | 12 | 1.0 min | shard 15 |
-| `breadcrumbs.spec.ts` | 6 | 1.0 min | shard 10 |
-| `my-listings-levels.spec.ts` | 28 | 1.0 min | shard 4 |
-| `user-guides.spec.ts` | 18 | 1.0 min | shard 13 |
 | `one-line-slots-admin.spec.ts` | 10 | 0.9 min | shard 3 |
-| `my-listings-doors.spec.ts` | 28 | 0.9 min | shard 3 |
-| `locations-tree.spec.ts` | 8 | 0.9 min | shard 13 |
-| `sage-cards.spec.ts` | 40 | 0.8 min | webkit, shard 7 |
-| `ad-page-doors.spec.ts` | 90 | 0.8 min | shard 14, repeat |
-| `settings.spec.ts` | 16 | 0.8 min | shard 1 |
-| `house-style.spec.ts` | 18 | 0.7 min | shard 11 |
-| `primitives-law.spec.ts` | 24 | 0.7 min | shard 16 |
-| `post-wizard-removed.spec.ts` | 4 | 0.6 min | shard 7 |
-| `layout.spec.ts` | 18 | 0.6 min | webkit, shard 10 |
-| `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
-| `legal-accept.spec.ts` | 12 | 0.5 min | shard 2 |
-| `supabase-door.spec.ts` | 12 | 0.5 min | shard 13 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
-| `overlays.spec.ts` | 8 | 0.4 min | shard 15 |
+| `my-listings-page.spec.ts` | 24 | 0.9 min | webkit, shard 10 |
+| `ad-page-doors.spec.ts` | 90 | 0.9 min | shard 5, repeat |
+| `posting-routes-dials.spec.ts` | 14 | 0.9 min | shard 15 |
+| `overlays.spec.ts` | 8 | 0.9 min | shard 11 |
+| `user-guides.spec.ts` | 18 | 0.9 min | shard 13 |
+| `house-style.spec.ts` | 18 | 0.8 min | shard 12 |
+| `sage-cards.spec.ts` | 40 | 0.8 min | webkit, shard 16 |
+| `sage-shell.spec.ts` | 80 | 0.6 min | shard 8 |
+| `post-wizard-removed.spec.ts` | 4 | 0.6 min | shard 14 |
+| `primitives-law.spec.ts` | 24 | 0.6 min | shard 1 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.6 min | shard 13 |
+| `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 6 |
+| `settings.spec.ts` | 16 | 0.5 min | shard 4 |
+| `auth-caller-gates.spec.ts` | 8 | 0.5 min | shard 7 |
+| `supabase-door.spec.ts` | 12 | 0.4 min | shard 3 |
+| `staff-gate.spec.ts` | 4 | 0.4 min | shard 4 |
+| `layout.spec.ts` | 18 | 0.4 min | webkit, shard 9 |
 | `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6 |
-| `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 14 |
-| `submenu.spec.ts` | 14 | 0.3 min | smoke, shard 15 |
+| `post-wizard-units.spec.ts` | 4 | 0.4 min | shard 1 |
+| `legal-accept.spec.ts` | 12 | 0.4 min | shard 5 |
+| `post-wizard-details.spec.ts` | 8 | 0.3 min | shard 14 |
 | `one-line-slots.spec.ts` | 10 | 0.3 min | shard 8 |
-| `auth-caller-gates.spec.ts` | 8 | 0.3 min | shard 5 |
-| `page-head.spec.ts` | 4 | 0.3 min | shard 13 |
-| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4 |
-| `legal-history.spec.ts` | 6 | 0.3 min | shard 16 |
-| `shell-bands.spec.ts` | 16 | 0.3 min | smoke, shard 12 |
-| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 3 |
-| `posting-routes-dials.spec.ts` | 14 | 0.2 min | shard 9 |
-| `legal-pages.spec.ts` | 10 | 0.2 min | shard 11 |
+| `shell-bands.spec.ts` | 16 | 0.3 min | smoke, shard 11 |
+| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 10 |
+| `submenu.spec.ts` | 14 | 0.3 min | smoke, shard 12 |
+| `a11y.spec.ts` | 4 | 0.3 min | smoke |
+| `page-head.spec.ts` | 4 | 0.3 min | shard 3 |
+| `legal-pages.spec.ts` | 10 | 0.2 min | shard 13 |
+| `category-nav.spec.ts` | 10 | 0.2 min | shard 7 |
 | `auth-signup.spec.ts` | 6 | 0.2 min | email |
-| `a11y.spec.ts` | 4 | 0.2 min | smoke |
-| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 15 |
-| `submenu-look.spec.ts` | 12 | 0.2 min | smoke, shard 2 |
-| `shell-table-law.spec.ts` | 6 | 0.2 min | shard 2, repeat |
-| `door-refusals.spec.ts` | 14 | 0.2 min | shard 7 |
-| `feed-index.spec.ts` | 30 | 0.2 min | shard 6 |
-| `category-nav.spec.ts` | 10 | 0.2 min | shard 5 |
-| `rbac.spec.ts` | 6 | 0.2 min | shard 7 |
-| `menu-rows.spec.ts` | 6 | 0.2 min | smoke, shard 14 |
-| `auth-reset.spec.ts` | 6 | 0.1 min | shard 8 |
-| `feed-route.spec.ts` | 22 | 0.1 min | shard 9 |
-| `account-saved.spec.ts` | 4 | 0.1 min | shard 4 |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 12 |
-| `locale-format.spec.ts` | 2 | 0.1 min | shard 1 |
-| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 9 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 11 |
-| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
-| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 5 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 13 |
-| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 6 |
-| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
+| `account-saved.spec.ts` | 4 | 0.2 min | shard 15 |
+| `submenu-look.spec.ts` | 12 | 0.2 min | smoke, shard 8 |
+| `shell-table-law.spec.ts` | 6 | 0.2 min | shard 16, repeat |
+| `legal-history.spec.ts` | 6 | 0.2 min | shard 4 |
+| `feed-index.spec.ts` | 30 | 0.2 min | shard 10 |
+| `menu-rows.spec.ts` | 6 | 0.2 min | smoke, shard 16 |
+| `rbac.spec.ts` | 6 | 0.2 min | shard 6 |
+| `door-refusals.spec.ts` | 14 | 0.2 min | shard 13 |
+| `auth-reset.spec.ts` | 6 | 0.2 min | shard 5 |
+| `category-image-routes.spec.ts` | 12 | 0.2 min | shard 4 |
+| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 3 |
+| `feed-route.spec.ts` | 22 | 0.1 min | shard 14 |
+| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 5 |
+| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 10 |
+| `posting-routes-identity.spec.ts` | 4 | 0.1 min | shard 6 |
+| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 12 |
+| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 1 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 7 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 14 |
+| `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 15 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 9 |
+| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 8 |
+| `dark-cards.spec.ts` | 4 | 0.1 min | shard 8 |
 | `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 10 |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 14 |
-| `fonts.spec.ts` | 2 | 0.1 min | shard 1 |
-| `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 4 |
-| `auth-google.spec.ts` | 2 | 0.0 min | shard 16 |
-| `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 14 |
-| `geo.spec.ts` | 10 | 0.0 min | shard 3 |
-| `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 11 |
+| `locale-format.spec.ts` | 2 | 0.0 min | shard 2 |
+| `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 1 |
+| `auth-google.spec.ts` | 2 | 0.0 min | shard 15 |
+| `fonts.spec.ts` | 2 | 0.0 min | shard 2 |
+| `geo.spec.ts` | 10 | 0.0 min | shard 9 |
+| `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 4 |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `mfa-stepup.spec.ts` › MF-3 no factor: the modal explains and the RPC is never called | mobile-360 | 120.9 s |
-| `mfa-stepup.spec.ts` › MF-6 unenrolling the only factor drops the stepped-up state | desktop-1280 | 120.8 s |
-| `mfa-stepup.spec.ts` › MF-3 no factor: the modal explains and the RPC is never called | desktop-1280 | 120.7 s |
-| `mfa-stepup.spec.ts` › MF-6 unenrolling the only factor drops the stepped-up state | mobile-360 | 120.7 s |
-| `mfa-stepup.spec.ts` › MF-7c a no-factor identity is released with the hint | desktop-1280 | 120.6 s |
-| `mfa-stepup.spec.ts` › MF-8 the gate's dialog is not in the page's first download; the first step-up fetches it and draws it on the top layer | mobile-360 | 120.5 s |
-| `mfa-stepup.spec.ts` › MF-8 the gate's dialog is not in the page's first download; the first step-up fetches it and draws it on the top layer | desktop-1280 | 120.5 s |
-| `mfa-stepup.spec.ts` › MF-7c a no-factor identity is released with the hint | mobile-360 | 120.4 s |
-| `admin-categories-console.spec.ts` › CT-7b browse paths: an unproven factor cannot move a pointer | mobile-360 | 61.0 s |
-| `admin-categories-console.spec.ts` › CT-7b browse paths: an unproven factor cannot move a pointer | desktop-1280 | 61.0 s |
-| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | desktop-1280 | 59.5 s |
-| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | mobile-360 | 59.2 s |
-| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | mobile-360 | 59.2 s |
-| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | desktop-1280 | 58.2 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 54.4 s |
+| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | mobile-360 | 88.9 s |
+| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 68.2 s |
+| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | desktop-1280 | 60.0 s |
+| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | mobile-360 | 58.8 s |
+| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | desktop-1280 | 58.7 s |
+| `legal-admin.spec.ts` › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused | mobile-360 | 58.5 s |
+| `legal-admin.spec.ts` › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused | desktop-1280 | 58.2 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 55.8 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 55.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 49.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 46.8 s |
+| `admin-monetisation.spec.ts` › MON-6 per-category perks inside the level's row: Add override names the level; a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back | mobile-360 | 46.7 s |
+| `admin-countries.spec.ts` › CO-4 open and close: opening publishes the market's tree, closing takes it away | desktop-1280 | 46.1 s |
+| `admin-monetisation.spec.ts` › MON-6 per-category perks inside the level's row: Add override names the level; a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back | desktop-1280 | 45.5 s |
+| `admin-monetisation.spec.ts` › MON-12 a scratch market: paid levels ON without a bundle is refused by name; ON with 10/30 writes the bundle, paid_levels_since and the audit row; OFF clears the mark | mobile-360 | 45.1 s |
 
 ## Post-test errors: smoke
 
@@ -1497,7 +765,7 @@ smoke: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 45494230491-localproof
+[e2e:teardown] deleted 2 user(s) owned by process 45527306417-localproof
 ```
 
 ## Post-test errors: email
@@ -1507,7 +775,7 @@ email: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45494230491-local-email
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-email
 ```
 
 ## Post-test errors: webkit
@@ -1517,7 +785,7 @@ webkit: every test's verdict stands — these lines were printed OUTSIDE any tes
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 45494230491-local-webkit
+[e2e:teardown] deleted 4 user(s) owned by process 45527306417-local-webkit
 ```
 
 ## Post-test errors: shard 1
@@ -1527,7 +795,7 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45494230491-local-1
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-1
 ```
 
 ## Post-test errors: shard 2
@@ -1535,9 +803,9 @@ shard 1: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
+[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 9 user(s) owned by process 45494230491-local-2
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-2
 ```
 
 ## Post-test errors: shard 3
@@ -1545,9 +813,9 @@ shard 2: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 8 (pool 3, fresh 5)
+[e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 45494230491-local-3
+[e2e:teardown] deleted 5 user(s) owned by process 45527306417-local-3
 ```
 
 ## Post-test errors: shard 4
@@ -1555,9 +823,9 @@ shard 3: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 28 (pool 4, fresh 24)
+[e2e:teardown] accounts signed in this run: 26 (pool 2, fresh 24)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 25 user(s) owned by process 45494230491-local-4
+[e2e:teardown] deleted 25 user(s) owned by process 45527306417-local-4
 ```
 
 ## Post-test errors: shard 5
@@ -1565,9 +833,9 @@ shard 4: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
+[e2e:teardown] accounts signed in this run: 16 (pool 4, fresh 12)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 15 user(s) owned by process 45494230491-local-5
+[e2e:teardown] deleted 30 user(s) owned by process 45527306417-local-5
 ```
 
 ## Post-test errors: shard 6
@@ -1577,7 +845,7 @@ shard 6: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45494230491-local-6
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-6
 ```
 
 ## Post-test errors: shard 7
@@ -1587,7 +855,7 @@ shard 7: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45494230491-local-7
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-7
 ```
 
 ## Post-test errors: shard 8
@@ -1595,9 +863,9 @@ shard 7: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 8: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
+[e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 8 user(s) owned by process 45494230491-local-8
+[e2e:teardown] deleted 5 user(s) owned by process 45527306417-local-8
 ```
 
 ## Post-test errors: shard 9
@@ -1605,9 +873,9 @@ shard 8: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 9: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 16 (pool 4, fresh 12)
+[e2e:teardown] accounts signed in this run: 19 (pool 4, fresh 15)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 13 user(s) owned by process 45494230491-local-9
+[e2e:teardown] deleted 15 user(s) owned by process 45527306417-local-9
 ```
 
 ## Post-test errors: shard 10
@@ -1615,9 +883,9 @@ shard 9: every test's verdict stands — these lines were printed OUTSIDE any te
 shard 10: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 13 (pool 4, fresh 9)
+[e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 9 user(s) owned by process 45494230491-local-10
+[e2e:teardown] deleted 7 user(s) owned by process 45527306417-local-10
 ```
 
 ## Post-test errors: shard 11
@@ -1627,7 +895,7 @@ shard 11: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45494230491-local-11
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-11
 ```
 
 ## Post-test errors: shard 12
@@ -1635,9 +903,9 @@ shard 11: every test's verdict stands — these lines were printed OUTSIDE any t
 shard 12: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 7 (pool 3, fresh 4)
+[e2e:teardown] accounts signed in this run: 6 (pool 3, fresh 3)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 45494230491-local-12
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-12
 ```
 
 ## Post-test errors: shard 13
@@ -1647,7 +915,7 @@ shard 13: every test's verdict stands — these lines were printed OUTSIDE any t
 ```text
 [e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45494230491-local-13
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-13
 ```
 
 ## Post-test errors: shard 14
@@ -1655,9 +923,9 @@ shard 13: every test's verdict stands — these lines were printed OUTSIDE any t
 shard 14: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
+[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 45494230491-local-14
+[e2e:teardown] deleted 3 user(s) owned by process 45527306417-local-14
 ```
 
 ## Post-test errors: shard 15
@@ -1665,9 +933,9 @@ shard 14: every test's verdict stands — these lines were printed OUTSIDE any t
 shard 15: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 42 (pool 2, fresh 40)
+[e2e:teardown] accounts signed in this run: 35 (pool 3, fresh 32)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 65 user(s) owned by process 45494230491-local-15
+[e2e:teardown] deleted 49 user(s) owned by process 45527306417-local-15
 ```
 
 ## Post-test errors: shard 16
@@ -1675,67 +943,9 @@ shard 15: every test's verdict stands — these lines were printed OUTSIDE any t
 shard 16: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
 
 ```text
-[e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
+[e2e:teardown] accounts signed in this run: 14 (pool 4, fresh 10)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 23 user(s) owned by process 45494230491-local-16
-```
-
-## Server errors: shard 6
-
-No `[ssr-error]` lines in the `shard 6` log (or no log was uploaded).
-
-## Client errors: shard 6
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_locations?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-```
-
-## Server errors: shard 7
-
-No `[ssr-error]` lines in the `shard 7` log (or no log was uploaded).
-
-## Client errors: shard 7
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_categories?order=id.asc&limit=1000 ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
+[e2e:teardown] deleted 25 user(s) owned by process 45527306417-local-16
 ```
 
 ## Server errors: shard 9
@@ -1745,35 +955,6 @@ No `[ssr-error]` lines in the `shard 9` log (or no log was uploaded).
 ## Client errors: shard 9
 
 No `[client-error]` lines in the `shard 9` log (or no log was uploaded).
-
-## Server errors: shard 10
-
-No `[ssr-error]` lines in the `shard 10` log (or no log was uploaded).
-
-## Client errors: shard 10
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_listings ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-```
 
 ## Server errors: shard 15
 
@@ -1786,25 +967,4 @@ No `[ssr-error]` lines in the `shard 10` log (or no log was uploaded).
 
 ## Client errors: shard 15
 
-```text
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_get_user ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 () ×2
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_roles ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_user_activity ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"}) ×2
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_roles ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_get_user ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 () ×2
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_roles ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_user_activity ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_get_user ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 () ×2
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_user_activity ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_roles ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 ()
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_get_user ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 () ×2
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_list_roles ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-[client-error] HTTP 500 POST https://127.0.0.1:31321/rest/v1/rpc/admin_user_activity ({"code":"P0009","details":null,"hint":"Set up an authenticator app (TOTP) and retry this action.","message":"step-up required: no verified factor"})
-```
+No `[client-error]` lines in the `shard 15` log (or no log was uploaded).
