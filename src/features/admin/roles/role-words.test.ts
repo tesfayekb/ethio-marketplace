@@ -24,6 +24,9 @@ describe("roles and translations words (INC-1280)", () => {
     expect(tr("unknownKey")).toBe("admin.translations.error.unknownKey");
     expect(tr("unknownTranslation")).toBe("admin.translations.error.unknownTranslation");
   });
+  it("RWR-U5 translations: nameRequired reads the existing name words", () => {
+    expect(tr("nameRequired")).toBe("admin.categories.error.nameRequired");
+  });
   it("RWR-U4 translations: an account and a length", () => {
     expect(tr("unknownUser")).toBe("admin.users.error.unknownUser");
     expect(tr("tooLong:context")).toBe("post.refusal.tooLong");

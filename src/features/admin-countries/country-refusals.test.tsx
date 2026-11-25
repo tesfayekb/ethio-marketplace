@@ -33,7 +33,7 @@ const IDS = [
 describe("the markets console's refusals (F1-4b, DEC-333)", () => {
   it("KRF-1 every id the console spoke keeps its own line; the words hold those and the two shared codes", () => {
     expect(Object.keys(COUNTRY_REFUSALS.words).sort()).toEqual(
-      [...IDS, "permissionDenied", "rateLimited", "required", "badType"].sort(),
+      [...IDS, "permissionDenied", "forbidden", "rateLimited", "required", "badType"].sort(),
     );
     for (const id of IDS) {
       const read = readRefusal(refused(id), COUNTRY_REFUSALS);

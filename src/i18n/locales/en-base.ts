@@ -1,4 +1,6 @@
 export const enBase = {
+  "admin.categories.error.nameRequired": "A name is required.",
+  "post.pin.chooseShow": "Choose how the pin shows on your ad.",
   "adPage.share.description": "Send the link in an app, copy it, or show a QR code.",
   "adPage.map.openDescription": "Open the ad's place in the Google Maps app or in your browser.",
   "dialog.moreBelow": "More below",

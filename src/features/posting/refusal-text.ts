@@ -110,6 +110,7 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   badLatitude: "post.refusal.badPinPlace",
   badLongitude: "post.refusal.badPinPlace",
   badZoom: "post.refusal.badPinPlace",
+  badPrecision: "post.pin.chooseShow",
   directionsTooLong: "post.refusal.directionsTooLong",
   streetTooLong: "post.refusal.streetTooLong",
   pinNotEditable: "post.refusal.pinNotEditable",

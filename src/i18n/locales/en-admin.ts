@@ -1047,7 +1047,6 @@ export const enAdmin = {
   "admin.categories.pointer.parent": "Additional parent",
   "admin.categories.pointer.parentPlaceholder": "Choose a parent",
   "admin.categories.error.saveFailed": "The change could not be saved.",
-  "admin.categories.error.nameRequired": "A name is required.",
   "admin.categories.error.catchallParent":
     "A catch-all category cannot be a parent. Choose another destination.",
   "admin.categories.error.reassignRequired": "Choose where the listings go.",

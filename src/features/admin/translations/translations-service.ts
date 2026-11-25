@@ -429,7 +429,7 @@ export const TRANSLATION_REFUSALS = {
     badValue: GENERIC,
     badLanguage: "admin.translations.error.badLanguage",
     emptyList: GENERIC,
-    nameRequired: GENERIC,
+    nameRequired: "admin.categories.error.nameRequired",
     pseudoLanguage: GENERIC,
     required: "post.refusal.required",
     tooLong: "post.refusal.tooLong",

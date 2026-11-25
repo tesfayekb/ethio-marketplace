@@ -37,10 +37,17 @@ describe("the doors' vocabulary, in words (refusal-text)", () => {
     expect(photoRefusalKey("notYourListing")).toBe("post.photo.refusal.notYourListing");
     expect(photoRefusalKey("photoGone")).toBe("post.photo.refusal.photoGone");
     expect(photoRefusalKey("rateLimited")).toBe("post.photo.refusal.rateLimited");
-    for (const code of ["notADraft", "listingNotFound", "photosSoonNotEditable:sold", "toString"]) {
-      expect(draftRefusalKey(code), code).toBe("post.refusal.unknown");
+    for (const [code, key] of [
+      ["notADraft", "post.refusal.alreadySubmitted"],
+      ["listingNotFound", "post.refusal.listingNotFound"],
+      ["photosSoonNotEditable:sold", "post.refusal.photosSoonNotEditable"],
+      ["toString", "post.refusal.unknown"],
+    ]) {
+      expect(draftRefusalKey(code), code).toBe(key);
       expect(photoRefusalKey(code), code).toBe("post.photo.refusal.unknown");
     }
+    expect(draftRefusalKey("noSuchCode")).toBe("post.refusal.unknown");
+    expect(photoRefusalKey("noSuchCode")).toBe("post.photo.refusal.unknown");
   });
 
   it("PRT-3 a refusal is the dial's by the one reader, in any shape a door's answer takes", () => {

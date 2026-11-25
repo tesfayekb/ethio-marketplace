@@ -68,13 +68,15 @@ describe("ARF-3 save and unsave", () => {
 
 describe("ARF-4 report", () => {
   it.each([
+    ["noteTooLong", "noteTooLong"],
+    ["listingNotAvailable", "gone"],
     ["ownListing", "ownListing"],
     ["alreadyReported", "alreadyReported"],
     ["rateLimited", "rateLimited"],
   ])("%s reads %s", (code, reason) => {
     expect(reportRefusal({ message: code })).toBe(reason);
   });
-  it.each([...GATES, ...STRANGERS, "badReason", "noteTooLong", "listingNotAvailable"])(
+  it.each([...GATES, ...STRANGERS, "badReason", "noSuchCode"])(
     "%s reads the generic line",
     (code) => {
       expect(reportRefusal({ message: code })).toBe("failed");

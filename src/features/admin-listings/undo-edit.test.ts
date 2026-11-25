@@ -43,7 +43,8 @@ describe("undo an admin's edit (turn L4d)", () => {
     expect(undoErrorKey("listingNotFound")).toBe("admin.listings.move.error.notFound");
     expect(undoErrorKey("noteTooLong")).toBe("admin.listings.move.noteTooLong");
     expect(undoErrorKey("badValue:reason")).toBe("admin.listings.move.pickReason");
-    expect(undoErrorKey("photoRemovalFinal")).toBe("common.error");
+    expect(undoErrorKey("photoRemovalFinal")).toBe("admin.listings.undo.photoFinal");
+    expect(undoErrorKey("noSuchCode")).toBe("common.error");
     expect(undoErrorKey("notSignedIn")).toBe("common.error");
   });
 

@@ -241,10 +241,13 @@ it("reads a document's review state", () => {
   expect(reviewState(review(new Date(NOW).toISOString()), NOW)).toBe("overdue");
   expect(reviewState(review(new Date(NOW - 86_400_000).toISOString()), NOW)).toBe("overdue");
 });
-it("maps all other failures to the generic sentence", () => {
+it("reads unknownVersion in its own words; codes without words and failed fetches read the generic sentence", () => {
+  expect(legalRefusalKey({ code: "P0D01", message: "unknownVersion" })).toBe(
+    "admin.legal.error.unknownVersion",
+  );
   expect(legalRefusalKey({ message: "permission denied" })).toBe("admin.legal.error.generic");
   expect(legalRefusalKey({ message: "constructor" })).toBe("admin.legal.error.generic");
-  for (const code of ["permissionDenied", "notSignedIn", "rateLimited", "unknownVersion"])
+  for (const code of ["permissionDenied", "notSignedIn", "rateLimited", "noSuchCode"])
     expect(legalRefusalKey({ code: "P0D01", message: code })).toBe("admin.legal.error.generic");
   expect(legalRefusalKey(new Error("Failed to fetch"))).toBe("admin.legal.error.generic");
 });

@@ -11,6 +11,10 @@ describe("posting refusal words (INC-1280)", () => {
     for (const code of ["badLatitude", "badLongitude", "badZoom"])
       expect(draftRefusalKey(code)).toBe("post.refusal.badPinPlace");
   });
+  it("RWP-U3 the pin's precision reads the existing choose-show words", () => {
+    expect(draftRefusalKey("badPrecision")).toBe("post.pin.chooseShow");
+    expect(draftRefusalKey("badPrecision:missing")).toBe("post.pin.chooseShow");
+  });
   it("RWP-U4 the pin's lengths and lock", () => {
     expect(draftRefusalKey("directionsTooLong")).toBe("post.refusal.directionsTooLong");
     expect(draftRefusalKey("streetTooLong")).toBe("post.refusal.streetTooLong");

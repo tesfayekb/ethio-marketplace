@@ -1,6 +1,8 @@
 import type { enBase } from "./en-base";
 
 export const amBase: { [K in keyof typeof enBase]: string } = {
+  "admin.categories.error.nameRequired": "ስም ያስፈልጋል።",
+  "post.pin.chooseShow": "ምልክቱ በማስታወቂያዎ ላይ እንዴት እንደሚታይ ይምረጡ።",
   "adPage.share.description": "ሊንኩን በመተግበሪያ ይላኩ፣ ይቅዱት ወይም QR ኮድ ያሳዩ።",
   "adPage.map.openDescription": "የማስታወቂያውን ቦታ በGoogle ካርታ መተግበሪያ ወይም በአሳሽዎ ይክፈቱ።",
   "dialog.moreBelow": "ከታች ተጨማሪ አለ",

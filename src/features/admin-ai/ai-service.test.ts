@@ -183,12 +183,13 @@ describe("the AI console's seam (D158)", () => {
     expect(aiRefusalOf("badValue:budget").key).toBe("admin.ai.error.badBudget");
     expect(aiRefusalOf("badValue:unitCost").key).toBe("admin.ai.error.badPriceDoor");
     expect(aiRefusalOf("badValue:enabled")).toEqual({
-      key: "admin.ai.error.unknown",
+      key: "admin.ai.error.badEnabled",
       raw: null,
     });
     expect(aiRefusalOf({ message: "overBudget", code: "P0D01" }).key).toBe(
       "admin.ai.error.overBudget",
     );
+    expect(aiRefusalOf("noSuchCode")).toEqual({ key: "admin.ai.error.unknown", raw: null });
     expect(aiRefusalOf("boom")).toEqual({ key: "admin.ai.error.unknown", raw: null });
     expect(aiRefusalOf("")).toEqual({ key: "admin.ai.error.unknown", raw: null });
     expect(aiRefusalOf(undefined)).toEqual({ key: "admin.ai.error.unknown", raw: null });

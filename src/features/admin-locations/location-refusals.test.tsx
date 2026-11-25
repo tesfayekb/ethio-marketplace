@@ -69,6 +69,7 @@ describe("the places console's refusals (F1-4b, DEC-333)", () => {
       [
         ...IDS,
         "permissionDenied",
+        "forbidden",
         "rateLimited",
         "required",
         "badType",
