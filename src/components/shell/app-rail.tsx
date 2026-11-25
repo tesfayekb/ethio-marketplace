@@ -55,6 +55,7 @@ import {
 } from "@/components/shell/menu-row";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
+import { FailureNotice } from "./failure-notice";
 
 /**
  * COLLAPSE — an OPTION on md+, never the default and never on mobile.
@@ -515,7 +516,14 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const compact = variant === "strip" || variant === "menu";
   const hide = useHide();
   const { t, entities } = useI18n();
-  const { tree, isLoading: treeLoading, error, firstRail } = useCategoryTree();
+  const {
+    tree,
+    isLoading: treeLoading,
+    error,
+    failure,
+    retry: retryTree,
+    firstRail,
+  } = useCategoryTree();
   // INC-974 (row 60) — the names draw at once (the server's first-rail seed or the read);
   // the glyph map arrives after the first paint and fills each row's fixed box.
   const glyphs = useCategoryGlyphs();
@@ -708,7 +716,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
               .map((node, index) => (
                 <RailRow key={node.key} node={node} depth={level && !strip && index > 0 ? 1 : 0} />
               ))}
-        {!compact && !isLoading && roots.length === 0 ? (
+        {!compact && !isLoading && !error && roots.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", hide)}>
             {t("shell.categoriesEmpty")}
           </li>
@@ -723,9 +731,13 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         />
       ) : null}
       {error ? (
-        <p role="alert" className="px-3 text-sm text-destructive">
-          {t("common.error")}
-        </p>
+        // D12 — a failed read is never also "No categories yet"; Retry asks for the tree again.
+        <FailureNotice
+          error={failure}
+          testid="rail-categories-failed"
+          className={cn("px-3", hide)}
+          onRetry={retryTree}
+        />
       ) : null}
     </nav>
   );

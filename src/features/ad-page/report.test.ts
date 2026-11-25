@@ -33,7 +33,14 @@ describe("reportListing", () => {
       expect(await reportListing("2345678923", "spam", "")).toEqual({ ok: false, reason });
     },
   );
-  it.each(["badReason", "noteTooLong", "listingNotAvailable", "notSignedIn", "accountDeactivated"])(
+  it.each([
+    ["noteTooLong", "noteTooLong"],
+    ["listingNotAvailable", "gone"],
+  ])("RD-3 reads the shell's %s code as %s", async (message, reason) => {
+    rpc.mockResolvedValue({ data: null, error: { message } });
+    expect(await reportListing("2345678923", "spam", "")).toEqual({ ok: false, reason });
+  });
+  it.each(["badReason", "noSuchCode", "notSignedIn", "accountDeactivated"])(
     "RD-3 reads the shell's %s code as the generic line",
     async (message) => {
       rpc.mockResolvedValue({ data: null, error: { message } });
@@ -57,7 +64,7 @@ describe("reportListing", () => {
     );
   });
   it("RD-4 an error is failed", async () => {
-    rpc.mockResolvedValue({ data: null, error: { message: "scratch failure" } });
+    rpc.mockResolvedValue({ data: null, error: { message: "TypeError: Failed to fetch" } });
     expect(await reportListing("2345678923", "spam", "")).toEqual({ ok: false, reason: "failed" });
   });
 });

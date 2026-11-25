@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
@@ -10,6 +10,7 @@ import { SellerLine } from "@/features/posting/seller-line";
 import { useI18n } from "@/i18n";
 
 import { useSellerFeed } from "./use-seller-feed";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 19 turn 17 — the seller's ads page, ethio.com/<name> (DEC-108). The key
@@ -28,8 +29,20 @@ const GUIDE_PARTS: readonly GuidePart[] = [{ key: "seller" }, { key: "ads" }];
 
 export function SellerPage({ sellerKey }: { sellerKey: string }) {
   const { t } = useI18n();
-  const { seller, cards, hasMore, isLoading, isLoadingMore, error, notFound, loadMore, retry } =
-    useSellerFeed(sellerKey);
+  const {
+    seller,
+    cards,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    error,
+    moreError,
+    notFound,
+    loadMore,
+    retry,
+  } = useSellerFeed(sellerKey);
+  const [noObserver, setNoObserver] = useState(false);
+  useEffect(() => setNoObserver(typeof IntersectionObserver === "undefined"), []);
 
   const moreRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -58,17 +71,13 @@ export function SellerPage({ sellerKey }: { sellerKey: string }) {
   if (error) {
     return (
       <PageShell as="main" width="wide">
-        <p role="alert" data-testid="seller-page-error">
-          {t("sellerPage.failed")}
-        </p>
-        <Button
-          type="button"
-          className="mt-4 min-h-11"
-          data-testid="seller-page-retry"
-          onClick={retry}
-        >
-          {t("common.retry")}
-        </Button>
+        <FailureNotice
+          error={null}
+          testid="seller-page-error"
+          retryTestid="seller-page-retry"
+          subject={t("sellerPage.failed")}
+          onRetry={retry}
+        />
       </PageShell>
     );
   }
@@ -125,8 +134,27 @@ export function SellerPage({ sellerKey }: { sellerKey: string }) {
         </ul>
       )}
       <div ref={moreRef} aria-hidden className="h-px" />
-      {isLoadingMore ? (
+      {moreError ? (
+        <FailureNotice
+          error={null}
+          testid="seller-page-more-error"
+          className="mt-4"
+          subject={t("sellerPage.failed")}
+          onRetry={retry}
+        />
+      ) : isLoadingMore ? (
         <p className="mt-4 text-sm text-muted-foreground">{t("feed.loading")}</p>
+      ) : hasMore && noObserver ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="touch"
+          className="mt-4"
+          data-testid="seller-page-show-more"
+          onClick={loadMore}
+        >
+          {t("failure.showMore")}
+        </Button>
       ) : null}
     </PageShell>
   );

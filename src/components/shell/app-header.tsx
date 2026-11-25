@@ -22,6 +22,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { CONTROL_LOOK, OPEN_CONTROL, SEARCH_FIELD } from "@/components/shell/menu-row";
 import { useShell } from "@/components/shell-context";
+import { SignInLink } from "@/components/shell/sign-in-link";
 
 /** Sage §1 (turn SAGE-S1) — the top bar's controls take the one control look (menu-row.ts,
  *  shared with the dialog's close button since turn S6-1). */
@@ -270,12 +271,13 @@ export function AppHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : authLoading ? null : (
-            <Link
-              to="/auth"
+            <SignInLink
+              // D11 — Sign in brings the person back to the page they were on.
+              data-testid="header-sign-in"
               className="hidden min-h-11 shrink-0 items-center rounded-md bg-primary px-2 md:inline-flex text-sm font-semibold text-primary-foreground shadow-button hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"
             >
               {t("auth.signIn")}
-            </Link>
+            </SignInLink>
           )}
         </div>
       </header>

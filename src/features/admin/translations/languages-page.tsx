@@ -56,6 +56,7 @@ import {
   useTranslationStats,
   useUpsertLanguage,
 } from "./use-translations";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 /** The flags door's empty catalogue reads the sync-first line, this screen's own key. */
 const FLAG_REFUSALS = {
@@ -136,6 +137,7 @@ export function AdminTranslationsLanguagesPage() {
               testid="translations-stat-keys"
               loading={stats.isLoading || languages.isLoading}
               failed={stats.isError || languages.isError}
+              error={stats.error ?? languages.error}
               onRetry={() => {
                 if (stats.isError) void stats.refetch();
                 if (languages.isError) void languages.refetch();
@@ -147,6 +149,7 @@ export function AdminTranslationsLanguagesPage() {
               testid="translations-stat-languages"
               loading={languages.isLoading}
               failed={languages.isError}
+              error={languages.error}
               onRetry={() => void languages.refetch()}
               label={t("admin.translations.stat.languages")}
               value={enabledCount}
@@ -155,6 +158,7 @@ export function AdminTranslationsLanguagesPage() {
               testid="translations-stat-approved"
               loading={stats.isLoading}
               failed={stats.isError}
+              error={stats.error}
               onRetry={() => void stats.refetch()}
               label={t("admin.translations.stat.approved")}
               value={`${approvedPct}%`}
@@ -213,6 +217,7 @@ function LanguagesTable({
   guard: GuardFn;
 }) {
   const { t } = useI18n();
+  const retryFailed = useRetryFailed();
   const navigate = useNavigate();
   const flags = useSetLanguageFlags();
   const order = useSetLanguageOrder();
@@ -627,6 +632,7 @@ function LanguagesTable({
           <p className="text-sm text-muted-foreground">{t("admin.translations.loading")}</p>
         }
         error={error}
+        retry={retryFailed}
         errorState={<p className="text-sm text-destructive">{t("admin.translations.error")}</p>}
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.translations.empty")}</p>

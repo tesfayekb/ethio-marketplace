@@ -5,6 +5,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import { PageCard } from "./page-card";
+import { FailureNotice } from "./failure-notice";
 
 /**
  * U1c — CHART FRAME (DEC-015 display primitive).
@@ -43,6 +44,8 @@ export interface ChartFrameProps {
   loading?: boolean;
   empty?: boolean;
   error?: unknown;
+  /** DEC-464 — the caller's refetch, drawn as Retry by the failure notice. */
+  onRetry?: () => void;
   testid?: string;
   className?: string;
 }
@@ -59,6 +62,7 @@ export function ChartFrame({
   loading = false,
   empty = false,
   error,
+  onRetry,
   testid = "chart-frame",
   className,
 }: ChartFrameProps) {
@@ -108,9 +112,7 @@ export function ChartFrame({
     );
   } else if (error) {
     body = (
-      <p data-testid={`${testid}-error`} className="text-sm text-destructive">
-        {t("prim.state.error")}
-      </p>
+      <FailureNotice error={error} testid={`${testid}-error`} {...(onRetry ? { onRetry } : {})} />
     );
   } else if (empty) {
     body = (

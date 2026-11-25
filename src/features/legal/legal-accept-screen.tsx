@@ -15,6 +15,7 @@ import { acceptLegal, legalTextFor, myLegalStatus, myLegalVersion } from "./lega
 import { acceptRefusalKey, LEGAL_ACCEPT_CHANGED_KEY } from "./legal-accept-refusals";
 import { LegalText } from "./legal-text";
 import { legalStatusKey } from "./use-legal-gate";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 function DocText({ id }: { id: string }) {
   const { t, language } = useI18n();
@@ -26,9 +27,12 @@ function DocText({ id }: { id: string }) {
   if (version.isPending) return <p role="status">{t("common.loading")}</p>;
   if (version.error)
     return (
-      <p role="alert" className="text-destructive">
-        {t("legal.accept.loadError")}
-      </p>
+      <FailureNotice
+        error={version.error}
+        testid="legal-accept-version-failed"
+        subject={t("legal.accept.loadError")}
+        onRetry={() => void version.refetch()}
+      />
     );
   const selected = legalTextFor(version.data, language);
   return (
@@ -97,14 +101,12 @@ export function LegalAcceptScreen({
           {status.isPending ? (
             <p role="status">{t("common.loading")}</p>
           ) : status.error ? (
-            <div data-testid="legal-accept-load-error" className="space-y-2">
-              <p role="alert" className="text-destructive">
-                {t("legal.accept.loadError")}
-              </p>
-              <Button variant="outline" className="min-h-11" onClick={() => void status.refetch()}>
-                {t("common.tryAgain")}
-              </Button>
-            </div>
+            <FailureNotice
+              error={status.error}
+              testid="legal-accept-load-error"
+              subject={t("legal.accept.loadError")}
+              onRetry={() => void status.refetch()}
+            />
           ) : (
             <>
               <ul className="space-y-3">

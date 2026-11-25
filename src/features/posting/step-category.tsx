@@ -21,6 +21,7 @@ import { finderPending, useCatalogFinder, useMatchLine, type FinderMatch } from 
 import { RequiredMark } from "./field";
 import { readRecentCategories } from "./posting-service";
 import { recentChips } from "./recent-categories";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * U6-C1-R1 — STEP 1: ONE CONTROL (operator walk 2026-09-18).
@@ -121,6 +122,8 @@ export function StepCategory({
   tree,
   isLoading,
   treeError,
+  treeFailure = null,
+  onTreeRetry,
   onChoose,
   invalid = false,
   cursor,
@@ -133,6 +136,9 @@ export function StepCategory({
   tree: CategoryTree;
   isLoading: boolean;
   treeError: boolean;
+  /** DEC-464 — the tree read's own error and its own Retry (useCategoryTree's). */
+  treeFailure?: unknown;
+  onTreeRetry?: () => void;
   /** D37-2 — a finder hit carries its matches; the wizard revalidates them. */
   onChoose: (categoryId: string, matches?: FinderMatch[]) => void;
   /**
@@ -228,9 +234,12 @@ export function StepCategory({
 
   if (treeError) {
     return (
-      <p data-testid="post-category-error" className="text-sm text-destructive">
-        {t("post.category.treeError")}
-      </p>
+      <FailureNotice
+        error={treeFailure}
+        testid="post-category-error"
+        subject={t("post.category.treeError")}
+        {...(onTreeRetry ? { onRetry: onTreeRetry } : {})}
+      />
     );
   }
 

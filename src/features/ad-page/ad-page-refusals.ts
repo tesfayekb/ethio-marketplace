@@ -19,6 +19,9 @@ export const REPORT_REFUSALS = {
   words: {
     rateLimited: "adPage.report.rateLimited",
     alreadyReported: "adPage.report.already",
+    // INC-1280 (10a-2) — an ad gone meanwhile, and a note over the door's limit.
+    listingNotAvailable: "failure.gone",
+    noteTooLong: "adPage.report.noteTooLong",
   },
   when: { rateLimited: "adPage.report.rateLimitedWhen" },
   generic: "adPage.report.failed",
@@ -29,6 +32,8 @@ export const CONTACT_REFUSALS = {
   words: {
     rateLimited: "adPage.contact.rateLimited",
     sellersCapReached: "adPage.contact.sellersCap",
+    // INC-1280 (10a-2) — an ad gone meanwhile.
+    listingNotAvailable: "failure.gone",
   },
   when: { rateLimited: "adPage.contact.rateLimitedWhen" },
   generic: "adPage.contact.failed",
@@ -64,13 +69,21 @@ export function saveRefusal(failure: unknown): SaveRefusal {
   return isRate(failure, SAVE_REFUSALS) ? "rateLimited" : "failed";
 }
 
-export type ReportRefusal = "alreadyReported" | "rateLimited" | "ownListing" | "failed";
+export type ReportRefusal =
+  | "alreadyReported"
+  | "rateLimited"
+  | "ownListing"
+  | "gone"
+  | "noteTooLong"
+  | "failed";
 
-/** A report refused. A bad reason or a long note is the generic line, as it was. */
+/** A report refused. A bad reason is the generic line (the screen offers listed reasons only). */
 export function reportRefusal(failure: unknown): ReportRefusal {
   if (refusalCode(failure) === "ownListing") return "ownListing";
   const key = readRefusal(failure, REPORT_REFUSALS).key;
   if (key === REPORT_REFUSALS.words.alreadyReported) return "alreadyReported";
+  if (key === REPORT_REFUSALS.words.listingNotAvailable) return "gone";
+  if (key === REPORT_REFUSALS.words.noteTooLong) return "noteTooLong";
   return key === REPORT_REFUSALS.words.rateLimited ? "rateLimited" : "failed";
 }
 

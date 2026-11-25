@@ -21,6 +21,7 @@ import { useI18n } from "@/i18n";
 import type { AdminUserRow } from "./admin-users-service";
 import { useAdminRoles, useAdminUsers, useDebounced } from "./use-admin-users";
 import { dateFormatter } from "@/lib/format";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 const TABLE_ID = "admin-users";
 const LOCKED = ["name"];
@@ -70,6 +71,7 @@ function RoleChips({ roles }: { roles: string[] }) {
  */
 export function AdminUsersList() {
   const { t, language } = useI18n();
+  const retryFailed = useRetryFailed();
   const [search, setSearch] = useState("");
   // INC-073 law: a role named by the address wins; arriving never changes the kept view.
   const navigate = useNavigate();
@@ -245,6 +247,7 @@ export function AdminUsersList() {
           </p>
         }
         error={error}
+        retry={retryFailed}
         errorState={
           <p role="alert" className="text-sm text-destructive">
             {t("admin.users.error")}

@@ -32,10 +32,12 @@ export const AI_DOOR_REFUSALS = {
   generic: "admin.ai.error.unknown",
 } as const satisfies RefusalFamily;
 
-/** The `badValue:<field>` lines: only the budget and the price have words of their own. */
+/** The `badValue:<field>` lines: the budget, the price and the on/off switch have words of their own. */
 export const AI_BAD_VALUES = {
   budget: "admin.ai.error.badBudget",
   unitCost: "admin.ai.error.badPriceDoor",
+  // INC-1280 (10a-2, D56) — the on/off switch.
+  enabled: "admin.ai.error.badEnabled",
 } as const satisfies Record<string, MessageKey>;
 
 /** What the editor's problem line draws: a key, and the unread code beneath it when no words named it. */
@@ -55,5 +57,7 @@ export function aiRefusalOf(error: unknown): AiRefusal {
       : error === null || error === undefined
         ? ""
         : errorText(error).trim();
-  return { key: read.key, raw: read.branch === "generic" && text !== "" ? text : null };
+  // D51 (DEC-464) — an unmapped refusal's text goes to the console, never to the words.
+  if (read.branch === "generic" && text !== "") console.warn("[ai] unmapped refusal", text);
+  return { key: read.key, raw: null };
 }

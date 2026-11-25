@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 import type { LegalFacts } from "@/features/legal/legal-markdown";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { readFailed } from "@/lib/reader-failure";
 import { parseLegalVersion } from "@/features/legal/legal-reader";
 import { SCRATCH_KIND } from "@/features/legal/legal-kinds";
 import { isCountryCode } from "@/lib/locale";
@@ -135,6 +136,12 @@ export const LEGAL_REFUSALS = {
     nothingToReview: "admin.legal.error.nothingToReview",
     translationExists: "admin.legal.error.translationExists",
     badLanguage: "admin.legal.error.badLanguage",
+    // INC-1280 (10a-2, D45) — `{max}` is filled by the screen from its own limit, never the door's text.
+    tooLong: "admin.legal.error.tooLong",
+    badValue: "post.refusal.badValue",
+    notPublished: "admin.legal.error.notPublished",
+    unknownVersion: "admin.legal.error.unknownVersion",
+    unknownUser: "admin.users.error.unknownUser",
   },
   generic: "admin.legal.error.generic",
 } as const satisfies RefusalFamily;
@@ -171,7 +178,7 @@ function checkMissingLanguages(value: unknown, door: string): void {
 }
 export async function listLegalDocuments(): Promise<LegalDocument[]> {
   const { data, error } = await supabase.rpc("admin_legal_documents");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   if (!Array.isArray(data)) throw new Error("admin_legal_documents: invalid answer");
   for (const raw of data) {
     const row = objectOf(raw, "admin_legal_documents");
@@ -208,14 +215,14 @@ function isBaseLanguage(item: unknown): item is BaseLanguage {
  *  languages console. */
 export async function listBaseLanguages(): Promise<BaseLanguage[]> {
   const { data, error } = await supabase.rpc("base_languages");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   if (!Array.isArray(data) || !data.every(isBaseLanguage))
     throw new Error("base_languages: invalid answer");
   return data;
 }
 export async function getLegalSettings(): Promise<LegalSettings> {
   const { data, error } = await supabase.rpc("admin_legal_settings");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const row = objectOf(data, "admin_legal_settings");
   if (typeof row.notice_days !== "number")
     throw new Error("admin_legal_settings: invalid notice period");
@@ -223,7 +230,7 @@ export async function getLegalSettings(): Promise<LegalSettings> {
 }
 export async function getLegalVersion(id: string): Promise<LegalVersionDetail> {
   const { data, error } = await supabase.rpc("admin_legal_version", { p_version_id: id });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const row = objectOf(data, "admin_legal_version");
   if (
     typeof row.version_id !== "string" ||
@@ -245,7 +252,7 @@ export async function saveLegalDraft(input: DraftInput): Promise<DraftResult> {
     p_changelog: input.changelog,
     p_texts: Object.fromEntries(Object.entries(input.texts).filter(([, body]) => body.trim())),
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const row = objectOf(data, "admin_save_legal_draft");
   if (typeof row.version_id !== "string" || typeof row.version !== "number")
     throw new Error("admin_save_legal_draft: invalid result");
@@ -261,11 +268,11 @@ export async function addLegalTranslation(
     p_language: language,
     p_body: body,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 export async function discardLegalDraft(id: string): Promise<void> {
   const { error } = await supabase.rpc("admin_discard_legal_draft", { p_version_id: id });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 export async function publishLegalVersion(input: {
   id: string;
@@ -277,11 +284,11 @@ export async function publishLegalVersion(input: {
     p_material: input.material,
     ...(input.effective_at ? { p_effective_at: input.effective_at } : {}),
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 export async function setLegalSettings(facts: LegalFacts): Promise<void> {
   const { error } = await supabase.rpc("admin_set_legal_settings", { p_settings: facts });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 /** Bundle 22 turn 20 (DEC-219) — "Reviewed — no change" for a document, with a note. */
 export async function markLegalReviewed(input: {
@@ -292,7 +299,7 @@ export async function markLegalReviewed(input: {
     p_document_id: input.documentId,
     p_note: input.note,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 /** Turn 20 — a document's review state at `now`: none without a due date, overdue once it is reached. */
 export function reviewState(review: LegalReview | null, now: number): "none" | "due" | "overdue" {
@@ -301,7 +308,7 @@ export function reviewState(review: LegalReview | null, now: number): "none" | "
 }
 export async function getUserLegalHistory(userId: string): Promise<LegalHistory> {
   const { data, error } = await supabase.rpc("admin_user_legal_history", { p_user_id: userId });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const row = objectOf(data, "admin_user_legal_history");
   if (!Array.isArray(row.acceptances) || !Array.isArray(row.notices))
     throw new Error("admin_user_legal_history: invalid history");
@@ -404,7 +411,7 @@ export async function exportLegalAcceptances(versionId: string): Promise<Accepta
       p_limit: ACCEPTANCE_EXPORT_PAGE,
       ...(after ? { p_after_at: after.at, p_after_id: after.id } : {}),
     });
-    if (error) throw error;
+    if (error) throw readFailed(error);
     const answer = objectOf(data, "admin_export_legal_acceptances");
     if (
       !Array.isArray(answer.rows) ||

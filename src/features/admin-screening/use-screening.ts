@@ -275,7 +275,7 @@ export async function decideListing(listingId: string, next: "active" | "rejecte
     p_listing_id: listingId,
     p_new_status: next,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 const DECISION_REFUSALS = {
@@ -380,13 +380,15 @@ export function useScreeningSchema(categoryId: string | null) {
 
 /**
  * Bundle 11 A2 (D120) — "Show number": the door logs every reveal (Admin ›
- * Audit). A3 (D129) — it asks for no second factor; listings:review, the
+ * Audit). A3 (D129) — it asks for no second factor; listings:reveal (the door's check), the
  * review_reveal dial (60 an hour) and the log stand.
  */
 export type RevealAnswer =
   | { ok: true; value: string }
   | { ok: false; reason: "notShown" }
-  | { ok: false; reason: "rateLimited"; until?: string };
+  | { ok: false; reason: "rateLimited"; until?: string }
+  // INC-1280 (10a-2) — a door refusal with words of its own (no such channel, a gone listing).
+  | { ok: false; reason: "refused"; key: MessageKey };
 
 /** Bundle 11 A3 — the words drawn under a channel's row when a reveal is refused. */
 export function revealProblemKey(reason: "notShown" | "rateLimited") {
@@ -416,7 +418,12 @@ export function revealProblemText(
 
 /** The reveal's one refusal with a line of its own: the dial. The gate raises it as a code. */
 const REVEAL_REFUSALS = {
-  words: { rateLimited: "admin.screening.revealLimited" },
+  words: {
+    rateLimited: "admin.screening.revealLimited",
+    // INC-1280 (10a-2, D34 words) — the door's only `badValue` is `:channel`; a gone listing.
+    badValue: "admin.screening.revealNoChannel",
+    listingNotFound: "admin.listings.move.error.notFound",
+  },
   // L22b — the dial's words that say WHEN, for a reset instant still to come.
   when: { rateLimited: "admin.screening.revealLimitedWhen" },
   generic: "common.error",
@@ -440,6 +447,7 @@ export async function revealContact(
         ? { ok: false, reason: "rateLimited" }
         : { ok: false, reason: "rateLimited", until: read.tail };
     }
+    if (read.branch === "family") return { ok: false, reason: "refused", key: read.key };
     throw error;
   }
   const payload = (data ?? {}) as Record<string, unknown>;
@@ -483,7 +491,7 @@ export function nameCheckSummaryOf(raw: unknown): NameCheckSummary {
 
 export async function readNameCheckSummary(): Promise<NameCheckSummary> {
   const { data, error } = await supabase.rpc("admin_name_check_summary");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return nameCheckSummaryOf(data);
 }
 

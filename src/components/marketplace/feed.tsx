@@ -1,7 +1,7 @@
 import { OneLineSlot } from "@/components/ui/one-line-slot";
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { cn } from "@/lib/utils";
-import { Suspense, useEffect, useId, useRef, type ReactNode } from "react";
+import { Suspense, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { preload } from "react-dom";
 import { Await, useRouterState } from "@tanstack/react-router";
 
@@ -23,25 +23,33 @@ import { useI18n } from "@/i18n";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { entityName } from "@/i18n/entity";
 import { refreshPage } from "@/lib/on-demand-failure";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /** Today's in-panel error block (Law F4: a soft failure stays VISIBLE). */
 function FeedError({
   testid,
   retryTestid,
+  error,
   onRetry,
 }: {
   testid: string;
   retryTestid?: string;
+  error: unknown;
   onRetry: () => void;
 }) {
   const { t } = useI18n();
+  // DEC-464 — the reason and its next step come from the one failure notice.
   return (
-    <div role="alert" data-testid={testid} className={cn(CARD_SURFACE, "mb-4 p-6 text-center")}>
-      <h2 className="text-base font-semibold text-foreground">{t("feed.errorTitle")}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{t("feed.errorBody")}</p>
-      <Button type="button" className="mt-4 min-h-11" data-testid={retryTestid} onClick={onRetry}>
-        {t("common.retry")}
-      </Button>
+    <div className={cn(CARD_SURFACE, "mb-4 p-6")}>
+      <FailureNotice
+        error={error}
+        testid={testid}
+        {...(retryTestid ? { retryTestid } : {})}
+        subject={
+          <h2 className="text-base font-semibold text-foreground">{t("feed.errorTitle")}</h2>
+        }
+        onRetry={onRetry}
+      />
     </div>
   );
 }
@@ -90,7 +98,8 @@ const GUIDE_PARTS: readonly GuidePart[] = [
 export function Feed() {
   const { t, entities } = useI18n();
   const favourite = useFavouriteCategory();
-  const { selectedCategoryId, categoryLookup, locationPath, feedInputsReady } = useShell();
+  const { selectedCategoryId, categoryLookup, locationPath, feedInputsReady, setLocationPath } =
+    useShell();
   const place: LocationNode | null = locationPath[locationPath.length - 1] ?? null;
   const placeId = place?.id ?? null;
   const inputsKnown = feedInputsReady && (categoryLookup === "none" || categoryLookup === "found");
@@ -144,6 +153,21 @@ export function Feed() {
   const inHeading = (node: LocationNode) => t("feed.headingIn").replace("{location}", nameOf(node));
 
   const moreRef = useRef<HTMLDivElement | null>(null);
+  const [noObserver, setNoObserver] = useState(false);
+  useEffect(() => setNoObserver(typeof IntersectionObserver === "undefined"), []);
+  // D1 — a kept place the server no longer knows is cleared, the feed reloads, and one line says so.
+  const [placeCleared, setPlaceCleared] = useState(false);
+  const goneCode =
+    typeof error === "object" && error !== null ? (error as { code?: unknown }).code : undefined;
+  useEffect(() => {
+    if (goneCode === "unknownPlace" && placeId !== null) {
+      setLocationPath([]);
+      setPlaceCleared(true);
+    }
+  }, [goneCode, placeId, setLocationPath]);
+  useEffect(() => {
+    if (placeId !== null) setPlaceCleared(false);
+  }, [placeId]);
   useEffect(() => {
     const target = moreRef.current;
     if (!target || !hasMore || typeof IntersectionObserver === "undefined") return;
@@ -205,7 +229,7 @@ export function Feed() {
     );
   } else if (categoryLookup === "failed") {
     // INC-1140 — the page's one cure, never the feed's own reload.
-    body = <FeedError testid="feed-category-failed" onRetry={refreshPage} />;
+    body = <FeedError testid="feed-category-failed" error={null} onRetry={refreshPage} />;
   } else if (isLoading && !showHeld) {
     body = (
       <div className="flex justify-center py-12">
@@ -213,7 +237,7 @@ export function Feed() {
       </div>
     );
   } else if (error) {
-    body = <FeedError testid="feed-error" retryTestid="feed-retry" onRetry={retry} />;
+    body = <FeedError testid="feed-error" retryTestid="feed-retry" error={error} onRetry={retry} />;
   } else if (shownCards.length === 0 && invite !== null) {
     // D215 — an empty list shows the invitation alone; the old empty box is retired.
     body = <InviteFirst invite={invite} at="alone" />;
@@ -283,9 +307,25 @@ export function Feed() {
         {shownHasMore ? (
           <div ref={moreRef} data-testid="feed-more" className="mt-6 flex min-h-11 justify-center">
             {moreError ? (
-              <FeedError testid="feed-more-error" onRetry={retry} />
+              <FeedError
+                testid="feed-more-error"
+                retryTestid="feed-more-retry"
+                error={moreError}
+                onRetry={retry}
+              />
             ) : isLoadingMore ? (
               <Spinner label={t("feed.loading")} />
+            ) : noObserver ? (
+              // D3 — without IntersectionObserver the next page is one press away.
+              <Button
+                type="button"
+                variant="outline"
+                size="touch"
+                data-testid="feed-show-more"
+                onClick={loadMore}
+              >
+                {t("failure.showMore")}
+              </Button>
             ) : null}
           </div>
         ) : null}
@@ -369,6 +409,15 @@ export function Feed() {
         />
       </div>
 
+      {placeCleared ? (
+        <p
+          role="status"
+          data-testid="feed-place-cleared"
+          className="mt-4 text-sm text-muted-foreground"
+        >
+          {t("failure.placeCleared")}
+        </p>
+      ) : null}
       <div className="mt-4">{body}</div>
       {firstFeed !== null ? (
         // D234 S5 — the first cards' covers are asked for as the server's page streams in.

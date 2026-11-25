@@ -69,33 +69,40 @@ export function LocationsOverview() {
         className="grid grid-cols-1 gap-3 sm:grid-cols-2"
         aria-label={t("admin.overview.stats")}
       >
-        <StatCard
-          testid="overview-stat-markets"
-          loading={countries.isLoading}
-          failed={countries.isError}
-          onRetry={() => void countries.refetch()}
-          label={t("admin.overview.markets")}
-          value={`${marketStats.open} · ${marketStats.closed}`}
-          hint={t("admin.overview.markets.caption")}
-        />
-        <StatCard
-          testid="overview-stat-places"
-          loading={places.isLoading}
-          failed={places.isError}
-          onRetry={() => void places.refetch()}
-          label={t("admin.overview.places")}
-          value={`${placeStats.active} · ${placeStats.total}`}
-          hint={
-            <>
-              <span className="block">{t("admin.overview.places.caption")}</span>
-              <span className="mt-2 block tabular-nums">
-                {placeStats.levels
-                  .map(({ level, count }) => `${t(`admin.locations.level.${level}`)} ${count}`)
-                  .join(" · ")}
-              </span>
-            </>
-          }
-        />
+        {/* D52 — a tile is drawn only when its read may run: never a 0 that was never read. */}
+        {maySeeCountries ? (
+          <StatCard
+            testid="overview-stat-markets"
+            loading={countries.isLoading}
+            failed={countries.isError}
+            onRetry={() => void countries.refetch()}
+            label={t("admin.overview.markets")}
+            value={`${marketStats.open} · ${marketStats.closed}`}
+            hint={t("admin.overview.markets.caption")}
+            error={countries.error}
+          />
+        ) : null}
+        {maySeePlaces ? (
+          <StatCard
+            testid="overview-stat-places"
+            loading={places.isLoading}
+            failed={places.isError}
+            onRetry={() => void places.refetch()}
+            label={t("admin.overview.places")}
+            value={`${placeStats.active} · ${placeStats.total}`}
+            hint={
+              <>
+                <span className="block">{t("admin.overview.places.caption")}</span>
+                <span className="mt-2 block tabular-nums">
+                  {placeStats.levels
+                    .map(({ level, count }) => `${t(`admin.locations.level.${level}`)} ${count}`)
+                    .join(" · ")}
+                </span>
+              </>
+            }
+            error={places.error}
+          />
+        ) : null}
       </section>
 
       <nav className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label={t("admin.overview.links")}>

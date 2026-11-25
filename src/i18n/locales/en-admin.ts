@@ -1047,7 +1047,6 @@ export const enAdmin = {
   "admin.categories.pointer.parent": "Additional parent",
   "admin.categories.pointer.parentPlaceholder": "Choose a parent",
   "admin.categories.error.saveFailed": "The change could not be saved.",
-  "admin.categories.error.nameRequired": "A name is required.",
   "admin.categories.error.catchallParent":
     "A catch-all category cannot be a parent. Choose another destination.",
   "admin.categories.error.reassignRequired": "Choose where the listings go.",
@@ -2242,4 +2241,14 @@ export const enAdmin = {
   "admin.monetisation.price.description": "Set what this product costs, where, and from which day.",
   "admin.packages.product.description":
     "Set its names, days, photos and reach limits, and switch it on or off.",
+  "admin.users.roles.reserved": "This role is given only by the system.",
+  "admin.listings.undo.photoFinal":
+    "A removed photo cannot be brought back, so this change cannot be undone.",
+  "admin.screening.revealNoChannel": "This seller has no contact of that kind.",
+  "admin.legal.error.notPublished": "Translations are added to a published version only.",
+  "admin.legal.error.unknownVersion": "This version is no longer on record.",
+  "admin.categories.error.unknownCategory": "This category is no longer on record.",
+  "admin.categories.error.unknownPointer": "That link to another category is no longer on record.",
+  "admin.categories.error.parentInactive": "Switch on the category above it first.",
+  "admin.ai.error.badEnabled": "Choose whether the feature is on or off.",
 } as const;

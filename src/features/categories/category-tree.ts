@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { callRoute } from "@/lib/route-client";
 import { entityName, type EntityBundle } from "@/i18n";
@@ -464,6 +471,10 @@ export interface UseCategoryTreeResult {
   isLoading: boolean;
   /** F4 — a failed read is visible, never a silently empty tree. */
   error: boolean;
+  /** DEC-464 — the failed read's own error, for the failure notice; null otherwise. */
+  failure: unknown;
+  /** DEC-464 — asks for the tree again (the failure notice's Retry). */
+  retry: () => void;
   /**
    * INC-974 — true while the tree drawn is the server's first-rail seed (names
    * for the first paint), not the read: `isLoading` stays true for every other
@@ -493,24 +504,29 @@ export function useCategoryTree(): UseCategoryTreeResult {
     cache === null && !(seed?.seed === "full" && seeded !== null),
   );
   const [error, setError] = useState(false);
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   useEffect(() => {
     let cancelled = false;
     if (cache === null) setIsLoading(true);
     setError(false);
+    setFailure(null);
 
     void loadCategoryTree().then(
       () => {
         if (cancelled) return;
         setIsLoading(false);
       },
-      () => {
+      (reason: unknown) => {
         // CONTAINMENT (INC-031): the surface degrades to a visible error state
         // rather than throwing through the shell-wrapped root. A held tree is
         // kept — a failed revalidation never empties a screen that had rows.
         if (cancelled) return;
         if (cache === null) {
           setError(true);
+          setFailure(reason);
         }
         setIsLoading(false);
       },
@@ -519,9 +535,16 @@ export function useCategoryTree(): UseCategoryTreeResult {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
-  return { tree, isLoading, error, firstRail: cache === null && seeded !== null };
+  return {
+    tree,
+    isLoading,
+    error,
+    failure,
+    retry,
+    firstRail: cache === null && seeded !== null,
+  };
 }
 
 /**

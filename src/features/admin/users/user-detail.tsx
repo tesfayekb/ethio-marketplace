@@ -25,6 +25,7 @@ import {
   profileEditRefusalKey,
   UNASSIGNABLE_ROLES,
 } from "./admin-users-service";
+import { accessRefusalKey } from "./access-refusals";
 import {
   useAdminRoles,
   useAdminUser,
@@ -35,6 +36,7 @@ import {
   useUpdateProfile,
 } from "./use-admin-users";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * The per-user detail (Phase U1). Buttons are hidden without the matching
@@ -109,6 +111,10 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
   }
 
   const deactivated = user.accountStatus === "deactivated";
+  // INC-1280 (D30) — a door's refusal draws its own words; other failures the notice.
+  const statusRefusal = status.error ? accessRefusalKey(status.error, "status") : null;
+  const rolesError = assign.error ?? revoke.error;
+  const rolesRefusal = rolesError ? accessRefusalKey(rolesError, "roles") : null;
   const assignable = (roles.data ?? []).filter(
     (role) => !UNASSIGNABLE_ROLES.includes(role.name as (typeof UNASSIGNABLE_ROLES)[number]),
   );
@@ -268,9 +274,17 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                   </Button>
                 )}
                 {status.error ? (
-                  <p role="alert" data-testid="status-error" className="text-sm text-destructive">
-                    {t("admin.users.status.failed")}
-                  </p>
+                  statusRefusal !== null ? (
+                    <p role="alert" data-testid="status-error" className="text-sm text-destructive">
+                      {t(statusRefusal)}
+                    </p>
+                  ) : (
+                    <FailureNotice
+                      error={status.error}
+                      testid="status-error"
+                      subject={t("admin.users.status.failed")}
+                    />
+                  )
                 ) : null}
               </div>
             ) : null}
@@ -359,9 +373,17 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               </div>
             ) : null}
             {assign.error || revoke.error ? (
-              <p role="alert" data-testid="roles-error" className="text-sm text-destructive">
-                {t("admin.users.roles.failed")}
-              </p>
+              rolesRefusal !== null ? (
+                <p role="alert" data-testid="roles-error" className="text-sm text-destructive">
+                  {t(rolesRefusal)}
+                </p>
+              ) : (
+                <FailureNotice
+                  error={assign.error ?? revoke.error}
+                  testid="roles-error"
+                  subject={t("admin.users.roles.failed")}
+                />
+              )
             ) : null}
           </PageCard>
 
@@ -408,13 +430,11 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                 {t("admin.users.activity.loading")}
               </p>
             ) : activity.error ? (
-              <p
-                role="alert"
-                data-testid="user-activity-error"
-                className="text-sm text-destructive"
-              >
-                {t("admin.users.error")}
-              </p>
+              <FailureNotice
+                error={activity.error}
+                testid="user-activity-error"
+                onRetry={() => void activity.refetch()}
+              />
             ) : (activity.data ?? []).length === 0 ? (
               <p data-testid="user-activity-empty" className="text-sm text-muted-foreground">
                 {t("admin.users.activity.empty")}

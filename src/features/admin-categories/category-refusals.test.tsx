@@ -24,6 +24,10 @@ describe("the categories console's refusals (F1-4a, DEC-333)", () => {
   it("CRF-1 each code that replaced a console key reads that key's words; a count fills {count}", () => {
     const words: Array<[string, string]> = [
       ["rateLimited", "admin.error.rateLimited"],
+      ["forbidden", "admin.ai.error.denied"],
+      ["parentInactive", "admin.categories.error.parentInactive"],
+      ["unknownCategory", "admin.categories.error.unknownCategory"],
+      ["unknownPointer", "admin.categories.error.unknownPointer"],
       ["catchallParent", "admin.categories.error.catchallParent"],
       ["reassignRequired", "admin.categories.error.reassignRequired"],
       ["deleteActive", "admin.categories.error.delete_active"],
@@ -47,12 +51,10 @@ describe("the categories console's refusals (F1-4a, DEC-333)", () => {
 
   it("CRF-2 a code without words, a gate's code, a sentence and a failed fetch draw the generic line", () => {
     for (const message of [
-      "unknownCategory",
-      "unknownPointer",
+      "noSuchCode",
       "alreadyActive",
       "reassignTargetInvalid",
       "slugTaken",
-      "parentInactive",
       "badValue:visible_until",
       "permissionDenied",
       "step-up required",

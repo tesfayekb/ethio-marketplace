@@ -36,6 +36,7 @@ import {
 } from "./legal-service";
 import { LegalPublishDialog } from "./legal-publish-dialog";
 import { useBaseLanguages, useLegalWrites } from "./use-legal";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 export function LegalEditorForm({
   kind,
@@ -154,9 +155,12 @@ export function LegalEditorForm({
             </Field>
           </div>
           {languages.error ? (
-            <p role="alert" className="text-destructive">
-              {t("admin.legal.error.load")}
-            </p>
+            <FailureNotice
+              error={languages.error}
+              testid="legal-editor-languages-failed"
+              subject={t("admin.legal.error.load")}
+              onRetry={() => void languages.refetch()}
+            />
           ) : languages.isPending ? (
             <p role="status">{t("common.loading")}</p>
           ) : null}

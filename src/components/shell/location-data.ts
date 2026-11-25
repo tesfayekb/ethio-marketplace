@@ -1,7 +1,9 @@
 import { compareCodes } from "@/lib/reader-locale";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { distanceKm } from "@/lib/geo-distance";
+import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { callRoute } from "@/lib/route-client";
 import { UUID_RE } from "@/lib/uuid";
 
@@ -164,11 +166,26 @@ export function treePath(country: string): `/api/${string}` {
   return `/api/locations/${encodeURIComponent(country)}`;
 }
 
+// INC-864 — reader-failure stays off the first download: it loads only when a read failed.
+const readerModule = loadOnce(() => import("@/lib/reader-failure"));
+
+/** A failed read, typed by the reader once it arrives; a code download that fails is `network`. */
+async function failed(error: unknown, status?: number): Promise<Error> {
+  try {
+    const mod = await readerModule.load();
+    return mod.readFailed(error, status);
+  } catch (e) {
+    reportOnDemandFailure("reader-failure", e);
+    return new TypeError("reader-failure");
+  }
+}
+
 async function fetchMarkets(): Promise<OpenMarket[]> {
   const answer = await callRoute(MARKETS_PATH, { auth: "none" });
-  if (answer.kind !== "answered" || !answer.ok) {
-    throw new Error(`markets ${answer.kind === "answered" ? answer.status : 0}`);
-  }
+  if (answer.kind === "unreachable") throw await failed(new TypeError(answer.reason));
+  // An address read without a session ("auth: none") never answers signedOut; kept typed if it ever does.
+  if (answer.kind !== "answered") throw await failed("signedOut", 401);
+  if (!answer.ok) throw await failed(answer.error ?? `markets ${answer.status}`, answer.status);
   return parseMarkets(answer.payload);
 }
 
@@ -194,9 +211,10 @@ export function parseMarkets(answer: Record<string, unknown> | null): OpenMarket
 
 async function fetchTree(country: string): Promise<TreeNode[]> {
   const answer = await callRoute(treePath(country), { auth: "none" });
-  if (answer.kind !== "answered" || !answer.ok) {
-    throw new Error(`tree ${answer.kind === "answered" ? answer.status : 0}`);
-  }
+  if (answer.kind === "unreachable") throw await failed(new TypeError(answer.reason));
+  // An address read without a session ("auth: none") never answers signedOut; kept typed if it ever does.
+  if (answer.kind !== "answered") throw await failed("signedOut", 401);
+  if (!answer.ok) throw await failed(answer.error ?? `tree ${answer.status}`, answer.status);
   return parseTree(answer.payload);
 }
 
@@ -242,10 +260,21 @@ function countryTreeOnce(country: string): Promise<TreeNode[]> {
   return promise;
 }
 
-export function useOpenMarkets(): { markets: OpenMarket[]; isLoading: boolean; failed: boolean } {
+export function useOpenMarkets(): {
+  markets: OpenMarket[];
+  isLoading: boolean;
+  failed: boolean;
+  /** DEC-464 — the failed read's own error; null otherwise. */
+  failure: unknown;
+  /** DEC-464 — asks for the markets again. */
+  retry: () => void;
+} {
   const [markets, setMarkets] = useState<OpenMarket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -255,22 +284,24 @@ export function useOpenMarkets(): { markets: OpenMarket[]; isLoading: boolean; f
         if (cancelled) return;
         setMarkets(rows);
         setFailed(false);
+        setFailure(null);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         // C4/F4 — a failed read renders the translated caption, never a blank
         // picker and never a throw through the shell.
         if (cancelled) return;
         setMarkets([]);
+        setFailure(error);
         setFailed(true);
         setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
-  return { markets, isLoading, failed };
+  return { markets, isLoading, failed, failure, retry };
 }
 
 export function useCountryTree(country: string | null): {
@@ -285,7 +316,14 @@ export function useCountryTree(country: string | null): {
   loadedCountry: string | null;
   isLoading: boolean;
   failed: boolean;
+  /** DEC-464 — the failed read's own error; null otherwise. */
+  failure: unknown;
+  /** DEC-464 — asks for this market's tree again. */
+  retry: () => void;
 } {
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
   const [nodes, setNodes] = useState<TreeNode[]>([]);
   const [loadedCountry, setLoadedCountry] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -308,6 +346,7 @@ export function useCountryTree(country: string | null): {
     setNodes([]);
     setLoadedCountry(null);
     setFailed(false);
+    setFailure(null);
     setIsLoading(true);
     countryTreeOnce(country)
       .then((rows) => {
@@ -317,19 +356,20 @@ export function useCountryTree(country: string | null): {
         setFailed(false);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (cancelled) return;
         setNodes([]);
         setLoadedCountry(null);
+        setFailure(error);
         setFailed(true);
         setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [country]);
+  }, [country, attempt]);
 
-  return { nodes, loadedCountry, isLoading, failed };
+  return { nodes, loadedCountry, isLoading, failed, failure, retry };
 }
 
 /* -------------------------------- the shapes ------------------------------ */

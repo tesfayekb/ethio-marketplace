@@ -211,7 +211,7 @@ describe("AiEditorDialog refusals", () => {
       [
         { message: "something new", code: "P0001", details: null, hint: null },
         "admin.ai.error.unknown",
-        true,
+        false,
       ],
       [undefined, "admin.ai.error.unknown", false],
     ] as const;

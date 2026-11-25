@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 import { supabase } from "@/integrations/supabase/client";
 import { StepUpCancelled } from "@/features/auth/mfa/mfa-service";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import {
   FACT_KEYS,
   acceptancesCsv,
@@ -193,10 +194,16 @@ it.each(
   mockRpc(vi.fn().mockResolvedValue({ data, error: null }));
   await expect(listBaseLanguages()).rejects.toThrow("base_languages: invalid answer");
 });
-it("LBL-3 listBaseLanguages surfaces the door's refusal, never an empty list", async () => {
+it("LBL-3 listBaseLanguages surfaces the door's refusal as one typed failure, never an empty list", async () => {
   const error = { code: "P0D01", message: "permissionDenied" };
   mockRpc(vi.fn().mockResolvedValue({ data: null, error }));
-  await expect(listBaseLanguages()).rejects.toBe(error);
+  const failure = await listBaseLanguages().catch((caught: unknown) => caught);
+  expect(failure).toBeInstanceOf(ReaderError);
+  expect(readerFailure(failure)).toMatchObject({
+    class: "refused",
+    code: "P0D01",
+    message: "permissionDenied",
+  });
 });
 it("lists the 24 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([
@@ -241,10 +248,13 @@ it("reads a document's review state", () => {
   expect(reviewState(review(new Date(NOW).toISOString()), NOW)).toBe("overdue");
   expect(reviewState(review(new Date(NOW - 86_400_000).toISOString()), NOW)).toBe("overdue");
 });
-it("maps all other failures to the generic sentence", () => {
+it("reads unknownVersion in its own words; codes without words and failed fetches read the generic sentence", () => {
+  expect(legalRefusalKey({ code: "P0D01", message: "unknownVersion" })).toBe(
+    "admin.legal.error.unknownVersion",
+  );
   expect(legalRefusalKey({ message: "permission denied" })).toBe("admin.legal.error.generic");
   expect(legalRefusalKey({ message: "constructor" })).toBe("admin.legal.error.generic");
-  for (const code of ["permissionDenied", "notSignedIn", "rateLimited", "unknownVersion"])
+  for (const code of ["permissionDenied", "notSignedIn", "rateLimited", "noSuchCode"])
     expect(legalRefusalKey({ code: "P0D01", message: code })).toBe("admin.legal.error.generic");
   expect(legalRefusalKey(new Error("Failed to fetch"))).toBe("admin.legal.error.generic");
 });

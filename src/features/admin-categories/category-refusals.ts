@@ -22,6 +22,11 @@ export const CATEGORY_REFUSALS = {
     deleteHasListings: "admin.categories.error.delete_has_listings",
     deleteHasChildren: "admin.categories.error.delete_has_children",
     acceptNoImage: "admin.categories.error.acceptNoImage",
+    // INC-1280 (10a-2, D50 categories part; D55 the export's codes).
+    unknownCategory: "admin.categories.error.unknownCategory",
+    unknownPointer: "admin.categories.error.unknownPointer",
+    parentInactive: "admin.categories.error.parentInactive",
+    forbidden: "admin.ai.error.denied",
     // DEC-339 — the console's own Fields: the gate's blank and the parser's unreadable number.
     required: "post.refusal.required",
     badType: PARSE_INVALID_KEY,

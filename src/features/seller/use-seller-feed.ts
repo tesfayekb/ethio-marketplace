@@ -95,6 +95,7 @@ export interface UseSellerFeed {
   isLoading: boolean;
   isLoadingMore: boolean;
   error: boolean;
+  moreError?: boolean;
   notFound: boolean;
   loadMore: () => void;
   retry: () => void;
@@ -189,6 +190,8 @@ export function useSellerFeed(key: string): UseSellerFeed {
     isLoading,
     isLoadingMore,
     error,
+    /** D5 — a failed next page, drawn by the page (never silent). */
+    moreError,
     notFound,
     loadMore,
     retry,

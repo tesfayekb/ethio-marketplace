@@ -152,6 +152,10 @@ export interface UseDraft {
   loading: boolean;
   /** A resume that cannot be honoured says why, in words. */
   loadError: "notFound" | "failed" | null;
+  /** DEC-464 — the failed load's own error, for the failure notice; null otherwise. */
+  loadFailure: unknown;
+  /** DEC-464 — runs the load again (the failure notice's Retry). */
+  reload: () => void;
 }
 
 export function useDraft(initialListingId: string | null): UseDraft {
@@ -171,6 +175,9 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [photos, setPhotos] = useState<DraftPhotoRow[]>([]);
   const [loading, setLoading] = useState(initialListingId !== null);
   const [loadError, setLoadError] = useState<"notFound" | "failed" | null>(null);
+  const [loadFailure, setLoadFailure] = useState<unknown>(null);
+  const [loadNonce, setLoadNonce] = useState(0);
+  const reload = useCallback(() => setLoadNonce((n) => n + 1), []);
   const [photoNonce, setPhotoNonce] = useState(0);
   const [pin, setPin] = useState<DraftPin | null>(null);
   const [directions, setDirections] = useState<string | null>(null);
@@ -651,6 +658,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
     if (initialListingId === null) return;
     let cancelled = false;
     setLoading(true);
+    setLoadError(null);
+    setLoadFailure(null);
     void (async () => {
       try {
         const found = await readDraft(initialListingId);
@@ -709,8 +718,11 @@ export function useDraft(initialListingId: string | null): UseDraft {
         stepRef.current = opened;
         setStep(opened);
         setLoadError(null);
-      } catch {
-        if (!cancelled) setLoadError("failed");
+      } catch (error) {
+        if (!cancelled) {
+          setLoadFailure(error);
+          setLoadError("failed");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -718,7 +730,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     return () => {
       cancelled = true;
     };
-  }, [initialListingId]);
+  }, [initialListingId, loadNonce]);
 
   /** The photo grid is server truth; a nonce refetches after upload or delete. */
   useEffect(() => {
@@ -770,6 +782,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       tier,
       loading,
       loadError,
+      loadFailure,
+      reload,
     }),
     [
       listingId,
@@ -794,6 +808,8 @@ export function useDraft(initialListingId: string | null): UseDraft {
       tier,
       loading,
       loadError,
+      loadFailure,
+      reload,
     ],
   );
 }

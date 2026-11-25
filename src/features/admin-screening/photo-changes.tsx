@@ -23,6 +23,7 @@ import {
 } from "./use-photo-changes";
 import { ADMIN_SCREENING_KEY } from "./use-screening";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 const KIND_LABEL: Record<PhotoChangeKind, MessageKey> = {
   added: "admin.screening.changes.added",
@@ -97,19 +98,11 @@ export function PhotoChanges({ mayReview, guard }: { mayReview: boolean; guard: 
 
       {changes.isLoading ? <p className="text-sm">{t("common.loading")}</p> : null}
       {changes.error ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <p role="alert" className="text-sm text-destructive">
-            {t("common.error")}
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="touch"
-            onClick={() => void changes.refetch()}
-          >
-            {t("common.retry")}
-          </Button>
-        </div>
+        <FailureNotice
+          error={changes.error}
+          testid="admin-photo-changes-error"
+          onRetry={() => void changes.refetch()}
+        />
       ) : null}
       {!changes.isLoading && !changes.error && rows.length === 0 ? (
         <p className="text-sm text-muted-foreground" data-testid="admin-photo-changes-empty">

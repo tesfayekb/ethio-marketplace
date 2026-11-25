@@ -23,6 +23,7 @@ import {
   type ListingPolicy,
 } from "./listing-policy";
 import { readFailed } from "@/lib/reader-failure";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 16 turn R2 (D174 3, D175 2; spec v2 §2) — ADMIN › LISTINGS › SETTINGS:
@@ -98,7 +99,7 @@ export function ListingSettings({
           p_renew_allowed: renewAllowed,
           p_renew_days: value,
         });
-        if (error) throw error;
+        if (error) throw readFailed(error);
       });
     } catch (error) {
       setBusy(false);
@@ -161,13 +162,12 @@ export function ListingSettings({
         >
           <div className="min-w-0 space-y-4">
             {query.isError ? (
-              <p
-                role="alert"
-                data-testid="listings-settings-load-error"
-                className="text-sm text-destructive"
-              >
-                {t("admin.listings.settings.loadError")}
-              </p>
+              <FailureNotice
+                error={query.error}
+                testid="listings-settings-load-error"
+                subject={t("admin.listings.settings.loadError")}
+                onRetry={() => void query.refetch()}
+              />
             ) : shown === null ? (
               <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
                 {t("common.loading")}

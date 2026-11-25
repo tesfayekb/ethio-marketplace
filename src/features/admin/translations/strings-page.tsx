@@ -427,6 +427,7 @@ export function AdminTranslationsStringsPage({
                   </p>
                 }
                 error={list.error}
+                retry={() => void list.refetch()}
                 errorState={
                   <p className="text-sm text-destructive">
                     {t("admin.translations.strings.error")}

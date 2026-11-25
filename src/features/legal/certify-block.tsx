@@ -1,11 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { certifyKey, refreshers, type CertifyState } from "./certify-refusal";
 import { AgreeToDocument } from "./agree-to-document";
 import { myListingCertification } from "./legal-reader";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * The statements that apply to an ad, with ONE tick (L1 v2 item 4). Bundle 22 turn 32 (DEC-236, D231): the
@@ -76,12 +76,12 @@ export function CertifyBlock({
   if (state === "loading" || state === "none") return null;
   if (state === "error")
     return (
-      <div data-testid="certify-load-error" role="alert" className="space-y-2">
-        <p className="text-destructive">{t("legal.certify.loadError")}</p>
-        <Button type="button" variant="outline" onClick={() => void query.refetch()}>
-          {t("common.tryAgain")}
-        </Button>
-      </div>
+      <FailureNotice
+        error={query.error}
+        testid="certify-load-error"
+        subject={t("legal.certify.loadError")}
+        onRetry={() => void query.refetch()}
+      />
     );
 
   const countries = [

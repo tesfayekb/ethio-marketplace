@@ -235,6 +235,7 @@ export function DataScope({
           <p className="text-sm text-muted-foreground">{t("admin.translations.strings.loading")}</p>
         }
         error={list.error}
+        retry={() => void list.refetch()}
         errorState={
           <p className="text-sm text-destructive">{t("admin.translations.strings.error")}</p>
         }

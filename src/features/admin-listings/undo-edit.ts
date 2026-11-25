@@ -36,6 +36,8 @@ const UNDO_REFUSALS = {
     ...EDIT_REFUSALS.words,
     listingChanged: "admin.listings.undo.changed",
     nothingToUndo: "admin.listings.undo.changed",
+    // INC-1280 (10a-2, D33) — a removed photo is final.
+    photoRemovalFinal: "admin.listings.undo.photoFinal",
   },
   generic: "common.error",
 } as const satisfies RefusalFamily;

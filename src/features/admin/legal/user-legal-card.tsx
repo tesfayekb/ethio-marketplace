@@ -8,6 +8,7 @@ import { kindKey, type LegalHistoryRow } from "./legal-service";
 import { useUserLegalHistory } from "./use-legal";
 import { languageRowName } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 export function UserLegalCard({ userId }: { userId: string }) {
   const { t, language, publicLanguages } = useI18n();
@@ -43,9 +44,12 @@ export function UserLegalCard({ userId }: { userId: string }) {
       {history.isPending ? (
         <p role="status">{t("common.loading")}</p>
       ) : history.error ? (
-        <p role="alert" className="text-destructive">
-          {t("admin.legal.error.load")}
-        </p>
+        <FailureNotice
+          error={history.error}
+          testid="user-legal-failed"
+          subject={t("admin.legal.error.load")}
+          onRetry={() => void history.refetch()}
+        />
       ) : null}
       <h3 className="text-sm font-medium">{t("admin.users.legal.accepted")}</h3>
       <ul className="space-y-2 text-sm">

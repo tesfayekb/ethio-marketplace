@@ -738,23 +738,18 @@ export function MyListingsPage() {
             </p>
           }
           error={query.error}
+          retry={() => void query.refetch()}
           errorState={
-            <div className="flex flex-wrap items-center gap-2">
-              <p role="alert" data-testid="my-listings-error" className="text-sm text-destructive">
-                {t("myListings.loadError")}
-                {failure ? (
-                  <span data-testid="my-listings-error-class">{` (${failure.class}${failure.status ? " " + failure.status : ""})`}</span>
-                ) : null}
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="touch"
-                onClick={() => void query.refetch()}
-              >
-                {t("common.retry")}
-              </Button>
-            </div>
+            <span
+              data-testid="my-listings-error"
+              data-failure-class={
+                failure
+                  ? `${failure.class}${failure.status ? ` ${failure.status}` : ""}`
+                  : undefined
+              }
+            >
+              {t("myListings.loadError")}
+            </span>
           }
           emptyState={
             <p data-testid="my-listings-empty" className="text-sm text-muted-foreground">

@@ -21,10 +21,15 @@ describe("role refusals", () => {
     expect(roleRefusalKey({ message }, "admin.roles.perm.failed")).toBe(key);
   });
 
-  it("reads a code without words, or a gate code, as the screen's generic", () => {
+  it("reads unknown roles and permissions in their words; codes without words and gates read the screen's generic", () => {
+    expect(roleRefusalKey({ message: "unknownRole" }, "admin.roles.danger.failed")).toBe(
+      "admin.users.roles.unknown",
+    );
+    expect(roleRefusalKey({ message: "unknownPermission" }, "admin.roles.danger.failed")).toBe(
+      "admin.roles.error.unknownPermission",
+    );
     for (const message of [
-      "unknownRole",
-      "unknownPermission",
+      "noSuchCode",
       "roleReserved:super_admin",
       "rateLimited:2026-11-14T10:00:00Z",
     ]) {

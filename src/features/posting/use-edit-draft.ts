@@ -211,12 +211,17 @@ export function useEditDraft(
   const reasonRef = useRef(reason);
   const [loading, setLoading] = useState(listingId !== null);
   const [loadError, setLoadError] = useState<"notFound" | "failed" | null>(null);
+  const [loadFailure, setLoadFailure] = useState<unknown>(null);
+  const [loadNonce, setLoadNonce] = useState(0);
+  const reload = useCallback(() => setLoadNonce((n) => n + 1), []);
   const lastStepRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (listingId === null) return;
     let cancelled = false;
     setLoading(true);
+    setLoadError(null);
+    setLoadFailure(null);
     void (async () => {
       try {
         let next: DraftValues;
@@ -308,8 +313,11 @@ export function useEditDraft(
         setBaseline(base);
         setPlaceTextState(text);
         setLoadError(null);
-      } catch {
-        if (!cancelled) setLoadError("failed");
+      } catch (error) {
+        if (!cancelled) {
+          setLoadFailure(error);
+          setLoadError("failed");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -317,7 +325,7 @@ export function useEditDraft(
     return () => {
       cancelled = true;
     };
-  }, [listingId, actor]);
+  }, [listingId, actor, loadNonce]);
 
   useEffect(() => {
     if (listingId === null || photoNonce === 0) return;
@@ -549,6 +557,8 @@ export function useEditDraft(
       tier,
       loading,
       loadError,
+      loadFailure,
+      reload,
       outcome,
       problem,
       placeText,
@@ -582,6 +592,8 @@ export function useEditDraft(
       tier,
       loading,
       loadError,
+      loadFailure,
+      reload,
       outcome,
       problem,
       setPlaceText,

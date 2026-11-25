@@ -1536,7 +1536,9 @@ function BuyerContact({
             ? t("adPage.contact.sellersCap")
             : state.reason === "rateLimited"
               ? rateText("contact", state.until, t, language)
-              : t("adPage.contact.failed")}
+              : state.reason === "listingNotAvailable"
+                ? t("failure.gone")
+                : t("adPage.contact.failed")}
         </p>
       )}
     </div>

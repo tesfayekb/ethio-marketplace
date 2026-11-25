@@ -24,6 +24,8 @@ export const LOCATION_REFUSALS = {
   words: {
     rateLimited: RATE_LIMITED_KEY,
     permissionDenied: "admin.locations.error.denied",
+    // INC-1280 (10a-2, D55) — the export route's 403.
+    forbidden: "admin.locations.error.denied",
     notSignedIn: "admin.locations.error.denied",
     accountDeactivated: "admin.locations.error.denied",
     unknownBatch: "admin.import.reason.unknownBatch",

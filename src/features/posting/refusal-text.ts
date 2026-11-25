@@ -106,6 +106,23 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   belowModelYear: "post.refusal.belowModelYear",
   aboveModelYear: "post.refusal.aboveModelYear",
   optionNotAllowed: "post.refusal.optionNotAllowed",
+  // INC-1280 (10a-2) — `set_listing_pin`'s codes (D21).
+  badLatitude: "post.refusal.badPinPlace",
+  badLongitude: "post.refusal.badPinPlace",
+  badZoom: "post.refusal.badPinPlace",
+  badPrecision: "post.pin.chooseShow",
+  directionsTooLong: "post.refusal.directionsTooLong",
+  streetTooLong: "post.refusal.streetTooLong",
+  pinNotEditable: "post.refusal.pinNotEditable",
+  // INC-1280 — `publish_listing` (D22) and `submit_listing`.
+  illegalTransition: "post.refusal.alreadySubmitted",
+  notADraft: "post.refusal.alreadySubmitted",
+  listingNotPlaced: "post.refusal.listingNotPlaced",
+  listingNotFound: "post.refusal.listingNotFound",
+  // INC-1280 — `set_listing_photos_soon` and `get_posting_schema`.
+  photosSoonNotEditable: "post.refusal.photosSoonNotEditable",
+  categoryNotFound: "post.refusal.categoryClosed",
+  categoryInactive: "post.refusal.categoryClosed",
 };
 
 const PHOTO_REASONS: Record<string, MessageKey> = {
@@ -135,6 +152,8 @@ const PHOTO_REASONS: Record<string, MessageKey> = {
   photoGone: "post.photo.refusal.photoGone",
   // Bundle 16 turn S2 (D185) — many photos on drafts and no ad submitted in 7 days.
   publishFirst: "post.photo.refusal.publishFirst",
+  // INC-1280 (D17) — the ad's level is not offered, so it has no photo cap.
+  levelNotAvailable: "post.refusal.levelNotAvailable",
 };
 
 /**

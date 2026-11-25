@@ -62,7 +62,8 @@ import type { DraftValues } from "./use-draft";
 import type { PinPrecision } from "./map/pin";
 import type { DealLists, Refusal } from "./types";
 import { ownValue } from "@/lib/own-key";
-import { readerFailure, type ReaderFailure } from "@/lib/reader-failure";
+import { ReaderError, readerFailure, type ReaderFailure } from "@/lib/reader-failure";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * U6-C2b — STEP 8: REVIEW & PUBLISH (spec §4 B2 step 8).
@@ -211,6 +212,8 @@ export function StepReview({
   /** U6-C1-R3b-1 — the seller block the buyer's-eye preview and the summary show. */
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
   const [identityFailure, setIdentityFailure] = useState<ReaderFailure | null>(null);
+  // DEC-464 — Retry reads the identity again.
+  const [identityAttempt, setIdentityAttempt] = useState(0);
   /** Bundle 3 step 20 — "previously" and member since, from `my_seller_line()`. */
   const [line, setLine] = useState<SellerLineFacts | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -300,7 +303,7 @@ export function StepReview({
     return () => {
       cancelled = true;
     };
-  }, [staffEdit]);
+  }, [staffEdit, identityAttempt]);
 
   const categoryId = values.categoryId;
   useEffect(() => {
@@ -595,12 +598,15 @@ export function StepReview({
        */}
       <div className="space-y-2" data-testid="post-review-summary">
         {identityFailure ? (
-          <p role="alert" className="text-destructive">
-            {t("post.who.readFailed")}
-            <span data-testid="post-review-identity-error-class">
-              {` (${identityFailure.class}${identityFailure.status ? " " + identityFailure.status : ""})`}
-            </span>
-          </p>
+          <FailureNotice
+            error={new ReaderError(identityFailure)}
+            testid="post-review-identity-error"
+            subject={t("post.who.readFailed")}
+            onRetry={() => {
+              setIdentityFailure(null);
+              setIdentityAttempt((n) => n + 1);
+            }}
+          />
         ) : null}
         <p className="text-sm font-medium text-foreground">
           {edit === null ? t("post.review.summaryLabel") : t("post.edit.summaryLabel")}

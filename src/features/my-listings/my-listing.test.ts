@@ -155,15 +155,16 @@ describe("my_listing answer", () => {
       ["ownerOnly:closed-active", "myListings.error.changed"],
       ["renewNeedsExpired", "myListings.error.changed"],
       ["notPaused", "myListings.error.changed"],
+      ["notCopied:draft", "myListings.refusal.notCopiedDraft"],
+      ["notEditable:category_id", "myListings.refusal.notEditable"],
+      ["draftNotEdited", "myListings.refusal.draftNotEdited"],
+      ["renewFirst", "myListings.refusal.renewFirst"],
+      ["listingNotEditable:sold", "myListings.refusal.notEditable"],
     ];
     for (const [code, key] of words) expect(actionErrorKey(code), code).toBe(key);
     // A code no screen reads (no words yet), a sentence and an unknown message draw the generic line.
     for (const message of [
-      "notCopied:draft",
-      "notEditable:category_id",
-      "draftNotEdited",
-      "renewFirst",
-      "listingNotEditable:sold",
+      "noSuchCode",
       "ownerDeleted",
       "reviewerOnly:screening-active",
       "something else",

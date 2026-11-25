@@ -17,6 +17,8 @@ export const COUNTRY_REFUSALS = {
   words: {
     rateLimited: RATE_LIMITED_KEY,
     permissionDenied: "admin.countries.error.denied",
+    // INC-1280 (10a-2, D55) — the export route's 403.
+    forbidden: "admin.countries.error.denied",
     badCountryCode: "admin.countries.error.badCountryCode",
     badUnitSystem: "admin.countries.error.badUnitSystem",
     badCurrency: "admin.countries.error.badCurrency",

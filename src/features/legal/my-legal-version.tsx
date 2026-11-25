@@ -9,6 +9,8 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { legalDocName } from "./legal-kinds";
 import { legalRefusal, legalTextFor, myLegalVersion } from "./legal-reader";
 import { LegalText } from "./legal-text";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { UUID_RE } from "@/lib/uuid";
 
 /** Bundle 22 turn 3 — one version the person accepted or was sent. */
 export function MyLegalVersion({ versionId }: { versionId: string }) {
@@ -17,7 +19,8 @@ export function MyLegalVersion({ versionId }: { versionId: string }) {
   const version = useQuery({
     queryKey: [AUTH_DERIVED_ROOT, "legal", "version", user?.id ?? "", versionId],
     queryFn: () => myLegalVersion(versionId),
-    enabled: user !== null,
+    // D28 — an address that is not an id is not found, by its shape: no read, no database sentence.
+    enabled: user !== null && UUID_RE.test(versionId),
     retry: false,
   });
   const back = (
@@ -32,15 +35,20 @@ export function MyLegalVersion({ versionId }: { versionId: string }) {
   return (
     <PageShell as="main" width="wide" data-testid="my-legal-version">
       <div className="min-w-0 space-y-4">
-        {version.isPending ? (
+        {!UUID_RE.test(versionId) ? (
+          <p data-testid="my-legal-not-found">{t("myLegal.notFound")}</p>
+        ) : version.isPending ? (
           <p role="status">{t("common.loading")}</p>
         ) : version.error ? (
-          refusal === "notYours" || refusal === "invalid input syntax for type uuid" ? (
+          refusal === "notYours" ? (
             <p data-testid="my-legal-not-found">{t("myLegal.notFound")}</p>
           ) : (
-            <p role="alert" className="text-destructive">
-              {t("myLegal.loadError")}
-            </p>
+            <FailureNotice
+              error={version.error}
+              testid="my-legal-version-failed"
+              subject={t("myLegal.loadError")}
+              onRetry={() => void version.refetch()}
+            />
           )
         ) : (
           // Bundle 22 turn 20 — the site's language only (C8), on the house card surface (C9).

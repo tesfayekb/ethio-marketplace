@@ -22,6 +22,7 @@ import { MONETISATION_ANCHORS } from "./monetisation-order";
 import { OnOff } from "./on-off";
 import type { MarketRow, ProductRow } from "./monetisation-service";
 import { useMonetisationNames } from "./use-monetisation-names";
+import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
 /**
  * P-1b (D303, D311, D312) — MARKETS: per country (and the default row, "any
@@ -54,6 +55,7 @@ export function MarketsSection({
   guard: GuardFn;
 }) {
   const { t, language } = useI18n();
+  const retryFailed = useRetryFailed();
   const { marketName, productName } = useMonetisationNames(products);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const date = dateFormatter("day", language);
@@ -177,6 +179,7 @@ export function MarketsSection({
           loading={loading}
           loadingState={<p className="text-sm">{t("admin.monetisation.loading")}</p>}
           error={error}
+          retry={retryFailed}
           errorState={
             <p role="alert" className="text-sm text-destructive">
               {t("admin.monetisation.error")}

@@ -91,10 +91,13 @@ function PublishingError({ error }: ErrorComponentProps) {
   return (
     <>
       <LegalDocumentPage kind="publishing" title={t("legal.kind.publishing")} data={null} />
+      {/* D9 — the page draws the failure notice; the class rides only a data- attribute (DEC-464). */}
       {failure ? (
-        <span data-testid="legal-public-error-class">
-          {` (${failure.class}${failure.status ? " " + failure.status : ""})`}
-        </span>
+        <span
+          data-testid="legal-public-error-class"
+          data-failure-class={`${failure.class}${failure.status ? ` ${failure.status}` : ""}`}
+          hidden
+        />
       ) : null}
     </>
   );

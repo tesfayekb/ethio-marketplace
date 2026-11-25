@@ -66,7 +66,8 @@ const BUDGET_KIB = {
   // ratchet housekeeping-4 (204.4 KiB local; INC-1042: the admin navigation off the entry): 207 → 205 = ceilingForLocal(204.4); was 207.
   // DEC-296 (tests-ci-2, the ratchet, INC-1198): JS local 201.7 KiB; 205 → 203 = ceilingForLocal(201.7); was 205. CSS local 22.54 KiB; 40 → 23 = ceilingForLocal(22.54); was 40.
   // DEC-296 (cursor-bundle-3, ruling 3, measured on dev with Lovable bundle 3 and this lane): CSS local 22.65 KiB sat inside the NEAR band of 23 — seven classes of the tables' filter rows (the switch row's track and thumb: bg-input, translate-x-0, translate-x-4, rtl:-translate-x-4; the list's height: max-h-77, md:pointer-fine:max-h-63; the dates' placeholder row: md:pointer-fine:h-22), +0.06 on the base's 22.59; 23 → 24 = ceilingForLocal(22.65); was 23.
-  js: 203,
+  // DEC-296 (Lovable bundle 10a-2, ruling 4, measured on dev db0b43c9c with this bundle): JS local 206.725 KiB, over 203 — the one failure notice and its reading in the entry every page downloads (DEC-464; Lovable 10a, ruling 1 decision 2: not lazy, so a network failure still shows its words): index.js +3.6 KiB (failure-notice.tsx, failure-reason.ts, sign-in-return.ts, sign-in-link.tsx and the readers they need: src/lib/door-codes.ts, format.ts, refusal.ts, relative-time.ts) and shared-shell.js +0.9 KiB (the notice's base words in en-base.ts, location-data.ts's typed failure, category-tree.ts); a page's own chunk is smaller where it already carried format.ts, refusal.ts or relative-time.ts; +4.545 on base db0b43c9c's 202.180; 203 → 208 = ceilingForLocal(206.725); was 203.
+  js: 208,
   css: 24,
 };
 

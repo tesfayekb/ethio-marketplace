@@ -242,7 +242,7 @@ describe("decision refusal words", () => {
 
 /** F1-6a — the reveal's dial refusal is a raised code now; the screen's line for it is unchanged. */
 describe("revealContact", () => {
-  it("SF-9 a raised rateLimited is the returned reason the screen words; any other refusal is thrown", async () => {
+  it("SF-9 a refusal with words is returned; a gate's code is thrown", async () => {
     doors.calls.length = 0;
     doors.answer = { data: { ok: true, value: "+251911000000" }, error: null };
     await expect(revealContact("l-1", "phone")).resolves.toEqual({
@@ -278,8 +278,16 @@ describe("revealContact", () => {
       message: "permissionDenied",
     });
     doors.answer = { data: null, error: { message: "badValue:channel" } };
-    await expect(revealContact("l-1", "phone")).rejects.toMatchObject({
-      message: "badValue:channel",
+    await expect(revealContact("l-1", "phone")).resolves.toEqual({
+      ok: false,
+      reason: "refused",
+      key: "admin.screening.revealNoChannel",
+    });
+    doors.answer = { data: null, error: { message: "listingNotFound" } };
+    await expect(revealContact("l-1", "phone")).resolves.toEqual({
+      ok: false,
+      reason: "refused",
+      key: "admin.listings.move.error.notFound",
     });
   });
 });

@@ -1,7 +1,6 @@
 export const enMember = {
   "prim.select.choose": "Choose",
   "prim.select.count": "{n} chosen",
-  "post.pin.chooseShow": "Choose how the pin shows on your ad.",
   "post.pin.placeFirst": "Place the pin on the map.",
   "head.account.description": "Review your ethio.com account and listing activity.",
   "head.continuePost.description": "Finish the listing you started on ethio.com.",
@@ -713,4 +712,5 @@ export const enMember = {
   "post.who.countryLabel": "Your home country",
   "post.who.firstNameLabel": "First name",
   "post.who.lastNameLabel": "Last name",
+  "account.saved.removeFailed": "This ad could not be removed from your saved ads. Try again.",
 } as const;

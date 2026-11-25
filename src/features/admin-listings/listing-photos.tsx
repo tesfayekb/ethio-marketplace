@@ -31,6 +31,7 @@ import { ReasonNote } from "./reason-note";
 import { undoRefusalGroups } from "./undo-edit";
 import { editAdminListing, type AdminEditAnswer } from "./use-admin-listing";
 import { ADMIN_LISTINGS_KEY } from "./use-admin-listings";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 13 turn 8 (D154 B4, the operator's spec of 2026-10-13: "Staff can also
@@ -101,12 +102,11 @@ export function ListingPhotos({
   if (photos.error) {
     return (
       <PageCard testid={testid} className="min-w-0 space-y-2">
-        <p role="alert" className="text-sm text-destructive">
-          {t("common.loadFailed")}
-        </p>
-        <Button type="button" variant="outline" size="touch" onClick={() => void photos.refetch()}>
-          {t("common.retry")}
-        </Button>
+        <FailureNotice
+          error={photos.error}
+          testid={`${testid}-failed`}
+          onRetry={() => void photos.refetch()}
+        />
       </PageCard>
     );
   }

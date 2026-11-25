@@ -92,7 +92,8 @@ describe("the seller's edit and copy (turn R2)", () => {
       ["inReview", "myListings.ad.waiting"],
       ["rateLimited", "myListings.error.rateLimited"],
       ["notYourListing", "myListings.error.notYours"],
-      ["notEditable:category_id", "myListings.error.failed"],
+      ["notEditable:category_id", "myListings.refusal.notEditable"],
+      ["noSuchCode", "myListings.error.failed"],
       ["something else", "myListings.error.failed"],
     ];
     for (const [message, key] of errors) {
@@ -115,7 +116,8 @@ describe("the seller's edit and copy (turn R2)", () => {
     const errors: [string, string][] = [
       ["residencyUnknown", "post.refusal.residencyUnknown"],
       ["rateLimited", "myListings.error.rateLimited"],
-      ["notCopied:removed", "myListings.error.failed"],
+      ["notCopied:removed", "myListings.refusal.notCopied"],
+      ["noSuchCode", "myListings.error.failed"],
       ["notYourListing", "myListings.error.notYours"],
     ];
     for (const [message, key] of errors) {
@@ -198,7 +200,7 @@ describe("the sold-visible-days public read", () => {
   it("answers null for an RPC error", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
-      rpc.mockResolvedValueOnce({ data: null, error: { message: "unavailable" } });
+      rpc.mockResolvedValueOnce({ data: null, error: { message: "TypeError: Failed to fetch" } });
       expect(await readSoldVisibleDays()).toBeNull();
     } finally {
       logged.mockRestore();

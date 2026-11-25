@@ -41,7 +41,7 @@ import { useI18n, type MessageKey } from "@/i18n";
  * Bundle 17 turn 3 (D188: "after the edit we can approve or reject") — from
  * Screening, for listings:review, the Review carries Approve and Reject beside
  * Done. Each asks first (the queue's own words), decides through
- * `transition_listing` under the step-up gate (one ad), and returns to the queue
+ * `admin_review_listing` under the step-up gate (one ad), and returns to the queue
  * with the outcome line (`/admin/screening?decided=active|rejected`). A cancelled
  * second factor leaves the Review as it was; a refusal is said under the actions.
  */

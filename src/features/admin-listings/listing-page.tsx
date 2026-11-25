@@ -60,6 +60,7 @@ import { catalogText, entityName } from "@/i18n/entity";
 import { languageRowName } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 import { ownValue } from "@/lib/own-key";
+import { FailureNotice } from "@/components/shell/failure-notice";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -614,9 +615,12 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                   {t("admin.listings.reports.title")}
                 </h2>
                 {reports.isLoading ? null : reports.error ? (
-                  <p role="alert" className="text-sm text-destructive">
-                    {t("admin.listings.reports.failed")}
-                  </p>
+                  <FailureNotice
+                    error={reports.error}
+                    testid="listing-reports-failed"
+                    subject={t("admin.listings.reports.failed")}
+                    onRetry={() => void reports.refetch()}
+                  />
                 ) : (reports.data?.length ?? 0) === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     {t("admin.listings.reports.none")}
@@ -1000,9 +1004,11 @@ function CertificationsCard({ listingId }: { listingId: string }) {
           {t("common.loading")}
         </p>
       ) : query.isError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {t("common.error")}
-        </p>
+        <FailureNotice
+          error={query.error}
+          testid="listing-certifications-failed"
+          onRetry={() => void query.refetch()}
+        />
       ) : rows.length === 0 ? (
         <p className="text-sm text-muted-foreground" data-testid="listing-certifications-none">
           {t("admin.listings.cert.none")}

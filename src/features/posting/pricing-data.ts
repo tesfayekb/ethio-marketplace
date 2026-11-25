@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { isCountryCode, isCurrencyCode } from "@/lib/locale";
 import { callRoute } from "@/lib/route-client";
@@ -93,10 +93,17 @@ export function useCurrencies(): {
   currencies: CurrencyRow[];
   isLoading: boolean;
   failed: boolean;
+  /** DEC-464 — the failed read's own error; null otherwise. */
+  failure: unknown;
+  /** DEC-464 — asks for the currencies again. */
+  retry: () => void;
 } {
   const [currencies, setCurrencies] = useState<CurrencyRow[]>(currencyCache ?? []);
   const [isLoading, setIsLoading] = useState(currencyCache === null);
   const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,19 +112,21 @@ export function useCurrencies(): {
         if (cancelled) return;
         setCurrencies(rows);
         setFailed(false);
+        setFailure(null);
         setIsLoading(false);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (cancelled) return;
+        setFailure(error);
         setFailed(true);
         setIsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [attempt]);
 
-  return { currencies, isLoading, failed };
+  return { currencies, isLoading, failed, failure, retry };
 }
 
 export interface SellerHome {

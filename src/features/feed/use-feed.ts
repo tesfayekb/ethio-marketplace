@@ -28,15 +28,26 @@ export interface UseFeedOptions {
   firstPage?: HeldFirstPage | null;
 }
 
-/** One page from /api/feed, or null on any failure (F4). */
+/**
+ * One page from /api/feed (F4). DEC-464 (D1) — a failure is thrown as what it was, so the failure
+ * notice can name it: the route's own code at its status (`unknownPlace` at 404 is gone, never
+ * "try again"), an unreachable network as a network failure, an unreadable body as malformed.
+ */
 async function readPage(
   categoryId: string | null,
   placeId: string | null,
   after: string | null,
 ): Promise<ReturnType<typeof parseFeedPage>> {
   const answer = await callRoute(feedPath(categoryId, placeId, after), { auth: "none" });
-  if (answer.kind !== "answered" || answer.status !== 200) return null;
+  if (answer.kind === "unreachable") throw new TypeError("Failed to fetch");
+  if (answer.kind !== "answered") throw Object.assign(new Error("notSignedIn"), { status: 401 });
+  if (answer.status !== 200) {
+    const code =
+      answer.error !== null && /^[a-z][A-Za-z]*$/.test(answer.error) ? answer.error : "feedFailed";
+    throw Object.assign(new Error(code), { status: answer.status, code });
+  }
   const page = parseFeedPage(answer.payload);
+  if (page === null) throw new Error("malformed feed page");
   // P-2 (c) c2a — the browser's level rows come from the answer that arrived (DEC-351 §8).
   if (page !== null) seedLevelRows(page.levels);
   return page;
@@ -134,8 +145,9 @@ export function useFeed({
   const [coverLinks, setCoverLinks] = useState<PhotoLinks>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState(false);
-  const [moreError, setMoreError] = useState(false);
+  /** DEC-464 — the failure itself (null while none), for the notice's reason. */
+  const [error, setError] = useState<unknown>(null);
+  const [moreError, setMoreError] = useState<unknown>(null);
   const [firstToken, setFirstToken] = useState(0);
   /** D234 S6 — this mount's first read has landed (a page or a failure). */
   const [firstReadDone, setFirstReadDone] = useState(false);
@@ -153,15 +165,15 @@ export function useFeed({
     setNext(null);
     setIsLoading(true);
     setIsLoadingMore(false);
-    setError(false);
-    setMoreError(false);
+    setError(null);
+    setMoreError(null);
     if (!enabled) return;
     firstRead(categoryId, placeId, heldFirstPage)
       .then((page) => {
         if (generation.current !== mine) return;
         setFirstReadDone(true);
         if (page === null) {
-          setError(true);
+          setError(new Error("malformed feed page"));
           setIsLoading(false);
           return;
         }
@@ -175,7 +187,7 @@ export function useFeed({
         if (generation.current !== mine) return;
         console.error("[feed] first page failed", cause);
         setFirstReadDone(true);
-        setError(true);
+        setError(cause ?? new Error("feed failed"));
         setIsLoading(false);
       });
   }, [categoryId, placeId, enabled, firstToken, heldFirstPage]);
@@ -186,12 +198,12 @@ export function useFeed({
     if (next === null) return;
     const mine = generation.current;
     setIsLoadingMore(true);
-    setMoreError(false);
+    setMoreError(null);
     readPage(categoryId, placeId, next)
       .then((page) => {
         if (generation.current !== mine) return;
         if (page === null) {
-          setMoreError(true);
+          setMoreError(new Error("malformed feed page"));
           setIsLoadingMore(false);
           return;
         }
@@ -203,18 +215,18 @@ export function useFeed({
       .catch((cause: unknown) => {
         if (generation.current !== mine) return;
         console.error("[feed] next page failed", cause);
-        setMoreError(true);
+        setMoreError(cause ?? new Error("feed failed"));
         setIsLoadingMore(false);
       });
   }, [categoryId, placeId, next]);
 
   const loadMore = useCallback(() => {
-    if (!hasMore || isLoading || isLoadingMore || moreError) return;
+    if (!hasMore || isLoading || isLoadingMore || moreError !== null) return;
     fetchMore();
   }, [hasMore, isLoading, isLoadingMore, moreError, fetchMore]);
 
   const retry = useCallback(() => {
-    if (moreError) {
+    if (moreError !== null) {
       fetchMore();
       return;
     }

@@ -313,6 +313,19 @@ it("LD-9 the buyer's contact block: sign in, show, the revealed links, a refusal
       }}
     />,
   );
+  expect(screen.getByTestId("listing-contact-refusal")).toHaveTextContent(en["failure.gone"]);
+  // The state admits the reader's generic refused reason, so it still draws the block's fallback.
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      contact={{
+        ...contact,
+        viewer: "signedIn",
+        state: { kind: "refused", reason: "failed" },
+      }}
+    />,
+  );
   expect(screen.getByTestId("listing-contact-refusal")).toHaveTextContent(
     en["adPage.contact.failed"],
   );
@@ -930,6 +943,8 @@ it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordi
   vi.mocked(useCountryTree).mockReturnValue({
     loadedCountry: "ET",
     nodes,
+    failure: null,
+    retry: () => {},
     isLoading: false,
     failed: false,
   });
@@ -984,6 +999,8 @@ it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordi
     vi.mocked(useCountryTree).mockReturnValue({
       loadedCountry: null,
       nodes: [],
+      failure: null,
+      retry: () => {},
       isLoading: false,
       failed: false,
     });
