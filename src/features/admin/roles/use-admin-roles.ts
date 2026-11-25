@@ -27,8 +27,14 @@ export function useAdminRolesDetailed() {
   });
 }
 
-export function useAdminRole(roleId: string) {
+/**
+ * Cursor bundle 6, decision 7 — `cacheOnly` is the shell's crumb: it shows what the page's own read
+ * filled and asks nothing itself, so a staff session that has not used its second factor (the page's
+ * body is not mounted behind the gate) makes no staff read here and draws no failure.
+ */
+export function useAdminRole(roleId: string, options: { cacheOnly?: boolean } = {}) {
   return useQuery({
+    enabled: options.cacheOnly !== true,
     queryKey: [...ADMIN_ROLES_KEY, "detail", roleId],
     queryFn: () => getRole(roleId),
     staleTime: 30_000,

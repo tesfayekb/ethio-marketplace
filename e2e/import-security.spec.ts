@@ -1,7 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 
-import { gotoReady, switchUser, signInJobSuperAdmin } from "./helpers/ui";
+import { signInStaff } from "./helpers/staff-factor";
+import { gotoReady, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 import { inOneWindow, withinPreviewBudget } from "./helpers/rate-window";
 import { rand, bandOnly, destroyCategory, grantRole } from "./helpers/categories";
@@ -805,7 +806,7 @@ for (const family of FAMILIES) {
       await signInJobSuperAdmin(page);
       const operator = await createUser({ confirmed: true });
       await grantRole(operator.id, "super_admin");
-      await switchUser(page, operator.email, operator.password);
+      await signInStaff(page, operator);
       await gotoReady(page, "/admin/categories");
       const token = await bearerOf(page);
 

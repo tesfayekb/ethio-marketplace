@@ -14,11 +14,9 @@ import { readStaffFactor, type StaffFactorPhase } from "./staff-factor";
 /**
  * DEC-434 — A STAFF SCREEN OPENS ONLY FOR A STAFF ACCOUNT WITH A SECOND FACTOR, IN A SESSION THAT USED IT.
  *
- * NOTHING MOUNTS THIS GATE UNTIL CURSOR BUNDLE 6 (DEC-451): its unit tests (AG-U1 to AG-U4) hold it.
- *
- * Once mounted, the admin layout (src/routes/admin.tsx) draws its body through this gate when the
- * permission read says the person is staff. Three answers, and nothing of a staff screen is drawn
- * before the gate says `ready`:
+ * Cursor bundle 6 (DEC-451) mounts it: the admin layout (src/routes/admin.tsx) draws its body through
+ * this gate, on demand (staff-factor-gate-lazy.tsx), once the permission read says the person is
+ * staff. Three answers, and nothing of a staff screen is drawn before the gate says `ready`:
  *   - no verified factor        → the setup panel, which sends the person to Settings' two-factor card;
  *   - a factor, a session that has not used it (assurance level below aal2) → the code prompt;
  *   - a read that failed        → the failure, never a default that lets the screen open.

@@ -143,6 +143,14 @@ describe("the route answers (B2)", () => {
     expect(await response.text()).toBe('{"error":"step-up required","code":"P0009"}');
   });
 
+  it("ANS-14 DEC-465 — stepUpRequired(true) carries the door's no-factor sentence on the same 428 and code", async () => {
+    const response = stepUpRequired(true);
+    expect(response.status).toBe(428);
+    expect(await response.text()).toBe(
+      '{"error":"step-up required: no verified factor","code":"P0009"}',
+    );
+  });
+
   it("ANS-4 serverError carries an incident id and never the error's message; the log carries the same id", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const response = serverError("/api/test", new Error("secret postgres detail"));

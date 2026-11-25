@@ -13,7 +13,17 @@
 # `Unpacking` / `Setting up` line: apt fetches every archive before it unpacks one, so the package
 # manager is untouched) gets one re-probe and ONE more run; any other failure, or a second
 # fetch-stage failure, is final (INC-943).
-# INSTALL_DEPS_ROOT (default /) and INSTALL_DEPS_PAUSE (default 30 s) exist for the test.
+# INC-1277 (cursor bundle 6, DEC-462) — A SLOW MIRROR IS LEFT, NOT WAITED ON. A mirror that resolves
+# can still serve at 50-90 kB/s (the repeat lane's two 1500 s deadlines, runs 45332415048 and
+# 45337319415). After the resolve probe, in the runner's mirror-list form, each remaining host serves
+# one small index file (the first suite's InRelease) under a $INSTALL_DEPS_PROBE_SECS (15 s) limit;
+# the table prints its speed; a host under $INSTALL_DEPS_MIN_KBPS (150 kB/s) or with no answer is
+# dropped for the next in the list, never the last one standing. apt itself gets a per-connection
+# stall timeout and retries (apt.conf.d/99ci-mirror-timeouts), so a mirror that stalls mid-download
+# is left rather than waited on. No package cache: if the install is red as INFRA twice in seven days
+# after this, the cache comes as its own turn (DEC-462's judge).
+# INSTALL_DEPS_ROOT (default /), INSTALL_DEPS_PAUSE (default 30 s) and INSTALL_DEPS_THROUGHPUT
+# (default 1; 0 skips the speed probe) exist for the test.
 # DEC-371 (the pictures turn): the arguments are the browsers whose libraries to install, a list
 # (`chromium webkit`); none means chromium. A name beyond chromium and webkit is refused before any
 # probe, so a typo never installs nothing quietly. Every browser a job's Playwright projects name
@@ -34,6 +44,9 @@ echo "ci-mirror browsers: ${browsers[*]}"
 root=${INSTALL_DEPS_ROOT:-/}
 root=${root%/}
 pause=${INSTALL_DEPS_PAUSE:-30}
+min_bps=$(( ${INSTALL_DEPS_MIN_KBPS:-150} * 1000 ))
+probe_secs=${INSTALL_DEPS_PROBE_SECS:-15}
+apt_conf="$root/etc/apt/apt.conf.d/99ci-mirror-timeouts"
 waits=5
 sources="$root/etc/apt/sources.list.d/ubuntu.sources"
 mirrors="$root/etc/apt/apt-mirrors.txt"
@@ -149,6 +162,78 @@ drop() {
   rm -f "$tmp"
 }
 
+# The first suite ubuntu.sources names (the index file's directory); noble when it names none.
+first_suite() {
+  local suite
+  suite=$(sed -n 's/^Suites:[[:space:]]*//p' "$sources" 2> /dev/null | head -n 1 | awk '{print $1}')
+  printf '%s\n' "${suite:-noble}"
+}
+
+# Mirror-list form only: measures each host's speed on one small index file, prints the table, and
+# drops a host that is slow or does not answer for the next in the list — never the last one standing.
+throughput() {
+  [ "$mode" = mirrors ] || return 0
+  [ "${INSTALL_DEPS_THROUGHPUT:-1}" = 1 ] || return 0
+  local suite line base host bps tmp slow="" fast=0
+  suite=$(first_suite)
+  tmp=$(mktemp)
+  while IFS= read -r line; do
+    case "$line" in '' | '#'*) continue ;; esac
+    base=${line%%[[:space:]]*}
+    base=${base%/}
+    host=$(host_of "$base")
+    bps=$(curl -fsS -m "$probe_secs" -o /dev/null -w '%{speed_download}' "$base/dists/$suite/InRelease" 2> /dev/null) || bps=0
+    bps=${bps%%.*}
+    bps=${bps:-0}
+    if [ "$bps" -ge "$min_bps" ]; then
+      fast=$((fast + 1))
+      echo "ci-mirror throughput: $host → $((bps / 1000)) kB/s ok"
+    else
+      slow="${slow:+$slow }$host"
+      echo "ci-mirror throughput: $host → $((bps / 1000)) kB/s slow or no answer (under $((min_bps / 1000)) kB/s)"
+    fi
+  done < "$mirrors"
+  if [ -z "$slow" ]; then
+    rm -f "$tmp"
+    return 0
+  fi
+  if [ "$fast" -eq 0 ]; then
+    echo "::warning title=ci-mirror::no mirror is fast enough ($slow) — all kept"
+    rm -f "$tmp"
+    return 0
+  fi
+  while IFS= read -r line; do
+    case "$line" in
+      '' | '#'*) ;;
+      *)
+        host=$(host_of "${line%%[[:space:]]*}")
+        case " $slow " in *" $host "*) continue ;; esac
+        ;;
+    esac
+    printf '%s\n' "$line"
+  done < "$mirrors" > "$tmp"
+  replace "$mirrors" "$tmp"
+  rm -f "$tmp"
+  for host in $slow; do
+    echo "::warning title=ci-mirror::$host is slow or does not answer — dropped for the next mirror"
+  done
+}
+
+# apt leaves a mirror that stalls: a per-connection stall timeout and retries for the install.
+apt_timeouts() {
+  local tmp
+  tmp=$(mktemp)
+  printf '%s\n' 'Acquire::http::Timeout "20";' 'Acquire::https::Timeout "20";' 'Acquire::Retries "2";' > "$tmp"
+  local dir
+  dir=$(dirname "$apt_conf")
+  if [ -w "$dir" ]; then
+    cat "$tmp" > "$apt_conf"
+  elif ! sudo cp "$tmp" "$apt_conf"; then
+    echo "::warning title=ci-mirror::apt's stall timeouts could not be written to $apt_conf"
+  fi
+  rm -f "$tmp"
+}
+
 # Probes, waits while nothing resolves (at most $1 more probes), then drops what does not.
 prepare() {
   local more=$1 n=0
@@ -164,6 +249,8 @@ prepare() {
     return 1
   fi
   drop
+  throughput
+  apt_timeouts
 }
 
 install() {

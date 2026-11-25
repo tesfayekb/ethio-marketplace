@@ -25,6 +25,8 @@ import {
   firstDownloadFindings,
   forbiddenScopeFindings,
   freeIdFindings,
+  gateReachFindings,
+  guardPathFindings,
   isTestId,
   keyOf,
   listReaderFindings,
@@ -39,6 +41,7 @@ import {
   textFindings,
   titleFindings,
   treeFindings,
+  userCasesFindings,
 } from "../brief/go-laws";
 import { briefInForce } from "../ci/laws-changed";
 import { pattern } from "../lib/pattern";
@@ -120,15 +123,112 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       );
       findings.push(...listReaderFindings(text, file, process.cwd()));
       findings.push(...firstDownloadFindings(text, file, process.cwd()));
+      findings.push(...guardPathFindings(text, file, process.cwd()));
     }
     const keys = templateKeys(readFileSync(TEMPLATE, "utf8"));
     expect(new Set(keys).size, "the template's census items are unique").toBe(keys.length);
     expect(keys).toContain("definition");
     const answers = rulings.map((file) => ({ file, text: readFileSync(file, "utf8") }));
     findings.push(...censusFindings(readFileSync(brief, "utf8"), brief, answers, keys));
+    findings.push(
+      ...gateReachFindings(readFileSync(brief, "utf8"), brief, answers),
+      ...userCasesFindings(readFileSync(brief, "utf8"), brief, answers),
+    );
     const allowances = readAllowlist(ALLOWLIST, findings.map(keyOf));
     console.log(`[briefs] read ${1 + rulings.length} files, findings: ${findings.length}`);
     expect(report(asReported(findings.filter((f) => !allowances.has(keyOf(f)))))).toBe("");
+  });
+
+  it("CF-BRIEF-22 (BRIEF-22) a brief that gates through a mechanism answers gate-reach: named, never marked not applicable; a planted brief that does neither is named", () => {
+    const gates = [
+      "PLANTED — a GO. Base: dev 2b11a9d29",
+      "",
+      "The staff classes of `door_context` refuse a session that did not use its factor.",
+      "",
+      "STEP 1 — the census: the consumers.",
+      "",
+    ].join("\n");
+    const named = gates.replace(
+      "the consumers.",
+      "the consumers; gate-reach — every sign-in it reaches.",
+    );
+    const f = "planted.md";
+    expect(gateReachFindings(gates, f).map((x) => `${x.law} ${x.line}`)).toEqual(["CF-BRIEF-22 3"]);
+    expect(gateReachFindings(named, f)).toEqual([]);
+    expect(
+      gateReachFindings(named, f, [
+        { file: "r.md", text: "CENSUS-ITEM gate-reach: not applicable — nothing signs in" },
+      ]).map((x) => x.law),
+    ).toEqual(["CF-BRIEF-22"]);
+    expect(
+      gateReachFindings(gates, f, [
+        { file: "r.md", text: "CENSUS-ITEM gate-reach: covered — the table below" },
+      ]),
+      "a ruling that answers the item satisfies it",
+    ).toEqual([]);
+    expect(
+      gateReachFindings("PLANTED — a GO. Base: dev 2b11a9d29\n\nA door lists its rows.\n", f),
+      "a brief that adds no gate is not read",
+    ).toEqual([]);
+  });
+
+  it("CF-BRIEF-23 (BRIEF-23) a brief whose SCOPE names a route or component answers user-cases; a planted brief that does not is named", () => {
+    const scoped = (area: string, step: string) =>
+      [
+        "PLANTED — a GO. Base: dev 2b11a9d29",
+        "",
+        `SCOPE: ${area} (each file's tests)`,
+        "",
+        `STEP 1 — the census: ${step}`,
+        "",
+      ].join("\n");
+    const f = "planted.md";
+    expect(
+      userCasesFindings(scoped("`src/features/auth/`", "the consumers."), f).map(
+        (x) => `${x.law} ${x.line}`,
+      ),
+    ).toEqual(["CF-BRIEF-23 3"]);
+    expect(
+      userCasesFindings(scoped("`src/routes/`", "the consumers; user-cases — each case."), f),
+    ).toEqual([]);
+    expect(
+      userCasesFindings(scoped("`src/components/`", "the consumers."), f, [
+        { file: "r.md", text: "CENSUS-ITEM user-cases: not applicable — a rename" },
+      ]).map((x) => x.law),
+    ).toEqual(["CF-BRIEF-23"]);
+    expect(
+      userCasesFindings(scoped("`scripts/ci/`, `supabase/`", "the consumers."), f),
+      "a SCOPE with no route or component is not read",
+    ).toEqual([]);
+  });
+
+  it("CF-BRIEF-24 (BRIEF-24) a CONFORMANCE GUARD names a path that exists at the base or is marked (new); a guard without a path, or a path that is neither, is named", () => {
+    const f = "planted.md";
+    const root = process.cwd();
+    const guard = (line: string) =>
+      `PLANTED — a GO. Base: dev 2b11a9d29\n\nCONFORMANCE GUARD: ${line}\n`;
+    expect(guardPathFindings(guard("a unit census, no path."), f, root).map((x) => x.text)).toEqual(
+      ["the CONFORMANCE GUARD names no path"],
+    );
+    expect(
+      guardPathFindings(
+        guard("`scripts/conformance/nothing-here.test.ts` plants it."),
+        f,
+        root,
+      ).map((x) => x.text),
+    ).toEqual([
+      "the CONFORMANCE GUARD names scripts/conformance/nothing-here.test.ts, which the base does not hold and the line does not mark (new)",
+    ]);
+    expect(
+      guardPathFindings(
+        guard(
+          "`scripts/conformance/briefs.test.ts` (exists); `scripts/conformance/nothing-here.test.ts` (new).",
+        ),
+        f,
+        root,
+      ),
+    ).toEqual([]);
+    expect(guardPathFindings("no guard line here\n", f, root)).toEqual([]);
   });
 
   it("CF-BRIEF-17 every ruling of the brief in force is saved bare: its first line is the ruling's `RULING — …`; a planted wrapped ruling is named", () => {
@@ -266,6 +366,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "Commit `planted: task saved`.",
       "`scripts/lib/other.ts` names INC-901 and stays outside SCOPE: it cites the fix as history.",
       "",
+      "CONFORMANCE GUARD: `src/alpha.ts` (exists) is read; `scripts/fresh.test.ts` (new) plants the bypass.",
+      "",
       "TOLERANCES (G60). For the planted page: a page's first download grows only by a named cause the report lists chunk by chunk; an unexplained growth is a STOP; no bare number.",
       "",
       "RECORDS (word for word)",
@@ -290,6 +392,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "The lanes keep `E2E_WORKERS` as DEC-217 set it.",
       "The list `scripts/conformance/plant-allowlist.txt` gains a line.",
       "Commit `planted: a dictated commit title that runs well past the seventy-two characters kept`.",
+      "",
+      "CONFORMANCE GUARD: a unit census, no path named.",
       "",
       "TOLERANCES (G60). The first download may grow by 2 KiB.",
       "",
@@ -354,8 +458,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "cites scripts/conformance/fresh.txt, which the tree does not hold, and no test to read it",
       ]);
       expect(firstDownloadFindings(planted, f, root).map((x) => `${x.line} ${x.text}`)).toEqual([
-        `19 names a page's first download without DEC-355's sentence: "a page's first download grows only by a named cause the report lists chunk by chunk; an unexplained growth is a STOP; no bare number"`,
-        '19 a bare figure beside "first download": The first download may grow by 2 KiB.',
+        `21 names a page's first download without DEC-355's sentence: "a page's first download grows only by a named cause the report lists chunk by chunk; an unexplained growth is a STOP; no bare number"`,
+        '21 a bare figure beside "first download": The first download may grow by 2 KiB.',
       ]);
       expect(
         firstDownloadFindings("The first download stays 3% under its ceiling.", f, root),
@@ -412,6 +516,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
           "CF-BRIEF-19",
           "CF-BRIEF-20",
           "CF-BRIEF-21",
+          "CF-BRIEF-24",
           "CF-BRIEF-3",
           "CF-BRIEF-5",
           "CF-BRIEF-6",
@@ -542,6 +647,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "CF-BRIEF-2",
         "CF-BRIEF-20",
         "CF-BRIEF-21",
+        "CF-BRIEF-24",
         "CF-BRIEF-3",
         "CF-BRIEF-5",
         "CF-BRIEF-6",

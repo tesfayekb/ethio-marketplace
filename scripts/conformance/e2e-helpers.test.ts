@@ -22,8 +22,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  * Housekeeping turn 2 (INC-1065, INC-1049, INC-1100; ruling 1 Q2, D324 (b)) — A TEST DOES ONE THING
  * ONE WAY, THROUGH THE SHARED E2E HELPER. The helpers: `asPerson`, `asAnonymous`, `asBearer` and
  * `pageDoor` (e2e/helpers/door-callers.ts), `passwordGrant` and `bearerClient` (session.ts),
- * `grantRole` and `grantScratchRole` (users.ts), `signInJobSuperAdmin` (ui.ts), and the account's
- * language (e2e/helpers/account-language.ts).
+ * `grantRole` and `grantScratchRole` (users.ts), `signInJobSuperAdmin` (ui.ts), the staff sign-in
+ * `signInStaff`, `asStaff`, `staffSession` and `declareStaffFactor` (e2e/helpers/staff-factor.ts, cursor
+ * bundle 6), and the account's language (e2e/helpers/account-language.ts).
  * - CF-HELPERS-1: no e2e/*.spec.ts declares its own copy — a local `function`, or a `const` holding
  *   a function, of one of the names below (a `const asAnon = await …` answer is a value, not a copy);
  *   and no spec inserts a role inline (`.from("roles").insert(`, matched across lines; housekeeping
@@ -68,6 +69,10 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
 
 export const COPIED_NAMES = [
   "asPerson",
+  "asStaff",
+  "signInStaff",
+  "staffSession",
+  "declareStaffFactor",
   "asAnonymous",
   "asAnon",
   "rpcResult",

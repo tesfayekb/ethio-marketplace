@@ -2,10 +2,11 @@ import { readFile } from "node:fs/promises";
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { authErrorText } from "./global-setup";
+import { signInStaff, staffSession } from "./helpers/staff-factor";
 import { grantRole } from "./helpers/categories";
 import { bearerClient, passwordGrant } from "./helpers/session";
 import { ensureFenceLanguage } from "./helpers/translations";
-import { gotoReady, openRailScope, signInJobSuperAdmin, switchUser } from "./helpers/ui";
+import { gotoReady, openRailScope, signInJobSuperAdmin } from "./helpers/ui";
 import { adminClient, createUser, leaseUser, grantScratchRole } from "./helpers/users";
 import { PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 import { errorText } from "../src/lib/error-text";
@@ -207,8 +208,12 @@ async function rpcAs(
   person: { email: string; password: string },
   fn: string,
   args: Record<string, unknown> = {},
+  // Cursor bundle 6 — `staffSession` calls over a session that used the account's factor (aal2),
+  // minted once by the caller (each mint waits out a code's step); the default is the plain password
+  // session (aal1), which is what a refusal's subject holds.
+  options: { staffSession?: Awaited<ReturnType<typeof staffSession>> } = {},
 ): Promise<{ status: number; body: unknown }> {
-  const session = await passwordGrant(person.email, person.password);
+  const session = options.staffSession ?? (await passwordGrant(person.email, person.password));
   const url = process.env["E2E_SUPABASE_URL"];
   const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) throw new Error("[e2e:legal-admin] missing staging config");
@@ -294,7 +299,7 @@ test.describe("Admin Legal", () => {
     expect(await page.locator('a[href="/admin/legal"]').count()).toBeGreaterThan(0);
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/legal");
     await expect(page.getByTestId("admin-access-notice")).toBeVisible();
     await expect(page.locator('a[href="/admin/legal"]')).toHaveCount(0);
@@ -842,7 +847,10 @@ test.describe("Admin Legal", () => {
     for (let i = 0; i < (await rows.count()); i++)
       await expect(rows.nth(i).getByTestId("rail-alert")).toHaveCount(1);
     await page.keyboard.press("Escape");
-    expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(true);
+    const held = await staffSession(staff);
+    expect((await rpcAs(staff, "legal_review_overdue", {}, { staffSession: held })).body).toBe(
+      true,
+    );
     await block.getByTestId("legal-review-mark").click();
     await page.getByTestId("legal-review-note").fill("LGA-17 read, no change");
     await page.getByTestId("legal-review-save").click();
@@ -854,7 +862,9 @@ test.describe("Admin Legal", () => {
       .toBeGreaterThan(0);
     await expect(page.locator(marked)).toHaveCount(0);
     await page.keyboard.press("Escape");
-    expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(false);
+    expect((await rpcAs(staff, "legal_review_overdue", {}, { staffSession: held })).body).toBe(
+      false,
+    );
     const person = await leaseUser();
     const refused = await rpcAs(person, "legal_review_overdue");
     expect(refused.status).toBeGreaterThanOrEqual(400);
@@ -1006,6 +1016,10 @@ test.describe("Admin Legal", () => {
   test("LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish", async ({
     page,
   }) => {
+    // Cursor bundle 6 — three staff sign-ins (the publisher, the viewer, the publisher again) each mint a
+    // session that used its account's factor, and a mint waits out the code's step: the walk's honest
+    // length is past the default 60 s.
+    test.setTimeout(150_000);
     const kind = scratch("card");
     const code = `${kind}-lang`;
     languages.add(code);
@@ -1034,7 +1048,7 @@ test.describe("Admin Legal", () => {
     );
     try {
       await signInJobSuperAdmin(page);
-      await switchUser(page, publisher.email, publisher.password);
+      await signInStaff(page, publisher);
       await gotoReady(page, "/admin/legal");
       const card = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(card.getByTestId("legal-view-inforce")).toBeVisible();
@@ -1055,7 +1069,7 @@ test.describe("Admin Legal", () => {
       await expect(
         page.getByTestId("legal-translation-language").locator(`option[value="${code}"]`),
       ).toHaveText(languageRow.data.name_en);
-      await switchUser(page, viewer.email, viewer.password);
+      await signInStaff(page, viewer);
       await gotoReady(page, "/admin/legal");
       const viewerCard = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(viewerCard.getByTestId("legal-view-inforce")).toBeVisible();
@@ -1090,7 +1104,7 @@ test.describe("Admin Legal", () => {
         ).error,
         "scratch version translations",
       );
-      await switchUser(page, publisher.email, publisher.password);
+      await signInStaff(page, publisher);
       await gotoReady(page, "/admin/legal");
       const translatedCard = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(translatedCard.getByTestId("legal-view-inforce")).toBeVisible();
@@ -1162,9 +1176,8 @@ test.describe("Admin Legal", () => {
       ],
       roles,
     );
-    const asEditor = bearerClient(
-      (await passwordGrant(editor.email, editor.password)).access_token,
-    );
+    // Cursor bundle 6 — a staff reader answers a session that used its factor (aal2).
+    const asEditor = bearerClient((await staffSession(editor)).access_token);
     const read = await asEditor.rpc("base_languages");
     expect(read.error).toBeNull();
     const rows = read.data as Array<{ code: string; name_en: string; name_native: string }>;
@@ -1179,9 +1192,7 @@ test.describe("Admin Legal", () => {
       name_native: "E2E",
     });
 
-    const asViewer = bearerClient(
-      (await passwordGrant(viewer.email, viewer.password)).access_token,
-    );
+    const asViewer = bearerClient((await staffSession(viewer)).access_token);
     const refused = await asViewer.rpc("base_languages");
     expect(refused.error?.code, "a reader's refusal is door_refuse's RAISE").toBe("P0D01");
     expect(refused.error?.message, "the code, never a sentence").toBe("permissionDenied");

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { onEndedSignIn } from "./ended-sign-in";
 import { callRoute, downloadRoute, uploadRoute } from "./route-client";
 
 // DEC-261 — the session reaches route calls through the client's door (src/lib/supabase-door.ts).
@@ -348,5 +349,46 @@ describe("uploadRoute — the XHR transport", () => {
     expect(await uploadRoute("/api/upload/photo", new FormData())).toEqual({ kind: "signedOut" });
     expect(XhrDouble.instances[0].opened).toBeNull();
     expect(XhrDouble.instances[0].sent).toBeNull();
+  });
+});
+
+describe("an ended sign-in is reported where the client reads it (INC-1274)", () => {
+  const heard: Array<string | null> = [];
+  let stop: () => void = () => undefined;
+  beforeEach(() => {
+    heard.length = 0;
+    stop = onEndedSignIn((code) => heard.push(code));
+  });
+  afterEach(() => stop());
+
+  it("RCL-16 the signed-out answer (no session, nothing sent) is reported once and returned as it was", async () => {
+    expect(await callRoute("/api/x")).toEqual({ kind: "signedOut" });
+    expect(heard).toEqual(["session_missing"]);
+  });
+  it("RCL-17 a 401 answer is reported once with the 401 code, and the answer is returned whole", async () => {
+    currentSession.mockResolvedValue({ session: { access_token: "t" }, failed: false });
+    fetchMock.mockResolvedValue(jsonAnswer({ error: "notSignedIn" }, 401));
+    const answer = await callRoute("/api/x");
+    expect(answer).toMatchObject({ kind: "answered", status: 401, error: "notSignedIn" });
+    expect(heard).toEqual(["401"]);
+  });
+  it("RCL-18 any other answer (200, 403, 428, 500, unreachable) reports nothing; an optional call with no session is not an ended sign-in", async () => {
+    currentSession.mockResolvedValue({ session: { access_token: "t" }, failed: false });
+    for (const status of [200, 403, 428, 500]) {
+      fetchMock.mockResolvedValue(jsonAnswer({}, status));
+      await callRoute("/api/x");
+    }
+    fetchMock.mockRejectedValue(new TypeError("offline"));
+    await callRoute("/api/x");
+    currentSession.mockResolvedValue({ session: null, failed: false });
+    fetchMock.mockResolvedValue(jsonAnswer({}));
+    await callRoute("/api/x", { auth: "optional" });
+    expect(heard).toEqual([]);
+  });
+  it("RCL-19 a download that finds no session, and an upload that finds none, report once each", async () => {
+    expect(await downloadRoute("/api/x", "x.csv")).toEqual({ kind: "signedOut" });
+    expect(heard).toEqual(["session_missing"]);
+    expect(await uploadRoute("/api/upload/photo", new FormData())).toEqual({ kind: "signedOut" });
+    expect(heard).toEqual(["session_missing", "session_missing"]);
   });
 });

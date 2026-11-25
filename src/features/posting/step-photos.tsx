@@ -279,6 +279,12 @@ export function StepPhotos({
         return;
       }
 
+      if (answer.signedOut === true) {
+        // INC-1274 — the sign-in ended: no verdict, and no second try either.
+        patchItem(localId, { state: "failed", refusalKey: "session.expired" });
+        return;
+      }
+
       if (answer.unreachable) {
         // No verdict was reached. One automatic second try, then the seller's.
         if (attempt === 0) {
@@ -497,6 +503,7 @@ export function StepPhotos({
           onChanged();
           return null;
         }
+        if (answer.signedOut === true) return "session.expired";
         if (answer.unreachable) return "post.photos.couldNotSend";
         certifyRefusal(answer.refusals[0]?.reason ?? "", navigate);
         return keyOf(answer.refusals[0]);

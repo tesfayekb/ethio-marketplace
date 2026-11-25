@@ -423,6 +423,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(briefLaws).toContain("CF-BRIEF-19");
     expect(briefLaws).toContain("CF-BRIEF-20");
     expect(briefLaws).toContain("CF-BRIEF-21");
+    // CF-BRIEF-22 → 24 (cursor bundle 6, decisions 2, 12 and 17): the gate-reach and user-cases census
+    // items and a guard's path, each planted in briefs.test.ts and run by check-go.ts.
+    expect(briefLaws).toContain("CF-BRIEF-22 (BRIEF-22)");
+    expect(briefLaws).toContain("CF-BRIEF-23 (BRIEF-23)");
+    expect(briefLaws).toContain("CF-BRIEF-24 (BRIEF-24)");
     expect(briefLaws).toContain('"scripts/brief/check-go.ts"');
     expect(briefLaws).toContain('from "../brief/go-laws"');
     // e2e-helpers.test.ts CF-HELPERS-1…3 (housekeeping turn 2, INC-1065), CF-HELPERS-5…7

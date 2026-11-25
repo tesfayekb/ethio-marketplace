@@ -36,7 +36,8 @@ vi.mock("@supabase/supabase-js", async (importOriginal) => {
       }),
       rpc: async (name: string, args: unknown) => {
         state.rpc.push({ name, args });
-        if (name === "has_permission") return { data: state.allowed, error: null };
+        if (name === "my_permission_answer")
+          return { data: state.allowed ? "allowed" : "denied", error: null };
         if (state.error !== null) return { data: null, error: state.error };
         return { data: state.payload, error: null };
       },
@@ -59,7 +60,7 @@ const get = (route: unknown, url: string, bearer = true): Promise<Response> => {
     params: {},
   });
 };
-const exportCalls = () => state.rpc.filter((call) => call.name !== "has_permission");
+const exportCalls = () => state.rpc.filter((call) => call.name !== "my_permission_answer");
 
 const CATEGORY_ROWS = [
   {
@@ -115,8 +116,8 @@ describe("the three exports", () => {
       expect(await response.json()).toEqual({ error: "forbidden" });
       expect(state.rpc).toEqual([
         {
-          name: "has_permission",
-          args: { p_user_id: "user-1", p_resource: resource, p_action: "view" },
+          name: "my_permission_answer",
+          args: { p_resource: resource, p_action: "view" },
         },
       ]);
     }

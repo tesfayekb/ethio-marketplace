@@ -3,23 +3,27 @@ import { readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { chooseFilter, chooseInList, openSelectList } from "./helpers/filters";
 
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { processId } from "./global-setup";
 import {
+  afterTotpStep,
   awaitGuardedOutcome,
   enrollAndStepUp,
   expectNoHorizontalOverflow,
   gotoReady,
   isMobile,
+  signInJobSuperAdmin,
+  staleStepUpOnClient,
   stepUpIfPrompted,
   switchLanguage,
   switchUser,
   waitForHydration,
-  signInJobSuperAdmin,
 } from "./helpers/ui";
+import { totpStep } from "./helpers/totp";
 import { inBrowserClient } from "./helpers/browser-client";
 import { adminClient, leaseUser, grantScratchRole } from "./helpers/users";
 import { errorText } from "../src/lib/error-text";
@@ -313,10 +317,10 @@ test.describe("U4b translations console", () => {
 
   /**
    * L5 PART C — TR-7b, the regression for the production bug (INC-166).
-   * A super admin at aal1 clicks Sync, answers the step-up prompt, and the
+   * A super admin whose step-up is stale clicks Sync, answers the step-up prompt, and the
    * counts must render: this is the exact path where the old guard resolved on
    * the modal opening and the result was lost. `@private-identity` because the
-   * test owns an un-elevated identity of its own.
+   * test owns an identity of its own.
    */
   test(
     "TR-7b sync after a step-up prompt still reports its counts",
@@ -324,16 +328,19 @@ test.describe("U4b translations console", () => {
     async ({ page }) => {
       test.setTimeout(120_000);
       const { user, secret } = await signInJobSuperAdmin(page);
-      // The private mint ends ELEVATED (it enrols in-session). Signing the same
-      // identity in again yields a fresh aal1 session — the production state
-      // where Sync must ask for a code first.
-      await switchUser(page, user.email, user.password);
+      // The identity's session used its factor (a staff screen opens only so, cursor bundle 6), so the
+      // client is told its step-up is stale after the last navigation (INC-620): Sync must ask for a
+      // code first, as it does in production once the window has passed.
+      const spentStep = totpStep();
       await logTranslatorScope(page, user.id);
       await gotoReady(page, "/admin/translations");
+      await staleStepUpOnClient(page);
 
       const syncRoute = watchRoute(page, "admin_sync_ui_keys");
       await page.getByTestId("translations-sync-run").click();
       // The gate must actually ask — that is the path under test.
+      await expect(page.getByTestId("step-up-modal")).toBeVisible({ timeout: 20000 });
+      await afterTotpStep(spentStep);
       await stepUpIfPrompted(page, secret);
       const syncResult = await syncRoute;
 
@@ -906,7 +913,7 @@ test.describe("U4b translations console", () => {
         reap,
       );
 
-      await switchUser(page, user.email, user.password);
+      await signInStaff(page, user);
       await waitForHydration(page);
 
       const refusal = await inBrowserClient(page, async (client) => {

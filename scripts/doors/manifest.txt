@@ -181,8 +181,8 @@ get_ui_bundle_parts(text) | public-reader | anon,authenticated | - | - | - | - |
 get_ui_bundle_version(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | public-data
 has_password() | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
 has_permission(uuid,text,text) | helper | authenticated | - | - | - | - | - | - | - | policy category_assets_assets_delete, category_assets_assets_insert, category_assets_assets_update, category_assets_public_read
-impersonated_get_profile(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
-impersonated_list_listings(uuid,integer,integer) | signed-in-reader | authenticated | - | - | - | - | - | - | - | -
+impersonated_get_profile(uuid) | staff-reader | authenticated | impersonation:use | - | - | - | global | - | - | INC-1282: the view-as reader of another person's profile — the permission and the staff-session rule (door_context staff-reader), the global cell begin_impersonation holds
+impersonated_list_listings(uuid,integer,integer) | staff-reader | authenticated | impersonation:use | - | - | - | global | - | - | INC-1282: the view-as reader of another person's ads — the permission and the staff-session rule (door_context staff-reader), the global cell begin_impersonation holds
 legal_in_force(text,character) | public-reader | anon,authenticated | - | - | - | - | - | - | notSignedIn | -
 legal_review_overdue() | staff-reader | authenticated | legal:view | - | - | - | global | - | - | census F1-1: no country argument or country-bearing target row read by name; global is the stricter reading (ruling 1 §4)
 legal_scheduled(text,character) | public-reader | anon,authenticated | - | - | - | - | - | - | notSignedIn | -
@@ -200,6 +200,7 @@ my_listing_certification(uuid) | signed-in-reader | authenticated | - | - | - | 
 my_listing_private(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
 my_listing(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn,notYourListing | -
 my_listings(text,integer,integer,text,uuid[],text) | signed-in-reader | authenticated | - | - | - | - | - | - | badValue,notSignedIn | -
+my_permission_answer(text,text) | helper | authenticated | - | - | - | - | - | - | - | none: caller src/server/route.ts (callerHasPermission, the route mechanism's one staff question)
 my_recent_categories() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -
 my_saved_listings(jsonb,integer) | signed-in-reader | authenticated | - | - | - | - | - | - | badSize,badValue,notSignedIn | -
 my_seller_line() | signed-in-reader | authenticated | - | - | - | - | - | - | notSignedIn | -

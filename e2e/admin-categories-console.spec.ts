@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { inBrowserClient } from "./helpers/browser-client";
 import { chooseFilter, chooseInList } from "./helpers/filters";
 import { withinPreviewBudget } from "./helpers/rate-window";
@@ -114,7 +115,7 @@ test.describe("C2 categories console", () => {
 
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20000 });
   });
@@ -125,7 +126,7 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "any");
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
 
     // Seed-before-navigate is satisfied by the ratified C1 taxonomy: assert a
@@ -497,22 +498,17 @@ test.describe("C2 categories console", () => {
       const before = await readPointers(id!);
       expect(before.length).toBeGreaterThan(0);
 
-      // A second super admin with NO enrolled factor.
+      // A second super admin with NO enrolled factor. Cursor bundle 6 (DEC-434): the subject keeps the
+      // password sign-in (aal1), and the answer is now the gate's setup panel in place of the console:
+      // there is no pointer to move.
       const weak = await leaseUser();
       await grantRole(weak.id, "super_admin");
       await switchUser(page, weak.email, weak.password);
       await gotoReady(page, "/admin/categories");
-      await findRow(page, slug);
+      await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-search")).toHaveCount(0);
 
-      await openEditor(page, slug);
-      await action(page, slug, "pointer").click();
-      const pointerId = before[0]!.id;
-      const select = page.getByTestId(`category-path-move-${pointerId}`);
-      await expect(select).toBeVisible({ timeout: 20000 });
-      const rootValue = await select.locator("option").nth(1).getAttribute("value");
-      await select.selectOption(rootValue!);
-
-      // Poll DB truth for the whole refusal window: the parent set must stay
+      // Poll DB truth for the whole window: the parent set must stay
       // byte-identical for every sample, never "eventually correct".
       const expected = before.map((row) => row.parent_id);
       await expect
@@ -617,7 +613,7 @@ test.describe("C2 categories console", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     // G28 — the roster rendered a real root, found by search; then unscoped.
     await anchorRealRow(page, "vehicles");
@@ -657,7 +653,7 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "mobile");
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     // G28 — a real root is found by search, never by its place on page one.
     const row = await anchorRealRow(page, "vehicles");
@@ -720,7 +716,7 @@ test.describe("C2 categories console", () => {
     bandOnly(page, "any");
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
     // G28 — the roster rendered a real root, found by search; then unscoped.
     await anchorRealRow(page, "vehicles");
@@ -774,7 +770,7 @@ test.describe("C2 categories console", () => {
   }) => {
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/categories");
 
     const { data, error } = await adminClient()

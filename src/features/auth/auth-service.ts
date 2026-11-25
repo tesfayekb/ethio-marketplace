@@ -15,7 +15,8 @@ import {
 } from "@/lib/supabase-door";
 
 import { authClient, type Client } from "./auth-client";
-import { failure, toErrorKey } from "./auth-error-key";
+import { failure } from "./auth-error-key";
+import { reportSessionMissing } from "./session-end";
 import { CLIENT_FAILED } from "./auth-result";
 
 import type {
@@ -278,7 +279,7 @@ export async function getIdentities(): Promise<IdentitiesResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
   const { data, error } = await supabase.auth.getUserIdentities();
-  if (error || !data) return { ok: false, errorKey: toErrorKey(error ?? { message: "" }) };
+  if (error || !data) return failure(error ?? { message: "" });
   return {
     ok: true,
     identities: data.identities.map((identity) => ({
@@ -346,8 +347,16 @@ async function verifyCurrentPassword(
 }
 
 async function currentPasswordProof(supabase: Client, currentPassword: string) {
-  const { data: userData } = await supabase.auth.getUser();
-  const email = userData.user?.email;
+  // INC-1274 — a session that is gone is the person's, not the page's: the library's missing-session
+  // error (no stored session), or no user behind a session the shell still holds, ends the session
+  // through the one cure and says so.
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) return failure(userError);
+  if (userData.user === null) {
+    reportSessionMissing();
+    return { ok: false as const, errorKey: "session.expired" as const };
+  }
+  const email = userData.user.email;
   if (!email) return { ok: false as const, errorKey: "auth.errorGeneric" as const };
 
   // Turn 34c-2 — the project's address and key through the door (CF-PROJECT-1).
@@ -394,7 +403,7 @@ export async function pendingEmail(): Promise<PendingEmailResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
   const { data, error } = await supabase.auth.getUser();
-  if (error) return { ok: false, errorKey: toErrorKey(error) };
+  if (error) return failure(error);
   const waiting = data.user?.new_email;
   return { ok: true, pendingEmail: typeof waiting === "string" && waiting !== "" ? waiting : null };
 }
@@ -495,7 +504,7 @@ export async function hasPassword(): Promise<PasswordStateResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
   const { data, error } = await supabase.rpc("has_password");
-  if (error) return { ok: false, errorKey: toErrorKey(error) };
+  if (error) return failure(error);
   return { ok: true, hasPassword: Boolean(data) };
 }
 

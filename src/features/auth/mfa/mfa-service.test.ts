@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { readRefusal } from "@/lib/refusal";
+import { providerError } from "@/test/provider-errors";
 
 /**
  * DEC-339 wave 2 (INC-1147 class 1) — THE TWO-FACTOR SERVICE READS ITS REFUSALS THROUGH THE ONE
@@ -66,12 +67,50 @@ describe("the two-factor service's refusals (INC-1147 class 1)", () => {
       "mfa_factor_not_found",
       "mfa_ip_address_mismatch",
       "insufficient_aal",
-      "session_expired",
       "unexpected_failure",
     ]) {
       const answer = await verifyRefused({ message: "Something else happened", code });
       expect(answer.errorKey, code).toBe("mfa.errorGeneric");
       expect(answer.refusal, code).toEqual({ field: "code", reason: "unknown" });
+    }
+  });
+
+  it("MSV-10 a call made with no session, or against one the server no longer knows, says the sign-in ended and tells the shell (INC-1274)", async () => {
+    const { onUnauthorised } = await import("../session-end");
+    const heard: Array<string | null> = [];
+    const off = onUnauthorised((code) => heard.push(code));
+    const ended = {
+      ok: false,
+      errorKey: "session.expired",
+      refusal: { field: "code", reason: "sessionEnded" },
+    };
+    try {
+      for (const name of [
+        "AuthSessionMissingError",
+        "session_not_found",
+        "session_expired",
+        "refresh_token_not_found",
+      ] as const) {
+        auth.mfa.verify.mockResolvedValue({ data: null, error: providerError(name) });
+        expect(await service.verifyFactor("factor-1", "123456"), name).toEqual(ended);
+      }
+      auth.mfa.listFactors.mockResolvedValue({
+        data: null,
+        error: providerError("AuthSessionMissingError"),
+      });
+      expect(await service.listFactors()).toEqual(ended);
+      auth.mfa.unenroll.mockResolvedValue({ error: providerError("session_not_found") });
+      expect(await service.unenrollFactor("factor-1")).toEqual(ended);
+      expect(heard).toEqual([
+        "session_missing",
+        "session_not_found",
+        "session_expired",
+        "refresh_token_not_found",
+        "session_missing",
+        "session_not_found",
+      ]);
+    } finally {
+      off();
     }
   });
 
@@ -93,7 +132,7 @@ describe("the two-factor service's refusals (INC-1147 class 1)", () => {
     auth.mfa.listFactors.mockResolvedValue({ data: { all: [], totp: [] }, error: null });
     auth.mfa.enroll.mockResolvedValue({
       data: null,
-      error: { message: "A factor with this name exists", code: "mfa_factor_name_conflict" },
+      error: providerError("mfa_factor_name_conflict"),
     });
     const enrolled = await service.enrollTotp("Authenticator app");
     expect(enrolled).toEqual({
@@ -104,7 +143,7 @@ describe("the two-factor service's refusals (INC-1147 class 1)", () => {
 
     auth.mfa.challenge.mockResolvedValue({
       data: null,
-      error: { message: "TOTP is off", code: "mfa_totp_verify_not_enabled" },
+      error: providerError("mfa_totp_verify_not_enabled"),
     });
     const challenge = await service.verifyFactor("factor-1", "123456");
     expect(challenge).toEqual({
@@ -114,7 +153,7 @@ describe("the two-factor service's refusals (INC-1147 class 1)", () => {
     });
 
     auth.mfa.unenroll.mockResolvedValue({
-      error: { message: "AAL2 required", code: "insufficient_aal" },
+      error: providerError("insufficient_aal"),
     });
     const removed = await service.unenrollFactor("factor-1");
     expect(removed).toEqual({
@@ -251,7 +290,7 @@ describe("a setup the provider holds half-done (cursor bundle 4, INC-1147 class 
   it("MSV-9 the confirmation of a setup that a newer start replaced says so in its own words; any other step meeting a missing factor keeps the generic line", async () => {
     auth.mfa.challenge.mockResolvedValue({
       data: null,
-      error: { message: "MFA factor not found", code: "mfa_factor_not_found" },
+      error: providerError("mfa_factor_not_found"),
     });
     const confirmed = await service.verifyFactor("p-1", "123456", service.MFA_ENROLL_REFUSALS);
     expect(confirmed).toEqual({

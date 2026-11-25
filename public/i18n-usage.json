@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 777,
+  "scanned": 780,
   "dynamicCallSites": 419,
   "keys": {
     "account.deactivatedBanner": [
@@ -1851,19 +1851,19 @@
       "/admin/countries"
     ],
     "admin.factorCode.body": [
-      "component: staff-factor-gate"
+      "/admin"
     ],
     "admin.factorNeeded.action": [
-      "component: staff-factor-gate"
+      "/admin"
     ],
     "admin.factorNeeded.body": [
-      "component: staff-factor-gate"
+      "/admin"
     ],
     "admin.factorNeeded.title": [
-      "component: staff-factor-gate"
+      "/admin"
     ],
     "admin.factorReadFailed": [
-      "component: staff-factor-gate"
+      "/admin"
     ],
     "admin.landing.body": [
       "/admin"
@@ -2509,8 +2509,7 @@
       "/admin/listings"
     ],
     "admin.loading": [
-      "/admin",
-      "component: staff-factor-gate"
+      "/admin"
     ],
     "admin.locations.action.createChild": [
       "/admin/places"
@@ -4300,6 +4299,7 @@
       "/$name",
       "/account",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4354,6 +4354,7 @@
       "/$name",
       "/account",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4432,6 +4433,7 @@
       "/$name",
       "/account",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -5016,6 +5018,7 @@
       "/settings"
     ],
     "mfa.codeLabel": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5034,10 +5037,10 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
-      "/settings",
-      "component: staff-factor-gate"
+      "/settings"
     ],
     "mfa.codePlaceholder": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5056,8 +5059,7 @@
       "/admin/translations",
       "/admin/translations/$lang",
       "/admin/users/$userId",
-      "/settings",
-      "component: staff-factor-gate"
+      "/settings"
     ],
     "mfa.description": [
       "/settings"
@@ -5122,6 +5124,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpConfirm": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5139,8 +5142,7 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users/$userId",
-      "component: staff-factor-gate"
+      "/admin/users/$userId"
     ],
     "mfa.stepUpGoToSettings": [
       "/admin/ai",
@@ -5204,6 +5206,7 @@
       "/admin/users/$userId"
     ],
     "mfa.stepUpTitle": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -5221,8 +5224,7 @@
       "/admin/screening",
       "/admin/translations",
       "/admin/translations/$lang",
-      "/admin/users/$userId",
-      "component: staff-factor-gate"
+      "/admin/users/$userId"
     ],
     "mfa.title": [
       "/settings"
@@ -5914,6 +5916,7 @@
       "/post/$listingId"
     ],
     "post.field.required": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -6054,6 +6057,7 @@
       "/post/$listingId"
     ],
     "post.optional": [
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/categories",
@@ -8556,6 +8560,16 @@
     ],
     "sellerPage.title": [
       "/$name"
+    ],
+    "session.expired": [
+      "/admin/attributes",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/listings/$listingId/edit",
+      "/admin/places",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "session.idleWarning": [
       "(every page)"

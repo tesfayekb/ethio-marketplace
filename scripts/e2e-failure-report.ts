@@ -1783,6 +1783,8 @@ export function renderSources(
     ...infraHeadline(silent.map((s) => s.source)),
     outsideHeadline(sources),
     "",
+    // INC-1272 (EFR-6) — the gating failures first: what turned the run red is read before any census.
+    ...gatingFailuresSection(failures, contexts),
     ...flakeSection,
     ...flakyBodiesSection(flaky, contexts),
     // INC-589 — rendered on every red form, whatever else failed.
@@ -1820,35 +1822,6 @@ export function renderSources(
   }
 
   lines.push(...postTestSection);
-
-  const candidates = [...contexts.keys()];
-
-  for (const f of failures) {
-    // INC-1175 — a LABEL only: it names the environment as the cause and the failure still gates.
-    lines.push(
-      `## ${f.title}`,
-      "",
-      ...(isStagingSinkFailure(f) ? [`- Class: **${STAGING_SINK_LABEL}**`, ""] : []),
-      `- Source: \`${f.source}\``,
-      `- Project: \`${f.project}\``,
-      "",
-      "```text",
-      f.message,
-      "```",
-      "",
-    );
-
-    // INC-083 rule 2: the page snapshot Playwright wrote at the moment of
-    // death is the diagnosable evidence — quote it, or say plainly that it is
-    // missing. Never leave a failure body without one of the two.
-    const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
-    const dir = matchContextDir(candidates, spec);
-    if (dir) {
-      lines.push("Context:", "", "```text", contextTail(contexts.get(dir)!), "```", "");
-    } else {
-      lines.push(missingContextLine(spec, candidates), "");
-    }
-  }
 
   // DEC-018 — SERVER ERRORS, per source, quoted whether or not any context
   // file matched. INC-085d: the cause was logged but unhearable.
@@ -1910,6 +1883,45 @@ export function renderSources(
   }
 
   return lines.join("\n");
+}
+
+/**
+ * INC-1272 (EFR-6) — THE GATING FAILURES, FIRST. Every failed test, its source and project, its error
+ * and the page snapshot Playwright wrote at its death (INC-083 rule 2: the snapshot quoted, or the
+ * plain sentence that it is missing), written ahead of the flake, outside-error, start, server-error,
+ * accessibility and timing sections, so a reader who stops early has read what gates. Nothing when no
+ * test failed.
+ */
+export function gatingFailuresSection(
+  failures: readonly (Failure & { source: string })[],
+  contexts: Map<string, string>,
+): string[] {
+  if (failures.length === 0) return [];
+  const candidates = [...contexts.keys()];
+  const lines = ["## Gating failures", ""];
+  for (const f of failures) {
+    // INC-1175 — a LABEL only: it names the environment as the cause and the failure still gates.
+    lines.push(
+      `### ${f.title}`,
+      "",
+      ...(isStagingSinkFailure(f) ? [`- Class: **${STAGING_SINK_LABEL}**`, ""] : []),
+      `- Source: \`${f.source}\``,
+      `- Project: \`${f.project}\``,
+      "",
+      "```text",
+      f.message,
+      "```",
+      "",
+    );
+    const spec = { file: f.file, titlePath: f.titlePath, project: f.project };
+    const dir = matchContextDir(candidates, spec);
+    if (dir) {
+      lines.push("Context:", "", "```text", contextTail(contexts.get(dir)!), "```", "");
+    } else {
+      lines.push(missingContextLine(spec, candidates), "");
+    }
+  }
+  return lines;
 }
 
 export function render(json: PwJson, meta: ReportMeta): string {

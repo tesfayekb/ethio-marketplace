@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { asStaff } from "./helpers/staff-factor";
 import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { asAnonymous, asPerson } from "./helpers/door-callers";
@@ -976,7 +977,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
         ],
         reportRoles,
       );
-      const staff = await asPerson(xPerson);
+      const staff = await asStaff(xPerson);
       const reports = await staff.rpc("admin_listing_reports", { p_listing_id: ad.id });
       expect(reports.error).toBeNull();
       expect(reports.data).toHaveLength(2);

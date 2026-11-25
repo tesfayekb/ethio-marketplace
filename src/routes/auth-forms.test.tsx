@@ -51,9 +51,11 @@ vi.mock("@/features/legal/agree-to-document", () => ({
   ),
 }));
 vi.mock("@/components/shell/page-guide", () => ({ PageGuide: () => null }));
+// INC-1268 — the page hears no auth event of its own: who is signed in is the shell's one store.
+const shell = vi.hoisted(() => ({ user: null as { id: string } | null }));
+vi.mock("@/components/shell-context", () => ({ useShell: () => ({ user: shell.user }) }));
 vi.mock("@/lib/supabase-door", () => ({
   getSupabase: vi.fn(async () => ({})),
-  onAuthChange: () => ({ unsubscribe: () => undefined }),
 }));
 
 const { Route: AuthRoute } = await import("@/routes/auth");
@@ -90,6 +92,7 @@ describe("L11 — the auth forms on the one Field and gate", () => {
   beforeEach(() => {
     for (const fn of Object.values(service)) fn.mockReset();
     search.value = {};
+    shell.user = null;
     Element.prototype.scrollIntoView = vi.fn();
   });
 
@@ -179,6 +182,22 @@ describe("L11 — the auth forms on the one Field and gate", () => {
     );
     expect(screen.getAllByRole("alert")).toHaveLength(1);
     expect(service.completePasswordReset).not.toHaveBeenCalled();
+  });
+
+  it("KAU-12: the check-your-email page says confirmed when the shell's one store holds a signed-in user, with no event of its own (INC-1268)", async () => {
+    search.value = { view: "check-email" };
+    const Screen = componentOf(AuthRoute);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const page = () => (
+      <QueryClientProvider client={client}>
+        <Screen />
+      </QueryClientProvider>
+    );
+    const view = render(page());
+    expect(screen.queryByText("auth.confirmedInline")).toBeNull();
+    shell.user = { id: "user-1" };
+    view.rerender(page());
+    await screen.findByText("auth.confirmedInline");
   });
 
   async function submitReset() {

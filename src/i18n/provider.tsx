@@ -19,7 +19,7 @@ const pageHeadClient = loadOnce(() => import("@/lib/page-head-client"));
 import { errorText } from "@/lib/error-text";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { ownValue } from "@/lib/own-key";
-import { onAuthChange, projectEnv } from "@/lib/supabase-door";
+import { projectEnv } from "@/lib/supabase-door";
 
 import { fetchEntityBundle, fetchUiBundle, overlayBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
@@ -34,6 +34,7 @@ import {
 } from "./compiled-catalog";
 import { type Language, type MessageKey, type Messages } from "./types";
 import {
+  AuthIdentityWriterContext,
   I18nContext,
   isLanguageCode,
   LANGUAGE_STAR_COOKIE,
@@ -241,41 +242,47 @@ function unsettle(): void {
  * supabase-js serialises session access through one exclusive auth lock, and
  * `onAuthStateChange` callbacks run while it is held. A read issued from this
  * provider on the first frames contends with the auth flow's own profile read
- * and can starve it. The cheapest settle signal available at the provider's
- * position (above the shell, no auth context in scope) is a subscription that
- * makes NO Supabase call inside its callback: the first auth event — always
- * emitted, `INITIAL_SESSION` included — means the bootstrap has run. The flag
- * is raised on a macrotask hop so the lock is released first. A watchdog keeps
- * i18n from stalling forever if no event ever arrives.
+ * and can starve it.
+ *
+ * INC-1268 (cursor bundle 6) — A PAGE KNOWS WHO IS SIGNED IN FROM ONE STORE.
+ * The provider sits above the shell and subscribes to nothing: the shell's one
+ * `useAuth()` writes the identity here (`useAuthIdentityWriter`, an effect —
+ * never inside the auth callback, so no read starts under the lock): `settled`
+ * once the session is known, `userId` the signed-in identity that re-arms the
+ * account carry. A watchdog keeps i18n from stalling forever when no shell
+ * writes (an error boundary above it, a session read that failed): the device's
+ * language holds and the reads proceed.
  */
-function useAuthIdentity(): { settled: boolean; userId: string | null } {
-  const [settled, setSettled] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+type AuthIdentity = { settled: boolean; userId: string | null };
 
-  useEffect(() => {
-    let cancelled = false;
-    const raise = () => {
-      if (!cancelled) setSettled(true);
-    };
-    // DEC-261 — through the client's door: a signed-out visitor settles without the client.
-    const subscription = onAuthChange((_event, session) => {
-      // No Supabase CALL here (law I5): the session is the event's own argument.
-      // INC-121 (a): the signed-in identity is what re-arms the account carry,
-      // so it is mirrored — equality-guarded, never a fresh object per event.
-      const next = session?.user?.id ?? null;
-      setUserId((current) => (current === next ? current : next));
-      setTimeout(raise, 0);
+const AUTH_WATCHDOG_MS = 3000;
+
+function useAuthIdentity(): {
+  identity: AuthIdentity;
+  write: (next: { settled: boolean; userId: string | null }) => void;
+} {
+  const [identity, setIdentity] = useState<AuthIdentity>({ settled: false, userId: null });
+  // Equality-guarded and stable (a mirrored writer never fresh-objects its state), and settled is
+  // one-way: a session once known is not unknown again.
+  const write = useCallback((next: { settled: boolean; userId: string | null }) => {
+    setIdentity((current) => {
+      const settled = current.settled || next.settled;
+      return current.settled === settled && current.userId === next.userId
+        ? current
+        : { settled, userId: next.userId };
     });
-    // Watchdog (law F4: never a silent stall) — i18n proceeds regardless.
-    const watchdog = setTimeout(raise, 3000);
-    return () => {
-      cancelled = true;
-      clearTimeout(watchdog);
-      subscription.unsubscribe();
-    };
   }, []);
 
-  return { settled, userId };
+  useEffect(() => {
+    // Watchdog (law F4: never a silent stall) — i18n proceeds regardless.
+    const watchdog = setTimeout(
+      () => setIdentity((current) => (current.settled ? current : { ...current, settled: true })),
+      AUTH_WATCHDOG_MS,
+    );
+    return () => clearTimeout(watchdog);
+  }, []);
+
+  return { identity, write };
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -333,7 +340,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const warnedMissingRef = useRef<Set<string>>(new Set());
   /** INC-816 — each layer's English part, once loaded, is kept for later runs. */
   const enLayersRef = useRef<Partial<Record<StringsLayer, Partial<Messages>>>>({});
-  const { settled: authSettled, userId } = useAuthIdentity();
+  const { identity, write: writeIdentity } = useAuthIdentity();
+  const { settled: authSettled, userId } = identity;
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
   // INC-110: the read no longer waits for the auth settle signal, because it
@@ -794,5 +802,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+  return (
+    <I18nContext.Provider value={value}>
+      <AuthIdentityWriterContext.Provider value={writeIdentity}>
+        {children}
+      </AuthIdentityWriterContext.Provider>
+    </I18nContext.Provider>
+  );
 }

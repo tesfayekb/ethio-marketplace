@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Foundations turn 12 (DEC-237) — THE IMPORT ROUTE FACTORY (IMR-1…10). The
- * caller, has_permission, the RPCs and the dial are mocked; counters prove
+ * caller, my_permission_answer, the RPCs and the dial are mocked; counters prove
  * what a refusal never reached (no body pull, no dial, no RPC, no refresh).
  * The gate (gate.ts) is the real one.
  */
@@ -24,7 +24,8 @@ const state = {
 
 async function rpc(name: string, args: Record<string, unknown>) {
   state.rpcs.push({ name, args });
-  if (name === "has_permission") return { data: state.allowed, error: null };
+  if (name === "my_permission_answer")
+    return { data: state.allowed ? "allowed" : "denied", error: null };
   return state.answers[name] ?? { data: {}, error: null };
 }
 
@@ -55,18 +56,13 @@ vi.mock("@/server/supabase/user-client", () => {
       routeJson({ error: "upstream unavailable" }, 503),
     upstreamFailed: () => false,
     doorAnswer: (data: unknown) => data,
-    callerHasPermission: async (
-      supabase: { rpc: typeof rpc },
-      userId: string,
-      permission: string,
-    ) => {
+    callerHasPermission: async (supabase: { rpc: typeof rpc }, permission: string) => {
       const [resource, action] = permission.split(":");
-      const { data } = await supabase.rpc("has_permission", {
-        p_user_id: userId,
+      const { data } = await supabase.rpc("my_permission_answer", {
         p_resource: resource,
         p_action: action,
       });
-      return data === true;
+      return data;
     },
   };
 });
@@ -177,7 +173,9 @@ const send = (route: typeof categories, body: unknown, headers?: Record<string, 
   route({ request: post(JSON.stringify(body), headers), params: {} });
 
 const doorCalls = () =>
-  state.rpcs.filter((call) => call.name !== "has_permission" && call.name !== "import_gate_audit");
+  state.rpcs.filter(
+    (call) => call.name !== "my_permission_answer" && call.name !== "import_gate_audit",
+  );
 
 beforeEach(() => {
   state.allowed = true;
@@ -201,7 +199,7 @@ describe("defineImportRoute", () => {
     expect(await response.json()).toEqual({ error: "forbidden" });
     expect(state.pulls).toBe(0);
     expect(state.spends).toEqual([]);
-    expect(state.rpcs.map((call) => call.name)).toEqual(["has_permission"]);
+    expect(state.rpcs.map((call) => call.name)).toEqual(["my_permission_answer"]);
     expect(state.rpcs[0]?.args).toMatchObject({ p_resource: "categories", p_action: "import" });
   });
 

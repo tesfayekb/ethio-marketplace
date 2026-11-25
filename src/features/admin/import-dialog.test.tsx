@@ -163,6 +163,17 @@ describe("import dialog reason words (L1)", () => {
     expect(reasonLine()).toBeNull();
   });
 
+  it("IRW-8 INC-1274 an ended sign-in (the no-session answer, or the route's 401) says so, with no reason line", async () => {
+    await commitWith({ kind: "signedOut" });
+    expect(screen.getByTestId("imp-error").textContent).toBe("T(session.expired)");
+    expect(reasonLine()).toBeNull();
+    document.body.innerHTML = "";
+    callRoute.mockReset();
+    await commitWith(refused(401, "notSignedIn"));
+    expect(screen.getByTestId("imp-error").textContent).toBe("T(session.expired)");
+    expect(reasonLine()).toBeNull();
+  });
+
   it("IRW-6 an unknown code draws as data: the code, a dash, its detail", async () => {
     await commitWith(refused(500, "somethingOdd", "x1"));
     expect(screen.getByTestId("imp-error").textContent).toBe("T(admin.test.import.error.failed)");

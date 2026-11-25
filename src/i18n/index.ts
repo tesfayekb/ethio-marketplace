@@ -2,6 +2,7 @@ export { I18nProvider, LANGUAGE_STORAGE_KEY, BASE_LANGUAGE } from "./provider";
 export {
   useI18n,
   useStringsLayers,
+  useAuthIdentityWriter,
   LANGUAGE_STAR_STORAGE_KEY,
   LANGUAGE_STAR_COOKIE,
   readDeviceStar,

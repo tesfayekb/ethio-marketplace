@@ -52,6 +52,19 @@ export function readDeviceStar(): string | null {
 
 export const I18nContext = createContext<I18nValue | null>(null);
 
+/**
+ * INC-1268 — the writer of who is signed in, given by the provider (which sits above the shell and
+ * subscribes to nothing) to the shell's one `useAuth()`. Without a provider it is a no-op, so a
+ * boundary that draws the shell alone writes nowhere.
+ */
+export type AuthIdentityWriter = (identity: { settled: boolean; userId: string | null }) => void;
+const NO_WRITER: AuthIdentityWriter = () => undefined;
+export const AuthIdentityWriterContext = createContext<AuthIdentityWriter>(NO_WRITER);
+
+export function useAuthIdentityWriter(): AuthIdentityWriter {
+  return useContext(AuthIdentityWriterContext);
+}
+
 export function useI18n(): I18nValue {
   const ctx = useContext(I18nContext);
   if (!ctx) throw new Error("useI18n must be used within <I18nProvider>");

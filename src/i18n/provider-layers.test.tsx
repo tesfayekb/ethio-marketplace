@@ -25,9 +25,9 @@ const loaders = vi.hoisted(() => ({
   >(),
 }));
 
-// DEC-261 — auth events through the client's door; none arrives in these tests.
+// INC-1268 — the provider subscribes to no auth event (the shell writes who is signed in): the door's
+// mock holds none, so a subscription would throw.
 vi.mock("@/lib/supabase-door", () => ({
-  onAuthChange: () => ({ unsubscribe: () => undefined }),
   // Turn 34c-2 — the language list reads the project through the door (its fetch never answers here).
   projectEnv: () => ({ url: "https://abcdefghijklmnop.supabase.co", key: "publishable" }),
 }));

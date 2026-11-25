@@ -8,6 +8,7 @@ import {
   clientAborted,
   clientError,
   serverError,
+  stepUpRequired,
   upstreamUnavailable,
   verdict,
 } from "@/server/answer";
@@ -27,8 +28,9 @@ import {
  *
  *   1  the outer catch      → serverError (a generic body, the stack in the log)
  *   2  the byte ceiling     → 413 by Content-Length alone; nothing is read
- *   3  the caller           → anon / optional / user / staff (has_permission
- *                             AS THE CALLER — the door's own check)
+ *   3  the caller           → anon / optional / user / staff (the permission
+ *                             AS THE CALLER, my_permission_answer — the door's
+ *                             own core and rule, answered 403 or 428)
  *   3b the beforeParse dials → the denial-of-service choice, spent before
  *                             any byte of the body is read
  *   4  the content type     → 415 before the body is read
@@ -229,13 +231,12 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
         supabase = anonymousClient();
       }
       if (staff !== null && supabase !== null && userId !== null) {
-        // Foundations turn 11 — the one staff check (user-client.ts); an error throws.
-        const allowed = await callerHasPermission(
-          supabase,
-          userId,
-          `${staff.resource}:${staff.action}`,
-        );
-        if (!allowed) return clientError("forbidden", 403);
+        // Foundations turn 11 / DEC-465 — the one staff check (user-client.ts), answered as a door
+        // answers: a refusal of the permission is 403, a session that has not used its second
+        // factor is the one step-up answer (428). An error throws.
+        const answer = await callerHasPermission(supabase, `${staff.resource}:${staff.action}`);
+        if (answer === "denied") return clientError("forbidden", 403);
+        if (answer !== "allowed") return stepUpRequired(answer === "stepUpNoFactor");
       }
 
       // (3b) the dials a route declares before the parse (the denial-of-service choice).

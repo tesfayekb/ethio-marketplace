@@ -4,12 +4,12 @@ import { ADMIN_SECTIONS } from "../src/features/admin/sections";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { grantRole } from "./helpers/categories";
 import {
   expectNoHorizontalOverflow,
   gotoReady,
   settled,
-  signIn,
   switchLanguage,
   signInJobSuperAdmin,
 } from "./helpers/ui";
@@ -283,7 +283,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
     // queue (listings:review), which is the Listings table's next.
     const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
-    await signIn(page, moderator.email, moderator.password);
+    await signInStaff(page, moderator);
     await gotoReady(page, "/admin/listings");
     await expect(page.getByTestId(sectionFrame("listings"))).toBeVisible({ timeout: 20000 });
     const sheet = await openGuide(page, LISTINGS);

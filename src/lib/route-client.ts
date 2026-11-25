@@ -1,3 +1,4 @@
+import { reportEndedSignIn, reportNoSession } from "@/lib/ended-sign-in";
 import { saveBlobAs } from "@/lib/save-file";
 import { currentSession } from "@/lib/supabase-door";
 
@@ -151,16 +152,29 @@ async function requestRoute(
   }
 }
 
-export function callRoute(path: RoutePath, init: RouteInit = {}): Promise<RouteAnswer> {
-  return requestRoute(path, init);
+/**
+ * INC-1274 — AN ENDED SIGN-IN IS REPORTED HERE, WHERE IT IS FIRST READ, ONCE PER ANSWER. The answer
+ * that says the caller's sign-in has ended — the signed-out answer (the call never left: the
+ * browser holds no session) and a 401 — goes to the one listener the shell registered
+ * (src/lib/ended-sign-in.ts), so no consumer has to remember; each consumer still maps the answer
+ * to its own signed-out state. The answer is returned as it was.
+ */
+function reported(answer: RouteAnswer): RouteAnswer {
+  if (answer.kind === "signedOut") reportNoSession();
+  else if (answer.kind === "answered" && answer.status === 401) reportEndedSignIn({ status: 401 });
+  return answer;
 }
 
-export function downloadRoute(
+export async function callRoute(path: RoutePath, init: RouteInit = {}): Promise<RouteAnswer> {
+  return reported(await requestRoute(path, init));
+}
+
+export async function downloadRoute(
   path: RoutePath,
   filename: string,
   init: Pick<RouteInit, "auth" | "timeoutMs" | "signal"> = {},
 ): Promise<RouteAnswer> {
-  return requestRoute(path, init, filename);
+  return reported(await requestRoute(path, init, filename));
 }
 
 /**
@@ -170,7 +184,7 @@ export function downloadRoute(
  * unreachable network, `ontimeout` or the deadline is timeout, the caller's
  * abort is aborted.
  */
-export function uploadRoute(
+export async function uploadRoute(
   path: RoutePath,
   form: FormData,
   init: {
@@ -179,6 +193,19 @@ export function uploadRoute(
     signal?: AbortSignal;
     onProgress?: (loaded: number, total: number) => void;
   } = {},
+): Promise<RouteAnswer> {
+  return reported(await sendUpload(path, form, init));
+}
+
+function sendUpload(
+  path: RoutePath,
+  form: FormData,
+  init: {
+    auth?: RouteAuth;
+    timeoutMs?: number;
+    signal?: AbortSignal;
+    onProgress?: (loaded: number, total: number) => void;
+  },
 ): Promise<RouteAnswer> {
   return new Promise<RouteAnswer>((resolve) => {
     const request = new XMLHttpRequest();

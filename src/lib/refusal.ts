@@ -236,6 +236,10 @@ export function readRefusal(
   if (heard.name === "StepUpCancelled") return { ...read(generic, "stepUp"), silent: true };
   if (heard.name === "StepUpUnavailable") return read(STEP_UP_UNAVAILABLE_KEY, "stepUp");
   const raw = heard.code?.trim() ?? "";
+  const providerWords = (): MessageKey | undefined =>
+    heard.provider === null || family.words === undefined
+      ? undefined
+      : ownValue(family.words, heard.provider);
   if (raw !== "") {
     const { key: head, tail: ownTail } = splitRefusal(raw);
     const tail = ownTail ?? heard.detail;
@@ -250,13 +254,15 @@ export function readRefusal(
     if (doorCode(raw).code !== null) {
       return read(family.generic ?? DOOR_REFUSED_KEY, "doorCode", tail);
     }
+    // INC-1275 — a code the family names is read before the family's English sentences: the
+    // sentences are for the errors that carry no code the family names.
+    const named = providerWords();
+    if (named !== undefined) return read(named, "provider");
     const sentence = family.sentences?.find(([pattern]) => pattern.test(raw));
     if (sentence !== undefined) return read(sentence[1], "sentence");
   }
-  if (heard.provider !== null && family.words !== undefined) {
-    const words = ownValue(family.words, heard.provider);
-    if (words !== undefined) return read(words, "provider");
-  }
+  const named = providerWords();
+  if (named !== undefined) return read(named, "provider");
   return read(generic, "generic");
 }
 

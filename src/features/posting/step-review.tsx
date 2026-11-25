@@ -220,6 +220,8 @@ export function StepReview({
   const [certifyTried, setCertifyTried] = useState(0);
   const navigate = useNavigate();
   const [failed, setFailed] = useState(false);
+  // INC-1274 — a publish answered "your sign-in has ended": said as that, never as "not saved".
+  const [signedOut, setSignedOut] = useState(false);
   // Step 16 — the date box shows while the switch is on; a saved date opens it.
   const [dateOn, setDateOn] = useState(values.posterExpiresAt !== "");
   const [inReview, setInReview] = useState(false);
@@ -820,6 +822,16 @@ export function StepReview({
         </div>
       )}
 
+      {signedOut && (
+        <p
+          role="alert"
+          className="text-sm text-destructive"
+          data-testid="post-review-session-ended"
+        >
+          {t("session.expired")}
+        </p>
+      )}
+
       {failed && (
         <p className="text-sm text-destructive" data-testid="post-review-failed">
           {t("post.save.unsaved")}
@@ -920,6 +932,7 @@ export function StepReview({
               }
               setPublishing(true);
               setFailed(false);
+              setSignedOut(false);
               setRefusals([]);
               void publishListing(
                 listingId,
@@ -933,7 +946,8 @@ export function StepReview({
                 }
                 // A refusal is the door's judgement and is shown; unreachability is
                 // the network's and says so — never a silent nothing (F4).
-                if (answer.unreachable) setFailed(true);
+                if (answer.signedOut === true) setSignedOut(true);
+                else if (answer.unreachable) setFailed(true);
                 else {
                   const legal = answer.refusals.find((r) => certifyRefusal(r.reason, navigate));
                   if (legal === undefined) setRefusals(answer.refusals);

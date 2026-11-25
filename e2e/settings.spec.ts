@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 
+import type { Page } from "@playwright/test";
+
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
@@ -10,12 +12,14 @@ import {
   expectSignedIn,
   expectSignedOut,
   signIn,
+  signInMarker,
   signedInMarker,
   signInViaSession,
   signOutViaUi,
   waitForHydration,
 } from "./helpers/ui";
 import { hasMailSink, mailFor } from "./helpers/mail-sink";
+import { forgetStoredSession } from "./helpers/session";
 import { leaseUser, mintEmail } from "./helpers/users";
 
 /**
@@ -233,6 +237,62 @@ test("ACS-E2: the Settings page offers no Link Google", async ({ page }) => {
 });
 
 /**
+ * INC-1274 (cursor bundle 6, part 1) — A SIGN-IN THAT ENDED ELSEWHERE IS SAID AS ENDED. Two pages of one
+ * browser, both signed in; the second empties the stored session. The first page hears nothing (its
+ * storage events are swallowed, the case of a tab that was asleep), so the action it is asked for is
+ * the first to meet the end: the answer is the sign-in-ended notice and the sign-in the shell offers,
+ * never the generic "could not" the walk saw.
+ */
+const ENDED_ELSEWHERE = [
+  {
+    id: "ACS-E5",
+    action: "a password change",
+    act: async (page: Page, password: string) => {
+      await page.locator("#current-password").fill(password);
+      await page.locator("#new-password").fill(`${password}-next`);
+      await page.locator("#new-password-confirm").fill(`${password}-next`);
+      await page.getByRole("button", { name: en["settings.changePassword"] }).click();
+    },
+  },
+  {
+    id: "ACS-E5b",
+    action: "an e-mail change",
+    act: async (page: Page) => {
+      await page.locator("#new-email").fill(mintEmail(5));
+      await page.getByRole("button", { name: en["settings.changeEmail"] }).click();
+    },
+  },
+];
+
+for (const { id, action, act } of ENDED_ELSEWHERE) {
+  test(`${id}: ${action} on a page whose sign-in ended elsewhere says the sign-in ended (INC-1274)`, async ({
+    page,
+    context,
+  }) => {
+    test.setTimeout(90_000);
+    const user = await leaseUser();
+    await page.addInitScript(() => {
+      window.addEventListener("storage", (event) => event.stopImmediatePropagation(), true);
+    });
+    await signInViaSession(page, user.email, user.password);
+    await page.goto("/settings");
+    await expect(page.getByTestId("password-method")).toBeVisible({ timeout: 15000 });
+    const other = await context.newPage();
+    await other.goto("/");
+    await waitForHydration(other);
+    await forgetStoredSession(other);
+    await other.close();
+
+    await act(page, user.password);
+    await expect(page.getByTestId("session-notice")).toContainText(en["session.expired"], {
+      timeout: 15000,
+    });
+    await expect(signInMarker(page)).toBeVisible();
+    await expect(page.getByText(en["auth.errorGeneric"])).toHaveCount(0);
+  });
+}
+
+/**
  * ACS-E3 and ACS-E4 need the temporary backend (E2E_LOCAL_BACKEND=1): a real e-mail change or notice is
  * sent, and ethio-staging's mail provider refuses recipients that are not its owner's (INC-013). CI's
  * lanes run on the temporary backend, where the mail sink holds what was sent.
@@ -289,5 +349,24 @@ test.describe("account mail (needs the temporary backend's mail sink)", () => {
         timeout: 15000,
       })
       .toContain(expected);
+  });
+
+  test("ACS-E6: a new password equal to the current one is refused in the words for it (INC-1274)", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    await signIn(page, user.email, user.password, { uiLogin: true });
+    await expectSignedIn(page, user.displayName);
+    await page.goto("/settings");
+    const current = page.locator("#current-password");
+    const form = page.locator("form").filter({ has: current });
+    await current.fill(user.password);
+    await page.locator("#new-password").fill(user.password);
+    await page.locator("#new-password-confirm").fill(user.password);
+    await page.getByRole("button", { name: en["settings.changePassword"] }).click();
+    await expect(form.getByRole("alert")).toHaveText(en["auth.errorSamePassword"], {
+      timeout: 15000,
+    });
+    await expect(signedInMarker(page)).toBeVisible();
   });
 });

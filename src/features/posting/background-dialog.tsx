@@ -108,7 +108,11 @@ export function BackgroundDialog({
     if (!answer.ok) {
       if (answer.reason === "backgroundSpent") setTriesLeft(0);
       setRefusal(
-        answer.unreachable ? "post.photos.background.failed" : backgroundRefusalKey(answer.reason),
+        answer.signedOut === true
+          ? "session.expired"
+          : answer.unreachable
+            ? "post.photos.background.failed"
+            : backgroundRefusalKey(answer.reason),
       );
       setPhase(result === null ? "intro" : "ready");
       return;

@@ -8,6 +8,7 @@ import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { readSlots, slotFaults } from "./helpers/one-line";
 import { MODES, setMode, type Mode } from "./helpers/sage-look";
+import { signInStaff } from "./helpers/staff-factor";
 import {
   expectNoHorizontalOverflow,
   gotoReady,
@@ -99,7 +100,7 @@ test("OLS-2 a signed-in bar shows the short seller label whole", async ({ page }
 test("OLS-3 an admin's five-item bar shows the short seller label whole", async ({ page }) => {
   const staff = await leaseUser();
   await grantRole(staff.id, "admin");
-  await signIn(page, staff.email, staff.password);
+  await signInStaff(page, staff);
   await gotoReady(page, "/");
   await expect(page.getByTestId("bottom-bar-admin")).toBeVisible();
   const languages = await publicLanguages(page);

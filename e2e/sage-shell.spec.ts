@@ -210,7 +210,11 @@ for (const width of WIDTHS) {
 
       test(`SGS-6 Sign in is raised (${width}, ${mode})`, async ({ page }) => {
         test.skip(width < 768, "the top bar's Sign in shows from 768 px");
-        const signIn = page.getByTestId("topbar-controls").locator('a[href="/auth"]');
+        // The link's address carries the page the visitor was on (D11, Lovable 10a, PR #104): with
+        // its query or without.
+        const signIn = page
+          .getByTestId("topbar-controls")
+          .locator('a[href="/auth"], a[href^="/auth?"]');
         expect(await style(signIn, "boxShadow")).toBe(
           await resolved(page, "boxShadow", tokenOf(mode, "lift-button")),
         );

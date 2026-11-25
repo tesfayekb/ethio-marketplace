@@ -40,7 +40,6 @@ describe("the picture surface's failure line (F1-4a)", () => {
     );
     for (const [message, step] of [
       ["storage upload failed: x", "upload"],
-      ["not signed in", "model-call"],
       ["network error", "model-call"],
       ["route returned no image", "model-call"],
       ["client-timeout", "client-timeout"],
@@ -49,6 +48,17 @@ describe("the picture surface's failure line (F1-4a)", () => {
         message,
         `admin.categories.error.imageFailed${stage(step)}`,
       ]);
+    }
+  });
+
+  it("CIG-4 INC-1274 an ended sign-in is said as ended, never as a step's failure", () => {
+    const { result } = renderHook(() => useImageFailure());
+    for (const error of [
+      new CategoryImageError("notSignedIn", 401, "auth"),
+      new CategoryImageError("notSignedIn", 401, "model-call"),
+    ]) {
+      act(() => result.current.fail(error));
+      expect(result.current.message).toBe("session.expired");
     }
   });
 

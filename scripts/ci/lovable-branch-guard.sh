@@ -33,8 +33,16 @@
 # CSS, one `<old> → <new> = ceilingFor(Local)?(<size>); was <old>.` and agrees with the css lines;
 # the comment's line falls between `const BUDGET_KIB = {` and the `js:` line of the base checkout's
 # own file (this script runs in the base, DEC-413). Any other changed line of that file, the same
-# line in another form (a trailing comment, a changed `js:`), a removed or second comment, a rename
-# or a patch the guard cannot read refuses.
+# line in another form (a trailing comment), a removed or second comment, a rename or a patch the
+# guard cannot read refuses (the `js:` line is DEC-468's, below).
+#
+# DEC-468 (cursor-bundle-6) extends the fourth exception to the entry's limit line of the same
+# block, on the same terms: exactly one removed and one added `  js: <n>,` line and at most one added
+# DEC-296 comment line naming JS (`<old> → <new> = ceilingFor(Local)?(<size>); was <old>.`, agreeing
+# with the js lines). A patch that changes both limits is judged line by line by the same rule, each
+# limit with its own comment; a comment that names both, a second comment for one limit and every
+# other changed line of the file stay refused. DEC-425 and DEC-468 stay named beside each other in
+# every refusal of this file.
 #
 # Every offending path is listed with its rule; then exit 1. The four exceptions are judged by
 # content: the deletions file takes added lines only; every changed line of the ceilings file is a
@@ -78,10 +86,13 @@ readonly CEILINGS="scripts/route-budgets.mjs"
 readonly BUNDLE_SIZE="scripts/check-bundle-size.mjs"
 # The shape of every route line of scripts/route-budgets.mjs, read from the file.
 readonly CEILING_LINE='^  "[^"]+": \{ ceiling: [0-9]+, public: (true|false) \}, // .+$'
-# DEC-425: the shape of the stylesheet's limit line, and of DEC-296's comment for it (groups: the
-# measuring place, the old limit, the new limit, `Local`, the `was` value).
+# DEC-425 and DEC-468: the shape of the stylesheet's and the entry's limit lines, and of DEC-296's
+# comment for each (groups: the measuring place, the old limit, the new limit, `Local`, the `was`
+# value).
 readonly CSS_LINE='^  css: ([0-9]+),$'
+readonly JS_LINE='^  js: ([0-9]+),$'
 readonly CSS_COMMENT='^  // DEC-296 \(.+\): .*CSS (local|CI) [0-9.]+ KiB.*; ([0-9]+) → ([0-9]+) = ceilingFor(Local)?\([0-9.]+\); was ([0-9]+)\.$'
+readonly JS_COMMENT='^  // DEC-296 \(.+\): .*JS (local|CI) [0-9.]+ KiB.*; ([0-9]+) → ([0-9]+) = ceilingFor(Local)?\([0-9.]+\); was ([0-9]+)\.$'
 
 # DEC-432 — the body's one line, and one line of the list it names (groups: the list's path and its
 # sha256; a line's sha256 and its path).
@@ -117,7 +128,7 @@ rule_for() {
     src/routes/api/*) echo "src/routes/api/** — server routes (DEC-386)" ;;
     src/integrations/supabase/*) echo "src/integrations/supabase/** — the platform's client (INC-1168, DEC-386)" ;;
     .github/*) echo ".github/** — workflows (DEC-386)" ;;
-    scripts/*) echo "scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425)" ;;
+    scripts/*) echo "scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425; the entry's limit line, DEC-468)" ;;
     e2e/helpers/*) echo "e2e/helpers/** — e2e helpers (DEC-386)" ;;
     e2e/global-setup.ts | e2e/global-teardown.ts | e2e/fixtures.ts) echo "$1 — e2e global setup (DEC-386)" ;;
     package.json | bun.lock) echo "$1 — dependencies (DEC-386)" ;;
@@ -294,14 +305,19 @@ changed_lines() {
   done <<<"$1"
 }
 
-# DEC-425 — the stylesheet's limit line, judged by content: empty when the patch holds exactly one
-# removed and one added `css:` line and at most one added DEC-296 comment line (agreeing with them,
-# placed in the block above the limits of the base's own file), else the reason.
+# DEC-425 and DEC-468 — the stylesheet's (`css:`) and the entry's (`js:`) limit lines, judged by
+# content: empty when the patch holds, for each limit it changes, exactly one removed and one added
+# line of that limit and at most one added DEC-296 comment line naming that limit (agreeing with its
+# lines, placed in the block above the limits of the base's own file), and for the limit it does not
+# change nothing; else the reason. At least one limit must change.
 bundle_size_refusal() {
-  local path="$1" patch="$2" line text arrows start="" js=""
-  local new_no=0 removed=0 added=0 comments=0 old_css="" new_css="" new_css_at=0 comment_at=0
-  local c_old="" c_new="" c_was=""
-  local why="${path} — a changed line that is not the stylesheet's limit line; DEC-425 admits one \`css:\` number and one DEC-296 comment only"
+  local path="$1" patch="$2" line text arrows start="" js="" kind
+  local new_no=0 comments=0 comment_at=0 hits_css hits_js
+  local rem_css=0 add_css=0 old_css="" new_css="" new_css_at=0 com_css=0 ca_css=""
+  local rem_js=0 add_js=0 old_js="" new_js="" new_js_at=0 com_js=0 ca_js=""
+  local c_old="" c_new="" c_was="" c_css_old="" c_css_new="" c_css_was="" c_js_old="" c_js_new="" c_js_was=""
+  local why="${path} — a changed line that is not the entry's or the stylesheet's limit line; DEC-425 (css) and DEC-468 (js) admit those two numbers and their DEC-296 comments only"
+  local comment_why="${path} — a second comment line for one limit; DEC-425 and DEC-468 admit one DEC-296 comment for each limit"
   while IFS= read -r line; do
     case "$line" in
       "") continue ;;
@@ -309,7 +325,7 @@ bundle_size_refusal() {
         if [[ "$line" =~ ^@@\ -[0-9]+(,[0-9]+)?\ \+([0-9]+)(,[0-9]+)?\ @@ ]]; then
           new_no="${BASH_REMATCH[2]}"
         else
-          echo "${path} — a hunk header the guard cannot read; DEC-425 refuses what it cannot judge"
+          echo "${path} — a hunk header the guard cannot read; DEC-425 and DEC-468 refuse what they cannot judge"
           return
         fi
         ;;
@@ -318,8 +334,11 @@ bundle_size_refusal() {
       "-"*)
         text="${line:1}"
         if [[ "$text" =~ $CSS_LINE ]]; then
-          removed=$((removed + 1))
+          rem_css=$((rem_css + 1))
           old_css="${BASH_REMATCH[1]}"
+        elif [[ "$text" =~ $JS_LINE ]]; then
+          rem_js=$((rem_js + 1))
+          old_js="${BASH_REMATCH[1]}"
         else
           echo "$why"
           return
@@ -328,15 +347,37 @@ bundle_size_refusal() {
       "+"*)
         text="${line:1}"
         arrows="$(printf '%s' "$text" | grep -o '→' | wc -l || true)"
+        hits_css=0
+        hits_js=0
+        if [[ "$text" =~ $CSS_COMMENT ]]; then
+          hits_css=1
+          c_css_old="${BASH_REMATCH[2]}"
+          c_css_new="${BASH_REMATCH[3]}"
+          c_css_was="${BASH_REMATCH[5]}"
+        fi
+        if [[ "$text" =~ $JS_COMMENT ]]; then
+          hits_js=1
+          c_js_old="${BASH_REMATCH[2]}"
+          c_js_new="${BASH_REMATCH[3]}"
+          c_js_was="${BASH_REMATCH[5]}"
+        fi
         if [[ "$text" =~ $CSS_LINE ]]; then
-          added=$((added + 1))
+          add_css=$((add_css + 1))
           new_css="${BASH_REMATCH[1]}"
           new_css_at=$new_no
-        elif [[ "$text" =~ $CSS_COMMENT ]] && [ "${arrows//[[:space:]]/}" = "1" ]; then
+        elif [[ "$text" =~ $JS_LINE ]]; then
+          add_js=$((add_js + 1))
+          new_js="${BASH_REMATCH[1]}"
+          new_js_at=$new_no
+        elif [ "$((hits_css + hits_js))" = "1" ] && [ "${arrows//[[:space:]]/}" = "1" ]; then
           comments=$((comments + 1))
-          c_old="${BASH_REMATCH[2]}"
-          c_new="${BASH_REMATCH[3]}"
-          c_was="${BASH_REMATCH[5]}"
+          if [ "$hits_css" = "1" ]; then
+            com_css=$((com_css + 1))
+            ca_css=$new_no
+          else
+            com_js=$((com_js + 1))
+            ca_js=$new_no
+          fi
           comment_at=$new_no
         else
           echo "$why"
@@ -350,41 +391,61 @@ bundle_size_refusal() {
         ;;
     esac
   done <<<"$patch"
-  if [ "$removed" != "1" ] || [ "$added" != "1" ]; then
-    echo "${path} — DEC-425 admits the stylesheet's limit as one removed and one added \`css:\` line (${removed} removed, ${added} added)"
+  if [ "$rem_css" = "0" ] && [ "$add_css" = "0" ] && [ "$rem_js" = "0" ] && [ "$add_js" = "0" ]; then
+    echo "${path} — DEC-425 and DEC-468 admit a limit as one removed and one added \`css:\` or \`js:\` line (0 removed, 0 added)"
     return
   fi
-  if [ "$comments" -gt 1 ]; then
-    echo "${path} — a second comment line; DEC-425 admits one DEC-296 comment for the stylesheet's limit"
+  for kind in css js; do
+    local rem add
+    if [ "$kind" = "css" ]; then rem=$rem_css; add=$add_css; else rem=$rem_js; add=$add_js; fi
+    if { [ "$rem" != "0" ] || [ "$add" != "0" ]; } && { [ "$rem" != "1" ] || [ "$add" != "1" ]; }; then
+      echo "${path} — DEC-425 and DEC-468 admit a limit as one removed and one added \`${kind}:\` line (${rem} removed, ${add} added)"
+      return
+    fi
+  done
+  if [ "$com_css" -gt 1 ] || [ "$com_js" -gt 1 ]; then
+    echo "$comment_why"
     return
   fi
-  if [ "$comments" = "1" ] && { [ "$c_new" != "$new_css" ] || [ "$c_was" != "$old_css" ] || [ "$c_old" != "$old_css" ]; }; then
-    echo "${path} — the comment says ${c_old} → ${c_new}, was ${c_was}; the css lines say ${old_css} → ${new_css} (DEC-425)"
+  if [ "$com_css" = "1" ] && { [ "$rem_css" = "0" ] || [ "$c_css_new" != "$new_css" ] || [ "$c_css_was" != "$old_css" ] || [ "$c_css_old" != "$old_css" ]; }; then
+    echo "${path} — the comment says ${c_css_old} → ${c_css_new}, was ${c_css_was}; the css lines say ${old_css:-none} → ${new_css:-none} (DEC-425, DEC-468)"
+    return
+  fi
+  if [ "$com_js" = "1" ] && { [ "$rem_js" = "0" ] || [ "$c_js_new" != "$new_js" ] || [ "$c_js_was" != "$old_js" ] || [ "$c_js_old" != "$old_js" ]; }; then
+    echo "${path} — the comment says ${c_js_old} → ${c_js_new}, was ${c_js_was}; the js lines say ${old_js:-none} → ${new_js:-none} (DEC-425, DEC-468)"
     return
   fi
   start="$(awk '$0 == "const BUDGET_KIB = {" { print NR; exit }' "$BUNDLE_SIZE" 2>/dev/null || true)"
   js="$(awk '/^  js: [0-9]+,$/ { print NR; exit }' "$BUNDLE_SIZE" 2>/dev/null || true)"
   if ! [[ "$start" =~ ^[0-9]+$ && "$js" =~ ^[0-9]+$ ]] || [ "$start" -ge "$js" ]; then
-    echo "${path} — the base's own file holds no BUDGET_KIB block above its \`js:\` line to place the change in; DEC-425 refuses what it cannot judge"
+    echo "${path} — the base's own file holds no BUDGET_KIB block above its \`js:\` line to place the change in; DEC-425 and DEC-468 refuse what they cannot judge"
     return
   fi
-  if [ "$comments" = "1" ] && { [ "$comment_at" -le "$start" ] || [ "$comment_at" -gt "$js" ]; }; then
-    echo "${path} — the comment is outside the block above the two limits (after line ${start}, up to line ${js}); DEC-425"
+  # Each comment falls above the base's `js:` line: its new line number is after the block's opening
+  # and before the limits, which the added comments pushed down.
+  for at in "$ca_css" "$ca_js"; do
+    if [ -n "$at" ] && { [ "$at" -le "$start" ] || [ "$at" -ge "$((js + comments))" ]; }; then
+      echo "${path} — the comment is outside the block above the two limits (after line ${start}, before line $((js + comments))); DEC-425, DEC-468"
+      return
+    fi
+  done
+  if [ "$add_js" = "1" ] && [ "$new_js_at" != "$((js + comments))" ]; then
+    echo "${path} — the \`js:\` line moved from its place; DEC-425, DEC-468"
     return
   fi
-  if [ "$new_css_at" != "$((js + 1 + comments))" ]; then
-    echo "${path} — the \`css:\` line moved from its place under the \`js:\` limit; DEC-425"
+  if [ "$add_css" = "1" ] && [ "$new_css_at" != "$((js + 1 + comments))" ]; then
+    echo "${path} — the \`css:\` line moved from its place under the \`js:\` limit; DEC-425, DEC-468"
     return
   fi
 }
 
-# An exception's verdict: empty when its patch holds only what DEC-390, DEC-396 or DEC-425 allows,
+# An exception's verdict: empty when its patch holds only what DEC-390, DEC-396, DEC-425 or DEC-468 allows,
 # else the reason. The patch is the API's or, when the API carried none, git's (DEC-398);
 # `unreadable` is why neither could be had.
 exception_refusal() {
   local path="$1" has_patch="$2" patch="$3" status="$4" unreadable="${5:-}" line dec="DEC-390"
   if is_allowlist "$path"; then dec="DEC-396"; fi
-  if [ "$path" = "$BUNDLE_SIZE" ]; then dec="DEC-425"; fi
+  if [ "$path" = "$BUNDLE_SIZE" ]; then dec="DEC-425, DEC-468"; fi
   if [ "$has_patch" != "1" ]; then
     echo "${path} — the API carries no patch for it (a binary or a very large diff) and its two sides could not be read from git: ${unreadable}, so ${dec}'s exception cannot be read"
     return
@@ -395,7 +456,7 @@ exception_refusal() {
   fi
   if [ "$path" = "$BUNDLE_SIZE" ]; then
     if [ "$status" != "modified" ]; then
-      echo "${path} — ${status}; a Lovable branch may only move the stylesheet's limit line of the existing file — DEC-425"
+      echo "${path} — ${status}; a Lovable branch may only move the stylesheet's or the entry's limit line of the existing file — DEC-425, DEC-468"
       return
     fi
     bundle_size_refusal "$path" "$patch"

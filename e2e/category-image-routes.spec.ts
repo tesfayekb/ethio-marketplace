@@ -3,6 +3,8 @@ import { expect, test } from "./fixtures";
 
 import type { Database } from "../src/integrations/supabase/types";
 
+import { passwordGrant } from "./helpers/session";
+import { staffSession } from "./helpers/staff-factor";
 import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
 /**
@@ -38,27 +40,12 @@ function callerClient(token: string) {
   });
 }
 
-function anonClient() {
-  const url = process.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
-  const key =
-    process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"] ?? "";
-  if (url === "" || key === "") throw new Error("[e2e:c5a] supabase env missing");
-  return createClient(url, key, { auth: { persistSession: false } });
-}
-
 /** A signed-in bearer token for a principal holding `categories:assets`. */
 async function assetsToken(): Promise<string> {
   const user = await leaseUser();
   await grantRole(user.id, "super_admin");
-  const { data, error } = await anonClient().auth.signInWithPassword({
-    email: user.email,
-    password: user.password,
-  });
-  const token = data.session?.access_token;
-  if (error || !token) {
-    throw new Error(`[e2e:c5a] sign-in failed: ${error?.message ?? "no session"}`);
-  }
-  return token;
+  // Cursor bundle 6 — a staff route and its doors answer a session that used its factor (aal2).
+  return (await staffSession(user)).access_token;
 }
 
 /** Seeds a scratch leaf category (J7 — before any call). */
@@ -126,15 +113,17 @@ test.describe("C5a — category AI foundation routes", () => {
       expect([...bytes.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
       // DB/STORAGE TRUTH (J4) — the route wrote nothing: no object, no row change.
-      const { data: objects } = await adminClient()
+      const { data: objects, error: listError } = await adminClient()
         .storage.from("category-assets")
         .list(category.id);
+      expect(listError).toBeNull();
       expect(objects ?? []).toHaveLength(0);
-      const { data: row } = await adminClient()
+      const { data: row, error: rowError } = await adminClient()
         .from("categories")
         .select("image_url, image_thumb_url, og_image_url")
         .eq("id", category.id)
         .single();
+      expect(rowError).toBeNull();
       expect(row).toEqual({ image_url: null, image_thumb_url: null, og_image_url: null });
     } finally {
       await cleanup(category.id);
@@ -234,6 +223,42 @@ test.describe("C5a — category AI foundation routes", () => {
         .eq("id", category.id)
         .single();
       expect(truth?.image_accepted_at).toBe(stamp);
+    } finally {
+      await cleanup(category.id);
+    }
+  });
+
+  test("STAFF-E3 a staff session that has not used its second factor reads 428 on a staff route, and nothing is written", async ({
+    request,
+  }) => {
+    const user = await leaseUser();
+    await grantRole(user.id, "super_admin");
+    // The account holds a verified factor (the node mint enrols one), and THIS session is a plain
+    // password sign-in: aal1, the factor unused.
+    await staffSession(user);
+    const aal1 = (await passwordGrant(user.email, user.password, { fresh: true })).access_token;
+    const category = await seedCategory();
+    try {
+      const response = await request.post(GENERATE, {
+        headers: { Authorization: `Bearer ${aal1}` },
+        data: { categoryId: category.id },
+      });
+      const payload = (await response.json()) as Record<string, unknown>;
+      expect(response.status(), JSON.stringify(payload)).toBe(428);
+      expect(payload["code"]).toBe("P0009");
+      expect(payload["error"]).toBe("step-up required");
+
+      // DB/STORAGE TRUTH (J4) — no object, no row change.
+      const { data: objects } = await adminClient()
+        .storage.from("category-assets")
+        .list(category.id);
+      expect(objects ?? []).toHaveLength(0);
+      const { data: row } = await adminClient()
+        .from("categories")
+        .select("image_url, image_thumb_url, og_image_url")
+        .eq("id", category.id)
+        .single();
+      expect(row).toEqual({ image_url: null, image_thumb_url: null, og_image_url: null });
     } finally {
       await cleanup(category.id);
     }

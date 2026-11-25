@@ -22,6 +22,11 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * shell's context (`useShell()`, src/components/shell-context.ts), fed by the one `useAuth()` of
  * src/components/app-shell.tsx. A feature that calls `useAuth()` itself subscribes to the sign-in events
  * again and repeats the account-status read; the census reads every call of it in the browser tree.
+ *
+ * Cursor bundle 6 (INC-1268, CF-SESSION-7) — and the sign-in EVENTS have one listener too: nothing but
+ * `useAuth()` (src/features/auth/use-auth.ts) calls `onAuthChange(`. The language provider above the shell
+ * and the sign-in page read who is signed in from the shell's store; a second subscription is a second
+ * answer to who is signed in. No allowlist.
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -159,6 +164,25 @@ const browser = walkFiles(["src"], {
 
 /** The one caller of `useAuth()`: the shell (the hook's own file defines it and calls nothing). */
 const SESSION_STORE_CALLERS = new Set(["src/components/app-shell.tsx"]);
+
+/** The one caller of `onAuthChange(`: the hook that is the store. */
+const AUTH_EVENT_CALLERS = new Set(["src/features/auth/use-auth.ts"]);
+
+/** Every call of `onAuthChange(`, by file and line, in the files given. */
+export function onAuthChangeCalls(files: string[]): Array<{ file: string; line: number }> {
+  const found: Array<{ file: string; line: number }> = [];
+  for (const file of files) {
+    visitTs(file, (node, source) => {
+      if (!ts.isCallExpression(node) || !ts.isIdentifier(node.expression)) return;
+      if (node.expression.text !== "onAuthChange") return;
+      found.push({
+        file,
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+      });
+    });
+  }
+  return found;
+}
 
 /** Every call of `useAuth(`, by file and line, in the files given. */
 export function useAuthCalls(files: string[]): Array<{ file: string; line: number }> {
@@ -318,6 +342,46 @@ describe("a session that could not be read is unknown, never signed out (INC-914
         'import { useShell } from "@/components/shell-context";\nexport function B() {\n  const { user } = useShell();\n  return user;\n}\n',
       );
       expect(useAuthCalls([bad, good])).toEqual([{ file: bad, line: 3 }]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it(
+    "CF-SESSION-7 `onAuthChange(` is called only by `useAuth()`: the sign-in events have one listener (INC-1268)",
+    () => {
+      const calls = onAuthChangeCalls(browser);
+      const findings = calls
+        .filter(({ file }) => !AUTH_EVENT_CALLERS.has(file))
+        .map(({ file, line }) => ({
+          file,
+          line,
+          what: "subscribes to the sign-in events — read the shell's one store, `useShell()` (src/components/shell-context.ts)",
+        }));
+      console.log(
+        `[session-reads] onAuthChange( calls: ${calls.length}; outside useAuth: ${findings.length}`,
+      );
+      expect(calls.map(({ file }) => file)).toEqual([...AUTH_EVENT_CALLERS]);
+      expect(report(findings)).toBe("");
+    },
+    TREE_SCAN_MS,
+  );
+
+  it("CF-SESSION-8 the census names a planted second subscription and passes a call of another name", () => {
+    const dir = "node_modules/.cache/session-events";
+    mkdirSync(dir, { recursive: true });
+    const bad = `${dir}/se-bad.tsx`;
+    const good = `${dir}/se-good.tsx`;
+    try {
+      writeFileSync(
+        bad,
+        'import { onAuthChange } from "@/lib/supabase-door";\nexport function A() {\n  const s = onAuthChange(() => undefined);\n  return s;\n}\n',
+      );
+      writeFileSync(
+        good,
+        'import { onUnauthorised } from "@/features/auth/session-end";\nexport function B() {\n  return onUnauthorised(() => undefined);\n}\n',
+      );
+      expect(onAuthChangeCalls([bad, good])).toEqual([{ file: bad, line: 3 }]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

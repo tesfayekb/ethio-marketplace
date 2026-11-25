@@ -147,6 +147,12 @@ export interface DoorAnswer {
   payload: Record<string, unknown>;
   /** True when the request never reached the server (offline, blocked, 5xx). */
   unreachable: boolean;
+  /**
+   * INC-1274 — true when the answer says the caller's sign-in has ended (the call never left with
+   * no session, or the server answered 401). Not a verdict on the answers and not a transport
+   * failure: nothing is retried by a timer, and the form asks the person to sign in again.
+   */
+  signedOut?: boolean;
 }
 
 /** The autosave's visible state (C4 — every screen says where it stands). */

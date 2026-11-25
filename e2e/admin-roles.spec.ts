@@ -1,5 +1,6 @@
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { pageDoor } from "./helpers/door-callers";
 
 import { am } from "../src/i18n/locales/am";
@@ -12,9 +13,9 @@ import {
   gotoReady,
   isMobile,
   roleRow,
+  signOutViaUi,
   stepUpIfPrompted,
   switchLanguage,
-  switchUser,
   userRow,
   waitForHydration,
 } from "./helpers/ui";
@@ -135,7 +136,7 @@ test.describe("U2 roles console", () => {
   }) => {
     const moderator = await leaseUser();
     await grantRole(moderator.id, "moderator");
-    await switchUser(page, moderator.email, moderator.password);
+    await signInStaff(page, moderator);
     await page.goto("/admin/roles");
     await waitForHydration(page);
     await expect(page).toHaveURL(/\/admin\/?$/);
@@ -146,7 +147,7 @@ test.describe("U2 roles console", () => {
 
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/roles");
     await expect(page.getByTestId("admin-section-roles")).toBeVisible();
     await expect(roleRow(page, "admin")).toBeVisible();
@@ -154,8 +155,9 @@ test.describe("U2 roles console", () => {
 
     // Signed-out deep link into a role id: redirected, nothing gated renders.
     const id = await roleId("admin");
-    await page.context().clearCookies();
-    await page.evaluate(() => window.localStorage.clear());
+    // A real sign-out (the staff sign-in's one-shot injection stays a no-op after it; clearing storage
+    // by hand would remove that mark and the injection would sign the page in again).
+    await signOutViaUi(page);
     await page.goto(`/admin/roles/${id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("role-permissions")).toHaveCount(0);

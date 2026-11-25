@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 
+import { signInStaff } from "./helpers/staff-factor";
 import {
   authFields,
   expectActivePanel,
@@ -62,7 +63,7 @@ test.describe("U0j sign-out hard reset", () => {
     const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
-    await signIn(page, user.email, user.password);
+    await signInStaff(page, user);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-panel-root")).toBeVisible();
 
@@ -98,7 +99,7 @@ test.describe("U0j sign-out hard reset", () => {
     const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
-    await signIn(page, user.email, user.password);
+    await signInStaff(page, user);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-panel-root")).toBeVisible();
 
@@ -119,7 +120,7 @@ test.describe("U0j sign-out hard reset", () => {
     const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
-    await signIn(page, user.email, user.password);
+    await signInStaff(page, user);
     await gotoReady(page, "/admin");
     await expect(page.getByTestId("admin-panel-root")).toBeVisible();
 
@@ -136,7 +137,7 @@ test.describe("U0j sign-out hard reset", () => {
     const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
-    await signIn(page, user.email, user.password);
+    await signInStaff(page, user);
     await gotoReady(page, "/admin");
     await signOutViaUi(page);
     await expectSignedOutMarketplace(page);
@@ -451,7 +452,7 @@ test.describe("U0k session policy", () => {
     const user = await leaseUser();
     await grantRole(user.id, "super_admin");
 
-    await signIn(page, user.email, user.password);
+    await signInStaff(page, user);
 
     const other = await context.newPage();
     await gotoReady(other, "/admin");

@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReaderError } from "@/lib/reader-failure";
+import { providerError } from "@/test/provider-errors";
 
 /**
  * F1-7d (INC-1218) — THE END OF A SESSION IS ONE STATE. What ends a session (a 401, a stale token,
@@ -52,6 +53,43 @@ describe("what ends a session", () => {
       "401",
     );
     expect(sessionEndCode({ message: "boom" })).toBeNull();
+  });
+});
+
+describe("an auth call whose session is gone (INC-1274)", () => {
+  it("SEN-8 the library's missing-session error and the server's session codes end it, and the shell hears one code", async () => {
+    const { endsSession, sessionEndCode, sessionGone, onUnauthorised, reportSessionMissing } =
+      await sessionEnd();
+    const missing = providerError("AuthSessionMissingError");
+    expect(sessionGone(missing)).toBe(true);
+    expect(endsSession(missing)).toBe(true);
+    expect(sessionEndCode(missing)).toBe("session_missing");
+    for (const code of [
+      "session_not_found",
+      "session_expired",
+      "refresh_token_not_found",
+      "refresh_token_already_used",
+    ]) {
+      const error = { message: "Invalid Refresh Token: No Valid Session Found", code, status: 400 };
+      expect(sessionGone(error), code).toBe(true);
+      expect(endsSession(error), code).toBe(true);
+      expect(sessionEndCode(error), code).toBe(code);
+    }
+    // The server's other refusals and a call that never reached it are not the end of a session.
+    for (const error of [
+      providerError("same_password"),
+      providerError("invalid_credentials"),
+      { name: "AuthRetryableFetchError", message: "Failed to fetch", status: 0 },
+      null,
+    ])
+      expect(sessionGone(error), JSON.stringify(error)).toBe(false);
+    // A removal nothing announced reaches every listener with the same code.
+    const heard: Array<string | null> = [];
+    const off = onUnauthorised((code) => heard.push(code));
+    reportSessionMissing();
+    off();
+    reportSessionMissing();
+    expect(heard).toEqual(["session_missing"]);
   });
 });
 

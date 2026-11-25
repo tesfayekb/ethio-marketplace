@@ -39,6 +39,8 @@ type Setup = {
   sources?: string;
   /** The script's arguments: the browsers (DEC-371). */
   args?: string[];
+  /** Each host's download speed in bytes a second, the fake `curl`'s answer; a host not named is fast; 0 answers nothing (INC-1277). */
+  speeds?: Record<string, number>;
 };
 
 const roots: string[] = [];
@@ -51,6 +53,7 @@ function install(setup: Setup) {
   roots.push(dir);
   const apt = join(dir, "root/etc/apt");
   mkdirSync(join(apt, "sources.list.d"), { recursive: true });
+  mkdirSync(join(apt, "apt.conf.d"));
   writeFileSync(
     join(apt, "sources.list.d/ubuntu.sources"),
     setup.sources ??
@@ -89,6 +92,27 @@ function install(setup: Setup) {
       "",
     ].join("\n"),
   );
+  // INC-1277 — the speed probe's `curl`: the last argument is the index file's URL, its host decides the answer.
+  writeFileSync(
+    join(fake, "speeds"),
+    `${Object.entries(setup.speeds ?? {})
+      .map(([host, bps]) => `${host} ${String(bps)}`)
+      .join("\n")}\n`,
+  );
+  writeFileSync(
+    join(bin, "curl"),
+    [
+      "#!/usr/bin/env bash",
+      'url="${*: -1}"',
+      `echo "$url" >> "${fake}/curl-urls"`,
+      'host="${url#*://}"; host="${host%%/*}"',
+      `bps=$(awk -v h="$host" '$1 == h { print $2 }' "${fake}/speeds")`,
+      '[ "${bps:-5000000}" -gt 0 ] || exit 28',
+      'printf "%s.000" "${bps:-5000000}"',
+      "",
+    ].join("\n"),
+  );
+  chmodSync(join(bin, "curl"), 0o755);
   chmodSync(join(bin, "getent"), 0o755);
   chmodSync(join(bin, "bunx"), 0o755);
   const result = spawnSync("bash", [SCRIPT, ...(setup.args ?? [])], {
@@ -120,6 +144,20 @@ function install(setup: Setup) {
     runs,
     args,
     mirrors: readFileSync(join(apt, "apt-mirrors.txt"), "utf8"),
+    aptConf: (() => {
+      try {
+        return readFileSync(join(apt, "apt.conf.d/99ci-mirror-timeouts"), "utf8");
+      } catch {
+        return null;
+      }
+    })(),
+    curlUrls: (() => {
+      try {
+        return readFileSync(join(fake, "curl-urls"), "utf8").trim().split("\n");
+      } catch {
+        return [];
+      }
+    })(),
     sources: readFileSync(join(apt, "sources.list.d/ubuntu.sources"), "utf8"),
   };
 }
@@ -278,5 +316,61 @@ describe("the browser's system libraries survive one apt mirror (INC-1101, DEC-3
       '::error title=ci-mirror::unknown browser "firefox" (chromium or webkit)',
     );
     expect(typo.out).not.toContain("ci-mirror probe:");
+  });
+
+  it("IBD-1 a mirror that resolves but serves slowly is dropped for the next, never the last one; apt gets stall timeouts (INC-1277, DEC-462)", () => {
+    const hosts = [AZURE, ARCHIVE, SECURITY];
+    // The table names each host's speed and probes one index file of the first suite.
+    const fast = install({ resolves: hosts, runs: [{ out: SUCCESS, code: 0 }] });
+    expect(fast.code).toBe(0);
+    expect(fast.mirrors).toBe(MIRROR_LIST);
+    expect(fast.out).toContain(`ci-mirror throughput: ${AZURE} → 5000 kB/s ok`);
+    expect(fast.out).not.toContain("::warning title=ci-mirror::");
+    expect(fast.curlUrls).toEqual([
+      `http://${AZURE}/ubuntu/dists/noble/InRelease`,
+      `https://${ARCHIVE}/ubuntu/dists/noble/InRelease`,
+      `https://${SECURITY}/ubuntu/dists/noble/InRelease`,
+    ]);
+    expect(fast.aptConf).toBe(
+      'Acquire::http::Timeout "20";\nAcquire::https::Timeout "20";\nAcquire::Retries "2";\n',
+    );
+
+    // The region mirror at 60 kB/s, and one that answers nothing, are left; the install runs once.
+    const slow = install({
+      resolves: hosts,
+      speeds: { [AZURE]: 60_000, [ARCHIVE]: 0 },
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(slow.code).toBe(0);
+    expect(slow.runs).toBe(1);
+    expect(slow.out).toContain(`ci-mirror throughput: ${AZURE} → 60 kB/s slow or no answer`);
+    expect(slow.out).toContain(`ci-mirror throughput: ${ARCHIVE} → 0 kB/s slow or no answer`);
+    expect(slow.out).toContain(
+      `::warning title=ci-mirror::${AZURE} is slow or does not answer — dropped for the next mirror`,
+    );
+    expect(slow.mirrors).toBe("https://security.ubuntu.com/ubuntu/\tpriority:3\n");
+    expect(slow.aptConf).toContain('Acquire::Retries "2";');
+
+    // None fast enough: all kept, named, and the install still runs.
+    const none = install({
+      resolves: hosts,
+      speeds: { [AZURE]: 60_000, [ARCHIVE]: 70_000, [SECURITY]: 80_000 },
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(none.code).toBe(0);
+    expect(none.mirrors).toBe(MIRROR_LIST);
+    expect(none.out).toContain(
+      `::warning title=ci-mirror::no mirror is fast enough (${AZURE} ${ARCHIVE} ${SECURITY}) — all kept`,
+    );
+
+    // A host that did not resolve is dropped first and is never measured.
+    const gone = install({
+      resolves: [ARCHIVE, SECURITY],
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(gone.curlUrls).toEqual([
+      `https://${ARCHIVE}/ubuntu/dists/noble/InRelease`,
+      `https://${SECURITY}/ubuntu/dists/noble/InRelease`,
+    ]);
   });
 });

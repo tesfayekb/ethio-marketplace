@@ -1,5 +1,6 @@
 import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import { withinPreviewBudget } from "./helpers/rate-window";
 import { chooseInList } from "./helpers/filters";
 
@@ -1858,7 +1859,7 @@ test.describe("CAT-IE categories import/export", () => {
         ],
         reap,
       );
-      await switchUser(page, viewer.email, viewer.password);
+      await signInStaff(page, viewer);
       await gotoReady(page, "/admin/categories");
       await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20000 });
       await expect(page.getByTestId("category-import")).toHaveCount(0);
@@ -1885,8 +1886,17 @@ test.describe("CAT-IE categories import/export", () => {
     }
   });
 
-  /** CT-23 — an un-stepped-up importer is refused (P0009) and nothing is written. */
-  test("CT-23 a commit without step-up is refused and writes nothing", async ({ page }) => {
+  /**
+   * CT-23 — an importer whose session has not used a second factor is refused 428 (`stepUpRequired`:
+   * the account holds none, so the answer says so) at the PREVIEW, before any commit, and nothing is
+   * written (cursor bundle 6, ruling 2 decision 9, DEC-465). The import path has no import-row table
+   * and no storage object (the preview is a read of the file; the commit is one database door), so
+   * nothing written is: no category row, no audit row, no dial spent. The commit's success path at
+   * aal2 is proven by CT-19 (a preview and a commit as the pooled super admin).
+   */
+  test("CT-23 an importer without step-up is refused at the preview and writes nothing", async ({
+    page,
+  }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
     const reap: string[] = [];
@@ -1902,24 +1912,65 @@ test.describe("CAT-IE categories import/export", () => {
         ],
         reap,
       );
+      // The subject is the aal1 session's refusal (a step-up-less importer): it keeps switchUser, as the
+      // staff helper's header says.
       await switchUser(page, importer.email, importer.password);
       await gotoReady(page, "/admin/categories");
+
+      // A leased account carries the history of its earlier borrowers (audit rows keyed to it stay
+      // when its roles and sessions are reaped): the proof reads every row the importer gained from
+      // here on, so the net stays whole and the account's past is not the attempt's.
+      const seen = await adminClient()
+        .from("audit_log")
+        .select("created_at")
+        .eq("actor_id", importer.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      expect(seen.error).toBeNull();
+      const watermark = seen.data?.[0]?.created_at ?? null;
+      const meterRows = async () => {
+        const read = await adminClient()
+          .from("rate_limits")
+          .select("action, count, window_start")
+          .eq("key", importer.id)
+          .neq("action", "account_pref"); // INC-1290 until bundle 7: the account rule's own dial
+        expect(read.error).toBeNull();
+        return (read.data ?? []).sort((x, y) => x.action.localeCompare(y.action));
+      };
+      const metersBefore = await meterRows();
 
       const token = await bearerOf(page);
       const categories = file([line({ category_slug: slug, name_en: slug })]);
       const preview = await importPost(page, token, { mode: "preview", categories });
-      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(428);
+      expect(preview.payload["code"]).toBe("P0009");
+      expect(preview.payload["error"]).toBe("step-up required: no verified factor");
 
       const commit = await importPost(page, token, {
         mode: "commit",
         categories,
-        digest: preview.payload["digest"],
+        digest: "whatever",
       });
       expect(commit.status, JSON.stringify(commit.payload)).toBe(428);
       expect(commit.payload["code"]).toBe("P0009");
 
-      // A refused attempt leaves NO trace (F5).
+      // A refused attempt leaves NO trace (F5): no category, no audit row and no meter row keyed to the
+      // importer since the attempt began — except exactly what a proven other writer leaves. The
+      // sign-in's account-language rule (D239) saves the importer's language when its session starts:
+      // it audits `profile.preferred_language` and spends the `account_pref` dial, even when nothing
+      // changes, and a fresh account's first start can run it twice. INC-1290 until bundle 7 (its SQL
+      // turn makes an unchanged save write nothing); both exclusions go with it.
       expect(await readCategory(slug)).toBeNull();
+      let gained = adminClient()
+        .from("audit_log")
+        .select("action")
+        .eq("actor_id", importer.id)
+        .neq("action", "profile.preferred_language"); // INC-1290 until bundle 7: the account rule's own audit
+      if (watermark !== null) gained = gained.gt("created_at", watermark);
+      const audit = await gained;
+      expect(audit.error).toBeNull();
+      expect(audit.data ?? []).toEqual([]);
+      expect(await meterRows()).toEqual(metersBefore);
     } finally {
       await destroyCategory(slug);
       for (const roleId of reap) await dropRole(roleId);

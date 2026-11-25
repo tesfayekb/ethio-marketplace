@@ -1,17 +1,12 @@
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
+import { signInStaff } from "./helpers/staff-factor";
 import { adPageFixtures } from "./helpers/ad-page";
 import { grantRole } from "./helpers/categories";
 import { bearerClient, passwordGrant } from "./helpers/session";
 import { stopPageBeforePurge } from "./helpers/posting";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
-import {
-  enrollAndStepUp,
-  expectAal2,
-  stepUpIfPrompted,
-  switchUser,
-  waitForHydration,
-} from "./helpers/ui";
+import { expectAal2, stepUpIfPrompted, waitForHydration } from "./helpers/ui";
 // INC-844: CG-5 (the password_remove dial) is withdrawn — rate_gate counts inside the door's own transaction, so every RAISE-style refusal rolls the count back; the dial row and rate_gate('password_remove') call stay (proven by M20's B8 proof).
 
 // DEC-241/242: scratch targets only; pooled accounts are consumers, never deactivated.
@@ -159,8 +154,7 @@ test(
     const staff = await leaseUser();
     staffIds.push(staff.id);
     await grantRole(staff.id, "admin");
-    await switchUser(page, staff.email, staff.password);
-    const secret = await enrollAndStepUp(page);
+    const { secret } = await signInStaff(page, staff);
     await page.goto(`/admin/users/${scratch.id}`);
     await waitForHydration(page);
     await page.getByTestId("deactivate-reason").fill("e2e caller gates refusal proof");

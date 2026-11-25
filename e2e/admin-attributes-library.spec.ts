@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { signInStaff } from "./helpers/staff-factor";
 import {
   expectCutFloor,
   expectNoHorizontalOverflow,
@@ -61,7 +62,7 @@ test.describe("C3 attributes console", () => {
 
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
-    await switchUser(page, admin.email, admin.password);
+    await signInStaff(page, admin);
     await gotoReady(page, "/admin/attributes");
     await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });
     // The ratified library is non-empty, so page one carries rows.
@@ -805,7 +806,7 @@ test.describe("C3 attributes console", () => {
         reap,
       );
 
-      await switchUser(page, viewer.email, viewer.password);
+      await signInStaff(page, viewer);
       await gotoReady(page, "/admin/attributes");
       // THE READ LANDS.
       await expect(page.getByTestId("attribute-search")).toBeVisible({ timeout: 20000 });

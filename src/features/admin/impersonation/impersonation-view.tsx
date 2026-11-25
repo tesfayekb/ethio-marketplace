@@ -230,7 +230,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
             testid="impersonation-listings-pagination"
             offset={paging.page * paging.pageSize}
             pageSize={paging.pageSize}
-            total={listings.data?.totalCount ?? 0}
+            total={listings.data?.totalCount}
             onPrevious={() => paging.setPage((current) => Math.max(0, current - 1))}
             onNext={() => paging.setPage((current) => current + 1)}
             onPage={paging.setPage}

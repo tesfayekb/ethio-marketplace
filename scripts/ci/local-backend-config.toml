@@ -86,6 +86,23 @@ enabled = true
 subject = "Two-factor authentication was turned off for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ ጠፍቷል"
 content_path = "templates/mfa_factor_unenrolled.html"
 
+# INC-1276 (cursor bundle 6) — the three action e-mails the app sends (sign-up confirmation, password
+# reset, e-mail change) come from the repository too, English then Amharic in one mail: subjects are
+# supabase/templates/subjects.json's, bodies supabase/templates/<kind>.html. Unlike a notification, an
+# action template's content_path is relative to the folder ABOVE supabase/ (the CLI's own rule), and it
+# has no enabled switch — backend-config.py's images variant drops these tables (no templates folder).
+[auth.email.template.confirmation]
+subject = "Confirm your ethio.com account · የ ethio.com አካውንትዎን ያረጋግጡ"
+content_path = "supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your ethio.com password · የ ethio.com የይለፍ ቃልዎን ዳግም ያስጀምሩ"
+content_path = "supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new ethio.com email address · አዲሱን የ ethio.com ኢሜይል አድራሻዎን ያረጋግጡ"
+content_path = "supabase/templates/email_change.html"
+
 [auth.rate_limit]
 email_sent = 30
 

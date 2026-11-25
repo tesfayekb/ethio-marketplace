@@ -4,5 +4,8 @@
   "identity_linked": "A sign-in method was added to your ethio.com account · ወደ ethio.com አካውንትዎ የመግቢያ መንገድ ታክሏል",
   "identity_unlinked": "A sign-in method was removed from your ethio.com account · ከ ethio.com አካውንትዎ የመግቢያ መንገድ ተወግዷል",
   "mfa_factor_enrolled": "Two-factor authentication was turned on for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ በርቷል",
-  "mfa_factor_unenrolled": "Two-factor authentication was turned off for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ ጠፍቷል"
+  "mfa_factor_unenrolled": "Two-factor authentication was turned off for your ethio.com account · ለ ethio.com አካውንትዎ ባለ ሁለት ደረጃ ማረጋገጫ ጠፍቷል",
+  "confirmation": "Confirm your ethio.com account · የ ethio.com አካውንትዎን ያረጋግጡ",
+  "recovery": "Reset your ethio.com password · የ ethio.com የይለፍ ቃልዎን ዳግም ያስጀምሩ",
+  "email_change": "Confirm your new ethio.com email address · አዲሱን የ ethio.com ኢሜይል አድራሻዎን ያረጋግጡ"
 }

@@ -3,7 +3,7 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import {
   hasSessionRehydrating,
@@ -21,7 +21,8 @@ import { legalInForceIds } from "@/features/legal/legal-reader";
 import { currentGateKinds, landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { errorText } from "@/lib/error-text";
 import { safeReturnPath } from "@/lib/return-path";
-import { getSupabase, onAuthChange } from "@/lib/supabase-door";
+import { getSupabase } from "@/lib/supabase-door";
+import { useShell } from "@/components/shell-context";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { PageCard } from "@/components/shell/page-card";
@@ -219,31 +220,32 @@ function AuthScreen() {
 
   /**
    * INC-005 completion: local detection mechanisms while the check-email view
-   * is shown — auth state change, focus/visibility recheck, a 5s poll, and a
+   * is shown — the shell's one session store (INC-1268: a user appearing there is a session this
+   * tab heard), focus/visibility recheck, a 5s poll, and a
    * pageshow listener for bfcache restores. Every recheck goes through
    * `hasSessionRehydrating`, which repairs a stale in-memory client on iOS.
    * No server-side "is this email confirmed" lookup (enumeration protection).
    */
-  const onCheckEmailRef = useRef(onCheckEmail);
-  onCheckEmailRef.current = onCheckEmail;
+  const { user: signedInUser } = useShell();
+  const signedInHere = signedInUser !== null;
+  const confirmWithSession = useCallback(() => {
+    setConfirmed(true);
+    window.sessionStorage.removeItem(PENDING_EMAIL_KEY);
+  }, []);
+  useEffect(() => {
+    if (onCheckEmail && signedInHere) confirmWithSession();
+  }, [onCheckEmail, signedInHere, confirmWithSession]);
   useEffect(() => {
     if (!onCheckEmail) return;
     let active = true;
 
     const markConfirmed = () => {
-      if (!active) return;
-      setConfirmed(true);
-      window.sessionStorage.removeItem(PENDING_EMAIL_KEY);
+      if (active) confirmWithSession();
     };
 
     const recheck = async () => {
       if (await hasSessionRehydrating()) markConfirmed();
     };
-
-    // DEC-261 — the client's auth events through its door.
-    const subscription = onAuthChange((_event, session) => {
-      if (session && onCheckEmailRef.current) markConfirmed();
-    });
 
     const onFocus = () => {
       if (document.visibilityState === "visible") void recheck();
@@ -261,13 +263,12 @@ function AuthScreen() {
 
     return () => {
       active = false;
-      subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
       window.removeEventListener("pageshow", onPageShow);
       window.clearInterval(poll);
     };
-  }, [onCheckEmail]);
+  }, [onCheckEmail, confirmWithSession]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -145,7 +145,9 @@ function argumentAt(code: string, open: number): string {
 /**
  * CF-REFUSAL-3 (CFRR-5) — on the client side (every file of `files` that is no test and is not
  * under src/server/, src/routes/api/ or src/integrations/): no thrown `new Error(…)` is built from
- * a failed call's `.message` or `errorText(…)`, as a bare argument or inside a template; and no
+ * a failed call's `.message` or `errorText(…)`, as a bare argument or inside a template; no
+ * `if (error) throw error;` re-throws a failed call's raw error (CF-REFUSAL-5, CFRR-9: inline, or the
+ * last statement of the `if (error) { … }` block); and no
  * `new ReaderError(readerFailure(` stands outside `src/lib/reader-failure.ts`. A failed read is
  * thrown by `readFailed(error)`, the one factory.
  */
@@ -166,6 +168,14 @@ export function failureThrowFindings(
           what: "throws a bare Error built from a failed call's message",
         });
     }
+    // CF-REFUSAL-5 (CFRR-9) — the raw form: `if (error) throw error;`, inline or the last statement
+    // of the block, re-throws a failed call's error as it arrived. The line is the throw's.
+    for (const match of code.matchAll(/\bif\s*\(\s*error\s*\)\s*(?:\{[^{}]*)?\bthrow\s+error\s*;/g))
+      findings.push({
+        file,
+        line: lineOf((match.index ?? 0) + match[0].lastIndexOf("throw")),
+        what: "re-throws a failed call's raw error instead of readFailed(error)",
+      });
     if (file === FAILURE_MECHANISM) continue;
     for (const match of code.matchAll(/\bnew\s+ReaderError\s*\(\s*readerFailure\s*\(/g))
       findings.push({

@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import { en } from "../src/i18n/locales/en";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { expectAliasAccepted, scratchAlias } from "./helpers/alias-check";
@@ -876,6 +877,38 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-3")).toBeVisible();
     await expect(page.getByTestId("post-category-chip-path")).toContainText(category.slug);
+  });
+
+  test("PW-8b INC-1274 a save answered 401 says the sign-in ended, keeps the answers, and does not keep trying", async ({
+    page,
+  }) => {
+    const user = await seller(page);
+    const category = await leaf();
+    await gotoReady(page, "/post");
+
+    // The route answers what a session that ended answers: 401, the route's own word.
+    let sent = 0;
+    await page.route("**/api/listings/draft", async (route) => {
+      sent += 1;
+      await route.fulfill({
+        status: 401,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "notSignedIn" }),
+      });
+    });
+    await chooseBySearch(page, category.slug, category.id, false);
+
+    // Said as what it is, in words that ask for a new sign-in — never "we keep trying".
+    await expect(page.getByTestId("post-session-ended")).toHaveText(en["session.expired"]);
+    await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "unsaved");
+    await expect(page.getByTestId("post-step-1")).toBeVisible();
+    // Nothing is retried by a timer: the one save went once. Next, pressed by the seller, asks once more.
+    expect(sent, "PW-8b: a signed-out answer was sent again by a retry").toBe(1);
+    await page.getByTestId("post-next").click();
+    await expect.poll(() => sent, { message: "PW-8b: Next did not ask once more" }).toBe(2);
+    await expect(page.getByTestId("post-session-ended")).toBeVisible();
+    await expect(page.getByTestId("post-next-unreachable")).toHaveCount(0);
+    expect(await draftsOf(user.id), "PW-8b: a refused save must write nothing").toEqual([]);
   });
 
   /**
