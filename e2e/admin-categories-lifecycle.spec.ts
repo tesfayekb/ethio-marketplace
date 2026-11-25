@@ -1933,7 +1933,10 @@ test.describe("CAT-IE categories import/export", () => {
           .from("rate_limits")
           .select("action, count, window_start")
           .eq("key", importer.id)
-          .neq("action", "account_pref"); // INC-1290 until bundle 7: the account rule's own dial
+          // The sign-in's account-language rule spends its own dial even when nothing changes: an
+          // unchanged call is still a call (cursor-bundle-7a ruling 1, decision 5). It is the one
+          // writer excluded from the meter.
+          .neq("action", "account_pref");
         expect(read.error).toBeNull();
         return (read.data ?? []).sort((x, y) => x.action.localeCompare(y.action));
       };
@@ -1955,17 +1958,12 @@ test.describe("CAT-IE categories import/export", () => {
       expect(commit.payload["code"]).toBe("P0009");
 
       // A refused attempt leaves NO trace (F5): no category, no audit row and no meter row keyed to the
-      // importer since the attempt began — except exactly what a proven other writer leaves. The
-      // sign-in's account-language rule (D239) saves the importer's language when its session starts:
-      // it audits `profile.preferred_language` and spends the `account_pref` dial, even when nothing
-      // changes, and a fresh account's first start can run it twice. INC-1290 until bundle 7 (its SQL
-      // turn makes an unchanged save write nothing); both exclusions go with it.
+      // importer since the attempt began — except the one meter row a proven other writer leaves. The
+      // sign-in's account-language rule (D239) spends the `account_pref` dial when its session starts,
+      // even when nothing changes (cursor-bundle-7a ruling 1, decision 5); an unchanged save writes no
+      // audit row (INC-1290), so the audit read has no exclusion.
       expect(await readCategory(slug)).toBeNull();
-      let gained = adminClient()
-        .from("audit_log")
-        .select("action")
-        .eq("actor_id", importer.id)
-        .neq("action", "profile.preferred_language"); // INC-1290 until bundle 7: the account rule's own audit
+      let gained = adminClient().from("audit_log").select("action").eq("actor_id", importer.id);
       if (watermark !== null) gained = gained.gt("created_at", watermark);
       const audit = await gained;
       expect(audit.error).toBeNull();
