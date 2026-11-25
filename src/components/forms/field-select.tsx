@@ -1,5 +1,7 @@
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { SelectList, type SelectListOption } from "@/components/select-list";
 import { useI18n } from "@/i18n";
+import type { ReactNode } from "react";
 import { Field } from "./field";
 
 export type FieldSelectProps = Omit<Parameters<typeof Field>[0], "children" | "blank"> & {
@@ -9,9 +11,11 @@ export type FieldSelectProps = Omit<Parameters<typeof Field>[0], "children" | "b
   multiple?: boolean;
   max?: number;
   placeholder?: string;
-  state?: "ready" | "loading" | "failed";
+  /** INC-1279 — the choices' own read; absent means ready. A failed read draws the one notice. */
+  read?: { isLoading: boolean; error: unknown; onRetry: () => void };
+  /** What failed, in the caller's words, drawn before the notice's reason. */
+  subject?: ReactNode;
   loadingLabel?: string;
-  failedLabel?: string;
   statusTestId?: string;
 };
 
@@ -23,9 +27,9 @@ export function FieldSelect({
   multiple = false,
   max,
   placeholder,
-  state = "ready",
+  read,
+  subject,
   loadingLabel,
-  failedLabel,
   statusTestId,
   ...field
 }: FieldSelectProps) {
@@ -35,37 +39,50 @@ export function FieldSelect({
   const noneLabel = t("prim.filter.none");
   const maxLabel = t("prim.filter.max");
   const countLabel = t("prim.select.count");
-  const unavailable = state !== "ready";
-  const line = state === "loading" ? loadingLabel : state === "failed" ? failedLabel : placeholder;
+  const failed = read !== undefined && read.error != null;
+  const loading = !failed && read !== undefined && read.isLoading;
+  const unavailable = failed || loading;
+  const line = loading ? loadingLabel : failed ? undefined : placeholder;
   return (
     <Field {...field} blank={value.length === 0}>
       {(control) => (
-        <SelectList
-          id={field.id}
-          testId={field.id}
-          control={control}
-          {...(typeof field.label === "string" ? { label: field.label } : {})}
-          options={options}
-          value={unavailable ? [] : value}
-          onChange={onChange}
-          multiple={multiple}
-          max={max ?? options.length + value.length}
-          placeholder={line ?? choose}
-          searchLabel={searchLabel}
-          noneLabel={noneLabel}
-          maxLabel={maxLabel}
-          countLabel={countLabel}
-          disabled={unavailable}
-          {...(unavailable
-            ? {
-                renderControl: (trigger) => (
-                  <div data-testid={statusTestId} role={state === "failed" ? "alert" : "status"}>
-                    {trigger}
-                  </div>
-                ),
-              }
-            : {})}
-        />
+        <>
+          <SelectList
+            id={field.id}
+            testId={field.id}
+            control={control}
+            {...(typeof field.label === "string" ? { label: field.label } : {})}
+            options={options}
+            value={unavailable ? [] : value}
+            onChange={onChange}
+            multiple={multiple}
+            max={max ?? options.length + value.length}
+            placeholder={line ?? choose}
+            searchLabel={searchLabel}
+            noneLabel={noneLabel}
+            maxLabel={maxLabel}
+            countLabel={countLabel}
+            disabled={unavailable}
+            {...(loading
+              ? {
+                  renderControl: (trigger) => (
+                    <div data-testid={statusTestId} role="status">
+                      {trigger}
+                    </div>
+                  ),
+                }
+              : {})}
+          />
+          {failed ? (
+            <FailureNotice
+              size="line"
+              error={read.error}
+              onRetry={read.onRetry}
+              subject={subject}
+              testid={statusTestId ?? `${field.id}-error`}
+            />
+          ) : null}
+        </>
       )}
     </Field>
   );

@@ -11,6 +11,8 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import type { FailureReading } from "@/components/shell/failure-reason";
 import { Button } from "@/components/ui/button";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -45,6 +47,13 @@ import { ADMIN_TRANSLATIONS_KEY, useAiTranslate, useAiTranslateEntities } from "
  * summary is an inline live region instead. Same information, same failure
  * list, no silent success (F4).
  */
+/** A count state of "error" handed in without its read: the caller's read already decided it. */
+const COUNT_UNREAD: FailureReading = {
+  kind: "server",
+  diagnostic: "count error",
+  until: undefined,
+};
+
 export type CountState = "success" | "pending" | "error" | "missing";
 
 export function AiBulkBar({
@@ -54,6 +63,7 @@ export function AiBulkBar({
   scope = "ui",
   countState = "success",
   filter = "",
+  countRead,
 }: {
   lang: string;
   untranslated: number;
@@ -72,6 +82,8 @@ export function AiBulkBar({
    * a whole-catalog run. Empty string = today's behaviour, the whole language.
    */
   filter?: string;
+  /** INC-1279 — the count read's own failure and its refetch, for the one notice. */
+  countRead?: { error: unknown; onRetry: () => void };
 }) {
   const { t } = useI18n();
   const translateUi = useAiTranslate(lang);
@@ -242,7 +254,32 @@ export function AiBulkBar({
               ).replace("{count}", String(effectiveCount))
             : t("admin.translations.ai.pending")}
         </Button>
-        {effectiveCountState === "error" || effectiveCountState === "missing" ? (
+        {effectiveCountState === "error" ? (
+          filtered ? (
+            <FailureNotice
+              size="line"
+              testid="ai-bulk-count-error"
+              error={filteredCount.error}
+              onRetry={() => void filteredCount.refetch()}
+              subject={t("admin.translations.strings.error")}
+            />
+          ) : countRead ? (
+            <FailureNotice
+              size="line"
+              testid="ai-bulk-count-error"
+              error={countRead.error}
+              onRetry={countRead.onRetry}
+              subject={t("admin.translations.strings.error")}
+            />
+          ) : (
+            <FailureNotice
+              size="line"
+              testid="ai-bulk-count-error"
+              reading={COUNT_UNREAD}
+              subject={t("admin.translations.strings.error")}
+            />
+          )
+        ) : effectiveCountState === "missing" ? (
           <span role="alert" data-testid="ai-bulk-count-error" className="text-sm text-destructive">
             {t("admin.translations.strings.error")}
           </span>

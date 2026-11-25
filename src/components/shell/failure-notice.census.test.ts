@@ -99,11 +99,6 @@ const ALLOW: ReadonlyArray<string> = [
   `src/features/admin/import-dialog.tsx | a code with no words drawn as data (INC-1280) | INC-1280 until bundle 7`,
   `src/features/posting/step-photos.tsx | a photo's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
   `src/features/posting/photo-editor.tsx | the editor's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
-  `src/components/forms/field-select.tsx | a select's own failed line, words from its caller | ${UNTIL_10B}`,
-  `src/features/admin/translations/language-picker.tsx | FieldSelect's failed line | ${UNTIL_10B}`,
-  `src/features/admin/translations/translator-card.tsx | FieldSelect's failed line | ${UNTIL_10B}`,
-  `src/features/admin/translations/ai-bulk-bar.tsx | a count's state, drawn by countedLabel | ${UNTIL_10B}`,
-  `src/features/admin/translations/delete-language-dialog.tsx | the counts line inside a dialog sentence | ${UNTIL_10B}`,
   `src/components/ui/picture.tsx | an image's fallback, not a read | INC-1279 permanent`,
   `src/routes/dev.primitives.tsx | the board's demonstration states | INC-1279 permanent`,
 ];

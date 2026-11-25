@@ -31,6 +31,7 @@ import { relativeTime } from "@/lib/relative-time";
 import { useFollowingDraft } from "@/lib/use-following-draft";
 import { useSettling } from "@/lib/use-settling";
 
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { AiBulkBar } from "./ai-bulk-bar";
 import { ApproveAllBar } from "./approve-bar";
 import { DataScope } from "./data-scope";
@@ -381,6 +382,14 @@ export function AdminTranslationsStringsPage({
                 <ApproveAllBar lang={lang} reviewable={reviewable} guard={guard} />
               ) : null}
 
+              {stats.isError && !(mayMachine && !(known?.isBase ?? false)) ? (
+                <FailureNotice
+                  size="line"
+                  testid="strings-stats-error"
+                  error={stats.error}
+                  onRetry={() => void stats.refetch()}
+                />
+              ) : null}
               {mayMachine && !(known?.isBase ?? false) ? (
                 <AiBulkBar
                   lang={lang}
@@ -396,6 +405,7 @@ export function AdminTranslationsStringsPage({
                   }
                   filter={query}
                   guard={guard}
+                  countRead={{ error: stats.error, onRetry: () => void stats.refetch() }}
                 />
               ) : null}
 

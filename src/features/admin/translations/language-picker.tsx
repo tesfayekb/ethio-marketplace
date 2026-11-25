@@ -48,11 +48,15 @@ export function LanguagePicker({
           const entry = all.find((language) => language.code === next[0]);
           if (entry !== undefined) onSelect(entry);
         }}
-        state={list.error ? "failed" : list.isLoading ? "loading" : "ready"}
+        read={{
+          isLoading: list.isLoading,
+          error: list.error,
+          onRetry: () => void list.refetch(),
+        }}
         loadingLabel={t("admin.translations.add.pickLoading")}
-        failedLabel={t("admin.translations.add.pickError")}
+        subject={t("admin.translations.add.pickError")}
         statusTestId={
-          list.error ? "translations-add-picker-error" : "translations-add-picker-loading"
+          list.isLoading ? "translations-add-picker-loading" : "translations-add-picker-error"
         }
       />
 

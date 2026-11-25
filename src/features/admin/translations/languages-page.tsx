@@ -1045,9 +1045,13 @@ function AddLanguageCard({ guard }: { guard: GuardFn }) {
             }))}
             value={countryCodes}
             onChange={(next) => setCountryCodes([...next].sort())}
-            state={countries.error ? "failed" : countries.isLoading ? "loading" : "ready"}
+            read={{
+              isLoading: countries.isLoading,
+              error: countries.error,
+              onRetry: () => void countries.refetch(),
+            }}
             loadingLabel={t("admin.translations.add.countriesLoading")}
-            failedLabel={t("admin.countries.error")}
+            subject={t("admin.countries.error")}
           />
         </>
       ) : null}

@@ -65,6 +65,8 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
   const languages = useLanguages();
   const save = useSetTranslatorLanguages(userId);
   const scope = useTranslatorScope(userId);
+  // INC-1279 — the scope read's failure draws through FieldSelect's one notice (its `read`).
+  const scopeFailed = scope.status === "error";
   const [selected, setSelected] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
@@ -81,9 +83,9 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
   const eligible = scope.data?.eligible === true;
   const nothingAssignable =
     !scope.isLoading &&
-    !scope.isError &&
+    !scopeFailed &&
     !languages.isLoading &&
-    !languages.error &&
+    languages.error == null &&
     assignable.length === 0;
 
   return (
@@ -95,7 +97,7 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
         {t("admin.translations.translator.scopeNote")}
       </p>
 
-      {!scope.isLoading && !scope.isError && !eligible ? (
+      {!scope.isLoading && !scopeFailed && !eligible ? (
         <p data-testid="translator-no-role" className="text-sm text-muted-foreground">
           {t("admin.translations.translator.noRole")}
         </p>
@@ -104,7 +106,7 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
       ) : (
         <>
           {/* INC-095(l): the empty state remains a caption above the controls. */}
-          {!scope.isLoading && !scope.isError && (serverLanguages?.length ?? 0) === 0 ? (
+          {!scope.isLoading && !scopeFailed && (serverLanguages?.length ?? 0) === 0 ? (
             <p data-testid="translator-empty-caption" className="text-sm text-muted-foreground">
               {t("admin.translations.translator.empty")}
             </p>
@@ -125,20 +127,19 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
               setSaved(false);
               setSelected(next);
             }}
-            state={
-              scope.isError || languages.error
-                ? "failed"
-                : scope.isLoading || languages.isLoading
-                  ? "loading"
-                  : "ready"
-            }
+            read={{
+              isLoading: scope.isLoading || languages.isLoading,
+              error: scopeFailed ? scope.error : languages.error,
+              onRetry: () => {
+                if (scopeFailed) void scope.refetch();
+                if (languages.error != null) void languages.refetch();
+              },
+            }}
             loadingLabel={t("admin.translations.loading")}
-            failedLabel={t(
-              scope.isError
-                ? "admin.translations.translator.checkError"
-                : "admin.translations.error",
+            subject={t(
+              scopeFailed ? "admin.translations.translator.checkError" : "admin.translations.error",
             )}
-            {...(scope.isError ? { statusTestId: "translator-check-error" } : {})}
+            {...(scopeFailed ? { statusTestId: "translator-check-error" } : {})}
           />
         </>
       )}

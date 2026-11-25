@@ -1,19 +1,41 @@
 import { loadSelectList } from "@/components/select-list-loader";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
-const state = vi.hoisted(() => ({ loading: false, error: false }));
+const state = vi.hoisted(() => ({
+  loading: false,
+  error: false,
+  network: false,
+  refetch: vi.fn(),
+}));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("./use-translations", () => ({
   useProviderLanguages: () => ({
     data: Array.from({ length: 50 }, (_, n) => ({ code: `scratch-${n}`, name: `Scratch ${n}` })),
     isLoading: state.loading,
-    error: state.error ? new Error("read failed") : null,
+    error: state.network
+      ? new TypeError("TypeError: Failed to fetch")
+      : state.error
+        ? new Error("read failed")
+        : null,
+    refetch: state.refetch,
   }),
 }));
 import { LanguagePicker } from "./language-picker";
 beforeEach(() => {
   state.loading = false;
   state.error = false;
+  state.network = false;
+  state.refetch.mockReset();
+});
+it("LP-U3 a failed provider list shows the notice with Retry that refetches it", () => {
+  state.network = true;
+  render(<LanguagePicker onSelect={vi.fn()} onManual={vi.fn()} />);
+  expect(screen.getByTestId("translations-add-option")).toBeDisabled();
+  const notice = screen.getByTestId("translations-add-picker-error");
+  expect(notice).toHaveAttribute("role", "alert");
+  expect(notice).toHaveTextContent("admin.translations.add.pickError");
+  fireEvent.click(screen.getByTestId("translations-add-picker-error-retry"));
+  expect(state.refetch).toHaveBeenCalledTimes(1);
 });
 it("LP-U1 catalogue choice searches beyond forty entries and selects the whole provider row at once", () => {
   const select = vi.fn();

@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
+import { PROVIDER_ERRORS } from "@/test/provider-errors";
 import { FieldSelect } from "./field-select";
 import { useFormGate } from "./use-form-gate";
 const options = [
@@ -50,32 +51,26 @@ describe("the form select", () => {
     fireEvent.click(screen.getByText("Save"));
     expect(send).toHaveBeenCalledWith(["b"]);
   });
-  it.each(["loading", "failed"] as const)(
-    "FSL-U2 %s says the form's own words and cannot open",
-    (state) => {
-      render(
-        <FieldSelect
-          id="control"
-          field="codes"
-          label="Codes"
-          required={false}
-          refusal={null}
-          options={options}
-          value={["a"]}
-          onChange={vi.fn()}
-          state={state}
-          loadingLabel="Loading codes"
-          failedLabel="Codes failed"
-        />,
-      );
-      expect(screen.getByTestId("control")).toBeDisabled();
-      expect(screen.getByTestId("control")).toHaveTextContent(
-        state === "loading" ? "Loading codes" : "Codes failed",
-      );
-      fireEvent.click(screen.getByTestId("control"));
-      expect(screen.queryByTestId("control-list")).toBeNull();
-    },
-  );
+  it.each(["loading"] as const)("FSL-U2 %s says the form's own words and cannot open", () => {
+    render(
+      <FieldSelect
+        id="control"
+        field="codes"
+        label="Codes"
+        required={false}
+        refusal={null}
+        options={options}
+        value={["a"]}
+        onChange={vi.fn()}
+        read={{ isLoading: true, error: null, onRetry: vi.fn() }}
+        loadingLabel="Loading codes"
+      />,
+    );
+    expect(screen.getByTestId("control")).toBeDisabled();
+    expect(screen.getByTestId("control")).toHaveTextContent("Loading codes");
+    fireEvent.click(screen.getByTestId("control"));
+    expect(screen.queryByTestId("control-list")).toBeNull();
+  });
 });
 
 it("FSL-U3 the form line shows a count only for several answers, and permits the full data set", () => {
@@ -108,4 +103,34 @@ it("FSL-U3 the form line shows a count only for several answers, and permits the
 // The existing choice assertions run after the intent-fetched module has arrived.
 beforeEach(async () => {
   await loadSelectList();
+});
+
+it("FSL-U5 a failed read stays disabled, draws the one notice, and Retry calls the read once", () => {
+  const retry = vi.fn();
+  render(
+    <FieldSelect
+      id="control"
+      field="codes"
+      label="Codes"
+      required={false}
+      refusal={null}
+      options={options}
+      value={["a"]}
+      onChange={vi.fn()}
+      read={{
+        isLoading: false,
+        error: new TypeError(PROVIDER_ERRORS.TypeError.message),
+        onRetry: retry,
+      }}
+      subject="Codes failed"
+    />,
+  );
+  expect(screen.getByTestId("control")).toBeDisabled();
+  expect(screen.getByTestId("control-error")).toHaveAttribute("role", "alert");
+  expect(screen.getByTestId("control-error")).toHaveTextContent("Codes failed");
+  expect(screen.getByTestId("control-error")).toHaveTextContent("failure.network");
+  fireEvent.click(screen.getByTestId("control-error-retry"));
+  expect(retry).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByTestId("control"));
+  expect(screen.queryByTestId("control-list")).toBeNull();
 });

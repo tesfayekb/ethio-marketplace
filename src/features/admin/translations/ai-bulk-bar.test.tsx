@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -84,6 +84,24 @@ describe("AiBulkBar", () => {
       expect(screen.getByTestId("ai-bulk-count-error")).toBeVisible();
     });
   }
+
+  it("ABB-U1 a failed count read draws the one notice, and Retry calls the count's read once", () => {
+    const retry = vi.fn();
+    render(
+      <AiBulkBar
+        lang="am"
+        untranslated={0}
+        guard={guard}
+        countState="error"
+        countRead={{ error: new TypeError("TypeError: Failed to fetch"), onRetry: retry }}
+      />,
+      { wrapper },
+    );
+    expect(screen.getByTestId("ai-bulk-start")).toBeDisabled();
+    expect(screen.getByTestId("ai-bulk-count-error")).toHaveAttribute("role", "alert");
+    fireEvent.click(screen.getByTestId("ai-bulk-count-error-retry"));
+    expect(retry).toHaveBeenCalledTimes(1);
+  });
 
   it("disables the action on a believed zero without claiming an error", () => {
     render(<AiBulkBar lang="am" untranslated={0} guard={guard} countState="success" />, {
