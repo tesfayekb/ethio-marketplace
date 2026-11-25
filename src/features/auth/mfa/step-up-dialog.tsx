@@ -18,6 +18,8 @@ export type StepUpDialogProps = {
   /** The code's refusal, read by MFA_REFUSALS under the control (the one Field). */
   refusal: Refusal | null;
   submitCode: (code: string) => Promise<boolean>;
+  /** Reads the factors again after a read that failed (mode `read-failed`). */
+  retry: () => Promise<void>;
   close: () => void;
   unavailable: () => void;
 };
@@ -45,6 +47,7 @@ export function StepUpDialog({
   busy,
   refusal,
   submitCode,
+  retry,
   close,
   unavailable,
 }: StepUpDialogProps) {
@@ -78,10 +81,14 @@ export function StepUpDialog({
       >
         <PanelHeader>
           <DialogTitle id="step-up-title">
-            {mode === "code" ? t("mfa.stepUpTitle") : t("mfa.stepUpNoFactorTitle")}
+            {mode === "no-factor" ? t("mfa.stepUpNoFactorTitle") : t("mfa.stepUpTitle")}
           </DialogTitle>
           {mode === "code" ? (
             <DialogDescription>{t("mfa.stepUpBody")}</DialogDescription>
+          ) : mode === "read-failed" ? (
+            <DialogDescription data-testid="step-up-read-failed" role="alert">
+              {t("mfa.errorGeneric")}
+            </DialogDescription>
           ) : (
             <DialogDescription data-testid="step-up-no-factor">
               {t("mfa.stepUpNoFactorBody")}
@@ -139,6 +146,17 @@ export function StepUpDialog({
               }}
             >
               {t("mfa.stepUpConfirm")}
+            </Button>
+          ) : mode === "read-failed" ? (
+            <Button
+              size="touch"
+              data-testid="step-up-retry"
+              disabled={busy}
+              onClick={() => {
+                void retry();
+              }}
+            >
+              {t("common.retry")}
             </Button>
           ) : (
             <Button asChild size="touch">

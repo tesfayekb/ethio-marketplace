@@ -52,7 +52,7 @@ describe("doorCall — the door-call envelope", () => {
       const plain = await doorCall("/api/x", async () => ({
         data: null,
         error: { message: code },
-        status: 400,
+        status: code === "notYourListing" ? 404 : 400, // a GONE code answers 404
       }));
       expect(plain.status, code).toBe(200);
       expect(await plain.json(), code).toEqual({
@@ -113,7 +113,7 @@ describe("doorCall — the door-call envelope", () => {
       async () => ({
         data: null,
         error: { message: "illegalTransition:closed-reduced" },
-        status: 400,
+        status: 409,
       }),
       { translate: () => null },
     );

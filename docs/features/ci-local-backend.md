@@ -820,3 +820,19 @@ summary's `lanes = [...]`, the lane reporter's and the merged report's expected 
 order (both reporters write `repeat?`); the summary's evidence pattern, a regular expression, holds
 the same lanes in any order. A lane planted out of each of the four is named, and so is a reader
 naming a lane the matrix lost.
+
+## The platform's performance lints (cursor-bundle-7a, DEC-472, CF-ADVISOR-1)
+
+The smoke lane's step "Performance advisor lints (DEC-472)" (`local-backend-proof.yml`, after "Database
+security lints") runs `supabase db advisors --local --workdir .ci-local --type performance --level info
+--output-format json`, writes stdout to a file under `$RUNNER_TEMP` and hands it to
+`scripts/ci/advisor-lints.ts`. A non-zero exit of the CLI fails the step. The judge reads exactly the
+pinned CLI's shape (CLI 2.120.0, read from its bundled code): one JSON object `{"results":[…],
+"message":"db advisors"}`, each finding with a non-empty string `name`; an empty, non-JSON or
+unreadable answer (a bare list and the hosted API's `lints` object included) fails, never reads as
+clean, and a change of `SUPABASE_CLI_VERSION` re-reads the shape. A finding named `auth_rls_initplan` or
+`duplicate_index` fails the step; every other lint's count is printed and never fails it; a finding's
+`detail` and `metadata` are never printed. The judge's self-test runs first, and the step prints its
+seconds (DEC-472's frozen judge: at most 60 s over the first ten smoke runs). Test:
+`scripts/ci/advisor-lints.test.ts` (CF-ADVISOR-1a → 1f), its caller named in
+`scripts/conformance/wired.test.ts`.

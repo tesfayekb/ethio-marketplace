@@ -7,11 +7,13 @@ import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
 import { lastDeclarations } from "./migration-reader";
 import {
   classDrift,
+  classFindings,
   clientMarkOf,
   failureThrowFindings,
   markDrift,
   mirrorOf,
   READER_SETS,
+  readClassRegister,
   REFUSAL_MECHANISM,
   refusalReadingFindings,
   refusedCodesOf,
@@ -22,6 +24,7 @@ import {
   tableOf,
 } from "./refusal-readers";
 import { readerFailure } from "../../src/lib/reader-failure";
+import { parseManifest } from "../doors/manifest";
 
 /**
  * CF-REFUSAL-5 (CFRR-9) — a failed call's raw error is not re-thrown (`if (error) throw error;`); it is
@@ -41,6 +44,8 @@ import { readerFailure } from "../../src/lib/reader-failure";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "conformance", "refusal-readers-allowlist.txt");
 const MIRROR = join(ROOT, "src", "lib", "reader-failure.ts");
+const CLASS_REGISTER = join(ROOT, "scripts", "conformance", "refusal-classes.txt");
+const MANIFEST = join(ROOT, "scripts", "doors", "manifest.txt");
 
 function sources(): Array<{ file: string; text: string }> {
   return walkFiles([join(ROOT, "src")], { ext: ["ts", "tsx"] })
@@ -281,7 +286,14 @@ describe("the database holds the list of refusal codes; the client reads its mar
     // (b)
     const asMalformed = (error: unknown) =>
       (error as { message: string }).message === "badValue" ? "malformed" : "refused";
-    expect(classDrift(["badValue", "notYours"], "P0D01", () => 400, asMalformed)).toEqual([
+    expect(
+      classDrift(
+        ["badValue", "notYours"],
+        "P0D01",
+        (code) => (code === "notYours" ? 404 : 400),
+        asMalformed,
+      ),
+    ).toEqual([
       "badValue at its status: read as malformed, not refused",
       "badValue with no status: read as malformed, not refused",
     ]);
@@ -360,5 +372,76 @@ describe("the database holds the list of refusal codes; the client reads its mar
       "src/integrations/supabase/planted.ts",
     ])
       expect(planting(file), file).toEqual([]);
+  });
+});
+
+describe("every refusal code has exactly one class (CF-REFUSAL-6, cursor-bundle-7a, INC-1287)", () => {
+  const table = new Map([
+    ["notSignedIn", 401],
+    ["permissionDenied", 403],
+    ["listingNotFound", 404],
+    ["listingChanged", 409],
+  ]);
+  const register = (text: string) => readClassRegister(text);
+
+  it("CFRR-10 every code a last declaration raises and every code the manifest lists is in exactly one class, and no register line is idle", () => {
+    const decls = lastDeclarations(ROOT);
+    const raised = [...refusedCodesOf(decls).keys()];
+    const tableRows = tableOf(decls.get("door_refusal_status") ?? { body: "" }).rows;
+    const manifest = parseManifest(readFileSync(MANIFEST, "utf8"));
+    expect(manifest.errors).toEqual([]);
+    const listed = [...manifest.lines.values()].flatMap((line) => line.codes);
+    // The census is not blind: the 226 raised codes, the manifest's codes, both new classes and the register are read.
+    expect(raised.length).toBeGreaterThan(200);
+    expect(listed.length).toBeGreaterThan(0);
+    expect([...tableRows.values()]).toEqual(expect.arrayContaining([404, 409]));
+    expect(
+      classFindings({
+        raised,
+        manifest: listed,
+        table: tableRows,
+        register: readClassRegister(readFileSync(CLASS_REGISTER, "utf8")),
+      }),
+    ).toEqual([]);
+  });
+
+  it("CFRR-11 a code in no class, in two classes, on two register lines, an idle register line and a family covering a 404 or 409 code are each named", () => {
+    const lines = register(
+      [
+        "# a comment",
+        "bad* | a bad value",
+        "badListing* | a family that covers a gone code",
+        "listingNotFound | listed at 400 and also a table row",
+        "aliasTaken | a conflict",
+        "neverRaised | an idle line",
+      ].join("\n"),
+    );
+    expect(
+      classFindings({
+        raised: ["badValue", "badListingGone", "listingNotFound", "aliasTaken", "orphanCode"],
+        manifest: ["listingChanged", "notSignedIn"],
+        table: new Map([...table, ["badListingGone", 404]]),
+        register: lines,
+      }),
+    ).toEqual([
+      "badListingGone: in two classes (the table answers 404, the register lists it at 400)",
+      "badListingGone: on two register lines (bad*, badListing*)",
+      "listingNotFound: in two classes (the table answers 404, the register lists it at 400)",
+      "orphanCode: in no class",
+      "bad*: the family covers the 404 code badListingGone",
+      "badListing*: the family covers the 404 code badListingGone",
+      "neverRaised: matches no raised or listed code",
+    ]);
+  });
+
+  it("CFRR-12 the register reads `code | reason` and a family prefix; a malformed or duplicate line throws", () => {
+    expect(register("bad* | a bad value\naliasTaken | a conflict")).toEqual([
+      { key: "bad", family: true, reason: "a bad value", line: 1 },
+      { key: "aliasTaken", family: false, reason: "a conflict", line: 2 },
+    ]);
+    expect(() => register("aliasTaken")).toThrow(/expected `code \| reason`/);
+    expect(() => register("aliasTaken | a | 2027-01-01")).toThrow(/expected `code \| reason`/);
+    expect(() => register("Bad Code | a")).toThrow(/expected `code \| reason`/);
+    expect(() => register("a | x\na | y")).toThrow(/duplicate key a/);
   });
 });

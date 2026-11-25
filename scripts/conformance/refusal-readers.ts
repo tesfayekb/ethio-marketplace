@@ -301,3 +301,77 @@ export function classDrift(
   }
   return drift;
 }
+
+/* ---------------------------------------------------------------------------------------------
+ * cursor-bundle-7a (INC-1287) — CF-REFUSAL-6: every refusal code has exactly one class.
+ * ------------------------------------------------------------------------------------------- */
+
+/** One line of the 400 register: a code, or a family prefix (`bad*`), and its reason. */
+export type ClassLine = { key: string; family: boolean; reason: string; line: number };
+
+/**
+ * The 400 CLASS REGISTER (`scripts/conformance/refusal-classes.txt`): `code | reason`, a key ending in
+ * `*` a family prefix. A class is not an exception, so no `until`; a malformed or duplicate line throws,
+ * never silently skipped.
+ */
+export function readClassRegister(text: string): ClassLine[] {
+  const lines: ClassLine[] = [];
+  const seen = new Set<string>();
+  text.split(/\r?\n/).forEach((content, index) => {
+    if (!content.trim() || content.trim().startsWith("#")) return;
+    const line = index + 1;
+    const cells = content.split("|").map((cell) => cell.trim());
+    const key = cells[0] ?? "";
+    const family = key.endsWith("*");
+    const head = family ? key.slice(0, -1) : key;
+    if (cells.length !== 2 || cells.some((cell) => !cell) || !/^[a-z][A-Za-z]*$/.test(head))
+      throw new Error(`refusal-classes.txt:${line} expected \`code | reason\`: ${content}`);
+    if (seen.has(key)) throw new Error(`refusal-classes.txt:${line} duplicate key ${key}`);
+    seen.add(key);
+    lines.push({ key: head, family, reason: cells[1] ?? "", line });
+  });
+  return lines;
+}
+
+const covers = (line: ClassLine, code: string) =>
+  line.family ? code.startsWith(line.key) : code === line.key;
+
+/**
+ * CF-REFUSAL-6 — a refusal code's class is one of: a row of `door_refusal_status`'s table (the gate's
+ * 401, 403, 428, 429; GONE 404; CHANGED 409) or a line of the 400 register. Fails on a raised or
+ * manifest-listed code in no class; a code in two classes (a table row and a register line, or two
+ * register lines); a register line that matches no raised or listed code; a family line that covers a
+ * code the table gives another status.
+ */
+export function classFindings(input: {
+  raised: Iterable<string>;
+  manifest: Iterable<string>;
+  table: ReadonlyMap<string, number>;
+  register: readonly ClassLine[];
+}): string[] {
+  const findings: string[] = [];
+  const codes = [...new Set([...input.raised, ...input.manifest])].sort();
+  for (const code of codes) {
+    const lines = input.register.filter((line) => covers(line, code));
+    const status = input.table.get(code);
+    if (status === undefined && lines.length === 0) findings.push(`${code}: in no class`);
+    if (status !== undefined && lines.length > 0)
+      findings.push(
+        `${code}: in two classes (the table answers ${status}, the register lists it at 400)`,
+      );
+    if (lines.length > 1)
+      findings.push(
+        `${code}: on two register lines (${lines.map((line) => line.key + (line.family ? "*" : "")).join(", ")})`,
+      );
+  }
+  for (const line of input.register) {
+    const name = line.key + (line.family ? "*" : "");
+    if (!codes.some((code) => covers(line, code)))
+      findings.push(`${name}: matches no raised or listed code`);
+    if (line.family)
+      for (const [code, status] of input.table)
+        if ((status === 404 || status === 409) && covers(line, code))
+          findings.push(`${name}: the family covers the ${status} code ${code}`);
+  }
+  return findings;
+}
