@@ -820,3 +820,11 @@ summary's `lanes = [...]`, the lane reporter's and the merged report's expected 
 order (both reporters write `repeat?`); the summary's evidence pattern, a regular expression, holds
 the same lanes in any order. A lane planted out of each of the four is named, and so is a reader
 naming a lane the matrix lost.
+
+## The platform's performance lints (cursor-bundle-7a, DEC-472, CF-ADVISOR-1)
+
+`scripts/ci/advisor-lints.ts` judges the JSON answer of the pinned CLI's `db advisors --local --type
+performance` on the temporary backend: a finding named `auth_rls_initplan` or `duplicate_index` fails
+the step; every other lint's count is printed and never fails it. An empty, non-JSON or unreadable
+answer fails (never read as clean); a finding's `detail` and `metadata` are never printed. Its
+self-test runs first. Test: `scripts/ci/advisor-lints.test.ts` (CF-ADVISOR-1a → 1f).
