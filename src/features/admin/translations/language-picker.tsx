@@ -56,7 +56,7 @@ export function LanguagePicker({
         loadingLabel={t("admin.translations.add.pickLoading")}
         subject={t("admin.translations.add.pickError")}
         statusTestId={
-          list.isLoading ? "translations-add-picker-loading" : "translations-add-picker-error"
+          list.error ? "translations-add-picker-error" : "translations-add-picker-loading"
         }
       />
 

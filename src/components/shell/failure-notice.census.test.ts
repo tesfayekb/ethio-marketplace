@@ -9,7 +9,8 @@ import { walkFiles } from "../../../scripts/conformance/kit";
  * DEC-464 / INC-1279 — THE FAILURE NOTICE'S CENSUS. Every `.tsx` under src/features,
  * src/routes and src/components that draws a query's or an action's failure draws it through
  * `<FailureNotice` (failure-notice.tsx) or a shared outlet that does (DataTable with `retry=`,
- * StatCard `failed` with `onRetry=`, DetailPanel / ChartFrame `error=` with `onRetry=`). A
+ * StatCard `failed` with `onRetry=`, DetailPanel / ChartFrame `error=` with `onRetry=`, FieldSelect
+ * with `read=`). A
  * failure's class or status, or an error's raw text, is never drawn as words.
  *
  * It MISSES: an error renamed to any other name (`problem`, `phase`) and drawn; a catch → helper
@@ -67,7 +68,10 @@ function block(text: string, tag: string): string[] {
 export function trips(text: string): string[] {
   const why: string[] = [];
   for (const raw of RAW) if (raw.test(text)) why.push(`raw:${raw.source.slice(0, 24)}`);
-  if (FAILURE_BRANCH.test(text) && !OUTLET.test(text)) why.push("branch-without-notice");
+  // A FieldSelect handed its read draws the one notice itself (field-select.tsx).
+  const selectOutlet = block(text, "FieldSelect").some((b) => /\bread=/.test(b));
+  if (FAILURE_BRANCH.test(text) && !OUTLET.test(text) && !selectOutlet)
+    why.push("branch-without-notice");
   for (const b of block(text, "DataTable"))
     if (/\berror=/.test(b) && !/\bretry=/.test(b)) why.push("datatable-without-retry");
   for (const b of block(text, "StatCard"))
@@ -128,6 +132,10 @@ describe("failure notice census (DEC-464)", () => {
     expect(trips("<StatCard failed={q.isError} error={q.error} onRetry={r} />")).toEqual([]);
     expect(trips('return detail === "" ? code : `${code} — ${detail}`;')[0]).toMatch(/^raw/);
     expect(trips("<p data-failure={failure.class}>x</p>")).toEqual([]);
+    expect(trips("const x = q.isError;\n<FieldSelect read={r} />")).toEqual([]);
+    expect(trips('q.isError ? <p>{t("a")}</p> : null\n<FieldSelect id="x" />')).toContain(
+      "branch-without-notice",
+    );
   });
 
   const files = walkFiles(ROOTS, { ext: ["tsx"], skipTests: true }).map((p) =>
