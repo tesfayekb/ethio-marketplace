@@ -11,6 +11,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 
+import { BEGIN_REFUSALS } from "./impersonation-refusals";
 import { useBeginImpersonation } from "./use-impersonation";
 
 const MIN_REASON = 5;
@@ -77,7 +78,7 @@ export function ImpersonationStarter({
               });
             })
             .catch((failure: unknown) => {
-              const read = readRefusal(failure, { generic: "impersonation.failed" });
+              const read = readRefusal(failure, BEGIN_REFUSALS);
               setErrorKey(read.silent ? null : read.key);
             });
         }}

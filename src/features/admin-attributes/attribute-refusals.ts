@@ -9,9 +9,8 @@ import { PARSE_INVALID_KEY } from "@/lib/parse-input";
  * DEC-333 (F1-4a) — the attribute library's own words for its doors' codes. Each code that
  * replaced a console key reads that key's words, its tail filling `{count}`, `{detail}` or
  * `{target}` where the words take one (DEC-050 L3b: `<attribute>|<target>`); `rankInherited`'s
- * tail is a diagnostic its words never draw. A code that never had words (unknownCategory,
- * badAllowedOption, badDefault, badVisibleWhen, priceBasisDuplicate, badClearCell,
- * permissionDenied) draws the library's generic line.
+ * tail is a diagnostic its words never draw. Bundle 10b (D50) gave the link doors' last codes
+ * their words; a gate's code goes to the shell, and a code no family names reads the generic.
  */
 export const ATTRIBUTE_REFUSALS = {
   when: ADMIN_WHEN,
@@ -51,8 +50,28 @@ export const ATTRIBUTE_REFUSALS = {
     allowedTargetNotColinked: "admin.attributes.error.allowedTargetNotColinked",
     allowedTargetCircular: "admin.attributes.error.allowedTargetCircular",
     allowedUnknownValue: "admin.attributes.error.allowedUnknownValue",
+    unknownCategory: "admin.categories.error.unknownCategory",
+    badAllowedOption: "admin.attributes.error.badAllowedOption",
+    badDefault: "admin.attributes.error.badDefault",
+    badVisibleWhen: "admin.attributes.error.badVisibleWhen",
+    priceBasisDuplicate: "admin.attributes.error.priceBasisDuplicate",
+    badClearCell: "admin.attributes.error.badClearCell",
   },
   generic: "admin.attributes.error.saveFailed",
+} as const satisfies RefusalFamily;
+
+/**
+ * Bundle 10b (D55) — the attributes export's own words for the route's codes
+ * (src/routes/api/admin/attributes/export.ts): its gate's `forbidden`, the scope's
+ * `unknownCategory` and `badScope`; anything else reads the export's generic line.
+ */
+export const ATTRIBUTE_EXPORT_REFUSALS = {
+  words: {
+    forbidden: "failure.noAccess",
+    unknownCategory: "admin.categories.error.unknownCategory",
+    badScope: "admin.attributes.export.badScope",
+  },
+  generic: "admin.attributes.export.error",
 } as const satisfies RefusalFamily;
 
 /**
@@ -63,9 +82,12 @@ export const ATTRIBUTE_REFUSALS = {
 export function useAttributeRefusal() {
   const { t, has, language } = useI18n();
   const [message, setMessage] = useState<string | null>(null);
-  const fail = (error: unknown) => {
+  /** Sets the screen's line and returns the same words (null when silent), for a cell's caption. */
+  const fail = (error: unknown): string | null => {
     const read = readRefusal(error, ATTRIBUTE_REFUSALS, has);
-    setMessage(read.silent ? null : refusalText(read, t, undefined, language));
+    const text = read.silent ? null : refusalText(read, t, undefined, language);
+    setMessage(text);
+    return text;
   };
   return { message, setMessage, fail };
 }

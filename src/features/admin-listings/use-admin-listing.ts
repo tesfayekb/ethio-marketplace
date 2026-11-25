@@ -292,6 +292,11 @@ export async function setAdminListingTier(
   return { status: answer["status"] };
 }
 
+/** INC-1292 — the one cache key of an ad's console read; the Edit wizard fills it from its own read. */
+export function adminListingKey(listingId: string) {
+  return [...ADMIN_LISTINGS_KEY, "detail", listingId] as const;
+}
+
 /**
  * Cursor bundle 6, decision 7 — `cacheOnly` is the shell's crumb: it shows what the page's own read
  * filled and asks nothing itself, so a staff session that has not used its second factor (the page's
@@ -300,7 +305,7 @@ export async function setAdminListingTier(
 export function useAdminListing(listingId: string, options: { cacheOnly?: boolean } = {}) {
   return useQuery({
     enabled: options.cacheOnly !== true,
-    queryKey: [...ADMIN_LISTINGS_KEY, "detail", listingId],
+    queryKey: adminListingKey(listingId),
     queryFn: () => readAdminListing(listingId),
     retry: false,
   });

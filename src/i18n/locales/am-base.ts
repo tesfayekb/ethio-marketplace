@@ -457,6 +457,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "impersonation.noneActive": "ንቁ የመወከል ክፍለ ጊዜ የለም።",
   "impersonation.cancel": "ሰርዝ",
   "impersonation.listingsTitle": "ማስታወቂያዎች",
+  "impersonation.error.endFailed": "ክፍለ ጊዜውን ማቆም አልተቻለም።",
   // U4b — Translations console (languages, strings editor, translator scope).
   "admin.section.translations.title": "ትርጉሞች",
   "admin.section.translations.body": "ቋንቋዎች፣ የቁልፍ ሽፋን እና የሐረግ አርታዒ።",

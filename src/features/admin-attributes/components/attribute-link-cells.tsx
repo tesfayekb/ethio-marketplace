@@ -59,15 +59,24 @@ export function AttributeLinkCells({
 }: {
   row: AttributeLink;
   siblings: AttributeLink[];
-  /** Resolves TRUE when the door accepted the write, FALSE when it refused. */
+  /**
+   * Resolves TRUE when the door accepted the write; otherwise the refusal's own words (bundle 10b,
+   * D50), or null when it has none to give (the caption then reads the generic save-failed line).
+   */
   onSave: (input: {
     allowedOptions?: string[];
     defaultValue?: unknown;
     visibleWhen?: VisibleWhen;
     clearCells?: LinkCellName[];
-  }) => Promise<boolean>;
+  }) => Promise<true | string | null>;
 }) {
   const { t } = useI18n();
+  /** D50 — each cell's last refusal, in its code's words. */
+  const [words, setWords] = useState<Record<Cell, string | null>>({
+    allowed: null,
+    default: null,
+    condition: null,
+  });
   const [allowed, setAllowed] = useState<string[]>(row.allowedOptions ?? []);
   const [defaultValue, setDefaultValue] = useState(defaultText(row.defaultValue));
   const [conditionKey, setConditionKey] = useState(row.visibleWhen?.key ?? "");
@@ -139,7 +148,9 @@ export function AttributeLinkCells({
     accepted: Partial<typeof baseline>,
   ) => {
     setStates((prev) => ({ ...prev, [cell]: "saving" }));
-    void onSave(input).then((ok) => {
+    void onSave(input).then((answer) => {
+      const ok = answer === true;
+      setWords((prev) => ({ ...prev, [cell]: ok ? null : answer }));
       setStates((prev) => ({ ...prev, [cell]: ok ? "saved" : "error" }));
       if (ok) setBaseline((prev) => ({ ...prev, ...accepted }));
     });
@@ -162,7 +173,7 @@ export function AttributeLinkCells({
         data-testid={`category-attribute-cell-error-${cell}-${row.attrKey}`}
         className="text-xs text-destructive"
       >
-        {t("admin.attributes.link.saveFailed")}
+        {words[cell] ?? t("admin.attributes.link.saveFailed")}
       </span>
     ) : null;
 

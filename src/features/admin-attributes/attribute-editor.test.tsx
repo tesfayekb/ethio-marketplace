@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 const upsert = vi.fn((_input: unknown) => Promise.resolve());
-const updateLink = vi.fn(() => Promise.resolve(true));
+const updateLink = vi.fn((): Promise<true | string | null> => Promise.resolve(true));
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, has: () => false, language: "en" }),

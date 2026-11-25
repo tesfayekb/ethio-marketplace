@@ -67,16 +67,39 @@ describe("ImpersonationNotice (DEC-372)", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
-  it("IMPN-4 a failed call says so in the refusal key and offers Refresh page", async () => {
+  it("IMPN-4 a refused call says so in the door's words and offers Refresh page; a code with no words reads the end's generic", async () => {
     service.getActiveImpersonation.mockResolvedValue(SESSION);
-    service.endImpersonation.mockRejectedValue(new Error("end_impersonation refused"));
+    service.endImpersonation.mockRejectedValue({ code: "P0001", message: "noSuchCode" });
     render(<ImpersonationNotice />);
     fireEvent.click(screen.getByTestId("impersonation-banner-end"));
     const failed = await screen.findByTestId("impersonation-notice-failed");
-    expect(failed).toHaveTextContent("door.refused");
+    expect(failed).toHaveTextContent("impersonation.error.endFailed");
     expect(screen.getByTestId("impersonation-notice-refresh")).toHaveTextContent(
       "common.refreshPage",
     );
     expect(screen.getByTestId("impersonation-notice")).toBeInTheDocument();
+  });
+
+  it("IMPN-5 the door's noActiveSession says no session is active and offers no button", async () => {
+    service.getActiveImpersonation.mockResolvedValue(SESSION);
+    service.endImpersonation.mockRejectedValue({ code: "P0001", message: "noActiveSession" });
+    render(<ImpersonationNotice />);
+    fireEvent.click(screen.getByTestId("impersonation-banner-end"));
+    await screen.findByText("impersonation.noneActive");
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+
+  it("IMPN-6 a network failure offers Retry, which ends the session again in place", async () => {
+    service.getActiveImpersonation.mockResolvedValue(SESSION);
+    service.endImpersonation
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+      .mockResolvedValueOnce(undefined);
+    render(<ImpersonationNotice />);
+    fireEvent.click(screen.getByTestId("impersonation-banner-end"));
+    const failed = await screen.findByTestId("impersonation-notice-failed");
+    expect(failed).toHaveTextContent("failure.network");
+    fireEvent.click(screen.getByTestId("impersonation-notice-retry"));
+    await vi.waitFor(() => expect(screen.queryByTestId("impersonation-notice")).toBeNull());
+    expect(service.endImpersonation).toHaveBeenCalledTimes(2);
   });
 });

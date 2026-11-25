@@ -1063,6 +1063,7 @@ export const enAdmin = {
   "admin.attributes.export.open": "Export attributes",
   "admin.attributes.export.busy": "Exporting…",
   "admin.attributes.export.error": "The export could not be prepared.",
+  "admin.attributes.export.badScope": "The export's filter is not valid. Clear it and try again.",
   "admin.attributes.import.open": "Import attributes",
   "admin.attributes.import.title": "Import attributes",
   "admin.attributes.import.hint":
@@ -1484,6 +1485,14 @@ export const enAdmin = {
   /* DEC-050 L3b — the option and cell refusals raised by the save door. */
   "admin.attributes.error.badOption": "An option could not be accepted: {detail}",
   "admin.attributes.error.badCell": "A setting could not be accepted: {detail}",
+  "admin.attributes.error.badAllowedOption":
+    "An allowed choice is not one of this attribute's options.",
+  "admin.attributes.error.badDefault": "The default is not a value this attribute accepts.",
+  "admin.attributes.error.badVisibleWhen":
+    "The show-when condition names an attribute or value this category doesn't have.",
+  "admin.attributes.error.priceBasisDuplicate":
+    "This category already has a price basis attribute.",
+  "admin.attributes.error.badClearCell": "That setting can't be cleared here.",
   "admin.attributes.error.boundsTargetNotNumber":
     "“{target}” is not a number attribute, so it cannot be limited.",
   "admin.attributes.error.boundsTargetNotColinked":
@@ -2191,6 +2200,9 @@ export const enAdmin = {
   "impersonation.reasonTooShort": "Give a reason of at least 5 characters.",
   "impersonation.start": "Start session",
   "impersonation.failed": "The impersonation session could not be started.",
+  "impersonation.error.self": "You can't view as yourself.",
+  "impersonation.error.superAdmin": "You can't view as a super admin.",
+  "impersonation.error.sessionActive": "A view-as session is already active. End it first.",
   "impersonation.title": "Viewing as {name}",
   "impersonation.readOnlyNote":
     "Read-only support view — you are seeing this account's data, not acting as this account. No action here can change their data.",

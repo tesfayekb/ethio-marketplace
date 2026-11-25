@@ -484,6 +484,7 @@ export const enBase = {
   "impersonation.noneActive": "No view-as session is active.",
   "impersonation.cancel": "Cancel",
   "impersonation.listingsTitle": "Listings",
+  "impersonation.error.endFailed": "The session could not be ended.",
   // U4b — Translations console (languages, strings editor, translator scope).
   "admin.section.translations.title": "Translations",
   "admin.section.translations.body": "Languages, key coverage and the strings editor.",

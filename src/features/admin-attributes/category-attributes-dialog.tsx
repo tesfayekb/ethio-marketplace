@@ -18,6 +18,7 @@ import { useSettling } from "@/lib/use-settling";
 import { AttributeDialogAlert } from "./attribute-dialogs";
 import { ATTRIBUTE_REFUSALS, useAttributeRefusal } from "./attribute-refusals";
 import { AttributeLinkCells } from "./components/attribute-link-cells";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { useAttributeLabel } from "./use-attribute-label";
 import {
   CARD_ATTRIBUTE_MAXIMUM,
@@ -177,25 +178,26 @@ export function CategoryAttributesDialog({
    * U6-C1-R3b-3a STEP 3 — A CELL WRITE ANSWERS ITS OWN CALLER. The three link
    * cells own their Saved/failed captions, so the dialog hands each write's
    * VERDICT back instead of swallowing it: `true` only when the door accepted,
-   * `false` on any refusal (which also lands in the dialog's error line, F4).
+   * else the refusal's own words (which also land in the dialog's error line, F4; D50).
    */
-  const runCell = async (action: () => Promise<void>): Promise<boolean> => {
+  const runCell = async (action: () => Promise<void>): Promise<true | string | null> => {
     setMessage(null);
     setSavedTag(null);
     let ok = false;
+    let words: string | null = null;
     try {
       await guard(async () => {
         try {
           await action();
           ok = true;
         } catch (error) {
-          fail(error);
+          words = fail(error);
         }
       });
     } catch (error) {
-      fail(error);
+      words = fail(error);
     }
-    return ok;
+    return ok ? true : words;
   };
 
   const move = (index: number, delta: number) => {
@@ -278,9 +280,12 @@ export function CategoryAttributesDialog({
       {links.isPending ? (
         <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       ) : links.isError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {t("admin.attributes.links.error")}
-        </p>
+        <FailureNotice
+          error={links.error}
+          testid="category-attributes-links-error"
+          subject={t("admin.attributes.links.error")}
+          onRetry={() => void links.refetch()}
+        />
       ) : rows.length === 0 ? (
         <p data-testid="category-attributes-empty" className="text-sm text-muted-foreground">
           {t("admin.attributes.links.empty")}

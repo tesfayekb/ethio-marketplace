@@ -90,10 +90,6 @@ export function trips(text: string): string[] {
 const UNTIL_10B = "INC-1279 until bundle 10b";
 const ALLOW: ReadonlyArray<string> = [
   // EXCLUDED (Cursor bundle 6's folders)
-  `src/features/admin/audit/audit-page.tsx | excluded | ${UNTIL_10B}`,
-  `src/features/admin/impersonation/impersonation-view.tsx | excluded | ${UNTIL_10B}`,
-  `src/features/admin-attributes/attributes-page.tsx | excluded | ${UNTIL_10B}`,
-  `src/features/admin-attributes/category-attributes-dialog.tsx | excluded | ${UNTIL_10B}`,
   `src/features/admin-attributes/attribute-dialogs.tsx | excluded | ${UNTIL_10B}`,
   `src/features/auth/mfa/staff-factor-gate.tsx | excluded | ${UNTIL_10B}`,
   `src/routes/settings.tsx | excluded | ${UNTIL_10B}`,
@@ -101,7 +97,6 @@ const ALLOW: ReadonlyArray<string> = [
   // LEFT (ruling 1 decision 9 / not a reader)
   `src/routes/auth.tsx | excluded (auth) | ${UNTIL_10B}`,
   `src/features/admin/import-dialog.tsx | a code with no words drawn as data (INC-1280) | INC-1280 until bundle 7`,
-  `src/components/shell/impersonation-notice.tsx | the view-as bar, D39's concern (excluded impersonation) | ${UNTIL_10B}`,
   `src/features/posting/step-photos.tsx | a photo's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
   `src/features/posting/photo-editor.tsx | the editor's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
   `src/components/forms/field-select.tsx | a select's own failed line, words from its caller | ${UNTIL_10B}`,
