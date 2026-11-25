@@ -174,7 +174,7 @@ describe("POST /api/listings/draft on defineRoute (C1)", () => {
     // F1-5a — the shell's refusals reach the wizard as their codes, never as `doorError`.
     for (const [message, status] of [
       ["rateLimited", 429],
-      ["notYourListing", 400],
+      ["notYourListing", 404],
       ["accountDeactivated", 403],
       ["notSignedIn", 401],
       ["badValue:step", 400],

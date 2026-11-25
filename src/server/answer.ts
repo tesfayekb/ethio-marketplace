@@ -238,9 +238,19 @@ export function download(text: string, init: { filename: string; contentType: st
 
 export { doorAnswer, upstreamFailed, upstreamUnavailable };
 
-/** The client statuses a reader's refusal answers at (the one table's, `refusalStatus`). */
-function refusalAnswerStatus(status: number): 400 | 401 | 403 | 429 | null {
-  return status === 400 || status === 401 || status === 403 || status === 429 ? status : null;
+/**
+ * The client statuses a reader's refusal answers at (the one table's, `refusalStatus`): the
+ * gate's, GONE 404 and CHANGED 409 (cursor-bundle-7a, INC-1287).
+ */
+function refusalAnswerStatus(status: number): 400 | 401 | 403 | 404 | 409 | 429 | null {
+  return status === 400 ||
+    status === 401 ||
+    status === 403 ||
+    status === 404 ||
+    status === 409 ||
+    status === 429
+    ? status
+    : null;
 }
 
 /**

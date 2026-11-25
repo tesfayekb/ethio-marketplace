@@ -226,7 +226,9 @@ describe("the route answers (B2)", () => {
         [{ message: "rateLimited:60", status: 429 }, 429, { error: "rateLimited", detail: "60" }],
         [{ message: "badValue:field" }, 400, { error: "badValue", detail: "field" }],
         // DEC-429 — a family code the client names nowhere is a refusal by its mark, at its status.
-        [{ message: "listingNotFound", code: "P0D01" }, 400, { error: "listingNotFound" }],
+        [{ message: "listingNotFound", code: "P0D01" }, 404, { error: "listingNotFound" }],
+        // INC-1287 — a CHANGED code answers 409 (the row is there, its state forbids the action).
+        [{ message: "listingChanged", code: "P0D01" }, 409, { error: "listingChanged" }],
         [
           readFailed({ message: "badOption:price", code: "P0D01" }, 400),
           400,
@@ -234,7 +236,7 @@ describe("the route answers (B2)", () => {
         ],
         [
           readFailed({ message: "listingNotFound", code: "P0D01" }),
-          400,
+          404,
           { error: "listingNotFound" },
         ],
       ];

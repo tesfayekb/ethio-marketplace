@@ -334,6 +334,34 @@ reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane rea
   and `liveRoleRules` hands the same judge the rules really standing — a rule created by computed
   text, which the migrations' census cannot name, is judged too. `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
 
+## A refusal's status names its kind (cursor-bundle-7a Part 2, INC-1287)
+
+`door_refusal_status` (and its client mirror `REFUSAL_STATUS`, `src/lib/reader-failure.ts`) gives
+every refusal code one class, so a screen tells "gone" and "changed" apart from any other refusal
+by status, never by a list of codes:
+
+- **GONE — 404.** The row the caller named is not there, or not theirs to see, and the next step
+  is to go back (31 codes: `listingNotFound`, `notYourListing`, `unknownCategory`, …).
+- **CHANGED — 409.** The row is there, but its state now forbids the action, and the next step is
+  to reload (29 codes: `listingChanged`, `illegalTransition`, `importRunning`, …).
+- **400.** The caller's input must change: every other code, the 17 borderline codes (a value from
+  a short list, a conflict with another row, a rule over related rows) included.
+- The gate's four keep their statuses: `notSignedIn` 401, `permissionDenied` and
+  `accountDeactivated` 403, `stepUpRequired` 428, `rateLimited` 429.
+
+The 400 codes are a CLASS REGISTER, not an allowlist: `scripts/conformance/refusal-classes.txt`,
+one line per code or per family prefix (`bad*`, `delete*`), `code | reason`, no `until` because a
+class is not an exception. CF-REFUSAL-6 (`scripts/conformance/refusal-readers.test.ts` CFRR-10 → 12) reads every code raised in a last declaration and every manifest code, and fails on a code in
+no class, a code in two classes (a table row and a register line, or two register lines), a
+register line that matches no raised code, and a family line that covers a 404 or 409 code;
+CF-REFUSAL-2 keeps the table and the mirror equal in both directions. The server's reader answers
+(`refusalAnswerStatus`, `codeStatus` of the import route) pass 404 and 409. A client that reads a
+code at a status its class does not carry does not treat it as a refusal the database answered
+(`classify`), so between the migration's apply and the client's publish a moved code reads as a
+failure with Retry (the operator applies the migration and publishes the client in the same
+sitting). The routes' own statuses stay — `notYourListing` 403 and `photoGone` 409
+on the photo and background routes — until bundle 7b aligns them.
+
 ## The staff-session rule (cursor-bundle-6 Part 3, DEC-461)
 
 A staff authority holds only for a session that used its second factor. THE RULE

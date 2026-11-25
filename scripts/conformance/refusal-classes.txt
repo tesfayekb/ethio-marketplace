@@ -1,0 +1,131 @@
+# CF-REFUSAL-6 (cursor-bundle-7a, INC-1287) — THE 400 CLASS REGISTER. Every refusal code a door raises sits in exactly one class:
+# a gate class (401 403 428 429), GONE 404 or CHANGED 409 (door_refusal_status and REFUSAL_STATUS hold those), or here, at 400:
+# the caller's input must change. This is a class, not an exception: no `until`. One line per code, or per family prefix
+# (`bad*`); a family line must not cover a code the table gives another status. A line that matches no raised code fails.
+# code | reason
+bad* | a bad value in the caller's input: the caller changes it (the badValue family)
+delete* | a delete refused by what depends on, holds or names the row: the caller changes the request
+unknownCurrency | a value from a short list the caller sent, not a row it named
+unknownFact | a value from a short list the caller sent, not a row it named
+unknownKind | a value from a short list the caller sent, not a row it named
+unknownLevel | a value from a short list the caller sent, not a row it named
+unknownLink | a value from a short list the caller sent, not a row it named
+unknownParent | a value from a short list the caller sent, not a row it named
+unknownPlacement | a value from a short list the caller sent, not a row it named
+unknownReach | a value from a short list the caller sent, not a row it named
+aliasTaken | a conflict with another row: the caller changes its value
+duplicateCategory | a conflict with another row: the caller changes its value
+duplicateKey | a conflict with another row: the caller changes its value
+labelTaken | a conflict with another row: the caller changes its value
+overlappingWindow | a conflict with another row: the caller changes its value
+priceBasisDuplicate | a conflict with another row: the caller changes its value
+slugTaken | a conflict with another row: the caller changes its value
+translationExists | a conflict with another row: the caller changes its value
+categoryNotPostable | a rule over the rows related to the one named: the caller changes the request
+hasDependents | a rule over the rows related to the one named: the caller changes the request
+levelNotAvailable | a rule over the rows related to the one named: the caller changes the request
+mergeAcrossDependency | a rule over the rows related to the one named: the caller changes the request
+mergeHasHolders | a rule over the rows related to the one named: the caller changes the request
+mergeNoSources | a rule over the rows related to the one named: the caller changes the request
+mergeTargetInSources | a rule over the rows related to the one named: the caller changes the request
+notFullyApproved | a rule over the rows related to the one named: the caller changes the request
+notMainCategory | a rule over the rows related to the one named: the caller changes the request
+notOffered | a rule over the rows related to the one named: the caller changes the request
+planHasRefusals | a rule over the rows related to the one named: the caller changes the request
+priceInUse | a rule over the rows related to the one named: the caller changes the request
+reassignRequired | a rule over the rows related to the one named: the caller changes the request
+reassignTargetInvalid | a rule over the rows related to the one named: the caller changes the request
+retireInstead | a rule over the rows related to the one named: the caller changes the request
+scopedRolesExist | a rule over the rows related to the one named: the caller changes the request
+severeRemove | a rule over the rows related to the one named: the caller changes the request
+severeRestore | a rule over the rows related to the one named: the caller changes the request
+translationFlagged | a rule over the rows related to the one named: the caller changes the request
+undoBlocked | a rule over the rows related to the one named: the caller changes the request
+unlinkHasDependents | a rule over the rows related to the one named: the caller changes the request
+useMoveDoor | a rule over the rows related to the one named: the caller changes the request
+catalogEmpty | the request is missing or empty: the caller supplies the input
+changelogRequired | the request is missing or empty: the caller supplies the input
+emptyList | the request is missing or empty: the caller supplies the input
+emptyOverride | the request is missing or empty: the caller supplies the input
+factMissing | the request is missing or empty: the caller supplies the input
+labelRequired | the request is missing or empty: the caller supplies the input
+nameRequired | the request is missing or empty: the caller supplies the input
+noteRequired | the request is missing or empty: the caller supplies the input
+required | the request is missing or empty: the caller supplies the input
+aliasShape | a size, count or shape limit on the caller's input
+capsOnLevel | a size, count or shape limit on the caller's input
+cardLimit | a size, count or shape limit on the caller's input
+contactInNote | a size, count or shape limit on the caller's input
+directionsTooLong | a size, count or shape limit on the caller's input
+factLimit | a size, count or shape limit on the caller's input
+noteTooLong | a size, count or shape limit on the caller's input
+noticeTooShort | a size, count or shape limit on the caller's input
+streetTooLong | a size, count or shape limit on the caller's input
+tooLong | a size, count or shape limit on the caller's input
+tooManyRows | a size, count or shape limit on the caller's input
+aliasReserved | a reserved or system name, or a target the rules protect: the caller picks another
+baseLanguage | a reserved or system name, or a target the rules protect: the caller picks another
+baseLocked | a reserved or system name, or a target the rules protect: the caller picks another
+categoryFixed | a reserved or system name, or a target the rules protect: the caller picks another
+corePermission | a reserved or system name, or a target the rules protect: the caller picks another
+impersonateSelf | a reserved or system name, or a target the rules protect: the caller picks another
+impersonateSuperAdmin | a reserved or system name, or a target the rules protect: the caller picks another
+isoOnRegionsOnly | a reserved or system name, or a target the rules protect: the caller picks another
+permissionReserved | a reserved or system name, or a target the rules protect: the caller picks another
+pseudoLanguage | a reserved or system name, or a target the rules protect: the caller picks another
+roleReserved | a reserved or system name, or a target the rules protect: the caller picks another
+systemRole | a reserved or system name, or a target the rules protect: the caller picks another
+allowedTargetCircular | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+allowedTargetNotColinked | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+allowedTargetNotSelect | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+allowedUnknownValue | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+bothLanguages | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+boundsTargetNotColinked | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+boundsTargetNotNumber | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+cannotMoveCountry | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+catchallParent | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+crossCountry | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+dependsCycle | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+dependsNotSelect | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+dependsSelf | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+dependsUnknown | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+includedReach | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+kindChange | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+levelMismatch | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+lowerLevel | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+lowerReach | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+missingCoordinates | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+notAChild | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+notARoot | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+notApplicable | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+notEditable | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+orderCountriesInProfile | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+orderMismatch | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+ownListing | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+parentNotInParent | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+parentWithoutDepends | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+perksOnReach | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+rankInherited | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+rootMustBeCountry | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+sameLevel | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+sameReach | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+slugMismatch | a rule between the values the caller sent, or between the caller's own row and the action: the caller changes them
+acceptNoImage | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+acceptanceRequired | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+adultRequired | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+confirmMismatch | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+creditsNotAvailable | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+languageNotPublished | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+lastSignInMethod | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+launchRequired | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+listingNotPlaced | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+marketNotSet | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+overBudget | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+placeNotOpen | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+residencyUnknown | a step the caller takes first, then retries (accept, set a place, confirm, publish a language)
+enforcementOnly | a door open to one standing only (owner, reviewer, service, enforcement): the caller's request is not one it may make
+ownerOnly | a door open to one standing only (owner, reviewer, service, enforcement): the caller's request is not one it may make
+reviewerOnly | a door open to one standing only (owner, reviewer, service, enforcement): the caller's request is not one it may make
+serviceOnly | a door open to one standing only (owner, reviewer, service, enforcement): the caller's request is not one it may make
+nothingChanged | the request changes nothing: the caller changes it
+nothingToReview | the request changes nothing: the caller changes it

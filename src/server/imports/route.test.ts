@@ -353,7 +353,7 @@ describe("defineImportRoute", () => {
       [envelope("tooManyRows", "<b>5001</b>"), 400, { error: "tooManyRows" }],
       [
         { code: "P0D01", message: "unknownKey:e2e.imr.key", details: "pg detail" },
-        400,
+        404,
         { error: "unknownKey", detail: "e2e.imr.key" },
       ],
       [envelope("stepUpRequired"), 428, null],
@@ -382,32 +382,33 @@ describe("defineImportRoute", () => {
       };
     };
     const digest = await digestOf([CATEGORIES]);
-    const commits: [string, Record<string, string>][] = [
-      ["importRunning", { error: "importRunning" }],
-      ["unknownParent:e2e-shoes", { error: "unknownParent", detail: "e2e-shoes" }],
-      ["catchallParent", { error: "catchallParent" }],
-      ["deleteHasChildren:2", { error: "deleteHasChildren", detail: "2" }],
+    const commits: [string, number, Record<string, string>][] = [
+      ["importRunning", 409, { error: "importRunning" }],
+      ["unknownParent:e2e-shoes", 400, { error: "unknownParent", detail: "e2e-shoes" }],
+      ["catchallParent", 400, { error: "catchallParent" }],
+      ["deleteHasChildren:2", 400, { error: "deleteHasChildren", detail: "2" }],
       [
         "rankInherited:category=c-1 rank=2 attribute=size inherited_from=cars inherited_attribute=make",
+        400,
         { error: "rankInherited" },
       ],
     ];
-    for (const [message, body] of commits) {
+    for (const [message, status, body] of commits) {
       state.answers["admin_commit_category_import"] = { data: null, error: envelope(message) };
       const response = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
-      expect([message, response.status]).toEqual([message, 400]);
+      expect([message, response.status]).toEqual([message, status]);
       const text = await response.text();
       expect(text).not.toMatch(/pg detail|secret/);
       expect(JSON.parse(text)).toEqual(body);
     }
     expect(state.refreshes).toEqual([]);
-    for (const [message, body] of [
-      ["required:batch", { error: "required", detail: "batch" }],
-      ["unknownBatch", { error: "unknownBatch" }],
+    for (const [message, status, body] of [
+      ["required:batch", 400, { error: "required", detail: "batch" }],
+      ["unknownBatch", 404, { error: "unknownBatch" }],
     ] as const) {
       state.answers["admin_undo_attribute_import"] = { data: null, error: envelope(message) };
       const response = await send(attributes, { mode: "undo", batchId: "b-1" });
-      expect([message, response.status]).toEqual([message, 400]);
+      expect([message, response.status]).toEqual([message, status]);
       expect(await response.json()).toEqual(body);
     }
   });
@@ -427,7 +428,7 @@ describe("defineImportRoute", () => {
     };
     const digest = await digestOf([COUNTRIES, ""]);
     const commits: [string, number, Record<string, string>][] = [
-      ["importRunning", 400, { error: "importRunning" }],
+      ["importRunning", 409, { error: "importRunning" }],
       ["planHasRefusals", 400, { error: "planHasRefusals" }],
       ["permissionDenied:scope", 403, { error: "permissionDenied", detail: "scope" }],
       ["permissionDenied", 403, { error: "permissionDenied" }],
@@ -442,8 +443,8 @@ describe("defineImportRoute", () => {
     }
     expect(state.refreshes).toEqual([]);
     const undos: [string, number, Record<string, string>][] = [
-      ["unknownBatch", 400, { error: "unknownBatch" }],
-      ["batchAlreadyUndone", 400, { error: "batchAlreadyUndone" }],
+      ["unknownBatch", 404, { error: "unknownBatch" }],
+      ["batchAlreadyUndone", 409, { error: "batchAlreadyUndone" }],
       ["undoBlocked:hasRows", 400, { error: "undoBlocked", detail: "hasRows" }],
       ["permissionDenied:scope", 403, { error: "permissionDenied", detail: "scope" }],
     ];
@@ -458,7 +459,7 @@ describe("defineImportRoute", () => {
     expect(state.refreshes).toEqual([]);
   });
 
-  it("IMR-16 a planner's unknown scope (F1-7b) answers its code at 400 — a preview's raise and a commit's envelope alike; the old sentences are a 500", async () => {
+  it("IMR-16 a planner's unknown scope (F1-7b) answers its code at 404 (GONE, INC-1287) — a preview's raise and a commit's envelope alike; the old sentences are a 500", async () => {
     const raised = (message: string) => ({
       code: "P0D01",
       message,
@@ -486,7 +487,7 @@ describe("defineImportRoute", () => {
       for (const error of [raised(code), envelope(code)]) {
         state.answers[rpcName] = { data: null, error };
         const response = await send(route, { mode: "preview", scope, ...files });
-        expect([code, response.status]).toEqual([code, 400]);
+        expect([code, response.status]).toEqual([code, 404]);
         const text = await response.text();
         expect(text).not.toMatch(/pg detail|secret/);
         expect(JSON.parse(text)).toEqual({ error: code });
@@ -509,7 +510,7 @@ describe("defineImportRoute", () => {
       categories: CATEGORIES,
       digest,
     });
-    expect([commit.status, await commit.json()]).toEqual([400, { error: "unknownCategory" }]);
+    expect([commit.status, await commit.json()]).toEqual([404, { error: "unknownCategory" }]);
     expect(state.refreshes).toEqual([]);
   });
 
@@ -559,7 +560,7 @@ describe("defineImportRoute", () => {
       },
     };
     const refused = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
-    expect(refused.status).toBe(400);
+    expect(refused.status).toBe(409);
     expect(await refused.json()).toEqual({ error: "importRunning" });
     expect(state.refreshes).toEqual([]);
 

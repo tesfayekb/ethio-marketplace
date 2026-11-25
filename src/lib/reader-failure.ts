@@ -15,10 +15,13 @@ export type ReaderFailure = {
  * `door_context` raises `door_refuse(code, detail)` and PostgREST answers it at
  * the status the database's one table gives the code (`door_refusal_status`):
  * `notSignedIn` 401, `permissionDenied` 403, `accountDeactivated` 403,
- * `stepUpRequired` 428, `rateLimited` 429, every other code 400 — never 500.
- * This is that table's client side; CF-REFUSAL-2
- * (scripts/conformance/refusal-readers.test.ts) reads the table's last
- * declaration and fails when the two differ in either direction.
+ * `stepUpRequired` 428, `rateLimited` 429 and, since cursor-bundle-7a (INC-1287), two classes by
+ * kind: GONE 404 (the row the caller named is not there, or not theirs to see — the next step is to
+ * go back) and CHANGED 409 (the row is there, but its state now forbids the action — the next step
+ * is to reload); every other code 400 (the caller's input must change) — never 500. This is that
+ * table's client side; CF-REFUSAL-2 (scripts/conformance/refusal-readers.test.ts) reads the table's
+ * last declaration and fails when the two differ in either direction, and CF-REFUSAL-6 gives every
+ * raised code exactly one class (the 400 codes in scripts/conformance/refusal-classes.txt).
  */
 const REFUSAL_STATUS: Readonly<Record<string, number>> = {
   notSignedIn: 401,
@@ -26,6 +29,68 @@ const REFUSAL_STATUS: Readonly<Record<string, number>> = {
   accountDeactivated: 403,
   stepUpRequired: 428,
   rateLimited: 429,
+  // GONE — the row the caller named is not there, or not theirs to see: go back.
+  attributeNotFound: 404,
+  categoryNotFound: 404,
+  changeGone: 404,
+  listingNotAvailable: 404,
+  listingNotFound: 404,
+  locationMissing: 404,
+  noActiveSession: 404,
+  noProfile: 404,
+  notYourListing: 404,
+  notYours: 404,
+  overrideNotFound: 404,
+  ownerDeleted: 404,
+  parentMissing: 404,
+  photoGone: 404,
+  photoNotFound: 404,
+  priceNotFound: 404,
+  reviewGone: 404,
+  unknownAttribute: 404,
+  unknownBatch: 404,
+  unknownCategory: 404,
+  unknownCountry: 404,
+  unknownEntity: 404,
+  unknownFeature: 404,
+  unknownKey: 404,
+  unknownPackage: 404,
+  unknownPermission: 404,
+  unknownPointer: 404,
+  unknownRole: 404,
+  unknownTranslation: 404,
+  unknownUser: 404,
+  unknownVersion: 404,
+  // CHANGED — the row is there, but its state now forbids the action: reload.
+  alreadyActive: 409,
+  alreadyLinked: 409,
+  alreadyReported: 409,
+  batchAlreadyUndone: 409,
+  categoryInactive: 409,
+  draftNotEdited: 409,
+  illegalTransition: 409,
+  importRunning: 409,
+  inReview: 409,
+  languagePublished: 409,
+  listingChanged: 409,
+  listingNotEditable: 409,
+  listingRemoved: 409,
+  notADraft: 409,
+  notCopied: 409,
+  notDraft: 409,
+  notInForce: 409,
+  notLive: 409,
+  notPaused: 409,
+  notPublished: 409,
+  nothingToUndo: 409,
+  parentInactive: 409,
+  photoRemovalFinal: 409,
+  photosSoonNotEditable: 409,
+  pinNotEditable: 409,
+  priceEnded: 409,
+  renewFirst: 409,
+  seasonEnded: 409,
+  sessionActive: 409,
 };
 
 /** The HTTP status a refusal with this code arrives at (400 for a code with no row of its own). */
