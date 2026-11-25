@@ -1917,6 +1917,28 @@ test.describe("CAT-IE categories import/export", () => {
       await switchUser(page, importer.email, importer.password);
       await gotoReady(page, "/admin/categories");
 
+      // A leased account carries the history of its earlier borrowers (audit rows keyed to it stay
+      // when its roles and sessions are reaped): the proof reads every row the importer gained from
+      // here on, so the net stays whole and the account's past is not the attempt's.
+      const seen = await adminClient()
+        .from("audit_log")
+        .select("created_at")
+        .eq("actor_id", importer.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      expect(seen.error).toBeNull();
+      const watermark = seen.data?.[0]?.created_at ?? null;
+      const meterRows = async () => {
+        const read = await adminClient()
+          .from("rate_limits")
+          .select("action, count, window_start")
+          .eq("key", importer.id)
+          .neq("action", "account_pref"); // INC-1290 until bundle 7: the account rule's own dial
+        expect(read.error).toBeNull();
+        return (read.data ?? []).sort((x, y) => x.action.localeCompare(y.action));
+      };
+      const metersBefore = await meterRows();
+
       const token = await bearerOf(page);
       const categories = file([line({ category_slug: slug, name_en: slug })]);
       const preview = await importPost(page, token, { mode: "preview", categories });
@@ -1932,23 +1954,23 @@ test.describe("CAT-IE categories import/export", () => {
       expect(commit.status, JSON.stringify(commit.payload)).toBe(428);
       expect(commit.payload["code"]).toBe("P0009");
 
-      // A refused attempt leaves NO trace (F5): no category, no category audit row (the sign-in's own
-      // language-preference save is the account's, not the import's), no dial spent.
+      // A refused attempt leaves NO trace (F5): no category, no audit row and no meter row keyed to the
+      // importer since the attempt began — except exactly what a proven other writer leaves. The
+      // sign-in's account-language rule (D239) saves the importer's language when its session starts:
+      // it audits `profile.preferred_language` and spends the `account_pref` dial, even when nothing
+      // changes, and a fresh account's first start can run it twice. INC-1290 until bundle 7 (its SQL
+      // turn makes an unchanged save write nothing); both exclusions go with it.
       expect(await readCategory(slug)).toBeNull();
-      const audit = await adminClient()
+      let gained = adminClient()
         .from("audit_log")
         .select("action")
         .eq("actor_id", importer.id)
-        .like("action", "category%");
+        .neq("action", "profile.preferred_language"); // INC-1290 until bundle 7: the account rule's own audit
+      if (watermark !== null) gained = gained.gt("created_at", watermark);
+      const audit = await gained;
       expect(audit.error).toBeNull();
       expect(audit.data ?? []).toEqual([]);
-      const meters = await adminClient()
-        .from("rate_limits")
-        .select("action")
-        .eq("key", importer.id)
-        .like("action", "import:%");
-      expect(meters.error).toBeNull();
-      expect(meters.data ?? []).toEqual([]);
+      expect(await meterRows()).toEqual(metersBefore);
     } finally {
       await destroyCategory(slug);
       for (const roleId of reap) await dropRole(roleId);
