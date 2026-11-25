@@ -22,7 +22,11 @@ export { StepUpCancelled, StepUpUnavailable, stepUpAbortKey } from "./mfa-servic
  *   2. otherwise, with a TOTP factor present -> the modal asks for a code; a
  *      successful verify raises the session and the action runs;
  *   3. no factor exists -> the modal explains and links to settings; the
- *      action NEVER runs and no RPC is sent (MF-3).
+ *      action NEVER runs and no RPC is sent (MF-3);
+ *   4. the read of the factors FAILED (cursor-bundle-7a, INC-1299) -> the modal says
+ *      so with a Retry; the action stays parked, nothing is claimed about the
+ *      person's factors, and a Retry reads again. "No factor" is only for a read
+ *      that answered with none (user-case 1: the factor is gone).
  *
  * L5 / DEC-041 — THE COMPLETION CONTRACT (fixes INC-166).
  *
@@ -44,7 +48,7 @@ export { StepUpCancelled, StepUpUnavailable, stepUpAbortKey } from "./mfa-servic
  * this hook, is the authority (F3).
  */
 
-export type StepUpMode = "closed" | "code" | "no-factor";
+export type StepUpMode = "closed" | "code" | "no-factor" | "read-failed";
 
 type PendingAction<T = unknown> = () => T | Promise<T>;
 
@@ -94,7 +98,13 @@ export function useStepUp() {
     pendingRef.current = pending;
     setRefusal(null);
     const factors = await listFactors();
-    const hasFactor = factors.ok && factors.factors.length > 0;
+    if (!factors.ok) {
+      // INC-1299: a failed read is a failure, never "set up an authenticator". The action stays
+      // parked; Retry reads again, Cancel settles it as StepUpCancelled.
+      setMode("read-failed");
+      return;
+    }
+    const hasFactor = factors.factors.length > 0;
     setMode(hasFactor ? "code" : "no-factor");
     if (!hasFactor) {
       // The modal still explains and links to settings (MF-3) and no RPC is
@@ -103,6 +113,18 @@ export function useStepUp() {
       pending.reject(new StepUpUnavailable());
     }
   }, []);
+
+  /** Retry of a failed factor read: the same parked action asks again. */
+  const retry = useCallback(async () => {
+    const pending = pendingRef.current;
+    if (!pending) return;
+    setBusy(true);
+    try {
+      await open(pending);
+    } finally {
+      setBusy(false);
+    }
+  }, [open]);
 
   const guard = useCallback(
     async <T>(action: () => T | Promise<T>): Promise<T> => {
@@ -154,5 +176,5 @@ export function useStepUp() {
     return true;
   }, []);
 
-  return { mode, busy, refusal, guard, submitCode, close, unavailable };
+  return { mode, busy, refusal, guard, submitCode, retry, close, unavailable };
 }
