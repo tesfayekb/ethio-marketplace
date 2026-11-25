@@ -138,18 +138,21 @@ test.describe("U1f step-up authentication", () => {
     },
   );
 
-  test("MF-3 no factor: the modal explains and the RPC is never called", async ({ page }) => {
+  test("MF-3 no factor: the staff screen explains the setup and the RPC is never called", async ({
+    page,
+  }) => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     const target = await createUser({ confirmed: true });
+    // Cursor bundle 6 — the subject is the account with no factor, so it keeps the password sign-in
+    // (aal1). Its answer is now the gate's setup panel in place of the screen (DEC-434): there is no
+    // deactivate control to press, and nothing is written.
     await switchUser(page, staff.email, staff.password);
 
     await gotoReady(page, `/admin/users/${target.id}`);
-    await page.getByTestId("deactivate-reason").fill("MF-3 proof");
-    await page.getByTestId("deactivate-user").click();
-
-    await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId("step-up-settings-link")).toBeVisible();
+    await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("admin-factor-setup-link")).toBeVisible();
+    await expect(page.getByTestId("deactivate-user")).toHaveCount(0);
     expect(await statusChangeCount(target.id)).toBe(0);
   });
 
@@ -174,15 +177,18 @@ test.describe("U1f step-up authentication", () => {
     const staff = await createUser({ confirmed: true });
     await grantRole(staff.id, "admin");
     const target = await createUser({ confirmed: true });
-    await switchUser(page, staff.email, staff.password);
+    // Cursor bundle 6 — the staff helper signs the account in with a factor it used (aal2); the client
+    // is told its step-up is stale, so the first guarded action asks for the code and draws the dialog.
+    await signInStaff(page, staff);
 
     await gotoReady(page, `/admin/users/${target.id}`);
+    await staleStepUpOnClient(page);
     await page.getByTestId("deactivate-reason").fill("MF-8 proof");
     expect(await asked()).toEqual({ preloaded: [], fetched: [] });
     await page.getByTestId("deactivate-user").click();
 
     const modal = page.getByTestId("step-up-modal");
-    await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("step-up-code")).toBeVisible({ timeout: 15000 });
     await expect(modal).toHaveCSS("z-index", "100");
     expect((await asked()).fetched).toHaveLength(1);
     await page.getByTestId("step-up-cancel").click();
@@ -278,11 +284,11 @@ test.describe("U1f-4 step-up freshness", () => {
       });
       await expect(page.getByTestId("mfa-off-warning")).toBeVisible();
 
+      // Cursor bundle 6 — with no factor left, the staff screen is the gate's setup panel (DEC-434):
+      // the session's stale aal2 claim opens nothing, and nothing is written.
       await gotoReady(page, `/admin/users/${target.id}`);
-      await page.getByTestId("deactivate-reason").fill("MF-6 proof");
-      await page.getByTestId("deactivate-user").click();
-
-      await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("deactivate-user")).toHaveCount(0);
       expect(await statusChangeCount(target.id)).toBe(0);
     },
   );
@@ -369,7 +375,7 @@ test.describe("FIX-SCAN-1 step-up abort", () => {
   );
 
   test(
-    "MF-7c a no-factor identity is released with the hint",
+    "MF-7c a no-factor identity meets the setup, and nothing is written",
     { tag: "@private-identity" },
     async ({ page }) => {
       const staff = await createUser({ confirmed: true });
@@ -377,14 +383,12 @@ test.describe("FIX-SCAN-1 step-up abort", () => {
       const target = await createUser({ confirmed: true });
       const before = await displayName(target.id);
 
+      // Cursor bundle 6 — the subject is the account with no factor (aal1, the password sign-in).
+      // The edit form is never drawn: the gate's setup panel is the screen (DEC-434).
       await switchUser(page, staff.email, staff.password);
       await gotoReady(page, `/admin/users/${target.id}`);
-      await page.getByTestId("edit-display-name").fill("MF-7c never written");
-      await page.getByTestId("edit-save").click();
-
-      await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
-      await expect(page.getByTestId("edit-save")).toBeEnabled();
-      await expect(page.getByTestId("edit-error")).toHaveText(en["mfa.stepUpUnavailableHint"]);
+      await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("edit-display-name")).toHaveCount(0);
       expect(await displayName(target.id), "MF-7c nothing was written").toBe(before);
     },
   );
@@ -430,24 +434,29 @@ test.describe("INC-1234 one step-up, one prompt", () => {
             : -1;
         });
       const { user, secret } = await signInJobSuperAdmin(page);
-      // A fresh password sign-in is aal1: the modal is guaranteed for the create.
+      const spentStep = totpStep();
+      // A fresh password sign-in is aal1: the staff screen opens only after its code is asked and given.
       await switchUser(page, user.email, user.password);
       const slug = scratchSlug();
       try {
+        // Cursor bundle 6 (DEC-434) — the ONE prompt is the gate's: the code panel in place of the
+        // screen. No step-up modal opens after it, for the create or the picture step.
         await gotoReady(page, "/admin/categories");
-        const before = await opened();
+        await expect(page.getByTestId("admin-factor-code-panel")).toBeVisible({ timeout: 20000 });
+        await afterTotpStep(spentStep);
+        await page.getByTestId("admin-factor-code").fill(totp(secret));
+        await page.getByTestId("admin-factor-submit").click();
+        await expect(page.getByTestId("category-create-open")).toBeVisible({ timeout: 20000 });
+        await expectAal2(page);
+        expect(await opened(), "the gate's code did not open a modal").toBe(0);
+
         await page.getByTestId("category-create-open").click();
         await page.getByTestId("category-create-name").fill(slug);
         await expect(page.getByTestId("category-create-slug-preview")).toHaveText(slug);
         await page.getByTestId("category-create-submit").click();
         const modal = page.getByTestId("step-up-modal");
-        await expect(modal).toBeVisible({ timeout: 15000 });
-        await page.getByTestId("step-up-code").fill(totp(secret));
-        await page.getByTestId("step-up-submit").click();
-        await expect(modal).toBeHidden({ timeout: 20000 });
-        await expectAal2(page);
         await expect(page.getByTestId("category-editor-image")).toBeVisible({ timeout: 20000 });
-        expect(await opened(), "the create asked once").toBe(before + 1);
+        expect(await opened(), "the create asked again").toBe(0);
 
         await page.getByTestId("category-image-generate").click();
         await expect(page.getByTestId("category-image-assets")).toBeVisible({ timeout: 60000 });
@@ -462,7 +471,7 @@ test.describe("INC-1234 one step-up, one prompt", () => {
             { timeout: 30000 },
           )
           .toBe(true);
-        expect(await opened(), "the picture step asked again").toBe(before + 1);
+        expect(await opened(), "the picture step asked again").toBe(0);
         await expect(modal).toHaveCount(0);
       } finally {
         await destroyCategory(slug);

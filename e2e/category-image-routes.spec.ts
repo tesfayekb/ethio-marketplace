@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 
 import type { Database } from "../src/integrations/supabase/types";
 
+import { passwordGrant } from "./helpers/session";
 import { staffSession } from "./helpers/staff-factor";
 import { adminClient, leaseUser, grantRole } from "./helpers/users";
 
@@ -220,6 +221,42 @@ test.describe("C5a — category AI foundation routes", () => {
         .eq("id", category.id)
         .single();
       expect(truth?.image_accepted_at).toBe(stamp);
+    } finally {
+      await cleanup(category.id);
+    }
+  });
+
+  test("STAFF-E3 a staff session that has not used its second factor reads 428 on a staff route, and nothing is written", async ({
+    request,
+  }) => {
+    const user = await leaseUser();
+    await grantRole(user.id, "super_admin");
+    // The account holds a verified factor (the node mint enrols one), and THIS session is a plain
+    // password sign-in: aal1, the factor unused.
+    await staffSession(user);
+    const aal1 = (await passwordGrant(user.email, user.password, { fresh: true })).access_token;
+    const category = await seedCategory();
+    try {
+      const response = await request.post(GENERATE, {
+        headers: { Authorization: `Bearer ${aal1}` },
+        data: { categoryId: category.id },
+      });
+      const payload = (await response.json()) as Record<string, unknown>;
+      expect(response.status(), JSON.stringify(payload)).toBe(428);
+      expect(payload["code"]).toBe("P0009");
+      expect(payload["error"]).toBe("step-up required");
+
+      // DB/STORAGE TRUTH (J4) — no object, no row change.
+      const { data: objects } = await adminClient()
+        .storage.from("category-assets")
+        .list(category.id);
+      expect(objects ?? []).toHaveLength(0);
+      const { data: row } = await adminClient()
+        .from("categories")
+        .select("image_url, image_thumb_url, og_image_url")
+        .eq("id", category.id)
+        .single();
+      expect(row).toEqual({ image_url: null, image_thumb_url: null, og_image_url: null });
     } finally {
       await cleanup(category.id);
     }

@@ -562,15 +562,13 @@ test.describe("L2a locations console", () => {
         const weak = await leaseUser();
         await grantRole(weak.id, "super_admin");
         await switchUser(page, weak.email, weak.password);
+        // Cursor bundle 6 (DEC-434) — the subject keeps the password sign-in (aal1); with no factor the
+        // screen is the gate's setup panel, so there is no market to pick and no row to move.
         await gotoReady(page, "/admin/places");
-        await selectMarket(page, "ET");
+        await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
+        await expect(page.getByTestId("location-country-filter")).toHaveCount(0);
 
         const cityKey = `${ANCHOR}/${regionA}/${citySlug}`;
-        await openVerb(page, cityKey, "move", citySlug);
-        await expect(page.getByTestId("location-move-dialog")).toBeVisible({ timeout: 20000 });
-        await page.getByTestId("location-move-parent").selectOption(second!.id);
-        await page.getByTestId("location-move-submit").click();
-
         await expect
           .poll(async () => (await readLocation(citySlug))?.parent_id, {
             timeout: 5000,

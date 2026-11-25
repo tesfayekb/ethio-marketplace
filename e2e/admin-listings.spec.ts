@@ -2118,7 +2118,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
       if (old.error)
         throw new Error(`[e2e:al31] clearing scratch grants failed: ${old.error.message}`);
       await grantScratchRole(buyer.id, wanted, roles);
-      await signInViaSession(page, buyer.email, buyer.password);
+      await signInStaff(page, buyer);
     };
     await holder([
       ["admin_panel", "access"],

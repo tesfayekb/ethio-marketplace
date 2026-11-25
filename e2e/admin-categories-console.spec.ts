@@ -498,22 +498,17 @@ test.describe("C2 categories console", () => {
       const before = await readPointers(id!);
       expect(before.length).toBeGreaterThan(0);
 
-      // A second super admin with NO enrolled factor.
+      // A second super admin with NO enrolled factor. Cursor bundle 6 (DEC-434): the subject keeps the
+      // password sign-in (aal1), and the answer is now the gate's setup panel in place of the console:
+      // there is no pointer to move.
       const weak = await leaseUser();
       await grantRole(weak.id, "super_admin");
       await switchUser(page, weak.email, weak.password);
       await gotoReady(page, "/admin/categories");
-      await findRow(page, slug);
+      await expect(page.getByTestId("admin-factor-setup")).toBeVisible({ timeout: 20000 });
+      await expect(page.getByTestId("category-search")).toHaveCount(0);
 
-      await openEditor(page, slug);
-      await action(page, slug, "pointer").click();
-      const pointerId = before[0]!.id;
-      const select = page.getByTestId(`category-path-move-${pointerId}`);
-      await expect(select).toBeVisible({ timeout: 20000 });
-      const rootValue = await select.locator("option").nth(1).getAttribute("value");
-      await select.selectOption(rootValue!);
-
-      // Poll DB truth for the whole refusal window: the parent set must stay
+      // Poll DB truth for the whole window: the parent set must stay
       // byte-identical for every sample, never "eventually correct".
       const expected = before.map((row) => row.parent_id);
       await expect

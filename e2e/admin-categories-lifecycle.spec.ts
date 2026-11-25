@@ -1886,8 +1886,17 @@ test.describe("CAT-IE categories import/export", () => {
     }
   });
 
-  /** CT-23 — an un-stepped-up importer is refused (P0009) and nothing is written. */
-  test("CT-23 a commit without step-up is refused and writes nothing", async ({ page }) => {
+  /**
+   * CT-23 — an importer whose session has not used a second factor is refused 428 (`stepUpRequired`:
+   * the account holds none, so the answer says so) at the PREVIEW, before any commit, and nothing is
+   * written (cursor bundle 6, ruling 2 decision 9, DEC-465). The import path has no import-row table
+   * and no storage object (the preview is a read of the file; the commit is one database door), so
+   * nothing written is: no category row, no audit row, no dial spent. The commit's success path at
+   * aal2 is proven by CT-19 (a preview and a commit as the pooled super admin).
+   */
+  test("CT-23 an importer without step-up is refused at the preview and writes nothing", async ({
+    page,
+  }) => {
     test.setTimeout(180_000);
     bandOnly(page, "any");
     const reap: string[] = [];
@@ -1911,18 +1920,32 @@ test.describe("CAT-IE categories import/export", () => {
       const token = await bearerOf(page);
       const categories = file([line({ category_slug: slug, name_en: slug })]);
       const preview = await importPost(page, token, { mode: "preview", categories });
-      expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
+      expect(preview.status, JSON.stringify(preview.payload)).toBe(428);
+      expect(preview.payload["code"]).toBe("P0009");
+      expect(preview.payload["error"]).toBe("step-up required: no verified factor");
 
       const commit = await importPost(page, token, {
         mode: "commit",
         categories,
-        digest: preview.payload["digest"],
+        digest: "whatever",
       });
       expect(commit.status, JSON.stringify(commit.payload)).toBe(428);
       expect(commit.payload["code"]).toBe("P0009");
 
-      // A refused attempt leaves NO trace (F5).
+      // A refused attempt leaves NO trace (F5): no category, no audit row, no dial spent.
       expect(await readCategory(slug)).toBeNull();
+      const audit = await adminClient()
+        .from("audit_log")
+        .select("action")
+        .eq("actor_id", importer.id);
+      expect(audit.error).toBeNull();
+      expect(audit.data ?? []).toEqual([]);
+      const meters = await adminClient()
+        .from("rate_limits")
+        .select("action")
+        .eq("key", importer.id);
+      expect(meters.error).toBeNull();
+      expect(meters.data ?? []).toEqual([]);
     } finally {
       await destroyCategory(slug);
       for (const roleId of reap) await dropRole(roleId);
