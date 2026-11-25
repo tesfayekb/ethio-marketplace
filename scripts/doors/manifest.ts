@@ -38,8 +38,8 @@
  *   legal_acceptance_pending( or legal_certify( itself, or `-` (a reader).
  * - `codes` — the door's OWN refusal codes besides the shared gate codes,
  *   comma-separated, or `-`.
- * - `reason` — free text; required for `helper` (policy | invoker-chain | none |
- *   caller:<where>) and for every `none:` step-up. A helper's `policy <name>, <name>, …` names
+ * - `reason` — free text; required for `helper` (`policy <names>`, `invoker-chain`,
+ *   `none[: caller <where>]`: the forms are written at HELPER_REASONS) and for every `none:` step-up. A helper's `policy <name>, <name>, …` names
  *   the standing row policies that call it (judge.ts: helper-reason-unproven). A reader off the
  *   gate is a `public-reader` whose reason is `public-data` (judge.ts: reader-off-gate).
  */
@@ -68,6 +68,17 @@ export const ACCEPTANCE_WORDS = [
 ] as const;
 export type AcceptanceWord = (typeof ACCEPTANCE_WORDS)[number];
 
+/**
+ * The first word of a `helper` line's reason (`line.reason.split(/[\s:]/)[0]`), and the form each
+ * accepts (cursor-bundle-7a, finding 7; the judge is `helper-reason-unproven` in judge.ts):
+ * - `policy <name>, <name>, …` — the helper is called by those standing row policies; every name
+ *   must be a policy whose last state calls the helper, and at least one name is required (a bare
+ *   `policy` fails: "the reason policy names no policy").
+ * - `invoker-chain` — the browser role keeps EXECUTE on the helper only because an invoker-rights
+ *   caller's chain runs it as that role; the reason takes no further words and the judge reads none.
+ * - `none` — nothing else calls it by a policy or a door's chain; `none: caller <where> (<what>)`
+ *   names the one outside caller (a source file), as in the route mechanism's staff question.
+ */
 export const HELPER_REASONS = ["policy", "invoker-chain", "none"] as const;
 
 /** The classes door_context knows (`p_class`), by manifest class. */
