@@ -1,0 +1,19 @@
+QUESTION — cursor-bundle-7a re-land: CT-23 failed once on mobile-360 after the audit exclusion left it (ruling 1, decision 5)
+DONE: the re-land (ruling 3, D1–D3, D4) and the gate; STEPS 1–6 of ruling 3 up to the browser check
+LEFT: the self-review, the one push, the pull request, the report
+CI: not yet run (the branch `cursor/bundle-7a-2` is not pushed before this stop; the last completed run, 45664029304, is #105's and is judged by ruling 3)
+FILES: `git diff --name-only origin/dev` (the list is in `git diff --name-only 3123c75e4..HEAD`; 58 paths: the lane, ruling 3 and this report)
+
+STATE ON `d90e57db1` (dev `3123c75e4`, not moved): five migrations byte for byte; the 52 lane files copied and proven equal; ruling 3 saved (sha256 verified); allowlist key moved to `:607` (CF-PROVERR passes); `failure-notice.test.tsx` fixture `gone` 404, FN-U11 on its own `refused` fixture; both usage maps by `bun run i18n:usage`; seven ceilings made by `ceilingForLocal` (`/admin/countries` 315, `/admin/listings` 335, `/admin/locations` 279, `/admin/monetisation` 319, `/admin/users_/$userId` 298, `/l/$slug` 253, `/my-listings_/$listingId` 325). Cause, measured against my own build of dev `3123c75e4` (`/tmp/ethio-scratch/cursor-bundle-7a-2/base`): the `reader-failure` chunk 963 → 1357 B gzip, +394 B = +0.385 KiB (the sixty refusal-status rows); every other named chunk moves by 9 B or less, bar `_name` and `l._slug` which rollup re-splits (their sum changes no page by more than the rest-of-page figure on each ceiling's line). The step-up dialog and gate chunks grow +64 B and +51 B and are on-demand. `bun run checks`: `checks: 35 PASS · 0 FAIL · 25 NOT RUN · 752s` (the component tests are green: no other test moved).
+
+THE RED. `bun run e2e:local -- e2e/admin-categories-lifecycle.spec.ts --grep "CT-23" --project=mobile-360 --project=desktop-1280 --retries=0`: desktop-1280 passed, mobile-360 FAILED at `e2e/admin-categories-lifecycle.spec.ts:1970` — the audit read, now without an exclusion, returned one row `action: profile.preferred_language` for the importer after the watermark. The same test passed in both projects twice on `cursor/bundle-7a`. The log is `/tmp/ethio-scratch/cursor-bundle-7a/e2e-ct23-2.log`.
+
+WHY. Ruling 1, decision 5 says CT-23 loses its audit exclusion because an unchanged setter writes no audit row. That holds for an unchanged save. It does not hold for a fresh account's first save, which CHANGES the value (null → a code) and so audits once, by design; the sign-in's account-language rule can land it after the watermark the test takes, and the base spec's own comment said so ("a fresh account's first start can run it twice"). So the exclusion cannot go whole: whether the row lands before or after the watermark is a race, and this run lost it. I did not run it again (the repeat of a spec belongs to CI's repeat lane, DEC-283), and I changed nothing.
+
+RULE 00 STOP: "anything you cannot prove". I cannot show the test is stable without its audit exclusion, and the ruling's premise (an unchanged save, only) is narrower than what the sign-in does.
+
+WHAT I NEED. One ruling:
+ (a) keep the audit exclusion `.neq("action","profile.preferred_language")` in CT-23, with a comment that it is the account's first, changing save (INC-1290 covers only the unchanged one); the meter exclusion stays as ruled; or
+ (b) the test makes the importer's language row settled before the watermark (a wait on the profile's `preferred_language` being set), so the audit read stays whole; or
+ (c) another way.
+I recommend (a): it restores exactly what the base spec had for the one write the ruling's change does not remove, and keeps INC-1290's other half (the meter row stays excluded because an unchanged call still spends the dial). On `continue` or a numbered ruling I make the change, run CT-23 by `--grep` in both projects, then the self-review, the one push and the pull request, and write the report.
