@@ -1,4 +1,5 @@
 import { policiesOf } from "../doors/policies";
+import { flaggedPattern } from "../lib/pattern";
 
 /**
  * CF-RLS-1 (cursor bundle 6, ruling 2 decision 4) — A POLICY ASKS A PERMISSION ONCE PER QUERY.
@@ -28,14 +29,16 @@ export function unwrappedPermissionCalls(
   files: Array<{ file: string; sql: string }>,
 ): PolicyFinding[] {
   const findings: PolicyFinding[] = [];
-  const names = PERMISSION_FUNCTIONS.join("|");
-  const call = new RegExp(`\\b(?:public\\.)?(${names})\\s*\\(`, "gi");
+  const callOf = flaggedPattern("gi");
   for (const [policy, texts] of policiesOf(files))
     for (const text of texts)
-      for (const match of text.matchAll(call)) {
-        const before = text.slice(0, match.index ?? 0);
-        if (/\(\s*SELECT\s+$/i.test(before)) continue;
-        findings.push({ policy, call: match[1] ?? "" });
+      for (const name of PERMISSION_FUNCTIONS) {
+        const call = callOf`\\b(?:public\\.)?(${name})\\s*\\(`;
+        for (const match of text.matchAll(call)) {
+          const before = text.slice(0, match.index ?? 0);
+          if (/\(\s*SELECT\s+$/i.test(before)) continue;
+          findings.push({ policy, call: match[1] ?? "" });
+        }
       }
   return findings.sort((a, b) => `${a.policy} ${a.call}`.localeCompare(`${b.policy} ${b.call}`));
 }

@@ -113,15 +113,17 @@ test.describe("C5a — category AI foundation routes", () => {
       expect([...bytes.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
       // DB/STORAGE TRUTH (J4) — the route wrote nothing: no object, no row change.
-      const { data: objects } = await adminClient()
+      const { data: objects, error: listError } = await adminClient()
         .storage.from("category-assets")
         .list(category.id);
+      expect(listError).toBeNull();
       expect(objects ?? []).toHaveLength(0);
-      const { data: row } = await adminClient()
+      const { data: row, error: rowError } = await adminClient()
         .from("categories")
         .select("image_url, image_thumb_url, og_image_url")
         .eq("id", category.id)
         .single();
+      expect(rowError).toBeNull();
       expect(row).toEqual({ image_url: null, image_thumb_url: null, og_image_url: null });
     } finally {
       await cleanup(category.id);

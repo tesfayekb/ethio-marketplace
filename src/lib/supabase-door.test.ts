@@ -174,11 +174,16 @@ describe("the client's door (DEC-261)", () => {
 
     state.rpc.mockResolvedValue({
       data: null,
-      error: { code: "PGRST301", message: "JWT expired", details: "", hint: "" },
+      error: {
+        code: "session_expired",
+        message: "Session is no longer valid",
+        details: "",
+        hint: "",
+      },
       status: 401,
     });
     await rpc("get_my_permissions");
-    expect(heard).toEqual(["PGRST301"]);
+    expect(heard).toEqual(["session_expired"]);
 
     state.rpc.mockResolvedValue({
       data: null,
@@ -186,7 +191,7 @@ describe("the client's door (DEC-261)", () => {
       status: 400,
     });
     await rpc("get_my_permissions");
-    expect(heard).toEqual(["PGRST301", "notSignedIn"]);
+    expect(heard).toEqual(["session_expired", "notSignedIn"]);
 
     state.rpc.mockResolvedValue({
       data: null,
@@ -196,7 +201,7 @@ describe("the client's door (DEC-261)", () => {
     await rpc("get_my_permissions");
     state.rpc.mockResolvedValue({ data: "fine", error: null });
     await rpc("get_my_permissions");
-    expect(heard).toEqual(["PGRST301", "notSignedIn"]);
+    expect(heard).toEqual(["session_expired", "notSignedIn"]);
   });
 
   it("SBD-6 a network failure answers an error, never a throw", async () => {

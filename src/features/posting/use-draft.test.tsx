@@ -112,7 +112,7 @@ function signedOut(): DoorAnswer {
     signedOut: true,
     payload: {},
     refusals: [],
-  } as unknown as DoorAnswer;
+  };
 }
 
 function took(): DoorAnswer {
@@ -257,7 +257,7 @@ describe("useDraft — a Next is judged at its own step (INC-455)", () => {
           outcome = answer;
         });
         await settle();
-        pending[0]!(signedOut());
+        pending[0]?.(signedOut());
         await settle();
       });
       expect(outcome).toBe(false);
@@ -272,7 +272,7 @@ describe("useDraft — a Next is judged at its own step (INC-455)", () => {
       await act(async () => {
         void result.current.saveAt(5);
         await settle();
-        pending[1]!(took());
+        pending[1]?.(took());
         await settle();
       });
       expect(result.current.signedOut).toBe(false);

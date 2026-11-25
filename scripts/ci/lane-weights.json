@@ -1075,6 +1075,16 @@
         "tests": 1
       }
     },
+    "staff-gate.spec.ts": {
+      "desktop-1280": {
+        "seconds": 27.3,
+        "tests": 2
+      },
+      "mobile-360": {
+        "seconds": 18.3,
+        "tests": 2
+      }
+    },
     "submenu-look.spec.ts": {
       "desktop-1280": {
         "seconds": 11.3,

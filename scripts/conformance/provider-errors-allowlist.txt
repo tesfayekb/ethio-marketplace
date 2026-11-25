@@ -1,8 +1,8 @@
 # CF-PROVERR-1 (scripts/conformance/provider-errors.test.ts, INC-1278 b) — a mocked error object in a unit test whose message is no provider message, no code a reader knows and no quoted SQL text.
 # Grammar: <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
 src/features/ad-page/report.test.ts:60 | an outage text: the failure reads as the generic word and no reader draws its words ("scratch failure") | INC-1278
-src/features/admin-categories/category-images-service.test.ts:60 | an outage text: the failure reads as the generic word and no reader draws its words ("list down") | INC-1278
-src/features/admin-categories/category-images-service.test.ts:67 | an outage text: the failure reads as the generic word and no reader draws its words ("remove down") | INC-1278
+src/features/admin-categories/category-images-service.test.ts:86 | an outage text: the failure reads as the generic word and no reader draws its words ("list down") | INC-1278
+src/features/admin-categories/category-images-service.test.ts:93 | an outage text: the failure reads as the generic word and no reader draws its words ("remove down") | INC-1278
 src/features/admin-listings/tier-dialog.test.tsx:189 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("permission denied") | INC-1278
 src/features/auth/auth-client.test.ts:242 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
 src/features/auth/auth-client.test.ts:404 | an outage text: the failure reads as the generic word and no reader draws its words ("Failed to fetch") | INC-1278
@@ -49,8 +49,8 @@ src/server/door.test.ts:40 | an outage text: the failure reads as the generic wo
 src/server/door.test.ts:70 | a deliberately unknown sentence: the case is that no reader draws it ("an unexpected sentence") | INC-1278
 src/server/door.test.ts:82 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("violates check constraint \"listings_x_check\"") | INC-1278
 src/server/door.test.ts:94 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("listings_price_bp_check") | INC-1278
-src/server/imports/route.test.ts:323 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("relation cat_secret does not exist") | INC-1278
-src/server/imports/route.test.ts:608 | an outage text: the failure reads as the generic word and no reader draws its words ("nope") | INC-1278
+src/server/imports/route.test.ts:321 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("relation cat_secret does not exist") | INC-1278
+src/server/imports/route.test.ts:606 | an outage text: the failure reads as the generic word and no reader draws its words ("nope") | INC-1278
 src/server/listings/own-listing.test.ts:53 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
 src/server/listings/own-listing.test.ts:58 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
-src/server/supabase/user-client.test.ts:40 | an outage text: the failure reads as the generic word and no reader draws its words ("boom") | INC-1278
+src/server/supabase/user-client.test.ts:38 | an outage text: the failure reads as the generic word and no reader draws its words ("boom") | INC-1278
