@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 45402760878 ran no lanes — the code tree was proven by run 45337319415
+last E2E run 45633122112 ran no lanes — the code tree was proven by run 45547063987
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45402760878
-- Commit: `1bbfc7dadd4d999a2cc292442a669bfa26680435`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45633122112
+- Commit: `db0b43c9cb8c83a3ae8236ab38b12b71244042e4`
 - Attempt: 1
-- Written (UTC): 2026-11-24T13:23:08.153Z
-- Lanes: skipped — the code tree was proven by run 45337319415 (pull_request, lovable/next, head d8e4195)
+- Written (UTC): 2026-11-25T14:21:43.799Z
+- Lanes: skipped — the code tree was proven by run 45547063987 (pull_request, cursor/bundle-6, head aa8745b)
