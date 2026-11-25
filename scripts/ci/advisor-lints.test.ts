@@ -12,7 +12,15 @@ import { GATED_LINTS, judgeFindings, readFindings, selfTest } from "./advisor-li
  * files live under the OS temp directory and are removed (PPF-1).
  */
 
-const planted = (...names: string[]) => JSON.stringify(names.map((name) => ({ name })));
+/**
+ * The fixtures follow the pinned CLI's (2.120.0) own expressions, read by cursor-bundle-7a ruling 2
+ * from the release's bundled code: `success("db advisors",{results:e})` through the JSON writer
+ * `success:(l,H)=>i({...H,message:l})`, so stdout is `{"results":[…],"message":"db advisors"}`, and
+ * `{"results":[],…}` when there is nothing to report. This is the source's shape, not a capture
+ * (rule 20): the report pastes the pull request's first smoke run as the capture.
+ */
+const envelope = (results: unknown[]) => JSON.stringify({ results, message: "db advisors" });
+const planted = (...names: string[]) => envelope(names.map((name) => ({ name })));
 
 describe("the advisor gate (CF-ADVISOR-1)", () => {
   it("CF-ADVISOR-1a a planted finding of each gated name fails the step", () => {
@@ -35,36 +43,52 @@ describe("the advisor gate (CF-ADVISOR-1)", () => {
   });
 
   it("CF-ADVISOR-1c a finding's detail and metadata never reach the log", () => {
-    const answer = JSON.stringify([
+    const answer = envelope([
       {
         name: "duplicate_index",
+        title: "Duplicate Index",
+        level: "WARN",
+        facing: "EXTERNAL",
+        categories: ["PERFORMANCE"],
+        description: "Detects identical indexes.",
         detail: "Table public.e2e_secret has identical indexes",
-        metadata: { name: "e2e_secret" },
+        remediation: "https://example.invalid/e2e-remediation",
+        metadata: { name: "e2e_secret", schema: "public", type: "table" },
+        cacheKey: "duplicate_index_public_e2e_secret",
       },
     ]);
     const verdict = judgeFindings(readFindings(answer));
     expect(verdict.failed).toBe(true);
-    expect(verdict.lines.join("\n")).not.toContain("e2e_secret");
+    const log = verdict.lines.join("\n");
+    expect(log).not.toContain("e2e_secret");
+    expect(log).not.toContain("e2e-remediation");
   });
 
-  it("CF-ADVISOR-1d the object form's `lints` list reads as the list", () => {
-    const answer = JSON.stringify({ lints: [{ name: "auth_rls_initplan" }] });
-    expect(judgeFindings(readFindings(answer)).failed).toBe(true);
-    expect(judgeFindings(readFindings(JSON.stringify({ lints: [] }))).failed).toBe(false);
+  it("CF-ADVISOR-1d the CLI's results envelope reads as the list, the empty one included", () => {
+    expect(readFindings(envelope([]))).toEqual([]);
+    expect(judgeFindings(readFindings(envelope([]))).failed).toBe(false);
+    expect(readFindings(`${planted("auth_rls_initplan")}\n`)).toEqual([
+      { name: "auth_rls_initplan" },
+    ]);
+    expect(judgeFindings(readFindings(planted("auth_rls_initplan"))).failed).toBe(true);
   });
 
   it("CF-ADVISOR-1e an answer it cannot understand fails, never reads as clean", () => {
-    for (const text of [
+    const refused = [
       "",
       "  \n",
       "not json",
       "null",
       "{}",
-      '{"lints":"x"}',
-      "[1]",
-      '[{"name":""}]',
-    ])
-      expect(() => readFindings(text), JSON.stringify(text)).toThrow(/advisors:/);
+      '{"results":"x"}',
+      '{"results":[1]}',
+      '{"results":[{"name":""}]}',
+      '{"results":[{"title":"no name"}]}',
+      // The shapes the first build guessed, and the hosted API's: none is the pinned CLI's.
+      '[{"name":"duplicate_index"}]',
+      '{"lints":[{"name":"duplicate_index"}]}',
+    ];
+    for (const text of refused) expect(() => readFindings(text), text).toThrow(/advisors:/);
   });
 
   it("CF-ADVISOR-1f the self-test passes on the real judge and the step runs it first", () => {

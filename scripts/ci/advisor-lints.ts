@@ -1,14 +1,15 @@
 /**
  * CF-ADVISOR-1 (cursor-bundle-7a, ruling 1 decision 9, DEC-472) — THE PLATFORM'S OWN PERFORMANCE
  * LINTS, JUDGED ON CI'S TEMPORARY BACKEND. The smoke lane runs the pinned CLI's
- * `db advisors --local --type performance` once the migrations are applied and hands its JSON answer
- * to this module. Two lints gate, by name: `auth_rls_initplan` (a policy that asks who is signed in
+ * `supabase db advisors --local --workdir .ci-local --type performance --level info --output-format json`
+ * once the migrations are applied, writes its stdout to a file and hands that file to this module.
+ * The answer's shape is the CLI 2.120.0's own (`readFindings` names the two expressions that write it). Two lints gate, by name: `auth_rls_initplan` (a policy that asks who is signed in
  * once per row) and `duplicate_index` (an identical second index). Every other lint's count is
  * printed to the log and never fails the step.
  *
  * What it will not do: read an answer it cannot understand as "no findings". An empty text, text
- * that is not JSON, or JSON that is not a list of findings each carrying a `name` fails the step
- * (the same law as a reader's door error: a failed read is a failure, never a clean state). It
+ * that is not JSON, or JSON that is not the CLI's `results` list of findings each carrying a `name`
+ * fails the step (the same law as a reader's door error: a failed read is a failure, never a clean state). It
  * prints counts only: a finding's `detail` and `metadata` name live objects and never reach the log
  * (DEC-310's form; AGENTS.md "scanner output: counts only").
  *
@@ -45,8 +46,16 @@ function nameOf(entry: unknown): string | null {
 }
 
 /**
- * The findings an advisor answer holds: a JSON list of findings, or an object whose `lints` is
- * that list. Anything else — empty text, text that is not JSON, an entry with no name — throws.
+ * The findings an advisor answer holds, in exactly the shape the pinned CLI writes (CLI 2.120.0,
+ * `SUPABASE_CLI_VERSION` in local-backend-proof.yml; ruling 2 of cursor-bundle-7a read it from the
+ * release's bundled code): with `--output-format json` stdout is one line,
+ * `{"results":[<finding>…],"message":"db advisors"}`, from `success("db advisors",{results:e})` and
+ * the writer `success:(l,H)=>i({...H,message:l})`; with nothing to report `results` is `[]`
+ * (the text "No issues found" goes to stderr). Each finding carries `name`, `title`, `level`,
+ * `facing`, `categories`, `description`, `detail`, `remediation`, `metadata` and `cacheKey`; only
+ * `name` is read. Anything else — empty text, text that is not JSON, no `results` list, an entry
+ * with no name (a bare list, or the hosted API's `lints` object, included) — throws: a change of
+ * the pinned version re-reads this shape, and the fail-closed reader says so on its first run.
  */
 export function readFindings(text: string): Finding[] {
   if (text.trim() === "") throw new Error("advisors: the answer is empty (never read as clean)");
@@ -56,8 +65,8 @@ export function readFindings(text: string): Finding[] {
   } catch {
     throw new Error("advisors: the answer is not JSON");
   }
-  const list = Array.isArray(parsed) ? parsed : isRecord(parsed) ? parsed["lints"] : undefined;
-  if (!Array.isArray(list)) throw new Error("advisors: the answer is not a list of findings");
+  const list = isRecord(parsed) ? parsed["results"] : undefined;
+  if (!Array.isArray(list)) throw new Error("advisors: the answer has no results list");
   return list.map((entry): Finding => {
     const name = nameOf(entry);
     if (name === null) throw new Error("advisors: a finding carries no lint name");
