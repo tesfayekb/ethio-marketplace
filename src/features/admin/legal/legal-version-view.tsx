@@ -131,7 +131,8 @@ export function LegalVersionView({
   const [comparing, setComparing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState<number | null>(null);
-  const [exportFailed, setExportFailed] = useState(false);
+  // INC-1280 (D45) — the export's refusal keeps its own words.
+  const [exportFailed, setExportFailed] = useState<MessageKey | null>(null);
   const [addingTranslation, setAddingTranslation] = useState(openTranslation);
   const [translationLanguage, setTranslationLanguage] = useState("");
   const [translationBody, setTranslationBody] = useState("");
@@ -504,7 +505,7 @@ export function LegalVersionView({
                     onClick={() => {
                       setExporting(true);
                       setExported(null);
-                      setExportFailed(false);
+                      setExportFailed(null);
                       void guard(() => exportLegalAcceptances(row.version_id))
                         .then((answer) => {
                           saveTextFile(
@@ -521,7 +522,7 @@ export function LegalVersionView({
                         })
                         .catch((failure: unknown) => {
                           console.error("[client-error] legal export", failure);
-                          setExportFailed(true);
+                          setExportFailed(legalRefusalKey(failure));
                         })
                         .finally(() => setExporting(false));
                     }}
@@ -535,7 +536,7 @@ export function LegalVersionView({
                   ) : null}
                   {exportFailed ? (
                     <p role="alert" className="text-destructive">
-                      {t("admin.legal.error.generic")}
+                      {t(exportFailed)}
                     </p>
                   ) : null}
                 </section>

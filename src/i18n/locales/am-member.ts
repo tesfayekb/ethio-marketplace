@@ -685,4 +685,5 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "post.who.countryLabel": "የሚኖሩበት አገር",
   "post.who.firstNameLabel": "የመጀመሪያ ስም",
   "post.who.lastNameLabel": "የአባት ስም",
+  "account.saved.removeFailed": "ይህ ማስታወቂያ ከተቀመጡት ማስታወቂያዎችዎ ሊወገድ አልቻለም። እንደገና ይሞክሩ።",
 };

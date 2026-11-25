@@ -1,3 +1,5 @@
+import { readRefusal } from "@/lib/refusal";
+import { LOCATION_REFUSALS } from "./location-refusals";
 import { LISTED_LEVELS } from "./locations-service";
 import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { compareNames } from "@/lib/name-collator";
@@ -111,7 +113,8 @@ export function AdminLocationsPage() {
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState(false);
+  // INC-1280 (D55) — the export route's refusal keeps its own words.
+  const [exportError, setExportError] = useState<MessageKey | null>(null);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   /** Every market: open first A–Z, then closed A–Z. */
@@ -187,7 +190,7 @@ export function AdminLocationsPage() {
    */
   const runExport = async (file: "locations") => {
     setExporting(true);
-    setExportError(false);
+    setExportError(null);
     try {
       // L2b-C1 — "All countries" carries NO scope: the route then exports every
       // market's places, and the file is named for the scope it was taken at.
@@ -196,10 +199,13 @@ export function AdminLocationsPage() {
         `/api/admin/locations/export?file=${file}${scope}`,
         `${country === "" ? "all" : country}-${file}.csv`,
       );
-      if (answer.kind !== "answered" || !answer.ok) setExportError(true);
+      if (answer.kind !== "answered" || !answer.ok) {
+        const read = readRefusal(answer, LOCATION_REFUSALS);
+        setExportError(read.branch === "family" ? read.key : "admin.locations.export.error");
+      }
     } catch (error) {
       console.error("[locations] export failed", error);
-      setExportError(true);
+      setExportError("admin.locations.export.error");
     } finally {
       setExporting(false);
     }
@@ -420,7 +426,7 @@ export function AdminLocationsPage() {
                 className="w-full text-end text-sm text-destructive"
                 data-testid="location-export-error"
               >
-                {t("admin.locations.export.error")}
+                {t(exportError)}
               </p>
             ) : null}
           </TableActions>

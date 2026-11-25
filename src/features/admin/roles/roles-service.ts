@@ -147,7 +147,7 @@ export async function setRolePermission(input: {
 
 /**
  * The role doors' own words for their codes (DEC-333, F1-2). A code without
- * words here (unknownRole, unknownPermission, roleReserved, rateLimited) reads
+ * words here (roleReserved, rateLimited) reads
  * as the screen's generic.
  * Step-up stays P0009 on the wire, a sentence until the step-up gate answers a
  * code.
@@ -163,6 +163,9 @@ export const ROLE_REFUSALS = {
     nameRequired: "admin.roles.error.nameRequired",
     badSlug: "admin.roles.error.nameFormat",
     required: "post.refusal.required",
+    // INC-1280 (10a-2) — a role or a permission gone meanwhile.
+    unknownRole: "admin.users.roles.unknown",
+    unknownPermission: "admin.roles.error.unknownPermission",
   },
   sentences: [[/step-up required/i, "admin.roles.error.stepUp"]],
 } as const satisfies RefusalFamily;

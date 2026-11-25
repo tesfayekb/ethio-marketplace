@@ -284,18 +284,45 @@ const SELLER_DOOR_REFUSALS: RefusalFamily = {
     ownerOnly: "myListings.error.changed",
     renewNeedsExpired: "myListings.error.changed",
     notPaused: "myListings.error.changed",
+    // INC-1280 (10a-2, D24/D25) — the copy's, the reserve's and the edit's own codes.
+    notCopied: "myListings.refusal.notCopied",
+    badValue: "post.refusal.badValue",
+    notEditable: "myListings.refusal.notEditable",
+    listingNotEditable: "myListings.refusal.notEditable",
+    draftNotEdited: "myListings.refusal.draftNotEdited",
+    renewFirst: "myListings.refusal.renewFirst",
+    badShape: "post.refusal.badShape",
+    streetTooLong: "post.refusal.streetTooLong",
+    directionsTooLong: "post.refusal.directionsTooLong",
+    contactInNote: "post.refusal.contactInNote",
   },
   generic: "myListings.error.failed",
 };
 
+/**
+ * INC-1280 — `notCopied:draft` (a draft is never copied) has its own words. The reader keys a
+ * family by code, so the copy-from-a-draft refusal reads through its own family's line.
+ */
+const SELLER_DRAFT_COPY_REFUSALS: RefusalFamily = {
+  ...SELLER_DOOR_REFUSALS,
+  words: { ...SELLER_DOOR_REFUSALS.words, notCopied: "myListings.refusal.notCopiedDraft" },
+};
+
+function sellerFamily(refusal: string): RefusalFamily {
+  const { key, tail } = splitRefusal(refusal.trim());
+  return key === "notCopied" && tail === "draft"
+    ? SELLER_DRAFT_COPY_REFUSALS
+    : SELLER_DOOR_REFUSALS;
+}
+
 /** The door's refusal (its error's message, or a returned reason), in the seller's words. */
 export function actionErrorKey(refusal: string): MessageKey {
-  return readRefusal(refusal, SELLER_DOOR_REFUSALS).key;
+  return readRefusal(refusal, sellerFamily(refusal)).key;
 }
 
 /** L22b — the door's read with its tail, for `actionOutcomeText`. */
 export function actionErrorRead(refusal: string): RefusalRead {
-  return readRefusal(refusal, SELLER_DOOR_REFUSALS);
+  return readRefusal(refusal, sellerFamily(refusal));
 }
 
 /** L22b — a refused outcome's key, with the read only when it can say when (other shapes unchanged). */

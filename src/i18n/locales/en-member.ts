@@ -713,4 +713,5 @@ export const enMember = {
   "post.who.countryLabel": "Your home country",
   "post.who.firstNameLabel": "First name",
   "post.who.lastNameLabel": "Last name",
+  "account.saved.removeFailed": "This ad could not be removed from your saved ads. Try again.",
 } as const;

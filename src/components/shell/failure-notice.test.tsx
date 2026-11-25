@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, expect, it, vi } from "vitest";
 
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
-const refresh = vi.hoisted(() => ({ refreshPage: vi.fn() }));
+const refresh = vi.hoisted(() => ({ refreshPage: vi.fn(), reportOnDemandFailure: vi.fn() }));
 vi.mock("@/lib/on-demand-failure", () => refresh);
 vi.mock("@tanstack/react-router", () => ({
   useRouterState: ({ select }: { select: (s: { location: { href: string } }) => string }) =>
@@ -32,6 +32,14 @@ const server = Object.assign(new Error("boom"), { status: 500 });
 const gone = Object.assign(new Error("listingNotAvailable"), { code: "P0D01", status: 400 });
 const denied = Object.assign(new Error("permissionDenied"), { code: "P0D01", status: 403 });
 const ended = Object.assign(new Error("JWT expired"), { status: 401 });
+
+// First in the file: the reader has not arrived yet (INC-864); later cases read with it.
+it("FN-U11 words at once from what the error carries, then the reader's words when it arrives", async () => {
+  render(<FailureNotice error={gone} testid="f" onRetry={() => {}} />);
+  expect(screen.getByTestId("f")).toHaveTextContent("failure.server");
+  await waitFor(() => expect(screen.getByTestId("f")).toHaveTextContent("failure.gone"));
+  expect(refresh.reportOnDemandFailure).not.toHaveBeenCalled();
+});
 
 it("FN-U1 network: its words and Retry", () => {
   render(<FailureNotice error={network} testid="f" onRetry={() => {}} />);

@@ -1,3 +1,5 @@
+import { readRefusal } from "@/lib/refusal";
+import { COUNTRY_REFUSALS } from "./country-refusals";
 import { useTableFilters, filterValues } from "@/components/shell/table-filters";
 import { Download, Globe, Upload } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
@@ -82,7 +84,8 @@ export function AdminCountriesPage() {
     useKeptPage(PAGE_SIZE_STORAGE_KEY);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState(false);
+  // INC-1280 (D55) — the export route's refusal keeps its own words.
+  const [exportError, setExportError] = useState<MessageKey | null>(null);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);
 
   const roster = useMemo(() => query.data ?? [], [query.data]);
@@ -119,16 +122,19 @@ export function AdminCountriesPage() {
   /** The markets file, unscoped: the L1b export route with the live bearer. */
   const runExport = async () => {
     setExporting(true);
-    setExportError(false);
+    setExportError(null);
     try {
       const answer = await downloadRoute(
         "/api/admin/locations/export?file=countries",
         "countries.csv",
       );
-      if (answer.kind !== "answered" || !answer.ok) setExportError(true);
+      if (answer.kind !== "answered" || !answer.ok) {
+        const read = readRefusal(answer, COUNTRY_REFUSALS);
+        setExportError(read.branch === "family" ? read.key : "admin.locations.export.error");
+      }
     } catch (error) {
       console.error("[countries] export failed", error);
-      setExportError(true);
+      setExportError("admin.locations.export.error");
     } finally {
       setExporting(false);
     }
@@ -315,7 +321,7 @@ export function AdminCountriesPage() {
                   className="w-full text-sm text-destructive"
                   data-testid="country-export-error"
                 >
-                  {t("admin.locations.export.error")}
+                  {t(exportError)}
                 </p>
               ) : null}
             </div>

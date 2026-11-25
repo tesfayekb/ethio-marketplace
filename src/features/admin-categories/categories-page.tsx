@@ -1,3 +1,5 @@
+import { readRefusal } from "@/lib/refusal";
+import type { MessageKey } from "@/i18n";
 import { useTableFilters, filterOn } from "@/components/shell/table-filters";
 import {
   ArrowDown,
@@ -63,7 +65,7 @@ import {
   DeleteCategoryDialog,
   RetireCategoryDialog,
 } from "./category-dialogs";
-import { useCategoryRefusal } from "./category-refusals";
+import { useCategoryRefusal, CATEGORY_REFUSALS } from "./category-refusals";
 import { ROSTER_COLUMN_PRIORITIES, toRoster, type CategoryNode } from "./categories-service";
 import {
   ADMIN_CATEGORIES_KEY,
@@ -268,7 +270,8 @@ export function AdminCategoriesPage() {
    * translated caption beside the controls (F4), never silence.
    */
   const [exporting, setExporting] = useState(false);
-  const [exportError, setExportError] = useState(false);
+  // INC-1280 (D55) — the export route's refusal keeps its own words.
+  const [exportError, setExportError] = useState<MessageKey | null>(null);
 
   /**
    * C5b PART C — BULK FILL. A client-driven SERIAL loop over the rows the
@@ -301,17 +304,20 @@ export function AdminCategoriesPage() {
 
   const runExport = async () => {
     setExporting(true);
-    setExportError(false);
+    setExportError(null);
     try {
       const query = scopeSlug === null ? "" : `?scope=${encodeURIComponent(scopeSlug)}`;
       const answer = await downloadRoute(
         `/api/admin/categories/export${query}`,
         scopeSlug === null ? "categories.csv" : `${scopeSlug}-categories.csv`,
       );
-      if (answer.kind !== "answered" || !answer.ok) setExportError(true);
+      if (answer.kind !== "answered" || !answer.ok) {
+        const read = readRefusal(answer, CATEGORY_REFUSALS);
+        setExportError(read.branch === "family" ? read.key : "admin.categories.export.error");
+      }
     } catch (error) {
       console.error("[categories] export failed", error);
-      setExportError(true);
+      setExportError("admin.categories.export.error");
     } finally {
       setExporting(false);
     }
@@ -1033,7 +1039,7 @@ export function AdminCategoriesPage() {
                   className="text-sm text-destructive"
                   data-testid="category-export-error"
                 >
-                  {t("admin.categories.export.error")}
+                  {t(exportError)}
                 </p>
               ) : null}
               {bulkProgress === null ? null : (

@@ -7,8 +7,10 @@ import { ListingCard } from "@/components/marketplace/listing-card";
 import { Button } from "@/components/ui/button";
 import { mySaved, unsaveListing } from "@/features/ad-page/save";
 import { useCardPhotos } from "@/features/feed/use-card-photos";
-import { useI18n } from "@/i18n";
+import { useI18n, type MessageKey } from "@/i18n";
 import { FailureNotice } from "@/components/shell/failure-notice";
+
+import { savedRemoveKey } from "./saved-remove-refusals";
 
 type SavedPageData = Awaited<ReturnType<typeof mySaved>>;
 const KEY = ["my-saved-listings"] as const;
@@ -29,7 +31,8 @@ export function SavedPage() {
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
-  const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
+  // INC-1280 (D27) — a refused Remove keeps its own words, by card.
+  const [failed, setFailed] = useState<ReadonlyMap<string, MessageKey>>(new Map());
   const query = useInfiniteQuery({
     queryKey: KEY,
     initialPageParam: null as unknown | null,
@@ -44,18 +47,19 @@ export function SavedPage() {
     if (busy.has(id)) return;
     setBusy((current) => new Set(current).add(id));
     setFailed((current) => {
-      const next = new Set(current);
+      const next = new Map(current);
       next.delete(id);
       return next;
     });
     try {
       if (publicId === null) {
-        setFailed((current) => new Set(current).add(id));
+        setFailed((current) => new Map(current).set(id, savedRemoveKey(null)));
         return;
       }
       const answer = await unsaveListing(publicId);
       if (!answer.ok) {
-        setFailed((current) => new Set(current).add(id));
+        const words = savedRemoveKey(answer.reason);
+        setFailed((current) => new Map(current).set(id, words));
         return;
       }
       queryClient.setQueryData<InfiniteData<SavedPageData>>(KEY, (current) =>
@@ -139,7 +143,7 @@ export function SavedPage() {
             </Button>
             {failed.has(card.id) && (
               <p role="status" data-testid="saved-failed" className="text-sm text-destructive">
-                {t("account.saved.failed")}
+                {t(failed.get(card.id) ?? "account.saved.removeFailed")}
               </p>
             )}
           </li>

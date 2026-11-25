@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -9,12 +9,12 @@ import { cn } from "@/lib/utils";
 import { refreshPage } from "@/lib/on-demand-failure";
 
 import {
-  failureKind,
   isRetryable,
   KINDS,
   rateRead,
   rateWords,
   type FailureReading,
+  useFailureKind,
 } from "./failure-reason";
 import { SignInLink } from "./sign-in-link";
 
@@ -73,7 +73,8 @@ export function FailureNotice({
   className,
 }: FailureNoticeProps) {
   const { t, language } = useI18n();
-  const reading = useMemo(() => given ?? failureKind(error), [given, error]);
+  const read = useFailureKind(error);
+  const reading = given ?? read;
   const row = KINDS[reading.kind];
   const now = useNow(reading.until);
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import { failureKind } from "./failure-reason";
+import { failureKind, loadFailureReader } from "./failure-reason";
 
 import {
   anchorOf,
@@ -224,6 +224,10 @@ async function kindFor(country: string, answer: unknown) {
 }
 
 describe("location reads keep their status", () => {
+  // INC-864 — the notice reads with the reader once it has arrived.
+  beforeAll(async () => {
+    await loadFailureReader();
+  });
   it("LRS-U1 a 404 reads as gone", async () => {
     expect(
       await kindFor("AA", { kind: "answered", ok: false, status: 404, error: null, payload: null }),

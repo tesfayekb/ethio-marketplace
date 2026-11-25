@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
+
 import type { MessageKey } from "@/i18n";
-import { gateRefusal, readerFailure } from "@/lib/reader-failure";
+import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { rateUntilOf, readRefusal, type RefusalFamily, type RefusalRead } from "@/lib/refusal";
 
 /**
@@ -67,10 +70,19 @@ export type FailureReading = {
 
 const CODE = /^[a-z][A-Za-z]*$/;
 
-function codeOf(error: unknown): string | undefined {
-  const gate = gateRefusal(error);
+// INC-864 — reader-failure stays off the first download: it loads only when a read failed.
+const readerModule = loadOnce(() => import("@/lib/reader-failure"));
+type ReaderModule = typeof import("@/lib/reader-failure");
+
+/** Starts (or joins) the reader's download; resolves once `failureKind` reads with it. */
+export function loadFailureReader(): Promise<unknown> {
+  return readerModule.load().catch((e: unknown) => reportOnDemandFailure("reader-failure", e));
+}
+
+function codeOf(mod: ReaderModule, error: unknown): string | undefined {
+  const gate = mod.gateRefusal(error);
   if (gate !== null) return gate.code;
-  const failure = readerFailure(error);
+  const failure = mod.readerFailure(error);
   return failure.code !== undefined && CODE.test(failure.code) ? failure.code : undefined;
 }
 
@@ -90,17 +102,59 @@ function decide(status: number | undefined, code: string | undefined, cls: strin
   return "server";
 }
 
+/** INC-864 — before the reader arrives: what the error itself carries (a status, a TypeError). */
+function carried(error: unknown): { status: number | undefined; cls: string } {
+  const raw =
+    typeof error === "object" && error !== null
+      ? (error as { status?: unknown }).status
+      : undefined;
+  const status = typeof raw === "number" ? raw : undefined;
+  return { status, cls: error instanceof TypeError ? "network" : "server" };
+}
+
 export function failureKind(error: unknown): FailureReading {
   try {
-    const failure = readerFailure(error);
-    const gate = gateRefusal(error);
+    const mod = readerModule.ready();
+    if (mod === null) {
+      const { status, cls } = carried(error);
+      const kind = decide(status, undefined, cls);
+      return {
+        kind,
+        diagnostic: `${cls}${status === undefined ? "" : ` ${status}`} (reader pending)`,
+        until: undefined,
+      };
+    }
+    const failure = mod.readerFailure(error);
+    const gate = mod.gateRefusal(error);
     const status = gate?.status ?? failure.status;
     const diagnostic = `${failure.class}${status === undefined ? "" : ` ${status}`}`;
-    const kind = decide(status, codeOf(error), failure.class);
+    const kind = decide(status, codeOf(mod, error), failure.class);
     return { kind, diagnostic, until: kind === "rateLimited" ? rateUntilOf(error) : undefined };
   } catch {
     return { kind: "server", diagnostic: "unreadable", until: undefined };
   }
+}
+
+/**
+ * INC-864 — the notice's reading: at once from what the error carries, then again once the
+ * reader arrives. A failed download goes to the shell's one notice (Refresh); the words stay.
+ */
+export function useFailureKind(error: unknown): FailureReading {
+  const [, setArrived] = useState(readerModule.ready() !== null);
+  useEffect(() => {
+    if (readerModule.ready() !== null) return;
+    let live = true;
+    readerModule
+      .load()
+      .then(() => {
+        if (live) setArrived(true);
+      })
+      .catch((e: unknown) => reportOnDemandFailure("reader-failure", e));
+    return () => {
+      live = false;
+    };
+  }, []);
+  return failureKind(error);
 }
 
 /** The rate words' read, for `refusalText` (the one place `{when}` is filled). */

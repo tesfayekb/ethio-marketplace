@@ -41,7 +41,9 @@ export function ReportAdDialog({
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [state, setState] = useState<"sent" | "already" | "rateLimited" | "failed" | null>(null);
+  const [state, setState] = useState<
+    "sent" | "already" | "rateLimited" | "gone" | "noteTooLong" | "failed" | null
+  >(null);
   // L22c — the report dial's reset instant, when it named one.
   const [until, setUntil] = useState<string | undefined>(undefined);
   const terminal = state === "sent" || state === "already";
@@ -82,7 +84,11 @@ export function ReportAdDialog({
                       ? "adPage.report.thanks"
                       : state === "already"
                         ? "adPage.report.already"
-                        : "adPage.report.failed",
+                        : state === "gone"
+                          ? "failure.gone"
+                          : state === "noteTooLong"
+                            ? "adPage.report.noteTooLong"
+                            : "adPage.report.failed",
                   )}
             </p>
           )}

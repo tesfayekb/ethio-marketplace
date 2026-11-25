@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 782,
-  "dynamicCallSites": 422,
+  "scanned": 784,
+  "dynamicCallSites": 429,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1491,9 +1491,6 @@
     "admin.categories.export.busy": [
       "/admin/categories"
     ],
-    "admin.categories.export.error": [
-      "/admin/categories"
-    ],
     "admin.categories.export.open": [
       "/admin/categories"
     ],
@@ -1960,9 +1957,6 @@
     "admin.legal.emptyFacts": [
       "/admin/legal/$versionId",
       "/admin/legal/edit"
-    ],
-    "admin.legal.error.generic": [
-      "/admin/legal/$versionId"
     ],
     "admin.legal.error.load": [
       "/admin/legal",
@@ -2611,10 +2605,6 @@
     ],
     "admin.locations.export.countries": [
       "/admin/countries"
-    ],
-    "admin.locations.export.error": [
-      "/admin/countries",
-      "/admin/places"
     ],
     "admin.locations.export.locations": [
       "/admin/places"
@@ -4659,6 +4649,18 @@
       "/post/$listingId",
       "/privacy",
       "/terms"
+    ],
+    "failure.gone": [
+      "(every page)",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "failure.placeCleared": [
       "/",

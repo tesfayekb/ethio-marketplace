@@ -410,9 +410,11 @@ export function AdminScreeningPage({
         setRevealProblems((current) => ({
           ...current,
           [channel]:
-            answer.reason === "rateLimited" && answer.until !== undefined
-              ? { key: revealProblemKey(answer.reason), until: answer.until }
-              : { key: revealProblemKey(answer.reason) },
+            answer.reason === "refused"
+              ? { key: answer.key }
+              : answer.reason === "rateLimited" && answer.until !== undefined
+                ? { key: revealProblemKey(answer.reason), until: answer.until }
+                : { key: revealProblemKey(answer.reason) },
         }));
       }
     } catch (error) {

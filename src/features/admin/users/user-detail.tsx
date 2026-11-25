@@ -25,6 +25,7 @@ import {
   profileEditRefusalKey,
   UNASSIGNABLE_ROLES,
 } from "./admin-users-service";
+import { accessRefusalKey } from "./access-refusals";
 import {
   useAdminRoles,
   useAdminUser,
@@ -110,6 +111,10 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
   }
 
   const deactivated = user.accountStatus === "deactivated";
+  // INC-1280 (D30) — a door's refusal draws its own words; other failures the notice.
+  const statusRefusal = status.error ? accessRefusalKey(status.error, "status") : null;
+  const rolesError = assign.error ?? revoke.error;
+  const rolesRefusal = rolesError ? accessRefusalKey(rolesError, "roles") : null;
   const assignable = (roles.data ?? []).filter(
     (role) => !UNASSIGNABLE_ROLES.includes(role.name as (typeof UNASSIGNABLE_ROLES)[number]),
   );
@@ -269,11 +274,17 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                   </Button>
                 )}
                 {status.error ? (
-                  <FailureNotice
-                    error={status.error}
-                    testid="status-error"
-                    subject={t("admin.users.status.failed")}
-                  />
+                  statusRefusal !== null ? (
+                    <p role="alert" data-testid="status-error" className="text-sm text-destructive">
+                      {t(statusRefusal)}
+                    </p>
+                  ) : (
+                    <FailureNotice
+                      error={status.error}
+                      testid="status-error"
+                      subject={t("admin.users.status.failed")}
+                    />
+                  )
                 ) : null}
               </div>
             ) : null}
@@ -362,11 +373,17 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
               </div>
             ) : null}
             {assign.error || revoke.error ? (
-              <FailureNotice
-                error={assign.error ?? revoke.error}
-                testid="roles-error"
-                subject={t("admin.users.roles.failed")}
-              />
+              rolesRefusal !== null ? (
+                <p role="alert" data-testid="roles-error" className="text-sm text-destructive">
+                  {t(rolesRefusal)}
+                </p>
+              ) : (
+                <FailureNotice
+                  error={assign.error ?? revoke.error}
+                  testid="roles-error"
+                  subject={t("admin.users.roles.failed")}
+                />
+              )
             ) : null}
           </PageCard>
 

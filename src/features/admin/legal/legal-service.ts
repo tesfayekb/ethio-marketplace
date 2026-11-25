@@ -135,6 +135,12 @@ export const LEGAL_REFUSALS = {
     nothingToReview: "admin.legal.error.nothingToReview",
     translationExists: "admin.legal.error.translationExists",
     badLanguage: "admin.legal.error.badLanguage",
+    // INC-1280 (10a-2, D45) — `{max}` is filled by the screen from its own limit, never the door's text.
+    tooLong: "admin.legal.error.tooLong",
+    badValue: "post.refusal.badValue",
+    notPublished: "admin.legal.error.notPublished",
+    unknownVersion: "admin.legal.error.unknownVersion",
+    unknownUser: "admin.users.error.unknownUser",
   },
   generic: "admin.legal.error.generic",
 } as const satisfies RefusalFamily;

@@ -776,4 +776,28 @@ export const enBase = {
   "prim.guide.next": "What to do next",
   // DEC-333 (F1-1) — the one generic refusal a screen renders for a door code it has no words of its own for (src/lib/door-codes.ts).
   "door.refused": "This request was refused. Please try again; if it keeps happening, tell us.",
+  "post.refusal.levelNotAvailable":
+    "This ad's level is not offered right now, so photos cannot be added.",
+  "post.refusal.badPinPlace": "That point is not on the map. Place the pin again.",
+  "post.refusal.directionsTooLong": "The directions are too long.",
+  "post.refusal.streetTooLong": "The street name is too long.",
+  "post.refusal.pinNotEditable": "The map pin of this ad can no longer be changed.",
+  "post.refusal.alreadySubmitted": "This ad was already sent or can no longer be sent.",
+  "post.refusal.listingNotPlaced": "Choose where this ad is shown before sending it.",
+  "post.refusal.listingNotFound": "This ad no longer exists.",
+  "post.refusal.photosSoonNotEditable": "This choice can no longer be changed for this ad.",
+  "post.refusal.categoryClosed": "This category is no longer open for new ads.",
+  "myListings.refusal.notCopied": "A similar ad cannot be posted from this one.",
+  "myListings.refusal.notCopiedDraft":
+    "A draft cannot be used to post a similar ad. Finish or delete it first.",
+  "myListings.refusal.notEditable": "This ad can no longer be edited.",
+  "myListings.refusal.draftNotEdited": "Change a draft in the posting steps, not here.",
+  "myListings.refusal.renewFirst": "Renew this ad before editing it.",
+  "adPage.report.noteTooLong": "The note is too long.",
+  "admin.users.error.unknownUser": "This account is no longer on record.",
+  "admin.users.roles.unknown": "This role is no longer on record.",
+  "admin.roles.error.unknownPermission": "This permission is no longer on record.",
+  "admin.translations.error.badLanguage": "This language is not on record.",
+  "admin.translations.error.unknownKey": "This text is no longer on record.",
+  "admin.translations.error.unknownTranslation": "This translation is no longer on record.",
 } as const;

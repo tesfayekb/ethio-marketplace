@@ -1,11 +1,23 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
-import { failureKind, isRetryable } from "./failure-reason";
+import { failureKind, isRetryable, loadFailureReader } from "./failure-reason";
 
 const withStatus = (status: number, message = "x") => Object.assign(new Error(message), { status });
 const coded = (code: string) => Object.assign(new Error(code), { code: "P0D01" });
 
+describe("failureKind before the reader arrives (INC-864)", () => {
+  it("FR-U14 a TypeError is network, status 404 is gone, anything else is server", () => {
+    expect(failureKind(new TypeError("offline")).kind).toBe("network");
+    expect(failureKind(withStatus(404)).kind).toBe("gone");
+    expect(failureKind(coded("listingNotFound")).kind).toBe("server");
+    expect(failureKind("x").kind).toBe("server");
+  });
+});
+
 describe("failureKind (DEC-464, status first)", () => {
+  beforeAll(async () => {
+    await loadFailureReader();
+  });
   it("FR-U1 401 or notSignedIn → signedOut", () => {
     expect(failureKind(withStatus(401)).kind).toBe("signedOut");
     expect(failureKind(coded("notSignedIn")).kind).toBe("signedOut");
