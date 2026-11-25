@@ -1357,7 +1357,16 @@ was <old>.`), agreeing with the two css lines. The comment's line must fall afte
   new or a deleted file, a patch it cannot read, or a base file with no block to place the change
   in refuses with DEC-425 named. A patchless file is read from git as DEC-398 reads the ceilings
   file. The `scripts/*` rule's refusal text and the tests that pin it say "the three exceptions"
-  and name DEC-425.
+  and name DEC-425 (and DEC-468, below).
+- **The entry's limit line (DEC-468, cursor-bundle-6):** the same exception takes the `js:` number
+  of the same block on the same terms: exactly one removed and one added `  js: <n>,` line and at
+  most one added DEC-296 comment naming JS (`JS (local|CI) <size> KiB`, one `<old> → <new> =
+ceilingFor(Local)?(<size>); was <old>.`), agreeing with the js lines, above the base's `js:` line;
+  the `js:` and `css:` lines keep their places. A patch that changes both limits is judged line by
+  line by the same rule, each limit with its own comment; a comment that names both, a second
+  comment for one limit, a second or an unpaired limit line and every other changed line refuse,
+  with DEC-425 and DEC-468 named together. CF-LVB-21 and CF-LVB-22 pin it; the `scripts/*` rule's
+  refusal text names the entry's limit line beside the stylesheet's.
 - **A patchless exception file (DEC-398, INC-1185):** GitHub's files API leaves `patch` out of an
   entry whose diff is too large to carry — pull request #55's nine changed ceiling lines of about
   4 KB each — and out of a binary one (the REST page "List pull requests files" documents the

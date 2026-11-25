@@ -370,12 +370,12 @@ describe("a Lovable branch's pull request changes only screen files (DEC-394)", 
     ]);
     expect(renamedAway.code).toBe(1);
     expect(renamedAway.out).toContain(
-      `${FORMS_ALLOWLIST} — renamed to docs/old-list.txt: scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425)`,
+      `${FORMS_ALLOWLIST} — renamed to docs/old-list.txt: scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425; the entry's limit line, DEC-468)`,
     );
 
     // Nothing else under scripts/ takes the exception, with a removal-only patch or not.
     const scriptsRule =
-      "scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425)";
+      "scripts/** — the guards and tools (DEC-386; the three exceptions: a ceiling line, DEC-390; a removed allowlist line, DEC-396; the stylesheet's limit line, DEC-425; the entry's limit line, DEC-468)";
     for (const path of [
       "scripts/conformance/kit.ts",
       "scripts/doors/manifest.txt",
@@ -745,7 +745,7 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
   }, 30_000);
 
   it("CF-LVB-18 any other line of the file, the same line in another form, and a comment out of place or out of agreement refuse", () => {
-    const why = `${BUNDLE} — a changed line that is not the stylesheet's limit line; DEC-425 admits one \`css:\` number and one DEC-296 comment only`;
+    const why = `${BUNDLE} — a changed line that is not the entry's or the stylesheet's limit line; DEC-425 (css) and DEC-468 (js) admit those two numbers and their DEC-296 comments only`;
     const refused = (what: string, change: (lines: string[]) => void, expected: string) => {
       const result = runAt(baseDir, [[modified(BUNDLE, bundlePatch(change))]]);
       expect(result.code, what).toBe(1);
@@ -758,7 +758,6 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
     expect(plain.code).toBe(1);
     expect(plain.out).toContain(why);
 
-    refused("the js limit", (l) => (l[JS_AT] = "  js: 204,"), why);
     refused("a line elsewhere", (l) => l.push("const MORE = true;"), why);
     refused("the other css", (l) => (l[l.length - 1] = "const OTHER = { js: 1, css: 3 };"), why);
     refused("a trailing comment", (l) => (l[CSS_AT] = "  css: 24, // loose"), why);
@@ -797,7 +796,7 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
         moveCss(l);
         l.splice(JS_AT, 0, CSS_COMMENT, CSS_COMMENT.replace("fixture C", "fixture F"));
       },
-      `${BUNDLE} — a second comment line; DEC-425 admits one DEC-296 comment for the stylesheet's limit`,
+      `${BUNDLE} — a second comment line for one limit; DEC-425 and DEC-468 admit one DEC-296 comment for each limit`,
     );
     refused(
       "numbers that disagree",
@@ -805,7 +804,7 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
         moveCss(l);
         l.splice(JS_AT, 0, CSS_COMMENT.replace("23 → 24", "23 → 30"));
       },
-      `${BUNDLE} — the comment says 23 → 30, was 23; the css lines say 23 → 24 (DEC-425)`,
+      `${BUNDLE} — the comment says 23 → 30, was 23; the css lines say 23 → 24 (DEC-425, DEC-468)`,
     );
     refused(
       "a comment below the limits",
@@ -826,7 +825,7 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
     refused(
       "no css line change",
       (l) => l.splice(JS_AT, 0, CSS_COMMENT),
-      `${BUNDLE} — DEC-425 admits the stylesheet's limit as one removed and one added \`css:\` line (0 removed, 0 added)`,
+      `${BUNDLE} — DEC-425 and DEC-468 admit a limit as one removed and one added \`css:\` or \`js:\` line (0 removed, 0 added)`,
     );
     refused(
       "the css line moved",
@@ -834,7 +833,7 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
         l.splice(CSS_AT, 1);
         l.splice(CSS_AT + 4, 0, "  css: 24,");
       },
-      "DEC-425",
+      "DEC-425, DEC-468",
     );
 
     // A new, renamed or deleted file is not a changed limit; a patch of no text refuses.
@@ -842,13 +841,13 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
       const result = runAt(baseDir, [[{ filename: BUNDLE, status, patch: bundlePatch(moveCss) }]]);
       expect(result.code, status).toBe(1);
       expect(result.out, status).toContain(
-        `${BUNDLE} — ${status}; a Lovable branch may only move the stylesheet's limit line of the existing file — DEC-425`,
+        `${BUNDLE} — ${status}; a Lovable branch may only move the stylesheet's or the entry's limit line of the existing file — DEC-425, DEC-468`,
       );
     }
     const unreadable = runAt(baseDir, [[{ filename: BUNDLE, status: "modified" }]]);
     expect(unreadable.code).toBe(1);
     expect(unreadable.out).toContain(`${BUNDLE} — the API carries no patch for it`);
-    expect(unreadable.out).toContain("DEC-425's exception cannot be read");
+    expect(unreadable.out).toContain("DEC-425, DEC-468's exception cannot be read");
     const garbled = runAt(baseDir, [[modified(BUNDLE, "no hunk here\n-  css: 23,\n+  css: 24,")]]);
     expect(garbled.code).toBe(1);
 
@@ -866,6 +865,206 @@ describe("the stylesheet's limit line of the bundle-size guard (DEC-425)", () =>
     expect(beside.out).toContain("1 change(s) outside what a Lovable branch may change");
     expect(beside.out).toContain("package.json — modified");
     expect(beside.out).not.toContain(`${BUNDLE} —`);
+  }, 60_000);
+});
+
+/**
+ * DEC-468 — the entry's limit line (`js:`) of the same block, on DEC-425's terms. The same fixture
+ * and the same `git diff` patches; a change of both limits is judged line by line.
+ */
+const JS_COMMENT =
+  "  // DEC-296 (fixture G): JS local 201.9 KiB; 203 → 205 = ceilingForLocal(201.9); was 203.";
+const moveJs = (lines: string[]) => {
+  lines[JS_AT] = "  js: 205,";
+};
+
+describe("the entry's limit line of the bundle-size guard (DEC-468)", () => {
+  it("CF-LVB-21 the js number alone, with its DEC-296 comment, and together with the css number, passes — by the API's patch and by git's", () => {
+    const alone = runAt(baseDir, [[modified(BUNDLE, bundlePatch(moveJs))]]);
+    expect(alone.code, alone.out).toBe(0);
+    expect(alone.out).toContain(NONE_OUTSIDE);
+
+    const withJsComment = (lines: string[]) => {
+      moveJs(lines);
+      lines.splice(JS_AT, 0, JS_COMMENT);
+    };
+    for (const context of [3, 0]) {
+      const result = runAt(baseDir, [[modified(BUNDLE, bundlePatch(withJsComment, context))]]);
+      expect(result.code, `u${context}: ${result.out}`).toBe(0);
+    }
+
+    // Both limits, each with its own comment, directly above `js:` and at the block's first line.
+    const both = (lines: string[]) => {
+      moveJs(lines);
+      moveCss(lines);
+      lines.splice(JS_AT, 0, JS_COMMENT, CSS_COMMENT);
+    };
+    for (const context of [3, 0]) {
+      const result = runAt(baseDir, [[modified(BUNDLE, bundlePatch(both, context))]]);
+      expect(result.code, `both u${context}: ${result.out}`).toBe(0);
+    }
+    const bothNoComments = (lines: string[]) => {
+      moveJs(lines);
+      moveCss(lines);
+    };
+    expect(runAt(baseDir, [[modified(BUNDLE, bundlePatch(bothNoComments))]]).code).toBe(0);
+    const bothOneComment = (lines: string[]) => {
+      moveJs(lines);
+      moveCss(lines);
+      lines.splice(JS_AT, 0, JS_COMMENT);
+    };
+    expect(runAt(baseDir, [[modified(BUNDLE, bundlePatch(bothOneComment))]]).code).toBe(0);
+
+    // The file with no patch from the API is read from git, as DEC-398 reads the ceilings file.
+    const tree = plant(
+      { [BUNDLE]: `${bundleLines.join("\n")}\n` },
+      {
+        [BUNDLE]: `${bundleLines.map((l, i) => (i === JS_AT ? "  js: 205," : l)).join("\n")}\n`,
+      },
+    );
+    mkdirSync(join(tree.work, "scripts"), { recursive: true });
+    writeFileSync(join(tree.work, BUNDLE), `${bundleLines.join("\n")}\n`);
+    const patchless = runInGit([[noPatch(BUNDLE)]], tree);
+    expect(patchless.code, patchless.out).toBe(0);
+    expect(patchless.out).toContain(NONE_OUTSIDE);
+  }, 60_000);
+
+  it("CF-LVB-22 a second js line, a comment that disagrees or names both limits, a moved line and any other line of the block refuse", () => {
+    const why = `${BUNDLE} — a changed line that is not the entry's or the stylesheet's limit line; DEC-425 (css) and DEC-468 (js) admit those two numbers and their DEC-296 comments only`;
+    const refused = (what: string, change: (lines: string[]) => void, expected: string) => {
+      const result = runAt(baseDir, [[modified(BUNDLE, bundlePatch(change))]]);
+      expect(result.code, what).toBe(1);
+      expect(result.out, what).toContain(expected);
+      expect(result.out, what).toContain("1 change(s) outside what a Lovable branch may change");
+    };
+
+    refused(
+      "a second js line",
+      (l) => {
+        moveJs(l);
+        l.splice(JS_AT + 1, 0, "  js: 206,");
+      },
+      `${BUNDLE} — DEC-425 and DEC-468 admit a limit as one removed and one added \`js:\` line (1 removed, 2 added)`,
+    );
+    refused(
+      "a js line removed with none added",
+      (l) => l.splice(JS_AT, 1),
+      `${BUNDLE} — DEC-425 and DEC-468 admit a limit as one removed and one added \`js:\` line (1 removed, 0 added)`,
+    );
+    refused(
+      "a js comment whose numbers disagree with the js lines",
+      (l) => {
+        moveJs(l);
+        l.splice(JS_AT, 0, JS_COMMENT.replace("203 → 205", "203 → 210"));
+      },
+      `${BUNDLE} — the comment says 203 → 210, was 203; the js lines say 203 → 205 (DEC-425, DEC-468)`,
+    );
+    refused(
+      "a js comment whose was-value disagrees",
+      (l) => {
+        moveJs(l);
+        l.splice(JS_AT, 0, JS_COMMENT.replace("was 203", "was 190"));
+      },
+      `${BUNDLE} — the comment says 203 → 205, was 190; the js lines say 203 → 205 (DEC-425, DEC-468)`,
+    );
+    refused(
+      "a js comment with no js change",
+      (l) => {
+        moveCss(l);
+        l.splice(JS_AT, 0, JS_COMMENT);
+      },
+      `${BUNDLE} — the comment says 203 → 205, was 203; the js lines say none → none (DEC-425, DEC-468)`,
+    );
+    refused(
+      "a second js comment",
+      (l) => {
+        moveJs(l);
+        l.splice(JS_AT, 0, JS_COMMENT, JS_COMMENT.replace("fixture G", "fixture H"));
+      },
+      `${BUNDLE} — a second comment line for one limit; DEC-425 and DEC-468 admit one DEC-296 comment for each limit`,
+    );
+    refused(
+      "one comment naming both limits",
+      (l) => {
+        moveJs(l);
+        l.splice(
+          JS_AT,
+          0,
+          "  // DEC-296 (fixture I): JS local 201.9 KiB, CSS local 22.8 KiB; 203 → 205 = ceilingForLocal(201.9); was 203.",
+        );
+      },
+      why,
+    );
+    refused(
+      "a js comment below the limits",
+      (l) => {
+        moveJs(l);
+        l.splice(CSS_AT + 2, 0, JS_COMMENT);
+      },
+      `${BUNDLE} — the comment is outside the block above the two limits`,
+    );
+    refused(
+      "a js comment above the block",
+      (l) => {
+        moveJs(l);
+        l.splice(0, 0, JS_COMMENT);
+      },
+      `${BUNDLE} — the comment is outside the block above the two limits`,
+    );
+    refused(
+      "the js line moved",
+      (l) => {
+        l.splice(JS_AT, 1);
+        l.splice(JS_AT + 1, 0, "  js: 205,");
+      },
+      "DEC-425, DEC-468",
+    );
+    refused("the js line in another form", (l) => (l[JS_AT] = "  js: 205, // loose"), why);
+    refused("the js line with a quoted key", (l) => (l[JS_AT] = '  "js": 205,'), why);
+    refused(
+      "a js change beside a change to a line elsewhere",
+      (l) => {
+        moveJs(l);
+        l.push("const MORE = true;");
+      },
+      why,
+    );
+    refused(
+      "a js change beside a change to another line of the block",
+      (l) => {
+        moveJs(l);
+        l[JS_AT - 2] = "  // DEC-231 (fixture): an older turn's cause, edited.";
+      },
+      why,
+    );
+    refused(
+      "a js change beside the other line of the file that holds a js key",
+      (l) => {
+        moveJs(l);
+        l[l.length - 1] = "const OTHER = { js: 9, css: 2 };";
+      },
+      why,
+    );
+
+    // A refused css change beside an admitted js change is still refused, whole.
+    refused(
+      "a css line with a second css line beside a js change",
+      (l) => {
+        moveJs(l);
+        moveCss(l);
+        l.splice(CSS_AT + 1, 0, "  css: 25,");
+      },
+      `${BUNDLE} — DEC-425 and DEC-468 admit a limit as one removed and one added \`css:\` line (1 removed, 2 added)`,
+    );
+
+    // A new, renamed or deleted file is not a changed limit, for a js patch as for a css one.
+    for (const status of ["added", "renamed", "removed"]) {
+      const result = runAt(baseDir, [[{ filename: BUNDLE, status, patch: bundlePatch(moveJs) }]]);
+      expect(result.code, status).toBe(1);
+      expect(result.out, status).toContain(
+        `${BUNDLE} — ${status}; a Lovable branch may only move the stylesheet's or the entry's limit line of the existing file — DEC-425, DEC-468`,
+      );
+    }
   }, 60_000);
 });
 
