@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { failureKind } from "./failure-reason";
 
 import {
   anchorOf,
@@ -13,7 +16,11 @@ import {
   type SavedArea,
   type ShellLocationNode,
   type TreeNode,
+  useCountryTree,
 } from "./location-data";
+
+const route = vi.hoisted(() => ({ callRoute: vi.fn() }));
+vi.mock("@/lib/route-client", () => route);
 
 /**
  * D234 speed turn S5 — DIA-1…DIA-6. The first place the shell shows, derived
@@ -205,5 +212,29 @@ describe("deriveInitialArea (D234 S5)", () => {
         }
       }
     }
+  });
+});
+
+/** DEC-464 ruling 3 — LRS-U1…U3: the location reads keep their status. */
+async function kindFor(country: string, answer: unknown) {
+  route.callRoute.mockResolvedValueOnce(answer);
+  const { result } = renderHook(() => useCountryTree(country));
+  await waitFor(() => expect(result.current.failure).not.toBeNull());
+  return failureKind(result.current.failure).kind;
+}
+
+describe("location reads keep their status", () => {
+  it("LRS-U1 a 404 reads as gone", async () => {
+    expect(
+      await kindFor("AA", { kind: "answered", ok: false, status: 404, error: null, payload: null }),
+    ).toBe("gone");
+  });
+  it("LRS-U2 a 503 reads as server", async () => {
+    expect(
+      await kindFor("AB", { kind: "answered", ok: false, status: 503, error: null, payload: null }),
+    ).toBe("server");
+  });
+  it("LRS-U3 an unreachable answer reads as network", async () => {
+    expect(await kindFor("AC", { kind: "unreachable", reason: "network" })).toBe("network");
   });
 });

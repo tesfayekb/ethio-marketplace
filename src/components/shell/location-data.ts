@@ -2,6 +2,7 @@ import { compareCodes } from "@/lib/reader-locale";
 import { useCallback, useEffect, useState } from "react";
 
 import { distanceKm } from "@/lib/geo-distance";
+import { readFailed } from "@/lib/reader-failure";
 import { callRoute } from "@/lib/route-client";
 import { UUID_RE } from "@/lib/uuid";
 
@@ -166,9 +167,10 @@ export function treePath(country: string): `/api/${string}` {
 
 async function fetchMarkets(): Promise<OpenMarket[]> {
   const answer = await callRoute(MARKETS_PATH, { auth: "none" });
-  if (answer.kind !== "answered" || !answer.ok) {
-    throw new Error(`markets ${answer.kind === "answered" ? answer.status : 0}`);
-  }
+  if (answer.kind === "unreachable") throw readFailed(new TypeError(answer.reason));
+  // An address read without a session ("auth: none") never answers signedOut; kept typed if it ever does.
+  if (answer.kind !== "answered") throw readFailed("signedOut", 401);
+  if (!answer.ok) throw readFailed(answer.error ?? `markets ${answer.status}`, answer.status);
   return parseMarkets(answer.payload);
 }
 
@@ -194,9 +196,10 @@ export function parseMarkets(answer: Record<string, unknown> | null): OpenMarket
 
 async function fetchTree(country: string): Promise<TreeNode[]> {
   const answer = await callRoute(treePath(country), { auth: "none" });
-  if (answer.kind !== "answered" || !answer.ok) {
-    throw new Error(`tree ${answer.kind === "answered" ? answer.status : 0}`);
-  }
+  if (answer.kind === "unreachable") throw readFailed(new TypeError(answer.reason));
+  // An address read without a session ("auth: none") never answers signedOut; kept typed if it ever does.
+  if (answer.kind !== "answered") throw readFailed("signedOut", 401);
+  if (!answer.ok) throw readFailed(answer.error ?? `tree ${answer.status}`, answer.status);
   return parseTree(answer.payload);
 }
 
