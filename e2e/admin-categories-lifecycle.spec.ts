@@ -1932,18 +1932,21 @@ test.describe("CAT-IE categories import/export", () => {
       expect(commit.status, JSON.stringify(commit.payload)).toBe(428);
       expect(commit.payload["code"]).toBe("P0009");
 
-      // A refused attempt leaves NO trace (F5): no category, no audit row, no dial spent.
+      // A refused attempt leaves NO trace (F5): no category, no category audit row (the sign-in's own
+      // language-preference save is the account's, not the import's), no dial spent.
       expect(await readCategory(slug)).toBeNull();
       const audit = await adminClient()
         .from("audit_log")
         .select("action")
-        .eq("actor_id", importer.id);
+        .eq("actor_id", importer.id)
+        .like("action", "category%");
       expect(audit.error).toBeNull();
       expect(audit.data ?? []).toEqual([]);
       const meters = await adminClient()
         .from("rate_limits")
         .select("action")
-        .eq("key", importer.id);
+        .eq("key", importer.id)
+        .like("action", "import:%");
       expect(meters.error).toBeNull();
       expect(meters.data ?? []).toEqual([]);
     } finally {

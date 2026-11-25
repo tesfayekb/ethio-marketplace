@@ -1016,6 +1016,10 @@ test.describe("Admin Legal", () => {
   test("LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish", async ({
     page,
   }) => {
+    // Cursor bundle 6 — three staff sign-ins (the publisher, the viewer, the publisher again) each mint a
+    // session that used its account's factor, and a mint waits out the code's step: the walk's honest
+    // length is past the default 60 s.
+    test.setTimeout(150_000);
     const kind = scratch("card");
     const code = `${kind}-lang`;
     languages.add(code);

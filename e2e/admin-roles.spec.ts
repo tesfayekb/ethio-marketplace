@@ -13,6 +13,7 @@ import {
   gotoReady,
   isMobile,
   roleRow,
+  signOutViaUi,
   stepUpIfPrompted,
   switchLanguage,
   userRow,
@@ -154,8 +155,9 @@ test.describe("U2 roles console", () => {
 
     // Signed-out deep link into a role id: redirected, nothing gated renders.
     const id = await roleId("admin");
-    await page.context().clearCookies();
-    await page.evaluate(() => window.localStorage.clear());
+    // A real sign-out (the staff sign-in's one-shot injection stays a no-op after it; clearing storage
+    // by hand would remove that mark and the injection would sign the page in again).
+    await signOutViaUi(page);
     await page.goto(`/admin/roles/${id}`);
     await waitForHydration(page);
     await expect(page.getByTestId("role-permissions")).toHaveCount(0);
