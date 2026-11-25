@@ -1,12 +1,12 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45649679892
-- Commit: `84e605ad5931f356fae162b671fb6dcf25681824`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45673729426
+- Commit: `b63342473f7044080f0b9bb82280edd7e86d30d8`
 - Attempt: 1
-- Written (UTC): 2026-11-25T16:23:49.719Z
+- Written (UTC): 2026-11-25T18:50:25.209Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
-- Semgrep (enforcing on ERROR) › Warn: the SARIF upload failed
+No warning step ran in this run.
 
 No failed build/guard jobs in this run.
