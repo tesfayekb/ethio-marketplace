@@ -208,14 +208,12 @@ async function rpcAs(
   person: { email: string; password: string },
   fn: string,
   args: Record<string, unknown> = {},
-  // Cursor bundle 6 — `staff: true` calls over a session that used the account's factor (aal2); the
-  // default is the plain password session (aal1), which is what a refusal's subject holds.
-  options: { staff?: boolean } = {},
+  // Cursor bundle 6 — `staffSession` calls over a session that used the account's factor (aal2),
+  // minted once by the caller (each mint waits out a code's step); the default is the plain password
+  // session (aal1), which is what a refusal's subject holds.
+  options: { staffSession?: Awaited<ReturnType<typeof staffSession>> } = {},
 ): Promise<{ status: number; body: unknown }> {
-  const session =
-    options.staff === true
-      ? await staffSession(person)
-      : await passwordGrant(person.email, person.password);
+  const session = options.staffSession ?? (await passwordGrant(person.email, person.password));
   const url = process.env["E2E_SUPABASE_URL"];
   const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !key) throw new Error("[e2e:legal-admin] missing staging config");
@@ -849,7 +847,10 @@ test.describe("Admin Legal", () => {
     for (let i = 0; i < (await rows.count()); i++)
       await expect(rows.nth(i).getByTestId("rail-alert")).toHaveCount(1);
     await page.keyboard.press("Escape");
-    expect((await rpcAs(staff, "legal_review_overdue", {}, { staff: true })).body).toBe(true);
+    const held = await staffSession(staff);
+    expect((await rpcAs(staff, "legal_review_overdue", {}, { staffSession: held })).body).toBe(
+      true,
+    );
     await block.getByTestId("legal-review-mark").click();
     await page.getByTestId("legal-review-note").fill("LGA-17 read, no change");
     await page.getByTestId("legal-review-save").click();
@@ -861,7 +862,9 @@ test.describe("Admin Legal", () => {
       .toBeGreaterThan(0);
     await expect(page.locator(marked)).toHaveCount(0);
     await page.keyboard.press("Escape");
-    expect((await rpcAs(staff, "legal_review_overdue", {}, { staff: true })).body).toBe(false);
+    expect((await rpcAs(staff, "legal_review_overdue", {}, { staffSession: held })).body).toBe(
+      false,
+    );
     const person = await leaseUser();
     const refused = await rpcAs(person, "legal_review_overdue");
     expect(refused.status).toBeGreaterThanOrEqual(400);
