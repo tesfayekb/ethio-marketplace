@@ -275,7 +275,7 @@ export async function decideListing(listingId: string, next: "active" | "rejecte
     p_listing_id: listingId,
     p_new_status: next,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
 }
 
 const DECISION_REFUSALS = {
@@ -491,7 +491,7 @@ export function nameCheckSummaryOf(raw: unknown): NameCheckSummary {
 
 export async function readNameCheckSummary(): Promise<NameCheckSummary> {
   const { data, error } = await supabase.rpc("admin_name_check_summary");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return nameCheckSummaryOf(data);
 }
 

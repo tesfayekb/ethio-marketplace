@@ -15,6 +15,7 @@
 
 const AUTH = "supabase/auth v2.197.0 ";
 const AUTH_JS = "@supabase/auth-js 2.110.9 ";
+const POSTGREST_JS = "@supabase/postgrest-js 2.110.9 ";
 
 export type ProviderErrorEntry = {
   /** The provider's `code`, absent for an error the client library raises on its own. */
@@ -29,6 +30,11 @@ export type ProviderErrorEntry = {
 };
 
 export const PROVIDER_ERRORS = {
+  TypeError: {
+    name: "TypeError",
+    message: "TypeError: Failed to fetch",
+    source: `${POSTGREST_JS}dist/index.mjs:357`,
+  },
   email_not_confirmed: {
     code: "email_not_confirmed",
     message: "Email not confirmed",

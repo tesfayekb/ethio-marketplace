@@ -64,7 +64,7 @@ describe("reportListing", () => {
     );
   });
   it("RD-4 an error is failed", async () => {
-    rpc.mockResolvedValue({ data: null, error: { message: "scratch failure" } });
+    rpc.mockResolvedValue({ data: null, error: { message: "TypeError: Failed to fetch" } });
     expect(await reportListing("2345678923", "spam", "")).toEqual({ ok: false, reason: "failed" });
   });
 });

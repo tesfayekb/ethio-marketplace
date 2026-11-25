@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 import { supabase } from "@/integrations/supabase/client";
 import { StepUpCancelled } from "@/features/auth/mfa/mfa-service";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import {
   FACT_KEYS,
   acceptancesCsv,
@@ -193,10 +194,16 @@ it.each(
   mockRpc(vi.fn().mockResolvedValue({ data, error: null }));
   await expect(listBaseLanguages()).rejects.toThrow("base_languages: invalid answer");
 });
-it("LBL-3 listBaseLanguages surfaces the door's refusal, never an empty list", async () => {
+it("LBL-3 listBaseLanguages surfaces the door's refusal as one typed failure, never an empty list", async () => {
   const error = { code: "P0D01", message: "permissionDenied" };
   mockRpc(vi.fn().mockResolvedValue({ data: null, error }));
-  await expect(listBaseLanguages()).rejects.toBe(error);
+  const failure = await listBaseLanguages().catch((caught: unknown) => caught);
+  expect(failure).toBeInstanceOf(ReaderError);
+  expect(readerFailure(failure)).toMatchObject({
+    class: "refused",
+    code: "P0D01",
+    message: "permissionDenied",
+  });
 });
 it("lists the 24 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([

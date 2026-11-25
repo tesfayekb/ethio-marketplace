@@ -16,7 +16,7 @@ const { useCurrencies } = await import("./pricing-data");
 
 it("CUR-U1 a failed read keeps its error; retry reads again and answers", async () => {
   answers.push(
-    { data: null, error: { message: "down", code: "XX000" } },
+    { data: null, error: { message: "TypeError: Failed to fetch" } },
     { data: [{ code: "ETB", name_en: "Birr", symbol: "Br", display_order: 1 }], error: null },
   );
   const { result } = renderHook(() => useCurrencies());

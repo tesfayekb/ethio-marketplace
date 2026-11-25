@@ -33,6 +33,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import { StepUpCancelled } from "@/features/auth/mfa/mfa-service";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 
 import {
   approveAllTranslations,
@@ -321,12 +322,17 @@ describe("the family's doors on codes (DEC-333, F1-3)", () => {
     );
   });
 
-  it("TRS-11 a door's refusal is thrown as it came, for the reader", async () => {
+  it("TRS-11 a door's refusal is thrown as one typed failure, for the reader", async () => {
     db.error = coded("translationFlagged");
     const failure = await saveTranslation({ key: "k", lang: "am", value: "v" }).catch(
       (e: unknown) => e,
     );
-    expect(failure).toBe(db.error);
+    expect(failure).toBeInstanceOf(ReaderError);
+    expect(readerFailure(failure)).toMatchObject({
+      class: "refused",
+      code: "P0D01",
+      message: "translationFlagged",
+    });
     expect(translationRefusalKey(failure)).toBe("admin.translations.error.flaggedApprove");
   });
 });

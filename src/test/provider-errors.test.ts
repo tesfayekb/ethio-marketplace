@@ -7,7 +7,7 @@ import { PROVIDER_ERRORS, providerError, type ProviderErrorEntry } from "./provi
  * name of an error the client library raises), its message, and the vendor file:line that sends it.
  */
 const SOURCE =
-  /^(?:supabase\/auth v2\.197\.0 internal\/[a-z]+\/[a-z_]+\.go|@supabase\/auth-js 2\.110\.9 dist\/module\/lib\/errors\.js|supabase\/migrations\/[0-9]{14}_[0-9a-f-]{36}\.sql):[1-9][0-9]*$/;
+  /^(?:supabase\/auth v2\.197\.0 internal\/[a-z]+\/[a-z_]+\.go|@supabase\/auth-js 2\.110\.9 dist\/module\/lib\/errors\.js|@supabase\/postgrest-js 2\.110\.9 dist\/index\.mjs|supabase\/migrations\/[0-9]{14}_[0-9a-f-]{36}\.sql):[1-9][0-9]*$/;
 
 describe("PROVIDER_ERRORS (INC-1278 b)", () => {
   const entries: Array<[string, ProviderErrorEntry]> = Object.entries(PROVIDER_ERRORS);

@@ -4,6 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { ownValue } from "@/lib/own-key";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import { readFailed } from "@/lib/reader-failure";
 import { callRoute } from "@/lib/route-client";
 import type { TranslateReason } from "@/lib/schemas/translate";
 
@@ -116,7 +117,7 @@ export interface SyncResult {
 
 export async function listLanguages(): Promise<LanguageRow[]> {
   const { data, error } = await supabase.rpc("admin_list_languages");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     code: row.code,
     nameEn: row.name_en,
@@ -133,7 +134,7 @@ export async function listTranslationStats(lang?: string): Promise<TranslationSt
   const { data, error } = await supabase.rpc("admin_translation_stats", {
     ...(lang ? { p_lang: lang } : {}),
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     langCode: row.lang_code,
     total: Number(row.total),
@@ -216,7 +217,7 @@ export async function listTranslations({
     // `null` = the RPC's own default: no orphan predicate, the whole catalog.
     ...(orphaned === null ? {} : { p_orphaned: orphaned }),
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const rows = data ?? [];
   const first = rows[0];
   return {
@@ -235,7 +236,7 @@ export async function saveTranslation(input: {
     p_lang: input.lang,
     p_value: input.value,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_save_translation", data);
 }
 
@@ -249,7 +250,7 @@ export async function setTranslationStatus(input: {
     p_lang: input.lang,
     p_action: input.action,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_set_translation_status", data);
 }
 
@@ -265,7 +266,7 @@ export interface ApproveAllResult {
 
 export async function approveAllTranslations(lang: string): Promise<ApproveAllResult> {
   const { data, error } = await supabase.rpc("admin_approve_all_translations", { p_lang: lang });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const fn = "admin_approve_all_translations";
   const record = requireRecord(fn, data);
   return {
@@ -289,7 +290,7 @@ export async function approveAllEntityTranslations(lang: string): Promise<Approv
   const { data, error } = await supabase.rpc("admin_approve_all_entity_translations", {
     p_lang: lang,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const fn = "admin_approve_all_entity_translations";
   return { approved: requireCount(fn, requireRecord(fn, data), "approved") };
 }
@@ -297,7 +298,7 @@ export async function approveAllEntityTranslations(lang: string): Promise<Approv
 /** U4g — roster order; the public language switcher follows `languages.sort`. */
 export async function setLanguageOrder(codes: string[]): Promise<void> {
   const { data, error } = await supabase.rpc("admin_set_language_order", { p_codes: codes });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_set_language_order", data);
 }
 
@@ -316,7 +317,7 @@ export async function upsertLanguage(input: {
     p_rtl: input.rtl,
     p_country_codes: input.countryCodes ?? [],
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_upsert_language", data);
 }
 
@@ -330,7 +331,7 @@ export async function setLanguageFlags(input: {
     p_enabled_admin: input.enabledAdmin,
     p_enabled_public: input.enabledPublic,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_set_language_flags", data);
 }
 
@@ -342,7 +343,7 @@ export async function syncUiKeys(input: {
     p_en: input.en,
     p_am: input.am,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const fn = "admin_sync_ui_keys";
   const record = requireRecord(fn, data);
   // INC-607 — the door's own names. `keys_added` counts the keys this sync
@@ -365,14 +366,14 @@ export async function setTranslatorLanguages(input: {
     p_user: input.userId,
     p_langs: input.langs,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_set_translator_languages", data);
 }
 
 /** The caller's OWN assigned language codes (U4b read seam). */
 export async function myTranslatorLanguages(): Promise<string[]> {
   const { data, error } = await supabase.rpc("get_my_translator_languages");
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => row.lang_code);
 }
 
@@ -383,7 +384,7 @@ export async function myTranslatorLanguages(): Promise<string[]> {
  */
 export async function fetchUiBundle(lang: string): Promise<Record<string, string>> {
   const { data, error } = await supabase.rpc("get_ui_bundle_parts", { p_lang: lang });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   if (data === null || typeof data !== "object" || Array.isArray(data)) return {};
   // INC-1023: the console shows every approved row, so its two parts are joined
   // (written over copied); the live site's precedence is overlayBundle's, not this.
@@ -748,7 +749,7 @@ export async function listEntityTranslations({
     p_offset: offset,
     ...(after === undefined ? {} : { p_after: { ...after } }),
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   const rows = data ?? [];
   const first = rows[0];
   return {
@@ -804,7 +805,7 @@ export async function saveEntityTranslation(input: {
     p_lang: input.lang,
     p_value: input.value,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_save_entity_translation", data);
 }
 
@@ -822,7 +823,7 @@ export async function setEntityTranslationStatus(input: {
     p_lang: input.lang,
     p_action: input.action,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_set_entity_translation_status", data);
 }
 
@@ -855,7 +856,7 @@ export async function listTranslationRevisions(input: {
     p_lang: input.lang,
     p_limit: input.limit ?? 20,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return (data ?? []).map((row) => ({
     id: row.id,
     action: row.action,
@@ -887,7 +888,7 @@ export async function listEntityTranslationStats(lang?: string): Promise<EntityT
   const { data, error } = await supabase.rpc("admin_entity_translation_stats", {
     ...(lang ? { p_lang: lang } : {}),
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   // INC-119 — one typed mapper per RPC; a renamed or missing column throws.
   return (data ?? []).map(mapEntityStatsRow);
 }
@@ -1015,7 +1016,7 @@ export async function setKeyContext(input: { key: string; context: string }): Pr
     p_key: input.key,
     p_context: input.context,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_set_key_context", data);
 }
 
@@ -1146,7 +1147,7 @@ export async function writePseudoRow(input: { key: string; value: string }): Pro
     p_lang: PSEUDO_LANG,
     p_value: input.value,
   });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   requireDone("admin_machine_translation", data);
 }
 
@@ -1243,12 +1244,12 @@ function mapDeleteCounts(fn: string, payload: unknown): LanguageDeleteCounts {
 
 export async function languageDeletePreview(code: string): Promise<LanguageDeleteCounts> {
   const { data, error } = await supabase.rpc("admin_language_delete_preview", { p_code: code });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return mapDeleteCounts("admin_language_delete_preview", data);
 }
 
 export async function deleteLanguage(code: string): Promise<LanguageDeleteCounts> {
   const { data, error } = await supabase.rpc("admin_delete_language", { p_code: code });
-  if (error) throw error;
+  if (error) throw readFailed(error);
   return mapDeleteCounts("admin_delete_language", data);
 }

@@ -99,7 +99,7 @@ export function ListingSettings({
           p_renew_allowed: renewAllowed,
           p_renew_days: value,
         });
-        if (error) throw error;
+        if (error) throw readFailed(error);
       });
     } catch (error) {
       setBusy(false);

@@ -200,7 +200,7 @@ describe("the sold-visible-days public read", () => {
   it("answers null for an RPC error", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
-      rpc.mockResolvedValueOnce({ data: null, error: { message: "unavailable" } });
+      rpc.mockResolvedValueOnce({ data: null, error: { message: "TypeError: Failed to fetch" } });
       expect(await readSoldVisibleDays()).toBeNull();
     } finally {
       logged.mockRestore();
