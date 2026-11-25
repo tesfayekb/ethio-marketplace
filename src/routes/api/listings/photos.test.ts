@@ -149,8 +149,8 @@ describe("/api/listings/photos/$id on defineRoute (D3)", () => {
 
   it("PHT-5 a door's shell refusal reaches the client as its code, and no storage object is touched", async () => {
     for (const [message, status] of [
-      ["photoGone", 400],
-      ["notYourListing", 400],
+      ["photoGone", 404],
+      ["notYourListing", 404],
       ["rateLimited", 429],
       ["accountDeactivated", 403],
     ] as const) {

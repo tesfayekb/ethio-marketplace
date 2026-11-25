@@ -678,6 +678,27 @@ jobs:
           surface_query=$(bun scripts/security-lints.ts --surface-query)
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$surface_query" > "$RUNNER_TEMP/public-surface.tsv"
           bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv" "$RUNNER_TEMP/public-surface.tsv"
+      # Cursor bundle 7a (DEC-472, CF-ADVISOR-1): the platform's own performance lints on the temporary
+      # backend. A finding of auth_rls_initplan or duplicate_index fails the step; every other lint's
+      # count reaches the log and no more (DEC-310: a finding's detail and metadata name live objects).
+      # The CLI's stdout (one JSON line, the pinned CLI's) goes to a file and scripts/ci/advisor-lints.ts
+      # judges it after its own self-test; an answer it cannot read fails. DEC-472's frozen judge: over
+      # the first ten smoke runs the step takes at most 60 s and shows no finding the hosted advisor on
+      # ethio-staging does not; the seconds are printed for that count.
+      - name: Performance advisor lints (DEC-472)
+        id: advisor-lints
+        if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
+        timeout-minutes: 3
+        run: |
+          begin=$(date +%s)
+          if ! supabase db advisors --local --workdir .ci-local --type performance --level info --output-format json > "$RUNNER_TEMP/advisors.json" 2> "$RUNNER_TEMP/advisors.err"; then
+            echo "::error::advisors: the CLI exited non-zero (it could not connect or could not read)"
+            exit 1
+          fi
+          judged=0
+          bun scripts/ci/advisor-lints.ts "$RUNNER_TEMP/advisors.json" || judged=$?
+          echo "advisors: step took $(( $(date +%s) - begin )) s"
+          exit "$judged"
       # DEC-333 / DEC-334 (F1-1): the door guard, live. It replaced the caller-gates guard (DEC-241)
       # under G22's frozen rule: the step gates only after its self-test has fired every finding kind
       # on its planted fixture in this same run (the script runs the self-test first and judges nothing

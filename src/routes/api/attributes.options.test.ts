@@ -120,7 +120,7 @@ it("ATO-7 the shell's refusals: attributeNotFound is a 404, rateLimited a 429 th
       error: name === "get_attribute_options" ? { message } : null,
       status,
     }));
-  refuse("attributeNotFound", 400);
+  refuse("attributeNotFound", 404);
   const missing = await get({ request: request(), params: { id: ID } });
   expect(missing.status).toBe(404);
   expect(await missing.json()).toEqual({ error: "unknown attribute" });
@@ -147,7 +147,7 @@ it("ATO-8 F1-7d — a refusal is read by its code: a sentence that only names on
         error: name === "get_attribute_options" ? { message } : null,
         status,
       }));
-    refuse("attributeNotFound:option", 400);
+    refuse("attributeNotFound:option", 404);
     expect((await get({ request: request(), params: { id: ID } })).status).toBe(404);
     for (const message of ["no attributeNotFound here", "notRateLimited"]) {
       refuse(message, 500);

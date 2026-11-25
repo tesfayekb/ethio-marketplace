@@ -235,4 +235,14 @@ The server is the authority. A non-member permission self-check is true only at 
 
 What a staff session at aal1 sees outside the gate: the admin menu's alert read (`useNavAlerts`) is not asked until the session is aal2, and the shell's admin crumbs (`admin-detail-crumbs.tsx`) read only what the page's own query filled (`cacheOnly`), so neither makes a staff read nor draws a failure. Proofs: NAV-ALERT-1, ADC-1, ADC-2.
 
-Policies that ask `has_permission` wrap it as `(SELECT public.has_permission(…))`, so it runs once per query, not once per row; CF-RLS-1 (`scripts/conformance/rls-initplan.test.ts`) reads the standing policies and fails one that does not.
+Policies that ask `has_permission` wrap it as `(SELECT public.has_permission(…))`, so it runs once per query, not once per row; CF-RLS-1 (`scripts/conformance/rls-initplan.test.ts`) reads the standing policies and fails one that does not. Since cursor-bundle-7a (Part 3, INC-1283) the same holds for the four calls the Supabase performance advisor's `auth_rls_initplan` lint names — `auth.uid()`, `auth.jwt()`, `auth.role()` and `current_setting(` — wrapped as `(SELECT auth.uid())`; a call inside the arguments of a wrapped permission call is wrapped with it, a call inside any other subquery is bare. The nine owner-read policies that called `auth.uid()` bare are changed by `ALTER POLICY` (migration C of the bundle) and the policy reader (`scripts/doors/policies.ts`) reads `ALTER POLICY`.
+
+## Cursor bundle 7a — a failed factor read is a failure, not "no factor" (INC-1299)
+
+`useStepUp.open` now tells two cases apart. A read that ANSWERED with no factor (the factor is gone)
+keeps the `no-factor` mode: the dialog explains and links to Settings, and the guarded action is
+released as `StepUpUnavailable`. A read that FAILED opens the `read-failed` mode: the dialog says
+`mfa.errorGeneric` with a Retry (`common.retry`, test id `step-up-retry`), the action stays parked, a
+Retry (`useStepUp().retry`) reads the factors again, and Cancel settles the action as
+`StepUpCancelled`. No new string. Tests: `use-step-up.test.ts` SUH-1 → 3 (the hook), the dialog's
+SUD-3 and SUD-4 (`step-up-dialog.test.tsx`).

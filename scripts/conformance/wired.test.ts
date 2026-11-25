@@ -219,6 +219,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "bun scripts/security-lints.ts --tsv",
     );
+    // Cursor bundle 7a (DEC-472, CF-ADVISOR-1): the smoke lane judges the platform's performance
+    // lints through scripts/ci/advisor-lints.ts, whose test is scripts/ci/advisor-lints.test.ts.
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "bun scripts/ci/advisor-lints.ts",
+    );
     expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain(
       'public-surface.ts" --migration',
     );

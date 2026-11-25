@@ -109,8 +109,8 @@ describe("POST /api/listings/publish on defineRoute (D2)", () => {
   it("the shell's refusals reach the client as their codes — the dial's, the owner's, the gates'", async () => {
     for (const [message, status] of [
       ["rateLimited", 429],
-      ["notYourListing", 400],
-      ["illegalTransition:active-screening", 400],
+      ["notYourListing", 404],
+      ["illegalTransition:active-screening", 409],
       ["accountDeactivated", 403],
       ["notSignedIn", 401],
     ] as const) {

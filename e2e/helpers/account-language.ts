@@ -11,6 +11,8 @@ import { adminClient } from "./users";
  * start (D239: published = `enabled_public OR is_base`), and a NULL account saves the
  * device's language through the door as the session starts.
  * - `setDeviceAmharic(page)` — the device half, before the first paint.
+ * - `awaitSessionLanguage(userId)` — the session-start save has landed, before a test reads
+ *   the audit log from a watermark.
  * - `setAccountLanguage(page, userId, code)` — a signed-in page's account, set as the
  *   product sets it and proved on a reload.
  * - `seedAccountLanguage(userId, code)` — the J5 fixture write BEFORE a session, any code
@@ -56,6 +58,20 @@ async function reloadSettled(page: Page): Promise<void> {
 }
 
 /**
+ * The account's session-start save has landed (the column is non-NULL). An account with no
+ * language receives the device's once, at its first session start (D239), and that save
+ * audits; a test that reads the audit log from a watermark waits here first.
+ */
+export async function awaitSessionLanguage(userId: string): Promise<void> {
+  await expect
+    .poll(() => storedLanguage(userId), {
+      timeout: SETTLE_MS,
+      message: `[e2e:lang] the session-start save of the account language never landed (D239)`,
+    })
+    .not.toBeNull();
+}
+
+/**
  * The signed-in `page`'s account takes `code` (a public language) the way a person sets
  * it. Nothing races the pick (INC-1100): the session-start save has landed (the column is
  * non-NULL) and the page's own account read has answered (a reload with it awaited) — a
@@ -65,12 +81,7 @@ async function reloadSettled(page: Page): Promise<void> {
  */
 export async function setAccountLanguage(page: Page, userId: string, code: string): Promise<void> {
   touched.add(userId);
-  await expect
-    .poll(() => storedLanguage(userId), {
-      timeout: SETTLE_MS,
-      message: `[e2e:lang] the session-start save of the account language never landed (D239)`,
-    })
-    .not.toBeNull();
+  await awaitSessionLanguage(userId);
   await reloadSettled(page);
   await switchLanguage(page, code);
   await expect

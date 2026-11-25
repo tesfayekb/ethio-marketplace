@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -14,7 +14,19 @@ vi.mock("@/components/ui/dialog", () => {
   return {
     Dialog: Box,
     DialogContent: Box,
-    DialogDescription: Box,
+    DialogDescription: ({
+      children,
+      role,
+      "data-testid": testid,
+    }: {
+      children?: ReactNode;
+      role?: string;
+      "data-testid"?: string;
+    }) => (
+      <div role={role} data-testid={testid}>
+        {children}
+      </div>
+    ),
     DialogTitle: Box,
   };
 });
@@ -22,18 +34,27 @@ vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 vi.mock("@tanstack/react-router", () => ({
-  Link: ({ children }: { children: ReactNode }) => <a href="/settings">{children}</a>,
+  Link: ({ children, "data-testid": testid }: { children: ReactNode; "data-testid"?: string }) => (
+    <a href="/settings" data-testid={testid}>
+      {children}
+    </a>
+  ),
 }));
 
 const { StepUpDialog } = await import("./step-up-dialog");
 
-function draw(refusal: { field: string; reason: string } | null) {
+function draw(
+  refusal: { field: string; reason: string } | null,
+  mode: "code" | "no-factor" | "read-failed" = "code",
+  retry: () => Promise<void> = () => Promise.resolve(),
+) {
   render(
     <StepUpDialog
-      mode="code"
+      mode={mode}
       busy={false}
       refusal={refusal}
       submitCode={() => Promise.resolve(false)}
+      retry={retry}
       close={() => undefined}
       unavailable={() => undefined}
     />,
@@ -62,5 +83,29 @@ describe("the step-up dialog's code field (INC-1147 class 1)", () => {
     document.body.innerHTML = "";
     draw({ field: "code", reason: "unknown" });
     expect(screen.getByTestId("step-up-error").textContent).toBe("mfa.errorGeneric");
+  });
+});
+
+describe("the step-up dialog's modes (cursor-bundle-7a, INC-1299)", () => {
+  it("SUD-3 a failed factor read says it failed with a Retry, never 'set up an authenticator'", () => {
+    const retry = vi.fn(() => Promise.resolve());
+    draw(null, "read-failed", retry);
+    const line = screen.getByTestId("step-up-read-failed");
+    expect(line.textContent).toBe("mfa.errorGeneric");
+    expect(line.getAttribute("role")).toBe("alert");
+    expect(screen.queryByTestId("step-up-no-factor")).toBeNull();
+    expect(screen.queryByTestId("step-up-settings-link")).toBeNull();
+    expect(screen.queryByTestId("step-up-code")).toBeNull();
+    expect(document.body.textContent).not.toContain("mfa.stepUpNoFactorTitle");
+    fireEvent.click(screen.getByTestId("step-up-retry"));
+    expect(retry).toHaveBeenCalledTimes(1);
+  });
+
+  it("SUD-4 a factor that is gone keeps the set-up explanation and its link, with no Retry", () => {
+    draw(null, "no-factor");
+    expect(screen.getByTestId("step-up-no-factor").textContent).toBe("mfa.stepUpNoFactorBody");
+    expect(screen.getByTestId("step-up-settings-link")).toBeTruthy();
+    expect(screen.queryByTestId("step-up-retry")).toBeNull();
+    expect(screen.queryByTestId("step-up-read-failed")).toBeNull();
   });
 });

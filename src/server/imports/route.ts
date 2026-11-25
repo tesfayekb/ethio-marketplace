@@ -94,10 +94,15 @@ const IMPORT_DIALS: Readonly<Record<string, Dial>> = {
 
 const CODE_WORD = /^[a-z][A-Za-z]*$/;
 
-/** A coded refusal's client status: the one table's (`refusalStatus`, F1-7d / INC-1223). */
-function codeStatus(word: string): 400 | 401 | 403 | 429 {
+/**
+ * A coded refusal's client status: the one table's (`refusalStatus`, F1-7d / INC-1223), GONE 404
+ * and CHANGED 409 included (cursor-bundle-7a, INC-1287).
+ */
+function codeStatus(word: string): 400 | 401 | 403 | 404 | 409 | 429 {
   const status = refusalStatus(word);
-  return status === 401 || status === 403 || status === 429 ? status : 400;
+  return status === 401 || status === 403 || status === 404 || status === 409 || status === 429
+    ? status
+    : 400;
 }
 
 /**

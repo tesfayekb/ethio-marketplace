@@ -48,7 +48,7 @@ src/server/door.test.ts:70 | a deliberately unknown sentence: the case is that n
 src/server/door.test.ts:82 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("violates check constraint \"listings_x_check\"") | INC-1278
 src/server/door.test.ts:94 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("listings_price_bp_check") | INC-1278
 src/server/imports/route.test.ts:321 | a database text written from memory: its reader reads the code or none, never the words; to be replaced by a captured one ("relation cat_secret does not exist") | INC-1278
-src/server/imports/route.test.ts:606 | an outage text: the failure reads as the generic word and no reader draws its words ("nope") | INC-1278
+src/server/imports/route.test.ts:607 | an outage text: the failure reads as the generic word and no reader draws its words ("nope") | INC-1278
 src/server/listings/own-listing.test.ts:53 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
 src/server/listings/own-listing.test.ts:58 | an outage text: the failure reads as the generic word and no reader draws its words ("down") | INC-1278
 src/server/supabase/user-client.test.ts:38 | an outage text: the failure reads as the generic word and no reader draws its words ("boom") | INC-1278

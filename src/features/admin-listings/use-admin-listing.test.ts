@@ -69,7 +69,7 @@ describe("the staff detail's reads fail as one typed failure (DEC-429)", () => {
       for (const [error, failureClass] of [
         [{ message: "permissionDenied", code: "P0D01", status: 403 }, "refused"],
         [{ message: "notSignedIn", code: "P0D01", status: 401 }, "auth"],
-        [{ message: "listingNotFound", code: "P0D01", status: 400 }, "refused"],
+        [{ message: "listingNotFound", code: "P0D01", status: 404 }, "refused"],
       ] as const) {
         rpc.mockResolvedValueOnce({ data: null, error });
         const thrown = await read().catch((caught: unknown) => caught);

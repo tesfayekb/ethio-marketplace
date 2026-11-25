@@ -66,8 +66,11 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   INC-1212): a `helper` line whose reason is `policy <name>, <name>, …` holds only when each named
   policy stands after the migrations and its text calls the function; a bare `policy` fires.
   `policies.ts` reads the migrations statically in apply order (`CREATE POLICY` sets a policy's
-  text, `DROP POLICY` removes it; no migration alters one; a policy built by dynamic SQL is not
-  read), and both modes use that reading. A helper may name `anon` (`sold_cutoff`: the three
+  text, `DROP POLICY` removes it, `ALTER POLICY … [TO …] [USING (…)] [WITH CHECK (…)]` replaces
+  the clauses it names and keeps the rest, `ALTER POLICY … RENAME TO` renames it — the last statement
+  wins, and an `ALTER` the reader cannot take apart or that names no standing policy throws, never
+  skips (cursor-bundle-7a Part 3, INC-1300; `scripts/doors/policies.test.ts`); a policy built by
+  dynamic SQL is not read), and both modes use that reading. A helper may name `anon` (`sold_cutoff`: the three
   public-read policies run for visitors). `opt-out-over-step-up` (F1-6a ruling 1, Part A; INC-1195's class): a staff line whose
   step-up cell is `none:<DEC>` holds only when the permission it names is declared
   `requires_step_up = false` — `door_context`'s staff form asks the second factor whenever the row
@@ -334,12 +337,60 @@ reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane rea
   and `liveRoleRules` hands the same judge the rules really standing — a rule created by computed
   text, which the migrations' census cannot name, is judged too. `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
 
+## A refusal's status names its kind (cursor-bundle-7a Part 2, INC-1287)
+
+`door_refusal_status` (and its client mirror `REFUSAL_STATUS`, `src/lib/reader-failure.ts`) gives
+every refusal code one class, so a screen tells "gone" and "changed" apart from any other refusal
+by status, never by a list of codes:
+
+- **GONE — 404.** The row the caller named is not there, or not theirs to see, and the next step
+  is to go back (31 codes: `listingNotFound`, `notYourListing`, `unknownCategory`, …).
+- **CHANGED — 409.** The row is there, but its state now forbids the action, and the next step is
+  to reload (29 codes: `listingChanged`, `illegalTransition`, `importRunning`, …).
+- **400.** The caller's input must change: every other code, the 17 borderline codes (a value from
+  a short list, a conflict with another row, a rule over related rows) included.
+- The gate's four keep their statuses: `notSignedIn` 401, `permissionDenied` and
+  `accountDeactivated` 403, `stepUpRequired` 428, `rateLimited` 429.
+
+The 400 codes are a CLASS REGISTER, not an allowlist: `scripts/conformance/refusal-classes.txt`,
+one line per code or per family prefix (`bad*`, `delete*`), `code | reason`, no `until` because a
+class is not an exception. CF-REFUSAL-6 (`scripts/conformance/refusal-readers.test.ts` CFRR-10 → 12) reads every code raised in a last declaration and every manifest code, and fails on a code in
+no class, a code in two classes (a table row and a register line, or two register lines), a
+register line that matches no raised code, and a family line that covers a 404 or 409 code;
+CF-REFUSAL-2 keeps the table and the mirror equal in both directions. The server's reader answers
+(`refusalAnswerStatus`, `codeStatus` of the import route) pass 404 and 409. A client that reads a
+code at a status its class does not carry does not treat it as a refusal the database answered
+(`classify`), so between the migration's apply and the client's publish a moved code reads as a
+failure with Retry (the operator applies the migration and publishes the client in the same
+sitting). The routes' own statuses stay — `notYourListing` 403 and `photoGone` 409
+on the photo and background routes — until bundle 7b aligns them.
+
+## A personal door names the rule that limits its rows (cursor-bundle-7a Part 4, INC-1282's class, DEC-471)
+
+An `owner`, `signed-in-reader` or `helper` line of the manifest is a door a person calls for
+themselves, so it decides whose rows it reads or writes. CF-DOOR-ROWS-1
+(`scripts/conformance/door-rows.ts`, `door-rows.test.ts` CFDR-1 → 7) reads each one's last
+declaration (`lastDeclarations`) and passes it when it compares a column of a row it selects,
+updates or deletes with the caller: `auth.uid()` (wrapped or not, cast or not), the gate's
+`v_ctx.uid`, or a variable assigned directly from either, against `=`, `<>`, `!=` or `IS [NOT]
+DISTINCT FROM`. The column is a qualified column of a table or alias the body names, a bare column
+beside such a table, or a variable the body loaded from one (`SELECT … INTO v_seller FROM …`, a
+`%ROWTYPE` row, a `FOR` row); a literal, a function argument (`p_*`, or any name in the header) and a
+variable filled from anywhere else do not count. A body the check cannot read (built at run time, or
+no declaration) fails. The rest carry a line of `door-rows-allowlist.txt`, `door | <class>: <reason> |
+until`: `public` (the door reads no person's row: catalogue data, a pure check, a computed date) and
+`delegates` (a helper whose callee compares: `has_permission`, whose core compares `p_user_id` with
+`auth.uid()`) are permanent and carry `DEC-471`; `held` (a row the caller holds by a grant) carries a
+date or an `INC-n`. A line for a door that does compare is idle, and a line for a door that is not
+personal is stale (the kit's allowlist grammar), and both fail. Staff, public and staff-reader
+lines stay with their own judges.
+
 ## The staff-session rule (cursor-bundle-6 Part 3, DEC-461)
 
 A staff authority holds only for a session that used its second factor. THE RULE
 (`staff_session_holds(uuid,text,text)`, service role only): when the caller asks about its OWN
 authority (`p_user_id = auth.uid()`) for a permission the default member role does not hold (read
-from that role's grants, hierarchy and `manage` included — never a literal list), the answer is
+from that role's grants and hierarchy, each grant read exactly (DEC-466) — never a literal list), the answer is
 true only when the session is `aal2` (`auth.jwt() ->> 'aal'`) AND the account has a verified totp
 factor. The service role, a session with no role, a question about another person and
 `admin_panel:access` (it only tells the app the account is staff) answer as before; a super admin
@@ -354,6 +405,30 @@ step-up check; the staff server routes answer it as `stepUpRequired` (428). Two 
 `door_context`. The proofs (rolled back) cover every aal/factor combination, the unchanged
 answers, the catalog's grants and bodies, and that the policies naming `has_permission` are the
 four storage-bucket rules and none reads authority another way.
+
+### The cores read a grant exactly (cursor-bundle-7a Part 1, DEC-466, DEC-473)
+
+The server allows an action only when a role the person holds is granted THAT action: the role
+matrix the Roles console edits is the whole truth. Until bundle 7a three readers —
+`has_permission_core` (a second `EXISTS`), `staff_session_holds` and `has_permission_scoped_core`
+(`IN (p_action, 'manage')`) — also took a grant of `manage` as a grant of any action of its
+resource, which the console and `get_my_permissions` never showed. Migration A redeclares the three
+whole (signatures and grants as they were) so a grant of `manage` answers only when `manage` is
+asked: the doors that ask `translations:manage` and `services:manage` by name. A super admin still
+holds every permission by `is_super_admin`. The same file deletes, by name, the `manage`
+permissions nothing asks (`categories`, `countries`, `listings`, `locations`, `permissions`,
+`profiles`, `roles`, `user_roles`; their grants first). DEC-473: importing categories stays super
+admin only; no grant is expanded. Guard CF-GRANT-1
+(`scripts/conformance/permission-grants.ts`, test CFPG-1 → 4): no last declaration that reads
+`role_permissions` matches `manage` in place of the asked action; planted in both forms.
+
+## A save that changes nothing writes nothing (cursor-bundle-7a Part 5)
+
+`user_set_preferred_language` still gates, spends `account_pref` and locks the
+caller's profile row `FOR UPDATE`; when the stored value already equals the asked
+one it writes no update and no audit row and answers `{ok, language}`. A changed
+value updates the row and writes `profile.preferred_language` (old to new).
+CT-23 keeps its meter exclusion and loses its audit exclusion.
 
 ## Tests
 
