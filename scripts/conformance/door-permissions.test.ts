@@ -1,10 +1,18 @@
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { ROUTE_PERMISSIONS } from "../../src/features/permissions/door-permissions.generated";
-import { namedRoutes, permissionComparisons, routeOf } from "./door-permissions";
+import {
+  floorProblem,
+  hookCalls,
+  namedRoutes,
+  permissionComparisons,
+  routeOf,
+} from "./door-permissions";
 import { readAllowlist, report, TREE_SCAN_MS, typedProgram } from "./kit";
 
 /**
@@ -17,14 +25,17 @@ import { readAllowlist, report, TREE_SCAN_MS, typedProgram } from "./kit";
  *   DPM-3 a hook call naming a door the manifest lacks, a door that asks no permission, a route
  *         that is not one or a method the route lacks does not compile;
  *   DPM-4 every API path browser code writes names a route the generated data answers; every
- *         route admin code names declares its permission (none is OPEN).
+ *         route admin code names declares its permission (none is OPEN);
+ *   DPM-5 (INC-1308) the floor reads the copies and the hook's calls: a reader that finds nothing
+ *         fails it, and a copy moved onto the hook keeps the count.
  * Exceptions: scripts/conformance/door-permissions-allowlist.txt (`key | reason | until`;
  * `permanent` allowed for a page, section or link gate; a stale line fails).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "conformance", "door-permissions-allowlist.txt");
-/** The census's floor at birth (80 comparisons): a reading that finds less is broken. */
+/** The census's floor at birth (80 comparisons): a reading that finds less is broken. It reads
+ *  the copies and the hook's calls together, so moving a copy onto the hook keeps it (INC-1308). */
 const COMPARISON_FLOOR = 70;
 const ROUTES = Object.keys(ROUTE_PERMISSIONS);
 const ADMIN = /^src\/(?:features\/admin|routes\/admin)/;
@@ -43,6 +54,26 @@ const PLANTED_COMPARISONS = [
   '    head === "og:title",',
   '    head.includes("http://"),',
   "  ];",
+  "}",
+  "",
+].join("\n");
+
+/** One gate, as a copy and then moved onto the hook (the work an `until INC-1281` line plans). */
+const PLANTED_COPY = [
+  'import { usePermissions } from "@/features/permissions/usePermissions";',
+  "",
+  "export function Gate() {",
+  "  const { has } = usePermissions();",
+  '  return has("listings:review");',
+  "}",
+  "",
+].join("\n");
+const PLANTED_MOVED = [
+  'import { useMayCall } from "@/features/permissions/use-may-call";',
+  "",
+  "export function Gate() {",
+  "  const { mayCall } = useMayCall();",
+  '  return mayCall({ door: "admin_reorder_categories" });',
   "}",
   "",
 ].join("\n");
@@ -82,7 +113,7 @@ describe("door permissions (cursor bundle 7c Part 3, INC-1281)", () => {
     "DPM-1 every permission comparison of browser code that is not the hook carries its allowlist line",
     () => {
       const found = permissionComparisons(ROOT);
-      expect(found.length).toBeGreaterThanOrEqual(COMPARISON_FLOOR);
+      expect(floorProblem(found, hookCalls(ROOT), COMPARISON_FLOOR)).toBeNull();
       const allowed = readAllowlist(
         ALLOWLIST,
         found.map((finding) => finding.key),
@@ -168,6 +199,39 @@ describe("door permissions (cursor bundle 7c Part 3, INC-1281)", () => {
       expect(
         report(open.map(({ file, line, text }) => ({ file, line, what: `OPEN: ${text}` }))),
       ).toBe("");
+    },
+    TREE_SCAN_MS,
+  );
+
+  it(
+    "DPM-5 the floor fails a reader that finds nothing, and holds when a copy moves onto the hook",
+    () => {
+      const empty = mkdtempSync(join(tmpdir(), "door-permissions-"));
+      try {
+        mkdirSync(join(empty, "src"));
+        mkdirSync(join(empty, "scripts", "doors"), { recursive: true });
+        writeFileSync(join(empty, "src", "nothing.ts"), "export const nothing = 1;\n");
+        copyFileSync(
+          join(ROOT, "scripts", "doors", "manifest.txt"),
+          join(empty, "scripts", "doors", "manifest.txt"),
+        );
+        expect(
+          floorProblem(permissionComparisons(empty), hookCalls(empty), COMPARISON_FLOOR),
+        ).toMatch(/0 comparisons and 0 hook calls \(0\), under its floor of 70/);
+      } finally {
+        rmSync(empty, { recursive: true, force: true });
+      }
+
+      const copy = { path: PLANTED_PATH, text: PLANTED_COPY };
+      const moved = { path: PLANTED_PATH, text: PLANTED_MOVED };
+      const before = permissionComparisons(ROOT, copy);
+      const after = permissionComparisons(ROOT, moved);
+      expect(after.length).toBe(before.length - 1);
+      expect(after.length + hookCalls(ROOT, moved).length).toBe(
+        before.length + hookCalls(ROOT, copy).length,
+      );
+      expect(floorProblem(after, hookCalls(ROOT, moved), before.length)).toBeNull();
+      expect(floorProblem(after, [], before.length)).not.toBeNull();
     },
     TREE_SCAN_MS,
   );
