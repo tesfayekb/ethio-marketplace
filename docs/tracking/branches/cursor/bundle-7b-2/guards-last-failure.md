@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45734853168
-- Commit: `19b04865da3b83709d661267b76862967e85cbf4`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45736662097
+- Commit: `d9d8e2bbb3ee40c8995c0beed757d86e363e8de3`
 - Attempt: 1
-- Written (UTC): 2026-11-26T01:49:16.167Z
+- Written (UTC): 2026-11-26T02:19:07.696Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -16,8 +16,8 @@ No warning step ran in this run.
 ```text
 [90mstderr[2m | src/components/shell/data-table.test.tsx[2m > [22m[2mDataTable C7 contract[2m > [22m[2mDTK-12 a failed read never recovers as an empty past-end page
 [90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
-     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 874[2mms[22m[39m
-     [33m[2m✓[22m[39m TCK-12 the Typecheck step runs CI's own `bun run typecheck` (both projects): a planted failing scripts project is FAIL (housekeeping turn 3c) [33m 2627[2mms[22m[39m
+     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 713[2mms[22m[39m
+     [33m[2m✓[22m[39m TCK-12 the Typecheck step runs CI's own `bun run typecheck` (both projects): a planted failing scripts project is FAIL (housekeeping turn 3c) [33m 2306[2mms[22m[39m
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
@@ -48,7 +48,7 @@ No warning step ran in this run.
 [90mstderr[2m | src/features/my-listings/promote-sheet.test.tsx[2m > [22m[2mP-2 (b) the promote sheet (DEC-349)[2m > [22m[2mPMS-6 a refused read is named, a failed one is the retry line, and nothing to choose is a caption beside the list
 [90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
 [22m[39m[session-reads] currentSession() calls: 21; without failed: 0
-     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1517[2mms[22m[39m
+     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1398[2mms[22m[39m
 [22m[39m[screening] decision failed { message: [32m'ownListing'[39m }
 [22m[39m[screening] decision failed { message: [32m'rateLimited'[39m }
 [22m[39m[screening] decision failed StepUpUnavailable: step-up unavailable: no verified factor
@@ -58,15 +58,15 @@ No warning step ran in this run.
 [22m[39mfailure-notice listing-photos-failed server (reader pending)
 [90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
 [90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
- [31m❯[39m scripts/conformance/proof-readers.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5345[2mms[22m[39m
+ [31m❯[39m scripts/conformance/proof-readers.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 4768[2mms[22m[39m
 [90mstderr[2m | src/features/categories/category-tree.test.ts[2m > [22m[2mthe page's held category tree[2m > [22m[2mCTR-U1 (DEC-464) a failed read keeps its error, and retry asks for the tree again
 [22m[39m[feed] first page failed Error: feedFailed
 [90mstderr[2m | src/features/admin/translations/ai-bulk-bar.test.tsx[2m > [22m[2mAiBulkBar[2m > [22m[2mABB-U1 a failed count read draws the one notice, and Retry calls the count's read once
 [22m[39mfailure-notice rail-categories-failed server (reader pending)
 [22m[39mfailure-notice rail-categories-failed malformed
 [22m[39m[feed-links] /api/feed signing failed
-[22m[39m[ssr-error] /api/feed [incident d9ae90af-3c48-46c3-9eaf-4b1016cea604] ReaderError: feed_page: marker-text-that-must-not-travel
-[22m[39m[ssr-error] /api/feed [incident 50a47a2e-da45-4d0a-a3c1-9bcdb1bd919e] Error: feed_page returned no page
+[22m[39m[ssr-error] /api/feed [incident 8fee83ec-ca5f-44f0-95e3-c650c804be00] ReaderError: feed_page: marker-text-that-must-not-travel
+[22m[39m[ssr-error] /api/feed [incident 402b1475-63fe-4af3-aa8d-a1696dbe7347] Error: feed_page returned no page
 [90mstderr[2m | src/features/admin-screening/name-checks.test.tsx[2m > [22m[2mNCQ-U the queue section[2m > [22m[2mNCQ-U3 a failed read shows the error, never 'none'
 [22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
 [22m[39m[screening] review of a photo change failed StepUpUnavailable: step-up unavailable: no verified factor
@@ -80,7 +80,7 @@ Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
 [90mstderr[2m | src/features/admin-attributes/attributes-page.test.tsx[2m > [22m[2mATPG-2 a failed Used by read draws one notice with Retry and the cell's failed words, never none
 [90mstderr[2m | src/features/admin-attributes/attributes-page.test.tsx[2m > [22m[2mATPG-3 a failed coverage read draws the cell's failed words, never 0/N
 [22m[39mfailure-notice impersonation-notice-failed network
-     [33m[2m✓[22m[39m IMPN-1 a failed download of the banner's module shows the notice in its place [33m 322[2mms[22m[39m
+     [33m[2m✓[22m[39m IMPN-1 a failed download of the banner's module shows the notice in its place [33m 318[2mms[22m[39m
 [90mstderr[2m | src/components/forms/field-select.test.tsx[2m > [22m[2mFSL-U5 a failed read stays disabled, draws the one notice, and Retry calls the read once
 [90mstderr[2m | src/features/admin/audit/audit-page.test.tsx[2m > [22m[2mAUDT-U1 a failed stats read draws the four tiles failed, none with a number
 [22m[39mfailure-notice audit-stat-24h-failed server (reader pending)
@@ -123,8 +123,8 @@ failure-notice audit-stat-top-action-failed server (reader pending)
 
 [2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m629 passed[39m[22m[90m (630)[39m
 [2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m4138 passed[39m[22m[90m (4139)[39m
-[2m   Start at [22m 01:18:36
-[2m   Duration [22m 421.46s[2m (transform 14.63s, setup 268.14s, import 120.50s, tests 294.10s, environment 481.20s)[22m
+[2m   Start at [22m 01:49:19
+[2m   Duration [22m 359.48s[2m (transform 14.05s, setup 234.53s, import 109.97s, tests 248.02s, environment 399.30s)[22m
 
 
 ##[error]AssertionError: expected [ …(2) ] to deeply equal []
@@ -146,7 +146,7 @@ error: script "test:unit" exited with code 1
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/c5459511-650b-4d9b-adb5-9dbcff16069c' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/a00f2dcd-767c-4b51-9ed0-20a3d0cc26cb' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -179,9 +179,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-  layout OK — merged flat: 1 context file(s), report rendered.
-  layout OK — zero artifacts: 0 context file(s), report rendered.
-  layout OK — missing directory: 0 context file(s), report rendered.
 DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
 DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
 ok — R1a census names the missing log
@@ -189,8 +186,11 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), INC-1175 STAGING-SINK label (the spliced capture's failure labelled, its sibling and the unspliced capture not), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (19/19 source(s) with usable results, 12 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (19/19 source(s) with usable results, 13 context file(s) found).
 Verdict class: TESTS (e2e-verdict-class.txt).
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 1 already there for this run (INC-495).
+Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
 publish-evidence: published docs/tracking/branches/cursor/bundle-7b-2/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
 [36;1mecho "lanes=failure"[0m
@@ -217,7 +217,7 @@ publish-evidence: published docs/tracking/branches/cursor/bundle-7b-2/e2e-last-f
 shell: /usr/bin/bash -e {0}
 env:
   DOCS_ONLY: false
-  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-ad47890468ae… (0 read)
+  LANES_LINE: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-da1841007b67… (0 read)
   EVIDENCE_REF: cursor/bundle-7b-2
 ##[endgroup]
 lanes=failure
@@ -226,7 +226,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.1
-Temporarily overriding HOME='/home/runner/work/_temp/1deea426-f76f-4dcf-b42a-1cf6316905d3' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/6dd30b0e-9fbc-4bf4-9c24-a6af96bf515e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
