@@ -10,7 +10,8 @@ import { describe, expect, it } from "vitest";
  * method, path and status; each 500's code and its message cut at 120 characters); CF-AUTHLOG-2
  * plants a token, an address and a body in the lines and requires none of them in the output;
  * CF-AUTHLOG-3 holds the workflow to the step: it runs the script on every lane (a retried pass is green), before the
- * evidence is written, and keeps its file in the lane's log artifact.
+ * evidence is written, and keeps its file in the lane's log artifact. CF-AUTHLOG-5 (cursor bundle
+ * 7c, ruling 2) keeps a 500 request line's `error` field, where the server writes the cause.
  */
 
 const WORKFLOW = join(process.cwd(), ".github/workflows/local-backend-proof.yml");
@@ -110,6 +111,34 @@ describe("the auth server's failures on a lane (INC-1303)", () => {
     );
     expect(out.join("\n")).not.toContain("y".repeat(121));
     expect(out.join("\n")).not.toContain("not an error entry");
+  });
+
+  it("CF-AUTHLOG-5 a 500 request line's error field, where the server writes its cause, is kept, its ids masked, redacted and cut at 200", () => {
+    const factor = randomUUID();
+    const address = `${randomBytes(4).toString("hex")}@example.invalid`;
+    const token = `eyJ${randomBytes(9).toString("base64url")}.${randomBytes(9).toString("base64url")}.${randomBytes(9).toString("base64url")}`;
+    const out = capture([
+      {
+        method: "POST",
+        path: `/factors/${factor}/challenge`,
+        status: 500,
+        error_code: "unexpected_failure",
+        msg: "request completed",
+        error: `Unhandled server error: ERROR: deadlock detected on factor ${factor} for ${address} with ${token} ${"z".repeat(400)}`,
+      },
+    ]);
+    const head = "error 500 POST /factors/:id/challenge: unexpected_failure: request completed: ";
+    const line = out.find((entry) => entry.startsWith(head)) ?? "";
+    const cause = line.slice(head.length);
+    expect(
+      cause.startsWith("Unhandled server error: ERROR: deadlock detected on factor :id for "),
+    ).toBe(true);
+    expect(cause).toHaveLength(200);
+    expect(cause.endsWith("z")).toBe(true);
+    const text = out.join("\n");
+    expect(text).not.toContain(factor);
+    expect(text).not.toContain(address);
+    expect(text).not.toContain(token);
   });
 
   it("CF-AUTHLOG-3 the workflow runs it on every lane, a green one too, and keeps its file in the log artifact", () => {

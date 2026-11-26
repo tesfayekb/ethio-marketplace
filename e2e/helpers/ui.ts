@@ -935,6 +935,9 @@ function declaresPrivateIdentity(): boolean {
 /** The TOTP step each factor's last accepted code belonged to (this worker's mints). */
 const stepsUsed = new Map<string, number>();
 
+/** authFetch's refusal of a challenge at 500 (e2e/global-setup.ts names the status only in its text). */
+const CHALLENGE_500 = /^\[e2e:setup\] POST \/factors\/[^/\s]+\/challenge failed \(500\): /;
+
 async function untilUnusedStep(factorId: string): Promise<void> {
   if (stepsUsed.get(factorId) !== totpStep()) return;
   const nextMs = (totpStep() + 1) * 30_000;
@@ -971,13 +974,25 @@ export async function aal2Session(pool: Aal2Identity): Promise<PersistedSession>
   // A factor accepts each code once: a second mint in the step the first one used waits for the next
   // step instead of being refused (the staff helper mints a session per sign-in).
   await untilUnusedStep(pool.factorId);
+  let challengeRetried = false;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     // A CHALLENGE PER ATTEMPT: a challenge is single-use and short-lived, so a
     // retry never re-presents the previous one (INC-169).
-    const challenge = await authFetch(`/factors/${pool.factorId}/challenge`, {
-      method: "POST",
-      accessToken,
-    });
+    let challenge: Record<string, unknown>;
+    try {
+      challenge = await authFetch(`/factors/${pool.factorId}/challenge`, {
+        method: "POST",
+        accessToken,
+      });
+    } catch (error) {
+      // DEC-480 (INC-1303): the server's unexplained 500 on a challenge is retried once, with a
+      // fresh challenge, printed here and counted by the auth capture; any other refusal, or a
+      // second 500, ends the mint.
+      if (challengeRetried || attempt === 3 || !CHALLENGE_500.test(errorText(error))) throw error;
+      challengeRetried = true;
+      console.log(`[e2e:setup] challenge 500 on attempt ${attempt} for ${pool.label}`);
+      continue;
+    }
     const challengeId = challenge["id"];
     if (typeof challengeId !== "string") {
       throw new Error(`[e2e:pool] TOTP challenge for ${pool.label} returned no id.`);
