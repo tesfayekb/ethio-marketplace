@@ -246,3 +246,7 @@ released as `StepUpUnavailable`. A read that FAILED opens the `read-failed` mode
 Retry (`useStepUp().retry`) reads the factors again, and Cancel settles the action as
 `StepUpCancelled`. No new string. Tests: `use-step-up.test.ts` SUH-1 → 3 (the hook), the dialog's
 SUD-3 and SUD-4 (`step-up-dialog.test.tsx`).
+
+## Cursor bundle 7b — the gate reads the session's level, not the client (INC-1291)
+
+The staff gate and the menu's alert read no longer load the database client to learn the session's level. `src/features/auth/mfa/session-level.ts` reads the level from the token's own `aal` claim (`readSessionLevel`) and the verified factors from one GET of the auth server's user record (`readVerifiedFactors`); `mfa-service.ts` keeps the enrol, challenge and verify calls and arrives on demand, only when a code is typed (`stepUpWithCode` through `loadOnce`). A read that fails is a typed failure (`readFailed`, from the reader that arrives on demand), never "no factor": `readStaffFactor` answers `{ phase: "failed", error }`, and the gate draws the one failure notice (`admin-factor-read-failed`) with Retry. The admin pages' first download shrank by about 53 KiB where the client was carried only by the gate (/admin, /admin/, /admin/images, /admin/impersonation\_/$sessionId; their ceilings fall, scripts/route-budgets.mjs). Proofs: `session-level.test.ts`, AG-U\* (`staff-factor-gate.test.tsx`), `nav-alerts.test.tsx`.

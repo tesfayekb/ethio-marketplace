@@ -134,3 +134,7 @@ failure (`readFailed`, class `refused`), a malformed answer as `malformed`. A co
 countries' ads; the review of a photo is read by a holder of `listings:review` for the ad's country. PSD-1…5
 (`photo-doors.test.ts`), SF-13, EW-9 and PLK-5…9 prove the readers and the route; the doors' proofs are in the
 two migrations of the bundle.
+
+## Cursor bundle 7b — Reject asks a reason (DEC-469)
+
+Screening's Reject (one ad, a selection, and the edit page's Review) asks what Remove asks: `ScreeningRejectDialog` (`src/features/admin-screening/screening-reject-dialog.tsx`, shared by the queue and the edit route) shows the remove list (`MOVE_REASONS.remove`) and a note, required only for `other` and at most 500 characters. The reason and the note ride `decideListing(listingId, next, why)` as `p_reason` and `p_note`, only for a rejection; Approve and Hold ask nothing (a reason with them answers `badValue`). A selection uses one reason and one note, with one door call per ad. The door (`admin_review_listing(uuid, text, text, text)`) writes the audit row `listing.rejected` with `{from, to, reason, note}` and a seller notice of kind `admin_reject`, after the state machine moved the ad; a refused call writes neither. The dialog forgets its reason and note when it closes. SRD-1…6 (`screening-reject-dialog.test.tsx`), SDR-8, SDR-11, SF-8b and the browser cases SRJ-1…5 (`e2e/admin-screening-reject.spec.ts`) prove it; SC-3, SC-14 and SC-26 pick a reason first.
