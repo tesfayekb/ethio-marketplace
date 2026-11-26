@@ -1,6 +1,7 @@
 import { fetchWithDeadline } from "@/lib/call-deadline";
+import { CODE_SHAPE, reportEndedSignIn, sessionGone } from "@/lib/ended-sign-in";
 import { loadOnce } from "@/lib/load-once";
-import { currentSession, projectEnv } from "@/lib/supabase-door";
+import { currentSession, forgetStoredSession, projectEnv } from "@/lib/supabase-door";
 
 /**
  * INC-1291 (cursor bundle 7b) — THE LIGHT READ OF A SESSION'S SECOND-FACTOR STATE. A staff screen's
@@ -83,6 +84,29 @@ export async function readSessionLevel(): Promise<LevelRead> {
   return { ok: true, token, current: claims.aal === "aal2" ? "aal2" : "aal1" };
 }
 
+/**
+ * A refusal that says the session is gone (a 401, or the auth server's `session_not_found`) is the
+ * person's ended sign-in. The client library, when it read that answer, removed the stored session and
+ * the shell ended the session once (INC-1274); this light read has no library behind it, so it does
+ * the same two things through the door — forgets the stored session the server no longer knows
+ * (`forgetStoredSession`, DEC-268) and tells the shell, whose session read then decides. Only a short
+ * code of the server's own is read from the body, never a sentence.
+ */
+async function endedSignInOf(response: Response): Promise<void> {
+  let code: string | null = null;
+  try {
+    const body: unknown = await response.json();
+    const named: unknown =
+      body !== null && typeof body === "object" ? Reflect.get(body, "error_code") : null;
+    code = typeof named === "string" && CODE_SHAPE.test(named) ? named : null;
+  } catch {
+    code = null;
+  }
+  const refusal = { status: response.status, code };
+  if (sessionGone(refusal)) forgetStoredSession();
+  reportEndedSignIn(refusal);
+}
+
 export type FactorsRead = { ok: true; verified: number } | { ok: false; error: unknown };
 
 /** How many verified second factors the account holds: one request, the token as the bearer. */
@@ -98,11 +122,13 @@ export async function readVerifiedFactors(token: string): Promise<FactorsRead> {
   } catch (error) {
     return { ok: false, error: await typed(error) };
   }
-  if (!response.ok)
+  if (!response.ok) {
+    await endedSignInOf(response);
     return {
       ok: false,
       error: await typed(new Error(`auth user ${response.status}`), response.status),
     };
+  }
   let body: unknown;
   try {
     body = await response.json();

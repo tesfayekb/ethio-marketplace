@@ -938,13 +938,13 @@ test.describe("PHOTO PIPELINE", () => {
     expect(last.status, JSON.stringify(last.payload)).toBe(200);
     expect(await order(), "PP-17: a place past the end is the last").toEqual([c, a, b]);
 
-    // Another seller cannot move this seller's photo.
+    // Another seller cannot move this seller's photo; the answer is the missing ad's (INC-1297).
     const otherContext = await browser.newContext();
     try {
       const other = await otherContext.newPage();
       const stranger = await seller(other);
       const foreign = await photoAction(other, a, "move", stranger.token, 0);
-      expect(foreign.status, JSON.stringify(foreign.payload)).toBe(403);
+      expect(foreign.status, JSON.stringify(foreign.payload)).toBe(404);
       expect(await order(), "PP-17: another seller moved a photo").toEqual([c, a, b]);
     } finally {
       await otherContext.close();

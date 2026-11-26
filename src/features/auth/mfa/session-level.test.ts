@@ -5,9 +5,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * the token, the verified factors from one request to the auth server; nothing here loads the database
  * client, and a failed read is a typed failure, never "no factor". Seams: the session door and `fetch`.
  */
-const door = vi.hoisted(() => ({ session: vi.fn() }));
+const door = vi.hoisted(() => ({ session: vi.fn(), forget: vi.fn(), ended: vi.fn() }));
+vi.mock("@/lib/ended-sign-in", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/ended-sign-in")>()),
+  reportEndedSignIn: (error: unknown) => door.ended(error),
+}));
 vi.mock("@/lib/supabase-door", () => ({
   currentSession: () => door.session(),
+  forgetStoredSession: () => door.forget(),
   projectEnv: () => ({ url: "https://p.example.invalid", key: "sb_publishable_test" }),
 }));
 
@@ -20,6 +25,8 @@ function token(claims: object): string {
 
 beforeEach(() => {
   door.session.mockReset();
+  door.forget.mockReset();
+  door.ended.mockReset();
   vi.unstubAllGlobals();
 });
 
@@ -97,5 +104,31 @@ describe("readVerifiedFactors", () => {
     expect(await readVerifiedFactors("t")).toMatchObject({ ok: false });
     answer({ factors: "nope" });
     expect(await readVerifiedFactors("t")).toMatchObject({ ok: false });
+  });
+
+  it("SLV-6 an answer that says the session is gone forgets the stored session and tells the shell", async () => {
+    answer(
+      {
+        code: 403,
+        error_code: "session_not_found",
+        msg: "Session from session_id claim in JWT does not exist",
+      },
+      403,
+    );
+    expect(await readVerifiedFactors("t")).toMatchObject({ ok: false });
+    expect(door.forget).toHaveBeenCalledTimes(1);
+    expect(door.ended).toHaveBeenCalledWith({ status: 403, code: "session_not_found" });
+  });
+
+  it("SLV-7 a 401 is reported without dropping the session; a server failure does not drop it either (the shell reads the report itself)", async () => {
+    answer({}, 401);
+    expect(await readVerifiedFactors("t")).toMatchObject({ ok: false });
+    expect(door.forget).not.toHaveBeenCalled();
+    expect(door.ended).toHaveBeenCalledWith({ status: 401, code: null });
+    door.ended.mockReset();
+    answer({}, 503);
+    expect(await readVerifiedFactors("t")).toMatchObject({ ok: false });
+    expect(door.forget).not.toHaveBeenCalled();
+    expect(door.ended).toHaveBeenCalledWith({ status: 503, code: null });
   });
 });
