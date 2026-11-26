@@ -11,6 +11,15 @@ set -uo pipefail
 
 TARGET="${1:-src}"
 
+# Every rule reads a file's path from the source folder on (src/…), so a run on `src` (CI's step)
+# and a run on its full path judge a file alike (cursor bundle 8a, ruling 2, INC-1309).
+from_src() {
+  case "/$1" in
+    */src/*) local path="/$1"; printf 'src/%s' "${path##*/src/}" ;;
+    *) printf '%s' "$1" ;;
+  esac
+}
+
 # Allowlist — deliberate, short, and reviewed. Anything else is a violation.
 #   1. the seam itself
 #   2. the admin route chunk
@@ -19,9 +28,9 @@ TARGET="${1:-src}"
 #      logged-out marketplace visitor still issues zero RBAC requests.
 is_allowed() {
   case "$1" in
-    */features/permissions/*) return 0 ;;
-    */routes/admin.tsx) return 0 ;;
-    */components/app-shell.tsx) return 0 ;;
+    src/features/permissions/*) return 0 ;;
+    src/routes/admin.tsx) return 0 ;;
+    src/components/app-shell.tsx) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -30,10 +39,12 @@ is_allowed() {
 #    src/features/permissions/use-may-call.ts, and nothing else of the seam (cursor bundle 7c,
 #    ruling 2): the generated permissions it reads stay out of the entry by the bundle
 #    closure's must-stay-lazy rule (BC-17).
-is_admin_folder() {
+# 5. so may an admin route file, src/routes/admin.<…> (cursor bundle 8a, ruling 2).
+admits_hook() {
   case "$1" in
-    */src/features/admin/*) return 0 ;;
-    */src/features/admin-*/*) return 0 ;;
+    src/features/admin/*) return 0 ;;
+    src/features/admin-*/*) return 0 ;;
+    src/routes/admin.*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -44,8 +55,9 @@ HOOK_IMPORT="features/permissions/use-may-call[\"']"
 violations=0
 offenders=""
 while IFS= read -r -d '' file; do
-  is_allowed "$file" && continue
-  if is_admin_folder "$file"; then
+  path=$(from_src "$file")
+  is_allowed "$path" && continue
+  if admits_hook "$path"; then
     imports=$(grep -oE "$SEAM_IMPORT" "$file")
     others=$(printf '%s\n' "$imports" | grep -vE "$HOOK_IMPORT" | grep -E "features/permissions")
     if [ -n "$others" ]; then

@@ -147,6 +147,10 @@ the marketplace browse path. Allowlist: the seam itself, `src/routes/admin.tsx`,
 and `src/components/app-shell.tsx` (the Admin-tab gate; see
 `docs/features/rbac-client-seam.md`). CI runs it in both directions: PASS on
 `src/`, and it must FAIL on `scripts/fixtures/bad-permission-import-example.ts.txt`.
+Every rule reads a file's path from `src/` on, so a relative run (CI's `src`) and
+an absolute one judge a file alike; the admin folders and the admin route files
+(`src/routes/admin.<…>`) may import the hook `use-may-call.ts` alone (INC-1309,
+cursor bundle 8a ruling 2; BPG-1…7 run each case both ways).
 
 **U1g-3 note (2026-08-17).** The purge root (`AUTH_DERIVED_ROOT` / `authKey`,
 INC-078) briefly lived inside the seam, which made every legitimate consumer —

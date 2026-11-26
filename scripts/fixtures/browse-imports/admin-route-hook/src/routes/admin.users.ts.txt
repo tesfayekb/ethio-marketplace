@@ -1,0 +1,8 @@
+// KNOWN-GOOD FIXTURE — not compiled, not shipped. `.ts.txt` on purpose.
+// An admin route file (src/routes/admin.<…>) that asks the one hook whether its door may be
+// called. scripts/check-browse-imports.sh MUST pass it (cursor bundle 8a, ruling 2).
+import { useMayCall } from "@/features/permissions/use-may-call";
+
+export function useMayReview() {
+  return useMayCall().mayCall({ door: "admin_review_listing" });
+}
