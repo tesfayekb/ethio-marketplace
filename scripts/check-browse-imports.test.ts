@@ -17,11 +17,12 @@ import { describe, expect, it } from "vitest";
 const ROOT = process.cwd();
 const FIXTURES = join(ROOT, "scripts/fixtures/browse-imports");
 const GUARD = join(ROOT, "scripts/check-browse-imports.sh");
+const RUN_DEADLINE = 60_000;
 
 type Run = { status: number | null; out: string };
 
 function guard(dir: string, cwd = ROOT): Run {
-  const result = spawnSync("bash", [GUARD, dir], { cwd, encoding: "utf8", timeout: 60_000 });
+  const result = spawnSync("bash", [GUARD, dir], { cwd, encoding: "utf8", timeout: RUN_DEADLINE });
   return { status: result.status, out: `${result.stdout}${result.stderr}` };
 }
 
@@ -61,15 +62,19 @@ describe("the browse-path guard admits the hook from admin folders (cursor bundl
     fails("admin-seam", "src/features/admin-screening/seam-import-example.ts.txt");
   });
 
-  it("BPG-4 the real source passes, and the fixtures as a whole still fail (CI's self-test)", () => {
-    const ci = guard("src");
-    expect(ci.out, "src from the root, as CI's step").toContain("Browse-path guard OK");
-    expect(ci.status, "src from the root, as CI's step").toBe(0);
-    expect(guard(join(ROOT, "src")).status).toBe(0);
-    const fixtures = guard(join(ROOT, "scripts/fixtures"));
-    expect(fixtures.status).toBe(1);
-    expect(fixtures.out).toContain("bad-permission-import-example.ts.txt");
-  }, 180_000);
+  it(
+    "BPG-4 the real source passes, and the fixtures as a whole still fail (CI's self-test)",
+    () => {
+      const ci = guard("src");
+      expect(ci.out, "src from the root, as CI's step").toContain("Browse-path guard OK");
+      expect(ci.status, "src from the root, as CI's step").toBe(0);
+      expect(guard(join(ROOT, "src")).status).toBe(0);
+      const fixtures = guard(join(ROOT, "scripts/fixtures"));
+      expect(fixtures.status).toBe(1);
+      expect(fixtures.out).toContain("bad-permission-import-example.ts.txt");
+    },
+    3 * RUN_DEADLINE,
+  );
 
   it("BPG-5 an admin route file importing the hook passes (cursor bundle 8a)", () => {
     passes("admin-route-hook");
