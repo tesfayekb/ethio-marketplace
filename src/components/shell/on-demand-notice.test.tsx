@@ -11,7 +11,7 @@ vi.mock("@/lib/on-demand-failure", async () => {
     await vi.importActual<typeof import("@/lib/on-demand-failure")>("@/lib/on-demand-failure");
   return { ...real, refreshPage: refreshed };
 });
-vi.mock("@/i18n", () => ({
+vi.mock("@/i18n/i18n-context", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 

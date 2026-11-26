@@ -1,7 +1,7 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
 import { useOfflinePaused } from "@/components/shell/use-offline-paused";
-import { useI18n } from "@/i18n";
+import { useI18n } from "@/i18n/i18n-context";
 import { cn } from "@/lib/utils";
 
 /**

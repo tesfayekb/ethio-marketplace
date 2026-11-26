@@ -6,7 +6,7 @@ import { CARD_SURFACE } from "@/components/layout/surface";
 import { NOTICE_DOCK, NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
 import { OfflineLine } from "@/components/shell/offline-line";
 import { Button } from "@/components/ui/button";
-import { useI18n } from "@/i18n";
+import { useI18n } from "@/i18n/i18n-context";
 import { refreshPage, useOnDemandFailures } from "@/lib/on-demand-failure";
 import { useTopNoticeOutlet } from "@/lib/notice-outlets";
 import { cn } from "@/lib/utils";

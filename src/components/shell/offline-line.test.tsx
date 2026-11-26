@@ -3,7 +3,7 @@ import { act, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/i18n", () => ({
+vi.mock("@/i18n/i18n-context", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 
