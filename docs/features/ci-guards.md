@@ -1654,3 +1654,7 @@ files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
 - **CF-REFUSAL-5** (scripts/conformance/refusal-readers.ts, CFRR-9 plants it): a reader that answers `if (error) throw error;` hands its caller the raw door error instead of `readFailed(error)`; the census lists every such line, the 80 standing ones sit in `refusal-readers-allowlist.txt` under INC-1256 (two under INC-1266).
 - **CF-NUM-1** (scripts/conformance/read-numbers.ts, CFN-2 plants it, no allowlist): a count, total or number read from a failed or missing answer is never replaced by `0` (`count ?? 0`, `|| 0`); a missing value is a typed absence.
 - `scripts/e2e-failure-report.ts` writes the gating failures first (EFR-6); `scripts/ci/install-browser-deps.sh` leaves a slow package mirror after a throughput probe and bounded apt timeouts (IBD-1).
+
+### Cursor bundle 7b: a deadline on every browser call (DEC-477, INC-1285)
+
+- **CF-DEADLINE-1…4** (scripts/conformance/call-deadline.test.ts; CF-DEADLINE-3 plants a bare `fetch(` and a bare `createClient(`; CF-DEADLINE-4 pins the classes): a `fetch(` or `createClient(` in browser `src/` code passes through `src/lib/call-deadline.ts` or has a live line in `call-deadline-allowlist.txt` (`key | reason | until`; stale and expired lines fail); the generated database client's `global.fetch` is `fetchWithDeadline(fetch, …)`. Named in wired.test.ts.

@@ -254,6 +254,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/route-client.test.ts"), "utf8")).toContain(
       "RCG-3",
     );
+    // call-deadline.test.ts CF-DEADLINE-1…4 (cursor bundle 7b, DEC-477) runs the deadline census over
+    // src/ against call-deadline-allowlist.txt; discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/call-deadline.test.ts"), "utf8")).toContain(
+      "CF-DEADLINE-4",
+    );
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );

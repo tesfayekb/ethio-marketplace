@@ -1,6 +1,7 @@
 import type { AuthChangeEvent, Session, SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { fetchWithDeadline } from "@/lib/call-deadline";
 import { reportEndedSignIn } from "@/lib/ended-sign-in";
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
@@ -297,7 +298,7 @@ async function anonymousRpc<T>(name: string, args: object): Promise<RpcAnswer<T>
     return { data: null, error: rpcError(null, "Missing Supabase environment variable(s)") };
   let response: Response;
   try {
-    response = await fetch(`${env.url}/rest/v1/rpc/${name}`, {
+    response = await fetchWithDeadline(fetch, `${env.url}/rest/v1/rpc/${name}`, {
       method: "POST",
       headers: anonymousHeaders(env.key),
       body: JSON.stringify(args),

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n";
+import { fetchWithDeadline } from "@/lib/call-deadline";
 import type { MessageKey } from "@/i18n";
 
 import {
@@ -126,7 +127,7 @@ export function PhotoEditor({
     setRefusal(null);
     void (async () => {
       try {
-        const response = await fetch(sourceUrl);
+        const response = await fetchWithDeadline(fetch, sourceUrl);
         if (!response.ok) throw new Error(`photo ${response.status}`);
         opened = await createImageBitmap(await response.blob());
         if (!alive) {

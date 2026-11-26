@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CALL_DEADLINES_MS, UPLOAD_STALL_MS } from "./call-deadline";
 import { onEndedSignIn } from "./ended-sign-in";
 import { callRoute, downloadRoute, uploadRoute } from "./route-client";
 
@@ -106,6 +107,46 @@ describe("browser route client", () => {
     caller.abort();
     expect(await aborted).toEqual({ kind: "unreachable", reason: "aborted" });
     expect(vi.getTimerCount()).toBe(0);
+  });
+  it("RCL-20 a route's deadline is its method's class: a read 15 s, a write 30 s", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockImplementation(
+      (_path, init) =>
+        new Promise((_resolve, reject) => {
+          init.signal.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          );
+        }),
+    );
+    const read = callRoute("/api/x", { auth: "none" });
+    const write = callRoute("/api/x", { auth: "none", json: {} });
+    let writeDone = false;
+    void write.then(() => (writeDone = true));
+    await vi.advanceTimersByTimeAsync(CALL_DEADLINES_MS.read);
+    expect(await read).toEqual({ kind: "unreachable", reason: "timeout" });
+    expect(writeDone).toBe(false);
+    await vi.advanceTimersByTimeAsync(CALL_DEADLINES_MS.write - CALL_DEADLINES_MS.read);
+    expect(await write).toEqual({ kind: "unreachable", reason: "timeout" });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it("RCL-21 a download's deadline is its own class", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockImplementation(
+      (_path, init) =>
+        new Promise((_resolve, reject) => {
+          init.signal.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          );
+        }),
+    );
+    const pending = downloadRoute("/api/x", "x.csv", { auth: "none" });
+    await vi.advanceTimersByTimeAsync(CALL_DEADLINES_MS.write + 1);
+    let done = false;
+    void pending.then(() => (done = true));
+    await Promise.resolve();
+    expect(done).toBe(false);
+    await vi.advanceTimersByTimeAsync(CALL_DEADLINES_MS.download);
+    expect(await pending).toEqual({ kind: "unreachable", reason: "timeout" });
   });
   it("RCL-10 download saves exact bytes and filename once; refusal saves nothing", async () => {
     const create = vi.fn().mockReturnValue("blob:test");
@@ -334,6 +375,24 @@ describe("uploadRoute — the XHR transport", () => {
     await vi.advanceTimersByTimeAsync(30);
     expect(await deadline).toEqual({ kind: "unreachable", reason: "timeout" });
     expect(last().aborted).toBe(true);
+  });
+  it("RCL-15f an upload that moves is not cut; one that stalls is, as a timeout", async () => {
+    vi.useFakeTimers();
+    const moving = uploadRoute("/api/upload/photo", new FormData(), { auth: "none" });
+    const request = last();
+    for (let step = 0; step < 4; step += 1) {
+      await vi.advanceTimersByTimeAsync(UPLOAD_STALL_MS - 1);
+      request.upload.onprogress?.({
+        lengthComputable: true,
+        loaded: step,
+        total: 9,
+      } as ProgressEvent);
+    }
+    expect(request.aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(UPLOAD_STALL_MS);
+    expect(await moving).toEqual({ kind: "unreachable", reason: "timeout" });
+    expect(request.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
   });
   it("RCL-15d the caller's abort is unreachable aborted", async () => {
     const caller = new AbortController();

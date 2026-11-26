@@ -1,4 +1,5 @@
 import { rpc } from "@/lib/supabase-door";
+import { fetchWithDeadline } from "@/lib/call-deadline";
 import { errorText } from "@/lib/error-text";
 
 import type { EntityBundleMap } from "./entity";
@@ -155,7 +156,7 @@ export function shapeBundle(data: unknown): BundleResult {
  */
 export async function fetchUiBundle(lang: string): Promise<BundleResult> {
   try {
-    const response = await fetch(bundleUrl(lang), {
+    const response = await fetchWithDeadline(fetch, bundleUrl(lang), {
       headers: { Accept: "application/json" },
     });
     if (response.ok) {

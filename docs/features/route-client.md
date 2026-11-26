@@ -63,8 +63,23 @@ proof; RCG-4 holds the undated allowances to the two named INCs. The caller is
 the unit runner, named in wired.test.ts.
 
 `scripts/conformance/route-client-allowlist.txt` has one live line per file,
-ten in all: the two AI clients (INC-861), Leaflet's outside tile-host probe
-(INC-875 — its route reads moved in turn 14), and seven non-route files
-(object URLs, static assets, the database REST read, session claim/handoff
-readers) expiring for review on 2027-04-24. Stale and dated-expired allowances
-fail.
+eight in all: Leaflet's outside tile-host probe (INC-875), the static asset
+read of the translations folder, and six non-route files (session claim/handoff
+readers, the client's door, the bearer read) expiring for review on
+2027-04-24. Stale and dated-expired allowances fail.
+
+**A deadline on every call (DEC-477, INC-1285).** `src/lib/call-deadline.ts` is
+the one place the values live: read 15 s, write 30 s, auth 20 s, download 60 s,
+model 60 s, and an upload's 30 s stall inside a 300 s cap (a slow phone that
+keeps moving is not cut). The route client arms the class of its method on every
+call (a caller's `timeoutMs` wins); the database client's `global.fetch`
+(`createSupabaseFetch`, `src/integrations/supabase/client.ts` — the one
+hand-edit of that generated file), the anonymous call, the verifier client, the
+two language-bundle reads and the photo editor's read go through
+`fetchWithDeadline` / `deadlineFetch`. A call past its deadline fails as the
+network kind (a `TypeError`); a caller's own abort stays an abort. CDL-1…6
+(`src/lib/call-deadline.test.ts`), RCL-20, 21 and 15f prove the classes and the
+stall; CF-DEADLINE-1…4 (`scripts/conformance/call-deadline.test.ts`) census every
+`fetch(` and `createClient(` in browser code against
+`call-deadline-allowlist.txt` (two live lines: Leaflet's outside host, INC-875,
+and the translations folder's static asset, INC-1304), with a planted bypass.

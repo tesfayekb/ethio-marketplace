@@ -1,3 +1,4 @@
+import { CALL_DEADLINES_MS, routeClassOf, watchUpload } from "@/lib/call-deadline";
 import { reportEndedSignIn, reportNoSession } from "@/lib/ended-sign-in";
 import { saveBlobAs } from "@/lib/save-file";
 import { currentSession } from "@/lib/supabase-door";
@@ -23,6 +24,7 @@ export type RouteInit = {
   /** Exclusive with `json`; the browser sets the multipart boundary itself. */
   form?: FormData;
   auth?: RouteAuth;
+  /** The call's own deadline; absent, the call's class gives it (DEC-477: src/lib/call-deadline.ts). */
   timeoutMs?: number;
   signal?: AbortSignal;
   cache?: RequestCache;
@@ -85,7 +87,6 @@ async function requestRoute(
 ): Promise<RouteAnswer> {
   const controller = new AbortController();
   let reason: "network" | "timeout" | "aborted" = "network";
-  let timer: ReturnType<typeof setTimeout> | undefined;
   const abort = () => {
     if (controller.signal.aborted) return;
     reason = "aborted";
@@ -93,13 +94,17 @@ async function requestRoute(
   };
   init.signal?.addEventListener("abort", abort, { once: true });
   if (init.signal?.aborted) abort();
-  if (init.timeoutMs !== undefined) {
-    timer = setTimeout(() => {
-      if (controller.signal.aborted) return;
-      reason = "timeout";
-      controller.abort();
-    }, init.timeoutMs);
-  }
+  // DEC-477 — every call ends within its class's deadline: a read or a write by its method, a download
+  // by its name; a caller's own `timeoutMs` still wins.
+  const method =
+    init.method ?? (init.json !== undefined || init.form !== undefined ? "POST" : "GET");
+  const timeoutMs =
+    init.timeoutMs ?? CALL_DEADLINES_MS[filename === undefined ? routeClassOf(method) : "download"];
+  const timer = setTimeout(() => {
+    if (controller.signal.aborted) return;
+    reason = "timeout";
+    controller.abort();
+  }, timeoutMs);
   try {
     const auth = init.auth ?? "required";
     const headers = new Headers({ Accept: "application/json" });
@@ -114,7 +119,7 @@ async function requestRoute(
     const hasForm = init.form !== undefined;
     if (hasJson) headers.set("Content-Type", "application/json");
     const response = await fetch(path, {
-      method: init.method ?? (hasJson || hasForm ? "POST" : "GET"),
+      method,
       headers,
       ...(hasJson ? { body: JSON.stringify(init.json) } : {}),
       ...(hasForm ? { body: init.form } : {}),
@@ -211,11 +216,17 @@ function sendUpload(
     const request = new XMLHttpRequest();
     let settled = false;
     let reason: "network" | "timeout" | "aborted" = "network";
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    // DEC-477 — an upload fails on a stall (no progress for UPLOAD_STALL_MS) inside a cap (the caller's
+    // `timeoutMs`, or the class's): a slow phone that keeps moving is not cut.
+    const watch = watchUpload(() => {
+      reason = "timeout";
+      request.abort();
+      settle({ kind: "unreachable", reason: "timeout" });
+    }, init.timeoutMs ?? CALL_DEADLINES_MS.upload);
     const settle = (answer: RouteAnswer) => {
       if (settled) return;
       settled = true;
-      if (timer !== undefined) clearTimeout(timer);
+      watch.stop();
       init.signal?.removeEventListener("abort", onCallerAbort);
       resolve(answer);
     };
@@ -238,6 +249,7 @@ function sendUpload(
       request.setRequestHeader("Accept", "application/json");
       if (token !== null) request.setRequestHeader("Authorization", `Bearer ${token}`);
       request.upload.onprogress = (event) => {
+        watch.touch();
         if (event.lengthComputable) init.onProgress?.(event.loaded, event.total);
       };
       request.onerror = () => settle({ kind: "unreachable", reason: "network" });
@@ -264,13 +276,6 @@ function sendUpload(
         });
       };
       init.signal?.addEventListener("abort", onCallerAbort, { once: true });
-      if (init.timeoutMs !== undefined) {
-        timer = setTimeout(() => {
-          reason = "timeout";
-          request.abort();
-          settle({ kind: "unreachable", reason: "timeout" });
-        }, init.timeoutMs);
-      }
       request.send(form);
     })();
   });

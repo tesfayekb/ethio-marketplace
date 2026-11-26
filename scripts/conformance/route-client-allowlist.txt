@@ -1,8 +1,5 @@
 src/features/posting/map/leaflet.ts | The tile-host probe fetches an outside host, not a route | INC-875
-src/features/posting/photo-editor.tsx | Fetch reads an object URL, not a route call | 2027-04-24
 src/features/admin/translations/use-translations.ts | Fetch reads a static asset, not a route call | 2027-04-24
-src/i18n/bundle.ts | Fetch reads a static language bundle, not a route call | 2027-04-24
-src/i18n/provider.tsx | Fetch reads the database REST API with a publishable key, not a route call | 2027-04-24
 src/features/auth/mfa/mfa-service.ts | Token reader inspects claims and sends no route call | 2027-04-24
 src/features/auth/auth-service.ts | Session handoff token reader, not a route call | 2027-04-24
 src/features/auth/email-verification.ts | The verification landing's session handoff token reader, moved verbatim out of auth-service.ts (INC-1153); not a route call | 2027-04-24
