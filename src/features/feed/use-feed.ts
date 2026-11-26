@@ -1,6 +1,6 @@
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure } from "@/lib/route-client";
 import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 
 import { seedLevelRows } from "@/features/levels/levels-store";
@@ -39,13 +39,7 @@ async function readPage(
   after: string | null,
 ): Promise<ReturnType<typeof parseFeedPage>> {
   const answer = await callRoute(feedPath(categoryId, placeId, after), { auth: "none" });
-  if (answer.kind === "unreachable") throw new TypeError("Failed to fetch");
-  if (answer.kind !== "answered") throw Object.assign(new Error("notSignedIn"), { status: 401 });
-  if (answer.status !== 200) {
-    const code =
-      answer.error !== null && /^[a-z][A-Za-z]*$/.test(answer.error) ? answer.error : "feedFailed";
-    throw Object.assign(new Error(code), { status: answer.status, code });
-  }
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   const page = parseFeedPage(answer.payload);
   if (page === null) throw new Error("malformed feed page");
   // P-2 (c) c2a — the browser's level rows come from the answer that arrived (DEC-351 §8).

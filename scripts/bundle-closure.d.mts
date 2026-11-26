@@ -50,3 +50,12 @@ export function entryAdminViolations(
   found: ReadonlyArray<{ module: string; chunk: string }>,
   allowed: { has: (module: string) => boolean },
 ): string[];
+export const MUST_STAY_LAZY_MODULES: string[];
+export function entryLazyModules(
+  record: Record<string, readonly string[]>,
+  closureNames: readonly string[],
+  lazy?: readonly string[],
+): Array<{ module: string; chunk: string }>;
+export function entryLazyViolations(
+  found: ReadonlyArray<{ module: string; chunk: string }>,
+): string[];

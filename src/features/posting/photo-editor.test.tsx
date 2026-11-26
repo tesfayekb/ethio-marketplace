@@ -82,7 +82,10 @@ async function open(onSave = vi.fn(async () => null as MessageKey | null)) {
 describe("PhotoEditor (D154 B2)", () => {
   it("PED-6 opens on the stored cover; Save waits for a change; a turn to the right saves the picture turned", async () => {
     const { onSave } = await open();
-    expect(fetch).toHaveBeenCalledWith("https://x.example/p1-cover.webp");
+    // DEC-477 — the read carries its deadline signal.
+    expect(fetch).toHaveBeenCalledWith("https://x.example/p1-cover.webp", {
+      signal: expect.anything(),
+    });
     const save = screen.getByTestId("post-photo-editor-save");
     expect(save).toBeDisabled();
     fireEvent.click(screen.getByTestId("post-photo-editor-right"));
@@ -131,5 +134,28 @@ describe("PhotoEditor (D154 B2)", () => {
     );
     expect(screen.queryByTestId("post-photo-editor-preview")).toBeNull();
     expect(screen.getByTestId("post-photo-editor-save")).toBeDisabled();
+  });
+
+  it("PED-10 a photo whose read failed on the server draws the failure notice; its Retry opens the photo", async () => {
+    // INC-1302 — the failure notice, not a line of the editor's own.
+    const open_ = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      blob: async () => new Blob([new Uint8Array([1])], { type: "image/webp" }),
+    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("", { status: 503 })),
+    );
+    render(
+      <PhotoEditor sourceUrl="https://x.example/p2.webp" onCancel={vi.fn()} onSave={vi.fn()} />,
+    );
+    const notice = await screen.findByTestId("post-photo-editor-failed");
+    expect(notice).toHaveAttribute("data-failure-reason", "server");
+    expect(notice).toHaveTextContent("post.photos.editor.failed");
+    vi.stubGlobal("fetch", open_);
+    fireEvent.click(await screen.findByTestId("post-photo-editor-failed-retry"));
+    expect(await screen.findByTestId("post-photo-editor-preview")).toBeInTheDocument();
+    expect(screen.queryByTestId("post-photo-editor-failed")).toBeNull();
   });
 });

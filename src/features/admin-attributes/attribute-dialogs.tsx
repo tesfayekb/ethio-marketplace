@@ -17,6 +17,7 @@ import type { CategoryNode } from "@/features/admin-categories/categories-servic
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { useI18n, type MessageKey } from "@/i18n";
 import { readRefusal } from "@/lib/refusal";
 
@@ -604,7 +605,13 @@ export function AttributeEditorDialog({
         </p>
       ) : null}
       {removedValues.length > 0 && removedHolders.failed ? (
-        <AttributeDialogAlert message={t("admin.attributes.links.error")} />
+        <FailureNotice
+          error={removedHolders.error}
+          testid="attribute-dialog-error"
+          size="line"
+          subject={t("admin.attributes.links.error")}
+          onRetry={removedHolders.refetchFailed}
+        />
       ) : null}
       <AttributeDialogAlert message={message} />
     </CategoryModal>
@@ -1147,8 +1154,14 @@ export function RemoveAttributeCategoryDialog({
               {t("admin.attributes.remove.holders").replace("{count}", String(holders.data))}
             </p>
           ) : null}
-          {chosen !== null && holders.error ? (
-            <AttributeDialogAlert message={t("admin.attributes.links.error")} />
+          {chosen !== null && holders.isError ? (
+            <FailureNotice
+              error={holders.error}
+              testid="attribute-dialog-error"
+              size="line"
+              subject={t("admin.attributes.links.error")}
+              onRetry={() => void holders.refetch()}
+            />
           ) : null}
         </>
       )}

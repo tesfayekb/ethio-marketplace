@@ -1,4 +1,4 @@
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { renderToString } from "react-dom/server";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -16,7 +16,8 @@ const state = vi.hoisted(() => ({
   glyphs: { settled: false, failed: false },
 }));
 
-vi.mock("@/lib/route-client", () => ({
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
   callRoute: () =>
     state.read === "pending"
       ? new Promise(() => undefined)
@@ -160,10 +161,7 @@ describe("the rail's first paint (INC-974)", () => {
     expect(renderToString(<Rail seed={null} variant="rail" />)).toContain("rail-category-skeleton");
     state.read = "fail";
     render(<Rail seed={null} variant="rail" />);
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    expect(screen.getByRole("alert").getAttribute("data-failure-reason")).not.toBeNull();
+    expect((await screen.findByRole("alert")).getAttribute("data-failure-reason")).not.toBeNull();
     expect(screen.queryByText("Name vehicles")).toBeNull();
   });
 

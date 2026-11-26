@@ -1293,7 +1293,7 @@ test.describe("POSTING ROUTES", () => {
     try {
       const first = await page.request.delete(target, { headers });
       const firstBody = (await first.json().catch(() => ({}))) as Record<string, unknown>;
-      expect(first.status(), JSON.stringify(firstBody)).toBe(403);
+      expect(first.status(), JSON.stringify(firstBody)).toBe(404);
       expect(reasonsOf(firstBody).map((entry) => entry.reason)).toContain("notYourListing");
 
       let remaining = -1;

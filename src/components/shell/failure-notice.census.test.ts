@@ -34,7 +34,8 @@ export const RAW = [
   /(?<![=$])\{[^{}\n]*\b\w*[Ff]ailure\w*\s*\.\s*(?:class|status)\b[^{}\n]*\}/,
   /\{\s*(?:\w+\.)?error\s*\.\s*message\s*\}/,
   /\{\s*String\(\s*\w*[eE]rr\w*\s*\)\s*\}/,
-  /\{\s*errorText\(/,
+  // Q11 (cursor bundle 7b) — `${errorText(…)}` inside a template string is a log line, not words.
+  /(?<!\$)\{\s*errorText\(/,
   // INC-1280 — a refusal code with no words, drawn as `code — detail`.
   /\?\s*code\s*:\s*`\$\{code\} — /,
 ];
@@ -94,15 +95,8 @@ export function trips(text: string): string[] {
 const UNTIL_10B = "INC-1279 until bundle 10b";
 const ALLOW: ReadonlyArray<string> = [
   // EXCLUDED (Cursor bundle 6's folders)
-  `src/features/admin-attributes/attribute-dialogs.tsx | excluded | ${UNTIL_10B}`,
-  `src/features/auth/mfa/staff-factor-gate.tsx | excluded | ${UNTIL_10B}`,
-  `src/routes/settings.tsx | excluded | ${UNTIL_10B}`,
-  `src/components/app-shell.tsx | excluded | ${UNTIL_10B}`,
   // LEFT (ruling 1 decision 9 / not a reader)
-  `src/routes/auth.tsx | excluded (auth) | ${UNTIL_10B}`,
-  `src/features/admin/import-dialog.tsx | a code with no words drawn as data (INC-1280) | INC-1280 until bundle 7`,
-  `src/features/posting/step-photos.tsx | a photo's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
-  `src/features/posting/photo-editor.tsx | the editor's action refusal (ruling 1 decision 9) | ${UNTIL_10B}`,
+  `src/features/admin/import-dialog.tsx | a code with no words drawn as data (INC-1280) | INC-1280 until bundle 7c`,
   `src/components/ui/picture.tsx | an image's fallback, not a read | INC-1279 permanent`,
   `src/routes/dev.primitives.tsx | the board's demonstration states | INC-1279 permanent`,
 ];
@@ -132,6 +126,8 @@ describe("failure notice census (DEC-464)", () => {
     expect(trips("<StatCard failed={q.isError} error={q.error} onRetry={r} />")).toEqual([]);
     expect(trips('return detail === "" ? code : `${code} — ${detail}`;')[0]).toMatch(/^raw/);
     expect(trips("<p data-failure={failure.class}>x</p>")).toEqual([]);
+    expect(trips("<p>{errorText(e)}</p>")[0]).toMatch(/^raw/);
+    expect(trips("console.warn(`[shell] failed: ${errorText(e)}`);")).toEqual([]);
     expect(trips("const x = q.isError;\n<FieldSelect read={r} />")).toEqual([]);
     expect(trips('q.isError ? <p>{t("a")}</p> : null\n<FieldSelect id="x" />')).toContain(
       "branch-without-notice",

@@ -5,3 +5,4 @@ src/features/auth/auth-service.ts | its actions answer a failed client download 
 src/routes/auth.tsx | a head start on the client once the screen paints; each submit asks again through auth-service and says so in place (INC-915) | 2027-04-26
 src/routes/legal.publishing.tsx | a route loader's door: a failed download is the route's own error screen | 2027-04-26
 src/features/auth/account-status.ts | the status read's failed client download is returned with the error as it arrived (INC-1266: no reader-failure.ts on the first download); its one caller, use-auth.ts, reports it through reportOnDemandFailure (INC-1264) | INC-1264
+src/features/auth/mfa/session-level.ts | the typed failure's own failed download is returned with the error as it arrived (it still reads by its status and class); its callers draw it where they are: the staff gate in place (admin-factor-read-failed), the menu's alert read as a failed query (INC-1291) | INC-1291

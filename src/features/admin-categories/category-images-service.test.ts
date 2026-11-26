@@ -4,7 +4,10 @@ const door = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: door.rpc }));
 
 const route = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => ({ callRoute: route.callRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute: route.callRoute,
+}));
 
 const client = vi.hoisted(() => ({ rpc: vi.fn(), list: vi.fn(), remove: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({

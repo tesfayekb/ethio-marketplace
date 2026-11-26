@@ -2,6 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
+import { fetchWithDeadline } from "../../lib/call-deadline";
 
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
@@ -26,7 +27,8 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
     }
 
     headers.set("apikey", supabaseKey);
-    return fetch(input, { ...init, headers });
+    // DEC-477 — the one deadline of every database call: CF-DEADLINE-1 fails if a regeneration drops this.
+    return fetchWithDeadline(fetch, input, { ...init, headers });
   };
 }
 

@@ -328,3 +328,46 @@ export function entryAdminViolations(found, allowed) {
         `${module}: in ${chunk}, in the entry's closure — the public first download carries no admin code (BC-16, INC-1042)`,
     );
 }
+
+/**
+ * BC-17 (cursor bundle 7b, INC-1289) — THE MUST-STAY-LAZY CHECK BY MODULE. MUST_STAY_LAZY
+ * judges a chunk's file name, and the bundler names a chunk after the module it began with:
+ * a must-stay-lazy module folded into the entry chunk (index-*.js) passed unseen. These are
+ * the module keys of the same concern (a trailing "/" names a folder of a dependency),
+ * judged against the build's chunk → module record. The name rule stays beside it.
+ */
+export const MUST_STAY_LAZY_MODULES = [
+  "src/lib/reader-failure.ts",
+  "src/features/legal/legal-page-data.ts",
+  "src/features/posting/posting-service.ts",
+  "src/components/ui/overlays-impl.ts",
+  "src/components/ui/alert-dialog-impl.ts",
+  "src/components/ui/dialog-impl.ts",
+  "src/components/ui/dropdown-menu-impl.tsx",
+  "src/components/ui/tooltip-impl.tsx",
+  "node_modules/zod/",
+];
+
+/**
+ * Every must-stay-lazy module a chunk of the entry's closure holds, with its chunk, sorted
+ * by module. `record` is the build's chunk → module keys, `closureNames` the closure's file names.
+ */
+export function entryLazyModules(record, closureNames, lazy = MUST_STAY_LAZY_MODULES) {
+  const closure = new Set(closureNames);
+  const found = [];
+  for (const [chunk, modules] of Object.entries(record)) {
+    if (!closure.has(chunk)) continue;
+    for (const module of modules)
+      if (lazy.some((key) => (key.endsWith("/") ? module.startsWith(key) : module === key)))
+        found.push({ module, chunk });
+  }
+  return found.sort((a, b) => a.module.localeCompare(b.module));
+}
+
+/** BC-17 — each such module fails by its path and the chunk that carries it. */
+export function entryLazyViolations(found) {
+  return found.map(
+    ({ module, chunk }) =>
+      `${module}: in ${chunk}, in the entry's closure — a must-stay-lazy module folded into the first download, whatever its chunk is named (BC-17, INC-1289)`,
+  );
+}

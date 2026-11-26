@@ -184,11 +184,11 @@ describe("POST /api/listings/background (D155b / D159)", () => {
     });
     state.listing = { id: LISTING, status: "draft", seller_id: "someone-else" };
     expect(await refusalOf(await post({ listingId: LISTING, photoId: COVER }))).toEqual({
-      status: 403,
+      status: 404,
       refusal: { field: "listingId", reason: "notYourListing" },
     });
     state.listing = null;
-    expect((await refusalOf(await post({ listingId: LISTING, photoId: COVER }))).status).toBe(403);
+    expect((await refusalOf(await post({ listingId: LISTING, photoId: COVER }))).status).toBe(404);
     state.listing = { id: LISTING, status: "sold", seller_id: "seller-1" };
     expect(await refusalOf(await post({ listingId: LISTING, photoId: COVER }))).toEqual({
       status: 409,
@@ -207,7 +207,7 @@ describe("POST /api/listings/background (D155b / D159)", () => {
 
   it("BGR-7 the cover only: a photo not on the ad is photoGone, any other photo is notCover, and neither spends a try", async () => {
     expect(await refusalOf(await post({ listingId: LISTING, photoId: OTHER }))).toEqual({
-      status: 409,
+      status: 404,
       refusal: { field: "photoId", reason: "photoGone" },
     });
     expect(await refusalOf(await post({ listingId: LISTING, photoId: SECOND }))).toEqual({

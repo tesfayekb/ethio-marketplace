@@ -346,6 +346,7 @@ export const enBase = {
   "nav.organisation": "Organisation",
   "nav.systemSettings": "System settings",
   "shell.skipToContent": "Skip to content",
+  "shell.offline": "You're offline. What you open will load when you're back online.",
   "shell.openMenu": "Open menu",
   "shell.closeMenu": "Close menu",
   "shell.mainMenu": "Main Menu",
@@ -572,7 +573,7 @@ export const enBase = {
     "You have sent many photos in a short time. Please wait a little.",
   "post.photo.refusal.rateLimitedWhen":
     "You have sent many photos in a short time. Try again {when}.",
-  "post.photo.refusal.notYourListing": "This listing belongs to another account.",
+  "post.photo.refusal.notYourListing": "This listing could not be found.",
   "post.photo.refusal.listingNotOpenForPhotos": "This listing can no longer take photos.",
   "post.photo.refusal.unknown": "This photo was not accepted.",
   "post.refusal.required": "This is needed.",
@@ -598,7 +599,7 @@ export const enBase = {
   "post.refusal.rateLimited": "You have saved many times in a short while. Please wait a little.",
   "post.refusal.rateLimitedWhen": "You have saved many times in a short while. Try again {when}.",
   "post.refusal.messagesRequired": "Buyers must be able to message you.",
-  "post.refusal.notYourListing": "This listing belongs to another account.",
+  "post.refusal.notYourListing": "This listing could not be found.",
   "post.refusal.unknown": "That could not be saved.",
   "post.refusal.doorError":
     "We couldn't save this step. Please try again; if it keeps happening, tell us.",

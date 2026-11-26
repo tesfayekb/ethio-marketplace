@@ -203,8 +203,8 @@ it("SDR-8 bulk stops at the refusal, keeping only the undecided suffix; retry do
   open(["first", "refused", "last"]);
   await screen.findByTestId("admin-screening-confirm-problem");
   expect(seams.decide.mock.calls).toEqual([
-    ["first", "active"],
-    ["refused", "active"],
+    ["first", "active", null],
+    ["refused", "active", null],
   ]);
   expect(screen.getByRole("checkbox", { name: "first", hidden: true })).not.toBeChecked();
   expect(screen.getByRole("checkbox", { name: "refused", hidden: true })).toBeChecked();
@@ -217,10 +217,37 @@ it("SDR-8 bulk stops at the refusal, keeping only the undecided suffix; retry do
     ),
   );
   expect(seams.decide.mock.calls.slice(2)).toEqual([
-    ["refused", "active"],
-    ["last", "active"],
+    ["refused", "active", null],
+    ["last", "active", null],
   ]);
   expect(screen.queryByTestId("admin-screening-confirm")).toBeNull();
+});
+
+it("SDR-11 a bulk Reject asks once, then sends the one reason and note with every ad's own call", async () => {
+  seams.decide.mockResolvedValue(undefined);
+  render(<AdminScreeningPage />);
+  for (const id of ["first", "refused"])
+    fireEvent.click(screen.getByRole("checkbox", { name: id }));
+  fireEvent.click(screen.getByTestId("admin-screening-bulk-reject"));
+  fireEvent.click(screen.getByTestId("admin-screening-confirm-go"));
+  expect(seams.decide).not.toHaveBeenCalled();
+  expect(screen.getByTestId("admin-screening-confirm-problem")).toHaveTextContent(
+    "admin.listings.move.pickReason",
+  );
+  fireEvent.click(screen.getByTestId("admin-screening-confirm-reason-other"));
+  fireEvent.change(screen.getByTestId("admin-screening-confirm-note"), {
+    target: { value: "Not an ad." },
+  });
+  fireEvent.click(screen.getByTestId("admin-screening-confirm-go"));
+  await waitFor(() =>
+    expect(screen.getByTestId("admin-screening-notice")).toHaveTextContent(
+      "admin.screening.rejected",
+    ),
+  );
+  expect(seams.decide.mock.calls).toEqual([
+    ["first", "rejected", { reason: "other", note: "Not an ad." }],
+    ["refused", "rejected", { reason: "other", note: "Not an ad." }],
+  ]);
 });
 
 it("SDR-9 no second factor is said in the dialog without calling the door", async () => {

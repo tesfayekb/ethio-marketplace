@@ -1,11 +1,10 @@
 src/features/posting/map/leaflet.ts | The tile-host probe fetches an outside host, not a route | INC-875
-src/features/posting/photo-editor.tsx | Fetch reads an object URL, not a route call | 2027-04-24
 src/features/admin/translations/use-translations.ts | Fetch reads a static asset, not a route call | 2027-04-24
-src/i18n/bundle.ts | Fetch reads a static language bundle, not a route call | 2027-04-24
-src/i18n/provider.tsx | Fetch reads the database REST API with a publishable key, not a route call | 2027-04-24
 src/features/auth/mfa/mfa-service.ts | Token reader inspects claims and sends no route call | 2027-04-24
+src/features/auth/mfa/session-level.ts | The light read of the session's level (the token's claim) and one GET of the auth server's user record, not a route call (INC-1291) | 2027-04-24
 src/features/auth/auth-service.ts | Session handoff token reader, not a route call | 2027-04-24
 src/features/auth/email-verification.ts | The verification landing's session handoff token reader, moved verbatim out of auth-service.ts (INC-1153); not a route call | 2027-04-24
 src/features/session/session-policy.ts | Token reader inspects the session id and sends no route call | 2027-04-24
 src/lib/supabase-door.ts | The client's door: the anonymous PostgREST call and the publishable key's bearer rule, not a route call (DEC-261) | 2027-04-24
 src/lib/session-bearer.ts | The server-function bearer read through the client's door, not a route call (DEC-261) | 2027-04-24
+src/features/admin/translations/translations-service.ts | Builds its own failures from an answer's status in Lovable's translations folder; they move onto routeFailure with that folder's lane | INC-1304

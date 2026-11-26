@@ -77,7 +77,7 @@ describe("INC-847 reader failure classes", () => {
     ).toBe("refused");
     expect(readerFailure({ status: 503, message: "Unavailable" }).class).toBe("server");
   });
-  it("RF-4 a refusal that arrives at 500, or at a status its code does not carry, is not the database's answer: server for 500", () => {
+  it("RF-4 a refusal that arrives at 500 is not the database's answer (server); below 500 it is a refusal at the status it came with (INC-1296)", () => {
     for (const message of [
       "notSignedIn",
       "accountDeactivated",
@@ -92,13 +92,14 @@ describe("INC-847 reader failure classes", () => {
     ]) {
       expect(readerFailure({ status: 500, code: "P0D01", message }).class, message).toBe("server");
     }
-    // A status the code does not carry (and not a server one) falls to the status's own reading.
+    // A status below 500 is trusted whatever the client's table holds for the code (INC-1296).
     expect(readerFailure({ status: 400, code: "P0D01", message: "notSignedIn" }).class).toBe(
-      "malformed",
-    );
-    expect(readerFailure({ status: 403, code: "P0D01", message: "rateLimited" }).class).toBe(
       "auth",
     );
+    expect(readerFailure({ status: 403, code: "P0D01", message: "rateLimited" })).toMatchObject({
+      class: "refused",
+      status: 403,
+    });
   });
   it("RF-5 refusalStatus answers a code's own row, and 400 for any other code (CF-REFUSAL-2 holds the rows to door_refusal_status)", () => {
     expect(refusalStatus("notSignedIn")).toBe(401);
@@ -126,9 +127,14 @@ describe("INC-847 reader failure classes", () => {
       code: "badValue",
       status: 400,
     });
-    // A status that disagrees, a code that is not the gate's, a sentence: not a refusal.
+    // A status outside 400–499, a code that is not the gate's, a sentence: not a refusal. A status
+    // inside the class is the refusal's own, whatever the table holds for the code (INC-1296).
     expect(gateRefusal(readFailed({ message: "rateLimited" }, 500))).toBeNull();
-    expect(gateRefusal({ message: "permissionDenied", status: 401 })).toBeNull();
+    expect(gateRefusal({ message: "permissionDenied", status: 200 })).toBeNull();
+    expect(gateRefusal({ message: "permissionDenied", status: 401 })).toEqual({
+      code: "permissionDenied",
+      status: 401,
+    });
     expect(gateRefusal({ message: "unknownCategory" })).toBeNull();
     expect(gateRefusal({ message: "JWT expired", status: 401 })).toBeNull();
     expect(gateRefusal(new Error("the reader said notSignedIn"))).toBeNull();
@@ -173,13 +179,17 @@ describe("INC-847 reader failure classes", () => {
       code: "accountDeactivated",
       status: 403,
     });
-    // A status its code does not carry, or no mark, or a head that is no code: not a refusal.
+    // A status outside 400–499, or no mark, or a head that is no code: not a refusal. A status inside
+    // the class is the refusal's own (INC-1296).
     expect(gateRefusal({ code: "P0D01", status: 500, message: "listingNotFound" })).toBeNull();
-    expect(gateRefusal({ code: "P0D01", status: 401, message: "listingNotFound" })).toBeNull();
+    expect(gateRefusal({ code: "P0D01", status: 401, message: "listingNotFound" })).toEqual({
+      code: "listingNotFound",
+      status: 401,
+    });
     expect(gateRefusal({ message: "listingNotFound" })).toBeNull();
     expect(gateRefusal({ code: "P0D01", message: "a sentence here" })).toBeNull();
   });
-  it("RF-14 INC-1287 — a GONE code is read as refused only at 404 and a CHANGED code only at 409: at the old 400 neither is a refusal the database answered", () => {
+  it("RF-14 INC-1296 — a code whose status moves on the server reads right before and after the Publish: a refusal at the status that arrived, the table's row only where no status came", () => {
     expect(refusalStatus("listingNotFound")).toBe(404);
     expect(refusalStatus("listingChanged")).toBe(409);
     expect(refusalStatus("badValue")).toBe(400);
@@ -190,18 +200,31 @@ describe("INC-847 reader failure classes", () => {
     expect(readerFailure({ status: 409, code: "P0D01", message: "listingChanged" }).class).toBe(
       "refused",
     );
-    expect(readerFailure({ status: 400, code: "P0D01", message: "listingNotFound" }).class).toBe(
-      "malformed",
+    // Before the Publish the database may still answer these at the old 400; the client trusts it.
+    expect(readerFailure({ status: 400, code: "P0D01", message: "listingNotFound" })).toMatchObject(
+      {
+        class: "refused",
+        status: 400,
+      },
     );
-    expect(readerFailure({ status: 404, code: "P0D01", message: "listingChanged" }).class).toBe(
-      "malformed",
+    expect(readerFailure({ status: 404, code: "P0D01", message: "listingChanged" })).toMatchObject({
+      class: "refused",
+      status: 404,
+    });
+    // A failure at 500 or above is never a refusal; a status outside 400–499 carries none.
+    expect(readerFailure({ status: 500, code: "P0D01", message: "listingNotFound" }).class).toBe(
+      "server",
     );
     expect(gateRefusal({ code: "P0D01", status: 409, message: "listingChanged:why" })).toEqual({
       code: "listingChanged",
       status: 409,
       detail: "why",
     });
-    expect(gateRefusal({ code: "P0D01", status: 400, message: "listingChanged" })).toBeNull();
+    expect(gateRefusal({ code: "P0D01", status: 400, message: "listingChanged" })).toEqual({
+      code: "listingChanged",
+      status: 400,
+    });
+    expect(gateRefusal({ code: "P0D01", status: 500, message: "listingChanged" })).toBeNull();
   });
   it("RF-9 DEC-429 — the named sets serve an answer with no code; acceptancePending and legalAcceptancePending are no names", () => {
     expect(readerFailure({ message: "rateLimited" }).class).toBe("refused");

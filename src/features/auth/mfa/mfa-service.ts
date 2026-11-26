@@ -6,6 +6,10 @@ import { readRefusal, type Refusal, type RefusalFamily } from "@/lib/refusal";
 import { currentSession } from "@/lib/supabase-door";
 
 import { reportUnauthorised, sessionGone } from "../session-end";
+import { MFA_REFUSALS } from "./mfa-refusals";
+import { decodeJwt, lastTotpVerificationAt } from "./session-level";
+
+export { MFA_REFUSALS };
 
 /**
  * U1f-4 (INC-081) — A BEARER CLAIM IS NOT A STEP-UP.
@@ -29,36 +33,6 @@ export const STEP_UP_WINDOW_MS = 10 * 60 * 1000;
  * (migration 20260817100845_… : `auth.mfa_amr_claims` … `updated_at > now() -
  * interval '10 minutes'`). The window constant above mirrors that interval.
  */
-type JwtClaims = {
-  aal?: string;
-  amr?: Array<{ method?: string; timestamp?: number }>;
-};
-
-function decodeJwt(token: string): JwtClaims | null {
-  const payload = token.split(".")[1];
-  if (!payload) return null;
-  try {
-    const normalised = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const json =
-      typeof atob === "function"
-        ? atob(normalised.padEnd(Math.ceil(normalised.length / 4) * 4, "="))
-        : Buffer.from(normalised, "base64").toString("utf8");
-    return JSON.parse(json) as JwtClaims;
-  } catch {
-    return null;
-  }
-}
-
-/** The most recent totp verification recorded on this session, in ms, or null. */
-function lastTotpVerificationAt(claims: JwtClaims): number | null {
-  const stamps = (claims.amr ?? [])
-    .filter((entry) => entry?.method === "totp")
-    .map((entry) => Number(entry?.timestamp))
-    .filter((value) => Number.isFinite(value));
-  if (stamps.length === 0) return null;
-  return Math.max(...stamps) * 1000;
-}
-
 /**
  * DEV/E2E only: a shorter window so expiry is testable without waiting.
  * INC-621 — gated on `isE2E` (DEC-018) like every other window instrument, so
@@ -112,34 +86,6 @@ export type AalRead = ({ ok: true } & AalState) | MfaFailure;
 
 /** The field every two-factor refusal belongs to: the six-digit code. */
 const CODE_FIELD = "code";
-
-/**
- * DEC-339 wave 2 (INC-1147 class 1) — THE TWO-FACTOR PROVIDER'S WORDS, read by the one reader
- * (src/lib/refusal.ts): each refusal the callees of `mfa.enroll`, `mfa.challenge`, `mfa.verify`
- * and `mfa.unenroll` answer by its own `code` reads words of its own, and a code this table does
- * not name reads the generic line — never the words test the old mapper made on the message.
- * `invalidCode` and `noFactor` are this service's own reasons (a provider that worded a refusal
- * with no code; no factor to verify). The one sentence is the old words test, kept for the
- * providers that still answer a message only.
- */
-export const MFA_REFUSALS: RefusalFamily = {
-  words: {
-    mfa_verification_failed: "mfa.errorInvalidCode",
-    mfa_challenge_expired: "mfa.errorInvalidCode",
-    invalidCode: "mfa.errorInvalidCode",
-    noFactor: "mfa.errorNoFactor",
-    over_request_rate_limit: "auth.errorRateLimited",
-    mfa_factor_name_conflict: "mfa.errorSetupPending",
-    too_many_enrolled_mfa_factors: "mfa.errorFactorExists",
-    mfa_verified_factor_exists: "mfa.errorFactorExists",
-    mfa_totp_enroll_not_enabled: "mfa.errorMethodOff",
-    mfa_totp_verify_not_enabled: "mfa.errorMethodOff",
-    // Cursor bundle 4 (INC-1147, class 2): the clear of an unfinished setup that did not go through.
-    clearFailed: "mfa.errorClearFailed",
-  },
-  sentences: [[/invalid|expired|code/i, "mfa.errorInvalidCode"]],
-  generic: "mfa.errorGeneric",
-};
 
 /**
  * The words of the code a setup's own confirmation reads (cursor bundle 4, INC-1147 class 2): a newer

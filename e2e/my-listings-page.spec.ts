@@ -265,8 +265,8 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     expect(rowOf(closed, s.E)["expiresAt"]).not.toBeNull();
 
     const attention = await groupOf(s.a, "attention");
-    expect(rowOf(attention, s.M)["removedReason"]).toBe("photo");
-    expect(rowOf(attention, s.J)["removedReason"]).toBeNull();
+    expect(rowOf(attention, s.M)["staffReason"]).toBe("photo");
+    expect(rowOf(attention, s.J)["staffReason"]).toBeNull();
 
     const review = await groupOf(s.a, "review");
     expect([...ids(review)].sort()).toEqual([s.S, s.H].sort());

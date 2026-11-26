@@ -63,8 +63,61 @@ proof; RCG-4 holds the undated allowances to the two named INCs. The caller is
 the unit runner, named in wired.test.ts.
 
 `scripts/conformance/route-client-allowlist.txt` has one live line per file,
-ten in all: the two AI clients (INC-861), Leaflet's outside tile-host probe
-(INC-875 — its route reads moved in turn 14), and seven non-route files
-(object URLs, static assets, the database REST read, session claim/handoff
-readers) expiring for review on 2027-04-24. Stale and dated-expired allowances
-fail.
+ten in all: Leaflet's outside tile-host probe (INC-875), the translations
+folder's static asset read, its service's hand-built failures (INC-1304), and seven
+non-route files (session claim/handoff readers, the client's door, the bearer
+read) expiring for review on 2027-04-24. Stale and dated-expired allowances fail.
+
+**A deadline on every call (DEC-477, INC-1285).** `src/lib/call-deadline.ts` is
+the one place the values live: read 15 s, write 30 s, auth 20 s, download 60 s,
+model 60 s, and an upload's 30 s stall inside a 300 s cap (a slow phone that
+keeps moving is not cut). The route client arms the class of its method on every
+call (a caller's `timeoutMs` wins); the database client's `global.fetch`
+(`createSupabaseFetch`, `src/integrations/supabase/client.ts` — the one
+hand-edit of that generated file), the anonymous call, the verifier client, the
+two language-bundle reads and the photo editor's read go through
+`fetchWithDeadline` / `deadlineFetch`. A call past its deadline fails as the
+network kind (a `TypeError`); a caller's own abort stays an abort. CDL-1…6
+(`src/lib/call-deadline.test.ts`), RCL-20, 21 and 15f prove the classes and the
+stall; CF-DEADLINE-1…4 (`scripts/conformance/call-deadline.test.ts`) census every
+`fetch(` and `createClient(` in browser code against
+`call-deadline-allowlist.txt` (two live lines: Leaflet's outside host, INC-875,
+and the translations folder's static asset, INC-1304), with a planted bypass.
+
+**A retry only when it can succeed (INC-1288).** The query client
+(`src/features/auth/session-query-client.ts`) retries a failed read only when
+the failure notice's own reading (`failureKind`, `isRetryable`) calls it a
+network or server failure; a refusal is asked once, whatever a query's `retry`
+says, and a query's count still bounds the retries. Until the reader of door
+codes has arrived the failure is read by what it carries (a status, a
+`TypeError`), and the first retry decision starts the reader's download.
+`useRetryFailed` (the notice's Retry for a screen behind several reads) follows
+the same rule and adds a rate refusal whose named time has passed. SQC-1…4
+(`session-query-client.test.ts`) and RRF-1…2 (`use-retry-failed.test.tsx`) prove
+both; CF-RETRY-1…3 (`scripts/conformance/query-retry.test.ts`) fail a query
+option `retry` set to a function or `true`, and a second `new QueryClient(`.
+
+**Offline, said once (INC-1286).** A read paused for the network (TanStack's
+`networkMode`, resumed by the browser's `online` event, no polling) is said by
+the shell once: while the device is offline and a read waits,
+`OfflineLine` (`src/components/shell/offline-line.tsx`, `shell.offline`) draws
+one line in the notice dock above the download notice (`useOfflinePaused`
+follows `onlineManager` and the query cache). A screen that draws a failure
+while offline draws the network words: `failureKind` reads the unreadable
+(`server`) kind as `network` offline; a refusal stays a refusal. FR-U15,
+OFL-1…2 and the browser case OFF-1 (`e2e/offline.spec.ts`, joined to the shell
+area of `scripts/e2e-select.ts`) prove it.
+
+**One typed failure from a route (INC-1296).** `routeFailure(answer)`
+(`src/lib/route-client.ts`) turns an answer that is not a success into the
+failure the reader types (`readFailed`): an unreachable call is the network
+kind, a signed-out call is 401, an answer is its code at its status, a code-less
+answer is read by its status, and a refusal's detail rides after its code only
+when it is a short code. The reader (`src/lib/reader-failure.ts`) arrives on
+demand, so it stays off the first download; a download that fails is reported to
+the shell's one notice and reads as network. The location reads, the category
+tree, the card and photo links, the catalog finder, the feed and the category
+picture step use it. RCL-22…24 prove it; RCG-5 and RCG-6
+(`scripts/conformance/route-client.test.ts`) fail an `Error` built by hand from
+an answer's status in a file that reads routes (the translations service is the
+one allowance, INC-1304); RCG-6 plants one.

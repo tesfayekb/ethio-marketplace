@@ -902,6 +902,30 @@ jobs:
           echo "TEST_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
           echo "JOB_SECONDS=$(( $(date +%s) - PROOF_BEGIN ))" >> "$GITHUB_ENV"
           exit "$result"
+      # INC-1303 (cursor bundle 7b, ruling 1 decision 15, ruling 2 decision 3) — every lane's auth server log (the failures
+      # pass on Playwright's retry, so the lane is green and a failure() trigger never fires), as counts: the
+      # requests by method, path and status, and each 500's error_code and message (120 characters), through the
+      # one redaction (scripts/ci/redact.py, DEC-368). Never a header, a token or a body. The container is found by
+      # its supabase_auth_ prefix, as the database's is by supabase_db_ above.
+      - name: Capture the auth server's failures (INC-1303)
+        id: capture-auth-failures
+        timeout-minutes: 3
+        if: always() && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
+        shell: bash
+        run: |
+          auth_containers=()
+          running_containers=$(docker ps --format '{{.Names}}')
+          while IFS= read -r name; do
+            if [[ "$name" == supabase_auth_* ]]; then
+              auth_containers+=("$name")
+            fi
+          done <<< "$running_containers"
+          if [ "${#auth_containers[@]}" -ne 1 ]; then
+            echo "auth capture: found ${#auth_containers[@]} supabase_auth_ containers" > local-backend-auth-capture.txt
+            exit 0
+          fi
+          auth_log=$(timeout 60 docker logs "${auth_containers[0]}" 2>&1 || true)
+          printf '%s\n' "$auth_log" | PYTHONPATH=scripts/ci python3 scripts/ci/auth-log-capture.py > local-backend-auth-capture.txt
       # INC-992 (class rule): every lane step's failure reaches the evidence by this one step. Each step
       # whose outcome is not success/skipped is named by id and outcome with its kept last lines, into
       # local-backend-failure.txt ("- Step failure:" under "## Lane N"). INC-984's guard lines stay: they
@@ -1087,6 +1111,7 @@ jobs:
             local-backend-start-failure.txt
             local-backend-db-error.txt
             local-backend-step-failure.txt
+            local-backend-auth-capture.txt
             local-backend-repeat.txt
           overwrite: true
           if-no-files-found: warn

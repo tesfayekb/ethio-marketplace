@@ -254,6 +254,19 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/route-client.test.ts"), "utf8")).toContain(
       "RCG-3",
     );
+    // call-deadline.test.ts CF-DEADLINE-1…4 (cursor bundle 7b, DEC-477) runs the deadline census over
+    // src/ against call-deadline-allowlist.txt; discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/call-deadline.test.ts"), "utf8")).toContain(
+      "CF-DEADLINE-4",
+    );
+    // query-retry.test.ts CF-RETRY-1…3 (cursor bundle 7b, INC-1288) is discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/query-retry.test.ts"), "utf8")).toContain(
+      "CF-RETRY-3",
+    );
+    // route-status.test.ts CF-ROUTE-STATUS-0…2 (cursor bundle 7b, INC-1296) is discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/route-status.test.ts"), "utf8")).toContain(
+      "CF-ROUTE-STATUS-2",
+    );
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );
@@ -495,6 +508,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // CF-REDACT-3 (housekeeping turn 3b, DEC-368): redact.py and scripts/e2e-failure-report.ts read
     // scripts/ci/redaction-rules.json.
     expect(readFileSync(join(ROOT, "scripts/ci/redact.test.ts"), "utf8")).toContain("CF-REDACT-3");
+    // Cursor bundle 7b (INC-1303, ruling 1 decision 15): every lane's auth server log, as counts —
+    // local-backend-proof.yml runs scripts/ci/auth-log-capture.py (through redact.py) before the evidence.
+    expect(readFileSync(join(ROOT, "scripts/ci/auth-log-capture.test.ts"), "utf8")).toContain(
+      "CF-AUTHLOG-3",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "scripts/ci/auth-log-capture.py",
+    );
     expect(readFileSync(join(ROOT, "scripts/ci/backend-config.test.ts"), "utf8")).toContain(
       "CF-BCFG-2",
     );

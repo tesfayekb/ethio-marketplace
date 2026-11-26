@@ -11,6 +11,7 @@ import {
 
 import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/preferred-language";
 import { isE2E } from "@/lib/env-flags";
+import { fetchWithDeadline } from "@/lib/call-deadline";
 
 import { loadOnce } from "@/lib/load-once";
 
@@ -140,7 +141,7 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
 
   async function attemptOnce(): Promise<Response | null> {
     try {
-      return await fetch(`${url}/rest/v1/languages?${query}`, init);
+      return await fetchWithDeadline(fetch, `${url}/rest/v1/languages?${query}`, init);
     } catch {
       return null;
     }

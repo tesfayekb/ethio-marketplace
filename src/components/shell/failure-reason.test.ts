@@ -1,4 +1,5 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { onlineManager } from "@tanstack/react-query";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { failureKind, isRetryable, loadFailureReader } from "./failure-reason";
 
@@ -49,8 +50,14 @@ describe("failureKind (DEC-464, status first)", () => {
     expect(failureKind(withStatus(500)).kind).toBe("server");
     expect(failureKind(withStatus(503)).kind).toBe("server");
   });
-  it("FR-U9 a refusal whose code is in GONE_CODES → gone", () => {
+  it("FR-U9 no list of codes decides a kind: the status that arrived does (400 a refusal, 404 gone); with none, the table's own row for the code (INC-1296)", () => {
     expect(failureKind(coded("listingNotAvailable")).kind).toBe("gone");
+    expect(
+      failureKind(Object.assign(new Error("listingNotFound"), { code: "P0D01", status: 400 })).kind,
+    ).toBe("refused");
+    expect(
+      failureKind(Object.assign(new Error("listingNotFound"), { code: "P0D01", status: 404 })).kind,
+    ).toBe("gone");
   });
   it("FR-U10 any other refusal → refused", () => {
     expect(failureKind(coded("somethingElse")).kind).toBe("refused");
@@ -85,5 +92,19 @@ describe("failureKind (DEC-464, status first)", () => {
       "refused",
     ] as const)
       expect(isRetryable(kind)).toBe(false);
+  });
+  describe("while the device is offline (INC-1286)", () => {
+    afterEach(() => onlineManager.setOnline(true));
+    it("FR-U15 a failure read offline says the network's words; a refusal stays a refusal", () => {
+      expect(failureKind(withStatus(500)).kind).toBe("server");
+      onlineManager.setOnline(false);
+      expect(failureKind(withStatus(500)).kind).toBe("network");
+      expect(failureKind(withStatus(500)).diagnostic).toContain("offline");
+      expect(failureKind("x").kind).toBe("network");
+      expect(failureKind(withStatus(403)).kind).toBe("noAccess");
+      expect(failureKind(withStatus(404)).kind).toBe("gone");
+      onlineManager.setOnline(true);
+      expect(failureKind(withStatus(500)).kind).toBe("server");
+    });
   });
 });

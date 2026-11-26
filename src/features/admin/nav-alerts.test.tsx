@@ -10,12 +10,12 @@ import { beforeEach, expect, it, vi } from "vitest";
  */
 const door = vi.hoisted(() => ({ level: vi.fn(), rpc: vi.fn() }));
 vi.mock("@/lib/supabase-door", () => ({ rpc: (name: string) => door.rpc(name) }));
-vi.mock("@/features/auth/mfa/mfa-service", () => ({ getAal: () => door.level() }));
+vi.mock("@/features/auth/mfa/session-level", () => ({ readSessionLevel: () => door.level() }));
 
 import { useNavAlerts } from "./nav-alerts";
 
-const AAL1 = { ok: true, current: "aal1", next: "aal2" };
-const AAL2 = { ok: true, current: "aal2", next: "aal2" };
+const AAL1 = { ok: true, token: "t", current: "aal1" };
+const AAL2 = { ok: true, token: "t", current: "aal2" };
 
 function render(permissions: readonly string[]) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -50,11 +50,22 @@ it("NAV-ALERT-1 asks nothing at aal1, then asks afresh once the session is aal2"
 });
 
 it("NAV-ALERT-2 an unreadable level fails the query and asks the server nothing", async () => {
-  door.level.mockResolvedValue({ ok: false, message: "unreadable" });
+  door.level.mockResolvedValue({ ok: false, error: { status: 503 } });
   const view = render(["legal:view"]);
   await waitFor(() => expect(door.level).toHaveBeenCalled());
   expect(door.rpc).not.toHaveBeenCalled();
   expect(view.result.current.size).toBe(0);
+});
+
+it("NAV-ALERT-2b INC-1291 the failure is the reader's own, not a hand-built Error", async () => {
+  const typed = { status: 503 };
+  door.level.mockResolvedValue({ ok: false, error: typed });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={client}>{children}</QueryClientProvider>
+  );
+  renderHook(() => useNavAlerts(true, ["legal:view"]), { wrapper });
+  await waitFor(() => expect(client.getQueryCache().getAll()[0]?.state.error).toBe(typed));
 });
 
 it("NAV-ALERT-3 no legal:view asks nothing, even at aal2", async () => {

@@ -1,6 +1,6 @@
 import type { NavAlertId } from "@/config/panels.types";
 import { useQuery } from "@tanstack/react-query";
-import { getAal } from "@/features/auth/mfa/mfa-service";
+import { readSessionLevel } from "@/features/auth/mfa/session-level";
 import { rpc } from "@/lib/supabase-door";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -28,8 +28,10 @@ export function useNavAlerts(
     enabled: enabled && permissions.includes("legal:view"),
     staleTime: (query) => (query.state.data === null ? 0 : 5 * 60 * 1000),
     queryFn: async () => {
-      const level = await getAal();
-      if (!level.ok) throw new Error("the session's assurance level could not be read");
+      // INC-1291 — the level from the session's token (no database client in the menu's download);
+      // a level that could not be read is the reader's typed failure.
+      const level = await readSessionLevel();
+      if (!level.ok) throw level.error;
       if (level.current !== "aal2") return null;
       const { data, error } = await rpc("legal_review_overdue");
       if (error) throw error;

@@ -3,6 +3,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { clearSessionClocks } from "@/features/session/session-policy";
 import { doorCode } from "@/lib/door-codes";
+import { deadlineFetch } from "@/lib/call-deadline";
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 import { safeReturnPath } from "@/lib/return-path";
@@ -366,6 +367,8 @@ async function currentPasswordProof(supabase: Client, currentPassword: string) {
   // DEC-261 — the second client's code arrives with the first, never on a first download.
   const { createClient } = await supabaseJs.load();
   const verifier = createClient<Database>(project.url, project.key, {
+    // DEC-477 — the verifier's own client carries the deadline the shared client's fetch does.
+    global: { fetch: deadlineFetch(fetch) },
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
   const { error: verifyError } = await verifier.auth.signInWithPassword({

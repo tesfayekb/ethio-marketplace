@@ -264,10 +264,16 @@ test.describe("Bundle 7 attribute safety", () => {
         .getByTestId(`attribute-actions-${held}-more-remove`)
         .click();
       await expect(page.getByTestId("attribute-remove-confirm")).toBeVisible({ timeout: 20000 });
-      await expect(page.getByTestId("attribute-dialog-error")).toHaveText(
+      // INC-1302 — the failure notice: the screen's words, the reason's class, and a Retry.
+      await expect(page.getByTestId("attribute-dialog-error")).toContainText(
         en["admin.attributes.links.error"],
         { timeout: 20000 },
       );
+      await expect(page.getByTestId("attribute-dialog-error")).toHaveAttribute(
+        "data-failure-reason",
+        "server",
+      );
+      await expect(page.getByTestId("attribute-dialog-error-retry")).toBeVisible();
       await expect(page.getByTestId("attribute-remove-submit")).toBeDisabled();
       await expect(page.getByTestId("attribute-remove-holders")).toHaveCount(0);
       expect((await readLinks(leaf.id)).length, "AT-73b a link was removed").toBe(1);

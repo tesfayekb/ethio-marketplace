@@ -23,15 +23,15 @@ i18n'd empty-state page per section. No section functionality ships in U0.
 
 Source of truth: `src/features/admin/sections.ts` (`ADMIN_SECTIONS`).
 
-| Section id   | Path                | Permission          |
-| ------------ | ------------------- | ------------------- |
-| `users`      | `/admin/users`      | `profiles:view`     |
-| `roles`      | `/admin/roles`      | `roles:view`        |
-| `audit`      | `/admin/audit`      | `audit_logs:view`   |
-| `locations`  | `/admin/places`     | `locations:view`    |
-| `categories` | `/admin/categories` | `categories:manage` |
-| `attributes` | `/admin/attributes` | `categories:manage` |
-| `images`     | `/admin/images`     | `categories:manage` |
+| Section id   | Path                | Permission        |
+| ------------ | ------------------- | ----------------- |
+| `users`      | `/admin/users`      | `profiles:view`   |
+| `roles`      | `/admin/roles`      | `roles:view`      |
+| `audit`      | `/admin/audit`      | `audit_logs:view` |
+| `locations`  | `/admin/places`     | `locations:view`  |
+| `categories` | `/admin/categories` | `categories:view` |
+| `attributes` | `/admin/attributes` | `categories:view` |
+| `images`     | `/admin/images`     | `categories:view` |
 
 TAGS (REQ-041) is intentionally absent: it gets its own resource and permission
 in U7 and must never be gated on a borrowed permission.

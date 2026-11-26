@@ -3,12 +3,15 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import { Field } from "@/components/forms/field";
 import { useShell } from "@/components/shell-context";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
+import { loadOnce } from "@/lib/load-once";
 import type { Refusal } from "@/lib/refusal";
 
-import { MFA_REFUSALS, stepUpWithCode } from "./mfa-service";
+import { MFA_REFUSALS } from "./mfa-refusals";
 import { readStaffFactor, type StaffFactorPhase } from "./staff-factor";
 
 /**
@@ -40,19 +43,28 @@ function GateChecking() {
   );
 }
 
-/** The failure, in place of every staff screen: a read that failed never opens one. */
-function StaffFactorFailed() {
+/**
+ * The failure, in place of every staff screen: a read that failed never opens one. It is drawn by
+ * the failure notice (INC-1302): its words for the reason, and Retry for a failure that can succeed —
+ * never "set up an authenticator" for a read that did not answer.
+ */
+function StaffFactorFailed({ error, onRetry }: { error: unknown; onRetry: () => void }) {
   const { t } = useI18n();
   return (
-    <div
-      role="alert"
-      data-testid="admin-factor-read-failed"
-      className="flex min-h-40 items-center justify-center px-4 text-center text-sm text-destructive"
-    >
-      {t("admin.factorReadFailed")}
+    <div className="flex min-h-40 items-center justify-center px-4 text-center">
+      <FailureNotice
+        error={error}
+        testid="admin-factor-read-failed"
+        subject={t("admin.factorReadFailed")}
+        onRetry={onRetry}
+      />
     </div>
   );
 }
+
+// The code's check is the one write the gate makes, and it needs the database client: it arrives with
+// the first attempt, never with the gate (INC-1291).
+const mfaService = loadOnce(() => import("./mfa-service"));
 
 function SetupPanel() {
   const { t } = useI18n();
@@ -77,12 +89,23 @@ function CodePanel({ onVerified }: { onVerified: () => void }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
+  // The check's own code did not download: said here, in the panel (the gate is fetched in place,
+  // so it does not also raise the shell's notice).
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const submit = async () => {
     if (busy) return;
     setBusy(true);
     setRefusal(null);
-    const result = await stepUpWithCode(code);
+    setLoadFailed(false);
+    let result;
+    try {
+      result = await (await mfaService.load()).stepUpWithCode(code);
+    } catch {
+      setBusy(false);
+      setLoadFailed(true);
+      return;
+    }
     setBusy(false);
     if (!result.ok) {
       setRefusal(result.refusal);
@@ -99,6 +122,12 @@ function CodePanel({ onVerified }: { onVerified: () => void }) {
     >
       <h1 className="text-lg font-semibold text-foreground">{t("mfa.stepUpTitle")}</h1>
       <p className="text-sm text-muted-foreground">{t("admin.factorCode.body")}</p>
+      {loadFailed ? (
+        <LoadFailedHere
+          testid="admin-factor-code-load-failed"
+          refreshTestid="admin-factor-code-refresh"
+        />
+      ) : null}
       <form
         noValidate
         className="flex flex-col gap-3"
@@ -146,18 +175,24 @@ export function StaffFactorGate({ children }: { children: ReactNode }) {
   const { user } = useShell();
   const userId = user?.id ?? null;
   const [phase, setPhase] = useState<StaffFactorPhase | "checking">("checking");
+  const [failure, setFailure] = useState<{ error: unknown } | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let live = true;
     setPhase("checking");
+    setFailure(null);
     void readStaffFactor().then(
       (next) => {
-        if (live) setPhase(next);
+        if (!live) return;
+        if (next.phase === "failed") setFailure({ error: next.error });
+        setPhase(next.phase);
       },
-      () => {
+      (error: unknown) => {
         // A read that threw is a read that failed: no staff screen.
-        if (live) setPhase("failed");
+        if (!live) return;
+        setFailure({ error });
+        setPhase("failed");
       },
     );
     return () => {
@@ -168,7 +203,8 @@ export function StaffFactorGate({ children }: { children: ReactNode }) {
   const verified = useCallback(() => setAttempt((count) => count + 1), []);
 
   if (phase === "ready") return <>{children}</>;
-  if (phase === "failed") return <StaffFactorFailed />;
+  if (phase === "failed")
+    return <StaffFactorFailed error={failure?.error ?? null} onRetry={verified} />;
   if (phase === "setupNeeded") return <SetupPanel />;
   if (phase === "codeNeeded") return <CodePanel onVerified={verified} />;
   return <GateChecking />;

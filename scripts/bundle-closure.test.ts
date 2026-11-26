@@ -11,8 +11,12 @@ import {
   entryAdminModules,
   entryAdminViolations,
   entryChunks,
+  entryLazyModules,
+  entryLazyViolations,
   judgeRouteBudgets,
   moduleCensus,
+  MUST_STAY_LAZY,
+  MUST_STAY_LAZY_MODULES,
   mustStayLazyViolation,
   pageRouteIds,
   parseChunkModules,
@@ -385,5 +389,42 @@ describe("the entry carries no admin code (INC-1042)", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+  it("BC-17 a must-stay-lazy module folded into the entry chunk fails by its path, whatever the chunk is named; a lazy chunk's never counts; the list covers every name rule", () => {
+    const reader = "src/lib/reader-failure.ts";
+    const record = {
+      "index-AAAAAAAA.js": ["src/components/shell/breadcrumbs.tsx"],
+      "shared-shell-BBBBBBBB.js": ["src/lib/safe-href.ts"],
+      "reader-failure-CCCCCCCC.js": [reader],
+    };
+    const closure = ["index-AAAAAAAA.js", "shared-shell-BBBBBBBB.js"];
+    // the real shape: the module in its own lazy chunk, which the name rule and the module rule both leave be
+    expect(entryLazyModules(record, closure)).toEqual([]);
+    expect(mustStayLazyViolation(closure)).toBeNull();
+    // a planted fold: the bundler put the module in the entry chunk, so no chunk name says it
+    const folded = { ...record, "index-AAAAAAAA.js": [...record["index-AAAAAAAA.js"], reader] };
+    expect(mustStayLazyViolation(closure)).toBeNull();
+    expect(entryLazyViolations(entryLazyModules(folded, closure))).toEqual([
+      `${reader}: in index-AAAAAAAA.js, in the entry's closure — a must-stay-lazy module folded into the first download, whatever its chunk is named (BC-17, INC-1289)`,
+    ]);
+    // a folder of a dependency is named by its trailing slash, and a lookalike path is not it
+    const zoded = {
+      ...record,
+      "shared-shell-BBBBBBBB.js": [
+        "node_modules/zod/v4/core/schemas.js",
+        "node_modules/zodiac/x.js",
+      ],
+    };
+    expect(entryLazyModules(zoded, closure)).toEqual([
+      { module: "node_modules/zod/v4/core/schemas.js", chunk: "shared-shell-BBBBBBBB.js" },
+    ]);
+    // the list is the name rule's, by module: every name prefix has a module, and every module is in the tree
+    for (const prefix of MUST_STAY_LAZY) {
+      expect(
+        MUST_STAY_LAZY_MODULES.some((key) => key.includes(prefix)),
+        prefix,
+      ).toBe(true);
+    }
+    for (const key of MUST_STAY_LAZY_MODULES) expect(existsSync(key), key).toBe(true);
   });
 });

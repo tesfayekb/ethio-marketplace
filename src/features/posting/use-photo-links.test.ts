@@ -8,7 +8,10 @@ import { readPhotoLinks, usePhotoLinks } from "./use-photo-links";
 // the request bytes are route-client's own contract (RCL-1…15). The reader's
 // RESULTS stay byte for byte.
 const { callRoute } = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => ({ callRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute,
+}));
 
 const links = { photo: { card: "https://example.com/photo.jpg" } };
 const answered = (status: number, payload: Record<string, unknown> | null) => ({
@@ -37,13 +40,15 @@ describe("photo link reader", () => {
       json: { photoIds: ["photo"] },
     });
   });
-  it("UPL-2 a refused answer throws with its status and gives no links", async () => {
+  it("UPL-2 a refused answer throws the typed failure with its status and gives no links", async () => {
     callRoute.mockResolvedValue(answered(403, null));
-    await expect(readPhotoLinks(["photo"])).rejects.toThrow("photo links: 403");
+    await expect(readPhotoLinks(["photo"])).rejects.toMatchObject({ failure: { status: 403 } });
   });
-  it("UPL-3 an unreachable route throws and gives no links", async () => {
+  it("UPL-3 an unreachable route throws the network failure and gives no links", async () => {
     callRoute.mockResolvedValue({ kind: "unreachable", reason: "network" });
-    await expect(readPhotoLinks(["photo"])).rejects.toThrow("photo links: 0");
+    await expect(readPhotoLinks(["photo"])).rejects.toMatchObject({
+      failure: { class: "network" },
+    });
   });
 });
 

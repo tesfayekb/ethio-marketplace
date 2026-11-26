@@ -109,11 +109,13 @@ export function refusalStatus(code: string): number {
  * page gains the list's chunk: this module does not import `src/lib/door-codes.ts`).
  *
  * Read in this order: one of the two session codes → `auth`; MARKED, or named in
- * `GATE_REFUSED_CODES` → `refused`; the lines below, as they were. The status must AGREE with
- * the code (`refusalStatus`): a refusal that arrives at 500 (or at any status its code does not
- * carry) is not a refusal the database answered, so the code does not decide — a marked failure
- * at 500 classes `server`. An answer with no status (the browser's `rpc()` drops it) is read by
- * its mark.
+ * `GATE_REFUSED_CODES` → `refused`; the lines below, as they were. THE CLIENT TRUSTS THE CLASS OF
+ * THE STATUS THAT ARRIVED (INC-1296): a marked refusal below 500 is a refusal at the status it
+ * came with, whatever the client's table (`refusalStatus`) says for its code, so a code whose
+ * status moves on the server reads right before and after the Publish; a marked failure at 500
+ * or above is not a refusal the database answered and classes `server`, and a status outside
+ * 400–499 does not carry a refusal. No list of codes decides a kind. An answer with no status
+ * (the browser's `rpc()` drops it) is read by its mark.
  *
  * The named sets below serve ONLY an answer that carries no code: one of our own routes'
  * answers (`{ error: "rateLimited" }`, read by `callRoute`) and `stepUpRequired`, which keeps its
@@ -142,6 +144,11 @@ const FALLBACK_REFUSED_CODES = new Set([
   "notInForce",
 ]);
 
+/** A status in the client's refusal class: the server answered a refusal, whatever its code's row. */
+function inRefusalClass(status: number | undefined): boolean {
+  return status === undefined || (status >= 400 && status < 500);
+}
+
 /** The code a gate refusal's message opens with: everything before the first colon. */
 function gateCodeOf(message: string): string {
   return splitRefusal(message.trim()).key;
@@ -163,11 +170,11 @@ function classify(error: unknown, given?: number): ReaderFailure {
   const code = typeof fields.code === "string" ? fields.code : undefined;
   const message = errorText(error);
   const gate = gateCodeOf(message);
-  const agrees = status === undefined || status === refusalStatus(gate);
+  const trusted = inRefusalClass(status);
   const kind: ReaderFailure["class"] =
-    agrees && GATE_AUTH_CODES.has(gate)
+    trusted && GATE_AUTH_CODES.has(gate)
       ? "auth"
-      : agrees && (isMarked(code, gate) || GATE_REFUSED_CODES.has(gate))
+      : trusted && (isMarked(code, gate) || GATE_REFUSED_CODES.has(gate))
         ? "refused"
         : status === 401 ||
             status === 403 ||
@@ -201,16 +208,17 @@ export type GateRefusal = { code: string; status: number; detail?: string };
 
 /**
  * F1-7d (INC-1221) — THE REFUSAL A READER RAISED, read by the one reader: one of the gate's
- * codes (above), its status the one table's (`refusalStatus`) — an answer at any other status
- * is not that refusal — and its detail when it is a short code. Anything else is null.
+ * codes (above), at the status it arrived at (INC-1296: the client trusts the class — a status
+ * outside 400–499 is not a refusal; a failure that names none takes its code's row in
+ * `refusalStatus`) and its detail when it is a short code. Anything else is null.
  */
 export function gateRefusal(error: unknown): GateRefusal | null {
   const failure = readerFailure(error);
   const { key, tail } = splitRefusal(failure.message.trim());
   if (!GATE_AUTH_CODES.has(key) && !GATE_REFUSED_CODES.has(key) && !isMarked(failure.code, key))
     return null;
-  const status = refusalStatus(key);
-  if (failure.status !== undefined && failure.status !== status) return null;
+  if (!inRefusalClass(failure.status)) return null;
+  const status = failure.status ?? refusalStatus(key);
   const detail = tail?.trim();
   return detail !== undefined && REFUSAL_DETAIL.test(detail)
     ? { code: key, status, detail }

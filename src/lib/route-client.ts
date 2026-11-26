@@ -1,4 +1,7 @@
+import { CALL_DEADLINES_MS, routeClassOf, watchUpload } from "@/lib/call-deadline";
 import { reportEndedSignIn, reportNoSession } from "@/lib/ended-sign-in";
+import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { saveBlobAs } from "@/lib/save-file";
 import { currentSession } from "@/lib/supabase-door";
 
@@ -23,6 +26,7 @@ export type RouteInit = {
   /** Exclusive with `json`; the browser sets the multipart boundary itself. */
   form?: FormData;
   auth?: RouteAuth;
+  /** The call's own deadline; absent, the call's class gives it (DEC-477: src/lib/call-deadline.ts). */
   timeoutMs?: number;
   signal?: AbortSignal;
   cache?: RequestCache;
@@ -67,6 +71,36 @@ function readEnvelope(contentType: string, text: string | null, blob: Blob | nul
   return { payload: null, error: null, detail: null, bytes: blob };
 }
 
+// INC-864 — reader-failure stays off the first download: it loads only when a read failed.
+const readerModule = loadOnce(() => import("@/lib/reader-failure"));
+
+/**
+ * ONE TYPED FAILURE FROM A ROUTE (INC-1296, cursor bundle 7b). An answer that is not a success
+ * (the caller's own `ok` check has run)
+ * becomes the failure the reader types (`readFailed`, src/lib/reader-failure.ts) — its status and
+ * its code — so no consumer builds an `Error` from `answer.status` by hand and the failure notice
+ * (`failureKind`) reads it as it reads a door's: an unreachable call is the network kind, a
+ * signed-out call is 401, an answer is its code at its status (a code-less answer is read by the
+ * status). A refusal's detail rides after the code only when it is a short code (the reader's own
+ * `REFUSAL_DETAIL`), never a sentence. The reader downloads on demand; a download that fails is
+ * reported to the shell's one notice and reads as `network`. RCG-5 (scripts/conformance/
+ * route-client.test.ts) fails a hand-built one.
+ */
+export async function routeFailure(answer: RouteAnswer): Promise<Error> {
+  try {
+    const mod = await readerModule.load();
+    if (answer.kind === "unreachable") return mod.readFailed(new TypeError(answer.reason));
+    if (answer.kind === "signedOut") return mod.readFailed("signedOut", 401);
+    const code = answer.error;
+    if (code === null) return mod.readFailed(`route ${answer.status}`, answer.status);
+    const detail = answer.detail?.trim();
+    const tail = detail !== undefined && mod.REFUSAL_DETAIL.test(detail) ? `:${detail}` : "";
+    return mod.readFailed(`${code}${tail}`, answer.status);
+  } catch (error) {
+    reportOnDemandFailure("reader-failure", error);
+    return new TypeError("reader-failure");
+  }
+}
 /**
  * The session's bearer, read once per call; null when there is no session. DEC-261:
  * through the client's door — an anonymous call fetches no client.
@@ -85,7 +119,6 @@ async function requestRoute(
 ): Promise<RouteAnswer> {
   const controller = new AbortController();
   let reason: "network" | "timeout" | "aborted" = "network";
-  let timer: ReturnType<typeof setTimeout> | undefined;
   const abort = () => {
     if (controller.signal.aborted) return;
     reason = "aborted";
@@ -93,13 +126,17 @@ async function requestRoute(
   };
   init.signal?.addEventListener("abort", abort, { once: true });
   if (init.signal?.aborted) abort();
-  if (init.timeoutMs !== undefined) {
-    timer = setTimeout(() => {
-      if (controller.signal.aborted) return;
-      reason = "timeout";
-      controller.abort();
-    }, init.timeoutMs);
-  }
+  // DEC-477 — every call ends within its class's deadline: a read or a write by its method, a download
+  // by its name; a caller's own `timeoutMs` still wins.
+  const method =
+    init.method ?? (init.json !== undefined || init.form !== undefined ? "POST" : "GET");
+  const timeoutMs =
+    init.timeoutMs ?? CALL_DEADLINES_MS[filename === undefined ? routeClassOf(method) : "download"];
+  const timer = setTimeout(() => {
+    if (controller.signal.aborted) return;
+    reason = "timeout";
+    controller.abort();
+  }, timeoutMs);
   try {
     const auth = init.auth ?? "required";
     const headers = new Headers({ Accept: "application/json" });
@@ -114,7 +151,7 @@ async function requestRoute(
     const hasForm = init.form !== undefined;
     if (hasJson) headers.set("Content-Type", "application/json");
     const response = await fetch(path, {
-      method: init.method ?? (hasJson || hasForm ? "POST" : "GET"),
+      method,
       headers,
       ...(hasJson ? { body: JSON.stringify(init.json) } : {}),
       ...(hasForm ? { body: init.form } : {}),
@@ -211,11 +248,17 @@ function sendUpload(
     const request = new XMLHttpRequest();
     let settled = false;
     let reason: "network" | "timeout" | "aborted" = "network";
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    // DEC-477 — an upload fails on a stall (no progress for UPLOAD_STALL_MS) inside a cap (the caller's
+    // `timeoutMs`, or the class's): a slow phone that keeps moving is not cut.
+    const watch = watchUpload(() => {
+      reason = "timeout";
+      request.abort();
+      settle({ kind: "unreachable", reason: "timeout" });
+    }, init.timeoutMs ?? CALL_DEADLINES_MS.upload);
     const settle = (answer: RouteAnswer) => {
       if (settled) return;
       settled = true;
-      if (timer !== undefined) clearTimeout(timer);
+      watch.stop();
       init.signal?.removeEventListener("abort", onCallerAbort);
       resolve(answer);
     };
@@ -238,6 +281,7 @@ function sendUpload(
       request.setRequestHeader("Accept", "application/json");
       if (token !== null) request.setRequestHeader("Authorization", `Bearer ${token}`);
       request.upload.onprogress = (event) => {
+        watch.touch();
         if (event.lengthComputable) init.onProgress?.(event.loaded, event.total);
       };
       request.onerror = () => settle({ kind: "unreachable", reason: "network" });
@@ -264,13 +308,6 @@ function sendUpload(
         });
       };
       init.signal?.addEventListener("abort", onCallerAbort, { once: true });
-      if (init.timeoutMs !== undefined) {
-        timer = setTimeout(() => {
-          reason = "timeout";
-          request.abort();
-          settle({ kind: "unreachable", reason: "timeout" });
-        }, init.timeoutMs);
-      }
       request.send(form);
     })();
   });

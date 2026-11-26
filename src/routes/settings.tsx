@@ -11,6 +11,7 @@ import { Field } from "@/components/forms/field";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { useShell } from "@/components/shell-context";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { ActionMessage } from "@/components/ui/action-message";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
@@ -141,6 +142,9 @@ function SettingsScreen() {
   const [memberSince, setMemberSince] = useState<string | null>(null);
   /** U1d — own account status, for the deactivation banner (U1a leftover). */
   const [accountDeactivated, setAccountDeactivated] = useState(false);
+  /** INC-1302 — a failed status read is drawn by the failure notice (its Retry reads again), never taken for active. */
+  const [statusFailure, setStatusFailure] = useState<{ error: unknown } | null>(null);
+  const [statusTry, setStatusTry] = useState(0);
   const [identities, setIdentities] = useState<IdentitySummary[] | null>(null);
   const [identitiesErrorKey, setIdentitiesErrorKey] = useState<MessageKey | null>(null);
   /** INC-1258 — the address an e-mail change still waits on, read from the server's own record. */
@@ -227,16 +231,16 @@ function SettingsScreen() {
         .eq("user_id", user.id)
         .maybeSingle();
       if (!active) return;
-      // INC-1264 — a failed read is named, never an account taken for active: the person stays
-      // signed in and the shell's one notice offers the refresh; the screen never waits on it.
-      if (profile.error) reportOnDemandFailure("the account's status", profile.error);
+      // INC-1264 / INC-1302 — a failed read is named, never an account taken for active: the person
+      // stays signed in and the screen draws the failure notice, whose Retry reads it again.
+      setStatusFailure(profile.error ? { error: profile.error } : null);
       setAccountDeactivated(profile.data?.account_status === "deactivated");
       setCheckingSession(false);
     })();
     return () => {
       active = false;
     };
-  }, [authLoading, user]);
+  }, [authLoading, user, statusTry]);
 
   const loadIdentities = useCallback(async () => {
     const result = await getIdentities();
@@ -409,6 +413,17 @@ function SettingsScreen() {
         title={t("settings.title")}
         guide={<PageGuide spec={GUIDE} title={t("settings.title")} parts={GUIDE_PARTS} />}
       />
+
+      {statusFailure !== null ? (
+        <Section className="mt-4" testid="account-status-failure">
+          <FailureNotice
+            error={statusFailure.error}
+            testid="account-status-error"
+            size="line"
+            onRetry={() => setStatusTry((n) => n + 1)}
+          />
+        </Section>
+      ) : null}
 
       {accountDeactivated ? (
         <Section className="mt-4 border-destructive" testid="account-deactivated-banner">

@@ -82,11 +82,16 @@ export function stateLine(
     case "screening":
     case "held":
       return t("myListings.inReview");
-    case "rejected":
-      return t("myListings.notApproved");
+    case "rejected": {
+      const reason =
+        row.staffReason === null ? undefined : ownValue(REMOVAL_REASON, row.staffReason);
+      return reason === undefined
+        ? t("myListings.notApproved")
+        : fill(t("myListings.notApprovedBecause"), { reason: t(reason) });
+    }
     case "removed": {
       const reason =
-        row.removedReason === null ? undefined : ownValue(REMOVAL_REASON, row.removedReason);
+        row.staffReason === null ? undefined : ownValue(REMOVAL_REASON, row.staffReason);
       return reason === undefined
         ? t("myListings.removed")
         : fill(t("myListings.removedBecause"), { reason: t(reason) });

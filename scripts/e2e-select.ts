@@ -130,7 +130,11 @@ export const AREAS: Area[] = [
       "src/features/admin-screening/**",
       "src/server/jobs/**",
     ],
-    specs: ["e2e/admin-screening.spec.ts", "e2e/name-check-queue.spec.ts"],
+    specs: [
+      "e2e/admin-screening.spec.ts",
+      "e2e/admin-screening-reject.spec.ts",
+      "e2e/name-check-queue.spec.ts",
+    ],
   },
   {
     // P-1b — Admin › Monetisation: the products, their perks and prices and
@@ -208,6 +212,7 @@ export const AREAS: Area[] = [
     src: ["src/components/shell/**", "src/routes/__root.tsx"],
     specs: [
       "e2e/shell.spec.ts",
+      "e2e/offline.spec.ts",
       "e2e/sage-shell.spec.ts",
       "e2e/sage-bands.spec.ts",
       "e2e/choice-lists.spec.ts",

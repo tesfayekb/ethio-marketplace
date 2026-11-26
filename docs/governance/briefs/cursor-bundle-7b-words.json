@@ -1,0 +1,26 @@
+{
+  "shell.offline": {
+    "layer": "base",
+    "en": "You're offline. What you open will load when you're back online.",
+    "am": "ከኢንተርኔት ጋር አልተገናኙም። የሚከፍቱት ነገር ግንኙነትዎ ሲመለስ ይጫናል።",
+    "new": true
+  },
+  "post.photo.refusal.notYourListing": {
+    "layer": "base",
+    "en": "This listing could not be found.",
+    "am": "ይህ ማስታወቂያ አልተገኘም።",
+    "new": false
+  },
+  "post.refusal.notYourListing": {
+    "layer": "base",
+    "en": "This listing could not be found.",
+    "am": "ይህ ማስታወቂያ አልተገኘም።",
+    "new": false
+  },
+  "post.error.notYours": {
+    "layer": "member",
+    "en": "This draft could not be found.",
+    "am": "ይህ ረቂቅ አልተገኘም።",
+    "new": false
+  }
+}

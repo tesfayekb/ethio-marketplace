@@ -20,7 +20,10 @@ import {
 } from "./location-data";
 
 const route = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => route);
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute: route.callRoute,
+}));
 
 /**
  * D234 speed turn S5 — DIA-1…DIA-6. The first place the shell shows, derived

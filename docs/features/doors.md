@@ -430,6 +430,26 @@ one it writes no update and no audit row and answers `{ok, language}`. A changed
 value updates the row and writes `profile.preferred_language` (old to new).
 CT-23 keeps its meter exclusion and loses its audit exclusion.
 
+## The client trusts the status that arrived (cursor-bundle-7b Part 2, INC-1296)
+
+`GONE_CODES`, the interim list of codes that read as gone, is deleted. `reader-failure.ts`
+reads a refusal at the status it arrived at: a marked refusal below 500 is a refusal at that
+status whatever `refusalStatus` holds for its code (the table's row answers only when no status
+came), a marked failure at 500 or above stays `server`, and a status outside 400–499 carries no
+refusal. A code whose status moves on the server therefore reads right before and after the
+Publish, and `failureKind` reads gone from a 404, never from a code. `refusalStatus` and its
+mirror stay equal (CF-REFUSAL-2). RF-4, RF-6, RF-8, RF-14 and FR-U9 pin it.
+
+### A refusal that does not reveal an ad exists (INC-1297)
+
+The photo upload, the photo removal and the cover's background route answer `notYourListing` and
+`photoGone` at the table's 404, so a stranger's ad id looks the way an absent one does (they were
+403 and 409). Three strings read it so (`post.photo.refusal.notYourListing`,
+`post.refusal.notYourListing`, `post.error.notYours`: "could not be found"). CF-ROUTE-STATUS-1
+(`scripts/conformance/route-status.test.ts`) fails when a route answers a table code at another
+status; PHT-3, BGR-6, BGR-7, PP-6, PP-26, PP-34, PR-49 and the background case in photo-pipeline
+pin the 404s.
+
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,
