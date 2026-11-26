@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { linksOf, type PhotoLinks } from "./photo-links";
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure } from "@/lib/route-client";
 
 /** The route caps a request at thirty photos (src/server/media/links.ts); a listing holds ten. */
 const MAX_PHOTOS = 30;
@@ -12,9 +12,7 @@ export async function readPhotoLinks(photoIds: string[]): Promise<PhotoLinks> {
     auth: "optional",
     json: { photoIds },
   });
-  if (answer.kind !== "answered" || !answer.ok) {
-    throw new Error(`photo links: ${answer.kind === "answered" ? answer.status : 0}`);
-  }
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   return linksOf(answer.payload ?? {});
 }
 

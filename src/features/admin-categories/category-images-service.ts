@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import { errorText } from "@/lib/error-text";
 import { readFailed } from "@/lib/reader-failure";
-import { callRoute, type RoutePath } from "@/lib/route-client";
+import { callRoute, routeFailure, type RoutePath } from "@/lib/route-client";
 import { rpc } from "@/lib/supabase-door";
 
 /**
@@ -57,12 +57,16 @@ async function post(
       throw new CategoryImageError("client-timeout", 0, "client-timeout");
     throw new CategoryImageError("network error", 0, "model-call");
   }
-  if (!answer.ok)
+  if (!answer.ok) {
+    // INC-1296 — the route's failure is typed by the route client (its code at its status); this
+    // class only adds the picture step it came from.
+    const failure = await routeFailure(answer);
     throw new CategoryImageError(
-      typeof answer.payload?.error === "string" ? answer.payload.error : `HTTP ${answer.status}`,
+      failure.message,
       answer.status,
       typeof answer.payload?.stage === "string" ? answer.payload.stage : "model-call",
     );
+  }
   return answer.payload;
 }
 

@@ -13,7 +13,10 @@ import { firstReadLinks } from "./first-reads";
  * and fetch are mocked; RCL-* own the transport's contract).
  */
 const { callRoute } = vi.hoisted(() => ({ callRoute: vi.fn() }));
-vi.mock("@/lib/route-client", () => ({ callRoute }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute,
+}));
 
 const SAVED = "ET:3f2c1a9e-8b7d-4c6e-9a1b-2d3e4f5a6b7c:1761400000000";
 const GATE = [{ code: "en" }, { code: "am" }];
@@ -96,7 +99,7 @@ describe("firstReadLinks (D234 S4)", () => {
       }),
     );
 
-    await expect(readCategoryTree()).rejects.toThrow("category tree read failed");
+    await expect(readCategoryTree()).rejects.toMatchObject({ failure: { class: "network" } });
     const markets = renderHook(() => useOpenMarkets());
     const tree = renderHook(() => useCountryTree("ET"));
     await waitFor(() => expect(markets.result.current.isLoading).toBe(false));

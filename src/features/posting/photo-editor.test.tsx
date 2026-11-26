@@ -82,7 +82,10 @@ async function open(onSave = vi.fn(async () => null as MessageKey | null)) {
 describe("PhotoEditor (D154 B2)", () => {
   it("PED-6 opens on the stored cover; Save waits for a change; a turn to the right saves the picture turned", async () => {
     const { onSave } = await open();
-    expect(fetch).toHaveBeenCalledWith("https://x.example/p1-cover.webp");
+    // DEC-477 — the read carries its deadline signal.
+    expect(fetch).toHaveBeenCalledWith("https://x.example/p1-cover.webp", {
+      signal: expect.anything(),
+    });
     const save = screen.getByTestId("post-photo-editor-save");
     expect(save).toBeDisabled();
     fireEvent.click(screen.getByTestId("post-photo-editor-right"));

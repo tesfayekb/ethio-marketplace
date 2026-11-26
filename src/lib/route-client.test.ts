@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CALL_DEADLINES_MS, UPLOAD_STALL_MS } from "./call-deadline";
 import { onEndedSignIn } from "./ended-sign-in";
-import { callRoute, downloadRoute, uploadRoute } from "./route-client";
+import { callRoute, downloadRoute, routeFailure, uploadRoute } from "./route-client";
+import { ReaderError } from "./reader-failure";
 
 // DEC-261 — the session reaches route calls through the client's door (src/lib/supabase-door.ts).
 const { currentSession } = vi.hoisted(() => ({ currentSession: vi.fn() }));
@@ -147,6 +148,47 @@ describe("browser route client", () => {
     expect(done).toBe(false);
     await vi.advanceTimersByTimeAsync(CALL_DEADLINES_MS.download);
     expect(await pending).toEqual({ kind: "unreachable", reason: "timeout" });
+  });
+  const refused = (status: number, error: string | null, detail: string | null = null) =>
+    ({
+      kind: "answered",
+      status,
+      ok: false,
+      payload: error === null ? null : { error },
+      error,
+      detail,
+      headers: new Headers(),
+      bytes: null,
+    }) as const;
+  it("RCL-22 a route's failure is one typed failure with its status and code", async () => {
+    const gone = await routeFailure(refused(404, "listingNotFound"));
+    expect(gone).toBeInstanceOf(ReaderError);
+    expect(gone).toMatchObject({
+      message: "listingNotFound",
+      failure: { status: 404 },
+    });
+    const server = await routeFailure(refused(503, null));
+    expect(server).toMatchObject({ failure: { class: "server", status: 503 } });
+    expect(await routeFailure({ kind: "signedOut" })).toMatchObject({
+      failure: { status: 401 },
+    });
+  });
+  it("RCL-23 an unreachable call is the network kind, whichever way it ran out", async () => {
+    for (const reason of ["network", "timeout", "aborted"] as const) {
+      expect(await routeFailure({ kind: "unreachable", reason })).toMatchObject({
+        failure: { class: "network" },
+      });
+    }
+  });
+  it("RCL-24 a refusal's detail rides after its code only when it is a short code", async () => {
+    const until = "2026-11-25T10:00:00.000Z";
+    expect((await routeFailure(refused(429, "rateLimited", until))).message).toBe(
+      `rateLimited:${until}`,
+    );
+    expect(
+      (await routeFailure(refused(400, "badValue", "A long sentence that is not a code, at all!")))
+        .message,
+    ).toBe("badValue");
   });
   it("RCL-10 download saves exact bytes and filename once; refusal saves nothing", async () => {
     const create = vi.fn().mockReturnValue("blob:test");

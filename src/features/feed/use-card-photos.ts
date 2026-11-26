@@ -1,6 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure } from "@/lib/route-client";
 import {
   CARD_THEN_THUMB,
   linksOf,
@@ -27,9 +27,7 @@ async function readCardLinks(photoIds: string[]): Promise<PhotoLinks> {
     auth: "none",
     json: { photoIds, variants: CARD_SIZES },
   });
-  if (answer.kind !== "answered" || !answer.ok) {
-    throw new Error(`card photo links: ${answer.kind === "answered" ? answer.status : 0}`);
-  }
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   return linksOf(answer.payload ?? {});
 }
 

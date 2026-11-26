@@ -63,10 +63,10 @@ proof; RCG-4 holds the undated allowances to the two named INCs. The caller is
 the unit runner, named in wired.test.ts.
 
 `scripts/conformance/route-client-allowlist.txt` has one live line per file,
-eight in all: Leaflet's outside tile-host probe (INC-875), the static asset
-read of the translations folder, and six non-route files (session claim/handoff
-readers, the client's door, the bearer read) expiring for review on
-2027-04-24. Stale and dated-expired allowances fail.
+nine in all: Leaflet's outside tile-host probe (INC-875), the translations
+folder's static asset read, its service's hand-built failures (INC-1304), and six
+non-route files (session claim/handoff readers, the client's door, the bearer
+read) expiring for review on 2027-04-24. Stale and dated-expired allowances fail.
 
 **A deadline on every call (DEC-477, INC-1285).** `src/lib/call-deadline.ts` is
 the one place the values live: read 15 s, write 30 s, auth 20 s, download 60 s,
@@ -107,3 +107,17 @@ while offline draws the network words: `failureKind` reads the unreadable
 (`server`) kind as `network` offline; a refusal stays a refusal. FR-U15,
 OFL-1…2 and the browser case OFF-1 (`e2e/offline.spec.ts`, joined to the shell
 area of `scripts/e2e-select.ts`) prove it.
+
+**One typed failure from a route (INC-1296).** `routeFailure(answer)`
+(`src/lib/route-client.ts`) turns an answer that is not a success into the
+failure the reader types (`readFailed`): an unreachable call is the network
+kind, a signed-out call is 401, an answer is its code at its status, a code-less
+answer is read by its status, and a refusal's detail rides after its code only
+when it is a short code. The reader (`src/lib/reader-failure.ts`) arrives on
+demand, so it stays off the first download; a download that fails is reported to
+the shell's one notice and reads as network. The location reads, the category
+tree, the card and photo links, the catalog finder, the feed and the category
+picture step use it. RCL-22…24 prove it; RCG-5 and RCG-6
+(`scripts/conformance/route-client.test.ts`) fail an `Error` built by hand from
+an answer's status in a file that reads routes (the translations service is the
+one allowance, INC-1304); RCG-6 plants one.

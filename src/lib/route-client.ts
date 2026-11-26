@@ -1,5 +1,7 @@
 import { CALL_DEADLINES_MS, routeClassOf, watchUpload } from "@/lib/call-deadline";
 import { reportEndedSignIn, reportNoSession } from "@/lib/ended-sign-in";
+import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { saveBlobAs } from "@/lib/save-file";
 import { currentSession } from "@/lib/supabase-door";
 
@@ -69,6 +71,36 @@ function readEnvelope(contentType: string, text: string | null, blob: Blob | nul
   return { payload: null, error: null, detail: null, bytes: blob };
 }
 
+// INC-864 — reader-failure stays off the first download: it loads only when a read failed.
+const readerModule = loadOnce(() => import("@/lib/reader-failure"));
+
+/**
+ * ONE TYPED FAILURE FROM A ROUTE (INC-1296, cursor bundle 7b). An answer that is not a success
+ * (the caller's own `ok` check has run)
+ * becomes the failure the reader types (`readFailed`, src/lib/reader-failure.ts) — its status and
+ * its code — so no consumer builds an `Error` from `answer.status` by hand and the failure notice
+ * (`failureKind`) reads it as it reads a door's: an unreachable call is the network kind, a
+ * signed-out call is 401, an answer is its code at its status (a code-less answer is read by the
+ * status). A refusal's detail rides after the code only when it is a short code (the reader's own
+ * `REFUSAL_DETAIL`), never a sentence. The reader downloads on demand; a download that fails is
+ * reported to the shell's one notice and reads as `network`. RCG-5 (scripts/conformance/
+ * route-client.test.ts) fails a hand-built one.
+ */
+export async function routeFailure(answer: RouteAnswer): Promise<Error> {
+  try {
+    const mod = await readerModule.load();
+    if (answer.kind === "unreachable") return mod.readFailed(new TypeError(answer.reason));
+    if (answer.kind === "signedOut") return mod.readFailed("signedOut", 401);
+    const code = answer.error;
+    if (code === null) return mod.readFailed(`route ${answer.status}`, answer.status);
+    const detail = answer.detail?.trim();
+    const tail = detail !== undefined && mod.REFUSAL_DETAIL.test(detail) ? `:${detail}` : "";
+    return mod.readFailed(`${code}${tail}`, answer.status);
+  } catch (error) {
+    reportOnDemandFailure("reader-failure", error);
+    return new TypeError("reader-failure");
+  }
+}
 /**
  * The session's bearer, read once per call; null when there is no session. DEC-261:
  * through the client's door — an anonymous call fetches no client.

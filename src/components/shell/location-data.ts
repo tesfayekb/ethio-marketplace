@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { distanceKm } from "@/lib/geo-distance";
 import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure } from "@/lib/route-client";
 import { UUID_RE } from "@/lib/uuid";
 
 /**
@@ -166,26 +166,10 @@ export function treePath(country: string): `/api/${string}` {
   return `/api/locations/${encodeURIComponent(country)}`;
 }
 
-// INC-864 — reader-failure stays off the first download: it loads only when a read failed.
-const readerModule = loadOnce(() => import("@/lib/reader-failure"));
-
-/** A failed read, typed by the reader once it arrives; a code download that fails is `network`. */
-async function failed(error: unknown, status?: number): Promise<Error> {
-  try {
-    const mod = await readerModule.load();
-    return mod.readFailed(error, status);
-  } catch (e) {
-    reportOnDemandFailure("reader-failure", e);
-    return new TypeError("reader-failure");
-  }
-}
-
 async function fetchMarkets(): Promise<OpenMarket[]> {
   const answer = await callRoute(MARKETS_PATH, { auth: "none" });
-  if (answer.kind === "unreachable") throw await failed(new TypeError(answer.reason));
   // An address read without a session ("auth: none") never answers signedOut; kept typed if it ever does.
-  if (answer.kind !== "answered") throw await failed("signedOut", 401);
-  if (!answer.ok) throw await failed(answer.error ?? `markets ${answer.status}`, answer.status);
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   return parseMarkets(answer.payload);
 }
 
@@ -211,10 +195,7 @@ export function parseMarkets(answer: Record<string, unknown> | null): OpenMarket
 
 async function fetchTree(country: string): Promise<TreeNode[]> {
   const answer = await callRoute(treePath(country), { auth: "none" });
-  if (answer.kind === "unreachable") throw await failed(new TypeError(answer.reason));
-  // An address read without a session ("auth: none") never answers signedOut; kept typed if it ever does.
-  if (answer.kind !== "answered") throw await failed("signedOut", 401);
-  if (!answer.ok) throw await failed(answer.error ?? `tree ${answer.status}`, answer.status);
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   return parseTree(answer.payload);
 }
 

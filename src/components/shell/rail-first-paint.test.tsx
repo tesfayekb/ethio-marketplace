@@ -16,7 +16,8 @@ const state = vi.hoisted(() => ({
   glyphs: { settled: false, failed: false },
 }));
 
-vi.mock("@/lib/route-client", () => ({
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
   callRoute: () =>
     state.read === "pending"
       ? new Promise(() => undefined)

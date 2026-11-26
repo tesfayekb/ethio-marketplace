@@ -7,7 +7,7 @@ import {
   useSyncExternalStore,
 } from "react";
 
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure } from "@/lib/route-client";
 import { entityName, type EntityBundle } from "@/i18n";
 
 /**
@@ -328,11 +328,7 @@ export async function readCategoryTree(): Promise<{ tree: CategoryTree; version:
   const answer = await callRoute(CATEGORY_TREE_PATH, { auth: "none", cache: "no-cache" });
   // Law F4 — a failed read is a failure, never an empty tree that reads as
   // "there are no categories". The caller renders the error state.
-  if (answer.kind !== "answered" || !answer.ok) {
-    throw new Error(
-      `category tree read failed (${answer.kind === "answered" ? String(answer.status) : answer.kind})`,
-    );
-  }
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   const parsed = parseCategoryTree(answer.payload);
   if (parsed === null) {
     throw new Error("category tree read failed (bad payload)");

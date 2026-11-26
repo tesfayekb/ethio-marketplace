@@ -5,10 +5,20 @@ import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
-type Finding = { file: string; line: number; what: "fetch" | "credential" };
+type Finding = { file: string; line: number; what: "fetch" | "credential" | "failure" };
+
+/** A file that reads a route's answer: it imports the route client. */
+const READS_ROUTES = /from\s+["'](?:@\/lib\/route-client|(?:\.\.?\/)+(?:lib\/)?route-client)["']/;
+
+/** `.status` read anywhere under a node: the answer's status built into a hand-made failure. */
+function readsStatus(node: ts.Node): boolean {
+  if (ts.isPropertyAccessExpression(node) && node.name.text === "status") return true;
+  return ts.forEachChild(node, readsStatus) === true;
+}
 function findings(files: string[]): Finding[] {
   const found: Finding[] = [];
   for (const file of files) {
+    const readsRoutes = READS_ROUTES.test(readFileSync(file, "utf8"));
     visitTs(file, (node, source) => {
       const add = (what: Finding["what"]) =>
         found.push({
@@ -16,6 +26,26 @@ function findings(files: string[]): Finding[] {
           line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
           what,
         });
+      // INC-1296 / cursor bundle 7b — a route's answer that is not ok becomes the typed failure
+      // (`routeFailure`, src/lib/route-client.ts), never a hand-made Error built from its status.
+      if (readsRoutes) {
+        if (
+          ts.isNewExpression(node) &&
+          ts.isIdentifier(node.expression) &&
+          /^(?:Type)?Error$/.test(node.expression.text) &&
+          (node.arguments ?? []).some(readsStatus)
+        )
+          add("failure");
+        if (
+          ts.isCallExpression(node) &&
+          ts.isPropertyAccessExpression(node.expression) &&
+          node.expression.name.text === "assign" &&
+          node.arguments[0] !== undefined &&
+          ts.isNewExpression(node.arguments[0]) &&
+          node.arguments.slice(1).some(readsStatus)
+        )
+          add("failure");
+      }
       if (ts.isCallExpression(node)) {
         const callee = node.expression;
         if (
@@ -74,6 +104,11 @@ describe("browser route-client conformance", () => {
     console.log(`[RCG-2] credential sites: ${hits.length}; allowlist: ${allowances.size}`);
     expect(report(hits.filter((hit) => !allowances.has(hit.file)))).toBe("");
   });
+  it("RCG-5 no Error is built by hand from a route answer's status, or a live allowance names it", () => {
+    const hits = census.filter((hit) => hit.what === "failure");
+    console.log(`[RCG-5] hand-built failures: ${hits.length}; allowlist: ${allowances.size}`);
+    expect(report(hits.filter((hit) => !allowances.has(hit.file)))).toBe("");
+  });
   it("RCG-4 an undated allowance names a live INC, and the INC set is exactly the known two", () => {
     const lines = readFileSync("scripts/conformance/route-client-allowlist.txt", "utf8")
       .split("\n")
@@ -91,8 +126,39 @@ describe("browser route-client conformance", () => {
     }
     // INC-875: the outside tile-host probe (INC-861's AI-gateway clients moved
     // onto callRoute in Foundations turn 19).
+    // INC-1304: the translations folder service builds its own failures (Lovable folder; its
+    // lane moves them onto `routeFailure`).
     // A new undated allowance fails here until its INC is named in this test.
-    expect([...incs].sort()).toEqual(["INC-875"]);
+    expect([...incs].sort()).toEqual(["INC-1304", "INC-875"]);
+  });
+  it("RCG-6 a planted Error built from an answer's status is reported; a code-only Error and a non-route file are not", () => {
+    const dir = mkdtempSync(join(tmpdir(), "route-client-"));
+    const planted = join(dir, "planted.ts");
+    const quiet = join(dir, "quiet.ts");
+    try {
+      writeFileSync(
+        planted,
+        [
+          'import { callRoute } from "@/lib/route-client";',
+          "async function tree() {",
+          '  const answer = await callRoute("/api/x");',
+          '  if (answer.kind === "answered" && !answer.ok) throw new Error(`tree ${answer.status}`);',
+          "  throw Object.assign(new Error(code), { status: answer.status, code });",
+          "}",
+          "",
+        ].join("\n"),
+      );
+      writeFileSync(
+        quiet,
+        "throw new Error(`photo ${response.status}`);\nthrow new Error(code);\n",
+      );
+      expect(findings([planted, quiet]).map((hit) => [hit.file, hit.line, hit.what])).toEqual([
+        [planted, 4, "failure"],
+        [planted, 5, "failure"],
+      ]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
   it("RCG-3 both censuses report a planted browser bearer fetch", () => {
     const dir = mkdtempSync(join(tmpdir(), "route-client-"));

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure } from "@/lib/route-client";
 import type { EntityBundle } from "@/i18n/entity";
 import { catalogWords, useI18n, type CatalogTokens } from "@/i18n";
 
@@ -63,8 +63,7 @@ export async function findLeaves(
     auth: "none",
     signal,
   });
-  if (answer.kind !== "answered") throw new Error("catalog finder unreachable");
-  if (!answer.ok) throw new Error(`catalog finder answered ${answer.status}`);
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   const body = (answer.payload ?? {}) as { results?: unknown };
   const rows = Array.isArray(body.results) ? (body.results as Record<string, unknown>[]) : [];
   return rows
