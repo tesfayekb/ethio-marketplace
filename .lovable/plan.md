@@ -1,77 +1,112 @@
-# Turn S6 plan — every dialog, sheet and overlay from one primitive, one look
+# Lovable 10b part 2 — controls follow their door, D19, D41, INC-1307, rate family, one key retired
 
-(Turn C's plan, written just before this request, is drafted and can be shown again when C is asked for. Summary: one `--press` token + `PRESSED` constant in menu-row.ts with a small root pointerdown listener; `useMenuAt()` in menu-current.ts reads the router's pending location for the chosen-item mark only, while the frame stays on INC-581's committed path; CF-PRESS-1 rules 1–3, PS-1…4, about +0.4 KiB per page.)
+Branch `lovable/next` = dev `70df93185`. Plan only; nothing changed.
 
-## CI first
-- Newest completed run on the evidence page (12:27Z): 53aaccf3 FAILURE. Brief names its two reds (/dev/style 245.9/246; lane 1 start, INC-1028) as B2's to fix first; this plan does not fix them.
-- No completed run on 836d1030 yet. Read again before the build turn's push.
+## 1. INC-1281 — 58 lines, 22 files (allowlist lines 38–95)
 
-## What the operator will see
-Report this ad, Share this ad, the photo editor, every confirm box, the translation history drawer, the staff filter panel, the map pin dropper, the photo viewer and the ad preview all share one panel, one dark backdrop, one title size, one 40 px close button, one footer divider, the same choice rows as the dropdowns and the same pressed-in text fields — in light and dark, at every width.
+Each `permissions.includes("x")` becomes `mayCall(<target>)` from `useMayCall()`; a screen that draws the permissions read's failure keeps reading `error` from `usePermissions`. Where one flag today guards controls calling different doors, the flag is split (one `mayCall` per door). "Drawn changes" names who sees a difference; "same" means the door asks the permission the copy compared.
 
-## Census (836d1030; build turn pastes full file:line)
-Primitive consumers — "uses the primitive":
-- dialog (11 incl. command.tsx): report-ad, share-ad, background-dialog, category-dialogs, listing-detail, step-up-gate, legal-publish-dialog, photo-editor, legal-page, dev.style, command.tsx.
-- alert-dialog (12): my-listings-page, my-listing-page, certify-confirm, pseudo-bar, delete-language-dialog, approve-bar, ai-bulk-bar, category-move-dialog, legal-editor-form, admin edit route, screening-page, name-checks.
-- sheet (2): history-drawer, sidebar.tsx (phone sidebar).
-- popover (1): toolbar-panel.tsx — imports `@radix-ui/react-popover` by value via popover.tsx, plus visible-area: rides nine staff pages' first paint (F4b's raised ceilings).
-- native-select (4 importers: locations-toolbar, categories-page, attributes-page, data-table).
+| allowlist line → file:line | control / read | target | resolves to | drawn changes |
+|---|---|---|---|---|
+| 38 locations-overview.tsx:34 | places tile read switch | door `admin_list_locations` | locations:view | same (D52: tile now follows the read it shows) |
+| 39 locations-overview.tsx:35 | countries tile read switch | door `admin_list_countries` | countries:view | same |
+| 40 nav-alerts.ts:28 | overdue-review alert read | door `legal_review_overdue` | legal:view | same |
+| 41 listings-page.tsx:120 | seller-email filter read | door `admin_list_users` | profiles:view | same |
+| 42 screening-page.tsx:140 | seller-email filter read | door `admin_list_users` | profiles:view | same |
+| 43 screening-page.tsx:147 | job health read | door `admin_job_health` | services:view | same |
+| 46 ai-page.tsx:64 | Edit (row) | door `admin_set_ai_feature` | services:manage | same |
+| 47 attributes-page.tsx:123 | Assign, Edit, Create, depend | doors `admin_link_attribute` / `admin_upsert_attribute` | categories:update | same |
+| 47 (split) attributes-page.tsx:469 | Remove from category (`-more-remove`) | door `admin_unlink_attribute` | categories:update | **D48: staff with update but not restructure now see it; restructure-only staff no longer do** |
+| 48 attributes-page.tsx:124 | Merge, Delete | doors `admin_merge_attributes` / `admin_delete_attribute` | categories:restructure | same |
+| 49 attributes-page.tsx:126 | Import | route `/api/admin/attributes/import` POST | categories:import | same |
+| 50 categories-page.tsx:260 | Create | door `admin_create_category` | categories:create | same |
+| 51 categories-page.tsx:261 | Window, Exclusions, Attributes, editor verbs | doors `admin_set_category_window` / `admin_set_country_exclusions` / `admin_update_category` | categories:update | same |
+| 51 (split) categories-page.tsx:~721 | Move up / Move down | door `admin_reorder_categories` | categories:update | **D47: moved from restructure to update** |
+| 52 categories-page.tsx:262 | Pointer, Retire, Reactivate, Delete | doors `admin_add_category_pointer` / `admin_retire_category` / `admin_reactivate_category` / `admin_delete_category` | categories:restructure | same |
+| 53 categories-page.tsx:263 | Image, bulk generate | door `admin_set_category_images`; route `/api/admin/categories/generate-image` POST | categories:assets | same |
+| 54 categories-page.tsx:265 | Import | route `/api/admin/categories/import` POST | categories:import | same |
+| 55 countries-page.tsx:76 | Edit, Rail order | doors `admin_upsert_country` / `admin_set_country_root_order` | countries:update | same |
+| 56 countries-page.tsx:77 | Open/close country | door `admin_set_country_active` | countries:activate | same |
+| 57 countries-page.tsx:78 | Import | route `/api/admin/locations/import` POST | locations:import | same |
+| (D53, new gate, no line) countries-page.tsx:~300 | Export (`country-export`) | route `/api/admin/locations/export` GET | locations:view | **hidden for staff without locations:view (today shown, then refused)** |
+| 58 listing-page.tsx:137 | Edit, moves, tier, photo remove, undo | doors `admin_edit_listing` / `admin_set_listing_policy` / `admin_set_listing_tier` / `admin_undo_listing_edit` | listings:enforce | same |
+| 59 listing-page.tsx:138 | View as | door `begin_impersonation` | impersonation:use | same |
+| 60 listing-page.tsx:144 | reports read + panel | door `admin_listing_reports` | listings:review | same |
+| 61 listing-page.tsx:238 | Allow photo | door `admin_allow_listing_photo` | listings:review | same |
+| 62 listings-page.tsx:121 | moves, tier, bulk | doors `admin_set_listing_policy` / `admin_set_listing_tier` | listings:enforce | same |
+| 63 listings-page.tsx:122 | View as | door `begin_impersonation` | impersonation:use | same |
+| 64 listings-page.tsx:248 | report counts read | door `admin_open_report_counts` | listings:review | same |
+| 65 locations-page.tsx:103 | Add / add child | door `admin_upsert_location` | locations:create | same |
+| 66 locations-page.tsx:104 | active toggle, reorder | doors `admin_set_location_active` / `admin_reorder_locations` | locations:update | same (rename via upsert asks create — see note A) |
+| 67 locations-page.tsx:105 | Move, Delete | doors `admin_move_location` / `admin_delete_location` | locations:restructure | same |
+| 68 locations-page.tsx:106 | Import | route `/api/admin/locations/import` POST | locations:import | same |
+| 69 monetisation-page.tsx:36 | every save | door `admin_save_package_price` (and siblings, all packages:update) | packages:update | same |
+| 70 screening-page.tsx:139 | Approve/Reject (row, bulk, preview), photo reviews/changes | doors `admin_review_listing` / `admin_review_photo_change` | listings:review | same |
+| 70 (split) screening-page.tsx:445 | Show number | door `admin_reveal_listing_contact` | listings:reveal | **D34: follows listings:reveal, not listings:review** |
+| 71 screening-page.tsx:142 | preview photos, Edit | door `admin_edit_listing` | listings:enforce | same |
+| 72 screening-page.tsx:146 | name-check Clear | door `admin_name_check_clear` | profiles:update | same |
+| 73 screening-page.tsx:148 | Resume job | door `admin_job_resume` | services:manage | same |
+| 74 legal-editor-form.tsx:95 | Save draft, fields | door `admin_save_legal_draft` | legal:edit | same |
+| 75 legal-editor-form.tsx:379 | Publish | door `admin_publish_legal_version` | legal:publish | same |
+| 76 legal-editor-form.tsx:392 | save-first caption | door `admin_publish_legal_version` | legal:publish | same |
+| 77 legal-facts-card.tsx:169 | facts Edit | door `admin_set_legal_settings` | legal:edit | same |
+| 78 legal-page.tsx:75 | New version / edit links | door `admin_save_legal_draft` | legal:edit | same |
+| 79 legal-page.tsx:241 | Translate (in force) | door `admin_add_legal_translation` | legal:publish | same |
+| 80 legal-version-view.tsx:300 | Add translation | door `admin_add_legal_translation` | legal:publish | same |
+| 81 legal-version-view.tsx:499 | Export acceptances | door `admin_export_legal_acceptances` | legal:export | same |
+| 82 legal-version-view.tsx:561 | Edit draft | door `admin_save_legal_draft` | legal:edit | same |
+| 83 role-detail.tsx:57 | matrix ticks, meta edit | doors `admin_set_role_permission` / `admin_update_role` | roles:update | see D41 |
+| 84 role-detail.tsx:58 | Delete | door `admin_delete_role` | roles:delete | same |
+| 85 roles-list.tsx:57 | Create | door `admin_create_role` | roles:create | same |
+| 86 languages-page.tsx:115 | flags, order, add, delete | doors `admin_set_language_flags` / `admin_set_language_order` / `admin_upsert_language` / `admin_delete_language` | translations:manage | same |
+| 87 strings-page.tsx:115 | string editor save, flagged | door `admin_save_translation` | translations:update | same |
+| 88 strings-page.tsx:116 | Approve, approve all | doors `admin_set_translation_status` / `admin_approve_all_translations` | translations:approve | same |
+| 89 strings-page.tsx:117 | context box (`string-context-*`) | door `admin_set_key_context` | translations:manage | same |
+| 89 (split) strings-page.tsx:413 | Transfer bar: Export | door `admin_export_translations` | translations:view | **D44: viewers without manage now see Export** |
+| 89 (split) transfer bar: Import / Undo | route `/api/admin/translations/import` POST; door `admin_undo_import` | translations:update / translations:manage | **D44: Import follows update; Undo follows manage** (bar drawn when any of its three is allowed; props passed in, `transfer-bar.tsx` gains three booleans) |
+| 89 (split) strings-page.tsx:124/280 | translator-scope read | door `admin_get_translator_scope` | translations:manage | read switch stays a page decision: **named, not moved** (it asks "is this person a manager", not "may this control call") — kept with its allowlist line unless you rule otherwise |
+| 90 strings-page.tsx:118 | Machine translate | route `/api/translate` POST | translations:machine | same |
+| 91 user-detail.tsx:52 | edit form, status | doors `admin_update_profile` / `admin_set_account_status` | profiles:update | same |
+| 92 user-detail.tsx:53 | assign/remove role | doors `assign_role` / `revoke_role` | roles:assign | same |
+| 93 user-detail.tsx:181 | View as | door `begin_impersonation` | impersonation:use | same |
+| 94 user-detail.tsx:392 | translator languages card | door `admin_set_translator_languages` | translations:manage | same |
+| 95 admin.listings_.$listingId_.edit.tsx:83 | Approve/Reject from screening | door `admin_review_listing` | listings:review | same |
 
-"Draws its own":
-- toolbar-panel.tsx :68 — phone branch draws its own `DialogPrimitive.Overlay` `bg-foreground/45`.
-- preview-sheet.tsx :73–75 — `fixed inset-0`, role=dialog, aria-modal.
-- photo-gallery.tsx :357–361 — full-screen viewer, own role/aria-modal.
-- map-pin-dropper.tsx :352–357 — own overlay `bg-background/80` and panel.
+Note A: rename of a location calls `admin_upsert_location` (locations:create); today it sits under `mayUpdate`. At build I read the editor's call and follow the door; if it is upsert, the rename control moves to locations:create (drawn change for update-only staff). Same check for countries' editor.
 
-Own classes on dialog parts outside the primitive:
-- photo-editor.tsx :237 (`max-h-[95vh] overflow-y-auto`), :350 (`DialogFooter gap-2`); background-dialog.tsx :203 (`gap-2`); legal-publish-dialog.tsx :46 (`max-h-[85dvh] overflow…`). Build turn greps every `*Content|Title|Description|Footer|Header|Close` className across src.
+Not moved (no door): comparisons at listing-page.tsx:139 `profiles:view`, :991 `legal:view`, screening-page.tsx:144 `listings:view` are link gates to other pages and are not `| INC-1281` lines; untouched. Line 89's scope read as above.
 
-Unused primitives:
-- drawer.tsx (vaul): no consumer — **retire** (delete, intentional-deletions line; drops its CF-LOOK-1 line look-values-allowlist :3; vaul stays in package.json — a package change is its own turn, K2).
-- select.tsx (Radix select): no consumer — **retire** (same); the searchable picker and native select own those concerns (D264).
+DPM-1's floor (≥70) will fail after the move (INC-1308, Cursor 8a); every other DPM assertion, stale-line and unlisted check must be clean.
 
-Allowlists:
-- choice-lists-allowlist.txt holds **21** native-select lines "until SAGE-S6", not five as the request says, plus toolbar-panel#PopoverContent. Proposal: the closed native select is a field, not an overlay (D264 premise 4) — each line gets reason "a native select is a dialog field: closed control takes DIALOG_FIELD; the device draws its list" and until `permanent`, collapsed to one rule in CF-LIST-1 (native-select.tsx is the only `<select>` drawer; the 20 consumer lines go once they import NativeSelect — itself a K2 count, ruled per file in the build census). toolbar-panel#PopoverContent goes (S6-2).
-- look-values-allowlist :3 (drawer) goes with drawer.tsx.
+## 2. D19 — Write for me after `featureOff`
+- `step-details.tsx`: a wizard-session flag `assistOff` set when the assist answer's code is `featureOff`; while set, `post-assist` is not drawn and `post-assist-refusal` keeps its existing `featureOff` words. Held where the wizard session lives (the step's parent state if the step remounts; read at build — if it needs a file outside my list, I stop).
+- Test SDA-U1..U3 (free): each of `featureOff`, `providerUnavailable`, `assistBudgetSpent` draws its words in `post-assist-refusal`; SDA-U1 also proves the button is gone after `featureOff`, and SDA-U2 that it stays after `providerUnavailable`.
+- Not screen-only: hiding before any press needs a read of the switch (yours to record).
 
-## Mechanism
-1. **Constants** in `src/components/shell/menu-row.ts` beside the list constants (one look file; rename to `overlay-look.ts` only if ruled):
-   `DIALOG_OVERLAY`, `DIALOG_PANEL` (`bg-popover rounded-dialog px-6 py-5.5 shadow-dialog`), `DIALOG_TITLE` (`font-display text-xl font-extrabold`), `DIALOG_TEXT`, `DIALOG_CLOSE` (40 px, control style), `DIALOG_FOOTER` (`shadow-divider-top pt-4`), `DIALOG_CHOICE` (40 px, 12 px radius, chosen `bg-nav-pill` + `inset ring --nav-ink`), `DIALOG_FIELD` (`bg-field shadow-field`), `SHEET_PANEL` (edge variant of DIALOG_PANEL), `VIEWER_PANEL` (full-screen, no radius). Separators and labels reuse LIST_SEPARATOR/LIST_LABEL.
-2. **Tokens** in styles.css + themes.ts (light/dark): `--radius-dialog` 20px, `--shadow-dialog` (ring + two layers, §14), `--overlay-scrim`, `--shadow-divider-top`. Field tokens reuse `--shadow-field` if present, else added.
-3. **Parts read them only:** dialog.tsx, alert-dialog.tsx, sheet.tsx take the constants; size props (`size="tall"` = bounded height + scroll) replace the consumers' `max-h-…` classes; `DialogFooter` owns its gap.
-4. **Full-screen surfaces join the facade:** a `variant="viewer"` / `variant="sheet-full"` on dialog.tsx (Radix Dialog, so focus trap, Escape, scroll lock, row 77 and NoticeOutlet come free). photo-gallery, preview-sheet and map-pin-dropper move onto it. Fallback if Radix focus trap breaks the map (Leaflet keyboard): map-pin-dropper keeps its layer with an allowlist line `key | reason | until S6-3`.
-5. **Popover joins row 48:** `popover-impl.tsx` (Radix popover + collisionPaddingNow) behind overlay-loader.ts / overlays-impl.ts; popover.tsx becomes a facade (OverlayRoot/Trigger/Content) like dropdown-menu. visible-area leaves first paint again (F4a ruling 2). toolbar-panel's phone branch uses the facade's sheet, not its own Overlay.
-6. **Select** retired, so nothing to join; CF-OV gets a rule that a Radix select import fails.
+## 3. D41 — role matrix
+- `permission-matrix.tsx` gains `readOnly: boolean`; `isSystem` draws only `admin.roles.systemLockedNote`; `readOnly && !isSystem` draws `admin.roles.readOnlyNote` (`role-readonly-note`); ticks disabled when `isSystem || readOnly`.
+- `role-detail.tsx`: `isSystem={role.isSystem}`, `readOnly={!mayUpdate}`, `mayUpdate`/`mayDelete` from `mayCall` (lines 83, 84).
+- Tests RD-5 (system role → system note only), RD-6 (custom, no right → read-only note, no system note, ticks disabled), RD-7 (custom, with right → neither note). IDs free.
 
-## Guard
-- **CF-DIALOG-1** (scripts/conformance/dialogs.test.ts, kit census, wired.test.ts): rule 1 a dialog/sheet/alert part with a look class (radius, shadow, bg, padding, text size/weight, max-h) outside src/components/ui fails; rule 2 `role="dialog"|"alertdialog"`, `aria-modal` or `fixed inset-0` outside the primitives fails; rule 3 a primitive file not reading the DIALOG_* constants fails. Planted DG-1…3. Allowlist `key | reason | until`, empty unless the map fallback is ruled.
-- **CF-OV-4**: popover-impl / any `@radix-ui/react-popover|react-select` import by value outside the impl fails (planted OV-4); the weight guard's MUST_NOT_CARRY adds the popover impl and visible-area for staff pages.
+## 4. INC-1307 words
+- `category-refusals.ts`: `slugTaken` → `admin.categories.error.slugTaken`, `reassignTargetInvalid` → `…reassignTargetInvalid`, `badValue` → `…windowOrder`; `owed` removed. `listing-refusals.ts`: `categoryFixed` → `admin.listings.edit.error.categoryFixed`; `owed` removed. Ten `| INC-1307` lines removed.
+- Tests CRF-4, CRF-5, CRF-6, LRF-8 (free), one per word, exact text.
 
-## Tests
-- Unit: DG-U1…3 (constants read by each part), facade popover test (OVE pattern: impl not imported until open).
-- Browser `e2e/dialogs.spec.ts` at 390, 834, 1440, light and dark, for a dialog (Report this ad), an alert dialog (delete listing confirm) and a sheet (history drawer): panel radius, padding, ring and shadow layers (box-shadow layers parsed as in DCC-1), overlay colour, title size/weight, close 40 px, footer divider, choice row height and chosen ring, field inset. DLG-E1…3.
-- DLG-E4 popover code absent from /admin/… first download, present on first press (OVE).
-- DLG-E5 focus: first field or title on open, back to trigger on close; Escape closes; page does not move (OVS).
-- DLG-E6 reduced motion: no transition.
-- DLG-E7 photo viewer and preview sheet: same overlay token, Escape closes, focus returns.
-- Touched specs whole, both projects, retries 0.
+## 5. Rate family
+`RATE_FAMILY = { … } as const satisfies DoorFamily<{ doors: never }>` — expressible today (`rateLimited` is a `GateCode`, optional; nine families already use `doors: never`). No `src/lib/` change. Its `| INC-1280` line removed. FR-U16 (free) asserts the family's two keys unchanged.
 
-## G38 list (build turn greps and names old → new)
-- Specs reading `bg-black/80` / overlay colour, dialog `rounded-lg`, `p-6`, title `text-lg`; toolbar-panel phone overlay `foreground/45`; photo-gallery / preview-sheet / map-pin-dropper `role=dialog` selectors (testids kept, so most hold); OVE/OVS specs gaining popover rows; the nine staff ceilings lowered in route-budgets.mjs.
+## 6. Retire `post.photo.refusal.screeningPaused`
+Search `rg screeningPaused src e2e scripts`: only `en-base.ts:561` and `am-base.ts:521`. Both entries deleted.
 
-## Growth
-- Nine staff pages: shrink by popover Radix + visible-area (est. −8 to −12 KiB); ceilings lowered to measured + DEC-296 margin.
-- Public pages: dialog constants ride only the on-demand impl; header/feed change ≈ 0 (tokens ≈ +0.1 KiB CSS on every page). Ad page (photo viewer moves onto the facade): est. −0.5 to +0.3 KiB; DEC-296 form for any ceiling crossed.
+## Words
+Script writes the five keys into `en-admin.ts` / `am-admin.ts` from the JSON after checking sha256 `903eb05a…1135e`; then a byte comparison of each written value against the JSON.
 
-## Turns
-- S6-1: tokens, constants, parts, CF-DIALOG-1 rules 1/3, DLG-E1…3/E5/E6, own-class consumers moved, drawer/select retired.
-- S6-2: popover facade + impl, toolbar-panel, CF-OV-4, DLG-E4, staff ceilings lowered, allowlist lines settled.
-- S6-3: viewer/full sheet variant; photo-gallery, preview-sheet, map-pin-dropper; CF-DIALOG-1 rule 2 with empty allowlist; DLG-E7.
+## Tests that read what changes
+- Unit: existing tests of screening, attributes, categories, countries, strings/transfer bar, role detail that mock `usePermissions` with a permissions list keep passing when the list holds the door's permission; any mocking the old permission for Show number / Move up / Remove / Export is updated to the door's permission (named at build with file:line).
+- Browser (not mine): `e2e/admin-screening.spec.ts:630–746` (Show number) and `e2e/admin-attributes-library.spec.ts:562–651, 821` and `e2e/admin-categories-console.spec.ts:1098–1100` assert these controls; they pass only if their signed-in staff hold listings:reveal / categories:update. I could not read the fixture roles' permission sets in this turn — please confirm or give to Cursor. `e2e/post-wizard-specs.spec.ts:436, 1282` press `post-assist` with writing help on: unaffected.
 
-## Open points for the ruling
-1. The 21 native-select lines (not 5): permanent as dialog fields, or each converted to NativeSelect.
-2. Retiring drawer.tsx and select.tsx (vaul / Radix select packages removed in a later package turn).
-3. Map pin dropper on the Radix dialog, or allowlisted.
+## Not screen-only
+D19 pre-press hiding (switch read). Nothing else.
 
-## Technical scope (build)
-src/components/ui/{dialog,alert-dialog,sheet,popover,dialog-primitive,overlay-facade,overlay-loader,overlays-impl}.tsx, new popover-impl.tsx; menu-row.ts; styles.css, themes.ts; the consumers above; scripts/conformance/; e2e/dialogs.spec.ts; route-budgets.mjs; docs; intentional-deletions.txt. AGENTS.md not in scope.
+## Build checks
+Typecheck; eslint + prettier on touched files; `bunx vitest run src`; door-permissions.test.ts (only DPM-1 floor may fail), door-words.test.ts, forms guard, locale guards; `bun run i18n:usage` with maps committed; final write-back from `70df93185` of platform paths. Sandbox `git init` limits on some conformance tests will be named.
