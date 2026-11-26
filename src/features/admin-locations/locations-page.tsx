@@ -22,7 +22,6 @@ import { TipBadge } from "@/components/shell/tip-badge";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
@@ -49,6 +48,7 @@ import {
 } from "./locations-service";
 import { ADMIN_LOCATIONS_KEY, useAdminLocations, useAllCountries } from "./use-locations";
 import { useRetryFailed } from "@/components/shell/use-retry-failed";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * LOCATIONS ERA L2a-R — THE LOCATIONS CONSOLE, PART 1, RECONCILED.
@@ -98,12 +98,13 @@ export function AdminLocationsPage() {
    * records: their openers wait while it re-reads or a write to it is in flight.
    */
   const settling = useSettling(ADMIN_LOCATIONS_KEY);
-  const { permissions } = useAdminShell();
 
-  const mayCreate = permissions.includes("locations:create");
-  const mayUpdate = permissions.includes("locations:update");
-  const mayRestructure = permissions.includes("locations:restructure");
-  const mayImport = permissions.includes("locations:import");
+  const { mayCall } = useMayCall();
+  const mayCreate = mayCall({ door: "admin_upsert_location" });
+  const mayUpdate = mayCall({ door: "admin_set_location_active" });
+  const mayReorder = mayCall({ door: "admin_reorder_locations" });
+  const mayRestructure = mayCall({ door: "admin_move_location" });
+  const mayImport = mayCall({ route: "/api/admin/locations/import", method: "POST" });
 
   const countries = useAllCountries();
   const [country, setCountry] = useState("");
@@ -335,7 +336,7 @@ export function AdminLocationsPage() {
         onSelect: () => open({ kind: "move", id: row.id }),
       });
     }
-    if (mayUpdate && row.level !== "country") {
+    if (mayReorder && row.level !== "country") {
       more.push({
         key: "reorder",
         label: t("admin.locations.action.reorder"),
@@ -349,7 +350,7 @@ export function AdminLocationsPage() {
         testid={`location-actions-${keyTestId(row.key)}`}
         name={row.nameEn}
         edit={
-          mayUpdate
+          mayCreate
             ? {
                 label: t("admin.locations.action.edit"),
                 disabled: settling,

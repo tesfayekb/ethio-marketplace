@@ -19,7 +19,6 @@ import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -28,6 +27,7 @@ import type { MessageKey } from "@/i18n/types";
 import { ROLE_REFUSALS, roleRefusalKey, type RoleSummary } from "./roles-service";
 import { useAdminRolesDetailed, useCreateRole } from "./use-admin-roles";
 import { useRetryFailed } from "@/components/shell/use-retry-failed";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 const TABLE_ID = "admin-roles";
 const LOCKED = ["name"];
@@ -53,8 +53,8 @@ export function AdminRolesList() {
   const { t } = useI18n();
   const retryFailed = useRetryFailed();
   const navigate = useNavigate();
-  const { permissions } = useAdminShell();
-  const mayCreate = permissions.includes("roles:create");
+  const { mayCall } = useMayCall();
+  const mayCreate = mayCall({ door: "admin_create_role" });
   const { data, isLoading, error } = useAdminRolesDetailed();
   const [creating, setCreating] = useState(false);
   const [hidden, toggleColumn] = useHiddenColumns(TABLE_ID);

@@ -2115,4 +2115,10 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.categories.error.unknownPointer": "ወደ ሌላ ምድብ የሚወስደው ያ አገናኝ ከአሁን በኋላ በመዝገብ ላይ የለም።",
   "admin.categories.error.parentInactive": "በመጀመሪያ ከበላዩ ያለውን ምድብ ያብሩ።",
   "admin.ai.error.badEnabled": "ባህሪው እንዲበራ ወይም እንዲጠፋ ይምረጡ።",
+  "admin.categories.error.slugTaken": "ሌላ ምድብ ይህን slug አስቀድሞ ይጠቀማል። የተለየ ይምረጡ።",
+  "admin.categories.error.reassignTargetInvalid":
+    "ለዝርዝሮቹ የመረጡት ምድብ ጠፍቷል ወይም ዝርዝሮችን አይቀበልም። ሌላ ይምረጡ።",
+  "admin.categories.error.windowOrder": "“የሚታይ እስከ” ከ“የሚታይ ከ” በኋላ መሆን አለበት።",
+  "admin.listings.edit.error.categoryFixed": "የተለጠፈ ዝርዝር ምድብ ሊቀየር አይችልም።",
+  "admin.roles.readOnlyNote": "የዚህን ሚና ፈቃዶች ማየት ይችላሉ፤ ግን መለወጥ አይችሉም።",
 };

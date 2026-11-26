@@ -235,6 +235,8 @@ function WizardShell({
   // Bundle 22 turn 4 — a seller's edit save carries the publishing certification (L1 v2 item 4).
   const sellerEdit = edit !== null && edit.actor === "seller" && listingId !== null;
   const [certify, setCertify] = useState<CertifyState>(CERTIFY_LOADING);
+  /** D19 — writing help answered `featureOff`: "Write for me" stays hidden for this wizard session. */
+  const [assistOff, setAssistOff] = useState(false);
   // Bundle 22 turn 32 (D231) — the seller edit's Next is drawn closed while its certification is unticked;
   // a tap bumps the block's `tried`, which marks the tick refused.
   const [certifyTried, setCertifyTried] = useState(0);
@@ -1647,6 +1649,8 @@ function WizardShell({
                             refusals={shownRefusals}
                             onChange={(patch, immediate) => draft.change(patch, immediate)}
                             onMissing={onMissingDetails}
+                            assistOff={assistOff}
+                            onAssistOff={() => setAssistOff(true)}
                           />
                         )}
                         {draft.step === 6 && (

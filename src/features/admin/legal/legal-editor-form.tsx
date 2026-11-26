@@ -19,7 +19,6 @@ import {
   AlertDialogDescription,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -37,6 +36,7 @@ import {
 import { LegalPublishDialog } from "./legal-publish-dialog";
 import { useBaseLanguages, useLegalWrites } from "./use-legal";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 export function LegalEditorForm({
   kind,
@@ -54,7 +54,7 @@ export function LegalEditorForm({
   first: boolean;
 }) {
   const { t } = useI18n();
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
   const countries = useCountries();
   // F1-1 (INC-850): the door answers the extra languages already filtered — the base pair and the
   // pseudo tag never come back, so the editor keeps no language list of its own.
@@ -92,7 +92,8 @@ export function LegalEditorForm({
   const [importError, setImportError] = useState<MessageKey | null>(null);
   const document = `${kindKey(kind) ? t(kindKey(kind) as MessageKey) : kind} · ${country ? (countries.data?.find((c) => c.code === country)?.nameEn ?? country) : t("admin.legal.scope.global")}`;
   const changed = JSON.stringify(values) !== JSON.stringify(savedValues);
-  const mayEdit = permissions.includes("legal:edit");
+  const mayEdit = mayCall({ door: "admin_save_legal_draft" });
+  const mayPublish = mayCall({ door: "admin_publish_legal_version" });
   const bodyFor = (l: string) =>
     l === "en" ? values.body_en : l === "am" ? values.body_am : (ownValue(values.texts, l) ?? "");
   const updateBody = (v: DraftInput, l: string, body: string): DraftInput =>
@@ -376,7 +377,7 @@ export function LegalEditorForm({
                 ) : null}
               </>
             ) : null}
-            {permissions.includes("legal:publish") ? (
+            {mayPublish ? (
               <Button
                 data-testid="legal-publish"
                 disabled={!savedId || changed || saving || writes.save.isPending}
@@ -389,7 +390,7 @@ export function LegalEditorForm({
               <Link to="/admin/legal">{t("admin.legal.action.back")}</Link>
             </Button>
           </div>
-          {permissions.includes("legal:publish") && (!savedId || changed) ? (
+          {mayPublish && (!savedId || changed) ? (
             <p className="text-sm text-muted-foreground">{t("admin.legal.saveFirst")}</p>
           ) : null}
           {saved && !changed ? <p role="status">{t("admin.legal.saved")}</p> : null}

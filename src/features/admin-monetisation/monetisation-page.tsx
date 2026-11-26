@@ -1,7 +1,6 @@
 import { useLocation } from "@tanstack/react-router";
 
 import { OrderStrip } from "@/components/shell/order-strip";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
@@ -11,6 +10,7 @@ import { monetisationSteps } from "./monetisation-order";
 import { ProductsSection } from "./products-section";
 import { ADMIN_MONETISATION_KEY, useMonetisation } from "./use-monetisation";
 import { useMonetisationNames } from "./use-monetisation-names";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * P-1b (D290, D295, D303, D304, D311, D312), regrouped by P-1c (D313) — ADMIN ›
@@ -32,8 +32,8 @@ import { useMonetisationNames } from "./use-monetisation-names";
 export function AdminMonetisationPage() {
   const { t } = useI18n();
   const settling = useSettling(ADMIN_MONETISATION_KEY);
-  const { permissions } = useAdminShell();
-  const mayUpdate = permissions.includes("packages:update");
+  const { mayCall } = useMayCall();
+  const mayUpdate = mayCall({ door: "admin_save_package_price" });
   const query = useMonetisation();
   const products = query.data?.products ?? [];
   const overrides = query.data?.overrides ?? [];

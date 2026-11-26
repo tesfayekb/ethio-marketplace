@@ -152,7 +152,6 @@ describe("an admin's edit (turn L4a)", () => {
     // A field the edit may not change, the gate codes with no words of their own, a sentence: the generic.
     expect(editErrorKey("badValue:seller_id")).toBe("common.error");
     expect(editErrorKey("notSignedIn")).toBe("common.error");
-    expect(editErrorKey("categoryFixed")).toBe("common.error");
     expect(editErrorKey("something else")).toBe("common.error");
     expect(editErrorKey({ message: "ownListing", code: "P0D01" })).toBe(
       "admin.listings.move.error.own",
@@ -282,5 +281,10 @@ describe("the seller's edit, complete (bundle 16 turn E2b, D187)", () => {
     expect(
       editChanges(own(), { ...values, title: "Samsung fridge 300L", directions: "Gate 3" }),
     ).toEqual({ title: "Samsung fridge 300L", directions: "Gate 3" });
+  });
+
+  it("LRF-8 INC-1307 — a posted listing's fixed category reads its own words", () => {
+    expect(editErrorKey("categoryFixed")).toBe("admin.listings.edit.error.categoryFixed");
+    expect(editErrorKey("noSuchCode")).toBe("common.error");
   });
 });

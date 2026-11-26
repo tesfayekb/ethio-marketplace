@@ -6,7 +6,6 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { unknownTokens } from "@/features/legal/legal-markdown";
 import { Button } from "@/components/ui/button";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { LegalText } from "@/features/legal/legal-text";
@@ -31,6 +30,7 @@ import { dateFormatter } from "@/lib/format";
 import { isUnknownVersion } from "./unknown-version";
 import { FailureNotice } from "@/components/shell/failure-notice";
 import { useRetryFailed } from "@/components/shell/use-retry-failed";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
 function CompareText({
@@ -121,7 +121,7 @@ export function LegalVersionView({
 }) {
   const { t, language } = useI18n();
   const retryFailed = useRetryFailed();
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
   const version = useLegalVersion(versionId);
   const settings = useLegalSettings();
   const documents = useLegalDocuments();
@@ -297,7 +297,7 @@ export function LegalVersionView({
                 <div className={openTranslation ? "order-2" : undefined}>
                   <LegalText text={text} facts={facts} toc />
                 </div>
-                {row.status === "published" && permissions.includes("legal:publish") ? (
+                {row.status === "published" && mayCall({ door: "admin_add_legal_translation" }) ? (
                   <section ref={panel} className="min-w-0 scroll-mt-20 space-y-3 print:hidden">
                     <Button
                       data-testid="legal-translation-add"
@@ -496,7 +496,7 @@ export function LegalVersionView({
                   </section>
                 ) : null}
               </div>
-              {row.status === "published" && permissions.includes("legal:export") ? (
+              {row.status === "published" && mayCall({ door: "admin_export_legal_acceptances" }) ? (
                 <section data-testid="legal-export-section" className="space-y-2 print:hidden">
                   <Button
                     variant="outline"
@@ -558,7 +558,7 @@ export function LegalVersionView({
               ) : (
                 <>
                   <p>{t("admin.legal.view.draftFacts")}</p>
-                  {permissions.includes("legal:edit") ? (
+                  {mayCall({ door: "admin_save_legal_draft" }) ? (
                     <Button asChild data-testid="legal-edit-draft">
                       <Link
                         to="/admin/legal/edit"

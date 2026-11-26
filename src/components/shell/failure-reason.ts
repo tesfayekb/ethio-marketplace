@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import type { MessageKey } from "@/i18n";
 import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
-import { rateUntilOf, readRefusal, type RefusalFamily, type RefusalRead } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { rateUntilOf, readRefusal, type RefusalRead } from "@/lib/refusal";
 
 /**
  * DEC-464 / INC-1279 — THE FAILURE NOTICE'S ONE READING. A query's or an action's failure becomes
@@ -43,10 +44,10 @@ export function isRetryable(kind: FailureKind): boolean {
 }
 
 /** The rate refusal's words: `{when}` only for an instant still to come (the reader's own rule). */
-export const RATE_FAMILY: RefusalFamily = {
+export const RATE_FAMILY = {
   words: { rateLimited: "failure.rateLimitedSoon" },
   when: { rateLimited: "failure.rateLimited" },
-};
+} as const satisfies DoorFamily<{ doors: never }>;
 
 export type FailureReading = {
   kind: FailureKind;

@@ -3178,6 +3178,9 @@
     "admin.roles.perm.title": [
       "/admin/roles/$roleId"
     ],
+    "admin.roles.readOnlyNote": [
+      "/admin/roles/$roleId"
+    ],
     "admin.roles.searchLabel": [
       "/admin/roles"
     ],

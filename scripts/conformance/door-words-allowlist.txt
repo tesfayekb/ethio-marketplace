@@ -31,15 +31,4 @@ family src/features/auth/auth-error-key.ts#AUTH_REFUSALS | provider family, no d
 family src/features/auth/mfa/mfa-refusals.ts#MFA_REFUSALS | provider family, no door | permanent
 family src/features/auth/mfa/mfa-service.ts#MFA_ENROLL_REFUSALS | provider family, no door | permanent
 family src/features/admin-monetisation/monetisation-refusals.ts#MONETISATION_REFUSALS | the form judge's family: its keys are the judge's own message keys, built from FIELD_KEYS; no door | permanent
-family src/components/shell/failure-reason.ts#RATE_FAMILY | the shared rate words, no door (the gate code rateLimited only); its file is outside cursor bundle 7c's scope, so it is typed by the turn that next holds it | INC-1280
 family src/features/admin/import-dialog.tsx#family | the merge at the call of three typed families: the consoles' shared words, the import's and the console's own | permanent
-owed badValue admin_commit_category_import | words owed | INC-1307
-owed badValue admin_set_category_window | words owed | INC-1307
-owed badValue admin_undo_category_import | words owed | INC-1307
-owed categoryFixed admin_edit_listing | words owed | INC-1307
-owed reassignTargetInvalid admin_commit_category_import | words owed | INC-1307
-owed reassignTargetInvalid admin_retire_category | words owed | INC-1307
-owed reassignTargetInvalid admin_undo_category_import | words owed | INC-1307
-owed slugTaken admin_commit_category_import | words owed | INC-1307
-owed slugTaken admin_create_category | words owed | INC-1307
-owed slugTaken admin_undo_category_import | words owed | INC-1307

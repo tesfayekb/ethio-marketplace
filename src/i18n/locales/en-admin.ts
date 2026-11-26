@@ -2263,4 +2263,11 @@ export const enAdmin = {
   "admin.categories.error.unknownPointer": "That link to another category is no longer on record.",
   "admin.categories.error.parentInactive": "Switch on the category above it first.",
   "admin.ai.error.badEnabled": "Choose whether the feature is on or off.",
+  "admin.categories.error.slugTaken":
+    "Another category already uses this slug. Choose a different one.",
+  "admin.categories.error.reassignTargetInvalid":
+    "The category you chose for the listings is switched off or does not take listings. Choose another.",
+  "admin.categories.error.windowOrder": "“Visible until” must be later than “Visible from”.",
+  "admin.listings.edit.error.categoryFixed": "A posted listing's category cannot be changed.",
+  "admin.roles.readOnlyNote": "You can view this role's permissions but not change them.",
 } as const;
