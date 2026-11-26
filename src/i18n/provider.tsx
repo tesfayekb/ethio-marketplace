@@ -48,8 +48,14 @@ import {
  * provider's state and fallback chain keep their shape. A layer's keys
  * (DEC-258: admin, member) are undefined until the layer loads; the shell's
  * gate waits for them before a route that declares the layer draws.
+ *
+ * INC-1193 — read when called, never at module load: in the dev server's chunks
+ * `en-base.ts` sits in the shared-shell chunk, which this module's chunk can be
+ * evaluated before, so a module-level read of `enBase` throws there.
  */
-const enFirstPaint = enBase as unknown as Messages;
+function enFirstPaint(): Messages {
+  return enBase as unknown as Messages;
+}
 
 export const LANGUAGE_STORAGE_KEY = "ethio.lang";
 
@@ -644,7 +650,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       const merge = (pick: (part: (typeof parts)[number]) => Partial<Messages> | null) =>
         parts.reduce<Partial<Messages>>((all, part) => ({ ...all, ...(pick(part) ?? {}) }), {});
-      const englishText = { ...enFirstPaint, ...merge((part) => part.en) };
+      const englishText = { ...enFirstPaint(), ...merge((part) => part.en) };
       // INC-1023: the build's own text for the active language — a copied row yields to it.
       const shipped: Partial<Messages> =
         language === BASE_LANGUAGE ? englishText : { ...compiled, ...merge((part) => part.lang) };
@@ -754,7 +760,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     void pageHeadClient.load().then(
       (head) => {
-        if (!cancelled) head.applyPageHead((key) => messages[key] ?? enFirstPaint[key]);
+        if (!cancelled) head.applyPageHead((key) => messages[key] ?? enFirstPaint()[key]);
       },
       (reason: unknown) => reportOnDemandFailure("page head", reason),
     );
@@ -781,9 +787,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nValue>(
     () => ({
       language,
-      t: (key: MessageKey) => messages[key] ?? enFirstPaint[key],
+      t: (key: MessageKey) => messages[key] ?? enFirstPaint()[key],
       has: (key: string) =>
-        ownValue(messages, key) !== undefined || ownValue(enFirstPaint, key) !== undefined,
+        ownValue(messages, key) !== undefined || ownValue(enFirstPaint(), key) !== undefined,
       entities,
       publicLanguages,
       star,

@@ -8,7 +8,7 @@ import {
 } from "react";
 
 import { callRoute, routeFailure } from "@/lib/route-client";
-import { entityName, type EntityBundle } from "@/i18n/entity";
+import { entityName, type EntityBundle } from "@/i18n";
 
 /**
  * U6-C1a — THE ONE CATEGORY-TREE READER (law B2).
