@@ -21,6 +21,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { AiBulkBar, type CountState } from "./ai-bulk-bar";
 import { ApproveAllBar } from "./approve-bar";
 import {
@@ -203,12 +204,21 @@ export function DataScope({
       </p>
 
       <div className="flex min-w-0 flex-wrap items-start gap-3">
+        {stats.isError && !mayMachine ? (
+          <FailureNotice
+            size="line"
+            testid="data-stats-error"
+            error={stats.error}
+            onRetry={() => void stats.refetch()}
+          />
+        ) : null}
         {mayMachine ? (
           <AiBulkBar
             lang={lang}
             scope="entity"
             untranslated={langStats?.untranslated ?? 0}
             countState={countState}
+            countRead={{ error: stats.error, onRetry: () => void stats.refetch() }}
             guard={guard}
             filter={query}
           />

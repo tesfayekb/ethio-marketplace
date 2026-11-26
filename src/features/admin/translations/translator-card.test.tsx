@@ -72,3 +72,17 @@ it("TL-U3 a loaded empty assignable roster shows the existing caption and no sel
   );
   expect(screen.queryByTestId("translator-lang")).toBeNull();
 });
+it("TL-U4 a scope read that could not reach the server offers Retry, and Retry reads it again", async () => {
+  mocks.rpc.mockReset();
+  mocks.rpc.mockRejectedValueOnce(new TypeError("TypeError: Failed to fetch"));
+  mocks.rpc.mockResolvedValue({
+    data: [{ eligible: true, languages: ["scratch-a"] }],
+    error: null,
+  });
+  draw();
+  const retry = await waitFor(() => screen.getByTestId("translator-check-error-retry"));
+  expect(screen.getByTestId("translator-lang")).toBeDisabled();
+  fireEvent.click(retry);
+  await waitFor(() => expect(screen.getByTestId("translator-lang")).not.toBeDisabled());
+  expect(mocks.rpc).toHaveBeenCalledTimes(2);
+});

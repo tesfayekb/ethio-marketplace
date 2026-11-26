@@ -6,6 +6,8 @@ import {
   PanelSubject,
 } from "@/components/ui/dialog-parts-facade";
 import { Field } from "@/components/forms/field";
+import { FailureNotice } from "@/components/shell/failure-notice";
+import type { FailureReading } from "@/components/shell/failure-reason";
 import { useFormGate } from "@/components/forms/use-form-gate";
 import { useState } from "react";
 
@@ -47,6 +49,13 @@ import { useDeleteLanguage, useLanguageDeletePreview } from "./use-translations"
  * Delete (RowActions) and is drawn only while it is open; the result line is
  * handed to the roster (`onDeleted`), because the deleted row leaves the list.
  */
+/** A preview that answered without its counts: the read already decided it. */
+const PREVIEW_EMPTY: FailureReading = {
+  kind: "server",
+  diagnostic: "answered no counts",
+  until: undefined,
+};
+
 export function DeleteLanguageDialog({
   row,
   guard,
@@ -109,15 +118,23 @@ export function DeleteLanguageDialog({
         <PanelBody>
           <PanelSubject title={row.nameNative || row.nameEn} />
           <p data-testid={`lang-delete-counts-${row.code}`} className="text-sm text-foreground">
-            {preview.isPending
-              ? t("admin.translations.delete.countsLoading")
-              : preview.isError || !preview.data
-                ? t("admin.translations.delete.countsError")
-                : t("admin.translations.delete.counts")
-                    .replace("{ui}", String(preview.data.uiRows))
-                    .replace("{entity}", String(preview.data.entityRows))
-                    .replace("{revisions}", String(preview.data.revisions))
-                    .replace("{assignments}", String(preview.data.assignments))}
+            {preview.isPending ? (
+              t("admin.translations.delete.countsLoading")
+            ) : preview.isError || !preview.data ? (
+              <FailureNotice
+                size="line"
+                testid={`lang-delete-counts-error-${row.code}`}
+                {...(preview.isError ? { error: preview.error } : { reading: PREVIEW_EMPTY })}
+                onRetry={() => void preview.refetch()}
+                subject={t("admin.translations.delete.countsError")}
+              />
+            ) : (
+              t("admin.translations.delete.counts")
+                .replace("{ui}", String(preview.data.uiRows))
+                .replace("{entity}", String(preview.data.entityRows))
+                .replace("{revisions}", String(preview.data.revisions))
+                .replace("{assignments}", String(preview.data.assignments))
+            )}
           </p>
           <Field
             id={`lang-delete-confirm-${row.code}`}

@@ -125,15 +125,16 @@ export function TranslatorLanguagesCard({ userId, guard }: { userId: string; gua
               setSaved(false);
               setSelected(next);
             }}
-            state={
-              scope.isError || languages.error
-                ? "failed"
-                : scope.isLoading || languages.isLoading
-                  ? "loading"
-                  : "ready"
-            }
+            read={{
+              isLoading: scope.isLoading || languages.isLoading,
+              error: scope.isError ? scope.error : languages.error,
+              onRetry: () => {
+                if (scope.isError) void scope.refetch();
+                if (languages.error) void languages.refetch();
+              },
+            }}
             loadingLabel={t("admin.translations.loading")}
-            failedLabel={t(
+            subject={t(
               scope.isError
                 ? "admin.translations.translator.checkError"
                 : "admin.translations.error",
