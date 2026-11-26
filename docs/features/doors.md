@@ -406,8 +406,9 @@ DW-6 and DW-7 a planted file's bypasses are found, and its wrong families do not
 
 The import dialog (`src/features/admin/import-dialog.tsx`) reads a refused answer through the route
 client's typed failure (`routeFailure`): a code the console's, the import's (`IMPORT_REFUSALS`, the
-places import's doors) or the shared words name draws its reason line; any other code draws only
-the general failure line, never the code.
+places import's doors) or the shared words name draws its reason line, its sentence filled from
+the route's own detail (the failure keeps only a short-code detail, and a commit's detail names its
+rows); any other code draws only the general failure line, never the code (IRW-6, IRW-9).
 
 ## A refusal's status names its kind (cursor-bundle-7a Part 2, INC-1287)
 

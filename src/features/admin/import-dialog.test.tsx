@@ -183,6 +183,15 @@ describe("import dialog reason words (L1)", () => {
     expect(reasonLine()).toBeNull();
   });
 
+  it("IRW-9 a door key's detail that is no short code still fills its sentence", async () => {
+    await commitWith(
+      refused(400, "admin.attributes.error.parentAfterChild", "cat-a: par_b → chi_c"),
+    );
+    expect(reasonLine()).toBe(
+      "Reason: Order refused in cat-a: par_b → chi_c: the second attribute depends on the first and is asked before it. Put the first one above it.",
+    );
+  });
+
   it("IRW-7 a dialog's own refusals win for their codes", async () => {
     await commitWith(refused(400, "planHasRefusals"), {
       words: { planHasRefusals: "admin.import.reason.unknownBatch" as never },
