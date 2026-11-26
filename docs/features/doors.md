@@ -118,6 +118,25 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   see the same calls — INC-1072's other half: the smoke lane's second live run read the
   `attr_option_norm_v2` allowance as stale because chunk 2 calls it), named in
   `scripts/conformance/wired.test.ts`.
+- **The codes include the callees' (cursor-bundle-7c Part 1, INC-1301).** A line's `codes` cell
+  is every code the door can answer besides the shared gate codes: its body's own `door_refuse`
+  literals (and the list rule's `badValue`) and those of every function of schema public its body
+  names, followed transitively through their bodies (`calleeReach` in `judge.ts`: every overload
+  of a called name, the door's own other overloads included, each key once; `door_context`,
+  `door_refuse` and `door_refused` are not followed — the gate's refusals are the shared gate
+  codes). A live definition's header (`CREATE … AS $tag$`) is no call, so both modes walk the same
+  chains. Two kinds judge it: `callee-code-missing` (key `<door key> <code>`, naming the functions
+  that refuse it) when the line lacks a callee's code, and `callee-unread` when a body on the chain
+  refuses with no literal code or runs dynamic SQL (`EXECUTE`), so the judge cannot read its codes;
+  `class-mismatch` keeps a code the body itself refuses that the line lacks, and a listed code
+  neither the body nor any callee refuses. The walk reads text, not branches: a callee's code is
+  listed even where the door's own arguments keep that branch shut (`admin_export_attributes()`
+  passes NULL to the helper whose `unknownCategory` fires only for a named scope). The landing
+  widened 39 lines (192 codes; the export doors at `admin_export_attributes()` and
+  `admin_export_attributes(text)` among them) and found no unread chain. A trigger's refusals are
+  not a call and are not followed (the places trigger, `locations_ancestry_guard`).
+  `check-doors.test.ts` DOORS-22; the self-test's planted pair: a door, a core, a leaf that refuses
+  `calleeCode`.
 - `scripts/check-caller-gates.ts` and its allowlist and fixture are retired (DEC-334's frozen
   rule: the new step gates only after it has failed on its planted fixtures in the same run).
 

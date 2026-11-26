@@ -36,8 +36,10 @@
  * - `acceptance` — the acceptance guard's class word (legal, account, staff,
  *   draft, signal, helper, guarded, takedown), `checks` for a door that names
  *   legal_acceptance_pending( or legal_certify( itself, or `-` (a reader).
- * - `codes` — the door's OWN refusal codes besides the shared gate codes,
- *   comma-separated, or `-`.
+ * - `codes` — every refusal code the door can answer besides the shared gate codes
+ *   (door_context's): its body's own `door_refuse` literals and those of every function of
+ *   schema public its body calls, followed transitively (judge.ts: callee-code-missing,
+ *   cursor-bundle-7c), comma-separated, or `-`.
  * - `reason` — free text; required for `helper` (`policy <names>`, `invoker-chain`,
  *   `none[: caller <where>]`: the forms are written at HELPER_REASONS) and for every `none:` step-up. A helper's `policy <name>, <name>, …` names
  *   the standing row policies that call it (judge.ts: helper-reason-unproven). A reader off the

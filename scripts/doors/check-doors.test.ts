@@ -7,8 +7,11 @@ import { describe, expect, it } from "vitest";
 
 import { GRANT_DROPPED_FLOOR, catalogueOf, splitTopLevel } from "./catalogue";
 import {
+  PLANTED_CALLEE_LINE,
   PLANTED_COMPUTED_FILE,
   PLANTED_HELPER_LINE,
+  PLANTED_LEAF_REFUSES,
+  PLANTED_LEAF_UNREAD,
   PLANTED_LIST_LINE,
   PLANTED_LIST_OFF,
   PLANTED_LIST_THROUGH,
@@ -26,6 +29,7 @@ import {
   READER_SHELL_BODY,
   allow,
   liveFindings,
+  plantedCallees,
   plantedCases,
   plantedDropHistory,
   plantedGrant,
@@ -37,7 +41,14 @@ import {
   staticFindings,
 } from "./check-doors";
 import { columnsOf, declaredColumns } from "./columns";
-import { FINDING_KINDS, doorContextCall, judge, reasonPolicies } from "./judge";
+import {
+  FINDING_KINDS,
+  calleeReach,
+  doorContextCall,
+  judge,
+  reasonPolicies,
+  rowIndex,
+} from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
 import { liveGrants, openRuleFindings, parseOpenRules, type OpenRuleEvidence } from "./open-rules";
 import {
@@ -84,7 +95,8 @@ import { declaredStepUps, stepUpsOf } from "./step-ups";
  * F1-7a, INC-1212); a dynamic grant on a proof's pg_temp copy is no public grant (DOORS-14, F1-7a);
  * a body on the gate keeps the shell exactly when it spends a dial (DOORS-15, F1-7c ruling 1); a
  * country, category or scope argument is read through the list rule or stands on an allowlist line
- * (DOORS-18, cursor-bundle-2, DEC-423).
+ * (DOORS-18, cursor-bundle-2, DEC-423); a line names every code its door's callees refuse, followed
+ * transitively, and a chain the judge cannot read is named (DOORS-22, cursor-bundle-7c, INC-1301).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -1041,6 +1053,78 @@ describe("check-doors (CF-DOORS)", () => {
     expect(run.status).not.toBe(0);
     expect(run.stderr).toContain("the live role rules' TSV path");
   });
+
+  it(
+    "DOORS-22 a line names every code its door's callees refuse, followed transitively; a chain the judge cannot read is named (cursor-bundle-7c, INC-1301)",
+    { timeout: TREE_READ_MS },
+    () => {
+      const findingsOf = (rows: DoorRow[], manifest: string) =>
+        judge(rows, parseManifest(manifest)).map((finding) => `${finding.kind} ${finding.key}`);
+      // Two calls deep: the leaf's code reaches the door, and the line that lacks it fails.
+      const walked = plantedCallees(PLANTED_LEAF_REFUSES);
+      const door = walked[0] as DoorRow;
+      expect(findingsOf(walked, PLANTED_CALLEE_LINE)).toEqual([]);
+      expect(findingsOf(walked, PLANTED_CALLEE_LINE.replace("| calleeCode |", "| - |"))).toEqual([
+        "callee-code-missing e2e_planted_owner(uuid) calleeCode",
+      ]);
+      expect(
+        judge(walked, parseManifest(PLANTED_CALLEE_LINE.replace("| calleeCode |", "| - |")))[0]
+          ?.what,
+      ).toBe("e2e_planted_leaf(uuid) refuses calleeCode, which the line lacks");
+      // A listed code neither the body nor a callee refuses is the line's error.
+      expect(
+        findingsOf(walked, PLANTED_CALLEE_LINE.replace("| calleeCode |", "| calleeCode,gone |")),
+      ).toEqual(["class-mismatch e2e_planted_owner(uuid)"]);
+      // A leaf whose refusal has no literal code is named, never skipped.
+      expect(
+        findingsOf(
+          plantedCallees(PLANTED_LEAF_UNREAD),
+          PLANTED_CALLEE_LINE.replace("| calleeCode |", "| - |"),
+        ),
+      ).toEqual(["callee-unread e2e_planted_owner(uuid)"]);
+      // The gate is not followed: door_context's refusals are the shared gate codes.
+      const gate = {
+        ...door,
+        key: "door_context(text)",
+        name: "door_context",
+        body: "BEGIN PERFORM public.door_refuse('notSignedIn'); END",
+        authenticated: false,
+      };
+      expect(calleeReach(door, rowIndex([door, gate])).codes.size).toBe(0);
+      // A door that hands its work to its own overload reaches that overload's callees.
+      const bare = {
+        ...door,
+        key: "e2e_planted_owner()",
+        body: "BEGIN RETURN public.e2e_planted_owner(NULL::uuid); END",
+      };
+      const overloads = [bare, ...walked];
+      expect([...calleeReach(bare, rowIndex(overloads)).codes]).toEqual([
+        ["calleeCode", ["e2e_planted_leaf(uuid)"]],
+      ]);
+      // The live catalogue's one-line definitions walk the same way: the header names no call.
+      const live = liveRows(
+        walked
+          .map(
+            (row) =>
+              `${row.key}\tv\tt\tf\t${row.authenticated ? "t" : "f"}\tf\t${liveDefinitionOf(row)}`,
+          )
+          .join("\n"),
+      );
+      expect([...calleeReach(live[0] as DoorRow, rowIndex(live)).codes.keys()]).toEqual([
+        "calleeCode",
+      ]);
+      // The tree: both export doors answer their helper's unknownCategory (manifest :41 and :42).
+      const { rows } = staticRows(ROOT);
+      const index = rowIndex(rows);
+      for (const key of ["admin_export_attributes()", "admin_export_attributes(text)"]) {
+        const row = rows.find((candidate) => candidate.key === key);
+        expect(row, key).toBeDefined();
+        expect(calleeReach(row as DoorRow, index).codes.get("unknownCategory"), key).toEqual([
+          "attr_export_payload(text)",
+        ]);
+      }
+    },
+  );
 
   it(
     "DOORS-4 the repository's tree reconciles: every browser-callable function has its line, every line its door",
