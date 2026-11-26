@@ -272,6 +272,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/failure-crawl.test.ts"), "utf8")).toContain(
       "CFC-5",
     );
+    // changed-tests.test.ts CF-ALONE-1…3 (cursor bundle 8a, INC-1306) proves the selection of
+    // changed-tests.ts, which the component job's "Changed test files, each alone" step runs.
+    expect(readFileSync(join(ROOT, "scripts/conformance/changed-tests.test.ts"), "utf8")).toContain(
+      "CF-ALONE-3",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain(
+      "bun scripts/conformance/changed-tests.ts run",
+    );
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );

@@ -966,6 +966,17 @@ password verifier) are the two call sites this landing typed.
 are mocked at their `*-service.ts` boundary — a component test never reaches
 Supabase, the network, or the build pipeline.
 
+**Changed test files, each alone (INC-1306, cursor bundle 8a).** After the
+whole suite, the job's step "Changed test files, each alone" runs every test
+file the push changes in its own process (`scripts/conformance/changed-tests.ts`):
+the changed files are read against the pull request's base, or dev's previous
+head on a push (`CHANGED_BASE`), fetched through `with-deadline.sh`; a base
+that is no commit (a new branch's zeros) fails the step loudly, never skips it;
+a file that fails alone fails the job, and the step prints each file's time and
+its whole time. CF-ALONE-1 proves the selection on a planted list, CF-ALONE-2
+the loud base, CF-ALONE-3 the step's place and order in the job
+(`scripts/conformance/changed-tests.test.ts`, through the workflow reader).
+
 **LAW.** Every NEW component ships a states test (loading / empty / error /
 populated) in the SAME landing. A6 gains "test:unit ✓" for any
 component-touching work.
