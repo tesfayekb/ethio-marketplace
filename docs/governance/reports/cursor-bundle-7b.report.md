@@ -1,5 +1,5 @@
 # Cursor bundle 7b — a failed call reads the same everywhere — report
-Base: 996b9b2e3 (the brief's `Base: dev`; the lane was re-landed on dev 87aa8bfc3 by ruling 1, decision 1) · Final code commit: 5ccc79542 · Brief: docs/governance/briefs/cursor-bundle-7b.md (sha256 30ecb2103b7c9660408c101419d88787875a089fd1445930b4dbebf0aed6e53f)
+Base: 996b9b2e3 (the brief's `Base: dev`; the lane was re-landed on dev 87aa8bfc3 by ruling 1, decision 1) · Final code commit: 5ccc79542 (ruling 3's commit follows it and changes one test, two record lines and this report: §15) · Brief: docs/governance/briefs/cursor-bundle-7b.md (sha256 30ecb2103b7c9660408c101419d88787875a089fd1445930b4dbebf0aed6e53f)
 Review: READY · 0 BLOCKER · 0 MAJOR · 3 MINOR · on 5ccc795
 
 CI of the last code commit (5ccc79542): every check green except the E2E preflight, which is the expected red of a migration not yet applied on staging (§11).
@@ -299,7 +299,7 @@ register row — the refusal-status row: a stranger's row is a missing row, and 
 
 register row — the review door: `admin_review_listing(uuid,text,text,text)` asks a reason of the Remove list and a note for `other`; the move door's row names it; SF-8b, SRD-1..6.
 
-register row — the failure notice: the census (`failure-notice.census.test.ts`) registered and joined to `wired.test.ts`.
+register row — the failure notice: the census (`src/components/shell/failure-notice.census.test.ts`, FNC-1) registered in `docs/features/ci-guards.md`; `wired.test.ts` does not name it (ruling 1, decision 12).
 
 register row — the budget check: "by module" (`scripts/bundle-closure.mjs`, `entryLazyModules`).
 
@@ -310,3 +310,22 @@ roadmap — tick Cursor bundle 7b (parts 1–4; INC-1303 stays open).
 slip — S799–S802 are the supervisor's (ruling 1 and ruling 2); none of mine.
 
 Scratch folder (the operator removes it): `/tmp/ethio-scratch/cursor-bundle-7b/` (a base-tree copy, size and chunk scripts, the gate's outputs and the downloaded CI artifacts).
+
+INC — INC-1306 (the supervisor's record): a component test the turn made timing-dependent. RFT-4 (src/components/shell/rail-first-paint.test.tsx) waited one fixed tick before it read the failure notice; Cursor bundle 7b put an on-demand load between the read and the notice (routeFailure in src/lib/route-client.ts loads src/lib/reader-failure.ts through loadOnce), and the test's mock keeps the real routeFailure. In the full suite the module is already transformed and the test passes; alone it fails every time. Evidence: run 45758262652 (the report commit; the same code as 5ccc79542), Component tests: "Unable to find an accessible element with the role "alert""; the supervisor's clone, the file alone, red 3 of 3, then green 3 of 3 with findByRole. Class: concern "a test that waits for an answer the code delivers later"; mechanism: Testing Library's waiting queries (findBy…, waitFor); the guard is NONE YET. Fixed in the lane (ruling 3). Owner of the guard: Cursor bundle 8 — the component job also runs, each alone, the test files a push changes.
+
+INC — INC-1303's later word: open; its first captures are in run 45758262652; owner Cursor 7c, first part. No harness file changed in this lane (ruling 3, decision 4).
+
+## 15. After the final report
+
+Ruling 3 (`docs/governance/briefs/cursor-bundle-7b-ruling-3.md`, sha256 `fc2db67e544e39f87f28eb9bd7940d32319e5c793a8b8e11e92156db1244af10`, equal to the carrier's) was saved by scripted copy. Base `16929f29f`.
+
+1. **RFT-4 waits as a person waits.** In `src/components/shell/rail-first-paint.test.tsx` the four lines (an `act` around a fixed `setTimeout` tick, then `getByRole("alert")`) are replaced by the one line the ruling gives: `expect((await screen.findByRole("alert")).getAttribute("data-failure-reason")).not.toBeNull();`; the file's import is `import { cleanup, render, screen } from "@testing-library/react";` (`act` had no other reader: `rg -n "\bact\b"` on the file prints nothing). The file alone: 1 file, 5 tests passed. I did not re-prove the red-before run the ruling states for its clone.
+2. **The two record lines.** `docs/features/ci-guards.md`: FNC-1's path is `src/components/shell/failure-notice.census.test.ts`. §14's failure-notice register row is the ruling's sentence (above).
+3. **Each changed test file, alone.** The list: `git diff --name-only origin/dev...HEAD -- '*.test.ts' '*.test.tsx'` (origin/dev is `87aa8bfc3`, the merge base) plus the one file this ruling changes: **31 files, one `bunx vitest run <file> --testTimeout=120000` each: 31 passed, 0 failed.** The per-file lines are in `/tmp/ethio-scratch/cursor-bundle-7b/alone.txt`. No file was red alone, so nothing else changed. (`--testTimeout=120000` is the lane's standing use for tree-walking laws; none of the 31 needed it to pass.)
+4. **INC-1303's first captures (run 45758262652, `gh run download 45758262652 -n e2e-log-10 -n e2e-log-14`; `local-backend-auth-capture.txt` of each).**
+   - Lane 10: `124 x POST /factors/:id/challenge -> 200`, `1 x POST /factors/:id/challenge -> 500`; one line `error 500 POST /factors/:id/challenge: -: request completed`. (`124 x POST /factors/:id/verify -> 200`, `30 x POST /factors -> 200`.)
+   - Lane 14: `102 x POST /factors/:id/challenge -> 200`, `3 x POST /factors/:id/challenge -> 500`; three lines `error 500 POST /factors/:id/challenge: -: request completed`. (`102 x POST /factors/:id/verify -> 200`, `20 x POST /factors -> 200`.)
+   - The capture writes `-` for the 500's `error_code` and `msg`: the server's own log line for the request carries only "request completed". The failures' bodies as the harness saw them are in the lanes' logs, the same on all four: `{"code":500,"error_code":"unexpected_failure","msg":"Unexpected failure, please check server logs for more information"}` (`10.log:816`; `14.log:757`, `:787`, `:817`).
+   - The `cause` lines on both lanes are the same nine, each `1 x`, none for a challenge: the template mailer's start-up lines (`templatemailer: template type "<kind>": Get "http://supabase_kong_ethio-ci-local:8088/email/<kind>.html": dial tcp …`), the kinds being confirmation, email_change, email_changed_notification, identity_linked_notification, identity_unlinked_notification, mfa_factor_enrolled_notification, mfa_factor_unenrolled_notification, password_changed_notification, recovery.
+   - What they show: the challenge's 500 is a single, unexplained answer of the auth server (4 of the 230 challenges of these two lanes: 1 of 125 on lane 10, 3 of 105 on lane 14), with no error line of its own in the server's log, so the capture as written does not name its cause. The only error-level lines in the captured window are start-up mail-template lookups, which are not the challenge's. I changed no harness file; the cause remains unknown and moves to Cursor 7c's first part with this evidence.
+5. **The push** is one commit holding the test, the two record lines, the ruling and this section; the pull request stays a draft.
