@@ -89,6 +89,7 @@ export const enMember = {
   "myListings.inReview": "Waiting for review",
   "myListings.removed": "Removed by staff",
   "myListings.removedBecause": "Removed by staff: {reason}",
+  "myListings.notApprovedBecause": "Not approved: {reason}",
   "myListings.savedOn": "Last saved {date}",
   "myListings.continue": "Continue",
   "myListings.untitled": "Untitled draft",

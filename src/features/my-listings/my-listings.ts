@@ -69,8 +69,8 @@ export interface MyListingRow {
   soldWord: SoldWord;
   createdAt: string;
   updatedAt: string | null;
-  /** A removed ad's latest staff reason (an `admin.listings.reason.*` word); else null. */
-  removedReason: string | null;
+  /** The latest staff reason for an ad staff took off — a removed or a rejected ad (an `admin.listings.reason.*` word); else null. */
+  staffReason: string | null;
   /** P-2 (a) M-1c (DEC-328) — the ad's level (a level key; the baseline when none was bought). */
   level: string;
   /** When the level ends; null when it does not (the baseline, or open-ended). */
@@ -162,7 +162,7 @@ export function parseRow(value: unknown): MyListingRow | null {
   if (!isStrOrNull(v.soldAt) || !isStr(v.createdAt) || !isStrOrNull(v.updatedAt)) return null;
   const soldWord = SOLD_WORDS.find((word) => word === v.soldWord);
   if (soldWord === undefined) return null;
-  if (!isStrOrNull(v.removedReason)) return null;
+  if (!isStrOrNull(v.staffReason)) return null;
   if (!isStr(v.level) || !isStrOrNull(v.levelUntil) || !isStrOrNull(v.levelSource)) return null;
   if (!isStrOrNull(v.reach) || !isStrOrNull(v.reachUntil)) return null;
   return {
@@ -193,7 +193,7 @@ export function parseRow(value: unknown): MyListingRow | null {
     soldWord,
     createdAt: v.createdAt,
     updatedAt: v.updatedAt,
-    removedReason: v.removedReason,
+    staffReason: v.staffReason,
     level: v.level,
     levelUntil: v.levelUntil,
     levelSource: v.levelSource,

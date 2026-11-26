@@ -45,7 +45,7 @@ const row = {
   soldWord: "sold",
   createdAt: "2026-09-30T08:00:00+00:00",
   updatedAt: "2026-10-14T08:00:00+00:00",
-  removedReason: null,
+  staffReason: null,
   level: "regular",
   levelUntil: null,
   levelSource: null,
@@ -88,7 +88,7 @@ describe("my_listings answer", () => {
     expect(answer([{ ...row, priceAmount: "1500" }])).toBeNull();
     // Turn 3b (call H) — the sold word is one of three.
     expect(answer([{ ...row, soldWord: "leased" }])).toBeNull();
-    const { removedReason: _reason, ...without } = row;
+    const { staffReason: _reason, ...without } = row;
     expect(answer([without])).toBeNull();
   });
 

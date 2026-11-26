@@ -90,6 +90,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "myListings.inReview": "ግምገማ በመጠበቅ ላይ",
   "myListings.removed": "በሠራተኞች ተወግዷል",
   "myListings.removedBecause": "በሠራተኞች ተወግዷል፦ {reason}",
+  "myListings.notApprovedBecause": "አልጸደቀም፦ {reason}",
   "myListings.savedOn": "ለመጨረሻ ጊዜ የተቀመጠው፦ {date}",
   "myListings.continue": "ቀጥል",
   "myListings.untitled": "ርዕስ የሌለው ረቂቅ",

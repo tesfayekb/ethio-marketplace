@@ -73,7 +73,7 @@ const row = {
   soldWord: "sold" as const,
   createdAt: "2026-09-30T08:00:00+00:00",
   updatedAt: "2026-10-14T08:00:00+00:00",
-  removedReason: null,
+  staffReason: null,
   level: "regular",
   levelUntil: null,
   levelSource: null,
@@ -372,6 +372,20 @@ it("ML-U26 a live ad whose level has an end says when it ends, through the date 
   };
   expect(stateLine(live, t, day)).toBe("Days left: 5 · Level ends day(2026-12-01T00:00:00Z)");
   expect(stateLine({ ...live, levelUntil: null }, t, day)).toBe("Days left: 5");
+});
+
+it("ML-U29 a rejected or a removed ad says the staff's reason in its line; no reason, or a word the list does not hold, says the plain state", () => {
+  const t = (key: keyof typeof en) => en[key];
+  const line = (status: "rejected" | "removed", staffReason: string | null) =>
+    stateLine({ ...ad({ status }).listing, staffReason }, t, () => "");
+  const photo = en["admin.listings.reason.photo"];
+  expect(line("rejected", "photo")).toBe(
+    en["myListings.notApprovedBecause"].replace("{reason}", photo),
+  );
+  expect(line("removed", "photo")).toBe(en["myListings.removedBecause"].replace("{reason}", photo));
+  expect(line("rejected", null)).toBe(en["myListings.notApproved"]);
+  expect(line("removed", null)).toBe(en["myListings.removed"]);
+  expect(line("rejected", "constructor")).toBe(en["myListings.notApproved"]);
 });
 
 it("ML-U28 Promote is offered on a live or paused ad only, one rule for the row menu and the page (P-2 (b) E9)", () => {
