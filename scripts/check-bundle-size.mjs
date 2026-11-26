@@ -22,6 +22,8 @@ import {
   closureListViolations,
   entryAdminModules,
   entryAdminViolations,
+  entryLazyModules,
+  entryLazyViolations,
   entryChunks,
   judgeRouteBudgets,
   moduleCensus,
@@ -205,6 +207,13 @@ const adminFailures = entryAdminViolations(entryAdmin, adminAllowed);
 if (adminFailures.length > 0) {
   console.error("Bundle budget: admin code in the first download (BC-16):");
   for (const line of adminFailures) console.error(`  ${line}`);
+  process.exit(1);
+}
+// BC-17 (INC-1289): the must-stay-lazy check by module — a folded module fails whatever its chunk is named.
+const lazyFailures = entryLazyViolations(entryLazyModules(chunkModules, closureNames));
+if (lazyFailures.length > 0) {
+  console.error("Bundle budget: a must-stay-lazy module in the first download (BC-17):");
+  for (const line of lazyFailures) console.error(`  ${line}`);
   process.exit(1);
 }
 for (const file of files) {
