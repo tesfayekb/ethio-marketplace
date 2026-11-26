@@ -125,4 +125,30 @@ describe("the one deadline of every browser call (DEC-477)", () => {
     expect(capped).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it("CDL-7 a browser's timer is a number: the call still runs and is cut at its deadline", async () => {
+    vi.useFakeTimers();
+    const real = globalThis.setTimeout;
+    let issued = 0;
+    vi.stubGlobal("setTimeout", (handler: () => void, ms?: number) => {
+      issued += 1;
+      // A browser answers a number, never an object.
+      return Number(real(handler, ms));
+    });
+    try {
+      const call = fetchWithDeadline(stalled(), "https://p.example.invalid/rest/v1/t").catch(
+        (failure: unknown) => failure,
+      );
+      expect(issued).toBe(1);
+      await vi.advanceTimersByTimeAsync(CALL_DEADLINES_MS.read);
+      expect(await call).toBeInstanceOf(TypeError);
+      const answered = await fetchWithDeadline(
+        async () => new Response("{}"),
+        "https://p.example.invalid/rest/v1/t",
+      );
+      expect(answered.status).toBe(200);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

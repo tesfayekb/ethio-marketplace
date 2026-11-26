@@ -100,8 +100,11 @@ export async function fetchWithDeadline(
     expired = true;
     deadline.abort(new TypeError("Failed to fetch: the call ran past its deadline"));
   }, ms);
-  const unref: unknown = Reflect.get(timer, "unref");
-  if (typeof unref === "function") Reflect.apply(unref, timer, []);
+  // Node's timer is an object that can be let go of; a browser's is a number (nothing to do).
+  if (typeof timer === "object" && timer !== null) {
+    const unref: unknown = Reflect.get(timer, "unref");
+    if (typeof unref === "function") Reflect.apply(unref, timer, []);
+  }
   try {
     return await call(input, {
       ...init,
