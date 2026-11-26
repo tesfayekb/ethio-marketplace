@@ -1,27 +1,27 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `996b9b2e336819eef2005c987fa0401d1a47697c` (short `996b9b2`)
+- Commit: `87aa8bfc32a3cd9c1f9343b7418a8b1d6d20bb14` (short `87aa8bf`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-25T22:27:24Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45712435050
-- Lanes: skipped — the code tree was proven by run 45705204730 (pull_request, cursor/bundle-7a-2, head cb4313f)
+- Completed (UTC): 2026-11-26T00:20:35Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45727250754
+- Lanes: skipped — the code tree was proven by run 45720941766 (pull_request, lovable/next, head d3368bf)
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Migration linter (with self-test) | success |
-| Build, typecheck, lint | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
-| Component tests | success |
+| Gitleaks secrets scan | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | Hardcoded string scan (enforcing) | success |
-| i18n used-on map is fresh (U4i ②) | success |
-| Gitleaks secrets scan | success |
-| Semgrep (enforcing on ERROR) | success |
-| Scope (docs-only push, DEC-365) | success |
 | Listing-write seam guard (with self-test) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Semgrep (enforcing on ERROR) | success |
+| Build, typecheck, lint | success |
+| Component tests | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Migration linter (with self-test) | success |
+| Scope (docs-only push, DEC-365) | success |
+| i18n used-on map is fresh (U4i ②) | success |
 | Import gate guard (with self-test) | success |
 | E2E preflight (migration parity, staging) | success |
 | E2E (Playwright, ethio-staging) | success |
