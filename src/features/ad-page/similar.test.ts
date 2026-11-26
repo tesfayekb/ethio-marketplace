@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 
 import { similarListings } from "./similar";
 import { PLAIN_LOOK } from "@/features/levels/level-fields";
@@ -52,7 +53,7 @@ afterEach(() => {
 
 describe("SIM — similar ads read (D201 §12)", () => {
   it("SIM-1 the query string: the leaf, the place when present, size 11", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(ok(page([])));
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => ok(page([])));
     vi.stubGlobal("fetch", fetchMock);
     await similarListings("c-leaf", "place-1", "l-self");
     const url = String(fetchMock.mock.calls[0]?.[0]);
@@ -103,15 +104,17 @@ describe("SIM — similar ads read (D201 §12)", () => {
     ]);
   });
 
-  it("SIM-3 a 404/500 answer, an unparsable body and a thrown fetch each give the empty answer", async () => {
-    const empty = { cards: [], coverLinks: {} };
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("no", { status: 404 })));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
+  it("SIM-3 INC-1305: a 500 answer, an unparsable body and a thrown fetch each throw the typed failure, never the empty answer", async () => {
+    const failureOf = async () => {
+      const thrown = await similarListings("c-leaf", null, "l-self").catch((e: unknown) => e);
+      expect(thrown).toBeInstanceOf(ReaderError);
+      return readerFailure(thrown);
+    };
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("no", { status: 500 })));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
+    expect(await failureOf()).toMatchObject({ class: "server", status: 500 });
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(ok({ not: "a feed page" })));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network down")));
-    expect(await similarListings("c-leaf", null, "l-self")).toEqual(empty);
+    expect(await failureOf()).toMatchObject({ class: "malformed" });
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+    expect(await failureOf()).toMatchObject({ class: "network" });
   });
 });

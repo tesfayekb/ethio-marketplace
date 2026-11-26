@@ -222,6 +222,18 @@ jobs:
         run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       - name: Component tests (vitest + RTL + jsdom)
         run: bun run test:unit
+      # INC-1306 (cursor bundle 8a) — a test file that passes warm in the whole suite and fails
+      # alone does not reach dev: each test file this push changes runs in its own process,
+      # against the pull request's base or dev's previous head; an unreadable base fails loudly
+      # (scripts/conformance/changed-tests.ts, CF-ALONE-1…3).
+      - name: Changed test files, each alone (INC-1306)
+        timeout-minutes: 15
+        env:
+          CHANGED_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          bun scripts/conformance/changed-tests.ts base
+          bash scripts/ci/with-deadline.sh 120 2 -- git fetch --no-tags --depth=1 origin "$CHANGED_BASE"
+          bun scripts/conformance/changed-tests.ts run
 
   secrets-scan:
     name: Gitleaks secrets scan

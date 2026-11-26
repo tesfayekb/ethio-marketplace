@@ -1,4 +1,5 @@
-import { callRoute } from "@/lib/route-client";
+import { readFailed } from "@/lib/reader-failure";
+import { callRoute, routeFailure } from "@/lib/route-client";
 import { feedPath, parseFeedPage, type FeedListing } from "@/features/feed/feed-page";
 import { seedLevelRows } from "@/features/levels/levels-store";
 import type { PhotoLinks } from "@/features/posting/photo-links";
@@ -13,21 +14,21 @@ export interface SimilarAnswer {
  * D201 §12 — SIMILAR ADS. One read of the public feed route with the ad's leaf
  * category and its place (the feed's widening ladder may answer with a wider
  * place or a parent category when the leaf is thin — similar, not identical);
- * the ad itself is dropped and the first ten cards kept. A non-200 answer, a
- * body that does not parse, or a thrown fetch is an empty list: a side list
- * never disturbs the page.
+ * the ad itself is dropped and the first ten cards kept. INC-1305 — a read that
+ * fails (an answer that is not ok, a body that does not parse, a thrown fetch)
+ * throws the typed failure, never an empty list that reads as "nothing similar":
+ * the section draws the failure notice with Retry.
  */
 export async function similarListings(
   categoryId: string,
   placeId: string | null,
   excludeId: string,
 ): Promise<SimilarAnswer> {
-  const empty: SimilarAnswer = { cards: [], coverLinks: {} };
   // D234 S6 — the feed read's one address builder (feedPath): eleven, so ten remain without the ad.
   const answer = await callRoute(feedPath(categoryId, placeId, null, 11), { auth: "none" });
-  if (answer.kind !== "answered" || !answer.ok) return empty;
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   const page = parseFeedPage(answer.payload);
-  if (page === null) return empty;
+  if (page === null) throw readFailed("similar ads: an answer that does not parse");
   seedLevelRows(page.levels);
   return {
     cards: page.cards

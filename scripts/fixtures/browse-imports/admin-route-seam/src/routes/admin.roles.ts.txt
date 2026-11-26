@@ -1,0 +1,9 @@
+// KNOWN-BAD FIXTURE — not compiled, not shipped. `.ts.txt` on purpose.
+// An admin route file that imports the seam beside the hook: only the hook is admitted.
+// scripts/check-browse-imports.sh MUST flag it (cursor bundle 8a, ruling 2).
+import { useMayCall } from "@/features/permissions/use-may-call";
+import { usePermissions } from "@/features/permissions/usePermissions";
+
+export function useBoth() {
+  return [useMayCall(), usePermissions()];
+}

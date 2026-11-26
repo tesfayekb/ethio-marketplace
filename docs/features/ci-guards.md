@@ -147,6 +147,10 @@ the marketplace browse path. Allowlist: the seam itself, `src/routes/admin.tsx`,
 and `src/components/app-shell.tsx` (the Admin-tab gate; see
 `docs/features/rbac-client-seam.md`). CI runs it in both directions: PASS on
 `src/`, and it must FAIL on `scripts/fixtures/bad-permission-import-example.ts.txt`.
+Every rule reads a file's path from `src/` on, so a relative run (CI's `src`) and
+an absolute one judge a file alike; the admin folders and the admin route files
+(`src/routes/admin.<…>`) may import the hook `use-may-call.ts` alone (INC-1309,
+cursor bundle 8a ruling 2; BPG-1…7 run each case both ways).
 
 **U1g-3 note (2026-08-17).** The purge root (`AUTH_DERIVED_ROOT` / `authKey`,
 INC-078) briefly lived inside the seam, which made every legitimate consumer —
@@ -966,6 +970,17 @@ password verifier) are the two call sites this landing typed.
 are mocked at their `*-service.ts` boundary — a component test never reaches
 Supabase, the network, or the build pipeline.
 
+**Changed test files, each alone (INC-1306, cursor bundle 8a).** After the
+whole suite, the job's step "Changed test files, each alone" runs every test
+file the push changes in its own process (`scripts/conformance/changed-tests.ts`):
+the changed files are read against the pull request's base, or dev's previous
+head on a push (`CHANGED_BASE`), fetched through `with-deadline.sh`; a base
+that is no commit (a new branch's zeros) fails the step loudly, never skips it;
+a file that fails alone fails the job, and the step prints each file's time and
+its whole time. CF-ALONE-1 proves the selection on a planted list, CF-ALONE-2
+the loud base, CF-ALONE-3 the step's place and order in the job
+(`scripts/conformance/changed-tests.test.ts`, through the workflow reader).
+
 **LAW.** Every NEW component ships a states test (loading / empty / error /
 populated) in the SAME landing. A6 gains "test:unit ✓" for any
 component-touching work.
@@ -1671,7 +1686,7 @@ files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
 - **DOORS-22** (scripts/doors/check-doors.test.ts, INC-1301; the self-test plants a door, a core and a leaf that refuses `calleeCode`): a manifest line's `codes` cell holds every code its door's callees and the triggers on the tables it writes can answer (`calleeReach`, `judge.ts`); a missing one is `callee-code-missing`, a chain the judge cannot read is `callee-unread` (docs/features/doors.md).
 - **DW-1…7** (scripts/conformance/door-words.test.ts over `door-words.ts`, INC-1280; DW-6 and DW-7 plant a file): the generated door types match the manifest (DW-1); every door a string under `src/` names is listed by a `DoorFamily`, answers only gate codes, or has a line of `door-words-allowlist.txt` (DW-2); a family's words, read by the type checker so a spread is read too, are its doors' codes, the gate codes and its `also`, and its excuses are its doors' codes (DW-3); each owed code by door is `| words owed | INC-1307` (DW-4); each family no `DoorFamily` types has a line, the provider families `| provider family, no door | permanent` (DW-5). Allowlist `key | reason | until`, `permanent` allowed (the kit's `readAllowlist(…, { permanent: true })`, CF-KIT-9). Named in wired.test.ts.
 - **CF-PRICE-1** reads no `*.generated.ts` file: the door types generated from the manifest name every door and read no price.
-- **DPM-1…4** (scripts/conformance/door-permissions.test.ts over `door-permissions.ts`, INC-1281; DPM-2 and DPM-3 plant a file): every permission comparison of browser code that is not `useMayCall` has a line of `door-permissions-allowlist.txt`, a control's or a read's `until INC-1281`, a page, section or link gate's `permanent` (DPM-1); a planted `permissions.includes("x:y")` is found and unlisted (DPM-2); a hook call naming a door the manifest lacks, a door with no permission, an unknown route or a method the route lacks does not compile (DPM-3); every API path browser code writes names a route of the generated `ROUTE_PERMISSIONS`, and admin code names no OPEN route (DPM-4). Named in wired.test.ts.
+- **DPM-1…5** (scripts/conformance/door-permissions.test.ts over `door-permissions.ts`, INC-1281; DPM-2 and DPM-3 plant a file): every permission comparison of browser code that is not `useMayCall` has a line of `door-permissions-allowlist.txt`, a control's or a read's `until INC-1281`, a page, section or link gate's `permanent` (DPM-1); a planted `permissions.includes("x:y")` is found and unlisted (DPM-2); a hook call naming a door the manifest lacks, a door with no permission, an unknown route or a method the route lacks does not compile (DPM-3); every API path browser code writes names a route of the generated `ROUTE_PERMISSIONS`, and admin code names no OPEN route (DPM-4); the floor (`COMPARISON_FLOOR`, 70) reads the copies and the hook's `mayCall(` calls together (`floorProblem`, `hookCalls`), so a copy moved onto the hook — the work the `until INC-1281` lines plan — keeps the count, while a reader that finds nothing still fails it; DPM-5 plants both (INC-1308, cursor bundle 8a). The census's sibling floors were read for the same fault: `safe-href` and `door-words` count their sinks and named doors whether a line retires or not, and `script-text` and `lint-rules` have no planned allowlist work. Named in wired.test.ts.
 - **CF-AUTHLOG-5** (scripts/ci/auth-log-capture.test.ts, INC-1303, ruling 2): a 500 request line's `error` field, where the auth server writes the cause, is kept beside its code and message — ids masked, redacted, then cut at 200 characters.
 - **Browse-path guard** (`scripts/check-browse-imports.sh`, ruling 2): a module of `src/features/admin/` or `src/features/admin-<name>/` may import `src/features/permissions/use-may-call.ts` and nothing else of the permission seam; every other importer is refused as before. BPG-1…4 (`scripts/check-browse-imports.test.ts`) run it on planted trees under `scripts/fixtures/browse-imports/`: the admin hook imports pass, a browse-path hook import and an admin seam import fail, `src/` passes and `scripts/fixtures` still fails.
 - **BC-17** names `src/features/permissions/door-permissions.generated.ts` in `MUST_STAY_LAZY_MODULES`: the generated permissions ride admin chunks only (docs/features/rbac-client-seam.md).

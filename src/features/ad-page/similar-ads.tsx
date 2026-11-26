@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { ListingCard } from "@/components/marketplace/listing-card";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { PageCard } from "@/components/shell/page-card";
 import { similarListings } from "@/features/ad-page/similar";
 import type { FeedListing } from "@/features/feed/feed-page";
@@ -20,8 +21,9 @@ import { useNearViewport } from "@/lib/use-near-viewport";
  * D234 speed turn S1 — the read (and the card photos after it) waits until the
  * section's place nears the screen: a buyer who never scrolls down downloads
  * none of it. The place is an empty anchor that is always drawn; its
- * `data-similar` says "waiting", "empty" or "shown", so a test can scroll to it
- * and know the read has answered (AP-32).
+ * `data-similar` says "waiting", "empty", "shown" or "failed", so a test can
+ * scroll to it and know the read has answered (AP-32). INC-1305 — a failed read
+ * draws the failure notice's line with Retry, never nothing.
  */
 export function SimilarAds({
   categoryId,
@@ -35,21 +37,30 @@ export function SimilarAds({
   const { t } = useI18n();
   const [cards, setCards] = useState<FeedListing[] | null>(null);
   const [coverLinks, setCoverLinks] = useState<PhotoLinks>({});
+  /** INC-1305 — the read's typed failure, drawn with Retry; null while none. */
+  const [failure, setFailure] = useState<unknown>(null);
+  const [attempt, setAttempt] = useState(0);
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const near = useNearViewport(anchorRef);
   useEffect(() => {
     if (!near) return;
     let active = true;
-    void similarListings(categoryId, placeId, excludeId).then((answer) => {
-      if (active) {
-        setCards(answer.cards);
-        setCoverLinks(answer.coverLinks);
-      }
-    });
+    setFailure(null);
+    void similarListings(categoryId, placeId, excludeId).then(
+      (answer) => {
+        if (active) {
+          setCards(answer.cards);
+          setCoverLinks(answer.coverLinks);
+        }
+      },
+      (error: unknown) => {
+        if (active) setFailure(error);
+      },
+    );
     return () => {
       active = false;
     };
-  }, [categoryId, placeId, excludeId, near]);
+  }, [categoryId, placeId, excludeId, near, attempt]);
   // DEC-195 — the answer's own links are the preset; only the rest are asked for.
   const coverOf = useCardPhotos(cards ?? [], coverLinks);
   const anchor = (
@@ -58,9 +69,31 @@ export function SimilarAds({
       aria-hidden="true"
       className="h-px"
       data-testid="listing-similar-anchor"
-      data-similar={cards === null ? "waiting" : cards.length === 0 ? "empty" : "shown"}
+      data-similar={
+        failure !== null
+          ? "failed"
+          : cards === null
+            ? "waiting"
+            : cards.length === 0
+              ? "empty"
+              : "shown"
+      }
     />
   );
+  if (failure !== null)
+    return (
+      <>
+        {anchor}
+        <FailureNotice
+          error={failure}
+          testid="listing-similar-failed"
+          size="line"
+          subject={t("adPage.similar.title")}
+          onRetry={() => setAttempt((n) => n + 1)}
+          className="mt-6"
+        />
+      </>
+    );
   if (cards === null || cards.length === 0) return anchor;
   return (
     <>

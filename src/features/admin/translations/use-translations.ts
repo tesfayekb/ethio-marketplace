@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { fetchWithDeadline } from "@/lib/call-deadline";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -387,13 +388,16 @@ export function usePseudoGenerate() {
  * it is derived from the public source tree and contains no data.
  *
  * A fetch failure leaves the chips absent rather than claiming a key is unused
- * — `undefined` and "nowhere" are different answers (E6).
+ * — `undefined` and "nowhere" are different answers (E6). INC-1304 — the read
+ * runs under its class's deadline (src/lib/call-deadline.ts), never unbounded.
  */
 export function useUsageMap() {
   return useQuery({
     queryKey: ["i18n-usage-map"],
     queryFn: async (): Promise<Record<string, string[]>> => {
-      const response = await fetch("/i18n-usage.json", { headers: { Accept: "application/json" } });
+      const response = await fetchWithDeadline(fetch, "/i18n-usage.json", {
+        headers: { Accept: "application/json" },
+      });
       if (!response.ok) throw new Error(`usage map ${response.status}`);
       const payload = (await response.json()) as { keys?: Record<string, string[]> };
       return payload.keys ?? {};
