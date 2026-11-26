@@ -5042,7 +5042,12 @@ export type Database = {
         Returns: Json
       }
       admin_review_listing: {
-        Args: { p_listing_id: string; p_new_status: string }
+        Args: {
+          p_listing_id: string
+          p_new_status: string
+          p_note?: string
+          p_reason?: string
+        }
         Returns: Json
       }
       admin_review_photo_change: {

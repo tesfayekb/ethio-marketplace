@@ -1,0 +1,8 @@
+{
+  "myListings.notApprovedBecause": {
+    "layer": "member",
+    "en": "Not approved: {reason}",
+    "am": "አልጸደቀም፦ {reason}",
+    "new": true
+  }
+}
