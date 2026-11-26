@@ -12,8 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { tierOf } from "@/components/marketplace/card-tier";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ReaderError, readFailed } from "@/lib/reader-failure";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
-import { SHARED_REFUSAL_WORDS } from "@/features/admin-listings/listing-refusals";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal, refusalText } from "@/lib/refusal";
+import {
+  SHARED_REFUSAL_WORDS,
+  STATE_REFUSAL_WORDS,
+} from "@/features/admin-listings/listing-refusals";
 
 /**
  * Bundle 10 E3a — THE SCREENING QUEUE READ (D109).
@@ -293,10 +297,25 @@ export async function decideListing(
 const DECISION_REFUSALS = {
   words: {
     ...SHARED_REFUSAL_WORDS,
+    ...STATE_REFUSAL_WORDS,
     ownListing: "admin.screening.error.ownListing",
   },
   generic: "common.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_review_listing";
+  unreachable: {
+    badValue: "the decisions send the door's four targets, and the reject dialog only the remove reasons";
+    enforcementOnly: "the door's targets are active, reduced, rejected and held, never screening or removed";
+    ownerDeleted: "the door's targets are active, reduced, rejected and held, never screening";
+    reviewerOnly: "the door's gate admits only a caller holding listings:review";
+    serviceOnly: "the door's targets are active, reduced, rejected and held, never paused";
+    severeRemove: "the door's targets are active, reduced, rejected and held, never removed";
+  };
+  generic: {
+    notYourListing: "met only when the ad was deleted between the queue's read and the decision";
+    ownerOnly: "met only when the seller paused or closed the ad between the queue's read and the decision";
+  };
+}>;
 
 /** Both review surfaces use the listings family's one refusal reader. */
 export function decisionRefusalKey(error: unknown) {
@@ -439,7 +458,7 @@ const REVEAL_REFUSALS = {
   // L22b — the dial's words that say WHEN, for a reset instant still to come.
   when: { rateLimited: "admin.screening.revealLimitedWhen" },
   generic: "common.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{ doors: "admin_reveal_listing_contact" }>;
 
 export async function revealContact(
   listingId: string,

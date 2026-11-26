@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import type { DoorFamily } from "@/lib/door-family";
 import { ownValue } from "@/lib/own-key";
 import type { Refusal, RefusalFamily, RefusalRead } from "@/lib/refusal";
 
@@ -111,7 +112,17 @@ export const MONETISATION_DOOR_REFUSALS = {
   // The step-up gate's raise is a sentence (`step-up required: …`), matched while the gate stays one.
   sentences: [[/step-up required/i, "admin.packages.error.stepUp"]],
   generic: "admin.packages.error.unknown",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_save_listing_package"
+    | "admin_save_level_override"
+    | "admin_clear_level_override"
+    | "admin_save_package_price"
+    | "admin_edit_package_price"
+    | "admin_end_package_price"
+    | "admin_save_market_settings";
+  also: { P0009: "raise" };
+}>;
 
 /** What a dialog's problem line draws: a key, and the unread code beneath it when no words named it. */
 export interface MonetisationRefusal {

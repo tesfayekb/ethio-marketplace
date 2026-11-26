@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n/types";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 /**
  * Bundle 10b (D39) — its own file because the view-as bar draws it on every page (base layer);
@@ -9,7 +10,7 @@ import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 export const END_REFUSALS = {
   words: { noActiveSession: "impersonation.noneActive" },
   generic: "impersonation.error.endFailed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{ doors: "end_impersonation" }>;
 
 /** A failed End now's words; null for a step-up the person cancelled. */
 export function endRefusalKey(error: unknown): MessageKey | null {

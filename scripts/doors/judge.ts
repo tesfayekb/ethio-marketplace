@@ -7,7 +7,7 @@ import { browserCallable, type DoorRow } from "./rows";
 
 /**
  * Foundations 1 (DEC-333) — THE JUDGEMENT of the manifest against the rows.
- * Eighteen finding kinds, each planted in check-doors' self-test (DEC-334):
+ * Twenty-three finding kinds, each planted in check-doors' self-test (DEC-334):
  *
  * - missing-line           a browser-callable function with no manifest line;
  * - line-without-door      a line whose function is absent or closed to the browser;
@@ -17,7 +17,15 @@ import { browserCallable, type DoorRow } from "./rows";
  *                          door_context without the shell (no P0D01 handler);
  * - class-mismatch         a body whose shape or door_context literals (class,
  *                          permission, dial, codes, audit, roles, volatility)
- *                          disagree with its line;
+ *                          disagree with its line (a code the body refuses
+ *                          that the line lacks, or a listed code neither the
+ *                          body nor any function it calls refuses);
+ * - callee-code-missing    a code a public function the door calls refuses,
+ *                          followed transitively through every body it names,
+ *                          that the line lacks (cursor-bundle-7c, INC-1301);
+ * - callee-unread          a body on the door's chain whose refusals the
+ *                          judge cannot read: a door_refuse without a literal
+ *                          code, or dynamic SQL (EXECUTE);
  * - grant-unseen           a dynamic GRANT the static reader could not resolve;
  * - grant-without-caller   a browser grant nothing in the tree calls by name;
  * - scope-mode-missing     a staff body whose p_scope_mode (or country
@@ -77,6 +85,8 @@ export const FINDING_KINDS = [
   "line-without-door",
   "gate-missing-for-class",
   "class-mismatch",
+  "callee-code-missing",
+  "callee-unread",
   "grant-unseen",
   "grant-without-caller",
   "scope-mode-missing",
@@ -150,7 +160,128 @@ function isStaff(line: ManifestLine): boolean {
   return line.class === "staff" || line.class === "staff-reader";
 }
 
-function pairFindings(row: DoorRow, line: ManifestLine): Finding[] {
+/** The gate and the shell: door_context's refusals are the shared gate codes, never a line's. */
+const GATE_CALLEES = new Set(["door_context", "door_refuse", "door_refused"]);
+const REFUSED_CODE = /\bdoor_refuse\s*\(\s*'([A-Za-z]+)'/g;
+const UNREAD_REFUSAL = /\bdoor_refuse\s*\(\s*(?!')/;
+const DYNAMIC_SQL = /\bEXECUTE\s+(?!FUNCTION\b|PROCEDURE\b|ON\b)/i;
+/** A live definition's header (`CREATE … AS $tag$`): its own name and argument types are no calls. */
+const DEFINITION_HEADER = /^\s*CREATE\b[\s\S]*?\bAS\s+\$[A-Za-z0-9_]*\$/i;
+
+function codeOfBody(body: string): string {
+  return body.replace(DEFINITION_HEADER, "");
+}
+
+/** The literal codes a body refuses with. */
+function refusedCodes(body: string): string[] {
+  return [...body.matchAll(REFUSED_CODE)].map((match) => match[1] ?? "");
+}
+
+/** A write to a table of schema public: its triggers run as part of the door. */
+const WRITTEN_TABLE =
+  /\b(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:ONLY\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?(?![a-z0-9_."])/gi;
+
+export type RowIndex = {
+  byName: ReadonlyMap<string, readonly DoorRow[]>;
+  /** The trigger functions bound to each table (DoorRow.on). */
+  byTable: ReadonlyMap<string, readonly DoorRow[]>;
+};
+
+export function rowIndex(rows: readonly DoorRow[]): RowIndex {
+  const byName = new Map<string, DoorRow[]>();
+  const byTable = new Map<string, DoorRow[]>();
+  for (const row of rows) {
+    byName.set(row.name, [...(byName.get(row.name) ?? []), row]);
+    for (const table of row.on ?? []) byTable.set(table, [...(byTable.get(table) ?? []), row]);
+  }
+  return { byName, byTable };
+}
+
+export type CalleeReach = {
+  /** Each code a called function refuses, with the keys of the functions that refuse it. */
+  codes: Map<string, string[]>;
+  /** The bodies on the chain (the door's own included) whose refusals cannot be read. */
+  unread: string[];
+  /** The bodies on the chain (the door's own included) a later file rebuilds at apply time. */
+  computed: string[];
+};
+
+/**
+ * The refusals of every function of schema public a door's body names, and of every trigger on
+ * a table of schema public it writes (INSERT, UPDATE or DELETE), followed transitively through
+ * their bodies (every overload of a name, the door's own other overloads included; each key
+ * once), the gate and the shell aside (cursor-bundle-7c, INC-1301; ruling 1, decision 3).
+ */
+export function calleeReach(row: DoorRow, index: RowIndex): CalleeReach {
+  const codes = new Map<string, string[]>();
+  const unread: string[] = [];
+  const computed: string[] = [];
+  const seen = new Set<string>([row.key]);
+  const queue: DoorRow[] = [row];
+  const follow = (callees: readonly DoorRow[] | undefined) => {
+    for (const callee of callees ?? []) {
+      if (seen.has(callee.key)) continue;
+      seen.add(callee.key);
+      queue.push(callee);
+    }
+  };
+  for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
+    const text = codeOfBody(next.body);
+    if (UNREAD_REFUSAL.test(text) || DYNAMIC_SQL.test(text)) unread.push(next.key);
+    if (next.computed === true) computed.push(next.key);
+    if (next !== row)
+      for (const code of new Set(refusedCodes(text)))
+        codes.set(code, [...(codes.get(code) ?? []), next.key]);
+    for (const match of text.matchAll(CALLED_NAME)) {
+      const name = (match[1] ?? "").toLowerCase();
+      if (!GATE_CALLEES.has(name)) follow(index.byName.get(name));
+    }
+    for (const match of text.matchAll(WRITTEN_TABLE))
+      follow(index.byTable.get((match[1] ?? "").toLowerCase()));
+  }
+  return { codes, unread, computed };
+}
+
+function codeFindings(row: DoorRow, line: ManifestLine, index: RowIndex): Finding[] {
+  const found: Finding[] = [];
+  const codes = refusedCodes(row.body);
+  // A list rule (door_filter_countries / door_filter_categories) refuses with badValue and nothing else.
+  if (LIST_RULE.test(row.body)) codes.push("badValue");
+  const own = new Set(codes);
+  const reach = calleeReach(row, index);
+  const listed = new Set(line.codes);
+  const answered = new Set([...own, ...reach.codes.keys()]);
+  const ownMissing = [...own].some((code) => !listed.has(code));
+  // A body rebuilt at apply time is read as the files spell it: a listed code it gained there is
+  // judged by the live catalogue (the smoke lane), not here.
+  const unanswered = reach.computed.length === 0 && line.codes.some((code) => !answered.has(code));
+  if (ownMissing || unanswered)
+    found.push({
+      kind: "class-mismatch",
+      key: row.key,
+      what: `codes ${[...answered].sort().join(",") || "-"} for the line's ${[...listed].sort().join(",") || "-"}`,
+      where: row.where,
+    });
+  for (const [code, from] of [...reach.codes].sort(([a], [b]) => a.localeCompare(b))) {
+    if (own.has(code) || listed.has(code)) continue;
+    found.push({
+      kind: "callee-code-missing",
+      key: `${row.key} ${code}`,
+      what: `${from.join(", ")} refuses ${code}, which the line lacks`,
+      where: row.where,
+    });
+  }
+  if (reach.unread.length > 0)
+    found.push({
+      kind: "callee-unread",
+      key: row.key,
+      what: `${reach.unread.join(", ")} refuses or runs SQL the judge cannot read (a door_refuse without a literal code, or EXECUTE)`,
+      where: row.where,
+    });
+  return found;
+}
+
+function pairFindings(row: DoorRow, line: ManifestLine, index: RowIndex): Finding[] {
   const found: Finding[] = [];
   const add = (kind: FindingKind, what: string) =>
     found.push({ kind, key: row.key, what, where: row.where });
@@ -209,14 +340,7 @@ function pairFindings(row: DoorRow, line: ManifestLine): Finding[] {
     if (mode === "match" && ctx[4] === null)
       add("scope-mode-missing", "a match scope passes its country");
   }
-  const codes = [...row.body.matchAll(/\bdoor_refuse\s*\(\s*'([A-Za-z]+)'/g)].map(
-    (match) => match[1] ?? "",
-  );
-  // A list rule (door_filter_countries / door_filter_categories) refuses with badValue and nothing else.
-  if (LIST_RULE.test(row.body)) codes.push("badValue");
-  const own = [...new Set(codes)].sort().join(",");
-  const listed = [...line.codes].sort().join(",");
-  if (own !== listed) add("class-mismatch", `codes ${own || "-"} for the line's ${listed || "-"}`);
+  found.push(...codeFindings(row, line, index));
   const audit = /\bdoor_audit\s*\(\s*\w+\s*,\s*'([A-Za-z0-9_.-]+)'/.exec(row.body);
   if (audit !== null && audit[1] !== line.audit)
     add("class-mismatch", `door_audit ${audit[1]} for the line's ${line.audit ?? "-"}`);
@@ -324,6 +448,7 @@ export function reasonPolicies(reason: string): string[] {
 export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = {}): Finding[] {
   const found: Finding[] = [];
   const byKey = new Map(rows.map((row) => [row.key, row]));
+  const index = rowIndex(rows);
   for (const error of manifest.errors)
     found.push({
       kind: "line-without-door",
@@ -351,7 +476,7 @@ export function judge(rows: DoorRow[], manifest: Manifest, evidence: Evidence = 
       });
       continue;
     }
-    found.push(...pairFindings(row, line));
+    found.push(...pairFindings(row, line, index));
     const offGate = offGateFinding(row, line, rows);
     if (offGate !== null)
       found.push({ kind: "reader-off-gate", key: row.key, what: offGate, where: row.where });

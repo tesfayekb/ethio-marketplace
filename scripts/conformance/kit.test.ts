@@ -57,6 +57,12 @@ it.each([
   writeFileSync(path, text);
   expect(() => readAllowlist(path, ["x"])).toThrow(message);
 });
+it("CF-KIT-9 `permanent` is an until only for a census that allows it", () => {
+  const path = join(root(), "allow.txt");
+  writeFileSync(path, "x | a reason | permanent\n");
+  expect(() => readAllowlist(path, ["x"])).toThrow("invalid until");
+  expect(readAllowlist(path, ["x"], { permanent: true }).get("x")?.until).toBe("permanent");
+});
 it("CF-KIT-5 report sorts and formats", () =>
   expect(
     report([

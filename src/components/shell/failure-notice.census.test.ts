@@ -96,7 +96,6 @@ const UNTIL_10B = "INC-1279 until bundle 10b";
 const ALLOW: ReadonlyArray<string> = [
   // EXCLUDED (Cursor bundle 6's folders)
   // LEFT (ruling 1 decision 9 / not a reader)
-  `src/features/admin/import-dialog.tsx | a code with no words drawn as data (INC-1280) | INC-1280 until bundle 7c`,
   `src/components/ui/picture.tsx | an image's fallback, not a read | INC-1279 permanent`,
   `src/routes/dev.primitives.tsx | the board's demonstration states | INC-1279 permanent`,
 ];

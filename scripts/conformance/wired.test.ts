@@ -407,6 +407,21 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/door-answers.test.ts"), "utf8")).toContain(
       "CFD-3",
     );
+    // door-words.test.ts DW-1…7 (cursor bundle 7c, INC-1280) runs door-words.ts's census;
+    // it is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/door-words.test.ts"), "utf8")).toContain(
+      "DW-7",
+    );
+    // check-browse-imports.test.ts BPG-1…4 (cursor bundle 7c, ruling 2) runs the browse-path guard on
+    // planted trees; it is discovered by test:unit's scripts/**/*.test.ts (the guard itself runs in ci.yml).
+    expect(readFileSync(join(ROOT, "scripts/check-browse-imports.test.ts"), "utf8")).toContain(
+      "BPG-4",
+    );
+    // door-permissions.test.ts DPM-1…4 (cursor bundle 7c Part 3, INC-1281) runs door-permissions.ts's census;
+    // it is discovered by test:unit's scripts/**/*.test.ts.
+    expect(
+      readFileSync(join(ROOT, "scripts/conformance/door-permissions.test.ts"), "utf8"),
+    ).toContain("DPM-4");
     // listing-designation.test.ts CF-TIER-5 DSG-1…3 (turn P-2 (a), ruling 14) runs listing-designation.ts's census;
     // it is discovered by test:unit's scripts/**/*.test.ts.
     expect(

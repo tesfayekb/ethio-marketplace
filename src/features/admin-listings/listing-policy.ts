@@ -2,7 +2,8 @@ import type { MessageKey } from "@/i18n";
 import { badValueWords } from "@/lib/bad-value-words";
 import { parseNumber } from "@/lib/parse-input";
 import { authKey } from "@/lib/query-keys";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 /**
  * Bundle 16 turn R2 (D174 3, D175 2) — THE RENEW SETTINGS as `listing_policy` holds
@@ -38,7 +39,12 @@ export function daysOf(text: string): number | null {
 const POLICY_REFUSALS = {
   words: {},
   generic: "admin.listings.settings.failed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_set_listing_policy";
+  unreachable: {
+    badValue: "handled elsewhere: POLICY_BAD_VALUES words the door's one field, renew_days";
+  };
+}>;
 
 const POLICY_BAD_VALUES = {
   renew_days: "admin.listings.settings.daysHelp",

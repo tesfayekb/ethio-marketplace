@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import type { DoorFamily } from "@/lib/door-family";
 import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
 
 /**
@@ -13,7 +14,15 @@ export const SAVE_REFUSALS = {
   // L22c — the dial's words that say WHEN, for a reset instant still to come.
   when: { rateLimited: "adPage.save.rateLimitedWhen" },
   generic: "adPage.save.failed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "save_listing" | "unsave_listing";
+  unreachable: {
+    ownListing: "handled elsewhere: the ad page reads it by name and stops offering Save on the person's own ad";
+  };
+  generic: {
+    listingNotAvailable: "met only when the ad went away while its page was open";
+  };
+}>;
 
 export const REPORT_REFUSALS = {
   words: {
@@ -25,7 +34,13 @@ export const REPORT_REFUSALS = {
   },
   when: { rateLimited: "adPage.report.rateLimitedWhen" },
   generic: "adPage.report.failed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "report_listing";
+  unreachable: {
+    badReason: "the dialog sends only a reason from REPORT_REASONS";
+    ownListing: "handled elsewhere: the report dialog reads it by name, and the page then stops offering Report";
+  };
+}>;
 
 /** The contact door's two returned ceilings (`sellersCapReached`, the new-account `rateLimited`) read here too. */
 export const CONTACT_REFUSALS = {
@@ -37,7 +52,13 @@ export const CONTACT_REFUSALS = {
   },
   when: { rateLimited: "adPage.contact.rateLimitedWhen" },
   generic: "adPage.contact.failed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "reveal_listing_contact";
+  also: { sellersCapReached: "returned" };
+  unreachable: {
+    acceptanceRequired: "handled elsewhere: the ad page sends the person to the acceptance screen (certifyRefusal)";
+  };
+}>;
 
 /**
  * The code a door answered: the head of its `code[:detail]`, from an error, a returned

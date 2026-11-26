@@ -37,6 +37,10 @@ export type DoorRow = {
   /** The body (static: comments blanked; live: the whole definition, comments stripped). */
   body: string;
   where: string;
+  /** Static only: a later file rebuilds the body at apply time, so `body` may be stale. */
+  computed?: boolean;
+  /** The tables of schema public whose triggers run the function. */
+  on?: string[];
 };
 
 /** A browser role may run the function. */
@@ -65,6 +69,8 @@ function readStaticRows(root: string): StaticRows {
       argNames: fn.argNames,
       body: fn.body,
       where: `${fn.file}:${fn.line}`,
+      ...(fn.computed === true ? { computed: true } : {}),
+      ...(fn.on === undefined ? {} : { on: fn.on }),
     });
   }
   return { rows, unseen: catalogue.unseen, dropped: catalogue.dropped };
@@ -98,9 +104,11 @@ export function liveRows(tsv: string): DoorRow[] {
   tsv.split(/\r?\n/).forEach((line, index) => {
     if (line.trim() === "") return;
     const cells = line.split("\t");
-    const [key, volatility, definer, anon, authenticated, trigger, body] = cells;
+    const [key, volatility, definer, anon, authenticated, trigger, on, body] = cells;
     if (
-      cells.length !== 7 ||
+      cells.length !== 8 ||
+      on === undefined ||
+      !/^(?:[a-z_][a-z0-9_]*(?:,[a-z_][a-z0-9_]*)*)?$/.test(on) ||
       key === undefined ||
       !/^[a-z][a-z0-9_]*\(.*\)$/.test(key) ||
       (volatility !== "v" && volatility !== "s" && volatility !== "i") ||
@@ -119,6 +127,7 @@ export function liveRows(tsv: string): DoorRow[] {
       argNames: argumentsOf(body).map((arg) => arg.name),
       body,
       where: `live:${index + 1}`,
+      ...(on === "" ? {} : { on: on.split(",") }),
     });
   });
   if (rows.length === 0) throw new Error("check-doors: the live catalogue is empty");

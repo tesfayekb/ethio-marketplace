@@ -2,7 +2,8 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 import type { LegalFacts } from "@/features/legal/legal-markdown";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 import { readFailed } from "@/lib/reader-failure";
 import { parseLegalVersion } from "@/features/legal/legal-reader";
 import { SCRATCH_KIND } from "@/features/legal/legal-kinds";
@@ -144,7 +145,19 @@ export const LEGAL_REFUSALS = {
     unknownUser: "admin.users.error.unknownUser",
   },
   generic: "admin.legal.error.generic",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_save_legal_draft"
+    | "admin_discard_legal_draft"
+    | "admin_publish_legal_version"
+    | "admin_add_legal_translation"
+    | "admin_mark_legal_reviewed"
+    | "admin_set_legal_settings"
+    | "admin_legal_version"
+    | "admin_user_legal_history"
+    | "admin_export_legal_acceptances";
+  also: { required: "formGate" };
+}>;
 /**
  * A legal door's refusal as the key a screen draws, through the one reader; null when the person
  * cancelled the step-up (nothing ran, nothing is said).

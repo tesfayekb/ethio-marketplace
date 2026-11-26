@@ -29,7 +29,8 @@ import { PageCard } from "@/components/shell/page-card";
 
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
-import type { Refusal, RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import type { Refusal } from "@/lib/refusal";
 
 /**
  * BUG 2b/2c: the view lives in the URL, never in hidden local state.
@@ -86,7 +87,9 @@ export const Route = createFileRoute("/auth")({
 });
 
 /** L11 (DEC-339) — a blank required answer's words, under its own field (the shared gate). */
-const AUTH_FORM_REFUSALS: RefusalFamily = { words: { required: "post.refusal.required" } };
+const AUTH_FORM_REFUSALS = {
+  words: { required: "post.refusal.required" },
+} as const satisfies DoorFamily<{ doors: never; also: { required: "formGate" } }>;
 
 const primaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +

@@ -5,14 +5,18 @@ writes it) and prints, in this order:
   - a header line with the number of lines read and the number of request lines;
   - one line per (method, path, status): the count, the path with every id made `:id` and its
     query string cut;
-  - for each answer at 500 or above: its error_code and its msg, the msg cut at 120 characters;
-  - the server's own error entries (level error or fatal, which carry no status — the request line of a
-    500 says only "request completed", the reason is its own entry): each distinct (method, path, msg,
-    error) with its count, the msg and the error cut at 120 characters.
+  - for each answer at 500 or above: its error_code and its msg, the msg cut at 120 characters, and
+    its `error` field when it has one — the auth server writes a 500's cause there, on the request
+    line itself ("request completed"; supabase/auth v2.197.0 internal/api/errors.go:160, :231) —
+    with every id made `:id`, redacted, then cut at 200 characters (a cut never splits a secret
+    the redaction would have matched; cursor bundle 7c, ruling 2, DEC-480);
+  - the server's own error entries (level error or fatal, which carry no status): each distinct
+    (method, path, msg, error) with its count, the msg and the error cut at 120 characters.
 Never a header, a token, a body or an address: a line is read only for its method, path, status,
-error_code and msg fields. Every printed line goes through the one redaction (scripts/ci/redact.py,
-DEC-368). The workflow step that runs this keeps the output in local-backend-auth-capture.txt, in
-the lane's e2e-log artifact; the capture's test is scripts/ci/auth-log-capture.test.ts.
+error_code, msg and error fields. Every printed line goes through the one redaction
+(scripts/ci/redact.py, DEC-368). The workflow step that runs this keeps the output in
+local-backend-auth-capture.txt, in the lane's e2e-log artifact; the capture's test is
+scripts/ci/auth-log-capture.test.ts.
 """
 
 import json
@@ -23,6 +27,7 @@ from collections import Counter
 from redact import redact
 
 MSG_CUT = 120
+CAUSE_CUT = 200
 ERROR_LINES_CUT = 40
 CAUSE_LINES_CUT = 40
 ID = re.compile(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}')
@@ -65,12 +70,14 @@ def summarise(lines):
         counts[(method, shown, status)] += 1
         if status >= 500:
             errors.append((method, shown, status, _text(entry.get('error_code')) or '-',
-                           _text(entry.get('msg'))[:MSG_CUT]))
+                           _text(entry.get('msg'))[:MSG_CUT],
+                           redact(ID.sub(':id', _text(entry.get('error'))))[:CAUSE_CUT]))
     out = [f'auth log: {read} lines read, {requests} request lines']
     for (method, shown, status), count in sorted(counts.items()):
         out.append(f'{count} x {method} {shown} -> {status}')
-    for method, shown, status, code, msg in errors[:ERROR_LINES_CUT]:
-        out.append(f'error {status} {method} {shown}: {code}: {msg}')
+    for method, shown, status, code, msg, cause in errors[:ERROR_LINES_CUT]:
+        tail = f': {cause}' if cause else ''
+        out.append(f'error {status} {method} {shown}: {code}: {msg}{tail}')
     if len(errors) > ERROR_LINES_CUT:
         out.append(f'error lines cut: {len(errors) - ERROR_LINES_CUT} more')
     for (method, shown, msg, error), count in sorted(causes.items())[:CAUSE_LINES_CUT]:

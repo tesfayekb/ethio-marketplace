@@ -179,8 +179,17 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
       "myListings.promote.error.sameLevel",
     );
     expect(promoteRefusalKey(null, "level")).toBe("door.refused");
+    // The reach reads its own door's codes (set_listing_reach) and the gate codes (INC-1280).
+    const reachDoor = new Set([
+      "rateLimited",
+      "accountDeactivated",
+      "notYourListing",
+      "notLive",
+      "listingNotPlaced",
+      "creditsNotAvailable",
+    ]);
     const reach: Array<[string, string]> = [
-      ...named.filter(([code]) => code !== "notOffered"),
+      ...named.filter(([code]) => reachDoor.has(code)),
       ["notOffered", "myListings.promote.error.reachNotOffered"],
       ["unknownReach", "myListings.promote.error.unknownReach"],
       ["sameReach", "myListings.promote.error.sameReach"],
@@ -191,6 +200,8 @@ describe("P-2 (b) promote-service (DEC-349)", () => {
       expect(promoteRefusalKey({ message: code }, "reach")).toBe(key);
     for (const code of ["unknownReach", "sameReach", "lowerReach", "includedReach"])
       expect(promoteRefusalKey({ message: code }, "level")).toBe("door.refused");
+    for (const code of ["sameLevel", "seasonEnded", "marketNotSet"])
+      expect(promoteRefusalKey({ message: code }, "reach")).toBe("door.refused");
   });
 
   it("PMV-5 setting a level calls set_listing_level only and reads its answer or its code", async () => {

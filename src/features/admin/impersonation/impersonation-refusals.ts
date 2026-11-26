@@ -1,4 +1,5 @@
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
@@ -18,4 +19,4 @@ export const BEGIN_REFUSALS = {
     sessionActive: "impersonation.error.sessionActive",
   },
   generic: "impersonation.failed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{ doors: "begin_impersonation"; also: { required: "formGate" } }>;

@@ -24,8 +24,9 @@ import { codeOf, walkFiles } from "./kit";
  *    values as data; a computed price is the resolver's alone. An ad's own
  *    asking price (`listings.amount`) is another concern and not read.
  *
- * The generated client types (src/integrations/supabase/**) name every function
- * and are not a consumer.
+ * The generated client types (src/integrations/supabase/**) and the door types
+ * generated from the manifest (`*.generated.ts`, scripts/doors/door-types.ts)
+ * name every function and are not a consumer.
  *
  * Allowances live in package-price-allowlist.txt (`key | reason | until`).
  */
@@ -96,7 +97,7 @@ export function priceFindings(root: string): PriceFinding[] {
   const files = walkFiles(roots, {
     ext: ["ts", "tsx", "mjs"],
     skipTests: true,
-    skip: /scripts[\\/]conformance[\\/]package-price|src[\\/]integrations[\\/]supabase[\\/]/,
+    skip: /scripts[\\/]conformance[\\/]package-price|src[\\/]integrations[\\/]supabase[\\/]|\.generated\.ts$/,
   });
   return files.flatMap((file) => priceFindingsIn(root, file));
 }

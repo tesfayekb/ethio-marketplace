@@ -3,9 +3,10 @@ import { exactLevel, type LevelRow } from "@/features/levels/levels-store";
 import type { MessageKey } from "@/i18n";
 import { parseNumber } from "@/lib/parse-input";
 import { badValueWords } from "@/lib/bad-value-words";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
-import { SHARED_REFUSAL_WORDS } from "./listing-refusals";
+import { SHARED_REFUSAL_WORDS, SLOT_REFUSAL_WORDS } from "./listing-refusals";
 import { NOTE_MAX } from "./move-reasons";
 
 /**
@@ -91,12 +92,19 @@ export function tierProblem(
 const TIER_REFUSALS = {
   words: {
     ...SHARED_REFUSAL_WORDS,
+    ...SLOT_REFUSAL_WORDS,
     listingRemoved: "admin.listings.level.error.removed",
     nothingChanged: "admin.listings.level.error.same",
     badDays: "admin.listings.level.error.days",
   },
   generic: "common.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_set_listing_tier";
+  also: { noFreeSlot: "trigger" };
+  unreachable: {
+    badValue: "handled elsewhere: TIER_BAD_VALUES words the door's two fields, tier and reason";
+  };
+}>;
 
 const TIER_BAD_VALUES = {
   reason: "admin.listings.move.pickReason",

@@ -118,6 +118,41 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   see the same calls — INC-1072's other half: the smoke lane's second live run read the
   `attr_option_norm_v2` allowance as stale because chunk 2 calls it), named in
   `scripts/conformance/wired.test.ts`.
+- **The codes include the callees' (cursor-bundle-7c Part 1, INC-1301).** A line's `codes` cell
+  is every code the door can answer besides the shared gate codes: its body's own `door_refuse`
+  literals (and the list rule's `badValue`) and those of every function of schema public its body
+  names, followed transitively through their bodies (`calleeReach` in `judge.ts`: every overload
+  of a called name, the door's own other overloads included, each key once; `door_context`,
+  `door_refuse` and `door_refused` are not followed — the gate's refusals are the shared gate
+  codes). A live definition's header (`CREATE … AS $tag$`) is no call, so both modes walk the same
+  chains. Two kinds judge it: `callee-code-missing` (key `<door key> <code>`, naming the functions
+  that refuse it) when the line lacks a callee's code, and `callee-unread` when a body on the chain
+  refuses with no literal code or runs dynamic SQL (`EXECUTE`), so the judge cannot read its codes;
+  `class-mismatch` keeps a code the body itself refuses that the line lacks, and a listed code
+  neither the body nor any callee refuses. The walk reads text, not branches: a callee's code is
+  listed even where the door's own arguments keep that branch shut (`admin_export_attributes()`
+  passes NULL to the helper whose `unknownCategory` fires only for a named scope). The landing
+  widened 39 lines (192 codes; the export doors at `admin_export_attributes()` and
+  `admin_export_attributes(text)` among them) and found no unread chain.
+  - **Triggers (ruling 1, decision 3).** A body's write (`INSERT INTO`, `UPDATE`, `DELETE FROM` a
+    table of schema public) reaches every trigger function bound to that table, walked like a
+    callee. The static catalogue binds them from `CREATE TRIGGER … ON t … EXECUTE FUNCTION f(`
+    and forgets them at `DROP TRIGGER` (`triggerEventsOf` in `catalogue.ts`; a proof's DO block
+    and another schema's table are not read); the live query's seventh column names the tables
+    whose triggers run each function (`pg_trigger`, schema public). A write the judge cannot read
+    is dynamic SQL, `callee-unread`. The places trigger `locations_ancestry_guard` widened nine
+    location doors' lines.
+  - **Bodies rebuilt at apply time.** A body a later file rebuilds by `EXECUTE format('CREATE OR
+REPLACE FUNCTION …')` (DEC-383's computed insertion; `templateDeclarationsOf`, the migration
+    reader's one recogniser) is marked `computed` in the static catalogue and walked as the files
+    spell it. Statically, a listed code no body on such a chain refuses is not a `class-mismatch`:
+    the smoke lane's live catalogue, which holds the rebuilt body, judges it. The three import
+    planners' rebuilds gave `unknownCategory` to `admin_commit_attribute_import` and
+    `unknownCountry` to both location import doors, which only the live run could see.
+
+  `check-doors.test.ts` DOORS-22 (DOORS-6 leaves exactly the rebuilt chains' mismatches to the
+  live catalogue); the self-test's planted pair: a door, a core, a leaf that refuses `calleeCode`.
+
 - `scripts/check-caller-gates.ts` and its allowlist and fixture are retired (DEC-334's frozen
   rule: the new step gates only after it has failed on its planted fixtures in the same run).
 
@@ -336,6 +371,44 @@ reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane rea
   the third TSV of `--live <tsv> <grants tsv> <staff rules tsv>`, which refuses to run without it),
   and `liveRoleRules` hands the same judge the rules really standing — a rule created by computed
   text, which the migrations' census cannot name, is judged too. `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
+
+## A family's words, typed over its doors (cursor-bundle-7c Part 2, INC-1280)
+
+`scripts/doors/door-types.ts` generates `src/lib/door-codes.generated.ts` (`DoorCodeMap`: each
+manifest door's `codes` cell as a union, `never` for none) and the permissions module; both are
+types or data only and carry no byte into a page that does not import them. A family is written
+`{ … } as const satisfies DoorFamily<{ doors; also?; generic?; unreachable?; owed? }>`
+(`src/lib/door-family.ts`, types only):
+
+- `doors` — the doors whose answers the family reads (`never` for a family that calls no door:
+  a form's own checks, the shared rate words). Every code those doors answer, the gate codes
+  (`notSignedIn`, `accountDeactivated`, `permissionDenied`, `stepUpRequired`, `rateLimited`)
+  aside, has words, or the type fails with the missing code's name.
+- `also` — a code no listed door's `door_refuse` answers, with its source: `raise` (a plain
+  `RAISE EXCEPTION`), `returned` (`{ ok: false, refusals: [{ reason }] }`), `trigger` (a table's
+  trigger, as `listings_free_slot_guard`'s `noFreeSlot`), `route` (a route's `clientError`),
+  `formGate` (the form gate or a screen's own check before the call) or `parser`. A word whose code
+  is neither a door's, a gate code nor an `also` fails; an `also` code a listed door answers fails.
+- `generic` (class c, the family's generic by design), `unreachable` (class a, handled elsewhere,
+  and class b, never produced from the calling screen) and `owed` (class d, `"INC-1307"`: a person
+  can meet and mend it and its words are owed; it draws the generic until then) — each code with
+  its reason. An excused code no listed door answers fails.
+
+The type checks the literal; `scripts/conformance/door-words.test.ts` (DW-1…7, `door-words.ts`)
+reads the program with the checker, so a word that arrives by a spread is judged too: DW-1 the
+generated files match the manifest; DW-2 every door a string under `src/` names is listed by a
+family, answers only gate codes, or holds a line of `scripts/conformance/door-words-allowlist.txt`
+saying why no refusal of its own reaches a person (a reader that only fails, a background call, a
+code read by name); DW-3 a family's words and excuses against its doors' codes; DW-4 each owed code
+by door, `| words owed | INC-1307`; DW-5 each family no `DoorFamily` types (the provider families
+`AUTH_REFUSALS`, `MFA_REFUSALS`, `MFA_ENROLL_REFUSALS`: `| provider family, no door | permanent`);
+DW-6 and DW-7 a planted file's bypasses are found, and its wrong families do not compile.
+
+The import dialog (`src/features/admin/import-dialog.tsx`) reads a refused answer through the route
+client's typed failure (`routeFailure`): a code the console's, the import's (`IMPORT_REFUSALS`, the
+places import's doors) or the shared words name draws its reason line, its sentence filled from
+the route's own detail (the failure keeps only a short-code detail, and a commit's detail names its
+rows); any other code draws only the general failure line, never the code (IRW-6, IRW-9).
 
 ## A refusal's status names its kind (cursor-bundle-7a Part 2, INC-1287)
 

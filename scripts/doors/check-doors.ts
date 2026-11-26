@@ -267,6 +267,28 @@ export const PLANTED_LIST_THROUGH =
 export const PLANTED_LIST_OFF =
   "IF upper(btrim(p_country)) !~ '^[A-Z]{2}$' THEN PERFORM public.door_refuse('badValue', 'country'); END IF;";
 
+/**
+ * The planted callee walk (cursor-bundle-7c, INC-1301): a door on the shell that hands its work to a
+ * helper of schema public, which hands it to another; the last refuses `calleeCode`, so the door
+ * answers it and its line names it.
+ */
+export const PLANTED_CALLEE_DOOR_BODY = `BEGIN v_ctx := public.door_context('owner', NULL, NULL, 'draft'); RETURN public.e2e_planted_core(p_id); EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END`;
+export const plantedCallees = (leafBody: string): DoorRow[] => [
+  row({ key: "e2e_planted_owner(uuid)", body: PLANTED_CALLEE_DOOR_BODY }),
+  row({
+    key: "e2e_planted_core(uuid)",
+    body: "BEGIN RETURN public.e2e_planted_leaf(p_id); END",
+    authenticated: false,
+  }),
+  row({ key: "e2e_planted_leaf(uuid)", body: leafBody, authenticated: false }),
+];
+export const PLANTED_CALLEE_LINE =
+  "e2e_planted_owner(uuid) | owner | authenticated | - | - | draft | - | - | draft | calleeCode | -";
+export const PLANTED_LEAF_REFUSES =
+  "BEGIN IF p_id IS NULL THEN PERFORM public.door_refuse('calleeCode'); END IF; RETURN '{}'::jsonb; END";
+export const PLANTED_LEAF_UNREAD =
+  "BEGIN PERFORM public.door_refuse(v_code); RETURN '{}'::jsonb; END";
+
 /** The planted fixtures: each kind on its own bypass, and a clean pair. */
 export function plantedCases(): Array<{
   kind: FindingKind | "clean";
@@ -328,6 +350,22 @@ export function plantedCases(): Array<{
           body: SHELL_BODY("'staff', 'listings', 'review', 'draft'"),
         }),
       ],
+      manifest: OWNER_LINE,
+    },
+    {
+      // A callee's code the line names: nothing fires.
+      kind: "clean",
+      rows: plantedCallees(PLANTED_LEAF_REFUSES),
+      manifest: PLANTED_CALLEE_LINE,
+    },
+    {
+      kind: "callee-code-missing",
+      rows: plantedCallees(PLANTED_LEAF_REFUSES),
+      manifest: OWNER_LINE,
+    },
+    {
+      kind: "callee-unread",
+      rows: plantedCallees(PLANTED_LEAF_UNREAD),
       manifest: OWNER_LINE,
     },
     {

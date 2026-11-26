@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import { useI18n } from "@/i18n";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal, refusalText } from "@/lib/refusal";
 import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 
@@ -58,7 +59,31 @@ export const ATTRIBUTE_REFUSALS = {
     badClearCell: "admin.attributes.error.badClearCell",
   },
   generic: "admin.attributes.error.saveFailed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_upsert_attribute"
+    | "admin_delete_attribute"
+    | "admin_merge_attributes"
+    | "admin_link_attribute"
+    | "admin_update_attribute_link"
+    | "admin_unlink_attribute"
+    | "admin_set_attribute_link_order"
+    | "admin_set_card_attributes"
+    | "admin_set_fact_attributes"
+    | "admin_preview_attribute_import"
+    | "admin_commit_attribute_import"
+    | "admin_undo_attribute_import";
+  also: { badType: "parser" };
+  unreachable: {
+    unknownBatch: "handled elsewhere: the import dialog words it with its shared import words";
+    badValue: "the commit saves only the pair language's label of the row just written";
+    baseLocked: "the commit saves only the pair language's label of the row just written";
+    unknownEntity: "the commit saves only the pair language's label of the row just written";
+  };
+  generic: {
+    importRunning: "another import of this console is still running: the general line asks to try again";
+  };
+}>;
 
 /**
  * Bundle 10b (D55) — the attributes export's own words for the route's codes
@@ -72,7 +97,10 @@ export const ATTRIBUTE_EXPORT_REFUSALS = {
     badScope: "admin.attributes.export.badScope",
   },
   generic: "admin.attributes.export.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_export_attributes";
+  also: { forbidden: "route"; badScope: "route" };
+}>;
 
 /**
  * An attribute screen's refusal state: `fail` reads a door's refusal through the one reader, with

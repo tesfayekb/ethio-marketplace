@@ -1,0 +1,95 @@
+# INC-1281 (cursor bundle 7c, Part 3) — the permission comparisons of browser code that are not
+# useMayCall (src/features/permissions/use-may-call.ts). `key | reason | until`; a stale line
+# fails. Key: `<file> <slug>`, `#2`, `#3` … for a slug's later comparisons in the same file.
+# A control comparison or a read's switch moves onto the hook (until INC-1281); a page, section
+# or link gate reads the page's own permission, not a door's, and stays (permanent).
+
+# The admin panel's gate (ADMIN_PANEL_PERMISSION, src/features/permissions/service.ts).
+src/components/app-shell.tsx ADMIN_PANEL_PERMISSION | the admin panel's gate (the shell's staff wait): a page gate, not a door | permanent
+src/components/app-shell.tsx ADMIN_PANEL_PERMISSION#2 | the admin panel's gate (the shell's staff flag): a page gate, not a door | permanent
+src/components/app-shell.tsx ADMIN_PANEL_PERMISSION#3 | the admin panel's gate (the panel context's isAdmin): a page gate, not a door | permanent
+src/routes/admin.tsx ADMIN_PANEL_PERMISSION | the admin panel's gate (allowed): a page gate, not a door | permanent
+
+# The sections' gates (src/features/admin/sections.ts): the menu and each page read them.
+src/features/admin/sections.ts listings:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts listings:review | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts packages:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts profiles:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts roles:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts audit_logs:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts locations:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts countries:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts categories:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts categories:view#2 | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts categories:view#3 | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts translations:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts legal:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts services:view | a section's page gate: the menu and its page read it, not a door | permanent
+
+# Links to another page: each reads that page's section permission.
+src/features/admin-overview/locations-overview.tsx locations:view | a tile's link gate (LINKS): the Places page's permission, not a door | permanent
+src/features/admin-overview/locations-overview.tsx countries:view | a tile's link gate (LINKS): the Countries page's permission, not a door | permanent
+src/features/admin-listings/listing-page.tsx profiles:view | a link gate (mayOpenSeller): the People page's permission, not a door | permanent
+src/features/admin-listings/listing-page.tsx legal:view | a link gate (mayViewLegal): the Legal page's permission, not a door | permanent
+src/features/admin/legal/user-legal-card.tsx legal:view | a link gate (the version link): the Legal page's permission, not a door | permanent
+src/features/admin-screening/screening-page.tsx listings:view | a link gate (mayOpenListing): the Listings page's permission, not a door | permanent
+
+# Reads' switches: each read is a door the hook names.
+src/features/admin-overview/locations-overview.tsx locations:view#2 | a read's switch (maySeePlaces); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-overview/locations-overview.tsx countries:view#2 | a read's switch (maySeeCountries); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/nav-alerts.ts legal:view | a read's switch (the overdue-review alert); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listings-page.tsx profiles:view | a read's switch (mayReadEmail); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-screening/screening-page.tsx profiles:view | a read's switch (mayReadEmail); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-screening/screening-page.tsx services:view | a read's switch (mayViewJob); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+
+# Control comparisons: each control calls a door or a route the hook names.
+src/features/admin-ai/ai-page.tsx services:manage | a control comparison (mayManage); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-attributes/attributes-page.tsx categories:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-attributes/attributes-page.tsx categories:restructure | a control comparison (mayRestructure); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-attributes/attributes-page.tsx categories:import | a control comparison (mayImport); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-categories/categories-page.tsx categories:create | a control comparison (mayCreate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-categories/categories-page.tsx categories:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-categories/categories-page.tsx categories:restructure | a control comparison (mayRestructure); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-categories/categories-page.tsx categories:assets | a control comparison (mayAssets); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-categories/categories-page.tsx categories:import | a control comparison (mayImport); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-countries/countries-page.tsx countries:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-countries/countries-page.tsx countries:activate | a control comparison (mayActivate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-countries/countries-page.tsx locations:import | a control comparison (mayImport); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listing-page.tsx listings:enforce | a control comparison (mayEnforce); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listing-page.tsx impersonation:use | a control comparison (mayViewAs); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listing-page.tsx listings:review | a control comparison (mayReview); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listing-page.tsx listings:review#2 | a control comparison (mayAllowPhotos); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listings-page.tsx listings:enforce | a control comparison (mayEnforce); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listings-page.tsx impersonation:use | a control comparison (mayViewAs); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-listings/listings-page.tsx listings:review | a control comparison (mayReview); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-locations/locations-page.tsx locations:create | a control comparison (mayCreate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-locations/locations-page.tsx locations:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-locations/locations-page.tsx locations:restructure | a control comparison (mayRestructure); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-locations/locations-page.tsx locations:import | a control comparison (mayImport); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-monetisation/monetisation-page.tsx packages:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-screening/screening-page.tsx listings:review | a control comparison (mayReview); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-screening/screening-page.tsx listings:enforce | a control comparison (mayEnforce); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-screening/screening-page.tsx profiles:update | a control comparison (mayRename); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin-screening/screening-page.tsx services:manage | a control comparison (mayResumeJob); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-editor-form.tsx legal:edit | a control comparison (mayEdit); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-editor-form.tsx legal:publish | a control comparison (the publish button); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-editor-form.tsx legal:publish#2 | a control comparison (the publish button's save-first caption); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-facts-card.tsx legal:edit | a control comparison (the facts' edit button); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-page.tsx legal:edit | a control comparison (mayEdit); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-page.tsx legal:publish | a control comparison (the in-force version's translate button); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-version-view.tsx legal:publish | a control comparison (the add-translation button); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-version-view.tsx legal:export | a control comparison (the export button); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/legal/legal-version-view.tsx legal:edit | a control comparison (the edit-draft button); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/roles/role-detail.tsx roles:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/roles/role-detail.tsx roles:delete | a control comparison (mayDelete); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/roles/roles-list.tsx roles:create | a control comparison (mayCreate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/translations/languages-page.tsx translations:manage | a control comparison (mayManage); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/translations/strings-page.tsx translations:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/translations/strings-page.tsx translations:approve | a control comparison (mayApprove); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/translations/strings-page.tsx translations:manage | a control comparison (mayManage); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/translations/strings-page.tsx translations:machine | a control comparison (mayMachine); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/users/user-detail.tsx profiles:update | a control comparison (mayUpdate); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/users/user-detail.tsx roles:assign | a control comparison (mayAssign); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/users/user-detail.tsx impersonation:use | a control comparison (the view-as starter); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/features/admin/users/user-detail.tsx translations:manage | a control comparison (the translator languages card); Lovable 10b part 2 moves it onto useMayCall | INC-1281
+src/routes/admin.listings_.$listingId_.edit.tsx listings:review | a control comparison (mayReview); Lovable 10b part 2 moves it onto useMayCall | INC-1281

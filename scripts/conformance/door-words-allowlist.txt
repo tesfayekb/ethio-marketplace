@@ -1,0 +1,45 @@
+# scripts/conformance/door-words.test.ts (INC-1280, cursor bundle 7c) — key | reason | until.
+# `door <name>`: a door named under src/ that no family lists, and why no refusal of its own codes
+# reaches a person. `family <file>#<name>`: a family no DoorFamily types. `owed <code> <door>`: a
+# code a person can meet and mend whose words are owed (ruling 1, decision 2, class d).
+door admin_ai_spend_days | a reader that only fails: readFailed (ai-service.ts:211), drawn by the failure notice | permanent
+door admin_list_ai_calls | a reader that only fails: readFailed (ai-service.ts:409), drawn by the failure notice | permanent
+door admin_list_listings | a reader that only fails: readFailed (use-admin-listings.ts:83); the filters send closed values capped at twenty | permanent
+door admin_list_locations | a reader that only fails: readAllPages (locations-service.ts:106) with the scope's own country list | permanent
+door admin_listing_detail | a reader that only fails: readFailed (use-admin-listing.ts:180), drawn by the failure notice | permanent
+door admin_listing_photos | a reader that only fails: readFailed (posting-service.ts:528), drawn by the failure notice | permanent
+door admin_open_report_counts | a reader that only fails: readFailed (use-listing-reports.ts:15), drawn by the failure notice | permanent
+door admin_photo_link_rows | a server reader: a gate refusal reads no rows and any other failure is readFailed (links.ts:104-106) | permanent
+door admin_screening_facts | a reader that only fails: readFailed (use-screening.ts:366), drawn by the failure notice | permanent
+door admin_screening_queue | a reader that only fails: readFailed (use-screening.ts:204), drawn by the failure notice | permanent
+door admin_warned_listings | a reader that only fails: readFailed (use-photo-changes.ts:127), drawn by the failure notice | permanent
+door get_attribute_options | a route reader: attributeNotFound answers its own 404 and rateLimited its own refusal (attributes.$id.options.ts:46-47) | permanent
+door impersonated_get_profile | a reader that only fails (impersonation-service.ts:95), drawn by the failure notice | permanent
+door impersonated_list_listings | a reader that only fails (impersonation-service.ts:118), drawn by the failure notice | permanent
+door listing_counts | a reader that only fails: readFailed (my-listing.ts:176), drawn by the failure notice | permanent
+door listing_history | a reader that only fails: readFailed (my-listing.ts:152), drawn by the failure notice | permanent
+door my_legal_version | a reader that only fails (legal-reader.ts:162), drawn by the failure notice | permanent
+door my_listing | a reader: notYourListing is read by name as the not-yours page (my-listing.ts:90) | permanent
+door my_listings | a reader that only fails: readFailed (my-listings.ts:255), drawn by the failure notice | permanent
+door my_saved_listings | a reader that only fails: readFailed (save.ts:118), drawn by the failure notice | permanent
+door admin_job_resume | the screen sends its one job (use-name-checks.ts:254), so badValue is never met; notPaused is read by name (:258) | permanent
+door admin_name_check_clear | the screen sends the row's own profile, subject and text and a reason cut to 500 (use-name-checks.ts:140-145), so badValue is never met | permanent
+door remove_own_password | handled elsewhere: lastSignInMethod is worded by name (auth-service.ts:532) | permanent
+door user_set_preferred_language | a background call: a refusal is logged, never drawn (provider.tsx:441, :551) | permanent
+door user_set_viewing_location | a background call: a refusal is logged, never drawn (app-shell.tsx:281) | permanent
+family src/features/auth/auth-error-key.ts#AUTH_REFUSALS | provider family, no door | permanent
+family src/features/auth/mfa/mfa-refusals.ts#MFA_REFUSALS | provider family, no door | permanent
+family src/features/auth/mfa/mfa-service.ts#MFA_ENROLL_REFUSALS | provider family, no door | permanent
+family src/features/admin-monetisation/monetisation-refusals.ts#MONETISATION_REFUSALS | the form judge's family: its keys are the judge's own message keys, built from FIELD_KEYS; no door | permanent
+family src/components/shell/failure-reason.ts#RATE_FAMILY | the shared rate words, no door (the gate code rateLimited only); its file is outside cursor bundle 7c's scope, so it is typed by the turn that next holds it | INC-1280
+family src/features/admin/import-dialog.tsx#family | the merge at the call of three typed families: the consoles' shared words, the import's and the console's own | permanent
+owed badValue admin_commit_category_import | words owed | INC-1307
+owed badValue admin_set_category_window | words owed | INC-1307
+owed badValue admin_undo_category_import | words owed | INC-1307
+owed categoryFixed admin_edit_listing | words owed | INC-1307
+owed reassignTargetInvalid admin_commit_category_import | words owed | INC-1307
+owed reassignTargetInvalid admin_retire_category | words owed | INC-1307
+owed reassignTargetInvalid admin_undo_category_import | words owed | INC-1307
+owed slugTaken admin_commit_category_import | words owed | INC-1307
+owed slugTaken admin_create_category | words owed | INC-1307
+owed slugTaken admin_undo_category_import | words owed | INC-1307
