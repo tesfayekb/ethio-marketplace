@@ -8,6 +8,10 @@
  * what the test could not). A templated message (a `%q` or `%v` in the source) is quoted with an
  * example value in the slot.
  *
+ * cursor-bundle-8a ruling 1 — the server errors the failure crawl (e2e/helpers/failure-crawl.ts)
+ * forces: one per backend (the data API, storage, the sign-in server, our own routes), each with
+ * its source line at the version the pinned CLI starts and its whole answer captured.
+ *
  * Read by: src/test/provider-errors.test.ts (every entry carries its code, message and line) and
  * scripts/conformance/provider-errors.test.ts (CF-PROVERR-1: a mocked error object in a unit test
  * carries a message from this fixture, a code a reader knows, or a quoted raised text).
@@ -16,6 +20,8 @@
 const AUTH = "supabase/auth v2.197.0 ";
 const AUTH_JS = "@supabase/auth-js 2.110.9 ";
 const POSTGREST_JS = "@supabase/postgrest-js 2.110.9 ";
+const POSTGREST = "PostgREST/postgrest v16.4 ";
+const STORAGE = "supabase/storage v1.79.36 ";
 
 export type ProviderErrorEntry = {
   /** The provider's `code`, absent for an error the client library raises on its own. */
@@ -27,6 +33,11 @@ export type ProviderErrorEntry = {
   status?: number;
   /** Vendor and file:line of the message in its source. */
   source: string;
+  /**
+   * The whole answer verbatim, for a server error the failure crawl forces: captured from the
+   * throwaway local stack (the images CLI 2.120.0 starts) with its database container stopped.
+   */
+  body?: string;
 };
 
 export const PROVIDER_ERRORS = {
@@ -196,6 +207,34 @@ export const PROVIDER_ERRORS = {
     message: "disposableEmail: sign-ups from throwaway mail services are not accepted",
     status: 403,
     source: "supabase/migrations/20261015110000_ed5dcaf6-f56d-41f7-94d4-eb1a1bad15d0.sql:9954",
+  },
+  unexpected_failure: {
+    code: "unexpected_failure",
+    message: "Unexpected failure, please check server logs for more information",
+    status: 500,
+    source: `${AUTH}internal/api/errors.go:235`,
+    body: '{"code":"unexpected_failure","message":"Unexpected failure, please check server logs for more information"}',
+  },
+  PGRST000: {
+    code: "PGRST000",
+    message: "Database connection error.",
+    status: 503,
+    source: `${POSTGREST}src/library/PostgREST/Error.hs:485`,
+    body: '{"code":"PGRST000","details":"could not translate host name \\"supabase_db_ethio-ci-local\\" to address: Name does not resolve\\n","hint":null,"message":"Database connection error."}',
+  },
+  InternalError: {
+    code: "InternalError",
+    message: "Internal Server Error",
+    status: 500,
+    source: `${STORAGE}src/http/error-handler.ts:91`,
+    body: '{"statusCode":"500","error":"Internal","message":"Internal Server Error","code":"InternalError"}',
+  },
+  "upstream unavailable": {
+    code: "upstream unavailable",
+    message: "upstream unavailable",
+    status: 503,
+    source: "src/server/supabase/user-client.ts:226",
+    body: '{"error":"upstream unavailable"}',
   },
 } as const satisfies Record<string, ProviderErrorEntry>;
 

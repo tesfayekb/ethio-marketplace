@@ -267,6 +267,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/route-status.test.ts"), "utf8")).toContain(
       "CF-ROUTE-STATUS-2",
     );
+    // failure-crawl.test.ts CF-CRAWL-1 CFC-1…5 (cursor bundle 8a, DEC-459 c) runs failure-crawl.ts's
+    // page-coverage census against e2e/failure-crawl-allowlist.txt; discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/failure-crawl.test.ts"), "utf8")).toContain(
+      "CFC-5",
+    );
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );
