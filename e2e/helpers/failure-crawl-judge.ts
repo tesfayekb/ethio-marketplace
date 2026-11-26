@@ -129,7 +129,8 @@ export function rawWords(): string[] {
 export type CrawlAllowance = { key: string; reason: string; until: string; line: number };
 
 /**
- * The crawl's allowlist (e2e/failure-crawl-allowlist.txt), grammar `key | reason | until`:
+ * The crawl's allowlist (scripts/conformance/failure-crawl-allowlist.txt), grammar
+ * `key | reason | until`:
  * `page <route>` a page the crawl does not open, `footer <key>` a footer item with no page yet
  * (DEC-463), `read <route> <read key>` a read whose failure the page meets by design with no
  * notice, and `read <route> <read key> (<forced>)` one forced failure of it only (its other

@@ -147,3 +147,5 @@ scripts/fixtures/e2e-results-staging-sink.json
 src/features/admin-locations/location-dialog-state.ts
 # cursor-bundle-5 ruling 3 [intentional-delete] (DEC-451): the staff gate's harness helper leaves with STAFF-E1 and STAFF-E2; bundle 6 brings them back from this lane's commits with the one helper that signs staff in at aal2
 e2e/helpers/staff-factor.ts
+# cursor-bundle-8a [intentional-delete] (DEC-459 c): the failure crawl's allowlist moves beside the other census allowlists, scripts/conformance/failure-crawl-allowlist.txt; the format check reads e2e/** and has no parser for a .txt file
+e2e/failure-crawl-allowlist.txt

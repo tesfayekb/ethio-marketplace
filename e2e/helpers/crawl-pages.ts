@@ -1,8 +1,9 @@
 /**
  * DEC-459 (c) — THE FAILURE CRAWL'S PAGES: every page route of src/routeTree.gen.ts, each with
  * the audiences that open it, in the spec file of its area (a file holds at most about 25 tests,
- * so the lanes share the crawl). A route here or a `page …` line of e2e/failure-crawl-allowlist.txt
- * — scripts/conformance/failure-crawl.ts fails a page route that is neither. No import: the
+ * so the lanes share the crawl). A route here or a `page …` line of
+ * scripts/conformance/failure-crawl-allowlist.txt — scripts/conformance/failure-crawl.ts fails a
+ * page route that is neither. No import: the
  * census reads this list too (a type is all it imports).
  *
  * `via: "client"` — the page's first read comes from the server in the page stream (its loader);

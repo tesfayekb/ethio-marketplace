@@ -39,7 +39,7 @@ widths).
    show. `judgeForced` then fails a page error, a blank page, a raw failure's words (the forced
    body, the provider's message) on screen, and a read that failed with nothing said.
 
-## The allowlist — `e2e/failure-crawl-allowlist.txt`
+## The allowlist — `scripts/conformance/failure-crawl-allowlist.txt`
 
 Grammar `key | reason | until` (`until`: a date, an INC or DEC number, or `permanent` for a
 designed default):

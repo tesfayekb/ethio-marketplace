@@ -216,6 +216,8 @@ export function uncovered(steps: Step[], allow: Map<string, string>): string[] {
     .map((s) => s.key);
 }
 
+export const CHANGED_TESTS_STEP = "component-tests › Changed test files, each alone (INC-1306)";
+
 /** The local forms, by step key; TCK-1 fails a key ci.yml no longer holds. */
 export const LOCAL = {
   "i18n-usage-map › Assert no drift": "the maps' bytes before and after regenerating",
@@ -224,12 +226,25 @@ export const LOCAL = {
     "the walk is <base>..HEAD plus the uncommitted work",
   "component-tests › Component tests (vitest + RTL + jsdom)":
     "the sandbox's shared CPU: the full suite at default workers times out (INC-1001)",
+  [CHANGED_TESTS_STEP]: "the base is the turn's, already in this clone: no shallow fetch of it",
 } as const;
 
 /** INC-1001 — the same vitest suite, bounded to at most 2 workers here; CI's command is unchanged. */
 export const LOCAL_UNIT_BOUND = "--maxWorkers=2";
 export function localUnitTests(run: string): string {
   return `${run} -- ${LOCAL_UNIT_BOUND}`;
+}
+
+/**
+ * INC-1306 — the changed test files, each alone: CI reads the base from GitHub's event and fetches
+ * it; here the base is the turn's (CHANGED_BASE, set by the caller), so the fetch line is left out —
+ * a depth-limited fetch into a whole clone would mark it shallow.
+ */
+export function localChangedTests(run: string): string {
+  return run
+    .split("\n")
+    .filter((line) => !line.includes("git fetch"))
+    .join("\n");
 }
 
 /** R3 — a pinned fetch or checksum that failed is NOT RUN, never PASS and never a stand-in. */
@@ -669,10 +684,20 @@ function main(): number {
         ? localSecretsScan(step.run, turnBase())
         : step.key === "component-tests › Component tests (vitest + RTL + jsdom)"
           ? localUnitTests(step.run)
-          : step.run;
+          : step.key === CHANGED_TESTS_STEP
+            ? localChangedTests(step.run)
+            : step.run;
+    const local: Record<string, string> =
+      step.key === CHANGED_TESTS_STEP
+        ? {
+            CHANGED_BASE: spawnSync("git", ["rev-parse", `${turnBase()}^{commit}`], {
+              encoding: "utf8",
+            }).stdout.trim(),
+          }
+        : {};
     const r = sh(
       text,
-      { ...baseEnv, ...step.env },
+      { ...baseEnv, ...step.env, ...local },
       step.timeoutS,
       step.key.replace(/[^\w]+/g, "-"),
     );

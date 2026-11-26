@@ -32,8 +32,8 @@ import { waitForHydration } from "./ui";
  * error (src/test/provider-errors.ts, captured) — and its first read once more as an answer of
  * the wrong shape. Each time the screen says so (the failure notice, the on-demand notice, the
  * in-place one, the router's page-failed answer, or a screen's own words in an alert the ordinary
- * load did not show), unless the read is a line of e2e/failure-crawl-allowlist.txt. The verdicts are
- * failure-crawl-judge.ts's; the pages are crawl-pages.ts's.
+ * load did not show), unless the read is a line of scripts/conformance/failure-crawl-allowlist.txt.
+ * The verdicts are failure-crawl-judge.ts's; the pages are crawl-pages.ts's.
  *
  * The start page: a page's own reads are the ones its start page did not make. Visitors and
  * members start on /dev/tall (no read of its own: its reads are the shell's, crawled by its own
@@ -53,8 +53,7 @@ const NOTICE_CAP_MS = 45_000;
 
 const ALLOWLIST = join(
   dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "failure-crawl-allowlist.txt",
+  "../../scripts/conformance/failure-crawl-allowlist.txt",
 );
 
 const LOAD_FAILED = [en["common.loadFailed"], am["common.loadFailed"]];

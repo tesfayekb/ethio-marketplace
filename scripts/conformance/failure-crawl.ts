@@ -8,8 +8,8 @@ import { pattern } from "../lib/pattern";
  * DEC-459 (c), INC-1278 — THE FAILURE CRAWL'S PAGE-COVERAGE CENSUS (CF-CRAWL-1). Every page
  * route of src/routeTree.gen.ts (a route whose file is a `.tsx` page; the `.ts` routes are the
  * API's and the assets') is crawled by a row of e2e/helpers/crawl-pages.ts or named by a
- * `page <route>` line of e2e/failure-crawl-allowlist.txt; every footer item with no route
- * (src/components/shell/app-footer.tsx, COLUMNS beside ROUTED) is a page owed, named by a
+ * `page <route>` line of scripts/conformance/failure-crawl-allowlist.txt; every footer item with
+ * no route (src/components/shell/app-footer.tsx, COLUMNS beside ROUTED) is a page owed, named by a
  * `footer <key>` line (DEC-463) until its route lands; every `default <file> <function>` line
  * names a designed default the crawl does not meet on a page's load, whose function still lives
  * in its file; every `read <route> …` line belongs to a crawled route (the crawl itself judges
@@ -21,7 +21,7 @@ import { pattern } from "../lib/pattern";
  * more (a shell-wide read asked on some loads only, which no one page can call stale).
  */
 
-export const CRAWL_ALLOWLIST = "e2e/failure-crawl-allowlist.txt";
+export const CRAWL_ALLOWLIST = "scripts/conformance/failure-crawl-allowlist.txt";
 /** The route of a `read` line every page shares: a shell-wide read. */
 const EVERY_PAGE = "*";
 

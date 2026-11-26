@@ -11,7 +11,7 @@ import { CRAWL_ALLOWLIST, crawlCensus, pageRoutes, unroutedFooterItems } from ".
  * DEC-459 (c), INC-1278 (CF-CRAWL-1) — every page route is crawled or named; every footer item
  * with no route is owed by a `| DEC-463` line; a designed default names a function that still
  * lives in its file; a line that names nothing is stale. Lines read `key | reason | until`
- * (e2e/failure-crawl-allowlist.txt).
+ * (scripts/conformance/failure-crawl-allowlist.txt).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
