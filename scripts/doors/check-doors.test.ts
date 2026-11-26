@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { GRANT_DROPPED_FLOOR, catalogueOf, splitTopLevel } from "./catalogue";
+import { GRANT_DROPPED_FLOOR, catalogueOf, splitTopLevel, triggerEventsOf } from "./catalogue";
 import {
   PLANTED_CALLEE_LINE,
   PLANTED_COMPUTED_FILE,
@@ -187,7 +187,7 @@ describe("check-doors (CF-DOORS)", () => {
   it("DOORS-3 the live reader answers the judge's rows and refuses a malformed catalogue", () => {
     const def =
       "CREATE OR REPLACE FUNCTION public.e2e_planted_owner(p_id uuid) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER AS $function$ BEGIN v_ctx := public.door_context('owner', NULL, NULL, 'draft'); RETURN jsonb_build_object('ok', true); EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END $function$";
-    const rows = liveRows(`e2e_planted_owner(uuid)\tv\tt\tf\tt\tf\t${def}\n`);
+    const rows = liveRows(`e2e_planted_owner(uuid)\tv\tt\tf\tt\tf\t\t${def}\n`);
     expect(rows).toHaveLength(1);
     expect(rows[0]?.authenticated).toBe(true);
     expect(browserCallable(rows[0] ?? { anon: false, authenticated: false })).toBe(true);
@@ -224,6 +224,7 @@ describe("check-doors (CF-DOORS)", () => {
             row.anon ? "t" : "f",
             row.authenticated ? "t" : "f",
             row.trigger ? "t" : "f",
+            (row.on ?? []).join(","),
             liveDefinitionOf(row),
           ].join("\t"),
         )
@@ -231,17 +232,24 @@ describe("check-doors (CF-DOORS)", () => {
       // One live pass over the tree's rows plus a planted browser grant nothing calls (ruling 7 §3:
       // the tree census is walked once; on CI's runner two passes took 5841 ms).
       const stray =
-        "e2e_planted_stray(uuid)\tv\tt\tf\tt\tf\tCREATE OR REPLACE FUNCTION public.e2e_planted_stray(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN PERFORM public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END $function$\n";
+        "e2e_planted_stray(uuid)\tv\tt\tf\tt\tf\t\tCREATE OR REPLACE FUNCTION public.e2e_planted_stray(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN PERFORM public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END $function$\n";
       const live = liveFindings(`${tsv}\n${stray}`);
       const isStray = (finding: { key: string }) => finding.key === "e2e_planted_stray(uuid)";
       // The stray fires in live mode as it does in static mode.
       expect(live.filter(isStray).map((finding) => finding.kind)).toContain("grant-without-caller");
       // Every census allowance is a live finding too — none reads as stale (the kit throws), and
-      // nothing else fires; DOORS-4 proves the same of the static mode, so the two agree.
+      // nothing else fires; DOORS-4 proves the same of the static mode, so the two agree. The one
+      // exception is a line whose walk reaches a body a later file rebuilds at apply time: spelt
+      // here from the files' text, it lacks the codes the rebuild gave it, which the smoke lane's
+      // real catalogue holds.
+      const index = rowIndex(rows);
+      const rebuilt = new Set(
+        rows.filter((row) => calleeReach(row, index).computed.length > 0).map((row) => row.key),
+      );
       expect(
-        allow(live.filter((finding) => !isStray(finding))).map(
-          (finding) => `${finding.kind} ${finding.key}`,
-        ),
+        allow(live.filter((finding) => !isStray(finding)))
+          .filter((finding) => !(finding.kind === "class-mismatch" && rebuilt.has(finding.key)))
+          .map((finding) => `${finding.kind} ${finding.key}`),
       ).toEqual([]);
     },
   );
@@ -860,7 +868,7 @@ describe("check-doors (CF-DOORS)", () => {
     // The live catalogue's one-line definition gives the same argument names as the migrations' declaration.
     const definition =
       "CREATE OR REPLACE FUNCTION public.e2e_planted_list(p_country text[] DEFAULT NULL::text[], p_note text DEFAULT 'a, b'::text, OUT p_out integer) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN RETURN '{}'::jsonb; END $function$";
-    const [live] = liveRows(`e2e_planted_list(text[],text)\tv\tt\tf\tt\tf\t${definition}\n`);
+    const [live] = liveRows(`e2e_planted_list(text[],text)\tv\tt\tf\tt\tf\t\t${definition}\n`);
     expect(live?.argNames).toEqual(["p_country", "p_note"]);
     const declared = catalogueOf([
       {
@@ -1055,7 +1063,7 @@ describe("check-doors (CF-DOORS)", () => {
   });
 
   it(
-    "DOORS-22 a line names every code its door's callees refuse, followed transitively; a chain the judge cannot read is named (cursor-bundle-7c, INC-1301)",
+    "DOORS-22 a line names every code its door's callees and its written tables' triggers refuse, followed transitively; a chain the judge cannot read is named (cursor-bundle-7c, INC-1301)",
     { timeout: TREE_READ_MS },
     () => {
       const findingsOf = (rows: DoorRow[], manifest: string) =>
@@ -1106,7 +1114,7 @@ describe("check-doors (CF-DOORS)", () => {
         walked
           .map(
             (row) =>
-              `${row.key}\tv\tt\tf\t${row.authenticated ? "t" : "f"}\tf\t${liveDefinitionOf(row)}`,
+              `${row.key}\tv\tt\tf\t${row.authenticated ? "t" : "f"}\tf\t${(row.on ?? []).join(",")}\t${liveDefinitionOf(row)}`,
           )
           .join("\n"),
       );
@@ -1123,6 +1131,75 @@ describe("check-doors (CF-DOORS)", () => {
           "attr_export_payload(text)",
         ]);
       }
+      // Ruling 1, decision 3: a write reaches the triggers on its table, and their codes are the line's.
+      const guard: DoorRow = {
+        ...door,
+        key: "e2e_planted_guard()",
+        name: "e2e_planted_guard",
+        trigger: true,
+        authenticated: false,
+        on: ["e2e_planted_t"],
+        body: "BEGIN PERFORM public.door_refuse('calleeCode'); RETURN NEW; END",
+      };
+      const writer = {
+        ...door,
+        body: door.body.replace(
+          "RETURN public.e2e_planted_core(p_id);",
+          "UPDATE public.e2e_planted_t SET a = 1; RETURN '{}'::jsonb;",
+        ),
+      };
+      expect(writer.body).not.toBe(door.body);
+      expect(findingsOf([writer, guard], PLANTED_CALLEE_LINE)).toEqual([]);
+      expect(
+        findingsOf([writer, guard], PLANTED_CALLEE_LINE.replace("| calleeCode |", "| - |")),
+      ).toEqual(["callee-code-missing e2e_planted_owner(uuid) calleeCode"]);
+      // A write to another schema's table of the same name, or a mere read, runs no trigger here.
+      for (const body of [
+        "BEGIN UPDATE storage.e2e_planted_t SET a = 1; END",
+        "BEGIN PERFORM 1 FROM public.e2e_planted_t; END",
+      ])
+        expect(calleeReach({ ...door, body }, rowIndex([guard])).codes.size, body).toBe(0);
+      // The catalogue binds a trigger of schema public, forgets a dropped one, and reads no proof's.
+      const triggerSql = [
+        "CREATE FUNCTION public.g() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END $$;",
+        "CREATE TRIGGER g_on_t BEFORE INSERT OR UPDATE ON public.t FOR EACH ROW EXECUTE FUNCTION public.g();",
+        "CREATE TRIGGER g_on_o AFTER INSERT ON storage.objects FOR EACH ROW EXECUTE FUNCTION public.g();",
+        "DO $p$ BEGIN EXECUTE 'CREATE TRIGGER p BEFORE INSERT ON public.u FOR EACH ROW EXECUTE FUNCTION public.g()'; END $p$;",
+      ].join("\n");
+      expect(catalogueOf([{ file: "a.sql", sql: triggerSql }]).functions.get("g()")?.on).toEqual([
+        "t",
+      ]);
+      expect(
+        catalogueOf([
+          { file: "a.sql", sql: triggerSql },
+          { file: "b.sql", sql: "DROP TRIGGER IF EXISTS g_on_t ON public.t;" },
+        ]).functions.get("g()")?.on,
+      ).toBeUndefined();
+      expect(triggerEventsOf(triggerSql).map((event) => event.table)).toEqual(["t"]);
+      // A body a later file rebuilds by EXECUTE format (DEC-383) is marked; a plain redeclaration clears it.
+      const plain =
+        "CREATE FUNCTION public.h(p jsonb) RETURNS jsonb LANGUAGE plpgsql AS $$ BEGIN RETURN p; END $$;";
+      const rebuild =
+        "DO $x$ BEGIN EXECUTE format('CREATE OR REPLACE FUNCTION public.h(%s) RETURNS jsonb LANGUAGE plpgsql AS $b$%s$b$', 'p jsonb', 'BEGIN RETURN p; END'); END $x$;";
+      const computedOf = (sqls: string[]) =>
+        catalogueOf(sqls.map((sql, at) => ({ file: `${at}.sql`, sql }))).functions.get("h(jsonb)")
+          ?.computed;
+      expect(computedOf([plain, rebuild])).toBe(true);
+      expect(computedOf([plain, rebuild, plain])).toBeUndefined();
+      // The static judge leaves a listed code a rebuilt callee may answer to the live catalogue.
+      const rebuilt = walked.map((row) =>
+        row.key === "e2e_planted_leaf(uuid)" ? { ...row, computed: true } : row,
+      );
+      const extra = PLANTED_CALLEE_LINE.replace("| calleeCode |", "| calleeCode,gone |");
+      expect(findingsOf(rebuilt, extra)).toEqual([]);
+      expect(findingsOf(walked, extra)).toEqual(["class-mismatch e2e_planted_owner(uuid)"]);
+      // The tree: a door that writes locations answers its ancestry trigger's codes.
+      const upsert = rows.find((candidate) => candidate.name === "admin_upsert_location");
+      expect(upsert).toBeDefined();
+      expect(calleeReach(upsert as DoorRow, index).codes.get("crossCountry")).toEqual([
+        "locations_ancestry_guard()",
+      ]);
+      expect(rows.find((candidate) => candidate.name === "loc_import_plan")?.computed).toBe(true);
     },
   );
 

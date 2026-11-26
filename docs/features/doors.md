@@ -133,10 +133,26 @@ acceptance | codes | reason`. F1-3 corrected one cell's column name: `admin_end_
   listed even where the door's own arguments keep that branch shut (`admin_export_attributes()`
   passes NULL to the helper whose `unknownCategory` fires only for a named scope). The landing
   widened 39 lines (192 codes; the export doors at `admin_export_attributes()` and
-  `admin_export_attributes(text)` among them) and found no unread chain. A trigger's refusals are
-  not a call and are not followed (the places trigger, `locations_ancestry_guard`).
-  `check-doors.test.ts` DOORS-22; the self-test's planted pair: a door, a core, a leaf that refuses
-  `calleeCode`.
+  `admin_export_attributes(text)` among them) and found no unread chain.
+  - **Triggers (ruling 1, decision 3).** A body's write (`INSERT INTO`, `UPDATE`, `DELETE FROM` a
+    table of schema public) reaches every trigger function bound to that table, walked like a
+    callee. The static catalogue binds them from `CREATE TRIGGER … ON t … EXECUTE FUNCTION f(`
+    and forgets them at `DROP TRIGGER` (`triggerEventsOf` in `catalogue.ts`; a proof's DO block
+    and another schema's table are not read); the live query's seventh column names the tables
+    whose triggers run each function (`pg_trigger`, schema public). A write the judge cannot read
+    is dynamic SQL, `callee-unread`. The places trigger `locations_ancestry_guard` widened nine
+    location doors' lines.
+  - **Bodies rebuilt at apply time.** A body a later file rebuilds by `EXECUTE format('CREATE OR
+REPLACE FUNCTION …')` (DEC-383's computed insertion; `templateDeclarationsOf`, the migration
+    reader's one recogniser) is marked `computed` in the static catalogue and walked as the files
+    spell it. Statically, a listed code no body on such a chain refuses is not a `class-mismatch`:
+    the smoke lane's live catalogue, which holds the rebuilt body, judges it. The three import
+    planners' rebuilds gave `unknownCategory` to `admin_commit_attribute_import` and
+    `unknownCountry` to both location import doors, which only the live run could see.
+
+  `check-doors.test.ts` DOORS-22 (DOORS-6 leaves exactly the rebuilt chains' mismatches to the
+  live catalogue); the self-test's planted pair: a door, a core, a leaf that refuses `calleeCode`.
+
 - `scripts/check-caller-gates.ts` and its allowlist and fixture are retired (DEC-334's frozen
   rule: the new step gates only after it has failed on its planted fixtures in the same run).
 

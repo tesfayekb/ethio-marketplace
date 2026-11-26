@@ -6,6 +6,7 @@ import {
   declarationsOf,
   functionCodeOf,
   sqlCodeOf,
+  templateDeclarationsOf,
   type Declaration,
 } from "../conformance/migration-reader";
 import { argumentSpan, argumentsOf, identityKey, normaliseType, splitTopLevel } from "./identity";
@@ -68,6 +69,13 @@ export type CatalogueFunction = {
   line: number;
   /** The roles holding EXECUTE after the last grant or revoke in effect. */
   roles: Set<GrantRole>;
+  /**
+   * A later file rebuilds the body at apply time (`EXECUTE format('CREATE OR REPLACE FUNCTION
+   * …')`, DEC-383's computed insertion): `body` is the last declaration the files spell out.
+   */
+  computed?: boolean;
+  /** The tables of schema public whose triggers run the function (`CREATE TRIGGER … ON t`). */
+  on?: string[];
 };
 
 export type UnseenGrant = { file: string; line: number; text: string };
@@ -243,6 +251,40 @@ export function dropEventsOf(sql: string): Array<{ offset: number; targets: stri
   }));
 }
 
+const CREATE_TRIGGER =
+  /\bCREATE\s+(?:OR\s+REPLACE\s+)?(?:CONSTRAINT\s+)?TRIGGER\s+"?([A-Za-z_][A-Za-z0-9_]*)"?[^;]*?\bON\s+(?:"?([A-Za-z_][A-Za-z0-9_]*)"?\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?[^;]*?\bEXECUTE\s+(?:FUNCTION|PROCEDURE)\s+(?:public\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?\s*\(/gi;
+const DROP_TRIGGER =
+  /\bDROP\s+TRIGGER\s+(?:IF\s+EXISTS\s+)?"?([A-Za-z_][A-Za-z0-9_]*)"?\s+ON\s+(?:"?([A-Za-z_][A-Za-z0-9_]*)"?\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?/gi;
+
+export type TriggerEvent = { offset: number; table: string; trigger: string; fn?: string };
+
+/**
+ * Every `CREATE TRIGGER` (`fn` set) and `DROP TRIGGER` of a file on a table of schema public,
+ * comments and DO blocks (proofs) blanked (cursor-bundle-7c ruling 1, decision 3).
+ */
+export function triggerEventsOf(sql: string): TriggerEvent[] {
+  const code = functionCodeOf(sql);
+  const inPublic = (schema: string | undefined) =>
+    schema === undefined || schema.toLowerCase() === "public";
+  const events: TriggerEvent[] = [];
+  for (const match of code.matchAll(CREATE_TRIGGER))
+    if (inPublic(match[2]))
+      events.push({
+        offset: match.index ?? 0,
+        trigger: (match[1] ?? "").toLowerCase(),
+        table: (match[3] ?? "").toLowerCase(),
+        fn: (match[4] ?? "").toLowerCase(),
+      });
+  for (const match of code.matchAll(DROP_TRIGGER))
+    if (inPublic(match[2]))
+      events.push({
+        offset: match.index ?? 0,
+        trigger: (match[1] ?? "").toLowerCase(),
+        table: (match[3] ?? "").toLowerCase(),
+      });
+  return events;
+}
+
 function lineOf(sql: string, offset: number): number {
   return sql.slice(0, offset).split("\n").length;
 }
@@ -273,8 +315,28 @@ export function catalogueOf(files: Array<{ file: string; sql: string }>): Catalo
     [...functions.keys()].filter((key) => key.startsWith(`${name}(`));
   const resolve = (target: string) => (target.includes("(") ? [target] : byName(target));
   const nameOf = (target: string) => target.split("(")[0] ?? target;
+  const triggers = new Map<string, { table: string; fn: string }>();
   for (const { file, sql } of files) {
     const events: Array<{ offset: number; apply: () => void }> = [];
+    for (const template of templateDeclarationsOf(sql))
+      events.push({
+        offset: template.offset,
+        apply: () => {
+          for (const key of byName(template.fn)) {
+            const fn = functions.get(key);
+            if (fn !== undefined) fn.computed = true;
+          }
+        },
+      });
+    for (const event of triggerEventsOf(sql))
+      events.push({
+        offset: event.offset,
+        apply: () => {
+          const at = `${event.table}.${event.trigger}`;
+          if (event.fn === undefined) triggers.delete(at);
+          else triggers.set(at, { table: event.table, fn: event.fn });
+        },
+      });
     const declarations = declarationsOf(sql);
     const grants = grantEventsOf(sql);
     const drops: Array<{ offset: number; key: string; roles: GrantRole[] }> = [];
@@ -358,6 +420,12 @@ export function catalogueOf(files: Array<{ file: string; sql: string }>): Catalo
     if (now.length > 0 && now.every((fn) => fn !== undefined && !fn.roles.has(loss.role)))
       dropped.push({ ...loss, judge: "result" });
   }
+  for (const { table, fn: name } of triggers.values())
+    for (const key of byName(name)) {
+      const fn = functions.get(key);
+      if (fn !== undefined && !(fn.on ?? []).includes(table))
+        fn.on = [...(fn.on ?? []), table].sort();
+    }
   return { functions, unseen, dropped };
 }
 

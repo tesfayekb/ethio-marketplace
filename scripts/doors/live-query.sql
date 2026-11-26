@@ -2,7 +2,8 @@
 -- smoke lane. `bun scripts/doors/check-doors.ts --live-query` prints this file as it is; the
 -- workflow (local-backend-proof.yml, step "Door guard, live") runs it through psql -At -F tab and
 -- hands the TSV to `--live <tsv>` (rows.ts liveRows: one row per function of schema public —
--- key, volatility, definer, anon, authenticated, trigger, definition with comments stripped and
+-- key, volatility, definer, anon, authenticated, trigger, the tables of schema public whose
+-- triggers run it (comma-joined, cursor-bundle-7c), definition with comments stripped and
 -- whitespace folded to one space). A query is a file read verbatim, never a string code
 -- assembles (INC-1070: fragments joined without their boundaries died on the first execution).
 select p.oid::regprocedure::text,
@@ -11,6 +12,10 @@ select p.oid::regprocedure::text,
        case when has_function_privilege('anon', p.oid, 'EXECUTE') then 't' else 'f' end,
        case when has_function_privilege('authenticated', p.oid, 'EXECUTE') then 't' else 'f' end,
        case when p.prorettype in ('trigger'::regtype, 'event_trigger'::regtype) then 't' else 'f' end,
+       coalesce((select string_agg(distinct c.relname, ',' order by c.relname)
+                 from pg_trigger t join pg_class c on c.oid = t.tgrelid
+                 where t.tgfoid = p.oid and not t.tgisinternal
+                   and c.relnamespace = 'public'::regnamespace), ''),
        regexp_replace(regexp_replace(regexp_replace(pg_get_functiondef(p.oid), '/\*.*?\*/', ' ', 'g'), '--[^' || chr(10) || ']*', ' ', 'g'), '\s+', ' ', 'g')
 from pg_proc p
 where p.pronamespace = 'public'::regnamespace and p.prokind = 'f'

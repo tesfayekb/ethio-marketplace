@@ -177,12 +177,24 @@ function refusedCodes(body: string): string[] {
   return [...body.matchAll(REFUSED_CODE)].map((match) => match[1] ?? "");
 }
 
-export type RowIndex = ReadonlyMap<string, readonly DoorRow[]>;
+/** A write to a table of schema public: its triggers run as part of the door. */
+const WRITTEN_TABLE =
+  /\b(?:INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+(?:ONLY\s+)?(?:public\.)?"?([a-z_][a-z0-9_]*)"?(?![a-z0-9_."])/gi;
+
+export type RowIndex = {
+  byName: ReadonlyMap<string, readonly DoorRow[]>;
+  /** The trigger functions bound to each table (DoorRow.on). */
+  byTable: ReadonlyMap<string, readonly DoorRow[]>;
+};
 
 export function rowIndex(rows: readonly DoorRow[]): RowIndex {
   const byName = new Map<string, DoorRow[]>();
-  for (const row of rows) byName.set(row.name, [...(byName.get(row.name) ?? []), row]);
-  return byName;
+  const byTable = new Map<string, DoorRow[]>();
+  for (const row of rows) {
+    byName.set(row.name, [...(byName.get(row.name) ?? []), row]);
+    for (const table of row.on ?? []) byTable.set(table, [...(byTable.get(table) ?? []), row]);
+  }
+  return { byName, byTable };
 }
 
 export type CalleeReach = {
@@ -190,35 +202,44 @@ export type CalleeReach = {
   codes: Map<string, string[]>;
   /** The bodies on the chain (the door's own included) whose refusals cannot be read. */
   unread: string[];
+  /** The bodies on the chain (the door's own included) a later file rebuilds at apply time. */
+  computed: string[];
 };
 
 /**
- * The refusals of every function of schema public a door's body names, followed transitively
- * through their bodies (every overload of a name, the door's own other overloads included; each
- * key once), the gate and the shell aside (cursor-bundle-7c, INC-1301).
+ * The refusals of every function of schema public a door's body names, and of every trigger on
+ * a table of schema public it writes (INSERT, UPDATE or DELETE), followed transitively through
+ * their bodies (every overload of a name, the door's own other overloads included; each key
+ * once), the gate and the shell aside (cursor-bundle-7c, INC-1301; ruling 1, decision 3).
  */
 export function calleeReach(row: DoorRow, index: RowIndex): CalleeReach {
   const codes = new Map<string, string[]>();
   const unread: string[] = [];
+  const computed: string[] = [];
   const seen = new Set<string>([row.key]);
   const queue: DoorRow[] = [row];
+  const follow = (callees: readonly DoorRow[] | undefined) => {
+    for (const callee of callees ?? []) {
+      if (seen.has(callee.key)) continue;
+      seen.add(callee.key);
+      queue.push(callee);
+    }
+  };
   for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
     const text = codeOfBody(next.body);
     if (UNREAD_REFUSAL.test(text) || DYNAMIC_SQL.test(text)) unread.push(next.key);
+    if (next.computed === true) computed.push(next.key);
     if (next !== row)
       for (const code of new Set(refusedCodes(text)))
         codes.set(code, [...(codes.get(code) ?? []), next.key]);
     for (const match of text.matchAll(CALLED_NAME)) {
       const name = (match[1] ?? "").toLowerCase();
-      if (GATE_CALLEES.has(name)) continue;
-      for (const callee of index.get(name) ?? []) {
-        if (seen.has(callee.key)) continue;
-        seen.add(callee.key);
-        queue.push(callee);
-      }
+      if (!GATE_CALLEES.has(name)) follow(index.byName.get(name));
     }
+    for (const match of text.matchAll(WRITTEN_TABLE))
+      follow(index.byTable.get((match[1] ?? "").toLowerCase()));
   }
-  return { codes, unread };
+  return { codes, unread, computed };
 }
 
 function codeFindings(row: DoorRow, line: ManifestLine, index: RowIndex): Finding[] {
@@ -231,7 +252,9 @@ function codeFindings(row: DoorRow, line: ManifestLine, index: RowIndex): Findin
   const listed = new Set(line.codes);
   const answered = new Set([...own, ...reach.codes.keys()]);
   const ownMissing = [...own].some((code) => !listed.has(code));
-  const unanswered = line.codes.some((code) => !answered.has(code));
+  // A body rebuilt at apply time is read as the files spell it: a listed code it gained there is
+  // judged by the live catalogue (the smoke lane), not here.
+  const unanswered = reach.computed.length === 0 && line.codes.some((code) => !answered.has(code));
   if (ownMissing || unanswered)
     found.push({
       kind: "class-mismatch",
