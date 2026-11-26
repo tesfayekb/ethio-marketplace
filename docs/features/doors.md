@@ -440,6 +440,16 @@ refusal. A code whose status moves on the server therefore reads right before an
 Publish, and `failureKind` reads gone from a 404, never from a code. `refusalStatus` and its
 mirror stay equal (CF-REFUSAL-2). RF-4, RF-6, RF-8, RF-14 and FR-U9 pin it.
 
+### A refusal that does not reveal an ad exists (INC-1297)
+
+The photo upload, the photo removal and the cover's background route answer `notYourListing` and
+`photoGone` at the table's 404, so a stranger's ad id looks the way an absent one does (they were
+403 and 409). Three strings read it so (`post.photo.refusal.notYourListing`,
+`post.refusal.notYourListing`, `post.error.notYours`: "could not be found"). CF-ROUTE-STATUS-1
+(`scripts/conformance/route-status.test.ts`) fails when a route answers a table code at another
+status; PHT-3, BGR-6, BGR-7, PP-6, PP-26, PP-34, PR-49 and the background case in photo-pipeline
+pin the 404s.
+
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,

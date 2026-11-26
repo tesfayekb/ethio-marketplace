@@ -120,10 +120,10 @@ describe("/api/listings/photos/$id on defineRoute (D3)", () => {
     expect(state.deletes).toBe(0);
   });
 
-  it("PHT-3 a foreign photo answers the 403 verdict, and no storage call", async () => {
+  it("PHT-3 a foreign photo answers the 404 verdict, as an absent one does, and no storage call", async () => {
     state.listing = null;
     const response = await call("DELETE", PHOTO);
-    expect(response.status).toBe(403);
+    expect(response.status).toBe(404);
     expect(await response.json()).toEqual({
       ok: false,
       refusals: [{ field: "id", reason: "notYourListing" }],

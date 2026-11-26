@@ -45,7 +45,8 @@ import { errorText } from "@/lib/error-text";
  *                            `('upload:day', …)` a day (D158), before any work
  *   3 ownership            — the listing is read AS THE CALLER, so RLS is the
  *                            authority; a listing that is not the caller's is a
- *                            403 by name, and a wrong status a 409 by name
+ *                            404 by name (as an absent one is), and a wrong status
+ *                            a 409 by name
  *   4 the cap              — the ad's level's (`listing_photo_cap`, D311) →
  *                            `tooManyPhotos`, or `levelNotAvailable` for none;
  *                            an upload that `replaces` a photo adds none, so
@@ -146,7 +147,7 @@ async function listingPhotoCap(listingId: string): Promise<number | null> {
 /** One refusal in the posting verdict (the shape `refusal()` answered before). */
 const refusal = (field: string, reason: string, detail?: string) =>
   answerVerdict([{ field, reason, ...(detail === undefined ? {} : { detail }) }]);
-/** The same refusal at a status other than 200 (403 / 409, as before). */
+/** The same refusal at a status other than 200 (404 / 409: INC-1296's table status). */
 const refusalAt = (field: string, reason: string, status: number) =>
   answerVerdict([{ field, reason }], status);
 
@@ -185,7 +186,7 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
   const own = await ownListing(supabase, userId, listingId, "id, status, title, category_id");
   if ("error" in own) return serverError(PATH, `listing read: ${own.error.message}`);
   const listing = own.row;
-  if (listing === null) return refusalAt("listingId", "notYourListing", 403);
+  if (listing === null) return refusalAt("listingId", "notYourListing", 404);
   if (!PHOTO_OPEN_STATUSES.has(String(listing["status"]))) {
     return refusalAt("status", "listingNotOpenForPhotos", 409);
   }
@@ -257,7 +258,7 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
       return serverError(PATH, `replaced photo read: ${oldError.message}`);
     }
     if (!old || old.listing_id !== listingId) {
-      return refusalAt("replaces", "photoGone", 409);
+      return refusalAt("replaces", "photoGone", 404);
     }
     replaced = { paths: old.paths, storage_path: old.storage_path };
   } else {

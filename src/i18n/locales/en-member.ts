@@ -293,7 +293,7 @@ export const enMember = {
   "post.action.retry": "Try again",
   "post.loading": "Opening the form…",
   "post.error.load": "This draft could not be opened.",
-  "post.error.notYours": "This draft belongs to another account.",
+  "post.error.notYours": "This draft could not be found.",
   "post.stepLater": "This step opens once the earlier ones are done.",
   "post.save.saving": "Saving…",
   "post.save.saved": "Saved",

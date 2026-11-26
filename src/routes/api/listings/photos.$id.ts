@@ -63,7 +63,7 @@ async function ownedPhoto(supabase: SupabaseClient<Database>, photoId: string, u
   return data;
 }
 
-const notYours = () => verdict([{ field: "id", reason: "notYourListing" }], 403);
+const notYours = () => verdict([{ field: "id", reason: "notYourListing" }], 404);
 
 /**
  * Bundle 16 turn S1 (the operator, 2026-10-15) — removals have their own limit per

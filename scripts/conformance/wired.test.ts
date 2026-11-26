@@ -263,6 +263,10 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/query-retry.test.ts"), "utf8")).toContain(
       "CF-RETRY-3",
     );
+    // route-status.test.ts CF-ROUTE-STATUS-0…2 (cursor bundle 7b, INC-1296) is discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/route-status.test.ts"), "utf8")).toContain(
+      "CF-ROUTE-STATUS-2",
+    );
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );

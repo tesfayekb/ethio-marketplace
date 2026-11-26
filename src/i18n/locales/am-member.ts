@@ -284,7 +284,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "post.action.retry": "እንደገና ይሞክሩ",
   "post.loading": "ቅጹ እየተከፈተ ነው…",
   "post.error.load": "ይህ ረቂቅ መከፈት አልቻለም።",
-  "post.error.notYours": "ይህ ረቂቅ የሌላ መለያ ነው።",
+  "post.error.notYours": "ይህ ረቂቅ አልተገኘም።",
   "post.stepLater": "ይህ ደረጃ ቀደሙት ከተጠናቀቁ በኋላ ይከፈታል።",
   "post.save.saving": "እየተቀመጠ ነው…",
   "post.save.saved": "ተቀምጧል",

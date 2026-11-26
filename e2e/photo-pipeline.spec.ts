@@ -291,7 +291,10 @@ test.describe("PHOTO PIPELINE", () => {
     expect(await objectsUnder(user.id, listingId), "PP-5: nothing may be stored").toEqual([]);
   });
 
-  test("PP-6 another seller's listing is a 403", async ({ page, browser }) => {
+  test("PP-6 another seller's listing answers as an absent one does (404)", async ({
+    page,
+    browser,
+  }) => {
     const owner = await seller(page);
     const listingId = await draft(page, owner.token, owner.user.id);
 
@@ -307,7 +310,7 @@ test.describe("PHOTO PIPELINE", () => {
         token: await bearerOf(other),
         cover: { name: "meta.png" },
       });
-      expect(answer.status, JSON.stringify(answer.payload)).toBe(403);
+      expect(answer.status, JSON.stringify(answer.payload)).toBe(404);
       expect(reasons(answer.payload)).toEqual([{ field: "listingId", reason: "notYourListing" }]);
       expect(await photoRowsOf(listingId), "PP-6: nothing may be registered").toHaveLength(0);
     } finally {
@@ -418,7 +421,7 @@ test.describe("PHOTO PIPELINE", () => {
     await signInViaSession(page, intruder.email, intruder.password);
     await gotoReady(page, "/");
     const removed = await photoAction(page, photo.id, "delete", await bearerOf(page));
-    expect(removed.status, JSON.stringify(removed.payload)).toBe(403);
+    expect(removed.status, JSON.stringify(removed.payload)).toBe(404);
     expect(reasons(removed.payload)).toEqual([{ field: "id", reason: "notYourListing" }]);
     expect(await photoRowsOf(listingId), "PP-34: refused DELETE leaves the row unchanged").toEqual(
       before,
@@ -1642,7 +1645,7 @@ test.describe("PHOTO PIPELINE", () => {
       cover: { name: "meta.webp" },
       replaces: photo!.id,
     });
-    expect(elsewhere.status, JSON.stringify(elsewhere.payload)).toBe(409);
+    expect(elsewhere.status, JSON.stringify(elsewhere.payload)).toBe(404);
     expect(reasons(elsewhere.payload)).toEqual([{ field: "replaces", reason: "photoGone" }]);
     expect(await photoRowsOf(otherId), "PP-26: the refused edit stored a row").toHaveLength(0);
     await unchanged("another listing");
@@ -2020,7 +2023,7 @@ test.describe("PHOTO PIPELINE", () => {
       { field: "listingId", reason: "badValue" },
     ]);
     const notMine = await call({ listingId: randomUUID(), photoId: first!.id });
-    expect(notMine.status()).toBe(403);
+    expect(notMine.status()).toBe(404);
     expect(await refusalOf(notMine)).toEqual([{ field: "listingId", reason: "notYourListing" }]);
     const notCover = await call({ listingId, photoId: second!.id });
     expect(notCover.status()).toBe(409);

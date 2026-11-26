@@ -33,7 +33,8 @@ import { logRouteError } from "@/server/supabase/user-client";
  *   3 the daily dial    — `background:day` per seller (RATE_LIMIT_BACKGROUND_PER_DAY, 10)
  *   4 the ids           — two UUIDs (the one `uuid`), else `badValue`
  *   5 ownership         — the listing read AS THE CALLER: another seller's is a
- *                         403 `notYourListing`; a closed status a 409 by name
+ *                         404 `notYourListing` (a stranger's ad id answers as an
+ *                         absent one does); a closed status a 409 by name
  *   6 the cover         — the listing's photos read AS THE CALLER, in their own
  *                         order: a photo not on the listing is `photoGone`; any
  *                         photo but the first (the cover) is `notCover` (D159)
@@ -112,7 +113,7 @@ async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
       return { ok: false, refusal: null };
     }
     if (own.row === null) {
-      refused = refusedWith(403, "listingId", "notYourListing");
+      refused = refusedWith(404, "listingId", "notYourListing");
       return { ok: false, refusal: null };
     }
     if (!PHOTO_OPEN_STATUSES.has(String(own.row["status"]))) {
@@ -133,7 +134,7 @@ async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
     const photos: PhotoRowForLinks[] = rows ?? [];
     const photo = photos.find((row) => row.id === photoId);
     if (!photo) {
-      refused = refusedWith(409, "photoId", "photoGone");
+      refused = refusedWith(404, "photoId", "photoGone");
       return { ok: false, refusal: null };
     }
     if (photos[0]?.id !== photoId) {
