@@ -2,7 +2,8 @@ import type { MessageKey } from "@/i18n";
 import { DOOR_REFUSED_KEY, doorCode } from "@/lib/door-codes";
 import { ownValue } from "@/lib/own-key";
 import { ReaderError, readFailed, readerFailure } from "@/lib/reader-failure";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 import { rpc } from "@/lib/supabase-door";
 
 /**
@@ -177,7 +178,7 @@ export async function readPromoteOptions(listingId: string): Promise<PromoteOpti
   return options;
 }
 
-const REFUSAL_KEY: Readonly<Record<string, MessageKey>> = {
+const REFUSAL_KEY = {
   rateLimited: "myListings.error.rateLimited",
   accountDeactivated: "myListings.error.deactivated",
   // DEC-391 (F1-5a) — a row that is not the seller's answers `notYourListing`, found or not.
@@ -193,23 +194,49 @@ const REFUSAL_KEY: Readonly<Record<string, MessageKey>> = {
   notOffered: "myListings.promote.error.notOffered",
   marketNotSet: "myListings.promote.error.marketNotSet",
   creditsNotAvailable: "myListings.promote.error.creditsNotAvailable",
-};
+} as const satisfies Record<string, MessageKey>;
 
 /** The reach's own words; every other code reads the level's (REFUSAL_KEY). */
-const REACH_REFUSAL_KEY: Readonly<Record<string, MessageKey>> = {
+const REACH_REFUSAL_KEY = {
   unknownReach: "myListings.promote.error.unknownReach",
   sameReach: "myListings.promote.error.sameReach",
   lowerReach: "myListings.promote.error.lowerReach",
   includedReach: "myListings.promote.error.includedReach",
   notOffered: "myListings.promote.error.reachNotOffered",
-};
+} as const satisfies Record<string, MessageKey>;
 
 /** The two kinds' words for the one reader (DEC-339): a code without words is `door.refused`. */
-const LEVEL_REFUSALS: RefusalFamily = { words: REFUSAL_KEY, generic: DOOR_REFUSED_KEY };
-const REACH_REFUSALS: RefusalFamily = {
-  words: { ...REFUSAL_KEY, ...REACH_REFUSAL_KEY },
+const LEVEL_REFUSALS = {
+  words: REFUSAL_KEY,
   generic: DOOR_REFUSED_KEY,
-};
+} as const satisfies DoorFamily<{
+  doors: "set_listing_level" | "promote_options";
+  unreachable: Record<
+    | "badValue"
+    | "enforcementOnly"
+    | "illegalTransition"
+    | "ownerDeleted"
+    | "ownerOnly"
+    | "ownListing"
+    | "reviewerOnly"
+    | "serviceOnly"
+    | "severeRemove"
+    | "severeRestore",
+    "the level door enters the state machine only for its owner's paused ad, to that ad's resume status"
+  >;
+}>;
+const REACH_REFUSALS = {
+  words: {
+    rateLimited: REFUSAL_KEY.rateLimited,
+    accountDeactivated: REFUSAL_KEY.accountDeactivated,
+    notYourListing: REFUSAL_KEY.notYourListing,
+    notLive: REFUSAL_KEY.notLive,
+    listingNotPlaced: REFUSAL_KEY.listingNotPlaced,
+    creditsNotAvailable: REFUSAL_KEY.creditsNotAvailable,
+    ...REACH_REFUSAL_KEY,
+  },
+  generic: DOOR_REFUSED_KEY,
+} as const satisfies DoorFamily<{ doors: "set_listing_reach" }>;
 
 function refusalKeyOf(code: string, kind: PromoteKind): MessageKey | undefined {
   return (

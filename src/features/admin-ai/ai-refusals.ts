@@ -1,7 +1,8 @@
 import type { MessageKey } from "@/i18n";
 import { badValueWords } from "@/lib/bad-value-words";
 import { errorText } from "@/lib/error-text";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
@@ -30,7 +31,13 @@ export const AI_DOOR_REFUSALS = {
   // The step-up gate's raise is a sentence (`step-up required: …`), matched while the gate stays one.
   sentences: [[/step[ -]?up/i, "admin.ai.error.stepUp"]],
   generic: "admin.ai.error.unknown",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_set_ai_feature";
+  also: { P0009: "raise" };
+  unreachable: {
+    badValue: "handled elsewhere: aiRefusalOf words each of the door's three fields (enabled, unitCost, budget) through AI_BAD_VALUES before this family";
+  };
+}>;
 
 /** The `badValue:<field>` lines: the budget, the price and the on/off switch have words of their own. */
 export const AI_BAD_VALUES = {

@@ -30,7 +30,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { shippedCatalogues, useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
-import type { RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
 
 import { DeleteLanguageDialog } from "./delete-language-dialog";
 import { LanguagePicker } from "./language-picker";
@@ -58,11 +58,23 @@ import {
 } from "./use-translations";
 import { useRetryFailed } from "@/components/shell/use-retry-failed";
 
-/** The flags door's empty catalogue reads the sync-first line, this screen's own key. */
+/**
+ * The flags door's own codes and the gate codes, in the translations console's words; its empty
+ * catalogue reads the sync-first line, this screen's own key.
+ */
 const FLAG_REFUSALS = {
   ...TRANSLATION_REFUSALS,
-  words: { ...TRANSLATION_REFUSALS.words, catalogEmpty: "admin.translations.syncFirstTooltip" },
-} as const satisfies RefusalFamily;
+  words: {
+    badLanguage: TRANSLATION_REFUSALS.words.badLanguage,
+    notFullyApproved: TRANSLATION_REFUSALS.words.notFullyApproved,
+    pseudoLanguage: TRANSLATION_REFUSALS.words.pseudoLanguage,
+    catalogEmpty: "admin.translations.syncFirstTooltip",
+    permissionDenied: TRANSLATION_REFUSALS.words.permissionDenied,
+    notSignedIn: TRANSLATION_REFUSALS.words.notSignedIn,
+    stepUpRequired: TRANSLATION_REFUSALS.words.stepUpRequired,
+    rateLimited: TRANSLATION_REFUSALS.words.rateLimited,
+  },
+} as const satisfies DoorFamily<{ doors: "admin_set_language_flags" }>;
 
 /** Provider codes can carry a region subtag (`zh-CN`); the roster stores them lowercased. */
 const LANGUAGE_CODE_RE = /^[a-z]{2,8}(-[a-z0-9]{2,8})?$/;

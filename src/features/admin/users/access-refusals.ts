@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n/types";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 /**
  * INC-1280 (10a-2, D30) — the account status and role doors' words (`admin_set_account_status`,
@@ -14,7 +15,12 @@ export const ACCESS_REFUSALS = {
     unknownRole: "admin.users.roles.unknown",
     badCountryCode: "admin.countries.error.badCountryCode",
   },
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_set_account_status" | "assign_role" | "revoke_role";
+  unreachable: {
+    badValue: "the status block sends an AccountStatus, the door's own statuses";
+  };
+}>;
 
 /**
  * A status or role refusal as the words its block draws; null for a failure that is not a

@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import type { DoorFamily } from "@/lib/door-family";
 import {
   rateUntilOf,
   readRefusal,
@@ -24,7 +25,7 @@ function base(reason: string): string {
   return splitRefusal(reason).key;
 }
 
-const DRAFT_REASONS: Record<string, MessageKey> = {
+const DRAFT_REASONS = {
   required: "post.refusal.required",
   badValue: "post.refusal.badValue",
   badShape: "post.refusal.badShape",
@@ -123,9 +124,9 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   photosSoonNotEditable: "post.refusal.photosSoonNotEditable",
   categoryNotFound: "post.refusal.categoryClosed",
   categoryInactive: "post.refusal.categoryClosed",
-};
+} as const satisfies Record<string, MessageKey>;
 
-const PHOTO_REASONS: Record<string, MessageKey> = {
+const PHOTO_REASONS = {
   certificationRequired: "legal.certify.photosWait",
   acceptanceRequired: "legal.certify.photosWait",
   nudity: "post.photo.refusal.nudity",
@@ -146,49 +147,180 @@ const PHOTO_REASONS: Record<string, MessageKey> = {
   rateLimited: "post.photo.refusal.rateLimited",
   notYourListing: "post.photo.refusal.notYourListing",
   listingNotOpenForPhotos: "post.photo.refusal.listingNotOpenForPhotos",
-  // D158 (bundle 13 turn 6) — photo screening is off and the ad is live.
-  screeningPaused: "post.photo.refusal.screeningPaused",
   // D154 B2 — the photo an edit replaces was removed meanwhile.
   photoGone: "post.photo.refusal.photoGone",
   // Bundle 16 turn S2 (D185) — many photos on drafts and no ad submitted in 7 days.
   publishFirst: "post.photo.refusal.publishFirst",
   // INC-1280 (D17) — the ad's level is not offered, so it has no photo cap.
   levelNotAvailable: "post.refusal.levelNotAvailable",
-};
+} as const satisfies Record<string, MessageKey>;
 
 /**
  * Bundle 13 turn 12 (D155b / D159) — the background tool's own refusals; every
  * other reason (a closed ad, another seller's ad, a photo gone, the dial) reads
  * as the upload route's.
  */
-const BACKGROUND_REASONS: Record<string, MessageKey> = {
+const BACKGROUND_REASONS = {
   featureOff: "post.photos.background.off",
   providerUnavailable: "post.photos.background.failed",
   backgroundSpent: "post.photos.background.spent",
   notCover: "post.photos.background.notCover",
-};
+} as const satisfies Record<string, MessageKey>;
 
 /**
  * DEC-339 — posting's words, as the families the one reader takes
  * (`src/lib/refusal.ts`): an unknown reason reads as the family's own generic.
  */
-export const DRAFT_REFUSALS: RefusalFamily = {
+export const DRAFT_REFUSALS = {
   words: DRAFT_REASONS,
   // L22 — the dial's reset instant, said as when (`refusalText`).
   when: { rateLimited: "post.refusal.rateLimitedWhen" },
   generic: "post.refusal.unknown",
-};
+} as const satisfies DoorFamily<{
+  doors:
+    | "submit_listing"
+    | "publish_listing"
+    | "change_home_country"
+    | "save_posting_identity"
+    | "check_seller_alias"
+    | "save_seller_place"
+    | "set_listing_pin"
+    | "set_listing_photos_soon"
+    | "get_posting_schema"
+    | "my_listing_private";
+  also: {
+    required: "returned";
+    badShape: "returned";
+    tooLong: "returned";
+    mustBeEmpty: "returned";
+    unknownKey: "returned";
+    unknownCurrency: "returned";
+    unknownPlace: "returned";
+    periodLocked: "returned";
+    periodFollowsBasis: "returned";
+    modeFollowsBasis: "returned";
+    commissionNotOffered: "returned";
+    priceBasisAmbiguous: "returned";
+    commissionRange: "returned";
+    commissionRequired: "returned";
+    doorError: "route";
+    residencyUnknown: "returned";
+    noFreeSlot: "returned";
+    coverageExceedsPlan: "returned";
+    messagesRequired: "returned";
+    badType: "returned";
+    badPreset: "returned";
+    badDecimals: "returned";
+    outOfBounds: "returned";
+    badMulti: "returned";
+    dependentMissing: "returned";
+    inactiveOption: "returned";
+    otherNeedsText: "returned";
+    contactInText: "returned";
+    unknownOption: "returned";
+    unknownAttribute: "returned";
+    notPositive: "returned";
+    priceNotAllowed: "returned";
+    posterExpiryTooSoon: "returned";
+    posterExpiryTooLate: "returned";
+    cityRequired: "returned";
+    providerUnavailable: "route";
+    aliasReserved: "returned";
+    aliasTaken: "returned";
+    aliasShape: "returned";
+    aliasEthio: "returned";
+    aliasRole: "returned";
+    aliasClaim: "returned";
+    aliasTooSoon: "returned";
+    businessEthio: "returned";
+    businessReserved: "returned";
+    businessClaim: "returned";
+    badLength: "returned";
+    badHandle: "returned";
+    showNeedsValue: "returned";
+    unknownCountry: "returned";
+    countryAlreadyConfirmed: "returned";
+    aliasLatinOnly: "formGate";
+    countryTooSoon: "returned";
+    assistBudgetSpent: "route";
+    featureOff: "route";
+    aliasImitatesBrand: "route";
+    belowModelYear: "formGate";
+    aboveModelYear: "formGate";
+    optionNotAllowed: "returned";
+  };
+}>;
 
-export const PHOTO_REFUSALS: RefusalFamily = {
+export const PHOTO_REFUSALS = {
   words: PHOTO_REASONS,
   when: { rateLimited: "post.photo.refusal.rateLimitedWhen" },
   generic: "post.photo.refusal.unknown",
-};
+} as const satisfies DoorFamily<{
+  doors:
+    | "remove_listing_photo"
+    | "move_listing_photo"
+    | "set_cover_photo"
+    | "my_listing_certification";
+  also: {
+    certificationRequired: "route";
+    acceptanceRequired: "route";
+    nudity: "route";
+    violence: "route";
+    weapon: "route";
+    drugs: "route";
+    hate_symbol: "route";
+    personal_document: "route";
+    contact_in_image: "route";
+    stock_watermark: "route";
+    not_a_photo: "route";
+    providerUnavailable: "route";
+    unsupportedFormat: "route";
+    corruptImage: "route";
+    tooLarge: "route";
+    stripFailed: "route";
+    tooManyPhotos: "route";
+    listingNotOpenForPhotos: "route";
+    publishFirst: "route";
+    levelNotAvailable: "route";
+  };
+  generic: {
+    badValue: "met only when the ad's photos changed while the step was open: the step sends a place inside its own list";
+  };
+}>;
 
-const BACKGROUND_REFUSALS: RefusalFamily = {
+const BACKGROUND_REFUSALS = {
   words: { ...PHOTO_REASONS, ...BACKGROUND_REASONS },
   generic: "post.photo.refusal.unknown",
-};
+} as const satisfies DoorFamily<{
+  doors: never;
+  also: {
+    certificationRequired: "route";
+    acceptanceRequired: "route";
+    nudity: "route";
+    violence: "route";
+    weapon: "route";
+    drugs: "route";
+    hate_symbol: "route";
+    personal_document: "route";
+    contact_in_image: "route";
+    stock_watermark: "route";
+    not_a_photo: "route";
+    providerUnavailable: "route";
+    unsupportedFormat: "route";
+    corruptImage: "route";
+    tooLarge: "route";
+    stripFailed: "route";
+    tooManyPhotos: "route";
+    notYourListing: "route";
+    listingNotOpenForPhotos: "route";
+    photoGone: "route";
+    publishFirst: "route";
+    levelNotAvailable: "route";
+    featureOff: "route";
+    backgroundSpent: "route";
+    notCover: "route";
+  };
+}>;
 
 /** A background-route refusal, in the seller's language. */
 export function backgroundRefusalKey(reason: string): MessageKey {

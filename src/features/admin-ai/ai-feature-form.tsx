@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n, type MessageKey } from "@/i18n";
+import type { DoorFamily } from "@/lib/door-family";
 
 import type { AiRefusal } from "./ai-refusals";
 import {
@@ -21,7 +22,10 @@ import {
 
 const AI_FORM_REFUSALS = {
   words: { required: "post.refusal.required", badBudget: "admin.ai.error.badBudget" },
-} as const;
+} as const satisfies DoorFamily<{
+  doors: never;
+  also: { required: "formGate"; badBudget: "formGate" };
+}>;
 
 /**
  * Bundle 13 turn 5 (D158) — ONE FEATURE'S SWITCH, BUDGET AND PRICE.

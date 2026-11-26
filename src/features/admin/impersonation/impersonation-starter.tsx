@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 import { BEGIN_REFUSALS } from "./impersonation-refusals";
 import { useBeginImpersonation } from "./use-impersonation";
@@ -17,10 +18,10 @@ import { useBeginImpersonation } from "./use-impersonation";
 const MIN_REASON = 5;
 
 /** L9 (DEC-339) — the reason field's words for the one Field: the kit's blank mark. */
-const REASON_REFUSALS: RefusalFamily = {
+const REASON_REFUSALS = {
   words: { required: "post.refusal.required" },
   generic: "impersonation.failed",
-};
+} as const satisfies DoorFamily<{ doors: never; also: { required: "formGate" } }>;
 
 /**
  * U3 / DEC-016 — the ONLY entry point into an impersonation session.

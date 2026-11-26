@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
 import { badValueWords } from "@/lib/bad-value-words";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 import { EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
 
@@ -24,7 +25,13 @@ export const PHOTO_REASONS = ["photo", "misleading", "rules", "other"] as const;
 const PHOTO_REMOVE_REFUSALS = {
   words: { ...EDIT_REFUSALS.words, photoNotFound: "admin.listings.photos.error.gone" },
   generic: "common.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_edit_listing";
+  unreachable: {
+    badValue: "handled elsewhere: EDIT_BAD_VALUES words the reason, and remove_photos is always the one photo's list";
+    categoryFixed: "the photo removal sends only remove_photos, never category_id";
+  };
+}>;
 
 /** The door's refusal (`code[:detail]`), as the person reads it. */
 export function photoRemoveErrorKey(refusal: unknown): MessageKey {

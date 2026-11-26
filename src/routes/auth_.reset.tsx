@@ -13,7 +13,8 @@ import { completePasswordReset, sessionRehydration } from "@/features/auth/auth-
 import { landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
-import type { Refusal, RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import type { Refusal } from "@/lib/refusal";
 
 /**
  * P1-g — the landing page of a password-reset link.
@@ -49,9 +50,12 @@ export const Route = createFileRoute("/auth_/reset")({
  * L11 (DEC-339) — the reset form's own words for a field's refusal: a blank
  * required answer (the shared gate) and a new password under the length.
  */
-const RESET_REFUSALS: RefusalFamily = {
+const RESET_REFUSALS = {
   words: { required: "post.refusal.required", tooShort: "auth.errorPasswordTooShort" },
-};
+} as const satisfies DoorFamily<{
+  doors: never;
+  also: { required: "formGate"; tooShort: "formGate" };
+}>;
 
 const primaryButtonClass =
   "inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm " +

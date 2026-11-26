@@ -2,14 +2,14 @@ import { useState } from "react";
 
 import { useI18n } from "@/i18n";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal, refusalText } from "@/lib/refusal";
 import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
  * DEC-333 (F1-4a) — the categories console's own words for its doors' codes. Each code that
- * replaced a console key reads that key's words; a code that never had words (unknownCategory,
- * unknownPointer, alreadyActive, reassignTargetInvalid, slugTaken, parentInactive, badValue,
- * permissionDenied) draws the console's generic line. A count travels as the code's tail.
+ * replaced a console key reads that key's words; a code without words draws the console's generic
+ * line, and the type below names each one with its reason. A count travels as the code's tail.
  */
 export const CATEGORY_REFUSALS = {
   when: ADMIN_WHEN,
@@ -32,7 +32,39 @@ export const CATEGORY_REFUSALS = {
     badType: PARSE_INVALID_KEY,
   },
   generic: "admin.categories.error.saveFailed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_create_category"
+    | "admin_update_category"
+    | "admin_set_category_window"
+    | "admin_set_country_exclusions"
+    | "admin_retire_category"
+    | "admin_reactivate_category"
+    | "admin_delete_category"
+    | "admin_reorder_categories"
+    | "admin_add_category_pointer"
+    | "admin_move_category_pointer"
+    | "admin_set_primary_pointer"
+    | "admin_remove_category_pointer"
+    | "admin_set_category_images"
+    | "admin_accept_category_image"
+    | "admin_export_categories"
+    | "admin_preview_category_import"
+    | "admin_commit_category_import"
+    | "admin_undo_category_import";
+  also: { forbidden: "route"; required: "formGate"; badType: "parser" };
+  unreachable: {
+    unknownBatch: "handled elsewhere: the import dialog words it with its shared import words";
+    unknownParent: "the commit's plan, read in the same transaction, refuses the same row first";
+    baseLocked: "the import doors save only the pair language's name of the row just written";
+    unknownEntity: "the import doors save only the pair language's name of the row just written";
+  };
+  generic: {
+    alreadyActive: "Reactivate is drawn on a retired row alone: only someone else's reactivation first meets it";
+    importRunning: "another import of this console is still running: the general line asks to try again";
+  };
+  owed: { slugTaken: "INC-1307"; reassignTargetInvalid: "INC-1307"; badValue: "INC-1307" };
+}>;
 
 /**
  * A categories screen's refusal state: `fail` reads a door's refusal through the one reader, with

@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 /**
  * F1-5b — THE ACCEPTANCE SCREEN'S WORDS, by code, for the one reader (DEC-339). The shell
@@ -14,7 +15,17 @@ export const LEGAL_ACCEPT_CHANGED_KEY = "legal.accept.changed" satisfies Message
 export const LEGAL_ACCEPT_REFUSALS = {
   words: { notInForce: LEGAL_ACCEPT_CHANGED_KEY },
   generic: "legal.accept.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "accept_legal";
+  unreachable: {
+    emptyList: "the screen's Accept is disabled while no version waits";
+    adultRequired: "the screen sends adult whenever a waiting version has no adult confirmation";
+    notApplicable: "the screen sends only the versions my_legal_status returned for this person";
+  };
+  generic: {
+    badLanguage: "met only when the person's language was withdrawn while the screen was open";
+  };
+}>;
 
 /** The acceptance's failure, in the screen's words. */
 export function acceptRefusalKey(failure: unknown): MessageKey {

@@ -372,6 +372,43 @@ reason`). The live half (cursor-bundle-5, ACT-032, DOORS-21): the smoke lane rea
   and `liveRoleRules` hands the same judge the rules really standing — a rule created by computed
   text, which the migrations' census cannot name, is judged too. `FilterRow` is a list filter's host in the forms census (CF-FORM-7, INC-1259).
 
+## A family's words, typed over its doors (cursor-bundle-7c Part 2, INC-1280)
+
+`scripts/doors/door-types.ts` generates `src/lib/door-codes.generated.ts` (`DoorCodeMap`: each
+manifest door's `codes` cell as a union, `never` for none) and the permissions module; both are
+types or data only and carry no byte into a page that does not import them. A family is written
+`{ … } as const satisfies DoorFamily<{ doors; also?; generic?; unreachable?; owed? }>`
+(`src/lib/door-family.ts`, types only):
+
+- `doors` — the doors whose answers the family reads (`never` for a family that calls no door:
+  a form's own checks, the shared rate words). Every code those doors answer, the gate codes
+  (`notSignedIn`, `accountDeactivated`, `permissionDenied`, `stepUpRequired`, `rateLimited`)
+  aside, has words, or the type fails with the missing code's name.
+- `also` — a code no listed door's `door_refuse` answers, with its source: `raise` (a plain
+  `RAISE EXCEPTION`), `returned` (`{ ok: false, refusals: [{ reason }] }`), `trigger` (a table's
+  trigger, as `listings_free_slot_guard`'s `noFreeSlot`), `route` (a route's `clientError`),
+  `formGate` (the form gate or a screen's own check before the call) or `parser`. A word whose code
+  is neither a door's, a gate code nor an `also` fails; an `also` code a listed door answers fails.
+- `generic` (class c, the family's generic by design), `unreachable` (class a, handled elsewhere,
+  and class b, never produced from the calling screen) and `owed` (class d, `"INC-1307"`: a person
+  can meet and mend it and its words are owed; it draws the generic until then) — each code with
+  its reason. An excused code no listed door answers fails.
+
+The type checks the literal; `scripts/conformance/door-words.test.ts` (DW-1…7, `door-words.ts`)
+reads the program with the checker, so a word that arrives by a spread is judged too: DW-1 the
+generated files match the manifest; DW-2 every door a string under `src/` names is listed by a
+family, answers only gate codes, or holds a line of `scripts/conformance/door-words-allowlist.txt`
+saying why no refusal of its own reaches a person (a reader that only fails, a background call, a
+code read by name); DW-3 a family's words and excuses against its doors' codes; DW-4 each owed code
+by door, `| words owed | INC-1307`; DW-5 each family no `DoorFamily` types (the provider families
+`AUTH_REFUSALS`, `MFA_REFUSALS`, `MFA_ENROLL_REFUSALS`: `| provider family, no door | permanent`);
+DW-6 and DW-7 a planted file's bypasses are found, and its wrong families do not compile.
+
+The import dialog (`src/features/admin/import-dialog.tsx`) reads a refused answer through the route
+client's typed failure (`routeFailure`): a code the console's, the import's (`IMPORT_REFUSALS`, the
+places import's doors) or the shared words name draws its reason line; any other code draws only
+the general failure line, never the code.
+
 ## A refusal's status names its kind (cursor-bundle-7a Part 2, INC-1287)
 
 `door_refusal_status` (and its client mirror `REFUSAL_STATUS`, `src/lib/reader-failure.ts`) gives

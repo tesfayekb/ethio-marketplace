@@ -1,7 +1,8 @@
 import type { Refusal } from "@/features/posting/types";
 import type { MessageKey } from "@/i18n";
 import { badValueWords } from "@/lib/bad-value-words";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 import { groupOf, groupsOf, type FieldGroup } from "./history";
 import { EDIT_BAD_VALUES, EDIT_REFUSALS } from "./listing-refusals";
@@ -40,7 +41,14 @@ const UNDO_REFUSALS = {
     photoRemovalFinal: "admin.listings.undo.photoFinal",
   },
   generic: "common.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_undo_listing_edit";
+  unreachable: {
+    badValue: "the undo door replays a revision's stored keys with its own reason, undo";
+    categoryFixed: "the undo door turns app.listing_undo on for its own call, which lets a category back";
+    photoNotFound: "a photo removal is never offered for undo, and its door refuses it as photoRemovalFinal";
+  };
+}>;
 
 /** The undo door's refusal (`code[:detail]`), as the person reads it. */
 export function undoErrorKey(refusal: unknown): MessageKey {

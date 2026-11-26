@@ -26,7 +26,10 @@ vi.mock("@/i18n", () => ({
 }));
 
 const callRoute = vi.fn();
-vi.mock("@/lib/route-client", () => ({ callRoute: (...args: unknown[]) => callRoute(...args) }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute: (...args: unknown[]) => callRoute(...args),
+}));
 
 vi.mock("@/features/auth/mfa/mfa-service", () => ({ stepUpAbortKey: () => undefined }));
 
@@ -174,10 +177,10 @@ describe("import dialog reason words (L1)", () => {
     expect(reasonLine()).toBeNull();
   });
 
-  it("IRW-6 an unknown code draws as data: the code, a dash, its detail", async () => {
+  it("IRW-6 a code no family words draws no reason line, only the general line", async () => {
     await commitWith(refused(500, "somethingOdd", "x1"));
     expect(screen.getByTestId("imp-error").textContent).toBe("T(admin.test.import.error.failed)");
-    expect(reasonLine()).toBe("Reason: somethingOdd — x1");
+    expect(reasonLine()).toBeNull();
   });
 
   it("IRW-7 a dialog's own refusals win for their codes", async () => {

@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 /**
  * The Users section's client seam (Phase U1).
@@ -259,7 +260,13 @@ export const PROFILE_EDIT_REFUSALS = {
     [/profiles_seller_alias_unique/i, "admin.users.edit.errorAliasTaken"],
   ],
   generic: "admin.users.edit.failed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors: "admin_update_profile";
+  also: { required: "formGate" };
+  generic: {
+    unknownUser: "met only when the account was deleted while its page was open";
+  };
+}>;
 
 /**
  * The profile edit's refusal as the key the editor draws, through the one

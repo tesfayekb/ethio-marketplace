@@ -96,7 +96,12 @@ export function entryOfList(node: ts.Node, property: string): boolean {
 }
 
 export type Allowance = { key: string; reason: string; until: string; line: number };
-export function readAllowlist(path: string, found: Iterable<string>): Map<string, Allowance> {
+/** `permanent: true` lets a census accept `permanent` as a line's until (it never expires). */
+export function readAllowlist(
+  path: string,
+  found: Iterable<string>,
+  options: { permanent?: boolean } = {},
+): Map<string, Allowance> {
   const keys = new Set(found);
   const allowances = new Map<string, Allowance>();
   readFileSync(path, "utf8")
@@ -115,6 +120,8 @@ export function readAllowlist(path: string, found: Iterable<string>): Map<string
         if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== until)
           fail("invalid until");
         if (until < new Date().toISOString().slice(0, 10)) fail("expired allowance");
+      } else if (until === "permanent") {
+        if (options.permanent !== true) fail("invalid until");
       } else if (!/^(?:INC|DEC)-\d+$/.test(until)) fail("invalid until");
       if (allowances.has(key)) fail("duplicate key");
       if (!keys.has(key)) fail("stale allowance");

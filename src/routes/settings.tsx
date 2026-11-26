@@ -31,7 +31,8 @@ import {
 import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { requireSignedIn } from "@/lib/signed-in-route";
-import type { Refusal, RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import type { Refusal } from "@/lib/refusal";
 import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 import { currentSession, getSupabase } from "@/lib/supabase-door";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
@@ -92,7 +93,9 @@ export const Route = createFileRoute("/settings")({
 });
 
 /** L11 (DEC-339) — a blank required answer's words, under its own field (the shared gate). */
-const SETTINGS_FORM_REFUSALS: RefusalFamily = { words: { required: "post.refusal.required" } };
+const SETTINGS_FORM_REFUSALS = {
+  words: { required: "post.refusal.required" },
+} as const satisfies DoorFamily<{ doors: never; also: { required: "formGate" } }>;
 
 function markOf(marks: readonly Refusal[], field: string): Refusal | null {
   return marks.find((mark) => mark.field === field) ?? null;

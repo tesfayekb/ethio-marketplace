@@ -6,7 +6,7 @@ import { resilientLazy } from "@/lib/resilient-lazy";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { controlClass } from "@/components/forms/control-class";
-import type { RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
 import type { ReactNode } from "react";
 
 import {
@@ -163,13 +163,13 @@ function lineRefusal(field: string, state: LineState): Refusal | null {
   return state === "long" || state === "contact" ? { field, reason: state } : null;
 }
 
-const DIRECTIONS_REFUSALS: RefusalFamily = {
+const DIRECTIONS_REFUSALS = {
   words: { long: "post.where.directionsTooLong", contact: "post.refusal.contactInNote" },
-};
+} as const satisfies DoorFamily<{ doors: never; also: { long: "formGate"; contact: "formGate" } }>;
 
-const DETAILS_REFUSALS: RefusalFamily = {
+const DETAILS_REFUSALS = {
   words: { long: "post.where.detailsTooLong", contact: "post.refusal.contactInNote" },
-};
+} as const satisfies DoorFamily<{ doors: never; also: { long: "formGate"; contact: "formGate" } }>;
 
 const addClass =
   "inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm " +

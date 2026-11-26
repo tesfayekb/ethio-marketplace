@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n";
 
-import type { RefusalFamily } from "./refusal";
+import type { DoorFamily } from "./door-family";
 
 /**
  * DEC-339 — the console doors' dialect beside the one refusal reader
@@ -25,7 +25,7 @@ export const ADMIN_WHEN = {
 } as const satisfies Record<string, MessageKey>;
 
 /** The consoles' shared words, for `readRefusal`: the rate gate's one sentence. */
-export const ADMIN_REFUSALS: RefusalFamily = {
+export const ADMIN_REFUSALS = {
   words: { rateLimited: RATE_LIMITED_KEY },
   when: ADMIN_WHEN,
-};
+} as const satisfies DoorFamily<{ doors: never }>;

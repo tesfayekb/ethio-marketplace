@@ -3,7 +3,7 @@ import { revealControl } from "@/components/forms/reveal-control";
 import type { MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 
-import type { RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
 import { rateLine } from "./refusal-text";
 import { type Refusal } from "./types";
 
@@ -165,10 +165,10 @@ export function summaryLabel(
 }
 
 /** The specifications step's dial sentence (its own words, the member layer's: kept in the wizard, off the base layer's posting reader). */
-const SPECS_RATE: RefusalFamily = {
+const SPECS_RATE = {
   words: { rateLimited: "post.specs.rateLimited" },
   when: { rateLimited: "post.specs.rateLimitedWhen" },
-};
+} as const satisfies DoorFamily<{ doors: never }>;
 
 export function specsRateText(
   until: string | undefined,

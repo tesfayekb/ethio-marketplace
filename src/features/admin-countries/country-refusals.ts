@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useI18n, type MessageKey } from "@/i18n";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal, refusalText } from "@/lib/refusal";
 import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
 /**
@@ -33,7 +34,25 @@ export const COUNTRY_REFUSALS = {
   },
   sentences: [[/step[ -]?up/i, "admin.countries.error.stepUp"]],
   generic: "admin.countries.error.unknown",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_upsert_country"
+    | "admin_set_country_active"
+    | "admin_set_country_root_order"
+    | "admin_export_locations";
+  also: { forbidden: "route"; required: "formGate"; badType: "parser" };
+  unreachable: Record<
+    | "badCoordinates"
+    | "badSlug"
+    | "crossCountry"
+    | "levelMismatch"
+    | "missingCoordinates"
+    | "parentInactive"
+    | "parentMissing"
+    | "rootMustBeCountry",
+    "the doors write only the market's root place (level country, no parent, a slug location_slug_candidate builds), which the ancestry trigger passes"
+  >;
+}>;
 
 /**
  * A markets screen's refusal state: `fail` reads a door's refusal through the one reader with this

@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
-import { readRefusal, refusalText, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal, refusalText } from "@/lib/refusal";
 import { PARSE_INVALID_KEY } from "@/lib/parse-input";
 import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
 
@@ -14,10 +15,10 @@ import { ADMIN_WHEN, RATE_LIMITED_KEY } from "@/lib/refusal-tail";
  * shell answers it as a refusal, and `badCoordinates` is the new one) among them: whatever the
  * SQLSTATE, the reader hears an error's `message` as its code. `permissionDenied` (with or without its `:scope`) reads
  * the console's denied line; the gate's step-up sentence (SQLSTATE P0009) still reads its own
- * line. Bundle 1 part C — the four codes that drew the generic line have words: a signed-out or
- * deactivated caller reads the console's denied line (as the packages and AI consoles do), and an
- * undo's `unknownBatch` / `undoBlocked` read the shared import words. Any other code without
- * words draws the console's generic line.
+ * line. Bundle 1 part C — a signed-out or deactivated caller reads the console's denied line (as
+ * the packages and AI consoles do); an import's undo is the import dialog's, read with its shared
+ * import words. Any other code without words draws the console's generic line. Typed over the
+ * console's doors (cursor-bundle-7c, `DoorFamily`).
  */
 export const LOCATION_REFUSALS = {
   when: ADMIN_WHEN,
@@ -28,8 +29,6 @@ export const LOCATION_REFUSALS = {
     forbidden: "admin.locations.error.denied",
     notSignedIn: "admin.locations.error.denied",
     accountDeactivated: "admin.locations.error.denied",
-    unknownBatch: "admin.import.reason.unknownBatch",
-    undoBlocked: "admin.import.reason.undoBlocked",
     locationMissing: "admin.locations.error.locationMissing",
     parentMissing: "admin.locations.error.parentMissing",
     parentInactive: "admin.locations.error.parentInactive",
@@ -55,7 +54,16 @@ export const LOCATION_REFUSALS = {
   },
   sentences: [[/step[ -]?up/i, "admin.locations.error.stepUp"]],
   generic: "admin.locations.error.unknown",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_upsert_location"
+    | "admin_set_location_active"
+    | "admin_move_location"
+    | "admin_reorder_locations"
+    | "admin_delete_location"
+    | "admin_export_locations";
+  also: { forbidden: "route"; required: "formGate"; badType: "parser" };
+}>;
 
 /** `retireInstead`'s closed list of details, each beside its sentence. */
 const RETIRE_DETAILS = {

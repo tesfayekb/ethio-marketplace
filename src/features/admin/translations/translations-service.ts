@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { ownValue } from "@/lib/own-key";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
+import type { DoorFamily } from "@/lib/door-family";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 import { readFailed } from "@/lib/reader-failure";
 import { callRoute } from "@/lib/route-client";
@@ -471,7 +472,49 @@ export const TRANSLATION_REFUSALS = {
     [/^no file$/, FILE_EMPTY],
   ],
   generic: GENERIC,
-} as const satisfies RefusalFamily & {
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_save_translation"
+    | "admin_set_translation_status"
+    | "admin_approve_all_translations"
+    | "admin_approve_all_entity_translations"
+    | "admin_save_entity_translation"
+    | "admin_set_entity_translation_status"
+    | "admin_list_entity_translations"
+    | "admin_set_key_context"
+    | "admin_sync_ui_keys"
+    | "admin_export_translations"
+    | "admin_import_translations"
+    | "admin_undo_import"
+    | "admin_machine_translation"
+    | "admin_machine_entity_translation"
+    | "admin_upsert_language"
+    | "admin_set_language_flags"
+    | "admin_set_language_order"
+    | "admin_set_translator_languages"
+    | "admin_language_delete_preview"
+    | "admin_delete_language";
+  also: {
+    forbidden: "route";
+    machineTranslateRateLimited: "route";
+    fileTooLarge: "route";
+    invalidEncoding: "route";
+    nulByte: "route";
+    badHeader: "route";
+    wrongFile: "route";
+    unknownColumn: "route";
+    duplicateColumn: "route";
+    emptyFile: "route";
+    providerUnavailable: "route";
+    providerNoText: "route";
+    permission: "route";
+    stepUp: "route";
+    scope: "route";
+    unknownTarget: "route";
+    emptyValue: "route";
+    writerFailed: "route";
+  };
+}> & {
   words: Readonly<Record<TranslateReason, MessageKey>>;
 };
 

@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { PHOTO_REVIEW_LABELS, type PhotoReviewLabel } from "@/features/posting/posting-service";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
 import { ReaderError, readFailed } from "@/lib/reader-failure";
@@ -100,7 +101,7 @@ const PHOTO_ALLOW_REFUSALS = {
     ownListing: "admin.listings.move.error.own",
   },
   generic: "common.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{ doors: "admin_allow_listing_photo" }>;
 
 /** The door's refusal (`code[:detail]`), as staff read it. */
 export function photoAllowErrorKey(refusal: unknown): MessageKey {

@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 /**
  * The Roles & Permissions section's client seam (Phase U2).
@@ -168,7 +169,14 @@ export const ROLE_REFUSALS = {
     unknownPermission: "admin.roles.error.unknownPermission",
   },
   sentences: [[/step-up required/i, "admin.roles.error.stepUp"]],
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_create_role"
+    | "admin_update_role"
+    | "admin_delete_role"
+    | "admin_set_role_permission";
+  also: { required: "formGate" };
+}>;
 
 /**
  * A role door's refusal as the key a screen draws, through the one reader;

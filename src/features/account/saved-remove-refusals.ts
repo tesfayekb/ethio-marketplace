@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 /**
  * INC-1280 (10a-2, D27) — Remove on Saved (`unsave_listing`): its own words, never the page's
@@ -9,7 +10,7 @@ import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 export const SAVED_REMOVE_REFUSALS = {
   words: { listingNotAvailable: "account.saved.unavailable" },
   generic: "account.saved.removeFailed",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{ doors: "unsave_listing" }>;
 
 /** The words for a refused or failed Remove on Saved, through the one reader. */
 export function savedRemoveKey(failure: unknown): MessageKey {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { callRoute, type RoutePath } from "@/lib/route-client";
+import { callRoute, routeFailure, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 
 import { Button } from "@/components/ui/button";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
@@ -8,6 +8,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { StepTrack } from "@/components/ui/dialog-parts-facade";
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
+import type { DoorFamily } from "@/lib/door-family";
 import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
 import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
 
@@ -15,14 +16,40 @@ import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
  * L1 import-reason-words — THE SHARED IMPORT WORDS. A refused commit or undo
  * names its reason in words, the same way in every import dialog. Read after
  * the consoles' shared words and before a dialog's own `refusals` (which win
- * for their codes). A new shared import code is one more line here.
+ * for their codes). A new shared import code is one more line here. Its doors
+ * are the places import's, whose dialogs hand no console family in.
  */
-const IMPORT_REFUSAL_WORDS: Readonly<Record<string, MessageKey>> = {
-  planHasRefusals: "admin.import.reason.planHasRefusals",
-  batchAlreadyUndone: "admin.import.reason.batchAlreadyUndone",
-  undoBlocked: "admin.import.reason.undoBlocked",
-  unknownBatch: "admin.import.reason.unknownBatch",
-};
+const IMPORT_REFUSALS = {
+  words: {
+    planHasRefusals: "admin.import.reason.planHasRefusals",
+    batchAlreadyUndone: "admin.import.reason.batchAlreadyUndone",
+    undoBlocked: "admin.import.reason.undoBlocked",
+    unknownBatch: "admin.import.reason.unknownBatch",
+  },
+} as const satisfies DoorFamily<{
+  doors:
+    | "admin_preview_location_import"
+    | "admin_commit_location_import"
+    | "admin_undo_location_import";
+  unreachable: Record<
+    "badValue" | "baseLocked" | "unknownEntity",
+    "the commit saves only the pair language's name of a row it wrote"
+  >;
+  generic: Record<
+    | "badCoordinates"
+    | "badSlug"
+    | "crossCountry"
+    | "levelMismatch"
+    | "missingCoordinates"
+    | "parentInactive"
+    | "parentMissing"
+    | "rootMustBeCountry",
+    "the commit refuses a plan with refusals before it writes; the undo restores the rows it wrote, and meets these only when places changed after the import"
+  > & {
+    importRunning: "the dialog's own busy line words it by name before the reader";
+    unknownCountry: "met only when the market chosen as the scope was removed while the dialog was open";
+  };
+}>;
 
 /**
  * THE IMPORT DIALOG SHELL (IE-2, generalised by CAT-IE).
@@ -234,32 +261,31 @@ export function ImportDialog({
 
   /**
    * Foundations turn 12 (CHANGE 4) — the door's declared code, resolved. The
-   * route answers `error` (a machine code or a server literal, never database
-   * text) and an optional `detail`; a code the console's words name, or a door
-   * key (`admin.<family>.error.*`) the catalogue holds, renders translated
-   * through the one reader with its detail as the tail (F1-4a), anything else
-   * renders as the code with the detail appended (F2: data).
+   * route client's typed failure (`routeFailure`) carries the code and its
+   * short detail; a code the console's words name, or a door key
+   * (`admin.<family>.error.*`) the catalogue holds, renders translated through
+   * the one reader with its detail as the tail (F1-4a). A code no family words
+   * draws no reason line: the general failure line says it alone (INC-1280).
    */
-  const reasonOf = (payload: { error?: string; detail?: string }): string | null => {
-    const code = (payload.error ?? "").trim();
-    if (code === "") return null;
-    const detail = (payload.detail ?? "").trim();
+  const reasonOf = (failure: Error): string | null => {
     const family: RefusalFamily = {
       ...refusals,
-      words: { ...ADMIN_REFUSALS.words, ...IMPORT_REFUSAL_WORDS, ...refusals.words },
+      words: { ...ADMIN_REFUSALS.words, ...IMPORT_REFUSALS.words, ...refusals.words },
     };
-    const read = readRefusal(detail === "" ? code : `${code}:${detail}`, family, has);
+    const read = readRefusal(failure, family, has);
     if (read.branch === "family" || read.branch === "doorKey")
       return refusalText(read, t, undefined, language);
-    return detail === "" ? code : `${code} — ${detail}`;
+    return null;
   };
 
   /**
    * A code or status whose error line already says why draws NO reason line;
    * the reason is set only beneath the general failure line.
    */
-  const failed = (payload: { error?: string; detail?: string }, status: number) => {
-    const named = payload.error ?? "";
+  const failed = (answer: RouteAnswer, failure: Error) => {
+    const status =
+      answer.kind === "answered" ? answer.status : answer.kind === "signedOut" ? 401 : 0;
+    const named = answer.kind === "answered" ? (answer.error ?? "") : "";
     const own = (suffix: string) => {
       setReason(null);
       setError(t(key(suffix)));
@@ -279,28 +305,15 @@ export function ImportDialog({
     if (named === "tooManyRows") return own("error.tooManyRows");
     if (named === "badHeader") return own("error.badHeader");
     if (named === "emptyFile") return own("error.emptyFile");
-    setReason(reasonOf(payload));
+    setReason(reasonOf(failure));
     return setError(t(key("error.failed")));
   };
 
   const post = async (body: Record<string, unknown>): Promise<unknown | null> => {
     const answer = await callRoute(path, { json: body, auth: "required" });
-    if (answer.kind === "signedOut") {
-      failed({}, 401);
-      return null;
-    }
-    if (answer.kind !== "answered") {
-      failed({}, 0);
-      return null;
-    }
-    if (!answer.ok) {
-      failed(
-        { error: answer.error ?? undefined, detail: answer.detail ?? undefined },
-        answer.status,
-      );
-      return null;
-    }
-    return answer.payload ?? {};
+    if (answer.kind === "answered" && answer.ok) return answer.payload ?? {};
+    failed(answer, await routeFailure(answer));
+    return null;
   };
 
   const readFile = (field: string, file: File | undefined) => {

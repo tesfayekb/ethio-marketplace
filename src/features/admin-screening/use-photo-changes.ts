@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { readRefusal, type RefusalFamily } from "@/lib/refusal";
+import type { DoorFamily } from "@/lib/door-family";
+import { readRefusal } from "@/lib/refusal";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
 import { ReaderError, readFailed } from "@/lib/reader-failure";
@@ -110,7 +111,7 @@ export async function reviewPhotoChange(changeId: string): Promise<void> {
 const PHOTO_CHANGE_REFUSALS = {
   words: { changeGone: "admin.screening.changes.gone" },
   generic: "common.error",
-} as const satisfies RefusalFamily;
+} as const satisfies DoorFamily<{ doors: "admin_review_photo_change" }>;
 
 /** B5 — a refusal of the door (`code[:detail]`), in words. */
 export function photoChangeErrorKey(refusal: unknown): MessageKey {

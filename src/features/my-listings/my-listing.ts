@@ -3,6 +3,7 @@ import type { Refusal } from "@/features/posting/types";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
+import type { DoorFamily } from "@/lib/door-family";
 import { ownValue } from "@/lib/own-key";
 import {
   readRefusal,
@@ -263,7 +264,7 @@ export const ASKS_FIRST: ReadonlySet<ListingAction> = new Set<ListingAction>(["s
  * refusal as `code[:detail]` (`illegalTransition:closed-reduced`); a code with no words here
  * (`notCopied`, `notEditable`, `reviewerOnly`, …) draws the screen's generic line.
  */
-const SELLER_DOOR_REFUSALS: RefusalFamily = {
+const SELLER_DOOR_REFUSALS = {
   // L22b — the dial's words that say WHEN, for a reset instant still to come.
   when: { rateLimited: "myListings.error.rateLimitedWhen" },
   words: {
@@ -297,16 +298,43 @@ const SELLER_DOOR_REFUSALS: RefusalFamily = {
     contactInNote: "post.refusal.contactInNote",
   },
   generic: "myListings.error.failed",
-};
+} as const satisfies DoorFamily<{
+  doors:
+    | "set_listing_reserved"
+    | "mark_sold"
+    | "transition_listing"
+    | "renew_listing"
+    | "resume_listing"
+    | "copy_my_listing"
+    | "edit_my_listing";
+  also: { noFreeSlot: "returned"; renewOff: "returned"; renewNeedsExpired: "returned" };
+  unreachable: {
+    enforcementOnly: "the seller's actions send closed, removed or the ad's own resume status, as its owner";
+    ownerDeleted: "the seller's actions never send screening";
+    severeRestore: "the seller's actions never send screening";
+    serviceOnly: "the seller's actions never send paused";
+  };
+  generic: {
+    reviewerOnly: "met only when the ad left closed or paused while the page was open, so Reopen became a review";
+    ownListing: "met only when the ad left closed or paused while the page was open, so Reopen became a review";
+  };
+}>;
 
 /**
  * INC-1280 — `notCopied:draft` (a draft is never copied) has its own words. The reader keys a
  * family by code, so the copy-from-a-draft refusal reads through its own family's line.
  */
-const SELLER_DRAFT_COPY_REFUSALS: RefusalFamily = {
+const SELLER_DRAFT_COPY_REFUSALS = {
   ...SELLER_DOOR_REFUSALS,
-  words: { ...SELLER_DOOR_REFUSALS.words, notCopied: "myListings.refusal.notCopiedDraft" },
-};
+  words: {
+    rateLimited: SELLER_DOOR_REFUSALS.words.rateLimited,
+    accountDeactivated: SELLER_DOOR_REFUSALS.words.accountDeactivated,
+    residencyUnknown: SELLER_DOOR_REFUSALS.words.residencyUnknown,
+    notYourListing: SELLER_DOOR_REFUSALS.words.notYourListing,
+    listingNotFound: SELLER_DOOR_REFUSALS.words.listingNotFound,
+    notCopied: "myListings.refusal.notCopiedDraft",
+  },
+} as const satisfies DoorFamily<{ doors: "copy_my_listing" }>;
 
 function sellerFamily(refusal: string): RefusalFamily {
   const { key, tail } = splitRefusal(refusal.trim());
