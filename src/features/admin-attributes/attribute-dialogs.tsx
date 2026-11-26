@@ -610,7 +610,7 @@ export function AttributeEditorDialog({
           testid="attribute-dialog-error"
           size="line"
           subject={t("admin.attributes.links.error")}
-          onRetry={removedHolders.retry}
+          onRetry={removedHolders.refetchFailed}
         />
       ) : null}
       <AttributeDialogAlert message={message} />

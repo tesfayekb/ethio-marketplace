@@ -50,7 +50,7 @@ it("NAV-ALERT-1 asks nothing at aal1, then asks afresh once the session is aal2"
 });
 
 it("NAV-ALERT-2 an unreadable level fails the query and asks the server nothing", async () => {
-  door.level.mockResolvedValue({ ok: false, error: { status: 503, message: "unreadable" } });
+  door.level.mockResolvedValue({ ok: false, error: { status: 503 } });
   const view = render(["legal:view"]);
   await waitFor(() => expect(door.level).toHaveBeenCalled());
   expect(door.rpc).not.toHaveBeenCalled();
@@ -58,7 +58,7 @@ it("NAV-ALERT-2 an unreadable level fails the query and asks the server nothing"
 });
 
 it("NAV-ALERT-2b INC-1291 the failure is the reader's own, not a hand-built Error", async () => {
-  const typed = { status: 503, message: "unreadable" };
+  const typed = { status: 503 };
   door.level.mockResolvedValue({ ok: false, error: typed });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const wrapper = ({ children }: { children: ReactNode }) => (

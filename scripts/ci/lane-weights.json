@@ -225,6 +225,16 @@
         "tests": 14
       }
     },
+    "admin-screening-reject.spec.ts": {
+      "desktop-1280": {
+        "seconds": 77.7,
+        "tests": 5
+      },
+      "mobile-360": {
+        "seconds": 76.5,
+        "tests": 5
+      }
+    },
     "admin-screening.spec.ts": {
       "desktop-1280": {
         "seconds": 133.5,
@@ -687,6 +697,16 @@
       "mobile-360": {
         "seconds": 25.8,
         "tests": 4
+      }
+    },
+    "offline.spec.ts": {
+      "desktop-1280": {
+        "seconds": 4.2,
+        "tests": 1
+      },
+      "mobile-360": {
+        "seconds": 4.5,
+        "tests": 1
       }
     },
     "on-demand-failure.spec.ts": {

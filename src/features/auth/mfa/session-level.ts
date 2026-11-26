@@ -1,6 +1,5 @@
 import { fetchWithDeadline } from "@/lib/call-deadline";
 import { loadOnce } from "@/lib/load-once";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { currentSession, projectEnv } from "@/lib/supabase-door";
 
 /**
@@ -59,10 +58,11 @@ const reader = loadOnce(() => import("@/lib/reader-failure"));
 async function typed(error: unknown, status?: number): Promise<unknown> {
   try {
     return (await reader.load()).readFailed(error, status);
-  } catch (loadError) {
-    // The reader's own download failed: the shell's one notice offers the refresh; the raw error still
-    // reads (its status and class), untyped.
-    reportOnDemandFailure("reader-failure", loadError);
+  } catch {
+    // The reader's own download failed: the failure is returned as it arrived (its status and class
+    // still read, untyped) and the caller says it where it draws — the staff gate in place, the menu's
+    // alert read as a failed query. This module raises no shell notice, so a piece fetched in place
+    // can import it (CF-RLF-1; its allowance line in on-demand-failure-allowlist.txt).
     return error;
   }
 }

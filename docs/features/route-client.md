@@ -63,8 +63,8 @@ proof; RCG-4 holds the undated allowances to the two named INCs. The caller is
 the unit runner, named in wired.test.ts.
 
 `scripts/conformance/route-client-allowlist.txt` has one live line per file,
-nine in all: Leaflet's outside tile-host probe (INC-875), the translations
-folder's static asset read, its service's hand-built failures (INC-1304), and six
+ten in all: Leaflet's outside tile-host probe (INC-875), the translations
+folder's static asset read, its service's hand-built failures (INC-1304), and seven
 non-route files (session claim/handoff readers, the client's door, the bearer
 read) expiring for review on 2027-04-24. Stale and dated-expired allowances fail.
 

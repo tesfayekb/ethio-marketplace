@@ -1,6 +1,7 @@
 src/features/posting/map/leaflet.ts | The tile-host probe fetches an outside host, not a route | INC-875
 src/features/admin/translations/use-translations.ts | Fetch reads a static asset, not a route call | 2027-04-24
 src/features/auth/mfa/mfa-service.ts | Token reader inspects claims and sends no route call | 2027-04-24
+src/features/auth/mfa/session-level.ts | The light read of the session's level (the token's claim) and one GET of the auth server's user record, not a route call (INC-1291) | 2027-04-24
 src/features/auth/auth-service.ts | Session handoff token reader, not a route call | 2027-04-24
 src/features/auth/email-verification.ts | The verification landing's session handoff token reader, moved verbatim out of auth-service.ts (INC-1153); not a route call | 2027-04-24
 src/features/session/session-policy.ts | Token reader inspects the session id and sends no route call | 2027-04-24

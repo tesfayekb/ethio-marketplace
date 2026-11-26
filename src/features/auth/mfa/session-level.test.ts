@@ -24,7 +24,7 @@ beforeEach(() => {
 });
 
 describe("readSessionLevel", () => {
-  it("SL-1 reads the level from the token's claim", async () => {
+  it("SLV-1 reads the level from the token's claim", async () => {
     door.session.mockResolvedValue({
       session: { access_token: token({ aal: "aal2" }) },
       failed: false,
@@ -37,7 +37,7 @@ describe("readSessionLevel", () => {
     expect(await readSessionLevel()).toMatchObject({ ok: true, current: "aal1" });
   });
 
-  it("SL-2 a session that could not be read, or none, is a typed failure and never a level", async () => {
+  it("SLV-2 a session that could not be read, or none, is a typed failure and never a level", async () => {
     door.session.mockResolvedValue({
       session: null,
       failed: true,
@@ -56,12 +56,14 @@ describe("readSessionLevel", () => {
 
 describe("readVerifiedFactors", () => {
   function answer(body: unknown, status = 200) {
-    const call = vi.fn(async () => new Response(JSON.stringify(body), { status }));
+    const call = vi.fn(
+      async (_url: string, _init?: RequestInit) => new Response(JSON.stringify(body), { status }),
+    );
     vi.stubGlobal("fetch", call);
     return call;
   }
 
-  it("SL-3 counts the verified TOTP factors from one authenticated request", async () => {
+  it("SLV-3 counts the verified TOTP factors from one authenticated request", async () => {
     const call = answer({
       factors: [
         { factor_type: "totp", status: "verified" },
@@ -71,19 +73,19 @@ describe("readVerifiedFactors", () => {
     });
     expect(await readVerifiedFactors("t0k")).toEqual({ ok: true, verified: 1 });
     expect(call).toHaveBeenCalledTimes(1);
-    const [url, init] = call.mock.calls[0] as unknown as [string, RequestInit];
+    const [url, init] = call.mock.calls[0] ?? [];
     expect(url).toBe("https://p.example.invalid/auth/v1/user");
-    expect(init.headers).toMatchObject({ Authorization: "Bearer t0k" });
+    expect(init?.headers).toMatchObject({ Authorization: "Bearer t0k" });
   });
 
-  it("SL-4 an account with no factors answers none, not a failure", async () => {
+  it("SLV-4 an account with no factors answers none, not a failure", async () => {
     answer({ id: "u" });
     expect(await readVerifiedFactors("t")).toEqual({ ok: true, verified: 0 });
     answer({ factors: null });
     expect(await readVerifiedFactors("t")).toEqual({ ok: true, verified: 0 });
   });
 
-  it("SL-5 a refused or unreachable read is a failure, never zero factors", async () => {
+  it("SLV-5 a refused or unreachable read is a failure, never zero factors", async () => {
     answer({ message: "x" }, 503);
     expect(await readVerifiedFactors("t")).toMatchObject({ ok: false });
     vi.stubGlobal(

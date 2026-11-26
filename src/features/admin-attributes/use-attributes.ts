@@ -168,7 +168,7 @@ export function useRemovedAnswerHolders(attributeId: string | null, values: read
       failed: results.some((result) => result.isError),
       // INC-1302 — the first failed read's own error, for the failure notice; Retry re-reads the failed ones.
       error: results.find((result) => result.isError)?.error ?? null,
-      retry: () => {
+      refetchFailed: () => {
         for (const result of results) if (result.isError) void result.refetch();
       },
     }),

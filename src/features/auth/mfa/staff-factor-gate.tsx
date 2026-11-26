@@ -4,11 +4,11 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { Field } from "@/components/forms/field";
 import { useShell } from "@/components/shell-context";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/i18n";
 import { loadOnce } from "@/lib/load-once";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import type { Refusal } from "@/lib/refusal";
 
 import { MFA_REFUSALS } from "./mfa-refusals";
@@ -89,17 +89,21 @@ function CodePanel({ onVerified }: { onVerified: () => void }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
+  // The check's own code did not download: said here, in the panel (the gate is fetched in place,
+  // so it does not also raise the shell's notice).
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const submit = async () => {
     if (busy) return;
     setBusy(true);
     setRefusal(null);
+    setLoadFailed(false);
     let result;
     try {
       result = await (await mfaService.load()).stepUpWithCode(code);
-    } catch (error) {
+    } catch {
       setBusy(false);
-      reportOnDemandFailure("the second-factor check", error);
+      setLoadFailed(true);
       return;
     }
     setBusy(false);
@@ -118,6 +122,12 @@ function CodePanel({ onVerified }: { onVerified: () => void }) {
     >
       <h1 className="text-lg font-semibold text-foreground">{t("mfa.stepUpTitle")}</h1>
       <p className="text-sm text-muted-foreground">{t("admin.factorCode.body")}</p>
+      {loadFailed ? (
+        <LoadFailedHere
+          testid="admin-factor-code-load-failed"
+          refreshTestid="admin-factor-code-refresh"
+        />
+      ) : null}
       <form
         noValidate
         className="flex flex-col gap-3"

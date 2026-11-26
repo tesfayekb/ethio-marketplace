@@ -374,7 +374,7 @@ it("ML-U26 a live ad whose level has an end says when it ends, through the date 
   expect(stateLine({ ...live, levelUntil: null }, t, day)).toBe("Days left: 5");
 });
 
-it("ML-U29 a rejected or a removed ad says the staff's reason in its line; no reason, or a word the list does not hold, says the plain state", () => {
+it("ML-U31 a rejected or a removed ad says the staff's reason in its line; no reason, or a word the list does not hold, says the plain state", () => {
   const t = (key: keyof typeof en) => en[key];
   const line = (status: "rejected" | "removed", staffReason: string | null) =>
     stateLine({ ...ad({ status }).listing, staffReason }, t, () => "");

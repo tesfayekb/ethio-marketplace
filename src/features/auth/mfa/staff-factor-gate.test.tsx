@@ -55,7 +55,7 @@ describe("the staff second-factor gate (DEC-434)", () => {
     mfa.readSessionLevel.mockResolvedValue({ ok: true, token: "t", current: "aal1" });
     mfa.readVerifiedFactors.mockResolvedValue({
       ok: false,
-      error: { status: 503, message: "auth user 503" },
+      error: { status: 503 },
     });
     const failed = draw();
     const notice = await screen.findByTestId("admin-factor-read-failed");
@@ -74,7 +74,7 @@ describe("the staff second-factor gate (DEC-434)", () => {
   it("AG-U3b Retry reads again and a read that then answers opens the staff screen", async () => {
     mfa.readSessionLevel.mockResolvedValue({ ok: true, token: "t", current: "aal2" });
     mfa.readVerifiedFactors
-      .mockResolvedValueOnce({ ok: false, error: { status: 503, message: "auth user 503" } })
+      .mockResolvedValueOnce({ ok: false, error: { status: 503 } })
       .mockResolvedValue({ ok: true, verified: 1 });
     draw();
     fireEvent.click(await screen.findByTestId("admin-factor-read-failed-retry"));

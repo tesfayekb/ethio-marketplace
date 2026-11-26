@@ -103,7 +103,7 @@ GRANT EXECUTE ON FUNCTION public.admin_review_listing(uuid, text, text, text) TO
 -- ------------------------------------------------------------ 3. PROOFS
 -- (a) catalog facts: the two-argument door is gone; the four-argument door is VOLATILE SECURITY DEFINER, RETURNS jsonb,
 --     EXECUTE for authenticated and the service role, never anon or PUBLIC; its body is this file's (md5); the kind
---     check holds admin_reject beside every earlier kind.
+--     check exists (its kinds are proven by behaviour in (g), never by its deparsed text).
 -- (b) refusals leave no trace: a rejection with no reason, a reason off the remove list, 'other' with no note, a note
 --     of 501 characters; an approval or a hold with a reason or a note; the reviewer's own ad with a valid reason; a
 --     country reviewer outside their country with a valid reason — nothing written (status, revisions, audit,
@@ -145,6 +145,7 @@ DECLARE
   v_answer  jsonb;
   v_rev0    bigint;
   v_msg     text;
+  v_kind    text;
   v_fn      regprocedure;
   v_stat0   text;
 BEGIN
@@ -169,10 +170,8 @@ BEGIN
     RAISE EXCEPTION 'cursor-bundle-7b part 1 proof (a): the reason and the note are not the two trailing defaults';
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.seller_notices'::regclass
-                    AND conname = 'seller_notices_kind_check'
-                    AND pg_get_constraintdef(oid) LIKE '%admin_reject%'
-                    AND pg_get_constraintdef(oid) LIKE '%level_paused%') THEN
-    RAISE EXCEPTION 'cursor-bundle-7b part 1 proof (a): the kind check does not hold admin_reject';
+                    AND conname = 'seller_notices_kind_check' AND contype = 'c') THEN
+    RAISE EXCEPTION 'cursor-bundle-7b part 1 proof (a): the kind check is missing';
   END IF;
 
   v_tag := 'e2e-mig-b7b1-' || substr(v_hex, 1, 10);
@@ -358,6 +357,22 @@ BEGIN
     IF v_stat0 IS DISTINCT FROM 'active' THEN
       RAISE EXCEPTION 'cursor-bundle-7b part 1 proof (f): the approved ad is %', v_stat0;
     END IF;
+
+    -- (g) the kind check, by behaviour: every one of the seven kinds is accepted on a scratch notice (a staff kind
+    -- with a reason, a system kind with none, as the reason-by-kind check asks), an unknown one is refused (the
+    -- reviewer's own scratch ad carries them; the block rolls them back).
+    FOR v_kind IN SELECT k FROM unnest(ARRAY['admin_edit', 'admin_remove', 'admin_restore', 'admin_send_back',
+                                             'admin_reject', 'level_ending', 'level_paused']) AS k LOOP
+      INSERT INTO public.seller_notices (seller_id, listing_id, kind, fields, reason)
+      VALUES (v_s, v_sown, v_kind, ARRAY['status'], CASE WHEN v_kind LIKE 'admin\_%' THEN 'rules' END);
+    END LOOP;
+    BEGIN
+      INSERT INTO public.seller_notices (seller_id, listing_id, kind, fields, reason)
+      VALUES (v_s, v_sown, 'admin_bogus', ARRAY['status'], 'rules');
+      RAISE EXCEPTION 'cursor-bundle-7b part 1 proof (g): an unknown notice kind was accepted';
+    EXCEPTION WHEN check_violation THEN
+      NULL;
+    END;
 
     RAISE EXCEPTION 'cursor-bundle-7b-part-1-proof-ok';
   EXCEPTION WHEN raise_exception THEN
