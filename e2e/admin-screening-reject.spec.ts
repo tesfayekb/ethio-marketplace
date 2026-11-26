@@ -40,14 +40,14 @@ test.describe("ADMIN SCREENING REJECT", () => {
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
   });
 
-  async function seedWaiting() {
+  async function seedWaiting(titled?: string) {
     const seller = await leaseSeller({ alias: true });
     sellers.push(seller.id);
     const { parent, leaf } = await seedCategoryBranch({});
     branches.push([parent.slug, leaf.slug]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug);
-    const title = `e2e-reject-${RUN}-${rand()}`;
+    const title = titled ?? `e2e-reject-${RUN}-${rand()}`;
     const row = await seedListingRow(
       {
         category_id: leaf.id,
@@ -162,14 +162,16 @@ test.describe("ADMIN SCREENING REJECT", () => {
   });
 
   test("SRJ-4 the ticked ads take one reason, one notice each", async ({ page }) => {
-    const first = await seedWaiting();
-    const second = await seedWaiting();
+    const stem = `e2e-reject-${RUN}-${rand()}`;
+    const first = await seedWaiting(`${stem} one`);
+    const second = await seedWaiting(`${stem} two`);
     const { secret } = await signInJobSuperAdmin(page);
     await gotoReady(page, "/admin/screening");
     const wide = (page.viewportSize()?.width ?? 1024) >= 1024;
+    // One search finds both, so the second tick does not lose the first.
+    await page.getByTestId("admin-screening-search").fill(stem);
+    const surface = wide ? page.getByRole("table") : page.getByTestId("data-table-cards");
     for (const ad of [first, second]) {
-      await page.getByTestId("admin-screening-search").fill(ad.title);
-      const surface = wide ? page.getByRole("table") : page.getByTestId("data-table-cards");
       const tick = surface.getByTestId(
         wide ? `admin-screening-row-${ad.id}-select-cell` : `admin-screening-row-${ad.id}-select`,
       );
