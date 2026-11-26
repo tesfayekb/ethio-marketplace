@@ -5,7 +5,10 @@ writes it) and prints, in this order:
   - a header line with the number of lines read and the number of request lines;
   - one line per (method, path, status): the count, the path with every id made `:id` and its
     query string cut;
-  - for each answer at 500 or above: its error_code and its msg, the msg cut at 120 characters.
+  - for each answer at 500 or above: its error_code and its msg, the msg cut at 120 characters;
+  - the server's own error entries (level error or fatal, which carry no status — the request line of a
+    500 says only "request completed", the reason is its own entry): each distinct (method, path, msg,
+    error) with its count, the msg and the error cut at 120 characters.
 Never a header, a token, a body or an address: a line is read only for its method, path, status,
 error_code and msg fields. Every printed line goes through the one redaction (scripts/ci/redact.py,
 DEC-368). The workflow step that runs this keeps the output in local-backend-auth-capture.txt, in
@@ -21,6 +24,7 @@ from redact import redact
 
 MSG_CUT = 120
 ERROR_LINES_CUT = 40
+CAUSE_LINES_CUT = 40
 ID = re.compile(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}')
 
 
@@ -38,6 +42,7 @@ def summarise(lines):
     requests = 0
     counts = Counter()
     errors = []
+    causes = Counter()
     for raw in lines:
         read += 1
         try:
@@ -48,6 +53,10 @@ def summarise(lines):
             continue
         status = _status(entry.get('status'))
         path = _text(entry.get('path'))
+        if status is None and _text(entry.get('level')) in ('error', 'fatal'):
+            causes[(_text(entry.get('method')) or '-', ID.sub(':id', path.split('?', 1)[0]) or '-',
+                    _text(entry.get('msg'))[:MSG_CUT], _text(entry.get('error'))[:MSG_CUT])] += 1
+            continue
         if status is None or path == '':
             continue
         requests += 1
@@ -64,6 +73,10 @@ def summarise(lines):
         out.append(f'error {status} {method} {shown}: {code}: {msg}')
     if len(errors) > ERROR_LINES_CUT:
         out.append(f'error lines cut: {len(errors) - ERROR_LINES_CUT} more')
+    for (method, shown, msg, error), count in sorted(causes.items())[:CAUSE_LINES_CUT]:
+        out.append(f'cause {count} x {method} {shown}: {msg or "-"}: {error or "-"}')
+    if len(causes) > CAUSE_LINES_CUT:
+        out.append(f'cause lines cut: {len(causes) - CAUSE_LINES_CUT} more')
     return [redact(line) for line in out]
 
 

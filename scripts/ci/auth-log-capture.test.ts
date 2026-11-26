@@ -83,6 +83,35 @@ describe("the auth server's failures on a lane (INC-1303)", () => {
     expect(out).not.toContain("referer");
   });
 
+  it("CF-AUTHLOG-4 the server's own error entries are counted with their message and cut error, beside the request lines", () => {
+    const factor = randomUUID();
+    const reason = "y".repeat(200);
+    const entry = {
+      level: "error",
+      method: "POST",
+      path: `/factors/${factor}/challenge`,
+      msg: "500: Unexpected failure, please check server logs for more information",
+      error: reason,
+    };
+    const out = capture([
+      {
+        method: "POST",
+        path: `/factors/${factor}/challenge`,
+        status: 500,
+        msg: "request completed",
+      },
+      entry,
+      { ...entry, path: `/factors/${randomUUID()}/challenge` },
+      { level: "info", method: "GET", path: "/health", msg: "not an error entry" },
+    ]);
+    expect(out[0]).toBe("auth log: 4 lines read, 1 request lines");
+    expect(out).toContain(
+      `cause 2 x POST /factors/:id/challenge: ${entry.msg}: ${"y".repeat(120)}`,
+    );
+    expect(out.join("\n")).not.toContain("y".repeat(121));
+    expect(out.join("\n")).not.toContain("not an error entry");
+  });
+
   it("CF-AUTHLOG-3 the workflow runs it on every lane, a green one too, and keeps its file in the log artifact", () => {
     const text = readFileSync(WORKFLOW, "utf8");
     const step = text.split("- name: Capture the auth server's failures (INC-1303)")[1] ?? "";
