@@ -7,6 +7,8 @@ import {
   type QueryObserverOptions,
 } from "@tanstack/react-query";
 
+import { failureKind, isRetryable, loadFailureReader } from "@/components/shell/failure-reason";
+
 import { endsSession, reportUnauthorised } from "./session-end";
 
 type Retry<TError> = boolean | number | ((failureCount: number, error: TError) => boolean);
@@ -20,9 +22,21 @@ function retries<TError>(retry: Retry<TError> | undefined, count: number, error:
 }
 
 /**
- * F1-7d (INC-1218) — the query client: every query keeps its own retry rule except for an answer
- * that ended the session, which is never retried; every failed query or mutation is reported to
- * the shell. The rule wraps each query's options where the client defaults them, so a query that
+ * INC-1288 — a retry can succeed only for a network or server failure; a refusal (the server said
+ * no) is never asked again, whatever a query's own count says. The kind is the failure notice's
+ * own reading (`failureKind`), so the background retry and the notice's Retry follow one rule.
+ * The reader of door codes arrives on demand: until it has, a failure is read by what it carries
+ * (a status, a TypeError); asking for it here means the next decision reads the code too.
+ */
+function canSucceed(error: unknown): boolean {
+  void loadFailureReader();
+  return isRetryable(failureKind(error).kind);
+}
+
+/**
+ * F1-7d (INC-1218) — the query client: every query keeps its own retry rule (a count still bounds
+ * it) except for an answer that ended the session or a refusal, which are never retried; every
+ * failed query or mutation is reported to the shell. The rule wraps each query's options where the client defaults them, so a query that
  * sets its own `retry` inherits it too.
  */
 class SessionQueryClient extends QueryClient {
@@ -43,7 +57,8 @@ class SessionQueryClient extends QueryClient {
     const own = defaulted.retry;
     return {
       ...defaulted,
-      retry: (count: number, error: TError) => !endsSession(error) && retries(own, count, error),
+      retry: (count: number, error: TError) =>
+        !endsSession(error) && retries(own, count, error) && canSucceed(error),
     };
   }
 

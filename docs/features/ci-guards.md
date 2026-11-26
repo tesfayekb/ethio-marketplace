@@ -1658,3 +1658,4 @@ files of Lovable's lane and sit on `dialogs-allowlist.txt` until INC-1249.
 ### Cursor bundle 7b: a deadline on every browser call (DEC-477, INC-1285)
 
 - **CF-DEADLINE-1…4** (scripts/conformance/call-deadline.test.ts; CF-DEADLINE-3 plants a bare `fetch(` and a bare `createClient(`; CF-DEADLINE-4 pins the classes): a `fetch(` or `createClient(` in browser `src/` code passes through `src/lib/call-deadline.ts` or has a live line in `call-deadline-allowlist.txt` (`key | reason | until`; stale and expired lines fail); the generated database client's `global.fetch` is `fetchWithDeadline(fetch, …)`. Named in wired.test.ts.
+- **CF-RETRY-1…3** (scripts/conformance/query-retry.test.ts, INC-1288; CF-RETRY-3 plants a retry function, `retry: true` and a second client; no allowlist): no query option `retry` under browser `src/` is a function or `true` (the rule is the query client's), and no second `new QueryClient(` exists. Named in wired.test.ts.

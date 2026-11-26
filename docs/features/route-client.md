@@ -83,3 +83,16 @@ stall; CF-DEADLINE-1…4 (`scripts/conformance/call-deadline.test.ts`) census ev
 `fetch(` and `createClient(` in browser code against
 `call-deadline-allowlist.txt` (two live lines: Leaflet's outside host, INC-875,
 and the translations folder's static asset, INC-1304), with a planted bypass.
+
+**A retry only when it can succeed (INC-1288).** The query client
+(`src/features/auth/session-query-client.ts`) retries a failed read only when
+the failure notice's own reading (`failureKind`, `isRetryable`) calls it a
+network or server failure; a refusal is asked once, whatever a query's `retry`
+says, and a query's count still bounds the retries. Until the reader of door
+codes has arrived the failure is read by what it carries (a status, a
+`TypeError`), and the first retry decision starts the reader's download.
+`useRetryFailed` (the notice's Retry for a screen behind several reads) follows
+the same rule and adds a rate refusal whose named time has passed. SQC-1…4
+(`session-query-client.test.ts`) and RRF-1…2 (`use-retry-failed.test.tsx`) prove
+both; CF-RETRY-1…3 (`scripts/conformance/query-retry.test.ts`) fail a query
+option `retry` set to a function or `true`, and a second `new QueryClient(`.

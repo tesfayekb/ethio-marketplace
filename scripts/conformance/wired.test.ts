@@ -259,6 +259,10 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/call-deadline.test.ts"), "utf8")).toContain(
       "CF-DEADLINE-4",
     );
+    // query-retry.test.ts CF-RETRY-1…3 (cursor bundle 7b, INC-1288) is discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/query-retry.test.ts"), "utf8")).toContain(
+      "CF-RETRY-3",
+    );
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );
