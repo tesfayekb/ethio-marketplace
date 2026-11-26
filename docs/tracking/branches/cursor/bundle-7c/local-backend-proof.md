@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `206720960c4aba8ef61ec25ab9c02f881f1254ad`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45838095211
+- Commit: `29b0e51619a4b0c16de32c4a8974a6cc42c3705b`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45847929830
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 590 | 69 | applied 563/563 | 38 | 0 | 0 | 16 | 54 |
-| email | 191 | 65 | applied 563/563 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 805 | 61 | applied 563/563 | 80 | 0 | 0 | 24 | 104 |
-| 1 | 530 | 69 | applied 563/563 | 210 | 0 | 0 | 76 | 286 |
-| 2 | 968 | 88 | applied 563/563 | 162 | 0 | 0 | 20 | 182 |
-| 3 | 750 | 87 | applied 563/563 | 167 | 0 | 0 | 7 | 174 |
-| 4 | 849 | 58 | applied 563/563 | 121 | 0 | 0 | 14 | 135 |
-| 5 | 1524 | 81 | applied 563/563 | 141 | 2 | 0 | 1 | 144 |
-| 6 | 1101 | 68 | applied 563/563 | 200 | 0 | 0 | 40 | 240 |
-| 7 | 937 | 88 | applied 563/563 | 147 | 0 | 0 | 63 | 210 |
-| 8 | 1015 | 60 | applied 563/563 | 135 | 0 | 0 | 3 | 138 |
-| 9 | 931 | 90 | applied 563/563 | 120 | 0 | 0 | 4 | 124 |
-| 10 | 1637 | 66 | applied 563/563 | 163 | 0 | 0 | 1 | 164 |
-| 11 | 521 | 66 | applied 563/563 | 140 | 0 | 0 | 6 | 146 |
-| 12 | 578 | 70 | applied 563/563 | 158 | 0 | 0 | 2 | 160 |
-| 13 | 927 | 67 | applied 563/563 | 151 | 0 | 0 | 17 | 168 |
-| 14 | 1389 | 66 | applied 563/563 | 146 | 0 | 0 | 18 | 164 |
-| 15 | 1134 | 68 | applied 563/563 | 187 | 0 | 0 | 47 | 234 |
-| 16 | 1072 | 87 | applied 563/563 | 157 | 0 | 0 | 1 | 158 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2629 | 2 | 0 | 360 | 2991 |
+| smoke | 606 | 68 | applied 563/563 | 38 | 0 | 0 | 16 | 54 |
+| email | 256 | 90 | applied 563/563 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 889 | 66 | applied 563/563 | 80 | 0 | 0 | 24 | 104 |
+| 1 | 525 | 57 | applied 563/563 | 210 | 0 | 0 | 76 | 286 |
+| 2 | 852 | 66 | applied 563/563 | 162 | 0 | 0 | 20 | 182 |
+| 3 | 642 | 60 | applied 563/563 | 167 | 0 | 0 | 7 | 174 |
+| 4 | 871 | 59 | applied 563/563 | 121 | 0 | 0 | 14 | 135 |
+| 5 | 1462 | 67 | applied 563/563 | 143 | 0 | 0 | 1 | 144 |
+| 6 | 1139 | 77 | applied 563/563 | 200 | 0 | 0 | 40 | 240 |
+| 7 | 815 | 68 | applied 563/563 | 147 | 0 | 0 | 63 | 210 |
+| 8 | 1075 | 85 | applied 563/563 | 135 | 0 | 0 | 3 | 138 |
+| 9 | 850 | 64 | applied 563/563 | 120 | 0 | 0 | 4 | 124 |
+| 10 | 1654 | 69 | applied 563/563 | 163 | 0 | 0 | 1 | 164 |
+| 11 | 540 | 67 | applied 563/563 | 140 | 0 | 0 | 6 | 146 |
+| 12 | 531 | 67 | applied 563/563 | 158 | 0 | 0 | 2 | 160 |
+| 13 | 931 | 68 | applied 563/563 | 151 | 0 | 0 | 17 | 168 |
+| 14 | 1431 | 70 | applied 563/563 | 146 | 0 | 0 | 18 | 164 |
+| 15 | 1092 | 68 | applied 563/563 | 187 | 0 | 0 | 47 | 234 |
+| 16 | 1026 | 71 | applied 563/563 | 157 | 0 | 0 | 1 | 158 |
+| repeat | 971 | 67 | applied 563/563 | 66 | 0 | 0 | 70 | 136 |
+| TOTAL | — | — | — | 2697 | 0 | 0 | 430 | 3127 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 10 1637 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 7, email 7, webkit 6, 1 7, 2 11, 3 11, 4 6, 5 10, 6 7, 7 12, 8 6, 9 12, 10 7, 11 7, 12 8, 13 7, 14 7, 15 8, 16 11, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 118 files, weights from run 43431755160 (2026-11-13); mean 654 s, largest 656 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 656 s; planned/test seconds: 1 654/347, 2 653/747, 3 654/549, 4 654/689, 5 656/1334, 6 653/929, 7 654/714, 8 653/841, 9 655/712, 10 653/1466, 11 653/354, 12 654/393, 13 653/739, 14 653/1216, 15 656/948, 16 656/858
+- Slowest lane: 10 1654 s
+- Repeat lane (DEC-283): Not repeated: e2e/ad-page.spec.ts (52 tests); Not repeated: e2e/admin-attributes-editor.spec.ts (18 tests); Not repeated: e2e/admin-attributes-import.spec.ts (20 tests); Not repeated: e2e/admin-attributes-library.spec.ts (21 tests); Not repeated: e2e/admin-attributes-links.spec.ts (17 tests); Not repeated: e2e/admin-audit.spec.ts (8 tests); Not repeated: e2e/admin-categories-console.spec.ts (17 tests); Not repeated: e2e/admin-categories-images.spec.ts (3 tests); Not repeated: e2e/admin-categories-lifecycle.spec.ts (26 tests); Not repeated: e2e/admin-countries.spec.ts (9 tests); Not repeated: e2e/admin-guides.spec.ts (7 tests); Not repeated: e2e/admin-listings.spec.ts (41 tests); Not repeated: e2e/admin-locations.spec.ts (22 tests); Not repeated: e2e/admin-monetisation.spec.ts (17 tests); Not repeated: e2e/admin-roles.spec.ts (14 tests); Not repeated: e2e/admin-screening-reject.spec.ts (5 tests); Not repeated: e2e/admin-screening.spec.ts (32 tests); Not repeated: e2e/admin-services.spec.ts (5 tests); Not repeated: e2e/admin-shell.spec.ts (6 tests); Not repeated: e2e/admin-translations-console.spec.ts (23 tests); Not repeated: e2e/admin-translations-data.spec.ts (5 tests); Not repeated: e2e/admin-translations-governance.spec.ts (10 tests); Not repeated: e2e/admin-users.spec.ts (14 tests); Not repeated: e2e/auth-callback.spec.ts (4 tests); Not repeated: e2e/auth-caller-gates.spec.ts (4 tests); Not repeated: e2e/auth-google.spec.ts (2 tests); Not repeated: e2e/auth-reset.spec.ts (6 tests); Not repeated: e2e/auth-signin-errors.spec.ts (5 tests); Not repeated: e2e/auth-signout.spec.ts (22 tests); Not repeated: e2e/breadcrumbs.spec.ts (3 tests); Not repeated: e2e/category-image-routes.spec.ts (6 tests); Not repeated: e2e/category-nav.spec.ts (5 tests); Not repeated: e2e/choice-lists.spec.ts (48 tests); Not repeated: e2e/dark-cards.spec.ts (2 tests); Not repeated: e2e/dialogs.spec.ts (18 tests); Not repeated: e2e/door-refusals.spec.ts (7 tests); Not repeated: e2e/feed-index.spec.ts (15 tests); Not repeated: e2e/feed-route.spec.ts (11 tests); Not repeated: e2e/feed-screens.spec.ts (20 tests); Not repeated: e2e/house-style.spec.ts (9 tests); Not repeated: e2e/i18n-bundle.spec.ts (3 tests); Not repeated: e2e/i18n-coverage.spec.ts (7 tests); Not repeated: e2e/i18n-layers.spec.ts (3 tests); Not repeated: e2e/i18n-sign-in-language.spec.ts (6 tests); Not repeated: e2e/import-security.spec.ts (18 tests); Not repeated: e2e/layout.spec.ts (9 tests); Not repeated: e2e/legal-accept.spec.ts (6 tests); Not repeated: e2e/legal-admin.spec.ts (22 tests); Not repeated: e2e/legal-certify.spec.ts (22 tests); Not repeated: e2e/legal-doors.spec.ts (17 tests); Not repeated: e2e/legal-history.spec.ts (3 tests); Not repeated: e2e/legal-pages.spec.ts (5 tests); Not repeated: e2e/locale-format.spec.ts (1 tests); Not repeated: e2e/locations-tree.spec.ts (4 tests); Not repeated: e2e/menu-rows.spec.ts (3 tests); Not repeated: e2e/mfa-stepup.spec.ts (14 tests); Not repeated: e2e/my-listings-ad.spec.ts (19 tests); Not repeated: e2e/my-listings-doors.spec.ts (14 tests); Not repeated: e2e/my-listings-levels.spec.ts (14 tests); Not repeated: e2e/my-listings-page.spec.ts (12 tests); Not repeated: e2e/my-listings-promote.spec.ts (5 tests); Not repeated: e2e/name-check-queue.spec.ts (4 tests); Not repeated: e2e/offline.spec.ts (1 tests); Not repeated: e2e/on-demand-failure.spec.ts (1 tests); Not repeated: e2e/one-line-slots-admin.spec.ts (5 tests); Not repeated: e2e/one-line-slots.spec.ts (5 tests); Not repeated: e2e/overlay-shift.spec.ts (3 tests); Not repeated: e2e/overlays.spec.ts (4 tests); Not repeated: e2e/page-head.spec.ts (2 tests); Not repeated: e2e/phone-frame.spec.ts (9 tests); Not repeated: e2e/photo-pipeline.spec.ts (37 tests); Not repeated: e2e/post-wizard-bundle2.spec.ts (35 tests); Not repeated: e2e/post-wizard-category.spec.ts (27 tests); Not repeated: e2e/post-wizard-details.spec.ts (4 tests); Not repeated: e2e/post-wizard-finder.spec.ts (4 tests); Not repeated: e2e/post-wizard-place.spec.ts (20 tests); Not repeated: e2e/post-wizard-pricing.spec.ts (26 tests); Not repeated: e2e/post-wizard-recent.spec.ts (1 tests); Not repeated: e2e/post-wizard-removed.spec.ts (2 tests); Not repeated: e2e/post-wizard-resets.spec.ts (17 tests); Not repeated: e2e/post-wizard-specs.spec.ts (41 tests); Not repeated: e2e/post-wizard-units.spec.ts (2 tests); Not repeated: e2e/post-wizard-where.spec.ts (16 tests); Not repeated: e2e/posting-routes-catalog.spec.ts (9 tests); Not repeated: e2e/posting-routes-dials.spec.ts (7 tests); Not repeated: e2e/posting-routes-identity.spec.ts (2 tests); Not repeated: e2e/posting-routes.spec.ts (40 tests); Not repeated: e2e/press.spec.ts (11 tests); Not repeated: e2e/primitives-law.spec.ts (12 tests); Not repeated: e2e/rail-first-paint.spec.ts (2 tests); Not repeated: e2e/rbac.spec.ts (3 tests); Not repeated: e2e/sage-ad-page.spec.ts (15 tests); Not repeated: e2e/sage-bands.spec.ts (38 tests); Not repeated: e2e/sage-cards.spec.ts (20 tests); Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/sage-tiers.spec.ts (26 tests); Not repeated: e2e/seller-name-hidden.spec.ts (1 tests); Not repeated: e2e/settings.spec.ts (16 tests); Not repeated: e2e/shell-bands.spec.ts (8 tests); Not repeated: e2e/shell-table-law.spec.ts (1 tests); Not repeated: e2e/shell.spec.ts (117 tests); Not repeated: e2e/smoke-auth-i18n.spec.ts (1 tests); Not repeated: e2e/staff-gate.spec.ts (2 tests); Not repeated: e2e/submenu-look.spec.ts (6 tests); Not repeated: e2e/submenu-touch.spec.ts (4 tests); Not repeated: e2e/submenu.spec.ts (7 tests); Not repeated: e2e/supabase-door.spec.ts (6 tests); Not repeated: e2e/user-guides.spec.ts (9 tests); Not repeated: e2e/viewing-place.spec.ts (11 tests); Repeat: each 2 on both projects; 1500 tests selected, 34 repeated; budget 656 s at 4.7 s a test; directly changed: 0 of 0 repeated; importers of a changed helper: 7 of 116; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 2 on mobile-360 and desktop-1280 at one worker after the parallel pass; Not repeated (time cap): account-saved.spec.ts / Account saved / SAVED-1 (AS-1) saved ads newest first, sold ribbon, unavailable card, Remove and sign-in return / desktop-1280; Not repeated (time cap): account-saved.spec.ts / Account saved / SAVED-2 (AS-2) an empty saved list says so / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-16 the three reads carry the public id / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-20 the reveal by public id: the owner gets his channels with no row; a buyer gets them with one row a day; a sold or unknown ad is not available; the row carries its instant (D201 §6) / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-21 the sellers cap: ten distinct sellers a day, flagged for staff (D201 §6a) / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-22 a new account is held to five reveals its first day (D201 §6b) / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-24 Save by public id: a buyer saves once and the count says so; the owner cannot save his own ad; unsave; a sold ad within its 30 days can be saved; anything not public cannot; my_saved_listings lists newest first and greys an ad that left the public (D201 §8) / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-25 no client reads or writes saved_listings; the save dial counts every signed-in attempt, a repeat save included (D201 §8, F1-5b) / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-27 Report by public id: a buyer reports once with a reason and a note; the owner cannot report his own ad; a reason outside the list and a note over 500 characters are refused; a second open report by the same buyer is alreadyReported; a sold ad within its 30 days can be reported; a draft, an unknown or a malformed id cannot; the report dial counts every signed-in attempt, a refused one included, and a call the dial itself refuses names its reset time and counts nothing more / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-28 who reads the reports: the reporter his own rows, nobody else's; staff with listings:review through the two admin doors; a plain account is refused / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-3 public_listing answers the public document of a live ad and nothing private / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-34 seller_feed_page: the seller's live ads by his alias in the feed's order, paged; a draft and an ad sold more than 30 days ago never; an unknown, malformed or deactivated seller is unknownSeller; no id travels / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-4 the owner reads his own flag and counts; another person is refused / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-5 only a live ad, or one sold within 30 days, has a page / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-6 views count once per address and never for the owner; shares count by channel / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-7 no client reads the buckets or calls the counting doors / desktop-1280; Not repeated (time cap): ad-page-doors.spec.ts / AD PAGE DOORS — M1 (bundle 19 turn 4) / AP-8 every ad has a well-formed id of its own / desktop-1280; Not repeated (time cap): ad-page-layout.spec.ts / AD PAGE — a late part holds its box (INC-940) / ALS-1 the Location box keeps its height when the still map arrives / desktop-1280; Not repeated (time cap): admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-73 Remove from a category names the listings that hold an answer, and removes / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-73b a failed holders read shows its error, keeps the confirm disabled and removes nothing / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-74 a merge is refused while a listing holds a source's answer, and merges when none does / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-75 the import preview names the holders of an unlinked question and a removed answer / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-76 the order control refuses a child above its parent and accepts the right order / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-76b the link editor refuses a condition on the upper question naming the lower one, and accepts the reverse / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-77 an import whose end state asks a child first is refused whole at the commit / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-81 the editor names the listings holding an answer a type change removes / desktop-1280; Not repeated (time cap): admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-82 a single-pick question made multi-pick: every ad's answer becomes a one-answer list in the same change; other questions and other changes are untouched (INC-632) / desktop-1280; Not repeated (time cap): admin-categories-home.spec.ts / Bundle 7 category doors / CT-38 a retired category with a child is not deleted until the child moves away / desktop-1280; Not repeated (time cap): admin-categories-home.spec.ts / Bundle 7 category doors / CT-39 the badge sits on the home path, and Make primary moves it / desktop-1280; Not repeated (time cap): admin-categories-home.spec.ts / Bundle 7 category doors / CT-40 the delete door's refusals read as words, never as keys / desktop-1280; Not repeated (time cap): admin-categories-home.spec.ts / Bundle 7 category doors / CT-41 the admin's own client cannot write the eight door tables; the doors still can / desktop-1280; Not repeated (time cap): admin-categories-home.spec.ts / Bundle 7 category doors / CT-45 a move that would ask a question before its parent is refused; another move passes / desktop-1280; Not repeated (time cap): admin-categories-home.spec.ts / Bundle 7 category doors / CT-45 a move that would ask a question before its parent is refused; another move passes / mobile-360; Not repeated (time cap): fonts.spec.ts / FONTS — the device's own (DEC-262) / FTE-1 the home page and the terms page ask for no font and draw with the device's stack / desktop-1280; Not repeated (time cap): fonts.spec.ts / FONTS — the device's own (DEC-262) / FTE-1 the home page and the terms page ask for no font and draw with the device's stack / mobile-360
+- Database session samples during each start (INC-944): smoke 7, email 12, webkit 7, 1 6, 2 7, 3 6, 4 6, 5 8, 6 10, 7 7, 8 11, 9 7, 10 7, 11 7, 12 7, 13 7, 14 8, 15 7, 16 8, repeat 7
+- Lane plan (DEC-375 b): 16 lanes over 118 files, weights from run 43431755160 (2026-11-13); mean 654 s, largest 656 s (+0 %); alone: none; unweighed (median 39 s): none; repeat budget 656 s; planned/test seconds: 1 654/325, 2 653/659, 3 654/466, 4 654/702, 5 656/1235, 6 653/930, 7 654/634, 8 653/869, 9 655/675, 10 653/1481, 11 653/369, 12 654/348, 13 653/747, 14 653/1236, 15 656/906, 16 656/833
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45838095211-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 45838095211-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45838095211-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45838095211-local-1
-  - 2: [e2e:teardown] deleted 3 user(s) owned by process 45838095211-local-2
-  - 3: [e2e:teardown] deleted 5 user(s) owned by process 45838095211-local-3
-  - 4: [e2e:teardown] deleted 25 user(s) owned by process 45838095211-local-4
-  - 5: [e2e:teardown] deleted 17 user(s) owned by process 45838095211-local-5
-  - 6: [e2e:teardown] deleted 5 user(s) owned by process 45838095211-local-6
-  - 7: [e2e:teardown] deleted 11 user(s) owned by process 45838095211-local-7
-  - 8: [e2e:teardown] deleted 5 user(s) owned by process 45838095211-local-8
-  - 9: [e2e:teardown] deleted 49 user(s) owned by process 45838095211-local-9
-  - 10: [e2e:teardown] deleted 7 user(s) owned by process 45838095211-local-10
-  - 11: [e2e:teardown] deleted 6 user(s) owned by process 45838095211-local-11
-  - 12: [e2e:teardown] deleted 3 user(s) owned by process 45838095211-local-12
-  - 13: [e2e:teardown] deleted 11 user(s) owned by process 45838095211-local-13
-  - 14: [e2e:teardown] deleted 5 user(s) owned by process 45838095211-local-14
-  - 15: [e2e:teardown] deleted 7 user(s) owned by process 45838095211-local-15
-  - 16: [e2e:teardown] deleted 23 user(s) owned by process 45838095211-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45847929830-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 45847929830-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45847929830-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45847929830-local-1
+  - 2: [e2e:teardown] deleted 3 user(s) owned by process 45847929830-local-2
+  - 3: [e2e:teardown] deleted 5 user(s) owned by process 45847929830-local-3
+  - 4: [e2e:teardown] deleted 25 user(s) owned by process 45847929830-local-4
+  - 5: [e2e:teardown] deleted 17 user(s) owned by process 45847929830-local-5
+  - 6: [e2e:teardown] deleted 5 user(s) owned by process 45847929830-local-6
+  - 7: [e2e:teardown] deleted 11 user(s) owned by process 45847929830-local-7
+  - 8: [e2e:teardown] deleted 5 user(s) owned by process 45847929830-local-8
+  - 9: [e2e:teardown] deleted 49 user(s) owned by process 45847929830-local-9
+  - 10: [e2e:teardown] deleted 7 user(s) owned by process 45847929830-local-10
+  - 11: [e2e:teardown] deleted 6 user(s) owned by process 45847929830-local-11
+  - 12: [e2e:teardown] deleted 3 user(s) owned by process 45847929830-local-12
+  - 13: [e2e:teardown] deleted 11 user(s) owned by process 45847929830-local-13
+  - 14: [e2e:teardown] deleted 5 user(s) owned by process 45847929830-local-14
+  - 15: [e2e:teardown] deleted 7 user(s) owned by process 45847929830-local-15
+  - 16: [e2e:teardown] deleted 23 user(s) owned by process 45847929830-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -78,11 +78,8 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 5
-- Step failure:
-Step smoke: outcome failure
-  
-- admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-77 an import whose end state asks a child first is refused whole at the commit / mobile-360 — Error: expect(locator).toContainText(expected) failed
-- admin-attributes-safety.spec.ts / Bundle 7 attribute safety / AT-77 an import whose end state asks a child first is refused whole at the commit / desktop-1280 — Error: expect(locator).toContainText(expected) failed
+## Lane repeat
+- Outside test — Timed out waiting 776s for the test suite to run
+- Outside test — Timed out waiting 776s for the teardown for test suite to run
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
