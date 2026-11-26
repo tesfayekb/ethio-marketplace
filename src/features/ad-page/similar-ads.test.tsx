@@ -1,7 +1,8 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
+import { readFailed } from "@/lib/reader-failure";
 import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 const similarListings =
@@ -112,6 +113,23 @@ describe("SIM-4 the similar-ads section", () => {
     const items = section.querySelectorAll("ul > li");
     for (const index of [6, 7]) expect(items[index]?.className).toBe("hidden sm:block");
     for (const index of [8, 9]) expect(items[index]?.className).toBe("hidden lg:block");
+  });
+
+  it("INC-1305 a failed read draws the failure notice's line with Retry, and Retry reads again", async () => {
+    similarListings.mockReset();
+    similarListings
+      .mockRejectedValueOnce(readFailed(new TypeError("Failed to fetch")))
+      .mockResolvedValueOnce({ cards: [card("l-1")], coverLinks: {} });
+    render(<SimilarAds {...props} />);
+    const failed = await screen.findByTestId("listing-similar-failed");
+    expect(failed).toHaveTextContent("adPage.similar.title");
+    expect(screen.getByTestId("listing-similar-anchor").getAttribute("data-similar")).toBe(
+      "failed",
+    );
+    fireEvent.click(screen.getByTestId("listing-similar-failed-retry"));
+    expect(await screen.findByTestId("listing-similar")).toBeTruthy();
+    expect(screen.queryByTestId("listing-similar-failed")).toBeNull();
+    expect(similarListings).toHaveBeenCalledTimes(2);
   });
 });
 

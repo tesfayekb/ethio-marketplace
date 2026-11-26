@@ -113,11 +113,16 @@ area of `scripts/e2e-select.ts`) prove it.
 failure the reader types (`readFailed`): an unreachable call is the network
 kind, a signed-out call is 401, an answer is its code at its status, a code-less
 answer is read by its status, and a refusal's detail rides after its code only
-when it is a short code. The reader (`src/lib/reader-failure.ts`) arrives on
+when it is a short code. The route's detail also rides whole, as data beside the
+code (`ReaderFailure.detail`, read through `failureDetail`): the import dialog's
+`reasonOf` names a commit's rows (`cat: parent → child`) from it, never by
+re-reading the answer — today's one reader of a long detail (cursor bundle 8a,
+ruling 1). The reader (`src/lib/reader-failure.ts`) arrives on
 demand, so it stays off the first download; a download that fails is reported to
 the shell's one notice and reads as network. The location reads, the category
-tree, the card and photo links, the catalog finder, the feed and the category
-picture step use it. RCL-22…24 prove it; RCG-5 and RCG-6
+tree, the card and photo links, the catalog finder, the feed, the category
+picture step, the similar ads (INC-1305), the alias suggestions and the
+translations console (INC-1304) use it. RCL-22…25 prove it; RCG-5 and RCG-6
 (`scripts/conformance/route-client.test.ts`) fail an `Error` built by hand from
-an answer's status in a file that reads routes (the translations service is the
-one allowance, INC-1304); RCG-6 plants one.
+an answer's status in a file that reads routes (no allowance since cursor bundle
+8a); RCG-6 plants one.

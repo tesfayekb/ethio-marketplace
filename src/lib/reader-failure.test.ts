@@ -6,6 +6,7 @@ import { AI_DOOR_REFUSALS } from "@/features/admin-ai/ai-refusals";
 import { isStepUpRequiredError } from "@/features/auth/mfa/mfa-service";
 import { readRefusal } from "./refusal";
 import {
+  failureDetail,
   gateRefusal,
   readerFailure,
   ReaderError,
@@ -261,6 +262,18 @@ describe("INC-847 reader failure classes", () => {
       message: "Unavailable",
     });
     expect(readFailed(new Error("boom")).failure.class).toBe("malformed");
+  });
+  it("RF-11 cursor-bundle-8a — a route's detail rides as data beside the code; the message keeps none", () => {
+    const named = readFailed("hasRows", 409, "cat: parent → child");
+    expect(named.failure).toEqual({
+      class: "malformed",
+      status: 409,
+      message: "hasRows",
+      detail: "cat: parent → child",
+    });
+    expect(failureDetail(named)).toBe("cat: parent → child");
+    expect(readFailed("hasRows", 409).failure).not.toHaveProperty("detail");
+    expect(failureDetail(new TypeError("Failed to fetch"))).toBeUndefined();
   });
   it("ReaderError retains the exact typed failure", () => {
     const failure = { class: "malformed" as const, message: "bad shape" };

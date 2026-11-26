@@ -1,7 +1,13 @@
 import { errorText } from "@/lib/error-text";
 import { ReaderError, readFailed } from "@/lib/reader-failure";
 import { rateUntilOf, refusalsOf, splitRefusal } from "@/lib/refusal";
-import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
+import {
+  callRoute,
+  routeFailure,
+  uploadRoute,
+  type RouteAnswer,
+  type RoutePath,
+} from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
 import { tierOf } from "@/components/marketplace/card-tier";
 import { supabase } from "@/integrations/supabase/client";
@@ -1107,6 +1113,8 @@ export function checkAlias(alias: string): Promise<DoorAnswer> {
  * Bundle 3 step 21 — three free names from the business name, else first and
  * last name. Walk fix 2 (M4) — the draft's category travels too, so a seller
  * without a Latin name is offered the category word instead of nothing.
+ * INC-1305 — a read that fails throws the typed failure (a refusal's own reason), never an empty
+ * list that reads as "no free names": the step draws the failure notice with Retry.
  */
 export async function suggestAliases(body: {
   businessName?: string | null;
@@ -1114,10 +1122,16 @@ export async function suggestAliases(body: {
   lastName?: string | null;
   categoryId?: string | null;
 }): Promise<string[]> {
-  const answer = await call("/api/listings/alias", JSON.stringify({ ...body, suggest: true }), {
-    "Content-Type": "application/json",
+  const answer = await callRoute("/api/listings/alias", {
+    json: { ...body, suggest: true },
+    timeoutMs: SAVE_TIMEOUT_MS,
   });
-  const list = answer.ok ? answer.payload["suggestions"] : null;
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
+  const payload = answer.payload ?? {};
+  if (payload["ok"] !== true) {
+    throw readFailed(refusalsOf(payload)[0]?.reason ?? `route ${answer.status}`, answer.status);
+  }
+  const list = payload["suggestions"];
   return Array.isArray(list) ? list.filter((x): x is string => typeof x === "string") : [];
 }
 

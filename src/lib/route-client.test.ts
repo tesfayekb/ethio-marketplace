@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CALL_DEADLINES_MS, UPLOAD_STALL_MS } from "./call-deadline";
 import { onEndedSignIn } from "./ended-sign-in";
 import { callRoute, downloadRoute, routeFailure, uploadRoute } from "./route-client";
-import { ReaderError } from "./reader-failure";
+import { failureDetail, ReaderError } from "./reader-failure";
 
 // DEC-261 — the session reaches route calls through the client's door (src/lib/supabase-door.ts).
 const { currentSession } = vi.hoisted(() => ({ currentSession: vi.fn() }));
@@ -189,6 +189,15 @@ describe("browser route client", () => {
       (await routeFailure(refused(400, "badValue", "A long sentence that is not a code, at all!")))
         .message,
     ).toBe("badValue");
+  });
+  it("RCL-25 the route's detail rides whole beside its code, as data; none when it sent none", async () => {
+    const named = "cat: parent → child, other: a → b";
+    const failure = await routeFailure(refused(409, "hasRows", named));
+    expect(failure.message).toBe("hasRows");
+    expect(failureDetail(failure)).toBe(named);
+    expect(failureDetail(await routeFailure(refused(409, "hasRows")))).toBeUndefined();
+    expect(failureDetail(await routeFailure({ kind: "signedOut" }))).toBeUndefined();
+    expect(failureDetail(new Error("hasRows"))).toBeUndefined();
   });
   it("RCL-10 download saves exact bytes and filename once; refusal saves nothing", async () => {
     const create = vi.fn().mockReturnValue("blob:test");

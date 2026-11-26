@@ -6,7 +6,7 @@ import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import type { DoorFamily } from "@/lib/door-family";
 import { readRefusal, type RefusalFamily } from "@/lib/refusal";
 import { readFailed } from "@/lib/reader-failure";
-import { callRoute } from "@/lib/route-client";
+import { callRoute, routeFailure, type RouteAnswer } from "@/lib/route-client";
 import type { TranslateReason } from "@/lib/schemas/translate";
 
 import { PSEUDO_LANG, PSEUDO_LANG_NAME_EN, PSEUDO_LANG_NAME_NATIVE } from "./pseudo";
@@ -425,8 +425,10 @@ export const TRANSLATION_REFUSALS = {
   words: {
     permissionDenied: PERMISSION,
     forbidden: PERMISSION,
-    // INC-1274 — an ended sign-in is said as ended (the route client told the shell).
+    // INC-1274 — an ended sign-in is said as ended (the route client told the shell); `signedOut`
+    // is the route client's own (`routeFailure`, INC-1304).
     notSignedIn: "session.expired",
+    signedOut: "session.expired",
     baseLocked: "admin.translations.error.baseLocked",
     translationFlagged: "admin.translations.error.flaggedApprove",
     notFullyApproved: "admin.translations.error.coverage",
@@ -496,6 +498,7 @@ export const TRANSLATION_REFUSALS = {
     | "admin_delete_language";
   also: {
     forbidden: "route";
+    signedOut: "route";
     machineTranslateRateLimited: "route";
     fileTooLarge: "route";
     invalidEncoding: "route";
@@ -608,13 +611,14 @@ async function postTranslate(body: Record<string, unknown>): Promise<AiTranslate
     json: body,
     auth: "required",
   });
-  if (answer.kind === "signedOut") throw new Error(NOT_SIGNED_IN);
-  if (answer.kind === "unreachable") throw new Error("translation request failed (0)");
+  // F4, INC-1304 — a failure is the route client's one typed failure, with the SERVER's own code;
   // D1 M5a ruling 4 — the route's press dial answers 429: its own key says it.
-  if (answer.status === 429) throw new Error(MACHINE_TRANSLATE_RATE_LIMITED);
-  // F4 — a refusal is thrown with the SERVER's own words, never swallowed.
-  if (!answer.ok) {
-    throw new Error(answer.error ?? `translation request failed (${answer.status})`);
+  if (answer.kind !== "answered" || !answer.ok) {
+    const pressed =
+      answer.kind === "answered" && answer.status === 429
+        ? { ...answer, error: MACHINE_TRANSLATE_RATE_LIMITED }
+        : answer;
+    throw await routeFailure(pressed);
   }
   const payload = answer.payload;
   const failed = payload !== null && Array.isArray(payload.failed) ? payload.failed : [];
@@ -679,11 +683,7 @@ function isProviderLanguage(value: unknown): value is ProviderLanguage {
 
 export async function listProviderLanguages(): Promise<ProviderLanguage[]> {
   const answer = await callRoute("/api/translate", { method: "GET", auth: "required" });
-  if (answer.kind === "signedOut") throw new Error(NOT_SIGNED_IN);
-  if (answer.kind === "unreachable") throw new Error("language list failed (0)");
-  if (!answer.ok) {
-    throw new Error(answer.error ?? `language list failed (${answer.status})`);
-  }
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(answer);
   const languages = answer.payload?.languages;
   return Array.isArray(languages) ? languages.filter(isProviderLanguage) : [];
 }
@@ -1095,25 +1095,29 @@ export interface ImportResult {
  */
 export const TRANSLATIONS_IMPORT_PATH = "/api/admin/translations/import";
 
+/** The code a code-less import answer stands for, by its status (the console's words for it). */
+const IMPORT_STATUS_CODES: Readonly<Record<string, string>> = {
+  "401": NOT_SIGNED_IN,
+  "403": "permissionDenied",
+  "428": "step-up required",
+};
+
 /**
  * The route's named refusals, spoken as the messages this console maps (F4).
  * Foundations turn 12 — a named code is returned as itself whenever one came,
  * with its detail (`permissionDenied:language` reaches the scope key, F1-3);
- * the status is read only when none did.
+ * the status is read only when none did. INC-1304 — the failure is the route
+ * client's one typed failure (`routeFailure`).
  */
-function importFailure(status: number, named: string, detail: string | null): Error {
-  if (named !== "") return new Error(detail === null ? named : `${named}:${detail}`);
-  if (status === 401) return new Error(NOT_SIGNED_IN);
-  if (status === 403) return new Error("permissionDenied");
-  if (status === 428) return new Error("step-up required");
-  return new Error(`import failed (${status})`);
+function importAnswer(answer: RouteAnswer): RouteAnswer {
+  if (answer.kind !== "answered" || answer.error !== null) return answer;
+  const code = ownValue(IMPORT_STATUS_CODES, String(answer.status));
+  return code === undefined ? answer : { ...answer, error: code };
 }
 
 async function postImport(body: Record<string, unknown>): Promise<Record<string, unknown>> {
   const answer = await callRoute(TRANSLATIONS_IMPORT_PATH, { json: body });
-  if (answer.kind === "signedOut") throw new Error(NOT_SIGNED_IN);
-  if (answer.kind !== "answered") throw new Error("import failed (0)");
-  if (!answer.ok) throw importFailure(answer.status, answer.error ?? "", answer.detail);
+  if (answer.kind !== "answered" || !answer.ok) throw await routeFailure(importAnswer(answer));
   return answer.payload ?? {};
 }
 
