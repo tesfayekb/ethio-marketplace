@@ -2119,6 +2119,5 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.categories.error.reassignTargetInvalid":
     "ለዝርዝሮቹ የመረጡት ምድብ ጠፍቷል ወይም ዝርዝሮችን አይቀበልም። ሌላ ይምረጡ።",
   "admin.categories.error.windowOrder": "“የሚታይ እስከ” ከ“የሚታይ ከ” በኋላ መሆን አለበት።",
-  "admin.listings.edit.error.categoryFixed": "የተለጠፈ ዝርዝር ምድብ ሊቀየር አይችልም።",
   "admin.roles.readOnlyNote": "የዚህን ሚና ፈቃዶች ማየት ይችላሉ፤ ግን መለወጥ አይችሉም።",
 };

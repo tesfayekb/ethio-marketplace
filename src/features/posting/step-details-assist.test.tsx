@@ -24,7 +24,7 @@ const draw = (onAssistOff = vi.fn()) =>
       attributes={{}}
       definitions={[]}
       photoIds={[]}
-      title="A title"
+      title={"A title"}
       description=""
       onChange={vi.fn()}
       refusals={[]}

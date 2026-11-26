@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { readSessionLevel } from "@/features/auth/mfa/session-level";
 import { rpc } from "@/lib/supabase-door";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
-import { permissionOf } from "@/features/permissions/use-may-call";
 
 /** The menu mark's query key, under the admin legal key so a legal write re-reads it. */
 export const LEGAL_REVIEW_OVERDUE_KEY = [
@@ -26,8 +25,7 @@ export function useNavAlerts(
 ): ReadonlySet<NavAlertId> {
   const legal = useQuery({
     queryKey: LEGAL_REVIEW_OVERDUE_KEY,
-    // INC-1281 — the read's switch is the door it calls: its permission is the manifest's.
-    enabled: enabled && permissions.includes(permissionOf({ door: "legal_review_overdue" }) ?? ""),
+    enabled: enabled && permissions.includes("legal:view"),
     staleTime: (query) => (query.state.data === null ? 0 : 5 * 60 * 1000),
     queryFn: async () => {
       // INC-1291 — the level from the session's token (no database client in the menu's download);
