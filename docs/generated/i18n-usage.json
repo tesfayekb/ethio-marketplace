@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 793,
+  "scanned": 795,
   "dynamicCallSites": 431,
   "keys": {
     "account.deactivatedBanner": [
@@ -4244,6 +4244,7 @@
       "/account/legal",
       "/account/legal/$versionId",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4278,6 +4279,7 @@
       "/post",
       "/post/$listingId",
       "/privacy",
+      "/settings",
       "/terms"
     ],
     "auth.signInButton": [
@@ -4508,6 +4510,7 @@
       "/account/legal",
       "/account/legal/$versionId",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4542,6 +4545,7 @@
       "/post",
       "/post/$listingId",
       "/privacy",
+      "/settings",
       "/terms"
     ],
     "common.save": [
@@ -4625,6 +4629,7 @@
       "/account/legal",
       "/account/legal/$versionId",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4658,6 +4663,7 @@
       "/post",
       "/post/$listingId",
       "/privacy",
+      "/settings",
       "/terms"
     ],
     "failure.gone": [
@@ -4684,6 +4690,7 @@
       "/account/legal",
       "/account/legal/$versionId",
       "/account/saved",
+      "/admin",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4717,6 +4724,7 @@
       "/post",
       "/post/$listingId",
       "/privacy",
+      "/settings",
       "/terms"
     ],
     "failure.showMore": [

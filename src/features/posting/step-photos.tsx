@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import type { Certification } from "@/features/my-listings/my-listing";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { Picture } from "@/components/ui/picture";
 import { AlertTriangle, ChevronLeft, ChevronRight, Crop, Eraser, EyeOff } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
@@ -226,6 +227,7 @@ export function StepPhotos({
         state: "preparing",
         percent: 0,
         refusalKey: null,
+        reading: null,
         attempts: attempt + 1,
       });
 
@@ -281,7 +283,11 @@ export function StepPhotos({
 
       if (answer.signedOut === true) {
         // INC-1274 — the sign-in ended: no verdict, and no second try either.
-        patchItem(localId, { state: "failed", refusalKey: "session.expired" });
+        patchItem(localId, {
+          state: "failed",
+          refusalKey: "session.expired",
+          reading: { kind: "signedOut", diagnostic: "signedOut", until: undefined },
+        });
         return;
       }
 
@@ -291,7 +297,11 @@ export function StepPhotos({
           await send(localId, file, 1);
           return;
         }
-        patchItem(localId, { state: "failed", refusalKey: "post.photos.couldNotSend" });
+        patchItem(localId, {
+          state: "failed",
+          refusalKey: "post.photos.couldNotSend",
+          reading: { kind: "network", diagnostic: "unreachable", until: undefined },
+        });
         return;
       }
 
@@ -675,8 +685,22 @@ export function StepPhotos({
           {item.state === "stored" && t("post.photos.done")}
           {(item.state === "failed" || item.state === "refused") &&
             item.refusalKey !== null &&
+            item.reading == null &&
             say(item.refusalKey)}
         </p>
+        {/* INC-1302 — a send that reached no verdict says why through the failure notice, its Retry the tile's. */}
+        {item.state === "failed" && item.reading != null && item.refusalKey !== null ? (
+          <FailureNotice
+            reading={item.reading}
+            testid="post-photo-failed"
+            retryTestid="post-photo-retry"
+            size="line"
+            subject={say(item.refusalKey)}
+            onRetry={() => {
+              if (item.file) void send(item.localId, item.file, 1);
+            }}
+          />
+        ) : null}
         {/* PP-10 — a refusal says so once, and says it is final. */}
         {item.state === "refused" && (
           <p className="text-xs text-destructive" data-testid="post-photo-refused">
@@ -692,7 +716,7 @@ export function StepPhotos({
         )}
         <div className="flex gap-2">
           {/* Only a failure to REACH a verdict is retryable (PP-10). */}
-          {item.state === "failed" && item.file !== null && (
+          {item.state === "failed" && item.reading == null && item.file !== null && (
             <button
               type="button"
               data-testid="post-photo-retry"

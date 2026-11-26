@@ -166,6 +166,11 @@ export function useRemovedAnswerHolders(attributeId: string | null, values: read
       total: results.reduce((sum, result) => sum + (result.data ?? 0), 0),
       known: results.every((result) => result.data !== undefined),
       failed: results.some((result) => result.isError),
+      // INC-1302 — the first failed read's own error, for the failure notice; Retry re-reads the failed ones.
+      error: results.find((result) => result.isError)?.error ?? null,
+      retry: () => {
+        for (const result of results) if (result.isError) void result.refetch();
+      },
     }),
   });
 }

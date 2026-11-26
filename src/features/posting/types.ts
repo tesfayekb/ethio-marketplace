@@ -1,3 +1,4 @@
+import type { FailureReading } from "@/components/shell/failure-reason";
 import type { MessageKey } from "@/i18n";
 import { DIALS } from "@/lib/dials";
 import type { Refusal } from "@/lib/refusal";
@@ -184,4 +185,6 @@ export interface PhotoItem {
   file: File | null;
   /** How many times THIS tile has been sent; the auto-retry spends exactly one. */
   attempts: number;
+  /** INC-1302 — why a failed send did not reach a verdict, for the failure notice; null when none. */
+  reading?: FailureReading | null;
 }

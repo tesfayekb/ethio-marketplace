@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { FailureNotice } from "@/components/shell/failure-notice";
 import { useI18n } from "@/i18n";
 import { fetchWithDeadline } from "@/lib/call-deadline";
+import { readFailed } from "@/lib/reader-failure";
 import type { MessageKey } from "@/i18n";
 
 import {
@@ -102,6 +104,9 @@ export function PhotoEditor({
 }) {
   const { t } = useI18n();
   const [phase, setPhase] = useState<Phase>("loading");
+  /** INC-1302 — why the photo did not open, for the failure notice; its Retry opens it again. */
+  const [openFailure, setOpenFailure] = useState<{ error: unknown } | null>(null);
+  const [openTry, setOpenTry] = useState(0);
   const [source, setSource] = useState<ImageBitmap | null>(null);
   const [turns, setTurns] = useState<Turns>(0);
   const [box, setBox] = useState<Box>(FULL);
@@ -121,6 +126,7 @@ export function PhotoEditor({
     let alive = true;
     let opened: ImageBitmap | null = null;
     setPhase("loading");
+    setOpenFailure(null);
     setSource(null);
     setTurns(0);
     setBox(FULL);
@@ -128,7 +134,7 @@ export function PhotoEditor({
     void (async () => {
       try {
         const response = await fetchWithDeadline(fetch, sourceUrl);
-        if (!response.ok) throw new Error(`photo ${response.status}`);
+        if (!response.ok) throw readFailed(new Error(`photo ${response.status}`), response.status);
         opened = await createImageBitmap(await response.blob());
         if (!alive) {
           opened.close();
@@ -136,15 +142,18 @@ export function PhotoEditor({
         }
         setSource(opened);
         setPhase("ready");
-      } catch {
-        if (alive) setPhase("failed");
+      } catch (error) {
+        if (alive) {
+          setOpenFailure({ error });
+          setPhase("failed");
+        }
       }
     })();
     return () => {
       alive = false;
       opened?.close();
     };
-  }, [sourceUrl]);
+  }, [sourceUrl, openTry]);
 
   // The preview: the turned picture, at most PREVIEW_EDGE pixels long.
   useEffect(() => {
@@ -245,13 +254,12 @@ export function PhotoEditor({
             </p>
           )}
           {phase === "failed" && (
-            <p
-              className="text-sm text-destructive"
-              role="alert"
-              data-testid="post-photo-editor-failed"
-            >
-              {t("post.photos.editor.failed")}
-            </p>
+            <FailureNotice
+              error={openFailure?.error ?? null}
+              testid="post-photo-editor-failed"
+              subject={t("post.photos.editor.failed")}
+              onRetry={() => setOpenTry((n) => n + 1)}
+            />
           )}
 
           {source !== null && (
