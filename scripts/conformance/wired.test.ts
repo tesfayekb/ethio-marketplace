@@ -412,6 +412,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/door-words.test.ts"), "utf8")).toContain(
       "DW-7",
     );
+    // door-permissions.test.ts DPM-1…4 (cursor bundle 7c Part 3, INC-1281) runs door-permissions.ts's census;
+    // it is discovered by test:unit's scripts/**/*.test.ts.
+    expect(
+      readFileSync(join(ROOT, "scripts/conformance/door-permissions.test.ts"), "utf8"),
+    ).toContain("DPM-4");
     // listing-designation.test.ts CF-TIER-5 DSG-1…3 (turn P-2 (a), ruling 14) runs listing-designation.ts's census;
     // it is discovered by test:unit's scripts/**/*.test.ts.
     expect(

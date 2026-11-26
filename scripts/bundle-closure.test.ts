@@ -426,5 +426,9 @@ describe("the entry carries no admin code (INC-1042)", () => {
       ).toBe(true);
     }
     for (const key of MUST_STAY_LAZY_MODULES) expect(existsSync(key), key).toBe(true);
+    // the generated permissions (cursor bundle 7c Part 3) ride admin chunks only
+    expect(MUST_STAY_LAZY_MODULES).toContain(
+      "src/features/permissions/door-permissions.generated.ts",
+    );
   });
 });

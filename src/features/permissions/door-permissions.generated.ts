@@ -161,3 +161,47 @@ export const DOOR_PERMISSIONS = {
 } as const;
 
 export type PermissionedDoor = keyof typeof DOOR_PERMISSIONS;
+
+/**
+ * Each API route's permission by method: its `auth: { staff }`, or the import registry's
+ * `permission` for its family. `null` is OPEN: the route asks no staff permission.
+ */
+export const ROUTE_PERMISSIONS = {
+  "/api/admin/attributes/export": { GET: "categories:view" },
+  "/api/admin/attributes/import": { POST: "categories:import" },
+  "/api/admin/categories/export": { GET: "categories:view" },
+  "/api/admin/categories/generate-image": { GET: "categories:assets", POST: "categories:assets" },
+  "/api/admin/categories/import": { POST: "categories:import" },
+  "/api/admin/categories/suggest-icon": { POST: "categories:assets" },
+  "/api/admin/locations/export": { GET: "locations:view" },
+  "/api/admin/locations/import": { POST: "locations:import" },
+  "/api/admin/translations/import": { POST: "translations:update" },
+  "/api/attributes/$id/options": { GET: null },
+  "/api/catalog/find": { GET: null },
+  "/api/categories/tree": { GET: null },
+  "/api/feed": { GET: null },
+  "/api/geo": { GET: null },
+  "/api/geo/outline": { GET: null },
+  "/api/geo/reverse": { GET: null },
+  "/api/geo/search": { GET: null },
+  "/api/i18n/$lang": { GET: null },
+  "/api/listings/alias": { POST: null },
+  "/api/listings/assist": { GET: null, POST: null },
+  "/api/listings/background": { POST: null },
+  "/api/listings/draft": { POST: null },
+  "/api/listings/identity": { POST: null },
+  "/api/listings/photos/$id": { DELETE: null, POST: null },
+  "/api/listings/publish": { POST: null },
+  "/api/listings/share": { POST: null },
+  "/api/listings/view": { POST: null },
+  "/api/locations": { GET: null },
+  "/api/locations/$country": { GET: null },
+  "/api/map/tiles": { GET: null, POST: null },
+  "/api/media/photo-links": { POST: null },
+  "/api/public/jobs/$job": { POST: null },
+  "/api/seller": { GET: null },
+  "/api/translate": { GET: "translations:manage", POST: "translations:machine" },
+  "/api/upload/photo": { POST: null },
+} as const;
+
+export type PermissionedRoute = keyof typeof ROUTE_PERMISSIONS;

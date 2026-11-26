@@ -340,6 +340,8 @@ export const MUST_STAY_LAZY_MODULES = [
   "src/lib/reader-failure.ts",
   "src/features/legal/legal-page-data.ts",
   "src/features/posting/posting-service.ts",
+  // cursor bundle 7c Part 3 (INC-1281): each door's and route's permission, admin chunks only.
+  "src/features/permissions/door-permissions.generated.ts",
   "src/components/ui/overlays-impl.ts",
   "src/components/ui/alert-dialog-impl.ts",
   "src/components/ui/dialog-impl.ts",
