@@ -1,7 +1,8 @@
 # CURSOR BUNDLE 8a — every page meets its failures: the failure crawl (DEC-459 (c), INC-1278 in part); a route answer that is not ok becomes one typed failure (INC-1305, INC-1304, the typed failure's detail); two guards that misjudge (INC-1308, INC-1306). — report
 
-Base: 70df93185 · Final commit: e2ed49f10 · Brief: docs/governance/briefs/cursor-bundle-8a.md (sha256 d652e014b41a288a66dbb7acf49453346dab6b526441dbf0c95111c17c6f6f2a) · Ruling 1: docs/governance/briefs/cursor-bundle-8a-ruling-1.md
+Base: 70df93185 · Final commit: 0710dd3fd · Brief: docs/governance/briefs/cursor-bundle-8a.md (sha256 d652e014b41a288a66dbb7acf49453346dab6b526441dbf0c95111c17c6f6f2a) · Ruling 1: docs/governance/briefs/cursor-bundle-8a-ruling-1.md · Ruling 2: docs/governance/briefs/cursor-bundle-8a-ruling-2.md (sha256 a623e362bf17081bf3a64060d6f9e2614c451d68c8aeab03f6e61cf8d73d88de)
 Review: READY · 0 BLOCKER · 0 MAJOR · 2 MINOR · on e2ed49f
+Review (ruling 2's commits): READY · 0 BLOCKER · 0 MAJOR · 1 MINOR · on 0710dd3
 
 CI of the base (read at the turn's start and again before the push): `Commit: 70df931855277087581fe4921066bcb64d5b34cd (short 70df931)` · `Conclusion: SUCCESS` · run 45859549094. The pull request's CI: §11.
 
@@ -21,6 +22,11 @@ CI of the base (read at the turn's start and again before the push): `Commit: 70
 - STEP 6 — done (§5). The ceilings commit e27b6173f follows the checks' NEAR notes (§10).
 - STEP 7 — the push of e27b6173f, then a second push (e2ed49f10) for its CI's two causes (§10, §11). PR [#114](https://github.com/tesfayekb/ethio-marketplace/pull/114) stays a draft.
 - STEP 8 — this report.
+- RULING 2 — done.
+  - The ruling was saved by scripted copy, its sha256 equal to the carrier's and to `expected.txt` (commit 4fe8b691f).
+  - The browse-path guard reads every path from `src/` on, and admits the hook alone from the admin route files `src/routes/admin.<…>` (b1543bbfd).
+  - BPG-4's deadline is written as its three runs' (0710dd3fd, the self-review's fix).
+  - That was one push (0710dd3fd), then this report, records only.
 
 ## 2. Files changed
 
@@ -30,9 +36,11 @@ CI of the base (read at the turn's start and again before the push): `Commit: 70
 .github/workflows/ci.yml
 docs/features/ci-guards.md
 docs/features/failure-crawl.md
+docs/features/rbac-client-seam.md
 docs/features/route-client.md
 docs/generated/i18n-usage.json
 docs/governance/briefs/cursor-bundle-8a-ruling-1.md
+docs/governance/briefs/cursor-bundle-8a-ruling-2.md
 docs/governance/briefs/cursor-bundle-8a.md
 docs/governance/reports/cursor-bundle-8a.report.md
 docs/governance/reports/cursor-bundle-8a.stop-1.md
@@ -51,6 +59,8 @@ e2e/helpers/failure-crawl-tests.ts
 e2e/helpers/failure-crawl.ts
 public/i18n-usage.json
 roadmap.md
+scripts/check-browse-imports.sh
+scripts/check-browse-imports.test.ts
 scripts/ci/lane-weights.json
 scripts/ci/turn-checks.test.ts
 scripts/ci/turn-checks.ts
@@ -67,6 +77,9 @@ scripts/conformance/route-client.test.ts
 scripts/conformance/wired.test.ts
 scripts/conformance/workflow-reader.ts
 scripts/e2e-select.ts
+scripts/fixtures/browse-imports/admin-route-hook/src/routes/admin.users.ts.txt
+scripts/fixtures/browse-imports/admin-route-seam/src/routes/admin.roles.ts.txt
+scripts/fixtures/browse-imports/browse-route-hook/src/routes/listings.ts.txt
 scripts/route-budgets.mjs
 src/features/ad-page/similar-ads.test.tsx
 src/features/ad-page/similar-ads.tsx
@@ -90,12 +103,14 @@ src/test/provider-errors.test.ts
 src/test/provider-errors.ts
 ```
 
-New files (`git diff --name-only --diff-filter=A 70df93185`, each proven tracked by `git ls-files`, 23 of 23 before this report):
+New files (`git diff --name-only --diff-filter=A 70df93185`, each proven tracked by `git ls-files`, 28 of 28 at ruling 2's push, this report included):
 
 ```
 docs/features/failure-crawl.md
 docs/governance/briefs/cursor-bundle-8a-ruling-1.md
+docs/governance/briefs/cursor-bundle-8a-ruling-2.md
 docs/governance/briefs/cursor-bundle-8a.md
+docs/governance/reports/cursor-bundle-8a.report.md
 docs/governance/reports/cursor-bundle-8a.stop-1.md
 e2e/failure-crawl-admin-catalog.spec.ts
 e2e/failure-crawl-admin-content.spec.ts
@@ -114,6 +129,9 @@ scripts/conformance/changed-tests.ts
 scripts/conformance/failure-crawl-allowlist.txt
 scripts/conformance/failure-crawl.test.ts
 scripts/conformance/failure-crawl.ts
+scripts/fixtures/browse-imports/admin-route-hook/src/routes/admin.users.ts.txt
+scripts/fixtures/browse-imports/admin-route-seam/src/routes/admin.roles.ts.txt
+scripts/fixtures/browse-imports/browse-route-hook/src/routes/listings.ts.txt
 src/features/admin/translations/use-translations.test.ts
 src/test/failure-crawl.test.ts
 ```
@@ -330,6 +348,24 @@ See §2 for each grep's result.
     - `semgrep` SARIF upload and its warning (2): GitHub only.
   - The bundle step's three NEAR notes led to e27b6173f. After it, `node scripts/check-bundle-size.mjs` exits 0 with no NEAR line, and the laws are green (above).
   - The first run (on 8680b9176) had 2 FAILs, both fixed at the root in 97d1ad80c (§10).
+- **Ruling 2, the browse-path guard** (`scripts/check-browse-imports.test.ts`).
+  - BPG-1…3: their ids and cases are unchanged, and each now runs both ways. The relative run uses the tree as the working folder and the argument `src`, as CI's step does; the absolute run passes the tree's full path.
+  - BPG-4 also runs `src` with the working folder at the repository's root, as CI does.
+  - BPG-5…7 are new, each run both ways. An admin route file importing the hook passes; a browse-path route file importing it fails by its path; an admin route file importing the seam beside the hook fails by its path. Their fixtures are three new trees under `scripts/fixtures/browse-imports/`.
+  - The ids BPG-5…7 were grepped free first (`rg "BPG-[5-9]"`: none).
+  - Red-first on the old guard (ec88bb1f0's script): `Tests 3 failed | 4 passed (7)`.
+    - BPG-1 failed: `admin-hook (relative): expected 'Browse-path guard FAILED: 1 file(s) i…' to contain 'Browse-path guard OK'`.
+    - BPG-5 failed: `admin-route-hook (relative)`, the same.
+    - BPG-4 failed on vitest's 5 s default: its three whole runs take about 6 s each. Its deadline is now `3 * RUN_DEADLINE`, the three runs' own deadline (0710dd3fd).
+  - On the fixed guard: `Tests 7 passed (7)`. CI's two steps by hand: `bash scripts/check-browse-imports.sh src` answers OK. On `scripts/fixtures` it exits 1, flagging exactly the five planted bad files.
+  - The supervisor's evidence, rerun. The `src` of Lovable 10b part 2's head 7622725bb (`git archive` into `/tmp/ethio-scratch/cursor-bundle-8a/lovable-10b-7622725bb/`):
+    - the old guard flags 21 files relative (20 admin-folder files and `src/routes/admin.listings_.$listingId_.edit.tsx`) and 1 absolute (that route file);
+    - the fixed guard answers OK both ways.
+  - Typecheck exit 0, ESLint clean, prettier clean.
+  - Laws: `Test Files 147 passed (147)`, `Tests 824 passed | 1 skipped (825)`. After the deadline fix: the guard's test with `wired.test.ts`, `Tests 12 passed (12)`.
+  - `bun run checks` on b1543bbfd: fast line `checks (fast): 27 PASS · 0 FAIL · 642s`, last line `checks: 36 PASS · 0 FAIL · 25 NOT RUN · 709s`. The 25 NOT RUNs have the reasons above. `browse-path-guard › Guard src/` and `› Self-test — guard must reject the bad fixture` PASS.
+  - Shellcheck is not installed on this computer, so it did not run on the script.
+  - No browser test changed, so no browser run.
 - **check-go.** `bun scripts/brief/check-go.ts docs/governance/briefs/cursor-bundle-8a.md --at 70df93185`: `[check-go] no finding`.
 - **Browser** (`bun run e2e:local`, mobile-360, 0 retries; the seven spec files are new, so they ran whole):
   - Admin files: `23 passed (14.0m)`, 2 failed. FCR-70 lacked the `/admin/ rest profiles GET (malformed)` line, and FCR-76 lacked the `/admin/legal/edit rest countries GET` line. Both lines were added; the grep rerun of FCR-70 and FCR-76 gave `2 passed`.
@@ -372,8 +408,9 @@ Guard self-tests run:
 - CF-ALONE-1 and CF-ALONE-2 (a planted list, a base that cannot be read).
 - PEF-3 (planted sources).
 - RCG-6 (a planted hand-built failure).
+- BPG-1…7, ruling 2: planted fixture trees for the browse-path guard, run both relative and absolute. CI's self-test over `scripts/fixtures` still fails.
 
-`wired.test.ts` names CF-CRAWL-1 and CF-ALONE.
+`wired.test.ts` names CF-CRAWL-1 and CF-ALONE. It already names the browse-path guard's test by BPG-4, and that line is unchanged.
 
 ## 8. Strings
 
@@ -452,6 +489,14 @@ None (FLAG no-migration). `bun run db:proof` ran only to start the throwaway loc
 - **A second push** (the brief asks for ONE, DEC-414). The first push's CI had two causes of mine, each fixed in its own commit and pushed together (§11):
   - 0774f0ff2: CFC-5 reads the footer lines as text, not a pattern built from a key (CodeQL).
   - e2ed49f10: the crawl's legal version is a scratch row (`legal_documents` of a scratch kind, `^e2e-[a-z0-9-]{1,40}$` by the table's check, and its published version). They are made on first use and removed in `cleanup` with any acceptances and notices, as `e2e/legal-history.spec.ts` does. This replaced a read of a real published version, which a fresh backend does not hold.
+- **Ruling 2** (`docs/governance/briefs/cursor-bundle-8a-ruling-2.md`, sha256 a623e362…, saved by scripted copy). Its first message carried no sha256. That was a STOP, answered in the chat by the carrier and its `expected.txt`.
+  - Decisions 1–3: the guard and its tests (b1543bbfd, 0710dd3fd; §5). CI's step is unchanged.
+  - Decision 4: the repeat proof is accepted as capped. INC-1311 is named in §13.
+  - Decision 5: the captured 503 `{"error":"upstream unavailable"}` is the entry, as Q1 above says. Nothing changed.
+  - Decision 6: INC-1312 and INC-1313 are numbered findings (§13), and nothing changed for them in this lane. The INC-1278 lines stay.
+  - Decision 7: one push (0710dd3fd), the guard fix only, then this report, records only.
+  - One departure, the review's MINOR: the guard's `is_admin_folder` is now named `admits_hook`, since it admits the admin route files too. Nothing else in the guard changed but `from_src` and the `src/`-anchored patterns the ruling asks for.
+  - The guard's two feature docs say the same (`docs/features/ci-guards.md` §browse-path-guard, `docs/features/rbac-client-seam.md`). They fall under the standing allowance.
 
 ## 11. CI
 
@@ -466,13 +511,17 @@ None (FLAG no-migration). `bun run db:proof` ran only to start the throwaway loc
 - **The second push (e2ed49f10, run 45894289368):** `gh pr checks 114` shows 43 pass and 2 skipping: `Promote to main` runs on `dev` only, and the `Lovable branch guard` on Lovable's branches only. CodeQL passes.
   - The branch's `ci-status.md`: `Commit: e2ed49f107609f4073294854e9dffbec61a2ad84 (short e2ed49f)` · `Conclusion: SUCCESS` · `Completed (UTC): 2026-11-26T21:24:07Z` · run 45894289368. That equals the last code commit (two-step check).
   - The repeat lane passed capped. Its evidence: `Repeat: 38 of 58 tests repeated — specs directly changed 5/7 …; budget 793 s; the time cap left 76 test runs`.
+- **Ruling 2's push (0710dd3fd, run 45902809507):** `gh pr checks 114` shows 43 pass and 2 skipping, the same two as above. CodeQL passes. `gh pr checks 114 --watch` exited 0.
+  - The branch's `ci-status.md`: `Commit: 0710dd3fdafef205beb694bf25de68551e837137 (short 0710dd3)` · `Conclusion: SUCCESS` · `Completed (UTC): 2026-11-26T22:38:45Z` · run 45902809507. That equals the last code commit and the branch's head at the push (two-step check). Its lanes line: `ran — no proven code tree`, so every lane ran on this tree.
+  - The repeat lane passed capped. Its job log shows the same five crawl files (`REPEAT_TESTS: 58`, `REPEAT_PARALLEL_TESTS: 38`, `REPEAT_BUDGET_SECONDS: 793`), then `repeat-cap: capped` and `0 failed` steps. The job log does not print how many runs the cap left; I read no count and state none. Ruling 2 accepts this (INC-1311).
+  - No re-run. The guard's two steps ran in the check `Browse-path guard (no RBAC seam on the marketplace path, with self-test)`, which passed in 10 s.
 
 ## 12. Limits
 
 - WebKit, the merged tree's first download and the lanes' real time are CI's and the supervisor's.
 - After the split into seven files and the allowlist's move, I reran only FCR-13 and FCR-52 locally, by grep. Every other row last ran whole before the split, with the same rows, judge and allowlist lines, and the same tests now declared per file. CI's lanes run them all.
 - I measured desktop time for no lane.
-- Repeatability is proven only in part. The repeat lane's 793 s budget held 5 of the 7 changed crawl files, and its cap left 76 test runs unrun. The crawl's long tests (FCR-41 at 281.6 s) do not fit DEC-283's budget, so the supervisor rules on how they are repeated.
+- Repeatability is proven only in part. The repeat lane's 793 s budget held 5 of the 7 changed crawl files, and its cap left 76 test runs unrun. The crawl's long tests (FCR-41 at 281.6 s) do not fit DEC-283's budget. Ruling 2 accepts the capped proof, and INC-1311 (Cursor 8c) owns it (§13).
 - No log was left unread that this report states a count for.
 
 ## 13. Findings
@@ -521,11 +570,13 @@ None (FLAG no-migration). `bun run db:proof` ran only to start the throwaway loc
   - `read /admin/users/$userId rpc admin_get_user (malformed)` — the user's detail read (src/features/admin/users/admin-users-service.ts:105-109): an answer of the wrong shape reads as no such user, and the page says "This user does not exist." — a silent default, reported
   - `read /admin/ rest profiles GET (malformed)` — the account's language and status reads (src/features/auth/preferred-language.ts:74, src/features/auth/account-status.ts:43-44): an answer of the wrong shape reads as nothing stored — a silent default, reported
 
-- **An auth 500 read as signed out.** `src/server/supabase/user-client.ts:93–108`: an auth server 500 (`unexpected_failure`, an `AuthApiError`, not retryable) answers `reason: "notSignedIn"`. A caller whose sign-in server failed is told they are signed out, not that it was unreachable. A wrong class on an identity path; it fails closed, so it is not a hole.
-- **Two names for one state.** "signedOut" (the route client's kind) and "notSignedIn" (the gate code) both exist: `src/lib/refusal.ts:177` maps one to the other, and `translations-service.ts:404` holds its own constant. Two names invite a third.
+- **INC-1309 (fixed here, ruling 2): the browse-path guard judged the path's form.** Its admin exceptions needed a character before `src`, so CI's relative run refused the admin folders' hook imports, and no admin route file but `src/routes/admin.tsx` was admitted. Fixed in b1543bbfd (§5, §10).
+- **INC-1311 (owner Cursor 8c): the long crawl tests are never repeated.** A crawl test longer than the repeat budget's share is left by the cap: run 45894289368's repeat lane passed capped, with 76 test runs left, and FCR-41 took 281.6 s. Until 8c fits each crawl test to the budget, the nightly and the flake ledger watch them (ruling 2, decision 4).
+- **An auth 500 read as signed out (INC-1312, owner Cursor 8b, fix 1).** `src/server/supabase/user-client.ts:93–108`: an auth server 500 (`unexpected_failure`, an `AuthApiError`, not retryable) answers `reason: "notSignedIn"`. A caller whose sign-in server failed is told they are signed out, not that it was unreachable. A wrong class on an identity path; it fails closed, so it is not a hole.
+- **Two names for one state (INC-1312's sibling).** "signedOut" (the route client's kind) and "notSignedIn" (the gate code) both exist: `src/lib/refusal.ts:177` maps one to the other, and `translations-service.ts:404` holds its own constant. Two names invite a third.
 - **The next long-detail reader** (ruling 1, Q5). When a second screen needs a long route detail in a sentence, the reading of `failureDetail` moves into the one refusal reader (`src/lib/refusal.ts`) at that turn. The register should carry it.
 - **The edit wizard's malformed draft.** A draft answer of the wrong shape is drawn as an ad with empty fields (`use-edit-draft.ts:242–262`, `posting-service.ts:396–403`; crawl lines above).
-- **A whole-module mock hides the typed failure.** `src/features/feed/use-feed.test.ts:17` mocks `@/lib/route-client` as `{ callRoute }` only, while `use-feed.ts:42` throws `await routeFailure(answer)`. UFS-7's 500 case (`use-feed.test.ts:213–216`) therefore meets the mock's own error (the mocked module has no `routeFailure`) and passes on `error` not being null: it never proves the typed failure. Out of scope (the feed); the fix is spreading `importOriginal` as five siblings do.
+- **A whole-module mock hides the typed failure (INC-1313, owner Cursor 8c).** `src/features/feed/use-feed.test.ts:17` mocks `@/lib/route-client` as `{ callRoute }` only, while `use-feed.ts:42` throws `await routeFailure(answer)`. UFS-7's 500 case (`use-feed.test.ts:213–216`) therefore meets the mock's own error (the mocked module has no `routeFailure`) and passes on `error` not being null: it never proves the typed failure. Out of scope (the feed); the fix is spreading `importOriginal` as five siblings do.
 - **The impersonation page** (`/admin/impersonation/$sessionId`) is owed a fixture that opens a session, so the crawl can judge it.
 - **K2 items:** §6.
 - **Not a finding.** `step-photos.tsx:262` (Cursor 7b's F3) reads an upload's answer, a write, so it is outside a read-on-load crawl.
@@ -537,8 +588,12 @@ None (FLAG no-migration). `bun run db:proof` ran only to start the throwaway loc
 - INC — INC-1306's guard built (Cursor bundle 8a): the component job's step "Changed test files, each alone (INC-1306)" runs every test file a push changes in its own process, against the pull request's base or dev's previous head. A base that cannot be read fails loudly (`scripts/conformance/changed-tests.ts`, CF-ALONE-1…3).
 - INC — INC-1278 in part (Cursor bundle 8a): the failure crawl forces every page's reads to fail. Its allowlist holds 41 `| INC-1278` lines (40 reads and the impersonation page), each a silent default or wrong verdict with its file and line, listed in the report's §13.
 - INC — INC-1308 (the supervisor's record) — a census floor that its own allowlist's planned retirement breaks. `scripts/conformance/door-permissions.test.ts` requires at least 70 permission comparisons (`COMPARISON_FLOOR`) and counts only the copies (`permissionComparisons` skips the hook's file), so moving the comparisons allowlisted `until INC-1281` onto `useMayCall` — the planned work of Lovable 10b part 2 — fails DPM-1 though nothing is wrong. Evidence: the supervisor's reading of the census at 70df93185. Class: concern "a census floor proves its reader and never counts down with the work its allowlist plans"; mechanism the census kit's floors; fixed in Cursor bundle 8a, fix 3.
+- INC — INC-1309 (the supervisor's record) — the browse-path guard's admin exception matched only absolute paths, and CI runs it on a relative one. `scripts/check-browse-imports.sh` admits the hook from admin folders by patterns that need a character before `src`; its tests passed absolute paths, CI's step passes `src`; and it admitted no admin route file but `src/routes/admin.tsx`. Evidence: the supervisor's gate on Lovable 10b part 2's head `7622725bb` (20 admin-folder files flagged on the relative run, 1 admin route file on both). Class: concern 'a guard is proven on the input form CI gives it'; mechanism the browse-path guard; fixed in Cursor bundle 8a, ruling 2.
+- INC — INC-1311 (the supervisor's record) — a crawl test longer than the repeat budget's share is never repeated by the repeat lane. Evidence: run 45894289368's repeat lane passed capped, 76 test runs left by the cap; FCR-41 took 281.6 s. Class: concern 'every changed test is proven repeatable'; mechanism the repeat lane (DEC-283, `scripts/ci/repeat-cap.ts`); owner Cursor 8c (each crawl test fits the budget). Until then the nightly and the flake ledger watch them.
+- INC — INC-1312 (the supervisor's record) — an auth server failure is read as signed out. `src/server/supabase/user-client.ts` answers an auth 500 (`unexpected_failure`) with `reason: \"notSignedIn\"`, so a caller whose sign-in server failed is told they are signed out; it fails closed. Sibling: two names for the signed-out state (`signedOut`, `notSignedIn`; `src/lib/refusal.ts`, `translations-service.ts`). Evidence: Cursor bundle 8a's capture with the stack's auth server failing. Class: concern 'a failure is never read as signed out' (CF-SESSION-1's server side); mechanism the user client; owner Cursor 8b, fix 1.
+- INC — INC-1313 (the supervisor's record) — a whole-module mock hides the typed failure. `src/features/feed/use-feed.test.ts` mocks `@/lib/route-client` with `callRoute` only, so UFS-7's 500 case meets the mock's own error and never proves the route client's typed failure. Class: concern 'a test proves the mechanism it names'; mechanism the route client's test mocks (spread `importOriginal`, the form other route-client mocks use); owner Cursor 8c.
 - DEC — DEC-481 (the supervisor's, G17) — Cursor 8a takes INC-1306's guard and Cursor 8b takes INC-1295. Why: INC-1295 changes how the generated word maps and the page limits are committed, while Lovable 10b part 2 changes those same files beside 8a; in 8b no Lovable lane is open. Amends DEC-479's composition of 8a and 8b; the order of the lanes is unchanged.
-- INC — an auth server's 500 is read as signed out: `src/server/supabase/user-client.ts:93–108` answers `notSignedIn` for an `AuthApiError` at 500, so a caller whose sign-in server failed is told they are signed out. Evidence: the capture of `GET /auth/v1/user` at 500 (Cursor bundle 8a, ruling 1 Q1). Class: concern "a failure is read as its kind"; mechanism the route boundary's caller read.
+- INC — (my proposal, now INC-1312 by ruling 2, whose record above replaces it) an auth server's 500 is read as signed out: `src/server/supabase/user-client.ts:93–108` answers `notSignedIn` for an `AuthApiError` at 500, so a caller whose sign-in server failed is told they are signed out. Evidence: the capture of `GET /auth/v1/user` at 500 (Cursor bundle 8a, ruling 1 Q1). Class: concern "a failure is read as its kind"; mechanism the route boundary's caller read.
 - register row — a page meets its failures → the failure crawl (`e2e/helpers/failure-crawl.ts`, `e2e/helpers/failure-crawl-judge.ts`, `e2e/helpers/crawl-pages.ts`, `e2e/failure-crawl-*.spec.ts`) → guard: the page-coverage census `scripts/conformance/failure-crawl.ts` (CF-CRAWL-1, CFC-1…5) and the judge's tests (`src/test/failure-crawl.test.ts`, FCJ-1…12) → exceptions: `scripts/conformance/failure-crawl-allowlist.txt`.
 - register row — the route client's row gains: carries the route's detail as data (`ReaderFailure.detail`, read through `failureDetail`; RF-11, RCL-25).
 - register row — the census kit's row gains: a floor proves the reader (`floorProblem` over the copies and the hook's calls; DPM-5).
@@ -547,3 +602,4 @@ None (FLAG no-migration). `bun run db:proof` ran only to start the throwaway loc
 - roadmap — none dictated by the brief.
 - slip — none.
 - Note — S810 is the supervisor's (ruling 1).
+- Note — S813 is the supervisor's (ruling 2). The four records of ruling 2 above are copied by script from its decision 7, without their quotes. INC-1312's `\"notSignedIn\"` keeps the ruling's characters as written.
