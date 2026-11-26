@@ -37,19 +37,6 @@ export const KINDS: Readonly<Record<FailureKind, { words: MessageKey; step: Fail
   refused: { words: "failure.refused", step: "back" },
 };
 
-/**
- * INC-1287 — interim, until the database's refusal-status table answers these as 404 (Cursor
- * bundle 7); then this list is deleted.
- */
-export const GONE_CODES: ReadonlySet<string> = new Set([
-  "listingNotFound",
-  "listingNotAvailable",
-  "unknownPlace",
-  "unknownCategory",
-  "notYours",
-  "notYourListing",
-]);
-
 /** Retry is drawn at once only for these (the query client's background rule is the same). */
 export function isRetryable(kind: FailureKind): boolean {
   return kind === "network" || kind === "server";
@@ -98,7 +85,6 @@ function decide(status: number | undefined, code: string | undefined, cls: strin
   if (cls === "network") return "network";
   if ((status !== undefined && status >= 500) || cls === "server" || cls === "malformed")
     return "server";
-  if (code !== undefined && GONE_CODES.has(code)) return "gone";
   if (cls === "refused" || cls === "auth") return "refused";
   return "server";
 }

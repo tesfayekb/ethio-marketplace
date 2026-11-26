@@ -430,6 +430,16 @@ one it writes no update and no audit row and answers `{ok, language}`. A changed
 value updates the row and writes `profile.preferred_language` (old to new).
 CT-23 keeps its meter exclusion and loses its audit exclusion.
 
+## The client trusts the status that arrived (cursor-bundle-7b Part 2, INC-1296)
+
+`GONE_CODES`, the interim list of codes that read as gone, is deleted. `reader-failure.ts`
+reads a refusal at the status it arrived at: a marked refusal below 500 is a refusal at that
+status whatever `refusalStatus` holds for its code (the table's row answers only when no status
+came), a marked failure at 500 or above stays `server`, and a status outside 400–499 carries no
+refusal. A code whose status moves on the server therefore reads right before and after the
+Publish, and `failureKind` reads gone from a 404, never from a code. `refusalStatus` and its
+mirror stay equal (CF-REFUSAL-2). RF-4, RF-6, RF-8, RF-14 and FR-U9 pin it.
+
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,
