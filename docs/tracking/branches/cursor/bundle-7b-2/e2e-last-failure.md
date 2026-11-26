@@ -1,209 +1,16 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45749553190
-- Commit: `e4b1495e937aab44327a1a6ad02103bc8989c5e4`
+last E2E run 45754134703 passed
+
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45754134703
+- Commit: `8e7775d1f2fd649179b8b49bfb92090610836786`
 - Attempt: 1
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-6160fb14a7a8… (0 read)
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-75b3d23c6604… (0 read)
 - Repeat: 27 of 136 tests repeated — specs directly changed 4/7, importers of a changed helper 0/0; budget 656 s; the time cap left 28 test runs
-- Written (UTC): 2026-11-26T04:01:11.209Z
-- Passed: 2681 · Skipped: 414 · Failed: 4
-- Gating failures: 4 · STAGING-SINK (INC-1175, still gating): 0
+- Written (UTC): 2026-11-26T04:45:13.722Z
+- Post-test warnings: 57
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16
-- Sources without results: none
 - Errors outside any test (INC-589): repeat (2)
-
-## Gating failures
-
-### admin-roles.spec.ts › U2 roles console › RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects
-
-- Source: `shard 9`
-- Project: `mobile-360`
-
-```text
-Error: expect(page).not.toHaveURL(expected) failed
-
-Expected pattern: not /\/admin\/roles\//
-Received string: "http://127.0.0.1:4173/admin/roles/[account id]"
-Timeout: 10000ms
-
-Call log:
-  - Expect "not toHaveURL" with timeout 10000ms
-    14 × unexpected value "http://127.0.0.1:4173/admin/roles/[account id]"
-
---- further error 1 ---
-Error: expect(page).not.toHaveURL(expected) failed
-
-Expected pattern: not /\/admin\/roles\//
-Received string: "http://127.0.0.1:4173/admin/roles/[account id]"
-Timeout: 10000ms
-
-Call log:
-  - Expect "not toHaveURL" with timeout 10000ms
-    14 × unexpected value "http://127.0.0.1:4173/admin/roles/[account id]"
-
-
-  163 |     await expect(page.getByTestId("role-permissions")).toHaveCount(0);
-  164 |     await expect(roleRow(page, "admin")).toHaveCount(0);
-> 165 |     await expect(page).not.toHaveURL(/\/admin\/roles\//);
-      |                            ^
-  166 |   });
-  167 |
-  168 |   test("RP-2 create: a super admin creates a custom role through step-up", async ({ page }) => {
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-roles.spec.ts:165:28
-```
-
-Context:
-
-```text
-          - listitem [ref=e228]:
-            - generic [ref=e229]: About
-          - listitem [ref=e230]:
-            - generic [ref=e231]: Contact
-      - navigation "Help" [ref=e232]:
-        - heading "Help" [level=2] [ref=e233]
-        - list [ref=e234]:
-          - listitem [ref=e235]:
-            - generic [ref=e236]: Safety
-      - navigation "Legal" [ref=e237]:
-        - heading "Legal" [level=2] [ref=e238]
-        - list [ref=e239]:
-          - listitem [ref=e240]:
-            - link "Terms" [ref=e241] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e242]:
-            - link "Privacy" [ref=e243] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e245]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### admin-roles.spec.ts › U2 roles console › RP-1 gating: moderator refused, admin sees the list, signed-out deep link redirects
-
-- Source: `shard 9`
-- Project: `desktop-1280`
-
-```text
-Error: expect(page).not.toHaveURL(expected) failed
-
-Expected pattern: not /\/admin\/roles\//
-Received string: "http://127.0.0.1:4173/admin/roles/[account id]"
-Timeout: 10000ms
-
-Call log:
-  - Expect "not toHaveURL" with timeout 10000ms
-    14 × unexpected value "http://127.0.0.1:4173/admin/roles/[account id]"
-
---- further error 1 ---
-Error: expect(page).not.toHaveURL(expected) failed
-
-Expected pattern: not /\/admin\/roles\//
-Received string: "http://127.0.0.1:4173/admin/roles/[account id]"
-Timeout: 10000ms
-
-Call log:
-  - Expect "not toHaveURL" with timeout 10000ms
-    14 × unexpected value "http://127.0.0.1:4173/admin/roles/[account id]"
-
-
-  163 |     await expect(page.getByTestId("role-permissions")).toHaveCount(0);
-  164 |     await expect(roleRow(page, "admin")).toHaveCount(0);
-> 165 |     await expect(page).not.toHaveURL(/\/admin\/roles\//);
-      |                            ^
-  166 |   });
-  167 |
-  168 |   test("RP-2 create: a super admin creates a custom role through step-up", async ({ page }) => {
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-roles.spec.ts:165:28
-```
-
-Context:
-
-```text
-          - listitem [ref=e233]:
-            - generic [ref=e234]: About
-          - listitem [ref=e235]:
-            - generic [ref=e236]: Contact
-      - navigation "Help" [ref=e237]:
-        - heading "Help" [level=2] [ref=e238]
-        - list [ref=e239]:
-          - listitem [ref=e240]:
-            - generic [ref=e241]: Safety
-      - navigation "Legal" [ref=e242]:
-        - heading "Legal" [level=2] [ref=e243]
-        - list [ref=e244]:
-          - listitem [ref=e245]:
-            - link "Terms" [ref=e246] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e247]:
-            - link "Privacy" [ref=e248] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e250]: © 2026 ethio.com — All rights reserved.
-```
-```
-
-### photo-pipeline.spec.ts › PHOTO PIPELINE › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover
-
-- Source: `shard 16`
-- Project: `mobile-360`
-
-```text
-Error: {"ok":false,"refusals":[{"field":"id","reason":"notYourListing"}]}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 403
-Received: 404
---- further error 1 ---
-Error: {"ok":false,"refusals":[{"field":"id","reason":"notYourListing"}]}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 403
-Received: 404
-
-  945 |       const stranger = await seller(other);
-  946 |       const foreign = await photoAction(other, a, "move", stranger.token, 0);
-> 947 |       expect(foreign.status, JSON.stringify(foreign.payload)).toBe(403);
-      |                                                               ^
-  948 |       expect(await order(), "PP-17: another seller moved a photo").toEqual([c, a, b]);
-  949 |     } finally {
-  950 |       await otherContext.close();
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:947:63
-```
-
-Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-17-Move-earlier-and-Move-later-put-a-photo-at-its-place-and-the-first-is-the-cover-mobile-360` — Playwright's name `photo-pipeline-PHOTO-PIPEL-890a4--and-the-first-is-the-cover-mobile-360`; this run carried 4 context file(s); of the same spec: none
-
-### photo-pipeline.spec.ts › PHOTO PIPELINE › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover
-
-- Source: `shard 16`
-- Project: `desktop-1280`
-
-```text
-Error: {"ok":false,"refusals":[{"field":"id","reason":"notYourListing"}]}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 403
-Received: 404
---- further error 1 ---
-Error: {"ok":false,"refusals":[{"field":"id","reason":"notYourListing"}]}
-
-expect(received).toBe(expected) // Object.is equality
-
-Expected: 403
-Received: 404
-
-  945 |       const stranger = await seller(other);
-  946 |       const foreign = await photoAction(other, a, "move", stranger.token, 0);
-> 947 |       expect(foreign.status, JSON.stringify(foreign.payload)).toBe(403);
-      |                                                               ^
-  948 |       expect(await order(), "PP-17: another seller moved a photo").toEqual([c, a, b]);
-  949 |     } finally {
-  950 |       await otherContext.close();
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/photo-pipeline.spec.ts:947:63
-```
-
-Context: context file not found for `photo-pipeline-PHOTO-PIPELINE-PP-17-Move-earlier-and-Move-later-put-a-photo-at-its-place-and-the-first-is-the-cover-desktop-1280` — Playwright's name `photo-pipeline-PHOTO-PIPEL-890a4--and-the-first-is-the-cover-desktop-1280`; this run carried 4 context file(s); of the same spec: none
 
 ## Errors outside any test (INC-589)
 
@@ -273,147 +80,147 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-26T03:36:32.016Z | 7.0 min |
-| email | 2026-11-26T03:36:04.363Z | 0.3 min |
-| webkit | 2026-11-26T03:36:20.519Z | 10.8 min |
-| shard 1 | 2026-11-26T03:39:25.867Z | 5.6 min |
-| shard 2 | 2026-11-26T03:41:47.896Z | 11.3 min |
-| shard 3 | 2026-11-26T03:36:11.063Z | 7.5 min |
-| shard 4 | 2026-11-26T03:36:07.303Z | 11.4 min |
-| shard 5 | 2026-11-26T03:35:52.539Z | 20.2 min |
-| shard 6 | 2026-11-26T03:36:23.669Z | 15.2 min |
-| shard 7 | 2026-11-26T03:38:38.613Z | 10.3 min |
-| shard 8 | 2026-11-26T03:36:32.407Z | 14.1 min |
-| shard 9 | 2026-11-26T03:38:48.778Z | 12.4 min |
-| shard 10 | 2026-11-26T03:35:49.134Z | 24.4 min |
-| shard 11 | 2026-11-26T03:35:47.090Z | 6.0 min |
-| shard 12 | 2026-11-26T03:35:54.548Z | 5.9 min |
-| shard 13 | 2026-11-26T03:37:37.918Z | 12.1 min |
-| shard 14 | 2026-11-26T03:35:51.721Z | 20.0 min |
-| shard 15 | 2026-11-26T03:35:58.502Z | 15.3 min |
-| shard 16 | 2026-11-26T03:36:21.560Z | 13.2 min |
-| repeat | 2026-11-26T03:36:34.446Z | 12.9 min |
+| smoke | 2026-11-26T04:20:02.813Z | 7.1 min |
+| email | 2026-11-26T04:19:36.831Z | 0.3 min |
+| webkit | 2026-11-26T04:20:09.985Z | 12.2 min |
+| shard 1 | 2026-11-26T04:20:05.881Z | 5.4 min |
+| shard 2 | 2026-11-26T04:19:40.702Z | 11.0 min |
+| shard 3 | 2026-11-26T04:20:19.829Z | 8.5 min |
+| shard 4 | 2026-11-26T04:23:19.596Z | 11.2 min |
+| shard 5 | 2026-11-26T04:19:47.823Z | 20.3 min |
+| shard 6 | 2026-11-26T04:22:17.812Z | 15.3 min |
+| shard 7 | 2026-11-26T04:20:13.178Z | 10.3 min |
+| shard 8 | 2026-11-26T04:21:24.654Z | 14.1 min |
+| shard 9 | 2026-11-26T04:25:58.053Z | 10.8 min |
+| shard 10 | 2026-11-26T04:19:41.548Z | 24.5 min |
+| shard 11 | 2026-11-26T04:20:19.636Z | 7.4 min |
+| shard 12 | 2026-11-26T04:22:04.972Z | 6.4 min |
+| shard 13 | 2026-11-26T04:25:26.273Z | 12.8 min |
+| shard 14 | 2026-11-26T04:19:54.002Z | 20.5 min |
+| shard 15 | 2026-11-26T04:20:02.261Z | 15.2 min |
+| shard 16 | 2026-11-26T04:21:55.296Z | 13.3 min |
+| repeat | 2026-11-26T04:20:05.751Z | 12.9 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
 | `admin-listings.spec.ts` | 82 | 26.5 min | webkit, shard 10 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 22.3 min | shard 15 |
-| `admin-screening.spec.ts` | 64 | 20.7 min | webkit, shard 14 |
-| `legal-admin.spec.ts` | 44 | 20.7 min | shard 5 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 22.2 min | shard 15 |
+| `admin-screening.spec.ts` | 64 | 21.1 min | webkit, shard 14 |
+| `legal-admin.spec.ts` | 44 | 20.3 min | shard 5 |
 | `admin-translations-console.spec.ts` | 46 | 19.4 min | smoke, shard 8 |
-| `admin-attributes-import.spec.ts` | 40 | 17.2 min | shard 16 |
-| `admin-attributes-library.spec.ts` | 42 | 17.1 min | shard 2 |
-| `admin-attributes-links.spec.ts` | 34 | 15.7 min | shard 13 |
-| `admin-attributes-editor.spec.ts` | 36 | 14.9 min | shard 14 |
-| `admin-locations.spec.ts` | 44 | 14.8 min | shard 6 |
-| `admin-attributes-safety.spec.ts` | 54 | 13.9 min | shard 5, repeat |
-| `admin-monetisation.spec.ts` | 34 | 13.4 min | smoke, shard 10 |
-| `admin-roles.spec.ts` | 28 | 12.0 min | shard 9 |
-| `import-security.spec.ts` | 36 | 11.3 min | shard 4 |
-| `legal-doors.spec.ts` | 34 | 9.4 min | smoke, shard 6 |
+| `admin-attributes-import.spec.ts` | 40 | 17.8 min | shard 16 |
+| `admin-attributes-library.spec.ts` | 42 | 16.7 min | shard 2 |
+| `admin-attributes-links.spec.ts` | 34 | 16.3 min | shard 13 |
+| `admin-attributes-editor.spec.ts` | 36 | 15.4 min | shard 14 |
+| `admin-locations.spec.ts` | 44 | 15.1 min | shard 6 |
+| `admin-attributes-safety.spec.ts` | 54 | 14.0 min | shard 5, repeat |
+| `admin-monetisation.spec.ts` | 34 | 13.5 min | smoke, shard 10 |
+| `import-security.spec.ts` | 36 | 11.7 min | shard 4 |
+| `admin-roles.spec.ts` | 28 | 11.1 min | shard 9 |
 | `shell.spec.ts` | 234 | 9.3 min | shard 1 |
-| `admin-categories-console.spec.ts` | 34 | 9.1 min | shard 7 |
-| `admin-screening-reject.spec.ts` | 30 | 8.3 min | shard 4, repeat |
-| `admin-translations-governance.spec.ts` | 20 | 7.2 min | smoke, shard 14 |
-| `admin-countries.spec.ts` | 18 | 6.8 min | shard 7 |
-| `auth-signout.spec.ts` | 44 | 6.0 min | webkit, shard 9 |
-| `post-wizard-place.spec.ts` | 40 | 4.9 min | shard 11 |
-| `dialogs.spec.ts` | 36 | 4.8 min | webkit, shard 4 |
-| `post-wizard-bundle2.spec.ts` | 70 | 4.8 min | shard 3 |
-| `admin-guides.spec.ts` | 14 | 4.8 min | shard 3 |
-| `feed-screens.spec.ts` | 40 | 4.8 min | webkit, shard 5 |
-| `post-wizard-specs.spec.ts` | 82 | 4.5 min | shard 12 |
-| `admin-translations-data.spec.ts` | 10 | 4.2 min | shard 8 |
-| `admin-users.spec.ts` | 28 | 4.1 min | shard 16 |
-| `ad-page.spec.ts` | 104 | 3.9 min | webkit, shard 13 |
+| `admin-categories-console.spec.ts` | 34 | 9.0 min | shard 7 |
+| `legal-doors.spec.ts` | 34 | 8.8 min | smoke, shard 6 |
+| `admin-screening-reject.spec.ts` | 30 | 8.1 min | shard 4, repeat |
+| `admin-translations-governance.spec.ts` | 20 | 7.4 min | smoke, shard 14 |
+| `admin-countries.spec.ts` | 18 | 6.9 min | shard 7 |
+| `post-wizard-bundle2.spec.ts` | 70 | 6.2 min | shard 3 |
+| `post-wizard-place.spec.ts` | 40 | 5.4 min | shard 11 |
+| `auth-signout.spec.ts` | 44 | 5.3 min | webkit, shard 9 |
+| `feed-screens.spec.ts` | 40 | 5.1 min | webkit, shard 5 |
+| `dialogs.spec.ts` | 36 | 5.1 min | webkit, shard 4 |
+| `post-wizard-specs.spec.ts` | 82 | 4.8 min | shard 12 |
+| `post-wizard-where.spec.ts` | 32 | 4.5 min | shard 11 |
+| `ad-page.spec.ts` | 104 | 4.5 min | webkit, shard 13 |
+| `admin-translations-data.spec.ts` | 10 | 4.4 min | shard 8 |
+| `admin-guides.spec.ts` | 14 | 4.3 min | shard 3 |
+| `admin-users.spec.ts` | 28 | 4.0 min | shard 16 |
+| `post-wizard-category.spec.ts` | 54 | 3.9 min | webkit, shard 3 |
 | `viewing-place.spec.ts` | 22 | 3.8 min | shard 15 |
-| `photo-pipeline.spec.ts` | 74 | 3.7 min | webkit, shard 16 |
 | `admin-categories-home.spec.ts` | 10 | 3.7 min | shard 10 |
-| `post-wizard-where.spec.ts` | 32 | 3.6 min | shard 11 |
-| `mfa-stepup.spec.ts` | 28 | 3.5 min | webkit, shard 9 |
-| `my-listings-ad.spec.ts` | 38 | 3.3 min | shard 12 |
-| `post-wizard-pricing.spec.ts` | 52 | 3.2 min | shard 8 |
-| `post-wizard-category.spec.ts` | 54 | 2.8 min | webkit, shard 3 |
-| `choice-lists.spec.ts` | 96 | 2.8 min | shard 7 |
-| `posting-routes.spec.ts` | 80 | 2.3 min | shard 6 |
+| `photo-pipeline.spec.ts` | 74 | 3.6 min | webkit, shard 16 |
+| `my-listings-ad.spec.ts` | 38 | 3.4 min | shard 12 |
+| `post-wizard-pricing.spec.ts` | 52 | 2.9 min | shard 8 |
+| `mfa-stepup.spec.ts` | 28 | 2.9 min | webkit, shard 9 |
+| `choice-lists.spec.ts` | 96 | 2.6 min | shard 7 |
+| `post-wizard-resets.spec.ts` | 34 | 2.4 min | shard 2 |
 | `sage-bands.spec.ts` | 76 | 2.3 min | shard 6 |
-| `post-wizard-resets.spec.ts` | 34 | 2.3 min | shard 2 |
-| `name-check-queue.spec.ts` | 8 | 1.9 min | smoke, shard 9 |
-| `sage-ad-page.spec.ts` | 30 | 1.8 min | webkit, shard 13 |
-| `admin-services.spec.ts` | 10 | 1.8 min | shard 15 |
+| `posting-routes.spec.ts` | 80 | 2.3 min | shard 6 |
+| `name-check-queue.spec.ts` | 8 | 2.1 min | smoke, shard 9 |
+| `sage-ad-page.spec.ts` | 30 | 2.0 min | webkit, shard 13 |
+| `admin-services.spec.ts` | 10 | 1.7 min | shard 15 |
+| `admin-audit.spec.ts` | 16 | 1.7 min | shard 13 |
+| `admin-categories-images.spec.ts` | 6 | 1.6 min | smoke, webkit, shard 6 |
 | `my-listings-page.spec.ts` | 72 | 1.6 min | webkit, shard 10, repeat |
-| `admin-audit.spec.ts` | 16 | 1.5 min | shard 13 |
-| `admin-categories-images.spec.ts` | 6 | 1.5 min | smoke, webkit, shard 6 |
-| `legal-certify.spec.ts` | 44 | 1.3 min | shard 15 |
-| `sage-tiers.spec.ts` | 52 | 1.3 min | webkit, shard 2 |
-| `admin-shell.spec.ts` | 12 | 1.3 min | shard 12 |
-| `press.spec.ts` | 22 | 1.1 min | shard 11 |
-| `my-listings-promote.spec.ts` | 10 | 1.1 min | shard 2 |
-| `one-line-slots-admin.spec.ts` | 10 | 1.0 min | shard 3 |
-| `locations-tree.spec.ts` | 8 | 1.0 min | shard 12 |
-| `phone-frame.spec.ts` | 18 | 1.0 min | shard 4 |
-| `my-listings-doors.spec.ts` | 28 | 0.9 min | shard 1 |
-| `user-guides.spec.ts` | 18 | 0.8 min | shard 11 |
-| `staff-gate.spec.ts` | 4 | 0.8 min | shard 8 |
+| `admin-shell.spec.ts` | 12 | 1.5 min | shard 12 |
+| `press.spec.ts` | 22 | 1.5 min | shard 11 |
+| `sage-tiers.spec.ts` | 52 | 1.4 min | webkit, shard 2 |
+| `legal-certify.spec.ts` | 44 | 1.4 min | shard 15 |
+| `one-line-slots-admin.spec.ts` | 10 | 1.2 min | shard 3 |
+| `my-listings-promote.spec.ts` | 10 | 1.2 min | shard 2 |
+| `user-guides.spec.ts` | 18 | 1.2 min | shard 11 |
+| `locations-tree.spec.ts` | 8 | 1.1 min | shard 12 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.9 min | shard 11 |
+| `phone-frame.spec.ts` | 18 | 0.9 min | shard 4 |
 | `sage-cards.spec.ts` | 40 | 0.8 min | webkit, shard 14 |
-| `house-style.spec.ts` | 18 | 0.7 min | shard 7 |
+| `my-listings-doors.spec.ts` | 28 | 0.8 min | shard 1 |
 | `i18n-sign-in-language.spec.ts` | 12 | 0.7 min | shard 14 |
+| `house-style.spec.ts` | 18 | 0.7 min | shard 7 |
 | `my-listings-levels.spec.ts` | 28 | 0.7 min | shard 5 |
+| `supabase-door.spec.ts` | 12 | 0.6 min | shard 3 |
+| `staff-gate.spec.ts` | 4 | 0.6 min | shard 8 |
 | `post-wizard-removed.spec.ts` | 4 | 0.6 min | shard 16 |
-| `page-head.spec.ts` | 4 | 0.6 min | shard 5 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.6 min | shard 11 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 12 |
 | `sage-shell.spec.ts` | 80 | 0.6 min | shard 15 |
+| `page-head.spec.ts` | 4 | 0.6 min | shard 5 |
 | `settings.spec.ts` | 16 | 0.5 min | shard 10 |
-| `supabase-door.spec.ts` | 12 | 0.5 min | shard 3 |
-| `ad-page-doors.spec.ts` | 30 | 0.5 min | shard 7 |
-| `breadcrumbs.spec.ts` | 6 | 0.5 min | shard 9 |
 | `layout.spec.ts` | 18 | 0.5 min | webkit, shard 7 |
+| `posting-routes-dials.spec.ts` | 14 | 0.5 min | shard 3 |
+| `ad-page-doors.spec.ts` | 30 | 0.5 min | shard 7 |
 | `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 5 |
 | `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 8 |
-| `one-line-slots.spec.ts` | 10 | 0.4 min | shard 4 |
-| `posting-routes-dials.spec.ts` | 14 | 0.4 min | shard 3 |
+| `submenu.spec.ts` | 14 | 0.4 min | smoke, shard 11 |
+| `one-line-slots.spec.ts` | 10 | 0.3 min | shard 4 |
 | `post-wizard-details.spec.ts` | 8 | 0.3 min | shard 16 |
 | `legal-accept.spec.ts` | 12 | 0.3 min | shard 15 |
-| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 13 |
 | `primitives-law.spec.ts` | 24 | 0.3 min | shard 2 |
+| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 13 |
+| `auth-reset.spec.ts` | 6 | 0.3 min | shard 11 |
 | `legal-pages.spec.ts` | 10 | 0.3 min | shard 12 |
-| `submenu.spec.ts` | 14 | 0.3 min | smoke, shard 11 |
+| `shell-bands.spec.ts` | 16 | 0.3 min | smoke, shard 1 |
 | `a11y.spec.ts` | 4 | 0.3 min | smoke |
-| `legal-history.spec.ts` | 6 | 0.3 min | shard 9 |
-| `shell-bands.spec.ts` | 16 | 0.2 min | smoke, shard 1 |
+| `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 9 |
 | `post-wizard-units.spec.ts` | 4 | 0.2 min | shard 16 |
 | `auth-signup.spec.ts` | 6 | 0.2 min | email |
-| `category-nav.spec.ts` | 10 | 0.2 min | shard 8 |
-| `auth-reset.spec.ts` | 6 | 0.2 min | shard 11 |
-| `overlays.spec.ts` | 8 | 0.2 min | shard 12 |
 | `feed-index.spec.ts` | 30 | 0.2 min | shard 2 |
-| `rbac.spec.ts` | 6 | 0.2 min | shard 14 |
+| `overlays.spec.ts` | 8 | 0.2 min | shard 12 |
 | `submenu-look.spec.ts` | 12 | 0.2 min | smoke, shard 10 |
+| `rbac.spec.ts` | 6 | 0.2 min | shard 14 |
+| `category-nav.spec.ts` | 10 | 0.2 min | shard 8 |
 | `menu-rows.spec.ts` | 6 | 0.2 min | smoke, shard 13 |
-| `account-saved.spec.ts` | 4 | 0.2 min | shard 6 |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 4 |
+| `legal-history.spec.ts` | 6 | 0.2 min | shard 9 |
+| `account-saved.spec.ts` | 4 | 0.1 min | shard 6 |
 | `category-image-routes.spec.ts` | 12 | 0.1 min | shard 15 |
+| `feed-route.spec.ts` | 22 | 0.1 min | shard 4 |
 | `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 4 |
+| `offline.spec.ts` | 6 | 0.1 min | shard 3, repeat |
 | `door-refusals.spec.ts` | 14 | 0.1 min | shard 14 |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 2 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 7 |
 | `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 13 |
 | `posting-routes-identity.spec.ts` | 4 | 0.1 min | shard 10 |
-| `offline.spec.ts` | 6 | 0.1 min | shard 3, repeat |
+| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 7 |
+| `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 2 |
 | `auth-callback.spec.ts` | 4 | 0.1 min | shard 5 |
 | `overlay-shift.spec.ts` | 6 | 0.1 min | shard 8 |
 | `i18n-layers.spec.ts` | 6 | 0.1 min | shard 1 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 9 |
-| `dark-cards.spec.ts` | 4 | 0.1 min | shard 9 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 6 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 9 |
 | `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 16 |
+| `auth-google.spec.ts` | 2 | 0.1 min | shard 3 |
 | `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 15 |
 | `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 16 |
 | `locale-format.spec.ts` | 2 | 0.1 min | shard 5 |
-| `auth-google.spec.ts` | 2 | 0.0 min | shard 3 |
-| `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 1 |
+| `dark-cards.spec.ts` | 4 | 0.1 min | shard 9 |
 | `fonts.spec.ts` | 2 | 0.0 min | shard 7 |
+| `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 1 |
 | `geo.spec.ts` | 10 | 0.0 min | shard 4 |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 8 |
 
@@ -421,238 +228,18 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 62.8 s |
-| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | desktop-1280 | 60.0 s |
-| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | desktop-1280 | 59.5 s |
-| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | mobile-360 | 59.5 s |
-| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | mobile-360 | 59.4 s |
-| `legal-admin.spec.ts` › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused | mobile-360 | 58.8 s |
+| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 72.9 s |
+| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | desktop-1280 | 60.1 s |
+| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | mobile-360 | 59.8 s |
+| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | mobile-360 | 59.6 s |
+| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | desktop-1280 | 59.6 s |
+| `legal-admin.spec.ts` › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused | mobile-360 | 59.4 s |
 | `legal-admin.spec.ts` › LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view is refused | desktop-1280 | 58.6 s |
-| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 55.2 s |
+| `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | mobile-360 | 55.5 s |
 | `admin-attributes-links.spec.ts` › AT-42 toggling Required keeps the card rank and never loses the link | desktop-1280 | 54.9 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 49.6 s |
-| `admin-translations-governance.spec.ts` › TR-29 the catalog exports as CSV and a translated CSV imports back | mobile-360 | 46.9 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 46.5 s |
-| `admin-monetisation.spec.ts` › MON-6 per-category perks inside the level's row: Add override names the level; a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back | desktop-1280 | 46.4 s |
-| `admin-monetisation.spec.ts` › MON-6 per-category perks inside the level's row: Add override names the level; a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back | mobile-360 | 46.4 s |
-| `admin-countries.spec.ts` › CO-4 open and close: opening publishes the market's tree, closing takes it away | desktop-1280 | 46.2 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 45749553190-localproof
-```
-
-## Post-test errors: email
-
-email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45749553190-local-email
-```
-
-## Post-test errors: webkit
-
-webkit: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 45749553190-local-webkit
-```
-
-## Post-test errors: shard 1
-
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45749553190-local-1
-```
-
-## Post-test errors: shard 2
-
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45749553190-local-2
-```
-
-## Post-test errors: shard 3
-
-shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 45749553190-local-3
-```
-
-## Post-test errors: shard 4
-
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 28 (pool 4, fresh 24)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 25 user(s) owned by process 45749553190-local-4
-```
-
-## Post-test errors: shard 5
-
-shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 17 user(s) owned by process 45749553190-local-5
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 45749553190-local-6
-```
-
-## Post-test errors: shard 7
-
-shard 7: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 45749553190-local-7
-```
-
-## Post-test errors: shard 8
-
-shard 8: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 45749553190-local-8
-```
-
-## Post-test errors: shard 9
-
-shard 9: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 36 (pool 4, fresh 32)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 49 user(s) owned by process 45749553190-local-9
-```
-
-## Post-test errors: shard 10
-
-shard 10: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 7 user(s) owned by process 45749553190-local-10
-```
-
-## Post-test errors: shard 11
-
-shard 11: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 7 (pool 3, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 6 user(s) owned by process 45749553190-local-11
-```
-
-## Post-test errors: shard 12
-
-shard 12: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45749553190-local-12
-```
-
-## Post-test errors: shard 13
-
-shard 13: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 14 (pool 4, fresh 10)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 45749553190-local-13
-```
-
-## Post-test errors: shard 14
-
-shard 14: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 4, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 45749553190-local-14
-```
-
-## Post-test errors: shard 15
-
-shard 15: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 10 (pool 4, fresh 6)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 7 user(s) owned by process 45749553190-local-15
-```
-
-## Post-test errors: shard 16
-
-shard 16: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 12 (pool 4, fresh 8)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 23 user(s) owned by process 45749553190-local-16
-```
-
-## Server errors: shard 9
-
-No `[ssr-error]` lines in the `shard 9` log (or no log was uploaded).
-
-## Client errors: shard 9
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 ()
-[client-error] HTTP 403 GET /auth/v1/user ({"code":403,"error_code":"session_not_found","msg":"Session from session_id claim in JWT does not exist"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 ()
-[client-error] HTTP 403 GET /auth/v1/user ({"code":403,"error_code":"session_not_found","msg":"Session from session_id claim in JWT does not exist"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 ()
-[client-error] HTTP 403 GET /auth/v1/user ({"code":403,"error_code":"session_not_found","msg":"Session from session_id claim in JWT does not exist"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 ()
-[client-error] HTTP 403 GET /auth/v1/user ({"code":403,"error_code":"session_not_found","msg":"Session from session_id claim in JWT does not exist"})
-```
-
-## Server errors: shard 16
-
-```text
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
-[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
-```
-
-## Client errors: shard 16
-
-No `[client-error]` lines in the `shard 16` log (or no log was uploaded).
+| `admin-countries.spec.ts` › CO-4 open and close: opening publishes the market's tree, closing takes it away | mobile-360 | 46.2 s |
+| `admin-countries.spec.ts` › CO-4 open and close: opening publishes the market's tree, closing takes it away | desktop-1280 | 46.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 46.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 46.1 s |
+| `admin-translations-governance.spec.ts` › TR-29 the catalog exports as CSV and a translated CSV imports back | mobile-360 | 45.9 s |
+| `admin-monetisation.spec.ts` › MON-12 a scratch market: paid levels ON without a bundle is refused by name; ON with 10/30 writes the bundle, paid_levels_since and the audit row; OFF clears the mark | mobile-360 | 45.7 s |
