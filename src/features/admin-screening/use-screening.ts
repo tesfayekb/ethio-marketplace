@@ -265,15 +265,27 @@ export function useScreeningPhotos(listingId: string | null) {
   });
 }
 
+/** DEC-469 — a Reject's reason (the Remove list's) and its note for the seller ("" for none). */
+export type RejectWhy = { reason: string; note: string };
+
 /**
  * The reviewer's decision: the staff door `admin_review_listing` (DEC-402;
  * listings:review with a fresh second factor, the staff dial, the ad's own
  * country). `transition_listing` is the seller's and the service's alone.
+ * DEC-469 — a Reject carries its reason and note (the door judges both, tells the
+ * seller and writes the audit row); an Approve carries neither.
  */
-export async function decideListing(listingId: string, next: "active" | "rejected") {
+export async function decideListing(
+  listingId: string,
+  next: "active" | "rejected",
+  why: RejectWhy | null = null,
+) {
   const { error } = await supabase.rpc("admin_review_listing", {
     p_listing_id: listingId,
     p_new_status: next,
+    ...(next === "rejected" && why !== null
+      ? { p_reason: why.reason, ...(why.note === "" ? {} : { p_note: why.note }) }
+      : {}),
   });
   if (error) throw readFailed(error);
 }

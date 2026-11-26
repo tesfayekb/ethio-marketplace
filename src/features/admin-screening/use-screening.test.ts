@@ -225,6 +225,25 @@ describe("decideListing", () => {
     doors.answer = { data: null, error: { message: "ownListing" } };
     await expect(decideListing("l-1", "rejected")).rejects.toMatchObject({ message: "ownListing" });
   });
+
+  it("SF-8b DEC-469 a Reject carries its reason and note; an empty note and an Approve carry none", async () => {
+    doors.answer = { data: { ok: true, status: "rejected" }, error: null };
+    doors.calls.length = 0;
+    await decideListing("l-1", "rejected", { reason: "other", note: "Not an ad." });
+    await decideListing("l-2", "rejected", { reason: "duplicate", note: "" });
+    await decideListing("l-3", "active", { reason: "other", note: "ignored" });
+    expect(doors.calls).toEqual([
+      [
+        "admin_review_listing",
+        { p_listing_id: "l-1", p_new_status: "rejected", p_reason: "other", p_note: "Not an ad." },
+      ],
+      [
+        "admin_review_listing",
+        { p_listing_id: "l-2", p_new_status: "rejected", p_reason: "duplicate" },
+      ],
+      ["admin_review_listing", { p_listing_id: "l-3", p_new_status: "active" }],
+    ]);
+  });
 });
 
 describe("decision refusal words", () => {

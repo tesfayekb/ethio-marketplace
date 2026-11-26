@@ -13,7 +13,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/features/admin/admin-context";
-import { decideListing, decisionRefusalKey } from "@/features/admin-screening/use-screening";
+import { ScreeningRejectDialog } from "@/features/admin-screening/screening-reject-dialog";
+import {
+  decideListing,
+  decisionRefusalKey,
+  type RejectWhy,
+} from "@/features/admin-screening/use-screening";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -83,13 +88,13 @@ function AdminListingEditRoute() {
     void (from === "screening"
       ? navigate({ to: "/admin/screening", search: { open: listingId } })
       : navigate({ to: "/admin/listings/$listingId", params: { listingId } }));
-  const decide = async (guard: GuardFn) => {
+  const decide = async (guard: GuardFn, why: RejectWhy | null = null) => {
     if (asking === null) return;
     const next = asking;
     setBusy(true);
     setProblem(null);
     try {
-      await guard(() => decideListing(listingId, next));
+      await guard(() => decideListing(listingId, next, why));
     } catch (error) {
       setBusy(false);
       setAsking(null);
@@ -125,27 +130,16 @@ function AdminListingEditRoute() {
             </p>
           ) : null}
           <AlertDialog
-            open={asking !== null}
+            open={asking === "active"}
             onOpenChange={(open) => {
               if (!open && !busy) setAsking(null);
             }}
           >
             <AlertDialogContent data-testid="post-edit-confirm" bands size="narrow">
-              <PanelHeader
-                tone={asking === "rejected" ? "danger" : "confirm"}
-                icon={<TriangleAlert />}
-              >
-                <AlertDialogTitle>
-                  {asking === "rejected"
-                    ? t("admin.screening.confirm.titleReject")
-                    : t("admin.screening.confirm.titleApprove")}
-                </AlertDialogTitle>
+              <PanelHeader tone="confirm" icon={<TriangleAlert />}>
+                <AlertDialogTitle>{t("admin.screening.confirm.titleApprove")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  {t(
-                    asking === "rejected"
-                      ? "admin.screening.confirm.descriptionReject"
-                      : "admin.screening.confirm.descriptionApprove",
-                  )}
+                  {t("admin.screening.confirm.descriptionApprove")}
                 </AlertDialogDescription>
               </PanelHeader>
               <PanelBody>{null}</PanelBody>
@@ -153,19 +147,26 @@ function AdminListingEditRoute() {
                 <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
                 <Button
                   type="button"
-                  variant={asking === "rejected" ? "destructive" : "default"}
                   className="min-h-11"
                   data-testid="post-edit-confirm-go"
                   disabled={busy}
                   onClick={() => void decide(guard)}
                 >
-                  {asking === "rejected"
-                    ? t("admin.screening.reject")
-                    : t("admin.screening.approve")}
+                  {t("admin.screening.approve")}
                 </Button>
               </PanelFooter>
             </AlertDialogContent>
           </AlertDialog>
+          {/* DEC-469 — a Reject asks for the reason and a note first, as Screening's own does. */}
+          <ScreeningRejectDialog
+            testid="post-edit-confirm"
+            open={asking === "rejected"}
+            count={1}
+            busy={busy}
+            refusal={null}
+            onCancel={() => setAsking(null)}
+            onConfirm={(reason, note) => void decide(guard, { reason, note })}
+          />
         </>
       )}
     </StepUpGate>

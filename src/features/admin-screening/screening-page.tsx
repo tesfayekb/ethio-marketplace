@@ -57,6 +57,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
 import { NameChecks } from "./name-checks";
+import { ScreeningRejectDialog } from "./screening-reject-dialog";
 import { PhotoChanges } from "./photo-changes";
 import { PhotoReviews } from "./photo-reviews";
 import { useWarnedListings } from "./use-photo-changes";
@@ -66,6 +67,7 @@ import {
   SCREENING_PAGE_SIZES,
   decideListing,
   decisionRefusalKey,
+  type RejectWhy,
   readScreeningRow,
   revealContact,
   revealProblemKey,
@@ -577,7 +579,7 @@ export function AdminScreeningPage({
   return (
     <StepUpGate>
       {(guard) => {
-        const decide = async () => {
+        const decide = async (why: RejectWhy | null = null) => {
           if (decision === null) return;
           const { ids, next } = decision;
           setBusy(true);
@@ -589,7 +591,7 @@ export function AdminScreeningPage({
             // One step-up for the whole set; the door judges each ad on its own.
             await guard(async () => {
               for (const id of ids) {
-                await decideListing(id, next);
+                await decideListing(id, next, why);
                 decidedCount += 1;
               }
             });
@@ -805,39 +807,27 @@ export function AdminScreeningPage({
             <PhotoChanges mayReview={mayReview} guard={guard} />
 
             <AlertDialog
-              open={decision !== null}
+              open={decision?.next === "active"}
               onOpenChange={(open) => {
                 if (!open && !busy) setDecision(null);
               }}
             >
               <AlertDialogContent data-testid="admin-screening-confirm" bands size="narrow">
-                <PanelHeader
-                  tone={decision?.next === "rejected" ? "danger" : "confirm"}
-                  icon={<TriangleAlert />}
-                >
+                <PanelHeader tone="confirm" icon={<TriangleAlert />}>
                   <AlertDialogTitle>
                     {decision !== null && decision.ids.length > 1
-                      ? t(
-                          decision.next === "rejected"
-                            ? "admin.screening.confirm.titleRejectMany"
-                            : "admin.screening.confirm.titleApproveMany",
-                        ).replace("{count}", String(decision.ids.length))
-                      : decision?.next === "rejected"
-                        ? t("admin.screening.confirm.titleReject")
-                        : t("admin.screening.confirm.titleApprove")}
+                      ? t("admin.screening.confirm.titleApproveMany").replace(
+                          "{count}",
+                          String(decision.ids.length),
+                        )
+                      : t("admin.screening.confirm.titleApprove")}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    {decision !== null && decision.ids.length > 1
-                      ? t(
-                          decision.next === "rejected"
-                            ? "admin.screening.confirm.descriptionRejectMany"
-                            : "admin.screening.confirm.descriptionApproveMany",
-                        )
-                      : t(
-                          decision?.next === "rejected"
-                            ? "admin.screening.confirm.descriptionReject"
-                            : "admin.screening.confirm.descriptionApprove",
-                        )}
+                    {t(
+                      decision !== null && decision.ids.length > 1
+                        ? "admin.screening.confirm.descriptionApproveMany"
+                        : "admin.screening.confirm.descriptionApprove",
+                    )}
                   </AlertDialogDescription>
                 </PanelHeader>
                 <PanelBody>
@@ -852,19 +842,28 @@ export function AdminScreeningPage({
                   <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
                   <Button
                     type="button"
-                    variant={decision?.next === "rejected" ? "destructive" : "default"}
                     className="min-h-11"
                     data-testid="admin-screening-confirm-go"
                     disabled={busy}
                     onClick={() => void decide()}
                   >
-                    {decision?.next === "rejected"
-                      ? t("admin.screening.reject")
-                      : t("admin.screening.approve")}
+                    {t("admin.screening.approve")}
                   </Button>
                 </PanelFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            {/* DEC-469 — a Reject asks for the reason (the Remove list's) and a note first. */}
+            <ScreeningRejectDialog
+              testid="admin-screening-confirm"
+              open={decision?.next === "rejected"}
+              count={decision?.ids.length ?? 0}
+              busy={busy}
+              refusal={decisionProblem}
+              subject={decisionSubject}
+              onCancel={() => setDecision(null)}
+              onConfirm={(reason, note) => void decide({ reason, note })}
+            />
 
             {previewRow !== null ? (
               <PreviewSheet

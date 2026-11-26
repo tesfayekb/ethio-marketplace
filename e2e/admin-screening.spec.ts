@@ -260,6 +260,8 @@ test.describe("ADMIN SCREENING", () => {
     await findRow(page, ad.title, ad.id);
     await rowMenu(page, ad.id, "reject");
     await expect(page.getByTestId("admin-screening-confirm")).toBeVisible();
+    // DEC-469 — a Reject asks the reason first.
+    await page.getByTestId("admin-screening-confirm-reason-duplicate").click();
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("admin-screening-notice")).toHaveText(
@@ -709,6 +711,7 @@ test.describe("ADMIN SCREENING", () => {
         message: "SC-14: the confirmation's Reject is not red",
       })
       .toBe(true);
+    await page.getByTestId("admin-screening-confirm-reason-duplicate").click();
     await page.getByTestId("admin-screening-confirm-go").click();
     await stepUpIfPrompted(page, secret);
     await expect(page.getByTestId("admin-screening-notice")).toHaveText(
@@ -1447,6 +1450,7 @@ test.describe("ADMIN SCREENING", () => {
     await expect(confirm).toBeVisible({ timeout: 20000 });
     await expect(confirm).toContainText(en["admin.screening.confirm.titleReject"]);
     await expect(confirm).toContainText(en["admin.screening.confirm.descriptionReject"]);
+    await page.getByTestId("post-edit-confirm-reason-duplicate").click();
     await page.getByTestId("post-edit-confirm-go").click();
     await stepUpIfPrompted(page, secret);
     await expect
