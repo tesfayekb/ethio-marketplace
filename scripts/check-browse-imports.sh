@@ -26,10 +26,34 @@ is_allowed() {
   esac
 }
 
+# 4. an admin folder (src/features/admin/, src/features/admin-*/) may import the one hook,
+#    src/features/permissions/use-may-call.ts, and nothing else of the seam (cursor bundle 7c,
+#    ruling 2): the generated permissions it reads stay out of the entry by the bundle
+#    closure's must-stay-lazy rule (BC-17).
+is_admin_folder() {
+  case "$1" in
+    */src/features/admin/*) return 0 ;;
+    */src/features/admin-*/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+SEAM_IMPORT="(from|import)[[:space:]]*\(?[\"'][^\"']*features/permissions[^\"']*[\"']"
+HOOK_IMPORT="features/permissions/use-may-call[\"']"
+
 violations=0
 offenders=""
 while IFS= read -r -d '' file; do
   is_allowed "$file" && continue
+  if is_admin_folder "$file"; then
+    imports=$(grep -oE "$SEAM_IMPORT" "$file")
+    others=$(printf '%s\n' "$imports" | grep -vE "$HOOK_IMPORT" | grep -E "features/permissions")
+    if [ -n "$others" ]; then
+      offenders+="  - $file"$'\n'
+      violations=$((violations + 1))
+    fi
+    continue
+  fi
   if grep -qE "(from|import)[[:space:]]*\(?[\"']([^\"']*)features/permissions" "$file"; then
     offenders+="  - $file"$'\n'
     violations=$((violations + 1))

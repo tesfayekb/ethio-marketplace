@@ -64,10 +64,12 @@ is passed on as `usePermissions` gives it.
   are `until INC-1281` (Lovable 10b part 2 moves them onto the hook); page, section and link
   gates (`sections.ts`, `ADMIN_PANEL_PERMISSION`, a link to another page) read the page's own
   permission, not a door's, and are `permanent`.
-- Admin screens reach the seam today through the admin context
-  (`src/features/admin/admin-context.tsx`), not by import: the browse-path guard
-  (`scripts/check-browse-imports.sh`) admits only the seam, `src/routes/admin.tsx` and
-  `app-shell.tsx`. Moving a control onto the hook goes through that context or that allowlist.
+- The browse-path guard (`scripts/check-browse-imports.sh`) admits the seam in itself,
+  `src/routes/admin.tsx` and `app-shell.tsx`, and, from a module of `src/features/admin/` or of a
+  `src/features/admin-<name>/` folder, an import of the hook alone (cursor-bundle-7c ruling 2):
+  any other import of the seam from there, and the hook from anywhere else, fails.
+  `scripts/check-browse-imports.test.ts` (BPG-1…4) runs it on the fixtures under
+  `scripts/fixtures/browse-imports/`.
 
 ## Function-matrix proof migration
 
