@@ -1,6 +1,8 @@
 /**
  * The one workflow reader (K1): a workflow's jobs and their steps, read by indentation. Read by
- * CF-CID-1 and CF-CID-11 (ci-deadlines.test.ts) and CF-CI-IMG-1 (ci-images.test.ts, DEC-309).
+ * CF-CID-1 and CF-CID-11 (ci-deadlines.test.ts), CF-CI-IMG-1 (ci-images.test.ts, DEC-309) and
+ * CF-ALONE-3 (changed-tests.test.ts, INC-1306: the component job's "Changed test files, each
+ * alone" step).
  */
 export type Step = { line: number; text: string; timeout: boolean };
 export type Job = {

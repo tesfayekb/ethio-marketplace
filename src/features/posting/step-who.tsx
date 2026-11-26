@@ -171,6 +171,8 @@ export function StepWho({
   const [aliasCheckRefusal, setAliasCheckRefusal] = useState<Refusal | null>(null);
   /** Step 21 — three free names, offered after every refusal. */
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  /** INC-1305 — the last ask for names failed: its typed failure, drawn with Retry. */
+  const [suggestFailure, setSuggestFailure] = useState<unknown>(null);
   const [sellerType, setSellerType] = useState("person");
   const [businessName, setBusinessName] = useState("");
   /** D17 — the account's own name, apart from the public alias. */
@@ -384,9 +386,18 @@ export function StepWho({
         ? { businessName }
         : { firstName: firstName.trim() || null, lastName: lastName.trim() || null }),
       categoryId,
-    }).then((list) => {
-      if (aliveRef.current && seq === suggestSeqRef.current) setSuggestions(list.slice(0, 3));
-    });
+    }).then(
+      (list) => {
+        if (!aliveRef.current || seq !== suggestSeqRef.current) return;
+        setSuggestFailure(null);
+        setSuggestions(list.slice(0, 3));
+      },
+      (error: unknown) => {
+        if (!aliveRef.current || seq !== suggestSeqRef.current) return;
+        setSuggestions([]);
+        setSuggestFailure(error);
+      },
+    );
   }, [sellerType, businessName, firstName, lastName, categoryId]);
 
   /**
@@ -966,6 +977,15 @@ export function StepWho({
                   </button>
                 ))}
               </div>
+            )}
+            {(aliasState === "refused" || alias.trim() === "") && suggestFailure !== null && (
+              <FailureNotice
+                error={suggestFailure}
+                testid="post-who-alias-suggestions-failed"
+                size="line"
+                subject={t("post.who.aliasSuggestions")}
+                onRetry={offerSuggestions}
+              />
             )}
           </div>
         </>

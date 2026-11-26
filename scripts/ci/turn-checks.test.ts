@@ -15,6 +15,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   ALLOWLIST,
+  CHANGED_TESTS_STEP,
   CI_FILE,
   LOCAL,
   LOCAL_UNIT_BOUND,
@@ -32,6 +33,7 @@ import {
   fetchFailure,
   lawsNotRun,
   lineText,
+  localChangedTests,
   localSecretsScan,
   localUnitTests,
   nearBand,
@@ -83,6 +85,12 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     expect(local).not.toMatch(/range="(?:origin\/main\.\.)?HEAD"/);
     expect(local.match(/range="f9569298\.\.HEAD"/g)?.length).toBe(2);
     expect(local).toContain("git --pre-commit");
+    // The changed tests' local form keeps CI's two commands and leaves out the shallow fetch.
+    const alone = steps.find((s) => s.key === CHANGED_TESTS_STEP)?.run ?? "";
+    expect(alone).toContain("git fetch");
+    expect(localChangedTests(alone)).not.toContain("git fetch");
+    expect(localChangedTests(alone)).toContain("bun scripts/conformance/changed-tests.ts base");
+    expect(localChangedTests(alone)).toContain("bun scripts/conformance/changed-tests.ts run");
     // Planted: a new job's run step joins the plan by being written; a new `uses:` step must be excused.
     const planted = ciText.replace(
       /^jobs:\n/m,

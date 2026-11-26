@@ -82,7 +82,8 @@ const readerModule = loadOnce(() => import("@/lib/reader-failure"));
  * (`failureKind`) reads it as it reads a door's: an unreachable call is the network kind, a
  * signed-out call is 401, an answer is its code at its status (a code-less answer is read by the
  * status). A refusal's detail rides after the code only when it is a short code (the reader's own
- * `REFUSAL_DETAIL`), never a sentence. The reader downloads on demand; a download that fails is
+ * `REFUSAL_DETAIL`), never a sentence; the detail itself rides whole beside the code, as data
+ * (`failureDetail`, cursor-bundle-8a). The reader downloads on demand; a download that fails is
  * reported to the shell's one notice and reads as `network`. RCG-5 (scripts/conformance/
  * route-client.test.ts) fails a hand-built one.
  */
@@ -95,7 +96,7 @@ export async function routeFailure(answer: RouteAnswer): Promise<Error> {
     if (code === null) return mod.readFailed(`route ${answer.status}`, answer.status);
     const detail = answer.detail?.trim();
     const tail = detail !== undefined && mod.REFUSAL_DETAIL.test(detail) ? `:${detail}` : "";
-    return mod.readFailed(`${code}${tail}`, answer.status);
+    return mod.readFailed(`${code}${tail}`, answer.status, answer.detail ?? undefined);
   } catch (error) {
     reportOnDemandFailure("reader-failure", error);
     return new TypeError("reader-failure");

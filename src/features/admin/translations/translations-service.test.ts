@@ -11,7 +11,8 @@ const route = vi.hoisted(() => ({
   answer: { kind: "signedOut" } as RouteAnswer,
   calls: [] as { path: RoutePath; init: RouteInit | undefined }[],
 }));
-vi.mock("@/lib/route-client", () => ({
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
   callRoute: async (path: RoutePath, init?: RouteInit) => {
     route.calls.push({ path, init });
     return route.answer;
@@ -134,19 +135,27 @@ describe("the machine-translation client (Foundations turn 19)", () => {
     expect(translationRefusalKey(bare)).toBe("session.expired");
   });
 
-  it("TRS-2 the three non-answered kinds and a refusal throw today's words", async () => {
+  it("TRS-2 INC-1304 the non-answered kinds and a refusal are the route client's one typed failure", async () => {
     const translate = () => aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] });
     route.answer = { kind: "signedOut" };
-    await expect(translate()).rejects.toThrow("notSignedIn");
-    await expect(listProviderLanguages()).rejects.toThrow("notSignedIn");
+    const signedOut = { message: "signedOut", failure: { class: "auth", status: 401 } };
+    await expect(translate()).rejects.toMatchObject(signedOut);
+    await expect(listProviderLanguages()).rejects.toMatchObject(signedOut);
     route.answer = { kind: "unreachable", reason: "timeout" };
-    await expect(translate()).rejects.toThrow("translation request failed (0)");
-    await expect(listProviderLanguages()).rejects.toThrow("language list failed (0)");
+    const network = { failure: { class: "network" } };
+    await expect(translate()).rejects.toMatchObject(network);
+    await expect(listProviderLanguages()).rejects.toMatchObject(network);
     route.answer = answered(403, { error: "not assigned to this language" });
     await expect(translate()).rejects.toThrow("not assigned to this language");
     route.answer = answered(502, null);
-    await expect(translate()).rejects.toThrow("translation request failed (502)");
-    await expect(listProviderLanguages()).rejects.toThrow("language list failed (502)");
+    const server = { message: "route 502", failure: { class: "server", status: 502 } };
+    await expect(translate()).rejects.toMatchObject(server);
+    await expect(listProviderLanguages()).rejects.toMatchObject(server);
+    for (const thrown of [
+      await translate().catch((e: unknown) => e),
+      await importTranslations({ lang: "am", text: "k,v" }).catch((e: unknown) => e),
+    ])
+      expect(thrown).toBeInstanceOf(ReaderError);
     // The calls: POST with the JSON body, GET with none, both signed in.
     expect(route.calls[0]).toEqual({
       path: "/api/translate",

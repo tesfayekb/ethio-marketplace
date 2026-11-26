@@ -9,6 +9,7 @@ import { StepTrack } from "@/components/ui/dialog-parts-facade";
 import { CategoryModal } from "@/components/ui/category-modal";
 import { useI18n, type MessageKey } from "@/i18n";
 import type { DoorFamily } from "@/lib/door-family";
+import { failureDetail } from "@/lib/reader-failure";
 import { readRefusal, refusalText, splitRefusal, type RefusalFamily } from "@/lib/refusal";
 import { ADMIN_REFUSALS } from "@/lib/refusal-tail";
 
@@ -264,19 +265,20 @@ export function ImportDialog({
    * route client's typed failure (`routeFailure`) carries the code; a code the
    * console's words name, or a door key (`admin.<family>.error.*`) the
    * catalogue holds, renders translated through the one reader with the
-   * route's detail as the tail (F1-4a) — the failure keeps only a short-code
-   * detail, and a commit's names its rows (`cat: parent → child`). A code no
-   * family words draws no reason line: the general failure line says it alone
-   * (INC-1280).
+   * route's detail as the tail (F1-4a) — the failure's message keeps only a
+   * short-code detail, and a commit's names its rows (`cat: parent → child`),
+   * read from the detail the typed failure carries (cursor-bundle-8a). A code
+   * no family words draws no reason line: the general failure line says it
+   * alone (INC-1280).
    */
-  const reasonOf = (answer: RouteAnswer, failure: Error): string | null => {
+  const reasonOf = (failure: Error): string | null => {
     const family: RefusalFamily = {
       ...refusals,
       words: { ...ADMIN_REFUSALS.words, ...IMPORT_REFUSALS.words, ...refusals.words },
     };
     const read = readRefusal(failure, family, has);
     if (read.branch !== "family" && read.branch !== "doorKey") return null;
-    const detail = answer.kind === "answered" ? answer.detail?.trim() : undefined;
+    const detail = failureDetail(failure)?.trim();
     const tail = read.tail ?? (detail === "" ? undefined : detail);
     return refusalText({ ...read, tail }, t, undefined, language);
   };
@@ -308,7 +310,7 @@ export function ImportDialog({
     if (named === "tooManyRows") return own("error.tooManyRows");
     if (named === "badHeader") return own("error.badHeader");
     if (named === "emptyFile") return own("error.emptyFile");
-    setReason(reasonOf(answer, failure));
+    setReason(reasonOf(failure));
     return setError(t(key("error.failed")));
   };
 

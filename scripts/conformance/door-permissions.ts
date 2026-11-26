@@ -141,14 +141,65 @@ export function namedRoutes(root: string, routes: readonly string[]): NamedRoute
   return out;
 }
 
-/** Every permission comparison of browser code under `root`, or of a planted file besides. */
-export function permissionComparisons(
-  root: string,
-  planted?: { path: string; text: string },
-): PermissionComparison[] {
+type Planted = { path: string; text: string };
+
+/** Browser code's files under `root` (never the hook's own), and a planted file besides. */
+function browserSources(root: string, planted?: Planted): Array<{ file: string; text?: string }> {
   const files = walkFiles([join(root, "src")], { ext: ["ts", "tsx"], skipTests: true, skip: SKIP });
   const sources: Array<{ file: string; text?: string }> = files.map((file) => ({ file }));
   if (planted !== undefined) sources.push({ file: join(root, planted.path), text: planted.text });
+  return sources;
+}
+
+export type HookCall = { file: string; line: number };
+
+/** Every call of the hook's `mayCall` in browser code under `root`, or of a planted file besides. */
+export function hookCalls(root: string, planted?: Planted): HookCall[] {
+  const out: HookCall[] = [];
+  for (const { file, text } of browserSources(root, planted)) {
+    const rel = relative(root, file);
+    visitTs(
+      file,
+      (node, source) => {
+        if (!ts.isCallExpression(node)) return;
+        const callee = node.expression;
+        const name = ts.isPropertyAccessExpression(callee)
+          ? callee.name.text
+          : ts.isIdentifier(callee)
+            ? callee.text
+            : null;
+        if (name !== "mayCall") return;
+        out.push({
+          file: rel,
+          line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        });
+      },
+      text,
+    );
+  }
+  return out;
+}
+
+/**
+ * INC-1308 — the census's floor reads the copies AND the hook's calls: a copy moved onto the hook
+ * (the work the `until INC-1281` lines plan) leaves the one and joins the other, so the sum holds,
+ * while a reader that finds nothing still falls under it. Answers the problem, or null.
+ */
+export function floorProblem(
+  comparisons: readonly PermissionComparison[],
+  calls: readonly HookCall[],
+  floor: number,
+): string | null {
+  const read = comparisons.length + calls.length;
+  return read >= floor
+    ? null
+    : `the census read ${comparisons.length} comparisons and ${calls.length} hook calls ` +
+        `(${read}), under its floor of ${floor}: its reader is broken`;
+}
+
+/** Every permission comparison of browser code under `root`, or of a planted file besides. */
+export function permissionComparisons(root: string, planted?: Planted): PermissionComparison[] {
+  const sources = browserSources(root, planted);
   const known = manifestPermissions(root);
   const out: PermissionComparison[] = [];
   for (const { file, text } of sources) {

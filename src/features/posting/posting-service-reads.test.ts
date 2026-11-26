@@ -49,10 +49,16 @@ vi.mock("@/lib/supabase-door", () => ({
   currentSession: () =>
     Promise.resolve({ session: { user: { id: "seller-1" } }, failed: false as const }),
 }));
-vi.mock("@/lib/route-client", () => ({ callRoute: vi.fn(), uploadRoute: vi.fn() }));
+vi.mock("@/lib/route-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/route-client")>()),
+  callRoute: vi.fn(),
+  uploadRoute: vi.fn(),
+}));
 
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { callRoute, type RouteAnswer } from "@/lib/route-client";
 import {
+  suggestAliases,
   readCountries,
   readDraft,
   readLastListingContact,
@@ -191,5 +197,42 @@ describe("the posting reads throw the typed failure (DEC-429)", () => {
       placeIds: ["loc-1"],
       pin: null,
     });
+  });
+
+  it("PSR-5 INC-1305 suggestAliases: a failed ask throws the typed failure, never an empty list", async () => {
+    const answered = (
+      status: number,
+      payload: Record<string, unknown> | null,
+      error: string | null = null,
+    ): RouteAnswer => ({
+      kind: "answered",
+      status,
+      ok: status < 400,
+      payload,
+      error,
+      detail: null,
+      headers: new Headers(),
+      bytes: null,
+    });
+    const route = vi.mocked(callRoute);
+    route.mockResolvedValueOnce(answered(200, { ok: true, suggestions: ["abebe", 3, "kebede"] }));
+    expect(await suggestAliases({ firstName: "Abebe" })).toEqual(["abebe", "kebede"]);
+    expect(route).toHaveBeenLastCalledWith(
+      "/api/listings/alias",
+      expect.objectContaining({ json: { firstName: "Abebe", suggest: true } }),
+    );
+
+    route.mockResolvedValueOnce({ kind: "unreachable", reason: "network" });
+    expect(await failureOf(() => suggestAliases({}))).toMatchObject({ class: "network" });
+    route.mockResolvedValueOnce({ kind: "signedOut" });
+    expect(await failureOf(() => suggestAliases({}))).toMatchObject({ class: "auth" });
+    route.mockResolvedValueOnce(
+      answered(503, { error: "upstream unavailable" }, "upstream unavailable"),
+    );
+    expect(await failureOf(() => suggestAliases({}))).toMatchObject({ class: "server" });
+    route.mockResolvedValueOnce(
+      answered(200, { ok: false, refusals: [{ field: "alias", reason: "rateLimited" }] }),
+    );
+    expect(await failureOf(() => suggestAliases({}))).toMatchObject({ message: "rateLimited" });
   });
 });

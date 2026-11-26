@@ -267,6 +267,20 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/route-status.test.ts"), "utf8")).toContain(
       "CF-ROUTE-STATUS-2",
     );
+    // failure-crawl.test.ts CF-CRAWL-1 CFC-1…5 (cursor bundle 8a, DEC-459 c) runs failure-crawl.ts's
+    // page-coverage census against scripts/conformance/failure-crawl-allowlist.txt; discovered by
+    // the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/failure-crawl.test.ts"), "utf8")).toContain(
+      "CFC-5",
+    );
+    // changed-tests.test.ts CF-ALONE-1…3 (cursor bundle 8a, INC-1306) proves the selection of
+    // changed-tests.ts, which the component job's "Changed test files, each alone" step runs.
+    expect(readFileSync(join(ROOT, "scripts/conformance/changed-tests.test.ts"), "utf8")).toContain(
+      "CF-ALONE-3",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain(
+      "bun scripts/conformance/changed-tests.ts run",
+    );
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );
@@ -417,11 +431,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/check-browse-imports.test.ts"), "utf8")).toContain(
       "BPG-4",
     );
-    // door-permissions.test.ts DPM-1…4 (cursor bundle 7c Part 3, INC-1281) runs door-permissions.ts's census;
-    // it is discovered by test:unit's scripts/**/*.test.ts.
+    // door-permissions.test.ts DPM-1…5 (cursor bundle 7c Part 3, INC-1281; its floor, cursor bundle 8a,
+    // INC-1308) runs door-permissions.ts's census; it is discovered by test:unit's scripts/**/*.test.ts.
     expect(
       readFileSync(join(ROOT, "scripts/conformance/door-permissions.test.ts"), "utf8"),
-    ).toContain("DPM-4");
+    ).toContain("DPM-5");
     // listing-designation.test.ts CF-TIER-5 DSG-1…3 (turn P-2 (a), ruling 14) runs listing-designation.ts's census;
     // it is discovered by test:unit's scripts/**/*.test.ts.
     expect(

@@ -419,6 +419,48 @@
         "tests": 6
       }
     },
+    "failure-crawl-admin-catalog.spec.ts": {
+      "mobile-360": {
+        "seconds": 427.1,
+        "tests": 9
+      }
+    },
+    "failure-crawl-admin-content.spec.ts": {
+      "mobile-360": {
+        "seconds": 492.4,
+        "tests": 9
+      }
+    },
+    "failure-crawl-admin-people.spec.ts": {
+      "mobile-360": {
+        "seconds": 404.9,
+        "tests": 7
+      }
+    },
+    "failure-crawl-member-account.spec.ts": {
+      "mobile-360": {
+        "seconds": 132.3,
+        "tests": 8
+      }
+    },
+    "failure-crawl-member-listings.spec.ts": {
+      "mobile-360": {
+        "seconds": 457.9,
+        "tests": 5
+      }
+    },
+    "failure-crawl-member-public.spec.ts": {
+      "mobile-360": {
+        "seconds": 138.3,
+        "tests": 7
+      }
+    },
+    "failure-crawl-public.spec.ts": {
+      "mobile-360": {
+        "seconds": 161.1,
+        "tests": 13
+      }
+    },
     "feed-index.spec.ts": {
       "desktop-1280": {
         "seconds": 6.5,

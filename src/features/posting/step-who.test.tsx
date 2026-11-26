@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { expect, it, vi } from "vitest";
 import { StepWho } from "./step-who";
 import { focusFirstRefusal } from "./field-refusals";
+import { readFailed } from "@/lib/reader-failure";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en", entities: {} }),
@@ -27,9 +28,13 @@ vi.mock("@/lib/on-demand-failure", async (original) => ({
     refresh.calls += 1;
   },
 }));
+const who = vi.hoisted(() => ({
+  alias: "e2e_owner" as string | null,
+  suggest: null as null | (() => Promise<string[]>),
+}));
 vi.mock("./posting-service", () => ({
   readSellerIdentity: async () => ({
-    alias: "e2e_owner",
+    alias: who.alias,
     sellerType: "person",
     businessName: null,
     firstName: "",
@@ -42,7 +47,7 @@ vi.mock("./posting-service", () => ({
   readCountries: async () => [],
   readLastListingContact: async () => null,
   saveIdentity: async () => ({ ok: true, refusals: [] }),
-  suggestAliases: async () => [],
+  suggestAliases: () => (who.suggest === null ? Promise.resolve([]) : who.suggest()),
   checkAlias: async () => ({ ok: true, refusals: [] }),
   changeHomeCountry: async () => ({ ok: true, refusals: [] }),
 }));
@@ -151,5 +156,42 @@ it("PLF-1 a phone library that cannot download says so in place and offers a ref
   } finally {
     log.mockRestore();
     phone.fails = false;
+  }
+});
+
+it("SWO-2 a failed ask for free names draws the failure notice with Retry, never no names (INC-1305)", async () => {
+  who.alias = null;
+  const asks: string[] = [];
+  who.suggest = async () => {
+    asks.push("ask");
+    if (asks.length === 1) throw readFailed(new TypeError("Failed to fetch"));
+    return ["abebe_k"];
+  };
+  try {
+    let view: ReturnType<typeof render> | undefined;
+    await act(async () => {
+      view = render(
+        <StepWho
+          contactPref={{ messages: true }}
+          refusals={[]}
+          onChange={() => {}}
+          onMissing={() => {}}
+        />,
+      );
+    });
+    const failed = await screen.findByTestId("post-who-alias-suggestions-failed");
+    expect(failed).toHaveTextContent("post.who.aliasSuggestions");
+    expect(screen.queryByTestId("post-who-alias-suggestions")).toBeNull();
+    fireEvent.click(screen.getByTestId("post-who-alias-suggestions-failed-retry"));
+    expect(await screen.findByTestId("post-who-alias-suggestion")).toHaveAttribute(
+      "data-name",
+      "abebe_k",
+    );
+    expect(screen.queryByTestId("post-who-alias-suggestions-failed")).toBeNull();
+    expect(asks).toHaveLength(2);
+    view?.unmount();
+  } finally {
+    who.alias = "e2e_owner";
+    who.suggest = null;
   }
 });

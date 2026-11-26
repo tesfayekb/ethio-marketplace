@@ -66,10 +66,12 @@ is passed on as `usePermissions` gives it.
   permission, not a door's, and are `permanent`.
 - The browse-path guard (`scripts/check-browse-imports.sh`) admits the seam in itself,
   `src/routes/admin.tsx` and `app-shell.tsx`, and, from a module of `src/features/admin/` or of a
-  `src/features/admin-<name>/` folder, an import of the hook alone (cursor-bundle-7c ruling 2):
-  any other import of the seam from there, and the hook from anywhere else, fails.
-  `scripts/check-browse-imports.test.ts` (BPG-1…4) runs it on the fixtures under
-  `scripts/fixtures/browse-imports/`.
+  `src/features/admin-<name>/` folder, an import of the hook alone (cursor-bundle-7c ruling 2),
+  and the same from an admin route file `src/routes/admin.<…>` (cursor-bundle-8a ruling 2):
+  any other import of the seam from there, and the hook from anywhere else, fails. It reads
+  every path from `src/` on, so a relative run (CI's step passes `src`) and an absolute one
+  judge a file alike (INC-1309). `scripts/check-browse-imports.test.ts` (BPG-1…7) runs it on
+  the fixtures under `scripts/fixtures/browse-imports/`, each case both ways.
 
 ## Function-matrix proof migration
 

@@ -109,7 +109,7 @@ describe("browser route-client conformance", () => {
     console.log(`[RCG-5] hand-built failures: ${hits.length}; allowlist: ${allowances.size}`);
     expect(report(hits.filter((hit) => !allowances.has(hit.file)))).toBe("");
   });
-  it("RCG-4 an undated allowance names a live INC, and the INC set is exactly the known two", () => {
+  it("RCG-4 an undated allowance names a live INC, and the INC set is exactly the known one", () => {
     const lines = readFileSync("scripts/conformance/route-client-allowlist.txt", "utf8")
       .split("\n")
       .filter((line) => line.trim() !== "");
@@ -125,11 +125,10 @@ describe("browser route-client conformance", () => {
       incs.add(until);
     }
     // INC-875: the outside tile-host probe (INC-861's AI-gateway clients moved
-    // onto callRoute in Foundations turn 19).
-    // INC-1304: the translations folder service builds its own failures (Lovable folder; its
-    // lane moves them onto `routeFailure`).
+    // onto callRoute in Foundations turn 19). INC-1304's translations service moved onto
+    // `routeFailure` in cursor-bundle-8a.
     // A new undated allowance fails here until its INC is named in this test.
-    expect([...incs].sort()).toEqual(["INC-1304", "INC-875"]);
+    expect([...incs].sort()).toEqual(["INC-875"]);
   });
   it("RCG-6 a planted Error built from an answer's status is reported; a code-only Error and a non-route file are not", () => {
     const dir = mkdtempSync(join(tmpdir(), "route-client-"));

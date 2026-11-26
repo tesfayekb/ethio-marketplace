@@ -1,3 +1,2 @@
 # CF-DEADLINE-1 (DEC-477): a browser fetch( or createClient( outside the deadline module. key | reason | until
 src/features/posting/map/leaflet.ts | The tile host is an outside host, not our backend (INC-875's probe) | INC-875
-src/features/admin/translations/use-translations.ts | Reads a static asset (/i18n-usage.json) in Lovable's translations folder; the deadline moves in with Lovable's next translations bundle | INC-1304

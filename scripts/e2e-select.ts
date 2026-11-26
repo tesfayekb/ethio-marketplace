@@ -236,6 +236,17 @@ export const AREAS: Area[] = [
     specs: ["e2e/on-demand-failure.spec.ts"],
   },
   {
+    // DEC-459 (c) (cursor bundle 8a) — every page meets each failure of its reads and says so.
+    name: "failure-crawl",
+    src: [
+      "src/components/shell/failure-notice.tsx",
+      "src/lib/reader-failure.ts",
+      "src/lib/route-client.ts",
+      "src/test/provider-errors.ts",
+    ],
+    specs: ["e2e/failure-crawl-*.spec.ts"],
+  },
+  {
     name: "components",
     src: ["src/components/**"],
     specs: ["e2e/primitives-law.spec.ts"],

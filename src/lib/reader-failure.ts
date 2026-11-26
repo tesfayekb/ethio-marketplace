@@ -8,6 +8,12 @@ export type ReaderFailure = {
   status?: number;
   code?: string;
   message: string;
+  /**
+   * cursor-bundle-8a — a route's own `detail`, whole, as data beside its code (`routeFailure`):
+   * the message keeps only a short-code tail (REFUSAL_DETAIL); a screen that names the rows a
+   * refusal is about reads them here (`failureDetail`).
+   */
+  detail?: string;
 };
 
 /**
@@ -241,8 +247,16 @@ export class ReaderError extends Error {
  * The one typed database-read failure factory (DEC-429). A `ReaderError` passes through; any
  * other error is `readerFailure`'s reading of it — its class decided by the door mechanism's
  * mark, never by the caller — with the given status taken as the error's own when one is given
- * (a server route that knows the status its call answered at).
+ * (a server route that knows the status its call answered at), and a route's detail carried as
+ * data when one is given.
  */
-export function readFailed(error: unknown, status?: number): ReaderError {
-  return error instanceof ReaderError ? error : new ReaderError(classify(error, status));
+export function readFailed(error: unknown, status?: number, detail?: string): ReaderError {
+  if (error instanceof ReaderError) return error;
+  const failure = classify(error, status);
+  return new ReaderError(detail === undefined ? failure : { ...failure, detail });
+}
+
+/** The route's detail a typed failure carries (`readFailed`'s third argument); none for any other. */
+export function failureDetail(error: unknown): string | undefined {
+  return error instanceof ReaderError ? error.failure.detail : undefined;
 }
