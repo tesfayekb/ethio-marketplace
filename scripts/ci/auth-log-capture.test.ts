@@ -5,11 +5,11 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * Cursor bundle 7b (INC-1303, ruling 1 decision 15) — the auth server's failures on a failed lane,
+ * Cursor bundle 7b (INC-1303, ruling 1 decision 15) — the auth server's failures on a lane,
  * as counts: scripts/ci/auth-log-capture.py. CF-AUTHLOG-1 runs it on a planted log (counts by
  * method, path and status; each 500's code and its message cut at 120 characters); CF-AUTHLOG-2
  * plants a token, an address and a body in the lines and requires none of them in the output;
- * CF-AUTHLOG-3 holds the workflow to the step: it runs the script on a failed lane, before the
+ * CF-AUTHLOG-3 holds the workflow to the step: it runs the script on every lane (a retried pass is green), before the
  * evidence is written, and keeps its file in the lane's log artifact.
  */
 
@@ -30,7 +30,7 @@ function capture(lines: unknown[]): string[] {
   return result.stdout.split("\n").filter((line) => line !== "");
 }
 
-describe("the auth server's failures on a failed lane (INC-1303)", () => {
+describe("the auth server's failures on a lane (INC-1303)", () => {
   it("CF-AUTHLOG-1 counts by method, path and status; each 500's code and cut message", () => {
     const factor = randomUUID();
     const other = randomUUID();
@@ -83,11 +83,12 @@ describe("the auth server's failures on a failed lane (INC-1303)", () => {
     expect(out).not.toContain("referer");
   });
 
-  it("CF-AUTHLOG-3 the workflow runs it on a failed lane and keeps its file in the log artifact", () => {
+  it("CF-AUTHLOG-3 the workflow runs it on every lane, a green one too, and keeps its file in the log artifact", () => {
     const text = readFileSync(WORKFLOW, "utf8");
     const step = text.split("- name: Capture the auth server's failures (INC-1303)")[1] ?? "";
     const body = step.split("\n      - name: ")[0] ?? "";
-    expect(body).toContain("if: failure()");
+    expect(body).toContain("if: always()");
+    expect(body).not.toContain("failure()");
     expect(body).toContain("scripts/ci/auth-log-capture.py");
     expect(body).toContain("local-backend-auth-capture.txt");
     expect(text.indexOf("Capture the auth server's failures")).toBeLessThan(

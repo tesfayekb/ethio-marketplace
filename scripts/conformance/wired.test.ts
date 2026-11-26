@@ -495,7 +495,7 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // CF-REDACT-3 (housekeeping turn 3b, DEC-368): redact.py and scripts/e2e-failure-report.ts read
     // scripts/ci/redaction-rules.json.
     expect(readFileSync(join(ROOT, "scripts/ci/redact.test.ts"), "utf8")).toContain("CF-REDACT-3");
-    // Cursor bundle 7b (INC-1303, ruling 1 decision 15): a failed lane's auth server log, as counts —
+    // Cursor bundle 7b (INC-1303, ruling 1 decision 15): every lane's auth server log, as counts —
     // local-backend-proof.yml runs scripts/ci/auth-log-capture.py (through redact.py) before the evidence.
     expect(readFileSync(join(ROOT, "scripts/ci/auth-log-capture.test.ts"), "utf8")).toContain(
       "CF-AUTHLOG-3",

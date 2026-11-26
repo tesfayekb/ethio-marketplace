@@ -902,14 +902,15 @@ jobs:
           echo "TEST_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
           echo "JOB_SECONDS=$(( $(date +%s) - PROOF_BEGIN ))" >> "$GITHUB_ENV"
           exit "$result"
-      # INC-1303 (cursor bundle 7b, ruling 1 decision 15) — a failed lane's auth server log, as counts: the
+      # INC-1303 (cursor bundle 7b, ruling 1 decision 15, ruling 2 decision 3) — every lane's auth server log (the failures
+      # pass on Playwright's retry, so the lane is green and a failure() trigger never fires), as counts: the
       # requests by method, path and status, and each 500's error_code and message (120 characters), through the
       # one redaction (scripts/ci/redact.py, DEC-368). Never a header, a token or a body. The container is found by
       # its supabase_auth_ prefix, as the database's is by supabase_db_ above.
       - name: Capture the auth server's failures (INC-1303)
         id: capture-auth-failures
         timeout-minutes: 3
-        if: failure() && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
+        if: always() && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         shell: bash
         run: |
           auth_containers=()

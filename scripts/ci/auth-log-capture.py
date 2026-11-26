@@ -1,4 +1,4 @@
-"""The auth server's failures on a failed lane, as counts (cursor bundle 7b, INC-1303).
+"""The auth server's failures on a lane, as counts (cursor bundle 7b, INC-1303).
 
 Reads the auth container's log from standard input (one JSON object per line, as the auth server
 writes it) and prints, in this order:
