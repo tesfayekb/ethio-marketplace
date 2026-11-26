@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { NOTICE_DOCK, NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
+import { OfflineLine } from "@/components/shell/offline-line";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { refreshPage, useOnDemandFailures } from "@/lib/on-demand-failure";
@@ -21,7 +22,8 @@ import { cn } from "@/lib/utils";
  * (the reset screen's R-2 and R-4, CI on turn 34b-2's landing). INC-955 — while a dialog, sheet,
  * drawer or alert is open, the notice is drawn inside the topmost one's NoticeOutlet
  * (src/lib/notice-outlets.ts), where the person can see, reach and tap it; the shell's
- * own region stays, empty, for when the overlay closes.
+ * own region stays, empty, for when the overlay closes. INC-1286 — the offline line (offline-line.tsx)
+ * is the same dock's other line.
  */
 export function OnDemandNotice() {
   const { t } = useI18n();
@@ -67,10 +69,12 @@ export function OnDemandNotice() {
     <div
       aria-live="polite"
       className={cn(
-        "pointer-events-none fixed inset-x-0 z-50 flex justify-center md:bottom-6 md:px-4",
+        "pointer-events-none fixed inset-x-0 z-50 flex flex-col items-center md:bottom-6 md:px-4",
         NOTICE_DOCK,
       )}
     >
+      {/* INC-1286 — the shell's one offline line, above the download notice. */}
+      {outlet === null ? <OfflineLine /> : null}
       {notice !== null && outlet !== null ? createPortal(notice, outlet) : notice}
     </div>
   );

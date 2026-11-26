@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 789,
+  "scanned": 792,
   "dynamicCallSites": 432,
   "keys": {
     "account.deactivatedBanner": [
@@ -8896,6 +8896,44 @@
     ],
     "shell.menuTitle": [
       "(every page)"
+    ],
+    "shell.offline": [
+      "(every page)",
+      "/",
+      "/$name",
+      "/account",
+      "/account/saved",
+      "/admin",
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/impersonation/$sessionId",
+      "/admin/listings",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/monetisation",
+      "/admin/places",
+      "/admin/roles",
+      "/admin/screening",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/auth",
+      "/auth/callback",
+      "/auth/reset",
+      "/c/$slug",
+      "/dev/primitives",
+      "/dev/style",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "shell.panelLabel": [
       "(every page)"

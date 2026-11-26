@@ -96,3 +96,14 @@ the same rule and adds a rate refusal whose named time has passed. SQC-1…4
 (`session-query-client.test.ts`) and RRF-1…2 (`use-retry-failed.test.tsx`) prove
 both; CF-RETRY-1…3 (`scripts/conformance/query-retry.test.ts`) fail a query
 option `retry` set to a function or `true`, and a second `new QueryClient(`.
+
+**Offline, said once (INC-1286).** A read paused for the network (TanStack's
+`networkMode`, resumed by the browser's `online` event, no polling) is said by
+the shell once: while the device is offline and a read waits,
+`OfflineLine` (`src/components/shell/offline-line.tsx`, `shell.offline`) draws
+one line in the notice dock above the download notice (`useOfflinePaused`
+follows `onlineManager` and the query cache). A screen that draws a failure
+while offline draws the network words: `failureKind` reads the unreadable
+(`server`) kind as `network` offline; a refusal stays a refusal. FR-U15,
+OFL-1…2 and the browser case OFF-1 (`e2e/offline.spec.ts`, joined to the shell
+area of `scripts/e2e-select.ts`) prove it.

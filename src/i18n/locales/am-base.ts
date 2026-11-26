@@ -324,6 +324,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "nav.organisation": "ድርጅት",
   "nav.systemSettings": "የሲስተም ቅንብሮች",
   "shell.skipToContent": "ወደ ይዘቱ ዝለል",
+  "shell.offline": "ከኢንተርኔት ጋር አልተገናኙም። የሚከፍቱት ነገር ግንኙነትዎ ሲመለስ ይጫናል።",
   "shell.openMenu": "ዝርዝሩን ክፈት",
   "shell.closeMenu": "ዝርዝሩን ዝጋ",
   "shell.mainMenu": "ዋና ዝርዝር",

@@ -208,6 +208,7 @@ export const AREAS: Area[] = [
     src: ["src/components/shell/**", "src/routes/__root.tsx"],
     specs: [
       "e2e/shell.spec.ts",
+      "e2e/offline.spec.ts",
       "e2e/sage-shell.spec.ts",
       "e2e/sage-bands.spec.ts",
       "e2e/choice-lists.spec.ts",

@@ -346,6 +346,7 @@ export const enBase = {
   "nav.organisation": "Organisation",
   "nav.systemSettings": "System settings",
   "shell.skipToContent": "Skip to content",
+  "shell.offline": "You're offline. What you open will load when you're back online.",
   "shell.openMenu": "Open menu",
   "shell.closeMenu": "Close menu",
   "shell.mainMenu": "Main Menu",

@@ -1,3 +1,4 @@
+import { onlineManager } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import type { MessageKey } from "@/i18n";
@@ -112,7 +113,7 @@ function carried(error: unknown): { status: number | undefined; cls: string } {
   return { status, cls: error instanceof TypeError ? "network" : "server" };
 }
 
-export function failureKind(error: unknown): FailureReading {
+function readFailure(error: unknown): FailureReading {
   try {
     const mod = readerModule.ready();
     if (mod === null) {
@@ -133,6 +134,17 @@ export function failureKind(error: unknown): FailureReading {
   } catch {
     return { kind: "server", diagnostic: "unreadable", until: undefined };
   }
+}
+
+/**
+ * INC-1286 — a failure read while the device is offline and the reader could only say `server` is
+ * a failure of the network: the read is paused for it (TanStack's `networkMode`), and its words
+ * are the network's. A refusal is still a refusal; only the unreadable-as-server kind moves.
+ */
+export function failureKind(error: unknown): FailureReading {
+  const reading = readFailure(error);
+  if (reading.kind !== "server" || onlineManager.isOnline()) return reading;
+  return { ...reading, kind: "network", diagnostic: `${reading.diagnostic} (offline)` };
 }
 
 /**
