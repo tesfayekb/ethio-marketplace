@@ -1,19 +1,87 @@
+import { randomBytes } from "node:crypto";
+
 import { listingPath } from "../../src/features/ad-page/address";
 import { adPageFixtures } from "./ad-page";
+import { SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 
 /**
  * DEC-459 (c) — THE FAILURE CRAWL'S ADDRESSES: a route's params filled from the test's own
- * scratch rows (a seller with a public name, a category branch and a place; an ad of that seller)
- * or, for a reference row the crawl only reads (a published legal version, the base role, a staff
- * language), the row read through the service client; the legal draft editor on the global
- * terms. The impersonation page is not crawled: no session can be held (the allowlist's `page`
- * line). Callers install `cleanup` in afterEach.
+ * scratch rows (a seller with a public name, a category branch and a place; an ad of that seller;
+ * a published version of a scratch legal kind, which no gate reads) or, for a reference row the
+ * migrations seed (the base role, a staff language), the row read through the service client;
+ * the legal draft editor on the global terms. The impersonation page is not crawled: no session
+ * can be held (the allowlist's `page` line). Callers install `cleanup` in afterEach.
  */
 export function crawlFixtures() {
   const ads = adPageFixtures();
   let seller: Awaited<ReturnType<typeof ads.scratchSeller>> | null = null;
   const listings = new Map<string, { id: string; title: string }>();
+  let legal: { documentId: string; versionId: string } | null = null;
+
+  function failed(error: { message: string } | null, phase: string) {
+    if (error) throw new Error(`[e2e:crawl] ${phase}: ${error.message}`);
+  }
+
+  async function legalVersion(): Promise<string> {
+    if (legal !== null) return legal.versionId;
+    const client = adminClient();
+    const kind = `${SCRATCH_PREFIXES.dash}crawl-${randomBytes(4).toString("hex")}`;
+    const doc = await client
+      .from("legal_documents")
+      .insert({ kind, country_code: null })
+      .select("id")
+      .single();
+    failed(doc.error, "seed legal document");
+    if (!doc.data) throw new Error("[e2e:crawl] legal document not seeded");
+    const version = await client
+      .from("legal_versions")
+      .insert({
+        document_id: doc.data.id,
+        version: 1,
+        status: "published",
+        label: "crawl",
+        body_en: "## Crawl\nScratch text",
+        body_am: "Scratch text",
+        changelog: "scratch change",
+        material: false,
+        effective_at: new Date(Date.now() - 60_000).toISOString(),
+        published_at: new Date(Date.now() - 60_000).toISOString(),
+        settings_snapshot: {},
+      })
+      .select("id")
+      .single();
+    if (version.error || !version.data) {
+      failed((await client.from("legal_documents").delete().eq("id", doc.data.id)).error, "undo");
+      failed(version.error, "seed legal version");
+      throw new Error("[e2e:crawl] legal version not seeded");
+    }
+    legal = { documentId: doc.data.id, versionId: version.data.id };
+    return legal.versionId;
+  }
+
+  async function destroyLegal() {
+    if (legal === null) return;
+    const { documentId, versionId } = legal;
+    legal = null;
+    const client = adminClient();
+    failed(
+      (await client.from("legal_acceptances").delete().eq("version_id", versionId)).error,
+      "cleanup legal acceptances",
+    );
+    failed(
+      (await client.from("legal_notices").delete().eq("version_id", versionId)).error,
+      "cleanup legal notices",
+    );
+    failed(
+      (await client.from("legal_versions").delete().eq("id", versionId)).error,
+      "cleanup legal version",
+    );
+    failed(
+      (await client.from("legal_documents").delete().eq("id", documentId)).error,
+      "cleanup legal document",
+    );
+  }
 
   async function scratchSeller() {
     seller ??= await ads.scratchSeller();
@@ -28,7 +96,7 @@ export function crawlFixtures() {
     return made;
   }
 
-  async function referenceId(table: "legal_versions" | "roles", column: string, value: string) {
+  async function referenceId(table: "roles", column: string, value: string) {
     const { data, error } = await adminClient()
       .from(table)
       .select("id")
@@ -78,10 +146,7 @@ export function crawlFixtures() {
         return `/post/${(await listing("draft")).id}`;
       case "/account/legal/$versionId":
       case "/admin/legal/$versionId":
-        return route.replace(
-          "$versionId",
-          await referenceId("legal_versions", "status", "published"),
-        );
+        return route.replace("$versionId", await legalVersion());
       case "/admin/users/$userId":
         return `/admin/users/${(await scratchSeller()).id}`;
       case "/admin/roles/$roleId":
@@ -99,7 +164,11 @@ export function crawlFixtures() {
   async function cleanup() {
     seller = null;
     listings.clear();
-    await ads.cleanup();
+    try {
+      await destroyLegal();
+    } finally {
+      await ads.cleanup();
+    }
   }
 
   return { pathOf, scratchSeller, cleanup };
