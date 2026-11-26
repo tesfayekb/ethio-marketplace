@@ -104,9 +104,11 @@ describe("the failure crawl's page coverage (CF-CRAWL-1)", () => {
       ].join("\n"),
     );
     expect(unroutedFooterItems(root)).toEqual(["footer.about"]);
+    const lines = readFileSync(ALLOWLIST, "utf8").split("\n");
     for (const key of unroutedFooterItems(ROOT))
-      expect(readFileSync(ALLOWLIST, "utf8")).toMatch(
-        new RegExp(`^footer ${key.replace(/\./g, "\\.")} \\|.*\\| DEC-463$`, "m"),
-      );
+      expect(
+        lines.some((line) => line.startsWith(`footer ${key} | `) && line.endsWith(" | DEC-463")),
+        key,
+      ).toBe(true);
   });
 });
