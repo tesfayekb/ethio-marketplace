@@ -1,13 +1,13 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 45913849134 passed
+last E2E run 45915473124 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45913849134
-- Commit: `29778bceac92aa9a24b32160f7618dd50c2a57fc`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45915473124
+- Commit: `1b2c6bc74d83ccdfff2f5328870e06366485da2b`
 - Attempt: 1
-- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-7465f9344c64… (0 read)
+- Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-4a3c9d6d1285… (0 read)
 - Repeat: nothing to repeat
-- Written (UTC): 2026-11-27T00:28:19.435Z
+- Written (UTC): 2026-11-27T00:59:15.353Z
 - Post-test warnings: 57
 - Flaky (passed on retry, DEC-030, non-gating): 1
 - Errors outside any test (INC-589): none
@@ -17,85 +17,57 @@ last E2E run 45913849134 passed
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `mobile-360` · source `shard 15` · failure-crawl-member-account.spec.ts › FAILURE CRAWL — the member's account pages (DEC-459 c) › FCR-34 /settings as member: loads clean and says every failed read — Error: /settings rpc has_password (malformed): the read failed and the screen said nothing (no failure notice)
+- FLAKY (passed on retry) · `mobile-360` · source `shard 14` · admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-31 Reports: the open count on the row and the reasons on the listing's page for listings:review; nothing for listings:view alone — Error: [e2e:session] injected identity mismatch — expected user [account id], page holds no session.
 
 ## Flaky bodies (DEC-078)
 
-### failure-crawl-member-account.spec.ts › FAILURE CRAWL — the member's account pages (DEC-459 c) › FCR-34 /settings as member: loads clean and says every failed read
+### admin-listings.spec.ts › ADMIN LISTINGS — the console's doors › AL-31 Reports: the open count on the row and the reasons on the listing's page for listings:review; nothing for listings:view alone
 
-- Source: `shard 15`
+- Source: `shard 14`
 - Project: `mobile-360`
 
 ```text
-Error: /settings rpc has_password (malformed): the read failed and the screen said nothing (no failure notice)
-
-expect(received).toEqual(expected) // deep equality
-
-- Expected  - 1
-+ Received  + 3
-
-- Array []
-+ Array [
-+   "/settings rpc has_password (malformed): the read failed and the screen said nothing (no failure notice)",
-+ ]
+Error: [e2e:session] injected identity mismatch — expected user [account id], page holds no session.
 --- further error 1 ---
-Error: /settings rpc has_password (malformed): the read failed and the screen said nothing (no failure notice)
+Error: [e2e:session] injected identity mismatch — expected user [account id], page holds no session.
 
-expect(received).toEqual(expected) // deep equality
+   at helpers/session.ts:331
 
-- Expected  - 1
-+ Received  + 3
-
-- Array []
-+ Array [
-+   "/settings rpc has_password (malformed): the read failed and the screen said nothing (no failure notice)",
-+ ]
-
-   at helpers/failure-crawl-tests.ts:44
-
-  42 |         contentType: "application/json",
-  43 |       });
-> 44 |       expect(result.problems, result.problems.join("\n")).toEqual([]);
-     |                                                           ^
-  45 |     },
-  46 |   };
---- client errors of this attempt (DEC-177) ---
-[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED
-[client-error] console.error: Failed to load resource: the server responded with a status of 503 (Service Unavailable)
-[client-error] HTTP 503 POST https://127.0.0.1:31321/rest/v1/rpc/has_password ({"code":"PGRST000","details":"could not translate host name \"supabase_db_ethio-ci-local\" to address: Name does not resolve\n","hint":null,"message":"Database connection error."})
-[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED
-[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED
-[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET https://127.0.0.1:31321/auth/v1/user ({"code":"unexpected_failure","message":"Unexpected failure, please check server logs for more information"})
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] console.error: Failed to load resource: the server responded with a status of 500 (Internal Server Error)
-[client-error] HTTP 500 GET https://127.0.0.1:31321/auth/v1/user ({"code":"unexpected_failure","message":"Unexpected failure, please check server logs for more information"})
-[client-error] HTTP 500 GET https://127.0.0.1:31321/auth/v1/user ({"code":"unexpected_failure","message":"Unexpected failure, please check server logs for more information"})
+  329 |   }, storageKey());
+  330 |   if (actual !== expected) {
+> 331 |     throw new Error(
+      |           ^
+  332 |       `[e2e:session] injected identity mismatch — expected user ${expected}, page holds ${actual ?? "no session"}.`,
+  333 |     );
+  334 |   }
+    at assertInjectedIdentity (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/session.ts:331:11)
+    at signInStaff (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/helpers/staff-factor.ts:171:3)
+    at holder (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:2121:7)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/admin-listings.spec.ts:2155:5
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e279]:
-            - generic [ref=e280]: About
-          - listitem [ref=e281]:
-            - generic [ref=e282]: Contact
-      - navigation "Help" [ref=e283]:
-        - heading "Help" [level=2] [ref=e284]
-        - list [ref=e285]:
-          - listitem [ref=e286]:
-            - generic [ref=e287]: Safety
-      - navigation "Legal" [ref=e288]:
-        - heading "Legal" [level=2] [ref=e289]
-        - list [ref=e290]:
-          - listitem [ref=e291]:
-            - link "Terms" [ref=e292] [cursor=pointer]:
+          - listitem [ref=e306]:
+            - generic [ref=e307]: About
+          - listitem [ref=e308]:
+            - generic [ref=e309]: Contact
+      - navigation "Help" [ref=e310]:
+        - heading "Help" [level=2] [ref=e311]
+        - list [ref=e312]:
+          - listitem [ref=e313]:
+            - generic [ref=e314]: Safety
+      - navigation "Legal" [ref=e315]:
+        - heading "Legal" [level=2] [ref=e316]
+        - list [ref=e317]:
+          - listitem [ref=e318]:
+            - link "Terms" [ref=e319] [cursor=pointer]:
               - /url: /terms
-          - listitem [ref=e293]:
-            - link "Privacy" [ref=e294] [cursor=pointer]:
+          - listitem [ref=e320]:
+            - link "Privacy" [ref=e321] [cursor=pointer]:
               - /url: /privacy
-    - paragraph [ref=e296]: © 2026 ethio.com — All rights reserved.
+    - paragraph [ref=e323]: © 2026 ethio.com — All rights reserved.
 ```
 ```
 
@@ -155,149 +127,149 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-11-27T00:00:57.679Z | 7.2 min |
-| email | 2026-11-26T23:59:56.031Z | 0.3 min |
-| webkit | 2026-11-27T00:00:49.801Z | 10.1 min |
-| shard 1 | 2026-11-27T00:00:29.804Z | 12.0 min |
-| shard 2 | 2026-11-27T00:01:24.969Z | 11.8 min |
-| shard 3 | 2026-11-27T00:00:26.577Z | 8.7 min |
-| shard 4 | 2026-11-26T23:59:59.397Z | 7.2 min |
-| shard 5 | 2026-11-27T00:01:14.831Z | 18.3 min |
-| shard 6 | 2026-11-27T00:00:55.889Z | 19.4 min |
-| shard 7 | 2026-11-27T00:02:07.786Z | 15.9 min |
-| shard 8 | 2026-11-27T00:01:04.254Z | 12.2 min |
-| shard 9 | 2026-11-27T00:01:52.060Z | 8.0 min |
-| shard 10 | 2026-11-26T23:59:53.911Z | 17.8 min |
-| shard 11 | 2026-11-27T00:01:57.199Z | 25.8 min |
-| shard 12 | 2026-11-27T00:06:07.371Z | 14.9 min |
-| shard 13 | 2026-11-27T00:01:01.570Z | 11.7 min |
-| shard 14 | 2026-11-27T00:00:09.731Z | 18.5 min |
-| shard 15 | 2026-11-27T00:00:27.879Z | 17.2 min |
-| shard 16 | 2026-11-27T00:03:45.903Z | 13.0 min |
+| smoke | 2026-11-27T00:32:12.364Z | 6.9 min |
+| email | 2026-11-27T00:32:11.023Z | 0.3 min |
+| webkit | 2026-11-27T00:32:40.962Z | 14.8 min |
+| shard 1 | 2026-11-27T00:32:18.254Z | 11.7 min |
+| shard 2 | 2026-11-27T00:32:03.920Z | 10.9 min |
+| shard 3 | 2026-11-27T00:32:36.744Z | 9.4 min |
+| shard 4 | 2026-11-27T00:32:02.781Z | 7.5 min |
+| shard 5 | 2026-11-27T00:32:48.118Z | 17.8 min |
+| shard 6 | 2026-11-27T00:32:16.880Z | 18.2 min |
+| shard 7 | 2026-11-27T00:32:29.195Z | 17.1 min |
+| shard 8 | 2026-11-27T00:32:45.903Z | 13.2 min |
+| shard 9 | 2026-11-27T00:32:13.520Z | 8.0 min |
+| shard 10 | 2026-11-27T00:31:51.492Z | 18.0 min |
+| shard 11 | 2026-11-27T00:32:20.099Z | 25.9 min |
+| shard 12 | 2026-11-27T00:33:07.001Z | 14.9 min |
+| shard 13 | 2026-11-27T00:34:09.653Z | 11.5 min |
+| shard 14 | 2026-11-27T00:33:04.873Z | 19.7 min |
+| shard 15 | 2026-11-27T00:34:35.986Z | 17.1 min |
+| shard 16 | 2026-11-27T00:32:40.625Z | 14.1 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `admin-listings.spec.ts` | 82 | 26.0 min | webkit, shard 14 |
+| `admin-listings.spec.ts` | 82 | 26.6 min | webkit, shard 14 |
 | `admin-categories-lifecycle.spec.ts` | 52 | 23.0 min | shard 11 |
-| `admin-screening.spec.ts` | 64 | 21.6 min | webkit, shard 15 |
-| `legal-admin.spec.ts` | 44 | 20.3 min | shard 7 |
-| `admin-translations-console.spec.ts` | 46 | 19.2 min | smoke, shard 12 |
-| `admin-attributes-import.spec.ts` | 40 | 17.7 min | shard 5 |
-| `admin-attributes-library.spec.ts` | 42 | 17.3 min | shard 6 |
-| `admin-attributes-links.spec.ts` | 34 | 15.7 min | shard 16 |
-| `admin-attributes-editor.spec.ts` | 36 | 15.0 min | shard 10 |
-| `admin-locations.spec.ts` | 44 | 14.9 min | shard 10 |
-| `admin-monetisation.spec.ts` | 34 | 13.1 min | smoke, shard 6 |
-| `import-security.spec.ts` | 36 | 11.6 min | shard 8 |
-| `admin-roles.spec.ts` | 28 | 11.4 min | shard 13 |
-| `failure-crawl-admin-content.spec.ts` | 18 | 9.6 min | shard 2 |
+| `admin-screening.spec.ts` | 64 | 21.1 min | webkit, shard 15 |
+| `legal-admin.spec.ts` | 44 | 20.9 min | shard 7 |
+| `admin-translations-console.spec.ts` | 46 | 19.3 min | smoke, shard 12 |
+| `admin-attributes-import.spec.ts` | 40 | 17.3 min | shard 5 |
+| `admin-attributes-library.spec.ts` | 42 | 16.7 min | shard 6 |
+| `admin-attributes-links.spec.ts` | 34 | 16.1 min | shard 16 |
+| `admin-locations.spec.ts` | 44 | 15.1 min | shard 10 |
+| `admin-attributes-editor.spec.ts` | 36 | 15.1 min | shard 10 |
+| `admin-monetisation.spec.ts` | 34 | 12.5 min | smoke, shard 6 |
+| `import-security.spec.ts` | 36 | 11.8 min | shard 8 |
+| `admin-roles.spec.ts` | 28 | 10.9 min | shard 13 |
 | `legal-doors.spec.ts` | 34 | 9.6 min | smoke, shard 1 |
-| `shell.spec.ts` | 234 | 9.3 min | shard 1 |
-| `admin-categories-console.spec.ts` | 34 | 9.1 min | shard 11 |
-| `admin-attributes-safety.spec.ts` | 18 | 7.4 min | shard 11 |
-| `failure-crawl-member-listings.spec.ts` | 10 | 7.2 min | shard 3 |
-| `failure-crawl-admin-people.spec.ts` | 14 | 7.1 min | shard 5 |
-| `failure-crawl-admin-catalog.spec.ts` | 18 | 7.0 min | shard 4 |
-| `admin-countries.spec.ts` | 18 | 6.9 min | shard 8 |
-| `auth-signout.spec.ts` | 44 | 6.3 min | webkit, shard 5 |
-| `admin-translations-governance.spec.ts` | 20 | 6.1 min | smoke, shard 1 |
+| `admin-categories-console.spec.ts` | 34 | 9.2 min | shard 11 |
+| `shell.spec.ts` | 234 | 9.0 min | shard 1 |
+| `failure-crawl-admin-content.spec.ts` | 18 | 8.9 min | shard 2 |
+| `failure-crawl-member-listings.spec.ts` | 10 | 7.5 min | shard 3 |
+| `failure-crawl-admin-catalog.spec.ts` | 18 | 7.3 min | shard 4 |
+| `admin-countries.spec.ts` | 18 | 7.1 min | shard 8 |
+| `admin-attributes-safety.spec.ts` | 18 | 7.0 min | shard 11 |
+| `failure-crawl-admin-people.spec.ts` | 14 | 6.8 min | shard 5 |
+| `dialogs.spec.ts` | 36 | 6.7 min | webkit, shard 9 |
+| `admin-translations-governance.spec.ts` | 20 | 5.6 min | smoke, shard 1 |
+| `auth-signout.spec.ts` | 44 | 5.6 min | webkit, shard 5 |
+| `post-wizard-specs.spec.ts` | 82 | 5.4 min | shard 16 |
+| `ad-page.spec.ts` | 104 | 5.3 min | webkit, shard 9 |
+| `post-wizard-bundle2.spec.ts` | 70 | 5.3 min | shard 7 |
 | `admin-translations-data.spec.ts` | 10 | 5.3 min | shard 6 |
-| `dialogs.spec.ts` | 36 | 5.3 min | webkit, shard 9 |
 | `feed-screens.spec.ts` | 40 | 5.2 min | webkit, shard 9 |
-| `admin-guides.spec.ts` | 14 | 4.8 min | shard 2 |
-| `ad-page.spec.ts` | 104 | 4.8 min | webkit, shard 9 |
-| `post-wizard-specs.spec.ts` | 82 | 4.8 min | shard 16 |
-| `admin-users.spec.ts` | 28 | 4.6 min | shard 13 |
-| `admin-screening-reject.spec.ts` | 10 | 4.5 min | shard 2 |
-| `post-wizard-place.spec.ts` | 40 | 4.4 min | shard 15 |
-| `post-wizard-bundle2.spec.ts` | 70 | 4.3 min | shard 7 |
-| `viewing-place.spec.ts` | 22 | 3.8 min | shard 14 |
-| `photo-pipeline.spec.ts` | 74 | 3.7 min | webkit, shard 12 |
+| `post-wizard-place.spec.ts` | 40 | 5.0 min | shard 15 |
+| `admin-guides.spec.ts` | 14 | 4.9 min | shard 2 |
+| `admin-users.spec.ts` | 28 | 4.7 min | shard 13 |
+| `admin-screening-reject.spec.ts` | 10 | 4.4 min | shard 2 |
+| `viewing-place.spec.ts` | 22 | 4.0 min | shard 14 |
+| `photo-pipeline.spec.ts` | 74 | 3.9 min | webkit, shard 12 |
 | `admin-categories-home.spec.ts` | 10 | 3.7 min | shard 3 |
-| `post-wizard-where.spec.ts` | 32 | 3.7 min | shard 7 |
-| `mfa-stepup.spec.ts` | 28 | 3.4 min | webkit, shard 15 |
-| `post-wizard-category.spec.ts` | 54 | 3.2 min | webkit, shard 13 |
-| `my-listings-ad.spec.ts` | 38 | 2.8 min | shard 8 |
+| `post-wizard-where.spec.ts` | 32 | 3.6 min | shard 7 |
+| `post-wizard-category.spec.ts` | 54 | 3.6 min | webkit, shard 13 |
+| `mfa-stepup.spec.ts` | 28 | 3.6 min | webkit, shard 15 |
+| `my-listings-ad.spec.ts` | 38 | 3.5 min | shard 8 |
+| `choice-lists.spec.ts` | 96 | 3.4 min | shard 3 |
+| `posting-routes.spec.ts` | 80 | 3.0 min | shard 16 |
 | `post-wizard-pricing.spec.ts` | 52 | 2.8 min | shard 4 |
 | `failure-crawl-public.spec.ts` | 26 | 2.5 min | shard 12 |
-| `post-wizard-resets.spec.ts` | 34 | 2.5 min | shard 9 |
-| `posting-routes.spec.ts` | 80 | 2.5 min | shard 16 |
-| `choice-lists.spec.ts` | 96 | 2.4 min | shard 3 |
+| `post-wizard-resets.spec.ts` | 34 | 2.4 min | shard 9 |
+| `sage-ad-page.spec.ts` | 30 | 2.4 min | webkit, shard 6 |
 | `sage-bands.spec.ts` | 76 | 2.3 min | shard 10 |
-| `sage-ad-page.spec.ts` | 30 | 2.2 min | webkit, shard 6 |
-| `failure-crawl-member-account.spec.ts` | 16 | 2.1 min | shard 15 |
-| `admin-services.spec.ts` | 10 | 2.0 min | shard 1 |
-| `failure-crawl-member-public.spec.ts` | 14 | 1.8 min | shard 14 |
-| `sage-tiers.spec.ts` | 52 | 1.6 min | webkit, shard 2 |
-| `admin-audit.spec.ts` | 16 | 1.5 min | shard 14 |
-| `admin-categories-images.spec.ts` | 6 | 1.5 min | smoke, webkit, shard 15 |
-| `name-check-queue.spec.ts` | 8 | 1.4 min | smoke, shard 8 |
-| `my-listings-promote.spec.ts` | 10 | 1.4 min | shard 11 |
+| `failure-crawl-member-public.spec.ts` | 14 | 2.1 min | shard 14 |
+| `admin-audit.spec.ts` | 16 | 2.0 min | shard 14 |
+| `failure-crawl-member-account.spec.ts` | 16 | 1.9 min | shard 15 |
+| `name-check-queue.spec.ts` | 8 | 1.7 min | smoke, shard 8 |
+| `admin-categories-images.spec.ts` | 6 | 1.7 min | smoke, webkit, shard 15 |
+| `admin-services.spec.ts` | 10 | 1.7 min | shard 1 |
+| `sage-tiers.spec.ts` | 52 | 1.5 min | webkit, shard 2 |
 | `legal-certify.spec.ts` | 44 | 1.4 min | shard 4 |
-| `admin-shell.spec.ts` | 12 | 1.1 min | shard 10 |
+| `my-listings-promote.spec.ts` | 10 | 1.4 min | shard 11 |
+| `press.spec.ts` | 22 | 1.2 min | shard 16 |
+| `one-line-slots-admin.spec.ts` | 10 | 1.2 min | shard 13 |
+| `admin-shell.spec.ts` | 12 | 1.2 min | shard 10 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 12 |
-| `one-line-slots-admin.spec.ts` | 10 | 1.1 min | shard 13 |
-| `press.spec.ts` | 22 | 1.0 min | shard 16 |
+| `user-guides.spec.ts` | 18 | 1.0 min | shard 8 |
 | `page-head.spec.ts` | 4 | 1.0 min | shard 9 |
-| `my-listings-page.spec.ts` | 24 | 0.9 min | webkit, shard 10 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.9 min | shard 6 |
+| `my-listings-page.spec.ts` | 24 | 1.0 min | webkit, shard 10 |
+| `phone-frame.spec.ts` | 18 | 1.0 min | shard 7 |
+| `house-style.spec.ts` | 18 | 0.9 min | shard 14 |
+| `i18n-sign-in-language.spec.ts` | 12 | 0.9 min | shard 7 |
+| `sage-cards.spec.ts` | 40 | 0.8 min | webkit, shard 11 |
+| `sage-shell.spec.ts` | 80 | 0.8 min | shard 16 |
 | `staff-gate.spec.ts` | 4 | 0.8 min | shard 11 |
-| `phone-frame.spec.ts` | 18 | 0.8 min | shard 7 |
-| `i18n-sign-in-language.spec.ts` | 12 | 0.8 min | shard 7 |
-| `user-guides.spec.ts` | 18 | 0.7 min | shard 8 |
 | `post-wizard-removed.spec.ts` | 4 | 0.7 min | shard 13 |
-| `sage-shell.spec.ts` | 80 | 0.7 min | shard 16 |
-| `sage-cards.spec.ts` | 40 | 0.7 min | webkit, shard 11 |
-| `breadcrumbs.spec.ts` | 6 | 0.6 min | shard 10 |
+| `my-listings-doors.spec.ts` | 28 | 0.7 min | shard 9 |
+| `settings.spec.ts` | 16 | 0.6 min | shard 7 |
 | `overlays.spec.ts` | 8 | 0.6 min | shard 6 |
-| `my-listings-doors.spec.ts` | 28 | 0.6 min | shard 9 |
-| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 12 |
+| `breadcrumbs.spec.ts` | 6 | 0.6 min | shard 10 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
-| `house-style.spec.ts` | 18 | 0.6 min | shard 14 |
-| `settings.spec.ts` | 16 | 0.5 min | shard 7 |
-| `primitives-law.spec.ts` | 24 | 0.5 min | shard 5 |
-| `i18n-coverage.spec.ts` | 14 | 0.4 min | shard 6 |
-| `legal-accept.spec.ts` | 12 | 0.4 min | shard 16 |
+| `layout.spec.ts` | 18 | 0.6 min | webkit, shard 7 |
+| `my-listings-levels.spec.ts` | 28 | 0.6 min | shard 12 |
+| `supabase-door.spec.ts` | 12 | 0.5 min | shard 3 |
+| `legal-accept.spec.ts` | 12 | 0.5 min | shard 16 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
+| `posting-routes-dials.spec.ts` | 14 | 0.4 min | shard 14 |
 | `ad-page-doors.spec.ts` | 30 | 0.4 min | shard 4 |
 | `one-line-slots.spec.ts` | 10 | 0.4 min | shard 13 |
-| `layout.spec.ts` | 18 | 0.4 min | webkit, shard 7 |
 | `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 12 |
-| `supabase-door.spec.ts` | 12 | 0.4 min | shard 3 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 5 |
 | `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 1 |
-| `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 4 |
+| `post-wizard-details.spec.ts` | 8 | 0.3 min | shard 4 |
+| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 6 |
+| `shell-bands.spec.ts` | 16 | 0.3 min | smoke, shard 3 |
+| `submenu.spec.ts` | 14 | 0.3 min | smoke, shard 8 |
 | `a11y.spec.ts` | 4 | 0.3 min | smoke |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 2 |
-| `posting-routes-dials.spec.ts` | 14 | 0.3 min | shard 14 |
-| `feed-index.spec.ts` | 30 | 0.2 min | shard 5 |
-| `submenu.spec.ts` | 14 | 0.2 min | smoke, shard 8 |
 | `post-wizard-units.spec.ts` | 4 | 0.2 min | shard 15 |
-| `rbac.spec.ts` | 6 | 0.2 min | shard 13 |
-| `shell-bands.spec.ts` | 16 | 0.2 min | smoke, shard 3 |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 2 |
-| `auth-signup.spec.ts` | 6 | 0.2 min | email |
 | `auth-reset.spec.ts` | 6 | 0.2 min | shard 16 |
-| `account-saved.spec.ts` | 4 | 0.2 min | shard 9 |
-| `submenu-look.spec.ts` | 12 | 0.2 min | smoke, shard 3 |
-| `category-nav.spec.ts` | 10 | 0.2 min | shard 4 |
-| `menu-rows.spec.ts` | 6 | 0.2 min | smoke, shard 12 |
-| `legal-history.spec.ts` | 6 | 0.2 min | shard 10 |
-| `category-image-routes.spec.ts` | 12 | 0.2 min | shard 12 |
+| `auth-signup.spec.ts` | 6 | 0.2 min | email |
 | `door-refusals.spec.ts` | 14 | 0.2 min | shard 8 |
+| `rbac.spec.ts` | 6 | 0.2 min | shard 13 |
+| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 14 |
+| `legal-pages.spec.ts` | 10 | 0.2 min | shard 2 |
+| `feed-index.spec.ts` | 30 | 0.2 min | shard 5 |
+| `category-nav.spec.ts` | 10 | 0.2 min | shard 4 |
+| `submenu-look.spec.ts` | 12 | 0.2 min | smoke, shard 3 |
+| `account-saved.spec.ts` | 4 | 0.2 min | shard 9 |
+| `legal-history.spec.ts` | 6 | 0.2 min | shard 10 |
+| `menu-rows.spec.ts` | 6 | 0.2 min | smoke, shard 12 |
 | `admin-ai-calls.spec.ts` | 2 | 0.2 min | shard 13 |
-| `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 15 |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 6 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 16 |
+| `category-image-routes.spec.ts` | 12 | 0.2 min | shard 12 |
+| `post-wizard-recent.spec.ts` | 2 | 0.2 min | shard 15 |
+| `feed-route.spec.ts` | 22 | 0.2 min | shard 2 |
 | `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 14 |
-| `posting-routes-identity.spec.ts` | 4 | 0.1 min | shard 14 |
 | `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
-| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 11 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 16 |
 | `i18n-layers.spec.ts` | 6 | 0.1 min | shard 15 |
-| `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 5 |
-| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 4 |
-| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
-| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 7 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 2 |
+| `overlay-shift.spec.ts` | 6 | 0.1 min | shard 11 |
+| `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 6 |
 | `locale-format.spec.ts` | 2 | 0.1 min | shard 3 |
+| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 4 |
+| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 7 |
+| `seller-name-hidden.spec.ts` | 2 | 0.1 min | shard 5 |
+| `dark-cards.spec.ts` | 4 | 0.1 min | shard 10 |
 | `offline.spec.ts` | 2 | 0.0 min | shard 11 |
 | `fonts.spec.ts` | 2 | 0.0 min | shard 9 |
 | `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 1 |
@@ -309,18 +281,18 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `failure-crawl-member-listings.spec.ts` › FCR-41 /my-listings/$listingId as member: loads clean and says every failed read | mobile-360 | 278.5 s |
-| `failure-crawl-admin-content.spec.ts` › FCR-74 /admin/legal as staff: loads clean and says every failed read | mobile-360 | 134.5 s |
-| `failure-crawl-admin-catalog.spec.ts` › FCR-56 /admin/places as staff: loads clean and says every failed read | mobile-360 | 108.7 s |
-| `failure-crawl-admin-people.spec.ts` › FCR-66 /admin/screening as staff: loads clean and says every failed read | mobile-360 | 102.4 s |
-| `failure-crawl-admin-people.spec.ts` › FCR-61 /admin/users/$userId as staff: loads clean and says every failed read | mobile-360 | 77.8 s |
-| `failure-crawl-admin-people.spec.ts` › FCR-67 /admin/ai as staff: loads clean and says every failed read | mobile-360 | 71.6 s |
-| `failure-crawl-admin-content.spec.ts` › FCR-76 /admin/legal/edit as staff: loads clean and says every failed read | mobile-360 | 70.4 s |
-| `failure-crawl-admin-content.spec.ts` › FCR-77 /admin/translations as staff: loads clean and says every failed read | mobile-360 | 69.5 s |
-| `failure-crawl-admin-people.spec.ts` › FCR-65 /admin/audit as staff: loads clean and says every failed read | mobile-360 | 69.3 s |
-| `failure-crawl-admin-catalog.spec.ts` › FCR-51 /admin/attributes as staff: loads clean and says every failed read | mobile-360 | 68.8 s |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 67.7 s |
-| `failure-crawl-admin-content.spec.ts` › FCR-71 /admin/listings as staff: loads clean and says every failed read | mobile-360 | 62.3 s |
-| `admin-listings.spec.ts` › AL-28 the photos card on the page; Remove takes one with a reason and a note, the code typed by keyboard, History says so and the seller is told (D194, D154 B4) | desktop-1280 | 60.1 s |
-| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | mobile-360 | 59.9 s |
-| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | desktop-1280 | 59.6 s |
+| `failure-crawl-member-listings.spec.ts` › FCR-41 /my-listings/$listingId as member: loads clean and says every failed read | mobile-360 | 284.7 s |
+| `failure-crawl-admin-content.spec.ts` › FCR-74 /admin/legal as staff: loads clean and says every failed read | mobile-360 | 136.6 s |
+| `failure-crawl-admin-catalog.spec.ts` › FCR-56 /admin/places as staff: loads clean and says every failed read | mobile-360 | 107.2 s |
+| `failure-crawl-admin-people.spec.ts` › FCR-66 /admin/screening as staff: loads clean and says every failed read | mobile-360 | 101.3 s |
+| `failure-crawl-admin-people.spec.ts` › FCR-61 /admin/users/$userId as staff: loads clean and says every failed read | mobile-360 | 77.2 s |
+| `failure-crawl-admin-catalog.spec.ts` › FCR-51 /admin/attributes as staff: loads clean and says every failed read | mobile-360 | 70.0 s |
+| `failure-crawl-admin-people.spec.ts` › FCR-67 /admin/ai as staff: loads clean and says every failed read | mobile-360 | 69.0 s |
+| `failure-crawl-admin-people.spec.ts` › FCR-65 /admin/audit as staff: loads clean and says every failed read | mobile-360 | 68.5 s |
+| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 67.4 s |
+| `failure-crawl-admin-content.spec.ts` › FCR-76 /admin/legal/edit as staff: loads clean and says every failed read | mobile-360 | 66.9 s |
+| `failure-crawl-admin-content.spec.ts` › FCR-77 /admin/translations as staff: loads clean and says every failed read | mobile-360 | 66.0 s |
+| `failure-crawl-member-listings.spec.ts` › FCR-42 /my-listings/$listingId/edit as member: loads clean and says every failed read | mobile-360 | 59.9 s |
+| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | mobile-360 | 59.8 s |
+| `legal-admin.spec.ts` › LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish | desktop-1280 | 59.4 s |
+| `failure-crawl-member-listings.spec.ts` › FCR-44 /post/$listingId as member: loads clean and says every failed read | mobile-360 | 59.3 s |
