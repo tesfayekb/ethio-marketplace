@@ -43,12 +43,19 @@ export function TransferBar({
   baseLang,
   scope = "interface",
   guard,
+  mayExport,
+  mayImport,
+  mayUndo,
 }: {
   lang: string;
   baseLang: string;
   /** Names the exported file; the console renders one scope at a time. */
   scope?: string;
   guard: GuardFn;
+  /** D44 — each control follows its own door: export (admin_export_translations), import (the import route), undo (admin_undo_import). */
+  mayExport: boolean;
+  mayImport: boolean;
+  mayUndo: boolean;
 }) {
   const { t } = useI18n();
   const importRows = useImportTranslations(lang);
@@ -154,59 +161,67 @@ export function TransferBar({
       </p>
       <p className="text-xs text-muted-foreground">{t("admin.translations.transfer.note")}</p>
       <div className="flex min-w-0 flex-wrap gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-11"
-          data-testid="strings-export-csv"
-          title={t("admin.translations.transfer.exportAllHint")}
-          disabled={exporting}
-          onClick={() => download("csv")}
-        >
-          {exporting
-            ? t("admin.translations.transfer.exporting")
-            : t("admin.translations.transfer.exportCsv")}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-11"
-          data-testid="strings-export-xliff"
-          title={t("admin.translations.transfer.exportAllHint")}
-          disabled={exporting}
-          onClick={() => download("xliff")}
-        >
-          {exporting
-            ? t("admin.translations.transfer.exporting")
-            : t("admin.translations.transfer.exportXliff")}
-        </Button>
+        {mayExport ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              data-testid="strings-export-csv"
+              title={t("admin.translations.transfer.exportAllHint")}
+              disabled={exporting}
+              onClick={() => download("csv")}
+            >
+              {exporting
+                ? t("admin.translations.transfer.exporting")
+                : t("admin.translations.transfer.exportCsv")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              data-testid="strings-export-xliff"
+              title={t("admin.translations.transfer.exportAllHint")}
+              disabled={exporting}
+              onClick={() => download("xliff")}
+            >
+              {exporting
+                ? t("admin.translations.transfer.exporting")
+                : t("admin.translations.transfer.exportXliff")}
+            </Button>
+          </>
+        ) : null}
 
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-11"
-          data-testid="strings-import"
-          disabled={importRows.isPending}
-          onClick={() => fileInput.current?.click()}
-        >
-          {importRows.isPending
-            ? t("admin.translations.transfer.importing")
-            : t("admin.translations.transfer.import")}
-        </Button>
-        <input
-          ref={fileInput}
-          type="file"
-          accept=".csv,.xlf,.xliff,.xml,text/csv,application/xml"
-          className="sr-only"
-          data-testid="strings-import-input"
-          aria-label={t("admin.translations.transfer.import")}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            // Reset first: re-picking the same filename must fire again.
-            event.target.value = "";
-            if (file) onFile(file);
-          }}
-        />
+        {mayImport ? (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="min-h-11"
+              data-testid="strings-import"
+              disabled={importRows.isPending}
+              onClick={() => fileInput.current?.click()}
+            >
+              {importRows.isPending
+                ? t("admin.translations.transfer.importing")
+                : t("admin.translations.transfer.import")}
+            </Button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept=".csv,.xlf,.xliff,.xml,text/csv,application/xml"
+              className="sr-only"
+              data-testid="strings-import-input"
+              aria-label={t("admin.translations.transfer.import")}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                // Reset first: re-picking the same filename must fire again.
+                event.target.value = "";
+                if (file) onFile(file);
+              }}
+            />
+          </>
+        ) : null}
       </div>
       {summary ? (
         <p
@@ -218,7 +233,7 @@ export function TransferBar({
           {summary}
         </p>
       ) : null}
-      {batchId ? (
+      {batchId && mayUndo ? (
         <Button
           type="button"
           variant="outline"

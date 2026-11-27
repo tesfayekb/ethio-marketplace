@@ -22,7 +22,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -60,6 +59,7 @@ import {
 } from "./use-translations";
 import { countedLabel } from "./counted-label";
 import { ownValue } from "@/lib/own-key";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 interface MutationAction {
   (): Promise<void>;
@@ -110,18 +110,22 @@ export function AdminTranslationsStringsPage({
 }) {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
 
-  const mayUpdate = permissions.includes("translations:update");
-  const mayApprove = permissions.includes("translations:approve");
-  const mayManage = permissions.includes("translations:manage");
-  const mayMachine = permissions.includes("translations:machine");
+  const mayUpdate = mayCall({ door: "admin_save_translation" });
+  const mayApprove = mayCall({ door: "admin_set_translation_status" });
+  const mayManage = mayCall({ door: "admin_set_key_context" });
+  const mayMachine = mayCall({ route: "/api/translate", method: "POST" });
+  const mayReadScope = mayCall({ door: "admin_get_translator_scope" });
+  const mayExport = mayCall({ door: "admin_export_translations" });
+  const mayImport = mayCall({ route: "/api/admin/translations/import", method: "POST" });
+  const mayUndoImport = mayCall({ door: "admin_undo_import" });
 
   const languages = useLanguages();
   const stats = useTranslationStats(lang);
   /** U4k — the CONTENT meter, so untranslated data work is visible on arrival. */
   const entityStats = useEntityTranslationStats(lang);
-  const scope = useMyTranslatorLanguages(!mayManage && (mayUpdate || mayApprove));
+  const scope = useMyTranslatorLanguages(!mayReadScope && (mayUpdate || mayApprove));
 
   const viewScope = search.scope === "data" ? "data" : "interface";
   const addressStatus = search.flagged === true ? "flagged" : (search.status ?? "all");
@@ -277,7 +281,7 @@ export function AdminTranslationsStringsPage({
   const baseLang = (languages.data ?? []).find((row) => row.isBase)?.code ?? "en";
   const total = list.data?.totalCount ?? 0;
   const outOfScope =
-    !mayManage &&
+    !mayReadScope &&
     scope.data !== undefined &&
     !scope.data.includes(lang) &&
     (mayUpdate || mayApprove);
@@ -410,7 +414,16 @@ export function AdminTranslationsStringsPage({
               ) : null}
 
               {/* U4i ⑤⑦ — bulk delivery tools; manage-gated, server is the authority. */}
-              {mayManage ? <TransferBar lang={lang} baseLang={baseLang} guard={guard} /> : null}
+              {mayExport || mayImport || mayUndoImport ? (
+                <TransferBar
+                  lang={lang}
+                  baseLang={baseLang}
+                  guard={guard}
+                  mayExport={mayExport}
+                  mayImport={mayImport}
+                  mayUndo={mayUndoImport}
+                />
+              ) : null}
 
               {outOfScope ? (
                 <p data-testid="strings-not-assigned" className="text-sm text-muted-foreground">
@@ -676,7 +689,7 @@ function stringColumns(
   ];
 }
 
-function StringEditor({
+export function StringEditor({
   row,
   lang,
   rtl,
@@ -858,6 +871,8 @@ function StringEditor({
             data-testid={`string-input-${id}`}
             dir={rtl ? "rtl" : undefined}
             rows={3}
+            // D44 — no typing without the door that saves it (admin_save_translation).
+            readOnly={!mayUpdate}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
           />

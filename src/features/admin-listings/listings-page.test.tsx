@@ -23,6 +23,17 @@ vi.mock("@/components/shell-context", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/components/shell-context")>()),
   useShell: () => ({ user: null, authLoading: false }),
 }));
+// INC-1281 — the screens ask useMayCall, which reads the permissions read: the same list as the shell's.
+vi.mock("@/features/permissions/usePermissions", async () => {
+  const { useAdminShell } = await import("@/features/admin/admin-context");
+  return {
+    usePermissions: () => ({
+      permissions: useAdminShell().permissions,
+      loading: false,
+      error: null,
+    }),
+  };
+});
 vi.mock("@/features/auth/mfa/step-up-gate", () => ({
   StepUpGate: ({ children }: { children: (guard: unknown) => React.ReactNode }) =>
     children(vi.fn()),

@@ -12,7 +12,6 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { ScreeningRejectDialog } from "@/features/admin-screening/screening-reject-dialog";
 import {
   decideListing,
@@ -24,6 +23,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { EditWizard } from "@/features/posting/wizard";
 import { useI18n, type MessageKey } from "@/i18n";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * Bundle 17 turn 2 (D194) — `/admin/listings/<id>/edit`: the staff's Edit is the
@@ -76,11 +76,11 @@ function AdminListingEditRoute() {
   const { listingId } = Route.useParams();
   const { from } = Route.useSearch();
   const { t } = useI18n();
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
   const navigate = useNavigate();
   // INC-1292 — the shell's crumb reads the page's cache only (cursor bundle 6, decision 7); the wizard's
   // own read of the ad fills that key (EditWizard → adminListingKey), so the page reads it once.
-  const mayReview = from === "screening" && permissions.includes("listings:review");
+  const mayReview = from === "screening" && mayCall({ door: "admin_review_listing" });
   const [asking, setAsking] = useState<Next | null>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<MessageKey | null>(null);

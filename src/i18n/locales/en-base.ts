@@ -558,8 +558,6 @@ export const enBase = {
   "post.photo.refusal.not_a_photo": "This is not a photo of the item.",
   "post.photo.refusal.providerUnavailable":
     "Photo checking is unavailable right now. Please try again.",
-  "post.photo.refusal.screeningPaused":
-    "Photo checking is paused, so this ad cannot take new photos right now. Please try again later.",
   "post.photo.refusal.photoGone": "This photo is no longer on the ad.",
   "post.photo.refusal.publishFirst":
     "You have added many photos without publishing an ad. Publish one of your ads to add more photos.",

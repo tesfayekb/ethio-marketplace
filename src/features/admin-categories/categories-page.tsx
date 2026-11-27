@@ -42,7 +42,6 @@ import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -75,6 +74,7 @@ import {
 } from "./use-categories";
 import { errorText } from "@/lib/error-text";
 import { useRetryFailed } from "@/components/shell/use-retry-failed";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * C2-UI — THE CATEGORIES CONSOLE.
@@ -198,7 +198,6 @@ function tipBadge(
 export function AdminCategoriesPage() {
   const { t } = useI18n();
   const retryFailed = useRetryFailed();
-  const { permissions } = useAdminShell();
   const { data, isLoading, error } = useAdminCategories();
   /**
    * INC-558's class (turn G3c) — the roster is settling: a move or an editor
@@ -257,12 +256,14 @@ export function AdminCategoriesPage() {
   // UI-FIX-7 — the verb bar's own refusal line, filled by the shared runner.
   const { message: verbError, setMessage: setVerbError, fail: failVerb } = useCategoryRefusal();
 
-  const mayCreate = permissions.includes("categories:create");
-  const mayUpdate = permissions.includes("categories:update");
-  const mayRestructure = permissions.includes("categories:restructure");
-  const mayAssets = permissions.includes("categories:assets");
+  const { mayCall } = useMayCall();
+  const mayCreate = mayCall({ door: "admin_create_category" });
+  const mayUpdate = mayCall({ door: "admin_update_category" });
+  const mayReorder = mayCall({ door: "admin_reorder_categories" });
+  const mayRestructure = mayCall({ door: "admin_retire_category" });
+  const mayAssets = mayCall({ door: "admin_set_category_images" });
   /** CAT-IE — the import door is its own permission; the RPCs refuse regardless. */
-  const mayImport = permissions.includes("categories:import");
+  const mayImport = mayCall({ route: "/api/admin/categories/import", method: "POST" });
 
   /**
    * CAT-IE PART A — EXPORT. One download; the roster's root filter narrows it
@@ -714,25 +715,28 @@ export function AdminCategoriesPage() {
         icon: <Share2 />,
         onSelect: fromRow("pointer"),
       });
-      // C2g — a catch-all is pinned last by the server: no Move entries.
-      if (!row.isCatchall) {
-        more.push(
-          {
-            key: "up",
-            label: t("admin.categories.action.up"),
-            icon: <ArrowUp />,
-            disabled: settling,
-            onSelect: () => move(row, -1),
-          },
-          {
-            key: "down",
-            label: t("admin.categories.action.down"),
-            icon: <ArrowDown />,
-            disabled: settling,
-            onSelect: () => move(row, 1),
-          },
-        );
-      }
+    }
+    // C2g — a catch-all is pinned last by the server: no Move entries. D47 — Move asks its own
+    // door (admin_reorder_categories).
+    if (mayReorder && !row.isCatchall) {
+      more.push(
+        {
+          key: "up",
+          label: t("admin.categories.action.up"),
+          icon: <ArrowUp />,
+          disabled: settling,
+          onSelect: () => move(row, -1),
+        },
+        {
+          key: "down",
+          label: t("admin.categories.action.down"),
+          icon: <ArrowDown />,
+          disabled: settling,
+          onSelect: () => move(row, 1),
+        },
+      );
+    }
+    if (mayRestructure) {
       more.push(
         row.isActive
           ? {

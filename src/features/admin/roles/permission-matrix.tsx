@@ -48,12 +48,17 @@ function useVocabulary() {
 export function PermissionMatrix({
   roleId,
   isSystem,
+  readOnly,
   rows,
 }: {
   roleId: string;
+  /** D41 — a system role: draws the system note and locks every control. */
   isSystem: boolean;
+  /** D41 — the viewer may not change this role (its door, roles:update): every control locked. */
+  readOnly: boolean;
   rows: RolePermissionRow[];
 }) {
+  const fixed = isSystem || readOnly;
   const { t } = useI18n();
   const label = useVocabulary();
   const setPermission = useSetRolePermission(roleId);
@@ -86,6 +91,10 @@ export function PermissionMatrix({
               <p data-testid="role-system-note" className="text-sm text-muted-foreground">
                 {t("admin.roles.systemLockedNote")}
               </p>
+            ) : readOnly ? (
+              <p data-testid="role-readonly-note" className="text-sm text-muted-foreground">
+                {t("admin.roles.readOnlyNote")}
+              </p>
             ) : null}
             {errorKey ? (
               <p
@@ -117,7 +126,7 @@ export function PermissionMatrix({
                     const reserved = !row.assignable;
                     const baseline = row.assignable && row.userBaseline;
                     const locked =
-                      isSystem ||
+                      fixed ||
                       (row.granted && row.isCore) ||
                       reserved ||
                       (baseline && !row.granted);
@@ -155,7 +164,7 @@ export function PermissionMatrix({
                               {t("admin.roles.perm.coreNote")}
                             </span>
                           ) : null}
-                          {reserved && !isSystem ? (
+                          {reserved && !fixed ? (
                             <span
                               data-testid={`role-permission-reserved-${slug}`}
                               className="text-xs text-muted-foreground"

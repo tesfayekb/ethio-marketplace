@@ -518,8 +518,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "post.photo.refusal.stock_watermark": "ይህ የውሃ ምልክት ያለው የተከማየ ፎቶ ይመስላል። የራስዎን ፎቶ ይጠቀሙ።",
   "post.photo.refusal.not_a_photo": "ይህ የዕቃው ፎቶ አይደለም።",
   "post.photo.refusal.providerUnavailable": "የፎቶ ማረጋገጫ አሁን አይሠራም። እባክዎ እንደገና ይሞክሩ።",
-  "post.photo.refusal.screeningPaused":
-    "የፎቶ ምርመራ ለጊዜው ቆሟል፤ ስለዚህ ይህ ማስታወቂያ አሁን አዲስ ፎቶ መቀበል አይችልም። እባክዎ ቆይተው እንደገና ይሞክሩ።",
   "post.photo.refusal.photoGone": "ይህ ፎቶ ከአሁን በኋላ በማስታወቂያው ላይ የለም።",
   "post.photo.refusal.publishFirst":
     "ማስታወቂያ ሳያወጡ ብዙ ፎቶዎችን አክለዋል። ተጨማሪ ፎቶ ለማከል ከማስታወቂያዎችዎ አንዱን ያውጡ።",

@@ -83,6 +83,7 @@ import {
 import { dateFormatter } from "@/lib/format";
 import { catalogText } from "@/i18n/entity";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (D109); bundle 11 A2 — on the agreed blocks
@@ -136,16 +137,18 @@ export function AdminScreeningPage({
   const { t, language, entities } = useI18n();
   const navigate = useNavigate();
   const { permissions } = useAdminShell();
-  const mayReview = permissions.includes("listings:review");
-  const mayReadEmail = permissions.includes("profiles:view");
+  const { mayCall } = useMayCall();
+  const mayReview = mayCall({ door: "admin_review_listing" });
+  const mayReveal = mayCall({ door: "admin_reveal_listing_contact" });
+  const mayReadEmail = mayCall({ door: "admin_list_users" });
   /** Bundle 13 turn 8 (D154 B4) — staff who may edit a listing see its photos with their marks. */
-  const mayEnforce = permissions.includes("listings:enforce");
+  const mayEnforce = mayCall({ door: "admin_edit_listing" });
   /** D169 — the preview links to the ad's own page in Admin › Listings, where Edit removes a photo. */
   const mayOpenListing = permissions.includes("listings:view");
   // N1b-3c (INC-977) — the held names' queue and the re-check's line; each door re-checks (F3).
-  const mayRename = permissions.includes("profiles:update");
-  const mayViewJob = permissions.includes("services:view");
-  const mayResumeJob = permissions.includes("services:manage");
+  const mayRename = mayCall({ door: "admin_name_check_clear" });
+  const mayViewJob = mayCall({ door: "admin_job_health" });
+  const mayResumeJob = mayCall({ door: "admin_job_resume" });
   const section = sectionById("screening");
   const queryClient = useQueryClient();
   const markets = useOpenMarkets();
@@ -442,7 +445,7 @@ export function AdminScreeningPage({
           </span>
         );
       }
-      if (!mayReview) return null;
+      if (!mayReveal) return null;
       const problem = revealProblems[channel];
       return (
         <>

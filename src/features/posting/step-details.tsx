@@ -84,6 +84,8 @@ export function StepDetails({
   onChange,
   refusals,
   onMissing,
+  assistOff = false,
+  onAssistOff,
 }: {
   listingId: string | null;
   categoryId: string | null;
@@ -108,6 +110,12 @@ export function StepDetails({
   refusals: Refusal[];
   /** D193 — THE MIRROR: `["title"]` while the title is blank (the door's `required`, step 5). */
   onMissing?: (fields: string[]) => void;
+  /**
+   * D19 — writing help answered `featureOff` earlier in this wizard session: the button is not
+   * drawn and the refusal line says why. Held by the wizard, as this step remounts per visit.
+   */
+  assistOff?: boolean;
+  onAssistOff?: () => void;
 }) {
   const { t, language, entities } = useI18n();
   const scope = useCatalogScope();
@@ -276,8 +284,12 @@ export function StepDetails({
       if (typeof reportedLeft !== "number") setTriesLeft(null);
       return;
     }
-    setAssistRefusal(answer.refusals[0]?.reason ?? "providerUnavailable");
+    const reason = answer.refusals[0]?.reason ?? "providerUnavailable";
+    setAssistRefusal(reason);
+    if (reason === "featureOff") onAssistOff?.();
   };
+  const assistHidden = assistOff || assistRefusal === "featureOff";
+  const shownAssistRefusal = assistRefusal ?? (assistOff ? "featureOff" : null);
 
   return (
     <div className="space-y-5" data-testid="post-details">
@@ -408,30 +420,32 @@ export function StepDetails({
       )}
 
       <div className="space-y-2">
-        <button
-          type="button"
-          data-testid="post-assist"
-          data-state={assisting ? "working" : history.length > 0 ? "done" : "idle"}
-          disabled={assisting || categoryId === null || spent}
-          className={
-            "inline-flex min-h-11 items-center gap-2 rounded-md border border-input px-4 text-sm " +
-            "font-medium text-foreground hover:bg-muted disabled:opacity-60"
-          }
-          onClick={() => void assist()}
-        >
-          <Sparkles
-            className="h-4 w-4 shrink-0"
-            aria-hidden="true"
-            data-testid="post-assist-icon"
-          />
-          <span>
-            {assisting
-              ? t("post.assist.working")
-              : history.length === 0
-                ? t("post.assist.action")
-                : t("post.assist.again")}
-          </span>
-        </button>
+        {assistHidden ? null : (
+          <button
+            type="button"
+            data-testid="post-assist"
+            data-state={assisting ? "working" : history.length > 0 ? "done" : "idle"}
+            disabled={assisting || categoryId === null || spent}
+            className={
+              "inline-flex min-h-11 items-center gap-2 rounded-md border border-input px-4 text-sm " +
+              "font-medium text-foreground hover:bg-muted disabled:opacity-60"
+            }
+            onClick={() => void assist()}
+          >
+            <Sparkles
+              className="h-4 w-4 shrink-0"
+              aria-hidden="true"
+              data-testid="post-assist-icon"
+            />
+            <span>
+              {assisting
+                ? t("post.assist.working")
+                : history.length === 0
+                  ? t("post.assist.action")
+                  : t("post.assist.again")}
+            </span>
+          </button>
+        )}
         <p className="text-xs text-muted-foreground">{t("post.assist.hint")}</p>
         {history.length > 0 && (
           <p className="text-xs text-foreground" data-testid="post-assist-done">
@@ -449,9 +463,9 @@ export function StepDetails({
               : fill(t("post.assist.triesLeft"), { left, max: ASSIST_TRIES })}
           </p>
         )}
-        {assistRefusal !== null && (
+        {shownAssistRefusal !== null && (
           <p className="text-sm text-destructive" data-testid="post-assist-refusal">
-            {t(draftRefusalKey(assistRefusal))}
+            {t(draftRefusalKey(shownAssistRefusal))}
           </p>
         )}
       </div>
