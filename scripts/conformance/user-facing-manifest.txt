@@ -1,0 +1,573 @@
+# The user-facing list (DEC-459, DEC-482, DEC-493): every control, event and list row a person meets, by screen.
+# Rows S* and A1–A27 come from the census at 8d64790355087fb1ce4816049c9ccda782b06bc0:.lovable/plan.md (sha256
+# 627133f0b143b72c4170b3249ee84ec09ac6a0fa13ff46b79b60600adbfd0fd8; copy: docs/features/user-facing-census.md); A28–A29 from Cursor 8c-1.
+# screen <id> | <page paths, space-separated, or -> | <heading>
+# <row id> | <test ids that answer the row, comma-separated, or -> | <the control or event, as the census names it>
+# A test also answers a row when its title carries `uf:<row id>`. A row with no test has its line in user-facing-allowlist.txt.
+
+screen S1 | / /c/$slug | Screen 1 — the feed: `src/routes/index.tsx` (36 lines) and `src/routes/c.$slug.tsx` (42 lines)
+S1.1 | FS-14 | Page heading, `nav.allListings` "All listings" / "ሁሉም ማስታወቂያዎች" (en-base:326, am-base:304); top row, feed.tsx:305-320
+S1.2 | FS-13,OLH-1,OLH-2,SCS-1 | Heading `feed.headingIn` "Listings in {location}" / "የ{location} ማስታወቂያዎች" (en-base:385, am-base:363); feed.tsx:310-316
+S1.3 | FV-1 | Favourite star, aria `shell.favouriteAdd` "Make favourite" / "ተወዳጅ አድርግ", `shell.favouriteRemove` "Remove favourite" / "ከተወዳጅ አስወግድ" (en-base:337-338, am-base:315-316); beside the heading on a category page only, feed.tsx:321-337
+S1.4 | FV-2,FV-AM-1 | Favourite hint `shell.favouriteHint` / `shell.favouriteIs` (en-base:340-341, am-base:318-319); a tooltip with a mouse, small text without one, feed.tsx:339-350
+S1.5 | - | Page Guide button (PageGuide, feed.tsx:354-369)
+S1.6 | FS-5 | Unknown category address: `error.pageNotFound` / `error.pageNotFoundBody` (en-base:44-45, am-base:41-42); feed.tsx:196-205
+S1.7 | - | The category lookup fails: `feed.errorTitle`, `feed.errorBody`, Retry `common.retry` (en-base:389-390, :35; am-base:367-368, :33); feed.tsx:206-208
+S1.8 | - | Loading spinner `feed.loading` "Loading listings…" / "ማስታወቂያዎች በመጫን ላይ…" (en-base:387, am-base:365); feed.tsx:209-214, :220-226
+S1.9 | FS-6,UFS-4 | First read fails: FeedError `feed-error` with Retry `feed-retry`; feed.tsx:215-216
+S1.10 | - | Server refusal 404 `unknownPlace` (api/feed.ts:82) — a place the device keeps that no longer exists
+S1.11 | - | Server refusal 404 `unknownCategory` after the lookup found the category (race)
+S1.12 | - | Refusals 400 `badCursor` / `badSize` / `badCategory` / `badPlace` (api/feed.ts:54-61, 150-162)
+S1.13 | FS-10,FS-18 | Empty list: the invitation alone; feed.tsx:217-219; texts `feed.invite.*` (invite-card.tsx:30-37; e.g. `feed.invite.none` en-base:404, am-base:382)
+S1.14 | - | Note `feed.emptyTitle` "Nothing here yet in your area" / "በአካባቢዎ እስካሁን ምንም የለም" (en-base:388, am-base:366); feed.tsx:231-235
+S1.15 | FS-13,FS-3 | Band headings `feed-step-label` (`nav.allListings` / `feed.headingIn`); feed.tsx:238-260
+S1.16 | FS-12,FS-3,STG-2,STG-6 | Invitation link `nav.postListing` "Post listing" / "ማስታወቂያ ይለጥፉ" (en-base:307, am-base:285); invite-card.tsx:55-63
+S1.17 | AP-14,PSP-1 | Listing card link (`listing-card-link`, listing-card.tsx:204-212); price `price.contact` (en-base:411, am-base:389)
+S1.18 | FS-2 | Next page on scroll (`feed-more`, feed.tsx:283-291; IntersectionObserver feed.tsx:147-158)
+S1.19 | - | Next page fails: FeedError `feed-more-error` with Retry; feed.tsx:285-286
+S1.20 | FS-11 | Signed out / signed in
+S1.21 | - | Sign-in ending mid-way
+S1.22 | - | Amharic page
+screen S2 | /l/$slug | Screen 2 — the ad page: `src/routes/l.$slug.tsx` (363 lines)
+S2.1 | AP-11 | Gone page: `adPage.gone.title` "This ad is no longer available" / "ይህ ማስታወቂያ ከእንግዲህ አይገኝም" (en-base:260, am-base:241); link `adPage.gone.home` "Back to Home" / "ወደ መነሻ ተመለስ" (en:263, am:243); l.$slug.tsx:98-106
+S2.2 | AP-26,AP-40,AP-56,AP-9,PP-22 | Photo gallery: main photo, previous/next, thumbnails, viewer (photo-gallery.tsx:142-429)
+S2.3 | AP-26,SAVE-1 | Save `adPage.save.add` "Save" / "አስቀምጥ" ↔ `adPage.save.saved` "Saved" / "ተቀምጧል" (en:207/256, am:188/237); action row, listing-detail.tsx:919-956
+S2.4 | AP-26,SAI-1,SAI-9 | Save signed out: Link with label `adPage.save.signIn` "Sign in to save this ad" / "ይህን ማስታወቂያ ለማስቀመጥ ይግቡ" (en:209, am:190) to `/auth?return=…#save` (l.$slug.tsx:325)
+S2.5 | - | Save refusal `listing-save-refusal` (listing-detail.tsx:797-804): `adPage.save.rateLimited` / `…rateLimitedWhen`, `adPage.save.failed` "The ad could not be saved — try again." (en:211-212, am:192-193)
+S2.6 | AP-23,AP-9,RI-1,RI-5 | Contact signed out: `adPage.contact.link` "Contact seller" / "ሻጩን ያግኙ" (en:206, am:187), listing-detail.tsx:1453
+S2.7 | AP-19,AP-20,AP-21,AP-22,AP-23,AP-26 | Show contact `adPage.contact.show` "Show contact" / "ግንኙነት አሳይ" (en:200, am:181), listing-detail.tsx:1482
+S2.8 | - | Contact refusal `listing-contact-refusal` (listing-detail.tsx:1534-1540): `adPage.contact.sellersCap`, `adPage.contact.rateLimited` (+When), `adPage.contact.failed` (en:201-204, am:182-185)
+S2.9 | - | Contact `acceptanceRequired` (SQL :62)
+S2.10 | AP-30,AP-57,DLG-E13,DLG-E7 | Share `adPage.share.open` "Share" / "አጋራ" (en:232, am:213), share-ad.tsx:56
+S2.11 | - | QR download `listing-share-qr-download` (share-ad-dialog.tsx:163)
+S2.12 | - | Copy failed / status `listing-share-status` (share-ad-dialog.tsx:131)
+S2.13 | AP-29 | Report signed out: `adPage.report.open` "Report this ad" / "ማስታወቂያውን ሪፖርት አድርግ" (en:214, am:195), report-ad.tsx:32
+S2.14 | AP-27,AP-29,KRA-1,KRA-3 | Report dialog: reasons, note `adPage.report.note`, Send `adPage.report.send` "Send report" / "ሪፖርቱን ላክ" (en:226, am:207); report-ad-dialog.tsx:95-175
+S2.15 | AP-11,AP-27,AP-29,RTW-16 | Report refusals `listing-report-status`: `adPage.report.already`, `…rateLimited` (+When), `…failed` (en:228-231, am:209-212); `badReason` / `noteTooLong` → generic (ad-page-refusals.ts:69-75)
+S2.16 | AP-35,SPA-E2E-1 | Seller block and `adPage.seller.allAds` "All ads by this seller" / "የዚህ ሻጭ ሁሉም ማስታወቂያዎች" (en:259, am:240), listing-detail.tsx:1074
+S2.17 | - | Map: enlarge, dialog, Google link, places-maps chooser (app / web / cancel) (listing-detail.tsx:1285-1414)
+S2.18 | AP-17,AP-36 | Section nav `adPage.sections.label` (listing-detail.tsx:1092-1110)
+S2.19 | - | Counts / failed counts `adPage.counts.unavailable` "The view count could not be loaded." / "የእይታ ቆጠራውን መጫን አልተቻለም።" (en:194, am:175), listing-detail.tsx:663-694
+S2.20 | - | Owner's own page: no Save/Report (l.$slug.tsx:315, :329); name-under-review notice (:197-213)
+S2.21 | AP-32,STG-4 | Similar ads `listing-similar` (similar-ads.tsx:69)
+S2.22 | - | Owner's edit or manage controls on this page
+S2.23 | - | Amharic; 768
+screen S3 | /$name | Screen 3 — a seller's page: `src/routes/$name.tsx` (72 lines)
+S3.1 | SPA-E2E-1 | Gone page `sellerPage.notFound` "This seller was not found." / "ሻጩ አልተገኘም።" (en:266, am:246) + `adPage.gone.home` link ($name.tsx:60-63)
+S3.2 | AP-35,SL-4 | Title `sellerPage.title` "Ads by {name}" / "የ{name} ማስታወቂያዎች" (en:264, am:244), seller-page.tsx:88-91
+S3.3 | AP-35 | Cards (`ListingCard`), seller-page.tsx:117
+S3.4 | - | Empty `sellerPage.empty` (en:265, am:245)
+S3.5 | - | Not found after the loader passed (`seller-page-not-found`, :54)
+S3.6 | - | Error `sellerPage.failed` + Retry `common.retry` (:58-70)
+S3.7 | - | Next page on scroll (:126-130)
+S3.8 | - | Signed in/out; Amharic; 768
+screen S4 | /legal/$kind /privacy /terms | Screen 4 — `legal.$kind`, `privacy`, `terms` (one table)
+S4.1 | LGP-1 | Title `legal.kind.privacy` "Privacy Policy" / "የግላዊነት መመሪያ", `legal.kind.terms` "Terms of Service" / "የአገልግሎት ውሎች" (en:712-713, am:656-657)
+S4.2 | LGP-1 | None yet `legal.page.none` "The {document} will be published here soon." (en:716, am:660); legal-document-page.tsx:51
+S4.3 | LGP-2 | Version switch `legal.page.showCurrent` / `showUpcoming` (en:718-719, am:662-663); :79-93
+S4.4 | LGC-6 | Fallback note `legal.fallbackNote` (am-base:22, en-base:23)
+S4.5 | - | Load error `legal.page.loadError` "This page could not be loaded." (en:720, am:664); :47, :135
+S4.6 | - | Per-country section `legal-public-section` (:126)
+S4.7 | - | 360 / 768 / signed in
+screen S5 | /legal/accept /legal/publishing | Screen 5 — `legal.accept` and `legal.publishing`
+S5.1 | LAC-1,SU-3 | Title `legal.accept.title` "Before you continue" / "ከመቀጠልዎ በፊት" (en:721, am:665)
+S5.2 | LAC-1 | Read / Hide `legal.accept.read` / `hide` (en:727-728, am:670-671), legal-accept-screen.tsx:131-137
+S5.3 | - | Document text load error `legal.accept.loadError` (:26-30)
+S5.4 | LAC-1,SU-3 | Agree tick (`AgreeToDocument`, :144-154) and `legal.accept.submit` "Agree and continue" / "ተስማምቼ እቀጥላለሁ" (en:741, am:683), :164-199
+S5.5 | - | Refusal `legal-accept-error`: `legal.accept.changed` (notInForce) / `legal.accept.error` (en:745-746, am:686-687)
+S5.6 | - | Status load error + `common.tryAgain` "Try again" / "እንደገና ይሞክሩ" (en:43, am:40), :100-105
+S5.7 | LAC-3 | Decline `legal.accept.decline` "Decline, sign out" / "ውድቅ አድርገው ይውጡ" (en:742, am:684), :204
+S5.8 | - | Signed out → sign in with the way back
+S5.9 | LGP-4 | Publishing page title `legal.kind.publishing` "Publishing statement" / "የማስታወቂያ ማረጋገጫ ቃል" (en:714, am:658)
+S5.10 | - | Publishing read fails (`PublishingError`, legal.publishing.tsx:87-100)
+S5.11 | - | Amharic; 360 / 768
+screen S6a | - | 6a Header — src/components/shell/app-header.tsx (286 lines), language-switcher.tsx, theme-toggle.tsx (33 lines)
+S6a.1 | SGS-1 | Inline search `shell.searchLabel` / `shell.searchPlaceholder` "Search listings" / "ማስታወቂያዎችን ይፈልጉ" (en-base:343-344, am-base:321-322); app-header.tsx:162-178, from md
+S6a.2 | - | Phone search toggle `search-toggle` (aria `shell.searchLabel`), :195-203; row `search-row`, close `shell.searchClose` "Close search" / "ፍለጋን ዝጋ" (en:346, am:324), Escape (:64-66)
+S6a.3 | CL-E1,OLS-10 | Language switch `language.label` "Language" / "ቋንቋ" (en:27, am:25), language-switcher.tsx:53; options `language-option-<code>` (:95)
+S6a.4 | FS-16 | Theme `shell.themeToggle` "Switch light or dark theme" / "ብሩህ ወይም ጨለማ ገጽታ ቀይር" (en:347, am:325), theme-toggle.tsx:20-21
+S6a.5 | - | Sign in `auth.signIn` "Sign in" / "ይግቡ" (en:49, am:45), app-header.tsx:273-278, from md only; hidden while the session is unknown (:272)
+S6a.6 | - | Account menu `shell.accountMenu` "Account menu" / "የአካውንት ዝርዝር" (en:345, am:323), :218-270: identity, Profile `nav.profile` → /account, Settings `settings.navLabel` → /settings, Sign out `auth.signOut` "Sign out" / "ይውጡ" (en:84, am:77)
+screen S6b | - | 6b Rail toggle, left rail and categories — app-rail.tsx (1,183 lines), favourite-category.ts
+S6b.1 | IN-1 | Rail toggle `shell.collapseRail` / `shell.expandRail` "Collapse sidebar" / "Expand sidebar" (en:372-373, am:350-351), app-shell.tsx:1086-1095, from md; phone menu (app-header.tsx:130)
+S6b.2 | B21SC-3,PSP-1,RM-1 | Categories `shell.categoriesLabel` "Categories" / "ምድቦች" (en:352, am:330): rows, submenu trigger, back `shell.mainMenu` "Main Menu" / "ዋና ዝርዝር" (en:336, am:314), app-rail.tsx:333-361, :494, :635
+S6b.3 | FV-1 | Favourite category row (app-rail.tsx:666)
+S6b.4 | - | Loading skeleton (:680) / empty `shell.categoriesEmpty` "No categories yet" / "እስካሁን ምድብ የለም" (en:353, am:331), :711-713
+S6b.5 | - | Tree read failed: `common.error` "Something went wrong" / "የሆነ ስህተት ተከስቷል" (en:34, am:32), :725-728
+S6b.6 | SO-4 | Rail sign-out `rail-sign-out` / `strip-sign-out` `auth.signOut` (:942-959)
+screen S6c | - | 6c Search row, panel tabs, breadcrumbs, location row and its notice
+S6c.1 | BND-E1,PS-5,PS-7,PS-9 | Panel tabs `shell.panelLabel` "Section" / "ክፍል" (en:350, am:328), panel-tabs.tsx:45-70
+S6c.2 | - | Breadcrumbs `shell.breadcrumbLabel` "Breadcrumb", Home `nav.home` "Home" / "መነሻ" (en:32, am:30); breadcrumbs.tsx:141-279 (home, ad, auth, account, admin crumbs)
+S6c.3 | BND-E1,FS-11 | Location row `location.rowLabel` "Showing listings in" / "ማስታወቂያዎች በ" (en:365, am:343); levels, `location.anyArea` "Any area" (en:358, am:336); location-selector.tsx:249-292
+S6c.4 | - | Location read failed `location.readFailed` "Areas could not be loaded — try again shortly" (en:364, am:342), :280-286; empty `location.empty` (en:363, am:341)
+S6c.5 | PN-1,PN-AM-1 | Place notice `location.noticeAsk` "Show listings in {place}?" with Switch / Keep `location.noticeSwitch` / `noticeKeep` (en:367-369, am:345-347), location-selector.tsx:343-364
+screen S6d | - | 6d Session idle warning and notice — app-shell.tsx:997-1034
+S6d.1 | SP-1,SP-2 | Warning `session.idleWarning` "You'll be signed out for inactivity in {s}s" (en:438, am:414); `session.staySignedIn` "Stay signed in" / "ገብቼ ልቆይ" (en:439, am:415)
+S6d.2 | - | Notice (`t(sessionNotice)`, :1022-1042); `common.dismiss` "Dismiss" / "ዝጋ" (en:437, am:413)
+screen S6e | - | 6e Bottom bar, on-demand notice, footer
+S6e.1 | PW-15,SP-8 | Bottom bar (`shell.panelLabel`), bottom-bar.tsx:106-173; phones only
+S6e.2 | PS-5 | Bottom Sign in → `/auth` (:160-161)
+S6e.3 | ODE-1,SBE-6 | On-demand notice `common.loadFailed` with Refresh `common.refreshPage` "Refresh page" / "ገጹን ያድሱ" (en:39-41, am:37-38) and Close `common.close`; on-demand-notice.tsx:37-60
+S6e.4 | - | Footer: Terms `footer.terms` → /terms, Privacy `footer.privacy` → /privacy (app-footer.tsx:9-11); About `footer.about`, Contact, Safety drawn as text (:82); copyright `footer.rights` (:94)
+screen S7 | /post /post/$listingId | Screen 7 — the wizard frame (every step)
+S7.1 | - | Signed out on `/post` or `/post/$id`
+S7.2 | - | Loading `post.loading` "Opening the form…" / "ቅጹ እየተከፈተ ነው…" (en-member:295, am-member:286), wizard.tsx:848
+S7.3 | PW-7 | Load error `post.error.load` "This draft could not be opened." / `post.error.notYours` "This draft belongs to another account." (en-member:296-297, am-member:287-288), wizard.tsx:860-861
+S7.4 | PW-135 | Step list (desktop aside, `post-step-list-item`, wizard.tsx:977-985) and progress `post.stepOf` (:1049-1059)
+S7.5 | PW-8 | Save state `post.save.saving` "Saving…" / `saved` "Saved" / `unsaved` "Not saved yet — we keep trying." (en-member:299-301, am-member:290-292), wizard.tsx:1101-1106
+S7.6 | PW-8 | Retry `post.action.retry` "Try again" / "እንደገና ይሞክሩ" (en-member:294, am-member:285), wizard.tsx:1141-1145
+S7.7 | - | Paused `post.save.paused` "Saving paused for {seconds} s" (en-member:520, am-member:498), wizard.tsx:1134-1135
+S7.8 | - | Edit problem `post-edit-problem` (wizard.tsx:1126)
+S7.9 | PW-2 | Category chip and Change `post.category.change` "Change" / "ቀይር" (en-member:308, am-member:299), wizard.tsx:1155-1169
+S7.10 | PW-26,PW-72 | Category-changed notice: Undo `post.specs.resetUndo`, dismiss `post.category.changedDismiss`, photos recheck (wizard.tsx:1187-1233)
+S7.11 | PP-12,PW-123,PW-13 | Back `post.action.back` "Back" / "ተመለስ" (en-member:292, am-member:283), wizard.tsx:1279-1314; Back to review (:1327-1336)
+S7.12 | A11Y-2,AL-20 | Next `post.action.next` "Next" / "ቀጥል" (en-member:293, am-member:284); in an edit `myListings.editBox.save`; wizard.tsx:1342-1384
+S7.13 | MLA-17,PW-1,PW-192 | Next blocked `post.category.nextBlocked` "Choose a category to continue." / `post.nextBlocked.required` "Fill in what is needed to continue." (en-member:603-604, am-member:578-579), wizard.tsx:1400-1412
+S7.14 | PW-162,PW-8 | Next unreachable (`post-next-unreachable`, `post.save.unsaved`), wizard.tsx:1391-1394
+S7.15 | - | Door refusals `notYourListing` / `notADraft` / `listingNotFound` from `submit_listing`
+S7.16 | - | Sign-in ends mid-way
+S7.17 | - | Amharic; 768
+screen S7s1 | - | Screen 7, step 1 — Category (step-category.tsx, 476 lines)
+S7s1.1 | - | Why line `post.category.why` "The category decides which details buyers can search by." (en-member:302, am-member:293), :247
+S7s1.2 | PW-171 | Used before `post.category.recentLabel` "Used before:" / "ከዚህ በፊት የተጠቀሙባቸው፦" (en-member:303, am-member:294); chips `post-category-recent` (:253-277); read `my_recent_categories` (posting-service.ts:656)
+S7s1.3 | A11Y-2,PP-20 | Search, placeholder `post.category.searchPlaceholder` "e.g. phone" / "ለምሳሌ ስልክ" (en-member:304, am-member:295), :300-305
+S7s1.4 | PW-105 | Searching `post.category.searching` (:372-375) / no hits `post.category.noHits` "Nothing matched. Try another word, or browse below." (en-member:306, am-member:297)
+S7s1.5 | PW-86 | Search failed → `post.category.nameMatchesOnly` "Showing name matches only." (en-member:608, am-member:583), :364-366
+S7s1.6 | PW-52,PW-62,PW-87 | Browse: folders, leaves, trail, `post.category.allRoots` "All categories" (en-member:625, am-member:599), :404-463
+S7s1.7 | PW-87 | Current choice and Keep it `post.category.keepIt` "Keep it" / "ይህንኑ ያቆዩ" (en-member:607, am-member:582), :324-334
+S7s1.8 | PW-1 | Choose one `post.category.chooseOne` "Choose a category from the list." (en-member:605, am-member:580), :358-359
+S7s1.9 | - | Tree failed `post.category.treeError` "The categories could not be loaded." / "ምድቦቹ መጫን አልቻሉም።" (en-member:309, am-member:300), :229-234
+S7s1.10 | - | Door refusal `categoryNotPostable` → `post.refusal.categoryNotPostable` (refusal-text.ts:47)
+S7s1.11 | - | AI assist
+S7s1.12 | - | Amharic; 360 / 768
+screen S7s2 | - | Screen 7, step 2 — Photos (step-photos.tsx, 1,066 lines)
+S7s2.1 | MLA-19,PW-29 | Why line `post.photos.why` (en-member:311, am-member:302), :879; count `post.photos.count` "{count} of {max}" (en-member:314, am-member:304), :885-886
+S7s2.2 | LGC-5,PP-10,PW-4 | Add `post.photos.add` "Add photos" / "ፎቶዎች ጨምር" (en-member:313, am-member:303); input `post-photos-input`, drop zone `post-photos-drop` (:854, :975-984)
+S7s2.3 | PP-10 | Row state `post.photos.preparing` / `post.photos.uploading` "Sending… {percent}%" / `post.photos.done` (en-member:322, am-member:312), :664-668
+S7s2.4 | PP-10,PP-11 | Final refusal `post.photos.refusedFinal` "This photo can't be used. Choose a different one." / "ይህ ፎቶ መጠቀም አይቻልም። ሌላ ይምረጡ።" (en-member:463, am-member:444), :675-676
+S7s2.5 | - | Row refusal reason (`post-photo-row-refusal`, :682) — words by code: `unsupportedFormat` "Only JPEG, PNG and WebP photos are accepted." (en-base:549, am-base:509), `tooLarge` "This photo is too large." (en-base:551, am-base:511), `tooManyPhotos` (en-base:554, am-base:513), screening codes (`nudity` … `not_a_photo`), `rateLimited`, `publishFirst`, `photoGone`, `screeningPaused`
+S7s2.6 | PP-10 | Send again `post.photos.retry` "Send again" / "እንደገና ላክ" (en-member:324, am-member:314), :691-697
+S7s2.7 | PP-15 | Make cover `post.photos.makeCover` "Make cover" / "ሽፋን አድርግ" (en-member:317, am-member:307), :703-707, :761-766
+S7s2.8 | PP-11,PP-15,PW-4 | Remove `post.photos.remove` "Remove" / "አስወግድ" (en-member:318, am-member:308), :712-716, :771-776
+S7s2.9 | PP-17 | Move earlier / later `post.photos.moveUp` "Move earlier" (en-member:319, am-member:309) / `moveDown`, :798-818
+S7s2.10 | PP-27 | Edit `post.photos.edit` "Edit photo" (en-member:326, am-member:316), :822-832
+S7s2.11 | PP-30 | Background `post.photos.background`, :837-845; hint `post.photos.backgroundCoverOnly` (:961-962)
+S7s2.12 | PP-29,PP-33 | Hidden photo and why (`post-photo-review`, :616-621); not-relevant warning `post.photos.notRelevant` (:584-590)
+S7s2.13 | MLA-16,PW-141 | No photos `post.photos.none` (en-member:315, am-member:305), stand-in `post.photos.standIn`, photos-soon tick `post.photos.soonTick` (:892-920)
+S7s2.14 | - | Photos-soon failed `post.photos.soonFailed` "That could not be saved. Please try again." (en-member:519, am-member:497), :942-944
+S7s2.15 | - | Sign-in ends mid-way during an upload
+S7s2.16 | - | Amharic; 360 / 768
+screen S7s3 | - | Screen 7, step 3 — Specifications (step-specifications.tsx, 1,921 lines)
+S7s3.1 | - | No category `post.specs.needCategory` (:1190)
+S7s3.2 | - | Load failed `post.specs.loadFailed` "These details could not be loaded." (en-member:439, am-member:421), or the dial text; :1197-1198
+S7s3.3 | PW-8 | None `post.specs.none` "This category asks for no extra details." (en-member:434, am-member:418), :1226
+S7s3.4 | AL-23,PW-44 | Field control (select `post.specs.choose` "Choose", number, text, year) `post-attr-control`, :1369-1400
+S7s3.5 | PW-161 | Unit `post-attr-unit` (:1432)
+S7s3.6 | PW-34 | Colour swatches (:1537-1573)
+S7s3.7 | PW-108 | Other + text `post.specs.otherPlaceholder` "Say what it is" (en-member:443, am-member:425), :1601-1606
+S7s3.8 | PW-120 | Checks, multi `post-attr-check` (:1634-1642)
+S7s3.9 | - | Dependent: `post.specs.parentFirst` "Choose {parent} first." (en-member:565, am-member:540), :1701; none for parent `post.specs.noneForParent` (:1710-1713)
+S7s3.10 | - | Model values: set by model (:1689), from model (:1721), differs + `post.specs.useModelValue` "Use model's value" (en-member:568, am-member:543), :1734-1748
+S7s3.11 | PW-145 | Options failed `post.specs.optionsFailed` "The choices could not be loaded. Tap again to retry." / `post.specs.rateLimited` (en-member:442, am-member:424), :1756-1762
+S7s3.12 | - | Help and More (:1769-1793)
+S7s3.13 | PW-5 | Bounds and hints `post.specs.boundsHint` / `lengthHint` / `presetHint` / `multiHint` (:1803-1819)
+S7s3.14 | PW-32 | Model reset `post.specs.resetForModel` "Details reset for {model}" (en-member:570, am-member:545) + Undo `post.specs.resetUndo` (:1879-1909)
+S7s3.15 | PW-192 | Required gate: Next shows `post.nextBlocked.required` (wizard.tsx:1400-1412) and the field's `required` words
+S7s3.16 | - | Amharic; 360 / 768
+screen S7s4 | - | Screen 7, step 4 — Price (step-pricing.tsx, 726 lines)
+S7s4.1 | PW-121 | Mode `post.price.modeLabel` "How are you pricing it?" (en-member:698, am-member:670); buttons `post-price-mode-<mode>` (:408-435)
+S7s4.2 | - | Not allowed `post.price.notAllowed` "This category is posted without a price." (en-member:359, am-member:345), :440
+S7s4.3 | - | Mode refusal `post-price-mode-refusal` (`draftRefusalKey`), :445-446
+S7s4.4 | CL-E5,PW-10,PW-17 | Currency `post.price.currencyLabel` "Currency" (en-member:696, am-member:668); search `post.price.currencySearch` "Search by code or name" (en-member:366); More currencies `post.price.moreCurrencies` (en-member:610, am-member:585); :456-545
+S7s4.5 | - | Currency list failed `post.price.currencyFailed` "The currency list could not be loaded. Try again in a moment." (en-member:368, am-member:354), :461-462
+S7s4.6 | MLA-13,PW-89 | Amount `post.price.amountLabel` "Amount" (en-member:695, am-member:667), :578; scale `post.price.scaleLabel` "Amount in" + none / thousand / million (:601-613)
+S7s4.7 | PW-55 | Commission `post.price.commissionLabel` "Commission (%)" (en-member:372, am-member:358), :624-631
+S7s4.8 | PW-64 | Negotiable `post.price.negotiableToggle` "Price is negotiable" / "ዋጋው የሚደራደር ነው" (en-member:356, am-member:342), :652-661
+S7s4.9 | PW-10 | Period `post.price.periodLabel` "Per" (en-member:699, am-member:671), :674-681; fixed `post.price.periodFixed` "This category is always priced {period}." (en-member:369, am-member:355), :700-714
+S7s4.10 | - | Door refusals listed above, shown at Next
+S7s4.11 | - | Amharic; 360 / 768
+screen S7s5 | - | Screen 7, step 5 — Details and the AI assist (step-details.tsx, 462 lines)
+S7s5.1 | AL-20,PW-140,PW-162 | Title `post.details.titleLabel` "Title" (en-member:693, am-member:665), :288-310; built note `post.details.titleBuilt` "Written from your answers. Change it as you like." (en-member:451, am-member:433), :294; count `post.details.count` (:299)
+S7s5.2 | CL-E6,PW-121 | Description `post.details.descriptionLabel` "Description" (en-member:692, am-member:664), :327-343
+S7s5.3 | - | Phone in text (`judgeContact`, :226, :319, :355) → `post.refusal.contactInText` "Leave phone numbers out. Buyers contact you through the app." (en-base:597, am-base:551)
+S7s5.4 | MLA-18,PW-6 | Write for me `post.assist.action` "Write for me" / "ለእኔ ይጻፍልኝ" (en-member:457, am-member:438); again `post.assist.again` (en-member:537); working (:429); :413-432
+S7s5.5 | PW-6 | Suggestions and Use this one `post.assist.use` "Use this one" / "እሱን ተጠቀም" (en-member:536, am-member:513), :367-403
+S7s5.6 | MLA-18,PW-6 | Tries `post.assist.triesLeft` "{left} of {max} tries left" / `post.assist.exhausted` (en-member:533-534, am-member:510-511), :444-449; button disabled when spent (:416)
+S7s5.7 | - | Assist refusal `post-assist-refusal` `t(draftRefusalKey(...))`, :453-454: budget, featureOff, providerUnavailable, rate
+S7s5.8 | - | Switch off
+S7s5.9 | - | Amharic; 360 / 768
+screen S7s6 | - | Screen 7, step 6 — Place (step-where.tsx, 2,265 lines; map under src/features/posting/map/)
+S7s6.1 | - | Market `post.where.marketLabel` / `marketChoose` (:725-744); loading `post.where.marketLoading`; failed `post.where.marketFailed` (:1571-1574); unresolved `post.where.marketUnresolved` (:1622-1623)
+S7s6.2 | - | Tree loading / failed `post.where.treeLoading` / `treeFailed` (:1627-1631)
+S7s6.3 | PW-11,PW-117 | Add country / region / city / sub-city `post.where.addCountry` / `addRegion` / `addCity` / `addSubCity` (:352-357, :663-688, :1715-1719)
+S7s6.4 | - | No regions `post.where.noRegions` (:451-453); "All of" `post.where.allOf` (:581-582)
+S7s6.5 | PW-117,PW-20 | Remove `post.where.removePlace` (:391-396)
+S7s6.6 | PW-116,PW-180 | Prefilled `post.where.prefilled` (:1738-1739)
+S7s6.7 | PW-90 | Reach / plan line and toggle (`post.where.planLine*`, :1756-1795)
+S7s6.8 | MLA-17,PW-80 | Place refusal `post-where-refusal` (`cityRequired` etc., :1726-1731)
+S7s6.9 | - | Map pin: open sheet `post-pin-sheet`, search `post-pin-search`, results / none `post-pin-noresults`, locate me `post-pin-locate`, street / satellite layers, Save `post-pin-save`, Cancel `post-pin-cancel` (map/*.tsx)
+S7s6.10 | - | Pin outside the market `post-pin-outside`; pin error `post-pin-error`; map failed (`MapFailedHere`, step-where.tsx:49)
+S7s6.11 | - | Pin door refusals `badLatitude` / `badLongitude` / `badPrecision` / `badZoom` / `directionsTooLong`
+S7s6.12 | - | Amharic; 768
+screen S7s7 | - | Screen 7, step 7 — Contact (step-who.tsx, 1,255 lines)
+S7s7.1 | - | Identity read failed `post.who.readFailed` + raw class (:684-688)
+S7s7.2 | PW-150 | Saved identity and Edit `post.who.edit` (:694-705)
+S7s7.3 | - | Type person / business `post.who.typeLabel` / `typeBusiness` (:724-754) + type refusal
+S7s7.4 | PW-148 | Business name `post.who.businessLabel` (:763-771)
+S7s7.5 | PW-12,PW-134 | First / last name `post.who.firstNameLabel` / `lastNameLabel` (:798-831) + hint
+S7s7.6 | - | Alias `post.who.aliasLabel`, rules, checking `post.who.aliasChecking`, available `post.who.aliasAvailable`, suggestions (:860-949)
+S7s7.7 | - | Alias change rule `post.who.aliasChangeFirst` / `aliasCorrectionWindow` / `aliasNextChange` (:920-935)
+S7s7.8 | PW-114,PW-12 | Channels: messages (always on, `post.who.messagesCannotOff`), phone / second phone / Telegram / WhatsApp (`post-who-channel-*`, :969-1062)
+S7s7.9 | CL-E6,MLA-15 | Values `post-who-value-*` (phone field, :1081)
+S7s7.10 | - | Phone library failed `post.who.phoneLibFailed` + `common.refreshPage` (:990-1001)
+S7s7.11 | - | Carried contact `post.who.contactFromLastPost` (:1006-1007)
+S7s7.12 | - | Messages refusal (`messagesRequired`, :1011)
+S7s7.13 | - | Amharic; 360 / 768
+screen S7s8 | - | Screen 7, step 8 — Review and Publish (step-review.tsx, 952 lines)
+S7s8.1 | AL-20,SC-25 | Summary rows and Edit `post.review.edit` "Edit" / "አስተካክል" (en-member:563, am-member:538), :611-659; not given `post.review.notGiven`
+S7s8.2 | - | Identity failed in the summary + raw class (:597-598)
+S7s8.3 | DLG-E8,PP-22 | Preview as buyer `post.review.previewAsBuyer` (en-member:627, am-member:601), :696-700
+S7s8.4 | - | Active window and take-down switch `post.review.takeDownSwitch` "Take it down on a date" (en-member:527, am-member:504), :754-802
+S7s8.5 | LGC-1 | Statement `post.review.statement` (en-member:524), :898-899; certification tick
+S7s8.6 | LGC-1,PW-123 | Publish `post.review.publish` "Publish" / "አውጣ", busy `post.review.publishing` (en-member:505-506, am-member:484-485), :904-944
+S7s8.7 | - | Refusals `post-review-refusal` + fix button `post-review-fix` (:835-848)
+S7s8.8 | - | Unreachable `post-review-failed` (:824-825)
+S7s8.9 | - | Acceptance asked mid-publish (`acceptanceRequired`)
+S7s8.10 | LGC-1,PS-1,PW-123 | Success: in review `post.review.reviewBody` (:484-489); share (checking / wait, :492-527); My listings `nav.myListings`, Home (:539-550)
+S7s8.11 | - | Amharic; 360 / 768
+screen S8 | /my-listings | Screen 8 — My listings: `src/routes/my-listings.tsx` (36 lines) → my-listings-page.tsx (965 lines)
+S8.1 | MLP-3 | Signed out
+S8.2 | MLP-6 | Header `nav.myListings`; Post `nav.postListing` (:683-690)
+S8.3 | MLP-10,MLP-2,MLP-5,MLP-6 | Groups, search `myListings.searchPlaceholder` (:770-774), Filters (category, mark `myListings.filter.mark`, :198-210), Columns
+S8.4 | - | Loading `common.loading` (:737) / empty `myListings.empty` "No listings here yet." (en-member:82, am-member:83), :760
+S8.5 | - | Failed `myListings.loadError` "Your listings could not be loaded." + raw class + Retry `common.retry` (:743-755)
+S8.6 | LVP-1,MLA-14,MLP-6,MLP-8 | Row ⋯: Edit `myListings.edit` (:499), Open `myListings.open` (:530), Share `adPage.share.open` (:542), Promote `myListings.action.promote` "Promote ad" (:559), Post similar `myListings.action.copy` (:569), Delete `myListings.action.delete` (:518), and the state actions (reserve, sold, close, reopen, renew, resume) via `take(action)` (:553)
+S8.7 | MLA-5,MLA-7 | Confirm `my-listings-confirm` with Cancel / Yes (:875-896)
+S8.8 | MLP-7 | Bulk actions (`my-listings-bulk-*`, :660, :825), from tablet width
+S8.9 | - | Action refusals in the seller family (above)
+S8.10 | - | Pager (DataTable keyset)
+S8.11 | - | Amharic; 768
+screen S9 | /my-listings/$listingId | Screen 9 — one ad: `src/routes/my-listings_.$listingId.tsx` (45 lines) → my-listing-page.tsx (875 lines)
+S9.1 | MLA-3 | Back `nav.myListings` (:163-167)
+S9.2 | - | Loading / error `myListings.ad.loadError` "This ad could not be loaded." + Retry (:361-375) / not found `myListings.ad.notFound` (en-member:104-105, am-member:105-106), :385
+S9.3 | MLA-3 | Open public page `myListings.ad.openPublic` (:475-478)
+S9.4 | MLA-13,MLA-6 | Edit (:499-506) / Continue on a draft `myListings.continue` (:515-517)
+S9.5 | FSL-3,MLA-12,MLA-3,MLA-4,MLA-5,MLA-6,MLA-7,MLA-9 | State actions (reserve, sold, close, reopen, renew, resume, delete) in the action bar (:467-575)
+S9.6 | LDR-2,LVP-1,LVP-2,LVP-5 | Promote `myListings.action.promote` (:548-553) → promote-sheet.tsx: level and reach choices
+S9.7 | - | Post similar (:562-567)
+S9.8 | MLP-8 | Share (row ⋯ / share sheet)
+S9.9 | MLA-11 | Problem line `my-listing-problem` (:587); paused help `myListings.pausedHelp` (:615-616); in review `myListings.ad.waiting` (en-base:121)
+S9.10 | MLA-3,MLA-4 | Visibility, dates, sold days (:621-659)
+S9.11 | - | As buyers see it, identity failed + raw class (:667-671)
+S9.12 | ML-9,MLA-2 | History lines (:767-792) / empty `myListings.history.empty`
+S9.13 | - | Amharic; 360 / 768
+screen S10 | /my-listings/$listingId/edit | Screen 10 — edit: `src/routes/my-listings_.$listingId_.edit.tsx` (59 lines)
+S10.1 | MLA-13,MLA-14 | Opens on Review; Category has no Edit
+S10.2 | MLA-13,MLA-15 | Next reads `myListings.editBox.save`; Done `myListings.editBox.done` / `doneReview` (wizard.tsx:1117-1118, :1384)
+S10.3 | - | `edit_my_listing` refusals (migration 20261115204100:72-142): `nothingChanged` → `myListings.editBox.nothing` "Nothing has changed yet." (en-base:168); `inReview` → `myListings.ad.waiting`; `notYourListing` / `listingNotFound` → notYours; `notEditable`, `draftNotEdited`, `renewFirst`, `listingNotEditable`, `badShape`, `streetTooLong` → no line in SELLER_DOOR_REFUSALS (my-listing.ts:268-288); `contactInNote`, `directionsTooLong` → posting words / generic
+S10.4 | MLA-16 | Photos soon on a closed ad
+S10.5 | MLA-17 | Place with no city closes Save
+S10.6 | MLA-18 | Assist tries read before a click
+S10.7 | MLA-19 | Photo cap at the ad's level
+screen S11 | /account | Screen 11 — Account: `src/routes/account.tsx` (30 lines, `requireSignedIn` :10) → account-overview.tsx (276 lines)
+S11.1 | - | Loading `common.loading` / failed `account.overview.loadError` "Your account overview couldn't be loaded." (en-member:55, am-member:56), :130-134
+S11.2 | PW-151 | Profile: alias, seller type, business, member since, home country, full name, channels (:138-194); `account.overview.notSet`
+S11.3 | - | Edit profile `account.overview.editProfile` (:216)
+S11.4 | MLP-4 | Listings counts `account-listings-counts` (:219-237); none `account.overview.noListings`; Open `account-open-listings`
+S11.5 | - | Saved and notifications cards; empty `account.overview.nothingSaved` / `noNotifications` (:242-249)
+S11.6 | LGH-1 | Legal card, Open `account.legal.open` "Open" (en-member:144), :252-256
+S11.7 | - | Quick actions `nav.postListing`, `nav.signInSecurity` (:260-266)
+S11.8 | - | Seller review notice (`SellerReviewNotice`, :24-25)
+S11.9 | - | Amharic; 360 / 768 / 1280
+screen S12 | /account/saved | Screen 12 — Saved: `src/routes/account_.saved.tsx` (29 lines, `requireSignedIn` :9) → saved-page.tsx (155 lines)
+S12.1 | - | Loading / failed `account.saved.failed` "Your saved ads could not be loaded — try again." (en-member:80, am-member:81), :88-93
+S12.2 | SAVED-2 | Empty `account.saved.empty` (en-member:76), :96-97
+S12.3 | SAVED-1 | Saved card (`saved-item`, :104), opens the ad; sold ribbon
+S12.4 | SAVED-1 | Gone ad: `account.saved.unavailable` "No longer available" (en-member:77), :118-121
+S12.5 | - | Remove `account.saved.remove` "Remove" (en-member:78), :129-133
+S12.6 | - | Show more `account.saved.more` (en-member:79), :146-150
+S12.7 | SAVED-1 | Signed out: sign-in return
+S12.8 | - | Amharic; 360 / 768
+screen S13 | /account/legal | Screen 13 — My legal documents: `src/routes/account_.legal.tsx` (29 lines) → my-legal-page.tsx (130 lines)
+S13.1 | - | Loading / failed `myLegal.loadError` "Your legal documents could not be loaded." (en-member:656, am-member:630), :46-51
+S13.2 | LGH-1,LGH-3 | Acceptances, with meta `myLegal.acceptedMeta`, adult line, consent (:54-86); none `myLegal.noAcceptances`
+S13.3 | LGH-1 | Open a version `myLegal.open` (:35-36)
+S13.4 | LGH-1,LGH-3 | Notices `myLegal.notices` / none `myLegal.noNotices` (:95-114)
+S13.5 | - | Amharic; 360 / 768
+screen S14 | /account/legal/$versionId | Screen 14 — one version: `src/routes/account_.legal_.$versionId.tsx` (34 lines) → my-legal-version.tsx (74 lines)
+S14.1 | LGH-2 | Back `myLegal.back` (:25-26)
+S14.2 | LGH-2 | Not his / bad id: `myLegal.notFound` "This document is not available." (en-member:655), :38-39
+S14.3 | - | Failed `myLegal.loadError` (:41-43)
+S14.4 | LGH-2 | Text with version and frozen facts; fallback note `legal.fallbackNote` (:53-59)
+S14.5 | - | Amharic; 360 / 768
+screen A1 | /admin | Screen A1 — admin shell: `src/routes/admin.tsx` (118 lines)
+A1.1 | A-6,A-8 | Enter /admin
+A1.2 | A-7 | Deep link to a section
+A1.3 | - | Permission read fails
+A1.4 | A-5,IN-1 | Rail items and groups (Categories group with sub-items)
+A1.5 | A-4 | Admin tab from the marketplace
+A1.6 | - | Menu alert (`legalReview`)
+A1.7 | - | Amharic; 360 / 768 / 1280
+screen A2 | /admin/ | Screen A2 — dashboard: `src/routes/admin.index.tsx` (73 lines)
+A2.1 | A-6 | Title `admin.landing.title`, body `admin.landing.body` (:43, :64)
+A2.2 | A-7 | Access notice `admin-access-notice` (:45-53)
+A2.3 | A-6,A-7 | Section cards `admin-section-link-<id>` (admin-nav.tsx:24-30), filtered by permission (`useAdminSections`)
+A2.4 | - | No sections `admin.noSections.title` / `body` (:56-61)
+A2.5 | - | Amharic; 360 / 768
+screen A3 | /admin/users | Screen A3 — Users: `src/routes/admin.users.tsx` (41 lines) → users/users-list.tsx (310 lines)
+A3.1 | AU-1 | Enter the page
+A3.2 | AU-2 | Search `admin.users.searchPlaceholder` (:260-263)
+A3.3 | AU-2 | Status filter `admin.users.statusFilter` (:114) and role filter `admin.users.roleFilter` (:128)
+A3.4 | AU-13 | Columns: name, email, country, status, roles, joined (:154-207); row opens the person
+A3.5 | - | Loading `admin.users.loading` / failed `admin.users.error` "Users could not be loaded." (en-admin:86) / empty `admin.users.empty` (en-admin:87), :244-253
+A3.6 | AU-13 | Pager and page size (DataTable keyset)
+A3.7 | - | Amharic; 360 / 768 / 1280
+screen A4 | /admin/users/$userId | Screen A4 — one person: `src/routes/admin.users_.$userId.tsx` (34 lines) → users/user-detail.tsx (661 lines)
+A4.1 | AU-7 | Back `admin.users.detail.back` (:87), crumb
+A4.2 | - | Loading / failed `admin.users.error` / not found `admin.users.detail.notFound` "This user does not exist." (en-admin:98), :93-104
+A4.3 | AU-3 | Identity: email, alias, country, joined, last sign-in (:143-149)
+A4.4 | AU-3,AU-6,AU-8 | Status: reason `deactivate-reason` (:206-219), "reason required" `admin.users.status.reasonRequired` (en-admin:108), :231-234; Deactivate / Activate (:240-267)
+A4.5 | - | Status refused: `badValue`, `required`, `unknownUser`
+A4.6 | AU-4 | Roles: chips, System role `admin.users.roles.locked` (en-admin:120), Remove `role-remove-<role>` (:293-311); Assign select + `assign-role` (:326-357)
+A4.7 | - | Role refused: `roleReserved`, `unknownRole`, `badCountryCode`, `unknownUser`
+A4.8 | - | View as (ImpersonationStarter): Start `impersonation-begin`, reason `impersonation-reason` (impersonation-starter.tsx:55-114); short reason `impersonation.reasonTooShort` (:60)
+A4.9 | - | View-as refused: `impersonateSelf`, super-admin target, `unknownUser`, `badLength`, `sessionActive`
+A4.10 | AU-3,AU-9 | Activity list `user-activity-list` (:381-420), loading / error / empty
+A4.11 | AU-11,AU-9 | Edit profile: name, alias, alias reason, country, Save `edit-save`, saved `edit-saved`, error `edit-error` (:480-637)
+A4.12 | - | Edit refused (`PROFILE_EDIT_REFUSALS`, admin-users-service.ts:247-262): `permissionDenied` → `errorPermission` "You are not allowed to edit this profile." (en-base:449); `nameRequired` → `errorNameRequired` "A display name is required." (en-base:444); `unknownCountry` → `errorCountry` "That country is not available." (en-base:447); `aliasShape` → `errorAliasFormat` "That seller alias is not allowed." (en-base:446); `aliasTaken` → `errorAliasTaken` "That seller alias is already taken." (en-base:445); `aliasReserved` → `errorAliasReason` "This name needs a reason before it can be set." (en-base:442); step-up → `errorStepUp`; `unknownUser` / `rateLimited` → generic `admin.users.edit.failed` "The profile could not be saved." (en-base:443)
+A4.13 | - | Translator block (:370)
+A4.14 | AU-14 | Deactivated staff hold no permission
+A4.15 | - | Amharic; 360 / 768
+screen A5 | /admin/listings | Screen A5 — All listings: `src/routes/admin.listings.tsx` → admin-listings/listings-page.tsx (LP)
+A5.1 | AL-10,AL-11,AL-13 | Views all / live / waiting / ended / removed (LP:287-288, :608-619); search (:669-678)
+A5.2 | - | Filters: country, category (multi), seller, level, from / to dates; chips; Columns (LP:175-221, :681-698)
+A5.3 | AL-13,AL-14,AL-17,ATR-6,ATR-7 | Row open; ⋯ menu: Send back, Remove, Restore (move-reasons.ts:42-48), Set level, View as seller (LP:307-343)
+A5.4 | AL-14 | Move dialog: reason, note (Other requires a note, max 500 characters), confirm (move-dialog.tsx:72-143)
+A5.5 | AL-13,AL-7 | Move refusals: `listingNotFound`, `ownListing`, `illegalTransition`, `severeRestore`, `rateLimited`(+when), `permissionDenied`, `noteRequired`, `noteTooLong`, `noFreeSlot` → own words (en-member:231-279); others → generic
+A5.6 | ATR-1,ATR-4 | Level dialog: pick, days, reason, note (tier-dialog.tsx:70-217). Refusals: `badValue:tier` → "Unknown level."; `nothingChanged` → "The ad already has this level."; `listingRemoved` → "A removed ad takes no level." (en-admin:367-369); `badDays` (en-admin:2219); `ownListing`, `listingNotFound`, `noteRequired`, `noteTooLong` → shared words; `badValue:reason` → `admin.listings.move.pickReason`
+A5.7 | AL-11,AL-15 | Selection and bulk Remove / Restore, one guarded move per ad (LP:345-391, :704-740)
+A5.8 | AL-30 | Settings: renew allowed and days (listing-settings.tsx:124-239). `badValue:renew_days` → "A whole number from 1 to 365." (en-admin:393); others → "The settings were not saved." (en-admin:397)
+A5.9 | AL-31 | Report count per row (LP:547-555), `admin_open_report_counts` (`listings:review`, 20261118012900:256; `badSize` :258)
+A5.10 | SC-22 | Photo warning per row (LP:466-468), `admin_warned_listings`
+A5.11 | - | Loading / empty `listings-empty` / failed `common.error` + Retry (LP:635-661); pager (DataTable)
+A5.12 | - | Amharic; 360 / 768 / 1280
+screen A6 | /admin/listings/$listingId | Screen A6 — one listing: `admin.listings_.$listingId.tsx` → admin-listings/listing-page.tsx (DP)
+A6.1 | AL-16,AL-18 | Loading; not found `admin.listings.detail.notFound`, else `common.error` (DP:208-225); Back
+A6.2 | - | Edit (DP:487-504); Send back / Remove / Restore (:506-519); Set level (:521-535); View as seller (:537-549)
+A6.3 | AL-13,AL-7,ATR-1,ATR-4 | Move / level refusals
+A6.4 | AL-17 | Buyer preview `listing-as-seen` (DP:563-601)
+A6.5 | - | Photos: remove one (reason / note; `admin_edit_listing` remove_photos); Allow a held photo; load failed + Retry (listing-photos.tsx:92-417)
+A6.6 | AL-31 | Reports card (DP:612-655)
+A6.7 | AL-18 | Seller link (DP:664-690)
+A6.8 | - | History lines, show / hide changes (DP:767-850)
+A6.9 | AL-26,AL-27 | Undo the newest staff edit + dialog (DP:859-876; undo-dialog.tsx:39-95). `listingChanged` / `nothingToUndo` → "The listing has changed since this edit, so it cannot be undone." (en-admin:453); `photoRemovalFinal` → generic
+A6.10 | - | Certifications (DP:996-1045)
+A6.11 | - | Amharic; 360 / 768
+screen A7 | /admin/listings/$listingId/edit | Screen A7 — staff edit: `admin.listings_.$listingId_.edit.tsx` (171 lines)
+A7.1 | AL-20 | Reason and note box (needed before a change) (step-review.tsx:565-583)
+A7.2 | AL-21,AL-22,AL-23,AL-3 | Step navigation; Next saves the changed fields (use-edit-draft.ts:436-438); edit refusals `nothingChanged` → "Nothing has changed." / `listingRemoved` → "A removed listing is not edited. Restore it first." (en-member:275-276)
+A7.3 | - | Identity failed + raw class (step-review.tsx:595-601)
+A7.4 | AL-20,SC-25 | Done (step-review.tsx:856-865) → detail, or Screening with the ad open
+A7.5 | - | Approve / Reject + confirm (route :87-184; step-review.tsx:867-884). `ownListing` → "This is your own ad. Another reviewer must approve or reject it." (en-admin:549-550); shared decision words; `badValue:status` → generic
+A7.6 | - | Route opens directly without `listings:enforce`
+screen A8 | /admin/screening | Screen A8 — Screening: `admin.screening.tsx` → admin-screening/screening-page.tsx (S)
+A8.1 | SC-1 | Header; queue rows (S:281-334, :628-667)
+A8.2 | SC-11,SC-27,SC-28,SC-30,SC-5 | Search; Filters: Country, Seller, Level; chips; Columns (S:214-259, :699-724)
+A8.3 | - | Row ⋯ Preview / Approve / Reject; selection and bulk Approve / Reject; confirm (S:469-489, :727-865)
+A8.4 | - | Decision refusals: `listingNotFound`, `ownListing`, `illegalTransition`, `severeRestore`, `rateLimited`, `permissionDenied`, `noteRequired`, `noteTooLong`, `noFreeSlot` → own words; `badValue:status` → generic
+A8.5 | SC-13,SC-18,SC-20,SC-23,SC-25,SC-6,SC-7 | Preview: facts, photos, held-photo note, marked photos (S:870-939)
+A8.6 | SC-15,SC-17,SC-9 | Show number per channel (S:440-462)
+A8.7 | NCQ-E2E-1 | Name checks: count, list, Allow (reason) / Rename (N:103-352)
+A8.8 | SC-21,SC-24 | Photos to review: Allow (R:91-210); live-ad photo changes: Mark reviewed (C:81-203)
+A8.9 | NCQ-E2E-3 | Job line, Resume when paused (J:43-115)
+A8.10 | - | Queue loading / empty / failed + Retry (S:671-692); pager
+A8.11 | - | Name / photo / change / job read failures use their section's fixed words + Retry; the warned-ads read failure becomes an empty set (S:497)
+A8.12 | - | Amharic; 360 / 768
+screen A9 | /admin/roles | Screen A9 — Roles: `admin.roles.tsx` → admin/roles/roles-list.tsx (RL)
+A9.1 | - | Heading, search, Columns, rows (name, display, kind, members, permissions), row Open / View members, pager (RL:60-230)
+A9.2 | - | Create: key, display name, description, submit (step-up), cancel, error (RL:158-375)
+A9.3 | - | Loading / failed `admin.roles.error` / empty / no match (RL:231-246)
+A9.4 | RP-11,RP-8 | Amharic; 360
+screen A10 | /admin/roles/$roleId | Screen A10 — one role: `admin.roles_.$roleId.tsx` → role-detail.tsx (RD), permission-matrix.tsx (PM)
+A10.1 | - | Loading / failed / not found (RD:29-53); Back (RD:71-76)
+A10.2 | - | Metadata: display name, description, Save (step-up) (RD:93-201)
+A10.3 | RP-11,RP-12,RP-17,RP-3,RP-6,RP-7 | Permission grid: grant / revoke per permission; locked, core, reserved and baseline marks (PM:79-187)
+A10.4 | RP-10 | Members count and link to Users (RD:212-225)
+A10.5 | RP-5,RP-9 | Danger: typed key, Delete (step-up); members block it (RD:239-317)
+A10.6 | RP-17 | Amharic; 360
+screen A11 | /admin/audit | Screen A11 — Audit: `admin.audit.tsx` → admin/audit/audit-page.tsx (AP)
+A11.1 | - | Four counts with loading / failed / Retry (AP:254-287)
+A11.2 | - | Trend chart with loading / failed / empty (AP:290-311; chart-frame.tsx:102-120)
+A11.3 | AS-2,AS-3 | Search, action / entity / date filters, chips, Columns (AP:119-366)
+A11.4 | - | Facets read fails: the action / entity choices are silently empty (AP:122-135)
+A11.5 | - | Rows; expand detail (AP:323-400); pager with capped total (:403-418)
+A11.6 | - | Loading / failed `admin.audit.error` / empty (AP:327-331)
+A11.7 | AS-1 | Amharic; 360
+screen A12 | /admin/impersonation/$sessionId | Screen A12 — View as: `admin.impersonation_.$sessionId.tsx` → impersonation-view.tsx (IV), banner (IB), fallback notice (IN)
+A12.1 | IMP-1 | Heading, countdown, read-only note (IV:152-170)
+A12.2 | - | End now on the page (IV:172-188)
+A12.3 | - | Profile panel; loading / error / empty (IV:192-215; detail-panel.tsx:41-61)
+A12.4 | - | Ad list, Columns, pager (IV:91-258); empty `impersonation.listings.empty`
+A12.5 | - | Ad list loading / error: no words supplied (IV:262-263)
+A12.6 | - | Session ended: `impersonation.expired` "This impersonation session has ended." (en-admin:2201) + back (IV:65-85)
+A12.7 | - | Bar across pages: banner, Open, End now (IB:25-55); polls every 30 s (use-impersonation.ts:25-46)
+A12.8 | - | Fallback bar (on-demand failure): End, failed `door.refused` (en-base:765) + Refresh page (IN:33-95)
+A12.9 | IMP-1 | Amharic; 360
+screen A13 | /admin/translations | Screen A13 — Translations: `admin.translations.tsx` → admin/translations/languages-page.tsx (L)
+A13.1 | TR-1,TR-2,TR-3,TR-38 | Language rows: coverage meters, badges, Open strings, Columns, pager (L:127-666)
+A13.2 | - | Three counts with Retry (L:134-160)
+A13.3 | TR-6 | Staff / public switches, public gate (L:497-570)
+A13.4 | TR-20,TR-20m,TR-31 | Move up / down; Delete + dialog (typed confirm, counts) (L:295-302, :668-680; delete-language-dialog.tsx:100-178)
+A13.5 | TR-21,TR-40,TR-7,TR-7b | Sync keys (step-up) (L:727-789)
+A13.6 | - | Add language: picker (no Retry; manual instead), code, names, RTL, countries, submit (L:852-1044; language-picker.tsx:35-66)
+A13.7 | TR-30 | Pseudo language generate + confirm, progress (pseudo-bar.tsx:88-151)
+A13.8 | - | Loading / failed / empty (L:627-632); flags error (L:706)
+A13.9 | - | Amharic; 360
+screen A14 | /admin/translations/$lang | Screen A14 — one language: `admin.translations_.$lang.tsx` → strings-page.tsx (P), data-scope.tsx
+A14.1 | TR-14,TR-21,TR-39,TR-5 | Interface / Data scope; status, flagged and orphaned filters; search; Columns; rows (P:68-485, :624-628)
+A14.2 | TR-4 | Not assigned to this language: notice `admin.translations.editor.notAssigned` (P:278-282)
+A14.3 | TR-8 | Expand a row: source, context, used on; translation box (P:512-853)
+A14.4 | - | Context edit / save (P:777-813)
+A14.5 | - | Save; AI per row; Approve; Clear; placeholder repair (P:888-978)
+A14.6 | - | History: list, restore, clear-instead; failed, no Retry (history-drawer.tsx:115-250)
+A14.7 | TR-19 | Approve all + confirm (approve-bar.tsx:84-168)
+A14.8 | - | AI bulk: count, confirm, progress, failures (ai-bulk-bar.tsx:218-316)
+A14.9 | - | Export CSV / XLIFF; Import; Undo import (transfer-bar.tsx:157-244)
+A14.10 | TR-14,TR-24,TR-26,TR-34,TR-42 | Data scope rows: save / AI / approve / clear; approve all; coverage (data-scope.tsx:182-593)
+A14.11 | - | Loading / failed / empty (P:423-438)
+A14.12 | - | Amharic; 360
+screen A15 | /admin/legal | Screen A15 — Legal: `admin.legal.tsx` → admin/legal/legal-page.tsx (P), legal-facts-card.tsx (C)
+A15.1 | LGA-1,LGA-10,LGA-15,LGA-2 | Documents by kind and country; status, metadata, unaccepted count (P:95-203, :323-406)
+A15.2 | LGA-10,LGA-21 | Read in place, view, history list (P:204-291)
+A15.3 | LGA-21 | Add translation (P:235-248)
+A15.4 | - | Edit draft / New version / Add country (P:253-393)
+A15.5 | LGA-16,LGA-17 | Review: due / overdue, Mark reviewed + note dialog (P:101-141, :415-500)
+A15.6 | LGA-17 | Menu alert "Review due" (nav-alerts.ts:22-33)
+A15.7 | - | Legal facts: values, edit, local errors, Save / Cancel (C:26-190)
+A15.8 | - | Loading / failed `admin.legal.error.load` (P:315-321)
+A15.9 | - | Amharic; 360
+screen A16 | /admin/legal/$versionId | Screen A16 — one legal version: `admin.legal_.$versionId.tsx` → legal-version-view.tsx (V)
+A16.1 | LGA-11,LGA-5 | Changelog, language tabs, Download, Print, Compare with diff (V:65-285)
+A16.2 | LGA-20 | Add translation: language, text, import, preview, Save (V:290-485)
+A16.3 | - | Export acceptances (V:489-529)
+A16.4 | LGA-19,LGA-5 | Frozen facts; draft's Edit (V:534-563)
+A16.5 | - | Loading / not found / failed; compare load (V:49-54, :183-191)
+A16.6 | - | Amharic; 360
+screen A17 | /admin/legal/edit | Screen A17 — legal editor: `admin.legal_.edit.tsx` → legal-editor.tsx (E), legal-editor-form.tsx (F), legal-publish-dialog.tsx (D)
+A17.1 | - | Bad kind / country `admin.legal.badDocument` (E:17-18); loading / failed (E:21-29; F:156-161)
+A17.2 | LGA-14,LGA-19,LGA-2 | Name, language tabs, write / preview, text per language, import, change note (F:116-316)
+A17.3 | - | Preview warnings: unknown tokens, empty facts (F:103-109, :278-286)
+A17.4 | LGA-2,LGA-6 | Save draft; Discard + confirm (F:319-429)
+A17.5 | - | Publish → dialog: material / correction, date, confirm (F:375-389; D:56-183)
+A17.6 | - | Back (F:384-386)
+A17.7 | - | Amharic; 360
+screen A18 | /admin/categories | Screen A18 — Categories: `admin.categories.tsx` → admin-categories/categories-page.tsx (CP), category-dialogs.tsx (CD)
+A18.1 | CT-2,CT-9a | Roster rows `category-row-*`, actions `category-actions-*` (CP:433-655, :1070-1099); `admin_list_categories` (M231:42)
+A18.2 | CT-11,CT-2,CT-31 | Search, subtree, missing-assets filter, chips (CP:211-225, :1100-1162)
+A18.3 | - | Columns, pagination, page size (CP:1151-1183)
+A18.4 | CT-17,CT-3 | Add / edit / save (CD:277-395; category-form-fields.tsx:124-390); `admin_create_category` M220:89 (core refusals M220:29-74), `admin_update_category` M214:86
+A18.5 | CT-16,CT-4 | Visibility window, country exclusions (CD:495-604); M216:166, M221:75
+A18.6 | - | Move up / down (CP:702-727); `admin_reorder_categories` M216:111
+A18.7 | CT-14,CT-39,CT-44 | Parent paths, add pointer, primary, move/remove pointer (CD:777-988); M220:137, M221:95 (`unknownPointer` :110, `parentInactive` :113), M217:95/146
+A18.8 | CT-12,CT-40,CT-43,CT-6 | Retire / reactivate / delete with typed slug (CD:677-731, :1083); M214:149, M215:144/94
+A18.9 | AT-3,AT-42,AT-76 | Category attributes dialog (category-attributes-dialog.tsx:229-645) — rows in A19
+A18.10 | - | Image dialog: generate, accept (category-image-dialog.tsx:130-340); `admin_set_category_images` M222:38 (`unknownCategory` :63), accept M222:95 (`acceptNoImage` :116); api/admin/categories/generate-image.ts:23-44
+A18.11 | - | Bulk generate, progress, failures (CP:974-1055)
+A18.12 | CT-19,CT-21,CT-22,CT-28 | Import dialog: file, preview, confirm, undo, discard (category-import-dialog.tsx:70-95; import-dialog.tsx:438-684); preview M231:240, commit M218:43 (`importRunning` :77, `unknownParent` :164), undo M219:41 (`unknownBatch` :69)
+A18.13 | CT-18 | Export `category-export`; `admin_export_categories` M304:31 (`unknownCategory` :44); export.ts:40-41 (`forbidden`, `unknownCategory`)
+A18.14 | - | Loading / empty / failed (CP:1080-1098); paths dialog (CD:907-916)
+A18.15 | CT-8 | Amharic; 360
+screen A19 | /admin/attributes | Screen A19 — Attributes: `admin.attributes.tsx` → admin-attributes/attributes-page.tsx (AP), attribute-dialogs.tsx (AD)
+A19.1 | AT-17,AT-9 | Library rows, options, coverage, used by, inherited (AP:245-392, :538-566); `admin_list_attributes` M232:102
+A19.2 | - | Coverage column; `admin_attribute_option_coverage` M232:171
+A19.3 | - | Search, category filter, clear (AP:578-620)
+A19.4 | AT-79 | Columns, pagination (AP:95-105, :620-650)
+A19.5 | AT-2,AT-31,AT-81 | Add / edit definition (AD:330-442, :568-591); `admin_upsert_attribute` M223:39, 17 refusals :62-205
+A19.6 | - | Number / text fields, presets (attribute-v2-fields.tsx:60-340)
+A19.7 | AT-31,AT-33 | Options, dependencies, bounds, allowed values (attribute-option-rows.tsx:119-183; attribute-option-row.tsx:87-319; attribute-allowed-values.tsx:78-179)
+A19.8 | AT-8 | Assign to category (AD:961-1012); `admin_link_attribute` M224:37 (`unknownCategory` :52, `unknownAttribute` :55/:70, `alreadyLinked` :59, `badAllowedOption` :67, `badDefault` :68, `badVisibleWhen` :69, `priceBasisDuplicate` :80)
+A19.9 | AT-11,AT-73 | Remove from category (AD:1081-1146); `admin_unlink_attribute` M226:87 (`unknownLink` :99, `unlinkHasDependents` :109)
+A19.10 | AT-5,AT-74 | Delete, merge (AD:673-718, :786-887); M226:39 (`unknownAttribute` :51, `confirmMismatch` :55, `deleteHasDependents` :62, `deleteHasLinks` :68); M227:130 (`mergeAcrossDependency` :151, `mergeHasHolders` :158)
+A19.11 | AT-59,AT-76b,LK-6 | Link cells: allowed, default, visible-when, card / fact ranks, order (attribute-link-cells.tsx:173-433); M225:36 (`badClearCell` :65, `unknownLink` :71, `badAllowedOption` :91, `badDefault` :92, `badVisibleWhen` :93, `unknownAttribute` :94); M228:112/40/168 (`factLimit` :128, `cardLimit` :59, `rankInherited` :76, `unknownLink` :67/:136, `orderMismatch` :190)
+A19.12 | AT-21,AT-40 | Import: definitions and links files, preview, confirm, undo (attributes import-dialog.tsx:147-193); M232:201; M229:39 (`importRunning` :70); M230:40 (`required` :60, `unknownBatch` :65)
+A19.13 | AT-15 | Export (two files) (AP:208-237); M232:237; export.ts:43-44 (`forbidden`, `unknownCategory`)
+A19.14 | - | Loading / empty / failed (AP:548-566); link manager (category-attributes-dialog.tsx:278-286)
+A19.15 | - | Secondary reads: category roster (AP:95-96, :125), effective links (:140-143), used by (:182-184)
+A19.16 | AT-9 | Amharic; 360
+screen A20 | /admin/images | Screen A20 — Images: `admin.images.tsx` → admin/section-page.tsx
+A20.1 | - | Placeholder `admin-section-images`: `admin.comingSoon` "Not built yet" (en-admin:69), `admin.section.images.body` "Image tooling arrives in U8." (en-base:436); admin.images.tsx:29-30, section-page.tsx:20-28
+A20.2 | - | No controls, door or states (section-page.tsx:15-31)
+screen A21 | /admin/locations | Screen A21 — Locations overview: `admin.locations.tsx` → admin-overview/locations-overview.tsx (LO)
+A21.1 | OV-1 | Heading `admin-overview-locations` (LO:60-65)
+A21.2 | - | Markets tile `overview-stat-markets` (LO:39-45, :72-79); read enabled with `countries:view` (:35-36)
+A21.3 | - | Places tile `overview-stat-places`, levels (LO:46-57, :81-98)
+A21.4 | - | Tile loading / failed / Retry (stat-card.tsx:60-81; LO:74-85)
+A21.5 | - | Links `overview-link-locations`, `overview-link-countries` (LO:101-115)
+A21.6 | - | Amharic; 360
+screen A22 | /admin/places | Screen A22 — Places: `admin.places.tsx` → admin-locations/locations-page.tsx (LP)
+A22.1 | LT-10,LT-2,LT-9a | Roster rows `location-*` (LP:205-294, :426-444); `admin_list_locations` A:28
+A22.2 | LT-11,LT-13,LT-2 | Market, search, level / status filters, chips (LP:133-168, :449-503)
+A22.3 | - | Columns, pagination (LP:493-532)
+A22.4 | LT-16,LT-3 | Add / add child (location-dialogs.tsx:164-244); `admin_upsert_location` B:37 (`badLevel` :59, `isoOnRegionsOnly` :62/:113, `nameRequired` :65/:116, `rootMustBeCountry` :69, `unknownCountry` :73, `parentMissing` :78, `locationMissing` :105, `useMoveDoor` :108/:110)
+A22.5 | LT-7b,LT-8 | Edit fields, aliases (location-editor.tsx:98-143; location-form-fields.tsx:76-264)
+A22.6 | - | Activate / retire (C:80, `locationMissing` :94); reorder (C:39, `orderCountriesInProfile` :52, `notAChild` :58)
+A22.7 | LT-6 | Move (D:38: `locationMissing` :53, `cannotMoveCountry` :54, `parentMissing` :57, `crossCountry` :58)
+A22.8 | LT-5 | Delete with typed slug (D:79: `locationMissing` :93, `slugMismatch` :94, `retireInstead` :97-106)
+A22.9 | LT-12,LT-13,LT-7 | Export `location-export-locations` (LP:180-204, :386-394); G:52 (`unknownCountry` :66); export.ts:44-46, :68-69
+A22.10 | LT-15,LT-7 | Import dialog: file, preview, confirm, undo (location-import-dialog.tsx:94-115; import-dialog.tsx); H:36; J:37 (`importRunning` :52, `planHasRefusals` :57); K:27 (`unknownBatch` :54, `batchAlreadyUndone` :58, `permissionDenied` :69, `undoBlocked` :136)
+A22.11 | - | Loading / empty / failed (LP:435-444)
+A22.12 | LT-2 | Amharic; 360
+screen A23 | /admin/countries | Screen A23 — Countries: `admin.countries.tsx` → admin-countries/countries-page.tsx (CN)
+A23.1 | CO-2 | Roster rows, badges, counts (CN:142-234, :327-342); `admin_list_countries` E:100
+A23.2 | CO-2,CO-9 | Search, status filter, chips, columns, pagination (CN:347-395)
+A23.3 | CO-3 | No Add / Delete (creation by import)
+A23.4 | CO-5 | Edit name, unit, currency, order (country-editor.tsx:86-123); F:83 (`badCountryCode` :96, `badUnitSystem` :99, `badCurrency` :102, `nameRequired` :107)
+A23.5 | CO-4 | Open / close, force (country-verb-dialogs.tsx:67-114); F:138 (`badCountryCode` :154, `unknownCountry` :157, `scopedRolesExist` :179)
+A23.6 | CO-6 | Rail order, reset (country-verb-dialogs.tsx:186-265); F:199 (`badCountryCode` :216, `unknownCountry` :219, `duplicateCategory` :224, `notARoot` :233)
+A23.7 | - | Rail dialog root-category read (country-verb-dialogs.tsx:135-149, :224-227)
+A23.8 | - | Export, scope (CN:283-301); G:52 (`unknownCountry` :66); export.ts:64 needs `locations:view`
+A23.9 | CO-7 | Import dialog (country-import-dialog.tsx:62-79); doors as A22 row 10
+A23.10 | - | Loading / empty / failed (CN:333-342)
+A23.11 | CO-8 | Amharic; 360
+screen A24 | /admin/coverage | Screen A24 — Coverage: `admin.coverage.tsx` (redirect)
+A24.1 | MON-3 | `beforeLoad` redirects to `/admin/monetisation` (admin.coverage.tsx:8-12); nothing drawn
+screen A25 | /admin/monetisation | Screen A25 — Monetisation: `admin.monetisation.tsx` → admin-monetisation/monetisation-page.tsx (MP)
+A25.1 | MON-1,MON-16 | Header, order strip (MP:66-88); `admin_list_monetisation` S310:35
+A25.2 | MON-1,MON-12 | Markets list (markets-section.tsx:60-187)
+A25.3 | MON-12,MON-2 | Market add / edit (market-dialog.tsx:104-218); S308:171 (`unknownCountry` :190, `badFreeAds` :193, `unknownReach` :198, `launchRequired` :201, `badLaunch` :204)
+A25.4 | MON-1,MON-18,MON-4 | Levels / Reach lists, details (products-section.tsx:85-342)
+A25.5 | MON-18,MON-4,MON-5 | Product add / edit with switches (product-editor.tsx:167-327); S308:36 (`badKey` :60, `unknownKind` :63, `badName` :66, `badDays` :69, `kindChange` :75, `capsOnLevel` :82, `badPhotos` :92, `unknownPlacement` :95, `perksOnReach` :99, `badCaps` :109-123)
+A25.6 | MON-6 | Overrides add / edit / clear (level-overrides-table.tsx:154-248; override-dialog.tsx:166-278); S307:34 (`unknownLevel` :53, `notMainCategory` :59, `unknownCountry` :62, `badDays` :65, `badPhotos` :68, `unknownPlacement` :71, `emptyOverride` :74); S307:108 (`overrideNotFound` :128)
+A25.7 | - | Prices: search, columns, paging (product-prices-table.tsx:76-295)
+A25.8 | MON-8 | Price add / edit / end (price-dialog.tsx:123-353; price-end-dialog.tsx:61-92); S305:33 (`unknownPackage` :52, `badAmount` :55, `badCreditCost` :58, `unknownCurrency` :61, `unknownCountry` :64, `unknownCategory` :67, `badWindow` :70, `overlappingWindow` :78); S306:37 (`priceNotFound` :67, `permissionDenied` :78, `priceInUse` :84, `priceEnded` :87, and the S305 codes :91-115); S306:137 (`priceNotFound` :166, `permissionDenied` :173, `priceEnded` :177, `badWindow` :180, `overlappingWindow` :189)
+A25.9 | - | Unmapped save failure: generic plus "Reason: {reason}" with the raw text (use-monetisation-error.ts:25-40; monetisation-dialogs.tsx:33-40)
+A25.10 | - | Loading / empty / failed (markets-section.tsx:178-187; products-section.tsx:345-365)
+A25.11 | MON-7 | No seasons, import or delete (override-dialog.tsx:251-283; product-editor.tsx:64-68)
+A25.12 | MON-1 | Amharic; 360
+screen A26 | /admin/packages | Screen A26 — Packages: `admin.packages.tsx` (redirect)
+A26.1 | MON-3 | `beforeLoad` redirects to `/admin/monetisation` (admin.packages.tsx:7-10); nothing drawn
+screen A27 | /admin/ai | Screen A27 — AI: `admin.ai.tsx` → admin-ai/ai-page.tsx (AI)
+A27.1 | SV-3,SV-4 | Feature rows, state, spend, calls, price, alert badges (AI:73-204, :239-250); `admin_ai_features` S310:80
+A27.2 | - | Search, columns, paging (AI:262-305)
+A27.3 | SV-4 | Edit `ai-actions-*` (AI:219-233)
+A27.4 | - | Editor: on / off, screening note, budget, price, save / cancel (ai-feature-form.tsx:117-205; ai-editor.tsx:47-56); `admin_set_ai_feature` S309:33 (`badValue:enabled` :51, `badValue:unitCost` :53, `badValue:budget` :56, `unknownFeature` :59, `overBudget` :72)
+A27.5 | - | Unmapped save failure: generic plus raw reason (ai-refusals.ts:48-59; ai-feature-form.tsx:194-205)
+A27.6 | - | Daily spend, feature picker, Retry (ai-spend-days.tsx:44-127); S310:125 (`badValue:days` :137)
+A27.7 | - | Call history, filters, previous / next, Retry (ai-calls.tsx:33-184); S310:156 (`badValue:limit/feature/outcome/cursor` :165-168)
+A27.8 | - | Feature list loading / empty / failed (AI:253-261)
+A27.9 | - | Amharic; 360
+screen A28 | /admin/errors | Screen A28 — Errors: `admin.errors.tsx` → admin-errors/errors-page.tsx (rows by the supervisor, Cursor 8c-1, INC-1331)
+A28.1 | ERB-1,ERP-5,ERP-9 | Window choice `errors-window` (`admin.errors.window.label`): the offered windows, 7 days by default; every read and the address follow
+A28.2 | ERP-5 | Kind choice `errors-kind` (`admin.errors.kind.label`, `admin.errors.kind.all`): every kind or one; every read follows
+A28.3 | ERP-1,ERP-10,ERP-2,ERP-3 | Days table (`admin.errors.days.title`): the newest day first, each kind per day and the day's total; loading, empty, its read failing alone
+A28.4 | ERP-1,ERP-2,ERP-3,ERP-6 | Pages, browsers and app versions tables (`admin.errors.pages.title`, `admin.errors.browsers.title`, `admin.errors.versions.title`): counts; a null bucket drawn as `admin.errors.unknown`
+A28.5 | ERB-1,ERP-8 | Groups table (`admin.errors.groups.title`): kind, message, code, place, count, first and last seen; a row opens /admin/errors/<group>
+A28.6 | ERP-7 | `admin.errors.groups.more` (`errors-groups-more`): drawn when the groups read says there are more
+A28.7 | ERP-4 | A refused read (`permissionDenied`): the table's notice with failure.noAccess's words
+A28.8 | ERB-2 | Signed out, or signed in without `errors:view`: no report is read or drawn (the sign-in page, or the staff gate's refusal)
+screen A29 | /admin/errors/$group | Screen A29 — one error group: `admin.errors_.$group.tsx` → admin-errors/error-reports-page.tsx (rows by the supervisor, Cursor 8c-1, INC-1331)
+A29.1 | ERB-1 | Back `errors-back` (`admin.errors.back`): to /admin/errors with the window and the kind kept
+A29.2 | ERB-1,ERR-1 | Reports table (`admin.errors.reports.title`): when, message, page, browser, device, language, signed in, app version; 50 a page, Next keyset
+A29.3 | ERR-2 | A group key not of the doors' shape: `admin.errors.group.notFound` (`errors-group-not-found`), no read
+A29.4 | ERR-3 | A message or path holding markup: drawn as text
+A29.5 | ERR-4 | The reports read's loading, empty (`admin.errors.reports.empty`) and failed (`admin.errors.read.reports`) states
