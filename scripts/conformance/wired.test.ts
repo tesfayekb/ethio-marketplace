@@ -531,6 +531,16 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain(
       "CF-DOCS-11",
     );
+    // docs-only.test.ts CF-DOCS-12/13 and pr-runs.test.ts CF-PRRUN-1…5 (cursor-ci-speed part C,
+    // INC-1314) are discovered by test:unit's scripts/**/*.test.ts; ci.yml's `scope` job passes
+    // DOCS_ONLY_DRAFT to scripts/ci/docs-only.ts.
+    expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain(
+      "CF-DOCS-13",
+    );
+    expect(readFileSync(join(ROOT, "scripts/ci/pr-runs.test.ts"), "utf8")).toContain("CF-PRRUN-5");
+    expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain(
+      "DOCS_ONLY_DRAFT",
+    );
     // redact.test.ts CF-REDACT-1/2, backend-config.test.ts CF-BCFG-1/2 and ci-images.test.ts
     // CF-CI-IMG-5 (housekeeping turn 3 Part E) are discovered by test:unit's scripts/**/*.test.ts;
     // local-backend-proof.yml imports scripts/ci/redact.py and runs scripts/ci/backend-config.py.

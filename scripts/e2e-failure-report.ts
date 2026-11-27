@@ -41,7 +41,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { errorText } from "../src/lib/error-text";
-import { SKIPPED_PREFIX } from "./ci/docs-only";
+import { DRAFT_LINE, SKIPPED_PREFIX } from "./ci/docs-only";
 import { measuredSpreadLine } from "./ci/lane-plan";
 import { laneSeconds, NUMBERED_LANES, runWeights, WEIGHTS_EVIDENCE } from "./ci/lane-weights";
 import { SERIAL_CAP_LINE } from "./ci/repeat-cap";
@@ -1562,7 +1562,10 @@ export type ReportMeta = {
   commitMessage?: string;
   /** DEC-321 — the ref the run tested (EVIDENCE_REF), written into each new flake-ledger line. */
   ref?: string;
-  /** DEC-365 — the scope job's line (`ran — …` or `skipped — …`), shown as `- Lanes:` when set. */
+  /**
+   * DEC-365 — the scope job's line (`ran — …`, `skipped — …` or cursor-ci-speed's
+   * `skipped: draft pull request`), shown as `- Lanes:` when set.
+   */
   lanes?: string;
   /** cursor-ci-speed — the numbered lanes' measured spread (`measuredSpreadLine`); a finding, never a verdict. */
   measuredSpread?: string;
@@ -1649,11 +1652,12 @@ export function repeatLines(meta: ReportMeta): string[] {
 }
 
 /**
- * The reason the scope's skipped line gives (`skipped — <reason> (…)`), or null when the line has
- * another form.
+ * The reason the scope's skipped line gives (`skipped — <reason> (…)`, or the draft line), or null
+ * when the line has another form.
  */
 export function lanesSkippedReason(lanes: string | undefined): string | null {
   const line = (lanes ?? "").trim();
+  if (line === DRAFT_LINE) return "a draft pull request";
   if (!line.startsWith(SKIPPED_PREFIX)) return null;
   const reason = line.slice(SKIPPED_PREFIX.length).split(" (")[0]?.trim() ?? "";
   return reason === "" ? null : reason;
@@ -1662,6 +1666,7 @@ export function lanesSkippedReason(lanes: string | undefined): string | null {
 /**
  * DEC-375 (a) — a push whose code tree was proven ran no lane: the evidence names the run that
  * proved it and reads no sources, so a reader never mistakes the empty run for twenty dead lanes.
+ * A draft pull request's run (cursor-ci-speed) takes the same form, naming the draft.
  */
 export function renderLanesSkipped(meta: ReportMeta): string {
   const reason = lanesSkippedReason(meta.lanes) ?? "the scope job's line names no reason";
