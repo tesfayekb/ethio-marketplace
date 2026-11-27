@@ -1,58 +1,58 @@
 # Local backend proof (non-gating)
 
-- Commit: `3e48505448ba885a08fda8f2caf18705552c45ae`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45918807028
+- Commit: `bb1a797c189e6c4b9549dc00719d7dbd0f50bfe8`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45928742041
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 588 | 66 | applied 565/565 | 38 | 0 | 0 | 16 | 54 |
-| email | 228 | 87 | applied 565/565 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 830 | 69 | applied 565/565 | 80 | 0 | 0 | 24 | 104 |
-| 1 | 962 | 86 | applied 565/565 | 228 | 0 | 0 | 70 | 298 |
-| 2 | 887 | 74 | applied 565/565 | 93 | 0 | 0 | 29 | 122 |
-| 3 | 716 | 66 | applied 565/565 | 75 | 0 | 0 | 71 | 146 |
-| 4 | 619 | 68 | applied 565/565 | 152 | 0 | 0 | 12 | 164 |
-| 5 | 1239 | 56 | applied 565/565 | 146 | 0 | 0 | 8 | 154 |
-| 6 | 1397 | 89 | applied 565/565 | 131 | 0 | 0 | 15 | 146 |
-| 7 | 1149 | 66 | applied 565/565 | 193 | 0 | 0 | 11 | 204 |
-| 8 | 960 | 71 | applied 565/565 | 137 | 0 | 0 | 5 | 142 |
-| 9 | 649 | 65 | applied 565/565 | 218 | 0 | 0 | 6 | 224 |
-| 10 | 1284 | 68 | applied 565/565 | 165 | 0 | 0 | 41 | 206 |
-| 11 | 1719 | 68 | applied 565/565 | 134 | 0 | 0 | 20 | 154 |
-| 12 | 1031 | 56 | applied 565/565 | 183 | 0 | 0 | 15 | 198 |
-| 13 | 825 | 68 | applied 565/565 | 125 | 0 | 1 | 12 | 138 |
-| 14 | 1300 | 67 | applied 565/565 | 166 | 0 | 0 | 7 | 173 |
-| 15 | 1137 | 68 | applied 565/565 | 148 | 0 | 0 | 8 | 156 |
-| 16 | 947 | 66 | applied 565/565 | 270 | 0 | 0 | 48 | 318 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2688 | 0 | 1 | 418 | 3107 |
+| smoke | 595 | 68 | applied 565/565 | 38 | 0 | 0 | 16 | 54 |
+| email | 183 | 67 | applied 565/565 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 762 | 57 | applied 565/565 | 80 | 0 | 0 | 24 | 104 |
+| 1 | 1006 | 88 | applied 565/565 | 226 | 0 | 0 | 70 | 296 |
+| 2 | 1375 | 68 | applied 565/565 | 83 | 9 | 0 | 32 | 124 |
+| 3 | 719 | 66 | applied 565/565 | 75 | 0 | 0 | 71 | 146 |
+| 4 | 804 | 68 | applied 565/565 | 149 | 3 | 0 | 12 | 164 |
+| 5 | 1255 | 69 | applied 565/565 | 153 | 3 | 0 | 8 | 164 |
+| 6 | 1341 | 67 | applied 565/565 | 140 | 0 | 0 | 12 | 152 |
+| 7 | 1166 | 66 | applied 565/565 | 193 | 0 | 0 | 11 | 204 |
+| 8 | 969 | 66 | applied 565/565 | 137 | 0 | 0 | 5 | 142 |
+| 9 | 665 | 68 | applied 565/565 | 210 | 0 | 0 | 6 | 216 |
+| 10 | 1280 | 59 | applied 565/565 | 163 | 0 | 0 | 41 | 204 |
+| 11 | 1777 | 87 | applied 565/565 | 134 | 0 | 0 | 20 | 154 |
+| 12 | 1093 | 69 | applied 565/565 | 175 | 0 | 0 | 15 | 190 |
+| 13 | 784 | 66 | applied 565/565 | 130 | 0 | 0 | 12 | 142 |
+| 14 | 1336 | 66 | applied 565/565 | 165 | 0 | 1 | 7 | 173 |
+| 15 | 1216 | 86 | applied 565/565 | 150 | 0 | 0 | 8 | 158 |
+| 16 | 990 | 73 | applied 565/565 | 270 | 0 | 0 | 48 | 318 |
+| repeat | 233 | 67 | applied 565/565 | 24 | 0 | 0 | 0 | 24 |
+| TOTAL | — | — | — | 2701 | 15 | 1 | 418 | 3135 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 11 1719 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 7, email 11, webkit 7, 1 11, 2 9, 3 7, 4 7, 5 6, 6 12, 7 7, 8 9, 9 7, 10 7, 11 7, 12 6, 13 7, 14 7, 15 7, 16 7, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 125 files, weights from run 43431755160 (2026-11-13); mean 792 s, largest 793 s (+0 %); alone: none; unweighed (median 46 s): none; repeat budget 793 s; planned/test seconds: 1 793/762, 2 792/684, 3 792/536, 4 793/446, 5 792/1081, 6 792/1174, 7 793/972, 8 793/774, 9 792/474, 10 792/1102, 11 793/1539, 12 793/881, 13 792/652, 14 793/1120, 15 792/968, 16 793/764
+- Slowest lane: 11 1777 s
+- Repeat lane (DEC-283): Repeat: each 6 on both projects; 2 tests selected, 2 repeated; budget 793 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 6 on mobile-360 and desktop-1280 at one worker after the parallel pass
+- Database session samples during each start (INC-944): smoke 7, email 7, webkit 6, 1 12, 2 8, 3 7, 4 7, 5 7, 6 7, 7 7, 8 7, 9 7, 10 6, 11 11, 12 8, 13 7, 14 7, 15 11, 16 9, repeat 7
+- Lane plan (DEC-375 b): 16 lanes over 126 files, weights from run 43431755160 (2026-11-13); mean 793 s, largest 793 s (+0 %); alone: none; unweighed (median 44 s): none; repeat budget 793 s; planned/test seconds: 1 793/797, 2 792/1193, 3 793/536, 4 793/630, 5 793/1076, 6 793/1151, 7 793/985, 8 793/782, 9 793/477, 10 793/1114, 11 793/1565, 12 793/912, 13 792/625, 14 793/1150, 15 793/1014, 16 793/789
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45918807028-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45918807028-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 45918807028-local-2
-  - 3: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-3
-  - 4: [e2e:teardown] deleted 11 user(s) owned by process 45918807028-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-6
-  - 7: [e2e:teardown] deleted 5 user(s) owned by process 45918807028-local-7
-  - 8: [e2e:teardown] deleted 23 user(s) owned by process 45918807028-local-8
-  - 9: [e2e:teardown] deleted 15 user(s) owned by process 45918807028-local-9
-  - 10: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45918807028-local-12
-  - 13: [e2e:teardown] deleted 27 user(s) owned by process 45918807028-local-13
-  - 14: [e2e:teardown] deleted 17 user(s) owned by process 45918807028-local-14
-  - 15: [e2e:teardown] deleted 47 user(s) owned by process 45918807028-local-15
-  - 16: [e2e:teardown] deleted 12 user(s) owned by process 45918807028-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45928742041-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45928742041-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-1
+  - 2: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-2
+  - 3: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-3
+  - 4: [e2e:teardown] deleted 11 user(s) owned by process 45928742041-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-6
+  - 7: [e2e:teardown] deleted 5 user(s) owned by process 45928742041-local-7
+  - 8: [e2e:teardown] deleted 23 user(s) owned by process 45928742041-local-8
+  - 9: [e2e:teardown] deleted 15 user(s) owned by process 45928742041-local-9
+  - 10: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45928742041-local-11
+  - 12: [e2e:teardown] deleted 7 user(s) owned by process 45928742041-local-12
+  - 13: [e2e:teardown] deleted 27 user(s) owned by process 45928742041-local-13
+  - 14: [e2e:teardown] deleted 18 user(s) owned by process 45928742041-local-14
+  - 15: [e2e:teardown] deleted 47 user(s) owned by process 45928742041-local-15
+  - 16: [e2e:teardown] deleted 12 user(s) owned by process 45928742041-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 45928742041-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -78,7 +78,37 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 13
-- one-line-slots-admin.spec.ts / OLS-9 the fourth admin tables stay one line / mobile-360 — Error: the switcher lists the public languages
+## Lane 2
+- Step failure:
+Step smoke: outcome failure
+  
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-70 /admin/ as staff: loads clean and says every failed read / mobile-360 — Error: /admin/ api /api/error-reports (network): the read failed and the screen said nothing (no failure notice)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-71 /admin/listings as staff: loads clean and says every failed read / mobile-360 — Error: /admin/listings at 1280px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-72 /admin/listings/$listingId as staff: loads clean and says every failed read / mobile-360 — Error: /admin/listings/$listingId at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-73 /admin/listings/$listingId/edit as staff: loads clean and says every failed read / mobile-360 — Error: /admin/listings/$listingId/edit at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-74 /admin/legal as staff: loads clean and says every failed read / mobile-360 — Error: /admin/legal at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-75 /admin/legal/$versionId as staff: loads clean and says every failed read / mobile-360 — Error: /admin/legal/$versionId at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-76 /admin/legal/edit as staff: loads clean and says every failed read / mobile-360 — Error: /admin/legal/edit at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-77 /admin/translations as staff: loads clean and says every failed read / mobile-360 — Error: /admin/translations at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-78 /admin/translations/$lang as staff: loads clean and says every failed read / mobile-360 — Error: /admin/translations/$lang at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+
+## Lane 4
+- Step failure:
+Step smoke: outcome failure
+  
+- failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-56 /admin/places as staff: loads clean and says every failed read / mobile-360 — Error: /admin/places at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-57 /admin/packages as staff: loads clean and says every failed read / mobile-360 — Error: /admin/packages at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-58 /admin/monetisation as staff: loads clean and says every failed read / mobile-360 — Error: /admin/monetisation at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+
+## Lane 5
+- Step failure:
+Step smoke: outcome failure
+  
+- failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-65 /admin/audit as staff: loads clean and says every failed read / mobile-360 — Error: /admin/audit at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-66 /admin/screening as staff: loads clean and says every failed read / mobile-360 — Error: /admin/screening at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+- failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-67 /admin/ai as staff: loads clean and says every failed read / mobile-360 — Error: /admin/ai at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+
+## Lane 14
+- admin-listings.spec.ts / ADMIN LISTINGS — the console's doors / AL-31 Reports: the open count on the row and the reasons on the listing's page for listings:review; nothing for listings:view alone / desktop-1280 — Error: [e2e:session] injected identity mismatch — expected user [account id], page holds no session.
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
