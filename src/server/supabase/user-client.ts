@@ -68,9 +68,14 @@ export function anonymousClient(): SupabaseClient<Database> | null {
   });
 }
 
+/** Whether the request carries a bearer at all: a fact about the request, never an identity. */
+export function carriesBearer(request: Request): boolean {
+  return (request.headers.get("Authorization") ?? "").toLowerCase().startsWith("bearer ");
+}
+
 export async function userClientFromRequest(request: Request): Promise<UserClientAnswer> {
   const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.toLowerCase().startsWith("bearer ")) {
+  if (!carriesBearer(request)) {
     return { supabase: null, userId: null, reason: "missingBearer", message: "" };
   }
 
@@ -91,7 +96,9 @@ export async function userClientFromRequest(request: Request): Promise<UserClien
   });
 
   const { data, error } = await supabase.auth.getUser();
-  if (error && isAuthRetryableFetchError(error)) {
+  // INC-1312 — an auth server that answered its own failure (5xx) never judged the bearer either:
+  // it is the upstream failure it is, never "not signed in".
+  if (error && (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500)) {
     return {
       supabase,
       userId: null,
@@ -246,6 +253,12 @@ export function refuseUserClient(path: string, answer: UserClientAnswer): Respon
   }
   if (answer.reason === "upstream") {
     console.error("[ssr-error]", path, errorText(answer.message));
+    // INC-1312 — reported through the one trigger (answer.ts), reached on demand: answer.ts imports
+    // this file, so a static import would be a cycle.
+    const what = answer.message;
+    void import("@/server/answer").then((answers) =>
+      answers.reportFailureLater("upstream", path, what),
+    );
     return routeJson({ error: "upstream unavailable" }, 503);
   }
   // Turn S3 — a deactivated account: refused, not "not signed in"; nothing is logged (no incident, no secret).

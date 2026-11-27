@@ -182,6 +182,7 @@ export const ROUTE_PERMISSIONS = {
   "/api/attributes/$id/options": { GET: null },
   "/api/catalog/find": { GET: null },
   "/api/categories/tree": { GET: null },
+  "/api/error-reports": { POST: null },
   "/api/feed": { GET: null },
   "/api/geo": { GET: null },
   "/api/geo/outline": { GET: null },

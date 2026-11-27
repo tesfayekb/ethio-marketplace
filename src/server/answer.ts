@@ -166,6 +166,17 @@ export function clientAborted(request: Request): Response | null {
 }
 
 /**
+ * DEC-474 Part F — THE SERVER'S ONE REPORT TRIGGER: a failure it answered is reported
+ * (src/server/error-reports.ts, loaded on demand) and never awaited, so the answer goes out
+ * whatever the report does. A failed load is logged once, never reported.
+ */
+export function reportFailureLater(kind: "route" | "upstream", path: string, error: unknown): void {
+  void import("@/server/error-reports")
+    .then((reports) => reports.reportServerFailure(kind, path, error))
+    .catch((failure: unknown) => console.error("[error-report] write failed", errorText(failure)));
+}
+
+/**
  * A throw the route did not declare: the client gets a generic line and an
  * incident id; the log gets the full stack under the SAME id — never the
  * error's message in the body.
@@ -177,6 +188,8 @@ export function serverError(path: string, error: unknown): Response {
   // eslint-disable-next-line no-restricted-syntax -- INC-815: the stack is wanted when it exists.
   const text = error instanceof Error ? (error.stack ?? errorText(error)) : errorText(error);
   logRouteError(path, `[incident ${incident}] ${text}`);
+  // DEC-474 Part F — every 500 is reported (cleaned, grouped); the report never holds the answer.
+  reportFailureLater("route", path, error);
   return routeJson({ error: "server error", incident }, 500);
 }
 

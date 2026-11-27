@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/integrations/supabase/types";
+import { PROVIDER_ERRORS } from "@/test/provider-errors";
 
 /**
  * INC-574 — AN UPSTREAM FAILURE IS NOT A VERDICT.
@@ -16,6 +17,8 @@ import type { Database } from "@/integrations/supabase/types";
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: { rpc: async () => ({ data: null, error: null, status: 204 }) },
 }));
+const reports = vi.hoisted(() => ({ report: vi.fn(() => Promise.resolve(true)) }));
+vi.mock("@/server/error-reports", () => ({ reportServerFailure: reports.report }));
 
 const { logRouteError, refuseUserClient, upstreamFailed, userClientFromRequest } =
   await import("./user-client");
@@ -262,5 +265,36 @@ describe("INC-578 — a door's own words never travel raw", () => {
     const active = await userClientFromRequest(signedRequest("/api/listings/draft", {}));
     expect(active.reason).toBeNull();
     expect(active.userId).toBe(USER_ID);
+  });
+
+  it("UP-8 an auth server that answers its own failure (500) is 'upstream' (503) and reported; a refused bearer is not reported (INC-1312)", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    reports.report.mockClear();
+    const captured = PROVIDER_ERRORS.unexpected_failure;
+    network.auth = () =>
+      new Response(captured.body, {
+        status: captured.status,
+        headers: { "content-type": "application/json" },
+      });
+    const failed = await userClientFromRequest(signedRequest("/api/x", {}));
+    expect(failed.reason).toBe("upstream");
+    expect(failed.message).toBe("auth upstream unavailable (500)");
+    const answer = refuseUserClient("/api/x", failed);
+    expect(answer?.status).toBe(503);
+    expect(await answer?.json()).toEqual({ error: "upstream unavailable" });
+    await vi.waitFor(() => expect(reports.report).toHaveBeenCalledTimes(1));
+    expect(reports.report).toHaveBeenCalledWith(
+      "upstream",
+      "/api/x",
+      "auth upstream unavailable (500)",
+    );
+
+    reports.report.mockClear();
+    network.auth = () => json({ code: 403, error_code: "bad_jwt", msg: "invalid JWT" }, 403);
+    const refused = await userClientFromRequest(signedRequest("/api/x", {}));
+    expect(refused.reason).toBe("notSignedIn");
+    expect(refuseUserClient("/api/x", refused)?.status).toBe(401);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(reports.report).not.toHaveBeenCalled();
   });
 });
