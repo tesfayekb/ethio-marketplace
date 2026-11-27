@@ -1,3 +1,4 @@
+export const ROUTE_BUDGETS_KIB: Record<string, { ceiling: number; public: boolean }>;
 export const CARD_PAGES: string[];
 export const TIER_FLAG_MARKER: string;
 export function tierFlagViolations(

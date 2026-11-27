@@ -130,7 +130,7 @@ const TREE = "c".repeat(64);
 const SELF = 43500000000;
 
 describe("a proven code tree is not proven again (DEC-375 a)", () => {
-  it("CF-DOCS-1 every record shape passes; generated files, code and config never do", () => {
+  it("CF-DOCS-1 every record shape passes; code and config never do", () => {
     for (const path of [
       "docs/features/ci-guards.md",
       "docs/governance/briefs/housekeeping-3.md",
@@ -144,8 +144,6 @@ describe("a proven code tree is not proven again (DEC-375 a)", () => {
     ])
       expect(isRecord(path), path).toBe(true);
     for (const path of [
-      "docs/generated/i18n-usage.json",
-      "public/i18n-usage.json",
       "src/README.md",
       "src/routes/index.tsx",
       "e2e/specs/a.spec.ts",
@@ -351,8 +349,6 @@ describe("a proven code tree is not proven again (DEC-375 a)", () => {
       ["docs/c.md", "c\n"],
     ];
     expect(id(executable)).not.toBe(original);
-    expect(id([...base, ["docs/generated/i18n-usage.json", "{}\n"]])).not.toBe(original);
-
     const status = readFileSync(".github/workflows/ci-status-report.yml", "utf8");
     const match = /lanesLine\.startsWith\('([^']+)'\)/.exec(status);
     expect(match?.[1]).toBe(SKIPPED_PREFIX);

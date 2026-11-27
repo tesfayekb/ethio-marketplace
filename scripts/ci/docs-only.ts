@@ -47,12 +47,11 @@ const TREE_ID = /^[0-9a-f]{64}$/;
 export const SET_ASIDE: readonly string[] = ["scripts/conformance/briefs-allowlist.txt"];
 
 /**
- * A record: `docs/**` but never `docs/generated/**`, `.cursor/**`, a `*.md` at the root, or a
- * SET_ASIDE path.
+ * A record: `docs/**`, `.cursor/**`, a `*.md` at the root, or a SET_ASIDE path. (The usage maps
+ * that once sat under `docs/generated/` are built, never committed — INC-1295.)
  */
 export function isRecord(path: string): boolean {
   if (SET_ASIDE.includes(path)) return true;
-  if (path.startsWith("docs/generated/")) return false;
   if (path.startsWith("docs/") || path.startsWith(".cursor/")) return true;
   return !path.includes("/") && path.endsWith(".md");
 }
