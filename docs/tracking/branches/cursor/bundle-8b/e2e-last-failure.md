@@ -1,17 +1,15 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
+last E2E run 45939465263 passed
+
 - Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45939465263
 - Commit: `09cf369772736bbef313c8ab5a0f5d7f220cfaac`
-- Attempt: 1
+- Attempt: 2
 - Lanes: ran — no proven code tree: no green ci.yml run of this repository holds code-tree-3246a7295502… (0 read)
 - Repeat: 40 of 60 tests repeated — specs directly changed 1/1, importers of a changed helper 5/7; budget 793 s; the time cap left 80 test runs
-- Written (UTC): 2026-11-27T04:55:38.155Z
-- Passed: 2441 · Skipped: 511 · Failed: 0
-- Gating failures: 0 · STAGING-SINK (INC-1175, still gating): 0
+- Written (UTC): 2026-11-27T11:36:50.999Z
+- Post-test warnings: 57
 - Flaky (passed on retry, DEC-030, non-gating): 1
-- Post-test errors (DEC-059, non-gating): smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15
-- Sources without results: shard 16 (INFRA: install-chromium-s-system-libraries)
-- Infrastructure: 1 lane(s) died before any test at install-chromium-s-system-libraries — E: Failed to fetch https://packages.microsoft.com/ubuntu/24.04/prod/dists/noble/InRelease  403  Forbidden [IP: 13.107.246.40 443]
 - Errors outside any test (INC-589): repeat (2)
 
 ## Flake ledger (DEC-030)
@@ -98,9 +96,7 @@ Timed out waiting 913s for the teardown for test suite to run
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, repeat · unavailable: shard 16
-
-`shard 16`: log unavailable.
+Logs read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16, repeat · unavailable: none
 
 64 line(s), 28 message(s): 1 off the allowlist, 27 allowlisted.
 
@@ -150,15 +146,13 @@ Off the allowlist:
 
 ## Accessibility (DEC-084, gating)
 
-Logs read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, repeat · unavailable: shard 16
-
-`shard 16`: log unavailable.
+Logs read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16, repeat · unavailable: none
 
 10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, repeat · unavailable: shard 16
+Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16, repeat · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
@@ -180,6 +174,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | shard 13 | 2026-11-27T04:25:38.032Z | 11.1 min |
 | shard 14 | 2026-11-27T04:25:30.015Z | 18.7 min |
 | shard 15 | 2026-11-27T04:25:40.337Z | 17.5 min |
+| shard 16 | 2026-11-27T11:23:20.614Z | 12.4 min |
 | repeat | 2026-11-27T04:26:39.993Z | 15.2 min |
 
 | Spec file | Tests | Summed duration | Ran in |
@@ -192,6 +187,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `admin-attributes-import.spec.ts` | 40 | 17.2 min | shard 5 |
 | `admin-attributes-library.spec.ts` | 42 | 17.1 min | shard 6 |
 | `failure-crawl-admin-content.spec.ts` | 54 | 17.1 min | shard 2, repeat |
+| `admin-attributes-links.spec.ts` | 34 | 15.8 min | shard 16 |
 | `admin-attributes-editor.spec.ts` | 36 | 15.1 min | shard 10 |
 | `admin-locations.spec.ts` | 44 | 14.8 min | shard 10 |
 | `failure-crawl-admin-catalog.spec.ts` | 54 | 13.8 min | shard 4, repeat |
@@ -214,6 +210,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `feed-screens.spec.ts` | 40 | 4.9 min | webkit, shard 9 |
 | `admin-guides.spec.ts` | 14 | 4.4 min | shard 2 |
 | `ad-page.spec.ts` | 104 | 4.3 min | webkit, shard 9 |
+| `post-wizard-specs.spec.ts` | 82 | 4.1 min | shard 16 |
 | `photo-pipeline.spec.ts` | 74 | 4.1 min | webkit, shard 12 |
 | `admin-screening-reject.spec.ts` | 10 | 4.1 min | shard 2 |
 | `admin-users.spec.ts` | 28 | 4.0 min | shard 13 |
@@ -229,6 +226,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `failure-crawl-public.spec.ts` | 26 | 2.6 min | shard 12 |
 | `post-wizard-resets.spec.ts` | 34 | 2.2 min | shard 9 |
 | `admin-services.spec.ts` | 10 | 2.1 min | shard 1 |
+| `posting-routes.spec.ts` | 80 | 2.1 min | shard 16 |
 | `failure-crawl-member-account.spec.ts` | 48 | 2.0 min | shard 15, repeat |
 | `sage-ad-page.spec.ts` | 30 | 1.9 min | webkit, shard 6 |
 | `name-check-queue.spec.ts` | 8 | 1.9 min | smoke, shard 8 |
@@ -245,6 +243,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `one-line-slots-admin.spec.ts` | 10 | 1.0 min | shard 13 |
 | `phone-frame.spec.ts` | 18 | 0.9 min | shard 7 |
 | `i18n-sign-in-language.spec.ts` | 12 | 0.9 min | shard 7 |
+| `press.spec.ts` | 22 | 0.9 min | shard 16 |
 | `staff-gate.spec.ts` | 4 | 0.8 min | shard 11 |
 | `user-guides.spec.ts` | 18 | 0.8 min | shard 8 |
 | `post-wizard-removed.spec.ts` | 4 | 0.7 min | shard 13 |
@@ -256,6 +255,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `my-listings-doors.spec.ts` | 28 | 0.6 min | shard 9 |
 | `overlays.spec.ts` | 8 | 0.6 min | shard 6 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | smoke, shard 5 |
+| `sage-shell.spec.ts` | 80 | 0.6 min | shard 16 |
 | `primitives-law.spec.ts` | 24 | 0.5 min | shard 5 |
 | `layout.spec.ts` | 18 | 0.5 min | webkit, shard 7 |
 | `posting-routes-catalog.spec.ts` | 18 | 0.5 min | shard 6 |
@@ -263,6 +263,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 12 |
 | `ad-page-doors.spec.ts` | 30 | 0.4 min | shard 4 |
 | `one-line-slots.spec.ts` | 10 | 0.4 min | shard 13 |
+| `legal-accept.spec.ts` | 12 | 0.4 min | shard 16 |
 | `post-wizard-details.spec.ts` | 8 | 0.3 min | shard 4 |
 | `auth-caller-gates.spec.ts` | 8 | 0.3 min | shard 1 |
 | `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 6 |
@@ -276,6 +277,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `feed-index.spec.ts` | 30 | 0.2 min | shard 5 |
 | `feed-route.spec.ts` | 22 | 0.2 min | shard 2 |
 | `legal-history.spec.ts` | 6 | 0.2 min | shard 10 |
+| `auth-reset.spec.ts` | 6 | 0.2 min | shard 16 |
 | `rbac.spec.ts` | 6 | 0.2 min | shard 13 |
 | `category-nav.spec.ts` | 10 | 0.2 min | shard 4 |
 | `category-image-routes.spec.ts` | 12 | 0.2 min | shard 5 |
@@ -291,6 +293,7 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `smoke-auth-i18n.spec.ts` | 2 | 0.1 min | shard 8 |
 | `error-reports.spec.ts` | 12 | 0.1 min | shard 15, repeat |
 | `overlay-shift.spec.ts` | 6 | 0.1 min | shard 11 |
+| `shell-table-law.spec.ts` | 2 | 0.1 min | shard 16 |
 | `submenu-touch.spec.ts` | 8 | 0.1 min | smoke, shard 2 |
 | `i18n-layers.spec.ts` | 6 | 0.1 min | shard 13 |
 | `dark-cards.spec.ts` | 4 | 0.1 min | shard 9 |
@@ -324,226 +327,3 @@ Results read: smoke, email, webkit, shard 1, shard 2, shard 3, shard 4, shard 5,
 | `failure-crawl-admin-content.spec.ts` › FCR-76 /admin/legal/edit as staff: loads clean and says every failed read | mobile-360 | 66.8 s |
 | `failure-crawl-admin-catalog.spec.ts` › FCR-51 /admin/attributes as staff: loads clean and says every failed read | mobile-360 | 66.5 s |
 | `failure-crawl-admin-content.spec.ts` › FCR-77 /admin/translations as staff: loads clean and says every failed read | mobile-360 | 66.0 s |
-
-## Post-test errors: smoke
-
-smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 2 (pool 1, fresh 1)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 2 user(s) owned by process 45939465263-localproof
-```
-
-## Post-test errors: email
-
-email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-email
-```
-
-## Post-test errors: webkit
-
-webkit: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 2, fresh 4)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 45939465263-local-webkit
-```
-
-## Post-test errors: shard 1
-
-shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 7 (pool 4, fresh 3)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-1
-```
-
-## Post-test errors: shard 2
-
-shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-2
-```
-
-## Post-test errors: shard 3
-
-shard 3: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 5 (pool 3, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-3
-```
-
-## Post-test errors: shard 4
-
-shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 8 (pool 2, fresh 6)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 11 user(s) owned by process 45939465263-local-4
-```
-
-## Post-test errors: shard 5
-
-shard 5: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 4 (pool 2, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-5
-```
-
-## Post-test errors: shard 6
-
-shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-6
-```
-
-## Post-test errors: shard 7
-
-shard 7: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 9 (pool 4, fresh 5)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 5 user(s) owned by process 45939465263-local-7
-```
-
-## Post-test errors: shard 8
-
-shard 8: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 26 (pool 4, fresh 22)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 23 user(s) owned by process 45939465263-local-8
-```
-
-## Post-test errors: shard 9
-
-shard 9: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 15 user(s) owned by process 45939465263-local-9
-```
-
-## Post-test errors: shard 10
-
-shard 10: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-10
-```
-
-## Post-test errors: shard 11
-
-shard 11: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 6 (pool 4, fresh 2)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-11
-```
-
-## Post-test errors: shard 12
-
-shard 12: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 11 (pool 4, fresh 7)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 7 user(s) owned by process 45939465263-local-12
-```
-
-## Post-test errors: shard 13
-
-shard 13: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 16 (pool 4, fresh 12)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 27 user(s) owned by process 45939465263-local-13
-```
-
-## Post-test errors: shard 14
-
-shard 14: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 19 (pool 4, fresh 15)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 17 user(s) owned by process 45939465263-local-14
-```
-
-## Post-test errors: shard 15
-
-shard 15: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 34 (pool 4, fresh 30)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 47 user(s) owned by process 45939465263-local-15
-```
-
-## Server errors: shard 16
-
-No `[ssr-error]` lines in the `shard 16` log (or no log was uploaded).
-
-## Client errors: shard 16
-
-No `[client-error]` lines in the `shard 16` log (or no log was uploaded).
-
-## shard 16: no results file
-
-shard 16: no results file — the process failed outside test results (setup/teardown/preflight).
-
-- Class: **infrastructure** (INC-1101) — died before any test at `install-chromium-s-system-libraries`; re-run the failed jobs, never a code finding
-- Failed step: `install-chromium-s-system-libraries` (outcome failure) — E: Failed to fetch https://packages.microsoft.com/ubuntu/24.04/prod/dists/noble/InRelease  403  Forbidden [IP: 13.107.246.40 443]
-
-```text
-Step install-chromium-s-system-libraries: outcome failure
-  Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
-  Get:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1492 kB]
-  Get:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [321 kB]
-  Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
-  Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
-  Get:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1949 kB]
-  Get:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [448 kB]
-  Get:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1231 kB]
-  Get:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/main Translation-en [243 kB]
-  Get:15 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1233 kB]
-  Get:16 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [249 kB]
-  Get:17 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1842 kB]
-  Get:18 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [429 kB]
-  Reading package lists...
-  E: Failed to fetch https://packages.microsoft.com/ubuntu/24.04/prod/dists/noble/InRelease  403  Forbidden [IP: 13.107.246.40 443]
-  E: The repository 'https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease' is no longer signed.
-  Failed to install browser dependencies
-  Error: Installation process exited with code: 100
-  ::error title=ci-mirror::the install failed (exit 1) after apt's fetch stage — final, never run twice (DEC-276)
-  ::error title=ci-deadline::bash scripts/ci/install-browser-deps.sh chromium failed with exit 1 on try 1 of 1
-```
-
-```text
-(no log tail was uploaded for this source)
-```
