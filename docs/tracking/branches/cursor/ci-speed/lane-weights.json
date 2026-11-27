@@ -1,37 +1,37 @@
 {
   "source": {
-    "run": 46051288968,
+    "run": 46053768672,
     "date": "2026-11-27",
     "lanes": "1-16"
   },
   "files": {
     "account-saved.spec.ts": {
       "desktop-1280": {
-        "seconds": 3.9,
+        "seconds": 4.7,
         "tests": 2
       },
       "mobile-360": {
-        "seconds": 5.5,
+        "seconds": 5.6,
         "tests": 2
       }
     },
     "ad-page-doors.spec.ts": {
       "desktop-1280": {
-        "seconds": 14.8,
+        "seconds": 12.3,
         "tests": 15
       },
       "mobile-360": {
-        "seconds": 20.2,
+        "seconds": 14.7,
         "tests": 15
       }
     },
     "ad-page-layout.spec.ts": {
       "desktop-1280": {
-        "seconds": 2.3,
+        "seconds": 1.6,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 2.4,
+        "seconds": 2.1,
         "tests": 1
       }
     },
@@ -47,101 +47,101 @@
     },
     "ad-page.spec.ts": {
       "desktop-1280": {
-        "seconds": 89.7,
+        "seconds": 86.9,
         "tests": 41
       },
       "mobile-360": {
-        "seconds": 85.7,
+        "seconds": 86.2,
         "tests": 41
       }
     },
     "admin-ai-calls.spec.ts": {
       "desktop-1280": {
-        "seconds": 3.5,
+        "seconds": 2.9,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 4.1,
+        "seconds": 4.3,
         "tests": 1
       }
     },
     "admin-attributes-editor.spec.ts": {
       "desktop-1280": {
-        "seconds": 112.8,
+        "seconds": 102.9,
         "tests": 18
       },
       "mobile-360": {
-        "seconds": 106.1,
+        "seconds": 99.6,
         "tests": 18
       }
     },
     "admin-attributes-import.spec.ts": {
       "desktop-1280": {
-        "seconds": 44.1,
+        "seconds": 63.1,
         "tests": 20
       },
       "mobile-360": {
-        "seconds": 44.4,
+        "seconds": 67.4,
         "tests": 20
       }
     },
     "admin-attributes-library.spec.ts": {
       "desktop-1280": {
-        "seconds": 178.8,
+        "seconds": 182.1,
         "tests": 21
       },
       "mobile-360": {
-        "seconds": 177.5,
+        "seconds": 175.5,
         "tests": 21
       }
     },
     "admin-attributes-links.spec.ts": {
       "desktop-1280": {
-        "seconds": 140.4,
+        "seconds": 122.7,
         "tests": 17
       },
       "mobile-360": {
-        "seconds": 138.7,
+        "seconds": 123,
         "tests": 17
       }
     },
     "admin-attributes-safety.spec.ts": {
       "desktop-1280": {
-        "seconds": 79.3,
+        "seconds": 78,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 78.9,
+        "seconds": 75.8,
         "tests": 9
       }
     },
     "admin-audit.spec.ts": {
       "desktop-1280": {
-        "seconds": 47.5,
+        "seconds": 49.3,
         "tests": 8
       },
       "mobile-360": {
-        "seconds": 53,
+        "seconds": 50.1,
         "tests": 8
       }
     },
     "admin-categories-console.spec.ts": {
       "desktop-1280": {
-        "seconds": 147.6,
+        "seconds": 144.7,
         "tests": 17
       },
       "mobile-360": {
-        "seconds": 129,
+        "seconds": 128.6,
         "tests": 17
       }
     },
     "admin-categories-home.spec.ts": {
       "desktop-1280": {
-        "seconds": 52.9,
+        "seconds": 55.1,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 54.9,
+        "seconds": 56.8,
         "tests": 5
       }
     },
@@ -151,67 +151,67 @@
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 14.9,
+        "seconds": 14.6,
         "tests": 1
       }
     },
     "admin-categories-lifecycle.spec.ts": {
       "desktop-1280": {
-        "seconds": 117.5,
+        "seconds": 119.5,
         "tests": 26
       },
       "mobile-360": {
-        "seconds": 115.1,
+        "seconds": 116.6,
         "tests": 26
       }
     },
     "admin-countries.spec.ts": {
       "desktop-1280": {
-        "seconds": 68.9,
+        "seconds": 71.1,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 71.9,
+        "seconds": 74,
         "tests": 9
       }
     },
     "admin-guides.spec.ts": {
       "desktop-1280": {
-        "seconds": 34.4,
+        "seconds": 42.4,
         "tests": 7
       },
       "mobile-360": {
-        "seconds": 37.7,
+        "seconds": 42.1,
         "tests": 7
       }
     },
     "admin-listings.spec.ts": {
       "desktop-1280": {
-        "seconds": 137.3,
+        "seconds": 153.6,
         "tests": 40
       },
       "mobile-360": {
-        "seconds": 159.4,
+        "seconds": 158.9,
         "tests": 40
       }
     },
     "admin-locations.spec.ts": {
       "desktop-1280": {
-        "seconds": 161.6,
+        "seconds": 152.8,
         "tests": 22
       },
       "mobile-360": {
-        "seconds": 156.1,
+        "seconds": 157.8,
         "tests": 22
       }
     },
     "admin-monetisation.spec.ts": {
       "desktop-1280": {
-        "seconds": 87.2,
+        "seconds": 86.6,
         "tests": 15
       },
       "mobile-360": {
-        "seconds": 62.8,
+        "seconds": 67.3,
         "tests": 15
       }
     },
@@ -227,225 +227,225 @@
     },
     "admin-screening-reject.spec.ts": {
       "desktop-1280": {
-        "seconds": 24,
+        "seconds": 25.4,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 25.2,
+        "seconds": 24.5,
         "tests": 5
       }
     },
     "admin-screening.spec.ts": {
       "desktop-1280": {
-        "seconds": 144.5,
+        "seconds": 173.9,
         "tests": 30
       },
       "mobile-360": {
-        "seconds": 142.7,
+        "seconds": 175.9,
         "tests": 30
       }
     },
     "admin-services.spec.ts": {
       "desktop-1280": {
-        "seconds": 15,
+        "seconds": 10.9,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 13.8,
+        "seconds": 8.9,
         "tests": 5
       }
     },
     "admin-shell.spec.ts": {
       "desktop-1280": {
-        "seconds": 41.2,
+        "seconds": 39.7,
         "tests": 6
       },
       "mobile-360": {
-        "seconds": 41.8,
+        "seconds": 32.5,
         "tests": 6
       }
     },
     "admin-translations-console.spec.ts": {
       "desktop-1280": {
-        "seconds": 171.2,
+        "seconds": 157.2,
         "tests": 22
       },
       "mobile-360": {
-        "seconds": 166.8,
+        "seconds": 143.4,
         "tests": 22
       }
     },
     "admin-translations-data.spec.ts": {
       "desktop-1280": {
-        "seconds": 63.1,
+        "seconds": 64.7,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 64.1,
+        "seconds": 87.6,
         "tests": 5
       }
     },
     "admin-translations-governance.spec.ts": {
       "desktop-1280": {
-        "seconds": 59.9,
+        "seconds": 55.6,
         "tests": 4
       },
       "mobile-360": {
-        "seconds": 64.1,
+        "seconds": 57.3,
         "tests": 4
       }
     },
     "admin-users.spec.ts": {
       "desktop-1280": {
-        "seconds": 114.8,
+        "seconds": 143.8,
         "tests": 14
       },
       "mobile-360": {
-        "seconds": 115.2,
+        "seconds": 133.4,
         "tests": 14
       }
     },
     "auth-callback.spec.ts": {
       "mobile-360": {
-        "seconds": 6.8,
+        "seconds": 6.9,
         "tests": 4
       }
     },
     "auth-caller-gates.spec.ts": {
       "desktop-1280": {
-        "seconds": 13.5,
+        "seconds": 10.8,
         "tests": 4
       },
       "mobile-360": {
-        "seconds": 13.6,
+        "seconds": 10.5,
         "tests": 4
       }
     },
     "auth-google.spec.ts": {
       "mobile-360": {
-        "seconds": 2.1,
+        "seconds": 1.3,
         "tests": 2
       }
     },
     "auth-reset.spec.ts": {
       "mobile-360": {
-        "seconds": 12.8,
+        "seconds": 9.9,
         "tests": 6
       }
     },
     "auth-signin-errors.spec.ts": {
       "mobile-360": {
-        "seconds": 7,
+        "seconds": 9.9,
         "tests": 5
       }
     },
     "auth-signout.spec.ts": {
       "desktop-1280": {
-        "seconds": 145.8,
+        "seconds": 177.3,
         "tests": 21
       },
       "mobile-360": {
-        "seconds": 156,
+        "seconds": 157.6,
         "tests": 21
       }
     },
     "breadcrumbs.spec.ts": {
       "desktop-1280": {
-        "seconds": 9.8,
+        "seconds": 8.7,
         "tests": 3
       },
       "mobile-360": {
-        "seconds": 11,
+        "seconds": 9.7,
         "tests": 3
       }
     },
     "category-image-routes.spec.ts": {
       "desktop-1280": {
-        "seconds": 4,
+        "seconds": 3.7,
         "tests": 6
       },
       "mobile-360": {
-        "seconds": 4.9,
+        "seconds": 5.6,
         "tests": 6
       }
     },
     "category-nav.spec.ts": {
       "desktop-1280": {
-        "seconds": 6.4,
+        "seconds": 4.8,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 8.3,
+        "seconds": 5.4,
         "tests": 5
       }
     },
     "choice-lists.spec.ts": {
       "desktop-1280": {
-        "seconds": 72.8,
+        "seconds": 61.1,
         "tests": 48
       },
       "mobile-360": {
-        "seconds": 91.7,
+        "seconds": 86.6,
         "tests": 48
       }
     },
     "dark-cards.spec.ts": {
       "desktop-1280": {
-        "seconds": 2.3,
+        "seconds": 1.7,
         "tests": 2
       },
       "mobile-360": {
-        "seconds": 2.1,
+        "seconds": 1.6,
         "tests": 2
       }
     },
     "dialogs.spec.ts": {
       "desktop-1280": {
-        "seconds": 73.4,
+        "seconds": 93.2,
         "tests": 12
       },
       "mobile-360": {
-        "seconds": 62,
+        "seconds": 70.3,
         "tests": 12
       }
     },
     "door-refusals.spec.ts": {
       "desktop-1280": {
-        "seconds": 4,
+        "seconds": 3.9,
         "tests": 7
       },
       "mobile-360": {
-        "seconds": 5.2,
+        "seconds": 4.4,
         "tests": 7
       }
     },
     "error-reports.spec.ts": {
       "desktop-1280": {
-        "seconds": 2.7,
+        "seconds": 2.4,
         "tests": 2
       },
       "mobile-360": {
-        "seconds": 2.1,
+        "seconds": 2.3,
         "tests": 2
       }
     },
     "failure-crawl-admin-catalog.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.7,
+        "seconds": 0.8,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 436.2,
+        "seconds": 453.4,
         "tests": 9
       }
     },
     "failure-crawl-admin-content.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.6,
+        "seconds": 0.5,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 511.5,
+        "seconds": 527.1,
         "tests": 9
       }
     },
@@ -455,343 +455,333 @@
         "tests": 7
       },
       "mobile-360": {
-        "seconds": 402.1,
+        "seconds": 407.2,
         "tests": 7
       }
     },
     "failure-crawl-member-account.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.5,
+        "seconds": 0.6,
         "tests": 8
       },
       "mobile-360": {
-        "seconds": 103.3,
+        "seconds": 111.5,
         "tests": 8
       }
     },
     "failure-crawl-member-listings.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.3,
+        "seconds": 0.4,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 435.3,
+        "seconds": 444.5,
         "tests": 5
       }
     },
     "failure-crawl-member-public.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.6,
+        "seconds": 0.4,
         "tests": 7
       },
       "mobile-360": {
-        "seconds": 112.1,
+        "seconds": 109.1,
         "tests": 7
       }
     },
     "failure-crawl-public.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.8,
+        "seconds": 1.5,
         "tests": 13
       },
       "mobile-360": {
-        "seconds": 152.5,
+        "seconds": 173.8,
         "tests": 13
       }
     },
     "feed-index.spec.ts": {
       "desktop-1280": {
-        "seconds": 5.3,
+        "seconds": 4.9,
         "tests": 15
       },
       "mobile-360": {
-        "seconds": 5.6,
+        "seconds": 4.7,
         "tests": 15
       }
     },
     "feed-route.spec.ts": {
       "desktop-1280": {
-        "seconds": 4.6,
+        "seconds": 4.7,
         "tests": 11
       },
       "mobile-360": {
-        "seconds": 4.5,
+        "seconds": 6,
         "tests": 11
       }
     },
     "feed-screens.spec.ts": {
       "desktop-1280": {
-        "seconds": 138.5,
+        "seconds": 146.6,
         "tests": 18
       },
       "mobile-360": {
-        "seconds": 152.9,
+        "seconds": 155.4,
         "tests": 18
       }
     },
     "fonts.spec.ts": {
       "desktop-1280": {
-        "seconds": 1.2,
+        "seconds": 0.7,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 1.2,
+        "seconds": 0.9,
         "tests": 1
       }
     },
     "geo.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.5,
+        "seconds": 0.4,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 0.5,
+        "seconds": 0.3,
         "tests": 5
       }
     },
     "house-style.spec.ts": {
       "desktop-1280": {
-        "seconds": 20.9,
+        "seconds": 19.6,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 19.9,
+        "seconds": 20.5,
         "tests": 9
       }
     },
     "i18n-bundle.spec.ts": {
       "desktop-1280": {
-        "seconds": 1,
+        "seconds": 1.2,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 1,
+        "seconds": 1.1,
         "tests": 1
       }
     },
     "i18n-coverage.spec.ts": {
       "desktop-1280": {
-        "seconds": 10.9,
+        "seconds": 8.6,
         "tests": 7
       },
       "mobile-360": {
-        "seconds": 10.9,
+        "seconds": 9.5,
         "tests": 7
       }
     },
     "i18n-layers.spec.ts": {
       "desktop-1280": {
-        "seconds": 3,
+        "seconds": 3.3,
         "tests": 3
       },
       "mobile-360": {
-        "seconds": 2.7,
+        "seconds": 4.5,
         "tests": 3
       }
     },
     "i18n-sign-in-language.spec.ts": {
       "desktop-1280": {
-        "seconds": 27.2,
+        "seconds": 21.1,
         "tests": 6
       },
       "mobile-360": {
-        "seconds": 26.7,
+        "seconds": 22.4,
         "tests": 6
       }
     },
     "import-security.spec.ts": {
       "desktop-1280": {
-        "seconds": 125.4,
+        "seconds": 143.9,
         "tests": 18
       },
       "mobile-360": {
-        "seconds": 129.4,
+        "seconds": 146.8,
         "tests": 18
       }
     },
     "layout.spec.ts": {
       "desktop-1280": {
-        "seconds": 6.2,
+        "seconds": 5.8,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 7.2,
+        "seconds": 6,
         "tests": 5
       }
     },
     "legal-accept.spec.ts": {
       "desktop-1280": {
-        "seconds": 14.9,
+        "seconds": 13.3,
         "tests": 6
       },
       "mobile-360": {
-        "seconds": 13.7,
+        "seconds": 16.7,
         "tests": 6
       }
     },
     "legal-admin.spec.ts": {
       "desktop-1280": {
-        "seconds": 77.5,
+        "seconds": 93.1,
         "tests": 22
       },
       "mobile-360": {
-        "seconds": 78.6,
+        "seconds": 91.2,
         "tests": 22
       }
     },
     "legal-certify.spec.ts": {
       "desktop-1280": {
-        "seconds": 59.5,
+        "seconds": 70.5,
         "tests": 22
       },
       "mobile-360": {
-        "seconds": 51.5,
+        "seconds": 63.5,
         "tests": 22
       }
     },
     "legal-doors.spec.ts": {
       "desktop-1280": {
-        "seconds": 26.3,
+        "seconds": 22.8,
         "tests": 16
       },
       "mobile-360": {
-        "seconds": 25.4,
+        "seconds": 20.7,
         "tests": 16
       }
     },
     "legal-history.spec.ts": {
       "desktop-1280": {
-        "seconds": 5.8,
+        "seconds": 6.7,
         "tests": 3
       },
       "mobile-360": {
-        "seconds": 7,
+        "seconds": 6.4,
         "tests": 3
       }
     },
     "legal-pages.spec.ts": {
       "desktop-1280": {
-        "seconds": 6.6,
+        "seconds": 7.6,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 6.3,
+        "seconds": 7.5,
         "tests": 5
       }
     },
     "locale-format.spec.ts": {
       "desktop-1280": {
-        "seconds": 2.2,
+        "seconds": 2,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 1.8,
+        "seconds": 2.1,
         "tests": 1
       }
     },
     "locations-tree.spec.ts": {
       "desktop-1280": {
-        "seconds": 32.6,
+        "seconds": 26.8,
         "tests": 4
       },
       "mobile-360": {
-        "seconds": 32.4,
+        "seconds": 26.5,
         "tests": 4
       }
     },
     "menu-rows.spec.ts": {
       "desktop-1280": {
-        "seconds": 8.2,
+        "seconds": 8.8,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 0.1,
+        "seconds": 0.2,
         "tests": 1
       }
     },
     "mfa-stepup.spec.ts": {
       "desktop-1280": {
-        "seconds": 104.2,
+        "seconds": 102.2,
         "tests": 13
       },
       "mobile-360": {
-        "seconds": 82.4,
+        "seconds": 83.6,
         "tests": 13
       }
     },
     "my-listings-ad.spec.ts": {
       "desktop-1280": {
-        "seconds": 104.4,
+        "seconds": 100,
         "tests": 19
       },
       "mobile-360": {
-        "seconds": 86.3,
+        "seconds": 99.4,
         "tests": 19
       }
     },
     "my-listings-doors.spec.ts": {
       "desktop-1280": {
-        "seconds": 11.5,
+        "seconds": 21.2,
         "tests": 14
       },
       "mobile-360": {
-        "seconds": 11.4,
+        "seconds": 16.1,
         "tests": 14
       }
     },
     "my-listings-levels.spec.ts": {
       "desktop-1280": {
-        "seconds": 18,
+        "seconds": 15.8,
         "tests": 14
       },
       "mobile-360": {
-        "seconds": 16.2,
+        "seconds": 15.6,
         "tests": 14
       }
     },
     "my-listings-page.spec.ts": {
       "desktop-1280": {
-        "seconds": 29,
+        "seconds": 28.2,
         "tests": 11
       },
       "mobile-360": {
-        "seconds": 32.4,
+        "seconds": 25.1,
         "tests": 11
       }
     },
     "my-listings-promote.spec.ts": {
       "desktop-1280": {
-        "seconds": 36.1,
+        "seconds": 29.7,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 35.6,
+        "seconds": 30.7,
         "tests": 5
       }
     },
     "name-check-queue.spec.ts": {
       "desktop-1280": {
-        "seconds": 26.3,
+        "seconds": 29,
         "tests": 3
       },
       "mobile-360": {
-        "seconds": 24.6,
+        "seconds": 28.2,
         "tests": 3
       }
     },
     "offline.spec.ts": {
       "desktop-1280": {
-        "seconds": 1.3,
-        "tests": 1
-      },
-      "mobile-360": {
-        "seconds": 1.7,
-        "tests": 1
-      }
-    },
-    "on-demand-failure.spec.ts": {
-      "desktop-1280": {
-        "seconds": 2.4,
+        "seconds": 2.7,
         "tests": 1
       },
       "mobile-360": {
@@ -799,49 +789,59 @@
         "tests": 1
       }
     },
+    "on-demand-failure.spec.ts": {
+      "desktop-1280": {
+        "seconds": 3.8,
+        "tests": 1
+      },
+      "mobile-360": {
+        "seconds": 3.5,
+        "tests": 1
+      }
+    },
     "one-line-slots-admin.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.3,
+        "seconds": 0.7,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 59.1,
+        "seconds": 84.2,
         "tests": 5
       }
     },
     "one-line-slots.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.3,
+        "seconds": 0.5,
         "tests": 5
       },
       "mobile-360": {
-        "seconds": 22.6,
+        "seconds": 23.5,
         "tests": 5
       }
     },
     "overlay-shift.spec.ts": {
       "desktop-1280": {
-        "seconds": 3,
+        "seconds": 2.9,
         "tests": 3
       },
       "mobile-360": {
-        "seconds": 2.1,
+        "seconds": 2.2,
         "tests": 3
       }
     },
     "overlays.spec.ts": {
       "desktop-1280": {
-        "seconds": 4.6,
+        "seconds": 4.3,
         "tests": 4
       },
       "mobile-360": {
-        "seconds": 4.9,
+        "seconds": 5.3,
         "tests": 4
       }
     },
     "page-head.spec.ts": {
       "desktop-1280": {
-        "seconds": 7,
+        "seconds": 6.9,
         "tests": 2
       },
       "mobile-360": {
@@ -851,343 +851,343 @@
     },
     "phone-frame.spec.ts": {
       "desktop-1280": {
-        "seconds": 43.6,
+        "seconds": 38.3,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 14.8,
+        "seconds": 11.6,
         "tests": 9
       }
     },
     "photo-pipeline.spec.ts": {
       "desktop-1280": {
-        "seconds": 97.9,
+        "seconds": 102,
         "tests": 35
       },
       "mobile-360": {
-        "seconds": 101.2,
+        "seconds": 99.3,
         "tests": 35
       }
     },
     "post-wizard-bundle2.spec.ts": {
       "desktop-1280": {
-        "seconds": 138.9,
+        "seconds": 144.8,
         "tests": 35
       },
       "mobile-360": {
-        "seconds": 145.9,
+        "seconds": 139.5,
         "tests": 35
       }
     },
     "post-wizard-category.spec.ts": {
       "desktop-1280": {
-        "seconds": 66.9,
+        "seconds": 72.7,
         "tests": 25
       },
       "mobile-360": {
-        "seconds": 75,
+        "seconds": 76.4,
         "tests": 25
       }
     },
     "post-wizard-details.spec.ts": {
       "desktop-1280": {
-        "seconds": 13.3,
+        "seconds": 12.6,
         "tests": 4
       },
       "mobile-360": {
-        "seconds": 12.7,
+        "seconds": 14.6,
         "tests": 4
       }
     },
     "post-wizard-finder.spec.ts": {
       "desktop-1280": {
-        "seconds": 13.6,
+        "seconds": 14,
         "tests": 4
       },
       "mobile-360": {
-        "seconds": 13.7,
+        "seconds": 14.4,
         "tests": 4
       }
     },
     "post-wizard-place.spec.ts": {
       "desktop-1280": {
-        "seconds": 138.3,
+        "seconds": 147.3,
         "tests": 20
       },
       "mobile-360": {
-        "seconds": 132.9,
+        "seconds": 140.8,
         "tests": 20
       }
     },
     "post-wizard-pricing.spec.ts": {
       "desktop-1280": {
-        "seconds": 101.5,
+        "seconds": 97.1,
         "tests": 26
       },
       "mobile-360": {
-        "seconds": 100.8,
+        "seconds": 91.7,
         "tests": 26
       }
     },
     "post-wizard-recent.spec.ts": {
       "desktop-1280": {
-        "seconds": 4.5,
+        "seconds": 3.2,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 3.6,
+        "seconds": 3.5,
         "tests": 1
       }
     },
     "post-wizard-removed.spec.ts": {
       "desktop-1280": {
-        "seconds": 20.6,
+        "seconds": 22.8,
         "tests": 2
       },
       "mobile-360": {
-        "seconds": 20.4,
+        "seconds": 24.1,
         "tests": 2
       }
     },
     "post-wizard-resets.spec.ts": {
       "desktop-1280": {
-        "seconds": 67.5,
+        "seconds": 71.8,
         "tests": 17
       },
       "mobile-360": {
-        "seconds": 66.7,
+        "seconds": 71,
         "tests": 17
       }
     },
     "post-wizard-specs.spec.ts": {
       "desktop-1280": {
-        "seconds": 147.5,
+        "seconds": 162,
         "tests": 41
       },
       "mobile-360": {
-        "seconds": 151.3,
+        "seconds": 179.6,
         "tests": 41
       }
     },
     "post-wizard-units.spec.ts": {
       "desktop-1280": {
-        "seconds": 8.6,
+        "seconds": 7.3,
         "tests": 2
       },
       "mobile-360": {
-        "seconds": 7.2,
+        "seconds": 7.3,
         "tests": 2
       }
     },
     "post-wizard-where.spec.ts": {
       "desktop-1280": {
-        "seconds": 110.5,
+        "seconds": 103.2,
         "tests": 16
       },
       "mobile-360": {
-        "seconds": 118.7,
+        "seconds": 104.3,
         "tests": 16
       }
     },
     "posting-routes-catalog.spec.ts": {
       "desktop-1280": {
-        "seconds": 20.1,
+        "seconds": 26.8,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 18.4,
+        "seconds": 24.5,
         "tests": 9
       }
     },
     "posting-routes-dials.spec.ts": {
       "desktop-1280": {
-        "seconds": 11.2,
+        "seconds": 10.2,
         "tests": 7
       },
       "mobile-360": {
-        "seconds": 9.9,
+        "seconds": 9.3,
         "tests": 7
       }
     },
     "posting-routes-identity.spec.ts": {
       "desktop-1280": {
-        "seconds": 4.4,
+        "seconds": 7.7,
         "tests": 2
       },
       "mobile-360": {
-        "seconds": 4.6,
+        "seconds": 7.1,
         "tests": 2
       }
     },
     "posting-routes.spec.ts": {
       "desktop-1280": {
-        "seconds": 92.1,
+        "seconds": 89.1,
         "tests": 40
       },
       "mobile-360": {
-        "seconds": 85,
+        "seconds": 89.9,
         "tests": 40
       }
     },
     "press.spec.ts": {
       "desktop-1280": {
-        "seconds": 35.2,
+        "seconds": 25.6,
         "tests": 11
       },
       "mobile-360": {
-        "seconds": 37.3,
+        "seconds": 28.3,
         "tests": 11
       }
     },
     "primitives-law.spec.ts": {
       "desktop-1280": {
-        "seconds": 10,
+        "seconds": 13.3,
         "tests": 12
       },
       "mobile-360": {
-        "seconds": 10.5,
+        "seconds": 13.5,
         "tests": 12
       }
     },
     "rail-first-paint.spec.ts": {
       "desktop-1280": {
-        "seconds": 0.9,
+        "seconds": 1.1,
         "tests": 2
       },
       "mobile-360": {
-        "seconds": 0.9,
+        "seconds": 0.7,
         "tests": 2
       }
     },
     "rbac.spec.ts": {
       "desktop-1280": {
-        "seconds": 6.9,
+        "seconds": 6.4,
         "tests": 3
       },
       "mobile-360": {
-        "seconds": 5.4,
+        "seconds": 4.9,
         "tests": 3
       }
     },
     "sage-ad-page.spec.ts": {
       "desktop-1280": {
-        "seconds": 32.4,
+        "seconds": 37.1,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 23.3,
+        "seconds": 21.9,
         "tests": 9
       }
     },
     "sage-bands.spec.ts": {
       "desktop-1280": {
-        "seconds": 58,
+        "seconds": 55.2,
         "tests": 38
       },
       "mobile-360": {
-        "seconds": 121.2,
+        "seconds": 102.3,
         "tests": 38
       }
     },
     "sage-cards.spec.ts": {
       "desktop-1280": {
-        "seconds": 13.3,
+        "seconds": 16.9,
         "tests": 14
       },
       "mobile-360": {
-        "seconds": 12.1,
+        "seconds": 12.3,
         "tests": 14
       }
     },
     "sage-shell.spec.ts": {
       "desktop-1280": {
-        "seconds": 28.8,
+        "seconds": 19.7,
         "tests": 40
       },
       "mobile-360": {
-        "seconds": 20.2,
+        "seconds": 15,
         "tests": 40
       }
     },
     "sage-tiers.spec.ts": {
       "desktop-1280": {
-        "seconds": 34.9,
+        "seconds": 31.2,
         "tests": 20
       },
       "mobile-360": {
-        "seconds": 18.3,
+        "seconds": 15.9,
         "tests": 20
       }
     },
     "seller-name-hidden.spec.ts": {
       "desktop-1280": {
-        "seconds": 1.8,
+        "seconds": 1.6,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 1.9,
+        "seconds": 1.5,
         "tests": 1
       }
     },
     "settings.spec.ts": {
       "mobile-360": {
-        "seconds": 38.5,
+        "seconds": 37.4,
         "tests": 16
       }
     },
     "shell-bands.spec.ts": {
       "desktop-1280": {
-        "seconds": 12.2,
+        "seconds": 17.7,
         "tests": 7
       },
       "mobile-360": {
-        "seconds": 1.1,
+        "seconds": 1,
         "tests": 7
       }
     },
     "shell-table-law.spec.ts": {
       "desktop-1280": {
-        "seconds": 3.5,
+        "seconds": 4.7,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 4.2,
+        "seconds": 3.5,
         "tests": 1
       }
     },
     "shell.spec.ts": {
       "desktop-1280": {
-        "seconds": 275.8,
+        "seconds": 262.5,
         "tests": 117
       },
       "mobile-360": {
-        "seconds": 338.7,
+        "seconds": 310.7,
         "tests": 117
       }
     },
     "smoke-auth-i18n.spec.ts": {
       "desktop-1280": {
-        "seconds": 3.3,
+        "seconds": 3.5,
         "tests": 1
       },
       "mobile-360": {
-        "seconds": 3.7,
+        "seconds": 3.8,
         "tests": 1
       }
     },
     "staff-gate.spec.ts": {
       "desktop-1280": {
-        "seconds": 22.6,
+        "seconds": 13.6,
         "tests": 3
       },
       "mobile-360": {
-        "seconds": 28.8,
+        "seconds": 28.7,
         "tests": 3
       }
     },
     "submenu-look.spec.ts": {
       "desktop-1280": {
-        "seconds": 1.3,
+        "seconds": 1.5,
         "tests": 1
       },
       "mobile-360": {
@@ -1197,7 +1197,7 @@
     },
     "submenu-touch.spec.ts": {
       "desktop-1280": {
-        "seconds": 3.2,
+        "seconds": 4.7,
         "tests": 3
       },
       "mobile-360": {
@@ -1207,7 +1207,7 @@
     },
     "submenu.spec.ts": {
       "desktop-1280": {
-        "seconds": 12.1,
+        "seconds": 13.5,
         "tests": 5
       },
       "mobile-360": {
@@ -1217,31 +1217,31 @@
     },
     "supabase-door.spec.ts": {
       "desktop-1280": {
-        "seconds": 11.8,
+        "seconds": 21,
         "tests": 6
       },
       "mobile-360": {
-        "seconds": 12.4,
+        "seconds": 18.7,
         "tests": 6
       }
     },
     "user-guides.spec.ts": {
       "desktop-1280": {
-        "seconds": 24.5,
+        "seconds": 27.6,
         "tests": 9
       },
       "mobile-360": {
-        "seconds": 24.8,
+        "seconds": 27.4,
         "tests": 9
       }
     },
     "viewing-place.spec.ts": {
       "desktop-1280": {
-        "seconds": 115.5,
+        "seconds": 122.9,
         "tests": 11
       },
       "mobile-360": {
-        "seconds": 117.7,
+        "seconds": 122.6,
         "tests": 11
       }
     }
