@@ -4,7 +4,6 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
@@ -119,6 +118,7 @@ function install(setup: Setup) {
       `conf="$INSTALL_DEPS_ROOT/etc/apt/${SOURCES_CONF}"`,
       'parts="$INSTALL_DEPS_ROOT/etc/apt/sources.list.d"',
       `if [ -f "$conf" ]; then parts=$(sed -n 's/^Dir::Etc::sourceparts "\\(.*\\)";$/\\1/p' "$conf"); fi`,
+      `echo "$parts" > "${fake}/partsdir.$n"`,
       `ls "$parts" > "${fake}/parts.$n" 2>/dev/null`,
       `cat "$parts/ubuntu.sources" > "${fake}/seen.$n" 2>/dev/null`,
       `if [ -e "$parts/microsoft-prod.list" ]; then cat "${fake}/out.403"; exit 1; fi`,
@@ -202,12 +202,12 @@ function install(setup: Setup) {
         .split("\n"),
     ),
     seen: Array.from({ length: runs }, (_, i) => readOr(join(fake, `seen.${String(i + 1)}`))),
-    /** The runner's own lists after the run, by name. */
-    runnerLists: readdirSync(join(apt, "sources.list.d")).sort(),
     thirdParty: readOr(join(apt, "sources.list.d/microsoft-prod.list")),
-    /** What the script leaves behind: its apt file, and its scratch directories. */
+    /** What the script leaves behind: its apt file, and each directory apt read its lists from. */
     confLeft: existsSync(join(apt, SOURCES_CONF)),
-    scratchLeft: readdirSync(temp).filter((name) => name.startsWith("ci-browser-deps-sources")),
+    scratchLeft: Array.from({ length: runs }, (_, i) =>
+      readOr(join(fake, `partsdir.${String(i + 1)}`)).trim(),
+    ).filter((path) => path !== "" && existsSync(path)),
   };
 }
 
@@ -442,8 +442,10 @@ describe("the browser's system libraries survive one apt mirror (INC-1101, DEC-3
       "ci-mirror sources: the install reads ubuntu.sources only; left out: microsoft-prod.list",
     );
     // No runner file is edited or deleted.
-    expect(got.runnerLists).toEqual(["microsoft-prod.list", "ubuntu.sources"]);
     expect(got.thirdParty).toBe(THIRD_PARTY_LIST);
+    expect(got.sources).toBe(
+      "Types: deb\nURIs: mirror+file:/etc/apt/apt-mirrors.txt\nSuites: noble noble-updates\n",
+    );
     expect(got.mirrors).toBe(MIRROR_LIST);
 
     // The plain deb822 form: apt reads ubuntu.sources as the probe left it (its host swapped).
@@ -500,9 +502,11 @@ describe("the browser's system libraries survive one apt mirror (INC-1101, DEC-3
     expect(leftover.parts).toEqual([["ubuntu.sources"]]);
     expect([leftover.confLeft, leftover.scratchLeft]).toEqual([false, []]);
 
-    // Nothing resolves: the script stops before the install and still leaves nothing behind.
+    // Nothing resolves: the script stops before the install (no scratch directory was made) and
+    // still leaves no apt file behind.
     const down = install({ resolves: [], downCalls: 99, leftover: true, runs: [] });
     expect(down.code).toBe(1);
-    expect([down.confLeft, down.scratchLeft]).toEqual([false, []]);
+    expect(down.runs).toBe(0);
+    expect(down.confLeft).toBe(false);
   });
 });
