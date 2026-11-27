@@ -194,7 +194,7 @@ describe("the audit gate's exception list (DEC-405)", () => {
     const read = parseExceptions(readFileSync(join(ROOT, AUDIT_EXCEPTIONS_FILE), "utf8"), today());
     expect(read.problems).toEqual([]);
     expect(read.exceptions.map((e) => e.id)).toEqual(["GHSA-fc5q-39xc-vjpf"]);
-    expect(read.exceptions.every((e) => e.decision === "DEC-405")).toBe(true);
+    expect(read.exceptions.every((e) => e.decision === "DEC-495")).toBe(true);
   });
 
   it("AGX-10 the gate is the one reader of the list, and CI's audit job runs the gate", () => {
