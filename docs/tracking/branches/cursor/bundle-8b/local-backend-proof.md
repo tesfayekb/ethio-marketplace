@@ -1,57 +1,57 @@
 # Local backend proof (non-gating)
 
-- Commit: `1b2c6bc74d83ccdfff2f5328870e06366485da2b`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45915473124
+- Commit: `3e48505448ba885a08fda8f2caf18705552c45ae`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45918807028
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 600 | 70 | applied 565/565 | 38 | 0 | 0 | 16 | 54 |
-| email | 201 | 67 | applied 565/565 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 1104 | 84 | applied 565/565 | 80 | 0 | 0 | 24 | 104 |
-| 1 | 893 | 67 | applied 565/565 | 228 | 0 | 0 | 70 | 298 |
-| 2 | 833 | 66 | applied 565/565 | 93 | 0 | 0 | 29 | 122 |
-| 3 | 777 | 87 | applied 565/565 | 75 | 0 | 0 | 71 | 146 |
-| 4 | 625 | 65 | applied 565/565 | 152 | 0 | 0 | 12 | 164 |
-| 5 | 1276 | 73 | applied 565/565 | 146 | 0 | 0 | 8 | 154 |
-| 6 | 1282 | 67 | applied 565/565 | 131 | 0 | 0 | 15 | 146 |
-| 7 | 1228 | 73 | applied 565/565 | 193 | 0 | 0 | 11 | 204 |
-| 8 | 1012 | 86 | applied 565/565 | 137 | 0 | 0 | 5 | 142 |
-| 9 | 667 | 68 | applied 565/565 | 218 | 0 | 0 | 6 | 224 |
-| 10 | 1245 | 58 | applied 565/565 | 165 | 0 | 0 | 41 | 206 |
-| 11 | 1746 | 67 | applied 565/565 | 134 | 0 | 0 | 20 | 154 |
-| 12 | 1092 | 68 | applied 565/565 | 183 | 0 | 0 | 15 | 198 |
-| 13 | 907 | 85 | applied 565/565 | 126 | 0 | 0 | 12 | 138 |
-| 14 | 1400 | 88 | applied 565/565 | 165 | 0 | 1 | 7 | 173 |
-| 15 | 1235 | 86 | applied 565/565 | 148 | 0 | 0 | 8 | 156 |
-| 16 | 1059 | 88 | applied 565/565 | 270 | 0 | 0 | 48 | 318 |
+| smoke | 588 | 66 | applied 565/565 | 38 | 0 | 0 | 16 | 54 |
+| email | 228 | 87 | applied 565/565 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 830 | 69 | applied 565/565 | 80 | 0 | 0 | 24 | 104 |
+| 1 | 962 | 86 | applied 565/565 | 228 | 0 | 0 | 70 | 298 |
+| 2 | 887 | 74 | applied 565/565 | 93 | 0 | 0 | 29 | 122 |
+| 3 | 716 | 66 | applied 565/565 | 75 | 0 | 0 | 71 | 146 |
+| 4 | 619 | 68 | applied 565/565 | 152 | 0 | 0 | 12 | 164 |
+| 5 | 1239 | 56 | applied 565/565 | 146 | 0 | 0 | 8 | 154 |
+| 6 | 1397 | 89 | applied 565/565 | 131 | 0 | 0 | 15 | 146 |
+| 7 | 1149 | 66 | applied 565/565 | 193 | 0 | 0 | 11 | 204 |
+| 8 | 960 | 71 | applied 565/565 | 137 | 0 | 0 | 5 | 142 |
+| 9 | 649 | 65 | applied 565/565 | 218 | 0 | 0 | 6 | 224 |
+| 10 | 1284 | 68 | applied 565/565 | 165 | 0 | 0 | 41 | 206 |
+| 11 | 1719 | 68 | applied 565/565 | 134 | 0 | 0 | 20 | 154 |
+| 12 | 1031 | 56 | applied 565/565 | 183 | 0 | 0 | 15 | 198 |
+| 13 | 825 | 68 | applied 565/565 | 125 | 0 | 1 | 12 | 138 |
+| 14 | 1300 | 67 | applied 565/565 | 166 | 0 | 0 | 7 | 173 |
+| 15 | 1137 | 68 | applied 565/565 | 148 | 0 | 0 | 8 | 156 |
+| 16 | 947 | 66 | applied 565/565 | 270 | 0 | 0 | 48 | 318 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
 | TOTAL | — | — | — | 2688 | 0 | 1 | 418 | 3107 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 11 1746 s
+- Slowest lane: 11 1719 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 8, email 7, webkit 11, 1 7, 2 7, 3 11, 4 7, 5 9, 6 7, 7 9, 8 11, 9 8, 10 6, 11 7, 12 7, 13 11, 14 12, 15 11, 16 12, repeat not run
-- Lane plan (DEC-375 b): 16 lanes over 125 files, weights from run 43431755160 (2026-11-13); mean 792 s, largest 793 s (+0 %); alone: none; unweighed (median 46 s): none; repeat budget 793 s; planned/test seconds: 1 793/711, 2 792/663, 3 792/576, 4 793/455, 5 792/1074, 6 792/1100, 7 793/1034, 8 793/803, 9 792/487, 10 792/1086, 11 793/1562, 12 793/904, 13 792/703, 14 793/1192, 15 792/1035, 16 793/854
+- Database session samples during each start (INC-944): smoke 7, email 11, webkit 7, 1 11, 2 9, 3 7, 4 7, 5 6, 6 12, 7 7, 8 9, 9 7, 10 7, 11 7, 12 6, 13 7, 14 7, 15 7, 16 7, repeat not run
+- Lane plan (DEC-375 b): 16 lanes over 125 files, weights from run 43431755160 (2026-11-13); mean 792 s, largest 793 s (+0 %); alone: none; unweighed (median 46 s): none; repeat budget 793 s; planned/test seconds: 1 793/762, 2 792/684, 3 792/536, 4 793/446, 5 792/1081, 6 792/1174, 7 793/972, 8 793/774, 9 792/474, 10 792/1102, 11 793/1539, 12 793/881, 13 792/652, 14 793/1120, 15 792/968, 16 793/764
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45915473124-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 45915473124-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45915473124-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45915473124-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 45915473124-local-2
-  - 3: [e2e:teardown] deleted 3 user(s) owned by process 45915473124-local-3
-  - 4: [e2e:teardown] deleted 11 user(s) owned by process 45915473124-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 45915473124-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45915473124-local-6
-  - 7: [e2e:teardown] deleted 5 user(s) owned by process 45915473124-local-7
-  - 8: [e2e:teardown] deleted 23 user(s) owned by process 45915473124-local-8
-  - 9: [e2e:teardown] deleted 15 user(s) owned by process 45915473124-local-9
-  - 10: [e2e:teardown] deleted 3 user(s) owned by process 45915473124-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45915473124-local-11
-  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45915473124-local-12
-  - 13: [e2e:teardown] deleted 27 user(s) owned by process 45915473124-local-13
-  - 14: [e2e:teardown] deleted 18 user(s) owned by process 45915473124-local-14
-  - 15: [e2e:teardown] deleted 47 user(s) owned by process 45915473124-local-15
-  - 16: [e2e:teardown] deleted 12 user(s) owned by process 45915473124-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45918807028-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45918807028-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-1
+  - 2: [e2e:teardown] deleted 5 user(s) owned by process 45918807028-local-2
+  - 3: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-3
+  - 4: [e2e:teardown] deleted 11 user(s) owned by process 45918807028-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-6
+  - 7: [e2e:teardown] deleted 5 user(s) owned by process 45918807028-local-7
+  - 8: [e2e:teardown] deleted 23 user(s) owned by process 45918807028-local-8
+  - 9: [e2e:teardown] deleted 15 user(s) owned by process 45918807028-local-9
+  - 10: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45918807028-local-11
+  - 12: [e2e:teardown] deleted 5 user(s) owned by process 45918807028-local-12
+  - 13: [e2e:teardown] deleted 27 user(s) owned by process 45918807028-local-13
+  - 14: [e2e:teardown] deleted 17 user(s) owned by process 45918807028-local-14
+  - 15: [e2e:teardown] deleted 47 user(s) owned by process 45918807028-local-15
+  - 16: [e2e:teardown] deleted 12 user(s) owned by process 45918807028-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -78,7 +78,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 14
-- admin-listings.spec.ts / ADMIN LISTINGS — the console's doors / AL-31 Reports: the open count on the row and the reasons on the listing's page for listings:review; nothing for listings:view alone / mobile-360 — Error: [e2e:session] injected identity mismatch — expected user [account id], page holds no session.
+## Lane 13
+- one-line-slots-admin.spec.ts / OLS-9 the fourth admin tables stay one line / mobile-360 — Error: the switcher lists the public languages
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
