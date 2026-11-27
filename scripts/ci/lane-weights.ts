@@ -4,6 +4,9 @@
  * (each ran its tests at one worker), and writes `scripts/ci/lane-weights.json`: per spec file (its
  * path under e2e/, as Playwright names it) and Chromium project, the seconds every attempt took and
  * the test count, with the run's id and its date. `scripts/ci/lane-plan.ts` reads it.
+ * Since cursor-ci-speed every green run with all sixteen lanes' results publishes its own copy
+ * (`runWeights`, written by scripts/e2e-failure-report.ts to WEIGHTS_EVIDENCE), and the lanes plan
+ * from the newest one on ci-evidence; this file is their fallback.
  *
  *   bun scripts/ci/lane-weights.ts <folder> --run <id>
  */
@@ -83,6 +86,42 @@ export function weightsFrom(results: unknown[], run: number): Weights {
     }
   }
   return { source: { run, date: start.slice(0, 10), lanes: "1-16" }, files: sorted };
+}
+
+/**
+ * cursor-ci-speed (ruling 1, decision 3) — where a run's own weights publish: the merged E2E job's
+ * reporter writes them here, and scripts/publish-evidence.sh files them for the run's ref.
+ */
+export const WEIGHTS_EVIDENCE = "docs/tracking/lane-weights.json";
+
+/** A lane's wall seconds (`stats.duration`) when its results recorded tests, else null. */
+export function laneSeconds(results: unknown): number | null {
+  if (!isObject(results) || !isObject(results["stats"])) return null;
+  const duration = results["stats"]["duration"];
+  if (typeof duration !== "number" || testsOf(results).length === 0) return null;
+  return duration / 1000;
+}
+
+/**
+ * The weights a run publishes, or why it publishes none: only a run whose merged verdict is green
+ * and whose numbered lanes all recorded results (a red run's times carry its timeouts).
+ */
+export function runWeights(
+  lanes: ReadonlyMap<number, unknown>,
+  run: number,
+  green: boolean,
+): { weights: Weights } | { reason: string } {
+  if (!green) return { reason: "the merged verdict is not green" };
+  if (!Number.isInteger(run) || run <= 0) return { reason: "the run has no id" };
+  const numbered = Array.from({ length: NUMBERED_LANES }, (_, i) => i + 1);
+  const missing = numbered.filter((lane) => laneSeconds(lanes.get(lane)) === null);
+  if (missing.length > 0) return { reason: `lane(s) ${missing.join(", ")} recorded no results` };
+  return {
+    weights: weightsFrom(
+      numbered.map((lane) => lanes.get(lane)),
+      run,
+    ),
+  };
 }
 
 /** The weights file's shape, or null. */

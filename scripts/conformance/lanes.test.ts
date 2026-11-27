@@ -56,6 +56,9 @@ import {
  * the same tags as the two commands they count for.
  * CF-LANES-6 (INC-1231): the statement-trigger reader reads SQL as the migration reader does, so a
  * `--` inside a quoted literal hides no trigger and a comment after one still hides its own.
+ * CF-LANES-7 (cursor-ci-speed): every lane and the repeat budget plan from the run's one copy of
+ * the weights (backend-images reads it with scripts/ci/lane-weights-read.sh, installs nothing for
+ * it, and cannot fail on it), and ci.yml publishes the run's own weights (weightsWiringFindings).
  */
 type Finding = { file: string; line: number; what: string };
 /** A coverage finding's allowlist key: `@<tag>` for a test every lane leaves out, else the test. */
@@ -312,6 +315,72 @@ function laneLists(plan: Plan): string[][] {
   return plan.lanes.map((lane) => lane.files);
 }
 
+const CI_WORKFLOW = ".github/workflows/ci.yml";
+const WEIGHTS_COPY = '"$RUNNER_TEMP/lane-weights.json"';
+const WEIGHTS_WRITE = `printf '%s' "$LANE_WEIGHTS" > ${WEIGHTS_COPY}`;
+const WEIGHTS_ARGS = `--weights ${WEIGHTS_COPY} --weights-source "$LANE_WEIGHTS_SOURCE"`;
+/** The lines CF-LANES-7 requires, each once, in local-backend-proof.yml. */
+export const WEIGHTS_WIRING = [
+  "      weights: ${{ steps.weights.outputs.weights }}",
+  "      weights_source: ${{ steps.weights.outputs.weights_source }}",
+  "      LANE_WEIGHTS: ${{ needs.backend-images.outputs.weights }}",
+  "      LANE_WEIGHTS_SOURCE: ${{ needs.backend-images.outputs.weights_source }}",
+];
+/** The read step's own lines: it cannot fail the job, and reads with the run's token. */
+export const WEIGHTS_STEP = [
+  "        id: weights",
+  "        continue-on-error: true",
+  "          GH_TOKEN: ${{ github.token }}",
+  "        run: bash scripts/ci/lane-weights-read.sh",
+];
+
+/**
+ * CF-LANES-7 (cursor-ci-speed, ruling 1 decision 3) — every lane plans from the run's one copy of
+ * the weights: the backend-images job reads it (a step that cannot fail the job) and hands it out,
+ * every `lane-plan.ts` call takes it by `--weights` after writing it, and the merged job publishes
+ * the run's own weights for the next run to read.
+ */
+export function weightsWiringFindings(proof: string, ci: string): string[] {
+  const findings: string[] = [];
+  const lines = proof.split("\n");
+  for (const wanted of WEIGHTS_WIRING)
+    if (lines.filter((line) => line === wanted).length !== 1)
+      findings.push(
+        `${WORKFLOW} holds \`${wanted.trim()}\` ${String(lines.filter((line) => line === wanted).length)} times, not once`,
+      );
+  const job = /\n {2}backend-images:\n([\s\S]*?)\n {2}\S/.exec(proof)?.[1] ?? "";
+  const step =
+    /\n( {6}- name: Read the lane weights[^\n]*\n(?: {8}[^\n]*\n)*)/.exec(job)?.[1] ?? "";
+  if (step === "") findings.push("the weights are not read in the backend-images job");
+  for (const wanted of WEIGHTS_STEP)
+    if (step !== "" && !step.split("\n").includes(wanted))
+      findings.push(`the weights' read step lacks \`${wanted.trim()}\``);
+  if (/\n\s+- (?:uses: oven-sh\/setup-bun|name: Install)/.test(job))
+    findings.push("the backend-images job installs something for the read");
+  lines.forEach((line, i) => {
+    if (!/\bbun scripts\/ci\/lane-plan\.ts\b/.test(line)) return;
+    if (!line.includes(WEIGHTS_ARGS))
+      findings.push(
+        `${WORKFLOW}:${String(i + 1)} plans without the run's copy of the weights (${WEIGHTS_ARGS})`,
+      );
+    if (!lines.slice(Math.max(0, i - 3), i).some((before) => before.trim() === WEIGHTS_WRITE))
+      findings.push(
+        `${WORKFLOW}:${String(i + 1)} plans before writing the copy (${WEIGHTS_WRITE})`,
+      );
+  });
+  if (!lines.some((line) => /\bbun scripts\/ci\/lane-plan\.ts\b/.test(line)))
+    findings.push(`${WORKFLOW} calls no lane plan`);
+  if (
+    !/publish-evidence\.sh "ci: e2e failure report[^\n]*\n[^\n]*docs\/tracking\/lane-weights\.json/.test(
+      ci,
+    )
+  )
+    findings.push(
+      `${CI_WORKFLOW} does not publish docs/tracking/lane-weights.json with the E2E evidence`,
+    );
+  return findings;
+}
+
 const yml = readFileSync(join(ROOT, WORKFLOW), "utf8");
 
 describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, DEC-376)", () => {
@@ -444,6 +513,31 @@ describe("every Chromium test in exactly one lane, by measured time (DEC-375 b, 
     );
     expect(flagged).not.toBe(yml);
     expect(workerFindings(flagged)).toHaveLength(16);
+  });
+
+  it("CF-LANES-7 every lane and the repeat budget plan from the run's one copy of the weights, read in backend-images; the merged job publishes the run's own", () => {
+    const ci = readFileSync(join(ROOT, CI_WORKFLOW), "utf8");
+    expect(weightsWiringFindings(yml, ci)).toEqual([]);
+    // Planted: the workflow as it stood at 5cfe8b0c2 (each lane read the committed file), a read
+    // that can fail the job, a lane that plans before writing the copy, an unpublished copy.
+    const base = yml.replaceAll(` ${WEIGHTS_ARGS}`, "").replaceAll(`${WEIGHTS_WRITE}\n`, "");
+    const planted = weightsWiringFindings(base, ci);
+    expect(planted.filter((line) => line.includes("plans without the run's copy"))).toHaveLength(2);
+    expect(planted.filter((line) => line.includes("plans before writing the copy"))).toHaveLength(
+      2,
+    );
+    expect(
+      weightsWiringFindings(
+        yml.replace(
+          "        continue-on-error: true\n        env:\n          GH_TOKEN",
+          "        env:\n          GH_TOKEN",
+        ),
+        ci,
+      ),
+    ).toEqual(["the weights' read step lacks `continue-on-error: true`"]);
+    expect(weightsWiringFindings(yml, ci.replace(" docs/tracking/lane-weights.json", ""))).toEqual([
+      `${CI_WORKFLOW} does not publish docs/tracking/lane-weights.json with the E2E evidence`,
+    ]);
   });
 
   it("CF-LANES-5 the repeat lane repeats the selected specs' @global-state tests in a serial pass the planner counts (DEC-415)", () => {

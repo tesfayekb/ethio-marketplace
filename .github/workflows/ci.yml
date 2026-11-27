@@ -750,9 +750,11 @@ jobs:
           # ci-evidence ledger and re-runs the flake pass on it, so a
           # concurrent run's lines are never overwritten by a stale snapshot.
           # When ci-evidence has no ledger yet, the first pass's file stands.
+          # cursor-ci-speed (DEC-375 b): the run's lane weights, written by the reporter only for a green
+          # run whose numbered lanes all recorded results, publish beside them (absent, nothing is sent).
           PUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \
             bash scripts/publish-evidence.sh "ci: e2e failure report + flake ledger [skip ci]" \
-              docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md
+              docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md docs/tracking/lane-weights.json
           # The report is published; NOW the reporter's own health is raised.
           if [ "$selftest" -ne 0 ]; then
             echo "::error::E2E failure reporter self-test failed (exit ${selftest})"

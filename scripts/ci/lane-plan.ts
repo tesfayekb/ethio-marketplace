@@ -13,8 +13,12 @@
  *     plan's line;
  *   bun scripts/ci/lane-plan.ts --list <list.json> --repeat-budget
  *     prints the repeat lane's budget in seconds.
+ * Both take `--weights <file> --weights-source <line>` (cursor-ci-speed): the run's one evidence
+ * copy of the weights, read by scripts/ci/lane-weights-read.sh in the backend-images job; without
+ * it, or when it does not parse, the committed file (`chooseWeights`; the plan's line names which).
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { errorText } from "../../src/lib/error-text";
 import {
   LANE_PROJECTS,
   NUMBERED_LANES,
@@ -194,12 +198,12 @@ export function laneLine(plan: Plan, number: number): string {
 }
 
 /** The plan's line, the same in every lane: its source, spread, alone files and unweighed files. */
-export function planLine(plan: Plan): string {
+export function planLine(plan: Plan, source = `the committed ${WEIGHTS_FILE}`): string {
   const largest = Math.max(...plan.lanes.map((lane) => lane.seconds));
   const files = plan.lanes.reduce((sum, lane) => sum + lane.files.length, 0);
   const over = plan.mean > 0 ? Math.round((largest / plan.mean - 1) * 100) : 0;
   return [
-    `- Lane plan (DEC-375 b): ${String(plan.lanes.length)} lanes over ${String(files)} files, weights from run ${String(plan.run)} (${plan.date});`,
+    `- Lane plan (DEC-375 b): ${String(plan.lanes.length)} lanes over ${String(files)} files, weights from run ${String(plan.run)} (${plan.date}), ${source};`,
     `mean ${String(Math.round(plan.mean))} s, largest ${String(Math.round(largest))} s (${over >= 0 ? "+" : ""}${String(over)} %);`,
     `alone: ${plan.alone.join(", ") || "none"};`,
     `unweighed (median ${String(Math.round(plan.median))} s): ${plan.unweighed.join(", ") || "none"};`,
@@ -211,6 +215,49 @@ export function readWeights(path = WEIGHTS_FILE): Weights {
   const weights = parseWeights(readFileSync(path, "utf8"));
   if (weights === null) throw new Error(`${path}: not the weights shape`);
   return weights;
+}
+
+export type WeightsChoice = { weights: Weights; source: string };
+
+/**
+ * cursor-ci-speed (ruling 1, decision 3) — the weights a lane plans from: the run's one evidence
+ * copy (the backend-images job's `weights` output, written to a file by the lane) when it parses,
+ * otherwise the committed file. Never a failure: an absent, empty or misshapen copy falls back,
+ * and the answer's source names where the weights came from and why.
+ */
+export function chooseWeights(
+  copy: string | null,
+  readLine: string,
+  committed: () => Weights = readWeights,
+): WeightsChoice {
+  const read = readLine.trim() === "" ? "the evidence read named no source" : readLine.trim();
+  const fallback = (why: string) => ({
+    weights: committed(),
+    source: `the committed ${WEIGHTS_FILE} — ${why}`,
+  });
+  if (copy === null) return fallback("no evidence copy was given");
+  if (copy.trim() === "") return fallback(read);
+  const weights = parseWeights(copy);
+  if (weights === null) return fallback(`the evidence copy is not the weights shape (${read})`);
+  return { weights, source: read };
+}
+
+/** Measured lane times over the mean by more than SPREAD_LIMIT: a finding line, never a verdict. */
+export function measuredSpreadLine(seconds: ReadonlyMap<number, number>): string {
+  const lanes = Array.from({ length: NUMBERED_LANES }, (_, i) => i + 1);
+  const missing = lanes.filter((lane) => seconds.get(lane) === undefined);
+  if (missing.length > 0)
+    return `- Measured lane spread (DEC-375 b): not measured — lane(s) ${missing.join(", ")} recorded no results`;
+  const times = lanes.map((lane) => ({ lane, seconds: seconds.get(lane) ?? 0 }));
+  const mean = times.reduce((sum, item) => sum + item.seconds, 0) / times.length;
+  const largest = times.reduce((best, item) => (item.seconds > best.seconds ? item : best));
+  const over = mean > 0 ? largest.seconds / mean - 1 : 0;
+  const percent = Math.round(over * 100);
+  const verdict =
+    over > SPREAD_LIMIT
+      ? `finding: over the ${String(SPREAD_LIMIT * 100)} % limit — the lanes' measured times no longer match the plan's weights`
+      : `within the ${String(SPREAD_LIMIT * 100)} % limit`;
+  return `- Measured lane spread (DEC-375 b): mean ${String(Math.round(mean))} s, largest ${String(Math.round(largest.seconds))} s (lane ${String(largest.lane)}, ${percent >= 0 ? "+" : ""}${String(percent)} %); ${verdict}`;
 }
 
 if (import.meta.main) {
@@ -225,8 +272,21 @@ if (import.meta.main) {
     console.error("lane-plan: --list <playwright --list --reporter=json output> is required");
     process.exit(2);
   }
-  const plan = planLanes(laneFilesOf(tests), readWeights());
+  const weightsPath = value("--weights");
+  let copy: string | null = null;
+  let readLine = value("--weights-source");
+  if (weightsPath !== "") {
+    try {
+      copy = readFileSync(weightsPath, "utf8");
+    } catch (error) {
+      copy = "";
+      readLine = `${weightsPath} could not be read (${errorText(error)})`;
+    }
+  }
+  const { weights, source } = chooseWeights(copy, readLine);
+  const plan = planLanes(laneFilesOf(tests), weights);
   if (args.includes("--repeat-budget")) {
+    console.error(`lane-plan: weights from run ${String(plan.run)} (${plan.date}), ${source}`);
     console.log(String(repeatBudget(plan)));
   } else {
     const number = Number(value("--lane"));
@@ -240,6 +300,6 @@ if (import.meta.main) {
     }
     writeFileSync(out, `${lane.files.join("\n")}\n`);
     console.log(laneLine(plan, number));
-    console.log(planLine(plan));
+    console.log(planLine(plan, source));
   }
 }
