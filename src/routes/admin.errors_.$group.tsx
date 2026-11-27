@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { knownKind } from "@/features/admin-errors/error-labels";
 import { ErrorReportsPage } from "@/features/admin-errors/error-reports-page";
-import { errorsSearch } from "@/features/admin-errors/errors-search";
+import { errorsSearch } from "@/lib/errors-search";
 
 /**
  * DEC-474 Part F — one error group's reports, on its own address so a link can be shared and Back

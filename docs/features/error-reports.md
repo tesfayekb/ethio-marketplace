@@ -89,7 +89,7 @@ manifest line. The `errors:view` permission is granted to the `admin` role:
 - `admin_error_stats(p_days = 7)`: counts per day by kind, and the top pages, browsers and
   versions.
 
-Their client readers are `src/features/admin-errors/errors-service.ts`, over `rpc` from
+`DEVICES` and `Device` live in `src/lib/error-clean.ts` (it imports nothing), so the staff readers carry no zod (INC-1329). The Errors address reader, `src/lib/errors-search.ts`, is in `src/lib` because it rides the entry (BC-16, BC-18; INC-1330). Their client readers are `src/features/admin-errors/errors-service.ts`, over `rpc` from
 `src/lib/supabase-door.ts`. A door's refusal is thrown as the typed failure (`readFailed`), and
 an answer out of its promised shape is refused. The door-words family is
 `src/features/admin-errors/errors-refusals.ts`. The Errors page (Lovable) draws only these three
@@ -118,6 +118,8 @@ The browser proof is `e2e/error-reports.spec.ts`:
 - ER-1: a 500 on the feed's read records exactly one `notice` row, with code `"500"`, path `/`
   and signed out, read back by database truth;
 - ER-2: a 403 draws the refusal and sends nothing.
+
+The staff pages' browser proof is `e2e/admin-errors.spec.ts` (ERB-1, ERB-2; docs/features/e2e-harness.md) and the failure crawl's FCR-79 and FCR-80.
 
 Each test's rows carry an `e2e-` tag in the message. They are removed by id in `afterEach`, along
 with the test's own address-meter row, after the hook stops the page (`stopPageBeforePurge`,

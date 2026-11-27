@@ -4,11 +4,12 @@ import {
   cleanPath,
   cleanPlace,
   ERROR_REPORTS_PATH,
+  type Device,
 } from "@/lib/error-clean";
 import type { BrowserFailure } from "@/lib/error-report";
 import { errorStack, errorText } from "@/lib/error-text";
 import { callRoute } from "@/lib/route-client";
-import type { Device, ErrorReport } from "@/lib/schemas/error-report";
+import type { ErrorReport } from "@/lib/schemas/error-report";
 
 /**
  * DEC-474 Part F — THE BROWSER'S SENDER, downloaded only when a failure happens (src/lib/error-report.ts).

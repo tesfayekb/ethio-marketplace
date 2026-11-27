@@ -131,6 +131,8 @@ export const CRAWL_PAGES: readonly CrawlPage[] = [
     audience: "staff",
     area: "admin-content",
   },
+  { id: "FCR-79", route: "/admin/errors", audience: "staff", area: "admin-content" },
+  { id: "FCR-80", route: "/admin/errors/$group", audience: "staff", area: "admin-content" },
 ];
 
 /** The rows of one area's spec file. */

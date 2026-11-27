@@ -30,6 +30,8 @@ import {
   censusFindings,
   type Finding,
   gateReachFindings,
+  premiseSourceFindings,
+  redFirstFindings,
   type Ruling,
   templateKeys,
   textFindings,
@@ -123,6 +125,8 @@ function check(file: string, root: string, tree: string): Finding[] {
   findings.push(
     ...gateReachFindings(text, file, rulings),
     ...userCasesFindings(text, file, rulings),
+    ...premiseSourceFindings(text, file),
+    ...redFirstFindings(text, file),
   );
   const template = join(root, TEMPLATE);
   if (existsSync(template)) {

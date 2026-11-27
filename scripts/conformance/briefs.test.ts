@@ -33,6 +33,8 @@ import {
   recordScopeFindings,
   newTestFindings,
   optionFindings,
+  premiseSourceFindings,
+  redFirstFindings,
   rulingFormFindings,
   scopeFindings,
   settingDecisionFindings,
@@ -105,7 +107,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     expect(report(asReported(baseFindings(readFileSync(brief, "utf8"), brief)))).toBe("");
   });
 
-  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16, CF-BRIEF-18, CF-BRIEF-19, CF-BRIEF-20 and CF-BRIEF-21 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited, each record's files inside SCOPE, each cited list's reader cited, the first-download tolerance in DEC-355's words", () => {
+  it("CF-BRIEF-2, CF-BRIEF-3, CF-BRIEF-11, CF-BRIEF-15, CF-BRIEF-16, CF-BRIEF-18, CF-BRIEF-19, CF-BRIEF-20, CF-BRIEF-21, CF-BRIEF-25 and CF-BRIEF-26 the brief and its rulings: no absolute stop rule, a SCOPE by area or with each file's test, titles that fit, every census item answered, no SCOPE path rule 00 forbids, each named setting's newest decision cited, each record's files inside SCOPE, each cited list's reader cited, the first-download tolerance in DEC-355's words, each premise's source, each fixed INC's red-first or control", () => {
     const { brief, rulings } = inForce();
     const findings: Finding[] = [];
     for (const file of [brief, ...rulings]) {
@@ -133,6 +135,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
     findings.push(
       ...gateReachFindings(readFileSync(brief, "utf8"), brief, answers),
       ...userCasesFindings(readFileSync(brief, "utf8"), brief, answers),
+      ...premiseSourceFindings(readFileSync(brief, "utf8"), brief),
+      ...redFirstFindings(readFileSync(brief, "utf8"), brief),
     );
     const allowances = readAllowlist(ALLOWLIST, findings.map(keyOf));
     console.log(`[briefs] read ${1 + rulings.length} files, findings: ${findings.length}`);
@@ -229,6 +233,164 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       ),
     ).toEqual([]);
     expect(guardPathFindings("no guard line here\n", f, root)).toEqual([]);
+  });
+
+  it("CF-BRIEF-25 (S822) every premise of STEP 1 names its SOURCE: or OPEN:; a planted premise with neither, an item with no bullet and an absent item are named", () => {
+    const f = "planted.md";
+    const brief = (...step: string[]) =>
+      ["PLANTED — a GO. Base: dev 2b11a9d29", "", ...step, "", "SCOPE: `src/`"].join("\n");
+    const texts = (text: string) =>
+      premiseSourceFindings(text, f).map((x) => `${x.line} ${x.text}`);
+    expect(
+      texts(
+        brief(
+          "STEP 1 — the census:",
+          "- CENSUS-ITEM premises:",
+          "  - INC-1 — SOURCE: run 7, the branch guard.",
+          "  - the build is slow, from memory",
+          "    and the second line of it",
+          "  - the runner image — OPEN: which image?",
+          "- CENSUS-ITEM callee-codes: not applicable — no door.",
+        ),
+      ),
+      "a bullet with neither word is named at its own line, whatever its continuation says",
+    ).toEqual([
+      "6 a premise names no SOURCE: or OPEN: — - the build is slow, from memory and the second line of it",
+    ]);
+    expect(
+      texts(brief("STEP 1 — the census:", "- premises — every premise is from memory.")),
+      "an item with no bullet and no word",
+    ).toEqual([
+      "4 a premise names no SOURCE: or OPEN: — - premises — every premise is from memory.",
+    ]);
+    for (const own of [
+      "- premises — SOURCE: the ledger.",
+      "- premises — OPEN: the question.",
+      "- CENSUS-ITEM premises: not applicable — no outside system.",
+    ])
+      expect(texts(brief("STEP 1 — the census:", own)), own).toEqual([]);
+    expect(
+      texts(brief("STEP 1 — the census:", "- premises:", "  - not applicable")),
+      "a bullet is not excused by not applicable",
+    ).toHaveLength(1);
+    expect(
+      texts(brief("STEP 1 — the census:", "- consumers — the readers.")),
+      "a STEP 1 without its premises item is a finding, never a pass",
+    ).toEqual(["3 STEP 1 carries no premises item"]);
+    expect(texts("PLANTED — a GO. Base: dev 2b11a9d29\n"), "no STEP 1 is law 15's").toEqual([]);
+    expect(
+      texts(`RECORDS TURN R1 — planted\n${brief("STEP 1 — x", "- premises — from memory")}`),
+      "a records turn is exempt",
+    ).toEqual([]);
+    expect(
+      texts(brief("STEP 1 — the census:", "- premises:", "  - a — SOURCE: x", "- gate-reach — y")),
+      "the item ends at the next census item",
+    ).toEqual([]);
+  });
+
+  it("CF-BRIEF-26 (S817) an INC a COVERED HERE line names appears in the premises on a RED-FIRST: or CONTROL: bullet; a planted INC with none, a LEFT part and a missing item are judged", () => {
+    const f = "planted.md";
+    const brief = (system: string[], premises: string[]) =>
+      [
+        "PLANTED — a GO. Base: dev 2b11a9d29",
+        "",
+        "THE SYSTEM (G0) — the planted fix",
+        ...system,
+        "CONFORMANCE GUARD: `src/` (exists)",
+        "",
+        "SCOPE: `src/`",
+        "",
+        "STEP 1 — the census:",
+        "- CENSUS-ITEM premises:",
+        ...premises,
+        "- CENSUS-ITEM findings: none.",
+        "",
+      ].join("\n");
+    const texts = (text: string) => redFirstFindings(text, f).map((x) => `${x.line} ${x.text}`);
+    const missing = (id: string) =>
+      `${id} is covered here, but no premise of STEP 1 names it with RED-FIRST: or CONTROL:`;
+    const system = [
+      "COVERED HERE:",
+      "  - INC-11: the fix.",
+      "    - INC-12: nested, with INC-13.",
+      "  - the rest, no id.",
+    ];
+    expect(
+      texts(
+        brief(system, [
+          "  - INC-11 — SOURCE: run 1. RED-FIRST: T-1.",
+          "  - INC-12 — SOURCE: run 2.",
+          "  - INC-13 — SOURCE: run 3. CONTROL: T-3 is new behaviour.",
+        ]),
+      ),
+    ).toEqual([`6 ${missing("INC-12")}`]);
+    expect(
+      texts(brief(system, ["  - INC-11 SOURCE: x RED-FIRST: y; INC-12 and INC-13 CONTROL: z"])),
+      "one bullet may prove several",
+    ).toEqual([]);
+    expect(
+      texts(brief(system, ["  - INC-11 — RED-FIRST: T", "    INC-12, INC-13 — CONTROL: T"])),
+    ).toEqual([]);
+    expect(
+      texts(
+        brief(
+          ["COVERED HERE: INC-21 moves | LEFT: INC-22 — a roadmap line"],
+          ["  - x — SOURCE: y"],
+        ),
+      ).map((x) => x.replace(/^\d+ /, "")),
+      "a LEFT part is not covered here",
+    ).toEqual([missing("INC-21")]);
+    expect(
+      texts(
+        brief(["COVERED HERE: INC-31 moves."], ["  - INC-31 — RED-FIRST: T"]).replace(
+          "- CENSUS-ITEM premises:\n",
+          "",
+        ),
+      ),
+      "a STEP 1 with no premises item judges every INC unproven",
+    ).toEqual([`4 ${missing("INC-31")}`]);
+    const outside = brief(["COVERED HERE: none."], ["  - x — SOURCE: y"]).replace(
+      "CONFORMANCE GUARD",
+      "COVERED HERE: INC-41 is named after the block.\nCONFORMANCE GUARD",
+    );
+    expect(texts(outside), "an INC inside the block is judged").toEqual([`5 ${missing("INC-41")}`]);
+    expect(
+      texts(
+        `${brief(["COVERED HERE: none."], ["  - x — SOURCE: y"])}\nCOVERED HERE: INC-51 outside every block.\n`,
+      ),
+      "a COVERED HERE line outside a THE SYSTEM block is not read",
+    ).toEqual([]);
+    expect(
+      texts(`RECORDS TURN R1 — planted\n${brief(system, ["  - x — SOURCE: y"])}`),
+      "a records turn is exempt",
+    ).toEqual([]);
+  });
+
+  it("CF-BRIEF-15 the template's census item `whole-app-calls` follows `callee-codes`, and a planted STEP 1 that leaves it out is named", () => {
+    const keys = templateKeys(readFileSync(TEMPLATE, "utf8"));
+    expect(keys.indexOf("whole-app-calls")).toBe(keys.indexOf("callee-codes") + 1);
+    const step = (...named: string[]) =>
+      [
+        "PLANTED — a GO. Base: dev 2b11a9d29",
+        "",
+        `STEP 1 — the census: ${named.join(", ")}.`,
+        "",
+      ].join("\n");
+    const without = keys.filter((key) => key !== "whole-app-calls");
+    const f = "planted.md";
+    expect(censusFindings(step(...without), f, [], keys).map((x) => x.text)).toEqual([
+      "STEP 1 does not name the census item whole-app-calls",
+    ]);
+    expect(censusFindings(step(...keys), f, [], keys)).toEqual([]);
+    expect(
+      censusFindings(
+        step(...without),
+        f,
+        [{ file: "r.md", text: "CENSUS-ITEM whole-app-calls: covered — no shared piece changes" }],
+        keys,
+      ),
+      "a line `CENSUS-ITEM whole-app-calls: …` answers it",
+    ).toEqual([]);
   });
 
   it("CF-BRIEF-17 every ruling of the brief in force is saved bare: its first line is the ruling's `RULING — …`; a planted wrapped ruling is named", () => {
@@ -355,6 +517,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "SCOPE: `src/` (each file's tests), `scripts/fresh.test.ts` (new), `scripts/ci/`",
       "",
       "STEP 1 — the census: the consumers and the premises.",
+      "- premises —",
+      "  - INC-901 — SOURCE: the planted tree. RED-FIRST: the planted test.",
       "The function `alpha` at `src/alpha.ts` :2 is read; `src/alpha.ts` exists; `src/beta.ts` is new.",
       "A new id CF-PLANT-9 is free; the tolerance is two lines.",
       "OPTION: fresh in scripts/types.d.ts",
@@ -372,6 +536,9 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "",
       "RECORDS (word for word)",
       "INC-901 — the planted defect; FIXED.",
+      "",
+      "THE SYSTEM (G0) — the planted fix",
+      "COVERED HERE: INC-901 is moved onto its mechanism.",
       "",
     ].join("\n");
     const planted = [
@@ -399,6 +566,9 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       "",
       "RECORDS (word for word)",
       "INC-901 — the planted defect; FIXED.",
+      "",
+      "THE SYSTEM (G0) — the planted fix",
+      "COVERED HERE: INC-901 is moved onto its mechanism.",
       "",
     ].join("\n");
     write("briefs/clean.md", clean);
@@ -488,6 +658,12 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "the GO template marks no census item",
       ]);
       expect(censusFindings(`RECORDS TURN R1 — planted\n${planted}`, f, [], keys)).toEqual([]);
+      expect(premiseSourceFindings(planted, f).map((x) => x.text)).toEqual([
+        "STEP 1 carries no premises item",
+      ]);
+      expect(redFirstFindings(planted, f).map((x) => `${x.line} ${x.text}`)).toEqual([
+        "27 INC-901 is covered here, but no premise of STEP 1 names it with RED-FIRST: or CONTROL:",
+      ]);
       expect(
         allowanceFindings("# header\nbriefs/old.md:3 any red | planted | INC-1\n", "allow.txt", [
           "briefs/planted.md",
@@ -500,6 +676,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
       expect(textFindings(clean, f)).toEqual([]);
       expect(treeFindings(clean, f, root)).toEqual([]);
       expect(censusFindings(clean, f, [], ["consumers", "premises"])).toEqual([]);
+      expect(premiseSourceFindings(clean, f)).toEqual([]);
+      expect(redFirstFindings(clean, f)).toEqual([]);
       expect(
         allowanceFindings("# header\nbriefs/clean.md:3 any red | planted | INC-1\n", "allow.txt", [
           "briefs/clean.md",
@@ -648,6 +826,8 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
         "CF-BRIEF-20",
         "CF-BRIEF-21",
         "CF-BRIEF-24",
+        "CF-BRIEF-25",
+        "CF-BRIEF-26",
         "CF-BRIEF-3",
         "CF-BRIEF-5",
         "CF-BRIEF-6",
@@ -785,6 +965,7 @@ describe("a GO obeys the brief laws by a script (DEC-361)", () => {
             "",
             "STEP 0 — save this brief as `docs/governance/briefs/at.md`, which the commit lacks.",
             "STEP 1 — the census: the consumers.",
+            "- premises — not applicable — a planted census.",
             "The function `alpha` at `src/alpha.ts` :2 is read.",
             "COUNT: 1 := `find src -type f | wc -l`",
             "COUNT: 1 := `git log --oneline | wc -l`",

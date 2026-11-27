@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -389,6 +389,55 @@ describe("the entry carries no admin code (INC-1042)", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+  it("BC-18 (INC-1330) a module of any admin folder — src/features/admin/ and every sibling whose name begins admin- — in the entry's closure fails by its path; a lazy chunk's never counts; a lookalike folder is no admin folder", () => {
+    const search = "src/features/admin-errors/errors-search.ts";
+    const record = {
+      "index-AAAAAAAA.js": ["src/components/shell/breadcrumbs.tsx", search],
+      "shared-shell-BBBBBBBB.js": ["src/lib/safe-href.ts"],
+      "errors-CCCCCCCC.js": [
+        "src/features/admin-errors/errors-page.tsx",
+        "src/features/admin-errors/errors-service.ts",
+      ],
+    };
+    const closure = ["index-AAAAAAAA.js", "shared-shell-BBBBBBBB.js"];
+    // the real shape of the base build: the address reader of the Errors pages rides the entry
+    expect(entryAdminModules(record, closure)).toEqual([
+      { module: search, chunk: "index-AAAAAAAA.js" },
+    ]);
+    expect(entryAdminViolations(entryAdminModules(record, closure), new Set())).toEqual([
+      `${search}: in index-AAAAAAAA.js, in the entry's closure — the public first download carries no admin code (BC-16, INC-1042)`,
+    ]);
+    // the Errors pages' own modules in their lazy chunk never count; the reader moved to src/lib
+    const moved = {
+      ...record,
+      "index-AAAAAAAA.js": ["src/components/shell/breadcrumbs.tsx", "src/lib/errors-search.ts"],
+    };
+    expect(entryAdminModules(moved, closure)).toEqual([]);
+    // every admin folder the tree holds is under the guard, and src/features/admin/ still is
+    const folders = readdirSync("src/features").filter(
+      (name) => name === "admin" || name.startsWith("admin-"),
+    );
+    expect(folders).toContain("admin-errors");
+    for (const folder of folders) {
+      const module = `src/features/${folder}/planted.ts`;
+      expect(
+        entryAdminModules({ "index-AAAAAAAA.js": [module] }, ["index-AAAAAAAA.js"]),
+        folder,
+      ).toEqual([{ module, chunk: "index-AAAAAAAA.js" }]);
+    }
+    // a folder that only starts with the letters, or a file named like one, is not an admin folder
+    for (const lookalike of [
+      "src/features/administrative/planted.ts",
+      "src/features/admin-/planted.ts",
+      "src/features/adminx/planted.ts",
+      "src/features/admin-errors.ts",
+      "src/lib/admin-errors/planted.ts",
+    ])
+      expect(
+        entryAdminModules({ "index-AAAAAAAA.js": [lookalike] }, ["index-AAAAAAAA.js"]),
+        lookalike,
+      ).toEqual([]);
   });
   it("BC-17 a must-stay-lazy module folded into the entry chunk fails by its path, whatever the chunk is named; a lazy chunk's never counts; the list covers every name rule", () => {
     const reader = "src/lib/reader-failure.ts";

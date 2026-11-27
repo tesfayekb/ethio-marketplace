@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { knownKind } from "@/features/admin-errors/error-labels";
 import { AdminErrorsPage } from "@/features/admin-errors/errors-page";
-import { errorsSearch } from "@/features/admin-errors/errors-search";
+import { errorsSearch } from "@/lib/errors-search";
 
 /**
  * DEC-474 Part F — the Errors section. The /admin layout owns the permission gate and the

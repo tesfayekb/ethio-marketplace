@@ -44,6 +44,13 @@
 # other changed line of the file stay refused. DEC-425 and DEC-468 stay named beside each other in
 # every refusal of this file.
 #
+# INC-1332 (cursor bundle 8c-1): the ceilings file keeps an empty line between its route lines, so a
+# page's new route line comes with its empty line. The ceiling exception admits an added empty line
+# when the same patch adds a route line whose key the patch removes nowhere (a key the base lacks; a
+# moved or changed line is removed as well as added), at most one empty line for each such route line;
+# a removed empty line is admitted the same way beside a removed route line whose key the patch adds
+# nowhere. Any other empty line still refuses with the ceiling-line message.
+#
 # Every offending path is listed with its rule; then exit 1. The four exceptions are judged by
 # content: the deletions file takes added lines only; every changed line of the ceilings file is a
 # ceiling line; an allowlist takes removed lines only; the bundle-size file takes its css limit and
@@ -439,6 +446,20 @@ bundle_size_refusal() {
   fi
 }
 
+# INC-1332 — how many keys of `$1` (one key per line, each line ended by a newline) `$2` does not hold.
+# Plain string matching: a key is data and never a pattern.
+keys_not_in() {
+  local key count=0
+  while IFS= read -r key; do
+    if [ -z "$key" ]; then continue; fi
+    case $'\n'"$2" in
+      *$'\n'"$key"$'\n'*) ;;
+      *) count=$((count + 1)) ;;
+    esac
+  done <<<"$1"
+  echo "$count"
+}
+
 # An exception's verdict: empty when its patch holds only what DEC-390, DEC-396, DEC-425 or DEC-468 allows,
 # else the reason. The patch is the API's or, when the API carried none, git's (DEC-398);
 # `unreadable` is why neither could be had.
@@ -462,8 +483,10 @@ exception_refusal() {
     bundle_size_refusal "$path" "$patch"
     return
   fi
+  local added_keys="" removed_keys="" added_empty=0 removed_empty=0 text key
   while IFS= read -r line; do
     if [ -z "$line" ]; then continue; fi
+    text="${line:1}"
     if is_allowlist "$path"; then
       if [ "${line:0:1}" != "-" ]; then
         echo "${path} — a Lovable branch may only remove an allowance — DEC-396; an added or changed line is refused"
@@ -474,11 +497,23 @@ exception_refusal() {
         echo "${path} — a removed or changed line; DEC-390 allows added lines only"
         return
       fi
-    elif ! [[ "${line:1}" =~ $CEILING_LINE ]]; then
+    elif [ -z "$text" ]; then
+      # INC-1332: an empty line is judged after the loop, against the route lines the patch adds or removes.
+      if [ "${line:0:1}" = "+" ]; then added_empty=$((added_empty + 1)); else removed_empty=$((removed_empty + 1)); fi
+    elif [[ "$text" =~ $CEILING_LINE ]]; then
+      key="${text#  \"}"
+      key="${key%%\"*}"
+      if [ "${line:0:1}" = "+" ]; then added_keys+="${key}"$'\n'; else removed_keys+="${key}"$'\n'; fi
+    else
       echo "${path} — a changed line that is not a ceiling line; DEC-390 allows ceiling lines only"
       return
     fi
   done <<<"$(changed_lines "$patch")"
+  if [ "$path" = "$CEILINGS" ]; then
+    if [ "$added_empty" -gt "$(keys_not_in "$added_keys" "$removed_keys")" ] || [ "$removed_empty" -gt "$(keys_not_in "$removed_keys" "$added_keys")" ]; then
+      echo "${path} — a changed line that is not a ceiling line; DEC-390 allows ceiling lines only (an empty line only beside a new or a removed route line, one for each — INC-1332)"
+    fi
+  fi
 }
 
 input="$(cat)"

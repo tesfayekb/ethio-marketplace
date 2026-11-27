@@ -13,7 +13,8 @@
  * CF-BRIEF-9 assert, CF-BRIEF-10 count, CF-BRIEF-18 a setting's newest decision, CF-BRIEF-19 a
  * record's files inside SCOPE, CF-BRIEF-20 a cited list's reader, CF-BRIEF-21 the first-download
  * sentence (DEC-355's, read from the ledger), CF-BRIEF-22 a gate's census item `gate-reach`, CF-BRIEF-23 a user-facing
- * SCOPE's `user-cases`, CF-BRIEF-24 a CONFORMANCE GUARD's path. CF-BRIEF-4 and CF-BRIEF-14 are the
+ * SCOPE's `user-cases`, CF-BRIEF-24 a CONFORMANCE GUARD's path, CF-BRIEF-25 a premise's SOURCE:/OPEN:,
+ * CF-BRIEF-26 a COVERED HERE INC's RED-FIRST:/CONTROL:. CF-BRIEF-4 and CF-BRIEF-14 are the
  * self-tests in briefs.test.ts.
  * The window rules of CF-BRIEF-2 stand: a double-quoted (straight or curly) or code-span quotation
  * is not a claim (laws 2, 7, 10; law 11 keeps code spans, the titles' own form), and a sentence
@@ -659,6 +660,117 @@ export function userCasesFindings(text: string, file: string, rulings: Ruling[] 
       ? null
       : { line: paragraph.start + 1, what: "SCOPE names a route or component" },
   );
+}
+
+const PREMISES_HEAD = /^-\s+(?:CENSUS-ITEM\s+)?premises\b/i;
+const SOURCED = /\b(?:SOURCE|OPEN):/;
+const PROVED = /\b(?:RED-FIRST|CONTROL):/;
+const BULLET = /^\s+-\s/;
+const INDENTED = /^\s+\S/;
+const INC_ID = /\bINC-\d+\b/g;
+const SYSTEM_HEAD = /^THE SYSTEM\b/;
+const SYSTEM_END = /^(?:SCOPE\b|THE TURN\b|STEP \d)/;
+const COVERED_HEAD = /^COVERED HERE\b/;
+const LEFT_PART = /\|\s*LEFT:.*$/;
+
+type Premise = { line: number; text: string };
+type Premises = { items: Premise[]; bare: boolean };
+
+/**
+ * The premises item of STEP 1 (S822): from its `- premises` or `- CENSUS-ITEM premises:` line to the
+ * line before the next census item (the next line that is not indented). Its premises are its
+ * indented bullets, each with its continuation lines; an item with no bullet is one premise, the
+ * item's own text. Null when STEP 1 holds no premises item.
+ */
+function premisesOf(text: string): Premises | null {
+  const step = stepOneOf(text);
+  if (step === null) return null;
+  const lines = linesOf(step.text);
+  const head = lines.findIndex((l) => PREMISES_HEAD.test(l));
+  if (head < 0) return null;
+  const after = lines.findIndex((l, i) => i > head && !INDENTED.test(l));
+  const item = lines.slice(head, after < 0 ? lines.length : after);
+  const bullets: Premise[] = [];
+  item.forEach((content, offset) => {
+    const line = step.line + head + offset;
+    if (BULLET.test(content)) bullets.push({ line, text: content.trim() });
+    else if (offset > 0 && bullets.length > 0)
+      bullets[bullets.length - 1].text += ` ${content.trim()}`;
+  });
+  if (bullets.length > 0) return { items: bullets, bare: false };
+  return { items: [{ line: step.line + head, text: item.join(" ").trim() }], bare: true };
+}
+
+/**
+ * CF-BRIEF-25 (S822) — every premise of STEP 1's premises item names its evidence: each indented
+ * bullet carries `SOURCE:` (the repository record read) or `OPEN:` (the question the census
+ * answers); an item with no bullet carries one of them, or says `not applicable`. A STEP 1 with no
+ * premises item is a finding, never a pass. A RECORDS TURN or RULES TURN is exempt, as from
+ * CF-BRIEF-15.
+ */
+export function premiseSourceFindings(text: string, file: string): Finding[] {
+  const step = stepOneOf(text);
+  if (step === null || EXEMPT_TITLE.test(titleOf(text))) return [];
+  const premises = premisesOf(text);
+  if (premises === null)
+    return [{ law: "CF-BRIEF-25", file, line: step.line, text: "STEP 1 carries no premises item" }];
+  return premises.items
+    .filter((p) => !SOURCED.test(p.text) && !(premises.bare && /not applicable/i.test(p.text)))
+    .map((p) => ({
+      law: "CF-BRIEF-25",
+      file,
+      line: p.line,
+      text: `a premise names no SOURCE: or OPEN: — ${p.text.slice(0, 60)}`,
+    }));
+}
+
+/**
+ * The INC numbers a THE SYSTEM block's `COVERED HERE` lines name, with the line of their first
+ * mention: the line itself (up to a `| LEFT:` part, which is not covered) and its indented
+ * continuation bullets.
+ */
+function coveredIncs(text: string): Map<string, number> {
+  const found = new Map<string, number>();
+  const lines = linesOf(text);
+  let inSystem = false;
+  for (let at = 0; at < lines.length; at += 1) {
+    const content = lines[at] ?? "";
+    if (SYSTEM_HEAD.test(content)) inSystem = true;
+    else if (SYSTEM_END.test(content)) inSystem = false;
+    if (!inSystem || !COVERED_HEAD.test(content)) continue;
+    let next = at;
+    do {
+      const row = lines[next] ?? "";
+      const own = next === at ? row.replace(LEFT_PART, "") : row;
+      for (const id of own.match(INC_ID) ?? []) if (!found.has(id)) found.set(id, next + 1);
+      next += 1;
+    } while (next < lines.length && INDENTED.test(lines[next] ?? ""));
+  }
+  return found;
+}
+
+/**
+ * CF-BRIEF-26 (S817) — an INC a THE SYSTEM block's `COVERED HERE` line (or its indented
+ * continuation bullets) says the turn fixes appears in STEP 1's premises item on a premise that
+ * carries `RED-FIRST:` (the test shown failing against the base) or `CONTROL:` (the positive control
+ * of a test that cannot be shown red). A RECORDS TURN or RULES TURN is exempt, as from CF-BRIEF-15.
+ */
+export function redFirstFindings(text: string, file: string): Finding[] {
+  if (EXEMPT_TITLE.test(titleOf(text))) return [];
+  const covered = coveredIncs(text);
+  if (covered.size === 0 || stepOneOf(text) === null) return [];
+  const premises = premisesOf(text)?.items ?? [];
+  const proved = new Set(
+    premises.filter((p) => PROVED.test(p.text)).flatMap((p) => p.text.match(INC_ID) ?? []),
+  );
+  return [...covered]
+    .filter(([id]) => !proved.has(id))
+    .map(([id, line]) => ({
+      law: "CF-BRIEF-26",
+      file,
+      line,
+      text: `${id} is covered here, but no premise of STEP 1 names it with RED-FIRST: or CONTROL:`,
+    }));
 }
 
 const GUARD_HEAD = /^CONFORMANCE GUARD:/;
