@@ -29,7 +29,7 @@ export const ALLOWLIST = "scripts/conformance/user-facing-allowlist.txt";
 /** The census the rows come from, kept byte for byte; its sha256 is in the manifest's header. */
 export const CENSUS = "docs/governance/census/user-facing-8d64790.md";
 
-/** The one `until` word an allowance may carry that never expires. */
+/** The reason a `permanent` row line carries: the census cell names nothing the row must do. */
 const PERMANENT_REASON = /^the census names nothing this row must do\b/;
 /** The folders whose test files answer rows (DEC-493): browser tests and component tests. */
 const TEST_ROOTS = ["e2e", "src"];
@@ -236,12 +236,6 @@ export function namedTestFindings(manifest: Manifest, answers: Answers): Finding
 export function unnamedPages(manifest: Manifest, routes: string[]): string[] {
   const named = new Set(manifest.screens.flatMap((screen) => screen.pages));
   return routes.filter((route) => !named.has(route));
-}
-
-/** A path a screen names that is no page route. */
-export function strayPages(manifest: Manifest, routes: string[]): Screen[] {
-  const known = new Set(routes);
-  return manifest.screens.filter((screen) => screen.pages.some((page) => !known.has(page)));
 }
 
 /** CF-UF-4 — every page route is named by a screen or has a `page` line; no screen names a stray. */
