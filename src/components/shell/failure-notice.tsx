@@ -15,6 +15,7 @@ import {
   rateWords,
   type FailureReading,
   useFailureKind,
+  useNoticeReport,
 } from "./failure-reason";
 import { SignInLink } from "./sign-in-link";
 
@@ -75,6 +76,7 @@ export function FailureNotice({
   const { t, language } = useI18n();
   const read = useFailureKind(error);
   const reading = given ?? read;
+  useNoticeReport(error, reading);
   const row = KINDS[reading.kind];
   const now = useNow(reading.until);
   useEffect(() => {

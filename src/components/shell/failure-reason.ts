@@ -138,9 +138,10 @@ export function failureKind(error: unknown): FailureReading {
 /**
  * INC-864 — the notice's reading: at once from what the error carries, then again once the
  * reader arrives. A failed download goes to the shell's one notice (Refresh); the words stay.
+ * Reading sends nothing (INC-1319): the drawn notice reports, through `useNoticeReport`.
  */
 export function useFailureKind(error: unknown): FailureReading {
-  const [arrived, setArrived] = useState(readerModule.ready() !== null);
+  const [, setArrived] = useState(readerModule.ready() !== null);
   useEffect(() => {
     if (readerModule.ready() !== null) return;
     let live = true;
@@ -154,15 +155,22 @@ export function useFailureKind(error: unknown): FailureReading {
       live = false;
     };
   }, []);
-  const reading = failureKind(error);
-  // DEC-474 Part F — the notice's `server` reading is reported, once the reader has read it (the
-  // reading before it may take a refusal for the server's); a refusal or an offline reading never is.
+  return failureKind(error);
+}
+
+/**
+ * DEC-474 Part F, INC-1319 — the drawn notice's report: a present failure whose drawn reading is
+ * `server`, once the reader has read it (the reading before it may take a refusal for the
+ * server's). No error, a refusal or an offline reading is never reported.
+ */
+export function useNoticeReport(error: unknown, reading: FailureReading): void {
+  const arrived = readerModule.ready() !== null;
   useEffect(() => {
     const mod = readerModule.ready();
+    if (error === null || error === undefined) return;
     if (mod === null || reading.kind !== "server") return;
     reportBrowserFailure(noticeReport(mod, error, reading.diagnostic));
   }, [arrived, error, reading.kind, reading.diagnostic]);
-  return reading;
 }
 
 /** The notice's report; a failure whose fields throw when read is reported by its reading alone. */

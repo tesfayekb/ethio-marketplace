@@ -10,10 +10,13 @@ could not read without the platform's logs (G70).
 
 - **The browser, by one trigger** — `reportBrowserFailure` (`src/lib/error-report.ts`). Three
   callers, each on a mechanism that already decides what a failure is:
-  - the failure notice's one reading (`src/components/shell/failure-reason.ts`): a reading of kind
-    `server` is reported as kind `notice`, with the typed failure's code or status
-    (`noticeReport`); a refusal (`network`, `gone`, `changed`, `noAccess`, `signedOut`, `stepUp`,
-    `rateLimited`, `refused`) and an offline reading are never reported;
+  - the drawn failure notice (`FailureNotice`, through `useNoticeReport` in
+    `src/components/shell/failure-reason.ts`): a present failure whose drawn reading is `server`
+    is reported as kind `notice` once the reader has read it, with the typed failure's code or
+    status (`noticeReport`); a refusal (`network`, `gone`, `changed`, `noAccess`, `signedOut`,
+    `stepUp`, `rateLimited`, `refused`), an offline reading and a notice with no error (`null` or
+    `undefined`, a given reading included) are never reported (INC-1319). Reading a failure
+    (`useFailureKind`) sends nothing;
   - the crash boundary (`src/routes/__root.tsx` `ErrorComponent`), kind `crash`;
   - the page's unhandled errors and rejections (`listenForFailures`, registered by the client entry
     `src/client.tsx`), kind `unhandled`.
@@ -99,13 +102,16 @@ keeps 14 days.
 
 ## The guard
 
-The reporter census (`scripts/conformance/error-reports.ts`, ERCE-1…4, allowlist
-`error-reports-allowlist.txt`; `docs/features/ci-guards.md`) checks four things:
+The reporter census (`scripts/conformance/error-reports.ts`, ERCE-1…5, allowlist
+`error-reports-allowlist.txt`; `docs/features/ci-guards.md`) checks five things:
 
 - a module that builds a `server` reading by hand reaches the reporter;
 - every crash boundary reports;
 - a notice report is made only by the notice's one reading, and never for a refusal kind;
-- no 500 is built outside `serverError`.
+- no 500 is built outside `serverError`;
+- every notice drawn without its failure — `error={null}` or `error={undefined}`, or a given
+  reading that is neither `goneReading()` / `rateReading()` nor an object the file builds — is
+  named (`unseen`, keyed by the element's testid), because the reporter never sees it.
 
 The browser proof is `e2e/error-reports.spec.ts`:
 

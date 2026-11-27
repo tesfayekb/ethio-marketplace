@@ -9,18 +9,26 @@ const hooks = vi.hoisted(() => ({
     error: { code: "P0001", message: "noActiveSession" } as unknown,
   },
   mutate: vi.fn(),
+  session: {
+    id: "s1",
+    targetId: "u1",
+    targetName: "Abebe",
+    expiresAt: "2099-01-01T00:00:00Z",
+  } as unknown,
+  report: vi.fn(),
 }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
 }));
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key, language: "en" }) }));
+vi.mock("@/lib/error-report", () => ({ reportBrowserFailure: hooks.report }));
 vi.mock("./use-impersonation", () => ({
-  useActiveImpersonation: () => ({
-    data: { id: "s1", targetId: "u1", targetName: "Abebe", expiresAt: "2099-01-01T00:00:00Z" },
-  }),
-  useCountdown: () => "10:00",
+  useActiveImpersonation: () => ({ data: hooks.session }),
+  useCountdown: (at: string | undefined) => (at === undefined ? null : "10:00"),
   useEndImpersonation: () => ({ ...hooks.end, mutate: hooks.mutate }),
 }));
+
+import { loadFailureReader } from "@/components/shell/failure-reason";
 
 import { ImpersonationBanner } from "./impersonation-banner";
 
@@ -43,4 +51,15 @@ it("IMBN-2 a network failure of End now offers Retry, which ends the same sessio
   expect(screen.getByTestId("impersonation-banner-end-error")).toHaveTextContent("failure.network");
   fireEvent.click(screen.getByTestId("impersonation-banner-end-error-retry"));
   expect(hooks.mutate).toHaveBeenCalledWith("s1");
+});
+
+it("IMBN-3 the bar, mounted with no session and no failure, sends no error report (INC-1319)", async () => {
+  await loadFailureReader();
+  hooks.report.mockClear();
+  hooks.session = undefined;
+  hooks.end = { isError: false, isPending: false, error: null };
+  const { container, rerender } = render(<ImpersonationBanner />);
+  rerender(<ImpersonationBanner />);
+  expect(container).toBeEmptyDOMElement();
+  expect(hooks.report).not.toHaveBeenCalled();
 });
