@@ -1,8 +1,8 @@
 # CURSOR BUNDLE 8b — our own error reports (DEC-474, Part F); allowlist keys that survive a move (INC-1293); two lanes stop conflicting on generated files (INC-1295) — report
-Base: 8f6c3f2fc · Final commit: 5b0d275f8 · Brief: docs/governance/briefs/cursor-bundle-8b.md (sha256 73182a7918ae5e0f6aa07fe7afe48ed0b163f03aba466e96053530fbc4adc750)
-Review: READY · 0 BLOCKER · 0 MAJOR · 0 MINOR · on 5b0d275
+Base: 8f6c3f2fc · Final commit: 6ab3ae347 · Brief: docs/governance/briefs/cursor-bundle-8b.md (sha256 73182a7918ae5e0f6aa07fe7afe48ed0b163f03aba466e96053530fbc4adc750)
+Review: READY · 0 BLOCKER · 0 MAJOR · 1 MINOR · on 6ab3ae3
 
-Dev's CI on the base: `8f6c3f2fc` SUCCESS (run 45907708105). Dev's CI on `07162fd7a`, the dev this lane carries since ruling 1: SUCCESS (run 45915411185). Dev has not moved since then: `origin/dev` = `07162fd7aace57e76618952ac4a3bd016bbad01e`.
+Dev's CI on the base: `8f6c3f2fc` SUCCESS (run 45907708105). Dev's CI on `07162fd7a`, the dev this lane carries since ruling 1: SUCCESS (run 45915411185). Dev has not moved since then: `origin/dev` = `07162fd7aace57e76618952ac4a3bd016bbad01e`. This lane's final code commit `6ab3ae347`: SUCCESS (run 46000329861, attempt 2 after an infrastructure red, §11).
 
 ## 1. Done / not done, by part and step
 
@@ -29,12 +29,19 @@ Dev's CI on the base: `8f6c3f2fc` SUCCESS (run 45907708105). Dev's CI on `07162f
     - the crawl answers its pages' reports itself, and a refused send is a warning (decision 2);
     - the browser sender drops zod (decision 4).
   - The gate and the review ran again on the new code tree, and it was pushed once.
+  - Ruling 5 (INC-1319, read by the supervisor on `bdc91aa3b`: a page with no failure sent an error report) was saved by scripted copy (sha256 `3b1887ce…bb2d6`, equal to the message's) in `655ccfc98` and built in four commits:
+    - decision 1, `e68d6636c`: the drawn notice reports through `useNoticeReport` (in `failure-reason.ts`, called by `FailureNotice`), only for a present failure whose drawn reading is `server` once the reader has read it; `useFailureKind` returns its reading and sends nothing;
+    - decision 2, `e68d6636c`: the tests (§5), red first on `5b0d275f8`'s code;
+    - decision 3, `46a48bb47`: the reporter census's `unseen` rule, ERCE-5 planted, five allowlist lines until INC-1319;
+    - decision 4, `08a345c1d`: ER-1/ER-2's hook stops the page before it reads by tag (§12);
+    - `6ab3ae347`: one ceiling the entry's +42 B moved (§10).
+  - The gate and the review ran on `6ab3ae347`, and it was pushed once (decision 5).
 - STEP 9: this report.
 
 ## 2. Files changed
 
-`git diff --name-only 8f6c3f2fc`, read on the final code commit `5b0d275f8` (170 lines; the report commit adds this file as the 171st), holds two kinds of path:
-- the lane's own files, `git diff --name-only origin/dev HEAD` (122 lines);
+`git diff --name-only 8f6c3f2fc`, read on the final code commit `6ab3ae347` (175 lines, this report among them: it entered in `bdc91aa3b`; ruling 5 added the other four new paths), holds two kinds of path:
+- the lane's own files, `git diff --name-only origin/dev HEAD` (127 lines);
 - 48 files of dev's own that ruling 1's fast-forward brought in (merge `86c8840a9`, dev `07162fd7a`, Lovable 10b part 2). These are marked `(dev)`.
 
 Every lane path is in SCOPE, in the standing allowance, or a guard-demanded mechanical edit named in §10.
@@ -52,9 +59,11 @@ docs/governance/briefs/cursor-bundle-8b-ruling-1.md
 docs/governance/briefs/cursor-bundle-8b-ruling-2.md
 docs/governance/briefs/cursor-bundle-8b-ruling-3.md
 docs/governance/briefs/cursor-bundle-8b-ruling-4.md
+docs/governance/briefs/cursor-bundle-8b-ruling-5.md
 docs/governance/briefs/cursor-bundle-8b-types.patch
 docs/governance/briefs/cursor-bundle-8b-words.json
 docs/governance/briefs/cursor-bundle-8b.md
+docs/governance/reports/cursor-bundle-8b.report.md
 docs/governance/reports/cursor-bundle-8b.stop-1.md
 docs/governance/reports/cursor-bundle-8b.stop-2.md
 docs/governance/reports/cursor-bundle-8b.stop-3.md
@@ -123,6 +132,8 @@ scripts/route-budgets.d.mts
 scripts/route-budgets.mjs
 scripts/route-budgets.test.ts
 src/client.tsx
+src/components/shell/failure-notice.test.tsx
+src/components/shell/failure-notice.tsx
 src/components/shell/failure-reason.test.ts
 src/components/shell/failure-reason.ts
 src/features/admin-ai/ai-page.test.tsx (dev)
@@ -149,6 +160,7 @@ src/features/admin-overview/locations-overview.test.tsx (dev)
 src/features/admin-overview/locations-overview.tsx (dev)
 src/features/admin-screening/screening-decisions.test.tsx (dev)
 src/features/admin-screening/screening-page.tsx (dev)
+src/features/admin/impersonation/impersonation-banner.test.tsx
 src/features/admin/legal/legal-editor-form.tsx (dev)
 src/features/admin/legal/legal-facts-card.tsx (dev)
 src/features/admin/legal/legal-form-gates.test.tsx (dev)
@@ -212,20 +224,22 @@ supabase/migrations/20261126233100_8c6761c8-6a1f-4bcc-bb13-84119eaa1097.sql
 vite.config.ts
 ```
 
-`e2e/helpers/failure-crawl.ts`, `e2e/helpers/failure-crawl-judge.ts` and `src/test/failure-crawl.test.ts` entered scope by ruling 4.
+`e2e/helpers/failure-crawl.ts`, `e2e/helpers/failure-crawl-judge.ts` and `src/test/failure-crawl.test.ts` entered scope by ruling 4. `src/components/shell/failure-notice.tsx`, `failure-notice.test.tsx`, `failure-notice.census.test.ts` (read, unchanged) and `src/features/admin/impersonation/impersonation-banner.test.tsx` entered scope by ruling 5.
 
-New files of the lane's own, proven by `git ls-files` (`git diff --name-only --diff-filter=A origin/dev HEAD`, 36 lines; the four other added paths in `git diff --diff-filter=A 8f6c3f2fc` are dev's tests):
+New files of the lane's own, proven by `git ls-files` (`git diff --name-only --diff-filter=A origin/dev HEAD`, 38 lines; the four other added paths in `git diff --diff-filter=A 8f6c3f2fc` are dev's tests):
 
 ```
-$ git ls-files -- <the 36 added paths>
+$ git ls-files -- <the 38 added paths>
 docs/features/error-reports.md
 docs/governance/briefs/cursor-bundle-8b-ruling-1.md
 docs/governance/briefs/cursor-bundle-8b-ruling-2.md
 docs/governance/briefs/cursor-bundle-8b-ruling-3.md
 docs/governance/briefs/cursor-bundle-8b-ruling-4.md
+docs/governance/briefs/cursor-bundle-8b-ruling-5.md
 docs/governance/briefs/cursor-bundle-8b-types.patch
 docs/governance/briefs/cursor-bundle-8b-words.json
 docs/governance/briefs/cursor-bundle-8b.md
+docs/governance/reports/cursor-bundle-8b.report.md
 docs/governance/reports/cursor-bundle-8b.stop-1.md
 docs/governance/reports/cursor-bundle-8b.stop-2.md
 docs/governance/reports/cursor-bundle-8b.stop-3.md
@@ -347,7 +361,7 @@ Deleted, declared in `09547a8fb` (the `[intentional-delete]` marker, with both l
 - `cursor.ts`, the prune form, `loadOnce`;
 - the kit (`kit.ts`), the generator and its guard.
 
-**first-download.** The table is in §5. No page is within 0.3 KiB of its ceiling (after ruling 4's two raises, §10).
+**first-download.** The table is in §5. No page is within 0.3 KiB of its ceiling (after ruling 4's two raises and ruling 5's one, §10).
 
 **premises.**
 - (a) The build exposes no commit to the browser or the server (`rg -i "app_?version|appVersion"` finds only `src/lib/error-report-send.ts:72`, `appVersion: null`). It is OPEN: ruling 1 decision 6 and ACT-034.
@@ -436,11 +450,13 @@ The full census is in §2 under its key words. Every grep named there was run in
 - ERRT-9 (`src/lib/error-text.test.ts`)
 - ERTR-1…4 (`src/lib/error-report.test.ts`)
 - ERSN-1…6 (`src/lib/error-report-send.test.ts`)
-- FR-U17…19 (`src/components/shell/failure-reason.test.ts`)
+- FR-U20 (`src/components/shell/failure-reason.test.ts`; ruling 5 retired FR-U17…19, under Changed)
+- FN-U12…16 (`src/components/shell/failure-notice.test.tsx`, ruling 5)
+- IMBN-3 (`src/features/admin/impersonation/impersonation-banner.test.tsx`, ruling 5)
 - REV-2 (`src/routes/root-error.test.tsx`)
 - ERDR-1…6 (`src/features/admin-errors/errors-service.test.ts`)
 - ERFW-1 (`src/features/admin-errors/errors-refusals.test.ts`)
-- ERCE-1…4 (`scripts/conformance/error-reports.test.ts`)
+- ERCE-1…5 (`scripts/conformance/error-reports.test.ts`; ERCE-5 by ruling 5)
 - CF-KIT-10 (`scripts/conformance/kit.test.ts`)
 - NAV-ALERT-4 (`src/features/admin/nav-alerts.test.tsx`)
 - UMAP-1…6 (`scripts/i18n-usage-map.test.ts`)
@@ -456,6 +472,12 @@ The full census is in §2 under its key words. Every grep named there was run in
   - FCJ-1 (`src/test/failure-crawl.test.ts`) gains one case beside the finder's: a POST to `ERROR_REPORTS_PATH` reads `null`.
   - ERSN-2 and ERSN-3 (`src/lib/error-report-send.test.ts`) are re-pointed to the payload's keys. The reason: the sender no longer parses, so what it sends is the report as built. ERSN-2 asserts both built reports (the full one and the odd one) hold exactly the shape's keys and pass `ErrorReportBody`. ERSN-3 asserts the same of the `json` handed to `callRoute`. Before, ERSN-2 parsed the full report only, and ERSN-3 checked three keys of what the sender had parsed.
   - ERSN-6 is re-titled "a refused send is warned, an unreachable or throwing one logged, …" and splits its one list: the 429 on `console.warn`, the unreachable and the thrown send on `console.error`.
+- Ruling 5 (decision 2). The report left the reading hook for the drawn notice, so the tests of the report follow it:
+  - FR-U17 ("a refusal the first reading takes for the server's is never reported, before or after the reader arrives") is retired. Its meaning moved into FN-U11, the notice file's first test, the one case that sees the reader before it arrives (the reader loads once per test file). FN-U11 is re-titled "… then the reader's words when it arrives; a report waits for the reader, and a refusal read first as the server's is never reported". It also draws a server error, which sends nothing before the reader arrives and exactly one `{ kind: "notice", code: "500" }` after.
+  - FR-U20 takes FR-U17's place in `failure-reason.test.ts`: `useFailureKind` reads a server error, `null` and `undefined` as `server`, before and after the reader arrives, and sends nothing.
+  - FR-U18 moved to FN-U12 with the same meaning: a drawn server reading is reported once with its status (503); 401, 403, 404, 429 and `permissionDenied` never are; an offline reading never is. It now renders `FailureNotice` where it rendered the hook.
+  - FR-U19 moved to FN-U13 with the same meaning: a failure whose fields throw when read is reported as `{ code: null, error: "unreadable" }`, never thrown into the screen.
+  - The ids FN-U12…16, FR-U20 and IMBN-3 were grep-checked free across `src/`, `e2e/` and `scripts/` before use.
 
 **Red-first:**
 - UP-8 against the base's `user-client.ts`, written into place from `git show 8f6c3f2fc:…` and put back from a copy (`git diff --quiet` clean), re-run for this report. It fails at its first case: "the captured 500: expected "vi.fn()" to be called 1 times, but got 0 times". The per-case answers on the base:
@@ -477,6 +499,15 @@ The full census is in §2 under its key words. Every grep named there was run in
 - UMAP-5 and a live run of `scripts/i18n-map-guard.ts`: a planted stale copy and a missing copy each exit 1.
 - FCJ-1 against HEAD `2543064b2`'s `failure-crawl-judge.ts` (written from `git show`, put back from a copy): "AssertionError: expected { key: 'api /api/error-reports', …(1) } to be null", 1 failed, 11 passed. On the new judge: 12 passed.
 - ERSN-6 against HEAD's `error-report-send.ts` (the same way, `git diff --stat HEAD` after the restore showing only the intended change): 1 failed (ERSN-6), 5 passed. On the new sender: 6 passed.
+- Ruling 5: the three test files against `5b0d275f8`'s `failure-reason.ts` and `failure-notice.tsx`, written into place from `git show` and put back from copies (`git diff --stat 5b0d275f8` after the restore showed only the intended change): 5 failed, 32 passed (37).
+  - FR-U20: "expected "vi.fn()" to not be called at all, but actually been called 3 times";
+  - FN-U14: called 2 times;
+  - FN-U15: called 1 times;
+  - FN-U16: called 2 times (a given reading came with an `undefined` error, which the old hook read as `server`);
+  - IMBN-3: called 1 times.
+  - FN-U11's added assertions, FN-U12 and FN-U13 pass on both trees, as moves that keep their meaning should.
+  - On the new code: 34 passed in the two shell files, 3 in the banner's.
+- ERCE-5 against `bdc91aa3b`'s `error-reports.ts` (the same way): "AssertionError: expected [] to deeply equal [ …(3) ]", 1 failed. On the new census: 5 passed.
 
 **Part 3's proofs:**
 - `bun run build` lists `dist/client/i18n-usage.json` (220,372 bytes) and `docs/generated/i18n-usage.json` (220,372 bytes). The asset sits in `dist/server/index.mjs`'s asset table.
@@ -486,13 +517,16 @@ The full census is in §2 under its key words. Every grep named there was run in
 - The generator alone takes 0.27, 0.07 and 0.07 s (three runs, `/usr/bin/time -p`). That is what each build gains.
 
 **Unit totals:**
-- `bunx vitest run scripts --maxWorkers=2` on the final tree: 150 files, 838 passed, 1 skipped.
+- `bunx vitest run scripts --maxWorkers=2` on the final tree: 150 files, 839 passed, 1 skipped (838 before ruling 5; ERCE-5 is the one added).
+- Ruling 5's touched units (`failure-reason.test.ts`, `failure-notice.test.tsx`, `failure-notice.census.test.ts` and `src/features/admin/impersonation/`): 9 files, 65 passed.
 - `bun run typecheck`: green.
 - `bun run lint`: green.
 
-**`bun run checks`** on the final code commit `5b0d275f8` (ruling 4's gate, whole):
-- fast: `checks (fast): 25 PASS · 0 FAIL · 762s`
-- last: `checks: 36 PASS · 0 FAIL · 26 NOT RUN · 830s`
+**`bun run checks`** on the final code commit `6ab3ae347` (ruling 5's gate, whole):
+- fast: `checks (fast): 25 PASS · 0 FAIL · 774s`
+- last: `checks: 36 PASS · 0 FAIL · 26 NOT RUN · 841s`
+
+Ruling 4's gate, on `5b0d275f8`, read `checks (fast): 25 PASS · 0 FAIL · 762s` and `checks: 36 PASS · 0 FAIL · 26 NOT RUN · 830s`.
 
 The first gate, on `c1afdf00c`, read `checks (fast): 26 PASS · 0 FAIL · 738s` and `checks: 37 PASS · 0 FAIL · 25 NOT RUN · 803s`. The step `i18n-usage-map › Install dependencies` read PASS (0s) then; `9178412b8` makes it NOT RUN like every other Install step (§10), which is the one PASS that became a NOT RUN.
 
@@ -592,6 +626,8 @@ Ruling 4's changed tests, each alone on `5b0d275f8`: `src/test/failure-crawl.tes
 - `e2e/error-reports.spec.ts` whole (new in this lane), `mobile-360` and `desktop-1280`: `4 passed (11.1s)`. The reporter's real path records what the sender now sends unparsed.
 - This machine reaches staging alone, so these runs do not reproduce a lane's browsers sharing one address. The lanes are the proof that no lane meets the dial now (§11).
 
+**Browser, after ruling 5**, on ethio-staging with 0 retries: ruling 5 changed one browser test's file, ER-1/ER-2's hook (decision 4). `bun run e2e:local -- e2e/error-reports.spec.ts --grep "ER-1|ER-2" --project=mobile-360 --project=desktop-1280 --retries=0` on `08a345c1d`: `4 passed (12.7s)`. ER-1 records one row from the drawn notice's report, and ER-2's refusal sends none. No new or changed browser test id.
+
 **check-go:** `bun scripts/brief/check-go.ts docs/governance/briefs/cursor-bundle-8b.md --at 8f6c3f2fc`:
 
 ```
@@ -599,7 +635,8 @@ Ruling 4's changed tests, each alone on `5b0d275f8`: `src/test/failure-crawl.tes
 [check-go] no finding
 ```
 
-**First download**, from my lock-exact builds: base `07162fd7a` against the final code tree `5b0d275f8` (its check's output, `node scripts/check-bundle-size.mjs`, "Bundle budget OK."). Against part 3's table, ruling 4 moved two ceilings and 21 pages by +0.1 KiB at this rounding, all from the renamed chunk addresses.
+**First download**, from my lock-exact builds: base `07162fd7a` against the final code tree `6ab3ae347` (its check's output, `node scripts/check-bundle-size.mjs`, "Bundle budget OK."). Against part 3's table, ruling 4 moved two ceilings and 21 pages by +0.1 KiB at this rounding, all from the renamed chunk addresses.
+- Ruling 5, against `bdc91aa3b`. The base build wrote `bdc91aa3b`'s `failure-reason.ts` and `failure-notice.tsx` into the tree and put them back from copies; these are the only shipped files ruling 5 changed (`git diff --name-only bdc91aa3b HEAD -- src`). The entry's `index.js` grew 149,811 → 149,853 bytes (+42 B by `gzip -9`): the notice's report, `useNoticeReport`, split from its reading. At the check's 0.1 KiB rounding it moved ten pages: nine by +0.1 (`/account_/legal_/$versionId`, `/admin/images`, `/auth`, `/auth_/callback`, `/auth_/reset`, `/legal/accept`, `/legal/publishing`, `/privacy`, `/terms`) and `/admin/listings_/$listingId_/edit` by −0.1. `/account_/legal` stays at 210.6, but that crosses into the NEAR band of 211 by bytes ("set it to ceilingForLocal(size) = 212"). It is raised 211 → 212 in `6ab3ae347`. No other page is in the band ("Bundle budget OK.").
 - The entry went from 208.4 to 208.6 KiB (+0.2). Its ceiling went from 209 to 210.
 - The causes, chunk by chunk:
   - +0.1 to +0.3 on every page: the entry's `src/lib/error-report.ts`, i.e. the root's crash report, the notice's report and the client entry's two listeners. The sender, the cleaner and the shape stay on demand.
@@ -612,8 +649,8 @@ Ruling 4's changed tests, each alone on `5b0d275f8`: `src/test/failure-crawl.tes
 | / | 227.7 | 229 | 228 | 229 | +0.3 | 1.0 |
 | /$name | 225.6 | 227 | 225.9 | 227 | +0.3 | 1.1 |
 | /account | 270.7 | 272 | 271 | 272 | +0.3 | 1.0 |
-| /account_/legal | 210.3 | 211 | 210.6 | 211 | +0.3 | 0.4 |
-| /account_/legal_/$versionId | 211.7 | 213 | 211.9 | 213 | +0.2 | 1.1 |
+| /account_/legal | 210.3 | 211 | 210.6 | 212 | +0.3 | 1.4 |
+| /account_/legal_/$versionId | 211.7 | 213 | 212 | 213 | +0.3 | 1.0 |
 | /account_/saved | 228 | 229 | 228.3 | 229 | +0.3 | 0.7 |
 | /admin | 215.1 | 216 | 217.4 | 218 | +2.3 | 0.6 |
 | /admin/ | 215.9 | 217 | 218.2 | 219 | +2.3 | 0.8 |
@@ -622,14 +659,14 @@ Ruling 4's changed tests, each alone on `5b0d275f8`: `src/test/failure-crawl.tes
 | /admin/audit | 299.9 | 301 | 302.2 | 303 | +2.3 | 0.8 |
 | /admin/categories | 363.1 | 364 | 363.3 | 364 | +0.2 | 0.7 |
 | /admin/countries | 319.2 | 320 | 319.4 | 320 | +0.2 | 0.6 |
-| /admin/images | 215.7 | 217 | 218 | 219 | +2.3 | 1.0 |
+| /admin/images | 215.7 | 217 | 218.1 | 219 | +2.4 | 0.9 |
 | /admin/impersonation_/$sessionId | 243.9 | 245 | 246.2 | 247 | +2.3 | 0.8 |
 | /admin/legal | 294.5 | 295 | 294.9 | 296 | +0.4 | 1.1 |
 | /admin/legal_/$versionId | 290.7 | 292 | 291 | 292 | +0.3 | 1.0 |
 | /admin/legal_/edit | 294.4 | 295 | 294.7 | 296 | +0.3 | 1.3 |
 | /admin/listings | 339 | 340 | 339.3 | 340 | +0.3 | 0.7 |
 | /admin/listings_/$listingId | 339.9 | 341 | 340.2 | 341 | +0.3 | 0.8 |
-| /admin/listings_/$listingId_/edit | 422.2 | 423 | 422.6 | 423 | +0.4 | 0.4 |
+| /admin/listings_/$listingId_/edit | 422.2 | 423 | 422.5 | 423 | +0.3 | 0.5 |
 | /admin/locations | 281.2 | 282 | 281.5 | 282 | +0.3 | 0.5 |
 | /admin/monetisation | 323 | 324 | 323.3 | 324 | +0.3 | 0.7 |
 | /admin/places | 321.5 | 322 | 321.8 | 323 | +0.3 | 1.2 |
@@ -640,25 +677,25 @@ Ruling 4's changed tests, each alone on `5b0d275f8`: `src/test/failure-crawl.tes
 | /admin/translations_/$lang | 320.8 | 322 | 321.1 | 322 | +0.3 | 0.9 |
 | /admin/users | 299.1 | 300 | 301.4 | 302 | +2.3 | 0.6 |
 | /admin/users_/$userId | 302.2 | 303 | 302.5 | 303 | +0.3 | 0.5 |
-| /auth | 224.1 | 225 | 224.3 | 225 | +0.2 | 0.7 |
-| /auth_/callback | 209.8 | 211 | 210 | 211 | +0.2 | 1.0 |
-| /auth_/reset | 217.2 | 218 | 217.4 | 218 | +0.2 | 0.6 |
+| /auth | 224.1 | 225 | 224.4 | 225 | +0.3 | 0.6 |
+| /auth_/callback | 209.8 | 211 | 210.1 | 211 | +0.3 | 0.9 |
+| /auth_/reset | 217.2 | 218 | 217.5 | 218 | +0.3 | 0.5 |
 | /c/$slug | 227.7 | 229 | 228 | 229 | +0.3 | 1.0 |
 | /dev/primitives | 232.3 | 233 | 232.5 | 233 | +0.2 | 0.5 |
 | /dev/style | 267.4 | 268 | 267.6 | 268 | +0.2 | 0.4 |
 | /dev/tall | 208.7 | 210 | 209 | 210 | +0.3 | 1.0 |
 | /l/$slug | 253.7 | 255 | 253.9 | 255 | +0.2 | 1.1 |
 | /legal/$kind | 212.7 | 214 | 213 | 214 | +0.3 | 1.0 |
-| /legal/accept | 218.4 | 219 | 218.6 | 220 | +0.2 | 1.4 |
-| /legal/publishing | 214.1 | 215 | 214.3 | 215 | +0.2 | 0.7 |
+| /legal/accept | 218.4 | 219 | 218.7 | 220 | +0.3 | 1.3 |
+| /legal/publishing | 214.1 | 215 | 214.4 | 215 | +0.3 | 0.6 |
 | /my-listings | 315.1 | 316 | 315.3 | 316 | +0.2 | 0.7 |
 | /my-listings_/$listingId | 325.6 | 326 | 325.8 | 327 | +0.2 | 1.2 |
 | /my-listings_/$listingId_/edit | 410.1 | 411 | 410.3 | 411 | +0.2 | 0.7 |
 | /post | 410.1 | 411 | 410.3 | 411 | +0.2 | 0.7 |
 | /post_/$listingId | 410 | 411 | 410.3 | 411 | +0.3 | 0.7 |
-| /privacy | 212.5 | 213 | 212.7 | 214 | +0.2 | 1.3 |
+| /privacy | 212.5 | 213 | 212.8 | 214 | +0.3 | 1.2 |
 | /settings | 283.3 | 284 | 283.6 | 284 | +0.3 | 0.4 |
-| /terms | 212.5 | 213 | 212.7 | 214 | +0.2 | 1.3 |
+| /terms | 212.5 | 213 | 212.8 | 214 | +0.3 | 1.2 |
 
 ## 6. K2 — siblings that bypass the mechanism
 
@@ -683,7 +720,7 @@ Line counts are non-comment lines, `origin/dev` → HEAD:
 
 | file | before → after |
 |---|---|
-| `scripts/conformance/error-reports-allowlist.txt` (new) | 0 → 10 |
+| `scripts/conformance/error-reports-allowlist.txt` (new) | 0 → 15 (5 by ruling 5) |
 | `scripts/conformance/door-permissions-allowlist.txt` | 25 → 24 (nav-alerts `legal:view`, INC-1281, gone) |
 | `scripts/conformance/on-demand-failure-allowlist.txt` | 7 → 8 |
 | `scripts/ci/turn-checks-allowlist.txt` | 10 → 11 |
@@ -699,11 +736,17 @@ The new lines:
   - `reading src/features/admin/translations/ai-bulk-bar.tsx#COUNT_UNREAD`, `reading src/features/admin/translations/delete-language-dialog.tsx#PREVIEW_EMPTY`: outside scope, until 2027-02-26.
   - `boundary` for each of the four legal routes (`#Route`): outside scope, until 2027-02-26.
   - `500 src/server.ts#normalizeCatastrophicSsrResponse`, `500 src/server.ts#fetch`, `500 src/server/ad-photo.ts#adPhotoResponse`, `500 src/server/supabase/user-client.ts#refuseUserClient`: moving them changes the answer a client reads, `| INC-1278`.
+  - Ruling 5 decision 3: five `unseen` lines, notices drawn without their failure, each with its reason, `| INC-1319`:
+    - `unseen src/components/marketplace/feed.tsx#Feed::feed-category-failed`;
+    - `unseen src/features/legal/legal-document-page.tsx#LegalDocumentPage::legal-public-load-error` (one key for the page's two draws, lines 53 and 144);
+    - `unseen src/features/posting/step-photos.tsx#sessionTile::post-photo-failed`;
+    - `unseen src/features/seller/seller-page.tsx#SellerPage::seller-page-error`;
+    - `unseen src/features/seller/seller-page.tsx#SellerPage::seller-page-more-error`.
 - `on-demand-failure-allowlist.txt`: `src/lib/error-report.ts`. The reporter's own sender is never shown: a notice about a failed report would be a second failure.
 - `turn-checks-allowlist.txt`: `i18n-usage-map › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30`.
 - `failure-crawl-allowlist.txt`: the `legal_review_overdue` line now names `nav-alerts.ts, useNavAlerts`, not `:42`.
 
-Self-tests run: check-doors' self-test ("23 finding kinds fired on their planted fixtures, the clean pair fired nothing"), CF-KIT-10, ERCE-3, ERCE-4, RBL-2, UMAP-5, and the planted stale-copy run of the map guard.
+Self-tests run: check-doors' self-test ("23 finding kinds fired on their planted fixtures, the clean pair fired nothing"), CF-KIT-10, ERCE-3, ERCE-4, ERCE-5 (ruling 5), RBL-2, UMAP-5, and the planted stale-copy run of the map guard.
 
 ## 8. Strings
 
@@ -739,8 +782,20 @@ One new key, copied by script from `cursor-bundle-8b-words.json`:
     - (C) the gone-session `[ssr-error]` line left (INC-1316);
     - (D) the browser sender drops zod;
     - one push after every fix, the gate and the review.
-  - Each ruling was saved by scripted copy with its sha256 checked (`978f7eaa…ecc47`, `db7a9a86…253f`, `8c63449d…2a99`, `5073341d…ea72`).
-- **Pushes.** The brief said two (the migration stop's and the final). There were seven code or stop pushes: stops 1, 2 and 3, `65dac93a6`, `d12430121`, stop 4 (`ed69c2dbf`), and `5b0d275f8`. The report's push is the eighth, records only.
+  - Ruling 5 (INC-1319, the supervisor's read of staging after `bdc91aa3b` was green; no stop of mine):
+    - decision 1, the report in the mechanism;
+    - decision 2, the tests;
+    - decision 3, the census;
+    - decision 4, the leftover rows' cause;
+    - decision 5, one push after every fix.
+  - Each ruling was saved by scripted copy with its sha256 checked (`978f7eaa…ecc47`, `db7a9a86…253f`, `8c63449d…2a99`, `5073341d…ea72`, `3b1887ce…bb2d6`).
+- **Pushes.** The brief said two (the migration stop's and the final). There were seven code or stop pushes: stops 1, 2 and 3, `65dac93a6`, `d12430121`, stop 4 (`ed69c2dbf`), and `5b0d275f8`. The report's push (`bdc91aa3b`) was the eighth, records only. Ruling 5's code push (`6ab3ae347`) was the ninth, and this report's push is the tenth, records only.
+- **Where the notice's report sits** (ruling 5 decision 1 (d), DECIDE-AND-NAME). `useNoticeReport(error, reading)` lives in `src/components/shell/failure-reason.ts`, beside `noticeReport` and `reportedCode`, and `FailureNotice` calls it with its drawn reading (`given ?? read`). The reporter census's notice rule names that file as the one home (`NOTICE_HOME`), so the rule holds unchanged: the call sits in a function that compares the kind with `"server"` and with no refusal kind. `reportBrowserFailure` stays the one trigger.
+- **The census's decisions** (ruling 5 decision 3):
+  - `src/components/marketplace/feed.tsx:232` was not in the ruling's expected list. `<FeedError testid="feed-category-failed" error={null} …>` (INC-1140, the category tree that failed to load) hands its `null` to the notice through the `FeedError` wrapper, so it is the same class and is allowlisted. The rule counts any element given `error={null}` or `error={undefined}`, not only `FailureNotice`.
+  - The legal document page draws the same notice twice with the same testid (lines 53 and 144), so the two share one key.
+  - The wizard's `reading={goneReading()}` (`src/features/posting/wizard.tsx:885`) is not counted: a gone reading is a refusal by construction and is never reported, so nothing is unseen. `rateReading()` is treated the same way. A reading the file builds as an object literal is left to the `reading` rule (the translations console's `COUNT_UNREAD`, and `PREVIEW_EMPTY` inside its spread, stay under their own lines). Any other given reading (a member, state) counts: the photo step's `item.reading`.
+- **A doc one commit early** (the review's MINOR). `e68d6636c`'s `docs/features/error-reports.md` names ERCE-1…5 one commit before ERCE-5 lands in `46a48bb47`. No commit is red because of it; it is left in history, not rewritten.
   - The brief's wrong-premise clause made stops 2 and 3.
   - The review's two fixes after the first final push made the fifth; its run waited for `65dac93a6`'s to finish (S820's second class).
   - Stop 4 was CI's red.
@@ -759,6 +814,7 @@ One new key, copied by script from `cursor-bundle-8b-words.json`:
   - by part 2: `/admin`, `/admin/`, `/admin/audit`, `/admin/images`, `/admin/impersonation_/$sessionId` and `/admin/users`.
   - The brief named the overview, Audit, Images and View-as for `use-may-call.js`. `/admin/users` loads it too, and is raised with the same cause.
   - by ruling 4: `/admin/roles` (304 → 305) and `/legal/accept` (219 → 220), in `5b0d275f8`, the commit that causes it (§5).
+  - by ruling 5: `/account_/legal` (211 → 212), in its own ceilings commit `6ab3ae347`, because the commit that causes it (`e68d6636c`) was not the last before the measurement (§5).
 - **Part 3 (b).** The ceilings file keeps one line per page, with one blank line between page lines. A merge of two lanes raising neighbouring pages is clean (RBL-2). The entry and stylesheet ceilings in `scripts/check-bundle-size.mjs` keep their layout (§6).
 - **An online timeout is not reported.** The brief's CONCERN names "timed out while online" among what the notice draws as the server's. The census finds the notice draws an expired call deadline as `network` (`route-client.ts:93`). The brief's consistency lens ("the reporter never reads a failure its own way") and SCOPE (`failure-reason.ts`: the report hook only) leave the reading as it is, so it is not reported. Changing what that failure reads as would change the words a person sees. The supervisor recorded it as INC-1317 (§13, §14).
 - **No reaper registry entry for `error_reports`.** No existing reaper helper takes a new table through an option; ER-1 and ER-2 remove their rows by id (ruling 1 decision 8; §12).
@@ -801,19 +857,27 @@ The lane's runs:
   - Attempt 1: FAILURE, class (b), infrastructure. Lane 16 died before any test at its browser libraries' install ("E: Failed to fetch https://packages.microsoft.com/ubuntu/24.04/prod/dists/noble/InRelease  403  Forbidden"; "the install failed (exit 1) after apt's fetch stage — final, never run twice (DEC-276)"). The E2E verdict job was red with it.
   - Every other source in attempt 1 was clean: 2441 passed, 511 skipped, 0 failed. One flake, DLG-E5 (`dialogs.spec.ts`, mobile-360, "the page did not scroll"), passed on retry, non-gating; its client errors name no 429.
   - Re-run once, as rule 40 allows for (b): `gh run rerun 45939465263 --failed`. Attempt 2: SUCCESS.
+- The report commit `bdc91aa3b` (records only), run 45992154698: SUCCESS.
+- Ruling 5's final code commit `6ab3ae347`, run 46000329861:
+  - Attempt 1: FAILURE, class (b), infrastructure, the same as 45939465263's. Lane 10 died before any test at its browser libraries' install ("E: Failed to fetch https://packages.microsoft.com/ubuntu/24.04/prod/dists/noble/InRelease  403  Forbidden"; "the install failed (exit 1) after apt's fetch stage — final, never run twice (DEC-276)"). The E2E verdict job was red with it. Its other 36 jobs passed, and 1 skipped.
+  - Re-run once, as rule 40 allows for (b): `gh run rerun 46000329861 --failed`. Attempt 2: SUCCESS.
+  - One flake, AL-31 (`admin-listings.spec.ts`, desktop-1280, shard 14, "[e2e:session] injected identity mismatch — expected user [account id], page holds no session"), passed on retry: non-gating (DEC-030). It is not this lane's spec, and its error names the session harness, not the reporter.
+  - Repeat: "40 of 60 tests repeated — specs directly changed 1/1, importers of a changed helper 5/7", with the time cap's two errors outside any test (INC-589). The repeat job is green. `error-reports.spec.ts` ran 12 times (shard 15 and repeat).
+  - Server-error census (DEC-083, non-gating): 62 lines, 27 messages, "0 off the allowlist"; none names `/api/error-reports`. Logs read: every lane, the repeat lane and the smoke, email and webkit lanes ("unavailable: none").
+  - `guards-last-failure.md`: "No failed build/guard jobs in this run."
 - Every check on the pull request: `gh pr checks 117`: 43 pass, 2 skipping, none failing or pending.
 - `git show origin/ci-evidence:docs/tracking/branches/cursor/bundle-8b/ci-status.md | head -6`:
 
 ```
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `5b0d275f8ff36b9b9adc91661bde831405c15655` (short `5b0d275`)
+- Commit: `6ab3ae347e7c8fc12a77a801460cb572cdf441ba` (short `6ab3ae3`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-27T11:36:58Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45939465263
+- Completed (UTC): 2026-11-27T14:54:44Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/46000329861
 ```
 
-- `e2e-last-failure.md` for the run: "last E2E run 45939465263 passed".
+- `e2e-last-failure.md` for run 46000329861: "last E2E run 46000329861 passed" (above). For ruling 4's run, 45939465263: "last E2E run 45939465263 passed".
   - Repeat: 40 of 60 tests, with "the time cap left 80 test runs". Its two errors outside any test (INC-589) are that cap: "Timed out waiting 913s for the test suite to run" and the same for its teardown. The repeat job is green.
   - Server-error census (DEC-083, non-gating): `[WebServer] [ssr-error] /api/error-reports not signed in Auth session missing!` ×2, shard 13 (INC-1316).
 - **The dial (ruling 4 decision 2).** No lane met it.
@@ -826,7 +890,9 @@ The lane's runs:
 - **The local backend browser run was NOT RUN.** `bun run db:proof`'s stack holds its own keys, which db:proof never prints and rule 50 forbids reading. `bun run e2e:local` with `E2E_LOCAL_BACKEND=1` therefore cannot be given that stack's URL and keys from this machine. CI's lanes run ER-1 and ER-2 on the temporary backend, which is the proof.
 - **Premise (b) is inferred.** No file in the repository names the hosting platform's build command. The proof is a build with no bun on PATH, and `package.json:8` (`vite build`).
 - **ER-2's 31 s** in the staging run was not explained. The re-run with timing marks took 1.7 s. CI's repeat lane judges its stability.
-- **Staging rows.** Two rows were left on ethio-staging's `error_reports` by the first failed ER run: tags `e2e-erep.local.0.mobile-360.fismbimh` and `e2e-erep.local.1.desktop-1280.pbagygje`. No reaper registry takes the table (§10). Their 12-month erase is the scheduled prune. Removing them is the supervisor's (rule 50: no writing statement).
+- **Staging rows.** Two rows were left on ethio-staging's `error_reports` by the first failed ER run: tags `e2e-erep.local.0.mobile-360.fismbimh` and `e2e-erep.local.1.desktop-1280.pbagygje`. No reaper registry takes the table (§10). Their 12-month erase is the scheduled prune; ruling 5 decision 4 owes no step for them.
+  - **The cause** (ruling 5 decision 4), read from the code. Playwright tears a test's `page` down after its `afterEach` hooks, so the page was still alive while the hook read the tag's rows. The browser's sender downloads on demand before it posts (`loadOnce` in `src/lib/error-report.ts`), and the feed's failed reads can redraw the notice. A report whose post was pending when a failing test ended could therefore be written after the hook's read, and the hook removed only what it had read. Both rows carry `RUN=local`, so they are from this machine's runs; one per project, on workers 0 and 1. The failed run's own output was not kept, so the step at which it failed is not known.
+  - **The fix**, `08a345c1d`. The hook takes `{ page }` and first runs `stopPageBeforePurge(page)`: network quiet, bounded at 10 s, then `about:blank`. It then reads and removes by tag (INC-323's precedent). ER-1 and ER-2 passed after it on staging (§5). This is a defect in the lane's own test, named in §13 for a number.
 - WebKit, the merged tree's first download, the production apply and the lanes' real time belong to CI, the supervisor and the operator.
 - **Local builds read about 0.1 KiB under CI.** The ceilings use the local form (`ceilingForLocal`).
 
@@ -842,21 +908,23 @@ The lane's runs:
    - Each has an allowlist line with its `until`.
 3. **The two signed-out names** remain in `src/lib/refusal.ts:177` and `src/features/admin/translations/translations-service.ts:404,430,431,501`. Each is read by a different reader, and both files are outside scope.
 4. **INC-1315's remaining sites:** `src/lib/error-capture.ts:22,50`, `src/lib/error-page.ts:21`, and the name fallback in `src/lib/error-text.ts`.
-5. **`src/test/provider-errors.ts` quotes sources as `file:line`.** PEF-5 reddens when code above a quoted line moves (`8e8e9118a`). This is INC-1293's class outside the allowlists.
+5. **`src/test/provider-errors.ts` quotes sources as `file:line`: INC-1320** (the supervisor's record, §14). PEF-5 reddens when code above a quoted line moves (`8e8e9118a`). This is INC-1293's class outside the allowlists.
 6. **A cast in pre-existing code.** `src/server/supabase/user-client.ts`: `p_batch: entry.batch as unknown as string` (its door-args line, INC-942) is an `as unknown as` that rule 10 bans. It is pre-existing; the lane only re-keyed its allowlist line.
-7. **Lines that part 3 makes stale, for the next rules turn:**
+7. **Lines that part 3 makes stale, for the next rules turn: ACT-035** (the supervisor's record, §14):
    - `.cursor/rules/10-code-laws.mdc:101` ("run `bun run i18n:usage` and commit both maps");
    - `.cursor/rules/00-protocol.mdc:183` (the standing allowance names `docs/generated/i18n-usage.json` and `public/i18n-usage.json`);
    - `docs/governance/lovable-knowledge.md` A6 (operator's word only, DEC-414 (7));
    - `CLAUDE.md:89`;
    - `.claude/hooks/land.ts`, `.claude/hooks/lib.ts`, `.claude/hooks/post-edit.ts`, `.claude/rules/00-executor-protocol.md`, `.claude/rules/10-code-laws.md`, `.claude/rules/40-ci-evidence.md`, `.claude/skills/turn-report/SKILL.md`;
    - `.prettierignore:62–66`, which names two files no longer in the tree.
-8. **The server's report reads "signed in" as "a bearer rode".** `src/server/error-reports.ts` uses `carriesBearer(request)` for the server's own reports; the bearer is not verified there. The browser route's `signedIn` comes from the verified caller. It names no person either way.
+8. **The server's report reads "signed in" as "a bearer rode": INC-1321** (the supervisor's record, §14). `src/server/error-reports.ts` uses `carriesBearer(request)` for the server's own reports; the bearer is not verified there. The browser route's `signedIn` comes from the verified caller. It names no person either way.
 9. **INC-1314:** read in §2 (findings). This lane's migration-stop push counted correctly as a code push.
 10. **A gone session is logged as a server error: INC-1316** (ruling 4 (C), the supervisor's record, §14). The three census lines in run 45929211475, the same line three times (shards 5 and 13):
     - `[WebServer] [ssr-error] /api/error-reports not signed in Auth session missing!` ×3.
     - The tests that finished next in the same logs: RP-1 ×2, AT-69, AU-2, RP-2, SO-16. The reporter is a new caller that fires after a sign-out with the old bearer. `src/server/supabase/user-client.ts` logs every bearer judged gone as `[ssr-error]`, on every route. Left by ruling 4: changing it for one route would fork the route boundary's optional caller.
 11. **The reporter's address dial rations a carrier, not a person: INC-1318** (the supervisor's record, §14). All of a CI lane's browsers share one address and met `errorReportAddress` (60 an hour) in runs 45929211475 and 45935486979. Outside the crawl, the reporter's calls in other specs still reach the real route and its dial (ruling 4 refused hiding them across the harness).
+12. **A page with no failure sent an error report: INC-1319** (the supervisor's record, §14; fixed by ruling 5 before the merge). Left: the five notices drawn without their failure, now named by the reporter census's `unseen` rule and allowlisted until INC-1319 (§7). Among them is the feed's category failure (`src/components/marketplace/feed.tsx:232`), which the ruling's expected list did not name (§10).
+13. **ER-1/ER-2's cleanup read its rows while its page could still write one** (ruling 5 decision 4; a defect, for a number). `e2e/error-reports.spec.ts`'s `afterEach` read the tag's rows before the page stopped, so a report posted late was never removed (§12). Fixed in `08a345c1d` with `stopPageBeforePurge` (INC-323's class rule, "a hook that purges drafts stops the page first", now applied to a hook that purges reports). Class: concern 'a test removes every row it caused'; mechanism `stopPageBeforePurge` (`e2e/helpers/posting.ts`). The other specs whose cleanup reads rows a page can still write were not censused in this lane.
 
 ## 14. Records
 
@@ -874,9 +942,9 @@ The lane's runs:
   - The cleaner is `src/lib/error-clean.ts`, run by the browser and again by the server. The shape is `src/lib/schemas/error-report.ts`.
   - The public write route is `POST /api/error-reports`: byte ceiling, then optional caller, then the address dial `errorReportAddress` before the read, then the strict shape.
   - The server's report sits in `serverError`, and in the user client's upstream answer. It is never awaited, runs within a 3000 ms deadline, and is limited to the same failure once a minute and 30 a minute per instance.
-  - The browser's trigger is `reportBrowserFailure` (`src/lib/error-report.ts`). It is called by the notice's `server` reading, the root crash boundary and the two listeners. The sender loads on demand and sends at most 5 per visit, the same failure once, and nothing offline.
+  - The browser's trigger is `reportBrowserFailure` (`src/lib/error-report.ts`). It is called by the drawn notice (`useNoticeReport`: a present failure whose drawn reading is `server`; INC-1319), the root crash boundary and the two listeners. The sender loads on demand and sends at most 5 per visit, the same failure once, and nothing offline.
   - The staff readers are in `src/features/admin-errors/` with their door-words family.
-  - The guard is `scripts/conformance/error-reports.ts` (ERCE-1…4).
+  - The guard is `scripts/conformance/error-reports.ts` (ERCE-1…5).
   - What a report holds, word for word: "when; the page path without its query or fragment; the kind; the code (a typed failure's code or status); the cleaned message and place (the first frame of our own code, file and line, no query); browser, engine and version; device type (phone, tablet, desktop); the page language; the app version (the build's commit if the build exposes one — the census answers whether it does; otherwise named OPEN, never invented); signed in or not. Never an account id, a name, an e-mail, a phone number, a network address, a token, a query string, a request body or a cookie." The app version is OPEN (ACT-034).
 - INC — INC-1293 fixed (cursor-bundle-8b): an allowlist key names its place by text, `<file>#<text>` or `<file>#<scope>::<text>` (`placeOf`, `readPlacedAllowlist`, `scripts/conformance/kit.ts`). Each key must match exactly once; a key that matches nothing or twice fails (CF-KIT-10). Every line-keyed allowlist under `scripts/` and the staff rules are re-keyed, and no `path:<n>` key remains.
 - INC — INC-1295 fixed (cursor-bundle-8b). Fix 3's rule decided (a), "the maps leave the tree", because all three proofs held:
@@ -885,14 +953,18 @@ The lane's runs:
   - the dev server answers `/i18n-usage.json` (200, equal to a fresh generation).
   - Both maps are git-ignored and their deletion is declared. CI's `i18n-usage-map` job builds and judges the build's copies against a fresh generation (`scripts/i18n-map-guard.ts`). `turn-checks` reuses the build, and the docs-only classifier no longer names them.
   - (b) The page ceilings stay committed, one line per page with one blank line between page lines. Two lanes changing two different pages merge cleanly (RBL-2).
-- register row — "a failure in the field is recorded, cleaned and readable by staff" → the reporter (`reportBrowserFailure`, `src/lib/error-report.ts`; the server's report in `serverError`), the route `POST /api/error-reports`, the table `error_reports` and its doors `admin_error_groups`, `admin_error_occurrences`, `admin_error_stats` → the reporter census `scripts/conformance/error-reports.ts` (ERCE-1…4) → exceptions: `scripts/conformance/error-reports-allowlist.txt`.
+- register row — "a failure in the field is recorded, cleaned and readable by staff" → the reporter (`reportBrowserFailure`, `src/lib/error-report.ts`; the server's report in `serverError`), the route `POST /api/error-reports`, the table `error_reports` and its doors `admin_error_groups`, `admin_error_occurrences`, `admin_error_stats` → the reporter census `scripts/conformance/error-reports.ts` (ERCE-1…5; its `unseen` rule names every notice drawn without its failure, INC-1319) → exceptions: `scripts/conformance/error-reports-allowlist.txt`.
 - register row — the census kit's row gains "keys survive a move (INC-1293): `<file>#<text>` / `<file>#<scope>::<text>`, matched exactly once (`placeOf`, CF-KIT-10)".
 - register row — the word maps' row: "built, never committed (INC-1295): `usageMapPlugin` (`scripts/i18n-usage-map.ts`, wired in `vite.config.ts`) emits `/i18n-usage.json` in the client build, writes `docs/generated/i18n-usage.json`, and answers `/i18n-usage.json` on the dev server; CI's `i18n-usage-map` job judges the build's copies (`scripts/i18n-map-guard.ts`)".
 - register row — the ceilings' row: "one line per page, a blank line between page lines, so two lanes changing two different pages never conflict (INC-1295, RBL-1/RBL-2 in `scripts/route-budgets.test.ts`)".
-- changelog — Cursor bundle 8b: our own error reports. Every failure in the field that is ours (the notice's server reading, a crash, an unhandled error, a 500 our server answers, an auth server failure) is recorded once, cleaned and grouped, kept 12 months and readable by staff with `errors:view` (DEC-474 Part F; INC-1312). Allowlist keys survive a move (INC-1293). The word maps are built, not committed, and the page ceilings merge across lanes (INC-1295).
+- changelog — Cursor bundle 8b: our own error reports. Every failure in the field that is ours (a drawn notice's server failure, a crash, an unhandled error, a 500 our server answers, an auth server failure) is recorded once, cleaned and grouped, kept 12 months and readable by staff with `errors:view` (DEC-474 Part F; INC-1312). Allowlist keys survive a move (INC-1293). The word maps are built, not committed, and the page ceilings merge across lanes (INC-1295).
 - slip — for the next rules turn, the lines Part 3 makes stale:
   - `.cursor/rules/10-code-laws.mdc:101`, `.cursor/rules/00-protocol.mdc:183`, `CLAUDE.md:89`;
   - `docs/governance/lovable-knowledge.md` A6 (operator's word, DEC-414 (7));
   - `.claude/hooks/land.ts`, `.claude/hooks/lib.ts`, `.claude/hooks/post-edit.ts`, `.claude/rules/00-executor-protocol.md`, `.claude/rules/10-code-laws.md`, `.claude/rules/40-ci-evidence.md`, `.claude/skills/turn-report/SKILL.md`;
   - `.prettierignore:62–66`.
 - ACT-034 (the supervisor's record) — the build's own stamp (its commit) reaches the error reports' app_version. Today no build exposes its commit, so the column is open and nullable and the stats' version list is one null bucket (Cursor bundle 8b, premise a). First read where the published build gets its commit. Owner: the before-launch list (G71).
+- INC-1319 (the supervisor's record) — a page with no failure sent an error report: the notice's report sat in the reading hook `useFailureKind`, which reads `server` for an error of null or undefined, so the view-as bar (mounted for staff on every page), the view-as page, and every notice drawn with `error={null}` or with a given reading reported `{ kind: notice, code: null }`. Evidence: three rows on ethio-staging (2026-11-27 04:12–04:16 UTC, message `no message (null)`, signed in, path `/`); a test on the lane's head. Fixed in Cursor bundle 8b before the merge: a notice reports only a present failure whose drawn reading is `server`, and the reading hook sends nothing. Left: the notices drawn without their error (the seller page, the legal document page, the photo step's carried reading) are never reported; they are named in the reporter census's allowlist. Class: concern 'a failure report is sent only for a failure that happened'; mechanism the notice's report (`src/components/shell/failure-reason.ts`, `reportBrowserFailure`). Owner of what is left: the before-launch list.
+- INC-1320 (the supervisor's record) — `src/test/provider-errors.ts` quotes each entry's source as `file:line`, and PEF-5 holds the line to its text, so moving code above a quoted line turns the law red with nothing wrong (Cursor bundle 8b, `8e8e9118a`). INC-1293's class in a fixture, outside the allowlists' grammar. Class: concern 'a key names its place by text, never by line'; mechanism `placeOf` (`scripts/conformance/kit.ts`). Owner: the before-launch list.
+- INC-1321 (the supervisor's record) — the server's own error reports record 'signed in' as 'the request carried a bearer' (`carriesBearer`, `src/server/error-reports.ts`); the bearer is not verified there, so an ended or forged bearer reads as signed in. The browser route's field comes from the verified caller. It names no person either way. Class: concern 'a report's fields are facts we verified'; mechanism the server's report. Owner: the before-launch list.
+- ACT-035 (the supervisor's record) — the lines Cursor bundle 8b's part 3 made stale (the word maps are built, never committed): `.cursor/rules/10-code-laws.mdc` (the line that says to run `bun run i18n:usage` and commit both maps), `.cursor/rules/00-protocol.mdc` (the standing allowance naming both map files), `docs/governance/lovable-knowledge.md` A6 and the live Lovable Knowledge's cheap-check line for the maps, `.prettierignore` (two files no longer in the tree), and the dormant kit (`CLAUDE.md`, `.claude/**`). Owner: the next rules turn and the next Knowledge update.
