@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/integrations/supabase/types";
-import { PROVIDER_ERRORS } from "@/test/provider-errors";
+import { PROVIDER_ERRORS, type ProviderErrorEntry } from "@/test/provider-errors";
 
 /**
  * INC-574 — AN UPSTREAM FAILURE IS NOT A VERDICT.
@@ -47,6 +47,24 @@ function json(body: unknown, status: number): Response {
 
 function page(status: number): Response {
   return new Response(PAGE, { status, headers: { "content-type": "text/html" } });
+}
+
+/**
+ * A captured auth answer: its whole body where the fixture holds one, otherwise its captured code
+ * and message in the same wire shape, at its own status or the case's; the version header is the
+ * one the library reads `code` under.
+ */
+function captured(
+  name: "unexpected_failure" | "over_request_rate_limit" | "session_not_found" | "session_expired",
+  status?: number,
+): () => Response {
+  const entry: ProviderErrorEntry = PROVIDER_ERRORS[name];
+  const body = entry.body ?? JSON.stringify({ code: entry.code, message: entry.message });
+  return () =>
+    new Response(body, {
+      status: status ?? entry.status,
+      headers: { "content-type": "application/json", "x-supabase-api-version": "2024-01-01" },
+    });
 }
 
 const STUB_URL = "https://stub.supabase.co";
@@ -267,34 +285,44 @@ describe("INC-578 — a door's own words never travel raw", () => {
     expect(active.userId).toBe(USER_ID);
   });
 
-  it("UP-8 an auth server that answers its own failure (500) is 'upstream' (503) and reported; a refused bearer is not reported (INC-1312)", async () => {
+  it("UP-8 only the sign-in server's judgement of the bearer reads as signed out; every other auth failure is 'upstream' (503), reported once (INC-1312)", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    reports.report.mockClear();
-    const captured = PROVIDER_ERRORS.unexpected_failure;
-    network.auth = () =>
-      new Response(captured.body, {
-        status: captured.status,
-        headers: { "content-type": "application/json" },
-      });
-    const failed = await userClientFromRequest(signedRequest("/api/x", {}));
-    expect(failed.reason).toBe("upstream");
-    expect(failed.message).toBe("auth upstream unavailable (500)");
-    const answer = refuseUserClient("/api/x", failed);
-    expect(answer?.status).toBe(503);
-    expect(await answer?.json()).toEqual({ error: "upstream unavailable" });
-    await vi.waitFor(() => expect(reports.report).toHaveBeenCalledTimes(1));
-    expect(reports.report).toHaveBeenCalledWith(
-      "upstream",
-      "/api/x",
-      "auth upstream unavailable (500)",
-    );
+    for (const [what, answer, message] of [
+      ["the captured 500", captured("unexpected_failure"), "auth upstream unavailable (500)"],
+      ["a 505, JSON", captured("unexpected_failure", 505), "auth upstream unavailable (505)"],
+      ["a 531, JSON", captured("unexpected_failure", 531), "auth upstream unavailable (531)"],
+      ["a 505, not JSON", () => page(505), "auth upstream unavailable (no status)"],
+      ["a 429", captured("over_request_rate_limit"), "auth upstream unavailable (429)"],
+    ] as const) {
+      reports.report.mockClear();
+      network.auth = answer;
+      const failed = await userClientFromRequest(signedRequest("/api/x", {}));
+      expect(failed.reason, what).toBe("upstream");
+      expect(failed.message, what).toBe(message);
+      const refused = refuseUserClient("/api/x", failed);
+      expect(refused?.status, what).toBe(503);
+      expect(await refused?.json(), what).toEqual({ error: "upstream unavailable" });
+      await vi.waitFor(() => expect(reports.report, what).toHaveBeenCalledTimes(1));
+      expect(reports.report, what).toHaveBeenCalledWith("upstream", "/api/x", message);
+    }
 
-    reports.report.mockClear();
-    network.auth = () => json({ code: 403, error_code: "bad_jwt", msg: "invalid JWT" }, 403);
-    const refused = await userClientFromRequest(signedRequest("/api/x", {}));
-    expect(refused.reason).toBe("notSignedIn");
-    expect(refuseUserClient("/api/x", refused)?.status).toBe(401);
-    await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(reports.report).not.toHaveBeenCalled();
+    for (const [what, answer, message] of [
+      [
+        "a session that is gone (403)",
+        captured("session_not_found", 403),
+        PROVIDER_ERRORS.AuthSessionMissingError.message,
+      ],
+      ["an expired session (403)", captured("session_expired"), "Session is no longer valid"],
+      ["an expired session (401)", captured("session_expired", 401), "Session is no longer valid"],
+    ] as const) {
+      reports.report.mockClear();
+      network.auth = answer;
+      const judged = await userClientFromRequest(signedRequest("/api/x", {}));
+      expect(judged.reason, what).toBe("notSignedIn");
+      expect(judged.message, what).toBe(message);
+      expect(refuseUserClient("/api/x", judged)?.status, what).toBe(401);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(reports.report, what).not.toHaveBeenCalled();
+    }
   });
 });

@@ -1,10 +1,7 @@
-import {
-  createClient,
-  isAuthRetryableFetchError,
-  type SupabaseClient,
-} from "@supabase/supabase-js";
+import { createClient, isAuthApiError, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
+import { sessionGone } from "@/lib/ended-sign-in";
 import { errorText, errorWithStack, HTML_PAGE } from "@/lib/error-text";
 
 /**
@@ -68,6 +65,13 @@ export function anonymousClient(): SupabaseClient<Database> | null {
   });
 }
 
+/** The sign-in server judged the bearer: its session is gone, or a 4xx refusal other than 429. */
+function judgedBearer(error: unknown): boolean {
+  if (sessionGone(error)) return true;
+  if (!isAuthApiError(error)) return false;
+  return error.status >= 400 && error.status <= 499 && error.status !== 429;
+}
+
 /** Whether the request carries a bearer at all: a fact about the request, never an identity. */
 export function carriesBearer(request: Request): boolean {
   return (request.headers.get("Authorization") ?? "").toLowerCase().startsWith("bearer ");
@@ -96,14 +100,14 @@ export async function userClientFromRequest(request: Request): Promise<UserClien
   });
 
   const { data, error } = await supabase.auth.getUser();
-  // INC-1312 — an auth server that answered its own failure (5xx) never judged the bearer either:
-  // it is the upstream failure it is, never "not signed in".
-  if (error && (isAuthRetryableFetchError(error) || (error.status ?? 0) >= 500)) {
+  // INC-1312 — only the sign-in server's judgement of the bearer reads as signed out; any other
+  // failure (a 5xx, a 429, a body that is not JSON, a network error) judged nothing (CF-SESSION-1).
+  if (error && !judgedBearer(error)) {
     return {
       supabase,
       userId: null,
       reason: "upstream",
-      message: `auth upstream unavailable (${error.status})`,
+      message: `auth upstream unavailable (${error.status ?? "no status"})`,
     };
   }
   if (error || !data?.user?.id) {

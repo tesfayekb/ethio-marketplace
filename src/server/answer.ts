@@ -1,4 +1,4 @@
-import { errorText } from "@/lib/error-text";
+import { errorStack, errorText } from "@/lib/error-text";
 import { gateRefusal, readerFailure } from "@/lib/reader-failure";
 import type { Refusal } from "@/lib/refusal";
 import {
@@ -185,8 +185,8 @@ export function serverError(path: string, error: unknown): Response {
   const incident = crypto.randomUUID();
   // INC-1215 — what is not an Error (a database error object, a string) is read through `errorText`,
   // never templated whole (`[object Object]`).
-  // eslint-disable-next-line no-restricted-syntax -- INC-815: the stack is wanted when it exists.
-  const text = error instanceof Error ? (error.stack ?? errorText(error)) : errorText(error);
+  // INC-815 — the stack is wanted when it exists.
+  const text = errorStack(error) || errorText(error);
   logRouteError(path, `[incident ${incident}] ${text}`);
   // DEC-474 Part F — every 500 is reported (cleaned, grouped); the report never holds the answer.
   reportFailureLater("route", path, error);

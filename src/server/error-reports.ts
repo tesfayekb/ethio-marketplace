@@ -9,7 +9,7 @@ import {
   cleanPlace,
   type ErrorKind,
 } from "@/lib/error-clean";
-import { errorText } from "@/lib/error-text";
+import { errorStack, errorText } from "@/lib/error-text";
 import { ERROR_REPORTS_PATH, type ErrorReport } from "@/lib/schemas/error-report";
 import { ok, refused } from "@/server/answer";
 import { carriesBearer } from "@/server/supabase/user-client";
@@ -139,9 +139,7 @@ export function reportServerFailure(
   if (path === ERROR_REPORTS_PATH) return Promise.resolve(false);
   const request = currentRequest();
   if (request === null) return Promise.resolve(false);
-  const stack =
-    // eslint-disable-next-line no-restricted-syntax -- only an Error carries a stack
-    error instanceof Error ? error.stack : undefined;
+  const stack = errorStack(error);
   const fields: ReportFields = {
     kind,
     code: kind === "route" ? "500" : "503",
