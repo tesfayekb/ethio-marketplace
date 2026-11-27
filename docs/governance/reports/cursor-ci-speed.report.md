@@ -264,8 +264,17 @@ them CI and two the Lovable branch guard, which was skipped):
   plans from it.
 - Reds: none on the judged run, so nothing was re-run or fixed after the push. The draft run's cancelled jobs were
   cancelled by design, not by a red.
-- This report's own commit adds one more run (records only). It is expected to reuse 46051288968's tree through the
-  skipped line.
+- 46053768672, the report's commit `7af88e1f5`: SUCCESS, 43 pass and 2 skipping (the Lovable branch guard and the promote
+  job), every lane ran. Correction to this report's first version, which expected this run to reuse 46051288968's tree:
+  `dev` moved between the two runs (`0a010e702`, Lovable's
+  [#119](https://github.com/tesfayekb/ethio-marketplace/pull/119), the errors page, `32f68bb96..0a010e702`). The
+  pull request's merge ref `Merge 7af88e1 into 0a010e7` therefore built a code tree no green run held. Its scope line
+  was `ran — no proven code tree: no green ci.yml run of this repository holds code-tree-dae7e9255934… (0 read)`, so
+  the full run was the correct answer. Run 46051288968 had merged onto `32f68bb96` (merge commit `1a1bcd1c3`, parents
+  `32f68bb96 76de8cc64`). No file `dev` changed in `32f68bb96..0a010e702` is one this lane changed (`comm -12` over the
+  two `git diff --name-only` lists: empty). As rule 00 directs, nothing was merged or rebased.
+- This correction's commit adds one more run. With `dev` still at `0a010e702`, it is expected to reuse run
+  46053768672's tree.
 
 INC-1327 (LGA-21, three retried passes), from the flake ledger on `origin/ci-evidence` (the first line of each failed
 attempt); the runs' artifacts were not read:
