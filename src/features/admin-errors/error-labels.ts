@@ -1,6 +1,10 @@
 import type { MessageKey } from "@/i18n";
-import type { ErrorKind } from "@/lib/error-clean";
+import { ERROR_KINDS, type ErrorKind } from "@/lib/error-clean";
 import type { Device } from "@/lib/schemas/error-report";
+
+import type { ErrorWindow } from "./errors-search";
+
+export { DEFAULT_WINDOW, ERROR_WINDOWS, type ErrorWindow } from "./errors-search";
 
 /** Each kind's words, as staff read them. */
 export const KIND_WORDS: Readonly<Record<ErrorKind, MessageKey>> = {
@@ -18,10 +22,10 @@ export const DEVICE_WORDS: Readonly<Record<Device, MessageKey>> = {
   desktop: "admin.errors.device.desktop",
 };
 
-/** The windows offered, in days; 7 by default. */
-export const ERROR_WINDOWS = [1, 7, 30, 90] as const;
-export type ErrorWindow = (typeof ERROR_WINDOWS)[number];
-export const DEFAULT_WINDOW: ErrorWindow = 7;
+/** The address's kind as a known kind, or none (an unknown word reads as every kind). */
+export function knownKind(value: string | null | undefined): ErrorKind | null {
+  return ERROR_KINDS.find((kind) => kind === value) ?? null;
+}
 
 export const WINDOW_WORDS: Readonly<Record<ErrorWindow, MessageKey>> = {
   1: "admin.errors.window.1",

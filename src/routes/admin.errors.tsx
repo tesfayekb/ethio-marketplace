@@ -1,6 +1,7 @@
 import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { knownKind } from "@/features/admin-errors/error-labels";
 import { AdminErrorsPage } from "@/features/admin-errors/errors-page";
 import { errorsSearch } from "@/features/admin-errors/errors-search";
 
@@ -34,7 +35,7 @@ function AdminErrorsRoute() {
   return (
     <AdminErrorsPage
       days={search.days}
-      kind={search.kind ?? null}
+      kind={knownKind(search.kind)}
       onDays={(days) => void navigate({ to: ".", search: (prev) => ({ ...prev, days }) })}
       onKind={(kind) =>
         void navigate({

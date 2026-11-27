@@ -17,6 +17,7 @@ src/features/admin/sections.ts packages:view | a section's page gate: the menu a
 src/features/admin/sections.ts profiles:view | a section's page gate: the menu and its page read it, not a door | permanent
 src/features/admin/sections.ts roles:view | a section's page gate: the menu and its page read it, not a door | permanent
 src/features/admin/sections.ts audit_logs:view | a section's page gate: the menu and its page read it, not a door | permanent
+src/features/admin/sections.ts errors:view | a section's page gate: the menu and its page read it, not a door | permanent
 src/features/admin/sections.ts locations:view | a section's page gate: the menu and its page read it, not a door | permanent
 src/features/admin/sections.ts countries:view | a section's page gate: the menu and its page read it, not a door | permanent
 src/features/admin/sections.ts categories:view | a section's page gate: the menu and its page read it, not a door | permanent

@@ -2121,9 +2121,6 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
     "ለዝርዝሮቹ የመረጡት ምድብ ጠፍቷል ወይም ዝርዝሮችን አይቀበልም። ሌላ ይምረጡ።",
   "admin.categories.error.windowOrder": "“የሚታይ እስከ” ከ“የሚታይ ከ” በኋላ መሆን አለበት።",
   "admin.roles.readOnlyNote": "የዚህን ሚና ፈቃዶች ማየት ይችላሉ፤ ግን መለወጥ አይችሉም።",
-  "admin.section.errors.title": "ስህተቶች",
-  "admin.section.errors.body":
-    "ጣቢያው ስህተት የሚያጋጥመው የት እንደሆነ፦ በቀን እና በዓይነት ብዛት፣ ቀዳሚዎቹ ገጾች፣ አሳሾች እና ስሪቶች፣ እንዲሁም እያንዳንዱ ተመሳሳይ የስህተቶች ቡድን ከሪፖርቶቹ ጋር።",
   "admin.errors.window.label": "የጊዜ ክልል",
   "admin.errors.window.1": "ባለፈው ቀን",
   "admin.errors.window.7": "ባለፉት 7 ቀናት",

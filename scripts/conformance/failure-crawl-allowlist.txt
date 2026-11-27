@@ -13,6 +13,8 @@
 # never asked.
 page /admin | the staff shell's layout route; its page is /admin/ (FCR-70), which the crawl opens | permanent
 page /admin/impersonation/$sessionId | the crawl holds no impersonation session (begin_impersonation asks a staff step-up and a target), and on an id no session holds the page draws its ended state on every load, so neither its load nor its reads' failures can be judged — the page is owed a fixture that opens a session, reported | INC-1278
+page /admin/errors | the staff Errors page (DEC-474 Part F); its crawl row lands with its browser spec in Cursor 8c | INC-1331
+page /admin/errors/$group | one error group's reports (DEC-474 Part F); its crawl row lands with its browser spec in Cursor 8c | INC-1331
 footer footer.about | the footer's About item has no page yet; when its route lands this line goes stale and the crawl owes the page | DEC-463
 footer footer.contact | the footer's Contact item has no page yet; when its route lands this line goes stale and the crawl owes the page | DEC-463
 footer footer.safety | the footer's Safety item has no page yet; when its route lands this line goes stale and the crawl owes the page | DEC-463

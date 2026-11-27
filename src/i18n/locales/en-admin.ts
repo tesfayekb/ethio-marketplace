@@ -2270,9 +2270,6 @@ export const enAdmin = {
     "The category you chose for the listings is switched off or does not take listings. Choose another.",
   "admin.categories.error.windowOrder": "“Visible until” must be later than “Visible from”.",
   "admin.roles.readOnlyNote": "You can view this role's permissions but not change them.",
-  "admin.section.errors.title": "Errors",
-  "admin.section.errors.body":
-    "Where the site fails: counts by day and kind, the top pages, browsers and versions, and each group of like failures with its reports.",
   "admin.errors.window.label": "Time window",
   "admin.errors.window.1": "Last day",
   "admin.errors.window.7": "Last 7 days",

@@ -17,3 +17,12 @@ it("ANM-1 the group holding the AI section names it in English and Amharic", () 
     expect(groupName).toContain(sectionTitle);
   }
 });
+
+it("SEC-ER-1 the errors entry sits right after audit, with errors:view and no group", () => {
+  const at = ADMIN_SECTIONS.findIndex((section) => section.id === "errors");
+  expect(at).toBeGreaterThan(0);
+  expect(ADMIN_SECTIONS[at - 1]?.id).toBe("audit");
+  const errors = ADMIN_SECTIONS[at];
+  expect(errors?.permission).toBe("errors:view");
+  expect(errors !== undefined && "group" in errors).toBe(false);
+});

@@ -1,6 +1,7 @@
 import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { knownKind } from "@/features/admin-errors/error-labels";
 import { ErrorReportsPage } from "@/features/admin-errors/error-reports-page";
 import { errorsSearch } from "@/features/admin-errors/errors-search";
 
@@ -31,5 +32,7 @@ export const Route = createFileRoute("/admin/errors_/$group")({
 function ErrorGroupRoute() {
   const { group } = Route.useParams();
   const search = Route.useSearch();
-  return <ErrorReportsPage group={group} back={{ days: search.days, kind: search.kind ?? null }} />;
+  return (
+    <ErrorReportsPage group={group} back={{ days: search.days, kind: knownKind(search.kind) }} />
+  );
 }

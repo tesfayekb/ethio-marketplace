@@ -411,6 +411,9 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.roles.body": "የሚና እና ፈቃድ አስተዳደር በU2 ይመጣል።",
   "admin.section.audit.title": "ኦዲት እና ደህንነት",
   "admin.section.audit.body": "የኦዲት እና ደህንነት መሣሪያዎች በU3 ይመጣሉ።",
+  "admin.section.errors.title": "ስህተቶች",
+  "admin.section.errors.body":
+    "ጣቢያው ስህተት የሚያጋጥመው የት እንደሆነ፦ በቀን እና በዓይነት ብዛት፣ ቀዳሚዎቹ ገጾች፣ አሳሾች እና ስሪቶች፣ እንዲሁም እያንዳንዱ ተመሳሳይ የስህተቶች ቡድን ከሪፖርቶቹ ጋር።",
   "admin.section.places.title": "ቦታዎች",
   "admin.section.places.body": "በየገበያው ውስጥ ያሉ ክልሎች፣ ከተሞች እና ክፍለ ከተሞች።",
   "admin.section.countries.title": "አገሮች",

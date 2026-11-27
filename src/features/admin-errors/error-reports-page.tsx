@@ -12,7 +12,6 @@ import type { ErrorKind } from "@/lib/error-clean";
 import { dateFormatter } from "@/lib/format";
 
 import { DEVICE_WORDS, type ErrorWindow } from "./error-labels";
-import { errorsRefusalKey } from "./errors-refusals";
 import { isGroupKey, type ErrorOccurrence } from "./errors-service";
 import { useErrorOccurrences } from "./use-errors";
 
@@ -60,7 +59,6 @@ function Reports({ group, back }: { group: string; back: Back }) {
   const [hidden, toggleColumn] = useHiddenColumns(REPORTS_TABLE);
   const timeFmt = dateFormatter("moment", language);
   const unknown = t("admin.errors.unknown");
-  const refusal = errorsRefusalKey(query.error);
 
   const allColumns: DataTableColumn<ErrorOccurrence>[] = [
     {
@@ -157,11 +155,7 @@ function Reports({ group, back }: { group: string; back: Back }) {
         loadingState={<p className="text-sm text-muted-foreground">{t("common.loading")}</p>}
         error={query.error}
         retry={() => void query.refetch()}
-        errorState={
-          <p className="text-sm text-destructive">
-            {t(refusal === "failure.server" ? "admin.errors.read.reports" : refusal)}
-          </p>
-        }
+        errorState={<p className="text-sm text-destructive">{t("admin.errors.read.reports")}</p>}
         emptyState={
           <p className="text-sm text-muted-foreground">{t("admin.errors.reports.empty")}</p>
         }

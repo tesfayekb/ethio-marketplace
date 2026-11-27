@@ -10,46 +10,17 @@ import { TableToolbar } from "@/components/shell/table-toolbar";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { CutText } from "@/components/ui/cut-text";
 import { NativeSelect } from "@/components/ui/native-select";
-import { useI18n, type MessageKey } from "@/i18n";
+import { useI18n } from "@/i18n";
 import { ERROR_KINDS, type ErrorKind } from "@/lib/error-clean";
 import { dateFormatter, numberFormatter } from "@/lib/format";
 
+import { dayRows, type DayRow } from "./day-rows";
 import { ERROR_WINDOWS, KIND_WORDS, WINDOW_WORDS, type ErrorWindow } from "./error-labels";
-import { errorsRefusalKey } from "./errors-refusals";
 import type { ErrorGroup, ErrorStats } from "./errors-service";
 import { useErrorGroups, useErrorStats } from "./use-errors";
 
 const GROUPS_TABLE = "admin-errors-groups";
 const LOCKED = ["message"];
-
-type DayRow = { day: string; total: number } & Record<ErrorKind, number>;
-
-/** The days answer as a row per day (newest first), a count per kind and the day's total. */
-export function dayRows(days: ErrorStats["days"]): DayRow[] {
-  const byDay = new Map<string, DayRow>();
-  for (const entry of days) {
-    const row = byDay.get(entry.day) ?? {
-      day: entry.day,
-      total: 0,
-      notice: 0,
-      crash: 0,
-      unhandled: 0,
-      route: 0,
-      upstream: 0,
-      render: 0,
-    };
-    row[entry.kind] += entry.count;
-    row.total += entry.count;
-    byDay.set(entry.day, row);
-  }
-  return [...byDay.values()].sort((a, b) => b.day.localeCompare(a.day));
-}
-
-/** The words a failed read draws: a refusal's own words, else the read's sentence. */
-function failedSubject(error: unknown, read: MessageKey): MessageKey {
-  const refusal = errorsRefusalKey(error);
-  return refusal === "failure.server" ? read : refusal;
-}
 
 export function AdminErrorsPage({
   days,
@@ -76,16 +47,13 @@ export function AdminErrorsPage({
   const num = (value: number) => <span className="tabular-nums">{count.format(value)}</span>;
   const loadingState = <p className="text-sm text-muted-foreground">{t("common.loading")}</p>;
   const empty = <p className="text-sm text-muted-foreground">{t("admin.errors.empty")}</p>;
-  const statsFailed = (
-    <p className="text-sm text-destructive">
-      {t(failedSubject(stats.error, "admin.errors.read.stats"))}
-    </p>
-  );
+  const statsFailed = <p className="text-sm text-destructive">{t("admin.errors.read.stats")}</p>;
+  const retryStats = () => void stats.refetch();
   const statsTable = {
     loading: stats.isPending,
     loadingState,
     error: stats.error,
-    retry: () => void stats.refetch(),
+    retry: retryStats,
     errorState: statsFailed,
     emptyState: empty,
   };
@@ -94,12 +62,11 @@ export function AdminErrorsPage({
   const present = (key: ErrorKind) => rows.some((row) => row[key] > 0);
   const kindColumn = (key: ErrorKind, column: DataTableColumn<DayRow>) =>
     present(key) ? [column] : [];
-  const kindCell = (key: ErrorKind) => ({
+  const kindLook = (key: ErrorKind) => ({
     header: t(KIND_WORDS[key]),
     priority: "secondary" as const,
     size: "short" as const,
     align: "end" as const,
-    cell: (row: DayRow) => num(row[key]),
   });
   const dayColumns: DataTableColumn<DayRow>[] = [
     {
@@ -110,12 +77,28 @@ export function AdminErrorsPage({
       card: "title",
       cell: (row) => <span className="tabular-nums">{dayFmt.format(new Date(row.day))}</span>,
     },
-    ...kindColumn("notice", { key: "notice", ...kindCell("notice") }),
-    ...kindColumn("crash", { key: "crash", ...kindCell("crash") }),
-    ...kindColumn("unhandled", { key: "unhandled", ...kindCell("unhandled") }),
-    ...kindColumn("route", { key: "route", ...kindCell("route") }),
-    ...kindColumn("upstream", { key: "upstream", ...kindCell("upstream") }),
-    ...kindColumn("render", { key: "render", ...kindCell("render") }),
+    ...kindColumn("notice", {
+      key: "notice",
+      ...kindLook("notice"),
+      cell: (row) => num(row.notice),
+    }),
+    ...kindColumn("crash", { key: "crash", ...kindLook("crash"), cell: (row) => num(row.crash) }),
+    ...kindColumn("unhandled", {
+      key: "unhandled",
+      ...kindLook("unhandled"),
+      cell: (row) => num(row.unhandled),
+    }),
+    ...kindColumn("route", { key: "route", ...kindLook("route"), cell: (row) => num(row.route) }),
+    ...kindColumn("upstream", {
+      key: "upstream",
+      ...kindLook("upstream"),
+      cell: (row) => num(row.upstream),
+    }),
+    ...kindColumn("render", {
+      key: "render",
+      ...kindLook("render"),
+      cell: (row) => num(row.render),
+    }),
     {
       key: "total",
       header: t("admin.errors.col.total"),
@@ -421,11 +404,7 @@ export function AdminErrorsPage({
           loadingState={loadingState}
           error={groups.error}
           retry={() => void groups.refetch()}
-          errorState={
-            <p className="text-sm text-destructive">
-              {t(failedSubject(groups.error, "admin.errors.read.groups"))}
-            </p>
-          }
+          errorState={<p className="text-sm text-destructive">{t("admin.errors.read.groups")}</p>}
           emptyState={empty}
           pagination={
             <DataTablePagination
