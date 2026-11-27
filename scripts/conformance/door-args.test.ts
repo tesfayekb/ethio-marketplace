@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { doorArgsCensus } from "./door-args";
-import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
 
 const ALLOWLIST = "scripts/conformance/door-args-allowlist.txt";
 const PLANTED = "src/features/planted/planted-service.ts";
@@ -65,7 +65,7 @@ describe("a door's null argument is typed, never cast (INC-942, CF-DOOR-ARGS)", 
     () => {
       const files = walkFiles(["src"], { ext: ["ts", "tsx"], skip: /src\/integrations\// });
       const { keys, findings } = doorArgsCensus(files);
-      const allowances = readAllowlist(ALLOWLIST, keys);
+      const allowances = readPlacedAllowlist(ALLOWLIST, keys);
       console.log(`[DARGS-2] casts of null: ${findings.length}; allowlist: ${allowances.size}`);
       expect(report(findings.filter((hit) => !allowances.has(`${hit.file}:${hit.line}`)))).toBe("");
       expect(

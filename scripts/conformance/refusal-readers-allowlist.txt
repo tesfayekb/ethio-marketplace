@@ -1,52 +1,52 @@
 # CF-REFUSAL-1 (scripts/conformance/refusal-readers.test.ts, F1-7d) — a reading of a refusal's text by hand
 # outside splitRefusal (src/lib/refusal.ts, src/lib/refusal-split.ts).
-# Grammar: <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
+# Grammar: <file>#<text> or <file>#<scope>::<text> (placeOf, kit.ts; INC-1293) | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
 # The kit's grammar takes no turn name: a line a later turn removes is until INC-1189 and its reason names
 # that turn (ruling 2 of F1-7d, decision 3).
-src/lib/door-error.ts:22 | REASON_CODE keeps a plain-token detail joined to its code (tooManyPhotos:10, door-error.test.ts) while any other detail is cut (deleteHasDependents:a, b); splitRefusal and CODE_HEAD alone cannot tell the two, so the branch stays until the door codes carry their detail one way (INC-1220's rule) | INC-1189
+src/lib/door-error.ts#const REASON_CODE = /^[a-z][A-Za-z]*(?::[A-Za-z0-9_.-]*)?$/; | REASON_CODE keeps a plain-token detail joined to its code (tooManyPhotos:10, door-error.test.ts) while any other detail is cut (deleteHasDependents:a, b); splitRefusal and CODE_HEAD alone cannot tell the two, so the branch stays until the door codes carry their detail one way (INC-1220's rule) | INC-1189
 # CF-REFUSAL-3 (CFRR-5, DEC-429) — a thrown Error built from a message that is no database call's.
-src/lib/signed-in-route.ts:20 | the session read failed, not a database call: requireSignedIn says so in its own sentence for the route's error view (INC-914); the line moves to the typed failure with the raw rethrows of INC-1256 | INC-1256
+src/lib/signed-in-route.ts#if (read.failed) throw new Error(`the session could not be read: ${errorText(read.error)}`); | the session read failed, not a database call: requireSignedIn says so in its own sentence for the route's error view (INC-914); the line moves to the typed failure with the raw rethrows of INC-1256 | INC-1256
 # CF-REFUSAL-5 (CFRR-9, INC-1256) — `if (error) throw error;` re-throws a failed call's raw error. INC-1266 holds the two
 # first-download readers; INC-1256 holds the rest until the typed-results work (ACT-027) moves them.
-src/features/admin-listings/use-admin-listing.ts:239 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin-listings/use-admin-listing.ts:260 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin-listings/use-admin-listing.ts:288 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin-listings/use-admin-listings.ts:149 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin-screening/use-name-checks.ts:146 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin-screening/use-name-checks.ts:255 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin-screening/use-photo-changes.ts:107 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin-screening/use-photo-reviews.ts:94 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/audit/audit-service.ts:64 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/audit/audit-service.ts:88 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/audit/audit-service.ts:106 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/impersonation/impersonation-service.ts:69 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/impersonation/impersonation-service.ts:77 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/impersonation/impersonation-service.ts:82 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/impersonation/impersonation-service.ts:95 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/impersonation/impersonation-service.ts:118 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/nav-alerts.ts:37 | the read sits on every page's first download (nav-alerts.ts, use-price-unit-labels.ts), where reader-failure.ts does not load; its error is re-thrown as it arrived until the typed failure reaches that closure | INC-1266
-src/features/admin/roles/roles-service.ts:54 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/roles/roles-service.ts:68 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/roles/roles-service.ts:112 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/roles/roles-service.ts:128 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/roles/roles-service.ts:133 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/roles/roles-service.ts:146 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/translations/translator-card.tsx:52 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:89 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:107 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:138 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:146 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:160 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:174 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:182 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:206 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/admin/users/admin-users-service.ts:239 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/legal/legal-reader.ts:107 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/legal/legal-reader.ts:127 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/legal/legal-reader.ts:131 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/legal/legal-reader.ts:154 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/legal/legal-reader.ts:162 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/legal/legal-reader.ts:186 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/permissions/service.ts:17 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
-src/features/posting/use-price-unit-labels.ts:20 | the read sits on every page's first download (nav-alerts.ts, use-price-unit-labels.ts), where reader-failure.ts does not load; its error is re-thrown as it arrived until the typed failure reaches that closure | INC-1266
-src/lib/read-all-pages.ts:27 | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-listings/use-admin-listing.ts#editAdminListing::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-listings/use-admin-listing.ts#undoAdminListingEdit::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-listings/use-admin-listing.ts#setAdminListingTier::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-listings/use-admin-listings.ts#if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-screening/use-name-checks.ts#clearNameCheck::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-screening/use-name-checks.ts#resumeJob::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-screening/use-photo-changes.ts#if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin-screening/use-photo-reviews.ts#if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/audit/audit-service.ts#listAudit::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/audit/audit-service.ts#listAuditFacets::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/audit/audit-service.ts#getAuditStats::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/impersonation/impersonation-service.ts#beginImpersonation::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/impersonation/impersonation-service.ts#endImpersonation::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/impersonation/impersonation-service.ts#getActiveImpersonation::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/impersonation/impersonation-service.ts#getImpersonatedProfile::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/impersonation/impersonation-service.ts#listImpersonatedListings::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/nav-alerts.ts#if (error) throw error; | the read sits on every page's first download (nav-alerts.ts, use-price-unit-labels.ts), where reader-failure.ts does not load; its error is re-thrown as it arrived until the typed failure reaches that closure | INC-1266
+src/features/admin/roles/roles-service.ts#listRolesDetailed::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/roles/roles-service.ts#getRole::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/roles/roles-service.ts#createRole::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/roles/roles-service.ts#updateRole::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/roles/roles-service.ts#deleteRole::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/roles/roles-service.ts#setRolePermission::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/translations/translator-card.tsx#if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#listUsers::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#getUser::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#setAccountStatus::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#listUserActivity::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#listRoles::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#assignRole::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#revokeRole::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#listCountries::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/admin/users/admin-users-service.ts#updateProfile::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/legal/legal-reader.ts#myLegalStatus::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/legal/legal-reader.ts#acceptLegal::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/legal/legal-reader.ts#myLegalHistory::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/legal/legal-reader.ts#answers::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/legal/legal-reader.ts#myLegalVersion::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/legal/legal-reader.ts#myListingCertification::if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/permissions/service.ts#if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256
+src/features/posting/use-price-unit-labels.ts#throw error; | the read sits on every page's first download (nav-alerts.ts, use-price-unit-labels.ts), where reader-failure.ts does not load; its error is re-thrown as it arrived until the typed failure reaches that closure | INC-1266
+src/lib/read-all-pages.ts#if (error) throw error; | a read that re-throws its raw error; the typed-results work (ACT-027) moves it onto readFailed(error) | INC-1256

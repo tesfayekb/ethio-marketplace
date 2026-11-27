@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { DOOR_CODES } from "../../src/lib/door-codes";
 import { PROVIDER_ERRORS } from "../../src/test/provider-errors";
-import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
 import { familyWordKeys, inventedMessages, type RealWords } from "./provider-errors";
 
 /**
@@ -14,7 +14,7 @@ import { familyWordKeys, inventedMessages, type RealWords } from "./provider-err
  * text quoted with its SQL file:line (scripts/conformance/provider-errors.ts says the rule). The
  * three findings of the census that wrote it (ACS-U2, the translator card's test, the ad share's
  * test) moved onto real messages; every other line below is an outage text no reader reads, named.
- * Allowlist grammar `file:line | reason | until` (provider-errors-allowlist.txt); stale or expired
+ * Allowlist grammar `<file>#<text> or <file>#<scope>::<text> | reason | until` (placeOf, kit.ts; INC-1293) (provider-errors-allowlist.txt); stale or expired
  * lines fail.
  */
 
@@ -47,7 +47,7 @@ describe("CF-PROVERR-1 — a mocked error carries a real message (INC-1278 b)", 
       })
         .filter((file) => /\.test\.tsx?$/.test(file) && !file.endsWith("provider-errors.test.ts"))
         .flatMap((file) => inventedMessages(rel(file), readFileSync(file, "utf8"), real));
-      const allowed = readAllowlist(
+      const allowed = readPlacedAllowlist(
         ALLOWLIST,
         findings.map((finding) => `${finding.file}:${finding.line}`),
       );

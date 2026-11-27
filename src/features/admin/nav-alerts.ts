@@ -1,6 +1,7 @@
 import type { NavAlertId } from "@/config/panels.types";
 import { useQuery } from "@tanstack/react-query";
 import { readSessionLevel } from "@/features/auth/mfa/session-level";
+import { permissionOf } from "@/features/permissions/use-may-call";
 import { rpc } from "@/lib/supabase-door";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 
@@ -12,9 +13,12 @@ export const LEGAL_REVIEW_OVERDUE_KEY = [
   "reviewOverdue",
 ] as const;
 
+/** The permission the overdue-review door asks, the manifest's (INC-1281, DEC-484). */
+const REVIEW_ASKS = permissionOf({ door: "legal_review_overdue" });
+
 /**
  * The admin menu's alerts: each is one server boolean (never a count); the server decides.
- * `legalReview` is read only for a caller holding legal:view AND only when the held session is aal2
+ * `legalReview` is read only for a caller holding the permission its door asks AND only when the held session is aal2
  * (DEC-461): at aal1 the question is not asked (`null`, never a "no alert" that outlives the factor —
  * its staleTime is 0, so the permission re-read after the factor asks it afresh). A level that could not be
  * read is unknown: the query fails and is retried.
@@ -25,7 +29,7 @@ export function useNavAlerts(
 ): ReadonlySet<NavAlertId> {
   const legal = useQuery({
     queryKey: LEGAL_REVIEW_OVERDUE_KEY,
-    enabled: enabled && permissions.includes("legal:view"),
+    enabled: enabled && (REVIEW_ASKS === null || permissions.includes(REVIEW_ASKS)),
     staleTime: (query) => (query.state.data === null ? 0 : 5 * 60 * 1000),
     queryFn: async () => {
       // INC-1291 — the level from the session's token (no database client in the menu's download);

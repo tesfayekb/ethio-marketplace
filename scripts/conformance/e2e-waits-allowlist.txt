@@ -1,1 +1,1 @@
-# CF-E2E-WAIT-1 / CF-E2E-PLACE-1 exceptions: file:line | reason | until
+# CF-E2E-WAIT-1 / CF-E2E-PLACE-1 exceptions: <file>#<text> or <file>#<scope>::<text> (placeOf, kit.ts; INC-1293) | reason | until

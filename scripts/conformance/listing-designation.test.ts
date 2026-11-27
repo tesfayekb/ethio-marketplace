@@ -4,7 +4,7 @@ import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
 import {
   ADMITTED_WRITERS,
   admittedWriters,
@@ -19,12 +19,15 @@ import { lastDeclarations } from "./migration-reader";
  * public.listings (tier_until, tier_source, reach, reach_until, reach_source)
  * are written only by the level and reach doors, admin_set_listing_tier,
  * transition_listing_core and designation_sweep_core; src/ never writes them through
- * the data API. Allowances (`<fn>:<file>:<line>` or `<file>:<line>` | reason |
+ * the data API. Allowances (`<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293) | reason |
  * until) in listing-designation-allowlist.txt; a stale or expired line fails.
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(ROOT, "scripts", "conformance", "listing-designation-allowlist.txt");
+
+/** The finding's place, as an allowlist key resolves it (readPlacedAllowlist, INC-1293). */
+const placeKey = (finding: { file: string; line: number }) => `${finding.file}:${finding.line}`;
 
 const temps: string[] = [];
 afterEach(() => {
@@ -70,14 +73,14 @@ describe("an ad's designation is written by its own doors only (CF-TIER-5)", () 
           (file) => !file.includes(`${join("src", "integrations")}`),
         ),
       ).map((site) => ({ ...site, file: site.file.slice(ROOT.length + 1) }));
-      const keys = [...sql.map(keyOf), ...src.map((site) => `${site.file}:${site.line}`)];
-      const allowed = readAllowlist(ALLOWLIST, keys);
+      const keys = [...sql, ...src].map(placeKey);
+      const allowed = readPlacedAllowlist(ALLOWLIST, keys);
       expect(
         sql
-          .filter((finding) => !allowed.has(keyOf(finding)))
+          .filter((finding) => !allowed.has(placeKey(finding)))
           .map((finding) => `${keyOf(finding)} writes ${finding.columns.join(", ")}`),
       ).toEqual([]);
-      expect(report(src.filter((site) => !allowed.has(`${site.file}:${site.line}`)))).toBe("");
+      expect(report(src.filter((site) => !allowed.has(placeKey(site))))).toBe("");
       // The census is not blind: each admitted body is read writing its columns.
       expect(admittedWriters(last)).toEqual([...ADMITTED_WRITERS]);
     },

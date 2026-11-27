@@ -22,7 +22,7 @@ import { lastDeclarations, type LastDeclaration } from "./migration-reader";
  * A site a function returns (`const report = (…) => x.rpc("report_listing", …)`)
  * is judged at that function's callers in the same file. A door name held in a
  * list (`for (const fn of [...]) x.rpc(fn)`) is not read here; it stays a
- * reviewer's law. Allowances `<file>:<line> | reason | until` in
+ * reviewer's law. Allowances `<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293) | reason | until in
  * door-answers-allowlist.txt.
  */
 

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { describe, expect, it } from "vitest";
-import { readAllowlist, report, walkFiles } from "./kit";
+import { readPlacedAllowlist, report, walkFiles } from "./kit";
 
 /**
  * Records turn R8 / R1b, Part A (G0.4 — a class fix carries its guard).
@@ -15,7 +15,7 @@ import { readAllowlist, report, walkFiles } from "./kit";
  * selects a `post-where-region` picker by a loop variable) or counts the city picker's options
  * with a bare `count()` (which never waits) bypasses it.
  *
- * A recorded exception is a line in e2e-waits-allowlist.txt: `file:line | reason | until`.
+ * A recorded exception is a line in e2e-waits-allowlist.txt: `<file>#<text>` or `<file>#<scope>::<text>` (placeOf, kit.ts; INC-1293) | reason | until.
  */
 type Finding = { file: string; line: number; what: string };
 
@@ -92,7 +92,7 @@ describe("CF-E2E-WAIT-1 and CF-E2E-PLACE-1", () => {
       .map((name) => ({ name, text: readFileSync(join(root, name), "utf8") }));
     const all = waitFindings(files);
     const keys = all.map((f) => `${f.file}:${f.line}`);
-    const allowed = readAllowlist(ALLOWLIST, keys);
+    const allowed = readPlacedAllowlist(ALLOWLIST, keys);
     const found = all.filter((f) => !allowed.has(`${f.file}:${f.line}`));
     expect(found, report(found)).toEqual([]);
   });

@@ -245,7 +245,7 @@ export const PLANTED_PUBLIC_ROLE_FILES = [
 ];
 /** The line of the planted storage rule: the one standing role rule of PLANTED_STORAGE_FILES, kept. */
 export const PLANTED_ROLE_LINES =
-  "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts:1 | planted";
+  "storage.objects e2e_planted_obj | INSERT to authenticated | reader src/planted.ts#planted read | planted";
 /** The planted evidence of a role-rules judgement: the files read, the file's text. */
 export function plantedStaffRules(
   files: Array<{ file: string; sql: string }>,
@@ -538,7 +538,7 @@ export function plantedCases(): Array<{
       manifest: "",
       staffRules: plantedStaffRules(
         PLANTED_STORAGE_FILES,
-        `${PLANTED_ROLE_LINES}\nstorage.objects e2e_planted_gone | SELECT to authenticated | reader src/planted.ts:2 | planted`,
+        `${PLANTED_ROLE_LINES}\nstorage.objects e2e_planted_gone | SELECT to authenticated | reader src/planted.ts#planted gone | planted`,
       ),
     },
   ];
