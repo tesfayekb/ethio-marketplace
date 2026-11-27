@@ -55,11 +55,17 @@ hour per hashed address, `RATE_LIMIT_ERROR_REPORT_PER_HOUR`) spent before the bo
 the strict shape. A refused report writes nothing. The cleaning and the write
 (`src/server/error-reports.ts`) load on demand. A failure of this route is never itself reported.
 
-The browser's sender (`src/lib/error-report-send.ts`), the cleaner and the shape download only
-when a failure happens (`loadOnce`); nothing joins any page's first download. The sender sends at
-most five reports per page visit (`REPORTS_PER_VISIT`) and the same failure once, sends nothing
-while the device is offline, and never throws: a failed download or send is logged once as
-`[error-report] send failed` and dropped.
+The browser's sender (`src/lib/error-report-send.ts`) and the cleaner download only when a failure
+happens (`loadOnce`); nothing joins any page's first download. The sender carries no zod: its
+payload is typed by the shape (a type-only import) and kept inside it by the cleaner and its own
+bounds, and the server's strict shape judges it. The sender sends at most five reports per page
+visit (`REPORTS_PER_VISIT`) and the same failure once, sends nothing while the device is offline,
+and never throws: a failed download or send is logged once as `[error-report] send failed` (a
+report the route refuses as a warning, since it is no failure of the page) and dropped.
+
+The failure crawl (`e2e/helpers/failure-crawl.ts`) answers its pages' reports itself with the
+route's success answer, so the failures it forces spend no dial and write no row; its read
+recorder leaves the route out. The route itself is proven by `e2e/error-reports.spec.ts`.
 
 ## The table and its doors
 

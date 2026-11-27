@@ -6,6 +6,9 @@
  * `public.error_reports` (the table's CHECKs refuse anything longer or shaped otherwise).
  */
 
+/** The report route's address; here, not beside its shape, so the browser's sender carries no zod. */
+export const ERROR_REPORTS_PATH = "/api/error-reports";
+
 /** The kinds a report can have; the browser sends only its own three (the report's shape). */
 export const ERROR_KINDS = ["notice", "crash", "unhandled", "route", "upstream", "render"] as const;
 export type ErrorKind = (typeof ERROR_KINDS)[number];

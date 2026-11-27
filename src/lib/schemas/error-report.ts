@@ -2,8 +2,9 @@ import { z } from "zod";
 
 import { BROWSER_KINDS, MESSAGE_MAX, PATH_MAX, PLACE_MAX } from "@/lib/error-clean";
 
-/** DEC-474 Part F — the report route's address and its byte ceiling (read before the body is). */
-export const ERROR_REPORTS_PATH = "/api/error-reports";
+export { ERROR_REPORTS_PATH } from "@/lib/error-clean";
+
+/** DEC-474 Part F — the report route's byte ceiling (read before the body is). */
 export const ERROR_REPORT_MAX_BYTES = 4096;
 
 export const DEVICES = ["phone", "tablet", "desktop"] as const;

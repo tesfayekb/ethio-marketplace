@@ -1,19 +1,22 @@
-import { cleanCode, cleanMessage, cleanPath, cleanPlace } from "@/lib/error-clean";
+import {
+  cleanCode,
+  cleanMessage,
+  cleanPath,
+  cleanPlace,
+  ERROR_REPORTS_PATH,
+} from "@/lib/error-clean";
 import type { BrowserFailure } from "@/lib/error-report";
 import { errorStack, errorText } from "@/lib/error-text";
 import { callRoute } from "@/lib/route-client";
-import {
-  ERROR_REPORTS_PATH,
-  ErrorReportBody,
-  type Device,
-  type ErrorReport,
-} from "@/lib/schemas/error-report";
+import type { Device, ErrorReport } from "@/lib/schemas/error-report";
 
 /**
  * DEC-474 Part F — THE BROWSER'S SENDER, downloaded only when a failure happens (src/lib/error-report.ts).
  * It cleans the report before it leaves (the server cleans it again), sends at most
  * `REPORTS_PER_VISIT` reports per page visit and the same failure once, sends nothing while the
- * device is offline, and never throws: a refused or failed send is logged once and dropped.
+ * device is offline, and never throws: a refused or failed send is logged once and dropped. The
+ * payload is typed by the route's shape but never parsed here (the server's `.strict()` shape is
+ * the authority): the cleaner and the bounds below keep every field inside it.
  */
 export const REPORTS_PER_VISIT = 5;
 
@@ -100,22 +103,17 @@ export async function sendReport(failure: BrowserFailure): Promise<boolean> {
     if (seenThisVisit.has(same) || sentThisVisit >= REPORTS_PER_VISIT) return false;
     seenThisVisit.add(same);
     sentThisVisit += 1;
-    const body = ErrorReportBody.safeParse(report);
-    if (!body.success) {
-      console.error("[error-report] send failed", "the report does not fit its shape");
-      return false;
-    }
     const answer = await callRoute(ERROR_REPORTS_PATH, {
       method: "POST",
-      json: body.data,
+      json: report,
       auth: "optional",
       keepalive: true,
     });
     if (answer.kind === "answered" && answer.ok) return true;
-    console.error(
-      "[error-report] send failed",
-      answer.kind === "answered" ? `${answer.status} ${answer.error ?? ""}`.trim() : answer.kind,
-    );
+    // A report the route refuses (its address dial, its shape) is no failure of the page.
+    if (answer.kind === "answered")
+      console.warn("[error-report] send failed", `${answer.status} ${answer.error ?? ""}`.trim());
+    else console.error("[error-report] send failed", answer.kind);
     return false;
   } catch (error) {
     console.error("[error-report] send failed", errorText(error));

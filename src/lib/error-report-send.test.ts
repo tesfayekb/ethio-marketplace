@@ -118,12 +118,16 @@ describe("the browser's report sender (DEC-474 Part F)", () => {
       language: "am",
       appVersion: null,
     });
-    expect(ErrorReportBody.safeParse(report).success).toBe(true);
     const odd = buildReport(
       { kind: "crash", code: "not a code!", error: "boom" },
       { agent: "", pathname: "/x", origin: "http://localhost:3000", language: "" },
     );
     expect(odd).toMatchObject({ code: null, place: null, language: null, message: "boom" });
+    // The sender sends the report unparsed: it holds the route's keys, no more, and fits them.
+    for (const built of [report, odd]) {
+      expect(Object.keys(built).sort()).toEqual(Object.keys(ErrorReportBody.shape).sort());
+      expect(ErrorReportBody.safeParse(built).success).toBe(true);
+    }
   });
 
   it("ERSN-3 a failure is sent once, as the optional caller, by the report route, with the page's path bare", async () => {
@@ -133,6 +137,8 @@ describe("the browser's report sender (DEC-474 Part F)", () => {
     expect(path).toBe("/api/error-reports");
     expect(init).toMatchObject({ method: "POST", auth: "optional", keepalive: true });
     expect(init.json).toMatchObject({ kind: "crash", path: "/l/abc", language: "en" });
+    expect(Object.keys(init.json).sort()).toEqual(Object.keys(ErrorReportBody.shape).sort());
+    expect(ErrorReportBody.safeParse(init.json).success).toBe(true);
     expect(JSON.stringify(init.json)).not.toContain("example.com");
   });
 
@@ -154,7 +160,8 @@ describe("the browser's report sender (DEC-474 Part F)", () => {
     expect(mocks.callRoute).not.toHaveBeenCalled();
   });
 
-  it("ERSN-6 a refused, unreachable or throwing send is logged once as [error-report] send failed, never thrown, never retried", async () => {
+  it("ERSN-6 a refused send is warned, an unreachable or throwing one logged, once each as [error-report] send failed, never thrown, never retried", async () => {
+    const warned = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
     mocks.callRoute.mockResolvedValueOnce({
       kind: "answered",
@@ -169,8 +176,10 @@ describe("the browser's report sender (DEC-474 Part F)", () => {
         false,
       );
     expect(mocks.callRoute).toHaveBeenCalledTimes(3);
-    expect(logged.mock.calls.map((call) => call.join(" "))).toEqual([
+    expect(warned.mock.calls.map((call) => call.join(" "))).toEqual([
       "[error-report] send failed 429 rateLimited",
+    ]);
+    expect(logged.mock.calls.map((call) => call.join(" "))).toEqual([
       "[error-report] send failed unreachable",
       "[error-report] send failed Failed to fetch",
     ]);
