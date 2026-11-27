@@ -20,6 +20,13 @@ from>`: the tree laws read a snapshot of that commit (`git archive`, removed aft
 git read runs in the repository, the allowlist and this template are read from `--root`, and the first
 line names the commit. A finding that only a law THIS turn adds produces against this brief is expected output: name it in §11 and allowlist it with that reason; a brief is never edited after STEP 0. The laws a GO is written to:
 
+- Every indented bullet of the premises item carries `SOURCE:` (the repository record read) or `OPEN:`
+  (the question the census answers); an item with no bullet carries one of them, or `not applicable`
+  (CF-BRIEF-25, S822).
+- Every INC on a `COVERED HERE` line of a THE SYSTEM block, or on its indented continuation bullets,
+  appears in the premises item on a bullet that carries `RED-FIRST:` (the test shown failing against
+  the base) or `CONTROL:` (the positive control of a test that cannot be shown red) (CF-BRIEF-26,
+  S817).
 - A cited path in backticks exists, or its sentence says the turn makes it ("new", "created here",
   "built as", "built here", "(new)").
 - A citation `path :N` with a backticked name beside it holds that name on line N (two lines either
@@ -84,6 +91,8 @@ STEP 1 — THE CENSUS (STOP at its end when the GO says PLAN FIRST). Answer ever
 - premises — every premise of this GO the census finds wrong; outside systems — a runner image, a platform event, a provider API, an artifact's contents: cite the repository record read (a ci-evidence log at its commit, the vendor's source file, the workflow's upload step) or write `OPEN: <the question>` for the census; never from memory; a setting the task changes is named with the decision that set it. A mechanism that reads through a database door cites the door's own matching and ordering line (file:line). A GO that fixes an INC names every allowlist line and test keyed to that INC.
 <!-- CENSUS-ITEM: callee-codes -->
 - callee-codes — every refusal a function a door calls can answer, and what the door does with each; not applicable when no door changes
+<!-- CENSUS-ITEM: whole-app-calls -->
+- whole-app-calls — every caller of a shared hook, component or helper the turn gives a side effect, and what each passes; and every whole-app test that enumerates calls (the failure crawl's reads and forced failures, the per-address dials, the accessibility and server-error censuses); each marked affected | not affected, with why (S820, S821).
 <!-- CENSUS-ITEM: findings -->
 - findings — what the census finds beyond the task, file:line.
 <!-- CENSUS-ITEM: gate-reach -->

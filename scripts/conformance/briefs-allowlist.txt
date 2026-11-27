@@ -4,3 +4,5 @@
 # "<file>:<line> names <SETTING>; its newest decision is DEC-<n>", "<file>:<line> <id> (RECORDS) is
 # named by <path>, outside SCOPE" or "<file>:<line> cites <list>; no test it cites reads it by name…" | reason | until.
 # A line no finding needs is stale and fails. Empty at birth.
+docs/governance/briefs/cursor-bundle-8c-1.md:31 cites scripts/conformance/user-facing-manifest.txt; no test it cites reads it by name | the list's reader scripts/conformance/user-facing.test.ts is built in Part B of this turn; the line leaves with it | INC-1278
+docs/governance/briefs/cursor-bundle-8c-1.md:31 cites scripts/conformance/user-facing-allowlist.txt; no test it cites reads it by name | the list's reader scripts/conformance/user-facing.test.ts is built in Part B of this turn; the line leaves with it | INC-1278

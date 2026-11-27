@@ -305,6 +305,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).not.toContain(
       "lovable-branch-guard.sh",
     );
+    // CF-LVB-23 and 24 (cursor bundle 8c-1, INC-1332): the ceiling exception's empty line beside a new
+    // route line, judged on pull request #119's captured patch and on the refused forms.
+    const lovableGuardTests = readFileSync(
+      join(ROOT, "scripts/ci/lovable-branch-guard.test.ts"),
+      "utf8",
+    );
+    expect(lovableGuardTests).toContain("CF-LVB-23");
+    expect(lovableGuardTests).toContain("CF-LVB-24");
     // ACT-023: the min-width guard (run by shell-guards.test.ts GW-2, GW-4) reads each minWidth
     // through scripts/datatable-minwidth.ts.
     expect(readFileSync(join(ROOT, "scripts/check-datatable-minwidth.sh"), "utf8")).toContain(
@@ -475,6 +483,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(briefLaws).toContain("CF-BRIEF-22 (BRIEF-22)");
     expect(briefLaws).toContain("CF-BRIEF-23 (BRIEF-23)");
     expect(briefLaws).toContain("CF-BRIEF-24 (BRIEF-24)");
+    // CF-BRIEF-25 and 26 (cursor bundle 8c-1: S822, S817) and the census item `whole-app-calls`
+    // (S820, S821, read by CF-BRIEF-15): each planted in briefs.test.ts and run by check-go.ts.
+    expect(briefLaws).toContain("CF-BRIEF-25 (S822)");
+    expect(briefLaws).toContain("CF-BRIEF-26 (S817)");
+    expect(briefLaws).toContain("`whole-app-calls`");
     expect(briefLaws).toContain('"scripts/brief/check-go.ts"');
     expect(briefLaws).toContain('from "../brief/go-laws"');
     // e2e-helpers.test.ts CF-HELPERS-1…3 (housekeeping turn 2, INC-1065), CF-HELPERS-5…7

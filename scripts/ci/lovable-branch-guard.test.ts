@@ -1318,4 +1318,87 @@ describe("the records exception (DEC-432)", () => {
     });
     expect(screen.code, screen.out).toBe(0);
   }, 120_000);
+
+  it("CF-LVB-23 pull request #119's patch of the ceilings file — two new route lines, an empty line beside each — passes (INC-1332)", () => {
+    // Captured, not written: `git diff --unified=0` of the pull request's base (32f68bb96) and head
+    // (ba6c227b5) for scripts/route-budgets.mjs, the hunks only, as the script's own patch_from_git
+    // reads them. The files API answered `patch: null` for this file, so run 46045246553's guard read
+    // the same hunks from git and refused the two added empty lines.
+    const patch = readFileSync(
+      "scripts/fixtures/lovable-branch-guard-pr-119-route-budgets.patch",
+      "utf8",
+    );
+    const added = patch.split("\n").filter((line) => line === "+");
+    expect(added, "the capture holds the two added empty lines").toHaveLength(2);
+    const result = run([[modified("scripts/route-budgets.mjs", patch)]]);
+    expect(result.code, result.out).toBe(0);
+    expect(result.out).toContain("1 file(s), none outside what a Lovable branch may change");
+  });
+
+  it("CF-LVB-24 an empty line passes only beside a new or removed route line, one for each: a lone empty line, two for one route and a removed empty line with no removed route refuse (INC-1332)", () => {
+    const path = "scripts/route-budgets.mjs";
+    const route = (key: string, ceiling = 268) =>
+      `  "${key}": { ceiling: ${ceiling}, public: false }, // DEC-296 (fixture turn): local 266.6 KiB; ${ceiling}.`;
+    const refusal = `${path} — a changed line that is not a ceiling line; DEC-390 allows ceiling lines only`;
+    const verdict = (patch: string) => run([[modified(path, patch)]]);
+    const refused = (what: string, patch: string) => {
+      const result = verdict(patch);
+      expect(result.code, `${what}\n${result.out}`).toBe(1);
+      expect(result.out, what).toContain(refusal);
+      expect(result.out, what).toContain("INC-1332");
+    };
+
+    // The new route and its one empty line, in either order.
+    expect(verdict(`@@ -9 +9,2 @@\n+${route("/fixture-new")}\n+`).code).toBe(0);
+    expect(verdict(`@@ -9 +9,2 @@\n+\n+${route("/fixture-new")}`).code).toBe(0);
+    // Two new routes with two empty lines; a changed line (removed and added, one key) beside a new route.
+    expect(
+      verdict(`@@ -9 +9,4 @@\n+${route("/fixture-a")}\n+\n+${route("/fixture-b")}\n+`).code,
+    ).toBe(0);
+    expect(
+      verdict(
+        `@@ -9 +9,3 @@\n-${route("/fixture-page", 270)}\n+${route("/fixture-page", 271)}\n+${route("/fixture-new")}\n+`,
+      ).code,
+    ).toBe(0);
+    // A removed route with its removed empty line.
+    expect(verdict(`@@ -9,2 +9 @@\n-${route("/fixture-gone")}\n-`).code).toBe(0);
+
+    refused("a lone added empty line", "@@ -9 +9,2 @@\n+\n ".concat(route("/fixture-page")));
+    refused(
+      "an added empty line beside changed lines only",
+      `@@ -9 +9,2 @@\n-${route("/fixture-page", 270)}\n+${route("/fixture-page", 271)}\n+`,
+    );
+    refused("two empty lines for one new route", `@@ -9 +9,3 @@\n+${route("/fixture-new")}\n+\n+`);
+    refused("a lone removed empty line", `@@ -9,2 +9 @@\n-\n ${route("/fixture-page")}`);
+    refused(
+      "two removed empty lines for one removed route",
+      `@@ -9,3 +9 @@\n-${route("/fixture-gone")}\n-\n-`,
+    );
+    refused(
+      "a removed empty line beside a changed line",
+      `@@ -9,2 +9 @@\n-${route("/fixture-page", 270)}\n-\n+${route("/fixture-page", 271)}`,
+    );
+    // The new route's empty line does not excuse another kind of line.
+    const other = verdict(
+      `@@ -9 +9,3 @@\n+${route("/fixture-new")}\n+\n+export const LOOSE = true;`,
+    );
+    expect(other.code).toBe(1);
+    expect(other.out).toContain(refusal);
+    // A key is data, never a pattern: a key with pattern characters counts as itself.
+    expect(verdict(`@@ -9 +9,2 @@\n+${route("/fixture-$[a]*")}\n+`).code).toBe(0);
+    refused(
+      "a pattern-shaped key does not match a different removed key",
+      `@@ -9 +9,3 @@\n-${route("/fixture-.*")}\n+${route("/fixture-ab")}\n+\n+`,
+    );
+    // The other exception files keep their reading: an empty added line in the deletions ledger
+    // is an added line, as before, and an allowlist still takes removed lines only.
+    expect(
+      run([[modified("docs/tracking/intentional-deletions.txt", "@@ -9 +9,2 @@\n+src/a.tsx\n+")]])
+        .code,
+    ).toBe(0);
+    const allowlistEmpty = run([
+      [modified("scripts/conformance/forms-allowlist.txt", "@@ -9,2 +9 @@\n-\n+")],
+    ]);
+    expect(allowlistEmpty.code, allowlistEmpty.out).toBe(1);
+  });
 });
