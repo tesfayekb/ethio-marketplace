@@ -273,6 +273,7 @@ export const enMember = {
   "admin.listings.history.field.reach": "Reach",
   "admin.listings.edit.title": "Edit this listing",
   "admin.listings.edit.nothing": "Nothing has changed.",
+  "admin.listings.edit.error.categoryFixed": "A posted listing's category cannot be changed.",
   "admin.listings.edit.error.removed": "A removed listing is not edited. Restore it first.",
   "admin.listings.reason.undo": "Undo",
   "admin.listings.error.noFreeSlot":

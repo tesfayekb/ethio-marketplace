@@ -61,6 +61,7 @@ import { languageRowName } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 import { ownValue } from "@/lib/own-key";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -134,14 +135,15 @@ function Fact({ label, value, testid }: { label: string; value: ReactNode; testi
 export function AdminListingPage({ listingId }: { listingId: string }) {
   const { t, has, language, entities } = useI18n();
   const { permissions } = useAdminShell();
-  const mayEnforce = permissions.includes("listings:enforce");
-  const mayViewAs = permissions.includes("impersonation:use");
+  const { mayCall } = useMayCall();
+  const mayEnforce = mayCall({ door: "admin_edit_listing" });
+  const mayViewAs = mayCall({ door: "begin_impersonation" });
   const mayOpenSeller = permissions.includes("profiles:view");
   const { user } = useShell();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const query = useAdminListing(listingId);
-  const mayReview = permissions.includes("listings:review");
+  const mayReview = mayCall({ door: "admin_listing_reports" });
   const reports = useListingReports(listingId, mayReview);
   const { tree } = useCategoryTree();
 
@@ -235,7 +237,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   // Turn T1 (D242, D276) — Set tier: the door's own rules, read before it is asked.
   const maySetTier = mayEnforce && !own && mayTier(listing.status);
   // Bundle 16 turn 4b (D178) — a reviewer shows a photo kept hidden for review (never on their own ad).
-  const mayAllowPhotos = permissions.includes("listings:review") && !own;
+  const mayAllowPhotos = mayCall({ door: "admin_allow_listing_photo" }) && !own;
   const sellerName = seller.businessName ?? seller.alias ?? "—";
   const price = (side: Record<string, unknown> = {}) =>
     priceLine(

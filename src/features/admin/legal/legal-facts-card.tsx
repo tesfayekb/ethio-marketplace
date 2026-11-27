@@ -6,16 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { FACT_KEYS, legalRefusalKey, type FactKey, type LegalSettings } from "./legal-service";
 import { FACT_BOUNDS, OPTIONAL_FACTS, validateLegalFacts } from "./facts-validation";
 import { useLegalWrites } from "./use-legal";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: GuardFn }) {
   const { t } = useI18n();
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
   const { facts: save } = useLegalWrites();
   const [editing, setEditing] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -166,7 +166,7 @@ export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: 
             {t("common.cancel")}
           </Button>
         </div>
-      ) : permissions.includes("legal:edit") ? (
+      ) : mayCall({ door: "admin_set_legal_settings" }) ? (
         <Button
           variant="outline"
           data-testid="legal-facts-edit"

@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { toRoster } from "@/features/admin-categories/categories-service";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -54,6 +53,7 @@ import {
   useAttributeCoverage,
   useEffectiveCategoryLinks,
 } from "./use-attributes";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * C3c PART B / C3-UX-1 — THE ATTRIBUTE LIBRARY.
@@ -94,7 +94,6 @@ export function AdminAttributesPage() {
   // C3-UX-2 — every attribute label on this page resolves through the one
   // entity-translation resolver; `nameEn` is the fallback, never the read.
   const attributeLabel = useAttributeLabel();
-  const { permissions } = useAdminShell();
   const { data, isLoading, error, refetch } = useAdminAttributes();
   const roster = useAdminCategories();
   const categoryData = roster.data;
@@ -120,10 +119,14 @@ export function AdminAttributesPage() {
     | { kind: "import" }
   >({ kind: "none" });
 
-  const mayUpdate = permissions.includes("categories:update");
-  const mayRestructure = permissions.includes("categories:restructure");
+  const { mayCall } = useMayCall();
+  const mayUpdate = mayCall({ door: "admin_upsert_attribute" });
+  const mayLink = mayCall({ door: "admin_link_attribute" });
+  const mayUnlink = mayCall({ door: "admin_unlink_attribute" });
+  const mayRestructure = mayCall({ door: "admin_delete_attribute" });
+  const mayMerge = mayCall({ door: "admin_merge_attributes" });
   /** IE-2 — its own permission; the server re-checks it on every door (F3). */
-  const mayImport = permissions.includes("categories:import");
+  const mayImport = mayCall({ route: "/api/admin/attributes/import", method: "POST" });
 
   /** The picker mirrors the roster order/depth (B1: one derivation, `toRoster`). */
   const categories = useMemo(() => toRoster(categoryData ?? []), [categoryData]);
@@ -458,7 +461,7 @@ export function AdminAttributesPage() {
       );
     }
     const more: RowMoreAction[] = [];
-    if (mayUpdate) {
+    if (mayLink) {
       more.push({
         key: "assign",
         label: t("admin.attributes.action.assign"),
@@ -466,7 +469,7 @@ export function AdminAttributesPage() {
         onSelect: () => setDialog({ kind: "assign", id: row.id }),
       });
     }
-    if (mayRestructure) {
+    if (mayUnlink) {
       // A link removed is a destructive act: drawn red, as its confirmation is.
       more.push({
         key: "remove",
@@ -509,7 +512,7 @@ export function AdminAttributesPage() {
       {(guard) => (
         <div data-testid="admin-section-attributes" className="min-w-0 space-y-4">
           <TableActions testid="attribute-header" title={t("admin.section.attributes.title")}>
-            {mayRestructure ? (
+            {mayMerge ? (
               <TableActionButton
                 data-testid="attribute-merge-open"
                 onClick={() => setDialog({ kind: "merge" })}

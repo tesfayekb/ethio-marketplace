@@ -18,7 +18,6 @@ import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
@@ -30,6 +29,7 @@ import { ImportCountriesDialog } from "./country-import-dialog";
 import { CountryVerbBar } from "./country-verb-bar";
 import { CountryActiveDialog, CountryRailOrderDialog } from "./country-verb-dialogs";
 import { ADMIN_COUNTRIES_KEY, useAdminCountries } from "./use-countries";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * LOCATIONS ERA L2b-C1 — THE COUNTRIES CONSOLE.
@@ -68,14 +68,15 @@ export function AdminCountriesPage() {
    * records: their openers wait while it re-reads or a write to it is in flight.
    */
   const settling = useSettling(ADMIN_COUNTRIES_KEY);
-  const { permissions } = useAdminShell();
 
   // The GATES MIRROR THE DOORS (E7): `admin_upsert_country` and
   // `admin_set_country_root_order` demand `countries:update`, while opening or
   // closing a market demands `countries:activate`. The server re-checks both.
-  const mayUpdate = permissions.includes("countries:update");
-  const mayActivate = permissions.includes("countries:activate");
-  const mayImport = permissions.includes("locations:import");
+  const { mayCall } = useMayCall();
+  const mayUpdate = mayCall({ door: "admin_upsert_country" });
+  const mayActivate = mayCall({ door: "admin_set_country_active" });
+  const mayImport = mayCall({ route: "/api/admin/locations/import", method: "POST" });
+  const mayExport = mayCall({ route: "/api/admin/locations/export", method: "GET" });
 
   const query = useAdminCountries();
   const [search, setSearch] = useState("");
@@ -296,17 +297,19 @@ export function AdminCountriesPage() {
               >
                 {`${t("admin.countries.transfer.scope")} ·`}
               </span>
-              <TableActionButton
-                data-testid="country-export"
-                disabled={exporting}
-                onClick={() => void runExport()}
-                icon={<Download />}
-                label={
-                  exporting
-                    ? t("admin.locations.export.busy")
-                    : t("admin.locations.export.countries")
-                }
-              />
+              {mayExport ? (
+                <TableActionButton
+                  data-testid="country-export"
+                  disabled={exporting}
+                  onClick={() => void runExport()}
+                  icon={<Download />}
+                  label={
+                    exporting
+                      ? t("admin.locations.export.busy")
+                      : t("admin.locations.export.countries")
+                  }
+                />
+              ) : null}
               {mayImport ? (
                 <TableActionButton
                   data-testid="country-import"

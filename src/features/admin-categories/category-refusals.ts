@@ -26,6 +26,10 @@ export const CATEGORY_REFUSALS = {
     unknownCategory: "admin.categories.error.unknownCategory",
     unknownPointer: "admin.categories.error.unknownPointer",
     parentInactive: "admin.categories.error.parentInactive",
+    // INC-1307 — the owed words (badValue reaches this console only as badValue:visible_until).
+    slugTaken: "admin.categories.error.slugTaken",
+    reassignTargetInvalid: "admin.categories.error.reassignTargetInvalid",
+    badValue: "admin.categories.error.windowOrder",
     forbidden: "admin.ai.error.denied",
     // DEC-339 — the console's own Fields: the gate's blank and the parser's unreadable number.
     required: "post.refusal.required",
@@ -63,7 +67,6 @@ export const CATEGORY_REFUSALS = {
     alreadyActive: "Reactivate is drawn on a retired row alone: only someone else's reactivation first meets it";
     importRunning: "another import of this console is still running: the general line asks to try again";
   };
-  owed: { slugTaken: "INC-1307"; reassignTargetInvalid: "INC-1307"; badValue: "INC-1307" };
 }>;
 
 /**

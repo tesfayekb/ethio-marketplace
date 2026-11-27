@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -37,6 +36,7 @@ import {
 } from "./use-admin-users";
 import { dateFormatter } from "@/lib/format";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * The per-user detail (Phase U1). Buttons are hidden without the matching
@@ -45,12 +45,12 @@ import { FailureNotice } from "@/components/shell/failure-notice";
  */
 export function AdminUserDetailPage({ userId }: { userId: string }) {
   const { t, language } = useI18n();
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
   const { user: authUser } = useShell();
   /** U1d (INC-077): never offer status controls on your OWN record. */
   const isOwnAccount = authUser?.id === userId;
-  const mayUpdate = permissions.includes("profiles:update");
-  const mayAssign = permissions.includes("roles:assign");
+  const mayUpdate = mayCall({ door: "admin_update_profile" });
+  const mayAssign = mayCall({ door: "assign_role" });
 
   const { data: user, isLoading, error } = useAdminUser(userId);
   const activity = useAdminUserActivity(userId);
@@ -178,7 +178,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
 
           {/* U3 / DEC-016 — VIEW AS. Super-admin only, step-up gated, never on
               your own record. The RPC re-checks all three (law F3). */}
-          {!isOwnAccount && permissions.includes("impersonation:use") ? (
+          {!isOwnAccount && mayCall({ door: "begin_impersonation" }) ? (
             <ImpersonationStarter userId={userId} guard={guard} />
           ) : null}
 
@@ -389,7 +389,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
 
           {/* U4b — translator SCOPE (which languages), manage-gated; the RPC
               re-checks translations:manage server-side (law F3). */}
-          {permissions.includes("translations:manage") ? (
+          {mayCall({ door: "admin_set_translator_languages" }) ? (
             <TranslatorLanguagesCard userId={user.userId} guard={guard} />
           ) : null}
 

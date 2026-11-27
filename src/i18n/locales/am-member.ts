@@ -264,6 +264,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "admin.listings.history.field.reach": "ተደራሽነት",
   "admin.listings.edit.title": "ይህን ማስታወቂያ ያርትዑ",
   "admin.listings.edit.nothing": "ምንም አልተቀየረም።",
+  "admin.listings.edit.error.categoryFixed": "የተለጠፈ ዝርዝር ምድብ ሊቀየር አይችልም።",
   "admin.listings.edit.error.removed": "የተወገደ ማስታወቂያ አይታረምም። መጀመሪያ ይመልሱት።",
   "admin.listings.reason.undo": "ቀልበስ",
   "admin.listings.error.noFreeSlot":

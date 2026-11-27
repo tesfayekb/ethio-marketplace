@@ -66,6 +66,7 @@ export const EDIT_REFUSALS = {
     ...SHARED_REFUSAL_WORDS,
     nothingChanged: "admin.listings.edit.nothing",
     listingRemoved: "admin.listings.edit.error.removed",
+    categoryFixed: "admin.listings.edit.error.categoryFixed",
   },
   generic: "common.error",
 } as const satisfies DoorFamily<{
@@ -74,7 +75,6 @@ export const EDIT_REFUSALS = {
     badValue: "handled elsewhere: EDIT_BAD_VALUES words the reason; every other key is one editChanges writes from the door's list";
     photoNotFound: "the edit never sends remove_photos: the photo removal reads its own family";
   };
-  owed: { categoryFixed: "INC-1307" };
 }>;
 
 /** The edit's `badValue:<field>` lines: only the reason has words of its own. */

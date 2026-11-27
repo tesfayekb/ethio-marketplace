@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { legalTextFor } from "@/features/legal/legal-reader";
@@ -34,6 +33,7 @@ import { useLegalDocuments, useLegalSettings, useLegalVersion, useLegalWrites } 
 import { dateFormatter } from "@/lib/format";
 import { FailureNotice } from "@/components/shell/failure-notice";
 import { useRetryFailed } from "@/components/shell/use-retry-failed";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /** Bundle 22 turn 13 — the text in force, read in place (its facts as frozen at publishing). */
 function InForceText({ id }: { id: string }) {
@@ -66,13 +66,13 @@ export function LegalPage() {
   const { t, language } = useI18n();
   const retryFailed = useRetryFailed();
   const feedback = useSearch({ from: "/admin/legal" });
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
   const documents = useLegalDocuments();
   const settings = useLegalSettings();
   const countries = useCountries();
   const [reading, setReading] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Record<string, string>>({});
-  const mayEdit = permissions.includes("legal:edit");
+  const mayEdit = mayCall({ door: "admin_save_legal_draft" });
   const writes = useLegalWrites();
   // Bundle 22 turn 20 (DEC-219) — the one review dialog: the document under review, the note, the error line.
   const [reviewing, setReviewing] = useState<string | null>(null);
@@ -238,7 +238,8 @@ export function LegalPage() {
                             {t("admin.legal.action.view")}
                           </Link>
                         </Button>
-                        {permissions.includes("legal:publish") && missingLanguages.length > 0 ? (
+                        {mayCall({ door: "admin_add_legal_translation" }) &&
+                        missingLanguages.length > 0 ? (
                           <Button asChild variant="outline">
                             <Link
                               to="/admin/legal/$versionId"

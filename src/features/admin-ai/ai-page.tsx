@@ -14,7 +14,6 @@ import { TableToolbar } from "@/components/shell/table-toolbar";
 import { TipBadge } from "@/components/shell/tip-badge";
 import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
@@ -33,6 +32,7 @@ import {
   type AiFeatureRow,
 } from "./ai-service";
 import { ADMIN_AI_KEY, useAiFeatures } from "./use-ai-features";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * Bundle 13 turn 5 (D158, the operator, 2026-10-13: "per feature an on/off
@@ -60,8 +60,8 @@ type Dialog = { kind: "none" } | { kind: "editor"; feature: string; openedBy: st
 export function AdminAiPage() {
   const { t } = useI18n();
   const settling = useSettling(ADMIN_AI_KEY);
-  const { permissions } = useAdminShell();
-  const mayManage = permissions.includes("services:manage");
+  const { mayCall } = useMayCall();
+  const mayManage = mayCall({ door: "admin_set_ai_feature" });
   const query = useAiFeatures();
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.

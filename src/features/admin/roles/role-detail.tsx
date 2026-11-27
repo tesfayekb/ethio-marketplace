@@ -7,8 +7,8 @@ import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
+import { useMayCall } from "@/features/permissions/use-may-call";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
@@ -23,7 +23,7 @@ import { useAdminRole, useDeleteRole, useUpdateRole } from "./use-admin-roles";
  */
 export function AdminRoleDetailPage({ roleId }: { roleId: string }) {
   const { t } = useI18n();
-  const { permissions } = useAdminShell();
+  const { mayCall } = useMayCall();
   const { data: role, isLoading, error } = useAdminRole(roleId);
 
   if (isLoading) {
@@ -54,15 +54,16 @@ export function AdminRoleDetailPage({ roleId }: { roleId: string }) {
     );
   }
 
-  const mayUpdate = permissions.includes("roles:update");
-  const mayDelete = permissions.includes("roles:delete");
+  const mayUpdate = mayCall({ door: "admin_set_role_permission" });
+  const mayDelete = mayCall({ door: "admin_delete_role" });
 
   return (
     <div className="min-w-0 space-y-4">
       <RoleMetaCard role={role} mayUpdate={mayUpdate} />
       <PermissionMatrix
         roleId={role.id}
-        isSystem={role.isSystem || !mayUpdate}
+        isSystem={role.isSystem}
+        readOnly={!mayUpdate}
         rows={role.permissions}
       />
       <MembersCard role={role} />

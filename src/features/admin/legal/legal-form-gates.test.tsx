@@ -22,6 +22,17 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@/features/admin/admin-context", () => ({
   useAdminShell: () => ({ permissions: ["legal:edit", "legal:publish"] }),
 }));
+// INC-1281 — the screens ask useMayCall, which reads the permissions read: the same list as the shell's.
+vi.mock("@/features/permissions/usePermissions", async () => {
+  const { useAdminShell } = await import("@/features/admin/admin-context");
+  return {
+    usePermissions: () => ({
+      permissions: useAdminShell().permissions,
+      loading: false,
+      error: null,
+    }),
+  };
+});
 vi.mock("@/features/admin/users/use-admin-users", () => ({
   useCountries: () => ({ data: [], error: null }),
 }));

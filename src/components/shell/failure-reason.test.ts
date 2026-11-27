@@ -108,3 +108,13 @@ describe("failureKind (DEC-464, status first)", () => {
     });
   });
 });
+
+describe("the rate family (INC-1280)", () => {
+  it("FR-U16 RATE_FAMILY words only the gate code rateLimited, with its until words", async () => {
+    const { RATE_FAMILY } = await import("./failure-reason");
+    expect(RATE_FAMILY).toEqual({
+      words: { rateLimited: "failure.rateLimitedSoon" },
+      when: { rateLimited: "failure.rateLimited" },
+    });
+  });
+});

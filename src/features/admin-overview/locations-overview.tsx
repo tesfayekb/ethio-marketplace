@@ -8,6 +8,7 @@ import { useAdminCountries } from "@/features/admin-countries/use-countries";
 import { useAdminLocations } from "@/features/admin-locations/use-locations";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useI18n } from "@/i18n";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 const LINKS = [
   {
@@ -31,8 +32,9 @@ const LINKS = [
 export function LocationsOverview() {
   const { t } = useI18n();
   const { permissions } = useAdminShell();
-  const maySeePlaces = permissions.includes("locations:view");
-  const maySeeCountries = permissions.includes("countries:view");
+  const { mayCall } = useMayCall();
+  const maySeePlaces = mayCall({ door: "admin_list_locations" });
+  const maySeeCountries = mayCall({ door: "admin_list_countries" });
   const countries = useAdminCountries({ enabled: maySeeCountries });
   const places = useAdminLocations("", { enabled: maySeePlaces });
 

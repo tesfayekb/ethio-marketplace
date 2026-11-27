@@ -32,7 +32,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CategoryModal } from "@/components/ui/category-modal";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { useWarnedListings } from "@/features/admin-screening/use-photo-changes";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { sectionById } from "@/features/admin/sections";
@@ -64,6 +63,7 @@ import {
 } from "./use-admin-listings";
 import { dateFormatter } from "@/lib/format";
 import { FailureNotice } from "@/components/shell/failure-notice";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134, D136) — ADMIN › LISTINGS ›
@@ -116,10 +116,10 @@ const STATUS_TONE: Record<string, "success" | "warning" | "danger" | "neutral" |
 
 export function AdminListingsPage() {
   const { t, language, entities } = useI18n();
-  const { permissions } = useAdminShell();
-  const mayReadEmail = permissions.includes("profiles:view");
-  const mayEnforce = permissions.includes("listings:enforce");
-  const mayViewAs = permissions.includes("impersonation:use");
+  const { mayCall } = useMayCall();
+  const mayReadEmail = mayCall({ door: "admin_list_users" });
+  const mayEnforce = mayCall({ door: "admin_set_listing_policy" });
+  const mayViewAs = mayCall({ door: "begin_impersonation" });
   const { user } = useShell();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -245,7 +245,7 @@ export function AdminListingsPage() {
   );
   const rows = query.data?.rows ?? [];
   const total = query.data?.total ?? 0;
-  const mayReview = permissions.includes("listings:review");
+  const mayReview = mayCall({ door: "admin_open_report_counts" });
   const reportsQuery = useOpenReportCounts(
     rows.map((row) => row.id),
     mayReview,

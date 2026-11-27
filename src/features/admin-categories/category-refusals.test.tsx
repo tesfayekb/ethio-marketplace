@@ -35,6 +35,9 @@ describe("the categories console's refusals (F1-4a, DEC-333)", () => {
       ["deleteHasListings", "admin.categories.error.delete_has_listings"],
       ["deleteHasChildren", "admin.categories.error.delete_has_children"],
       ["acceptNoImage", "admin.categories.error.acceptNoImage"],
+      ["slugTaken", "admin.categories.error.slugTaken"],
+      ["reassignTargetInvalid", "admin.categories.error.reassignTargetInvalid"],
+      ["badValue", "admin.categories.error.windowOrder"],
       ["required", "post.refusal.required"],
       ["badType", "post.refusal.badType"],
     ];
@@ -53,9 +56,6 @@ describe("the categories console's refusals (F1-4a, DEC-333)", () => {
     for (const message of [
       "noSuchCode",
       "alreadyActive",
-      "reassignTargetInvalid",
-      "slugTaken",
-      "badValue:visible_until",
       "permissionDenied",
       "step-up required",
       "TypeError: Failed to fetch",
@@ -92,5 +92,24 @@ describe("the console's rate sentence says when (L22)", () => {
     } finally {
       language.current = undefined;
     }
+  });
+
+  // INC-1307 — the words owed, one case each.
+  it("CRF-4 a slug another category uses reads its own words", () => {
+    expect(readRefusal(refused("slugTaken"), CATEGORY_REFUSALS).key).toBe(
+      "admin.categories.error.slugTaken",
+    );
+  });
+
+  it("CRF-5 a reassignment target that is off or takes no listings reads its own words", () => {
+    expect(readRefusal(refused("reassignTargetInvalid"), CATEGORY_REFUSALS).key).toBe(
+      "admin.categories.error.reassignTargetInvalid",
+    );
+  });
+
+  it("CRF-6 the window's end before its start (badValue:visible_until) reads the window-order words", () => {
+    expect(readRefusal(refused("badValue:visible_until"), CATEGORY_REFUSALS).key).toBe(
+      "admin.categories.error.windowOrder",
+    );
   });
 });

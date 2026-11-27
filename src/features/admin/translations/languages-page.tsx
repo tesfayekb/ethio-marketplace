@@ -24,7 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -57,6 +56,7 @@ import {
   useUpsertLanguage,
 } from "./use-translations";
 import { useRetryFailed } from "@/components/shell/use-retry-failed";
+import { useMayCall } from "@/features/permissions/use-may-call";
 
 /**
  * The flags door's own codes and the gate codes, in the translations console's words; its empty
@@ -111,8 +111,8 @@ function sortLanguages(data: LanguageRow[] | undefined): LanguageRow[] {
  */
 export function AdminTranslationsLanguagesPage() {
   const { t } = useI18n();
-  const { permissions } = useAdminShell();
-  const mayManage = permissions.includes("translations:manage");
+  const { mayCall } = useMayCall();
+  const mayManage = mayCall({ door: "admin_set_language_flags" });
 
   const languages = useLanguages();
   const stats = useTranslationStats();
