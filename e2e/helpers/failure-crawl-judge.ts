@@ -11,6 +11,7 @@ import {
   type ProviderErrorName,
 } from "../../src/test/provider-errors";
 import { isCountryCode } from "../../src/lib/locale";
+import { ERROR_REPORTS_PATH } from "../../src/lib/schemas/error-report";
 import { UUID_RE } from "../../src/lib/uuid";
 
 /** Who opens a page: signed out, a signed-in member, a staff account with its factor. */
@@ -68,6 +69,8 @@ export function readOf(
     return { key: `serverFn ${path.slice(11)}`, backend: "serverFn" };
   if (path.startsWith("/api/")) {
     if (path === "/api/catalog/find") return null;
+    // DEC-474 Part F — the reporter's own call is no read of the page: it is silent by design.
+    if (path === ERROR_REPORTS_PATH) return null;
     return { key: `api ${path.split("/").map(generic).join("/")}`, backend: "route" };
   }
   if (/^\/[a-z0-9-]+\.json$/.test(path)) return { key: `static ${path}`, backend: "static" };
