@@ -932,17 +932,8 @@ function declaresPrivateIdentity(): boolean {
  * and the DB challenge row is refreshed by every test's verify, so direct-RPC
  * step-up tests (RP-4, TR-6) are fresh by construction.
  */
-/** The TOTP step each factor's last accepted code belonged to (this worker's mints). */
-const stepsUsed = new Map<string, number>();
-
 /** authFetch's refusal of a challenge at 500 (e2e/global-setup.ts names the status only in its text). */
 const CHALLENGE_500 = /^\[e2e:setup\] POST \/factors\/[^/\s]+\/challenge failed \(500\): /;
-
-async function untilUnusedStep(factorId: string): Promise<void> {
-  if (stepsUsed.get(factorId) !== totpStep()) return;
-  const nextMs = (totpStep() + 1) * 30_000;
-  await new Promise((resolve) => setTimeout(resolve, nextMs - Date.now() + 500));
-}
 
 export type Aal2Identity = {
   email: string;
@@ -971,9 +962,8 @@ export async function aal2Session(pool: Aal2Identity): Promise<PersistedSession>
 
   let verified: Record<string, unknown> | null = null;
   let lastError = "";
-  // A factor accepts each code once: a second mint in the step the first one used waits for the next
-  // step instead of being refused (the staff helper mints a session per sign-in).
-  await untilUnusedStep(pool.factorId);
+  // DEC-488: the first challenge and verify go at once. The auth server CI pins (supabase/auth
+  // v2.197.0, `verifyTOTPFactor`) keeps no record of a used code step; only a challenge is single-use.
   let challengeRetried = false;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     // A CHALLENGE PER ATTEMPT: a challenge is single-use and short-lived, so a
@@ -1005,9 +995,10 @@ export async function aal2Session(pool: Aal2Identity): Promise<PersistedSession>
       });
       break;
     } catch (error) {
-      // A code already spent inside its 30s window is refused; the next
-      // window's code is a legitimate retry, never a weakened assertion.
+      // A refused verify is retried with a fresh challenge and the code of that moment, never a
+      // weakened assertion; the pinned server does not refuse a code for its step's earlier use.
       lastError = errorText(error);
+      console.log(`[e2e:pool] ${pool.label} verify refused on attempt ${attempt}: ${lastError}`);
       if (attempt === 3) break;
       await new Promise((resolve) => setTimeout(resolve, 8000));
     }
@@ -1015,7 +1006,6 @@ export async function aal2Session(pool: Aal2Identity): Promise<PersistedSession>
   if (!verified) {
     throw new Error(`[e2e:pool] node TOTP verify failed for ${pool.label}: ${lastError}`);
   }
-  stepsUsed.set(pool.factorId, totpStep());
 
   const token = verified["access_token"];
   const refresh = verified["refresh_token"];
@@ -1202,13 +1192,14 @@ export async function staleStepUpOnClient(page: Page): Promise<void> {
 }
 
 /**
- * INC-620 — A TOTP CODE IS SPENT ONCE. The factor refuses a code it already
- * accepted inside its 30-second step (`freshAal2Session` retries for that
- * reason). A test that answers the modal with the identity `signInJobSuperAdmin`
+ * INC-620 — A test that answers the modal with the identity `signInJobSuperAdmin`
  * has just verified in node reads `totpStep()` as that call returns, and waits
- * here for the next step before it types: the code it types is then one the
- * factor has not used. A clock boundary, polled — never a fixed sleep; the
- * test's timeout grows by the wait (at most one step).
+ * here for the next step before it types, so the code it types is one the factor
+ * has not used. The auth server CI pins (supabase/auth v2.197.0,
+ * `verifyTOTPFactor`) keeps no record of a used step and accepts that code again,
+ * so the wait guards no refusal measured there (INC-1325 owns keeping or removing
+ * it). A clock boundary, polled — never a fixed sleep; the test's timeout grows by
+ * the wait (at most one step).
  */
 export async function afterTotpStep(spentStep: number): Promise<void> {
   const stepMs = 30_000;

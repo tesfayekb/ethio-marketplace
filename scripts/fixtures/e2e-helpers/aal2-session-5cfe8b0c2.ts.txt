@@ -1,0 +1,81 @@
+export async function aal2Session(pool: Aal2Identity): Promise<PersistedSession> {
+  const grant = await authFetch("/token?grant_type=password", {
+    method: "POST",
+    body: { email: pool.email, password: pool.password },
+  });
+  const accessToken = grant["access_token"];
+  if (typeof accessToken !== "string") {
+    throw new Error(`[e2e:pool] password grant for ${pool.label} returned no access token.`);
+  }
+
+  let verified: Record<string, unknown> | null = null;
+  let lastError = "";
+  // A factor accepts each code once: a second mint in the step the first one used waits for the next
+  // step instead of being refused (the staff helper mints a session per sign-in).
+  await untilUnusedStep(pool.factorId);
+  let challengeRetried = false;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    // A CHALLENGE PER ATTEMPT: a challenge is single-use and short-lived, so a
+    // retry never re-presents the previous one (INC-169).
+    let challenge: Record<string, unknown>;
+    try {
+      challenge = await authFetch(`/factors/${pool.factorId}/challenge`, {
+        method: "POST",
+        accessToken,
+      });
+    } catch (error) {
+      // DEC-480 (INC-1303): the server's unexplained 500 on a challenge is retried once, with a
+      // fresh challenge, printed here and counted by the auth capture; any other refusal, or a
+      // second 500, ends the mint.
+      if (challengeRetried || attempt === 3 || !CHALLENGE_500.test(errorText(error))) throw error;
+      challengeRetried = true;
+      console.log(`[e2e:setup] challenge 500 on attempt ${attempt} for ${pool.label}`);
+      continue;
+    }
+    const challengeId = challenge["id"];
+    if (typeof challengeId !== "string") {
+      throw new Error(`[e2e:pool] TOTP challenge for ${pool.label} returned no id.`);
+    }
+    try {
+      verified = await authFetch(`/factors/${pool.factorId}/verify`, {
+        method: "POST",
+        accessToken,
+        body: { challenge_id: challengeId, code: totp(pool.secret) },
+      });
+      break;
+    } catch (error) {
+      // A code already spent inside its 30s window is refused; the next
+      // window's code is a legitimate retry, never a weakened assertion.
+      lastError = errorText(error);
+      if (attempt === 3) break;
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+    }
+  }
+  if (!verified) {
+    throw new Error(`[e2e:pool] node TOTP verify failed for ${pool.label}: ${lastError}`);
+  }
+  stepsUsed.set(pool.factorId, totpStep());
+
+  const token = verified["access_token"];
+  const refresh = verified["refresh_token"];
+  if (typeof token !== "string" || typeof refresh !== "string") {
+    throw new Error(`[e2e:pool] verify for ${pool.label} returned no session tokens.`);
+  }
+  const level = jwtClaim(token, "aal");
+  if (level !== "aal2") {
+    throw new Error(`[e2e:pool] ${pool.label} session is not aal2 after verify (aal=${level}).`);
+  }
+  const expiresIn = typeof verified["expires_in"] === "number" ? verified["expires_in"] : 3600;
+  console.log(`[e2e:pool] ${pool.label} minted a fresh aal2 session in node (${pool.email})`);
+  return {
+    access_token: token,
+    refresh_token: refresh,
+    token_type: typeof verified["token_type"] === "string" ? verified["token_type"] : "bearer",
+    expires_in: expiresIn,
+    expires_at:
+      typeof verified["expires_at"] === "number"
+        ? verified["expires_at"]
+        : Math.floor(Date.now() / 1000) + expiresIn,
+    user: (verified["user"] as Record<string, unknown> | undefined) ?? {},
+  };
+}

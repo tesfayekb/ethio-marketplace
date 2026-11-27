@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { errorText } from "../../src/lib/error-text";
 import { adminClient, authFetch } from "../global-setup";
 import { asBearer } from "./door-callers";
 import {
@@ -10,6 +11,7 @@ import {
   passwordGrant,
   sessionUserId,
   storageKey,
+  untilSignOutCleared,
   type PersistedSession,
 } from "./session";
 import {
@@ -18,6 +20,7 @@ import {
   gotoReady,
   pooledSuperAdmin,
   signedInMarker,
+  signInMarker,
   signOutViaUi,
   waitForHydration,
 } from "./ui";
@@ -142,8 +145,27 @@ export async function asStaff(
 }
 
 /**
+ * INC-1324 — what the page held when `signInStaff` found no session after its write: whether the
+ * store's key is present, whether the account menu or the sign-in link shows, and the page's path.
+ * No token, secret or e-mail address.
+ */
+async function staffDump(page: Page): Promise<string[]> {
+  const stored = await page
+    .evaluate((key: string) => window.localStorage.getItem(key) !== null, storageKey())
+    .then(String, (error: unknown) => `unread (${errorText(error)})`);
+  const menu = await signedInMarker(page).count();
+  const signIn = await signInMarker(page).count();
+  return [
+    `[staff-dump] stored session key present: ${stored}`,
+    `[staff-dump] account menu shown: ${menu > 0}; sign-in link shown: ${signIn > 0}`,
+    `[staff-dump] address: ${new URL(page.url()).pathname}`,
+  ];
+}
+
+/**
  * A staff account in the browser, signed in with a session that used its factor. Signs a signed-in page
- * out first (INC-074: /auth is no form for a session), writes the session where the app's client keeps
+ * out first (INC-074: /auth is no form for a session) and waits until that sign-out has cleared the
+ * store (INC-1324), writes the session where the app's client keeps
  * it with no step-up hint (a fresh sign-in's state; an init script too, so it outlives an earlier
  * persona's), reloads and reads the identity and aal2 back.
  * Answers the factor's secret, so a later step-up prompt can be answered.
@@ -152,7 +174,10 @@ export async function signInStaff(page: Page, account: StaffAccount): Promise<{ 
   const session = await staffSession(account);
   await gotoReady(page, "/");
   await waitForHydration(page);
-  if ((await page.getByTestId("account-menu").count()) > 0) await signOutViaUi(page);
+  if ((await page.getByTestId("account-menu").count()) > 0) {
+    await signOutViaUi(page);
+    await untilSignOutCleared(page);
+  }
   // An earlier persona's init script (switchUser, injectSession) reruns on every load: the last one
   // registered wins (the per-user sentinel, INC-120b), so this one is registered too.
   await injectSession(page, session);
@@ -168,7 +193,11 @@ export async function signInStaff(page: Page, account: StaffAccount): Promise<{ 
     },
   );
   await gotoReady(page, "/");
-  await assertInjectedIdentity(page, session);
+  try {
+    await assertInjectedIdentity(page, session);
+  } catch (error) {
+    throw new Error(`${errorText(error)}\n${(await staffDump(page)).join("\n")}`);
+  }
   await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
   await waitForHydration(page);
   await expectAal2(page);

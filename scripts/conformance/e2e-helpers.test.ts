@@ -63,6 +63,12 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from 
  *   awaited Supabase chain held in a name whose `.data` is read and whose `.error` (or the whole
  *   answer, passed on) never is. The allowlist holds one line a file with its count,
  *   `<file> drops-error (<n>)`, each until INC-1245; a changed count is a new finding and a stale line.
+ * - CF-HELPERS-11 (cursor-ci-speed, DEC-488): the node mint (`aal2Session`, e2e/helpers/ui.ts) makes
+ *   its first verify request at once — before it, no timer and no awaited call but its own auth
+ *   requests (mintWaitFindings). Planted: the mint at 5cfe8b0c2 (its code-step wait).
+ * - CF-HELPERS-12 (cursor-ci-speed, INC-1324): in any e2e function, a `signOutViaUi(` followed by a
+ *   session write (`injectSession(`, `localStorage.setItem(`) waits `untilSignOutCleared(page)`
+ *   (e2e/helpers/session.ts) between them (signOutWriteFindings). Planted: staff-factor.ts at 5cfe8b0c2.
  * The page's client read by hand is CF-BC-1's (browser-client.test.ts) — one guard per concern.
  * Allowlist: e2e-helpers-allowlist.txt, `<file> <name> | reason | until`.
  */
@@ -636,6 +642,103 @@ export function droppedErrorFindings(files: string[]): HelperFinding[] {
   return findings;
 }
 
+export const MINT_FILE = "e2e/helpers/ui.ts";
+export const MINT_NAME = "aal2Session";
+/** The calls the mint may await before its first verify: its own auth requests. */
+const MINT_REQUESTS = new Set(["authFetch"]);
+const TIMER_CALL = /\b(?:setTimeout|setInterval|waitForTimeout)\s*\(/g;
+const AWAITED_CALL = /\bawait\s+(?:new\s+)?([\w.]+)\s*\(/g;
+
+/**
+ * CF-HELPERS-11 (cursor-ci-speed, DEC-488) — the node mint makes its first verify request at once:
+ * between the function's start and its first `/verify` request, no timer and no awaited call but
+ * its own auth requests (a sleeping helper is an awaited call).
+ */
+export function mintWaitFindings(file: string, text: string, name: string): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  const bodies: Array<{ start: number; text: string }> = [];
+  visitTs(
+    file,
+    (node, source) => {
+      if (ts.isFunctionDeclaration(node) && node.name?.text === name && node.body !== undefined)
+        bodies.push({ start: node.body.getStart(source), text: node.body.getText(source) });
+    },
+    text,
+  );
+  const found = bodies[0];
+  if (found === undefined)
+    return [{ file, line: 1, what: `no function ${name} to read`, key: `${file} ${name}` }];
+  const code = codeOf(found.text);
+  const verifyAt = code.indexOf("/verify");
+  if (verifyAt < 0)
+    return [{ file, line: 1, what: `${name} makes no verify request`, key: `${file} ${name}` }];
+  const before = code.slice(0, verifyAt);
+  const at = (index: number) => lineAt(text, found.start + index);
+  for (const match of before.matchAll(TIMER_CALL))
+    findings.push({
+      file,
+      line: at(match.index),
+      what: `${name} sets a timer before its first verify request (DEC-488): verify at once`,
+      key: `${file} ${name}`,
+    });
+  for (const match of before.matchAll(AWAITED_CALL)) {
+    const callee = match[1] ?? "";
+    if (MINT_REQUESTS.has(callee)) continue;
+    findings.push({
+      file,
+      line: at(match.index),
+      what: `${name} awaits \`${callee}\` before its first verify request (DEC-488): verify at once`,
+      key: `${file} ${name}`,
+    });
+  }
+  return findings;
+}
+
+const SIGN_OUT_NAME = /\bsignOutViaUi\s*\(/;
+const SESSION_WRITE = /\binjectSession\s*\(|\blocalStorage\s*\.\s*setItem\s*\(/;
+const SIGN_OUT_CLEARED = /\buntilSignOutCleared\s*\(/;
+
+/**
+ * CF-HELPERS-12 (cursor-ci-speed, INC-1324) — no helper writes a session into a page whose
+ * sign-out is still in flight: in the innermost function around a `signOutViaUi(` call, a session
+ * write after it (`injectSession(`, `localStorage.setItem(`, nested callbacks included) has
+ * `untilSignOutCleared(` between them.
+ */
+export function signOutWriteFindings(
+  files: Array<{ file: string; text: string }>,
+): HelperFinding[] {
+  const findings: HelperFinding[] = [];
+  for (const { file, text } of files) {
+    if (!SIGN_OUT_NAME.test(text)) continue;
+    visitTs(
+      file,
+      (node, source) => {
+        if (
+          !ts.isCallExpression(node) ||
+          !ts.isIdentifier(node.expression) ||
+          node.expression.text !== "signOutViaUi"
+        )
+          return;
+        let around: ts.Node | undefined = node.parent;
+        while (around !== undefined && !ts.isFunctionLike(around)) around = around.parent;
+        if (around === undefined) return;
+        const callAt = node.getStart(source);
+        const after = codeOf(text.slice(callAt, around.getEnd()));
+        const write = SESSION_WRITE.exec(after);
+        if (write === null || SIGN_OUT_CLEARED.test(after.slice(0, write.index))) return;
+        findings.push({
+          file,
+          line: lineAt(text, callAt),
+          what: "signs the page out through the screen, then writes a session without `untilSignOutCleared(page)` between (INC-1324)",
+          key: `${file} sign-out-write`,
+        });
+      },
+      text,
+    );
+  }
+  return findings;
+}
+
 const e2eFiles = () => walkFiles(["e2e"], { ext: ["ts"] });
 const harnessFiles = (files: string[]) =>
   files.filter(
@@ -648,7 +751,7 @@ const specs = () => e2eFiles().filter((file) => /^e2e\/[^/]+\.spec\.ts$/.test(fi
 
 describe("a test does one thing one way, through the shared e2e helper", () => {
   it(
-    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-10 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project, no e2e file reads an answer's data and never its error but on the allowlist",
+    "CF-HELPERS-1 → CF-HELPERS-3, CF-HELPERS-5 → CF-HELPERS-12 no spec declares a helper's copy, no file disables rules-of-hooks, no spec writes preferred_language but through the language module, no spec arms the language watch and only the homes name the settled attribute, no harness file writes a scratch prefix or sweeps but through the list, no harness file builds a RegExp by hand, every spec naming a picture screen measures its pictures, no spec names a project, no e2e file reads an answer's data and never its error but on the allowlist, the node mint verifies at once, and no sign-out through the screen is followed by a session write before the store cleared",
     () => {
       const files = e2eFiles();
       const findings = [
@@ -664,6 +767,8 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
         ...pictureCheckFindings(specs()),
         ...projectNameFindings(specs()),
         ...droppedErrorFindings(files),
+        ...mintWaitFindings(MINT_FILE, readFileSync(MINT_FILE, "utf8"), MINT_NAME),
+        ...signOutWriteFindings(files.map((file) => ({ file, text: readFileSync(file, "utf8") }))),
       ];
       const allowances = readAllowlist(
         ALLOWLIST,
@@ -944,6 +1049,43 @@ describe("a test does one thing one way, through the shared e2e helper", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it("planted: CF-HELPERS-11 refuses the mint at 5cfe8b0c2 (its code-step wait) and a timer before the first verify, and passes the mint today", () => {
+    const base = readFileSync("scripts/fixtures/e2e-helpers/aal2-session-5cfe8b0c2.ts.txt", "utf8");
+    const planted = mintWaitFindings(MINT_FILE, base, MINT_NAME);
+    expect(planted.map((f) => f.what)).toEqual([
+      "aal2Session awaits `untilUnusedStep` before its first verify request (DEC-488): verify at once",
+    ]);
+    const timer = base.replace(
+      "  let verified",
+      "  setTimeout(() => undefined, 1);\n  let verified",
+    );
+    expect(mintWaitFindings(MINT_FILE, timer, MINT_NAME).map((f) => f.what)).toContain(
+      "aal2Session sets a timer before its first verify request (DEC-488): verify at once",
+    );
+    expect(
+      mintWaitFindings(MINT_FILE, "export async function other() {}\n", MINT_NAME).map(
+        (f) => f.what,
+      ),
+    ).toEqual(["no function aal2Session to read"]);
+    expect(mintWaitFindings(MINT_FILE, readFileSync(MINT_FILE, "utf8"), MINT_NAME)).toEqual([]);
+  });
+
+  it("planted: CF-HELPERS-12 refuses staff-factor.ts at 5cfe8b0c2 (a session written after the sign-out with no wait), and passes the helper today", () => {
+    const base = readFileSync("scripts/fixtures/e2e-helpers/staff-factor-5cfe8b0c2.ts.txt", "utf8");
+    const file = "e2e/helpers/staff-factor.ts";
+    expect(signOutWriteFindings([{ file, text: base }]).map((f) => [f.line, f.key])).toEqual([
+      [155, `${file} sign-out-write`],
+    ]);
+    expect(signOutWriteFindings([{ file, text: readFileSync(file, "utf8") }])).toEqual([]);
+    const formOnly = [
+      "export async function switchPersona(page: Page) {",
+      "  await signOutViaUi(page);",
+      "  await signIn(page, email, password);",
+      "}",
+    ].join("\n");
+    expect(signOutWriteFindings([{ file: "e2e/planted.spec.ts", text: formOnly }])).toEqual([]);
   });
 
   it("CF-HELPERS-8 the geometry check: INC-1121's 80 × 480 drawn box in an 80 × 60 frame fails with its sizes; fitting pictures pass", () => {
