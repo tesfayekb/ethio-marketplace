@@ -154,7 +154,10 @@ describe("the lane weights a run reads and writes (cursor-ci-speed, DEC-375 b)",
   it("LWM-5 the measured spread is a finding line over the limit, a plain line within it, and names lanes with no results", () => {
     const seconds = (lanes: Map<number, unknown>) => {
       const out = new Map<number, number>();
-      for (const [lane, results] of lanes) out.set(lane, laneSeconds(results) ?? 0);
+      for (const [lane, results] of lanes) {
+        const value = laneSeconds(results);
+        if (value !== null) out.set(lane, value);
+      }
       return out;
     };
     expect(measuredSpreadLine(seconds(sixteen(true)))).toBe(

@@ -244,11 +244,15 @@ export function chooseWeights(
 
 /** Measured lane times over the mean by more than SPREAD_LIMIT: a finding line, never a verdict. */
 export function measuredSpreadLine(seconds: ReadonlyMap<number, number>): string {
-  const lanes = Array.from({ length: NUMBERED_LANES }, (_, i) => i + 1);
-  const missing = lanes.filter((lane) => seconds.get(lane) === undefined);
+  const missing: number[] = [];
+  const times: Array<{ lane: number; seconds: number }> = [];
+  for (let lane = 1; lane <= NUMBERED_LANES; lane += 1) {
+    const measured = seconds.get(lane);
+    if (measured === undefined) missing.push(lane);
+    else times.push({ lane, seconds: measured });
+  }
   if (missing.length > 0)
     return `- Measured lane spread (DEC-375 b): not measured — lane(s) ${missing.join(", ")} recorded no results`;
-  const times = lanes.map((lane) => ({ lane, seconds: seconds.get(lane) ?? 0 }));
   const mean = times.reduce((sum, item) => sum + item.seconds, 0) / times.length;
   const largest = times.reduce((best, item) => (item.seconds > best.seconds ? item : best));
   const over = mean > 0 ? largest.seconds / mean - 1 : 0;
