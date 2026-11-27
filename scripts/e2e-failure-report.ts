@@ -28,12 +28,22 @@
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { errorText } from "../src/lib/error-text";
-import { SKIPPED_PREFIX } from "./ci/docs-only";
+import { DRAFT_LINE, SKIPPED_PREFIX } from "./ci/docs-only";
+import { measuredSpreadLine } from "./ci/lane-plan";
+import { laneSeconds, NUMBERED_LANES, runWeights, WEIGHTS_EVIDENCE } from "./ci/lane-weights";
 import { SERIAL_CAP_LINE } from "./ci/repeat-cap";
 import { authored } from "./lib/pattern";
 
@@ -1552,8 +1562,13 @@ export type ReportMeta = {
   commitMessage?: string;
   /** DEC-321 — the ref the run tested (EVIDENCE_REF), written into each new flake-ledger line. */
   ref?: string;
-  /** DEC-365 — the scope job's line (`ran — …` or `skipped — …`), shown as `- Lanes:` when set. */
+  /**
+   * DEC-365 — the scope job's line (`ran — …`, `skipped — …` or cursor-ci-speed's
+   * `skipped: draft pull request`), shown as `- Lanes:` when set.
+   */
   lanes?: string;
+  /** cursor-ci-speed — the numbered lanes' measured spread (`measuredSpreadLine`); a finding, never a verdict. */
+  measuredSpread?: string;
   /**
    * INC-100 — the GitHub run ATTEMPT this report describes. Re-runs used to be
    * blind: upload-artifact@v4 refused to replace attempt-1 artifacts, the
@@ -1577,6 +1592,21 @@ export function attemptLine(meta: ReportMeta): string {
 /** DEC-365 — the scope's decision, after the attempt line; nothing when the run carried none. */
 export function lanesLines(meta: ReportMeta): string[] {
   return meta.lanes && meta.lanes.trim() !== "" ? [`- Lanes: ${meta.lanes.trim()}`] : [];
+}
+
+/** cursor-ci-speed — the measured-spread line, after the lanes' lines; nothing when not measured. */
+export function spreadLines(meta: ReportMeta): string[] {
+  return meta.measuredSpread ? [meta.measuredSpread] : [];
+}
+
+/** The numbered lanes' wall seconds, from the results each recorded (`laneSeconds`). */
+export function measuredSeconds(lanes: ReadonlyMap<number, unknown>): Map<number, number> {
+  const seconds = new Map<number, number>();
+  for (const [lane, results] of lanes) {
+    const value = laneSeconds(results);
+    if (value !== null) seconds.set(lane, value);
+  }
+  return seconds;
 }
 
 /** INC-1107 — the repeat lane's selection file, uploaded inside its `e2e-log-repeat` artifact. */
@@ -1622,11 +1652,12 @@ export function repeatLines(meta: ReportMeta): string[] {
 }
 
 /**
- * The reason the scope's skipped line gives (`skipped — <reason> (…)`), or null when the line has
- * another form.
+ * The reason the scope's skipped line gives (`skipped — <reason> (…)`, or the draft line), or null
+ * when the line has another form.
  */
 export function lanesSkippedReason(lanes: string | undefined): string | null {
   const line = (lanes ?? "").trim();
+  if (line === DRAFT_LINE) return "a draft pull request";
   if (!line.startsWith(SKIPPED_PREFIX)) return null;
   const reason = line.slice(SKIPPED_PREFIX.length).split(" (")[0]?.trim() ?? "";
   return reason === "" ? null : reason;
@@ -1635,6 +1666,7 @@ export function lanesSkippedReason(lanes: string | undefined): string | null {
 /**
  * DEC-375 (a) — a push whose code tree was proven ran no lane: the evidence names the run that
  * proved it and reads no sources, so a reader never mistakes the empty run for twenty dead lanes.
+ * A draft pull request's run (cursor-ci-speed) takes the same form, naming the draft.
  */
 export function renderLanesSkipped(meta: ReportMeta): string {
   const reason = lanesSkippedReason(meta.lanes) ?? "the scope job's line names no reason";
@@ -1770,6 +1802,7 @@ export function renderSources(
     attemptLine(meta),
     ...lanesLines(meta),
     ...repeatLines(meta),
+    ...spreadLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Passed: ${passed} · Skipped: ${skipped} · Failed: ${failures.length}`,
     // DEC-028 — the verdict line; every failure gates (INC-1148), a STAGING-SINK one included.
@@ -1954,6 +1987,7 @@ export function renderGreen(
     attemptLine(meta),
     ...lanesLines(meta),
     ...repeatLines(meta),
+    ...spreadLines(meta),
     `- Written (UTC): ${new Date().toISOString()}`,
     `- Post-test warnings: ${postTestWarnings}`,
     // DEC-078 part 2 — a green run names its flaky count and carries the sections.
@@ -3376,10 +3410,13 @@ async function main() {
 
   const sources: Source[] = [];
   let found = 0;
+  // cursor-ci-speed — the numbered lanes' results, for their measured spread and the run's weights.
+  const laneResults = new Map<number, unknown>();
 
   if (dir) {
     for (const { id, optional } of expected) {
       const parsed = await readJson(`${dir}/e2e-results-${id}/results.json`);
+      if (/^\d+$/.test(id)) laneResults.set(Number(id), parsed.json);
       if (optional && !parsed.json && !parsed.error) continue;
       // INC-086: "found" means USABLE results (>= 1 recorded test), so the
       // console line cannot claim a source reported when it reported nothing.
@@ -3461,7 +3498,24 @@ async function main() {
     s.json ? collect(s.json).flaky.map((f) => ({ ...f, source: s.label })) : [],
   );
 
+  // cursor-ci-speed (ruling 1, decision 3) — the measured spread is a finding line in the evidence
+  // and the run's summary, never a verdict; only where the run expected the numbered lanes.
+  if (laneResults.size === NUMBERED_LANES && !flakeOnly) {
+    meta.measuredSpread = measuredSpreadLine(measuredSeconds(laneResults));
+    const summary = process.env["GITHUB_STEP_SUMMARY"];
+    if (summary) appendFileSync(summary, `${meta.measuredSpread}\n`);
+  }
+
   if (process.env["E2E_GREEN"] === "1" && !flakeOnly) {
+    // cursor-ci-speed — a green run whose numbered lanes all recorded results publishes its weights.
+    const outcome = runWeights(laneResults, Number(meta.runId), true);
+    const weightsPath = process.env["E2E_LANE_WEIGHTS_PATH"] ?? WEIGHTS_EVIDENCE;
+    if ("weights" in outcome) {
+      writeText(weightsPath, `${JSON.stringify(outcome.weights, null, 2)}\n`);
+      console.log(`Lane weights: run ${meta.runId}'s written to ${weightsPath}.`);
+    } else {
+      console.log(`Lane weights: none written (${outcome.reason}).`);
+    }
     // DEC-059 — a green run counts its post-test warnings from the same logs the
     // red path greps, so a cleanup that could not reach Supabase is still named.
     let postTestWarnings = 0;

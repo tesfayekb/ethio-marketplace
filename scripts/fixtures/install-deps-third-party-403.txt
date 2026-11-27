@@ -1,0 +1,26 @@
+Installing dependencies...
+Switching to root user to install dependencies...
+Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [106 B]
+Err:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease
+  403  Forbidden [IP: 13.107.246.40 443]
+Hit:2 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble InRelease
+Get:3 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:4 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1492 kB]
+Get:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [321 kB]
+Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
+Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
+Get:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1949 kB]
+Get:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [448 kB]
+Get:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1231 kB]
+Get:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/main Translation-en [243 kB]
+Get:15 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1233 kB]
+Get:16 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [249 kB]
+Get:17 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1842 kB]
+Get:18 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [429 kB]
+Reading package lists...
+E: Failed to fetch https://packages.microsoft.com/ubuntu/24.04/prod/dists/noble/InRelease  403  Forbidden [IP: 13.107.246.40 443]
+E: The repository 'https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease' is no longer signed.
+Failed to install browser dependencies
+Error: Installation process exited with code: 100

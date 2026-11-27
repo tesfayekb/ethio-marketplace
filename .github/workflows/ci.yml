@@ -14,6 +14,9 @@ on:
       - "docs/tracking/guards-last-failure.md"
   pull_request:
     branches: [dev]
+    # cursor-ci-speed (ruling 1, decision 4 b): a draft's run skips the lanes (`scope`), so marking it
+    # ready starts the run that judges it.
+    types: [opened, synchronize, reopened, ready_for_review]
 
 # Lovable's platform pushes several commits per task, so an in-flight run for an
 # older HEAD is obsolete the moment a newer one starts. Cancelling it keeps the
@@ -28,9 +31,12 @@ on:
 # so the next completed run judges every commit before it. Each report names
 # the commit its run tested (DEC-098): a reader compares that SHA with the
 # head, as before, and reads branch ci-evidence's history for earlier runs.
+#
+# cursor-ci-speed (ruling 1, decision 4 a): a pull request's newer push cancels its run in progress
+# (the older head is never merged, so its run judges nothing); dev's runs still queue (DEC-181).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # DEC-153 (a) — the workflow's token is read-only unless a job says otherwise.
 # Jobs that hold more declare it themselves: semgrep (security-events: write,
@@ -47,7 +53,8 @@ jobs:
   # now means "the code tree is proven" (a merged pull request's merge commit, a docs-only push).
   # `e2e-lanes`, `bundle-budget`, the verdict and `promote` read its outputs; a failed `scope` runs
   # the lanes and blocks promotion (check-promote-needs.sh). Its `DEC-365 lanes:` log line is what
-  # the status reporter reads.
+  # the status reporter reads. cursor-ci-speed: a draft pull request's run answers `docs_only` with
+  # the line `skipped: draft pull request` before any lookup, so it runs no lane and no bundle budget.
   scope:
     name: Scope (docs-only push, DEC-365)
     runs-on: ubuntu-24.04
@@ -73,6 +80,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           DOCS_ONLY_REF: ${{ github.head_ref || github.ref_name }}
+          # cursor-ci-speed: a draft pull request skips the lanes and the bundle budget; read only
+          # for a `pull_request` event (scripts/ci/docs-only.ts `draftDecision`).
+          DOCS_ONLY_DRAFT: ${{ github.event.pull_request.draft }}
         run: bun scripts/ci/docs-only.ts
       # The index of the tree these lanes prove; the lookup asks the API how this run ended.
       - name: Index the code tree the lanes prove
@@ -750,9 +760,11 @@ jobs:
           # ci-evidence ledger and re-runs the flake pass on it, so a
           # concurrent run's lines are never overwritten by a stale snapshot.
           # When ci-evidence has no ledger yet, the first pass's file stands.
+          # cursor-ci-speed (DEC-375 b): the run's lane weights, written by the reporter only for a green
+          # run whose numbered lanes all recorded results, publish beside them (absent, nothing is sent).
           PUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \
             bash scripts/publish-evidence.sh "ci: e2e failure report + flake ledger [skip ci]" \
-              docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md
+              docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md docs/tracking/lane-weights.json
           # The report is published; NOW the reporter's own health is raised.
           if [ "$selftest" -ne 0 ]; then
             echo "::error::E2E failure reporter self-test failed (exit ${selftest})"

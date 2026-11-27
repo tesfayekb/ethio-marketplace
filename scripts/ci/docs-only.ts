@@ -12,7 +12,9 @@
  * counts only when it is this repository's (not a fork's), its workflow is ci.yml, and its lanes ran
  * green (`lanesGreen`: the run succeeded, a lane job succeeded, the verdict succeeded). The first
  * that counts is reused. A failed read, a shape the parser does not know, or no run that counts:
- * the lanes run.
+ * the lanes run, and the line names each run read and what it was (green, not green, still
+ * running; INC-1314).
+ * cursor-ci-speed: a draft pull request's run answers DRAFT_LINE before any lookup (`draftDecision`).
  */
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -187,8 +189,24 @@ export type Probe = {
 };
 
 export type Decision =
-  | { docsOnly: true; runId: number; lanes: string }
+  | { docsOnly: true; runId: number | null; lanes: string }
   | { docsOnly: false; lanes: string };
+
+/**
+ * cursor-ci-speed (ruling 1, decision 4 b) — a draft pull request's run judges nothing: the lanes and
+ * the bundle budget skip with this line (never the proven-tree form, so no reader takes it for a
+ * proof), and marking the pull request ready runs them (`ready_for_review`).
+ */
+export const DRAFT_LINE = "skipped: draft pull request";
+
+/**
+ * The draft answer, only for a `pull_request` event whose pull request is a draft (ci.yml passes
+ * `github.event.pull_request.draft` as `draft`); a push never takes it, whatever `draft` holds.
+ */
+export function draftDecision(event: string, draft: string): Decision | null {
+  if (event !== "pull_request" || draft !== "true") return null;
+  return { docsOnly: true, runId: null, lanes: DRAFT_LINE };
+}
 
 /** A ref as the evidence line may print it: one line, no Markdown, at most 120 characters. */
 function shown(ref: string): string {
@@ -221,19 +239,33 @@ export function decide(treeId: string | null, selfRunId: number, probe: Probe): 
   ]
     .sort((a, b) => b - a)
     .slice(0, MAX_CANDIDATES);
+  // INC-1314 (cursor-ci-speed): each run read is named with what it was, so a run still running at
+  // the lookup is seen in the line, not inferred from times afterwards.
+  const seen: string[] = [];
   for (const runId of runIds) {
     const view = probe.run(runId);
     if (view === "unreadable")
       return ran(`no proven code tree: the Actions API read of run ${String(runId)} failed`);
-    if (view.path !== CI_WORKFLOW || view.status !== "completed" || view.conclusion !== "success")
+    if (view.path !== CI_WORKFLOW) {
+      seen.push(`${String(runId)} not ci.yml`);
       continue;
+    }
+    if (view.status !== "completed") {
+      seen.push(`${String(runId)} still running`);
+      continue;
+    }
+    if (view.conclusion !== "success") {
+      seen.push(`${String(runId)} not green`);
+      continue;
+    }
     const jobs = probe.jobs(runId);
     if (jobs === "unreadable")
       return ran(`no proven code tree: the Actions API read of run ${String(runId)}'s jobs failed`);
     if (lanesGreen(view, jobs)) return { docsOnly: true, runId, lanes: skippedLine(view) };
+    seen.push(`${String(runId)} not green`);
   }
   return ran(
-    `no proven code tree: no green ci.yml run of this repository holds ${INDEX_PREFIX}${short}… (${String(runIds.length)} read)`,
+    `no proven code tree: no green ci.yml run of this repository holds ${INDEX_PREFIX}${short}… (${String(runIds.length)} read${seen.length > 0 ? `: ${seen.join(", ")}` : ""})`,
   );
 }
 
@@ -305,8 +337,9 @@ if (import.meta.main) {
     );
     process.exit(2);
   }
-  const treeId = readCodeTreeId(sha);
-  const decision = decide(treeId, selfRunId, liveProbe(repo));
+  const draft = draftDecision(event, process.env["DOCS_ONLY_DRAFT"] ?? "");
+  const treeId = draft === null ? readCodeTreeId(sha) : null;
+  const decision = draft ?? decide(treeId, selfRunId, liveProbe(repo));
   console.log(`DEC-365 lanes: ${decision.lanes}`);
   // The index carries no claim about the run's results: the lookup asks the API how the run ended.
   const indexed = !decision.docsOnly && treeId !== null ? treeId : "";

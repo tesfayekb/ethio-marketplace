@@ -35,6 +35,7 @@
 import type { Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
+import { errorText } from "../../src/lib/error-text";
 import { authStorageKey, keyBeside, SUPABASE_PREFIX } from "../../src/lib/session-key";
 
 export type PersistedSession = {
@@ -85,6 +86,27 @@ export async function waitForStoredSession(page: Page): Promise<void> {
       timeout: 15000,
     },
   );
+}
+
+/**
+ * INC-1324 — the header shows the signed-out state while the app's sign-out is still in flight
+ * (app-shell.tsx flips on `signingOut` before `signOut()` clears the store), so a session written
+ * into that gap is removed by the sign-out's own clearing. After a sign-out through the screen, a
+ * helper that writes a session waits here until the page's stored session is gone
+ * (CF-HELPERS-12). A poll in the page, never a sleep.
+ */
+export async function untilSignOutCleared(page: Page): Promise<void> {
+  try {
+    await page.waitForFunction(
+      (key: string) => window.localStorage.getItem(key) === null,
+      storageKey(),
+      { timeout: 15000 },
+    );
+  } catch (error) {
+    throw new Error(
+      `[e2e:session] the sign-out never cleared the page's stored session within 15 s: ${errorText(error)}`,
+    );
+  }
 }
 
 /**

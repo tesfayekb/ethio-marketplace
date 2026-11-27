@@ -1,13 +1,22 @@
 import { en } from "../src/i18n/locales/en";
 
 import { expect, test } from "./fixtures";
-import { staffSession } from "./helpers/staff-factor";
+import { storageKey, untilSignOutCleared } from "./helpers/session";
+import { signInStaff, staffSession } from "./helpers/staff-factor";
 import { totp, totpStep } from "./helpers/totp";
-import { afterTotpStep, expectAal2, gotoReady, switchUser, waitForHydration } from "./helpers/ui";
+import {
+  afterTotpStep,
+  expectAal2,
+  gotoReady,
+  signOutViaUi,
+  switchUser,
+  waitForHydration,
+} from "./helpers/ui";
 import { grantRole, leaseUser } from "./helpers/users";
 
 /**
- * CURSOR BUNDLE 6, PART 4 (DEC-434, DEC-451) — THE STAFF SCREEN'S GATE (STAFF-E1, STAFF-E2).
+ * CURSOR BUNDLE 6, PART 4 (DEC-434, DEC-451) — THE STAFF SCREEN'S GATE (STAFF-E1, STAFF-E2); the
+ * staff helper's wait for a sign-out to clear the page's stored session (STAFF-E4, INC-1324).
  *
  * A staff screen opens only for a staff account with a verified second factor, in a session that used
  * it. The two screens the gate draws are read here as a person meets them; the server's refusal of the
@@ -64,5 +73,22 @@ test.describe("STAFF — the gate in front of every staff screen", () => {
     await expect(page.getByTestId("category-search")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("admin-factor-code-panel")).toHaveCount(0);
     await expectAal2(page);
+  });
+
+  test("STAFF-E4 after a sign-out through the screen, the staff helper's wait returns only once the page's stored session is gone", async ({
+    page,
+  }) => {
+    const staff = await leaseUser();
+    await grantRole(staff.id, "admin");
+    await signInStaff(page, staff);
+    const stored = () =>
+      page.evaluate((key: string) => window.localStorage.getItem(key) !== null, storageKey());
+
+    // INC-1324's positive control: the key the wait polls is the one holding the signed-in session,
+    // and the one the app's sign-out clears.
+    expect(await stored(), "the wait's key holds the signed-in session").toBe(true);
+    await signOutViaUi(page);
+    await untilSignOutCleared(page);
+    expect(await stored(), "the sign-out cleared the key the wait polls").toBe(false);
   });
 });

@@ -228,9 +228,10 @@ describe("a proven code tree is not proven again (DEC-375 a)", () => {
     const failedRuns = failedIds.map((id) => ({ ...FAILED, id }));
     const index = { [TREE]: [...failedIds.map(candidate), candidate(PR_GREEN.id)] };
     const probe = probeOf(index, [...failedRuns, PR_GREEN], { [PR_GREEN.id]: PR_JOBS });
+    const readFive = [...failedIds].reverse().slice(0, MAX_CANDIDATES);
     expect(decide(TREE, SELF, probe)).toEqual({
       docsOnly: false,
-      lanes: `ran — no proven code tree: no green ci.yml run of this repository holds code-tree-${TREE.slice(0, 12)}… (5 read)`,
+      lanes: `ran — no proven code tree: no green ci.yml run of this repository holds code-tree-${TREE.slice(0, 12)}… (5 read: ${readFive.map((id) => `${String(id)} not green`).join(", ")})`,
     });
     expect(probe.reads).toEqual([
       "artifacts cccccccc",
@@ -390,5 +391,66 @@ describe("a proven code tree is not proven again (DEC-375 a)", () => {
     const otherConformance = id([source, [briefs, header], [lanes, line]]);
     expect(otherConformance).not.toBe(original);
     expect(proven(otherConformance)).toBe(false);
+  });
+
+  it("CF-DOCS-12 the ran line names each run read and what it was", () => {
+    const running: RunView = {
+      ...PR_GREEN,
+      id: PR_GREEN.id + 1,
+      status: "in_progress",
+      conclusion: null,
+    };
+    const skippedRun: RunView = { ...PR_GREEN, id: PR_GREEN.id + 2 };
+    const probe = probeOf(
+      {
+        [TREE]: [
+          candidate(FAILED.id),
+          candidate(running.id),
+          candidate(skippedRun.id),
+          candidate(OTHER_WORKFLOW.id),
+        ],
+      },
+      [FAILED, running, skippedRun, OTHER_WORKFLOW],
+      { [skippedRun.id]: SKIPPED },
+    );
+    const ids = [FAILED.id, running.id, skippedRun.id, OTHER_WORKFLOW.id].sort((a, b) => b - a);
+    const what = new Map<number, string>([
+      [FAILED.id, "not green"],
+      [running.id, "still running"],
+      [skippedRun.id, "not green"],
+      [OTHER_WORKFLOW.id, "not ci.yml"],
+    ]);
+    expect(decide(TREE, SELF, probe)).toEqual({
+      docsOnly: false,
+      lanes: `ran — no proven code tree: no green ci.yml run of this repository holds code-tree-${TREE.slice(0, 12)}… (4 read: ${ids.map((id) => `${String(id)} ${what.get(id) ?? "?"}`).join(", ")})`,
+    });
+  });
+
+  it("CF-DOCS-13 INC-1314: a run still running at the lookup proves nothing and is named", () => {
+    // The 8a stop-1 case, from the Actions API's answers captured for this turn: the artifacts read
+    // of code-tree-67da3113… (through ARTIFACTS_JQ) names runs 45864957571 (the run looking up,
+    // itself) and 45859549094; run 45859549094 completed at 17:18:18Z, after run 45864957571's
+    // scope job looked at 17:07:41Z. At the lookup the API answered that run as it answers any run
+    // in progress: status in_progress, conclusion null. Read once it completed (with its jobs,
+    // through JOBS_JQ), the same run proves the tree.
+    const tree = "67da3113b36313d7b26eac1e0f491c483d057615001e19424127300c145971c0";
+    const lookup = Date.parse("2026-11-26T17:07:41Z");
+    const held = parseCandidates(read("artifacts-code-tree-67da3113.json"));
+    const later = parseRun(read("run-45859549094.json"));
+    if (held === null || later === null) throw new Error("INC-1314 fixtures: not their shapes");
+    const updatedAt = /"updated_at":"([^"]+)"/.exec(read("run-45859549094.json"))?.[1] ?? "";
+    expect(Date.parse(updatedAt)).toBeGreaterThan(lookup);
+    const atLookup: RunView = { ...later, status: "in_progress", conclusion: null };
+    const probe = probeOf({ [tree]: held }, [atLookup], {});
+    expect(decide(tree, 45864957571, probe)).toEqual({
+      docsOnly: false,
+      lanes:
+        "ran — no proven code tree: no green ci.yml run of this repository holds code-tree-67da3113b363… (1 read: 45859549094 still running)",
+    });
+    expect(probe.reads).toEqual(["artifacts 67da3113", "run 45859549094"]);
+    const done = probeOf({ [tree]: held }, [later], {
+      [later.id]: jobsOf("jobs-green-45859549094.json"),
+    });
+    expect(decide(tree, 45864957571, done)).toMatchObject({ docsOnly: true, runId: 45859549094 });
   });
 });

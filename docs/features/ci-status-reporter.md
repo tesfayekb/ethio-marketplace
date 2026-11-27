@@ -51,6 +51,9 @@ skipped `E2E lanes` and `First-paint bundle budget (gzipped ceiling)` rows read
 `skipped (proven tree)`. CF-DOCS-10 reads the reporter's match from the workflow and proves the
 scope job's line meets it. A
 scope log that cannot be read is written as `- Lanes: unknown — …` and the rows stay `skipped`.
+A draft pull request's line, `skipped: draft pull request` (cursor-ci-speed), does not start
+`skipped — `: its rows stay plain `skipped`, and the failure file reads `ran no lanes — a draft
+pull request` (CF-PRRUN-5).
 The words show from the first run after the change merges (the reporter runs dev's code).
 
 ## The repeat lane's coverage (INC-1107, housekeeping turn 3c)

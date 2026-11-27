@@ -483,6 +483,9 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     const helperLaws = readFileSync(join(ROOT, "scripts/conformance/e2e-helpers.test.ts"), "utf8");
     for (const id of ["CF-HELPERS-3", "CF-HELPERS-5", "CF-HELPERS-6", "CF-HELPERS-7"])
       expect(helperLaws).toContain(id);
+    // CF-HELPERS-11/12 (cursor-ci-speed part A, DEC-488, INC-1324): the same file judges the node
+    // mint's first verify and the wait between a screen sign-out and a session write.
+    for (const id of ["CF-HELPERS-11", "CF-HELPERS-12"]) expect(helperLaws).toContain(id);
     // lockfile-hosts.test.ts CF-LOCK-1…2 (the lockfile turn, DEC-363) is discovered by test:unit's
     // scripts/**/*.test.ts; it reads bun.lock and lockfile-hosts-allowlist.txt.
     expect(
@@ -502,6 +505,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // browser-library install to scripts/ci/install-browser-deps.sh.
     expect(readFileSync(join(ROOT, "scripts/ci/install-browser-deps.test.ts"), "utf8")).toContain(
       "CF-INSTALL-6",
+    );
+    // CF-INSTALL-8/9 (cursor-ci-speed part D, INC-1323, DEC-487): the same file proves the install
+    // reads the distribution's own sources and leaves no apt file or scratch directory behind.
+    expect(readFileSync(join(ROOT, "scripts/ci/install-browser-deps.test.ts"), "utf8")).toContain(
+      "CF-INSTALL-9",
     );
     // e2e-failure-report.test.ts EFR-1 (housekeeping turn 3 Part B, INC-1101) runs the reporter's
     // in-file self-test, which ci.yml's verdict job also runs first.
@@ -530,6 +538,16 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     // explicit condition.
     expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain(
       "CF-DOCS-11",
+    );
+    // docs-only.test.ts CF-DOCS-12/13 and pr-runs.test.ts CF-PRRUN-1…5 (cursor-ci-speed part C,
+    // INC-1314) are discovered by test:unit's scripts/**/*.test.ts; ci.yml's `scope` job passes
+    // DOCS_ONLY_DRAFT to scripts/ci/docs-only.ts.
+    expect(readFileSync(join(ROOT, "scripts/ci/docs-only.test.ts"), "utf8")).toContain(
+      "CF-DOCS-13",
+    );
+    expect(readFileSync(join(ROOT, "scripts/ci/pr-runs.test.ts"), "utf8")).toContain("CF-PRRUN-5");
+    expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain(
+      "DOCS_ONLY_DRAFT",
     );
     // redact.test.ts CF-REDACT-1/2, backend-config.test.ts CF-BCFG-1/2 and ci-images.test.ts
     // CF-CI-IMG-5 (housekeeping turn 3 Part E) are discovered by test:unit's scripts/**/*.test.ts;
@@ -580,6 +598,13 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(lanesLaw).toContain("scripts/conformance/shared-value-tables.txt");
     expect(lanesLaw).toContain("scripts/conformance/shared-values-allowlist.txt");
     expect(readFileSync(join(ROOT, "scripts/ci/lane-weights.test.ts"), "utf8")).toContain("LWM-2");
+    // CF-LANES-7 and LWM-3…9 (cursor-ci-speed part B): the lanes read the weights backend-images
+    // reads from the evidence branch (scripts/ci/lane-weights-read.sh), and the reporter writes them.
+    expect(lanesLaw).toContain("CF-LANES-7");
+    expect(readFileSync(join(ROOT, "scripts/ci/lane-weights.test.ts"), "utf8")).toContain("LWM-9");
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "scripts/ci/lane-weights-read.sh",
+    );
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "scripts/ci/lane-plan.ts",
     );

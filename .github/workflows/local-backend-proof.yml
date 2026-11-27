@@ -25,6 +25,8 @@ jobs:
     outputs:
       key: ${{ steps.key.outputs.key }}
       images: ${{ steps.list.outputs.images }}
+      weights: ${{ steps.weights.outputs.weights }}
+      weights_source: ${{ steps.weights.outputs.weights_source }}
     steps:
       - name: Reserve the temporary backend's ports (INC-935)
         id: reserve-the-temporary-backend-s-ports
@@ -35,6 +37,19 @@ jobs:
         timeout-minutes: 5
         with:
           persist-credentials: false
+      # DEC-375 (b), cursor-ci-speed (ruling 1, decision 3) — THE LANE WEIGHTS ONCE A RUN: the newest
+      # measured weights on ci-evidence, read at one evidence commit with the run's own read token and
+      # handed to every lane as this job's output, so every lane plans from the same copy. Nothing is
+      # installed for it. The read never fails the run: an empty output, or this step cut off, plans
+      # from the committed scripts/ci/lane-weights.json, and the plan's line says why (CF-LANES-7).
+      - name: Read the lane weights (DEC-375 b)
+        id: weights
+        timeout-minutes: 5
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: bash scripts/ci/lane-weights-read.sh
       - name: The images' cache key
         id: key
         run: |
@@ -177,6 +192,9 @@ jobs:
       # DEC-378 (a): the lanes the plan splits run two workers, since no scratch row moves a shared
       # value there (INC-1136, CF-LANES-4); the serial, e-mail, WebKit and repeat lanes run one. CF-LANES-3.
       E2E_WORKERS: ${{ (matrix.lane == 'smoke' || matrix.lane == 'email' || matrix.lane == 'webkit' || matrix.lane == 'repeat') && '1' || '2' }}
+      # cursor-ci-speed: the run's one copy of the lane weights and where it came from (backend-images).
+      LANE_WEIGHTS: ${{ needs.backend-images.outputs.weights }}
+      LANE_WEIGHTS_SOURCE: ${{ needs.backend-images.outputs.weights_source }}
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"
@@ -242,7 +260,8 @@ jobs:
           # DEC-375 (b): the budget is the slowest planned lane's seconds at one worker, so this job
           # ends within that lane's (scripts/ci/lane-plan.ts, the same plan every lane computes).
           bunx playwright test --list --reporter=json --project=mobile-360 --project=desktop-1280 > "$RUNNER_TEMP/chromium-list.json"
-          REPEAT_BUDGET_SECONDS=$(bun scripts/ci/lane-plan.ts --list "$RUNNER_TEMP/chromium-list.json" --repeat-budget)
+          printf '%s' "$LANE_WEIGHTS" > "$RUNNER_TEMP/lane-weights.json"
+          REPEAT_BUDGET_SECONDS=$(bun scripts/ci/lane-plan.ts --list "$RUNNER_TEMP/chromium-list.json" --weights "$RUNNER_TEMP/lane-weights.json" --weights-source "$LANE_WEIGHTS_SOURCE" --repeat-budget)
           REPEAT_SECONDS_PER_TEST=4.7
           # INC-967: "<rank> <spec>" lines — rank 1 the specs this push changed, rank 2 the importers of a changed helper.
           ranked=$(bun run scripts/e2e-select.ts --repeat --ranks)
@@ -883,7 +902,8 @@ jobs:
           else
             # DEC-375 (b): the lane's spec files by measured time (scripts/ci/lane-plan.ts, CF-LANES-1 → 3).
             bunx playwright test --list --reporter=json --project=mobile-360 --project=desktop-1280 > "$RUNNER_TEMP/chromium-list.json"
-            if plan=$(bun scripts/ci/lane-plan.ts --list "$RUNNER_TEMP/chromium-list.json" --lane "$PROOF_LANE" --out "$RUNNER_TEMP/lane-files.txt"); then
+            printf '%s' "$LANE_WEIGHTS" > "$RUNNER_TEMP/lane-weights.json"
+            if plan=$(bun scripts/ci/lane-plan.ts --list "$RUNNER_TEMP/chromium-list.json" --weights "$RUNNER_TEMP/lane-weights.json" --weights-source "$LANE_WEIGHTS_SOURCE" --lane "$PROOF_LANE" --out "$RUNNER_TEMP/lane-files.txt"); then
               { echo "PLAN_LINE=$(printf '%s\n' "$plan" | sed -n 1p)"; echo "PLAN_SUMMARY=$(printf '%s\n' "$plan" | sed -n 2p)"; } >> "$GITHUB_ENV"
               bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --test-list "$RUNNER_TEMP/lane-files.txt" > "local-backend-lane-$PROOF_LANE.log" 2>&1
             else
