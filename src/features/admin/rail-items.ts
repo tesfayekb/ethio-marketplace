@@ -1,5 +1,6 @@
 import {
   BadgeDollarSign,
+  Bug,
   ClipboardCheck,
   Coins,
   Flag,
@@ -47,6 +48,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   users: Users,
   roles: ShieldCheck,
   audit: ScrollText,
+  errors: Bug,
   locations: MapPin,
   countries: Flag,
   categories: FolderTree,
