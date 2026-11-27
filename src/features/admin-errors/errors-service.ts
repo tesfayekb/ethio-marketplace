@@ -208,36 +208,37 @@ export function errorOccurrencesOf(raw: unknown): ErrorOccurrences {
 export function errorStatsOf(raw: unknown): ErrorStats {
   const door = "admin_error_stats";
   const answer = fieldsOf(raw);
-  const list = (key: string): Fields[] => {
+  const list = (key: string): Array<{ row: Fields; total: number }> => {
     const value = answer?.[key];
     if (!Array.isArray(value)) throw outOfShape(door);
     return value.map((item) => {
-      const fields = fieldsOf(item);
-      if (fields === null || count(fields["count"]) === null) throw outOfShape(door);
-      return fields;
+      const row = fieldsOf(item);
+      const total = row === null ? null : count(row["count"]);
+      if (row === null || total === null) throw outOfShape(door);
+      return { row, total };
     });
   };
-  const days = list("days").map((row) => {
+  const days = list("days").map(({ row, total }) => {
     const day = text(row["day"]);
     const kind = kindOf(row["kind"]);
     if (day === null || kind === null) throw outOfShape(door);
-    return { day, kind, count: count(row["count"]) ?? 0 };
+    return { day, kind, count: total };
   });
-  const pages = list("pages").map((row) => {
+  const pages = list("pages").map(({ row, total }) => {
     const path = text(row["path"]);
     if (path === null) throw outOfShape(door);
-    return { path, count: count(row["count"]) ?? 0 };
+    return { path, count: total };
   });
-  const browsers = list("browsers").map((row) => {
+  const browsers = list("browsers").map(({ row, total }) => {
     const browser = textOrNull(row["browser"]);
     const version = textOrNull(row["version"]);
     if (browser === undefined || version === undefined) throw outOfShape(door);
-    return { browser, version, count: count(row["count"]) ?? 0 };
+    return { browser, version, count: total };
   });
-  const versions = list("versions").map((row) => {
+  const versions = list("versions").map(({ row, total }) => {
     const appVersion = textOrNull(row["app_version"]);
     if (appVersion === undefined) throw outOfShape(door);
-    return { appVersion, count: count(row["count"]) ?? 0 };
+    return { appVersion, count: total };
   });
   return { days, pages, browsers, versions };
 }
