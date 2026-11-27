@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
-import { knownKind } from "./error-labels";
-import { errorsSearch } from "./errors-search";
+import { knownKind } from "@/features/admin-errors/error-labels";
+import { errorsSearch } from "@/lib/errors-search";
 
 it("ERP-9 the address keeps an offered window (else 7) and a kind-shaped word; knownKind narrows it", () => {
   expect(errorsSearch({ days: "30" })).toEqual({ days: 30 });

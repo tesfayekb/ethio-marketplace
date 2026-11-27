@@ -257,8 +257,13 @@ export const AREAS: Area[] = [
       "src/components/shell/failure-reason.ts",
       "src/routes/api/error-reports.ts",
       "src/server/error-reports.ts",
+      // INC-1331 (cursor bundle 8c-1) — the staff pages that read the reports.
+      "src/features/admin-errors/**",
+      "src/lib/errors-search.ts",
+      "src/routes/admin.errors.tsx",
+      "src/routes/admin.errors_.$group.tsx",
     ],
-    specs: ["e2e/error-reports.spec.ts"],
+    specs: ["e2e/error-reports.spec.ts", "e2e/admin-errors.spec.ts"],
   },
   {
     name: "components",

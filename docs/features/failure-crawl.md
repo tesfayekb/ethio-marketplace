@@ -70,7 +70,7 @@ turn, which retires the line.
 - **FCJ-1…12** (`src/test/failure-crawl.test.ts`): the judge's readings, with a planted page
   answer that swallows a failure (FCJ-3), the per-failure, per-audience and shell-wide lines,
   and a reported defect's line against a designed one.
-- The crawl itself: FCR-1…78 (58 rows), one test a page and audience
+- The crawl itself: FCR-1…80 (60 rows), one test a page and audience
   (`e2e/helpers/crawl-pages.ts`).
 
 ## It misses

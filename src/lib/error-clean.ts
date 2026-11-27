@@ -15,6 +15,10 @@ export type ErrorKind = (typeof ERROR_KINDS)[number];
 export const BROWSER_KINDS = ["notice", "crash", "unhandled"] as const;
 export type BrowserKind = (typeof BROWSER_KINDS)[number];
 
+/** The device classes a report carries (DEC-474 Part F); read by the schema, the sender and the staff readers. */
+export const DEVICES = ["phone", "tablet", "desktop"] as const;
+export type Device = (typeof DEVICES)[number];
+
 export const MESSAGE_MAX = 500;
 export const PLACE_MAX = 300;
 export const PATH_MAX = 300;

@@ -1,7 +1,7 @@
 import { rpc } from "@/lib/supabase-door";
 import { ERROR_KINDS, type ErrorKind } from "@/lib/error-clean";
 import { readFailed } from "@/lib/reader-failure";
-import { DEVICES, type Device } from "@/lib/schemas/error-report";
+import { DEVICES, type Device } from "@/lib/error-clean";
 
 /**
  * DEC-474 Part F — THE ERROR REPORTS' CLIENT READERS, over the three staff doors (`errors:view`):

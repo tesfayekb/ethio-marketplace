@@ -1,10 +1,8 @@
 import type { MessageKey } from "@/i18n";
-import { ERROR_KINDS, type ErrorKind } from "@/lib/error-clean";
-import type { Device } from "@/lib/schemas/error-report";
+import { ERROR_KINDS, type Device, type ErrorKind } from "@/lib/error-clean";
+import type { ErrorWindow } from "@/lib/errors-search";
 
-import type { ErrorWindow } from "./errors-search";
-
-export { DEFAULT_WINDOW, ERROR_WINDOWS, type ErrorWindow } from "./errors-search";
+export { DEFAULT_WINDOW, ERROR_WINDOWS, type ErrorWindow } from "@/lib/errors-search";
 
 /** Each kind's words, as staff read them. */
 export const KIND_WORDS: Readonly<Record<ErrorKind, MessageKey>> = {

@@ -6,6 +6,13 @@ import { SCRATCH_PREFIXES } from "./scratch";
 import { adminClient } from "./users";
 
 /**
+ * A group key of the doors' shape (32 lowercase hex) that no report holds: the staff Errors
+ * page for it asks the doors for its reports on every load, and draws its empty state — no row is
+ * seeded, so nothing is left to remove (INC-1331).
+ */
+const NO_ERROR_GROUP = "0".repeat(32);
+
+/**
  * DEC-459 (c) — THE FAILURE CRAWL'S ADDRESSES: a route's params filled from the test's own
  * scratch rows (a seller with a public name, a category branch and a place; an ad of that seller;
  * a published version of a scratch legal kind, which no gate reads) or, for a reference row the
@@ -153,6 +160,8 @@ export function crawlFixtures() {
         return `/admin/roles/${await referenceId("roles", "name", "user")}`;
       case "/admin/legal/edit":
         return "/admin/legal/edit?kind=terms";
+      case "/admin/errors/$group":
+        return `/admin/errors/${NO_ERROR_GROUP}`;
       case "/admin/translations/$lang":
         return `/admin/translations/${await staffLanguage()}`;
       default:

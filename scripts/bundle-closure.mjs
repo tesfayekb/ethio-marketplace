@@ -296,14 +296,19 @@ export function moduleCensus({ record, listed, exists, group = "shared-shell" })
   return failures;
 }
 
-/** The modules of the admin feature (src/features/admin/), by their module key. */
-const ADMIN_MODULE = /^src\/features\/admin\//;
+/**
+ * The modules of the admin features, by their module key: src/features/admin/ and every sibling
+ * folder whose name begins `admin-` (admin-errors, admin-users, …) — INC-1330, BC-18. The staff
+ * code of a feature the layout does not own is admin code too; a folder that only starts with the
+ * letters (`administrative/`) is not one.
+ */
+const ADMIN_MODULE = /^src\/features\/admin(?:-[a-z0-9][a-z0-9-]*)?\//;
 
 /**
  * BC-16 (housekeeping turn 4, INC-1042) — THE PUBLIC FIRST DOWNLOAD CARRIES NO ADMIN CODE.
  * `record` is the build's chunk → module keys, `closureNames` the entry's closure (file
- * names). Answers every module under src/features/admin/ that a chunk of the closure
- * holds, with its chunk, sorted by module.
+ * names). Answers every module under src/features/admin/ or src/features/admin-<name>/ that a
+ * chunk of the closure holds, with its chunk, sorted by module.
  */
 export function entryAdminModules(record, closureNames) {
   const closure = new Set(closureNames);

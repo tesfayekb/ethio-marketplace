@@ -1,14 +1,11 @@
 import { z } from "zod";
 
-import { BROWSER_KINDS, MESSAGE_MAX, PATH_MAX, PLACE_MAX } from "@/lib/error-clean";
+import { BROWSER_KINDS, DEVICES, MESSAGE_MAX, PATH_MAX, PLACE_MAX } from "@/lib/error-clean";
 
 export { ERROR_REPORTS_PATH } from "@/lib/error-clean";
 
 /** DEC-474 Part F — the report route's byte ceiling (read before the body is). */
 export const ERROR_REPORT_MAX_BYTES = 4096;
-
-export const DEVICES = ["phone", "tablet", "desktop"] as const;
-export type Device = (typeof DEVICES)[number];
 
 /** A length in characters (code points), as the table's `char_length` counts it. */
 const text = (min: number, max: number) =>

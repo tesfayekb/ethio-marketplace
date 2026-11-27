@@ -1,7 +1,8 @@
 /**
  * The Errors pages' address. This file rides in the entry every page downloads (a route's
  * `validateSearch` is not split), so it imports nothing: the windows live here, and a kind is checked
- * by its shape only. The page narrows it to a known kind (`knownKind`, error-labels.ts).
+ * by its shape only. The page narrows it to a known kind (`knownKind`, features/admin-errors/error-labels.ts).
+ * INC-1330: a pure utility, so it lives in src/lib — the entry carries no admin-folder module (BC-16, BC-18).
  */
 
 /** The windows offered, in days; 7 by default. */

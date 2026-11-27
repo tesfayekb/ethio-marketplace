@@ -175,6 +175,16 @@
         "tests": 9
       }
     },
+    "admin-errors.spec.ts": {
+      "mobile-360": {
+        "seconds": 15.7,
+        "tests": 2
+      },
+      "desktop-1280": {
+        "seconds": 16.5,
+        "tests": 2
+      }
+    },
     "admin-guides.spec.ts": {
       "desktop-1280": {
         "seconds": 34.3,
