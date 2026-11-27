@@ -836,3 +836,34 @@ clean, and a change of `SUPABASE_CLI_VERSION` re-reads the shape. A finding name
 seconds (DEC-472's frozen judge: at most 60 s over the first ten smoke runs). Test:
 `scripts/ci/advisor-lints.test.ts` (CF-ADVISOR-1a → 1f), its caller named in
 `scripts/conformance/wired.test.ts`.
+
+## cursor-ci-speed — lanes planned from fresh measured times; the libraries from the sources they need (INC-1323, DEC-487)
+
+The lane plan's weights are read once per run: the `backend-images` job's step "Read the lane weights
+(DEC-375 b)" runs `scripts/ci/lane-weights-read.sh` (the run's token, `with-deadline.sh` 60 s and two
+tries per read, `continue-on-error`, no install). It reads branch `ci-evidence` at one commit, lists
+every `docs/tracking/lane-weights.json` and `docs/tracking/branches/<ref>/lane-weights.json` there,
+takes the newest run's (`source.run`), and hands it to every lane as the job outputs `weights` and
+`weights_source`. Each lane writes it to `$RUNNER_TEMP/lane-weights.json` and runs
+`lane-plan.ts --weights <file> --weights-source <line>`; the repeat lane's budget reads the same copy.
+The read never fails the run: no answer, no file, or a copy of another shape falls back to the
+committed `scripts/ci/lane-weights.json`, and the plan line names the source and the reason. The
+verdict job writes `docs/tracking/lane-weights.json` (`runWeights`, `scripts/ci/lane-weights.ts`)
+only when the merged verdict is green and all 16 numbered lanes completed with results;
+`publish-evidence.sh` publishes it with the run's other files. The lanes' measured spread against the
+25 % limit is a finding line in the run's summary and the failure file, never a verdict. Guards:
+CF-LANES-7 (the wiring), LWM-3 → 9.
+
+The browser's system libraries no longer depend on a source they do not need: on 27 Nov run
+46000329861's Lane 10 lost its install to `packages.microsoft.com` answering 403 (`E: The repository
+… is no longer signed.` stops apt's update). After the mirror probe, `install-browser-deps.sh` copies
+`ubuntu.sources` (as the probe left it) into a scratch directory and writes one apt file of its own,
+`apt.conf.d/99ci-browser-deps-sources`, naming it as `Dir::Etc::sourceparts`; `sources.list` stays
+as it is. `playwright install-deps` (its `apt-get update` and `install`) then reads only the
+distribution's sources; the table line `ci-mirror sources: the install reads ubuntu.sources only;
+left out: <lists>` names the rest. No runner file is edited or deleted; a trap removes the apt file
+and the scratch directory on every exit, and a leftover apt file is overwritten. The probe, the
+deadline and the one retry are unchanged. CF-INSTALL-8 (red on the base script, over the captured
+403 output `scripts/fixtures/install-deps-third-party-403.txt`) and CF-INSTALL-9 (nothing left after
+a success, a failure, or a stop before the install). The certificate tools' `apt-get update`
+(`local-backend-proof.yml`, the lane's certificate step) still reads every list.

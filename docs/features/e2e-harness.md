@@ -666,6 +666,13 @@ per lane. Guards: CF-LANES-1 → 4 (`scripts/conformance/lanes.test.ts`, the one
 lanes in `lanes-allowlist.txt`) and LWM-1/2 (`scripts/ci/lane-weights.test.ts`). The
 weights are refreshed by running the maker on a newer green run when they are the
 cause of a lane more than 25 % over the mean.
+Since cursor-ci-speed the plan reads the newest measured weights: a green run whose 16
+numbered lanes all completed with results writes `docs/tracking/lane-weights.json` to its
+evidence, `backend-images` reads the newest one once per run and hands it to the lanes
+(`--weights`, `--weights-source`), and the committed file is the fallback the plan line
+names with its reason (docs/features/ci-local-backend.md). The lanes' measured spread is
+a finding line, `- Measured lane spread (DEC-375 b): …`, in the run's summary and the
+failure file, never a verdict. Guards: CF-LANES-7, LWM-3 → 9.
 Since housekeeping turn 3c (INC-1107) the E2E report's head carries the lane's
 coverage — `- Repeat: <U> of <T> tests repeated — specs directly changed <a>/<b>,
 importers of a changed helper <c>/<d>; budget <B> s` — wherever `repeat` is an

@@ -400,6 +400,11 @@ and `e2e-last-failure.md` always describe HEAD.
 
 **DEC-181 (2026-10-14) — runs queue; this section is the later word on the one above.** `cancel-in-progress: false`: a run that has started always finishes. GitHub keeps one run waiting in the group and replaces it with each newer push's, so the platform's commits still collapse into the newest; the replaced run never starts and is reported CANCELLED at once, so `ci-status.md` can name that commit for a while before the run in progress reports. Every run tests the whole suite, so the next completed run judges every commit before it. Runs in one group never overlap; each report names the commit its run tested (DEC-098), the reader compares it with the head, and every report is a commit on branch `ci-evidence`, so its history lists the runs in order. The promote job is unchanged: runs finish in order, so main only moves forward. Why (the operator, 2026-10-14): every turn waited for its whole run (30–60 minutes) before the next could start, because any push cancelled the run in flight and lost its verdict. Now the next turn starts at once; the supervisor reads each run as it lands, a red is fixed first in the next prompt, and Publish waits for a green run on the head. The rule frozen with it: over the next ten turns, keep it if no run is cancelled while it runs and no turn waits for CI; go back to cancelling if a run is cancelled while it runs, or a completed run publishes no report.
 
+**cursor-ci-speed (ruling 1, decision 4 a) — a pull request's newer push cancels its run.**
+`cancel-in-progress: ${{ github.event_name == 'pull_request' }}`: a pull request's group is its own
+ref (`refs/pull/<n>/merge`), and an older head is never merged, so its run judges nothing; dev's runs
+still queue as DEC-181 says. CF-PRRUN-1 (`scripts/ci/pr-runs.test.ts`).
+
 ### Fixture ownership under sharding (INC-080, 2026-08-17)
 
 Every parallel test process derives
@@ -1288,14 +1293,23 @@ The job's outputs are `docs_only` ("the code tree is proven"; the name stays for
 
 - `skipped — the code tree was proven by run <id> (<event>, <ref>, head <sha7>)`
 - `ran — no proven code tree: <reason>` (the tree could not be read, a named read failed, or no
-  green ci.yml run of this repository holds the index, with the count read).
+  green ci.yml run of this repository holds the index, with the count read and, since
+  cursor-ci-speed (INC-1314), each run read and what it was: `<id> not green`, `<id> still
+running` or `<id> not ci.yml`). A run still running at the lookup proves nothing; the line names
+  it (CF-DOCS-12, and CF-DOCS-13 on the 8a stop-1 case's captured reads).
+- `skipped: draft pull request` (cursor-ci-speed, ruling 1, decision 4 b): a `pull_request` event
+  whose pull request is a draft (`DOCS_ONLY_DRAFT`, from `github.event.pull_request.draft`) answers
+  `docs_only` with this line before any lookup and uploads no index, so its lanes and the bundle
+  budget skip and its run proves no tree; a push never takes it. The workflow's `pull_request`
+  types add `ready_for_review`, so marking the pull request ready starts the run that judges it.
+  CF-PRRUN-2 → 5.
 
 When proven: `e2e-lanes` and `bundle-budget` do not run; the verdict job writes
 `docs/tracking/e2e-last-failure.md` in its skipped form (`last E2E run <id> ran no lanes — the code
 tree was proven by run <id>` and `- Lanes: skipped — …`), reads no source, appends no ledger line,
 and passes; the status reporter lists the two jobs as `skipped (proven tree)` with the `- Lanes:`
 line under the run's URL; `promote` reads the explicit condition above. Otherwise every report
-carries the `- Lanes: ran — …` line. Guards: CF-DOCS-1…10 (`scripts/ci/docs-only.test.ts`, on the
+carries the `- Lanes: ran — …` line. Guards: CF-DOCS-1…13 (`scripts/ci/docs-only.test.ts`, on the
 Actions API's real answers under `scripts/fixtures/docs-only/` and real `git ls-tree` output of a
 scratch repository; CF-DOCS-10 proves the skipped line meets both readers), `check-promote-needs.sh`
 with its planted fixture, and the reporter's DEC-365 self-test.
