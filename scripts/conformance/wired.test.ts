@@ -273,6 +273,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/failure-crawl.test.ts"), "utf8")).toContain(
       "CFC-5",
     );
+    // user-facing.test.ts CF-UF-1…5 (cursor bundle 8c-1, INC-1278, DEC-493) reads the user-facing list
+    // and its allowlist against the tests' titles and the page routes; discovered by the same glob.
+    expect(readFileSync(join(ROOT, "scripts/conformance/user-facing.test.ts"), "utf8")).toContain(
+      "CF-UF-5",
+    );
     // changed-tests.test.ts CF-ALONE-1…3 (cursor bundle 8a, INC-1306) proves the selection of
     // changed-tests.ts, which the component job's "Changed test files, each alone" step runs.
     expect(readFileSync(join(ROOT, "scripts/conformance/changed-tests.test.ts"), "utf8")).toContain(
