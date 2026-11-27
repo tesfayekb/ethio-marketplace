@@ -3,7 +3,7 @@ import type { Page, TestInfo } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
-import { RUN } from "./helpers/posting";
+import { RUN, stopPageBeforePurge } from "./helpers/posting";
 import { SCRATCH_PREFIXES } from "./helpers/scratch";
 import { gotoReady } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
@@ -19,7 +19,9 @@ import { adminClient } from "./helpers/users";
  * (src/lib/error-clean.ts) keeps it whole and the read matches it literally.
  * Each test's report is counted on its own address meter (`x-e2e-catalog-find-key`), so the
  * lanes' shared address never refuses it. DB truth via the service client (J4); every row the tag
- * names and the meter's row are removed by id in afterEach by a destroy that throws (J3).
+ * names and the meter's row are removed by id in afterEach by a destroy that throws (J3). The page
+ * lives until after afterEach and its sender downloads on demand, so a report can still be posted
+ * while the hook reads: the hook stops the page first (`stopPageBeforePurge`, INC-323).
  * error_reports has no reaper sweep (the setup's sweeps take no table by option): a run that dies
  * before its afterEach leaves its rows behind.
  */
@@ -78,7 +80,8 @@ async function failFeed(page: Page, tag: string, status: number): Promise<string
 test.describe("our own error reports (DEC-474 Part F)", () => {
   const tags: string[] = [];
 
-  test.afterEach(async () => {
+  test.afterEach(async ({ page }) => {
+    await stopPageBeforePurge(page);
     const supabase = adminClient();
     for (const tag of tags.splice(0)) {
       const ids = (await reportRows(tag)).map((row) => row.id);

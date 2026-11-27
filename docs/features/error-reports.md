@@ -120,4 +120,6 @@ The browser proof is `e2e/error-reports.spec.ts`:
 - ER-2: a 403 draws the refusal and sends nothing.
 
 Each test's rows carry an `e2e-` tag in the message. They are removed by id in `afterEach`, along
-with the test's own address-meter row.
+with the test's own address-meter row, after the hook stops the page (`stopPageBeforePurge`,
+INC-323): the page lives until after `afterEach` and its sender downloads on demand, so a report
+could otherwise be written after the hook read the tag's rows.
