@@ -28,6 +28,14 @@
 # (`chromium webkit`); none means chromium. A name beyond chromium and webkit is refused before any
 # probe, so a typo never installs nothing quietly. Every browser a job's Playwright projects name
 # is installed in that job (CF-CID-8).
+# INC-1323 (cursor-ci-speed, DEC-487) — THE LIBRARIES COME FROM THE DISTRIBUTION'S OWN SOURCES. A
+# source list the runner image carries and the libraries do not need (packages.microsoft.com
+# answered 403, run 46000329861) fails apt's update for every lane. After the probe, apt reads, for
+# this install only, a copy of ubuntu.sources in a scratch directory: one apt file of the script's
+# own, apt.conf.d/99ci-browser-deps-sources, names it as `Dir::Etc::sourceparts` (sources.list stays
+# as it is). Every other list is left out and named; no runner file is edited or deleted. The apt
+# file and the scratch directory are removed on every exit (the trap); a leftover apt file from an
+# earlier attempt is overwritten.
 set -u
 browsers=("$@")
 if [ "${#browsers[@]}" -eq 0 ]; then browsers=(chromium); fi
@@ -51,8 +59,23 @@ waits=5
 sources="$root/etc/apt/sources.list.d/ubuntu.sources"
 mirrors="$root/etc/apt/apt-mirrors.txt"
 public_hosts="archive.ubuntu.com security.ubuntu.com"
+sources_conf="$root/etc/apt/apt.conf.d/99ci-browser-deps-sources"
+scratch=""
 log=$(mktemp)
-trap 'rm -f "$log"' EXIT
+
+cleanup() {
+  rm -f "$log"
+  if [ -n "$scratch" ]; then rm -rf "$scratch"; fi
+  if [ -e "$sources_conf" ]; then
+    if [ -w "$(dirname "$sources_conf")" ]; then
+      rm -f "$sources_conf"
+    else
+      sudo rm -f "$sources_conf"
+    fi
+  fi
+}
+trap cleanup EXIT
+trap 'exit 143' TERM INT HUP
 
 mode=none
 if [ -f "$sources" ]; then
@@ -234,6 +257,36 @@ apt_timeouts() {
   rm -f "$tmp"
 }
 
+# apt reads, for this install, only the distribution's own sources: a copy of ubuntu.sources (as the
+# probe left it) in the scratch directory, which the script's own apt file names as sourceparts.
+own_sources() {
+  local tmp dir other
+  if [ -z "$scratch" ]; then
+    if ! scratch=$(mktemp -d "${TMPDIR:-/tmp}/ci-browser-deps-sources.XXXXXX"); then
+      scratch=""
+      echo "::error title=ci-mirror::no scratch directory for apt's sources"
+      return 1
+    fi
+    chmod 755 "$scratch"
+  fi
+  rm -f "$scratch"/*
+  if [ -f "$sources" ]; then cp "$sources" "$scratch/ubuntu.sources"; fi
+  chmod 644 "$scratch"/* 2> /dev/null
+  tmp=$(mktemp)
+  printf 'Dir::Etc::sourceparts "%s";\n' "$scratch" > "$tmp"
+  dir=$(dirname "$sources_conf")
+  if [ -w "$dir" ]; then
+    cat "$tmp" > "$sources_conf"
+  elif ! sudo cp "$tmp" "$sources_conf"; then
+    echo "::warning title=ci-mirror::apt's source scope could not be written to $sources_conf — the install reads every source list"
+    rm -f "$tmp"
+    return 0
+  fi
+  rm -f "$tmp"
+  other=$(find "$(dirname "$sources")" -mindepth 1 -maxdepth 1 ! -name ubuntu.sources -exec basename {} \; 2> /dev/null | sort | tr '\n' ' ')
+  echo "ci-mirror sources: the install reads ubuntu.sources only; left out: ${other:-none}"
+}
+
 # Probes, waits while nothing resolves (at most $1 more probes), then drops what does not.
 prepare() {
   local more=$1 n=0
@@ -251,6 +304,7 @@ prepare() {
   drop
   throughput
   apt_timeouts
+  own_sources
 }
 
 install() {

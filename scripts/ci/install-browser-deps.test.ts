@@ -1,5 +1,14 @@
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -17,6 +26,10 @@ import { afterEach, describe, expect, it } from "vitest";
 const SCRIPT = "scripts/ci/install-browser-deps.sh";
 const SUCCESS = readFileSync("scripts/fixtures/install-deps-success.txt", "utf8");
 const FETCH_FAILURE = readFileSync("scripts/fixtures/install-deps-fetch-failure.txt", "utf8");
+// INC-1323 — run 46000329861 attempt 1, Lane 10 (job 140510205274), the install step's output from
+// "Installing dependencies..." to the exit line, cut by script from `gh run view --job --log`.
+const THIRD_PARTY_403 = readFileSync("scripts/fixtures/install-deps-third-party-403.txt", "utf8");
+const SOURCES_CONF = "apt.conf.d/99ci-browser-deps-sources";
 const MIRROR_LIST = [
   "http://azure.archive.ubuntu.com/ubuntu/\tpriority:1",
   "https://archive.ubuntu.com/ubuntu/\tpriority:2",
@@ -41,7 +54,14 @@ type Setup = {
   args?: string[];
   /** Each host's download speed in bytes a second, the fake `curl`'s answer; a host not named is fast; 0 answers nothing (INC-1277). */
   speeds?: Record<string, number>;
+  /** INC-1323 — the runner's third-party list (microsoft-prod.list) sits in sources.list.d. */
+  thirdParty?: boolean;
+  /** INC-1323 — an earlier attempt's apt file is left behind, naming a directory that is gone. */
+  leftover?: boolean;
 };
+
+const THIRD_PARTY_LIST =
+  "deb [arch=amd64,arm64,armhf] https://packages.microsoft.com/ubuntu/24.04/prod noble main\n";
 
 const roots: string[] = [];
 afterEach(() => {
@@ -60,10 +80,17 @@ function install(setup: Setup) {
       "Types: deb\nURIs: mirror+file:/etc/apt/apt-mirrors.txt\nSuites: noble noble-updates\n",
   );
   writeFileSync(join(apt, "apt-mirrors.txt"), MIRROR_LIST);
+  if (setup.thirdParty === true)
+    writeFileSync(join(apt, "sources.list.d/microsoft-prod.list"), THIRD_PARTY_LIST);
+  if (setup.leftover === true)
+    writeFileSync(join(apt, SOURCES_CONF), `Dir::Etc::sourceparts "${join(dir, "gone")}";\n`);
   const bin = join(dir, "bin");
   const fake = join(dir, "fake");
+  const temp = join(dir, "tmp");
   mkdirSync(bin);
   mkdirSync(fake);
+  mkdirSync(temp);
+  writeFileSync(join(fake, "out.403"), THIRD_PARTY_403);
   writeFileSync(join(fake, "resolves"), `${setup.resolves.join("\n")}\n`);
   setup.runs.forEach((run, i) => {
     writeFileSync(join(fake, `out.${i + 1}`), run.out);
@@ -87,6 +114,14 @@ function install(setup: Setup) {
       `n=$(( $(cat "${fake}/runs" 2>/dev/null || echo 0) + 1 ))`,
       `echo "$n" > "${fake}/runs"`,
       `echo "$*" >> "${fake}/args"`,
+      // apt's source lists: the sourceparts directory the script's own apt file names, else the
+      // runner's; a third-party list there answers as run 46000329861's Lane 10 did (INC-1323).
+      `conf="$INSTALL_DEPS_ROOT/etc/apt/${SOURCES_CONF}"`,
+      'parts="$INSTALL_DEPS_ROOT/etc/apt/sources.list.d"',
+      `if [ -f "$conf" ]; then parts=$(sed -n 's/^Dir::Etc::sourceparts "\\(.*\\)";$/\\1/p' "$conf"); fi`,
+      `ls "$parts" > "${fake}/parts.$n" 2>/dev/null`,
+      `cat "$parts/ubuntu.sources" > "${fake}/seen.$n" 2>/dev/null`,
+      `if [ -e "$parts/microsoft-prod.list" ]; then cat "${fake}/out.403"; exit 1; fi`,
       `cat "${fake}/out.$n"`,
       `exit "$(cat "${fake}/code.$n")"`,
       "",
@@ -122,6 +157,7 @@ function install(setup: Setup) {
       PATH: `${bin}:${process.env.PATH ?? ""}`,
       INSTALL_DEPS_ROOT: join(dir, "root"),
       INSTALL_DEPS_PAUSE: "0",
+      TMPDIR: temp,
     },
     timeout: 20_000,
   });
@@ -159,7 +195,28 @@ function install(setup: Setup) {
       }
     })(),
     sources: readFileSync(join(apt, "sources.list.d/ubuntu.sources"), "utf8"),
+    /** Per install run: the source lists apt read, and the ubuntu.sources it read. */
+    parts: Array.from({ length: runs }, (_, i) =>
+      readOr(join(fake, `parts.${String(i + 1)}`))
+        .trim()
+        .split("\n"),
+    ),
+    seen: Array.from({ length: runs }, (_, i) => readOr(join(fake, `seen.${String(i + 1)}`))),
+    /** The runner's own lists after the run, by name. */
+    runnerLists: readdirSync(join(apt, "sources.list.d")).sort(),
+    thirdParty: readOr(join(apt, "sources.list.d/microsoft-prod.list")),
+    /** What the script leaves behind: its apt file, and its scratch directories. */
+    confLeft: existsSync(join(apt, SOURCES_CONF)),
+    scratchLeft: readdirSync(temp).filter((name) => name.startsWith("ci-browser-deps-sources")),
   };
+}
+
+function readOr(path: string): string {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return "";
+  }
 }
 
 describe("the browser's system libraries survive one apt mirror (INC-1101, DEC-366)", () => {
@@ -372,5 +429,80 @@ describe("the browser's system libraries survive one apt mirror (INC-1101, DEC-3
       `https://${ARCHIVE}/ubuntu/dists/noble/InRelease`,
       `https://${SECURITY}/ubuntu/dists/noble/InRelease`,
     ]);
+  });
+
+  it("CF-INSTALL-8 a third-party source that answers 403 does not stop the install: apt reads the distribution's own sources only (INC-1323)", () => {
+    const hosts = [AZURE, ARCHIVE, SECURITY];
+    const got = install({ resolves: hosts, thirdParty: true, runs: [{ out: SUCCESS, code: 0 }] });
+    expect(got.code).toBe(0);
+    expect(got.runs).toBe(1);
+    expect(got.parts).toEqual([["ubuntu.sources"]]);
+    expect(got.seen).toEqual([got.sources]);
+    expect(got.out).toContain(
+      "ci-mirror sources: the install reads ubuntu.sources only; left out: microsoft-prod.list",
+    );
+    // No runner file is edited or deleted.
+    expect(got.runnerLists).toEqual(["microsoft-prod.list", "ubuntu.sources"]);
+    expect(got.thirdParty).toBe(THIRD_PARTY_LIST);
+    expect(got.mirrors).toBe(MIRROR_LIST);
+
+    // The plain deb822 form: apt reads ubuntu.sources as the probe left it (its host swapped).
+    const sources = `Types: deb\nURIs: http://${AZURE}/ubuntu/\nSuites: noble\n`;
+    const swapped = install({
+      resolves: [ARCHIVE],
+      sources,
+      thirdParty: true,
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(swapped.code).toBe(0);
+    expect(swapped.sources).toContain(`URIs: http://${ARCHIVE}/ubuntu/`);
+    expect(swapped.seen).toEqual([swapped.sources]);
+
+    // A fetch-stage retry reads the same scope.
+    const twice = install({
+      resolves: hosts,
+      thirdParty: true,
+      runs: [
+        { out: FETCH_FAILURE, code: 1 },
+        { out: SUCCESS, code: 0 },
+      ],
+    });
+    expect(twice.code).toBe(0);
+    expect(twice.parts).toEqual([["ubuntu.sources"], ["ubuntu.sources"]]);
+  });
+
+  it("CF-INSTALL-9 the script's apt file and scratch directory are gone after a success and after a failure; a leftover is overwritten", () => {
+    const hosts = [AZURE, ARCHIVE, SECURITY];
+    const success = install({
+      resolves: hosts,
+      thirdParty: true,
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(success.code).toBe(0);
+    expect([success.confLeft, success.scratchLeft]).toEqual([false, []]);
+
+    const failure = install({
+      resolves: hosts,
+      thirdParty: true,
+      runs: [{ out: `${FETCH_FAILURE}${SUCCESS}`, code: 100 }],
+    });
+    expect(failure.code).toBe(100);
+    expect(failure.parts).toEqual([["ubuntu.sources"]]);
+    expect([failure.confLeft, failure.scratchLeft]).toEqual([false, []]);
+
+    const leftover = install({
+      resolves: hosts,
+      thirdParty: true,
+      leftover: true,
+      runs: [{ out: SUCCESS, code: 0 }],
+    });
+    expect(leftover.code).toBe(0);
+    expect(leftover.parts).toEqual([["ubuntu.sources"]]);
+    expect([leftover.confLeft, leftover.scratchLeft]).toEqual([false, []]);
+
+    // Nothing resolves: the script stops before the install and still leaves nothing behind.
+    const down = install({ resolves: [], downCalls: 99, leftover: true, runs: [] });
+    expect(down.code).toBe(1);
+    expect([down.confLeft, down.scratchLeft]).toEqual([false, []]);
   });
 });
