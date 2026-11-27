@@ -64,7 +64,7 @@ export async function writeReport(fields: ReportFields): Promise<boolean> {
     };
     const { error } = await supabaseAdmin
       // The generator types every argument non-null; the columns behind the nullable ones take
-      // JSON null for an absent value (cursor-bundle-8b ruling 1, STEP 3 step 2).
+      // JSON null for an absent value.
       .rpc("record_error_report", args as Args)
       .abortSignal(AbortSignal.timeout(WRITE_DEADLINE_MS));
     if (error === null) return true;
