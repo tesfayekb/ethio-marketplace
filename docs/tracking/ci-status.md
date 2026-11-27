@@ -1,29 +1,29 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `32f68bb9685485b4df91e17a97cb215e7c864e77` (short `32f68bb`)
+- Commit: `0a010e7027c5ef1c4db2eafc3136f974728dc3d8` (short `0a010e7`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-27T15:25:36Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/46023270935
-- Lanes: skipped — the code tree was proven by run 46000329861 (pull_request, cursor/bundle-8b, head 6ab3ae3)
+- Completed (UTC): 2026-11-27T18:49:25Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/46051304597
+- Lanes: skipped — the code tree was proven by run 46045246757 (pull_request, lovable/next, head ba6c227)
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
-| Build, typecheck, lint | success |
-| i18n used-on map is fresh (U4i ②) | success |
-| Import gate guard (with self-test) | success |
 | Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| Migration linter (with self-test) | success |
 | Listing-write seam guard (with self-test) | success |
-| Component tests | success |
+| i18n used-on map is fresh (U4i ②) | success |
 | Gitleaks secrets scan | success |
-| Hardcoded string scan (enforcing) | success |
 | Semgrep (enforcing on ERROR) | success |
-| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Build, typecheck, lint | success |
 | E2E preflight (migration parity, staging) | success |
+| Dependency vulnerability audit (enforcing on high/critical) | success |
+| Migration linter (with self-test) | success |
 | Scope (docs-only push, DEC-365) | success |
 | Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Hardcoded string scan (enforcing) | success |
+| Import gate guard (with self-test) | success |
+| Component tests | success |
 | E2E (Playwright, ethio-staging) | success |
 | First-paint bundle budget (gzipped ceiling) | skipped (proven tree) |
 | E2E lanes | skipped (proven tree) |
