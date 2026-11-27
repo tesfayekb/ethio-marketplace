@@ -433,6 +433,9 @@ export const enBase = {
   "admin.section.roles.body": "Role and permission management arrives in U2.",
   "admin.section.audit.title": "Audit & Security",
   "admin.section.audit.body": "Audit and security tools arrive in U3.",
+  "admin.section.errors.title": "Errors",
+  "admin.section.errors.body":
+    "Where the site fails: counts by day and kind, the top pages, browsers and versions, and each group of like failures with its reports.",
   "admin.section.places.title": "Places",
   "admin.section.places.body": "Regions, cities and sub-cities inside every market.",
   "admin.section.countries.title": "Countries",

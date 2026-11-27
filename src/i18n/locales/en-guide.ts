@@ -442,4 +442,48 @@ export const enGuide = {
   "admin.users.guide.how":
     "Search, filter by status and role, and page through. The row opens the person's page, where staff change the status with a reason, give or remove roles, edit the profile and start a read-only View as session — each asks for your second factor. You cannot deactivate yourself or a super admin.",
   "admin.users.guide.next": "See what each role allows.",
+  "admin.errors.guide.what":
+    "Failures the site recorded by itself, in people's browsers and on the server, for the window you choose: how many each day by kind, where they happened most, and the groups of like failures.",
+  "admin.errors.guide.col.day": "The day, counted in UTC.",
+  "admin.errors.guide.col.notice":
+    "Error notices shown to a person: a read the server could not answer.",
+  "admin.errors.guide.col.crash": "Pages that crashed and showed the error page.",
+  "admin.errors.guide.col.unhandled": "Errors in a page's code that nothing caught.",
+  "admin.errors.guide.col.route": "Server requests that failed with an error.",
+  "admin.errors.guide.col.upstream":
+    "Services outside the site, such as sign-in, that failed to answer.",
+  "admin.errors.guide.col.render": "Pages the server failed to draw.",
+  "admin.errors.guide.col.total": "All kinds together.",
+  "admin.errors.guide.col.page": "The page's address, without its query.",
+  "admin.errors.guide.col.count": "How many reports.",
+  "admin.errors.guide.col.browser":
+    "The browser and its version; Unknown when the report did not say.",
+  "admin.errors.guide.col.appVersion":
+    "The site's version that sent the report; Unknown until the site's builds carry their version.",
+  "admin.errors.guide.col.kind": "What kind of failure it was.",
+  "admin.errors.guide.col.message":
+    "The failure's message in its common form, so like failures group together.",
+  "admin.errors.guide.col.code": "The failure's code or status, when it had one.",
+  "admin.errors.guide.col.place": "Where in the site's code it started: file and line.",
+  "admin.errors.guide.col.firstSeen": "The first report in the window.",
+  "admin.errors.guide.col.lastSeen": "The latest report in the window.",
+  "admin.errors.guide.how":
+    "Choose the window and a kind, then open a group to read each report in it. Nothing here can be changed or deleted; reports are erased after 12 months.",
+  "admin.errors.guide.next": "See what staff changed around the same time.",
+  "admin.errors.reports.guide.what": "Every report in one group of like failures, newest first.",
+  "admin.errors.reports.guide.col.when": "When the report arrived.",
+  "admin.errors.reports.guide.col.message": "The failure's message, cleaned before it was stored.",
+  "admin.errors.reports.guide.col.page": "The page's address, without its query.",
+  "admin.errors.reports.guide.col.browser":
+    "The browser and its version; Unknown when the report did not say.",
+  "admin.errors.reports.guide.col.device":
+    "Phone, tablet or desktop, read from the browser's own description.",
+  "admin.errors.reports.guide.col.language": "The language the page was shown in.",
+  "admin.errors.reports.guide.col.signedIn":
+    "Whether the person was signed in. Who they were is not recorded.",
+  "admin.errors.reports.guide.col.appVersion":
+    "The site's version that sent the report; Unknown until the site's builds carry their version.",
+  "admin.errors.reports.guide.how":
+    "Page through with Next and Previous. A report holds no name, e-mail or address, and nothing here can be changed.",
+  "admin.errors.reports.guide.next": "Go back to all error groups.",
 } as const;

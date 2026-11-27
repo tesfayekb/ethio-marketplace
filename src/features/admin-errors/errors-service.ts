@@ -70,6 +70,11 @@ export interface ErrorStats {
 
 const GROUP_KEY = /^[0-9a-f]{32}$/;
 
+/** A group key as the doors give it: 32 lowercase hex characters. Checked before any read. */
+export function isGroupKey(value: string): boolean {
+  return GROUP_KEY.test(value);
+}
+
 type Fields = Record<string, unknown>;
 
 function fieldsOf(raw: unknown): Fields | null {
@@ -266,7 +271,7 @@ export async function listErrorOccurrences(input: {
   after: OccurrenceCursor | null;
   limit: number;
 }): Promise<ErrorOccurrences> {
-  if (!GROUP_KEY.test(input.group)) throw new Error("admin_error_occurrences: not a group key");
+  if (!isGroupKey(input.group)) throw new Error("admin_error_occurrences: not a group key");
   const limit = Math.min(OCCURRENCES_PAGE_MAX, Math.max(1, Math.trunc(input.limit) || 1));
   const { data, error } = await rpc("admin_error_occurrences", {
     p_group: input.group,

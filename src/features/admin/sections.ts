@@ -113,6 +113,13 @@ export const ADMIN_SECTIONS = [
     bodyKey: "admin.section.audit.body",
   },
   {
+    id: "errors",
+    path: "/admin/errors",
+    permission: "errors:view",
+    titleKey: "admin.section.errors.title",
+    bodyKey: "admin.section.errors.body",
+  },
+  {
     id: "locations",
     path: "/admin/places",
     permission: "locations:view",
