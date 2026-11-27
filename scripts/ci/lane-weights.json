@@ -419,6 +419,16 @@
         "tests": 6
       }
     },
+    "error-reports.spec.ts": {
+      "mobile-360": {
+        "seconds": 2.7,
+        "tests": 2
+      },
+      "desktop-1280": {
+        "seconds": 2.7,
+        "tests": 2
+      }
+    },
     "failure-crawl-admin-catalog.spec.ts": {
       "mobile-360": {
         "seconds": 427.1,

@@ -2,7 +2,11 @@ import { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { StartClient } from "@tanstack/react-start/client";
 
+import { listenForFailures } from "@/lib/error-report";
 import { PLACED_DEADLINE_MS, whenStreamPlaced } from "@/lib/hydrate-when-placed";
+
+// DEC-474 Part F — the page's unhandled errors and rejections are reported (src/lib/error-report.ts).
+listenForFailures(window);
 
 /**
  * DEC-266 — the browser's entry: TanStack Start's own client entry

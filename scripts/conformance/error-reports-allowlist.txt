@@ -1,0 +1,11 @@
+# DEC-474 Part F (cursor-bundle-8b): a place the reporter census (scripts/conformance/error-reports.ts) finds that does not report, outside this lane's scope. <rule> <file>#<declaration> | <reason> | <until>
+reading src/features/admin/translations/ai-bulk-bar.tsx#COUNT_UNREAD | a count error handed in without its read draws a server notice that is not reported; the file is outside cursor-bundle-8b's scope (its §13) | 2027-02-26
+reading src/features/admin/translations/delete-language-dialog.tsx#PREVIEW_EMPTY | a preview that answered no counts draws a server notice that is not reported; the file is outside cursor-bundle-8b's scope (its §13) | 2027-02-26
+boundary src/routes/legal.$kind.tsx#Route | a legal page's own crash boundary does not reach the reporter; the legal pages are outside cursor-bundle-8b's scope (its §13) | 2027-02-26
+boundary src/routes/legal.publishing.tsx#Route | a legal page's own crash boundary does not reach the reporter; the legal pages are outside cursor-bundle-8b's scope (its §13) | 2027-02-26
+boundary src/routes/privacy.tsx#Route | a legal page's own crash boundary does not reach the reporter; the legal pages are outside cursor-bundle-8b's scope (its §13) | 2027-02-26
+boundary src/routes/terms.tsx#Route | a legal page's own crash boundary does not reach the reporter; the legal pages are outside cursor-bundle-8b's scope (its §13) | 2027-02-26
+500 src/server.ts#normalizeCatastrophicSsrResponse | the server entry's error page is HTML, not the route envelope serverError answers; moving it changes the answer a client reads | INC-1278
+500 src/server.ts#fetch | the server entry's error page is HTML, not the route envelope serverError answers; moving it changes the answer a client reads | INC-1278
+500 src/server/ad-photo.ts#adPhotoResponse | the photo address answers its own refusal shape; serverError's envelope changes the answer a client reads | INC-1278
+500 src/server/supabase/user-client.ts#refuseUserClient | serverError's answer carries an incident this one does not; moving it changes the answer a client reads | INC-1278

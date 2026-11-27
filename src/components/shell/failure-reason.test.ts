@@ -1,7 +1,11 @@
 import { onlineManager } from "@tanstack/react-query";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { failureKind, isRetryable, loadFailureReader } from "./failure-reason";
+import { failureKind, isRetryable, loadFailureReader, useFailureKind } from "./failure-reason";
+
+const reports = vi.hoisted(() => ({ report: vi.fn() }));
+vi.mock("@/lib/error-report", () => ({ reportBrowserFailure: reports.report }));
 
 const withStatus = (status: number, message = "x") => Object.assign(new Error(message), { status });
 const coded = (code: string) => Object.assign(new Error(code), { code: "P0D01" });
@@ -12,6 +16,15 @@ describe("failureKind before the reader arrives (INC-864)", () => {
     expect(failureKind(withStatus(404)).kind).toBe("gone");
     expect(failureKind(coded("listingNotFound")).kind).toBe("server");
     expect(failureKind("x").kind).toBe("server");
+  });
+
+  it("FR-U17 a refusal the first reading takes for the server's is never reported, before or after the reader arrives (DEC-474 Part F)", async () => {
+    reports.report.mockClear();
+    const refusal = coded("somethingElse");
+    const { result } = renderHook(() => useFailureKind(refusal));
+    expect(result.current.kind).toBe("server");
+    await waitFor(() => expect(result.current.kind).toBe("refused"));
+    expect(reports.report).not.toHaveBeenCalled();
   });
 });
 
@@ -115,6 +128,50 @@ describe("the rate family (INC-1280)", () => {
     expect(RATE_FAMILY).toEqual({
       words: { rateLimited: "failure.rateLimitedSoon" },
       when: { rateLimited: "failure.rateLimited" },
+    });
+  });
+});
+
+describe("the notice's report (DEC-474 Part F)", () => {
+  beforeAll(async () => {
+    await loadFailureReader();
+  });
+  afterEach(() => {
+    onlineManager.setOnline(true);
+    reports.report.mockClear();
+  });
+
+  it("FR-U18 the notice's server reading is reported once, with its status; a refusal or an offline reading never is", () => {
+    const failed = withStatus(503, "upstream unavailable");
+    const { rerender } = renderHook(() => useFailureKind(failed));
+    rerender();
+    expect(reports.report).toHaveBeenCalledTimes(1);
+    expect(reports.report).toHaveBeenCalledWith({ kind: "notice", code: "503", error: failed });
+
+    reports.report.mockClear();
+    for (const refusal of [withStatus(401), withStatus(403), withStatus(404), withStatus(429)])
+      renderHook(() => useFailureKind(refusal));
+    renderHook(() => useFailureKind(coded("permissionDenied")));
+    expect(reports.report).not.toHaveBeenCalled();
+
+    onlineManager.setOnline(false);
+    renderHook(() => useFailureKind(withStatus(500, "upstream unavailable")));
+    expect(reports.report).not.toHaveBeenCalled();
+  });
+
+  it("FR-U19 a failure whose fields throw when read is reported by its reading, never thrown into the screen", () => {
+    const unreadable = {
+      get message(): string {
+        throw new Error("x");
+      },
+    };
+    const { result } = renderHook(() => useFailureKind(unreadable));
+    expect(result.current.kind).toBe("server");
+    expect(reports.report).toHaveBeenCalledTimes(1);
+    expect(reports.report).toHaveBeenCalledWith({
+      kind: "notice",
+      code: null,
+      error: "unreadable",
     });
   });
 });

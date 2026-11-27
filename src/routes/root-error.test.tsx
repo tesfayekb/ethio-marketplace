@@ -13,6 +13,8 @@ vi.mock("../i18n", async (importOriginal) => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 vi.mock("../lib/lovable-error-reporting", () => ({ reportLovableError: () => undefined }));
+const reports = vi.hoisted(() => ({ report: vi.fn() }));
+vi.mock("@/lib/error-report", () => ({ reportBrowserFailure: reports.report }));
 const refreshed = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/on-demand-failure", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/on-demand-failure")>()),
@@ -38,5 +40,17 @@ it("REV-1 the route error view offers Refresh, never a Try again that cannot wor
   expect(refresh.textContent).toBe("common.refreshPage");
   fireEvent.click(refresh);
   expect(refreshed).toHaveBeenCalledTimes(1);
+  errors.mockRestore();
+});
+
+it("REV-2 a crash the root boundary catches is reported once, as a crash (DEC-474 Part F)", () => {
+  const view = Route.options.errorComponent;
+  if (typeof view !== "function") throw new Error("the root route has no error view");
+  const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  reports.report.mockClear();
+  const error = new Error("Cannot read properties of undefined (reading 'title')");
+  render(createElement(view, { error, reset: () => undefined, info: { componentStack: "" } }));
+  expect(reports.report).toHaveBeenCalledTimes(1);
+  expect(reports.report).toHaveBeenCalledWith({ kind: "crash", code: null, error });
   errors.mockRestore();
 });

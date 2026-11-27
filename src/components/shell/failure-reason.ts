@@ -2,6 +2,7 @@ import { onlineManager } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import type { MessageKey } from "@/i18n";
+import { reportBrowserFailure, type BrowserFailure } from "@/lib/error-report";
 import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import type { DoorFamily } from "@/lib/door-family";
@@ -139,7 +140,7 @@ export function failureKind(error: unknown): FailureReading {
  * reader arrives. A failed download goes to the shell's one notice (Refresh); the words stay.
  */
 export function useFailureKind(error: unknown): FailureReading {
-  const [, setArrived] = useState(readerModule.ready() !== null);
+  const [arrived, setArrived] = useState(readerModule.ready() !== null);
   useEffect(() => {
     if (readerModule.ready() !== null) return;
     let live = true;
@@ -153,7 +154,32 @@ export function useFailureKind(error: unknown): FailureReading {
       live = false;
     };
   }, []);
-  return failureKind(error);
+  const reading = failureKind(error);
+  // DEC-474 Part F — the notice's `server` reading is reported, once the reader has read it (the
+  // reading before it may take a refusal for the server's); a refusal or an offline reading never is.
+  useEffect(() => {
+    const mod = readerModule.ready();
+    if (mod === null || reading.kind !== "server") return;
+    reportBrowserFailure(noticeReport(mod, error, reading.diagnostic));
+  }, [arrived, error, reading.kind, reading.diagnostic]);
+  return reading;
+}
+
+/** The notice's report; a failure whose fields throw when read is reported by its reading alone. */
+function noticeReport(mod: ReaderModule, error: unknown, diagnostic: string): BrowserFailure {
+  try {
+    return { kind: "notice", code: reportedCode(mod, error), error };
+  } catch {
+    return { kind: "notice", code: null, error: diagnostic };
+  }
+}
+
+/** The report's code: the failure's own code, else its status (DEC-474: "a typed failure's code or status"). */
+function reportedCode(mod: ReaderModule, error: unknown): string | null {
+  const code = codeOf(mod, error);
+  if (code !== undefined) return code;
+  const status = mod.gateRefusal(error)?.status ?? mod.readerFailure(error).status;
+  return status === undefined ? null : String(status);
 }
 
 /** The rate words' read, for `refusalText` (the one place `{when}` is filled). */

@@ -28,6 +28,7 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 // TYPE ONLY — the judge itself is a server module (import protection keeps
 // `src/server/**` out of the client graph); the handler imports it dynamically.
 import type { GeoAnswer } from "../server/geo/guess";
+import { reportBrowserFailure } from "@/lib/error-report";
 import { errorText } from "@/lib/error-text";
 import { refreshPage } from "@/lib/on-demand-failure";
 import { projectEnv } from "@/lib/supabase-door";
@@ -256,6 +257,8 @@ function ErrorContent({ error }: ErrorComponentProps) {
     reportLovableError(error instanceof Error ? error : new Error(errorText(error)), {
       boundary: "tanstack_root_error_component",
     });
+    // DEC-474 Part F — every crash is our own error report too.
+    reportBrowserFailure({ kind: "crash", code: null, error });
   }, [error]);
 
   return (
