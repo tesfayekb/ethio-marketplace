@@ -14,11 +14,17 @@ import ts from "typescript";
  *              (src/components/shell/failure-reason.ts), in a function that compares the kind with
  *              "server" and with no refusal kind;
  *   500      — no answer of status 500 is built under src/server/, src/routes/api/ or src/server.ts
- *              but in the answer module (the type checker says what a call returns).
- * Keys survive a move: `<rule> <file>#<the enclosing declaration's name>`. Allowances
- * `key | reason | until` in error-reports-allowlist.txt.
- * It MISSES: a reading built through a helper elsewhere, a boundary a library defines, and a 500
- * whose status arrives as a variable.
+ *              but in the answer module (the type checker says what a call returns);
+ *   unseen   — (INC-1319) a notice drawn without its failure is a place the reporter never sees:
+ *              an element given `error={null}` or `error={undefined}` (a notice, or a wrapper
+ *              that hands it to one), and a given `reading={…}` that is neither a refusal by
+ *              construction (`goneReading()`, `rateReading()`) nor an object this file builds
+ *              (the reading rule judges those).
+ * Keys survive a move: `<rule> <file>#<the enclosing declaration's name>`, and for unseen
+ * `::<the element's testid>` when it has one. Allowances `key | reason | until` in
+ * error-reports-allowlist.txt.
+ * It MISSES: a reading built through a helper elsewhere, a boundary a library defines, a 500
+ * whose status arrives as a variable, and a notice whose error is a variable that holds null.
  */
 
 export type ReportFinding = { file: string; line: number; what: string; key: string };
@@ -36,6 +42,8 @@ const REFUSAL_KINDS = new Set([
   "rateLimited",
   "refused",
 ]);
+/** Given readings that are refusals by construction: the notice never reports them. */
+const REFUSAL_READINGS = new Set(["goneReading", "rateReading"]);
 const COMPARISONS = new Set([
   ts.SyntaxKind.EqualsEqualsEqualsToken,
   ts.SyntaxKind.ExclamationEqualsEqualsToken,
@@ -116,13 +124,62 @@ function lineOf(source: ts.SourceFile, node: ts.Node): number {
   return source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
 }
 
+/** A JSX attribute's expression (`name={…}`), or undefined. */
+function attributeExpression(attribute: ts.JsxAttribute): ts.Expression | undefined {
+  const value = attribute.initializer;
+  return value !== undefined && ts.isJsxExpression(value) ? value.expression : undefined;
+}
+
+/** The element's literal `testid`, for the unseen rule's key. */
+function testidOf(attribute: ts.JsxAttribute): string | null {
+  for (const sibling of attribute.parent.properties) {
+    if (!ts.isJsxAttribute(sibling) || nameText(sibling.name) !== "testid") continue;
+    const value = sibling.initializer;
+    if (value !== undefined && ts.isStringLiteral(value)) return value.text;
+  }
+  return null;
+}
+
+/** Whether a given reading is one the unseen rule leaves alone (see the rule above). */
+function judgedElsewhere(expression: ts.Expression, built: ReadonlySet<string>): boolean {
+  if (ts.isCallExpression(expression)) {
+    const name = calleeName(expression);
+    return name !== null && REFUSAL_READINGS.has(name);
+  }
+  return ts.isIdentifier(expression) && built.has(expression.text);
+}
+
+/** Whether a notice drawn with this attribute never shows the reporter its failure. */
+function unseenAttribute(attribute: ts.JsxAttribute, built: ReadonlySet<string>): boolean {
+  const expression = attributeExpression(attribute);
+  if (expression === undefined) return false;
+  const name = nameText(attribute.name);
+  if (name === "error")
+    return (
+      expression.kind === ts.SyntaxKind.NullKeyword ||
+      (ts.isIdentifier(expression) && expression.text === "undefined")
+    );
+  return name === "reading" && !judgedElsewhere(expression, built);
+}
+
 /** Rules reading, boundary and notice, over one source file. */
 export function readingFindings(file: string, source: ts.SourceFile): ReportFinding[] {
   let reports = false;
   const readings: ts.Node[] = [];
   const boundaries: ts.Node[] = [];
   const notices: ts.CallExpression[] = [];
+  const attributes: ts.JsxAttribute[] = [];
+  const built = new Set<string>();
   const walk = (node: ts.Node) => {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer !== undefined &&
+      ts.isObjectLiteralExpression(node.initializer)
+    )
+      built.add(node.name.text);
+    if (ts.isJsxAttribute(node) && ["error", "reading"].includes(nameText(node.name) ?? ""))
+      attributes.push(node);
     if (ts.isCallExpression(node) && calleeName(node) === REPORTER) {
       reports = true;
       const [argument] = node.arguments;
@@ -169,6 +226,16 @@ export function readingFindings(file: string, source: ts.SourceFile): ReportFind
     const refusal = [...compared].some((literal) => REFUSAL_KINDS.has(literal));
     if (!compared.has("server") || refusal)
       add("notice", call, "reports a notice its server kind did not decide");
+  }
+  for (const attribute of attributes) {
+    if (!unseenAttribute(attribute, built)) continue;
+    const testid = testidOf(attribute);
+    findings.push({
+      file,
+      line: lineOf(source, attribute),
+      what: "draws a notice without its failure, which the reporter never sees",
+      key: `unseen ${file}#${enclosingName(attribute)}${testid === null ? "" : `::${testid}`}`,
+    });
   }
   return findings;
 }

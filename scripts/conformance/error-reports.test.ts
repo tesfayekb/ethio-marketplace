@@ -176,4 +176,47 @@ describe("the reporter census (DEC-474 Part F)", () => {
       ),
     ).toEqual([]);
   });
+
+  it("ERCE-5 a planted notice drawn with an error of null or undefined, or with a carried reading, fails (INC-1319); its error, a refusal by construction and a reading the file builds pass", () => {
+    const path = "src/features/x/unseen.tsx";
+    const unseen = readingFindings(
+      path,
+      sourceOf(
+        path,
+        `export function Unseen({ item }: { item: { reading: FailureReading } }) {
+           return (
+             <>
+               <FailureNotice error={null} testid="x-null" />
+               <FeedError error={undefined} />
+               <FailureNotice reading={item.reading} testid="x-carried" />
+             </>
+           );
+         }`,
+      ),
+    );
+    expect(unseen.map((f) => f.key)).toEqual([
+      `unseen ${path}#Unseen::x-null`,
+      `unseen ${path}#Unseen`,
+      `unseen ${path}#Unseen::x-carried`,
+    ]);
+
+    const twins = readingFindings(
+      path,
+      sourceOf(
+        path,
+        `const NONE = { kind: "server", diagnostic: "none", until: undefined };
+         export function Seen({ error }: { error: unknown }) {
+           return (
+             <>
+               <FailureNotice error={error} testid="x-error" />
+               <FailureNotice reading={goneReading()} testid="x-gone" />
+               <FailureNotice reading={rateReading(undefined)} testid="x-rate" />
+               <FailureNotice reading={NONE} testid="x-built" />
+             </>
+           );
+         }`,
+      ),
+    );
+    expect(twins.map((f) => f.key)).toEqual(["reading src/features/x/unseen.tsx#NONE"]);
+  });
 });
