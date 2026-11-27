@@ -1,58 +1,58 @@
 # Local backend proof (non-gating)
 
-- Commit: `fdff6e77fd067d87d21f5247f286395057a7a292`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45935486979
+- Commit: `09cf369772736bbef313c8ab5a0f5d7f220cfaac`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/45939465263
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 565 | 66 | applied 565/565 | 38 | 0 | 0 | 16 | 54 |
-| email | 204 | 66 | applied 565/565 | 6 | 0 | 0 | 0 | 6 |
-| webkit | 806 | 65 | applied 565/565 | 80 | 0 | 0 | 24 | 104 |
-| 1 | 882 | 65 | applied 565/565 | 226 | 0 | 0 | 70 | 296 |
-| 2 | 1311 | 78 | applied 565/565 | 85 | 7 | 0 | 32 | 124 |
-| 3 | 788 | 87 | applied 565/565 | 75 | 0 | 0 | 71 | 146 |
-| 4 | 912 | 89 | applied 565/565 | 149 | 3 | 0 | 12 | 164 |
-| 5 | 1258 | 67 | applied 565/565 | 153 | 3 | 0 | 8 | 164 |
-| 6 | 1314 | 67 | applied 565/565 | 140 | 0 | 0 | 12 | 152 |
-| 7 | 1141 | 55 | applied 565/565 | 192 | 0 | 1 | 11 | 204 |
-| 8 | 936 | 65 | applied 565/565 | 137 | 0 | 0 | 5 | 142 |
-| 9 | 634 | 66 | applied 565/565 | 210 | 0 | 0 | 6 | 216 |
-| 10 | 1335 | 77 | applied 565/565 | 163 | 0 | 0 | 41 | 204 |
-| 11 | 1709 | 69 | applied 565/565 | 134 | 0 | 0 | 20 | 154 |
-| 12 | 1077 | 68 | applied 565/565 | 175 | 0 | 0 | 15 | 190 |
-| 13 | 816 | 68 | applied 565/565 | 130 | 0 | 0 | 12 | 142 |
-| 14 | 1269 | 67 | applied 565/565 | 166 | 0 | 0 | 7 | 173 |
-| 15 | 1114 | 67 | applied 565/565 | 150 | 0 | 0 | 8 | 158 |
-| 16 | 968 | 70 | applied 565/565 | 270 | 0 | 0 | 48 | 318 |
-| repeat | 228 | 66 | applied 565/565 | 24 | 0 | 0 | 0 | 24 |
-| TOTAL | — | — | — | 2703 | 13 | 1 | 418 | 3135 |
+| smoke | 608 | 64 | applied 565/565 | 38 | 0 | 0 | 16 | 54 |
+| email | 198 | 68 | applied 565/565 | 6 | 0 | 0 | 0 | 6 |
+| webkit | 819 | 66 | applied 565/565 | 80 | 0 | 0 | 24 | 104 |
+| 1 | 893 | 65 | applied 565/565 | 226 | 0 | 0 | 70 | 296 |
+| 2 | 898 | 79 | applied 565/565 | 92 | 0 | 0 | 32 | 124 |
+| 3 | 726 | 68 | applied 565/565 | 75 | 0 | 0 | 71 | 146 |
+| 4 | 624 | 67 | applied 565/565 | 152 | 0 | 0 | 12 | 164 |
+| 5 | 1275 | 88 | applied 565/565 | 156 | 0 | 0 | 8 | 164 |
+| 6 | 1300 | 68 | applied 565/565 | 140 | 0 | 0 | 12 | 152 |
+| 7 | 1229 | 71 | applied 565/565 | 193 | 0 | 0 | 11 | 204 |
+| 8 | 958 | 65 | applied 565/565 | 137 | 0 | 0 | 5 | 142 |
+| 9 | 638 | 65 | applied 565/565 | 209 | 0 | 1 | 6 | 216 |
+| 10 | 1277 | 68 | applied 565/565 | 163 | 0 | 0 | 41 | 204 |
+| 11 | 1739 | 68 | applied 565/565 | 134 | 0 | 0 | 20 | 154 |
+| 12 | 1107 | 71 | applied 565/565 | 175 | 0 | 0 | 15 | 190 |
+| 13 | 866 | 73 | applied 565/565 | 130 | 0 | 0 | 12 | 142 |
+| 14 | 1324 | 67 | applied 565/565 | 166 | 0 | 0 | 7 | 173 |
+| 15 | 1266 | 87 | applied 565/565 | 150 | 0 | 0 | 8 | 158 |
+| 16 | not run | 67 | applied 565/565 | 0 | 0 | 0 | 0 | 0 |
+| repeat | 1095 | 67 | applied 565/565 | 19 | 0 | 0 | 141 | 160 |
+| TOTAL | — | — | — | 2441 | 0 | 1 | 511 | 2953 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the twenty lanes)
 
-- Slowest lane: 11 1709 s
-- Repeat lane (DEC-283): Repeat: each 6 on both projects; 2 tests selected, 2 repeated; budget 793 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 6 on mobile-360 and desktop-1280 at one worker after the parallel pass
-- Database session samples during each start (INC-944): smoke 7, email 7, webkit 7, 1 7, 2 10, 3 11, 4 12, 5 7, 6 7, 7 6, 8 7, 9 7, 10 9, 11 7, 12 7, 13 7, 14 7, 15 7, 16 8, repeat 7
-- Lane plan (DEC-375 b): 16 lanes over 126 files, weights from run 43431755160 (2026-11-13); mean 793 s, largest 793 s (+0 %); alone: none; unweighed (median 44 s): none; repeat budget 793 s; planned/test seconds: 1 793/708, 2 792/1108, 3 793/576, 4 793/696, 5 793/1079, 6 793/1151, 7 793/985, 8 793/783, 9 793/438, 10 793/1130, 11 793/1547, 12 793/899, 13 792/646, 14 793/1107, 15 793/955, 16 793/779
+- Slowest lane: 11 1739 s
+- Repeat lane (DEC-283): Not repeated: e2e/failure-crawl-member-public.spec.ts (7 tests); Not repeated: e2e/failure-crawl-public.spec.ts (13 tests); Repeat: each 2 on both projects; 60 tests selected, 40 repeated; budget 793 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 5 of 7; Repeat in WebKit (DEC-371): 0 of the repeated tests, on webkit-1280 and webkit-390; Repeat serially (DEC-415): 0 of the repeated tests, @global-state, each 2 on mobile-360 and desktop-1280 at one worker after the parallel pass; Not repeated (time cap): error-reports.spec.ts / our own error reports (DEC-474 Part F) / ER-1 a server failure on a page is reported once / desktop-1280; Not repeated (time cap): error-reports.spec.ts / our own error reports (DEC-474 Part F) / ER-1 a server failure on a page is reported once / mobile-360; Not repeated (time cap): error-reports.spec.ts / our own error reports (DEC-474 Part F) / ER-2 a refusal on a page is never reported / desktop-1280; Not repeated (time cap): error-reports.spec.ts / our own error reports (DEC-474 Part F) / ER-2 a refusal on a page is never reported / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-50 /admin/categories as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-50 /admin/categories as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-51 /admin/attributes as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-51 /admin/attributes as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-52 /admin/images as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-52 /admin/images as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-53 /admin/countries as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-53 /admin/countries as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-54 /admin/coverage as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-54 /admin/coverage as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-55 /admin/locations as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-55 /admin/locations as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-56 /admin/places as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-56 /admin/places as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-57 /admin/packages as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-57 /admin/packages as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-58 /admin/monetisation as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-58 /admin/monetisation as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-70 /admin/ as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-70 /admin/ as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-71 /admin/listings as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-71 /admin/listings as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-72 /admin/listings/$listingId as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-72 /admin/listings/$listingId as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-73 /admin/listings/$listingId/edit as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-73 /admin/listings/$listingId/edit as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-74 /admin/legal as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-74 /admin/legal as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-75 /admin/legal/$versionId as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-75 /admin/legal/$versionId as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-76 /admin/legal/edit as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-76 /admin/legal/edit as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-77 /admin/translations as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-77 /admin/translations as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-78 /admin/translations/$lang as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-78 /admin/translations/$lang as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-60 /admin/users as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-60 /admin/users as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-61 /admin/users/$userId as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-61 /admin/users/$userId as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-62 /admin/roles as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-62 /admin/roles as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-63 /admin/roles/$roleId as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-63 /admin/roles/$roleId as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-65 /admin/audit as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-65 /admin/audit as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-66 /admin/screening as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-66 /admin/screening as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-67 /admin/ai as staff: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-67 /admin/ai as staff: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-30 /account as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-30 /account as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-31 /account/legal as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-31 /account/legal as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-32 /account/legal/$versionId as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-32 /account/legal/$versionId as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-33 /account/saved as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-33 /account/saved as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-34 /settings as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-34 /settings as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-35 /legal/accept as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-35 /legal/accept as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-36 /legal/publishing as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-36 /legal/publishing as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-37 /dev/tall as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-account.spec.ts / FAILURE CRAWL — the member's account pages (DEC-459 c) / FCR-37 /dev/tall as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-40 /my-listings as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-40 /my-listings as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-41 /my-listings/$listingId as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-41 /my-listings/$listingId as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-42 /my-listings/$listingId/edit as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-42 /my-listings/$listingId/edit as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-43 /post as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-43 /post as member: loads clean and says every failed read / mobile-360; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-44 /post/$listingId as member: loads clean and says every failed read / desktop-1280; Not repeated (time cap): failure-crawl-member-listings.spec.ts / FAILURE CRAWL — the member's ads and the wizard (DEC-459 c) / FCR-44 /post/$listingId as member: loads clean and says every failed read / mobile-360
+- Database session samples during each start (INC-944): smoke 7, email 8, webkit 7, 1 7, 2 10, 3 8, 4 7, 5 12, 6 7, 7 9, 8 7, 9 7, 10 7, 11 7, 12 8, 13 9, 14 7, 15 12, 16 7, repeat 7
+- Lane plan (DEC-375 b): 16 lanes over 126 files, weights from run 43431755160 (2026-11-13); mean 793 s, largest 793 s (+0 %); alone: none; unweighed (median 44 s): none; repeat budget 793 s; planned/test seconds: 1 793/736, 2 792/685, 3 793/549, 4 793/440, 5 793/1073, 6 793/1141, 7 793/1026, 8 793/772, 9 793/453, 10 793/1100, 11 793/1546, 12 793/919, 13 792/672, 14 793/1130, 15 793/1062, 16 ?/not run
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45935486979-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-email
-  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45935486979-local-webkit
-  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-1
-  - 2: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-2
-  - 3: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-3
-  - 4: [e2e:teardown] deleted 11 user(s) owned by process 45935486979-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-6
-  - 7: [e2e:teardown] deleted 5 user(s) owned by process 45935486979-local-7
-  - 8: [e2e:teardown] deleted 23 user(s) owned by process 45935486979-local-8
-  - 9: [e2e:teardown] deleted 15 user(s) owned by process 45935486979-local-9
-  - 10: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-10
-  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45935486979-local-11
-  - 12: [e2e:teardown] deleted 7 user(s) owned by process 45935486979-local-12
-  - 13: [e2e:teardown] deleted 27 user(s) owned by process 45935486979-local-13
-  - 14: [e2e:teardown] deleted 17 user(s) owned by process 45935486979-local-14
-  - 15: [e2e:teardown] deleted 47 user(s) owned by process 45935486979-local-15
-  - 16: [e2e:teardown] deleted 12 user(s) owned by process 45935486979-local-16
-  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 45935486979-local-repeat
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 45939465263-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-email
+  - webkit: [e2e:teardown] deleted 4 user(s) owned by process 45939465263-local-webkit
+  - 1: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-1
+  - 2: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-2
+  - 3: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-3
+  - 4: [e2e:teardown] deleted 11 user(s) owned by process 45939465263-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-6
+  - 7: [e2e:teardown] deleted 5 user(s) owned by process 45939465263-local-7
+  - 8: [e2e:teardown] deleted 23 user(s) owned by process 45939465263-local-8
+  - 9: [e2e:teardown] deleted 15 user(s) owned by process 45939465263-local-9
+  - 10: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 45939465263-local-11
+  - 12: [e2e:teardown] deleted 7 user(s) owned by process 45939465263-local-12
+  - 13: [e2e:teardown] deleted 27 user(s) owned by process 45939465263-local-13
+  - 14: [e2e:teardown] deleted 17 user(s) owned by process 45939465263-local-14
+  - 15: [e2e:teardown] deleted 47 user(s) owned by process 45939465263-local-15
+  - 16: not found
+  - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -78,35 +78,36 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 2
-- Step failure:
-Step smoke: outcome failure
-  
-- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-70 /admin/ as staff: loads clean and says every failed read / mobile-360 — Error: /admin/ api /api/error-reports (network): the read failed and the screen said nothing (no failure notice)
-- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-71 /admin/listings as staff: loads clean and says every failed read / mobile-360 — Error: /admin/listings at 1280px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-72 /admin/listings/$listingId as staff: loads clean and says every failed read / mobile-360 — Error: /admin/listings/$listingId at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-73 /admin/listings/$listingId/edit as staff: loads clean and says every failed read / mobile-360 — Error: /admin/listings/$listingId/edit at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-74 /admin/legal as staff: loads clean and says every failed read / mobile-360 — Error: /admin/legal at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-75 /admin/legal/$versionId as staff: loads clean and says every failed read / mobile-360 — Error: /admin/legal/$versionId at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-content.spec.ts / FAILURE CRAWL — the staff console's content pages (DEC-459 c) / FCR-76 /admin/legal/edit as staff: loads clean and says every failed read / mobile-360 — Error: /admin/legal/edit at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+## Lane 9
+- dialogs.spec.ts / one dialog look (turn S6-1) / DLG-E5 focus goes in on open and back to the trigger on Escape; the page does not move / mobile-360 — Error: style-dialog: the page did not scroll
 
-## Lane 4
+## Lane 16
 - Step failure:
-Step smoke: outcome failure
-  
-- failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-56 /admin/places as staff: loads clean and says every failed read / mobile-360 — Error: /admin/places at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-57 /admin/packages as staff: loads clean and says every failed read / mobile-360 — Error: /admin/packages at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-catalog.spec.ts / FAILURE CRAWL — the staff console's catalogue pages (DEC-459 c) / FCR-58 /admin/monetisation as staff: loads clean and says every failed read / mobile-360 — Error: /admin/monetisation at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
+Step install-chromium-s-system-libraries: outcome failure
+  Get:5 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+  Get:7 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1492 kB]
+  Get:8 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [321 kB]
+  Get:9 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1716 kB]
+  Get:10 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [346 kB]
+  Get:11 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1949 kB]
+  Get:12 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [448 kB]
+  Get:13 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1231 kB]
+  Get:14 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/main Translation-en [243 kB]
+  Get:15 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1233 kB]
+  Get:16 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [249 kB]
+  Get:17 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1842 kB]
+  Get:18 http://us-east-2.ec2.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [429 kB]
+  Reading package lists...
+  E: Failed to fetch https://packages.microsoft.com/ubuntu/24.04/prod/dists/noble/InRelease  403  Forbidden [IP: 13.107.246.40 443]
+  E: The repository 'https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease' is no longer signed.
+  Failed to install browser dependencies
+  Error: Installation process exited with code: 100
+  ::error title=ci-mirror::the install failed (exit 1) after apt's fetch stage — final, never run twice (DEC-276)
+  ::error title=ci-deadline::bash scripts/ci/install-browser-deps.sh chromium failed with exit 1 on try 1 of 1
+- No JSON results; smoke skipped
 
-## Lane 5
-- Step failure:
-Step smoke: outcome failure
-  
-- failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-65 /admin/audit as staff: loads clean and says every failed read / mobile-360 — Error: /admin/audit at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-66 /admin/screening as staff: loads clean and says every failed read / mobile-360 — Error: /admin/screening at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-- failure-crawl-admin-people.spec.ts / FAILURE CRAWL — the staff console's people pages (DEC-459 c) / FCR-67 /admin/ai as staff: loads clean and says every failed read / mobile-360 — Error: /admin/ai at 360px: [client-error] Failed to load resource: the server responded with a status of 429 (Too Many Requests)
-
-## Lane 7
-- legal-admin.spec.ts / Admin Legal / LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish / desktop-1280 — Error: expect(locator).toBeVisible() failed
+## Lane repeat
+- Outside test — Timed out waiting 913s for the test suite to run
+- Outside test — Timed out waiting 913s for the teardown for test suite to run
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — twenty lanes (eighteen, the WebKit lane of DEC-371 and the repeat lane of DEC-283), the email lane included; two consecutive full dev runs judge each change.
